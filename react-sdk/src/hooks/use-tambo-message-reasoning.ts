@@ -1,34 +1,8 @@
 import type { TamboThreadMessage } from "../model/generate-component-response";
-
-/**
- * Type guard to check if component has reasoning property
- * @returns true if component has a reasoning string property
- */
-function hasReasoningProperty(
-  component: unknown,
-): component is { reasoning: string } {
-  return (
-    typeof component === "object" &&
-    component !== null &&
-    "reasoning" in component &&
-    typeof (component as any).reasoning === "string"
-  );
-}
-
-/**
- * Type guard to check if component has message property
- * @returns true if component has a message string property
- */
-function hasMessageProperty(
-  component: unknown,
-): component is { message: string } {
-  return (
-    typeof component === "object" &&
-    component !== null &&
-    "message" in component &&
-    typeof (component as any).message === "string"
-  );
-}
+import {
+  hasReasoningProperty,
+  hasMessageProperty,
+} from "../util/type-guards";
 
 /**
  * Hook to extract reasoning or thinking text from a message.

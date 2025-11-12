@@ -107,6 +107,7 @@ export type {
 
 // Message utilities
 export * from "./util/message-content";
+export * from "./util/type-guards";
 
 // Note MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package

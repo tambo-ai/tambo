@@ -1,4 +1,6 @@
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import type { TamboThreadMessage } from "../model/generate-component-response";
+import { hasToolCallRequestProperty } from "../util/type-guards";
 
 /**
  * Hook to extract tool call information from a message.
@@ -14,8 +16,13 @@ import type { TamboThreadMessage } from "../model/generate-component-response";
  * ```
  */
 export function useTamboMessageToolCall(message: TamboThreadMessage) {
-  const toolCall =
-    message.toolCallRequest ?? message.component?.toolCallRequest ?? null;
+  let toolCall: TamboAI.ToolCallRequest | null = null;
+
+  if (message.toolCallRequest) {
+    toolCall = message.toolCallRequest;
+  } else if (hasToolCallRequestProperty(message.component)) {
+    toolCall = message.component.toolCallRequest;
+  }
 
   return {
     toolCall,

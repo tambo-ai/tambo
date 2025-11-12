@@ -1,3 +1,4 @@
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import type { TamboThreadMessage } from "../model/generate-component-response";
 import {
   getSafeContent,
@@ -5,50 +6,11 @@ import {
   getMessageAttachments,
   getMessageImages,
 } from "../util/message-content";
-
-/**
- * Type guard to check if component has reasoning property
- * @returns true if component has a reasoning string property
- */
-function hasReasoningProperty(
-  component: unknown,
-): component is { reasoning: string } {
-  return (
-    typeof component === "object" &&
-    component !== null &&
-    "reasoning" in component &&
-    typeof (component as any).reasoning === "string"
-  );
-}
-
-/**
- * Type guard to check if component has message property
- * @returns true if component has a message string property
- */
-function hasMessageProperty(
-  component: unknown,
-): component is { message: string } {
-  return (
-    typeof component === "object" &&
-    component !== null &&
-    "message" in component &&
-    typeof (component as any).message === "string"
-  );
-}
-
-/**
- * Type guard to check if component has toolCallRequest property
- * @returns true if component has a toolCallRequest property
- */
-function hasToolCallRequestProperty(
-  component: unknown,
-): component is { toolCallRequest: any } {
-  return (
-    typeof component === "object" &&
-    component !== null &&
-    "toolCallRequest" in component
-  );
-}
+import {
+  hasReasoningProperty,
+  hasMessageProperty,
+  hasToolCallRequestProperty,
+} from "../util/type-guards";
 
 /**
  * Hook to extract commonly used properties from a TamboThreadMessage.
@@ -73,7 +35,7 @@ export function useTamboMessageProps(message: TamboThreadMessage) {
     reasoning = message.component.message;
   }
 
-  let toolCall: any = null;
+  let toolCall: TamboAI.ToolCallRequest | null = null;
   if (message.toolCallRequest) {
     toolCall = message.toolCallRequest;
   } else if (hasToolCallRequestProperty(message.component)) {
