@@ -27,11 +27,6 @@ type MobileContextType = {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
   closeSidebar: () => void;
-
-  // Expanded item tracking for navigation dropdowns
-  expandedItems: Record<string, boolean>;
-  toggleExpandedItem: (id: string) => void;
-  resetExpandedItems: () => void;
 };
 
 const MobileContext = createContext<MobileContextType | undefined>(undefined);
@@ -44,9 +39,6 @@ export function MobileProvider({ children }: { children: ReactNode }) {
   // Navigation state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
-    {},
-  );
 
   // Handle window resize and initial detection - removed isMobileMenuOpen dependency
   useEffect(() => {
@@ -100,13 +92,6 @@ export function MobileProvider({ children }: { children: ReactNode }) {
 
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
-  const toggleExpandedItem = useCallback(
-    (id: string) => setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] })),
-    [],
-  );
-
-  const resetExpandedItems = useCallback(() => setExpandedItems({}), []);
-
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => {
     // Default state before hydration
@@ -120,9 +105,6 @@ export function MobileProvider({ children }: { children: ReactNode }) {
         isSidebarOpen: false,
         toggleSidebar: () => {},
         closeSidebar: () => {},
-        expandedItems: {},
-        toggleExpandedItem: () => {},
-        resetExpandedItems: () => {},
       };
     }
 
@@ -136,22 +118,16 @@ export function MobileProvider({ children }: { children: ReactNode }) {
       isSidebarOpen,
       toggleSidebar,
       closeSidebar,
-      expandedItems,
-      toggleExpandedItem,
-      resetExpandedItems,
     };
   }, [
     isMobile,
     isMounted,
     isMobileMenuOpen,
     isSidebarOpen,
-    expandedItems,
     toggleMobileMenu,
     closeMobileMenu,
     toggleSidebar,
     closeSidebar,
-    toggleExpandedItem,
-    resetExpandedItems,
   ]);
 
   return (
