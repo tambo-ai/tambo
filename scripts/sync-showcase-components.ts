@@ -228,9 +228,7 @@ function resolveTargetPath(relativePath: string): string {
   return path.join(SHOWCASE_COMPONENTS_PATH, normalized);
 }
 
-function normalizeTargetRelativePath(
-  fileConfig: FileConfig,
-): string | null {
+function normalizeTargetRelativePath(fileConfig: FileConfig): string | null {
   if (fileConfig.path) {
     return fileConfig.path.trim();
   }
