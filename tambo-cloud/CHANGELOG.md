@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.122.2](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.122.1...repo-v0.122.2) (2025-11-13)
+
+
+### Bug Fixes
+
+* better strict handling ([#2073](https://github.com/tambo-ai/tambo-cloud/issues/2073)) ([ecddcab](https://github.com/tambo-ai/tambo-cloud/commit/ecddcab3aa836dbd601fee04c30e31fe42a3c8fe))
+
 ## [0.122.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.122.0...repo-v0.122.1) (2025-11-13)
 
 
