@@ -22,7 +22,7 @@
 
 The `@tambo-ai/react` package provides React hooks and providers for building generative UI applications. The AI dynamically decides which components to render and what props to pass based on natural language conversations.
 
-**MCP-native** from the ground up - built with the Model Context Protocol for seamless integrations with databases, APIs, files, and external systems.
+**MCP-native** from the ground up — integrates the Model Context Protocol (MCP) for seamless integrations with databases, APIs, files, and external systems.
 
 ## Why Use This SDK?
 
@@ -120,7 +120,13 @@ function ChatInterface() {
     <div>
       {thread.messages.map((message) => (
         <div key={message.id}>
-          <p>{message.content}</p>
+          {Array.isArray(message.content) ? (
+            message.content.map((part, i) =>
+              part.type === "text" ? <p key={i}>{part.text}</p> : null,
+            )
+          ) : (
+            <p>{String(message.content)}</p>
+          )}
           {message.renderedComponent}
         </div>
       ))}

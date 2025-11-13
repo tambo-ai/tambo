@@ -10,7 +10,7 @@ Tambo is a generative UI SDK for React. The AI dynamically decides which compone
 
 Register your components once. The AI agent renders and controls them based on user messages and context.
 
-**MCP-native** from the ground up - built with the Model Context Protocol, a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
+**MCP-native** from the ground up — integrates the Model Context Protocol (MCP), a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
 
 <video
   src="https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23"
@@ -171,7 +171,11 @@ const { value, setValue, submit, isPending } = useTamboThreadInput();
 {
   thread.messages.map((message) => (
     <div key={message.id}>
-      <p>{message.content}</p>
+      {Array.isArray(message.content)
+        ? message.content.map((part, i) =>
+            part.type === "text" ? <p key={i}>{part.text}</p> : null,
+          )
+        : <p>{String(message.content)}</p>}
       {message.renderedComponent}
     </div>
   ));
@@ -192,11 +196,13 @@ import { MessageCircleMore } from "lucide-react";
 Connect pre-built integrations (Linear, Slack, databases) or your own custom MCP servers:
 
 ```tsx
+import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+
 const mcpServers = [
   {
     name: "filesystem",
     url: "http://localhost:3001/mcp",
-    transport: "http",
+    transport: MCPTransport.HTTP,
   },
 ];
 

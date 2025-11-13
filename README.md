@@ -28,7 +28,7 @@ Tambo is a generative UI SDK for React. The AI dynamically decides which compone
 
 Register your components once. The AI agent renders and controls them based on user messages and context.
 
-**MCP-native** from the ground up - built with the Model Context Protocol, a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
+**MCP-native** from the ground up — integrates the Model Context Protocol (MCP), a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
 
 https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23
 
@@ -180,9 +180,12 @@ const InteractableNote = withInteractable(Note, {
 Connects your app to AI and handles streaming, state, and natural language processing.
 
 ```tsx
-<TamboProvider apiKey={process.env.TAMBO_API_KEY} components={components}>
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  components={components}
+>
   <Chat />
-  <InteractableNote id="note-1" title="My Note" />
+  <InteractableNote id="note-1" title="My Note" content="Start writing..." />
 </TamboProvider>
 ```
 
@@ -209,7 +212,13 @@ const { thread } = useTamboThread();
 {
   thread.messages.map((message) => (
     <div key={message.id}>
-      <p>{message.content}</p>
+      {Array.isArray(message.content) ? (
+        message.content.map((part, i) =>
+          part.type === "text" ? <p key={i}>{part.text}</p> : null,
+        )
+      ) : (
+        <p>{String(message.content)}</p>
+      )}
       {message.renderedComponent}
     </div>
   ));
@@ -245,11 +254,13 @@ if (!streamStatus.isSuccess) return <Spinner />;
 Connect pre-built integrations (Linear, Slack, databases) or your own custom MCP servers.
 
 ```tsx
+import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+
 const mcpServers = [
   {
     name: "filesystem",
     url: "http://localhost:3001/mcp",
-    transport: "http",
+    transport: MCPTransport.HTTP,
   },
 ];
 
@@ -276,8 +287,19 @@ const tools: TamboTool[] = [
     name: "getWeather",
     description: "Fetches weather for a location",
     tool: async (location: string) =>
-      fetch(`/api/weather?q=${location}`).then((r) => r.json()),
-    toolSchema: z.function().args(z.string()).returns(weatherSchema),
+      fetch(`/api/weather?q=${encodeURIComponent(location)}`).then((r) =>
+        r.json(),
+      ),
+    toolSchema: z
+      .function()
+      .args(z.string())
+      .returns(
+        z.object({
+          temperature: z.number(),
+          condition: z.string(),
+          location: z.string(),
+        }),
+      ),
   },
 ];
 
@@ -331,7 +353,11 @@ Auto-generate contextual suggestions:
 ```tsx
 const { suggestions, accept } = useTamboSuggestions({ maxSuggestions: 3 });
 
-suggestions.map((s) => <button onClick={() => accept(s)}>{s.title}</button>);
+suggestions.map((s) => (
+  <button key={s.id} onClick={() => accept(s)}>
+    {s.title}
+  </button>
+));
 ```
 
 [→ Learn more](https://docs.tambo.co/concepts/suggestions)
@@ -341,7 +367,7 @@ suggestions.map((s) => <button onClick={() => accept(s)}>{s.title}</button>);
 - **OpenAI** (GPT-4.1, GPT-5, O3, and more)
 - **Anthropic** (Claude 3.5, Claude 4.5, and more)
 - **Google Gemini** (1.5 Pro, 2.0 Flash, and more)
-- **Mistral** (Large, Medium, Magistral, and more)
+- **Mistral** (Large, Small, Codestral, and more)
 - Custom OpenAI-compatible providers
 
 Don't see your favorite? [Let us know →](https://github.com/tambo-ai/tambo/issues)
