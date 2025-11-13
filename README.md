@@ -1,253 +1,298 @@
 <div align="center">
-	<img src="assets/octo-white-background-rounded.png" width="150" height="150" >
-	<h1>Tambo AI</h1>
-	<p>
-		<b>A React package for building AI-powered applications with generative UI, where users interact through natural language.</b>
-	</p>
-	<br>
+  <img src="assets/octo-white-background-rounded.png" width="150">
+  <h1>Tambo AI</h1>
+  <h3>Generative UI for React</h3>
+  <p>Build apps that adapt to your users, not the other way around.</p>
 </div>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/@tambo-ai/react.svg" alt="npm version"></a>
-  <a href="https://github.com/tambo-ai/tambo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tambo-ai/tambo.svg" alt="license"></a>
-  <a href="https://github.com/tambo-ai/tambo/commits/main"><img src="https://img.shields.io/github/last-commit/tambo-ai/tambo.svg" alt="GitHub last commit"></a>
+  <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/%40tambo-ai%2Freact?logo=npm" alt="npm version" /></a>
+  <a href="https://github.com/tambo-ai/tambo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tambo-ai/tambo" alt="License" /></a>
+  <a href="https://github.com/tambo-ai/tambo/commits/main"><img src="https://img.shields.io/github/last-commit/tambo-ai/tambo" alt="Last Commit" /></a>
   <a href="https://discord.gg/dJNvPEHth6"><img src="https://img.shields.io/discord/1251581895414911016?color=7289da&label=discord" alt="Discord"></a>
-  <a href="https://github.com/tambo-ai/tambo/stargazers"><img src="https://img.shields.io/github/stars/tambo-ai/tambo.svg?style=social" alt="GitHub stars"></a>
+  <a href="https://github.com/tambo-ai/tambo"><img src="https://img.shields.io/github/stars/tambo-ai/tambo" alt="GitHub stars" /></a>
 </p>
 
-> [!IMPORTANT]
-> 🎉 We just open-sourced the hosted backend — check out [tambo-ai/tambo-cloud](https://github.com/tambo-ai/tambo-cloud)!
+<p align="center">
+  <a href="https://docs.tambo.co">Documentation</a> •
+  <a href="https://discord.gg/dJNvPEHth6">Discord</a>
+</p>
 
-## Build apps with Generative UI and MCP
+---
 
-![template gif](assets/template.gif)
+## What is Tambo?
 
-Get started using our [AI chat template](https://github.com/tambo-ai/tambo-template):
+Tambo is a generative UI SDK for React. The AI dynamically decides which components to render and what props to pass based on natural language conversations.
 
-```bash
-npx tambo create-app my-tambo-app
+**Generative UI makes software truly adaptive**—your interface responds to what users need, not what you predicted they'd need. Users describe their intent, the software adapts.
+
+Register your components once. The AI agent renders and controls them based on user messages and context.
+
+**MCP-native** from the ground up — integrates the Model Context Protocol (MCP), a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
+
+https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23
+
+## Why Generative UI?
+
+Traditional UIs force users to adapt to your software. Click here, then here, then here. Navigate the menus you designed. Learn your mental model.
+
+**Generative UI flips this—software adapts to users:**
+
+- Users describe what they want in natural language
+- The AI orchestrates components based on intent
+- The interface responds dynamically to each request
+
+No rigid navigation flows. No sprawling conditional logic. No "wrong path" errors.
+
+Tambo handles the complexity:
+
+- ✅ AI-driven adaptation (which component to render based on user intent)
+- ✅ Streaming (progressive prop updates)
+- ✅ State management (persistence across conversation)
+- ✅ Error handling (retries, fallbacks)
+- ✅ Tool coordination (MCP servers, local functions)
+
+You write:
+
+- Your existing React components
+- Zod schemas for props
+- React hooks for advanced AI features
+
+That's the entire API.
+
+```tsx
+// Register your chart component once
+const components: TamboComponent[] = [{
+  name: "Graph",
+  description: "Displays data as charts",
+  component: Graph,
+  propsSchema: z.object({ data: z.array(...), type: z.enum(["line", "bar", "pie"]) })
+}];
+
+// 10 lines of registration → infinite use cases
 ```
 
-## Documentation
+## Key Benefits
 
-For detailed information about what Tambo is and how it works, check out our [docs site.](https://docs.tambo.co)
+- **Software Adapts to Users** - Generative UI responds to what users _mean_, not just what they click. Your interface eliminates rigid navigation flows and lets users describe what they want in natural language.
+- **No AI Expertise Needed** - If you can write React, you can build generative UIs. Use your existing design system and components.
+- **MCP-Native** - Built-in support for Model Context Protocol means plug-and-play integrations with any MCP server. Your own, or external servers with Linear, Slack.
+- **Pre-built UI Primitives** - Copy/paste production-ready components for forms, charts, maps, messaging, and more. Customize everything.
+- **Bring Your Own LLM** - Works with OpenAI, Anthropic, Google, Mistral, or any OpenAI-compatible provider. Not locked into one vendor.
+- **Truly Open Source** - MIT licensed React SDK and backend. Self-host with full control, or use Tambo Cloud for zero-config deployment.
 
-For a quick walkthrough of using the fundamental features of Tambo, check out [this page.](https://docs.tambo.co/getting-started/quickstart)
+## Get Started in a Few Minutes
 
-Further reading:
+```bash
+# 1. Create your app
+npx tambo create-app my-tambo-app
+cd my-tambo-app
 
-- Getting started with this repo: [GETTING_STARTED.md](./GETTING_STARTED.md)
-- Contributing guidelines: [CONTRIBUTING.md](./CONTRIBUTING.md)
-- Join our community: https://discord.gg/dJNvPEHth6
+# 2. Choose your deployment (cloud or self-hosted)
+npx tambo init
 
-## How does tambo-ai work?
+# 3. Start building
+npm run dev
+```
 
-tambo-ai is a client-side registry of React components that can be used by an LLM.
+Choose your deployment:
 
-### 1. Register your components
+- **Tambo Cloud** - Free hosted service (sign up for API key)
+- **Self-hosted** - Run your own backend (free, no ongoing costs)
+
+**📦 [Pre-built component library](https://ui.tambo.co)** - Ready-made primitives for every generative UI pattern. Start fast, customize everything.
+
+https://github.com/user-attachments/assets/6cbc103b-9cc7-40f5-9746-12e04c976dff
+
+## Templates
+
+Don't want to start from scratch? Fork these:
+
+| Template                                                                 | Description                                                        |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| [AI Chat with Generative UI](https://github.com/tambo-ai/tambo-template) | Full-featured chat interface with dynamic component generation     |
+| [AI Analytics Dashboard](https://github.com/tambo-ai/analytics-template) | Interactive analytics dashboard with AI-powered data visualization |
+
+More templates coming soon. [Request a template →](https://github.com/tambo-ai/tambo/issues)
+
+---
+
+## How Tambo Works
+
+Generative UI with Tambo supports two component patterns:
+
+**One-time components** (like charts) that the AI renders in response to specific requests, **and persistent components** (like shopping carts) that update across the conversation as users refine their intent.
+
+### Generative Components
+
+AI renders these once in response to user messages. Best for charts, data visualizations, and summary cards.
+
+https://github.com/user-attachments/assets/3bd340e7-e226-4151-ae40-aab9b3660d8b
+
+### Interactable Components
+
+Components that persist on the page and update by ID across conversations. The AI modifies them as users refine their requests—perfect for shopping carts, spreadsheets, task boards, or dashboards. Pre-place them in your code, or let the AI generate them dynamically.
+
+https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062
+
+---
+
+### 1. Register Your Components
+
+Tell the AI which components it can use. The AI decides when to render each component and provides type-safe props through Zod schemas.
+
+**Generative Components** - AI creates these on-demand:
 
 ```tsx
 const components: TamboComponent[] = [
   {
     name: "Graph",
-    description:
-      "A component that renders various types of charts (bar, line, pie) using Recharts. Supports customizable data visualization with labels, datasets, and styling options.",
+    description: "Displays data as charts using Recharts library",
     component: Graph,
-    propsSchema: graphSchema, // zod schema
+    propsSchema: z.object({
+      data: z.array(z.object({ name: z.string(), value: z.number() })),
+      type: z.enum(["line", "bar", "pie"]),
+    }),
   },
-  // Add more components
 ];
 ```
 
-### 2. Wrap your app in a TamboProvider
+[→ Learn more about generative components](https://docs.tambo.co/concepts/components/defining-tambo-components)
+
+**Interactable Components** - Persist and update across conversations:
 
 ```tsx
-// In your chat page
+const InteractableNote = withInteractable(Note, {
+  componentName: "Note",
+  description: "A note supporting title, content, and color modifications",
+  propsSchema: z.object({
+    title: z.string(),
+    content: z.string(),
+    color: z.enum(["white", "yellow", "blue", "green"]).optional(),
+  }),
+});
+```
+
+[→ Learn more about interactable components](https://docs.tambo.co/concepts/components/interactable-components)
+
+### 2. Wrap Your App with TamboProvider
+
+Connects your app to AI and handles streaming, state, and natural language processing.
+
+```tsx
 <TamboProvider
   apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
   components={components}
 >
-  <MessageThreadFull contextKey="tambo-template" />
+  <Chat />
+  <InteractableNote id="note-1" title="My Note" content="Start writing..." />
 </TamboProvider>
 ```
 
-### 3. Submit user messages
+[→ See all provider options](https://docs.tambo.co/api-reference/tambo-provider)
+
+### 3. Use Tambo Hooks
+
+Send messages and render AI responses with dynamic components. Props stream in as they're generated.
+
+**Send messages:**
 
 ```tsx
-const { submit } = useTamboThreadInput();
+const { value, setValue, submit, isPending } = useTamboThreadInput();
 
-await submit({
-  contextKey,
-  streamResponse: true,
-});
+<input value={value} onChange={(e) => setValue(e.target.value)} />
+<button onClick={() => submit()} disabled={isPending}>Send</button>
 ```
 
-### 4. Render AI-generated components
+**Render AI responses:**
 
 ```tsx
-const { message } = useMessageContext();
+const { thread } = useTamboThread();
 
-// Render the component
-<div>{message.renderedComponent}</div>;
-```
-
-We provide components that use these hooks for you in our templates and in our component library at [ui.tambo.co](https://ui.tambo.co).
-
-## Getting Started
-
-### Quick Start
-
-Create a new tambo app:
-
-```bash
-npm create tambo-app my-tambo-app
-cd my-tambo-app
-npm run dev
-```
-
-### Templates
-
-| App                                                                      | Description                                    |
-| ------------------------------------------------------------------------ | ---------------------------------------------- |
-| [AI Chat with Generative UI](https://github.com/tambo-ai/tambo-template) | Get started with Generative UX, tools, and MCP |
-
-Check out our UI library [tambo-ui](https://ui.tambo.co) for components that leverage tambo.
-
-### Basic Usage
-
-#### 1. Displaying a message thread:
-
-```jsx
-import { useTambo, useTamboThreadInput } from "@tambo-ai/react";
-
-function ChatInterface() {
-  const { thread } = useTambo();
-  const { value, setValue, submit } = useTamboThreadInput();
-
-  return (
-    <div>
-      {/* Display messages */}
-      <div>
-        {thread.messages.map((message, index) => (
-          <div key={index} className={`message ${message.role}`}>
-            <div>{message.content}</div>
-            {message.component && message.component.renderedComponent}
-          </div>
-        ))}
-      </div>
-
-      {/* Input form */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit();
-        }}
-        className="input-form"
-      >
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Type your message..."
-        />
-        <button type="submit">Send</button>
-      </form>
+{
+  thread.messages.map((message) => (
+    <div key={message.id}>
+      {Array.isArray(message.content) ? (
+        message.content.map((part, i) =>
+          part.type === "text" ? <p key={i}>{part.text}</p> : null,
+        )
+      ) : (
+        <p>{String(message.content)}</p>
+      )}
+      {message.renderedComponent}
     </div>
-  );
+  ));
 }
 ```
 
-#### 2. Adding AI-Generated Components:
+[→ Learn about threads and messages](https://docs.tambo.co/concepts/message-threads)
 
-Create components that can be dynamically generated by the AI:
+**Track streaming for progressive loading:**
 
-```jsx
-// components/WeatherCard.jsx
-import { useTamboComponentState } from "@tambo-ai/react";
+```tsx
+const { streamStatus, propStatus } = useTamboStreamStatus();
 
-export function WeatherCard() {
-  const [weatherState, setWeatherState, { isPending }] = useTamboComponentState(
-    "weather",
-    {
-      temperature: 0,
-      condition: "",
-      location: "",
-    },
-  );
+// Show spinner until complete
+if (!streamStatus.isSuccess) return <Spinner />;
 
-  if (isPending) {
-    return <div>Loading weather data...</div>;
-  }
-
-  return (
-    <div>
-      <h3>{weatherState.location}</h3>
-      <div>{weatherState.temperature}°C</div>
-      <div>{weatherState.condition}</div>
-    </div>
-  );
+// Or show each prop as it arrives
+{
+  propStatus["title"]?.isSuccess && <h3>{title}</h3>;
 }
 ```
 
-#### 3. Register your components:
+[→ Learn more about streaming status](https://docs.tambo.co/concepts/streaming/component-streaming-status)
 
-```jsx
-// App.jsx
-import { TamboProvider } from "@tambo-ai/react";
-import { WeatherCard } from "./components/WeatherCard";
-import { z } from "zod";
+<p align="center">
+  <a href="https://docs.tambo.co/getting-started/quickstart">→ Read the full tutorial</a>
+</p>
 
-// Define your components
-const components = [
+## Key Features
+
+### MCP Integrations
+
+Connect pre-built integrations (Linear, Slack, databases) or your own custom MCP servers.
+
+```tsx
+import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+
+const mcpServers = [
   {
-    name: "WeatherCard",
-    description: "A component that displays weather information",
-    component: WeatherCard,
-    propsSchema: z.object({
-      temperature: z.number(),
-      condition: z.string(),
-      location: z.string(),
-    }),
+    name: "filesystem",
+    url: "http://localhost:3001/mcp",
+    transport: MCPTransport.HTTP,
   },
 ];
 
-// Pass them to the provider
-function App() {
-  return (
-    <TamboProvider apiKey="your-api-key" components={components}>
-      <YourApp />
-    </TamboProvider>
-  );
-}
+<TamboProvider components={components}>
+  <TamboMcpProvider mcpServers={mcpServers}>
+    <App />
+  </TamboMcpProvider>
+</TamboProvider>;
 ```
 
-### Adding Tools for the AI
+https://github.com/user-attachments/assets/c7a13915-8fed-4758-be1b-30a60fad0cda
 
-Register tools to make them available to the AI:
+Supports full MCP protocol: tools, prompts, elicitations, and sampling. Client-side or server-side execution.
 
-```jsx
+[→ Learn more about MCP](https://docs.tambo.co/concepts/model-context-protocol)
+
+### Local Tools
+
+Write JavaScript functions that execute in your React app. Useful for DOM manipulation, wrapping fetch calls, or accessing React state without an MCP server.
+
+```tsx
 const tools: TamboTool[] = [
   {
     name: "getWeather",
-    description: "Fetches current weather data for a given location",
-    tool: async (location: string, units: string = "celsius") => {
-      // Example implementation
-      const weather = await fetchWeatherData(location);
-      return {
-        temperature: weather.temp,
-        condition: weather.condition,
-        location: weather.city,
-      };
-    },
+    description: "Fetches weather for a location",
+    tool: async (location: string) =>
+      fetch(`/api/weather?q=${encodeURIComponent(location)}`).then((r) =>
+        r.json(),
+      ),
     toolSchema: z
       .function()
-      .args(
-        z.string().describe("Location name (city)"),
-        z
-          .string()
-          .optional()
-          .describe("Temperature units (celsius/fahrenheit)"),
-      )
+      .args(z.string())
       .returns(
         z.object({
           temperature: z.number(),
@@ -258,60 +303,168 @@ const tools: TamboTool[] = [
   },
 ];
 
-// Pass tools to the provider
-<TamboProvider apiKey="your-api-key" tools={tools}>
-  <YourApp />
+<TamboProvider tools={tools} components={components}>
+  <App />
 </TamboProvider>;
 ```
 
-### Using MCP Servers
+**When to use:** DOM interactions, wrapping authenticated fetch requests, or accessing React state. Runs entirely in the browser.
+
+[→ Learn more about local tools](https://docs.tambo.co/concepts/tools/adding-tools)
+
+### Additional Context
+
+Send metadata about user state, app settings, or environment to enrich AI responses.
 
 ```tsx
-const mcpServers = [
-  {
-    url: "https://mcp-server-1.com",
-    transport: "http",
-    name: "mcp-server-1",
-  },
-];
+const selectedItemsHelper = () => ({
+  key: "selectedItems",
+  value: `User has selected: ${selectedItems.map((i) => i.name).join(", ")}`,
+});
 
-// Pass MCP servers to the provider
 <TamboProvider
-  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
-  components={components}
->
-  <TamboMcpProvider mcpServers={mcpServers}>{children}</TamboMcpProvider>
+  contextHelpers={{
+    selectedItems: selectedItemsHelper,
+    currentPage: () => ({ key: "page", value: window.location.pathname }),
+  }}
+/>;
+```
+
+[→ Learn more](https://docs.tambo.co/concepts/additional-context)
+
+### User Authentication
+
+Pass auth tokens from your provider:
+
+```tsx
+const userToken = useUserToken();
+
+<TamboProvider userToken={userToken}>
+  <App />
 </TamboProvider>;
 ```
 
-[Read our full documentation](https://docs.tambo.co)
+[→ Learn more](https://docs.tambo.co/concepts/user-authentication)
+
+### Suggestions
+
+Auto-generate contextual suggestions:
+
+```tsx
+const { suggestions, accept } = useTamboSuggestions({ maxSuggestions: 3 });
+
+suggestions.map((s) => (
+  <button key={s.id} onClick={() => accept(s)}>
+    {s.title}
+  </button>
+));
+```
+
+[→ Learn more](https://docs.tambo.co/concepts/suggestions)
+
+### Supported LLM Providers
+
+- **OpenAI** (GPT-4.1, GPT-5, O3, and more)
+- **Anthropic** (Claude 3.5, Claude 4.5, and more)
+- **Google Gemini** (1.5 Pro, 2.0 Flash, and more)
+- **Mistral** (Large, Small, Codestral, and more)
+- Custom OpenAI-compatible providers
+
+Don't see your favorite? [Let us know →](https://github.com/tambo-ai/tambo/issues)
+
+[→ Learn more](https://docs.tambo.co/models)
+
+## How Tambo Compares
+
+| Feature                            | Tambo                                                | Vercel AI SDK                              | CopilotKit                                 | Assistant UI                      |
+| ---------------------------------- | ---------------------------------------------------- | ------------------------------------------ | ------------------------------------------ | --------------------------------- |
+| **Component orchestration**        | Generative UI: AI decides which components to render | Manual tool-to-component mapping           | Via agent frameworks (LangGraph)           | Chat-focused tool UI              |
+| **MCP integration**                | Built-in from day one                                | Experimental (v4.2+)                       | Recently added                             | Requires AI SDK v5 (experimental) |
+| **Persistent stateful components** | ✅ Interactable components                           | ❌                                         | Shared state patterns                      | ❌                                |
+| **Client-side tool execution**     | ✅ Declarative, automatic                            | ⚠️ Manual via onToolCall                   | ❌ (agent-side only)                       | ❌                                |
+| **Self-hostable**                  | ✅ MIT (React SDK + backend)                         | ✅ Apache 2.0 (SDK only)                   | ✅ MIT                                     | ✅ MIT                            |
+| **Hosted option**                  | ✅ Tambo Cloud                                       | ❌                                         | ✅ CopilotKit Cloud                        | ✅ Assistant Cloud                |
+| **Model providers**                | OpenAI, Anthropic, Google, Mistral, custom           | OpenAI, Anthropic, Google, Mistral, custom | OpenAI, Anthropic, Google, Mistral, custom | Bring your own                    |
+| **Best for**                       | Full app UI orchestration                            | Flexible streaming & tool abstractions     | Complex multi-agent workflows              | Production chat interfaces        |
+
+<p align="center">
+  <a href="https://docs.tambo.co">→ See full documentation</a>
+</p>
+
+---
+
+## Pricing & Deployment
+
+### Self-Hosting (MIT Licensed)
+
+Free forever. 5-minute Docker setup. You control everything.
+
+```bash
+npx tambo init
+# Select "Self-hosted" and follow the prompts
+```
+
+### Tambo Cloud
+
+Zero setup. Free tier. Pay as you grow.
+
+- **Free**: 10,000 messages/month
+- **Growth**: $25/mo - 200k messages + email support
+- **Enterprise**: Custom volume, SLA, SOC 2, HIPAA
+
+[View full pricing →](https://tambo.co/pricing)
+
+## Community
+
+- **Discord:** [Join our community](https://discord.gg/dJNvPEHth6) for help, feedback, and discussions
+- **GitHub:** [Star the repo](https://github.com/tambo-ai/tambo) and contribute
+- **Twitter/X:** Follow [@tambo_ai](https://twitter.com/tambo_ai) for updates
+
+### Built with Tambo
+
+Real projects from the community:
+
+| Project                                                                                              | Preview                                                           | Description                                                                                                                                       | Links                                                                                      |
+| ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **[db-thing](https://db-thing.vercel.app)**<br>by [@akinloluwami](https://github.com/akinloluwami)   | <img src="community/db-thing.png" alt="db-thing" width="300">     | AI-powered database design tool. Create schemas through conversation, generate ERDs, get optimization recommendations, and export SQL migrations. | [GitHub](https://github.com/akinloluwami/db-thing) • [Demo](https://db-thing.vercel.app)   |
+| **[CheatSheet](https://cheatsheet.tambo.co)**<br>by [@michaelmagan](https://github.com/michaelmagan) | <img src="community/cheatsheet.png" alt="CheatSheet" width="300"> | AI-powered spreadsheet editor. Edit cells with natural language, create charts, and connect external data through MCP.                            | [GitHub](https://github.com/michaelmagan/cheatsheet) • [Demo](https://cheatsheet.tambo.co) |
+
+Built something with Tambo? [Open a PR](https://github.com/tambo-ai/tambo/pulls) to showcase your project here, or [share it in Discord →](https://discord.gg/dJNvPEHth6)
+
+---
 
 ## Development
 
-### Prerequisites
+Prerequisites:
 
-- Node.js 18.x+
-- npm 10.x+
+- Node.js 20.x or higher
+- npm 11.x or higher
 
-## Resources
+For contributing to Tambo:
 
-- [React Package Documentation](https://docs.tambo.co)
-- [Showcase Documentation](./showcase/README.md)
+```bash
+git clone https://github.com/tambo-ai/tambo.git
+cd tambo
+npm install
+turbo dev
+```
+
+Read our [Contributing Guide](./CONTRIBUTING.md) for details on development workflow, testing, and pull requests.
+
+---
 
 ## License
 
-MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
-## Join the Community
-
-We're building tools for the future of user interfaces. Your contributions matter.
-
-**[Star this repo](https://github.com/tambo-ai/tambo)** to support our work.
-
-**[Join our Discord](https://discord.gg/dJNvPEHth6)** to connect with other developers.
+Both the React SDK and backend ([tambo-cloud](https://github.com/tambo-ai/tambo-cloud)) are fully open source under MIT.
 
 ---
 
 <p align="center">
-  <img src="assets/tambo-animation.gif" alt="tambo ai Logo">
+  <img src="assets/tambo-animation.gif" alt="Tambo AI Animation" width="800">
 </p>
+
+---
+
+**Note for AI/LLM agents:** For comprehensive documentation in a format optimized for language models, visit [docs.tambo.co/llms.txt](https://docs.tambo.co/llms.txt)

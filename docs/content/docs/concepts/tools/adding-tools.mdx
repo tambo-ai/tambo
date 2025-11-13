@@ -1,18 +1,18 @@
 ---
-title: Adding Tools
-description: Add tools to extend Tambo's capabilities
+title: Adding Local Tools
+description: Add local tools to extend Tambo's capabilities
 ---
 
-Define your tool function and register it with tambo. Tools are asynchronous functions that take in a single argument and return a single value.
+Define your tool function and register it with Tambo. Local tools are JavaScript functions that run in your React app. Use them for DOM interactions, wrapping authenticated fetch requests, or accessing React state.
 
 ```tsx
-//define the tool function. This is your own custom function and can perform any logic you want.
+// Define the tool function. Avoid exposing third‑party API keys in the browser —
+// call your own API route (or an MCP server) that uses a server‑side key.
 const getWeather = async (city: string) => {
   try {
-    const weather = await fetch(
-      `http://api.weatherapi.com/v1/current.json?key=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}&q=${city}`,
-    );
-    return weather.json();
+    const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
   } catch (error) {
     throw new Error(`Failed to fetch weather for ${city}`);
   }
@@ -43,7 +43,29 @@ export const tools: TamboTool[] = [
 </TamboProvider>;
 ```
 
-Now tambo can fetch weather information for a city when responding to a message!
+Now Tambo can fetch weather information for a city when responding to a message!
+
+> Note: Do not pass secret API keys to the browser. Keep provider keys server‑side (e.g., in an API route or MCP server). The example above calls `/api/weather`, which should read a secret like `WEATHER_API_KEY` on the server.
+
+**When to use local tools:** DOM interactions, wrapping authenticated fetch requests, or accessing React state. Runs entirely in the browser. For server-side integrations with databases, APIs, or file systems, consider using [MCP servers](/concepts/model-context-protocol) instead.
+
+```ts title="Example: Next.js route handler (app/api/weather/route.ts)"
+import { NextResponse } from "next/server";
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const city = searchParams.get("city");
+  if (!city)
+    return NextResponse.json({ error: "city required" }, { status: 400 });
+
+  const key = process.env.WEATHER_API_KEY!; // server-side secret
+  const resp = await fetch(
+    `https://api.weatherapi.com/v1/current.json?key=${key}&q=${encodeURIComponent(city)}`,
+  );
+  const data = await resp.json();
+  return NextResponse.json(data);
+}
+```
 
 ## Returning Rich Content
 
