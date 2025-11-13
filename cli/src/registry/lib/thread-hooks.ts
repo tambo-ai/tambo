@@ -134,6 +134,18 @@ export function usePositioning(
   return { isLeftPanel, historyPosition };
 }
 
+function stripAttachmentReferences(value: string | undefined | null): string {
+  if (!value) return "";
+  return (
+    value
+      .replace(/\s*storage:\/\/[^|\s]+(?:\|[^|]*){0,2}/g, "")
+      // Fallback: strip any triple-pipe token that looks like "path or name|mime/type|name"
+      .replace(/[^|]+\|[a-zA-Z0-9.+-]+\/[a-zA-Z0-9.+-]+\|[^|]+/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim()
+  );
+}
+
 /**
  * Converts message content into a safely renderable format.
  * Primarily joins text blocks from arrays into a single string.
@@ -144,12 +156,14 @@ export function getSafeContent(
   content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
 ): string | React.ReactElement {
   if (!content) return "";
-  if (typeof content === "string") return content;
+  if (typeof content === "string") return stripAttachmentReferences(content);
   if (React.isValidElement(content)) return content; // Pass elements through
   if (Array.isArray(content)) {
     // Filter out non-text items and join text
     return content
-      .map((item) => (item?.type === "text" ? (item.text ?? "") : ""))
+      .map((item) =>
+        item?.type === "text" ? stripAttachmentReferences(item.text ?? "") : "",
+      )
       .join("");
   }
   // Handle potential edge cases or unknown types
@@ -216,4 +230,97 @@ export function getMessageImages(
   return content
     .filter((item) => item?.type === "image_url" && item.image_url?.url)
     .map((item) => item.image_url!.url!);
+}
+
+export interface MessageAttachment {
+  readonly name: string;
+  readonly url: string;
+  readonly mimeType: string;
+  readonly isStorageReference: boolean;
+}
+
+function parseStorageReference(
+  reference: string,
+): MessageAttachment | undefined {
+  if (!reference.startsWith("storage://")) return undefined;
+  const [rawPath = "", rawMime = "", rawName = ""] = reference
+    .replace("storage://", "")
+    .split("|");
+
+  const path = rawPath.trim();
+  if (!path) {
+    return undefined;
+  }
+
+  const trimmedMime = rawMime.trim();
+  const mimeType =
+    trimmedMime !== "" ? trimmedMime : "application/octet-stream";
+  const explicitName = rawName.trim();
+  const derivedName = path.split("/").pop();
+  const name =
+    explicitName !== ""
+      ? explicitName
+      : derivedName && derivedName !== ""
+        ? derivedName
+        : "file";
+
+  return {
+    name,
+    mimeType,
+    url: `storage://${path}`,
+    isStorageReference: true,
+  };
+}
+
+export function getMessageAttachments(
+  content:
+    | {
+        type?: string;
+        text?: string;
+        resource?: { uri?: string; name?: string; mimeType?: string };
+      }[]
+    | string
+    | undefined
+    | null,
+): MessageAttachment[] {
+  if (!content) return [];
+
+  const attachments: MessageAttachment[] = [];
+
+  const parts = Array.isArray(content)
+    ? content
+    : typeof content === "string"
+      ? [{ type: "text", text: content }]
+      : [content];
+
+  for (const part of parts) {
+    if (!part || typeof part !== "object") continue;
+
+    if (part.type === "resource" && part.resource?.uri) {
+      const resourceName = part.resource.name?.trim();
+      const uriName = part.resource.uri.split("/").pop();
+      const name =
+        resourceName && resourceName !== ""
+          ? resourceName
+          : uriName && uriName !== ""
+            ? uriName
+            : "file";
+      attachments.push({
+        name,
+        url: part.resource.uri,
+        mimeType: part.resource.mimeType ?? "application/octet-stream",
+        isStorageReference: part.resource.uri.startsWith("storage://"),
+      });
+      continue;
+    }
+
+    if (part.type === "text" && typeof part.text === "string") {
+      const attachment = parseStorageReference(part.text.trim());
+      if (attachment) {
+        attachments.push(attachment);
+      }
+    }
+  }
+
+  return attachments;
 }
