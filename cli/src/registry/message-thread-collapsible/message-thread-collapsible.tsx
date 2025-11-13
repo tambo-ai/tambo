@@ -47,7 +47,7 @@ export interface MessageThreadCollapsibleProps
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
-  /** Maximum height of the thread content (default: "500px") */
+  /** Optional override for maximum height of the thread content. If not provided, defaults to 80vh. */
   maxHeight?: string;
 }
 
@@ -206,7 +206,7 @@ export const MessageThreadCollapsible = React.forwardRef<
       contextKey,
       defaultOpen = false,
       variant,
-      maxHeight = "500px",
+      maxHeight,
       ...props
     },
     ref,
@@ -267,8 +267,8 @@ export const MessageThreadCollapsible = React.forwardRef<
         />
         <Collapsible.Content>
           <div
-            className="h-[calc(100vh-12rem)] flex flex-col"
-            style={{ maxHeight }}
+            className="flex flex-col max-h-[80vh]"
+            style={maxHeight ? { maxHeight } : undefined}
           >
             {/* Message thread content */}
             <ScrollableMessageContainer className="p-4">
