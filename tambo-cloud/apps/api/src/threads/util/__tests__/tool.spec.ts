@@ -1,4 +1,4 @@
-import { McpToolRegistry } from "@tambo-ai-cloud/backend";
+import { McpToolRegistry, prefixToolName } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ContentPartType,
@@ -84,11 +84,15 @@ describe("tool utilities", () => {
   });
 
   describe("callSystemTool", () => {
+    const mockCallTool = jest.fn();
     const mockSystemTools: McpToolRegistry = {
       mcpToolSources: {
         testTool: {
-          callTool: jest.fn(),
-        } as unknown as MCPClient,
+          client: {
+            callTool: mockCallTool,
+          } as unknown as MCPClient,
+          serverKey: "test",
+        },
       },
       mcpToolsSchema: [],
       mcpHandlers: {
@@ -127,11 +131,9 @@ describe("tool utilities", () => {
 
     it("should call tool and return formatted response for string result", async () => {
       const mockResult = "test result";
-      jest
-        .mocked(mockSystemTools.mcpToolSources.testTool.callTool)
-        .mockResolvedValue({
-          content: [{ type: ContentPartType.Text, text: mockResult }],
-        });
+      mockCallTool.mockResolvedValue({
+        content: [{ type: ContentPartType.Text, text: mockResult }],
+      });
 
       const result = await callSystemTool(
         mockSystemTools,
@@ -142,9 +144,7 @@ describe("tool utilities", () => {
         advanceRequestDto,
       );
 
-      expect(
-        mockSystemTools.mcpToolSources.testTool.callTool,
-      ).toHaveBeenCalledWith(
+      expect(mockCallTool).toHaveBeenCalledWith(
         "testTool",
         {
           param1: "value1",
@@ -173,9 +173,7 @@ describe("tool utilities", () => {
           { type: ContentPartType.Text, text: "part 2" },
         ],
       };
-      (
-        mockSystemTools.mcpToolSources.testTool.callTool as jest.Mock
-      ).mockResolvedValue(mockResult);
+      mockCallTool.mockResolvedValue(mockResult);
 
       const result = await callSystemTool(
         mockSystemTools,
@@ -191,9 +189,7 @@ describe("tool utilities", () => {
 
     it("should throw error when no response content", async () => {
       const mockResult = { content: [] };
-      (
-        mockSystemTools.mcpToolSources.testTool.callTool as jest.Mock
-      ).mockResolvedValue(mockResult);
+      mockCallTool.mockResolvedValue(mockResult);
 
       await expect(
         callSystemTool(
@@ -205,6 +201,58 @@ describe("tool utilities", () => {
           advanceRequestDto,
         ),
       ).rejects.toThrow("No response content found");
+    });
+
+    it("unprefixes tool name before invoking MCP client when prefixed", async () => {
+      const mockCallPrefixed = jest.fn();
+      const serverKey = "svc";
+      const baseToolName = "search";
+      const toolName = prefixToolName(serverKey, baseToolName);
+      const prefixedSystemTools: McpToolRegistry = {
+        mcpToolSources: {
+          [toolName]: {
+            client: {
+              callTool: mockCallPrefixed,
+            } as unknown as MCPClient,
+            serverKey,
+          },
+        },
+        mcpToolsSchema: [],
+        mcpHandlers: {
+          elicitation: jest.fn(),
+          sampling: jest.fn(),
+        },
+      };
+
+      const resultPayload = {
+        content: [{ type: ContentPartType.Text, text: "ok" }],
+      };
+      mockCallPrefixed.mockResolvedValue(resultPayload);
+
+      await callSystemTool(
+        prefixedSystemTools,
+        { toolName, parameters: [] as any },
+        "id-1",
+        "msg-1",
+        {
+          message: "",
+          componentName: "X",
+          props: {},
+          componentState: {},
+          reasoning: [],
+        },
+        {
+          messageToAppend: { role: MessageRole.Tool, content: [] },
+          availableComponents: [],
+        },
+      );
+
+      // Should strip the `svc__` prefix and call underlying tool name "search"
+      expect(mockCallPrefixed).toHaveBeenCalledWith(
+        baseToolName,
+        {},
+        { "tambo.co/parentMessageId": "msg-1" },
+      );
     });
   });
 });

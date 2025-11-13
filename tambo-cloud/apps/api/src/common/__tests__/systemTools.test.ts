@@ -190,7 +190,10 @@ describe("systemTools", () => {
           },
         },
       });
-      expect(tools.mcpToolSources["mcp1__mockMcpTool"]).toBe(mockClient);
+      expect(tools.mcpToolSources["mcp1__mockMcpTool"]).toEqual({
+        client: mockClient,
+        serverKey: "mcp1",
+      });
       expect(tools.mcpHandlers).toBe(mcpHandlers);
     });
 

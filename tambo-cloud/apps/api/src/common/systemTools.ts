@@ -1,6 +1,10 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Logger } from "@nestjs/common";
-import { McpToolRegistry } from "@tambo-ai-cloud/backend";
+import {
+  McpToolRegistry,
+  type McpToolSource,
+  prefixToolName,
+} from "@tambo-ai-cloud/backend";
 import {
   getToolName,
   LogLevel,
@@ -203,7 +207,7 @@ async function getMcpTools(
   );
 
   const mcpTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [];
-  const mcpToolSources: Record<string, MCPClient> = {};
+  const mcpToolSources: Record<string, McpToolSource> = {};
 
   for (const result of toolResults) {
     if (result.status === "rejected") {
@@ -234,7 +238,7 @@ async function getMcpTools(
         (tool): OpenAI.Chat.Completions.ChatCompletionTool => ({
           type: "function",
           function: {
-            name: serverKey ? `${serverKey}__${tool.name}` : tool.name,
+            name: prefixToolName(serverKey, tool.name),
             description: tool.description,
             strict: true,
             parameters: tool.inputSchema?.properties
@@ -251,8 +255,10 @@ async function getMcpTools(
     );
 
     for (const tool of tools) {
-      mcpToolSources[serverKey ? `${serverKey}__${tool.name}` : tool.name] =
-        mcpClient;
+      mcpToolSources[prefixToolName(serverKey, tool.name)] = {
+        client: mcpClient,
+        serverKey,
+      };
     }
   }
 

@@ -1,4 +1,4 @@
-import { McpToolRegistry } from "@tambo-ai-cloud/backend";
+import { McpToolRegistry, unprefixToolName } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ContentPartType,
@@ -68,7 +68,7 @@ export async function callSystemTool(
   advanceRequestDto: AdvanceThreadDto,
 ) {
   if (toolCallRequest.toolName in systemTools.mcpToolSources) {
-    const toolSource = systemTools.mcpToolSources[toolCallRequest.toolName];
+    const toolSourceInfo = systemTools.mcpToolSources[toolCallRequest.toolName];
 
     const params = Object.fromEntries(
       toolCallRequest.parameters.map((p) => [
@@ -76,9 +76,17 @@ export async function callSystemTool(
         p.parameterValue,
       ]),
     );
-    const result = await toolSource.callTool(toolCallRequest.toolName, params, {
-      [MCP_PARENT_MESSAGE_ID_META_KEY]: toolCallMessageId,
-    });
+    const unprefixedToolName = unprefixToolName(
+      toolCallRequest.toolName,
+      toolSourceInfo.serverKey,
+    );
+    const result = await toolSourceInfo.client.callTool(
+      unprefixedToolName,
+      params,
+      {
+        [MCP_PARENT_MESSAGE_ID_META_KEY]: toolCallMessageId,
+      },
+    );
     const responseContent = buildToolResponseContent(result);
 
     // TODO: Handle File types - MCP servers can return resource content parts (now "file" type)

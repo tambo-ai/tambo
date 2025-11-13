@@ -8,7 +8,15 @@ export {
   convertMetadataToTools,
   getToolsFromSources,
 } from "./services/tool/tool-service";
-export type * from "./systemTools";
+export {
+  MCP_TOOL_PREFIX_SEPARATOR,
+  prefixToolName,
+  unprefixToolName,
+  type McpToolSource,
+  type McpToolRegistry,
+  type ClientToolRegistry,
+  type ToolRegistry,
+} from "./systemTools";
 export {
   createTamboBackend,
   generateChainId,
