@@ -12,13 +12,21 @@ Register your components once. The AI agent renders and controls them based on u
 
 **MCP-native** from the ground up - built with the Model Context Protocol, a standardized protocol that lets AI models connect to external systems (databases, APIs, files) the same way.
 
-<video src="https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23" controls muted autoPlay loop style={{ width: '100%', borderRadius: '8px', marginTop: '16px' }} />
+<video
+  src="https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23"
+  controls
+  muted
+  autoPlay
+  loop
+  style={{ width: "100%", borderRadius: "8px", marginTop: "16px" }}
+/>
 
 ## Why Tambo?
 
 You don't want to write 200 lines of boilerplate to show a chart.
 
 Tambo handles:
+
 - ✅ AI orchestration (which component to render)
 - ✅ Streaming (progressive prop updates)
 - ✅ State management (persistence across conversation)
@@ -26,6 +34,7 @@ Tambo handles:
 - ✅ Tool coordination (MCP servers, local functions)
 
 You write:
+
 - Your existing React components
 - Zod schemas for props
 - React hooks for advanced AI features
@@ -62,7 +71,14 @@ Tambo supports two component workflows:
 
 AI renders these once in response to user messages. Best for charts, data visualizations, and summary cards.
 
-<video src="https://github.com/user-attachments/assets/3bd340e7-e226-4151-ae40-aab9b3660d8b" controls muted autoPlay loop style={{ width: '100%', borderRadius: '8px', marginTop: '16px' }} />
+<video
+  src="https://github.com/user-attachments/assets/3bd340e7-e226-4151-ae40-aab9b3660d8b"
+  controls
+  muted
+  autoPlay
+  loop
+  style={{ width: "100%", borderRadius: "8px", marginTop: "16px" }}
+/>
 
 ```tsx
 const components: TamboComponent[] = [
@@ -88,7 +104,14 @@ const components: TamboComponent[] = [
 
 Components that persist on the page and update by ID across conversations. Perfect for shopping carts, spreadsheets, task boards, or dashboards. Pre-place them in your code, or let AI generate them dynamically.
 
-<video src="https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062" controls muted autoPlay loop style={{ width: '100%', borderRadius: '8px', marginTop: '16px' }} />
+<video
+  src="https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062"
+  controls
+  muted
+  autoPlay
+  loop
+  style={{ width: "100%", borderRadius: "8px", marginTop: "16px" }}
+/>
 
 ```tsx
 const InteractableNote = withInteractable(Note, {
@@ -145,12 +168,14 @@ const { thread } = useTamboThread();
 const { value, setValue, submit, isPending } = useTamboThreadInput();
 
 // Render messages with components
-{thread.messages.map((message) => (
-  <div key={message.id}>
-    <p>{message.content}</p>
-    {message.renderedComponent}
-  </div>
-))}
+{
+  thread.messages.map((message) => (
+    <div key={message.id}>
+      <p>{message.content}</p>
+      {message.renderedComponent}
+    </div>
+  ));
+}
 ```
 
 import { MessageCircleMore } from "lucide-react";
@@ -179,10 +204,17 @@ const mcpServers = [
   <TamboMcpProvider mcpServers={mcpServers}>
     <App />
   </TamboMcpProvider>
-</TamboProvider>
+</TamboProvider>;
 ```
 
-<video src="https://github.com/user-attachments/assets/c7a13915-8fed-4758-be1b-30a60fad0cda" controls muted autoPlay loop style={{ width: '100%', borderRadius: '8px', marginTop: '16px' }} />
+<video
+  src="https://github.com/user-attachments/assets/c7a13915-8fed-4758-be1b-30a60fad0cda"
+  controls
+  muted
+  autoPlay
+  loop
+  style={{ width: "100%", borderRadius: "8px", marginTop: "16px" }}
+/>
 
 <LearnMore
   title="MCP Integration"
