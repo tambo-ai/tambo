@@ -8,6 +8,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,yml}\"",
     "lint:fix": "turbo lint -- --fix",
     "lint": "turbo lint",
+    "format:code": "turbo run format:code",
     "prepare": "husky",
     "prettier-check": "prettier --check .",
     "test": "turbo test",

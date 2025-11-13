@@ -37,7 +37,7 @@ export const ThreadContainer = React.forwardRef<
       className={cn(
         // Base layout and styling
         "flex flex-col bg-white overflow-hidden bg-background",
-        "h-screen",
+        "h-full",
 
         // Add smooth transitions for layout changes
         "transition-all duration-200 ease-in-out",
