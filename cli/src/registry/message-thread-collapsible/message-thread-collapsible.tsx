@@ -47,6 +47,8 @@ export interface MessageThreadCollapsibleProps
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
+  /** Maximum height of the thread content (default: "500px") */
+  maxHeight?: string;
 }
 
 /**
@@ -197,96 +199,112 @@ CollapsibleTrigger.displayName = "CollapsibleTrigger";
 export const MessageThreadCollapsible = React.forwardRef<
   HTMLDivElement,
   MessageThreadCollapsibleProps
->(({ className, contextKey, defaultOpen = false, variant, ...props }, ref) => {
-  const { isOpen, setIsOpen, shortcutText } = useCollapsibleState(defaultOpen);
-
-  const handleThreadChange = React.useCallback(() => {
-    setIsOpen(true);
-  }, [setIsOpen]);
-
-  /**
-   * Configuration for the MessageThreadCollapsible component
-   */
-  const THREAD_CONFIG = {
-    labels: {
-      openState: "Conversations",
-      closedState: "Start chatting with tambo",
-    },
-  };
-
-  const defaultSuggestions: Suggestion[] = [
+>(
+  (
     {
-      id: "suggestion-1",
-      title: "Get started",
-      detailedSuggestion: "What can you help me with?",
-      messageId: "welcome-query",
+      className,
+      contextKey,
+      defaultOpen = false,
+      variant,
+      maxHeight = "500px",
+      ...props
     },
-    {
-      id: "suggestion-2",
-      title: "Learn more",
-      detailedSuggestion: "Tell me about your capabilities.",
-      messageId: "capabilities-query",
-    },
-    {
-      id: "suggestion-3",
-      title: "Examples",
-      detailedSuggestion: "Show me some example queries I can try.",
-      messageId: "examples-query",
-    },
-  ];
+    ref,
+  ) => {
+    const { isOpen, setIsOpen, shortcutText } =
+      useCollapsibleState(defaultOpen);
 
-  return (
-    <CollapsibleContainer
-      ref={ref}
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
-      className={className}
-      {...props}
-    >
-      <CollapsibleTrigger
+    const handleThreadChange = React.useCallback(() => {
+      setIsOpen(true);
+    }, [setIsOpen]);
+
+    /**
+     * Configuration for the MessageThreadCollapsible component
+     */
+    const THREAD_CONFIG = {
+      labels: {
+        openState: "Conversations",
+        closedState: "Start chatting with tambo",
+      },
+    };
+
+    const defaultSuggestions: Suggestion[] = [
+      {
+        id: "suggestion-1",
+        title: "Get started",
+        detailedSuggestion: "What can you help me with?",
+        messageId: "welcome-query",
+      },
+      {
+        id: "suggestion-2",
+        title: "Learn more",
+        detailedSuggestion: "Tell me about your capabilities.",
+        messageId: "capabilities-query",
+      },
+      {
+        id: "suggestion-3",
+        title: "Examples",
+        detailedSuggestion: "Show me some example queries I can try.",
+        messageId: "examples-query",
+      },
+    ];
+
+    return (
+      <CollapsibleContainer
+        ref={ref}
         isOpen={isOpen}
-        shortcutText={shortcutText}
-        onClose={() => setIsOpen(false)}
-        contextKey={contextKey}
-        onThreadChange={handleThreadChange}
-        config={THREAD_CONFIG}
-      />
-      <Collapsible.Content>
-        <div className="h-[calc(100vh-12rem)] max-h-[500px] flex flex-col">
-          {/* Message thread content */}
-          <ScrollableMessageContainer className="p-4">
-            <ThreadContent variant={variant}>
-              <ThreadContentMessages />
-            </ThreadContent>
-          </ScrollableMessageContainer>
+        onOpenChange={setIsOpen}
+        className={className}
+        {...props}
+      >
+        <CollapsibleTrigger
+          isOpen={isOpen}
+          shortcutText={shortcutText}
+          onClose={() => setIsOpen(false)}
+          contextKey={contextKey}
+          onThreadChange={handleThreadChange}
+          config={THREAD_CONFIG}
+        />
+        <Collapsible.Content>
+          <div
+            className="h-[calc(100vh-12rem)] flex flex-col"
+            style={{ maxHeight }}
+          >
+            {/* Message thread content */}
+            <ScrollableMessageContainer className="p-4">
+              <ThreadContent variant={variant}>
+                <ThreadContentMessages />
+              </ThreadContent>
+            </ScrollableMessageContainer>
 
-          {/* Message Suggestions Status */}
-          <MessageSuggestions>
-            <MessageSuggestionsStatus />
-          </MessageSuggestions>
+            {/* Message Suggestions Status */}
+            <MessageSuggestions>
+              <MessageSuggestionsStatus />
+            </MessageSuggestions>
 
-          {/* Message input */}
-          <div className="p-4">
-            <MessageInput contextKey={contextKey}>
-              <MessageInputTextarea placeholder="Type your message or paste images..." />
-              <MessageInputToolbar>
-                <MessageInputFileButton />
-                <MessageInputMcpPromptButton />
-                {/* Uncomment this to enable client-side MCP config modal button */}
-                {/* <MessageInputMcpConfigButton /> */}
-                <MessageInputSubmitButton />
-              </MessageInputToolbar>
-              <MessageInputError />
-            </MessageInput>
+            {/* Message input */}
+            <div className="p-4">
+              <MessageInput contextKey={contextKey}>
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
+                <MessageInputToolbar>
+                  <MessageInputFileButton />
+                  <MessageInputMcpPromptButton />
+                  {/* Uncomment this to enable client-side MCP config modal button */}
+                  {/* <MessageInputMcpConfigButton /> */}
+                  <MessageInputSubmitButton />
+                </MessageInputToolbar>
+                <MessageInputError />
+              </MessageInput>
+            </div>
+
+            {/* Message suggestions */}
+            <MessageSuggestions initialSuggestions={defaultSuggestions}>
+              <MessageSuggestionsList />
+            </MessageSuggestions>
           </div>
-
-          {/* Message suggestions */}
-          <MessageSuggestions initialSuggestions={defaultSuggestions}>
-            <MessageSuggestionsList />
-          </MessageSuggestions>
-        </div>
-      </Collapsible.Content>
-    </CollapsibleContainer>
-  );
-});
+        </Collapsible.Content>
+      </CollapsibleContainer>
+    );
+  },
+);
 MessageThreadCollapsible.displayName = "MessageThreadCollapsible";
