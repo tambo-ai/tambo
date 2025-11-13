@@ -99,6 +99,38 @@ function unstrictifyToolCallParams(
         return undefined;
       }
 
+      // recurse into arrays
+      if (
+        typeof originalParamSchema === "object" &&
+        originalParamSchema.type === "array"
+      ) {
+        const arrayValue = parameterValue as unknown[];
+        const itemSchema = originalParamSchema.items;
+        if (
+          Array.isArray(arrayValue) &&
+          itemSchema &&
+          typeof itemSchema === "object" &&
+          !Array.isArray(itemSchema)
+        ) {
+          const newArrayValue = arrayValue.map((item) => {
+            if (
+              itemSchema.type === "object" &&
+              typeof item === "object" &&
+              item !== null
+            ) {
+              // recurse into each object in the array
+              return unstrictifyToolCallParams(
+                itemSchema,
+                item as Record<string, unknown>,
+              );
+            }
+            return item;
+          });
+          return [parameterName, newArrayValue] as const;
+        }
+        return [parameterName, parameterValue] as const;
+      }
+
       // recurse into the parameter value, passing along the matching original schema
       if (
         typeof originalParamSchema === "object" &&

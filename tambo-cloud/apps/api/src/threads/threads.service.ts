@@ -1751,6 +1751,25 @@ export class ThreadsService {
           currentThreadMessage,
           legacyDecision,
         );
+
+        // Unstrictify the tool call request immediately if present, before saving to DB
+        const toolCallRequest = currentThreadMessage.toolCallRequest;
+        if (toolCallRequest) {
+          const originalTool = originalTools.find(
+            (tool) => getToolName(tool) === toolCallRequest.toolName,
+          );
+          if (!originalTool) {
+            // This should never happen, because the original tools are part of this same callchain, it would
+            // have to have been filtered out during the decision loop.
+            throw new Error(
+              `Original tool not found for tool call request: ${toolCallRequest.toolName}`,
+            );
+          }
+          currentThreadMessage.toolCallRequest = unstrictifyToolCallRequest(
+            originalTool,
+            toolCallRequest,
+          );
+        }
         chunkCount++;
         if (!ttfbEnded) {
           ttfbSpan.end();
@@ -1820,22 +1839,9 @@ export class ThreadsService {
         },
       });
 
-      // Initially, the call was made with a strict schema, so we need to remove non-required parameters
-      const strictToolCallRequest = finalThreadMessage.toolCallRequest;
-      const originalTool = originalTools.find(
-        (tool) => getToolName(tool) === strictToolCallRequest?.toolName,
-      );
-
-      const toolCallRequest = unstrictifyToolCallRequest(
-        originalTool,
-        strictToolCallRequest,
-      );
-
-      // Update the tool call to be the non-strict call
-      finalThreadMessage = {
-        ...finalThreadMessage,
-        toolCallRequest,
-      };
+      // The tool call request has already been unstrictified in the streaming loop above,
+      // so we just extract it here for the tool limit check
+      const toolCallRequest = finalThreadMessage.toolCallRequest;
 
       // Check tool call limits if we have a tool call request
       if (currentThreadMessage) {
