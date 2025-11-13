@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.122.1](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.122.0...repo-v0.122.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* unprefix system tool calls before actually calling them ([#2071](https://github.com/tambo-ai/tambo-cloud/issues/2071)) ([7020c0b](https://github.com/tambo-ai/tambo-cloud/commit/7020c0b1da34d2191dd490cf3d28eec43fb6d542))
+
 ## [0.122.0](https://github.com/tambo-ai/tambo-cloud/compare/repo-v0.121.4...repo-v0.122.0) (2025-11-12)
 
 
