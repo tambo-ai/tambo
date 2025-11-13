@@ -292,13 +292,10 @@ export const TamboMcpProvider: FC<{
             // Register tools from this server (deduplicated by ownership)
             try {
               const tools = await client.listTools();
-              const shouldPrefix = currentServersMap.size > 1;
 
               tools.forEach((tool) => {
-                // Prefix tool name with serverKey if multiple servers are present
-                const toolName = shouldPrefix
-                  ? `${serverInfo.serverKey}__${tool.name}`
-                  : tool.name;
+                // Always prefix tool name with serverKey for consistent naming
+                const toolName = `${serverInfo.serverKey}__${tool.name}`;
 
                 // Skip if another server already owns this tool (using final name for ownership)
                 const currentOwner = toolOwnerRef.current.get(toolName);

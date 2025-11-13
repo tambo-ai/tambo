@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useContext,
   useState,
+  useMemo,
 } from "react";
 import {
   useTamboMutation,
@@ -15,6 +16,7 @@ import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
 import { useTamboThread } from "./tambo-thread-provider";
+import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
 
 /**
  * Error messages for various input-related error scenarios
@@ -96,6 +98,12 @@ export const TamboThreadInputProvider: React.FC<
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
   const imageState = useMessageImages();
+  const mcpServers = useTamboMcpServers();
+
+  // Build a set of known MCP server keys for prefix stripping
+  const knownPrefixes = useMemo(() => {
+    return new Set(mcpServers.map((server) => server.serverKey));
+  }, [mcpServers]);
 
   const submit = useCallback(
     async ({
@@ -127,8 +135,12 @@ export const TamboThreadInputProvider: React.FC<
         });
       }
 
-      // Build message content with text and images
-      const messageContent = buildMessageContent(inputValue, imageState.images);
+      // Build message content with text and images, stripping known MCP server prefixes
+      const messageContent = buildMessageContent(
+        inputValue,
+        imageState.images,
+        knownPrefixes,
+      );
 
       try {
         await sendThreadMessage(inputValue || "Image message", {
@@ -198,7 +210,14 @@ export const TamboThreadInputProvider: React.FC<
       // Clear text after successful submission
       setInputValue("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
+    [
+      inputValue,
+      sendThreadMessage,
+      thread.id,
+      contextKey,
+      imageState,
+      knownPrefixes,
+    ],
   );
 
   const {

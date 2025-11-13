@@ -461,4 +461,211 @@ describe("buildMessageContent", () => {
       },
     });
   });
+
+  describe("prefix stripping with knownPrefixes whitelist", () => {
+    it("should strip a single known prefix from resource URI", () => {
+      const result = buildMessageContent(
+        "Check @linear:issue://123 for details",
+        [],
+        new Set(["linear"]),
+      );
+
+      expect(result).toHaveLength(3);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "issue://123",
+        },
+      });
+    });
+
+    it("should strip prefix from multiple resources if they match known prefixes", () => {
+      const result = buildMessageContent(
+        "Copy from @linear:spreadsheet://data to @github:repo://path",
+        [],
+        new Set(["linear", "github"]),
+      );
+
+      expect(result).toHaveLength(4);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "spreadsheet://data",
+        },
+      });
+      expect(result[3]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "repo://path",
+        },
+      });
+    });
+
+    it("should not strip prefix if not in whitelist", () => {
+      const result = buildMessageContent(
+        "Check @unknown:resource://data",
+        [],
+        new Set(["linear"]),
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "unknown:resource://data",
+        },
+      });
+    });
+
+    it("should not strip prefix if whitelist is empty", () => {
+      const result = buildMessageContent(
+        "Check @linear:resource://data",
+        [],
+        new Set(),
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "linear:resource://data",
+        },
+      });
+    });
+
+    it("should not strip prefix if knownPrefixes is undefined", () => {
+      const result = buildMessageContent(
+        "Check @linear:resource://data",
+        [],
+        undefined,
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "linear:resource://data",
+        },
+      });
+    });
+
+    it("should handle mixed known and unknown prefixes", () => {
+      const result = buildMessageContent(
+        "Data from @linear:sheet://a and @slack:msg://b",
+        [],
+        new Set(["linear"]),
+      );
+
+      expect(result).toHaveLength(4);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "sheet://a",
+        },
+      });
+      expect(result[3]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "slack:msg://b",
+        },
+      });
+    });
+
+    it("should only strip the first matching prefix", () => {
+      // Test with a URI that could have multiple colons
+      const result = buildMessageContent(
+        "Use @server:http://example.com",
+        [],
+        new Set(["server"]),
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "http://example.com",
+        },
+      });
+    });
+
+    it("should work with hyphens in prefix", () => {
+      const result = buildMessageContent(
+        "Check @my-server:data://123",
+        [],
+        new Set(["my-server"]),
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "data://123",
+        },
+      });
+    });
+
+    it("should combine prefix stripping with images", () => {
+      const images = [
+        {
+          id: "img1",
+          name: "test.png",
+          dataUrl: "data:image/png;base64,abc123",
+          file: new File([""], "test.png", { type: "image/png" }),
+          size: 1024,
+          type: "image/png",
+        },
+      ];
+
+      const result = buildMessageContent(
+        "Check @linear:doc://file",
+        images,
+        new Set(["linear"]),
+      );
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Check ",
+      });
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "doc://file",
+        },
+      });
+      expect(result[2].type).toBe("image_url");
+    });
+
+    it("should strip prefix from resource at start of message", () => {
+      const result = buildMessageContent(
+        "@linear:issue://456 needs review",
+        [],
+        new Set(["linear"]),
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "issue://456",
+        },
+      });
+    });
+
+    it("should strip prefix from resource at end of message", () => {
+      const result = buildMessageContent(
+        "Review this @linear:issue://789",
+        [],
+        new Set(["linear"]),
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "issue://789",
+        },
+      });
+    });
+  });
 });
