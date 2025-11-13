@@ -14,7 +14,15 @@ interface SidebarProps {
 
 // Memoized navigation section component
 const NavSection = memo(
-  ({ item, level = 0 }: { item: NavigationItem; level?: number }) => {
+  ({
+    item,
+    level = 0,
+    onNavigate,
+  }: {
+    item: NavigationItem;
+    level?: number;
+    onNavigate?: () => void;
+  }) => {
     // Skip rendering parent items with children if they're just categories
     if (item.href === "#" && item.children) {
       return (
@@ -37,6 +45,7 @@ const NavSection = memo(
                         key={grandchild.title}
                         item={grandchild}
                         level={level + 2}
+                        onNavigate={onNavigate}
                       />
                     ))}
                   </div>
@@ -44,7 +53,12 @@ const NavSection = memo(
               }
 
               return (
-                <SidebarLink key={child.title} item={child} level={level + 1} />
+                <SidebarLink
+                  key={child.title}
+                  item={child}
+                  level={level + 1}
+                  onNavigate={onNavigate}
+                />
               );
             })}
           </div>
@@ -52,7 +66,7 @@ const NavSection = memo(
       );
     }
 
-    return <SidebarLink item={item} level={level} />;
+    return <SidebarLink item={item} level={level} onNavigate={onNavigate} />;
   },
 );
 NavSection.displayName = "NavSection";
@@ -79,13 +93,21 @@ export function Sidebar({ className }: SidebarProps) {
             {/* Render "Home" and "Get Started" with reduced spacing */}
             <div className="space-y-0.5">
               {homeAndGetStarted.map((item) => (
-                <NavSection key={item.title} item={item} />
+                <NavSection
+                  key={item.title}
+                  item={item}
+                  onNavigate={closeMobileMenu}
+                />
               ))}
             </div>
 
             {/* Render other navigation items */}
             {otherNavItems.map((item) => (
-              <NavSection key={item.title} item={item} />
+              <NavSection
+                key={item.title}
+                item={item}
+                onNavigate={closeMobileMenu}
+              />
             ))}
 
             {/* Render external links */}
@@ -97,6 +119,7 @@ export function Sidebar({ className }: SidebarProps) {
                   target={link.external ? "_blank" : undefined}
                   rel={link.external ? "noopener noreferrer" : undefined}
                   className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent text-sm"
+                  onClick={closeMobileMenu}
                 >
                   {link.icon === "github" && (
                     <Icons.github className="h-4 w-4" />
@@ -114,7 +137,7 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </>
     );
-  }, []);
+  }, [closeMobileMenu]);
 
   return (
     <>
