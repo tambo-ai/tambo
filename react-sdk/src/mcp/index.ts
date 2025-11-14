@@ -22,6 +22,7 @@ export type {
 } from "./mcp-hooks";
 export {
   TamboMcpProvider,
+  useTamboMcpElicitation,
   useTamboMcpServers,
   useTamboElicitationContext,
   type ConnectedMcpServer,

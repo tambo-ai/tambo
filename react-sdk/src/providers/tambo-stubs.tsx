@@ -82,7 +82,13 @@ const TamboStubClientProvider: React.FC<
 
   return (
     <TamboClientContext.Provider
-      value={{ client, queryClient, isUpdatingToken }}
+      value={{
+        client,
+        queryClient,
+        isUpdatingToken,
+        mcpAccessToken: null,
+        setMcpAccessToken: () => {},
+      }}
     >
       {children}
     </TamboClientContext.Provider>
@@ -119,10 +125,13 @@ const TamboStubRegistryProvider: React.FC<
         componentList,
         toolRegistry,
         componentToolAssociations,
+        mcpServerInfos: [],
         registerComponent,
         registerTool,
         registerTools,
         addToolAssociation,
+        registerMcpServer: () => {},
+        registerMcpServers: () => {},
       }}
     >
       {children}

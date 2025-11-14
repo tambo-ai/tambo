@@ -2,12 +2,10 @@
 import React, { PropsWithChildren, createContext, useContext } from "react";
 import { TamboInteractableContext } from "../model/tambo-interactable";
 import {
+  TamboClientContext,
   TamboClientContextProps,
   TamboClientProvider,
   TamboClientProviderProps,
-  useIsTamboTokenUpdating,
-  useTamboClient,
-  useTamboQueryClient,
 } from "./tambo-client-provider";
 import {
   TamboComponentContextProps,
@@ -57,6 +55,7 @@ import {
  * @param props.components - The components to register
  * @param props.environment - The environment to use for the Tambo API
  * @param props.tools - The tools to register
+ * @param props.mcpServers - The MCP servers to register (metadata only - use TamboMcpProvider for connections)
  * @param props.streaming - Whether to stream the response by default. Defaults to true.
  * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
  * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
@@ -85,6 +84,7 @@ export const TamboProvider: React.FC<
   components,
   environment,
   tools,
+  mcpServers,
   streaming,
   autoGenerateThreadName,
   autoGenerateNameThreshold,
@@ -104,6 +104,7 @@ export const TamboProvider: React.FC<
       <TamboRegistryProvider
         components={components}
         tools={tools}
+        mcpServers={mcpServers}
         onCallUnregisteredTool={onCallUnregisteredTool}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
@@ -158,9 +159,19 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
   const threads = useTamboThread();
-  const client = useTamboClient();
-  const queryClient = useTamboQueryClient();
-  const isUpdatingToken = useIsTamboTokenUpdating();
+  const clientContext = useContext(TamboClientContext);
+  if (!clientContext) {
+    throw new Error(
+      "TamboCompositeProvider must be used within a TamboClientProvider",
+    );
+  }
+  const {
+    client,
+    queryClient,
+    isUpdatingToken,
+    mcpAccessToken,
+    setMcpAccessToken,
+  } = clientContext;
   const componentRegistry = useTamboComponent();
   const interactableComponents = useTamboInteractable();
   const contextHelpers = useTamboContextHelpers();
@@ -172,6 +183,8 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
         client,
         queryClient,
         isUpdatingToken,
+        mcpAccessToken,
+        setMcpAccessToken,
         ...componentRegistry,
         ...threads,
         ...interactableComponents,

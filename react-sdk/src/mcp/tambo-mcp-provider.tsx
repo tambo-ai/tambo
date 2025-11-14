@@ -9,7 +9,10 @@ import React, {
 } from "react";
 import { TamboTool } from "../model/component-metadata";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
-import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import {
+  useTamboMcpServerInfos,
+  useTamboRegistry,
+} from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
 import { type ElicitationContextState, useElicitation } from "./elicitation";
 import {
@@ -158,19 +161,22 @@ const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
 /**
  * This provider is used to register tools from MCP servers.
  * It automatically includes an internal Tambo MCP server when an MCP access token is available.
+ *
+ * **BREAKING CHANGE**: This provider no longer accepts `mcpServers` as a prop.
+ * Instead, pass `mcpServers` to `TamboProvider` or `TamboRegistryProvider`.
+ * This provider must be wrapped inside `TamboProvider` to access the MCP server registry.
  * @param props - The provider props
- * @param props.mcpServers - Array of MCP server configurations
  * @param props.handlers - Optional handlers applied to all MCP servers unless overridden per-server
  * @param props.children - The children to wrap
  * @returns The TamboMcpProvider component
  */
 export const TamboMcpProvider: FC<{
-  mcpServers: (McpServerInfo | string)[];
   handlers?: ProviderMCPHandlers;
   children: React.ReactNode;
-}> = ({ mcpServers, handlers, children }) => {
+}> = ({ handlers, children }) => {
   const { registerTool } = useTamboRegistry();
   const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
+  const mcpServers = useTamboMcpServerInfos();
   const providerSamplingHandler = handlers?.sampling;
 
   // Elicitation state and default handler
@@ -488,16 +494,16 @@ export const useTamboMcpServers = () => {
 };
 
 /**
- * Hook to access elicitation context from TamboMcpProvider.
+ * Hook to access MCP elicitation state from TamboMcpProvider.
  * This provides access to the current elicitation request and methods to respond to it.
  *
  * The elicitation state is automatically managed by TamboMcpProvider when MCP servers
  * request user input through the elicitation protocol.
- * @returns The elicitation context with current request and response handlers
+ * @returns The elicitation state with current request and response handler
  * @example
  * ```tsx
  * function ElicitationUI() {
- *   const { elicitation, resolveElicitation } = useTamboElicitationContext();
+ *   const { elicitation, resolveElicitation } = useTamboMcpElicitation();
  *
  *   if (!elicitation) return null;
  *
@@ -512,13 +518,19 @@ export const useTamboMcpServers = () => {
  * }
  * ```
  */
-export const useTamboElicitationContext = () => {
+export const useTamboMcpElicitation = (): ElicitationContextState => {
   const context = useContext(McpProviderContext);
   return {
     elicitation: context.elicitation,
     resolveElicitation: context.resolveElicitation,
   };
 };
+
+/**
+ * @deprecated Use `useTamboMcpElicitation` instead.
+ * This hook will be removed in a future version.
+ */
+export const useTamboElicitationContext = useTamboMcpElicitation;
 
 /**
  * Derives a short server key from a URL hostname using heuristics.

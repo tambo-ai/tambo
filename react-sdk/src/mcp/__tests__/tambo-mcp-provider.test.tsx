@@ -1,13 +1,19 @@
-import { render, waitFor } from "@testing-library/react";
-import React, { useEffect } from "react";
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
   ClientNotification,
   ClientRequest,
 } from "@modelcontextprotocol/sdk/types.js";
-import { useTamboClient } from "../../providers/tambo-client-provider";
+import { render, waitFor } from "@testing-library/react";
+import React, { useEffect } from "react";
+import {
+  TamboClientContext,
+  useTamboClient,
+} from "../../providers/tambo-client-provider";
 import { TamboMcpTokenProvider } from "../../providers/tambo-mcp-token-provider";
-import { useTamboRegistry } from "../../providers/tambo-registry-provider";
+import {
+  TamboRegistryProvider,
+  useTamboRegistry,
+} from "../../providers/tambo-registry-provider";
 import { MCPClient, MCPTransport } from "../mcp-client";
 import {
   extractErrorMessage,
@@ -43,14 +49,47 @@ jest.mock("../mcp-client", () => ({
 }));
 
 // Mock the registry provider to avoid dependency issues
-jest.mock("../../providers/tambo-registry-provider", () => ({
-  useTamboRegistry: jest.fn(),
-}));
+jest.mock("../../providers/tambo-registry-provider", () => {
+  const actual = jest.requireActual("../../providers/tambo-registry-provider");
+  return {
+    ...actual,
+    useTamboRegistry: jest.fn(),
+  };
+});
 
 // Mock the client provider to avoid dependency issues
-jest.mock("../../providers/tambo-client-provider", () => ({
-  useTamboClient: jest.fn(),
-}));
+jest.mock("../../providers/tambo-client-provider", () => {
+  return {
+    useTamboClient: jest.fn(),
+    TamboClientContext: React.createContext(undefined),
+  };
+});
+
+// Helper to wrap tests with all required providers (used across multiple describe blocks)
+const TestWrapper: React.FC<{
+  mcpServers: any;
+  handlers?: ProviderMCPHandlers;
+  children: React.ReactNode;
+}> = ({ mcpServers, handlers, children }) => {
+  const client = useTamboClient();
+  return (
+    <TamboClientContext.Provider
+      value={{
+        client,
+        queryClient: {} as any,
+        isUpdatingToken: false,
+        mcpAccessToken: null,
+        setMcpAccessToken: () => {},
+      }}
+    >
+      <TamboRegistryProvider mcpServers={mcpServers}>
+        <TamboMcpTokenProvider>
+          <TamboMcpProvider handlers={handlers}>{children}</TamboMcpProvider>
+        </TamboMcpTokenProvider>
+      </TamboRegistryProvider>
+    </TamboClientContext.Provider>
+  );
+};
 
 describe("extractErrorMessage", () => {
   describe("Array content handling", () => {
@@ -227,11 +266,23 @@ describe("TamboMcpProvider server list changes", () => {
   it("adds a new server when the list grows", async () => {
     let latest: McpServer[] = [];
     const { rerender, getByTestId } = render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider mcpServers={["https://a.example"]}>
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TamboClientContext.Provider
+        value={{
+          client: useTamboClient(),
+          queryClient: {} as any,
+          isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
+        }}
+      >
+        <TamboRegistryProvider mcpServers={["https://a.example"]}>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture onUpdate={(s) => (latest = s)} />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     // Wait for initial connection
@@ -241,13 +292,25 @@ describe("TamboMcpProvider server list changes", () => {
 
     // Add new server
     rerender(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
+      <TamboClientContext.Provider
+        value={{
+          client: useTamboClient(),
+          queryClient: {} as any,
+          isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
+        }}
+      >
+        <TamboRegistryProvider
           mcpServers={["https://a.example", "https://b.example"]}
         >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture onUpdate={(s) => (latest = s)} />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
@@ -261,13 +324,25 @@ describe("TamboMcpProvider server list changes", () => {
   it("removes a server when the list shrinks", async () => {
     let latest: McpServer[] = [];
     const { rerender, getByTestId } = render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
+      <TamboClientContext.Provider
+        value={{
+          client: useTamboClient(),
+          queryClient: {} as any,
+          isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
+        }}
+      >
+        <TamboRegistryProvider
           mcpServers={["https://a.example", "https://b.example"]}
         >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture onUpdate={(s) => (latest = s)} />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
@@ -276,11 +351,23 @@ describe("TamboMcpProvider server list changes", () => {
 
     // Remove one server
     rerender(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider mcpServers={["https://a.example"]}>
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TamboClientContext.Provider
+        value={{
+          client: useTamboClient(),
+          queryClient: {} as any,
+          isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
+        }}
+      >
+        <TamboRegistryProvider mcpServers={["https://a.example"]}>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture onUpdate={(s) => (latest = s)} />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
@@ -299,11 +386,9 @@ describe("TamboMcpProvider server list changes", () => {
     ];
 
     const { rerender } = render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider mcpServers={initial}>
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper mcpServers={initial}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -316,11 +401,9 @@ describe("TamboMcpProvider server list changes", () => {
       { url: "https://b.example", transport: MCPTransport.SSE },
     ];
     rerender(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider mcpServers={same}>
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper mcpServers={same}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -341,11 +424,9 @@ describe("TamboMcpProvider server list changes", () => {
     const initial = [{ url: "https://a.example", transport: MCPTransport.SSE }];
 
     const { rerender } = render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider mcpServers={initial}>
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper mcpServers={initial}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -359,11 +440,9 @@ describe("TamboMcpProvider server list changes", () => {
     // Pass a new array with same server
     const same = [{ url: "https://a.example", transport: MCPTransport.SSE }];
     rerender(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider mcpServers={same}>
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper mcpServers={same}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -386,13 +465,25 @@ describe("TamboMcpProvider server list changes", () => {
 
     let latest: McpServer[] = [];
     const { rerender } = render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
+      <TamboClientContext.Provider
+        value={{
+          client: useTamboClient(),
+          queryClient: {} as any,
+          isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
+        }}
+      >
+        <TamboRegistryProvider
           mcpServers={["https://a.example", "https://b.example"]}
         >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture onUpdate={(s) => (latest = s)} />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
@@ -403,11 +494,23 @@ describe("TamboMcpProvider server list changes", () => {
 
     // Remove one server
     rerender(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider mcpServers={["https://a.example"]}>
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TamboClientContext.Provider
+        value={{
+          client: useTamboClient(),
+          queryClient: {} as any,
+          isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
+        }}
+      >
+        <TamboRegistryProvider mcpServers={["https://a.example"]}>
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture onUpdate={(s) => (latest = s)} />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
@@ -428,13 +531,25 @@ describe("TamboMcpProvider server list changes", () => {
 
     let latest: McpServer[] = [];
     const { unmount } = render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
+      <TamboClientContext.Provider
+        value={{
+          client: useTamboClient(),
+          queryClient: {} as any,
+          isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
+        }}
+      >
+        <TamboRegistryProvider
           mcpServers={["https://a.example", "https://b.example"]}
         >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture onUpdate={(s) => (latest = s)} />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
     );
 
     await waitFor(() => {
@@ -465,19 +580,17 @@ describe("TamboMcpProvider server list changes", () => {
 
     let latest: McpServer[] = [];
     const { rerender } = render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
-          mcpServers={[
-            {
-              url: "https://a.example",
-              transport: MCPTransport.SSE,
-              customHeaders: { Authorization: "Bearer token1" },
-            },
-          ]}
-        >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper
+        mcpServers={[
+          {
+            url: "https://a.example",
+            transport: MCPTransport.SSE,
+            customHeaders: { Authorization: "Bearer token1" },
+          },
+        ]}
+      >
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -490,19 +603,17 @@ describe("TamboMcpProvider server list changes", () => {
 
     // Change the customHeaders
     rerender(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
-          mcpServers={[
-            {
-              url: "https://a.example",
-              transport: MCPTransport.SSE,
-              customHeaders: { Authorization: "Bearer token2" },
-            },
-          ]}
-        >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper
+        mcpServers={[
+          {
+            url: "https://a.example",
+            transport: MCPTransport.SSE,
+            customHeaders: { Authorization: "Bearer token2" },
+          },
+        ]}
+      >
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     // Wait for old client to be closed and new client to be created
@@ -572,14 +683,9 @@ describe("TamboMcpProvider handler support", () => {
 
     let latest: McpServer[] = [];
     render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
-          mcpServers={["https://test.example"]}
-          handlers={handlers}
-        >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper mcpServers={["https://test.example"]} handlers={handlers}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -589,7 +695,7 @@ describe("TamboMcpProvider handler support", () => {
     // Verify MCPClient.create was called
     expect(createSpy).toHaveBeenCalledWith(
       "https://test.example",
-      MCPTransport.HTTP,
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -615,7 +721,7 @@ describe("TamboMcpProvider handler support", () => {
       mockExtra,
       expect.objectContaining({
         url: "https://test.example",
-        transport: MCPTransport.HTTP,
+        serverKey: "test",
       }),
     );
   });
@@ -634,14 +740,9 @@ describe("TamboMcpProvider handler support", () => {
 
     let latest: McpServer[] = [];
     render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
-          mcpServers={["https://test.example"]}
-          handlers={handlers}
-        >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper mcpServers={["https://test.example"]} handlers={handlers}>
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -651,7 +752,7 @@ describe("TamboMcpProvider handler support", () => {
     // Verify MCPClient.create was called with sampling handler
     expect(createSpy).toHaveBeenCalledWith(
       "https://test.example",
-      MCPTransport.HTTP,
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -677,7 +778,7 @@ describe("TamboMcpProvider handler support", () => {
       mockExtra,
       expect.objectContaining({
         url: "https://test.example",
-        transport: MCPTransport.HTTP,
+        serverKey: "test",
       }),
     );
   });
@@ -697,21 +798,19 @@ describe("TamboMcpProvider handler support", () => {
 
     let latest: McpServer[] = [];
     render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
-          mcpServers={[
-            {
-              url: "https://test.example",
-              handlers: {
-                elicitation: serverElicitationHandler,
-              },
+      <TestWrapper
+        mcpServers={[
+          {
+            url: "https://test.example",
+            handlers: {
+              elicitation: serverElicitationHandler,
             },
-          ]}
-          handlers={handlers}
-        >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+          },
+        ]}
+        handlers={handlers}
+      >
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -734,17 +833,15 @@ describe("TamboMcpProvider handler support", () => {
 
     let latest: McpServer[] = [];
     render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
-          mcpServers={[
-            { url: "https://server-a.example", name: "Server A" },
-            { url: "https://server-b.example", name: "Server B" },
-          ]}
-          handlers={handlers}
-        >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper
+        mcpServers={[
+          { url: "https://server-a.example", name: "Server A" },
+          { url: "https://server-b.example", name: "Server B" },
+        ]}
+        handlers={handlers}
+      >
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -800,14 +897,12 @@ describe("TamboMcpProvider handler support", () => {
 
     let latest: McpServer[] = [];
     const { rerender } = render(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
-          mcpServers={["https://test.example"]}
-          handlers={{ elicitation: initialHandler }}
-        >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper
+        mcpServers={["https://test.example"]}
+        handlers={{ elicitation: initialHandler }}
+      >
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -816,14 +911,12 @@ describe("TamboMcpProvider handler support", () => {
 
     // Update the handlers
     rerender(
-      <TamboMcpTokenProvider>
-        <TamboMcpProvider
-          mcpServers={["https://test.example"]}
-          handlers={{ elicitation: updatedHandler }}
-        >
-          <Capture onUpdate={(s) => (latest = s)} />
-        </TamboMcpProvider>
-      </TamboMcpTokenProvider>,
+      <TestWrapper
+        mcpServers={["https://test.example"]}
+        handlers={{ elicitation: updatedHandler }}
+      >
+        <Capture onUpdate={(s) => (latest = s)} />
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -871,11 +964,9 @@ describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
 
       let latest: McpServer[] = [];
       render(
-        <TamboMcpTokenProvider>
-          <TamboMcpProvider mcpServers={["https://mcp.linear.app/mcp"]}>
-            <Capture onUpdate={(s) => (latest = s)} />
-          </TamboMcpProvider>
-        </TamboMcpTokenProvider>,
+        <TestWrapper mcpServers={["https://mcp.linear.app/mcp"]}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -892,18 +983,16 @@ describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
 
       let latest: McpServer[] = [];
       render(
-        <TamboMcpTokenProvider>
-          <TamboMcpProvider
-            mcpServers={[
-              {
-                url: "https://mcp.linear.app/mcp",
-                serverKey: "custom-key",
-              },
-            ]}
-          >
-            <Capture onUpdate={(s) => (latest = s)} />
-          </TamboMcpProvider>
-        </TamboMcpTokenProvider>,
+        <TestWrapper
+          mcpServers={[
+            {
+              url: "https://mcp.linear.app/mcp",
+              serverKey: "custom-key",
+            },
+          ]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -929,11 +1018,9 @@ describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
       for (const { url, expected } of testCases) {
         let latest: McpServer[] = [];
         const { unmount } = render(
-          <TamboMcpTokenProvider>
-            <TamboMcpProvider mcpServers={[url]}>
-              <Capture onUpdate={(s) => (latest = s)} />
-            </TamboMcpProvider>
-          </TamboMcpTokenProvider>,
+          <TestWrapper mcpServers={[url]}>
+            <Capture onUpdate={(s) => (latest = s)} />
+          </TestWrapper>,
         );
 
         await waitFor(() => {
@@ -959,11 +1046,9 @@ describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
 
       let latest: McpServer[] = [];
       render(
-        <TamboMcpTokenProvider>
-          <TamboMcpProvider mcpServers={["https://mcp.linear.app/mcp"]}>
-            <Capture onUpdate={(s) => (latest = s)} />
-          </TamboMcpProvider>
-        </TamboMcpTokenProvider>,
+        <TestWrapper mcpServers={["https://mcp.linear.app/mcp"]}>
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -988,16 +1073,11 @@ describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
 
       let latest: McpServer[] = [];
       render(
-        <TamboMcpTokenProvider>
-          <TamboMcpProvider
-            mcpServers={[
-              "https://mcp.linear.app/mcp",
-              "https://api.github.com",
-            ]}
-          >
-            <Capture onUpdate={(s) => (latest = s)} />
-          </TamboMcpProvider>
-        </TamboMcpTokenProvider>,
+        <TestWrapper
+          mcpServers={["https://mcp.linear.app/mcp", "https://api.github.com"]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TestWrapper>,
       );
 
       await waitFor(
@@ -1037,19 +1117,17 @@ describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
 
       let latest: McpServer[] = [];
       render(
-        <TamboMcpTokenProvider>
-          <TamboMcpProvider
-            mcpServers={[
-              {
-                url: "https://mcp.linear.app/mcp",
-                serverKey: "my-server",
-              },
-              "https://api.github.com",
-            ]}
-          >
-            <Capture onUpdate={(s) => (latest = s)} />
-          </TamboMcpProvider>
-        </TamboMcpTokenProvider>,
+        <TestWrapper
+          mcpServers={[
+            {
+              url: "https://mcp.linear.app/mcp",
+              serverKey: "my-server",
+            },
+            "https://api.github.com",
+          ]}
+        >
+          <Capture onUpdate={(s) => (latest = s)} />
+        </TestWrapper>,
       );
 
       await waitFor(() => {

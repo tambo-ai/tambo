@@ -17,15 +17,19 @@ import {
 } from "../model/component-metadata";
 import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
+import { McpServerInfo } from "../mcp/tambo-mcp-provider";
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
   toolRegistry: Record<string, TamboTool>;
   componentToolAssociations: Record<string, string[]>;
+  mcpServerInfos: McpServerInfo[];
   registerComponent: (options: TamboComponent) => void;
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
+  registerMcpServer: (info: McpServerInfo) => void;
+  registerMcpServers: (infos: McpServerInfo[]) => void;
   onCallUnregisteredTool?: (
     toolName: string,
     args: TamboAI.ToolCallParameter[],
@@ -36,6 +40,7 @@ export const TamboRegistryContext = createContext<TamboRegistryContext>({
   componentList: {},
   toolRegistry: {},
   componentToolAssociations: {},
+  mcpServerInfos: [],
   /**
    *
    */
@@ -52,6 +57,14 @@ export const TamboRegistryContext = createContext<TamboRegistryContext>({
    *
    */
   addToolAssociation: () => {},
+  /**
+   *
+   */
+  registerMcpServer: () => {},
+  /**
+   *
+   */
+  registerMcpServers: () => {},
 });
 
 export interface TamboRegistryProviderProps {
@@ -59,6 +72,8 @@ export interface TamboRegistryProviderProps {
   components?: TamboComponent[];
   /** The tools to register */
   tools?: TamboTool[];
+  /** The MCP servers to register */
+  mcpServers?: (McpServerInfo | string)[];
 
   /**
    * A function to call when an unknown tool is called. If this function is not
@@ -81,6 +96,7 @@ export interface TamboRegistryProviderProps {
  * @param props.children - The children to wrap
  * @param props.components - The components to register
  * @param props.tools - The tools to register
+ * @param props.mcpServers - The MCP servers to register
  * @param props.onCallUnregisteredTool - The function to call when an unknown tool is called (optional)
  * @returns The TamboRegistryProvider component
  */
@@ -90,6 +106,7 @@ export const TamboRegistryProvider: React.FC<
   children,
   components: userComponents,
   tools: userTools,
+  mcpServers: userMcpServers,
   onCallUnregisteredTool,
 }) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
@@ -99,6 +116,7 @@ export const TamboRegistryProvider: React.FC<
   const [componentToolAssociations, setComponentToolAssociations] = useState<
     Record<string, string[]>
   >({});
+  const [mcpServerInfos, setMcpServerInfos] = useState<McpServerInfo[]>([]);
 
   const registerTool = useCallback(
     (tool: TamboTool, warnOnOverwrite = true) => {
@@ -128,6 +146,14 @@ export const TamboRegistryProvider: React.FC<
     },
     [registerTool],
   );
+
+  const registerMcpServer = useCallback((info: McpServerInfo) => {
+    setMcpServerInfos((prev) => [...prev, info]);
+  }, []);
+
+  const registerMcpServers = useCallback((infos: McpServerInfo[]) => {
+    setMcpServerInfos((prev) => [...prev, ...infos]);
+  }, []);
 
   const addToolAssociation = useCallback(
     (componentName: string, tool: TamboTool) => {
@@ -227,14 +253,27 @@ export const TamboRegistryProvider: React.FC<
     }
   }, [registerTools, userTools]);
 
+  useEffect(() => {
+    if (userMcpServers) {
+      // Normalize string URLs to McpServerInfo objects
+      const normalized = userMcpServers.map((server) =>
+        typeof server === "string" ? { url: server } : server,
+      );
+      setMcpServerInfos(normalized);
+    }
+  }, [userMcpServers]);
+
   const value = {
     componentList,
     toolRegistry,
     componentToolAssociations,
+    mcpServerInfos,
     registerComponent,
     registerTool,
     registerTools,
     addToolAssociation,
+    registerMcpServer,
+    registerMcpServers,
     onCallUnregisteredTool,
   };
 
@@ -252,6 +291,35 @@ export const TamboRegistryProvider: React.FC<
  */
 export const useTamboRegistry = () => {
   return useContext(TamboRegistryContext);
+};
+
+/**
+ * Hook to access the MCP server metadata from TamboRegistryProvider.
+ * This provides access to the registered MCP server configurations (metadata only, not connections).
+ *
+ * This hook can be used anywhere within the TamboProvider hierarchy to access
+ * the list of configured MCP servers without needing to be inside TamboMcpProvider.
+ * @returns Array of MCP server metadata
+ * @example
+ * ```tsx
+ * function MyComponent() {
+ *   const mcpServers = useTamboMcpServerInfos();
+ *
+ *   return (
+ *     <div>
+ *       <h3>Configured MCP Servers:</h3>
+ *       {mcpServers.map((server) => (
+ *         <div key={server.url}>
+ *           {server.name || server.url}
+ *         </div>
+ *       ))}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export const useTamboMcpServerInfos = (): McpServerInfo[] => {
+  return useContext(TamboRegistryContext).mcpServerInfos;
 };
 function getSerializedProps(
   propsDefinition: any,

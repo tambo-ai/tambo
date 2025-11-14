@@ -32,6 +32,7 @@ export {
   useTamboContextAttachment,
   useTamboContextHelpers,
   useTamboGenerationStage,
+  useTamboMcpServerInfos,
   useTamboStream,
   useTamboThread,
   useTamboThreadInput,
@@ -100,5 +101,8 @@ export type {
   ContextHelpers,
 } from "./context-helpers";
 
-// Note MCP exports like TamboMcpProvider are available separately in the
+// MCP server metadata type (used by TamboProvider)
+export type { McpServerInfo } from "./mcp/tambo-mcp-provider";
+
+// Note: Full MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package
