@@ -22,11 +22,17 @@ export type {
 } from "./mcp-hooks";
 export {
   TamboMcpProvider,
+  useTamboMcpElicitation,
   useTamboMcpServers,
   useTamboElicitationContext,
   type ConnectedMcpServer,
   type FailedMcpServer,
   type McpServer,
-  type McpServerInfo,
   type ProviderMCPHandlers,
 } from "./tambo-mcp-provider";
+
+// Public MCP server metadata types
+export type {
+  McpServerInfo,
+  NormalizedMcpServerInfo,
+} from "../model/mcp-server-info";

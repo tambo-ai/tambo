@@ -4,10 +4,7 @@ import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadPanel } from "@/components/ui/message-thread-panel";
 import { useUserContextKey } from "@/lib/useUserContextKey";
-import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
-
-const MCP_DEMO_URL =
-  process.env.NEXT_PUBLIC_MCP_DEMO_URL || "https://everything-mcp.tambo.co/mcp";
+import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 export default function MessageThreadPanelPage() {
   const userContextKey = useUserContextKey("message-thread-panel");
@@ -35,11 +32,7 @@ export default function MessageThreadPanelPage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <TamboMcpProvider
-                mcpServers={[
-                  { url: MCP_DEMO_URL, transport: MCPTransport.HTTP },
-                ]}
-              >
+              <TamboMcpProvider>
                 <div className="w-full h-full relative flex rounded-lg overflow-hidden">
                   <div className="flex-1 bg-muted/20 flex flex-col gap-4 p-6 min-w-0">
                     <div className="h-8 w-[200px] bg-muted/80 rounded-md" />

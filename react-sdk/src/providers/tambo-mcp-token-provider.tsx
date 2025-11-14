@@ -3,9 +3,9 @@ import React, {
   createContext,
   PropsWithChildren,
   useContext,
-  useState,
+  useMemo,
 } from "react";
-import { useTamboClient } from "./tambo-client-provider";
+import { TamboClientContext } from "./tambo-client-provider";
 
 export interface TamboMcpTokenContextProps {
   /**
@@ -32,6 +32,9 @@ const TamboMcpTokenContext = createContext<
  * Provider for managing the MCP access token that is returned by the Tambo API.
  * This token is used to authenticate with the internal Tambo MCP server.
  * The base URL is derived from the TamboClient's baseURL property.
+ *
+ * **NOTE**: This provider now delegates token state management to TamboClientProvider.
+ * It exists primarily for backward compatibility and to add the tamboBaseUrl.
  * @internal
  * @param props - The provider props
  * @param props.children - The children to wrap
@@ -40,13 +43,22 @@ const TamboMcpTokenContext = createContext<
 export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
-  const [mcpAccessToken, setMcpAccessToken] = useState<string | null>(null);
-  const { baseURL: tamboBaseUrl } = useTamboClient();
+  const clientContext = useContext(TamboClientContext);
+  if (!clientContext) {
+    throw new Error(
+      "TamboMcpTokenProvider must be used within a TamboClientProvider",
+    );
+  }
+  const { client, mcpAccessToken, setMcpAccessToken } = clientContext;
+  const tamboBaseUrl = client.baseURL;
+
+  const value = useMemo(
+    () => ({ mcpAccessToken, tamboBaseUrl, setMcpAccessToken }),
+    [mcpAccessToken, tamboBaseUrl, setMcpAccessToken],
+  );
 
   return (
-    <TamboMcpTokenContext.Provider
-      value={{ mcpAccessToken, tamboBaseUrl, setMcpAccessToken }}
-    >
+    <TamboMcpTokenContext.Provider value={value}>
       {children}
     </TamboMcpTokenContext.Provider>
   );

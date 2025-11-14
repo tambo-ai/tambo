@@ -30,10 +30,12 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import * as React from "react";
-// eslint-disable-next-line @typescript-eslint/promise-function-async
-const DictationButton = dynamic(() => import("./dictation-button"), {
-  ssr: false,
-});
+const DictationButton = dynamic(
+  async () => await import("./dictation-button"),
+  {
+    ssr: false,
+  },
+);
 
 /**
  * CSS variants for the message input container
