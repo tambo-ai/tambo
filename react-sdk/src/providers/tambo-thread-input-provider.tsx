@@ -12,10 +12,10 @@ import {
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
 import { StagedImage, useMessageImages } from "../hooks/use-message-images";
-import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
+import { useTamboMcpServerInfos } from "./tambo-registry-provider";
 import { useTamboThread } from "./tambo-thread-provider";
 
 /**
@@ -98,7 +98,7 @@ export const TamboThreadInputProvider: React.FC<
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
   const imageState = useMessageImages();
-  const mcpServers = useTamboMcpServers();
+  const mcpServers = useTamboMcpServerInfos();
 
   // Build a set of known MCP server keys for prefix stripping
   const knownPrefixes = useMemo(() => {
