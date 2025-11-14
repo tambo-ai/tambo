@@ -6,8 +6,6 @@
  * - site.css: Site-specific showcase styles (EDIT AS NEEDED)
  */
 
-@import "tailwindcss";
-
 /* Component styles from CLI registry - synced automatically */
 @import "./components.css";
 
