@@ -5,6 +5,7 @@ import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadCollapsible } from "@/components/ui/message-thread-collapsible";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
+import { TamboProvider } from "@tambo-ai/react";
 
 const MCP_DEMO_URL =
   process.env.NEXT_PUBLIC_MCP_DEMO_URL || "https://everything-mcp.tambo.co/mcp";
@@ -35,14 +36,15 @@ export default function MessageThreadCollapsiblePage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <TamboMcpProvider
+              <TamboProvider
+                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+                tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
                 mcpServers={[
                   {
                     url: MCP_DEMO_URL,
                     transport: MCPTransport.HTTP,
                     handlers: {
-                      elicitation: async (request) => {
-                        console.log("elicitation request", request);
+                      elicitation: async (_request) => {
                         return {
                           action: "accept",
                           content: {
@@ -55,27 +57,29 @@ export default function MessageThreadCollapsiblePage() {
                   },
                 ]}
               >
-                <div className="w-full flex-1 bg-muted/20 flex flex-col gap-4 p-6 h-full relative">
-                  <div className="h-8 w-[200px] bg-muted/80 rounded-md" />
-                  <div className="h-4 w-[300px] bg-muted/80 rounded-md" />
-                  <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
-                  <div className="grid grid-cols-3 gap-4 mt-4">
-                    <div className="h-32 bg-muted/80 rounded-lg" />
-                    <div className="h-32 bg-muted/80 rounded-lg" />
-                    <div className="h-32 bg-muted/80 rounded-lg" />
+                <TamboMcpProvider>
+                  <div className="w-full flex-1 bg-muted/20 flex flex-col gap-4 p-6 h-full relative">
+                    <div className="h-8 w-[200px] bg-muted/80 rounded-md" />
+                    <div className="h-4 w-[300px] bg-muted/80 rounded-md" />
+                    <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
+                    <div className="grid grid-cols-3 gap-4 mt-4">
+                      <div className="h-32 bg-muted/80 rounded-lg" />
+                      <div className="h-32 bg-muted/80 rounded-lg" />
+                      <div className="h-32 bg-muted/80 rounded-lg" />
+                    </div>
+                    <div className="mt-4 h-4 w-[280px] bg-muted/80 rounded-md" />
+                    <div className="h-4 w-[320px] bg-muted/80 rounded-md" />
+                    <div className="flex-grow" />
+                    <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
+                    <div className="h-4 w-[200px] bg-muted/80 rounded-md" />
+                    <MessageThreadCollapsible
+                      defaultOpen={false}
+                      contextKey={userContextKey}
+                      className="absolute bottom-6 right-4"
+                    />
                   </div>
-                  <div className="mt-4 h-4 w-[280px] bg-muted/80 rounded-md" />
-                  <div className="h-4 w-[320px] bg-muted/80 rounded-md" />
-                  <div className="flex-grow" />
-                  <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
-                  <div className="h-4 w-[200px] bg-muted/80 rounded-md" />
-                  <MessageThreadCollapsible
-                    defaultOpen={false}
-                    contextKey={userContextKey}
-                    className="absolute bottom-6 right-4"
-                  />
-                </div>
-              </TamboMcpProvider>
+                </TamboMcpProvider>
+              </TamboProvider>
             }
             code={`import { MessageThreadCollapsible } from "@tambo-ai/react";
 

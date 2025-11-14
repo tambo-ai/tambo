@@ -23,6 +23,7 @@ export {
   TamboContextHelpersProvider,
   TamboPropStreamProvider,
   TamboProvider,
+  TamboRegistryProvider,
   TamboStubProvider,
   TamboThreadInputProvider,
   TamboThreadProvider,
