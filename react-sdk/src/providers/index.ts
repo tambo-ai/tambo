@@ -37,6 +37,7 @@ export type {
 export { TamboContext, TamboProvider, useTambo } from "./tambo-provider";
 export {
   TamboRegistryProvider,
+  useTamboMcpServerInfos,
   useTamboRegistry,
   type TamboRegistryContext,
 } from "./tambo-registry-provider";

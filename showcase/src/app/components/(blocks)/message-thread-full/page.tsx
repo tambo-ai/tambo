@@ -4,10 +4,7 @@ import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
-import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
-
-const MCP_DEMO_URL =
-  process.env.NEXT_PUBLIC_MCP_DEMO_URL || "https://everything-mcp.tambo.co/mcp";
+import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 export default function MessageThreadFullPage() {
   const userContextKey = useUserContextKey("message-thread-full");
@@ -35,11 +32,7 @@ export default function MessageThreadFullPage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <TamboMcpProvider
-                mcpServers={[
-                  { url: MCP_DEMO_URL, transport: MCPTransport.HTTP },
-                ]}
-              >
+              <TamboMcpProvider>
                 <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
                   <MessageThreadFull
                     contextKey={userContextKey}

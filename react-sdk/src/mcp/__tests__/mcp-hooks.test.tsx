@@ -100,22 +100,24 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+            {
+              url: "https://server-b.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-                {
-                  url: "https://server-b.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -207,22 +209,24 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+            {
+              url: "https://server-b.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-                {
-                  url: "https://server-b.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -248,18 +252,20 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -340,22 +346,24 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+            {
+              url: "https://server-b.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-                {
-                  url: "https://server-b.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -442,22 +450,24 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+            {
+              url: "https://server-b.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-                {
-                  url: "https://server-b.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -531,18 +541,20 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -564,22 +576,24 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+            {
+              url: "https://server-b.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-                {
-                  url: "https://server-b.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -695,22 +709,24 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+            {
+              url: "https://server-b.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-                {
-                  url: "https://server-b.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -785,18 +801,20 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -884,22 +902,24 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+            {
+              url: "https://server-b.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-                {
-                  url: "https://server-b.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -923,18 +943,20 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -1029,18 +1051,20 @@ describe("useTamboMcpResource - read individual resource", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -1140,22 +1164,24 @@ describe("useTamboMcpResource - read individual resource", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+            {
+              url: "https://server-b.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                {
-                  url: "https://server-a.example",
-                  transport: MCPTransport.SSE,
-                },
-                {
-                  url: "https://server-b.example",
-                  transport: MCPTransport.SSE,
-                },
-              ]}
-            >
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>

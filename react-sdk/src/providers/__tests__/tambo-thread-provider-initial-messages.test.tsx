@@ -6,7 +6,11 @@ import {
   GenerationStage,
   TamboThreadMessage,
 } from "../../model/generate-component-response";
-import { useTamboClient, useTamboQueryClient } from "../tambo-client-provider";
+import {
+  TamboClientContext,
+  useTamboClient,
+  useTamboQueryClient,
+} from "../tambo-client-provider";
 import { TamboContextHelpersProvider } from "../tambo-context-helpers-provider";
 import { TamboMcpTokenProvider } from "../tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
@@ -22,10 +26,13 @@ Object.defineProperty(global, "crypto", {
 });
 
 // Mock the required providers
-jest.mock("../tambo-client-provider", () => ({
-  useTamboClient: jest.fn(),
-  useTamboQueryClient: jest.fn(),
-}));
+jest.mock("../tambo-client-provider", () => {
+  return {
+    useTamboClient: jest.fn(),
+    useTamboQueryClient: jest.fn(),
+    TamboClientContext: React.createContext(undefined),
+  };
+});
 jest.mock("@tambo-ai/typescript-sdk", () => ({
   advanceStream: jest.fn(),
 }));
@@ -45,20 +52,35 @@ const createMockMessage = (
 
 // Test wrapper
 const createWrapper = (initialMessages: TamboThreadMessage[] = []) => {
-  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-    <TamboRegistryProvider components={[]} tools={[]}>
-      <TamboContextHelpersProvider>
-        <TamboMcpTokenProvider>
-          <TamboThreadProvider
-            initialMessages={initialMessages}
-            autoGenerateThreadName={false}
-          >
-            {children}
-          </TamboThreadProvider>
-        </TamboMcpTokenProvider>
-      </TamboContextHelpersProvider>
-    </TamboRegistryProvider>
-  );
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => {
+    const client = useTamboClient();
+    const queryClient = useTamboQueryClient();
+
+    return (
+      <TamboClientContext.Provider
+        value={{
+          client,
+          queryClient,
+          isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
+        }}
+      >
+        <TamboRegistryProvider components={[]} tools={[]}>
+          <TamboContextHelpersProvider>
+            <TamboMcpTokenProvider>
+              <TamboThreadProvider
+                initialMessages={initialMessages}
+                autoGenerateThreadName={false}
+              >
+                {children}
+              </TamboThreadProvider>
+            </TamboMcpTokenProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>
+    );
+  };
   TestWrapper.displayName = "TestWrapper";
   return TestWrapper;
 };
