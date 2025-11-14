@@ -56,7 +56,15 @@ export function extractErrorMessage(content: unknown): string {
 }
 
 /**
- * Normalized server information with a stable derived key.
+ * Normalized MCP server information as consumed by the provider.
+ *
+ * Extends `NormalizedMcpServerInfo` from the core model by:
+ * - narrowing `handlers` to `Partial<MCPHandlers>`
+ * - adding a stable `key` derived from URL/transport/headers
+ *
+ * The registry is responsible for producing `NormalizedMcpServerInfo`
+ * instances; this type adds the MCP-specific wiring needed to connect and
+ * track clients.
  */
 interface McpServerConfig extends NormalizedMcpServerInfo {
   /**
@@ -513,15 +521,16 @@ export const useTamboMcpElicitation = (): ElicitationContextState => {
 export const useTamboElicitationContext = useTamboMcpElicitation;
 
 /**
- * Normalizes a server info object into a McpServerConfig.
- * Expects serverKey to already be present (set by TamboRegistryProvider).
- * @returns The normalized McpServerConfig object
+ * Normalizes registry server metadata into a `McpServerConfig`.
+ *
+ * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
+ * `transport` and a `serverKey` derived by the registry, and narrows the
+ * opaque `handlers` field to `Partial<MCPHandlers>`.
  */
 function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
   const key = getMcpServerUniqueKey(server);
   // Cast handlers to proper type if present
-  const handlers =
-    (server.handlers as Partial<MCPHandlers> | undefined) ?? undefined;
+  const handlers = server.handlers as Partial<MCPHandlers> | undefined;
   return {
     ...server,
     handlers,

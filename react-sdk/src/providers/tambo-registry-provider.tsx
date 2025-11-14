@@ -443,6 +443,10 @@ export const useTamboRegistry = () => {
  *   );
  * }
  * ```
+ *
+ * The returned objects are `NormalizedMcpServerInfo` instances, meaning both
+ * `serverKey` and `transport` are always populated (with `transport`
+ * defaulting to HTTP when not explicitly specified).
  */
 export const useTamboMcpServerInfos = (): NormalizedMcpServerInfo[] => {
   return useContext(TamboRegistryContext).mcpServerInfos;
