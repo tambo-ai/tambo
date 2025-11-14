@@ -212,6 +212,7 @@ export const TamboMcpProvider: FC<{
         name: TAMBO_INTERNAL_MCP_SERVER_NAME,
         url: tamboMcpUrl,
         transport: MCPTransport.HTTP,
+        serverKey: "tambo", // Internal server always uses 'tambo' as serverKey
         customHeaders: {
           Authorization: `Bearer ${mcpAccessToken}`,
         },
@@ -533,73 +534,6 @@ export const useTamboMcpElicitation = (): ElicitationContextState => {
 export const useTamboElicitationContext = useTamboMcpElicitation;
 
 /**
- * Derives a short server key from a URL hostname using heuristics.
- * Attempts to extract the "meaningful" part of the domain name.
- *
- * Examples:
- * - "https://mcp.linear.app/mcp" -> "linear"
- * - "https://api.github.com" -> "github"
- * - "https://google.com" -> "google"
- * - "https://google.co.uk" -> "google"
- * - "https://mcp.company.co.uk" -> "company"
- * @param url - The URL to derive a server key from
- * @returns A short server key derived from the hostname
- */
-
-function deriveServerKey(url: string): string {
-  try {
-    const parsed = new URL(url);
-    const hostname = parsed.hostname;
-
-    // Split hostname into parts
-    const parts = hostname.split(".");
-
-    // Remove common TLD patterns
-    // Handle cases like: .com, .org, .co.uk, .com.au, etc.
-    let relevantParts = [...parts];
-
-    // If we have 3+ parts and the last two are short (likely TLD like .co.uk)
-    if (
-      relevantParts.length >= 3 &&
-      relevantParts[relevantParts.length - 1].length <= 3 &&
-      relevantParts[relevantParts.length - 2].length <= 3
-    ) {
-      relevantParts = relevantParts.slice(0, -2);
-    }
-    // Otherwise just remove the last part (TLD like .com)
-    else if (relevantParts.length >= 2) {
-      relevantParts = relevantParts.slice(0, -1);
-    }
-
-    // From what's left, prefer the rightmost part that's not a common prefix
-    // Common prefixes: www, api, mcp, app, etc.
-    const commonPrefixes = new Set([
-      "www",
-      "api",
-      "mcp",
-      "app",
-      "staging",
-      "dev",
-      "prod",
-    ]);
-
-    // Work backwards through the parts to find a meaningful name
-    for (let i = relevantParts.length - 1; i >= 0; i--) {
-      const part = relevantParts[i];
-      if (part && !commonPrefixes.has(part.toLowerCase())) {
-        return part.toLowerCase();
-      }
-    }
-
-    // Fallback: use the last relevant part even if it's a common prefix
-    return relevantParts[relevantParts.length - 1]?.toLowerCase() || hostname;
-  } catch {
-    // If URL parsing fails, just return a sanitized version of the input
-    return url.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-  }
-}
-
-/**
  * Creates a stable identifier for an MCP server based on its connection properties.
  * Two servers with the same URL, transport, and headers will have the same key.
  * @returns A stable string key identifying the server
@@ -618,15 +552,13 @@ function getServerKey(
 }
 
 /**
- * Normalizes a server definition (string or object) into a McpServerInfo.
- * @returns The normalized McpServerInfo object
+ * Normalizes a server info object into a McpServerConfig.
+ * Expects serverKey to already be present (set by TamboRegistryProvider).
+ * @returns The normalized McpServerConfig object
  */
-function normalizeServerInfo(server: McpServerInfo | string): McpServerConfig {
-  const s =
-    typeof server === "string"
-      ? { url: server, transport: MCPTransport.HTTP }
-      : server;
-  const key = getServerKey(s);
-  const serverKey = s.serverKey ?? deriveServerKey(s.url);
-  return { ...s, key, serverKey };
+function normalizeServerInfo(
+  server: McpServerInfo & { serverKey: string },
+): McpServerConfig {
+  const key = getServerKey(server);
+  return { ...server, key };
 }

@@ -19,11 +19,81 @@ import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
 import { McpServerInfo } from "../mcp/tambo-mcp-provider";
 
+/**
+ * Derives a short, meaningful key from a server URL.
+ * Strips TLDs and common prefixes to get a human-readable identifier.
+ * For example, "https://mcp.linear.app/mcp" becomes "linear".
+ */
+function deriveServerKey(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname;
+
+    // Split hostname into parts
+    const parts = hostname.split(".");
+
+    // Remove common TLD patterns
+    // Handle cases like: .com, .org, .co.uk, .com.au, etc.
+    let relevantParts = [...parts];
+
+    // If we have 3+ parts and the last two are short (likely TLD like .co.uk)
+    if (
+      relevantParts.length >= 3 &&
+      relevantParts[relevantParts.length - 1].length <= 3 &&
+      relevantParts[relevantParts.length - 2].length <= 3
+    ) {
+      relevantParts = relevantParts.slice(0, -2);
+    }
+    // Otherwise just remove the last part (TLD like .com)
+    else if (relevantParts.length >= 2) {
+      relevantParts = relevantParts.slice(0, -1);
+    }
+
+    // From what's left, prefer the rightmost part that's not a common prefix
+    // Common prefixes: www, api, mcp, app, etc.
+    const commonPrefixes = new Set([
+      "www",
+      "api",
+      "mcp",
+      "app",
+      "staging",
+      "dev",
+      "prod",
+    ]);
+
+    // Work backwards through the parts to find a meaningful name
+    for (let i = relevantParts.length - 1; i >= 0; i--) {
+      const part = relevantParts[i];
+      if (part && !commonPrefixes.has(part.toLowerCase())) {
+        return part.toLowerCase();
+      }
+    }
+
+    // Fallback: use the last relevant part even if it's a common prefix
+    return relevantParts[relevantParts.length - 1]?.toLowerCase() || hostname;
+  } catch {
+    // If URL parsing fails, just return a sanitized version of the input
+    return url.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+  }
+}
+
+/**
+ * Normalizes an MCP server info object, ensuring it has a serverKey.
+ * If serverKey is not provided, derives it from the URL.
+ */
+function normalizeServerInfo(
+  server: McpServerInfo | string,
+): McpServerInfo & { serverKey: string } {
+  const s = typeof server === "string" ? { url: server } : server;
+  const serverKey = s.serverKey ?? deriveServerKey(s.url);
+  return { ...s, serverKey };
+}
+
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
   toolRegistry: Record<string, TamboTool>;
   componentToolAssociations: Record<string, string[]>;
-  mcpServerInfos: McpServerInfo[];
+  mcpServerInfos: (McpServerInfo & { serverKey: string })[];
   registerComponent: (options: TamboComponent) => void;
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
@@ -116,7 +186,9 @@ export const TamboRegistryProvider: React.FC<
   const [componentToolAssociations, setComponentToolAssociations] = useState<
     Record<string, string[]>
   >({});
-  const [mcpServerInfos, setMcpServerInfos] = useState<McpServerInfo[]>([]);
+  const [mcpServerInfos, setMcpServerInfos] = useState<
+    (McpServerInfo & { serverKey: string })[]
+  >([]);
 
   const registerTool = useCallback(
     (tool: TamboTool, warnOnOverwrite = true) => {
@@ -147,13 +219,18 @@ export const TamboRegistryProvider: React.FC<
     [registerTool],
   );
 
-  const registerMcpServer = useCallback((info: McpServerInfo) => {
-    setMcpServerInfos((prev) => [...prev, info]);
+  const registerMcpServer = useCallback((info: McpServerInfo | string) => {
+    const normalized = normalizeServerInfo(info);
+    setMcpServerInfos((prev) => [...prev, normalized]);
   }, []);
 
-  const registerMcpServers = useCallback((infos: McpServerInfo[]) => {
-    setMcpServerInfos((prev) => [...prev, ...infos]);
-  }, []);
+  const registerMcpServers = useCallback(
+    (infos: (McpServerInfo | string)[]) => {
+      const normalized = infos.map(normalizeServerInfo);
+      setMcpServerInfos((prev) => [...prev, ...normalized]);
+    },
+    [],
+  );
 
   const addToolAssociation = useCallback(
     (componentName: string, tool: TamboTool) => {
@@ -255,10 +332,8 @@ export const TamboRegistryProvider: React.FC<
 
   useEffect(() => {
     if (userMcpServers) {
-      // Normalize string URLs to McpServerInfo objects
-      const normalized = userMcpServers.map((server) =>
-        typeof server === "string" ? { url: server } : server,
-      );
+      // Normalize servers and ensure all have serverKey
+      const normalized = userMcpServers.map(normalizeServerInfo);
       setMcpServerInfos(normalized);
     }
   }, [userMcpServers]);
@@ -318,7 +393,7 @@ export const useTamboRegistry = () => {
  * }
  * ```
  */
-export const useTamboMcpServerInfos = (): McpServerInfo[] => {
+export const useTamboMcpServerInfos = (): (McpServerInfo & { serverKey: string })[] => {
   return useContext(TamboRegistryContext).mcpServerInfos;
 };
 function getSerializedProps(
