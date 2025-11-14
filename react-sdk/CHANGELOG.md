@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.64.2](https://github.com/tambo-ai/tambo/compare/react-v0.64.1...react-v0.64.2) (2025-11-14)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.0 to 1.21.1 ([#1286](https://github.com/tambo-ai/tambo/issues/1286)) ([90fb98c](https://github.com/tambo-ai/tambo/commit/90fb98cc3ba41b1a7d7baf501d8e96a81cb721f7))
+* **readme:** improve readme nov 2025 v2 ([#1284](https://github.com/tambo-ai/tambo/issues/1284)) ([23f3670](https://github.com/tambo-ai/tambo/commit/23f3670ec8473a26ab5af611c8d6a7d1c635ca86))
+
+
+### Code Refactoring
+
+* **mcp:** move MCP metadata and serverKey derivation to registry ([#1297](https://github.com/tambo-ai/tambo/issues/1297)) ([c284b9f](https://github.com/tambo-ai/tambo/commit/c284b9fbc08eb20a7da4890aeca4dc0a68757218))
+
 ## [0.64.1](https://github.com/tambo-ai/tambo/compare/react-v0.64.0...react-v0.64.1) (2025-11-07)
 
 
