@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.19](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.18...create-tambo-app-v0.1.19) (2025-11-14)
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump rimraf from 6.0.1 to 6.1.0 ([#1274](https://github.com/tambo-ai/tambo/issues/1274)) ([d505769](https://github.com/tambo-ai/tambo/commit/d505769c80490e86b685a55140b7b2f16fe5bc86))
+* **deps-dev:** bump the eslint group across 1 directory with 5 updates ([#1203](https://github.com/tambo-ai/tambo/issues/1203)) ([5c44450](https://github.com/tambo-ai/tambo/commit/5c444508e2309ef8b4ec9c9050e408e19a8a6e48))
+* **deps-dev:** bump the eslint group with 6 updates ([#1272](https://github.com/tambo-ai/tambo/issues/1272)) ([39eafea](https://github.com/tambo-ai/tambo/commit/39eafea6fb20f5b4a7c262cf6ec8353d486dde13))
+* update CLAUDE.md files to reference AGENTS.md properly ([#1214](https://github.com/tambo-ai/tambo/issues/1214)) ([22d6ea2](https://github.com/tambo-ai/tambo/commit/22d6ea28fd18c073b3f739d901121bb1e1e59e31))
+
 ## [0.1.18](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.17...create-tambo-app-v0.1.18) (2025-10-09)
 
 
