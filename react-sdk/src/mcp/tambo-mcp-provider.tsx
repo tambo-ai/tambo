@@ -195,7 +195,8 @@ export const TamboMcpProvider: FC<{
         customHeaders: {
           Authorization: `Bearer ${mcpAccessToken}`,
         },
-        serverKey: "tambo-system",
+        // short key for internal Tambo MCP server
+        serverKey: "ta",
       });
     }
 
