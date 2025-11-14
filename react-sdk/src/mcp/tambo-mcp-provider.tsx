@@ -10,6 +10,10 @@ import React, {
 import { TamboTool } from "../model/component-metadata";
 import {
   getMcpServerUniqueKey,
+  MCPElicitationHandler,
+  MCPHandlers,
+  MCPSamplingHandler,
+  MCPTransport,
   type NormalizedMcpServerInfo,
 } from "../model/mcp-server-info";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
@@ -19,13 +23,7 @@ import {
 } from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
 import { type ElicitationContextState, useElicitation } from "./elicitation";
-import {
-  MCPClient,
-  MCPElicitationHandler,
-  MCPHandlers,
-  MCPSamplingHandler,
-  MCPTransport,
-} from "./mcp-client";
+import { MCPClient } from "./mcp-client";
 
 /**
  * Extracts error message from MCP tool result content.
@@ -67,11 +65,6 @@ export function extractErrorMessage(content: unknown): string {
  * track clients.
  */
 interface McpServerConfig extends NormalizedMcpServerInfo {
-  /**
-   * Optional handlers for elicitation and sampling requests from the server.
-   * Interpreted as a partial set of MCP handlers.
-   */
-  handlers?: Partial<MCPHandlers>;
   /**
    * Stable identity for this server derived from its URL/transport/headers.
    * Present for all server states (connected or failed).
@@ -195,8 +188,6 @@ export const TamboMcpProvider: FC<{
         customHeaders: {
           Authorization: `Bearer ${mcpAccessToken}`,
         },
-        // short key for internal Tambo MCP server
-        serverKey: "ta",
       });
     }
 
@@ -528,14 +519,12 @@ export const useTamboElicitationContext = useTamboMcpElicitation;
  * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
  * `transport` and a `serverKey` derived by the registry, and narrows the
  * opaque `handlers` field to `Partial<MCPHandlers>`.
+ * @returns The normalized MCP server config
  */
 function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
   const key = getMcpServerUniqueKey(server);
-  // Cast handlers to proper type if present
-  const handlers = server.handlers as Partial<MCPHandlers> | undefined;
   return {
     ...server,
-    handlers,
     key,
   };
 }

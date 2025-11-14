@@ -5,6 +5,7 @@ import type {
 } from "@modelcontextprotocol/sdk/types.js";
 import { render, waitFor } from "@testing-library/react";
 import React, { useEffect } from "react";
+import { MCPTransport } from "../../model/mcp-server-info";
 import {
   TamboClientContext,
   useTamboClient,
@@ -14,7 +15,7 @@ import {
   TamboRegistryProvider,
   useTamboRegistry,
 } from "../../providers/tambo-registry-provider";
-import { MCPClient, MCPTransport } from "../mcp-client";
+import { MCPClient } from "../mcp-client";
 import {
   extractErrorMessage,
   TamboMcpProvider,

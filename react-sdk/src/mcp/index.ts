@@ -1,9 +1,3 @@
-export { MCPTransport } from "./mcp-client";
-export type {
-  MCPElicitationHandler,
-  MCPHandlers,
-  MCPSamplingHandler,
-} from "./mcp-client";
 export type {
   TamboElicitationRequest,
   TamboElicitationResponse,
@@ -22,9 +16,9 @@ export type {
 } from "./mcp-hooks";
 export {
   TamboMcpProvider,
+  useTamboElicitationContext,
   useTamboMcpElicitation,
   useTamboMcpServers,
-  useTamboElicitationContext,
   type ConnectedMcpServer,
   type FailedMcpServer,
   type McpServer,

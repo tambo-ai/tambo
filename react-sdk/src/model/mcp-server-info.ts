@@ -1,3 +1,13 @@
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {
+  ClientNotification,
+  ClientRequest,
+  CreateMessageRequest,
+  CreateMessageResult,
+  ElicitRequest,
+  ElicitResult,
+} from "@modelcontextprotocol/sdk/types.js";
+
 /**
  * The transport protocol to use for MCP connections.
  */
@@ -42,15 +52,74 @@ export interface McpServerInfo {
   /**
    * Optional handlers for elicitation and sampling requests from the server.
    *
-   * In the MCP subpackage this is interpreted as `Partial<MCPHandlers>`,
-   * i.e. `{ elicitation?: MCPElicitationHandler; sampling?: MCPSamplingHandler }`.
-   *
    * Note: These callbacks should be stable (e.g., wrapped in useCallback or
    * defined outside the component) to avoid constant re-registration of the
    * MCP server on every render.
    */
-  handlers?: unknown;
+  handlers?: Partial<MCPHandlers>;
 }
+
+/**
+ * Handlers for MCP requests - these are only used if the server supports the corresponding capabilities
+ * @param elicitation - Handler for elicitation requests (receives request and RequestHandlerExtra with AbortSignal)
+ * @param sampling - Handler for sampling requests (receives request and RequestHandlerExtra with AbortSignal)
+ * @example
+ * ```typescript
+ * const mcp = await MCPClient.create(
+ *     'https://api.example.com/mcp',
+ *     MCPTransport.HTTP,
+ *     {},
+ *     undefined,
+ *     undefined,
+ *     {
+ *       elicitation: (e, extra) => Promise.resolve({...}),
+ *     },
+ * );
+ * ```
+ */
+export interface MCPHandlers {
+  elicitation: MCPElicitationHandler;
+  sampling: MCPSamplingHandler;
+}
+
+/**
+ * Handler for MCP elicitation requests.
+ * Receives the elicit request and a RequestHandlerExtra containing an AbortSignal that fires when the request is cancelled.
+ * @param request - The elicitation request from the server
+ * @param extra - Additional context including AbortSignal for cancellation
+ * @returns Promise resolving to the elicitation result
+ * @example
+ * ```typescript
+ * const handler: MCPElicitationHandler = async (request, extra) => {
+ *   // Listen for cancellation
+ *   extra.signal.addEventListener('abort', () => {
+ *     console.log('Request cancelled');
+ *   });
+ *
+ *   // Return user's response
+ *   return {
+ *     action: 'accept',
+ *     content: { name: 'John' }
+ *   };
+ * };
+ * ```
+ */
+export type MCPElicitationHandler = (
+  e: ElicitRequest,
+  extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+) => Promise<ElicitResult>;
+
+/**
+ * Handler for MCP sampling requests (create_message).
+ * Receives the sampling request and a RequestHandlerExtra containing an AbortSignal that fires when the request is cancelled.
+ * @param request - The sampling/create_message request from the server
+ * @param extra - Additional context including AbortSignal for cancellation
+ * @returns Promise resolving to the sampling result
+ */
+export type MCPSamplingHandler = (
+  e: CreateMessageRequest,
+  extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+) => Promise<CreateMessageResult>;
 
 /**
  * Normalized MCP server metadata used internally by the registry and MCP

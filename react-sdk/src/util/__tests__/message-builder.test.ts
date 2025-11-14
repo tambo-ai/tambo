@@ -1,6 +1,6 @@
-import { buildMessageContent } from "../message-builder";
-import { StagedImage } from "../../hooks/use-message-images";
 import type TamboAI from "@tambo-ai/typescript-sdk";
+import { StagedImage } from "../../hooks/use-message-images";
+import { buildMessageContent } from "../message-builder";
 
 describe("buildMessageContent", () => {
   const createMockStagedImage = (
@@ -16,7 +16,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should build content with text only", () => {
-    const result = buildMessageContent("Hello world", []);
+    const result = buildMessageContent("Hello world", [], new Set());
 
     expect(result).toEqual([
       {
@@ -31,7 +31,7 @@ describe("buildMessageContent", () => {
       dataUrl: "data:image/png;base64,abc123",
     });
 
-    const result = buildMessageContent("", [image]);
+    const result = buildMessageContent("", [image], new Set());
 
     expect(result).toEqual([
       {
@@ -55,7 +55,11 @@ describe("buildMessageContent", () => {
       }),
     ];
 
-    const result = buildMessageContent("Check these images:", images);
+    const result = buildMessageContent(
+      "Check these images:",
+      images,
+      new Set(),
+    );
 
     expect(result).toEqual([
       {
@@ -78,7 +82,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should preserve whitespace from text", () => {
-    const result = buildMessageContent("  Hello world  ", []);
+    const result = buildMessageContent("  Hello world  ", [], new Set());
 
     expect(result).toEqual([
       {
@@ -90,7 +94,7 @@ describe("buildMessageContent", () => {
 
   it("should include whitespace-only text", () => {
     const image = createMockStagedImage();
-    const result = buildMessageContent("   ", [image]);
+    const result = buildMessageContent("   ", [image], new Set());
 
     expect(result).toEqual([
       {
@@ -125,7 +129,7 @@ describe("buildMessageContent", () => {
       }),
     ];
 
-    const result = buildMessageContent("Multiple images:", images);
+    const result = buildMessageContent("Multiple images:", images, new Set());
 
     expect(result).toHaveLength(4); // 1 text + 3 images
     expect(result[0]).toEqual({
@@ -154,12 +158,12 @@ describe("buildMessageContent", () => {
 
   it("should handle empty string with an error", () => {
     expect(() => {
-      buildMessageContent("", []);
+      buildMessageContent("", [], new Set());
     }).toThrow("Message must contain text or images");
   });
 
   it("should handle whitespace-only string and include it", () => {
-    const result = buildMessageContent("   \n\t  ", []);
+    const result = buildMessageContent("   \n\t  ", [], new Set());
 
     expect(result).toEqual([
       {
@@ -171,7 +175,7 @@ describe("buildMessageContent", () => {
 
   it("should return correct content type structure", () => {
     const image = createMockStagedImage();
-    const result = buildMessageContent("Test", [image]);
+    const result = buildMessageContent("Test", [image], new Set());
 
     // Verify the structure matches ChatCompletionContentPart interface
     result.forEach((part: TamboAI.Beta.Threads.ChatCompletionContentPart) => {
@@ -194,7 +198,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle edge case with empty array but valid text", () => {
-    const result = buildMessageContent("Just text", []);
+    const result = buildMessageContent("Just text", [], new Set());
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
@@ -215,7 +219,7 @@ describe("buildMessageContent", () => {
       }),
     ];
 
-    const result = buildMessageContent("Text content", images);
+    const result = buildMessageContent("Text content", images, new Set());
 
     expect(result[0].type).toBe("text");
     expect(result[1].type).toBe("image_url");
@@ -233,6 +237,7 @@ describe("buildMessageContent", () => {
     const result = buildMessageContent(
       "Please update @my-spreadsheet://page2/cell4 with the new total",
       [],
+      new Set(),
     );
 
     expect(result).toHaveLength(3);
@@ -256,6 +261,7 @@ describe("buildMessageContent", () => {
     const result = buildMessageContent(
       "Check @my-mcp:my-spreadsheet://page2/cell4 for the value",
       [],
+      new Set(),
     );
 
     expect(result).toHaveLength(3);
@@ -279,6 +285,7 @@ describe("buildMessageContent", () => {
     const result = buildMessageContent(
       "Copy data from @src://table1 to @dst://table2",
       [],
+      new Set(),
     );
 
     expect(result).toHaveLength(4);
@@ -308,6 +315,7 @@ describe("buildMessageContent", () => {
     const result = buildMessageContent(
       "Update @file://path/to/file.txt now",
       [],
+      new Set(),
     );
 
     expect(result).toHaveLength(3);
@@ -320,7 +328,11 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle resource mention at the start of message", () => {
-    const result = buildMessageContent("@my-resource://data is important", []);
+    const result = buildMessageContent(
+      "@my-resource://data is important",
+      [],
+      new Set(),
+    );
 
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
@@ -336,7 +348,11 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle resource mention at the end of message", () => {
-    const result = buildMessageContent("Check this @my-resource://data", []);
+    const result = buildMessageContent(
+      "Check this @my-resource://data",
+      [],
+      new Set(),
+    );
 
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
@@ -352,7 +368,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle resource mention as entire message", () => {
-    const result = buildMessageContent("@my-resource://data", []);
+    const result = buildMessageContent("@my-resource://data", [], new Set());
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
@@ -364,7 +380,11 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle multiple consecutive mentions", () => {
-    const result = buildMessageContent("@res1://a @res2://b @res3://c", []);
+    const result = buildMessageContent(
+      "@res1://a @res2://b @res3://c",
+      [],
+      new Set(),
+    );
 
     expect(result).toHaveLength(5);
     expect(result[0].type).toBe("resource");
@@ -375,7 +395,11 @@ describe("buildMessageContent", () => {
   });
 
   it("should not parse @ symbols without valid resource URIs", () => {
-    const result = buildMessageContent("Email me at user@example.com", []);
+    const result = buildMessageContent(
+      "Email me at user@example.com",
+      [],
+      new Set(),
+    );
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
@@ -395,6 +419,7 @@ describe("buildMessageContent", () => {
     const result = buildMessageContent(
       "Update @spreadsheet://data with @image://chart",
       images,
+      new Set(),
     );
 
     expect(result).toHaveLength(5);
@@ -406,7 +431,11 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle whitespace around resources correctly", () => {
-    const result = buildMessageContent("Update  @res://data  with value", []);
+    const result = buildMessageContent(
+      "Update  @res://data  with value",
+      [],
+      new Set(),
+    );
 
     expect(result).toHaveLength(3);
     expect(result[0]).toEqual({
@@ -429,6 +458,7 @@ describe("buildMessageContent", () => {
     const result = buildMessageContent(
       "Check @https://example.com/path?query=value&other=param",
       [],
+      new Set(),
     );
 
     expect(result).toHaveLength(2);
@@ -441,7 +471,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle message with only resources and no other text", () => {
-    const result = buildMessageContent("@res1://a @res2://b", []);
+    const result = buildMessageContent("@res1://a @res2://b", [], new Set());
 
     expect(result).toHaveLength(3);
     expect(result[0].type).toBe("resource");
@@ -450,7 +480,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle empty whitespace text parts gracefully", () => {
-    const result = buildMessageContent("@resource://a", []);
+    const result = buildMessageContent("@resource://a", [], new Set());
 
     // Should only have the resource, no empty text part
     expect(result).toHaveLength(1);
@@ -537,7 +567,7 @@ describe("buildMessageContent", () => {
       const result = buildMessageContent(
         "Check @linear:resource://data",
         [],
-        undefined,
+        new Set(),
       );
 
       expect(result).toHaveLength(2);
