@@ -84,9 +84,6 @@ function deriveServerKey(url: string): string {
   }
 }
 
-/** Just like McpServerInfo, but with a serverKey filled in */
-type NormalizedMcpServerInfo = McpServerInfo & { serverKey: string };
-
 /**
  * Normalizes an MCP server info object, ensuring it has a serverKey.
  * If serverKey is not provided, derives it from the URL.
