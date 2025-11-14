@@ -4,19 +4,19 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
-  useState,
   useMemo,
+  useState,
 } from "react";
 import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
-import { useMessageImages, StagedImage } from "../hooks/use-message-images";
+import { StagedImage, useMessageImages } from "../hooks/use-message-images";
+import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
 import { useTamboThread } from "./tambo-thread-provider";
-import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
 
 /**
  * Error messages for various input-related error scenarios

@@ -41,15 +41,12 @@ function parseResourceMentions(
     // Add the resource mention
     let resourceUri = match[1]; // The part after @
 
-    // Strip known prefixes if whitelist is provided
-    if (knownPrefixes && knownPrefixes.size > 0) {
-      // Check if this URI starts with a known prefix (format: "prefix:rest")
-      for (const prefix of knownPrefixes) {
-        if (resourceUri.startsWith(`${prefix}:`)) {
-          // Strip the prefix and colon
-          resourceUri = resourceUri.slice(prefix.length + 1);
-          break;
-        }
+    // Check if this URI starts with a known prefix (format: "prefix:rest")
+    for (const prefix of knownPrefixes) {
+      if (resourceUri.startsWith(`${prefix}:`)) {
+        // Strip the prefix and colon
+        resourceUri = resourceUri.slice(prefix.length + 1);
+        break;
       }
     }
 
