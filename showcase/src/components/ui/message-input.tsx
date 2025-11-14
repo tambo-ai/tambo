@@ -15,7 +15,7 @@ import {
   type StagedImage,
 } from "@tambo-ai/react";
 import {
-  useTamboElicitationContext,
+  useTamboMcpElicitation,
   type TamboElicitationRequest,
   type TamboElicitationResponse,
 } from "@tambo-ai/react/mcp";
@@ -199,7 +199,7 @@ const MessageInputInternal = React.forwardRef<
   const dragCounter = React.useRef(0);
 
   // Use elicitation context (optional)
-  const { elicitation, resolveElicitation } = useTamboElicitationContext();
+  const { elicitation, resolveElicitation } = useTamboMcpElicitation();
 
   React.useEffect(() => {
     setDisplayValue(value);
