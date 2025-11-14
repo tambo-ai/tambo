@@ -8,8 +8,10 @@ import React, {
   useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
-import { getMcpServerUniqueKey } from "../model/mcp-server-info";
-import type { McpServerInfo as BaseMcpServerInfo } from "../model/mcp-server-info";
+import {
+  getMcpServerUniqueKey,
+  type NormalizedMcpServerInfo,
+} from "../model/mcp-server-info";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import {
   useTamboMcpServerInfos,
@@ -54,32 +56,27 @@ export function extractErrorMessage(content: unknown): string {
 }
 
 /**
- * MCP-specific extension of the base McpServerInfo with typed handlers.
- * The base type is defined in model/mcp-server-info.ts to avoid circular dependencies.
+ * Normalized MCP server information as consumed by the provider.
+ *
+ * Extends `NormalizedMcpServerInfo` from the core model by:
+ * - narrowing `handlers` to `Partial<MCPHandlers>`
+ * - adding a stable `key` derived from URL/transport/headers
+ *
+ * The registry is responsible for producing `NormalizedMcpServerInfo`
+ * instances; this type adds the MCP-specific wiring needed to connect and
+ * track clients.
  */
-export interface McpServerInfo extends Omit<BaseMcpServerInfo, "handlers"> {
+interface McpServerConfig extends NormalizedMcpServerInfo {
   /**
    * Optional handlers for elicitation and sampling requests from the server.
-   * Note: These callbacks should be stable (e.g., wrapped in useCallback or defined outside the component)
-   * to avoid constant re-registration of the MCP server on every render.
+   * Interpreted as a partial set of MCP handlers.
    */
   handlers?: Partial<MCPHandlers>;
-}
-
-/**
- * Normalized server information with a stable derived key.
- */
-interface McpServerConfig extends McpServerInfo {
   /**
    * Stable identity for this server derived from its URL/transport/headers.
    * Present for all server states (connected or failed).
    */
   key: string;
-  /**
-   * Short name for namespacing, either provided by user or derived from URL.
-   * Used to prefix tools, prompts, and resources when multiple servers are present.
-   */
-  serverKey: string;
 }
 
 /**
@@ -260,15 +257,19 @@ export const TamboMcpProvider: FC<{
             if (serverInfo.handlers?.elicitation) {
               effectiveHandlers.elicitation = serverInfo.handlers.elicitation;
             } else if (providerElicitationHandler) {
-              effectiveHandlers.elicitation = async (request, extra) =>
-                await providerElicitationHandler(request, extra, serverInfo);
+              effectiveHandlers.elicitation = async (
+                request: Parameters<MCPElicitationHandler>[0],
+                extra: Parameters<MCPElicitationHandler>[1],
+              ) => await providerElicitationHandler(request, extra, serverInfo);
             }
 
             if (serverInfo.handlers?.sampling) {
               effectiveHandlers.sampling = serverInfo.handlers.sampling;
             } else if (providerSamplingHandler) {
-              effectiveHandlers.sampling = async (request, extra) =>
-                await providerSamplingHandler(request, extra, serverInfo);
+              effectiveHandlers.sampling = async (
+                request: Parameters<MCPSamplingHandler>[0],
+                extra: Parameters<MCPSamplingHandler>[1],
+              ) => await providerSamplingHandler(request, extra, serverInfo);
             }
 
             const client = await MCPClient.create(
@@ -394,15 +395,19 @@ export const TamboMcpProvider: FC<{
       const effectiveElicitationHandler =
         serverInfo.handlers?.elicitation ??
         (providerElicitationHandler
-          ? async (request, extra) =>
-              await providerElicitationHandler(request, extra, serverInfo)
+          ? async (
+              request: Parameters<MCPElicitationHandler>[0],
+              extra: Parameters<MCPElicitationHandler>[1],
+            ) => await providerElicitationHandler(request, extra, serverInfo)
           : undefined);
 
       const effectiveSamplingHandler =
         serverInfo.handlers?.sampling ??
         (providerSamplingHandler
-          ? async (request, extra) =>
-              await providerSamplingHandler(request, extra, serverInfo)
+          ? async (
+              request: Parameters<MCPSamplingHandler>[0],
+              extra: Parameters<MCPSamplingHandler>[1],
+            ) => await providerSamplingHandler(request, extra, serverInfo)
           : undefined);
 
       // Update handlers unconditionally (allows removal by passing undefined)
@@ -519,13 +524,13 @@ export const useTamboMcpElicitation = (): ElicitationContextState => {
 export const useTamboElicitationContext = useTamboMcpElicitation;
 
 /**
- * Normalizes a server info object into a McpServerConfig.
- * Expects serverKey to already be present (set by TamboRegistryProvider).
- * @returns The normalized McpServerConfig object
+ * Normalizes registry server metadata into a `McpServerConfig`.
+ *
+ * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
+ * `transport` and a `serverKey` derived by the registry, and narrows the
+ * opaque `handlers` field to `Partial<MCPHandlers>`.
  */
-function normalizeServerInfo(
-  server: (BaseMcpServerInfo | McpServerInfo) & { serverKey: string },
-): McpServerConfig {
+function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
   const key = getMcpServerUniqueKey(server);
   // Cast handlers to proper type if present
   const handlers = server.handlers as Partial<MCPHandlers> | undefined;
@@ -533,6 +538,5 @@ function normalizeServerInfo(
     ...server,
     handlers,
     key,
-    serverKey: server.serverKey, // Explicitly assign to satisfy type constraint
   };
 }

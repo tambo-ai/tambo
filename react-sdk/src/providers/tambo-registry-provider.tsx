@@ -20,6 +20,7 @@ import {
   getMcpServerUniqueKey,
   McpServerInfo,
   MCPTransport,
+  type NormalizedMcpServerInfo,
 } from "../model/mcp-server-info";
 import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
@@ -83,13 +84,14 @@ function deriveServerKey(url: string): string {
   }
 }
 
+/** Just like McpServerInfo, but with a serverKey filled in */
+type NormalizedMcpServerInfo = McpServerInfo & { serverKey: string };
+
 /**
  * Normalizes an MCP server info object, ensuring it has a serverKey.
  * If serverKey is not provided, derives it from the URL.
  * @returns The normalized MCP server info object
  */
-type NormalizedMcpServerInfo = McpServerInfo & { serverKey: string };
-
 function normalizeServerInfo(
   server: McpServerInfo | string,
 ): NormalizedMcpServerInfo {
@@ -449,10 +451,12 @@ export const useTamboRegistry = () => {
  *   );
  * }
  * ```
+ *
+ * The returned objects are `NormalizedMcpServerInfo` instances, meaning both
+ * `serverKey` and `transport` are always populated (with `transport`
+ * defaulting to HTTP when not explicitly specified).
  */
-export const useTamboMcpServerInfos = (): (McpServerInfo & {
-  serverKey: string;
-})[] => {
+export const useTamboMcpServerInfos = (): NormalizedMcpServerInfo[] => {
   return useContext(TamboRegistryContext).mcpServerInfos;
 };
 function getSerializedProps(
