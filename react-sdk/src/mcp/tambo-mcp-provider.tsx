@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
+import { McpServerInfo as BaseMcpServerInfo } from "../model/mcp-server-info";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import {
   useTamboMcpServerInfos,
@@ -52,30 +53,10 @@ export function extractErrorMessage(content: unknown): string {
 }
 
 /**
- * User-provided configuration for an MCP server.
+ * MCP-specific extension of the base McpServerInfo with typed handlers.
+ * The base type is defined in model/mcp-server-info.ts to avoid circular dependencies.
  */
-export interface McpServerInfo {
-  /** Optional name for the MCP server */
-  name?: string;
-  /** The URL of the MCP server to connect to */
-  url: string;
-  /** Optional description of the MCP server */
-  description?: string;
-  /** The transport type to use (SSE or HTTP). Defaults to HTTP for string URLs */
-  transport?: MCPTransport;
-  /** Optional custom headers to include in requests */
-  customHeaders?: Record<string, string>;
-  /**
-   * Optional short name for namespacing MCP resources, prompts, and tools.
-   * When multiple MCP servers are configured, this key is used to prefix:
-   * - prompts: `<serverKey>:<promptName>`
-   * - resources: `<serverKey>:<resourceUrl>`
-   * - tools: `<serverKey>__<toolName>`
-   *
-   * If not provided, a key will be derived from the URL hostname.
-   * For example, "https://mcp.linear.app/mcp" becomes "linear".
-   */
-  serverKey?: string;
+export interface McpServerInfo extends Omit<BaseMcpServerInfo, "handlers"> {
   /**
    * Optional handlers for elicitation and sampling requests from the server.
    * Note: These callbacks should be stable (e.g., wrapped in useCallback or defined outside the component)
@@ -557,8 +538,15 @@ function getServerKey(
  * @returns The normalized McpServerConfig object
  */
 function normalizeServerInfo(
-  server: McpServerInfo & { serverKey: string },
+  server: (BaseMcpServerInfo | McpServerInfo) & { serverKey: string },
 ): McpServerConfig {
   const key = getServerKey(server);
-  return { ...server, key };
+  // Cast handlers to proper type if present
+  const handlers = server.handlers as Partial<MCPHandlers> | undefined;
+  return {
+    ...server,
+    handlers,
+    key,
+    serverKey: server.serverKey, // Explicitly assign to satisfy type constraint
+  };
 }

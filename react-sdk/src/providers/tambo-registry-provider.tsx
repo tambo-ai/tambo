@@ -17,7 +17,7 @@ import {
 } from "../model/component-metadata";
 import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
-import { McpServerInfo } from "../mcp/tambo-mcp-provider";
+import { McpServerInfo } from "../model/mcp-server-info";
 
 /**
  * Derives a short, meaningful key from a server URL.
