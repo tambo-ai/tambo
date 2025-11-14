@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.30.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.30.0...showcase-v0.30.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* **showcase:** fix mobile navigation backdrop positioning ([#1295](https://github.com/tambo-ai/tambo/issues/1295)) ([3acfed3](https://github.com/tambo-ai/tambo/commit/3acfed387cb23a4243b236c4ff8a79d6dfea887a))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 6 updates ([#1272](https://github.com/tambo-ai/tambo/issues/1272)) ([39eafea](https://github.com/tambo-ai/tambo/commit/39eafea6fb20f5b4a7c262cf6ec8353d486dde13))
+* **showcase:** redesign of showcase site ([f081612](https://github.com/tambo-ai/tambo/commit/f0816127d3b0396c2f64b4cc6aa208098a5ae8a8))
+
+
+### Code Refactoring
+
+* **mcp:** move MCP metadata and serverKey derivation to registry ([#1297](https://github.com/tambo-ai/tambo/issues/1297)) ([c284b9f](https://github.com/tambo-ai/tambo/commit/c284b9fbc08eb20a7da4890aeca4dc0a68757218))
+
 ## [0.30.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.29.0...showcase-v0.30.0) (2025-11-07)
 
 
