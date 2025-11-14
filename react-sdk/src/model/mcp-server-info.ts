@@ -1,9 +1,4 @@
 /**
- * MCP server metadata type used by TamboRegistryProvider.
- * This is a minimal interface that doesn't depend on MCP implementation details.
- */
-
-/**
  * The transport protocol to use for MCP connections.
  */
 export enum MCPTransport {
@@ -43,4 +38,26 @@ export interface McpServerInfo {
    * to avoid constant re-registration of the MCP server on every render.
    */
   handlers?: unknown; // Keep as unknown to avoid importing MCP-specific types
+}
+
+/**
+ * Creates a stable identifier for an MCP server based on its connection properties.
+ * Two servers with the same URL, transport, and headers will have the same key.
+ *
+ * This is used by both the registry and MCP provider to deduplicate servers,
+ * so it lives alongside the shared server metadata type.
+ * @returns A stable string key identifying the server
+ */
+export function getMcpServerUniqueKey(
+  serverInfo: Pick<McpServerInfo, "url" | "transport" | "customHeaders">,
+): string {
+  const headerStr = serverInfo.customHeaders
+    ? JSON.stringify(
+        Object.entries(serverInfo.customHeaders)
+          .map(([k, v]) => [k.toLowerCase(), v] as const)
+          .sort(([a], [b]) => a.localeCompare(b)),
+      )
+    : "";
+
+  return `${serverInfo.url}|${serverInfo.transport ?? MCPTransport.HTTP}|${headerStr}`;
 }

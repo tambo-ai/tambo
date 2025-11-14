@@ -692,10 +692,10 @@ describe("TamboMcpProvider handler support", () => {
       expect(latest.length).toBe(1);
     });
 
-    // Verify MCPClient.create was called
+    // Verify MCPClient.create was called with an HTTP transport and wrapped handler
     expect(createSpy).toHaveBeenCalledWith(
       "https://test.example",
-      undefined,
+      MCPTransport.HTTP,
       undefined,
       undefined,
       undefined,
@@ -749,10 +749,10 @@ describe("TamboMcpProvider handler support", () => {
       expect(latest.length).toBe(1);
     });
 
-    // Verify MCPClient.create was called with sampling handler
+    // Verify MCPClient.create was called with HTTP transport and sampling handler
     expect(createSpy).toHaveBeenCalledWith(
       "https://test.example",
-      undefined,
+      MCPTransport.HTTP,
       undefined,
       undefined,
       undefined,

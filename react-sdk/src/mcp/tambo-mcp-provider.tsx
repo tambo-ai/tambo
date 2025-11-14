@@ -8,7 +8,8 @@ import React, {
   useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
-import { McpServerInfo as BaseMcpServerInfo } from "../model/mcp-server-info";
+import { getMcpServerUniqueKey } from "../model/mcp-server-info";
+import type { McpServerInfo as BaseMcpServerInfo } from "../model/mcp-server-info";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import {
   useTamboMcpServerInfos,
@@ -515,24 +516,6 @@ export const useTamboMcpElicitation = (): ElicitationContextState => {
 export const useTamboElicitationContext = useTamboMcpElicitation;
 
 /**
- * Creates a stable identifier for an MCP server based on its connection properties.
- * Two servers with the same URL, transport, and headers will have the same key.
- * @returns A stable string key identifying the server
- */
-function getServerKey(
-  serverInfo: Pick<McpServerInfo, "url" | "transport" | "customHeaders">,
-): string {
-  const headerStr = serverInfo.customHeaders
-    ? JSON.stringify(
-        Object.entries(serverInfo.customHeaders)
-          .map(([k, v]) => [k.toLowerCase(), v] as const)
-          .sort(([a], [b]) => a.localeCompare(b)),
-      )
-    : "";
-  return `${serverInfo.url}|${serverInfo.transport ?? MCPTransport.HTTP}|${headerStr}`;
-}
-
-/**
  * Normalizes a server info object into a McpServerConfig.
  * Expects serverKey to already be present (set by TamboRegistryProvider).
  * @returns The normalized McpServerConfig object
@@ -540,7 +523,7 @@ function getServerKey(
 function normalizeServerInfo(
   server: (BaseMcpServerInfo | McpServerInfo) & { serverKey: string },
 ): McpServerConfig {
-  const key = getServerKey(server);
+  const key = getMcpServerUniqueKey(server);
   // Cast handlers to proper type if present
   const handlers = server.handlers as Partial<MCPHandlers> | undefined;
   return {

@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { ZodSchema } from "zod";
@@ -17,12 +18,14 @@ import {
 } from "../model/component-metadata";
 import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
-import { McpServerInfo } from "../model/mcp-server-info";
+import { MCPTransport, getMcpServerUniqueKey } from "../model/mcp-server-info";
+import type { McpServerInfo } from "../model/mcp-server-info";
 
 /**
  * Derives a short, meaningful key from a server URL.
  * Strips TLDs and common prefixes to get a human-readable identifier.
  * For example, "https://mcp.linear.app/mcp" becomes "linear".
+ * @returns A lowercased, human-readable key derived from the URL
  */
 function deriveServerKey(url: string): string {
   try {
@@ -81,19 +84,30 @@ function deriveServerKey(url: string): string {
  * Normalizes an MCP server info object, ensuring it has a serverKey.
  * If serverKey is not provided, derives it from the URL.
  */
+type NormalizedMcpServerInfo = McpServerInfo & { serverKey: string };
+
 function normalizeServerInfo(
   server: McpServerInfo | string,
-): McpServerInfo & { serverKey: string } {
-  const s = typeof server === "string" ? { url: server } : server;
-  const serverKey = s.serverKey ?? deriveServerKey(s.url);
-  return { ...s, serverKey };
+): NormalizedMcpServerInfo {
+  const base: McpServerInfo =
+    typeof server === "string"
+      ? {
+          url: server,
+          transport: MCPTransport.HTTP,
+        }
+      : server;
+
+  const serverKey = base.serverKey ?? deriveServerKey(base.url);
+  const transport = base.transport ?? MCPTransport.HTTP;
+
+  return { ...base, transport, serverKey };
 }
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
   toolRegistry: Record<string, TamboTool>;
   componentToolAssociations: Record<string, string[]>;
-  mcpServerInfos: (McpServerInfo & { serverKey: string })[];
+  mcpServerInfos: NormalizedMcpServerInfo[];
   registerComponent: (options: TamboComponent) => void;
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
@@ -186,8 +200,11 @@ export const TamboRegistryProvider: React.FC<
   const [componentToolAssociations, setComponentToolAssociations] = useState<
     Record<string, string[]>
   >({});
-  const [mcpServerInfos, setMcpServerInfos] = useState<
-    (McpServerInfo & { serverKey: string })[]
+  const [staticMcpServerInfos, setStaticMcpServerInfos] = useState<
+    NormalizedMcpServerInfo[]
+  >([]);
+  const [dynamicMcpServerInfos, setDynamicMcpServerInfos] = useState<
+    NormalizedMcpServerInfo[]
   >([]);
 
   const registerTool = useCallback(
@@ -221,13 +238,13 @@ export const TamboRegistryProvider: React.FC<
 
   const registerMcpServer = useCallback((info: McpServerInfo | string) => {
     const normalized = normalizeServerInfo(info);
-    setMcpServerInfos((prev) => [...prev, normalized]);
+    setDynamicMcpServerInfos((prev) => [...prev, normalized]);
   }, []);
 
   const registerMcpServers = useCallback(
     (infos: (McpServerInfo | string)[]) => {
       const normalized = infos.map(normalizeServerInfo);
-      setMcpServerInfos((prev) => [...prev, ...normalized]);
+      setDynamicMcpServerInfos((prev) => [...prev, ...normalized]);
     },
     [],
   );
@@ -331,12 +348,48 @@ export const TamboRegistryProvider: React.FC<
   }, [registerTools, userTools]);
 
   useEffect(() => {
-    if (userMcpServers) {
-      // Normalize servers and ensure all have serverKey
-      const normalized = userMcpServers.map(normalizeServerInfo);
-      setMcpServerInfos(normalized);
+    if (!userMcpServers || userMcpServers.length === 0) {
+      setStaticMcpServerInfos([]);
+      return;
     }
+
+    // Normalize servers from props and ensure all have serverKey and transport
+    const normalized = userMcpServers.map(normalizeServerInfo);
+    setStaticMcpServerInfos(normalized);
   }, [userMcpServers]);
+
+  const mcpServerInfos: NormalizedMcpServerInfo[] = useMemo(() => {
+    const allServers = [...staticMcpServerInfos, ...dynamicMcpServerInfos];
+    if (allServers.length === 0) {
+      return allServers;
+    }
+
+    // 1. Deduplicate by connection identity using a stable key
+    const byKey = new Map<string, NormalizedMcpServerInfo>();
+    for (const server of allServers) {
+      const key = getMcpServerUniqueKey(server);
+      byKey.set(key, server);
+    }
+
+    const deduped = Array.from(byKey.values());
+
+    // 2. Ensure serverKey uniqueness for readable, unambiguous prefixes
+    const seen = new Map<string, number>();
+    return deduped.map((server) => {
+      const baseKey = server.serverKey;
+      const count = (seen.get(baseKey) ?? 0) + 1;
+      seen.set(baseKey, count);
+
+      if (count === 1) {
+        return server;
+      }
+
+      return {
+        ...server,
+        serverKey: `${baseKey}-${count}`,
+      };
+    });
+  }, [staticMcpServerInfos, dynamicMcpServerInfos]);
 
   const value = {
     componentList,
