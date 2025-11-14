@@ -102,8 +102,11 @@ export type {
   ContextHelpers,
 } from "./context-helpers";
 
-// MCP server metadata type (used by TamboProvider)
-export type { McpServerInfo } from "./model/mcp-server-info";
+// MCP server metadata types (used by TamboProvider / registry / MCP provider)
+export type {
+  McpServerInfo,
+  NormalizedMcpServerInfo,
+} from "./model/mcp-server-info";
 export { MCPTransport } from "./model/mcp-server-info";
 
 // Note: Full MCP exports like TamboMcpProvider are available separately in the

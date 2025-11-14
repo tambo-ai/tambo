@@ -8,7 +8,14 @@ export enum MCPTransport {
 
 /**
  * User-provided configuration for an MCP server.
- * This type is used by TamboRegistryProvider to store MCP server metadata.
+ *
+ * This is the type accepted by `TamboProvider` / `TamboRegistryProvider` in
+ * the `mcpServers` prop.
+ *
+ * The `handlers` field is intentionally typed as `unknown` here so the core
+ * SDK does not depend on the MCP subpackage. In the `@tambo-ai/react/mcp`
+ * subpackage this is treated as `Partial<MCPHandlers>` (with
+ * `elicitation` / `sampling` callbacks).
  */
 export interface McpServerInfo {
   /** Optional name for the MCP server */
@@ -34,10 +41,28 @@ export interface McpServerInfo {
   serverKey?: string;
   /**
    * Optional handlers for elicitation and sampling requests from the server.
-   * Note: These callbacks should be stable (e.g., wrapped in useCallback or defined outside the component)
-   * to avoid constant re-registration of the MCP server on every render.
+   *
+   * In the MCP subpackage this is interpreted as `Partial<MCPHandlers>`,
+   * i.e. `{ elicitation?: MCPElicitationHandler; sampling?: MCPSamplingHandler }`.
+   *
+   * Note: These callbacks should be stable (e.g., wrapped in useCallback or
+   * defined outside the component) to avoid constant re-registration of the
+   * MCP server on every render.
    */
-  handlers?: unknown; // Keep as unknown to avoid importing MCP-specific types
+  handlers?: unknown;
+}
+
+/**
+ * Normalized MCP server metadata used internally by the registry and MCP
+ * provider.
+ *
+ * This is equivalent to `McpServerInfo` except that:
+ * - `serverKey` is guaranteed to be present
+ * - `transport` is resolved to a concrete value (defaults to HTTP)
+ */
+export interface NormalizedMcpServerInfo extends McpServerInfo {
+  transport: MCPTransport;
+  serverKey: string;
 }
 
 /**

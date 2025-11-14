@@ -18,7 +18,11 @@ import {
 } from "../model/component-metadata";
 import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
-import { MCPTransport, getMcpServerUniqueKey } from "../model/mcp-server-info";
+import {
+  MCPTransport,
+  getMcpServerUniqueKey,
+  type NormalizedMcpServerInfo,
+} from "../model/mcp-server-info";
 import type { McpServerInfo } from "../model/mcp-server-info";
 
 /**
@@ -79,12 +83,6 @@ function deriveServerKey(url: string): string {
     return url.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
   }
 }
-
-/**
- * Normalizes an MCP server info object, ensuring it has a serverKey.
- * If serverKey is not provided, derives it from the URL.
- */
-type NormalizedMcpServerInfo = McpServerInfo & { serverKey: string };
 
 function normalizeServerInfo(
   server: McpServerInfo | string,
@@ -446,9 +444,7 @@ export const useTamboRegistry = () => {
  * }
  * ```
  */
-export const useTamboMcpServerInfos = (): (McpServerInfo & {
-  serverKey: string;
-})[] => {
+export const useTamboMcpServerInfos = (): NormalizedMcpServerInfo[] => {
   return useContext(TamboRegistryContext).mcpServerInfos;
 };
 function getSerializedProps(
