@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.40.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.40.0...tambo-v0.40.1) (2025-11-14)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tambo-ai/typescript-sdk from 0.76.0 to 0.77.0 ([#1278](https://github.com/tambo-ai/tambo/issues/1278)) ([5f46a57](https://github.com/tambo-ai/tambo/commit/5f46a576be373e7dac7f076a7c844db5faae27d8))
+* **showcase:** redesign of showcase site ([f081612](https://github.com/tambo-ai/tambo/commit/f0816127d3b0396c2f64b4cc6aa208098a5ae8a8))
+
 ## [0.40.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.39.0...tambo-v0.40.0) (2025-11-07)
 
 
