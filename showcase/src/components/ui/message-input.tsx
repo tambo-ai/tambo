@@ -200,11 +200,23 @@ const MessageInputInternal = React.forwardRef<
   const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
   React.useEffect(() => {
+    const storedValue = sessionStorage.getItem("tambo.rawQuery");
+
+    // dont run if the value is already set
+    if (storedValue && value === "") {
+      const parsed = JSON.parse(storedValue);
+      const raw_query = parsed.rawQuery;
+      if (raw_query) {
+        setValue(raw_query);
+      }
+    }
+
     setDisplayValue(value);
+
     if (value && textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, [value]);
+  }, [value, setValue]);
 
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
@@ -214,6 +226,7 @@ const MessageInputInternal = React.forwardRef<
       setSubmitError(null);
       setDisplayValue("");
       setIsSubmitting(true);
+      sessionStorage.removeItem("tambo.rawQuery"); // Remove the query on submit
 
       // Clear images in next tick for immediate UI feedback
       if (images.length > 0) {
@@ -451,6 +464,12 @@ const MessageInputTextarea = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
+
+    // Store target value in session
+    sessionStorage.setItem(
+      "tambo.rawQuery",
+      JSON.stringify({ rawQuery: e.target.value }),
+    );
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
