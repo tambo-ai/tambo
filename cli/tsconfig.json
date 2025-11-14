@@ -16,6 +16,11 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types", "./src/types"],
+    "paths": {
+      "@/*": ["src/*"],
+      "@/components/tambo/*": ["src/registry/*"],
+      "@/lib/*": ["src/registry/lib/*"]
+    },
     "outDir": "./dist"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/types/*.d.ts"],

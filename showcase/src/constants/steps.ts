@@ -82,7 +82,7 @@ export const existingProjectSteps = [
     description:
       "Import and use the chat component. Add a complete chat interface to your application.",
     path: "~/your-project/src/app/page.tsx",
-    code: `import { MessageThreadFull } from "@/components/ui/message-thread-full";
+    code: `import { MessageThreadFull } from "@/components/tambo/message-thread-full";
   
   export default function Home() {
     return (

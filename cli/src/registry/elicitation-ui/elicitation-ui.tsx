@@ -79,7 +79,7 @@ const BooleanField: React.FC<FieldProps> = ({
           className={cn(
             "flex-1 px-4 py-2 rounded-lg border transition-colors",
             boolValue === true
-              ? "bg-primary text-primary-foreground border-primary"
+              ? "bg-accent text-accent-foreground border-accent"
               : "bg-background border-border hover:bg-muted",
           )}
         >
@@ -91,7 +91,7 @@ const BooleanField: React.FC<FieldProps> = ({
           className={cn(
             "flex-1 px-4 py-2 rounded-lg border transition-colors",
             boolValue === false
-              ? "bg-primary text-primary-foreground border-primary"
+              ? "bg-accent text-accent-foreground border-accent"
               : "bg-background border-border hover:bg-muted",
           )}
         >
@@ -134,7 +134,7 @@ const EnumField: React.FC<FieldProps> = ({
             className={cn(
               "px-4 py-2 rounded-lg border transition-colors",
               stringValue === option
-                ? "bg-primary text-primary-foreground border-primary"
+                ? "bg-accent text-accent-foreground border-accent"
                 : "bg-background border-border hover:bg-muted",
             )}
           >
@@ -198,7 +198,7 @@ const StringField: React.FC<FieldProps> = ({
           "w-full px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2",
           hasError
             ? "border-destructive focus:ring-destructive"
-            : "border-border focus:ring-primary",
+            : "border-border focus:ring-accent",
         )}
         placeholder={schema.description ?? name}
         minLength={stringSchema.minLength}
@@ -257,7 +257,7 @@ const NumberField: React.FC<FieldProps> = ({
           "w-full px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2",
           hasError
             ? "border-destructive focus:ring-destructive"
-            : "border-border focus:ring-primary",
+            : "border-border focus:ring-accent",
         )}
         placeholder={schema.description ?? name}
         min={numberSchema.minimum}
