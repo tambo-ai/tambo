@@ -393,7 +393,9 @@ export const useTamboRegistry = () => {
  * }
  * ```
  */
-export const useTamboMcpServerInfos = (): (McpServerInfo & { serverKey: string })[] => {
+export const useTamboMcpServerInfos = (): (McpServerInfo & {
+  serverKey: string;
+})[] => {
   return useContext(TamboRegistryContext).mcpServerInfos;
 };
 function getSerializedProps(
