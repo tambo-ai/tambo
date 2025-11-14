@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.19.0](https://github.com/tambo-ai/tambo/compare/docs-v1.18.0...docs-v1.19.0) (2025-11-14)
+
+
+### Features
+
+* **mcp:** add prefixing to tools/prompts if there is &gt; 1 mcp server ([#1265](https://github.com/tambo-ai/tambo/issues/1265)) ([415d986](https://github.com/tambo-ai/tambo/commit/415d9868fff420286e2757f8bd580fa6b12f24f3))
+* **mcp:** Add support for MCP Resources ([#1268](https://github.com/tambo-ai/tambo/issues/1268)) ([99b4f87](https://github.com/tambo-ai/tambo/commit/99b4f8748021a3333a1b772b6e280ad22ed389bc))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @tailwindcss/postcss from 4.1.16 to 4.1.17 in the tailwind group ([#1285](https://github.com/tambo-ai/tambo/issues/1285)) ([951a888](https://github.com/tambo-ai/tambo/commit/951a888c1795f37307b4ef275c84b4e1b9a5ed83))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.76.0 to 0.77.0 ([#1278](https://github.com/tambo-ai/tambo/issues/1278)) ([5f46a57](https://github.com/tambo-ai/tambo/commit/5f46a576be373e7dac7f076a7c844db5faae27d8))
+* **deps:** bump lucide-react from 0.548.0 to 0.552.0 ([#1277](https://github.com/tambo-ai/tambo/issues/1277)) ([7f4cc1c](https://github.com/tambo-ai/tambo/commit/7f4cc1c720fc6efe3dc360de544f4cffdcf12802))
+* **deps:** bump posthog-js from 1.282.0 to 1.289.0 ([#1287](https://github.com/tambo-ai/tambo/issues/1287)) ([80fdd5e](https://github.com/tambo-ai/tambo/commit/80fdd5e952a98e5ce558e9c210f6cf6bbba55058))
+* **docs:** add redirect for docs-prefixed URLs ([#1269](https://github.com/tambo-ai/tambo/issues/1269)) ([c5db2a6](https://github.com/tambo-ai/tambo/commit/c5db2a6f6ab546ddea66da333c98bb68f4813141))
+* **readme:** improve readme nov 2025 v2 ([#1284](https://github.com/tambo-ai/tambo/issues/1284)) ([23f3670](https://github.com/tambo-ai/tambo/commit/23f3670ec8473a26ab5af611c8d6a7d1c635ca86))
+
 ## [1.18.0](https://github.com/tambo-ai/tambo/compare/docs-v1.17.0...docs-v1.18.0) (2025-11-05)
 
 
