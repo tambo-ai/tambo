@@ -369,9 +369,12 @@ export const TamboMcpProvider: FC<{
     if (keysToRemove.length > 0) {
       setConnectedMcpServers(Array.from(clientMap.values()));
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentServersMap, registerTool]);
+  }, [
+    currentServersMap,
+    providerElicitationHandler,
+    providerSamplingHandler,
+    registerTool,
+  ]);
 
   // Update handlers when they change (without recreating clients)
   useEffect(() => {

@@ -16,10 +16,13 @@ import {
   TamboComponent,
   TamboTool,
 } from "../model/component-metadata";
+import {
+  getMcpServerUniqueKey,
+  McpServerInfo,
+  MCPTransport,
+} from "../model/mcp-server-info";
 import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
-import { MCPTransport, getMcpServerUniqueKey } from "../model/mcp-server-info";
-import type { McpServerInfo } from "../model/mcp-server-info";
 
 /**
  * Derives a short, meaningful key from a server URL.
@@ -83,6 +86,7 @@ function deriveServerKey(url: string): string {
 /**
  * Normalizes an MCP server info object, ensuring it has a serverKey.
  * If serverKey is not provided, derives it from the URL.
+ * @returns The normalized MCP server info object
  */
 type NormalizedMcpServerInfo = McpServerInfo & { serverKey: string };
 
