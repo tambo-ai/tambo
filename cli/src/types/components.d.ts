@@ -83,6 +83,12 @@ declare module "@/components/tambo/message" {
   export const MessageImages: React.ForwardRefExoticComponent<
     MessageImagesProps & React.RefAttributes<HTMLDivElement>
   >;
+
+  export type MessageAttachmentsProps = React.HTMLAttributes<HTMLDivElement>;
+
+  export const MessageAttachments: React.ForwardRefExoticComponent<
+    MessageAttachmentsProps & React.RefAttributes<HTMLDivElement>
+  >;
 }
 
 declare module "@/components/tambo/thread-content" {
@@ -459,6 +465,22 @@ declare module "@/lib/thread-hooks" {
   export function getMessageImages(
     content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
   ): string[];
+
+  export interface MessageAttachment {
+    readonly name: string;
+    readonly url: string;
+    readonly mimeType: string;
+    readonly isStorageReference: boolean;
+  }
+
+  export function getMessageAttachments(
+    content:
+      | TamboThreadMessage["content"]
+      | React.ReactNode
+      | string
+      | undefined
+      | null,
+  ): MessageAttachment[];
 }
 
 declare module "@/components/tambo/thread-container" {

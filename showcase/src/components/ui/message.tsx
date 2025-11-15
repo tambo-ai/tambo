@@ -3,6 +3,7 @@
 import { markdownComponents } from "@/components/ui/markdown-components";
 import {
   checkHasContent,
+  getMessageAttachments,
   getMessageImages,
   getSafeContent,
 } from "@/lib/thread-hooks";
@@ -12,7 +13,14 @@ import { useTambo } from "@tambo-ai/react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
 import stringify from "json-stringify-pretty-compact";
-import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ExternalLink,
+  FileText,
+  Loader2,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
@@ -223,6 +231,75 @@ const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
   },
 );
 MessageImages.displayName = "MessageImages";
+
+export type MessageAttachmentsProps = React.HTMLAttributes<HTMLDivElement>;
+
+const MessageAttachments = React.forwardRef<
+  HTMLDivElement,
+  MessageAttachmentsProps
+>(({ className, ...props }, ref) => {
+  const { message } = useMessageContext();
+  const attachments = getMessageAttachments(message.content);
+
+  if (attachments.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn("flex flex-wrap gap-2 mb-2", className)}
+      data-slot="message-attachments"
+      {...props}
+    >
+      {attachments.map((attachment, index) => {
+        const key = `${attachment.url}-${attachment.name}-${index}`;
+        const baseClasses = cn(
+          "flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2 pr-4 min-w-[200px] max-w-xs",
+          attachment.isStorageReference
+            ? "opacity-80 cursor-default"
+            : "transition-colors duration-200 hover:bg-muted",
+        );
+
+        const content = (
+          <>
+            <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium text-foreground truncate">
+                {attachment.name}
+              </span>
+              <span className="text-xs text-muted-foreground truncate">
+                {attachment.mimeType}
+              </span>
+            </div>
+            {/* intentionally no status label to avoid noisy UI while link resolves */}
+          </>
+        );
+
+        if (attachment.isStorageReference) {
+          return (
+            <div key={key} className={baseClasses}>
+              {content}
+            </div>
+          );
+        }
+
+        return (
+          <a
+            key={key}
+            href={attachment.url}
+            target="_blank"
+            rel="noreferrer"
+            className={baseClasses}
+          >
+            {content}
+          </a>
+        );
+      })}
+    </div>
+  );
+});
+MessageAttachments.displayName = "MessageAttachments";
 
 /**
  * Props for the MessageContent component.
@@ -823,6 +900,7 @@ export {
   Message,
   MessageContent,
   MessageImages,
+  MessageAttachments,
   MessageRenderedComponentArea,
   messageVariants,
   ReasoningInfo,

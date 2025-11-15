@@ -10,7 +10,7 @@ import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
-import { useMessageImages, StagedImage } from "../hooks/use-message-images";
+import { useMessageFiles, StagedFile } from "../hooks/use-message-files";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
@@ -61,16 +61,16 @@ export interface TamboThreadInputContextProps
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
   }) => Promise<void>;
-  /** Currently staged images */
-  images: StagedImage[];
-  /** Add a single image */
-  addImage: (file: File) => Promise<void>;
-  /** Add multiple images */
-  addImages: (files: File[]) => Promise<void>;
-  /** Remove an image by id */
-  removeImage: (id: string) => void;
-  /** Clear all staged images */
-  clearImages: () => void;
+  /** Currently staged files */
+  files: StagedFile[];
+  /** Add a single file */
+  addFile: (file: File) => Promise<void>;
+  /** Add multiple files */
+  addFiles: (files: File[]) => Promise<void>;
+  /** Remove a file by id */
+  removeFile: (id: string) => void;
+  /** Clear all staged files */
+  clearFiles: () => void;
 }
 
 export const TamboThreadInputContext = createContext<
@@ -95,7 +95,7 @@ export const TamboThreadInputProvider: React.FC<
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
-  const imageState = useMessageImages();
+  const fileState = useMessageFiles();
 
   const submit = useCallback(
     async ({
@@ -121,17 +121,17 @@ export const TamboThreadInputProvider: React.FC<
       }
 
       // Check if we have content to send
-      if (!inputValue.trim() && imageState.images.length === 0) {
+      if (!inputValue.trim() && fileState.files.length === 0) {
         throw new ThreadInputError(INPUT_ERROR_MESSAGES.EMPTY, {
           cause: "No text or images to send",
         });
       }
 
-      // Build message content with text and images
-      const messageContent = buildMessageContent(inputValue, imageState.images);
+      // Build message content with text and files
+      const messageContent = buildMessageContent(inputValue, fileState.files);
 
       try {
-        await sendThreadMessage(inputValue || "Image message", {
+        await sendThreadMessage(inputValue || "File message", {
           threadId: thread.id,
           contextKey: submitContextKey ?? contextKey ?? undefined,
           streamResponse: streamResponse,
@@ -140,8 +140,8 @@ export const TamboThreadInputProvider: React.FC<
           content: messageContent,
         });
       } catch (error: any) {
-        // Handle image-related errors with friendly messages
-        if (imageState.images.length > 0) {
+        // Handle file-related errors with friendly messages
+        if (fileState.files.length > 0) {
           const errorMessage = error?.message?.toLowerCase() ?? "";
 
           // Backend not yet supporting image content type
@@ -198,7 +198,7 @@ export const TamboThreadInputProvider: React.FC<
       // Clear text after successful submission
       setInputValue("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
+    [inputValue, sendThreadMessage, thread.id, contextKey, fileState],
   );
 
   const {
@@ -214,11 +214,11 @@ export const TamboThreadInputProvider: React.FC<
     value: inputValue,
     setValue: setInputValue,
     submit: submitAsync,
-    images: imageState.images,
-    addImage: imageState.addImage,
-    addImages: imageState.addImages,
-    removeImage: imageState.removeImage,
-    clearImages: imageState.clearImages,
+    files: fileState.files,
+    addFile: fileState.addFile,
+    addFiles: fileState.addFiles,
+    removeFile: fileState.removeFile,
+    clearFiles: fileState.clearFiles,
   };
 
   return (
