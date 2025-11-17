@@ -3,8 +3,6 @@
  * @module mcp/types
  */
 
-import type { Messages } from "@inkeep/inkeep-analytics/models/components";
-
 /**
  * Response structure for MCP tools
  */
@@ -30,8 +28,6 @@ export interface LoggingConfig {
   query: string;
   /** The response from the tool */
   response: string;
-  /** Messages to log to analytics */
-  analyticsMessages: Messages[];
 }
 
 /**

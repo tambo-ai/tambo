@@ -7,8 +7,8 @@ import * as Sentry from "@sentry/nextjs";
 import { OpenAI } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod.mjs";
 import { AnalyticsLogger } from "./analytics";
-import { InkeepRAGResponseSchema } from "./schemas";
 import type { MCPConfig } from "./config";
+import { InkeepRAGResponseSchema } from "./schemas";
 import type { MCPToolResponse, RAGDocument } from "./types";
 
 /**
@@ -120,12 +120,9 @@ export class InkeepToolHandlers {
           }
 
           const responseText = JSON.stringify(parsedResponse);
-          const links = this.formatRAGLinks(parsedResponse.content);
 
           // Log usage asynchronously to avoid blocking the response
-          this.logRAGUsage(toolName, query, responseText, links).catch(
-            console.error,
-          );
+          this.logRAGUsage(toolName, query, responseText).catch(console.error);
 
           return {
             content: [{ type: "text" as const, text: responseText }],
@@ -167,10 +164,6 @@ export class InkeepToolHandlers {
       toolName,
       query: question,
       response,
-      analyticsMessages: [
-        { role: "user", content: question },
-        { role: "assistant", content: response },
-      ],
     });
   }
 
@@ -182,16 +175,11 @@ export class InkeepToolHandlers {
     toolName: string,
     query: string,
     response: string,
-    links: string,
   ): Promise<void> {
     await AnalyticsLogger.logToolUsage({
       toolName,
       query,
       response,
-      analyticsMessages: [
-        { role: "user", content: query },
-        { role: "assistant", content: links },
-      ],
     });
   }
 }
