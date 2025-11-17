@@ -233,11 +233,11 @@ describe("buildMessageContent", () => {
     }
   });
 
-  it("should parse simple resource mentions with URI only", () => {
+  it("should parse resource mentions with server-key prefix when prefix is known", () => {
     const result = buildMessageContent(
-      "Please update @my-spreadsheet://page2/cell4 with the new total",
+      "Please update @ss:my-spreadsheet://page2/cell4 with the new total",
       [],
-      new Set(),
+      new Set(["ss"]),
     );
 
     expect(result).toHaveLength(3);
@@ -248,7 +248,7 @@ describe("buildMessageContent", () => {
     expect(result[1]).toEqual({
       type: "resource",
       resource: {
-        uri: "my-spreadsheet://page2/cell4",
+        uri: "my-spreadsheet://page2/cell4", // prefix stripped
       },
     });
     expect(result[2]).toEqual({
@@ -257,11 +257,11 @@ describe("buildMessageContent", () => {
     });
   });
 
-  it("should parse resource mentions with server-key prefix", () => {
+  it("should parse resource mentions with server-key prefix when prefix is known (alternate format)", () => {
     const result = buildMessageContent(
       "Check @my-mcp:my-spreadsheet://page2/cell4 for the value",
       [],
-      new Set(),
+      new Set(["my-mcp"]),
     );
 
     expect(result).toHaveLength(3);
@@ -272,7 +272,7 @@ describe("buildMessageContent", () => {
     expect(result[1]).toEqual({
       type: "resource",
       resource: {
-        uri: "my-mcp:my-spreadsheet://page2/cell4",
+        uri: "my-spreadsheet://page2/cell4", // prefix stripped
       },
     });
     expect(result[2]).toEqual({
@@ -281,11 +281,11 @@ describe("buildMessageContent", () => {
     });
   });
 
-  it("should handle multiple resource mentions in one message", () => {
+  it("should handle multiple resource mentions in one message with known prefixes", () => {
     const result = buildMessageContent(
-      "Copy data from @src://table1 to @dst://table2",
+      "Copy data from @srv1:src://table1 to @srv2:dst://table2",
       [],
-      new Set(),
+      new Set(["srv1", "srv2"]),
     );
 
     expect(result).toHaveLength(4);
@@ -296,7 +296,7 @@ describe("buildMessageContent", () => {
     expect(result[1]).toEqual({
       type: "resource",
       resource: {
-        uri: "src://table1",
+        uri: "src://table1", // prefix stripped
       },
     });
     expect(result[2]).toEqual({
@@ -306,39 +306,39 @@ describe("buildMessageContent", () => {
     expect(result[3]).toEqual({
       type: "resource",
       resource: {
-        uri: "dst://table2",
+        uri: "dst://table2", // prefix stripped
       },
     });
   });
 
-  it("should handle resource mentions with complex URIs", () => {
+  it("should handle resource mentions with complex URIs when prefix is known", () => {
     const result = buildMessageContent(
-      "Update @file://path/to/file.txt now",
+      "Update @fs:file://path/to/file.txt now",
       [],
-      new Set(),
+      new Set(["fs"]),
     );
 
     expect(result).toHaveLength(3);
     expect(result[1]).toEqual({
       type: "resource",
       resource: {
-        uri: "file://path/to/file.txt",
+        uri: "file://path/to/file.txt", // prefix stripped
       },
     });
   });
 
-  it("should handle resource mention at the start of message", () => {
+  it("should handle resource mention at the start of message when prefix is known", () => {
     const result = buildMessageContent(
-      "@my-resource://data is important",
+      "@mcp:my-resource://data is important",
       [],
-      new Set(),
+      new Set(["mcp"]),
     );
 
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
       type: "resource",
       resource: {
-        uri: "my-resource://data",
+        uri: "my-resource://data", // prefix stripped
       },
     });
     expect(result[1]).toEqual({
@@ -347,11 +347,11 @@ describe("buildMessageContent", () => {
     });
   });
 
-  it("should handle resource mention at the end of message", () => {
+  it("should handle resource mention at the end of message when prefix is known", () => {
     const result = buildMessageContent(
-      "Check this @my-resource://data",
+      "Check this @mcp:my-resource://data",
       [],
-      new Set(),
+      new Set(["mcp"]),
     );
 
     expect(result).toHaveLength(2);
@@ -362,28 +362,32 @@ describe("buildMessageContent", () => {
     expect(result[1]).toEqual({
       type: "resource",
       resource: {
-        uri: "my-resource://data",
+        uri: "my-resource://data", // prefix stripped
       },
     });
   });
 
-  it("should handle resource mention as entire message", () => {
-    const result = buildMessageContent("@my-resource://data", [], new Set());
+  it("should handle resource mention as entire message when prefix is known", () => {
+    const result = buildMessageContent(
+      "@mcp:my-resource://data",
+      [],
+      new Set(["mcp"]),
+    );
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       type: "resource",
       resource: {
-        uri: "my-resource://data",
+        uri: "my-resource://data", // prefix stripped
       },
     });
   });
 
-  it("should handle multiple consecutive mentions", () => {
+  it("should handle multiple consecutive mentions when prefixes are known", () => {
     const result = buildMessageContent(
-      "@res1://a @res2://b @res3://c",
+      "@s1:res1://a @s2:res2://b @s3:res3://c",
       [],
-      new Set(),
+      new Set(["s1", "s2", "s3"]),
     );
 
     expect(result).toHaveLength(5);
@@ -408,7 +412,7 @@ describe("buildMessageContent", () => {
     });
   });
 
-  it("should combine resources with images", () => {
+  it("should combine resources with images when prefix is known", () => {
     const images = [
       createMockStagedImage({
         id: "img1",
@@ -417,9 +421,9 @@ describe("buildMessageContent", () => {
     ];
 
     const result = buildMessageContent(
-      "Update @spreadsheet://data with @image://chart",
+      "Update @mcp1:spreadsheet://data with @mcp2:image://chart",
       images,
-      new Set(),
+      new Set(["mcp1", "mcp2"]),
     );
 
     expect(result).toHaveLength(5);
@@ -430,11 +434,11 @@ describe("buildMessageContent", () => {
     expect(result[4].type).toBe("image_url");
   });
 
-  it("should handle whitespace around resources correctly", () => {
+  it("should handle whitespace around resources correctly when prefix is known", () => {
     const result = buildMessageContent(
-      "Update  @res://data  with value",
+      "Update  @mcp:res://data  with value",
       [],
-      new Set(),
+      new Set(["mcp"]),
     );
 
     expect(result).toHaveLength(3);
@@ -445,7 +449,7 @@ describe("buildMessageContent", () => {
     expect(result[1]).toEqual({
       type: "resource",
       resource: {
-        uri: "res://data",
+        uri: "res://data", // prefix stripped
       },
     });
     expect(result[2]).toEqual({
@@ -454,24 +458,28 @@ describe("buildMessageContent", () => {
     });
   });
 
-  it("should handle resources with special URL characters", () => {
+  it("should handle resources with special URL characters when prefix is known", () => {
     const result = buildMessageContent(
-      "Check @https://example.com/path?query=value&other=param",
+      "Check @web:https://example.com/path?query=value&other=param",
       [],
-      new Set(),
+      new Set(["web"]),
     );
 
     expect(result).toHaveLength(2);
     expect(result[1]).toEqual({
       type: "resource",
       resource: {
-        uri: "https://example.com/path?query=value&other=param",
+        uri: "https://example.com/path?query=value&other=param", // prefix stripped
       },
     });
   });
 
-  it("should handle message with only resources and no other text", () => {
-    const result = buildMessageContent("@res1://a @res2://b", [], new Set());
+  it("should handle message with only resources and no other text when prefixes are known", () => {
+    const result = buildMessageContent(
+      "@s1:res1://a @s2:res2://b",
+      [],
+      new Set(["s1", "s2"]),
+    );
 
     expect(result).toHaveLength(3);
     expect(result[0].type).toBe("resource");
@@ -479,16 +487,100 @@ describe("buildMessageContent", () => {
     expect(result[2].type).toBe("resource");
   });
 
-  it("should handle empty whitespace text parts gracefully", () => {
-    const result = buildMessageContent("@resource://a", [], new Set());
+  it("should handle empty whitespace text parts gracefully when prefix is known", () => {
+    const result = buildMessageContent(
+      "@mcp:resource://a",
+      [],
+      new Set(["mcp"]),
+    );
 
     // Should only have the resource, no empty text part
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       type: "resource",
       resource: {
-        uri: "resource://a",
+        uri: "resource://a", // prefix stripped
       },
+    });
+  });
+
+  describe("resources without known prefixes should NOT be parsed", () => {
+    it("should not parse resource mentions when prefix is unknown", () => {
+      const result = buildMessageContent(
+        "Please update @ss:my-spreadsheet://page2/cell4 with the new total",
+        [],
+        new Set(), // No known prefixes
+      );
+
+      // Should be treated as plain text, not parsed
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Please update @ss:my-spreadsheet://page2/cell4 with the new total",
+      });
+    });
+
+    it("should not parse multiple resource-like URIs when prefixes are unknown", () => {
+      const result = buildMessageContent(
+        "Copy from @srv1:src://table1 to @srv2:dst://table2",
+        [],
+        new Set(), // No known prefixes
+      );
+
+      // Should be treated as plain text
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Copy from @srv1:src://table1 to @srv2:dst://table2",
+      });
+    });
+
+    it("should not parse when only some prefixes are known", () => {
+      const result = buildMessageContent(
+        "Data from @known:sheet://a and @unknown:msg://b",
+        [],
+        new Set(["known"]), // Only "known" is recognized
+      );
+
+      // Only the known prefix should be parsed
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Data from ",
+      });
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "sheet://a", // "known" prefix stripped
+        },
+      });
+      expect(result[2]).toEqual({
+        type: "text",
+        text: " and @unknown:msg://b", // unknown prefix not parsed
+      });
+    });
+
+    it("should not parse resource-like patterns without known prefix even with images", () => {
+      const images = [
+        createMockStagedImage({
+          id: "img1",
+          dataUrl: "data:image/png;base64,abc123",
+        }),
+      ];
+
+      const result = buildMessageContent(
+        "Check @unknown:resource://data",
+        images,
+        new Set(), // No known prefixes
+      );
+
+      // Resource should not be parsed, only text and image
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Check @unknown:resource://data",
+      });
+      expect(result[1].type).toBe("image_url");
     });
   });
 
@@ -531,51 +623,48 @@ describe("buildMessageContent", () => {
       });
     });
 
-    it("should not strip prefix if not in whitelist", () => {
+    it("should not parse resource if prefix not in whitelist", () => {
       const result = buildMessageContent(
         "Check @unknown:resource://data",
         [],
         new Set(["linear"]),
       );
 
-      expect(result).toHaveLength(2);
-      expect(result[1]).toEqual({
-        type: "resource",
-        resource: {
-          uri: "unknown:resource://data",
-        },
+      // Should not be parsed since "unknown" is not in the whitelist
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Check @unknown:resource://data",
       });
     });
 
-    it("should not strip prefix if whitelist is empty", () => {
+    it("should not parse resource if whitelist is empty", () => {
       const result = buildMessageContent(
         "Check @linear:resource://data",
         [],
         new Set(),
       );
 
-      expect(result).toHaveLength(2);
-      expect(result[1]).toEqual({
-        type: "resource",
-        resource: {
-          uri: "linear:resource://data",
-        },
+      // Should not be parsed since whitelist is empty
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Check @linear:resource://data",
       });
     });
 
-    it("should not strip prefix if knownPrefixes is undefined", () => {
+    it("should not parse resource if knownPrefixes is empty set", () => {
       const result = buildMessageContent(
         "Check @linear:resource://data",
         [],
         new Set(),
       );
 
-      expect(result).toHaveLength(2);
-      expect(result[1]).toEqual({
-        type: "resource",
-        resource: {
-          uri: "linear:resource://data",
-        },
+      // Should not be parsed since knownPrefixes is empty
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Check @linear:resource://data",
       });
     });
 
@@ -586,18 +675,21 @@ describe("buildMessageContent", () => {
         new Set(["linear"]),
       );
 
-      expect(result).toHaveLength(4);
+      // Only "linear" prefix should be parsed, "slack" should remain as text
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({
+        type: "text",
+        text: "Data from ",
+      });
       expect(result[1]).toEqual({
         type: "resource",
         resource: {
-          uri: "sheet://a",
+          uri: "sheet://a", // "linear" prefix stripped
         },
       });
-      expect(result[3]).toEqual({
-        type: "resource",
-        resource: {
-          uri: "slack:msg://b",
-        },
+      expect(result[2]).toEqual({
+        type: "text",
+        text: " and @slack:msg://b", // "slack" not parsed
       });
     });
 

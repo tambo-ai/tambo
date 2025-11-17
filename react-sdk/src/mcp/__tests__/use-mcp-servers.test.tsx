@@ -53,15 +53,15 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider
-          mcpServers={[{ url: "https://one.example" }, "https://two.example"]}
-        >
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider
+            mcpServers={[{ url: "https://one.example" }, "https://two.example"]}
+          >
             <TamboMcpProvider>
               <Inner />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -96,13 +96,13 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider mcpServers={[{ url: "https://ok.example" }]}>
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider mcpServers={[{ url: "https://ok.example" }]}>
             <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -138,13 +138,13 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider mcpServers={[{ url: "https://fail.example" }]}>
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider mcpServers={[{ url: "https://fail.example" }]}>
             <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 

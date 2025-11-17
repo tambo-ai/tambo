@@ -826,8 +826,10 @@ describe("useTamboMcpResourceList - resource management", () => {
       expect(capturedResources.length).toBe(1);
     });
 
-    // No prefix when only 1 server
-    expect(capturedResources[0].resource.uri).toBe("file:///home/user/doc.txt");
+    // ALWAYS prefix, even with only 1 server
+    expect(capturedResources[0].resource.uri).toBe(
+      "server-a:file:///home/user/doc.txt",
+    );
   });
 
   it("should remove resource prefixes when a server is removed", async () => {
@@ -964,15 +966,14 @@ describe("useTamboMcpResourceList - resource management", () => {
       </TamboClientContext.Provider>,
     );
 
-    // Wait for server B resources to be removed and prefixes stripped
+    // Wait for server B resources to be removed (prefixes remain even with 1 server)
     await waitFor(() => {
       expect(capturedResources.length).toBe(2);
     });
 
     const updatedUris = capturedResources.map((r) => r.resource.uri);
-    expect(updatedUris).toContain("file:///home/user/doc1.txt"); // No prefix
-    expect(updatedUris).toContain("file:///home/user/doc2.txt");
-    expect(updatedUris).not.toContain("server-a:file:///home/user/doc1.txt"); // No prefix when only 1 server
+    expect(updatedUris).toContain("server-a:file:///home/user/doc1.txt"); // ALWAYS prefix
+    expect(updatedUris).toContain("server-a:file:///home/user/doc2.txt");
     expect(updatedUris).not.toContain("server-b:file:///workspace/code.js"); // Server B removed
   });
 });
@@ -995,7 +996,7 @@ describe("useTamboMcpResource - read individual resource", () => {
     queryClient.clear();
   });
 
-  it("should read a resource from a single server (unprefixed)", async () => {
+  it("should read a resource from a single server (ALWAYS prefixed)", async () => {
     const serverAResources = {
       resources: [
         {
@@ -1034,8 +1035,9 @@ describe("useTamboMcpResource - read individual resource", () => {
 
     let capturedResourceData: any = null;
     const Capture: React.FC = () => {
+      // Request with prefix since resources are ALWAYS prefixed
       const { data: resourceData } = useTamboMcpResource(
-        "file:///home/user/doc.txt",
+        "server-a:file:///home/user/doc.txt",
       );
       useEffect(() => {
         if (resourceData) {
