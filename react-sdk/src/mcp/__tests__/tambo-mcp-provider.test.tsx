@@ -83,11 +83,11 @@ const TestWrapper: React.FC<{
         setMcpAccessToken: () => {},
       }}
     >
-      <TamboRegistryProvider mcpServers={mcpServers}>
-        <TamboMcpTokenProvider>
+      <TamboMcpTokenProvider>
+        <TamboRegistryProvider mcpServers={mcpServers}>
           <TamboMcpProvider handlers={handlers}>{children}</TamboMcpProvider>
-        </TamboMcpTokenProvider>
-      </TamboRegistryProvider>
+        </TamboRegistryProvider>
+      </TamboMcpTokenProvider>
     </TamboClientContext.Provider>
   );
 };
