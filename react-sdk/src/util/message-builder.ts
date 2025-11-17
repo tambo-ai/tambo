@@ -24,9 +24,9 @@ function parseResourceMentions(
   // URIs must contain at least one :// or : to distinguish from email addresses
   // Stops at whitespace or end of string
   const resourceRegex = /@([a-zA-Z0-9-]*:\/\/[^\s]+|[a-zA-Z0-9-]+:[^\s]+)/g;
-  function matchesKnownPrefix(text: string) {
+  function matchesKnownPrefix(uri: string) {
     for (const prefix of knownPrefixes) {
-      if (text.startsWith(`${prefix}:`)) {
+      if (uri.startsWith(`${prefix}:`)) {
         return true;
       }
     }
@@ -35,28 +35,31 @@ function parseResourceMentions(
 
   const parts: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
   let lastIndex = 0;
-  let match;
 
-  while (
-    matchesKnownPrefix(text) &&
-    (match = resourceRegex.exec(text)) !== null
-  ) {
+  // Use matchAll to get all matches without relying on regex internal state
+  const matches = Array.from(text.matchAll(resourceRegex));
+
+  for (const match of matches) {
+    const resourceUri = match[1]; // The part after @, e.g., "ss:my-spreadsheet://page2/cell4"
+
+    // Only process if this specific match starts with a known prefix
+    if (!matchesKnownPrefix(resourceUri)) {
+      continue; // Skip this resource, it doesn't have a known prefix
+    }
+
     // Add text before the resource mention
-    if (match.index > lastIndex) {
+    if (match.index !== undefined && match.index > lastIndex) {
       parts.push({
         type: "text",
         text: text.slice(lastIndex, match.index),
       });
     }
 
-    // Add the resource mention
-    let resourceUri = match[1]; // The part after @
-
-    // Check if this URI starts with a known prefix (format: "prefix:rest")
+    // Strip the known prefix from the URI
+    let strippedUri = resourceUri;
     for (const prefix of knownPrefixes) {
-      if (resourceUri.startsWith(`${prefix}:`)) {
-        // Strip the prefix and colon
-        resourceUri = resourceUri.slice(prefix.length + 1);
+      if (strippedUri.startsWith(`${prefix}:`)) {
+        strippedUri = strippedUri.slice(prefix.length + 1);
         break;
       }
     }
@@ -64,11 +67,13 @@ function parseResourceMentions(
     parts.push({
       type: "resource",
       resource: {
-        uri: resourceUri,
+        uri: strippedUri,
       },
     });
 
-    lastIndex = match.index + match[0].length;
+    if (match.index !== undefined) {
+      lastIndex = match.index + match[0].length;
+    }
   }
 
   // Add remaining text
