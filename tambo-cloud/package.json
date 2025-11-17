@@ -1,0 +1,55 @@
+{
+  "name": "@tambo-ai-cloud/repo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "turbo build",
+    "build:api": "turbo run build --filter=hydra-api",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint -- --fix",
+    "test": "turbo test",
+    "check-types": "turbo check-types",
+    "format": "echo Prettier version: $(prettier --version) && prettier --write .",
+    "prettier-check": "echo Prettier version: $(prettier --version) && prettier --check .",
+    "hydra-api:start": "turbo run start --filter=hydra-api",
+    "start:api": "turbo run start --filter=hydra-api",
+    "prepare": "husky",
+    "db:generate": "cd packages/db && npm run db:generate",
+    "db:migrate": "cd packages/db && npm run db:migrate",
+    "db:check": "cd packages/db && npm run db:check",
+    "db:studio": "cd packages/db && npm run db:studio",
+    "rename-to-tambo": "tsx scripts/update-content.ts && tsx scripts/rename-files.ts",
+    "rename-vnext": "tsx scripts/rename-vnext.ts",
+    "smoke:mcp": "bash scripts/smoke-mcp.sh",
+    "debug-stream": "tsx scripts/debug-stream.ts"
+  },
+  "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
+    "@types/jest": "^30.0.0",
+    "eslint": "^9.39.1",
+    "husky": "^9.1.7",
+    "jest": "^30.2.0",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.5",
+    "tsx": "^4.20.6",
+    "turbo": "^2.6.0",
+    "typescript": "^5.9.3"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "volta": {
+    "node": "22.21.0",
+    "npm": "11.6.2"
+  },
+  "packageManager": "npm@11.6.1",
+  "version": "0.122.2",
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,10 @@
+# Ignore the apps/web/.source/ directory
+apps/web/.source/
+apps/*/.next/
+apps/*/dist/
+packages/*/dist/
+# Managed by release-please
+CHANGELOG.md
+packages/db/migrations/
+packages/ag-ui-mastra/
+.vscode/

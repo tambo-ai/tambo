@@ -1,0 +1,1 @@
+ALTER TABLE "threads" ADD COLUMN "name" text DEFAULT 'new thread' NOT NULL;

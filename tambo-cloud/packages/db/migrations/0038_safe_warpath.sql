@@ -1,0 +1,1 @@
+ALTER TABLE "tool_providers" ADD COLUMN "mcp_transport" text DEFAULT 'sse' NOT NULL;

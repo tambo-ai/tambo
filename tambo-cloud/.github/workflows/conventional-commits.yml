@@ -1,0 +1,23 @@
+name: PR Conventional Commit Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate-pr-title:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    steps:
+      - name: PR Conventional Commit Validation
+        uses: ytanikin/pr-conventional-commits@1.4.2
+        with:
+          task_types: '["feat","fix","perf","deps","revert","docs","style","chore","refactor","test","build","ci"]'
+          add_label: "false"

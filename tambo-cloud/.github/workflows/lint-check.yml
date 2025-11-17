@@ -1,0 +1,45 @@
+name: Lint and Type Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  lint-check:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "postgresql://dummy-user:dummy-password@dummy-host:5432/dummy-database"
+      API_KEY_SECRET: "dummy-api-key-secret"
+      PROVIDER_KEY_SECRET: "dummy-provider-key-secret"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check Types
+        run: npm run check-types
+
+      - name: Run Prettier
+        run: npm run prettier-check
+
+      - name: Run Lint
+        run: npm run lint

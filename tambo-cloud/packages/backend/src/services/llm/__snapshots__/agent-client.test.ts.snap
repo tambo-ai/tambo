@@ -1,0 +1,751 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AgentClient Event Processing Complex Conversation Flow should handle a complete conversation with assistant message, tool call, tool result, user message, and another assistant message 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "I can help you with that! Let me check the weather for you.",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "I can help you with that! Let me check the weather for you.",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "get_weather",
+          },
+          "id": "call-weather-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "I can help you with that! Let me check the weather for you.",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"location": "New York"}",
+            "name": "get_weather",
+          },
+          "id": "call-weather-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "I can help you with that! Let me check the weather for you.",
+      "id": "assistant-msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"location": "New York"}",
+            "name": "get_weather",
+          },
+          "id": "call-weather-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "{"temperature": 72, "condition": "sunny"}",
+      "id": "tool-msg-1",
+      "role": "tool",
+      "toolCallId": "call-weather-1",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "user-msg-1",
+      "role": "user",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Thanks! What about tomorrow?",
+      "id": "user-msg-1",
+      "role": "user",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "assistant-msg-2",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Tomorrow will be partly cloudy with a high of 75°F.",
+      "id": "assistant-msg-2",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Conversation completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Edge Cases should handle empty tool calls array 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Empty tool calls completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Edge Cases should handle run finished with object result 1`] = `
+[
+  {
+    "complete": true,
+    "message": {
+      "content": "{"status":"success","data":{"key":"value"}}",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Edge Cases should handle run finished with string result 1`] = `
+[
+  {
+    "complete": true,
+    "message": {
+      "content": "Simple string result",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Edge Cases should handle tool calls with non-function type 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"type": "unexpected"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Non-function tool calls completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Messages Snapshot Events should handle messages snapshot with assistant message 1`] = `
+[
+  {
+    "message": {
+      "content": "Hello! How can I help you?",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Messages snapshot completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Messages Snapshot Events should handle messages snapshot with tool message 1`] = `
+[
+  {
+    "message": {
+      "content": "Tool result",
+      "id": "tool-msg-1",
+      "role": "tool",
+      "toolCallId": "call-1",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Tool messages snapshot completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Messages Snapshot Events should handle messages snapshot with user message 1`] = `
+[
+  {
+    "message": {
+      "content": "Hello, world!",
+      "id": "user-msg-1",
+      "role": "user",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "User messages snapshot completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Run Events should handle run error 1`] = `
+[
+  {
+    "complete": true,
+    "message": {
+      "content": "Run error completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Run Events should handle run started/finished sequence 1`] = `
+[
+  {
+    "complete": true,
+    "message": {
+      "content": "Task completed successfully",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing State Events should handle state delta 1`] = `
+[
+  {
+    "complete": true,
+    "message": {
+      "content": "State delta completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing State Events should handle state snapshot 1`] = `
+[
+  {
+    "complete": true,
+    "message": {
+      "content": "State snapshot completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Step Events should handle step started/finished sequence 1`] = `
+[
+  {
+    "complete": true,
+    "message": {
+      "content": "Step sequence completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Text Message Events should handle text message chunk events 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Chunk 1",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Chunk 1 Chunk 2",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Message completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Text Message Events should handle text message start/content/end sequence 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Hello",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "Hello there!",
+      "id": "msg-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Message completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Thinking Events should handle multiple thinking text messages 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Step 1: Analyze the problem",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Step 1: Analyze the problem",
+        "",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Step 1: Analyze the problem",
+        "Step 2: Consider solutions",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Multiple thinking completed",
+      "id": "message-2",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Thinking Events should handle thinking start/content/end sequence 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Let me think about this...",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "message-1",
+      "reasoning": [
+        "Let me think about this... I need to consider multiple factors.",
+      ],
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Thinking completed",
+      "id": "message-2",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Tool Call Events should handle tool call chunk events 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Tool call completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Tool Call Events should handle tool call result 1`] = `
+[
+  {
+    "message": {
+      "content": "Tool execution result",
+      "id": "tool-msg-1",
+      "role": "tool",
+      "toolCallId": "call-1",
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Tool result completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;
+
+exports[`AgentClient Event Processing Tool Call Events should handle tool call start/args/end sequence 1`] = `
+[
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "message": {
+      "content": "",
+      "id": "msg-1",
+      "role": "assistant",
+      "toolCalls": [
+        {
+          "function": {
+            "arguments": "{"param": "value"}",
+            "name": "test_tool",
+          },
+          "id": "call-1",
+          "type": "function",
+        },
+      ],
+    },
+    "type": "message",
+  },
+  {
+    "complete": true,
+    "message": {
+      "content": "Tool call completed",
+      "id": "message-1",
+      "role": "assistant",
+    },
+    "type": "message",
+  },
+]
+`;

@@ -1,0 +1,1 @@
+ALTER TABLE "messages" ADD COLUMN "component_state" jsonb;

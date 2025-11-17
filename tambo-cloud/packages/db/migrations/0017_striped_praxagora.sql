@@ -1,0 +1,5 @@
+DROP POLICY "project_user_policy" ON "projects" CASCADE;--> statement-breakpoint
+CREATE POLICY "project_user_select_policy" ON "projects" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from project_members where project_members.project_id = "projects"."id" and project_members.user_id = (select auth.uid())));--> statement-breakpoint
+CREATE POLICY "project_user_update_policy" ON "projects" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (exists (select 1 from project_members where project_members.project_id = "projects"."id" and project_members.user_id = (select auth.uid())));--> statement-breakpoint
+CREATE POLICY "project_user_delete_policy" ON "projects" AS PERMISSIVE FOR DELETE TO "authenticated" USING (exists (select 1 from project_members where project_members.project_id = "projects"."id" and project_members.user_id = (select auth.uid())));--> statement-breakpoint
+ALTER POLICY "project_user_insert_policy" ON "projects" TO authenticated WITH CHECK (true);
