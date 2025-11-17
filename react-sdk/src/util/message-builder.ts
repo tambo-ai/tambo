@@ -24,12 +24,23 @@ function parseResourceMentions(
   // URIs must contain at least one :// or : to distinguish from email addresses
   // Stops at whitespace or end of string
   const resourceRegex = /@([a-zA-Z0-9-]*:\/\/[^\s]+|[a-zA-Z0-9-]+:[^\s]+)/g;
+  function matchesKnownPrefix(text: string) {
+    for (const prefix of knownPrefixes) {
+      if (text.startsWith(`${prefix}:`)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   const parts: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
   let lastIndex = 0;
   let match;
 
-  while ((match = resourceRegex.exec(text)) !== null) {
+  while (
+    matchesKnownPrefix(text) &&
+    (match = resourceRegex.exec(text)) !== null
+  ) {
     // Add text before the resource mention
     if (match.index > lastIndex) {
       parts.push({
