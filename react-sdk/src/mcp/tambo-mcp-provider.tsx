@@ -13,10 +13,8 @@ import {
   MCPElicitationHandler,
   MCPHandlers,
   MCPSamplingHandler,
-  MCPTransport,
   type NormalizedMcpServerInfo,
 } from "../model/mcp-server-info";
-import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import {
   useTamboMcpServerInfos,
   useTamboRegistry,
@@ -127,16 +125,16 @@ const McpProviderContext = createContext<McpProviderContextValue>({
   resolveElicitation: null,
 });
 
-// Constant for the internal Tambo MCP server name
-const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
-
 /**
  * This provider is used to register tools from MCP servers.
- * It automatically includes an internal Tambo MCP server when an MCP access token is available.
  *
  * **BREAKING CHANGE**: This provider no longer accepts `mcpServers` as a prop.
  * Instead, pass `mcpServers` to `TamboProvider` or `TamboRegistryProvider`.
  * This provider must be wrapped inside `TamboProvider` to access the MCP server registry.
+ *
+ * **NOTE**: The internal Tambo MCP server is automatically registered in `TamboRegistryProvider`
+ * when an MCP access token is available. This provider only handles the connection and tool
+ * registration for servers configured in the registry.
  * @param props - The provider props
  * @param props.handlers - Optional handlers applied to all MCP servers unless overridden per-server
  * @param props.children - The children to wrap
@@ -147,7 +145,6 @@ export const TamboMcpProvider: FC<{
   children: React.ReactNode;
 }> = ({ handlers, children }) => {
   const { registerTool } = useTamboRegistry();
-  const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
   const mcpServers = useTamboMcpServerInfos();
   const providerSamplingHandler = handlers?.sampling;
 
@@ -173,34 +170,16 @@ export const TamboMcpProvider: FC<{
 
   // Stable map of current server configurations keyed by server key
   const currentServersMap = useMemo(() => {
-    const servers = [...mcpServers];
-
-    // Add internal Tambo MCP server if we have an access token and a base URL
-    if (mcpAccessToken && tamboBaseUrl) {
-      const base = new URL(tamboBaseUrl);
-      base.pathname = `${base.pathname.replace(/\/+$/, "")}/mcp`;
-      const tamboMcpUrl = base.toString();
-      servers.push({
-        name: TAMBO_INTERNAL_MCP_SERVER_NAME,
-        url: tamboMcpUrl,
-        transport: MCPTransport.HTTP,
-        serverKey: "tambo", // Internal server always uses 'tambo' as serverKey
-        customHeaders: {
-          Authorization: `Bearer ${mcpAccessToken}`,
-        },
-      });
-    }
-
     // Create a map of server key -> server info for efficient lookups
     const serverMap = new Map<string, McpServerConfig>();
-    servers.forEach((server) => {
+    mcpServers.forEach((server) => {
       const serverInfo = normalizeServerInfo(server);
       // Store without cloning to avoid unnecessary allocation
       serverMap.set(serverInfo.key, serverInfo);
     });
 
     return serverMap;
-  }, [mcpServers, mcpAccessToken, tamboBaseUrl]);
+  }, [mcpServers]);
 
   // Main effect: manage client lifecycle (create/remove)
   useEffect(() => {

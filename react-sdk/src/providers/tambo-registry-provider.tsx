@@ -24,6 +24,7 @@ import {
 } from "../model/mcp-server-info";
 import { assertValidName } from "../util/validate-component-name";
 import { assertNoZodRecord } from "../util/validate-zod-schema";
+import { useTamboMcpToken } from "./tambo-mcp-token-provider";
 
 /**
  * Derives a short, meaningful key from a server URL.
@@ -187,6 +188,12 @@ export interface TamboRegistryProviderProps {
  * @param props.onCallUnregisteredTool - The function to call when an unknown tool is called (optional)
  * @returns The TamboRegistryProvider component
  */
+// Constant for the internal Tambo MCP server name
+const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
+
+/**
+ *
+ */
 export const TamboRegistryProvider: React.FC<
   PropsWithChildren<TamboRegistryProviderProps>
 > = ({
@@ -196,6 +203,11 @@ export const TamboRegistryProvider: React.FC<
   mcpServers: userMcpServers,
   onCallUnregisteredTool,
 }) => {
+  // Access the MCP token context if available (may be undefined if not wrapped)
+  const mcpTokenContext = useTamboMcpToken();
+  const mcpAccessToken = mcpTokenContext?.mcpAccessToken ?? null;
+  const tamboBaseUrl = mcpTokenContext?.tamboBaseUrl;
+
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
   const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
     {},
@@ -363,6 +375,23 @@ export const TamboRegistryProvider: React.FC<
 
   const mcpServerInfos: NormalizedMcpServerInfo[] = useMemo(() => {
     const allServers = [...staticMcpServerInfos, ...dynamicMcpServerInfos];
+
+    // Add internal Tambo MCP server if we have an access token and a base URL
+    if (mcpAccessToken && tamboBaseUrl) {
+      const base = new URL(tamboBaseUrl);
+      base.pathname = `${base.pathname.replace(/\/+$/, "")}/mcp`;
+      const tamboMcpUrl = base.toString();
+      allServers.push({
+        name: TAMBO_INTERNAL_MCP_SERVER_NAME,
+        url: tamboMcpUrl,
+        transport: MCPTransport.HTTP,
+        serverKey: "tambo", // Internal server always uses 'tambo' as serverKey
+        customHeaders: {
+          Authorization: `Bearer ${mcpAccessToken}`,
+        },
+      });
+    }
+
     if (allServers.length === 0) {
       return allServers;
     }
@@ -392,7 +421,12 @@ export const TamboRegistryProvider: React.FC<
         serverKey: `${baseKey}-${count}`,
       };
     });
-  }, [staticMcpServerInfos, dynamicMcpServerInfos]);
+  }, [
+    staticMcpServerInfos,
+    dynamicMcpServerInfos,
+    mcpAccessToken,
+    tamboBaseUrl,
+  ]);
 
   const value = {
     componentList,

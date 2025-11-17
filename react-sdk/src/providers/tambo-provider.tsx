@@ -101,14 +101,14 @@ export const TamboProvider: React.FC<
       environment={environment}
       userToken={userToken}
     >
-      <TamboRegistryProvider
-        components={components}
-        tools={tools}
-        mcpServers={mcpServers}
-        onCallUnregisteredTool={onCallUnregisteredTool}
-      >
-        <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboMcpTokenProvider>
+      <TamboMcpTokenProvider>
+        <TamboRegistryProvider
+          components={components}
+          tools={tools}
+          mcpServers={mcpServers}
+          onCallUnregisteredTool={onCallUnregisteredTool}
+        >
+          <TamboContextHelpersProvider contextHelpers={contextHelpers}>
             <TamboThreadProvider
               streaming={streaming}
               autoGenerateThreadName={autoGenerateThreadName}
@@ -129,9 +129,9 @@ export const TamboProvider: React.FC<
                 </TamboContextAttachmentProvider>
               </TamboThreadInputProvider>
             </TamboThreadProvider>
-          </TamboMcpTokenProvider>
-        </TamboContextHelpersProvider>
-      </TamboRegistryProvider>
+          </TamboContextHelpersProvider>
+        </TamboRegistryProvider>
+      </TamboMcpTokenProvider>
     </TamboClientProvider>
   );
 };
