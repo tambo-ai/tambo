@@ -15,10 +15,10 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.1.1",
-    "eslint-plugin-turbo": "^2.6.0",
+    "eslint-plugin-turbo": "^2.6.1",
     "globals": "^16.5.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.3"
+    "typescript-eslint": "^8.46.4"
   },
   "volta": {
     "extends": "../../package.json"
