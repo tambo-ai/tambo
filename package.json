@@ -30,7 +30,9 @@
     "docs",
     "cli",
     "create-tambo-app",
-    "packages/*"
+    "packages/*",
+    "tambo-cloud/apps/*",
+    "tambo-cloud/packages/*"
   ],
   "engines": {
     "node": ">=22",
