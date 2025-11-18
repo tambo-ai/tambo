@@ -113,7 +113,7 @@ const EnumField: React.FC<FieldProps> = ({
                 : "bg-background border-border hover:bg-muted",
             )}
           >
-            {optionNames[index] || option}
+            {optionNames[index] ?? option}
           </button>
         ))}
       </div>
