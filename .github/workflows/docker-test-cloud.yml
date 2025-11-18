@@ -88,7 +88,7 @@ jobs:
             org.opencontainers.image.description=Next.js web frontend for Tambo AI platform
             org.opencontainers.image.vendor=Tambo AI
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo-cloud
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo
             org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Build and push web image
@@ -119,7 +119,7 @@ jobs:
             org.opencontainers.image.description=NestJS backend API for Tambo AI platform
             org.opencontainers.image.vendor=Tambo AI
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo-cloud
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo
             org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Build and push api image

@@ -6,9 +6,9 @@ import open from "open";
 import ora from "ora";
 import path from "path";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
-import { getLibDirectory } from "./shared/path-utils.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
+import { getLibDirectory } from "./shared/path-utils.js";
 
 /**
  * Creates a tambo.ts file with empty registry of tools and components
@@ -134,7 +134,7 @@ function displaySelfHostInstructions(): void {
   );
   console.log(
     chalk.gray("Repo:"),
-    chalk.cyan("https://github.com/tambo-ai/tambo-cloud"),
+    chalk.cyan("https://github.com/tambo-ai/tambo"),
   );
 
   console.log(chalk.bold("\nQuick start with Docker:"));
@@ -326,9 +326,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   });
   if (openRepo) {
     try {
-      await open(
-        "https://github.com/tambo-ai/tambo-cloud/blob/main/README.md#getting-started",
-      );
+      await open("./tambo-cloud/README.md#getting-started");
     } catch (_e) {
       // non-fatal
     }

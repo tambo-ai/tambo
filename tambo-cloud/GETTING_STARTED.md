@@ -12,8 +12,8 @@ A concise guide to set up the Tambo monorepo for local development or self-hosti
 
 ```bash
 # Clone
-https://github.com/tambo-ai/tambo-cloud.git
-cd tambo-cloud
+git clone https://github.com/tambo-ai/tambo.git
+cd tambo/tambo-cloud
 
 # Install
 npm install

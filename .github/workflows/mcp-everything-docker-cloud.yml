@@ -50,7 +50,7 @@ jobs:
             org.opencontainers.image.description=Docker image for the MCP Everything server with streamable HTTP transport
             org.opencontainers.image.vendor=Tambo AI
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo-cloud
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo
             org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Determine if we should push to GHCR

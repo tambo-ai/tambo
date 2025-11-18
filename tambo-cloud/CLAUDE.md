@@ -307,4 +307,4 @@ Common scopes: `api`, `web`, `core`, `db`, `deps`, `ci`, `config`
 
 - Docs site: https://docs.tambo.co
 - React SDK: https://github.com/tambo-ai/tambo
-- Issue tracker: https://github.com/tambo-ai/tambo-cloud/issues
+- Issue tracker: https://github.com/tambo-ai/tambo/issues

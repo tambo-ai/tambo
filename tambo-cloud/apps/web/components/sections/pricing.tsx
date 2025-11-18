@@ -94,7 +94,7 @@ const pricingData: PricingTier[] = [
       "ui component library",
       {
         text: "tambo-ai/tambo-cloud",
-        link: "https://github.com/tambo-ai/tambo-cloud",
+        link: "https://github.com/tambo-ai/tambo",
       },
     ],
     cta: "GitHub",

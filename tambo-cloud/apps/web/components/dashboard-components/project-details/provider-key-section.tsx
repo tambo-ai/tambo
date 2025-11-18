@@ -1404,7 +1404,7 @@ function ProviderKeySectionBase({
               <div className="border-t pt-2">
                 <div className="flex items-center justify-between text-xs">
                   <a
-                    href="https://github.com/tambo-ai/tambo-cloud/issues/new?template=feature_request.md&title=Add%20support%20for%20[Model%20Name]"
+                    href="https://github.com/tambo-ai/tambo/issues/new?template=feature_request.md&title=Add%20support%20for%20[Model%20Name]"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center text-foreground hover:text-primary transition-colors"

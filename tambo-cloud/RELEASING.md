@@ -27,10 +27,10 @@ Once the Tambo API client is updated, the React SDK can be updated.
 
 ### Tambo Cloud (this repository)
 
-When you update either or both of the Tambo client SDKs, you must also update the dependencies in the [tambo-cloud repository](https://github.com/tambo-ai/tambo-cloud) to ensure that the smoketests are using the latest versions of the Tambo client SDKs.
+When you update either or both of the Tambo client SDKs, you must also update the dependencies in this repository (in the `tambo-cloud/` directory) to ensure that the smoketests are using the latest versions of the Tambo client SDKs.
 
-1. **OPTIONAL:** After both `@tambo-ai/typescript-sdk` and `@tambo-ai/react` are published, update the dependencies in the [tambo-cloud repository](https://github.com/tambo-ai/tambo-cloud) either:
-   - Through Dependabot at https://github.com/tambo-ai/tambo-cloud/network/updates
+1. **OPTIONAL:** After both `@tambo-ai/typescript-sdk` and `@tambo-ai/react` are published, update the dependencies in this repository (in the `tambo-cloud/` directory) either:
+   - Through Dependabot at https://github.com/tambo-ai/tambo/network/updates
    - Or manually by running:
      ```bash
      npx npm-check-updates -u @tambo-ai/typescript-sdk @tambo-ai/react
@@ -38,7 +38,7 @@ When you update either or both of the Tambo client SDKs, you must also update th
 2. Create and merge a PR with the dependency updates.
 3. The release-please action will create a release PR to bump the version.
 4. Once approved and merged, release-please will trigger a deployment to Vercel. You can watch progress:
-   - Merge to `deploy`: https://github.com/tambo-ai/tambo-cloud/actions/workflows/release-please.yml
+   - Merge to `deploy`: https://github.com/tambo-ai/tambo/actions/workflows/release-please-cloud.yml
    - Release to Vercel: https://vercel.com/tambo-ai/tambo-landing/deployments
    - Release to Railway: https://railway.com/project/f6706075-78e8-4b8f-93ff-a07ef6da36d9/service/720e5a60-8fb2-4bca-ad76-38b983649287?environmentId=cb7ad6ef-d499-4792-8656-780891015359
 
@@ -82,7 +82,7 @@ In general, the process is as follows for any repo:
 
 **WARNING** Never edit or update the OpenAPI spec in the Stainless Studio `main` branch, and never merge a local OpenAPI spec into the Stainless Studio `main` branch. The `main` branch should only be updated via a release PR in the tambo-cloud repo.
 
-However, it is fine to update the `openapi.stainless.yaml` file in the Stainless Studio `main` branch, as long as it is using the latest version of the OpenAPI spec from the [`tambo-cloud` repository](https://github.com/tambo-ai/tambo-cloud).
+However, it is fine to update the `openapi.stainless.yaml` file in the Stainless Studio `main` branch, as long as it is using the latest version of the OpenAPI spec from this repository.
 
 ### Miscellaneous
 
