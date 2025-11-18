@@ -1,14 +1,15 @@
-import { renderHook, act } from "@testing-library/react";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type {
+  ClientNotification,
+  ClientRequest,
+  ElicitRequest,
+} from "@modelcontextprotocol/sdk/types.js";
+import { act, renderHook } from "@testing-library/react";
 import {
   useElicitation,
   type TamboElicitationRequest,
   type TamboElicitationResponse,
 } from "../elicitation";
-import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import type {
-  ClientNotification,
-  ClientRequest,
-} from "@modelcontextprotocol/sdk/types.js";
 
 // Create a mock RequestHandlerExtra for testing
 function createMockExtra(): RequestHandlerExtra<
@@ -50,9 +51,8 @@ describe("useElicitation", () => {
     it("sets elicitation state when called", async () => {
       const { result } = renderHook(() => useElicitation());
 
-      const request: Parameters<
-        typeof result.current.defaultElicitationHandler
-      >[0] = {
+      const request: ElicitRequest = {
+        method: "elicitation/create",
         params: {
           message: "Please provide your name",
           requestedSchema: {
@@ -98,9 +98,8 @@ describe("useElicitation", () => {
     it("resolves promise when resolveElicitation is called with accept", async () => {
       const { result } = renderHook(() => useElicitation());
 
-      const request: Parameters<
-        typeof result.current.defaultElicitationHandler
-      >[0] = {
+      const request: ElicitRequest = {
+        method: "elicitation/create",
         params: {
           message: "Enter your email",
           requestedSchema: {
@@ -145,9 +144,8 @@ describe("useElicitation", () => {
     it("resolves promise when resolveElicitation is called with decline", async () => {
       const { result } = renderHook(() => useElicitation());
 
-      const request: Parameters<
-        typeof result.current.defaultElicitationHandler
-      >[0] = {
+      const request: ElicitRequest = {
+        method: "elicitation/create",
         params: {
           message: "Provide input",
           requestedSchema: {
@@ -184,9 +182,8 @@ describe("useElicitation", () => {
     it("resolves promise when resolveElicitation is called with cancel", async () => {
       const { result } = renderHook(() => useElicitation());
 
-      const request: Parameters<
-        typeof result.current.defaultElicitationHandler
-      >[0] = {
+      const request: ElicitRequest = {
+        method: "elicitation/create",
         params: {
           message: "Provide input",
           requestedSchema: {
@@ -224,9 +221,8 @@ describe("useElicitation", () => {
       const { result } = renderHook(() => useElicitation());
 
       // First elicitation
-      const request1: Parameters<
-        typeof result.current.defaultElicitationHandler
-      >[0] = {
+      const request1: ElicitRequest = {
+        method: "elicitation/create",
         params: {
           message: "First request",
           requestedSchema: {
@@ -260,16 +256,13 @@ describe("useElicitation", () => {
       });
 
       // Second elicitation
-      const request2: Parameters<
-        typeof result.current.defaultElicitationHandler
-      >[0] = {
+      const request2: ElicitRequest = {
+        method: "elicitation/create",
         params: {
           message: "Second request",
           requestedSchema: {
             type: "object",
-            properties: {
-              field2: { type: "number" },
-            },
+            properties: { field2: { type: "number" } },
           },
         },
       };
