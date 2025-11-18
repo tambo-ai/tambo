@@ -38,7 +38,6 @@
   /* Typography */
   font-family: Inter, sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
-
 }
 
 .dark {
@@ -120,7 +119,7 @@
 /* ===== SITE-SPECIFIC ANIMATIONS ===== */
 @keyframes icon-pulse {
   0% {
-  box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent);
   }
   70% {
     box-shadow: 0 0 0 10px transparent;
