@@ -1,4 +1,6 @@
 name: Migrate Database
+permissions:
+  contents: read
 
 on:
   workflow_run:
