@@ -49,6 +49,8 @@ export interface MessageThreadCollapsibleProps
   variant?: VariantProps<typeof messageVariants>["variant"];
   /** Optional override for height of the thread content. If not provided, defaults to 80vh. Supports any CSS height value (e.g., "700px", "80vh", "90%"). */
   height?: string;
+  /** @deprecated Use height instead. This prop will be removed in a future version. */
+  maxHeight?: string;
 }
 
 /**
@@ -201,11 +203,22 @@ export const MessageThreadCollapsible = React.forwardRef<
   MessageThreadCollapsibleProps
 >(
   (
-    { className, contextKey, defaultOpen = false, variant, height, ...props },
+    {
+      className,
+      contextKey,
+      defaultOpen = false,
+      variant,
+      height,
+      maxHeight,
+      ...props
+    },
     ref,
   ) => {
     const { isOpen, setIsOpen, shortcutText } =
       useCollapsibleState(defaultOpen);
+
+    // Backward compatibility: prefer height, fall back to maxHeight
+    const effectiveHeight = height ?? maxHeight;
 
     const handleThreadChange = React.useCallback(() => {
       setIsOpen(true);
@@ -260,8 +273,8 @@ export const MessageThreadCollapsible = React.forwardRef<
         />
         <Collapsible.Content>
           <div
-            className={cn("flex flex-col", height ? "" : "h-[80vh]")}
-            style={height ? { height } : undefined}
+            className={cn("flex flex-col", effectiveHeight ? "" : "h-[80vh]")}
+            style={effectiveHeight ? { height: effectiveHeight } : undefined}
           >
             {/* Message thread content */}
             <ScrollableMessageContainer className="p-4">
