@@ -325,6 +325,7 @@ function validateField(
     const stringValue = String(value);
 
     if (
+      "minLength" in stringSchema &&
       stringSchema.minLength !== undefined &&
       stringValue.length < stringSchema.minLength
     ) {
@@ -335,6 +336,7 @@ function validateField(
     }
 
     if (
+      "maxLength" in stringSchema &&
       stringSchema.maxLength !== undefined &&
       stringValue.length > stringSchema.maxLength
     ) {
@@ -344,9 +346,9 @@ function validateField(
       };
     }
 
-    if (stringSchema.pattern) {
+    if ("pattern" in stringSchema && stringSchema.pattern) {
       try {
-        const regex = new RegExp(stringSchema.pattern);
+        const regex = new RegExp(stringSchema.pattern as string);
         if (!regex.test(stringValue)) {
           return {
             valid: false,
@@ -359,7 +361,7 @@ function validateField(
     }
 
     // Format validation
-    if (stringSchema.format) {
+    if ("format" in stringSchema && stringSchema.format) {
       switch (stringSchema.format) {
         case "email":
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stringValue)) {
