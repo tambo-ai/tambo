@@ -8,36 +8,8 @@ import {
 import * as React from "react";
 import { useMemo, useState } from "react";
 
-/**
- * JSON Schema types for elicitation fields
- */
-interface BaseFieldSchema {
-  type: "string" | "number" | "integer" | "boolean";
-  description?: string;
-  default?: unknown;
-}
-
-interface StringFieldSchema extends BaseFieldSchema {
-  type: "string";
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  format?: "email" | "uri" | "date" | "date-time";
-  enum?: string[];
-  enumNames?: string[];
-}
-
-interface NumberFieldSchema extends BaseFieldSchema {
-  type: "number" | "integer";
-  minimum?: number;
-  maximum?: number;
-}
-
-interface BooleanFieldSchema extends BaseFieldSchema {
-  type: "boolean";
-}
-
-type FieldSchema = StringFieldSchema | NumberFieldSchema | BooleanFieldSchema;
+type FieldSchema =
+  TamboElicitationRequest["requestedSchema"]["properties"][string];
 
 /**
  * Props for individual field components
@@ -113,9 +85,12 @@ const EnumField: React.FC<FieldProps> = ({
   required,
   autoFocus,
 }) => {
-  const stringSchema = schema as StringFieldSchema;
-  const options = stringSchema.enum ?? [];
-  const optionNames = stringSchema.enumNames ?? options;
+  if (schema.type !== "string" || !("enum" in schema)) {
+    return null;
+  }
+  const options = schema.enum ?? [];
+  const optionNames =
+    "enumNames" in schema ? (schema.enumNames ?? []) : options;
   const stringValue = value as string | undefined;
 
   return (
@@ -158,12 +133,15 @@ const StringField: React.FC<FieldProps> = ({
   autoFocus,
   validationError,
 }) => {
-  const stringSchema = schema as StringFieldSchema;
+  if (schema.type !== "string") {
+    return null;
+  }
   const stringValue = (value as string | undefined) ?? "";
 
   // Map JSON Schema format to HTML5 input type
   const getInputType = (): string => {
-    switch (stringSchema.format) {
+    const format = "format" in schema ? schema.format : undefined;
+    switch (format) {
       case "email":
         return "email";
       case "uri":
@@ -201,8 +179,8 @@ const StringField: React.FC<FieldProps> = ({
             : "border-border focus:ring-primary",
         )}
         placeholder={schema.description ?? name}
-        minLength={stringSchema.minLength}
-        maxLength={stringSchema.maxLength}
+        minLength={"minLength" in schema ? schema.minLength : undefined}
+        maxLength={"maxLength" in schema ? schema.maxLength : undefined}
         required={required}
         aria-invalid={hasError || undefined}
         aria-describedby={hasError ? errorId : undefined}
@@ -228,7 +206,10 @@ const NumberField: React.FC<FieldProps> = ({
   autoFocus,
   validationError,
 }) => {
-  const numberSchema = schema as NumberFieldSchema;
+  if (schema.type !== "number" && schema.type !== "integer") {
+    return null;
+  }
+  const numberSchema = schema;
   const numberValue = value as number | undefined;
   const hasError = !!validationError;
   const inputId = React.useId();
@@ -286,7 +267,7 @@ const Field: React.FC<FieldProps> = (props) => {
     return <BooleanField {...props} />;
   }
 
-  if (schema.type === "string" && (schema as StringFieldSchema).enum) {
+  if (schema.type === "string" && "enum" in schema) {
     return <EnumField {...props} />;
   }
 
@@ -315,8 +296,7 @@ function isSingleEntryMode(request: TamboElicitationRequest): boolean {
   const [, schema] = fields[0];
 
   return (
-    schema.type === "boolean" ||
-    (schema.type === "string" && !!(schema as StringFieldSchema).enum)
+    schema.type === "boolean" || (schema.type === "string" && "enum" in schema)
   );
 }
 
@@ -341,7 +321,7 @@ function validateField(
 
   // String validation
   if (schema.type === "string") {
-    const stringSchema = schema as StringFieldSchema;
+    const stringSchema = schema;
     const stringValue = String(value);
 
     if (
@@ -402,7 +382,7 @@ function validateField(
 
   // Number validation
   if (schema.type === "number" || schema.type === "integer") {
-    const numberSchema = schema as NumberFieldSchema;
+    const numberSchema = schema;
     const numberValue = Number(value);
 
     if (Number.isNaN(numberValue)) {
