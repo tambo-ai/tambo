@@ -1,6 +1,9 @@
 "use client";
 
-import { DateTimeRangePicker, dateTimeRangePickerSchema } from "@/components/ui/datetime-range-picker";
+import {
+  DateTimeRangePicker,
+  dateTimeRangePickerSchema,
+} from "@/components/ui/datetime-range-picker";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";

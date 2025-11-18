@@ -1,11 +1,7 @@
 {
   "name": "date-time-range-picker",
   "description": "Range picker with linked calendars, presets, and robust min/max/length validation.",
-  "dependencies": [
-    "react",
-    "zod",
-    "class-variance-authority"
-  ],
+  "dependencies": ["react", "zod", "class-variance-authority"],
   "registryDependencies": [],
   "files": [
     {

@@ -38,21 +38,17 @@ export const dateTimeRangePickerPropsSchema = z.object({
     .optional()
     .default("UTC")
     .describe("Timezone for date interpretation"),
-  presets: z
-    .array(presetSchema)
-    .optional()
-    .describe("Quick selection presets"),
+  presets: z.array(presetSchema).optional().describe("Quick selection presets"),
   minDate: z.string().optional().describe("Minimum selectable date (ISO)"),
   maxDate: z.string().optional().describe("Maximum selectable date (ISO)"),
-  maxRangeDays: z
-    .number()
-    .optional()
-    .describe("Maximum range length in days"),
+  maxRangeDays: z.number().optional().describe("Maximum range length in days"),
   className: z.string().optional().describe("Additional CSS classes"),
   disabled: z.boolean().optional().describe("Whether picker is disabled"),
 });
 
-export type DateTimeRangePickerProps = z.infer<typeof dateTimeRangePickerPropsSchema>;
+export type DateTimeRangePickerProps = z.infer<
+  typeof dateTimeRangePickerPropsSchema
+>;
 export type Preset = z.infer<typeof presetSchema>;
 
 /**
@@ -190,7 +186,10 @@ function announceToScreenReader(message: string) {
 /**
  * DateTimeRangePicker Component
  */
-export const DateTimeRangePicker = React.forwardRef<HTMLDivElement, DateTimeRangePickerProps>(
+export const DateTimeRangePicker = React.forwardRef<
+  HTMLDivElement,
+  DateTimeRangePickerProps
+>(
   (
     {
       start,
@@ -213,7 +212,9 @@ export const DateTimeRangePicker = React.forwardRef<HTMLDivElement, DateTimeRang
     const [internalEnd, setInternalEnd] = React.useState<string | null>(
       end || null,
     );
-    const [validationError, setValidationError] = React.useState<string | undefined>();
+    const [validationError, setValidationError] = React.useState<
+      string | undefined
+    >();
     const [isOpen, setIsOpen] = React.useState(false);
 
     // Validate whenever dates change

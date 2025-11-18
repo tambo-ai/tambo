@@ -20,7 +20,6 @@ export default function DateTimeRangePickerPage() {
   return (
     <div className="container mx-auto pt-6 px-6 max-w-4xl">
       <div className="flex flex-col gap-8">
-
         <div>
           <h1 className="text-3xl font-bold mb-4">Date Time Range</h1>
           <p className="text-lg text-muted-foreground">
