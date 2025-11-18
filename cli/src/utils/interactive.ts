@@ -51,7 +51,11 @@ Use command-line flags to skip prompts. Common options:
 Run ${chalk.cyan("tambo --help")} or ${chalk.cyan("tambo <command> --help")} for more options.
 `;
 
-    throw new NonInteractiveError(helpMessage ?? defaultHelp);
+    const fullMessage = helpMessage
+      ? `${helpMessage}\n${defaultHelp}`
+      : defaultHelp;
+
+    throw new NonInteractiveError(fullMessage);
   }
 
   const result = await inquirer.prompt(questions);
