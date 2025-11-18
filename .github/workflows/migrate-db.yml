@@ -1,0 +1,35 @@
+name: Migrate Database
+
+on:
+  workflow_run:
+    workflows: ["Build (Cloud)"]
+    branches: [main]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  deploy-migrations:
+    name: Deploy Database Migrations
+    # Skip if the actor is dependabot
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: tambo-cloud
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run db:migrate
+        working-directory: tambo-cloud/packages/db

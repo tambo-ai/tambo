@@ -1,4 +1,4 @@
-name: Release Please
+name: Release Please (Cloud)
 
 on:
   push:
@@ -22,8 +22,8 @@ jobs:
           # get other actions run on its behalf
           # https://github.com/googleapis/release-please/issues/922#issuecomment-861154425
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          config-file: tambo-cloud/release-please-config.json
+          manifest-file: tambo-cloud/.release-please-manifest.json
 
       # The following steps run only if a release was created
       - uses: actions/checkout@v4

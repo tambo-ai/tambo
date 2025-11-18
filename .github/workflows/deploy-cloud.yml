@@ -1,8 +1,8 @@
-name: Deploy Database Migrations
+name: Deploy Database Migrations (Cloud)
 
 on:
   workflow_run:
-    workflows: ["Build"]
+    workflows: ["Build (Cloud)"]
     branches: [main]
     types:
       - completed
@@ -26,9 +26,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: tambo-cloud
 
       - name: Run database migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:migrate
-        working-directory: packages/db
+        working-directory: tambo-cloud/packages/db

@@ -1,18 +1,18 @@
-name: Build and Push MCP Everything Docker Image
+name: Build and Push MCP Everything Docker Image (Cloud)
 
 on:
   push:
     branches:
       - main
     paths:
-      - "apps/mcp-everything/**"
-      - ".github/workflows/mcp-everything-docker.yml"
+      - "tambo-cloud/apps/mcp-everything/**"
+      - ".github/workflows/mcp-everything-docker-cloud.yml"
   pull_request:
     branches:
       - main
     paths:
-      - "apps/mcp-everything/**"
-      - ".github/workflows/mcp-everything-docker.yml"
+      - "tambo-cloud/apps/mcp-everything/**"
+      - ".github/workflows/mcp-everything-docker-cloud.yml"
   workflow_dispatch:
 
 concurrency:
@@ -76,8 +76,8 @@ jobs:
       - name: Build and push mcp-everything image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./apps/mcp-everything/Dockerfile
+          context: tambo-cloud
+          file: ./tambo-cloud/apps/mcp-everything/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
