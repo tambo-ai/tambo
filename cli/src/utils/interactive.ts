@@ -9,7 +9,18 @@ export function isInteractive({
   stream = process.stdout,
 }: { stream?: NodeJS.WriteStream } = {}): boolean {
   const term = process.env.TERM;
-  const isCI = "CI" in process.env;
+  const isCI = Boolean(
+    (typeof process.env.CI === "string" &&
+      process.env.CI.trim() !== "" &&
+      process.env.CI !== "0") ||
+      process.env.GITHUB_ACTIONS === "true",
+  );
+  const forceInteractive = process.env.FORCE_INTERACTIVE === "1";
+
+  if (forceInteractive) {
+    return Boolean(stream && stream.isTTY && term !== "dumb");
+  }
+
   return Boolean(stream && stream.isTTY && term !== "dumb" && !isCI);
 }
 
