@@ -497,6 +497,7 @@ describe("strictifyJSONSchemaProperties", () => {
             contentMediaType: "image/png",
           },
         },
+        propertyNames: { pattern: "^[a-z]+$" },
         default: { created: "2023-01-01T00:00:00Z" },
       },
     };
@@ -566,6 +567,7 @@ describe("strictifyJSONSchemaProperties", () => {
       "multipleOf",
       "minItems",
       "maxItems",
+      "propertyNames",
     ];
 
     for (const prop of validationProps) {

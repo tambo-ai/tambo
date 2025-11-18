@@ -86,6 +86,7 @@ function stripValidationProps(
     maximum: _maximum,
     pattern: _pattern,
     multipleOf: _multipleOf,
+    propertyNames: _propertyNames,
     $schema: _schema,
     ...restOfProperty
   } = source;
