@@ -94,7 +94,7 @@ jobs:
       - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
-          context: tambo-cloud
+          context: .
           file: ./tambo-cloud/apps/web/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
@@ -125,7 +125,7 @@ jobs:
       - name: Build and push api image
         uses: docker/build-push-action@v6
         with:
-          context: tambo-cloud
+          context: .
           file: ./tambo-cloud/apps/api/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}

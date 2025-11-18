@@ -14,16 +14,19 @@ RUN adduser --system --uid 1001 nodejs
 RUN chown nodejs:nodejs /app
 USER nodejs
 
-# Copy everything
-COPY --chown=nodejs:nodejs . .
+# Copy root files needed for turbo
+COPY --chown=nodejs:nodejs package.json package-lock.json turbo.json ./
 
-# Install all dependencies
+# Copy tambo-cloud directory
+COPY --chown=nodejs:nodejs tambo-cloud/ ./tambo-cloud/
+
+# Install all dependencies from root
 RUN npm ci
 
 # Set Node.js options for build
 ENV NODE_OPTIONS="--experimental-require-module"
 
-# Build the application
+# Build the application from root (where turbo.json is)
 RUN npx turbo build --filter=hydra-api
 
 # Set production environment
@@ -33,4 +36,4 @@ EXPOSE 3000
 
 ENV PORT=3000
 
-CMD ["node", "apps/api/dist/apps/api/src/main"]
+CMD ["node", "tambo-cloud/apps/api/dist/apps/api/src/main"]

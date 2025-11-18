@@ -17,13 +17,16 @@ RUN chown nodejs:nodejs /app
 # Set permissions
 USER nodejs
 
-# Copy everything
-COPY --chown=nodejs:nodejs . .
+# Copy root files needed for turbo
+COPY --chown=nodejs:nodejs package.json package-lock.json turbo.json ./
 
-# Install all dependencies
+# Copy tambo-cloud directory
+COPY --chown=nodejs:nodejs tambo-cloud/ ./tambo-cloud/
+
+# Install all dependencies from root
 RUN npm ci
 
-# Build the application
+# Build the application from root (where turbo.json is)
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN SKIP_ENV_VALIDATION=true npx turbo build --filter=tambo-ai-landing-page
 
@@ -36,5 +39,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-WORKDIR /app/apps/web
+WORKDIR /app/tambo-cloud/apps/web
 CMD ["npx", "next", "start"]
