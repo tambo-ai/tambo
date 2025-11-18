@@ -7,6 +7,7 @@ import meow, { type Flag, type Result } from "meow";
 import { dirname, join } from "path";
 import semver from "semver";
 import { fileURLToPath } from "url";
+import { NonInteractiveError } from "./utils/interactive.js";
 import { handleAddComponents } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
 import { handleCreateApp } from "./commands/create-app.js";
@@ -567,10 +568,15 @@ async function main() {
 
     await handleCommand(command, flags);
   } catch (error) {
-    console.error(
-      chalk.red("Error executing command:"),
-      error instanceof Error ? error.message : String(error),
-    );
+    // NonInteractiveError already has a well-formatted message, don't add prefix
+    if (error instanceof NonInteractiveError) {
+      console.error(error.message);
+    } else {
+      console.error(
+        chalk.red("Error executing command:"),
+        error instanceof Error ? error.message : String(error),
+      );
+    }
     process.exit(1);
   }
 }

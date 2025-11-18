@@ -1,6 +1,9 @@
 import chalk from "chalk";
 import ora from "ora";
-import { interactivePrompt } from "../utils/interactive.js";
+import {
+  interactivePrompt,
+  NonInteractiveError,
+} from "../utils/interactive.js";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -364,9 +367,18 @@ export async function handleUpdateComponents(
       }
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
     if (!options.silent) {
-      console.error(chalk.red(`Failed to update components: ${errorMessage}`));
+      // NonInteractiveError has its own formatted message
+      if (error instanceof NonInteractiveError) {
+        console.error(error.message);
+        process.exit(1); // Exit directly, don't re-throw
+      } else {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error(
+          chalk.red(`Failed to update components: ${errorMessage}`),
+        );
+      }
     }
     throw error;
   }

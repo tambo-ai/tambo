@@ -4,7 +4,10 @@ import fs from "fs";
 import open from "open";
 import ora from "ora";
 import path from "path";
-import { interactivePrompt } from "../utils/interactive.js";
+import {
+  interactivePrompt,
+  NonInteractiveError,
+} from "../utils/interactive.js";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
@@ -665,7 +668,12 @@ export async function handleInit({
         " to discover all available components\n",
     );
   } catch (error) {
-    console.error(chalk.red("Initialization failed: " + error));
+    // NonInteractiveError has its own formatted message
+    if (error instanceof NonInteractiveError) {
+      console.error(error.message);
+    } else {
+      console.error(chalk.red("Initialization failed: " + error));
+    }
     process.exit(1);
   }
 }
