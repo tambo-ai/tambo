@@ -326,7 +326,9 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   });
   if (openRepo) {
     try {
-      await open("./tambo-cloud/README.md#getting-started");
+      await open(
+        "https://github.com/tambo-ai/tambo/blob/main/tambo-cloud/README.md#getting-started",
+      );
     } catch (_e) {
       // non-fatal
     }
