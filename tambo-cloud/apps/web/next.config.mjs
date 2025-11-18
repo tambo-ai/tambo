@@ -131,6 +131,9 @@ const config = {
       },
     ],
   },
+  experimental: {
+    webpackMemoryOptimizations: true,
+  },
   // Configure webpack to use SVGR for SVG imports
   webpack(config) {
     // Modify the rules for SVG files

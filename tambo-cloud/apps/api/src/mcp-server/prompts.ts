@@ -1,16 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import { MCPClient } from "@tambo-ai-cloud/core";
-import Ajv from "ajv";
 import { z } from "zod";
-
-const ajv = new Ajv();
-
-/** This is just a wrapper around ajv to convert a JSON schema to a Zod type. */
-function zodFromJsonSchema(jsonSchema: object): z.ZodTypeAny {
-  const validateFn = ajv.compile(jsonSchema);
-  return z.custom((data) => validateFn(data));
-}
 
 export async function registerPromptHandlers(
   server: McpServer,
@@ -32,9 +23,7 @@ export async function registerPromptHandlers(
         for (const prompt of promptResponse.prompts) {
           const argsSchema = Object.fromEntries(
             prompt.arguments?.map((arg) => {
-              const argZod = zodFromJsonSchema({
-                type: arg.type ?? "string",
-              });
+              const argZod = z.string();
               const requiredArgZod = arg.required ? argZod : argZod.optional();
               return [arg.name, requiredArgZod] as const;
             }) ?? [],
