@@ -21,7 +21,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@ag-ui/client": "^0.0.40",
+    "@ag-ui/client": "0.0.40",
     "@ag-ui/core": "^0.0.39",
     "@ag-ui/crewai": "^0.0.3",
     "@ag-ui/llamaindex": "^0.1.5",

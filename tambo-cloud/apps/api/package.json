@@ -23,6 +23,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ag-ui/client": "0.0.40",
     "@ag-ui/crewai": "^0.0.3",
     "@ag-ui/llamaindex": "^0.1.5",
     "@langfuse/otel": "^4.2.1",
