@@ -13,8 +13,9 @@ export const dateTimeRangePickerSchema = z.object({
     .describe("Optional quick preset like 'today', 'last_7_days', etc."),
 });
 
-export type DateTimeRangePickerProps = z.infer<typeof dateTimeRangePickerSchema>;
-
+export type DateTimeRangePickerProps = z.infer<
+  typeof dateTimeRangePickerSchema
+>;
 
 export const DateTimeRangePicker = ({
   start,
