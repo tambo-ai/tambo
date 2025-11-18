@@ -411,6 +411,84 @@ function syncAllComponents(): void {
   console.log("\n✨ Sync completed successfully!");
 }
 
+function isWithinDirectory(parentDir: string, targetPath: string): boolean {
+  const relative = path.relative(parentDir, targetPath);
+  return !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+function removeSyncedFileForSource(
+  componentName: string,
+  sourceFilePath: string,
+): void {
+  const config = readComponentConfig(componentName);
+
+  if (!config) {
+    console.log(
+      `⚠️  No config found for ${componentName} when handling deletion of ${path.relative(
+        CLI_REGISTRY_PATH,
+        sourceFilePath,
+      )}`,
+    );
+    return;
+  }
+
+  const normalizedSourcePath = path.resolve(sourceFilePath);
+  const targetsToDelete = new Set<string>();
+
+  config.files.forEach((fileConfig) => {
+    const targetRelativePath = normalizeTargetRelativePath(fileConfig);
+    if (!targetRelativePath) {
+      return;
+    }
+
+    const candidateSourcePaths: string[] = [];
+
+    if (fileConfig.path) {
+      candidateSourcePaths.push(
+        path.join(
+          CLI_REGISTRY_PATH,
+          componentName,
+          path.basename(fileConfig.path),
+        ),
+        path.join(MONOREPO_ROOT, "cli/src", fileConfig.path),
+      );
+    } else if (fileConfig.content) {
+      candidateSourcePaths.push(
+        path.join(MONOREPO_ROOT, "cli", fileConfig.content),
+      );
+    }
+
+    const hasMatch = candidateSourcePaths.some(
+      (candidate) => path.resolve(candidate) === normalizedSourcePath,
+    );
+
+    if (!hasMatch) {
+      return;
+    }
+
+    const targetPath = resolveTargetPath(targetRelativePath);
+
+    if (
+      isWithinDirectory(SHOWCASE_COMPONENTS_PATH, targetPath) ||
+      isWithinDirectory(SHOWCASE_LIB_PATH, targetPath)
+    ) {
+      targetsToDelete.add(targetPath);
+    }
+  });
+
+  targetsToDelete.forEach((targetPath) => {
+    if (fs.existsSync(targetPath)) {
+      fs.rmSync(targetPath, { force: true });
+      console.log(
+        `➖ Removed synced file for ${componentName}: ${path.relative(
+          SHOWCASE_SRC_PATH,
+          targetPath,
+        )}`,
+      );
+    }
+  });
+}
+
 /**
  * Watch mode implementation
  */
@@ -500,6 +578,55 @@ function startWatchMode(): void {
       if (result.missingDeps.length > 0) {
         console.log(`⚠️  Missing deps: ${result.missingDeps.join(", ")}`);
       }
+    }
+  });
+
+  watcher.on("unlink", (filePath) => {
+    console.log(
+      `\n➖ File removed: ${path.relative(CLI_REGISTRY_PATH, filePath)}`,
+    );
+
+    if (filePath === CLI_REGISTRY_CSS) {
+      console.log(
+        "⚠️  Registry CSS removed; existing synced components.css will not be updated until the file is restored.",
+      );
+      return;
+    }
+
+    const relativePath = path.relative(CLI_REGISTRY_PATH, filePath);
+    const componentName = relativePath.split(path.sep)[0];
+
+    if (!componentName || componentName === "config") {
+      return;
+    }
+
+    removeSyncedFileForSource(componentName, filePath);
+  });
+
+  watcher.on("unlinkDir", (dirPath) => {
+    const relativePath = path.relative(CLI_REGISTRY_PATH, dirPath);
+    const componentName = relativePath.split(path.sep)[0];
+
+    if (!componentName || componentName === "config") {
+      return;
+    }
+
+    const componentTargetDir = path.join(
+      SHOWCASE_COMPONENTS_PATH,
+      componentName,
+    );
+
+    if (
+      fs.existsSync(componentTargetDir) &&
+      isWithinDirectory(SHOWCASE_COMPONENTS_PATH, componentTargetDir)
+    ) {
+      fs.rmSync(componentTargetDir, { recursive: true, force: true });
+      console.log(
+        `➖ Removed synced directory for ${componentName}: ${path.relative(
+          SHOWCASE_SRC_PATH,
+          componentTargetDir,
+        )}`,
+      );
     }
   });
 
