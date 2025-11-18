@@ -5,6 +5,7 @@
     "build": "next build",
     "check-types": "tsc --noEmit",
     "dev": "next dev --turbo",
+    "lint": "eslint .",
     "start": "next start",
     "postinstall": "fumadocs-mdx",
     "postbuild": "next-sitemap"

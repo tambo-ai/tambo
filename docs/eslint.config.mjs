@@ -1,15 +1,14 @@
 import config from "@tambo-ai/eslint-config/base";
 import nextJsConfig from "@tambo-ai/eslint-config/next-js";
+import { defineConfig } from "eslint/config";
 import globals from "globals";
-import tseslint from "typescript-eslint";
 
-export default tseslint.config(
-  config,
-  ...nextJsConfig,
+export default defineConfig([
   {
+    ignores: [".next/**", ".source/**"],
+    extends: [config, nextJsConfig],
     languageOptions: {
       parserOptions: {
-        project: "./tsconfig.json",
         ecmaVersion: "latest",
         sourceType: "module",
         tsconfigRootDir: import.meta.dirname,
@@ -22,6 +21,10 @@ export default tseslint.config(
   },
   {
     files: ["next-sitemap.config.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "no-empty": "off",
+    },
     languageOptions: {
       globals: globals.node,
     },
@@ -32,4 +35,4 @@ export default tseslint.config(
       "@typescript-eslint/triple-slash-reference": "off",
     },
   },
-);
+]);

@@ -3,6 +3,7 @@ import pluginNext from "@next/eslint-plugin-next";
 import eslintConfigPrettier from "eslint-config-prettier";
 import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
+import { defineConfig } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import baseConfig from "./base.mjs";
@@ -10,7 +11,7 @@ import baseConfig from "./base.mjs";
 /**
  * A custom ESLint configuration for libraries that use Next.js.
  * */
-export default tseslint.config(
+export default defineConfig([
   ...baseConfig,
   {
     ignores: [".next/**"],
@@ -57,4 +58,4 @@ export default tseslint.config(
       ],
     },
   },
-);
+]);
