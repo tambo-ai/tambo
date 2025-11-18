@@ -1,19 +1,19 @@
 "use client";
 
-import { type McpServerInfo, MCPTransport } from "@tambo-ai/react/mcp";
-import { ChevronDown, X, Trash2 } from "lucide-react";
-import React from "react";
-import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
+import { createMarkdownComponents } from "@/components/ui/markdown-components";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
-import { createMarkdownComponents } from "@/components/ui/markdown-components";
+import { type McpServerInfo, MCPTransport } from "@tambo-ai/react";
+import { motion } from "framer-motion";
+import { ChevronDown, Trash2, X } from "lucide-react";
+import React from "react";
+import { createPortal } from "react-dom";
 import { Streamdown } from "streamdown";
-import { cn } from "@/lib/utils";
 
 /**
  * Modal component for configuring client-side MCP (Model Context Protocol) servers.
@@ -145,7 +145,7 @@ After configuring your MCP servers below, integrate them into your application.
 #### 1. Import the required components
 
 \`\`\`tsx
-import { useMcpServers } from "@/components/ui/mcp-config-modal";
+import { useMcpServers } from "@/components/tambo/mcp-config-modal";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 \`\`\`
 

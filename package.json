@@ -5,6 +5,7 @@
   "scripts": {
     "build": "turbo build",
     "check-types": "turbo check-types",
+    "clean": "turbo clean",
     "format": "prettier --write \"**/*.{ts,tsx,md,yml}\"",
     "lint:fix": "turbo lint -- --fix",
     "lint": "turbo lint",
