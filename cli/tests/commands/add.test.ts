@@ -32,29 +32,27 @@ jest.unstable_mockModule("child_process", () => ({
 
 // Mock inquirer for user prompts
 let inquirerResponses: Record<string, unknown> = {};
-jest.unstable_mockModule("inquirer", () => {
-  const mockPrompt = async (
-    question:
-      | { name: string; default?: unknown }
-      | { name: string; default?: unknown }[],
-  ) => {
-    const questions = Array.isArray(question) ? question : [question];
-    const responses: Record<string, unknown> = {};
-    for (const q of questions) {
-      responses[q.name] =
-        inquirerResponses[q.name] !== undefined
-          ? inquirerResponses[q.name]
-          : q.default;
-    }
-    return responses;
-  };
+const mockPrompt = async (
+  question:
+    | { name: string; default?: unknown }
+    | { name: string; default?: unknown }[],
+) => {
+  const questions = Array.isArray(question) ? question : [question];
+  const responses: Record<string, unknown> = {};
+  for (const q of questions) {
+    responses[q.name] =
+      inquirerResponses[q.name] !== undefined
+        ? inquirerResponses[q.name]
+        : q.default;
+  }
+  return responses;
+};
 
-  return {
-    default: {
-      prompt: mockPrompt,
-    },
-  };
-});
+jest.unstable_mockModule("inquirer", () => ({
+  default: {
+    prompt: mockPrompt,
+  },
+}));
 
 // Mock init.js to provide getInstallationPath
 jest.unstable_mockModule("../../src/commands/init.js", () => ({
@@ -100,6 +98,18 @@ jest.unstable_mockModule("../../src/commands/add/utils.js", () => ({
   checkLegacyComponents: () => null,
   getInstalledComponents: async () => [],
   getComponentList: () => [],
+}));
+
+// Mock the interactive module to make tests think they're in an interactive environment
+jest.unstable_mockModule("../../src/utils/interactive.js", () => ({
+  isInteractive: () => true, // Always return true in tests
+  interactivePrompt: mockPrompt, // Use the same mockPrompt as inquirer
+  NonInteractiveError: class NonInteractiveError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "NonInteractiveError";
+    }
+  },
 }));
 
 // Import after mocking

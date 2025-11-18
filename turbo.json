@@ -2,10 +2,11 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
   "globalEnv": [
-    "ALLOWED_LOGIN_DOMAIN",
     "ALLOW_LOCAL_MCP_SERVERS",
+    "ALLOWED_LOGIN_DOMAIN",
     "API_KEY_SECRET",
     "CALENDAR_URL",
+    "CI",
     "DATABASE_URL",
     "DISALLOWED_EMAIL_DOMAINS",
     "EMAIL_FROM_DEFAULT",
@@ -16,6 +17,7 @@
     "FALLBACK_OPENAI_API_KEY",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
+    "GITHUB_TOKEN",
     "GITHUB_TOKEN",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
@@ -39,6 +41,7 @@
     "NEXTAUTH_SECRET",
     "NEXTAUTH_URL",
     "NODE_ENV",
+    "NODE_ENV",
     "OPENAI_API_KEY",
     "OPENAPI_SPEC_FILE",
     "PORT",
@@ -54,9 +57,10 @@
     "TAMBO_SERVER_URL",
     "TAMBO_WHITELABEL_ORG_LOGO",
     "TAMBO_WHITELABEL_ORG_NAME",
+    "TERM",
     "VERCEL_URL",
-    "WEBHOOK_SECRET",
-    "WEATHER_API_KEY"
+    "WEATHER_API_KEY",
+    "WEBHOOK_SECRET"
   ],
   "tasks": {
     "build": {

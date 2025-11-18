@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
-import inquirer from "inquirer";
 import path from "path";
+import { interactivePrompt } from "../../utils/interactive.js";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -119,12 +119,19 @@ export async function handleAddComponents(
         );
 
         if (!options.yes) {
-          const { continueAnyway } = await inquirer.prompt({
-            type: "confirm",
-            name: "continueAnyway",
-            message: "Continue installation anyway?",
-            default: false,
-          });
+          const { continueAnyway } = await interactivePrompt<{
+            continueAnyway: boolean;
+          }>(
+            {
+              type: "confirm",
+              name: "continueAnyway",
+              message: "Continue installation anyway?",
+              default: false,
+            },
+            chalk.yellow(
+              "Use --yes flag to auto-continue when components are in mixed locations.",
+            ),
+          );
 
           if (!continueAnyway) {
             console.log(chalk.gray("Installation cancelled."));
@@ -194,12 +201,15 @@ export async function handleAddComponents(
       }
 
       if (!options.yes) {
-        const { proceed } = await inquirer.prompt({
-          type: "confirm",
-          name: "proceed",
-          message: "Do you want to proceed with installation?",
-          default: true,
-        });
+        const { proceed } = await interactivePrompt<{ proceed: boolean }>(
+          {
+            type: "confirm",
+            name: "proceed",
+            message: "Do you want to proceed with installation?",
+            default: true,
+          },
+          chalk.yellow("Use --yes flag to auto-proceed with installation."),
+        );
 
         if (!proceed) {
           console.log(chalk.yellow("Installation cancelled"));

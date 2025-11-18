@@ -1,6 +1,6 @@
 import chalk from "chalk";
-import inquirer from "inquirer";
 import ora from "ora";
+import { interactivePrompt } from "../utils/interactive.js";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -261,14 +261,19 @@ export async function handleUpdateComponents(
       finalComponents.forEach((comp) => console.log(`  - ${comp.name}`));
 
       if (!options.yes) {
-        const { confirm } = await inquirer.prompt({
-          type: "confirm",
-          name: "confirm",
-          message: chalk.yellow(
-            `⚠️  Warning: This will override your existing components with versions from the registry. Are you sure you want to continue?`,
+        const { confirm } = await interactivePrompt<{ confirm: boolean }>(
+          {
+            type: "confirm",
+            name: "confirm",
+            message: chalk.yellow(
+              `⚠️  Warning: This will override your existing components with versions from the registry. Are you sure you want to continue?`,
+            ),
+            default: false,
+          },
+          chalk.yellow(
+            "Use --yes flag to auto-proceed with component updates.",
           ),
-          default: false,
-        });
+        );
 
         if (!confirm) {
           console.log(chalk.gray("Update cancelled."));

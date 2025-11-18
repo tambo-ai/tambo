@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import { execSync } from "child_process";
 import fs from "fs";
-import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
+import { interactivePrompt } from "../utils/interactive.js";
 
 // Define available templates
 interface Template {
@@ -105,21 +105,24 @@ export async function handleCreateApp(
     }
   } else {
     // Only prompt if name wasn't provided
-    const response = await inquirer.prompt([
+    const response = await interactivePrompt<{ appName: string }>(
       {
         type: "input",
         name: "appName",
         message:
           'What is the name of your app? (use "." to create in current directory)',
         default: "my-tambo-app",
-        validate: (input) => {
+        validate: (input: string) => {
           if (input === "." || /^[a-zA-Z0-9-_]+$/.test(input)) {
             return true;
           }
           return 'App name can only contain letters, numbers, dashes, and underscores, or "." for current directory';
         },
       },
-    ]);
+      chalk.yellow(
+        "Cannot prompt for app name in non-interactive mode. Provide app name as argument: tambo create-app <name>",
+      ),
+    );
     appName = response.appName;
   }
 
@@ -149,7 +152,7 @@ export async function handleCreateApp(
       );
     } else {
       // Interactive template selection
-      const { templateKey } = await inquirer.prompt([
+      const { templateKey } = await interactivePrompt<{ templateKey: string }>(
         {
           type: "list",
           name: "templateKey",
@@ -160,7 +163,10 @@ export async function handleCreateApp(
           })),
           default: "standard",
         },
-      ]);
+        chalk.yellow(
+          "Cannot prompt for template in non-interactive mode. Use --template flag to specify template (e.g., --template=standard).",
+        ),
+      );
       selectedTemplate = templates[templateKey];
       console.log(
         chalk.blue(`Selected template: ${chalk.cyan(selectedTemplate.name)}`),

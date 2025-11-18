@@ -31,6 +31,22 @@ jest.unstable_mockModule("../../src/commands/init.js", () => ({
   getInstallationPath: async () => "src/components",
 }));
 
+// Mock the interactive module to make tests think they're in an interactive environment
+// Note: list.test.ts doesn't use inquirer, but we mock it for consistency
+jest.unstable_mockModule("../../src/utils/interactive.js", () => ({
+  isInteractive: () => true, // Always return true in tests
+  interactivePrompt: async (questions: unknown) => {
+    // This command doesn't actually use prompts, but mock it anyway
+    return questions;
+  },
+  NonInteractiveError: class NonInteractiveError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "NonInteractiveError";
+    }
+  },
+}));
+
 // Import after mocking
 const { handleListComponents } = await import(
   "../../src/commands/list/index.js"
