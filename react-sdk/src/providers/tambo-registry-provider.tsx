@@ -208,6 +208,7 @@ const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
  *
  * The combined static, dynamic, and internal servers are exposed as
  * `NormalizedMcpServerInfo[]` via `useTamboMcpServerInfos()`.
+ * @returns The TamboRegistryProvider component.
  */
 export const TamboRegistryProvider: React.FC<
   PropsWithChildren<TamboRegistryProviderProps>

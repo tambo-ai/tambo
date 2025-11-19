@@ -496,10 +496,10 @@ export const useTamboElicitationContext = useTamboMcpElicitation;
  * (including `serverKey` and `handlers`). Here we only add a `key` derived
  * from URL, transport, and custom headers for client and tool ownership
  * tracking.
- *
  * NOTE: `getMcpServerUniqueKey(server)` must remain stable for a given
  * (url, transport, customHeaders) tuple. Changing its derivation is a
  * breaking change for client identity and tool ownership tracking.
+ * @returns A provider-local server config with a stable `key`.
  */
 function toMcpServerConfig(server: NormalizedMcpServerInfo): McpServerConfig {
   const key = getMcpServerUniqueKey(server);
