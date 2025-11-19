@@ -1,19 +1,19 @@
 "use client";
 
-import { createMarkdownComponents } from "@/components/tambo/markdown-components";
-import { cn } from "@/lib/utils";
+import { type McpServerInfo, MCPTransport } from "@tambo-ai/react/mcp";
+import { ChevronDown, X, Trash2 } from "lucide-react";
+import React from "react";
+import { createPortal } from "react-dom";
+import { motion } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
-import { McpServerInfo, MCPTransport } from "@tambo-ai/react";
-import { motion } from "framer-motion";
-import { ChevronDown, Trash2, X } from "lucide-react";
-import React from "react";
-import { createPortal } from "react-dom";
+import { createMarkdownComponents } from "@/components/tambo/markdown-components";
 import { Streamdown } from "streamdown";
+import { cn } from "@/lib/utils";
 
 /**
  * Modal component for configuring client-side MCP (Model Context Protocol) servers.

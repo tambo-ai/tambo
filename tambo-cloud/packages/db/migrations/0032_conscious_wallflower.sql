@@ -1,0 +1,1 @@
+ALTER TABLE "tool_provider_user_contexts" ALTER COLUMN "context_key" DROP NOT NULL;

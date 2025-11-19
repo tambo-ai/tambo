@@ -4,8 +4,8 @@ import { Navbar } from "@/components/navbar";
 import { Sidebar } from "@/components/sidebar";
 import { MobileProvider } from "@/providers/mobile-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
-import { MCPTransport, TamboProvider } from "@tambo-ai/react";
-import { TamboMcpProvider } from "@tambo-ai/react/mcp";
+import { TamboProvider } from "@tambo-ai/react";
+import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
 import { usePathname } from "next/navigation";
 
 const MCP_DEMO_URL =

@@ -1,0 +1,24 @@
+{
+  "extends": "@tambo-ai-cloud/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"],
+      "@tambo-ai-cloud/testing": ["../../packages/testing/src"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    "*.mjs",
+    ".next/types/**/*.ts",
+    "types/*.d.ts",
+    "test/__mocks__/*.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
+}

@@ -1,0 +1,27 @@
+import { type GroqProvider } from "@ai-sdk/groq";
+import type { LlmModelConfig } from "../../llm-config-types";
+import { type NarrowStrings } from "../../typeutils";
+type RawModelIds = Parameters<GroqProvider["languageModel"]>[0];
+type GroqModelId = NarrowStrings<RawModelIds>;
+export const groqModels: Partial<LlmModelConfig<GroqModelId>> = {
+  "llama-3.3-70b-versatile": {
+    apiName: "llama-3.3-70b-versatile",
+    displayName: "Llama 3.3 70B Versatile",
+    status: "untested",
+    notes:
+      "Llama 3.3 70B Versatile is Meta's powerful multilingual model, optimized for diverse NLP tasks. Delivers strong performance with 70B parameters.",
+    docLink: "https://console.groq.com/docs/model/llama-3.3-70b-versatile",
+    tamboDocLink: "https://docs.tambo.co",
+    inputTokenLimit: 131072,
+  },
+  "llama-3.1-8b-instant": {
+    apiName: "llama-3.1-8b-instant",
+    displayName: "Llama 3.1 8B Instant",
+    status: "untested",
+    notes:
+      "Llama 3.1 8B on Groq delivers fast, high-quality responses for real-time tasks. Supports function calling, JSON output, and 128K context at low cost.",
+    docLink: "https://console.groq.com/docs/model/llama-3.1-8b-instant",
+    tamboDocLink: "https://docs.tambo.co",
+    inputTokenLimit: 131072,
+  },
+};

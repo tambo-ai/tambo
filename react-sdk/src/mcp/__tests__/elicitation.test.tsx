@@ -1,8 +1,8 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
   ClientNotification,
+  ClientRequest,
   ElicitRequest,
-  Request,
 } from "@modelcontextprotocol/sdk/types.js";
 import { act, renderHook } from "@testing-library/react";
 import {
@@ -12,8 +12,8 @@ import {
 } from "../elicitation";
 
 // Create a mock RequestHandlerExtra for testing
-function createMockExtra<T extends Request>(): RequestHandlerExtra<
-  T,
+function createMockExtra(): RequestHandlerExtra<
+  ClientRequest,
   ClientNotification
 > {
   return {
@@ -67,7 +67,7 @@ describe("useElicitation", () => {
 
       // Start the handler but don't await yet
       let handlerPromise: Promise<TamboElicitationResponse>;
-      const extra = createMockExtra<ElicitRequest>();
+      const extra = createMockExtra();
       act(() => {
         handlerPromise = result.current.defaultElicitationHandler(
           request,
@@ -268,7 +268,7 @@ describe("useElicitation", () => {
       };
 
       let promise2: Promise<TamboElicitationResponse>;
-      const extra2 = createMockExtra<ElicitRequest>();
+      const extra2 = createMockExtra();
       act(() => {
         promise2 = result.current.defaultElicitationHandler(request2, extra2);
       });

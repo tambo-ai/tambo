@@ -122,7 +122,7 @@ export const McpPromptButton = React.forwardRef<
               ) : (
                 promptList.map((promptEntry) => (
                   <DropdownMenu.Item
-                    key={`${promptEntry.server.key}-${promptEntry.prompt.name}`}
+                    key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
                     className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                     onSelect={() => {
                       setSelectedPromptName(promptEntry.prompt.name);
@@ -221,7 +221,7 @@ const ResourceCombobox: React.FC<ResourceComboboxProps> = ({
           ) : (
             filteredResources.map((resourceEntry) => (
               <DropdownMenu.Item
-                key={`${resourceEntry.server.key}-${resourceEntry.resource.uri}`}
+                key={`${resourceEntry.server.url}-${resourceEntry.resource.uri}`}
                 className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
                 onSelect={() => {
                   onSelectResource(resourceEntry.resource.uri);
@@ -229,11 +229,11 @@ const ResourceCombobox: React.FC<ResourceComboboxProps> = ({
               >
                 <div className="flex items-start justify-between w-full gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-muted-foreground truncate font-mono mb-1">
-                      {resourceEntry.resource.uri}
-                    </div>
                     <div className="font-medium truncate">
                       {resourceEntry.resource.name || "Unnamed Resource"}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate font-mono">
+                      {resourceEntry.resource.uri}
                     </div>
                     {resourceEntry.resource.description && (
                       <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">

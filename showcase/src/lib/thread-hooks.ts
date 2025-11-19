@@ -150,21 +150,7 @@ export function getSafeContent(
   if (Array.isArray(content)) {
     // Filter out non-text items and join text
     return content
-      .map((item) => {
-        if (item.type === "text") {
-          return item.text ?? "";
-        }
-        if (item.type === "resource") {
-          return `[${item.resource?.uri ?? "(none)"}]`;
-        }
-        if (item.type === "image_url") {
-          return `[image: ${item.image_url?.url ?? "(none)"}]`;
-        }
-        if (item.type === "input_audio") {
-          return `[audio: ${item.input_audio?.format ?? "(none)"}]`;
-        }
-        return "";
-      })
+      .map((item) => (item?.type === "text" ? (item.text ?? "") : ""))
       .join("");
   }
   // Handle potential edge cases or unknown types

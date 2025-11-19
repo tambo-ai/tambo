@@ -6,3 +6,11 @@ react/esm/
 react/dist/
 react-sdk/esm
 docs/.source/
+
+# Ignore the tambo-cloud directory
+tambo-cloud/apps/web/.source/
+tambo-cloud/apps/*/dist/
+tambo-cloud/packages/*/dist/
+tambo-cloud/packages/db/migrations/
+tambo-cloud/packages/ag-ui-mastra/
+tambo-cloud/.vscode/

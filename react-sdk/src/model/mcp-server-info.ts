@@ -1,13 +1,3 @@
-import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import type {
-  ClientNotification,
-  ClientRequest,
-  CreateMessageRequest,
-  CreateMessageResult,
-  ElicitRequest,
-  ElicitResult,
-} from "@modelcontextprotocol/sdk/types.js";
-
 /**
  * The transport protocol to use for MCP connections.
  */
@@ -19,13 +9,13 @@ export enum MCPTransport {
 /**
  * User-provided configuration for an MCP server.
  *
- * This type is accepted by `TamboProvider` / `TamboRegistryProvider` via the
- * `mcpServers` prop. It captures connection metadata (URL, headers, transport,
- * serverKey) plus optional MCP request handlers.
+ * This is the type accepted by `TamboProvider` / `TamboRegistryProvider` in
+ * the `mcpServers` prop.
  *
- * The `handlers` field is a `Partial<MCPHandlers>` whose callbacks correspond
- * to the MCP protocol types (`ElicitRequest`, `CreateMessageRequest`, etc.)
- * and are consumed directly by the MCP client/provider layer.
+ * The `handlers` field is intentionally typed as `unknown` here so the core
+ * SDK does not depend on the MCP subpackage. In the `@tambo-ai/react/mcp`
+ * subpackage this is treated as `Partial<MCPHandlers>` (with
+ * `elicitation` / `sampling` callbacks).
  */
 export interface McpServerInfo {
   /** Optional name for the MCP server */
@@ -45,83 +35,22 @@ export interface McpServerInfo {
    * - resources: `<serverKey>:<resourceUrl>`
    * - tools: `<serverKey>__<toolName>`
    *
-   * Inline resource parsing uses the `@<serverKey>:<uri>` syntax in user text,
-   * so `serverKey` must match `/^[a-zA-Z0-9_-]+$/`. If you change how keys are
-   * derived, update both this documentation and the parser in
-   * `react-sdk/src/util/message-builder.ts` to keep them in sync.
-   *
    * If not provided, a key will be derived from the URL hostname.
    * For example, "https://mcp.linear.app/mcp" becomes "linear".
    */
   serverKey?: string;
   /**
-   * Optional per-server handlers for MCP `elicitation` and `sampling`
-   * requests.
+   * Optional handlers for elicitation and sampling requests from the server.
    *
-   * When provided, these override any provider-level handlers configured on
-   * `TamboMcpProvider` for this server. If omitted, only the provider-level
-   * handlers (if any) are used.
+   * In the MCP subpackage this is interpreted as `Partial<MCPHandlers>`,
+   * i.e. `{ elicitation?: MCPElicitationHandler; sampling?: MCPSamplingHandler }`.
    *
-   * Handlers should be referentially stable (for example, wrapped in
-   * `useCallback` or defined outside the component) to avoid re-registering
-   * servers on every render.
+   * Note: These callbacks should be stable (e.g., wrapped in useCallback or
+   * defined outside the component) to avoid constant re-registration of the
+   * MCP server on every render.
    */
-  handlers?: Partial<MCPHandlers>;
+  handlers?: unknown;
 }
-
-/**
- * Strongly-typed handlers for MCP requests.
- *
- * These mirror the MCP protocol:
- * - `elicitation` handles `ElicitRequest` / `ElicitResult`.
- * - `sampling` handles `CreateMessageRequest` / `CreateMessageResult`.
- *
- * Both callbacks receive a `RequestHandlerExtra` whose `signal` is used for
- * cancellation.
- */
-export interface MCPHandlers {
-  elicitation: MCPElicitationHandler;
-  sampling: MCPSamplingHandler;
-}
-
-/**
- * Handler for MCP elicitation requests.
- * Receives the elicit request and a RequestHandlerExtra containing an AbortSignal that fires when the request is cancelled.
- * @param request - The elicitation request from the server
- * @param extra - Additional context including AbortSignal for cancellation
- * @returns Promise resolving to the elicitation result
- * @example
- * ```typescript
- * const handler: MCPElicitationHandler = async (request, extra) => {
- *   // Listen for cancellation
- *   extra.signal.addEventListener('abort', () => {
- *     console.log('Request cancelled');
- *   });
- *
- *   // Return user's response
- *   return {
- *     action: 'accept',
- *     content: { name: 'John' }
- *   };
- * };
- * ```
- */
-export type MCPElicitationHandler = (
-  e: ElicitRequest,
-  extra: RequestHandlerExtra<ElicitRequest, ClientNotification>,
-) => Promise<ElicitResult>;
-
-/**
- * Handler for MCP sampling requests (create_message).
- * Receives the sampling request and a RequestHandlerExtra containing an AbortSignal that fires when the request is cancelled.
- * @param request - The sampling/create_message request from the server
- * @param extra - Additional context including AbortSignal for cancellation
- * @returns Promise resolving to the sampling result
- */
-export type MCPSamplingHandler = (
-  e: CreateMessageRequest,
-  extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
-) => Promise<CreateMessageResult>;
 
 /**
  * Normalized MCP server metadata used internally by the registry and MCP

@@ -1,11 +1,12 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
   ClientNotification,
+  ClientRequest,
   ElicitRequest,
   ElicitResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { useCallback, useState } from "react";
-import { MCPElicitationHandler } from "../model/mcp-server-info";
+import { MCPElicitationHandler } from "./mcp-client";
 
 /**
  * Elicitation request from MCP server
@@ -54,7 +55,7 @@ export function useElicitation() {
   const defaultElicitationHandler: MCPElicitationHandler = useCallback(
     async (
       request: ElicitRequest,
-      extra: RequestHandlerExtra<ElicitRequest, ClientNotification>,
+      extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
     ): Promise<ElicitResult> => {
       return await new Promise<ElicitResult>((resolve, reject) => {
         // Set the elicitation request to show the UI

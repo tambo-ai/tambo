@@ -457,7 +457,7 @@ Read our [Contributing Guide](./CONTRIBUTING.md) for details on development work
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-Both the React SDK and backend ([tambo-cloud](https://github.com/tambo-ai/tambo-cloud)) are fully open source under MIT.
+Both the React SDK and backend ([tambo-cloud](./tambo-cloud)) are fully open source under MIT.
 
 ---
 

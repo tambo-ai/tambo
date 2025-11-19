@@ -1,0 +1,1 @@
+ALTER TABLE "project_message_usage" ADD PRIMARY KEY ("project_id");

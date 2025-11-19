@@ -1,23 +1,25 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "actions/setup-node"
+      - dependency-name: "actions/checkout"
+      - dependency-name: "actions/upload-artifact"
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
@@ -44,37 +46,83 @@ updates:
       - dependency-name: "@types/react-dom"
         versions: [">=19"]
     groups:
+      trpc:
+        patterns:
+          - "@trpc/*"
+      nestjs:
+        patterns:
+          - "@nestjs/*"
       radix-ui:
         patterns:
           - "@radix-ui/*"
           - "radix-ui"
+      drizzle:
+        # drizzle-kit and drizzle-orm
+        patterns:
+          - "drizzle-kit"
+          - "drizzle-orm"
       eslint:
         patterns:
           - "@eslint/*"
           - "eslint"
           - "typescript-eslint"
-          - "eslint-*"
+          - "eslint-plugin-*"
+          - "eslint-config-*"
+          - "typescript-eslint"
+      testing:
+        patterns:
+          - "jest"
+          - "@types/jest"
+          - "jest-*"
+          - "ts-jest"
+          - "@testing-library/*"
+          - "supertest"
+      ai-sdk:
+        patterns:
+          - "ai"
+          - "@ai-sdk/*"
       react:
         patterns:
           - "react"
           - "react-dom"
           - "@types/react"
           - "@types/react-dom"
-      fumadocs:
-        patterns:
-          - "fumadocs-*"
       next:
         patterns:
           - "next"
-          - "next-*"
           - "@next/*"
-      testing:
+      t3-oss:
         patterns:
-          - "jest"
-          - "jest-*"
-          - "@testing-library/*"
-          - "ts-jest"
-          - "@types/jest"
+          - "@t3-oss/*"
+      tambo-ai:
+        patterns:
+          - "@tambo-ai/*"
+      small-safe-packages:
+        # These aren't related, but these are all generally safe to update
+        # unconditionally, so we lump them together to get one PR
+        patterns:
+          - "posthog-js"
+          - "@splinetool/runtime"
+          - "prettier"
+          - "lint-staged"
+          - "globals"
+          - "lucide-react"
+          - "@opentelemetry/*"
+      sentry:
+        patterns:
+          - "@sentry/*"
+          - sentry-*
+      ag-ui:
+        patterns:
+          - "@ag-ui/*"
+          - "@mastra/*"
+      nexstra:
+        patterns:
+          - "nextra"
+          - "nextra-*"
+      fumadocs:
+        patterns:
+          - "fumadocs-*"
       tailwind:
         patterns:
           - "tailwindcss"

@@ -1,12 +1,10 @@
 /** @type {import("@typescript-eslint/utils").TSESLint.FlatConfig.ConfigArray} */
 
 import eslint from "@eslint/js";
-import config from "@tambo-ai/eslint-config/base";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   { ignores: ["dist/**/*"] },
-  config,
   eslint.configs.recommended,
   {
     rules: {
@@ -14,13 +12,10 @@ export default tseslint.config(
       "no-console": ["error", { allow: ["error", "warn", "log"] }],
     },
     languageOptions: {
-      globals: {
-        process: true,
-      },
       parserOptions: {
+        project: "./tsconfig.json",
         ecmaVersion: "latest",
         sourceType: "module",
-        tsconfigRootDir: import.meta.dirname,
       },
     },
   },

@@ -1,0 +1,1 @@
+ALTER TABLE "tool_providers" ALTER COLUMN "url" DROP NOT NULL;
