@@ -44,7 +44,15 @@ export default defineConfig([
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["*.mjs"],
+          allowDefaultProject: [
+            "*.mjs",
+            "cli/eslint.config.mjs",
+            "create-tambo-app/eslint.config.mjs",
+            "docs/eslint.config.mjs",
+            "react-sdk/eslint.config.mjs",
+            "showcase/eslint.config.mjs",
+            "packages/eslint-config/*.mjs",
+          ],
         },
       },
     },
