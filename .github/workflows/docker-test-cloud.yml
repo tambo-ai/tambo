@@ -185,8 +185,8 @@ jobs:
       - name: Initialize database
         run: |
           cd tambo-cloud
-          # Run database migrations inside the web container from project root
-          docker compose --env-file docker.env exec -T web sh -c "cd /app && npm run db:migrate"
+          # Run database migrations inside the api container from tambo-cloud directory
+          docker compose --env-file docker.env exec -T api sh -c "cd /app/tambo-cloud && npm run db:migrate"
         timeout-minutes: 2
 
       - name: Verify database initialization
