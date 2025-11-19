@@ -1,9 +1,9 @@
 import chalk from "chalk";
-import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
+import { execSync } from "../../utils/interactive.js";
 import {
   getComponentDirectoryPath,
   getLibDirectory,

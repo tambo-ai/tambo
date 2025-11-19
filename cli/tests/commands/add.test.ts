@@ -104,6 +104,7 @@ jest.unstable_mockModule("../../src/commands/add/utils.js", () => ({
 jest.unstable_mockModule("../../src/utils/interactive.js", () => ({
   isInteractive: () => true, // Always return true in tests
   interactivePrompt: mockPrompt, // Use the same mockPrompt as inquirer
+  execSync: mockExecSync, // Use the same mockExecSync as child_process
   NonInteractiveError: class NonInteractiveError extends Error {
     constructor(message: string) {
       super(message);

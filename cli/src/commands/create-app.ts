@@ -1,9 +1,8 @@
 import chalk from "chalk";
-import { execSync } from "child_process";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
-import { interactivePrompt } from "../utils/interactive.js";
+import { execSync, interactivePrompt } from "../utils/interactive.js";
 
 // Define available templates
 interface Template {

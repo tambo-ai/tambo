@@ -3,7 +3,7 @@ import deepmerge from "deepmerge";
 import { deepEqual } from "fast-equals";
 import fs from "fs";
 import path from "path";
-import { interactivePrompt } from "../../utils/interactive.js";
+import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
 import postcss from "postcss";
 import semver from "semver";
 import type { Config } from "tailwindcss";
@@ -219,19 +219,24 @@ export default config`;
       `${chalk.blue("ℹ")} This will preserve your existing styles and only add missing variables.`,
     );
 
-    const { proceedWithCss } = await interactivePrompt<{
-      proceedWithCss: boolean;
-    }>(
-      {
+    let proceedWithCss = true;
+
+    // Only prompt in interactive mode, otherwise apply by default
+    if (isInteractive()) {
+      const response = await interactivePrompt<{
+        proceedWithCss: boolean;
+      }>({
         type: "confirm",
         name: "proceedWithCss",
         message: "Allow Tambo to modify your globals.css file?",
         default: true,
-      },
-      chalk.yellow(
-        "Cannot prompt for CSS modification in non-interactive mode. CSS modifications skipped. Review globals.css manually.",
-      ),
-    );
+      });
+      proceedWithCss = response.proceedWithCss;
+    } else {
+      console.log(
+        `${chalk.yellow("⚠")} Non-interactive mode: Applying CSS changes automatically. Please review globals.css after installation.`,
+      );
+    }
 
     if (!proceedWithCss) {
       console.log(`\n${chalk.yellow("⚠")} CSS modifications skipped.`);
@@ -439,39 +444,36 @@ export default config`;
       // Show summary first
       showChangesSummary(originalCSS, modifiedCSS, isV4);
 
-      // Ask if user wants to see detailed diff
-      const { showDetailedDiff } = await interactivePrompt<{
-        showDetailedDiff: boolean;
-      }>(
-        {
+      // Ask if user wants to see detailed diff (only in interactive mode)
+      if (isInteractive()) {
+        const { showDetailedDiff } = await interactivePrompt<{
+          showDetailedDiff: boolean;
+        }>({
           type: "confirm",
           name: "showDetailedDiff",
           message: "Show detailed diff view?",
           default: false,
-        },
-        chalk.yellow(
-          "Cannot show detailed diff in non-interactive mode. Skipping diff display.",
-        ),
-      );
+        });
 
-      if (showDetailedDiff) {
-        showCssDiff(originalCSS, modifiedCSS, "globals.css");
+        if (showDetailedDiff) {
+          showCssDiff(originalCSS, modifiedCSS, "globals.css");
+        }
       }
 
-      // Final confirmation
-      const { proceedWithWrite } = await interactivePrompt<{
-        proceedWithWrite: boolean;
-      }>(
-        {
+      // Final confirmation (only in interactive mode, otherwise apply automatically)
+      let proceedWithWrite = true;
+
+      if (isInteractive()) {
+        const response = await interactivePrompt<{
+          proceedWithWrite: boolean;
+        }>({
           type: "confirm",
           name: "proceedWithWrite",
           message: "Apply these changes?",
           default: true,
-        },
-        chalk.yellow(
-          "Cannot prompt for CSS changes in non-interactive mode. Applying changes automatically.",
-        ),
-      );
+        });
+        proceedWithWrite = response.proceedWithWrite;
+      }
 
       if (!proceedWithWrite) {
         console.log(`${chalk.yellow("⚠")} Changes cancelled by user`);

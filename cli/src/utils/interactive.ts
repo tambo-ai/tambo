@@ -1,4 +1,6 @@
 import chalk from "chalk";
+import { execSync as nodeExecSync } from "child_process";
+import type { ExecSyncOptions } from "child_process";
 import inquirer from "inquirer";
 
 /**
@@ -71,4 +73,28 @@ Run ${chalk.cyan("tambo --help")} or ${chalk.cyan("tambo <command> --help")} for
 
   const result = await inquirer.prompt(questions);
   return result as T;
+}
+
+/**
+ * Safe wrapper around execSync that prevents execution of external commands
+ * in non-interactive environments.
+ *
+ * @param command - The command to execute
+ * @param options - Options to pass to execSync
+ * @throws NonInteractiveError if running in a non-interactive environment
+ */
+export function execSync(
+  command: string,
+  options?: ExecSyncOptions,
+): Buffer | string {
+  if (!isInteractive()) {
+    throw new NonInteractiveError(
+      `${chalk.red("Error: Cannot execute external command in non-interactive mode.")}\n\n` +
+        `${chalk.yellow("Command:")} ${command}\n\n` +
+        `${chalk.blue("Reason:")} Running external commands (npm, npx, git) requires user confirmation.\n` +
+        `Use appropriate flags to run in interactive mode or provide all necessary options upfront.`,
+    );
+  }
+
+  return nodeExecSync(command, options);
 }

@@ -1,8 +1,8 @@
-import { execSync } from "child_process";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
 import { KNOWN_SAFE_PACKAGES } from "../../constants/packages.js";
+import { execSync } from "../../utils/interactive.js";
 import type { UpgradeOptions } from "./index.js";
 
 /**
