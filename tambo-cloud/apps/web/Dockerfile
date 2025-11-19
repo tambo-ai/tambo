@@ -20,6 +20,9 @@ USER nodejs
 # Copy root files needed for turbo
 COPY --chown=nodejs:nodejs package.json package-lock.json turbo.json ./
 
+# Copy packages directory (contains shared configs required by react-sdk)
+COPY --chown=nodejs:nodejs packages/ ./packages/
+
 # Copy react-sdk workspace package (required by tambo-cloud apps)
 COPY --chown=nodejs:nodejs react-sdk/ ./react-sdk/
 
