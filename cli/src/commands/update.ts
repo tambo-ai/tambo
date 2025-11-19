@@ -49,7 +49,8 @@ export async function handleUpdateComponents(
     }
 
     const projectRoot = process.cwd();
-    const installPath = options.prefix ?? (await getInstallationPath());
+    const installPath =
+      options.prefix ?? (await getInstallationPath(options.yes));
     const isExplicitPrefix = Boolean(options.prefix);
 
     let componentsToUpdate: string[] = [];
