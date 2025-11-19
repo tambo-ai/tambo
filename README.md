@@ -1,6 +1,6 @@
 <div align="center">
   <img src="assets/octo-white-background-rounded.png" width="150">
-  <h1>Tambo AI</h1>
+  <h1>Tambo AI!</h1>
   <h3>Generative UI for React</h3>
   <p>Build apps that adapt to your users, not the other way around.</p>
 </div>
