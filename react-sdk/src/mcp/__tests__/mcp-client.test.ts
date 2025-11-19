@@ -1,4 +1,5 @@
-import { MCPClient, MCPTransport } from "../mcp-client";
+import { MCPTransport } from "../../model/mcp-server-info";
+import { MCPClient } from "../mcp-client";
 
 // Mock the MCP SDK modules
 jest.mock("@modelcontextprotocol/sdk/client/index.js", () => ({

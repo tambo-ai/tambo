@@ -54,13 +54,13 @@ export function useTamboMcpPromptList() {
     })),
     combine: (results) => {
       const combined = combineArrayResults(results);
-      // Apply prefixing based on current server count
-      const shouldPrefix = mcpServers.length > 1;
-      if (!shouldPrefix) {
+
+      // Only prefix prompts when multiple servers are present (connected or failed)
+      if (mcpServers.length <= 1) {
         return combined;
       }
 
-      // Apply prefixes to all prompts
+      // Apply prefixes to all prompts for consistent URI handling
       return {
         ...combined,
         data: combined.data.map((entry) => ({
@@ -211,13 +211,8 @@ export function useTamboMcpResourceList() {
     })),
     combine: (results) => {
       const combined = combineArrayResults(results);
-      // Apply prefixing based on current server count
-      const shouldPrefix = mcpServers.length > 1;
-      if (!shouldPrefix) {
-        return combined;
-      }
 
-      // Apply prefixes to all resources
+      // Apply prefixes to all resources for consistent URI handling
       return {
         ...combined,
         data: combined.data.map((entry) => ({

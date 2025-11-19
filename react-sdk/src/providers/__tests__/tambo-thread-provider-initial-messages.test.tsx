@@ -66,18 +66,18 @@ const createWrapper = (initialMessages: TamboThreadMessage[] = []) => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider components={[]} tools={[]}>
-          <TamboContextHelpersProvider>
-            <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider components={[]} tools={[]}>
+            <TamboContextHelpersProvider>
               <TamboThreadProvider
                 initialMessages={initialMessages}
                 autoGenerateThreadName={false}
               >
                 {children}
               </TamboThreadProvider>
-            </TamboMcpTokenProvider>
-          </TamboContextHelpersProvider>
-        </TamboRegistryProvider>
+            </TamboContextHelpersProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>
     );
   };

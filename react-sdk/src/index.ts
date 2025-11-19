@@ -103,11 +103,11 @@ export type {
 } from "./context-helpers";
 
 // MCP server metadata types (used by TamboProvider / registry / MCP provider)
+export { MCPTransport } from "./model/mcp-server-info";
 export type {
   McpServerInfo,
   NormalizedMcpServerInfo,
 } from "./model/mcp-server-info";
-export { MCPTransport } from "./model/mcp-server-info";
 
 // Note: Full MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package

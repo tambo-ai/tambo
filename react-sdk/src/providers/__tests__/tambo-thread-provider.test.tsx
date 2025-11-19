@@ -164,20 +164,20 @@ describe("TamboThreadProvider", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider components={mockRegistry}>
-          <TamboContextHelpersProvider
-            contextHelpers={{
-              currentTimeContextHelper: () => null,
-              currentPageContextHelper: () => null,
-            }}
-          >
-            <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider components={mockRegistry}>
+            <TamboContextHelpersProvider
+              contextHelpers={{
+                currentTimeContextHelper: () => null,
+                currentPageContextHelper: () => null,
+              }}
+            >
               <TamboThreadProvider streaming={false}>
                 {children}
               </TamboThreadProvider>
-            </TamboMcpTokenProvider>
-          </TamboContextHelpersProvider>
-        </TamboRegistryProvider>
+            </TamboContextHelpersProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>
     );
   };
@@ -459,23 +459,23 @@ describe("TamboThreadProvider", () => {
             setMcpAccessToken: () => {},
           }}
         >
-          <TamboRegistryProvider
-            components={mockRegistry}
-            onCallUnregisteredTool={mockOnCallUnregisteredTool}
-          >
-            <TamboContextHelpersProvider
-              contextHelpers={{
-                currentTimeContextHelper: () => null,
-                currentPageContextHelper: () => null,
-              }}
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider
+              components={mockRegistry}
+              onCallUnregisteredTool={mockOnCallUnregisteredTool}
             >
-              <TamboMcpTokenProvider>
+              <TamboContextHelpersProvider
+                contextHelpers={{
+                  currentTimeContextHelper: () => null,
+                  currentPageContextHelper: () => null,
+                }}
+              >
                 <TamboThreadProvider streaming={false}>
                   {children}
                 </TamboThreadProvider>
-              </TamboMcpTokenProvider>
-            </TamboContextHelpersProvider>
-          </TamboRegistryProvider>
+              </TamboContextHelpersProvider>
+            </TamboRegistryProvider>
+          </TamboMcpTokenProvider>
         </TamboClientContext.Provider>
       );
     };
@@ -605,20 +605,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={true}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -707,20 +707,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={true}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -783,20 +783,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={false}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -859,18 +859,18 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider>{children}</TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -959,20 +959,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={true}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -1038,20 +1038,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={false}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -1337,20 +1337,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={customToolRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={customToolRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={false}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -1474,20 +1474,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={customToolRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={customToolRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={true}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -1624,20 +1624,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={toolWithoutTransform}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={toolWithoutTransform}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={false}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -1754,20 +1754,20 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={toolWithTransform}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={toolWithTransform}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider streaming={false}>
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -1862,23 +1862,23 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider
                     streaming={false}
                     autoGenerateNameThreshold={2}
                   >
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -1957,14 +1957,14 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider
                     streaming={false}
                     autoGenerateThreadName={false}
@@ -1972,9 +1972,9 @@ describe("TamboThreadProvider", () => {
                   >
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -2045,23 +2045,23 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider
                     streaming={false}
                     autoGenerateNameThreshold={2}
                   >
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };
@@ -2139,23 +2139,23 @@ describe("TamboThreadProvider", () => {
               setMcpAccessToken: () => {},
             }}
           >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
+            <TamboMcpTokenProvider>
+              <TamboRegistryProvider components={mockRegistry}>
+                <TamboContextHelpersProvider
+                  contextHelpers={{
+                    currentTimeContextHelper: () => null,
+                    currentPageContextHelper: () => null,
+                  }}
+                >
                   <TamboThreadProvider
                     streaming={false}
                     autoGenerateNameThreshold={2}
                   >
                     {children}
                   </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
+                </TamboContextHelpersProvider>
+              </TamboRegistryProvider>
+            </TamboMcpTokenProvider>
           </TamboClientContext.Provider>
         );
       };

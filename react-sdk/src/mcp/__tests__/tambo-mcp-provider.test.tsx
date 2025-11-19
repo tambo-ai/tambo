@@ -5,6 +5,7 @@ import type {
 } from "@modelcontextprotocol/sdk/types.js";
 import { render, waitFor } from "@testing-library/react";
 import React, { useEffect } from "react";
+import { MCPTransport } from "../../model/mcp-server-info";
 import {
   TamboClientContext,
   useTamboClient,
@@ -14,7 +15,7 @@ import {
   TamboRegistryProvider,
   useTamboRegistry,
 } from "../../providers/tambo-registry-provider";
-import { MCPClient, MCPTransport } from "../mcp-client";
+import { MCPClient } from "../mcp-client";
 import {
   extractErrorMessage,
   TamboMcpProvider,
@@ -82,11 +83,11 @@ const TestWrapper: React.FC<{
         setMcpAccessToken: () => {},
       }}
     >
-      <TamboRegistryProvider mcpServers={mcpServers}>
-        <TamboMcpTokenProvider>
+      <TamboMcpTokenProvider>
+        <TamboRegistryProvider mcpServers={mcpServers}>
           <TamboMcpProvider handlers={handlers}>{children}</TamboMcpProvider>
-        </TamboMcpTokenProvider>
-      </TamboRegistryProvider>
+        </TamboRegistryProvider>
+      </TamboMcpTokenProvider>
     </TamboClientContext.Provider>
   );
 };
@@ -275,13 +276,13 @@ describe("TamboMcpProvider server list changes", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider mcpServers={["https://a.example"]}>
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider mcpServers={["https://a.example"]}>
             <TamboMcpProvider>
               <Capture onUpdate={(s) => (latest = s)} />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -301,15 +302,15 @@ describe("TamboMcpProvider server list changes", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider
-          mcpServers={["https://a.example", "https://b.example"]}
-        >
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider
+            mcpServers={["https://a.example", "https://b.example"]}
+          >
             <TamboMcpProvider>
               <Capture onUpdate={(s) => (latest = s)} />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -333,15 +334,15 @@ describe("TamboMcpProvider server list changes", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider
-          mcpServers={["https://a.example", "https://b.example"]}
-        >
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider
+            mcpServers={["https://a.example", "https://b.example"]}
+          >
             <TamboMcpProvider>
               <Capture onUpdate={(s) => (latest = s)} />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -360,13 +361,13 @@ describe("TamboMcpProvider server list changes", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider mcpServers={["https://a.example"]}>
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider mcpServers={["https://a.example"]}>
             <TamboMcpProvider>
               <Capture onUpdate={(s) => (latest = s)} />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -474,15 +475,15 @@ describe("TamboMcpProvider server list changes", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider
-          mcpServers={["https://a.example", "https://b.example"]}
-        >
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider
+            mcpServers={["https://a.example", "https://b.example"]}
+          >
             <TamboMcpProvider>
               <Capture onUpdate={(s) => (latest = s)} />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -503,13 +504,13 @@ describe("TamboMcpProvider server list changes", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider mcpServers={["https://a.example"]}>
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider mcpServers={["https://a.example"]}>
             <TamboMcpProvider>
               <Capture onUpdate={(s) => (latest = s)} />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -540,15 +541,15 @@ describe("TamboMcpProvider server list changes", () => {
           setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider
-          mcpServers={["https://a.example", "https://b.example"]}
-        >
-          <TamboMcpTokenProvider>
+        <TamboMcpTokenProvider>
+          <TamboRegistryProvider
+            mcpServers={["https://a.example", "https://b.example"]}
+          >
             <TamboMcpProvider>
               <Capture onUpdate={(s) => (latest = s)} />
             </TamboMcpProvider>
-          </TamboMcpTokenProvider>
-        </TamboRegistryProvider>
+          </TamboRegistryProvider>
+        </TamboMcpTokenProvider>
       </TamboClientContext.Provider>,
     );
 
@@ -1034,7 +1035,7 @@ describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
   });
 
   describe("tool name prefixing", () => {
-    it("should NOT prefix tool names when only one server is present", async () => {
+    it("should ALWAYS prefix tool names even when only one server is present", async () => {
       (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
         listTools: jest
           .fn()
@@ -1055,7 +1056,7 @@ describe("TamboMcpProvider serverKey derivation and tool prefixing", () => {
         expect(latest.length).toBe(1);
         expect(mockRegisterTool).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: "test-tool", // NOT prefixed
+            name: "linear__test-tool", // ALWAYS prefixed now
           }),
         );
       });

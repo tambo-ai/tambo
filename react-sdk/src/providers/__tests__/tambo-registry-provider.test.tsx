@@ -2,6 +2,8 @@ import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { z } from "zod";
 import { TamboComponent, TamboTool } from "../../model/component-metadata";
+import { TamboClientContext } from "../tambo-client-provider";
+import { TamboMcpTokenProvider } from "../tambo-mcp-token-provider";
 import {
   TamboRegistryProvider,
   useTamboRegistry,
@@ -52,9 +54,21 @@ describe("TamboRegistryProvider", () => {
   describe("Component and tool registration", () => {
     it("should register components and tools correctly", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider components={mockComponents}>
-          {children}
-        </TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider components={mockComponents}>
+              {children}
+            </TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -77,12 +91,24 @@ describe("TamboRegistryProvider", () => {
         .mockResolvedValue("test-result");
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider
-          components={mockComponents}
-          onCallUnregisteredTool={mockonCallUnregisteredTool}
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
         >
-          {children}
-        </TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider
+              components={mockComponents}
+              onCallUnregisteredTool={mockonCallUnregisteredTool}
+            >
+              {children}
+            </TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -94,7 +120,19 @@ describe("TamboRegistryProvider", () => {
 
     it("should handle tool registration and association", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -119,7 +157,19 @@ describe("TamboRegistryProvider", () => {
 
     it("should handle multiple tool registration", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -136,9 +186,21 @@ describe("TamboRegistryProvider", () => {
 
     it("should handle tool association with components", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider components={mockComponents}>
-          {children}
-        </TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider components={mockComponents}>
+              {children}
+            </TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -171,7 +233,19 @@ describe("TamboRegistryProvider", () => {
 
     it("should throw error when adding tool association to non-existent component", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -195,7 +269,19 @@ describe("TamboRegistryProvider", () => {
 
     it("should validate tool schemas and throw error for invalid schemas", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -226,7 +312,19 @@ describe("TamboRegistryProvider", () => {
       };
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -251,7 +349,19 @@ describe("TamboRegistryProvider", () => {
       };
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -274,7 +384,19 @@ describe("TamboRegistryProvider", () => {
       };
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -290,7 +412,19 @@ describe("TamboRegistryProvider", () => {
 
     it("should throw error when tool name contains spaces", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -320,7 +454,19 @@ describe("TamboRegistryProvider", () => {
       };
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider>{children}</TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -342,12 +488,24 @@ describe("TamboRegistryProvider", () => {
         .mockResolvedValue("unknown-tool-result");
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider
-          components={mockComponents}
-          onCallUnregisteredTool={mockonCallUnregisteredTool}
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
         >
-          {children}
-        </TamboRegistryProvider>
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider
+              components={mockComponents}
+              onCallUnregisteredTool={mockonCallUnregisteredTool}
+            >
+              {children}
+            </TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -371,9 +529,21 @@ describe("TamboRegistryProvider", () => {
 
     it("should handle onCallUnregisteredTool being undefined", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboRegistryProvider components={mockComponents}>
-          {children}
-        </TamboRegistryProvider>
+        <TamboClientContext.Provider
+          value={{
+            client: { baseURL: "https://api.tambo.co" } as any,
+            queryClient: {} as any,
+            isUpdatingToken: false,
+            mcpAccessToken: null,
+            setMcpAccessToken: () => {},
+          }}
+        >
+          <TamboMcpTokenProvider>
+            <TamboRegistryProvider components={mockComponents}>
+              {children}
+            </TamboRegistryProvider>
+          </TamboMcpTokenProvider>
+        </TamboClientContext.Provider>
       );
 
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });

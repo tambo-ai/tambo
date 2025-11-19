@@ -10,22 +10,18 @@ import React, {
 import { TamboTool } from "../model/component-metadata";
 import {
   getMcpServerUniqueKey,
+  MCPElicitationHandler,
+  MCPHandlers,
+  MCPSamplingHandler,
   type NormalizedMcpServerInfo,
 } from "../model/mcp-server-info";
-import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
 import {
   useTamboMcpServerInfos,
   useTamboRegistry,
 } from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
 import { type ElicitationContextState, useElicitation } from "./elicitation";
-import {
-  MCPClient,
-  MCPElicitationHandler,
-  MCPHandlers,
-  MCPSamplingHandler,
-  MCPTransport,
-} from "./mcp-client";
+import { MCPClient } from "./mcp-client";
 
 /**
  * Extracts error message from MCP tool result content.
@@ -58,20 +54,12 @@ export function extractErrorMessage(content: unknown): string {
 /**
  * Normalized MCP server information as consumed by the provider.
  *
- * Extends `NormalizedMcpServerInfo` from the core model by:
- * - narrowing `handlers` to `Partial<MCPHandlers>`
- * - adding a stable `key` derived from URL/transport/headers
- *
- * The registry is responsible for producing `NormalizedMcpServerInfo`
- * instances; this type adds the MCP-specific wiring needed to connect and
- * track clients.
+ * Extends `NormalizedMcpServerInfo` with a stable `key` used to track client
+ * instances and tool ownership. No additional normalization of `handlers`
+ * happens here; the registry remains the single source of truth for server
+ * metadata.
  */
 interface McpServerConfig extends NormalizedMcpServerInfo {
-  /**
-   * Optional handlers for elicitation and sampling requests from the server.
-   * Interpreted as a partial set of MCP handlers.
-   */
-  handlers?: Partial<MCPHandlers>;
   /**
    * Stable identity for this server derived from its URL/transport/headers.
    * Present for all server states (connected or failed).
@@ -134,16 +122,16 @@ const McpProviderContext = createContext<McpProviderContextValue>({
   resolveElicitation: null,
 });
 
-// Constant for the internal Tambo MCP server name
-const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
-
 /**
  * This provider is used to register tools from MCP servers.
- * It automatically includes an internal Tambo MCP server when an MCP access token is available.
  *
  * **BREAKING CHANGE**: This provider no longer accepts `mcpServers` as a prop.
  * Instead, pass `mcpServers` to `TamboProvider` or `TamboRegistryProvider`.
  * This provider must be wrapped inside `TamboProvider` to access the MCP server registry.
+ *
+ * **NOTE**: The internal Tambo MCP server is automatically registered in `TamboRegistryProvider`
+ * when an MCP access token is available. This provider only handles the connection and tool
+ * registration for servers configured in the registry.
  * @param props - The provider props
  * @param props.handlers - Optional handlers applied to all MCP servers unless overridden per-server
  * @param props.children - The children to wrap
@@ -154,7 +142,6 @@ export const TamboMcpProvider: FC<{
   children: React.ReactNode;
 }> = ({ handlers, children }) => {
   const { registerTool } = useTamboRegistry();
-  const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
   const mcpServers = useTamboMcpServerInfos();
   const providerSamplingHandler = handlers?.sampling;
 
@@ -180,34 +167,16 @@ export const TamboMcpProvider: FC<{
 
   // Stable map of current server configurations keyed by server key
   const currentServersMap = useMemo(() => {
-    const servers = [...mcpServers];
-
-    // Add internal Tambo MCP server if we have an access token and a base URL
-    if (mcpAccessToken && tamboBaseUrl) {
-      const base = new URL(tamboBaseUrl);
-      base.pathname = `${base.pathname.replace(/\/+$/, "")}/mcp`;
-      const tamboMcpUrl = base.toString();
-      servers.push({
-        name: TAMBO_INTERNAL_MCP_SERVER_NAME,
-        url: tamboMcpUrl,
-        transport: MCPTransport.HTTP,
-        serverKey: "tambo", // Internal server always uses 'tambo' as serverKey
-        customHeaders: {
-          Authorization: `Bearer ${mcpAccessToken}`,
-        },
-      });
-    }
-
     // Create a map of server key -> server info for efficient lookups
     const serverMap = new Map<string, McpServerConfig>();
-    servers.forEach((server) => {
-      const serverInfo = normalizeServerInfo(server);
+    mcpServers.forEach((server) => {
+      const serverInfo = toMcpServerConfig(server);
       // Store without cloning to avoid unnecessary allocation
       serverMap.set(serverInfo.key, serverInfo);
     });
 
     return serverMap;
-  }, [mcpServers, mcpAccessToken, tamboBaseUrl]);
+  }, [mcpServers]);
 
   // Main effect: manage client lifecycle (create/remove)
   useEffect(() => {
@@ -292,13 +261,10 @@ export const TamboMcpProvider: FC<{
             // Register tools from this server (deduplicated by ownership)
             try {
               const tools = await client.listTools();
-              const shouldPrefix = currentServersMap.size > 1;
 
               tools.forEach((tool) => {
-                // Prefix tool name with serverKey if multiple servers are present
-                const toolName = shouldPrefix
-                  ? `${serverInfo.serverKey}__${tool.name}`
-                  : tool.name;
+                // Always prefix tool name with serverKey for consistent naming
+                const toolName = `${serverInfo.serverKey}__${tool.name}`;
 
                 // Skip if another server already owns this tool (using final name for ownership)
                 const currentOwner = toolOwnerRef.current.get(toolName);
@@ -524,19 +490,21 @@ export const useTamboMcpElicitation = (): ElicitationContextState => {
 export const useTamboElicitationContext = useTamboMcpElicitation;
 
 /**
- * Normalizes registry server metadata into a `McpServerConfig`.
+ * Decorates registry metadata with a stable key for provider bookkeeping.
  *
- * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
- * `transport` and a `serverKey` derived by the registry, and narrows the
- * opaque `handlers` field to `Partial<MCPHandlers>`.
+ * The registry is the single source of truth for `NormalizedMcpServerInfo`
+ * (including `serverKey` and `handlers`). Here we only add a `key` derived
+ * from URL, transport, and custom headers for client and tool ownership
+ * tracking.
+ * NOTE: `getMcpServerUniqueKey(server)` must remain stable for a given
+ * (url, transport, customHeaders) tuple. Changing its derivation is a
+ * breaking change for client identity and tool ownership tracking.
+ * @returns A provider-local server config with a stable `key`.
  */
-function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
+function toMcpServerConfig(server: NormalizedMcpServerInfo): McpServerConfig {
   const key = getMcpServerUniqueKey(server);
-  // Cast handlers to proper type if present
-  const handlers = server.handlers as Partial<MCPHandlers> | undefined;
   return {
     ...server,
-    handlers,
     key,
   };
 }
