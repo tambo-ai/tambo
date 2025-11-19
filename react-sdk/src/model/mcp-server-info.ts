@@ -108,7 +108,7 @@ export interface MCPHandlers {
  */
 export type MCPElicitationHandler = (
   e: ElicitRequest,
-  extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
+  extra: RequestHandlerExtra<ElicitRequest, ClientNotification>,
 ) => Promise<ElicitResult>;
 
 /**
