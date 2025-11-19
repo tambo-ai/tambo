@@ -1,6 +1,9 @@
 import chalk from "chalk";
-import { execSync as nodeExecSync } from "child_process";
-import type { ExecSyncOptions } from "child_process";
+import {
+  execFileSync as nodeExecFileSync,
+  execSync as nodeExecSync,
+} from "child_process";
+import type { ExecFileSyncOptions, ExecSyncOptions } from "child_process";
 import inquirer from "inquirer";
 
 /**
@@ -82,9 +85,52 @@ export interface SafeExecSyncOptions extends ExecSyncOptions {
   allowNonInteractive?: boolean;
 }
 
+export interface SafeExecFileSyncOptions extends ExecFileSyncOptions {
+  /**
+   * Allow execution in non-interactive mode (e.g., when user passes --yes flag)
+   */
+  allowNonInteractive?: boolean;
+}
+
+/**
+ * Safe wrapper around execFileSync (preferred) that prevents execution of external commands
+ * in non-interactive environments unless explicitly allowed.
+ *
+ * Uses execFileSync by default (more secure - doesn't invoke shell), falls back to execSync
+ * only when shell features are needed.
+ *
+ * @param file - The file/command to execute
+ * @param args - Arguments to pass to the command
+ * @param options - Options to pass to execFileSync, including allowNonInteractive flag
+ * @throws NonInteractiveError if running in a non-interactive environment without allowNonInteractive
+ */
+export function execFileSync(
+  file: string,
+  args?: readonly string[],
+  options?: SafeExecFileSyncOptions,
+): Buffer | string {
+  const { allowNonInteractive, ...execOptions } = options ?? {};
+
+  if (!isInteractive() && !allowNonInteractive) {
+    const commandStr = args ? `${file} ${args.join(" ")}` : file;
+    throw new NonInteractiveError(
+      `${chalk.red("Error: Cannot execute external command in non-interactive mode.")}\n\n` +
+        `${chalk.yellow("Command:")} ${commandStr}\n\n` +
+        `${chalk.blue("Reason:")} Running external commands (npm, npx, git) requires user confirmation.\n` +
+        `Use appropriate flags to run in interactive mode or provide all necessary options upfront.`,
+    );
+  }
+
+  return nodeExecFileSync(file, args, execOptions);
+}
+
 /**
  * Safe wrapper around execSync that prevents execution of external commands
  * in non-interactive environments unless explicitly allowed.
+ *
+ * SECURITY WARNING: This uses execSync which invokes a shell and is vulnerable to
+ * shell injection. Prefer execFileSync when possible. Only use this when you need
+ * shell features like pipes, redirects, or glob expansion.
  *
  * @param command - The command to execute
  * @param options - Options to pass to execSync, including allowNonInteractive flag

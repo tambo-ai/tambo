@@ -26,8 +26,14 @@ const mockExecSync = (command: string) => {
   execSyncCalls.push(command);
   return "";
 };
+const mockExecFileSync = (file: string, args?: readonly string[]) => {
+  const commandStr = args ? `${file} ${args.join(" ")}` : file;
+  execSyncCalls.push(commandStr);
+  return "";
+};
 jest.unstable_mockModule("child_process", () => ({
   execSync: mockExecSync,
+  execFileSync: mockExecFileSync,
 }));
 
 // Mock inquirer for user prompts
@@ -349,6 +355,7 @@ jest.unstable_mockModule("../../src/utils/interactive.js", () => ({
   isInteractive: () => true, // Always return true in tests
   interactivePrompt: mockPrompt, // Use the same mockPrompt as inquirer
   execSync: mockExecSync, // Use the same mockExecSync as child_process
+  execFileSync: mockExecFileSync, // Use the same mockExecFileSync as child_process
   NonInteractiveError: class NonInteractiveError extends Error {
     constructor(message: string) {
       super(message);

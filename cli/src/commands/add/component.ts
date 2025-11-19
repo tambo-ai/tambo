@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
-import { execSync } from "../../utils/interactive.js";
+import { execFileSync } from "../../utils/interactive.js";
 import {
   getComponentDirectoryPath,
   getLibDirectory,
@@ -116,18 +116,28 @@ export function cn(...inputs: ClassValue[]) {
     }
 
     try {
-      const legacyFlag = options.legacyPeerDeps ? " --legacy-peer-deps" : "";
       const allowNonInteractive = Boolean(options.yes);
 
       if (prodDeps.length > 0) {
-        execSync(`npm install${legacyFlag} ${prodDeps.join(" ")}`, {
+        const args = [
+          "install",
+          ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
+          ...prodDeps,
+        ];
+        execFileSync("npm", args, {
           stdio: "inherit",
           encoding: "utf-8",
           allowNonInteractive,
         });
       }
       if (devDeps.length > 0) {
-        execSync(`npm install -D${legacyFlag} ${devDeps.join(" ")}`, {
+        const args = [
+          "install",
+          "-D",
+          ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
+          ...devDeps,
+        ];
+        execFileSync("npm", args, {
           stdio: "inherit",
           encoding: "utf-8",
           allowNonInteractive,
