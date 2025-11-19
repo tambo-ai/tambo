@@ -104,6 +104,14 @@ function normalizeServerInfo(
   const serverKey = base.serverKey ?? deriveServerKey(base.url);
   const transport = base.transport ?? MCPTransport.HTTP;
 
+  if (!/^[a-zA-Z0-9_-]+$/.test(serverKey)) {
+    throw new Error(
+      `[Tambo:MCP] Invalid serverKey "${serverKey}" for URL "${base.url}". ` +
+        "Keys must match /^[a-zA-Z0-9_-]+$/ to support inline @resource parsing. " +
+        "Either update your serverKey or omit it to let Tambo derive one from the URL.",
+    );
+  }
+
   return { ...base, transport, serverKey };
 }
 
@@ -178,21 +186,28 @@ export interface TamboRegistryProviderProps {
 }
 
 /**
- * The TamboRegistryProvider is a React provider that provides a component
- * registry to the descendants of the provider.
- * @param props - The props for the TamboRegistryProvider
- * @param props.children - The children to wrap
- * @param props.components - The components to register
- * @param props.tools - The tools to register
- * @param props.mcpServers - The MCP servers to register
- * @param props.onCallUnregisteredTool - The function to call when an unknown tool is called (optional)
- * @returns The TamboRegistryProvider component
+ * Sentinel name used for the internal Tambo MCP server injected by the
+ * registry when an MCP access token is available.
+ *
+ * This value is only used internally and in tests; it is never exposed as a
+ * public `serverKey`. User-supplied MCP servers should avoid using this name
+ * to prevent conflicts with the internal server.
  */
-// Constant for the internal Tambo MCP server name
 const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
 
 /**
+ * The TamboRegistryProvider owns the registry of components, tools, and MCP
+ * servers available to Tambo.
  *
+ * MCP servers can be supplied via the `mcpServers` prop or registered at
+ * runtime. When wrapped in a `TamboMcpTokenProvider` with a non-null
+ * `mcpAccessToken` and `tamboBaseUrl`, it also appends an internal HTTP MCP
+ * server at `${tamboBaseUrl}/mcp` with:
+ * - `serverKey` fixed to `"tambo"` (used for prompt/tool/resource prefixes)
+ * - an `Authorization: Bearer <mcpAccessToken>` header
+ *
+ * The combined static, dynamic, and internal servers are exposed as
+ * `NormalizedMcpServerInfo[]` via `useTamboMcpServerInfos()`.
  */
 export const TamboRegistryProvider: React.FC<
   PropsWithChildren<TamboRegistryProviderProps>

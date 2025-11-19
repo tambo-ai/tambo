@@ -2,28 +2,39 @@ import type TamboAI from "@tambo-ai/typescript-sdk";
 import { StagedImage } from "../hooks/use-message-images";
 
 /**
- * Parses text and extracts @-mentions as resource references. Resources are
- * identified by @ followed by optional server-key prefix (e.g., "my-mcp:") and
- * a URI (e.g., "my-spreadsheet://page2/cell4").
+ * Parses text and extracts inline MCP resource mentions into `resource`
+ * content parts.
  *
- * If a whitelist of known prefixes is provided, any recognized prefix will be
- * stripped from the resource URI before creating the content part. This allows
- * the URI to be sent directly to the MCP server without the local prefix.
+ * Inline syntax:
+ * - `@<serverKey>:<uri>` where `<serverKey>` is present in `knownPrefixes`.
+ * - `serverKey` must match `/^[a-zA-Z0-9_-]+$/` and is the same value exposed
+ *   on `McpServerInfo.serverKey`.
  *
- * Note this is just a temporary solution until we have an editor that can deal
- * with resource mentions directly.
- * @param text The text to parse
- * @param knownPrefixes Optional set of MCP server keys that are recognized prefixes. If a resource URI starts with one of these prefixes, it will be stripped.
- * @returns Array of content parts with text and resource mentions parsed
+ * Example:
+ * - `Please update server-a:issue://123` becomes:
+ *   - `{ type: "text", text: "Please update " }`
+ *   - `{ type: "resource", resource: { uri: "issue://123" } }`
+ *
+ * When no valid resource mention is found, this function returns either a
+ * single `text` part with the original string, or an empty array for an empty
+ * string. This is a temporary parser until we have an editor that can manage
+ * resource mentions directly.
+ * @param text The text to parse.
+ * @param knownPrefixes Set of MCP server keys that are recognized prefixes.
+ * @returns Array of content parts with text and resource mentions parsed.
  */
 function parseResourceMentions(
   text: string,
   knownPrefixes: Set<string>,
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
-  // Match @-mentions: @ followed by optional prefix (alphanumeric/hyphen + colon) and then a URI
-  // URIs must contain at least one :// or : to distinguish from email addresses
-  // Stops at whitespace or end of string
-  const resourceRegex = /@([a-zA-Z0-9-]*:\/\/[^\s]+|[a-zA-Z0-9-]+:[^\s]+)/g;
+  // Match @-mentions: @ followed by a serverKey-like prefix and a URI.
+  // - serverKey: one or more of [a-zA-Z0-9_-]
+  // - URI: any non-whitespace suffix after "://" or ":"
+  //
+  // NOTE: The `[a-zA-Z0-9_-]+` prefix must stay in sync with the serverKey
+  // docs in `mcp-server-info.ts` and the validation in `normalizeServerInfo`
+  // in `tambo-registry-provider.tsx`.
+  const resourceRegex = /@([a-zA-Z0-9_-]+:\/\/[^\s]+|[a-zA-Z0-9_-]+:[^\s]+)/g;
   function matchesKnownPrefix(uri: string) {
     for (const prefix of knownPrefixes) {
       if (uri.startsWith(`${prefix}:`)) {
@@ -31,6 +42,25 @@ function parseResourceMentions(
       }
     }
     return false;
+  }
+
+  function pushTextPart(
+    parts: TamboAI.Beta.Threads.ChatCompletionContentPart[],
+    textPart: string,
+  ) {
+    if (!textPart) {
+      return;
+    }
+
+    const last = parts[parts.length - 1];
+    if (last?.type === "text") {
+      last.text += textPart;
+    } else {
+      parts.push({
+        type: "text",
+        text: textPart,
+      });
+    }
   }
 
   const parts: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
@@ -49,10 +79,7 @@ function parseResourceMentions(
 
     // Add text before the resource mention
     if (match.index !== undefined && match.index > lastIndex) {
-      parts.push({
-        type: "text",
-        text: text.slice(lastIndex, match.index),
-      });
+      pushTextPart(parts, text.slice(lastIndex, match.index));
     }
 
     // Strip the known prefix from the URI
@@ -78,10 +105,7 @@ function parseResourceMentions(
 
   // Add remaining text
   if (lastIndex < text.length) {
-    parts.push({
-      type: "text",
-      text: text.slice(lastIndex),
-    });
+    pushTextPart(parts, text.slice(lastIndex));
   }
 
   // If no resources were found, return original text as single part (unless empty string)

@@ -19,13 +19,13 @@ export enum MCPTransport {
 /**
  * User-provided configuration for an MCP server.
  *
- * This is the type accepted by `TamboProvider` / `TamboRegistryProvider` in
- * the `mcpServers` prop.
+ * This type is accepted by `TamboProvider` / `TamboRegistryProvider` via the
+ * `mcpServers` prop. It captures connection metadata (URL, headers, transport,
+ * serverKey) plus optional MCP request handlers.
  *
- * The `handlers` field is intentionally typed as `unknown` here so the core
- * SDK does not depend on the MCP subpackage. In the `@tambo-ai/react/mcp`
- * subpackage this is treated as `Partial<MCPHandlers>` (with
- * `elicitation` / `sampling` callbacks).
+ * The `handlers` field is a `Partial<MCPHandlers>` whose callbacks correspond
+ * to the MCP protocol types (`ElicitRequest`, `CreateMessageRequest`, etc.)
+ * and are consumed directly by the MCP client/provider layer.
  */
 export interface McpServerInfo {
   /** Optional name for the MCP server */
@@ -45,37 +45,39 @@ export interface McpServerInfo {
    * - resources: `<serverKey>:<resourceUrl>`
    * - tools: `<serverKey>__<toolName>`
    *
+   * Inline resource parsing uses the `@<serverKey>:<uri>` syntax in user text,
+   * so `serverKey` must match `/^[a-zA-Z0-9_-]+$/`. If you change how keys are
+   * derived, update both this documentation and the parser in
+   * `react-sdk/src/util/message-builder.ts` to keep them in sync.
+   *
    * If not provided, a key will be derived from the URL hostname.
    * For example, "https://mcp.linear.app/mcp" becomes "linear".
    */
   serverKey?: string;
   /**
-   * Optional handlers for elicitation and sampling requests from the server.
+   * Optional per-server handlers for MCP `elicitation` and `sampling`
+   * requests.
    *
-   * Note: These callbacks should be stable (e.g., wrapped in useCallback or
-   * defined outside the component) to avoid constant re-registration of the
-   * MCP server on every render.
+   * When provided, these override any provider-level handlers configured on
+   * `TamboMcpProvider` for this server. If omitted, only the provider-level
+   * handlers (if any) are used.
+   *
+   * Handlers should be referentially stable (for example, wrapped in
+   * `useCallback` or defined outside the component) to avoid re-registering
+   * servers on every render.
    */
   handlers?: Partial<MCPHandlers>;
 }
 
 /**
- * Handlers for MCP requests - these are only used if the server supports the corresponding capabilities
- * @param elicitation - Handler for elicitation requests (receives request and RequestHandlerExtra with AbortSignal)
- * @param sampling - Handler for sampling requests (receives request and RequestHandlerExtra with AbortSignal)
- * @example
- * ```typescript
- * const mcp = await MCPClient.create(
- *     'https://api.example.com/mcp',
- *     MCPTransport.HTTP,
- *     {},
- *     undefined,
- *     undefined,
- *     {
- *       elicitation: (e, extra) => Promise.resolve({...}),
- *     },
- * );
- * ```
+ * Strongly-typed handlers for MCP requests.
+ *
+ * These mirror the MCP protocol:
+ * - `elicitation` handles `ElicitRequest` / `ElicitResult`.
+ * - `sampling` handles `CreateMessageRequest` / `CreateMessageResult`.
+ *
+ * Both callbacks receive a `RequestHandlerExtra` whose `signal` is used for
+ * cancellation.
  */
 export interface MCPHandlers {
   elicitation: MCPElicitationHandler;

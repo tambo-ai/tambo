@@ -758,7 +758,7 @@ describe("useTamboMcpResourceList - resource management", () => {
     expect(resource2?.server.url).toBe("https://server-b.example");
   });
 
-  it("should not prefix resources when only one server exists", async () => {
+  it("should prefix resources even when only one server exists", async () => {
     const serverAResources = {
       resources: [
         {
@@ -826,13 +826,13 @@ describe("useTamboMcpResourceList - resource management", () => {
       expect(capturedResources.length).toBe(1);
     });
 
-    // ALWAYS prefix, even with only 1 server
+    // Resources are ALWAYS prefixed, even when only a single server exists.
     expect(capturedResources[0].resource.uri).toBe(
       "server-a:file:///home/user/doc.txt",
     );
   });
 
-  it("should remove resource prefixes when a server is removed", async () => {
+  it("should drop resources for removed servers but keep prefixes stable", async () => {
     const serverAResources = {
       resources: [
         {
@@ -966,15 +966,21 @@ describe("useTamboMcpResourceList - resource management", () => {
       </TamboClientContext.Provider>,
     );
 
-    // Wait for server B resources to be removed (prefixes remain even with 1 server)
+    // When a server is removed we drop its resources entirely, but we never
+    // rewrite URIs for remaining servers; prefixes are stable identifiers.
     await waitFor(() => {
-      expect(capturedResources.length).toBe(2);
-    });
+      const updatedUris = capturedResources.map((r) => r.resource.uri);
 
-    const updatedUris = capturedResources.map((r) => r.resource.uri);
-    expect(updatedUris).toContain("server-a:file:///home/user/doc1.txt"); // ALWAYS prefix
-    expect(updatedUris).toContain("server-a:file:///home/user/doc2.txt");
-    expect(updatedUris).not.toContain("server-b:file:///workspace/code.js"); // Server B removed
+      expect(updatedUris).toHaveLength(2);
+      expect(new Set(updatedUris).size).toBe(2); // no duplicates
+      expect(updatedUris).toEqual(
+        expect.arrayContaining([
+          "server-a:file:///home/user/doc1.txt",
+          "server-a:file:///home/user/doc2.txt",
+        ]),
+      );
+      expect(updatedUris).not.toContain("server-b:file:///workspace/code.js"); // Server B removed
+    });
   });
 });
 

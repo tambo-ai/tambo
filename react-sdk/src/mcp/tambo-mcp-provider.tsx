@@ -54,13 +54,10 @@ export function extractErrorMessage(content: unknown): string {
 /**
  * Normalized MCP server information as consumed by the provider.
  *
- * Extends `NormalizedMcpServerInfo` from the core model by:
- * - narrowing `handlers` to `Partial<MCPHandlers>`
- * - adding a stable `key` derived from URL/transport/headers
- *
- * The registry is responsible for producing `NormalizedMcpServerInfo`
- * instances; this type adds the MCP-specific wiring needed to connect and
- * track clients.
+ * Extends `NormalizedMcpServerInfo` with a stable `key` used to track client
+ * instances and tool ownership. No additional normalization of `handlers`
+ * happens here; the registry remains the single source of truth for server
+ * metadata.
  */
 interface McpServerConfig extends NormalizedMcpServerInfo {
   /**
@@ -173,7 +170,7 @@ export const TamboMcpProvider: FC<{
     // Create a map of server key -> server info for efficient lookups
     const serverMap = new Map<string, McpServerConfig>();
     mcpServers.forEach((server) => {
-      const serverInfo = normalizeServerInfo(server);
+      const serverInfo = toMcpServerConfig(server);
       // Store without cloning to avoid unnecessary allocation
       serverMap.set(serverInfo.key, serverInfo);
     });
@@ -493,14 +490,18 @@ export const useTamboMcpElicitation = (): ElicitationContextState => {
 export const useTamboElicitationContext = useTamboMcpElicitation;
 
 /**
- * Normalizes registry server metadata into a `McpServerConfig`.
+ * Decorates registry metadata with a stable key for provider bookkeeping.
  *
- * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
- * `transport` and a `serverKey` derived by the registry, and narrows the
- * opaque `handlers` field to `Partial<MCPHandlers>`.
- * @returns The normalized MCP server config
+ * The registry is the single source of truth for `NormalizedMcpServerInfo`
+ * (including `serverKey` and `handlers`). Here we only add a `key` derived
+ * from URL, transport, and custom headers for client and tool ownership
+ * tracking.
+ *
+ * NOTE: `getMcpServerUniqueKey(server)` must remain stable for a given
+ * (url, transport, customHeaders) tuple. Changing its derivation is a
+ * breaking change for client identity and tool ownership tracking.
  */
-function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
+function toMcpServerConfig(server: NormalizedMcpServerInfo): McpServerConfig {
   const key = getMcpServerUniqueKey(server);
   return {
     ...server,
