@@ -8,8 +8,8 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "noImplicitAny": false,
-    "moduleResolution": "bundler",
-    "module": "preserve",
+    "moduleResolution": "node",
+    "module": "commonjs",
     "resolveJsonModule": true,
     "sourceMap": true,
     "paths": {
