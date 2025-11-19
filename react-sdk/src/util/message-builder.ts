@@ -108,11 +108,6 @@ function parseResourceMentions(
     pushTextPart(parts, text.slice(lastIndex));
   }
 
-  // If no resources were found, return original text as single part (unless empty string)
-  if (parts.length === 0) {
-    return text ? [{ type: "text", text }] : [];
-  }
-
   return parts;
 }
 
