@@ -86,7 +86,7 @@ export const MessageThreadFull = React.forwardRef<
     },
     {
       id: "suggestion-3",
-      title: "Examples",
+      title: "Examplesa",
       detailedSuggestion: "Show me some example queries I can try.",
       messageId: "examples-query",
     },
