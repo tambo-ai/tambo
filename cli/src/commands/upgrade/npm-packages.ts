@@ -12,6 +12,7 @@ export async function upgradeNpmPackages(
   options: UpgradeOptions,
 ): Promise<boolean> {
   const spinner = ora("Upgrading npm packages...").start();
+  const allowNonInteractive = Boolean(options.yes ?? options.acceptAll);
 
   try {
     // Read package.json to identify dependencies
@@ -24,7 +25,10 @@ export async function upgradeNpmPackages(
     // First, try to install npm-check-updates if not available
     spinner.text = "Checking for npm-check-updates...";
     try {
-      execSync("npx --version", { stdio: "ignore" });
+      execSync("npx --version", {
+        stdio: "ignore",
+        allowNonInteractive,
+      });
     } catch {
       spinner.fail("npx is required but not available");
       return false;
@@ -54,15 +58,16 @@ export async function upgradeNpmPackages(
       "--upgrade",
       "--target",
       "latest",
-      "--interactive",
+      allowNonInteractive ? "" : "--interactive",
       "--timeout",
       "60000",
       "--filter",
       installedSafePackages.join(","),
-    ];
+    ].filter(Boolean);
 
     execSync(`npx npm-check-updates ${ncuFlags.join(" ")}`, {
       stdio: "inherit",
+      allowNonInteractive,
     });
 
     // Now install the updated dependencies
@@ -71,6 +76,7 @@ export async function upgradeNpmPackages(
 
     execSync(`npm install${npmFlags}`, {
       stdio: options.silent ? "ignore" : "inherit",
+      allowNonInteractive,
     });
 
     console.log("\n");

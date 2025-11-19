@@ -434,6 +434,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       acceptAll: Boolean(flags.acceptAll),
       prefix: flags.prefix as string | undefined,
+      yes: Boolean(flags.yes ?? flags.y),
     });
     return;
   }

@@ -75,19 +75,28 @@ Run ${chalk.cyan("tambo --help")} or ${chalk.cyan("tambo <command> --help")} for
   return result as T;
 }
 
+export interface SafeExecSyncOptions extends ExecSyncOptions {
+  /**
+   * Allow execution in non-interactive mode (e.g., when user passes --yes flag)
+   */
+  allowNonInteractive?: boolean;
+}
+
 /**
  * Safe wrapper around execSync that prevents execution of external commands
- * in non-interactive environments.
+ * in non-interactive environments unless explicitly allowed.
  *
  * @param command - The command to execute
- * @param options - Options to pass to execSync
- * @throws NonInteractiveError if running in a non-interactive environment
+ * @param options - Options to pass to execSync, including allowNonInteractive flag
+ * @throws NonInteractiveError if running in a non-interactive environment without allowNonInteractive
  */
 export function execSync(
   command: string,
-  options?: ExecSyncOptions,
+  options?: SafeExecSyncOptions,
 ): Buffer | string {
-  if (!isInteractive()) {
+  const { allowNonInteractive, ...execOptions } = options ?? {};
+
+  if (!isInteractive() && !allowNonInteractive) {
     throw new NonInteractiveError(
       `${chalk.red("Error: Cannot execute external command in non-interactive mode.")}\n\n` +
         `${chalk.yellow("Command:")} ${command}\n\n` +
@@ -96,5 +105,5 @@ export function execSync(
     );
   }
 
-  return nodeExecSync(command, options);
+  return nodeExecSync(command, execOptions);
 }

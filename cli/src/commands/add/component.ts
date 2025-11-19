@@ -117,17 +117,20 @@ export function cn(...inputs: ClassValue[]) {
 
     try {
       const legacyFlag = options.legacyPeerDeps ? " --legacy-peer-deps" : "";
+      const allowNonInteractive = Boolean(options.yes);
 
       if (prodDeps.length > 0) {
         execSync(`npm install${legacyFlag} ${prodDeps.join(" ")}`, {
           stdio: "inherit",
           encoding: "utf-8",
+          allowNonInteractive,
         });
       }
       if (devDeps.length > 0) {
         execSync(`npm install -D${legacyFlag} ${devDeps.join(" ")}`, {
           stdio: "inherit",
           encoding: "utf-8",
+          allowNonInteractive,
         });
       }
     } catch (error) {
