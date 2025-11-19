@@ -11,7 +11,7 @@ import { REQUEST } from "@nestjs/core";
 import { decryptApiKey } from "@tambo-ai-cloud/core";
 import {
   getDb,
-  HydraDatabase,
+  type HydraDatabase,
   HydraTransaction,
   schema,
 } from "@tambo-ai-cloud/db";

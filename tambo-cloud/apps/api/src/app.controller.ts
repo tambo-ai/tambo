@@ -14,7 +14,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { operations } from "@tambo-ai-cloud/db";
-import { Request } from "express";
+import { type Request } from "express";
 import { AppService } from "./app.service";
 import {
   CreateMcpAccessTokenDto,

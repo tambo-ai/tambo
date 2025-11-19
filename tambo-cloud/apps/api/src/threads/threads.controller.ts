@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { AsyncQueue, GenerationStage } from "@tambo-ai-cloud/core";
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";

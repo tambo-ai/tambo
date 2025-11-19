@@ -18,7 +18,7 @@ import {
 import * as Sentry from "@sentry/nestjs";
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
 import { getDb, operations } from "@tambo-ai-cloud/db";
-import { Request } from "express";
+import { type Request } from "express";
 import { SignJWT } from "jose";
 import {
   OAuthTokenRequestDto,

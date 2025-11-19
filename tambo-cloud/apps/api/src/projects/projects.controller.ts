@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiSecurity } from "@nestjs/swagger";
-import { Request } from "express";
+import { type Request } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import {
   ProjectResponse,

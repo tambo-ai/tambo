@@ -4,8 +4,8 @@ import {
   Inject,
   Injectable,
 } from "@nestjs/common";
-import { HydraDatabase, operations } from "@tambo-ai-cloud/db";
-import { Request } from "express";
+import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
+import { type Request } from "express";
 import { DATABASE } from "../../common/middleware/db-transaction-middleware";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
 import { extractContextInfo } from "../../common/utils/extract-context-info";
