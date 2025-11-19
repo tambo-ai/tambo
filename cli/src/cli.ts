@@ -377,7 +377,10 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       showListHelp();
       return;
     }
-    await handleListComponents(flags.prefix as string | undefined);
+    await handleListComponents({
+      prefix: flags.prefix as string | undefined,
+      yes: Boolean(flags.yes ?? flags.y),
+    });
     return;
   }
 

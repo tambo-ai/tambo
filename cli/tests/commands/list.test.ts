@@ -341,7 +341,7 @@ describe("handleListComponents", () => {
       vol.fromJSON(structure);
 
       // Execute with explicit prefix
-      await handleListComponents("custom/path");
+      await handleListComponents({ prefix: "custom/path" });
 
       // Verify - with explicit prefix, files are directly in that path
       const output = logs.join("\n");
