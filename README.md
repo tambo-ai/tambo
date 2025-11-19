@@ -22,6 +22,7 @@
 
 ## What is Tambo?
 
+testing
 Tambo is a generative UI SDK for React. The AI dynamically decides which components to render and what props to pass based on natural language conversations.
 
 **Generative UI makes software truly adaptive**—your interface responds to what users need, not what you predicted they'd need. Users describe their intent, the software adapts.
