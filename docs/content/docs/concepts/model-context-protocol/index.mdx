@@ -22,6 +22,9 @@ Tambo supports two ways to connect to MCP servers:
       {
         // MCP server configuration
         url: "http://some-mcp-endpoint.com",
+        // Optional stable prefix used when multiple MCP servers are configured
+        // If omitted, a key is derived from the URL hostname
+        serverKey: "external",
         // Optional custom headers, eg.
         // { "Authorization": `Bearer ${token}` } or { "X-Api-Key": "1234567890" }
         customHeaders: {},
@@ -33,3 +36,10 @@ Tambo supports two ways to connect to MCP servers:
   </TamboMcpProvider>
 </TamboProvider>
 ```
+
+When more than one MCP server is configured, Tambo prefixes names using `serverKey` to avoid collisions:
+
+- Prompts: `serverKey:promptName`
+- Tools: `serverKey__toolName`
+
+If you don't specify `serverKey`, Tambo derives one from the server URL hostname (for example, `https://mcp.linear.app/mcp` becomes `linear`). For predictable behavior across environments, set `serverKey` explicitly. Avoid `:` and `__` in the `serverKey` (since prompts use `:` and tools use `__` as separators); prefer letters, numbers, `_`, and `-`. With a single MCP server, names are not prefixed.

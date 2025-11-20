@@ -1,0 +1,414 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "../styles/tiptap-editor.css";
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* *=========== Default theme =========== */
+/* @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --ring: 240 10% 3.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --ring: 240 4.9% 83.9%;
+  }
+} */
+
+@layer base {
+  :root {
+    /* Main background and text colors */
+    --background: 150 30% 96%; /* #F2F8F6 */
+    --foreground: 162 30% 8%; /* #0E1A17 */
+
+    /* Card and popover styling */
+    --card: 150 25% 92%; /* #E5F0ED */
+    --card-foreground: 162 30% 8%; /* #0E1A17 */
+    --popover: 150 30% 96%; /* #F2F8F6 */
+    --popover-foreground: 162 30% 8%; /* #0E1A17 */
+
+    /* Primary colors (from your logo) */
+    --primary: 157 100% 75%; /* #7FFFC4 */
+    --primary-foreground: 186 94% 13%; /* #023A41 */
+
+    /* Secondary colors */
+    --secondary: 217 91% 67%; /* #5C94F7 */
+    --secondary-foreground: 0 0% 100%; /* #FFF */
+
+    /* Muted colors */
+    --muted: 157 25% 88%; /* #D8E9E4 */
+    --muted-foreground: 186 94% 13%; /* #023A41 */
+
+    /* Accent colors */
+    --accent: 320 100% 80%; /* Brighter pink for better contrast (orginal: #FFC4EB) */
+    --accent-foreground: 162 30% 8%; /* #0E1A17 */
+
+    /* Destructive colors (keeping your existing one) */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%; /* #FFF */
+
+    /* Border and input styling */
+    --border: 157 25% 88%; /* #D8E9E4 */
+    --input: 157 25% 88%; /* #D8E9E4 */
+    --ring: 157 100% 75%; /* #7FFFC4 */
+
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Chart colors */
+    --chart-1: 157 100% 75%; /* #7FFFC4 */
+    --chart-2: 320 100% 88%; /* #FFC4EB */
+    --chart-3: 217 91% 67%; /* #5C94F7 */
+    --chart-4: 49 97% 51%; /* #FED807 */
+    --chart-5: 186 94% 13%; /* #023A41 */
+
+    /* Color palette */
+    --color-1: 157 100% 75%; /* #7FFFC4 */
+    --color-2: 320 100% 88%; /* #FFC4EB */
+    --color-3: 217 91% 67%; /* #5C94F7 */
+    --color-4: 49 97% 51%; /* #FED807 */
+    --color-5: 186 94% 13%; /* #023A41 */
+
+    --header-height: 3.5rem;
+    --dashboard-header-height: 3rem;
+    font-family: Inter, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
+  }
+}
+
+.shadow-light {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.085);
+}
+
+.shadow-dark {
+  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.141);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  @supports (font-variation-settings: normal) {
+    :root {
+      font-family: InterVariable, sans-serif;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
+    }
+  }
+
+  body {
+    @apply bg-background;
+  }
+
+  /* Font utility classes */
+  .font-sentient {
+    font-family: var(--font-sentient-light), serif;
+  }
+
+  .font-heading {
+    font-family: var(--font-sentient-light), serif;
+  }
+
+  /* width */
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  ::-webkit-scrollbar:horizontal {
+    height: 5px;
+  }
+
+  /* Fix for scrollbar corner overlap */
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+  }
+}
+
+/* Icon animations */
+@keyframes icon-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0.4);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(127, 255, 196, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0);
+  }
+}
+
+@keyframes icon-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes border-wave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes star-sparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1) rotate(180deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes attention-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(92, 148, 247, 0.4);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 8px rgba(92, 148, 247, 0.1);
+  }
+}
+
+.icon-container {
+  transition: all 0.3s ease;
+}
+
+.animate-border-wave {
+  background-size: 400% 400%;
+  animation: border-wave 3s ease-in-out infinite;
+}
+
+.icon-container:hover {
+  transform: scale(1.1);
+}
+
+.pulse-animation {
+  animation: icon-pulse 2s infinite;
+}
+
+.float-animation {
+  animation: icon-float 3s ease-in-out infinite;
+}
+
+.shimmer-animation {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-animation::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.star-sparkle-animation {
+  animation: star-sparkle 2s ease-in-out infinite;
+}
+
+.attention-pulse-animation {
+  animation: attention-pulse 3s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+:root .tambo-theme {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 10% 3.9%;
+  --radius: 0.5rem;
+}
+
+/* Scroll snap behavior */
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Add some scroll margin to account for fixed header */
+#code-examples {
+  scroll-margin-top: 4rem;
+}
+
+/* Section highlight animation */
+@keyframes section-highlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0);
+    transform: scale(0.99);
+  }
+  30% {
+    box-shadow: 0 0 25px 5px rgba(127, 255, 196, 0.25);
+    transform: scale(1.01);
+  }
+  70% {
+    box-shadow: 0 0 25px 5px rgba(127, 255, 196, 0.25);
+    transform: scale(1.01);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(127, 255, 196, 0);
+    transform: scale(1);
+  }
+}
+
+.section-highlight {
+  animation: section-highlight 1.5s ease-in-out;
+  border-radius: var(--radius);
+  transition: transform 0.3s ease;
+}
+
+@import "./highlight-custom.css";
+
+/* Code block styles for rehype-pretty-code */
+pre {
+  @apply rounded-lg p-4 overflow-x-auto my-4;
+  background-color: #f6f8fa; /* GitHub light theme background */
+}
+
+/* Dark-mode override temporarily disabled. Re-enable when dark theme is supported. */
+/* @media (prefers-color-scheme: dark) {
+  pre {
+    background-color: #0d1117; 
+  }
+} */
+
+code {
+  @apply text-sm font-mono;
+}
+
+/* Shiki syntax highlighting - use CSS variables generated by rehype-pretty-code */
+pre code span {
+  color: var(--shiki-light);
+}
+
+/* @media (prefers-color-scheme: dark) {
+  pre code span {
+    color: var(--shiki-dark);
+  }
+} */
+
+/* Inline code (not in pre blocks) */
+:not(pre) > code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-foreground;
+}

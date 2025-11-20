@@ -1,0 +1,1 @@
+CREATE POLICY "project_user_insert_policy" ON "projects" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (TRUE);

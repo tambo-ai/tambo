@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS create_project(text, uuid, text);

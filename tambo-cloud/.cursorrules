@@ -1,0 +1,3 @@
+Always read code first before making changes.
+Write functional code, with minimal abstraction.
+Run npm lint before completing changes.

@@ -8,13 +8,16 @@ import path from "path";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
+import { getLibDirectory } from "./shared/path-utils.js";
 
 /**
  * Creates a tambo.ts file with empty registry of tools and components
  * @param installPath The base installation path
  */
 async function createTamboTsFile(installPath: string): Promise<void> {
-  const libDir = path.join(process.cwd(), installPath.split("/")[0], "lib");
+  const projectRoot = process.cwd();
+  // Derive lib directory consistently with other commands
+  const libDir = getLibDirectory(projectRoot, installPath, false);
   fs.mkdirSync(libDir, { recursive: true });
 
   const tamboTsPath = path.join(libDir, "tambo.ts");
@@ -131,7 +134,7 @@ function displaySelfHostInstructions(): void {
   );
   console.log(
     chalk.gray("Repo:"),
-    chalk.cyan("https://github.com/tambo-ai/tambo-cloud"),
+    chalk.cyan("https://github.com/tambo-ai/tambo"),
   );
 
   console.log(chalk.bold("\nQuick start with Docker:"));
@@ -324,7 +327,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   if (openRepo) {
     try {
       await open(
-        "https://github.com/tambo-ai/tambo-cloud/blob/main/README.md#getting-started",
+        "https://github.com/tambo-ai/tambo/blob/main/tambo-cloud/README.md#getting-started",
       );
     } catch (_e) {
       // non-fatal

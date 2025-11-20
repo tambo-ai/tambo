@@ -1,6 +1,7 @@
 "use client";
-import { CLI } from "@/components/cli";
-import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
+
+import { ComponentCodePreview } from "@/components/component-code-preview";
+import { InstallationSection } from "@/components/installation-section";
 import {
   ThreadHistory,
   ThreadHistoryHeader,
@@ -48,270 +49,348 @@ const mockThreads: TamboThread[] = [
 ];
 
 export default function ThreadHistoryPage() {
-  const usageCode = `import { 
-  ThreadHistory, 
-  ThreadHistoryHeader, 
+  return (
+    <div className="prose max-w-8xl space-y-12">
+      <header className="space-y-4">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+          Thread History
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          A primitive component that displays a sidebar with conversation
+          history, search functionality, and thread management. Supports
+          collapsible behavior and can be positioned on left or right.
+        </p>
+      </header>
+
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Examples</h2>
+
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="Left Position (Expanded)"
+            component={
+              <div className="relative h-96 bg-muted rounded-lg overflow-hidden border">
+                <TamboStubProvider
+                  thread={mockThreads[0]}
+                  threads={{
+                    items: mockThreads,
+                    total: 1,
+                    count: 1,
+                    hasNextPage: () => false,
+                  }}
+                  projectId="1"
+                  contextKey="demo-left"
+                >
+                  <ThreadHistory
+                    contextKey="demo-left"
+                    position="left"
+                    defaultCollapsed={false}
+                    className="relative bg-card border-r"
+                  >
+                    <ThreadHistoryHeader />
+                    <ThreadHistoryNewButton />
+                    <ThreadHistorySearch />
+                    <ThreadHistoryList />
+                  </ThreadHistory>
+                </TamboStubProvider>
+                <div className="ml-64 p-4 h-full">
+                  <p className="text-muted-foreground">
+                    Main content area would go here
+                  </p>
+                </div>
+              </div>
+            }
+            code={`import {
+  ThreadHistory,
+  ThreadHistoryHeader,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
-  ThreadHistoryList 
-} from "@/components/ui/thread-history";
+  ThreadHistoryList,
+} from "@tambo-ai/react";
 
-// Basic usage (left sidebar)
-<ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>
-  <ThreadHistoryHeader />
-  <ThreadHistoryNewButton />
-  <ThreadHistorySearch />
-  <ThreadHistoryList />
-</ThreadHistory>
-
-// Right sidebar with callbacks
-<ThreadHistory 
-  contextKey="my-app" 
-  position="right" 
-  defaultCollapsed={true}
-  onThreadChange={() => console.log("Thread changed")}
->
-  <ThreadHistoryHeader />
-  <ThreadHistoryNewButton />
-  <ThreadHistorySearch />
-  <ThreadHistoryList />
-</ThreadHistory>`;
-
-  const installCommand = "npx tambo add thread-history";
-
+export function ChatSidebar() {
   return (
-    <div className="py-8 max-w-4xl mx-auto">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-4">Thread History</h1>
-          <p className="text-lg text-muted-foreground mb-6">
-            A primitive component that displays a sidebar with conversation
-            history, search functionality, and thread management. Supports
-            collapsible behavior and can be positioned on left or right.
-          </p>
+    <ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>
+      <ThreadHistoryHeader />
+      <ThreadHistoryNewButton />
+      <ThreadHistorySearch />
+      <ThreadHistoryList />
+    </ThreadHistory>
+  );
+}`}
+            previewClassName="p-0"
+            fullBleed
+          />
+
+          <ComponentCodePreview
+            title="Collapsed State"
+            component={
+              <div className="relative h-96 bg-muted rounded-lg overflow-hidden border">
+                <TamboStubProvider
+                  thread={mockThreads[0]}
+                  threads={{
+                    items: mockThreads,
+                    total: 1,
+                    count: 1,
+                    hasNextPage: () => false,
+                  }}
+                  projectId="1"
+                  contextKey="demo-collapsed"
+                >
+                  <ThreadHistory
+                    contextKey="demo-collapsed"
+                    position="left"
+                    defaultCollapsed={true}
+                    className="relative bg-card border-r"
+                  >
+                    <ThreadHistoryHeader />
+                    <ThreadHistoryNewButton />
+                    <ThreadHistorySearch />
+                    <ThreadHistoryList />
+                  </ThreadHistory>
+                </TamboStubProvider>
+                <div className="ml-12 p-4 h-full">
+                  <p className="text-muted-foreground">
+                    Main content area adjusts when sidebar is collapsed
+                  </p>
+                  <p className="text-sm text-muted-foreground/80 mt-2">
+                    Click the arrow icon in the sidebar to expand
+                  </p>
+                </div>
+              </div>
+            }
+            code={`import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+  ThreadHistoryList,
+} from "@tambo-ai/react";
+
+export function CollapsedSidebar() {
+  return (
+    <ThreadHistory contextKey="my-app" position="left" defaultCollapsed={true}>
+      <ThreadHistoryHeader />
+      <ThreadHistoryNewButton />
+      <ThreadHistorySearch />
+      <ThreadHistoryList />
+    </ThreadHistory>
+  );
+}`}
+            previewClassName="p-0"
+            fullBleed
+          />
+
+          <ComponentCodePreview
+            title="Right Position"
+            component={
+              <div className="relative h-96 bg-muted rounded-lg overflow-hidden border flex">
+                <div className="flex-1 p-4 h-full flex items-center justify-center">
+                  <p className="text-muted-foreground">
+                    Main content area with right sidebar
+                  </p>
+                </div>
+                <TamboStubProvider
+                  thread={mockThreads[0]}
+                  threads={{
+                    items: mockThreads,
+                    total: 1,
+                    count: 1,
+                    hasNextPage: () => false,
+                  }}
+                  projectId="1"
+                  contextKey="demo-right"
+                >
+                  <ThreadHistory
+                    contextKey="demo-right"
+                    position="right"
+                    defaultCollapsed={false}
+                    className="bg-card border-l"
+                    style={{ position: "static" }}
+                  >
+                    <ThreadHistoryHeader />
+                    <ThreadHistoryNewButton />
+                    <ThreadHistorySearch />
+                    <ThreadHistoryList />
+                  </ThreadHistory>
+                </TamboStubProvider>
+              </div>
+            }
+            code={`import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+  ThreadHistoryList,
+} from "@tambo-ai/react";
+
+export function RightSidebarLayout() {
+  return (
+    <div className="flex h-screen">
+      <div className="flex-1 p-6">
+        <p>Main content area with right sidebar</p>
+      </div>
+      <ThreadHistory
+        contextKey="my-app"
+        position="right"
+        defaultCollapsed={false}
+        style={{ position: "static" }}
+        className="border-l"
+      >
+        <ThreadHistoryHeader />
+        <ThreadHistoryNewButton />
+        <ThreadHistorySearch />
+        <ThreadHistoryList />
+      </ThreadHistory>
+    </div>
+  );
+}`}
+            previewClassName="p-0"
+            fullBleed
+          />
+
+          <ComponentCodePreview
+            title="Minimal (Header Only)"
+            component={
+              <div className="relative h-64 bg-muted rounded-lg overflow-hidden border">
+                <TamboStubProvider
+                  thread={mockThreads[0]}
+                  threads={{
+                    items: mockThreads,
+                    total: 1,
+                    count: 1,
+                    hasNextPage: () => false,
+                  }}
+                  contextKey="demo-minimal"
+                >
+                  <ThreadHistory
+                    contextKey="demo-minimal"
+                    position="left"
+                    defaultCollapsed={false}
+                    className="bg-card border-r h-full"
+                    style={{ position: "absolute" }}
+                  >
+                    <ThreadHistoryHeader />
+                    <ThreadHistoryList />
+                  </ThreadHistory>
+                </TamboStubProvider>
+                <div className="ml-64 p-4 h-full">
+                  <p className="text-muted-foreground">
+                    Minimal sidebar with just header and list
+                  </p>
+                </div>
+              </div>
+            }
+            code={`import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+} from "@tambo-ai/react";
+
+export function MinimalSidebar() {
+  return (
+    <ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>
+      <ThreadHistoryHeader />
+      <ThreadHistoryList />
+    </ThreadHistory>
+  );
+}`}
+            previewClassName="p-0"
+            fullBleed
+            minHeight={256}
+          />
         </div>
+      </section>
 
-        {/* Installation */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Installation</h2>
-          <div className="rounded-md">
-            <CLI command={installCommand} />
-          </div>
-          <p className="text-sm text-muted-foreground italic mt-2">
-            Note: This component is automatically included when you install any
-            of the &quot;Message Thread&quot; blocks.
-          </p>
-        </div>
+      <section>
+        <InstallationSection cliCommand="npx tambo add thread-history" />
+      </section>
 
-        {/* Sub-components */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Sub-components</h2>
-          <div className="bg-muted rounded-lg p-4 mb-6">
-            <ul className="space-y-3 text-sm">
-              <li>
-                <strong>
-                  <code>&lt;ThreadHistoryHeader /&gt;</code> -
-                </strong>{" "}
-                Header section with title and collapse/expand toggle button.
-                Handles the sidebar visibility state and provides visual
-                indication of current state.
-              </li>
-              <li>
-                <strong>
-                  <code>&lt;ThreadHistoryNewButton /&gt;</code> -
-                </strong>{" "}
-                Button to create a new conversation thread. Supports keyboard
-                shortcut (Alt+Shift+N) and automatically refreshes the thread
-                list after creation.
-              </li>
-              <li>
-                <strong>
-                  <code>&lt;ThreadHistorySearch /&gt;</code> -
-                </strong>{" "}
-                Search input for filtering through conversation history.
-                Automatically expands the sidebar when focused from collapsed
-                state and filters threads in real-time.
-              </li>
-              <li>
-                <strong>
-                  <code>&lt;ThreadHistoryList /&gt;</code> -
-                </strong>{" "}
-                Displays the list of previous conversation threads. Shows thread
-                metadata like creation time, handles thread switching, and
-                displays appropriate empty states.
-              </li>
-            </ul>
-          </div>
-        </div>
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Component API</h2>
 
-        {/* Sample Code */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Usage</h2>
-          <SyntaxHighlighter code={usageCode} language="tsx" />
-        </div>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">ThreadHistory</h3>
 
-        {/* Left Position Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Left Position (Expanded)</h3>
-          <div className="relative h-96 bg-muted rounded-lg overflow-hidden border">
-            <TamboStubProvider
-              thread={mockThreads[0]}
-              threads={{
-                items: mockThreads,
-                total: 1,
-                count: 1,
-                hasNextPage: () => false,
-              }}
-              projectId="1"
-              contextKey="demo-left"
-            >
-              <ThreadHistory
-                contextKey="demo-left"
-                position="left"
-                defaultCollapsed={false}
-                className="relative bg-card border-r"
-              >
-                <ThreadHistoryHeader />
-                <ThreadHistoryNewButton />
-                <ThreadHistorySearch />
-                <ThreadHistoryList />
-              </ThreadHistory>
-            </TamboStubProvider>
-            <div className="ml-64 p-4 h-full">
-              <p className="text-muted-foreground">
-                Main content area would go here
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Collapsed State Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Collapsed State</h3>
-          <div className="relative h-96 bg-muted rounded-lg overflow-hidden border">
-            <TamboStubProvider
-              thread={mockThreads[0]}
-              threads={{
-                items: mockThreads,
-                total: 1,
-                count: 1,
-                hasNextPage: () => false,
-              }}
-              projectId="1"
-              contextKey="demo-collapsed"
-            >
-              <ThreadHistory
-                contextKey="demo-collapsed"
-                position="left"
-                defaultCollapsed={true}
-                className="relative bg-card border-r"
-              >
-                <ThreadHistoryHeader />
-                <ThreadHistoryNewButton />
-                <ThreadHistorySearch />
-                <ThreadHistoryList />
-              </ThreadHistory>
-            </TamboStubProvider>
-            <div className="ml-12 p-4 h-full">
-              <p className="text-muted-foreground">
-                Main content area adjusts when sidebar is collapsed
-              </p>
-              <p className="text-sm text-muted-foreground/80 mt-2">
-                Click the arrow icon in the sidebar to expand
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Minimal Example */}
-        <div>
-          <h3 className="text-lg font-medium mb-3">Minimal (Header Only)</h3>
-          <div className="relative h-64 bg-muted rounded-lg overflow-hidden border">
-            <TamboStubProvider
-              thread={mockThreads[0]}
-              threads={{
-                items: mockThreads,
-                total: 1,
-                count: 1,
-                hasNextPage: () => false,
-              }}
-              contextKey="demo-minimal"
-            >
-              <ThreadHistory
-                contextKey="demo-minimal"
-                position="left"
-                defaultCollapsed={false}
-                className="relative bg-card border-r"
-              >
-                <ThreadHistoryHeader />
-                <ThreadHistoryList />
-              </ThreadHistory>
-            </TamboStubProvider>
-            <div className="ml-64 p-4 h-full">
-              <p className="text-muted-foreground">
-                Minimal sidebar with just header
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Props Documentation */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Props</h2>
-
-          <h3 className="text-lg font-medium mb-3">ThreadHistory</h3>
-          <div className="bg-muted rounded-lg p-4 mb-6">
-            <table className="w-full text-sm">
+            <table>
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Prop</th>
-                  <th className="text-left py-2">Type</th>
-                  <th className="text-left py-2">Description</th>
+                <tr>
+                  <th>Prop</th>
+                  <th>Type</th>
+                  <th>Default</th>
+                  <th>Description</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">contextKey</td>
-                  <td className="py-2">string</td>
-                  <td className="py-2">
-                    Optional context key to scope thread history
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">position</td>
-                  <td className="py-2">&quot;left&quot; | &quot;right&quot;</td>
-                  <td className="py-2">
-                    Position of the sidebar (default: &quot;left&quot;)
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">defaultCollapsed</td>
-                  <td className="py-2">boolean</td>
-                  <td className="py-2">
-                    Whether the sidebar starts collapsed (default: true)
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-mono">onThreadChange</td>
-                  <td className="py-2">() =&gt; void</td>
-                  <td className="py-2">
-                    Optional callback when thread is switched
-                  </td>
+                <tr>
+                  <td>contextKey</td>
+                  <td>string</td>
+                  <td>-</td>
+                  <td>Optional context key to scope thread history</td>
                 </tr>
                 <tr>
-                  <td className="py-2 font-mono">children</td>
-                  <td className="py-2">React.ReactNode</td>
-                  <td className="py-2">
-                    The sub-components to render within the sidebar
-                  </td>
+                  <td>position</td>
+                  <td>&quot;left&quot; | &quot;right&quot;</td>
+                  <td>&quot;left&quot;</td>
+                  <td>Position of the sidebar</td>
+                </tr>
+                <tr>
+                  <td>defaultCollapsed</td>
+                  <td>boolean</td>
+                  <td>true</td>
+                  <td>Whether the sidebar starts collapsed</td>
+                </tr>
+                <tr>
+                  <td>onThreadChange</td>
+                  <td>() =&gt; void</td>
+                  <td>-</td>
+                  <td>Optional callback when thread is switched</td>
+                </tr>
+                <tr>
+                  <td>children</td>
+                  <td>React.ReactNode</td>
+                  <td>-</td>
+                  <td>The sub-components to render within the sidebar</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <h3 className="text-lg font-medium mb-3">Features</h3>
-          <div className="bg-muted rounded-lg p-4">
-            <ul className="space-y-2 text-sm">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Sub-components</h3>
+
+            <ul>
+              <li>
+                <strong>ThreadHistoryHeader</strong> - Header section with title
+                and collapse/expand toggle button. Handles the sidebar
+                visibility state and provides visual indication of current
+                state.
+              </li>
+              <li>
+                <strong>ThreadHistoryNewButton</strong> - Button to create a new
+                conversation thread. Supports keyboard shortcut (Alt+Shift+N)
+                and automatically refreshes the thread list after creation.
+              </li>
+              <li>
+                <strong>ThreadHistorySearch</strong> - Search input for
+                filtering through conversation history. Automatically expands
+                the sidebar when focused from collapsed state and filters
+                threads in real-time.
+              </li>
+              <li>
+                <strong>ThreadHistoryList</strong> - Displays the list of
+                previous conversation threads. Shows thread metadata like
+                creation time, handles thread switching, and displays
+                appropriate empty states.
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Features</h3>
+
+            <ul>
               <li>
                 <strong>Collapsible Sidebar:</strong> Can be collapsed to save
                 space
@@ -339,7 +418,7 @@ export default function ThreadHistoryPage() {
             </ul>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

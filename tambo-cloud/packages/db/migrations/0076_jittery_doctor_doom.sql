@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "allow_system_prompt_override" boolean DEFAULT false NOT NULL;

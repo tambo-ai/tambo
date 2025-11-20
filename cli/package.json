@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.39.0",
+  "version": "0.41.0",
   "description": "Tambo command-line tool",
   "repository": {
     "type": "git",
@@ -55,14 +55,14 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.76.0",
+    "@tambo-ai/typescript-sdk": "^0.77.0",
     "chalk": "^5.6.0",
     "cli-table3": "^0.6.5",
     "clipboardy": "^5.0.0",
     "deepmerge": "^4.3.1",
     "diff": "^8.0.2",
     "dotenv": "^17.2.3",
-    "fast-equals": "^5.3.2",
+    "fast-equals": "^5.3.3",
     "inquirer": "^12.9.4",
     "meow": "^14.0.0",
     "open": "^10.2.0",
@@ -83,7 +83,7 @@
     "@types/recharts": "^2.0.1",
     "@types/semver": "^7.7.1",
     "jest": "^30.2.0",
-    "memfs": "^4.50.0",
+    "memfs": "^4.51.0",
     "ts-jest": "^29.4.5",
     "typescript": "^5.9.3"
   }

@@ -2,7 +2,6 @@ import chalk from "chalk";
 import fs from "fs";
 import inquirer from "inquirer";
 import ora from "ora";
-import path from "path";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -18,6 +17,10 @@ import {
   handleDependencyInconsistencies,
   type DependencyInconsistency,
 } from "../shared/component-utils.js";
+import {
+  getComponentDirectoryPath,
+  getLegacyComponentDirectoryPath,
+} from "../shared/path-utils.js";
 import type { UpgradeOptions } from "./index.js";
 import { confirmAction, migrateComponentsDuringUpgrade } from "./utils.js";
 import {
@@ -61,11 +64,15 @@ async function prepareFinalComponentList(
     }));
   }
 
+  const projectRoot = process.cwd();
   return componentsToUpgrade.map((component) => {
     if (legacyComponents.includes(component.name)) {
       return {
         name: component.name,
-        installPath: path.join(component.installPath, LEGACY_COMPONENT_SUBDIR),
+        installPath: getLegacyComponentDirectoryPath(
+          projectRoot,
+          component.installPath,
+        ),
         isLegacy: true,
         baseInstallPath: component.installPath,
       };
@@ -104,12 +111,14 @@ export async function upgradeComponents(
     // Find and verify components
     const spinner = ora("Finding components...").start();
 
-    const componentDir = isExplicitPrefix
-      ? path.join(projectRoot, installPath)
-      : path.join(projectRoot, installPath, COMPONENT_SUBDIR);
+    const componentDir = getComponentDirectoryPath(
+      projectRoot,
+      installPath,
+      isExplicitPrefix,
+    );
 
     const legacyDir = !isExplicitPrefix
-      ? path.join(projectRoot, installPath, LEGACY_COMPONENT_SUBDIR)
+      ? getLegacyComponentDirectoryPath(projectRoot, installPath)
       : null;
 
     if (

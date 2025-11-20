@@ -7,7 +7,6 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        project: "./tsconfig.json",
         ecmaVersion: "latest",
         sourceType: "module",
         tsconfigRootDir: import.meta.dirname,
@@ -33,6 +32,18 @@ export default tseslint.config(
   {
     rules: {
       "react/prop-types": "off",
+    },
+  },
+  {
+    files: ["scripts/**/*.mjs", "tests/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "@typescript-eslint/return-await": "off",
+      "@typescript-eslint/promise-function-async": "off",
     },
   },
 );

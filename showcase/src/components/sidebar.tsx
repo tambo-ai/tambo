@@ -1,7 +1,12 @@
-import { navigation, NavigationItem } from "@/lib/navigation";
+"use client";
+
+import { externalLinks, navigation, NavigationItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { memo, useMemo } from "react";
 import { SidebarLink } from "./sidebar-link";
+import { useMobile } from "@/providers/mobile-provider";
+import { Icons } from "./icons";
+import Link from "next/link";
 
 interface SidebarProps {
   className?: string;
@@ -9,7 +14,15 @@ interface SidebarProps {
 
 // Memoized navigation section component
 const NavSection = memo(
-  ({ item, level = 0 }: { item: NavigationItem; level?: number }) => {
+  ({
+    item,
+    level = 0,
+    onNavigate,
+  }: {
+    item: NavigationItem;
+    level?: number;
+    onNavigate?: () => void;
+  }) => {
     // Skip rendering parent items with children if they're just categories
     if (item.href === "#" && item.children) {
       return (
@@ -32,6 +45,7 @@ const NavSection = memo(
                         key={grandchild.title}
                         item={grandchild}
                         level={level + 2}
+                        onNavigate={onNavigate}
                       />
                     ))}
                   </div>
@@ -39,7 +53,12 @@ const NavSection = memo(
               }
 
               return (
-                <SidebarLink key={child.title} item={child} level={level + 1} />
+                <SidebarLink
+                  key={child.title}
+                  item={child}
+                  level={level + 1}
+                  onNavigate={onNavigate}
+                />
               );
             })}
           </div>
@@ -47,12 +66,14 @@ const NavSection = memo(
       );
     }
 
-    return <SidebarLink item={item} level={level} />;
+    return <SidebarLink item={item} level={level} onNavigate={onNavigate} />;
   },
 );
 NavSection.displayName = "NavSection";
 
 export function Sidebar({ className }: SidebarProps) {
+  const { isMobile, isMobileMenuOpen, closeMobileMenu } = useMobile();
+
   // Memoize the sidebar content to prevent unnecessary re-renders
   const sidebarContent = useMemo(() => {
     // First find the "Home" and "Get Started" top-level items
@@ -67,39 +88,86 @@ export function Sidebar({ className }: SidebarProps) {
 
     return (
       <>
-        <nav className="flex flex-col space-y-6">
-          {/* Render "Home" and "Get Started" with reduced spacing */}
-          <div className="space-y-0.5">
-            {homeAndGetStarted.map((item) => (
-              <NavSection key={item.title} item={item} />
-            ))}
-          </div>
+        <div className="flex flex-col flex-grow">
+          <nav className="flex flex-col space-y-6">
+            {/* Render "Home" and "Get Started" with reduced spacing */}
+            <div className="space-y-0.5">
+              {homeAndGetStarted.map((item) => (
+                <NavSection
+                  key={item.title}
+                  item={item}
+                  onNavigate={closeMobileMenu}
+                />
+              ))}
+            </div>
 
-          {/* Render other navigation items */}
-          {otherNavItems.map((item) => (
-            <NavSection key={item.title} item={item} />
-          ))}
-        </nav>
+            {/* Render other navigation items */}
+            {otherNavItems.map((item) => (
+              <NavSection
+                key={item.title}
+                item={item}
+                onNavigate={closeMobileMenu}
+              />
+            ))}
+
+            {/* Render external links */}
+            <div className="pt-2 border-t border-border/40">
+              {externalLinks.map((link) => (
+                <Link
+                  key={link.title}
+                  href={link.href}
+                  target={link.external ? "_blank" : undefined}
+                  rel={link.external ? "noopener noreferrer" : undefined}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent text-sm"
+                  onClick={closeMobileMenu}
+                >
+                  {link.icon === "github" && (
+                    <Icons.github className="h-4 w-4" />
+                  )}
+                  <span>{link.title}</span>
+                </Link>
+              ))}
+            </div>
+          </nav>
+        </div>
+        <div className="pt-4 mt-auto border-t border-border/40">
+          <p className="text-sm text-muted-foreground px-3">
+            Fractal Dynamics Inc © {new Date().getFullYear()}
+          </p>
+        </div>
       </>
     );
-  }, []);
+  }, [closeMobileMenu]);
 
   return (
-    <div
-      className={cn(
-        // Base styles
-        "sidebar fixed top-[var(--header-height)] bottom-0 left-0 border-r border-border/40 p-4 overflow-y-auto flex flex-col bg-background z-40 w-64",
-        // Hide on mobile with CSS rather than conditional rendering to prevent flash
-        "max-md:hidden",
-        className,
+    <>
+      {/* Backdrop for mobile */}
+      {isMobile && isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30"
+          onClick={closeMobileMenu}
+        />
       )}
-    >
-      <div className="flex flex-col flex-grow">{sidebarContent}</div>
-      <div className="pt-4 mt-auto border-t border-border/40">
-        <p className="text-sm text-muted-foreground px-3">
-          Fractal Dynamics Inc © {new Date().getFullYear()}
-        </p>
-      </div>
-    </div>
+
+      {/* Single sidebar that adapts to mobile/desktop with CSS */}
+      <aside
+        className={cn(
+          // Base positioning and size
+          "fixed top-[var(--header-height)] bottom-0 left-0 w-64 z-40",
+          // Background and borders
+          "bg-background border-r border-border/40",
+          // Content layout
+          "p-4 overflow-y-auto flex flex-col",
+          // Mobile: transform off-screen by default, slide in when open
+          "transform transition-transform duration-200",
+          isMobile && !isMobileMenuOpen && "-translate-x-full",
+          // Desktop: always visible, no transform
+          "md:translate-x-0",
+          className,
+        )}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

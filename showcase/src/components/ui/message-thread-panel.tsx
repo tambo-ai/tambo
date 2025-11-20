@@ -6,6 +6,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -123,7 +124,7 @@ const ResizablePanel = React.forwardRef<HTMLDivElement, ResizablePanelProps>(
         {...props}
       >
         <div
-          className="absolute inset-y-0 w-1 cursor-ew-resize hover:bg-gray-300 transition-colors z-50 left-0"
+          className="absolute inset-y-0 w-1 cursor-ew-resize bg-border hover:bg-accent transition-colors z-50 left-0"
           onMouseDown={handleMouseDown}
         />
         {children}
@@ -182,6 +183,7 @@ export const MessageThreadPanel = React.forwardRef<
               <MessageInputToolbar>
                 <MessageInputFileButton />
                 <MessageInputMcpPromptButton />
+                <MessageInputMcpResourceButton />
                 <MessageInputSubmitButton />
               </MessageInputToolbar>
               <MessageInputError />

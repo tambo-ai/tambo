@@ -19,9 +19,10 @@ const repositories: Repository[] = [
     description: "Core tambo functionality, React SDK, CLI, and documentation",
   },
   {
-    name: "Web Server",
-    url: "https://github.com/tambo-ai/tambo-cloud",
-    description: "Hosted backend services and cloud infrastructure",
+    name: "Cloud Services",
+    url: "https://github.com/tambo-ai/tambo",
+    description:
+      "Hosted backend services and cloud infrastructure (tambo-cloud directory)",
   },
 ];
 

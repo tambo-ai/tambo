@@ -1,0 +1,1 @@
+ALTER TABLE "tool_providers" RENAME COLUMN "composio_app_name" TO "composio_app_id";

@@ -49,16 +49,15 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient: new QueryClient(),
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider
+          mcpServers={[{ url: "https://one.example" }, "https://two.example"]}
+        >
           <TamboMcpTokenProvider>
-            <TamboMcpProvider
-              mcpServers={[
-                { url: "https://one.example" },
-                "https://two.example",
-              ]}
-            >
+            <TamboMcpProvider>
               <Inner />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -93,11 +92,13 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient: new QueryClient(),
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider mcpServers={[{ url: "https://ok.example" }]}>
           <TamboMcpTokenProvider>
-            <TamboMcpProvider mcpServers={[{ url: "https://ok.example" }]}>
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>
@@ -133,11 +134,13 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient: new QueryClient(),
           isUpdatingToken: false,
+          mcpAccessToken: null,
+          setMcpAccessToken: () => {},
         }}
       >
-        <TamboRegistryProvider>
+        <TamboRegistryProvider mcpServers={[{ url: "https://fail.example" }]}>
           <TamboMcpTokenProvider>
-            <TamboMcpProvider mcpServers={[{ url: "https://fail.example" }]}>
+            <TamboMcpProvider>
               <Capture />
             </TamboMcpProvider>
           </TamboMcpTokenProvider>

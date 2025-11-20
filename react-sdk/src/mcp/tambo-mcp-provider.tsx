@@ -8,8 +8,15 @@ import React, {
   useState,
 } from "react";
 import { TamboTool } from "../model/component-metadata";
+import {
+  getMcpServerUniqueKey,
+  type NormalizedMcpServerInfo,
+} from "../model/mcp-server-info";
 import { useTamboMcpToken } from "../providers/tambo-mcp-token-provider";
-import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import {
+  useTamboMcpServerInfos,
+  useTamboRegistry,
+} from "../providers/tambo-registry-provider";
 import { isContentPartArray, toText } from "../util/content-parts";
 import { type ElicitationContextState, useElicitation } from "./elicitation";
 import {
@@ -49,31 +56,22 @@ export function extractErrorMessage(content: unknown): string {
 }
 
 /**
- * User-provided configuration for an MCP server.
+ * Normalized MCP server information as consumed by the provider.
+ *
+ * Extends `NormalizedMcpServerInfo` from the core model by:
+ * - narrowing `handlers` to `Partial<MCPHandlers>`
+ * - adding a stable `key` derived from URL/transport/headers
+ *
+ * The registry is responsible for producing `NormalizedMcpServerInfo`
+ * instances; this type adds the MCP-specific wiring needed to connect and
+ * track clients.
  */
-export interface McpServerInfo {
-  /** Optional name for the MCP server */
-  name?: string;
-  /** The URL of the MCP server to connect to */
-  url: string;
-  /** Optional description of the MCP server */
-  description?: string;
-  /** The transport type to use (SSE or HTTP). Defaults to HTTP for string URLs */
-  transport?: MCPTransport;
-  /** Optional custom headers to include in requests */
-  customHeaders?: Record<string, string>;
+interface McpServerConfig extends NormalizedMcpServerInfo {
   /**
    * Optional handlers for elicitation and sampling requests from the server.
-   * Note: These callbacks should be stable (e.g., wrapped in useCallback or defined outside the component)
-   * to avoid constant re-registration of the MCP server on every render.
+   * Interpreted as a partial set of MCP handlers.
    */
   handlers?: Partial<MCPHandlers>;
-}
-
-/**
- * Normalized server information with a stable derived key.
- */
-interface McpServerConfig extends McpServerInfo {
   /**
    * Stable identity for this server derived from its URL/transport/headers.
    * Present for all server states (connected or failed).
@@ -142,19 +140,22 @@ const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
 /**
  * This provider is used to register tools from MCP servers.
  * It automatically includes an internal Tambo MCP server when an MCP access token is available.
+ *
+ * **BREAKING CHANGE**: This provider no longer accepts `mcpServers` as a prop.
+ * Instead, pass `mcpServers` to `TamboProvider` or `TamboRegistryProvider`.
+ * This provider must be wrapped inside `TamboProvider` to access the MCP server registry.
  * @param props - The provider props
- * @param props.mcpServers - Array of MCP server configurations
  * @param props.handlers - Optional handlers applied to all MCP servers unless overridden per-server
  * @param props.children - The children to wrap
  * @returns The TamboMcpProvider component
  */
 export const TamboMcpProvider: FC<{
-  mcpServers: (McpServerInfo | string)[];
   handlers?: ProviderMCPHandlers;
   children: React.ReactNode;
-}> = ({ mcpServers, handlers, children }) => {
+}> = ({ handlers, children }) => {
   const { registerTool } = useTamboRegistry();
   const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
+  const mcpServers = useTamboMcpServerInfos();
   const providerSamplingHandler = handlers?.sampling;
 
   // Elicitation state and default handler
@@ -190,6 +191,7 @@ export const TamboMcpProvider: FC<{
         name: TAMBO_INTERNAL_MCP_SERVER_NAME,
         url: tamboMcpUrl,
         transport: MCPTransport.HTTP,
+        serverKey: "tambo", // Internal server always uses 'tambo' as serverKey
         customHeaders: {
           Authorization: `Bearer ${mcpAccessToken}`,
         },
@@ -255,15 +257,19 @@ export const TamboMcpProvider: FC<{
             if (serverInfo.handlers?.elicitation) {
               effectiveHandlers.elicitation = serverInfo.handlers.elicitation;
             } else if (providerElicitationHandler) {
-              effectiveHandlers.elicitation = async (request, extra) =>
-                await providerElicitationHandler(request, extra, serverInfo);
+              effectiveHandlers.elicitation = async (
+                request: Parameters<MCPElicitationHandler>[0],
+                extra: Parameters<MCPElicitationHandler>[1],
+              ) => await providerElicitationHandler(request, extra, serverInfo);
             }
 
             if (serverInfo.handlers?.sampling) {
               effectiveHandlers.sampling = serverInfo.handlers.sampling;
             } else if (providerSamplingHandler) {
-              effectiveHandlers.sampling = async (request, extra) =>
-                await providerSamplingHandler(request, extra, serverInfo);
+              effectiveHandlers.sampling = async (
+                request: Parameters<MCPSamplingHandler>[0],
+                extra: Parameters<MCPSamplingHandler>[1],
+              ) => await providerSamplingHandler(request, extra, serverInfo);
             }
 
             const client = await MCPClient.create(
@@ -286,25 +292,32 @@ export const TamboMcpProvider: FC<{
             // Register tools from this server (deduplicated by ownership)
             try {
               const tools = await client.listTools();
+              const shouldPrefix = currentServersMap.size > 1;
+
               tools.forEach((tool) => {
-                // Skip if another server already owns this tool
-                const currentOwner = toolOwnerRef.current.get(tool.name);
+                // Prefix tool name with serverKey if multiple servers are present
+                const toolName = shouldPrefix
+                  ? `${serverInfo.serverKey}__${tool.name}`
+                  : tool.name;
+
+                // Skip if another server already owns this tool (using final name for ownership)
+                const currentOwner = toolOwnerRef.current.get(toolName);
                 if (currentOwner && currentOwner !== key) {
                   return;
                 }
 
-                // Record ownership for this server key
+                // Record ownership for this server key (using final name)
                 if (!currentOwner) {
-                  toolOwnerRef.current.set(tool.name, key);
+                  toolOwnerRef.current.set(toolName, key);
                   if (!keyToToolsRef.current.has(key)) {
                     keyToToolsRef.current.set(key, new Set());
                   }
-                  keyToToolsRef.current.get(key)!.add(tool.name);
+                  keyToToolsRef.current.get(key)!.add(toolName);
                 }
 
                 registerTool({
                   description: tool.description ?? "",
-                  name: tool.name,
+                  name: toolName,
                   tool: async (args: Record<string, unknown> = {}) => {
                     const server = clientMap.get(key);
                     if (!server?.client) {
@@ -357,9 +370,12 @@ export const TamboMcpProvider: FC<{
     if (keysToRemove.length > 0) {
       setConnectedMcpServers(Array.from(clientMap.values()));
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentServersMap, registerTool]);
+  }, [
+    currentServersMap,
+    providerElicitationHandler,
+    providerSamplingHandler,
+    registerTool,
+  ]);
 
   // Update handlers when they change (without recreating clients)
   useEffect(() => {
@@ -379,15 +395,19 @@ export const TamboMcpProvider: FC<{
       const effectiveElicitationHandler =
         serverInfo.handlers?.elicitation ??
         (providerElicitationHandler
-          ? async (request, extra) =>
-              await providerElicitationHandler(request, extra, serverInfo)
+          ? async (
+              request: Parameters<MCPElicitationHandler>[0],
+              extra: Parameters<MCPElicitationHandler>[1],
+            ) => await providerElicitationHandler(request, extra, serverInfo)
           : undefined);
 
       const effectiveSamplingHandler =
         serverInfo.handlers?.sampling ??
         (providerSamplingHandler
-          ? async (request, extra) =>
-              await providerSamplingHandler(request, extra, serverInfo)
+          ? async (
+              request: Parameters<MCPSamplingHandler>[0],
+              extra: Parameters<MCPSamplingHandler>[1],
+            ) => await providerSamplingHandler(request, extra, serverInfo)
           : undefined);
 
       // Update handlers unconditionally (allows removal by passing undefined)
@@ -465,16 +485,16 @@ export const useTamboMcpServers = () => {
 };
 
 /**
- * Hook to access elicitation context from TamboMcpProvider.
+ * Hook to access MCP elicitation state from TamboMcpProvider.
  * This provides access to the current elicitation request and methods to respond to it.
  *
  * The elicitation state is automatically managed by TamboMcpProvider when MCP servers
  * request user input through the elicitation protocol.
- * @returns The elicitation context with current request and response handlers
+ * @returns The elicitation state with current request and response handler
  * @example
  * ```tsx
  * function ElicitationUI() {
- *   const { elicitation, resolveElicitation } = useTamboElicitationContext();
+ *   const { elicitation, resolveElicitation } = useTamboMcpElicitation();
  *
  *   if (!elicitation) return null;
  *
@@ -489,7 +509,7 @@ export const useTamboMcpServers = () => {
  * }
  * ```
  */
-export const useTamboElicitationContext = () => {
+export const useTamboMcpElicitation = (): ElicitationContextState => {
   const context = useContext(McpProviderContext);
   return {
     elicitation: context.elicitation,
@@ -498,32 +518,25 @@ export const useTamboElicitationContext = () => {
 };
 
 /**
- * Creates a stable identifier for an MCP server based on its connection properties.
- * Two servers with the same URL, transport, and headers will have the same key.
- * @returns A stable string key identifying the server
+ * @deprecated Use `useTamboMcpElicitation` instead.
+ * This hook will be removed in a future version.
  */
-function getServerKey(
-  serverInfo: Pick<McpServerInfo, "url" | "transport" | "customHeaders">,
-): string {
-  const headerStr = serverInfo.customHeaders
-    ? JSON.stringify(
-        Object.entries(serverInfo.customHeaders)
-          .map(([k, v]) => [k.toLowerCase(), v] as const)
-          .sort(([a], [b]) => a.localeCompare(b)),
-      )
-    : "";
-  return `${serverInfo.url}|${serverInfo.transport ?? MCPTransport.HTTP}|${headerStr}`;
-}
+export const useTamboElicitationContext = useTamboMcpElicitation;
 
 /**
- * Normalizes a server definition (string or object) into a McpServerInfo.
- * @returns The normalized McpServerInfo object
+ * Normalizes registry server metadata into a `McpServerConfig`.
+ *
+ * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
+ * `transport` and a `serverKey` derived by the registry, and narrows the
+ * opaque `handlers` field to `Partial<MCPHandlers>`.
  */
-function normalizeServerInfo(server: McpServerInfo | string): McpServerConfig {
-  const s =
-    typeof server === "string"
-      ? { url: server, transport: MCPTransport.HTTP }
-      : server;
-  const key = getServerKey(s);
-  return { ...s, key };
+function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
+  const key = getMcpServerUniqueKey(server);
+  // Cast handlers to proper type if present
+  const handlers = server.handlers as Partial<MCPHandlers> | undefined;
+  return {
+    ...server,
+    handlers,
+    key,
+  };
 }
