@@ -101,7 +101,7 @@
     "shiki": "^2.5.0",
     "streamdown": "^1.4.0",
     "superjson": "^2.2.2",
-    "tailwind-merge": "^2.4.0",
+    "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7",
     "tldts": "^7.0.17",
