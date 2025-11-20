@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.31.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.30.0...showcase-v0.31.0) (2025-11-20)
+
+
+### Features
+
+* **mcp-resources:** Handle inline mcp resource references with correct prefix behavior, transforming to resource content nodes ([#1308](https://github.com/tambo-ai/tambo/issues/1308)) ([ae90e4a](https://github.com/tambo-ai/tambo/commit/ae90e4af67ea732dac7b795ba3ed873701e2cca8))
+* merge cloud repo into mono repo ([#1314](https://github.com/tambo-ai/tambo/issues/1314)) ([6b88f60](https://github.com/tambo-ai/tambo/commit/6b88f609b3b7ba1b243a2be9a4bb426038e9e596))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1299](https://github.com/tambo-ai/tambo/issues/1299)) ([a5a7ecd](https://github.com/tambo-ai/tambo/commit/a5a7ecddb7e8fada5d4abf5ac4fd516e24d67b85))
+* **deps-dev:** bump the eslint group with 4 updates ([#1299](https://github.com/tambo-ai/tambo/issues/1299)) ([3287eaf](https://github.com/tambo-ai/tambo/commit/3287eaf83e6068fe5d2e0774506da3acf29eeba3))
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.1 to 1.22.0 ([#1307](https://github.com/tambo-ai/tambo/issues/1307)) ([1242270](https://github.com/tambo-ai/tambo/commit/1242270c2e4949e2b4e342ed12da99dc29086a67))
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.1 to 1.22.0 ([#1307](https://github.com/tambo-ai/tambo/issues/1307)) ([3351269](https://github.com/tambo-ai/tambo/commit/3351269f793be2ef261de55f979f32d672f2b6eb))
+* **deps:** bump recharts from 3.3.0 to 3.4.1 ([#1322](https://github.com/tambo-ai/tambo/issues/1322)) ([9fd3710](https://github.com/tambo-ai/tambo/commit/9fd37107757192f3d00462e542d60cf694d6eb04))
+* **deps:** bump the small-safe-packages group with 7 updates ([#1319](https://github.com/tambo-ai/tambo/issues/1319)) ([5dfadc0](https://github.com/tambo-ai/tambo/commit/5dfadc07e9a13fcae9569cf5d939aa81a459df36))
+
 ## [0.30.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.29.0...showcase-v0.30.0) (2025-11-07)
 
 
