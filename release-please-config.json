@@ -3,7 +3,8 @@
   "always-link-local": true,
   "separate-pull-requests": true,
   "always-update": true,
-  "bootstrap-sha": "a65a65ebe6b74e57608f2b347bdf6395f1c404f7",
+  "bootstrap-sha": "afad6013a55f7614de2c2e5c9b090d271e821e01",
+  "commit-search-depth": 50,
   "packages": {
     "react-sdk": {
       "component": "react"
