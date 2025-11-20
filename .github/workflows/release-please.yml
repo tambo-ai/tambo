@@ -55,7 +55,7 @@ jobs:
         run: npm install
 
       - name: Build
-        run: npm run build
+        run: npx turbo build --filter=@tambo-ai/react
 
       - name: Publish @tambo-ai/react to npm
         working-directory: ./react-sdk
@@ -84,7 +84,7 @@ jobs:
         run: npm install
 
       - name: Build
-        run: npm run build
+        run: npx turbo build --filter=tambo
 
       - name: Publish tambo to npm
         working-directory: ./cli
@@ -113,7 +113,7 @@ jobs:
         run: npm install
 
       - name: Build
-        run: npm run build
+        run: npx turbo build --filter=create-tambo-app
 
       - name: Publish create-tambo-app to npm
         working-directory: ./create-tambo-app
