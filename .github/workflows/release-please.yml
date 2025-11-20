@@ -34,11 +34,11 @@ jobs:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           manifest-file: .release-please-manifest.json
 
-  # NPM Package Publishing (only for npm packages)
-  publish-npm:
+  # NPM Package Publishing - React SDK
+  publish-react-sdk:
     needs: release-please
     runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' || needs.release-please.outputs.cli--release_created == 'true' || needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -50,35 +50,84 @@ jobs:
           node-version: "22"
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
+
       - name: Install dependencies
         run: npm install
 
       - name: Build
         run: npm run build
 
-      - name: Publish @tambo-ai/react to npm --filter=@tambo-ai/react --filter=tambo --filter=create-tambo-app
-        if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
+      - name: Publish @tambo-ai/react to npm
         working-directory: ./react-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
+  # NPM Package Publishing - CLI
+  publish-cli:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.cli--release_created == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
       - name: Publish tambo to npm
-        if: ${{ needs.release-please.outputs.cli--release_created == 'true' }}
         working-directory: ./cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
+  # NPM Package Publishing - Create Tambo App
+  publish-create-tambo-app:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
       - name: Publish create-tambo-app to npm
-        if: ${{ needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
         working-directory: ./create-tambo-app
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
-      - uses: actions/checkout@v4
-        if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
+  # Tambo Cloud Deployment
+  deploy-tambo-cloud:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -88,11 +137,10 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
 
-      - name: Merge main into deploy
-        if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
+      - name: Merge main into tambo-cloud-deploy
         run: |
           git checkout tambo-cloud-deploy
-          git merge --no-ff main -m "chore: merge main into tambo-cloud-deploy for release ${{ steps.release.outputs.tag_name }}"
+          git merge --no-ff main -m "chore: merge main into tambo-cloud-deploy for release ${{ needs.release-please.outputs.tag_name }}"
           git push origin tambo-cloud-deploy
 
   # Docs Deployment
