@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
-import { type McpServerInfo, MCPTransport } from "@tambo-ai/react";
+import { type McpServerInfo, MCPTransport } from "@tambo-ai/react/mcp";
 import { motion } from "framer-motion";
 import { ChevronDown, Trash2, X } from "lucide-react";
 import React from "react";
