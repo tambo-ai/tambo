@@ -195,7 +195,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Typography
 
-- Sentient for headings (font-heading/font-sentient), Geist Sans for body (font-sans), Geist Mono for code (font-mono). See apps/web/lib/fonts.ts and tailwind.config.ts.
+- Sentient for headings (font-heading/font-sentient), Geist Sans for body (font-sans), Geist Mono for code (font-mono). See tambo-cloud/apps/web/lib/fonts.ts for font configuration.
 
 ### Text Handling & JSX Patterns
 
@@ -232,7 +232,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ## 6. Database (Drizzle ORM)
 
-- Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
+- Source of truth is tambo-cloud/packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
 
 Database commands:
