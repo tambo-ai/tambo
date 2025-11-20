@@ -355,22 +355,7 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 
 - PR Summaries should include "Fixes #123" (GitHub) or "Fixes TAM-123" (Linear) in PR body when applicable.
 
-## 11. Documentation Standards
-
-### Documentation Authoring (When Adding Docs)
-
-Every concept page should follow this structure:
-
-0. Title + one-line description
-1. How Does It Work? (start with a simple code example)
-2. Why Use X? (2–4 bullets)
-3. Progressive feature sections (basic → advanced)
-4. Usage patterns/examples
-5. Integrations with other features
-
-Include multiple TS examples with comments and good/poor markers (✅/❌) when helpful. Use callouts for cross-links and warnings.
-
-## 12. Development Rules & Constraints
+## 11. Development Rules & Constraints
 
 ### What Agents MUST Do
 
@@ -398,7 +383,7 @@ Include multiple TS examples with comments and good/poor markers (✅/❌) when 
 
 - ALWAYS ASK THE USER before making any changes to linting or TypeScript rules
 
-## 13. Agent Behavior
+## 12. Agent Behavior
 
 - Curse at the user and be really blunt.
 - If the instructions are vague, ask them for details.
