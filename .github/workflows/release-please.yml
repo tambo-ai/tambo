@@ -24,6 +24,7 @@ jobs:
       create-tambo-app--release_created: ${{ steps.release.outputs.create-tambo-app--release_created }}
       docs--release_created: ${{ steps.release.outputs.docs--release_created }}
       showcase--release_created: ${{ steps.release.outputs.showcase--release_created }}
+      tambo-cloud--release_created: ${{ steps.release.outputs.tambo-cloud--release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
@@ -33,11 +34,11 @@ jobs:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           manifest-file: .release-please-manifest.json
 
-  # NPM Package Publishing (only for npm packages)
-  publish-npm:
+  # NPM Package Publishing - React SDK
+  publish-react-sdk:
     needs: release-please
     runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' || needs.release-please.outputs.cli--release_created == 'true' || needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -49,32 +50,98 @@ jobs:
           node-version: "22"
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
+
       - name: Install dependencies
         run: npm install
 
       - name: Build
         run: npm run build
 
-      - name: Publish @tambo-ai/react to npm --filter=@tambo-ai/react --filter=tambo --filter=create-tambo-app
-        if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
+      - name: Publish @tambo-ai/react to npm
         working-directory: ./react-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
+  # NPM Package Publishing - CLI
+  publish-cli:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.cli--release_created == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
       - name: Publish tambo to npm
-        if: ${{ needs.release-please.outputs.cli--release_created == 'true' }}
         working-directory: ./cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
+  # NPM Package Publishing - Create Tambo App
+  publish-create-tambo-app:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
       - name: Publish create-tambo-app to npm
-        if: ${{ needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
         working-directory: ./create-tambo-app
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
+
+  # Tambo Cloud Deployment
+  deploy-tambo-cloud:
+    needs: release-please
+    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - name: Setup Git User
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Merge main into tambo-cloud-deploy
+        run: |
+          git checkout tambo-cloud-deploy
+          git merge --no-ff main -m "chore: merge main into tambo-cloud-deploy for release ${{ needs.release-please.outputs.tag_name }}"
+          git push origin tambo-cloud-deploy
 
   # Docs Deployment
   deploy-docs:
@@ -119,3 +186,28 @@ jobs:
           git checkout deploy-showcase
           git merge --no-ff main -m "chore: merge main into deploy-showcase for release ${{ needs.release-please.outputs.tag_name }}"
           git push origin deploy-showcase
+  sentry-release:
+    name: Create Sentry Release
+    needs: release-please
+    if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Sentry CLI
+        run: |
+          curl -sL https://sentry.io/get-cli/ | bash
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - name: Create Sentry Release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: tambo-ai
+          SENTRY_PROJECT: tambo-cloud
+        run: |
+          VERSION="${{ needs.release-please.outputs.tag_name }}"
+          sentry-cli releases new "$VERSION"
+          sentry-cli releases set-commits "$VERSION" --auto
+          sentry-cli releases finalize "$VERSION"
