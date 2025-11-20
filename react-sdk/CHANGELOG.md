@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.65.0](https://github.com/tambo-ai/tambo/compare/react-v0.64.1...react-v0.65.0) (2025-11-20)
+
+
+### Features
+
+* **mcp-resources:** Handle inline mcp resource references with correct prefix behavior, transforming to resource content nodes ([#1308](https://github.com/tambo-ai/tambo/issues/1308)) ([ae90e4a](https://github.com/tambo-ai/tambo/commit/ae90e4af67ea732dac7b795ba3ed873701e2cca8))
+* merge cloud repo into mono repo ([#1314](https://github.com/tambo-ai/tambo/issues/1314)) ([6b88f60](https://github.com/tambo-ai/tambo/commit/6b88f609b3b7ba1b243a2be9a4bb426038e9e596))
+
+
+### Bug Fixes
+
+* unnecessary edge case cannot be hit ([#1313](https://github.com/tambo-ai/tambo/issues/1313)) ([f317997](https://github.com/tambo-ai/tambo/commit/f317997c83d64511e20e2e8ad3ecfa00eee9bb2c))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1299](https://github.com/tambo-ai/tambo/issues/1299)) ([a5a7ecd](https://github.com/tambo-ai/tambo/commit/a5a7ecddb7e8fada5d4abf5ac4fd516e24d67b85))
+* **deps-dev:** bump the eslint group with 4 updates ([#1299](https://github.com/tambo-ai/tambo/issues/1299)) ([3287eaf](https://github.com/tambo-ai/tambo/commit/3287eaf83e6068fe5d2e0774506da3acf29eeba3))
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.0 to 1.21.1 ([#1286](https://github.com/tambo-ai/tambo/issues/1286)) ([90fb98c](https://github.com/tambo-ai/tambo/commit/90fb98cc3ba41b1a7d7baf501d8e96a81cb721f7))
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.0 to 1.21.1 ([#1286](https://github.com/tambo-ai/tambo/issues/1286)) ([dd1da5b](https://github.com/tambo-ai/tambo/commit/dd1da5b8a7f8343ee9ff3a9f8908f302fc4edca8))
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.1 to 1.22.0 ([#1307](https://github.com/tambo-ai/tambo/issues/1307)) ([1242270](https://github.com/tambo-ai/tambo/commit/1242270c2e4949e2b4e342ed12da99dc29086a67))
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.1 to 1.22.0 ([#1307](https://github.com/tambo-ai/tambo/issues/1307)) ([3351269](https://github.com/tambo-ai/tambo/commit/3351269f793be2ef261de55f979f32d672f2b6eb))
+* **deps:** bump @tanstack/react-query from 5.90.7 to 5.90.9 ([#1305](https://github.com/tambo-ai/tambo/issues/1305)) ([5e97eee](https://github.com/tambo-ai/tambo/commit/5e97eeed16c05a1e2b12ee41e13ae2a2b547dfa9))
+* **deps:** bump @tanstack/react-query from 5.90.7 to 5.90.9 ([#1305](https://github.com/tambo-ai/tambo/issues/1305)) ([616ba46](https://github.com/tambo-ai/tambo/commit/616ba465a9b5d23deb0c2b175210fb56c631b610))
+* **readme:** improve readme nov 2025 v2 ([#1284](https://github.com/tambo-ai/tambo/issues/1284)) ([23f3670](https://github.com/tambo-ai/tambo/commit/23f3670ec8473a26ab5af611c8d6a7d1c635ca86))
+* **readme:** improve readme nov 2025 v2 ([#1284](https://github.com/tambo-ai/tambo/issues/1284)) ([50ee523](https://github.com/tambo-ai/tambo/commit/50ee523dd379ffb1af6c48bb55b80ce3b7729d8a))
+
+
+### Code Refactoring
+
+* **mcp:** move MCP metadata and serverKey derivation to registry ([#1297](https://github.com/tambo-ai/tambo/issues/1297)) ([c284b9f](https://github.com/tambo-ai/tambo/commit/c284b9fbc08eb20a7da4890aeca4dc0a68757218))
+* **mcp:** move MCP metadata and serverKey derivation to registry ([#1297](https://github.com/tambo-ai/tambo/issues/1297)) ([1bc4d46](https://github.com/tambo-ai/tambo/commit/1bc4d46b3bdd084e04265904df8777e871e792c4))
+
 ## [0.64.1](https://github.com/tambo-ai/tambo/compare/react-v0.64.0...react-v0.64.1) (2025-11-07)
 
 
