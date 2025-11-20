@@ -278,7 +278,6 @@ npm run check-types   # TS across workspace
 npm run lint:fix      # ESLint autofix
 npm run format        # Prettier write
 npm test              # Unit/integration tests
-npm run build         # Build all packages (before merging)
 ```
 
 ## 10. Git Workflow & PRs
@@ -327,7 +326,6 @@ Include multiple TS examples with comments and good/poor markers (✅/❌) when 
 ### What Agents MUST Do
 
 - Run `npm run lint`, `npm run check-types`, `npm run test` in root before commits.
-- Run `npm run build` in root and all packages successfully before merging.
 - Cross-package changes should be tested together.
 - Documentation updates required:
   1. Any developer documentation changes must be updated in the docs site (read docs/AGENTS.md)
