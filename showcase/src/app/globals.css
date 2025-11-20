@@ -8,6 +8,7 @@ html {
 
 @layer base {
   :root {
+    /* ===== PRIMARY COLOR TOKENS ===== */
     /* Background & Surfaces - NEUTRAL */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -19,11 +20,11 @@ html {
     /* Primary Actions - BRAND TEAL (PRESERVED!) */
     --primary: 157 100% 75%;
     --primary-foreground: 186 94% 13%;
+    --primary-link: 157 100% 35%;
 
-    /* Secondary - Filled neutral controls (chips, toggles) */
+    /* Secondary/Muted - NEUTRAL */
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
-    /* Muted - Subtle surfaces + subdued copy */
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
@@ -40,6 +41,7 @@ html {
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
+    /* ===== LAYOUT TOKENS ===== */
     /* Sidebar (NEW) - NEUTRAL */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -54,6 +56,7 @@ html {
     --container: 240 4.8% 95.9%; /* Light neutral gray - same as --muted */
     --backdrop: 240 3.7% 15.9%; /* Dark gray for overlays */
 
+    /* ===== TYPOGRAPHY & RADIUS ===== */
     /* Border Radius */
     --radius: 0.6rem;
 
@@ -77,6 +80,7 @@ html {
   }
 
   .dark {
+    /* ===== PRIMARY COLOR TOKENS ===== */
     /* Background & Surfaces */
     --background: 50 2% 9%;
     --foreground: 0 0% 98%;
@@ -85,14 +89,14 @@ html {
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary Actions */
+    /* Primary Actions - Light foreground for dark mode */
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
+    --primary-link: 157 100% 60%;
 
-    /* Secondary - Filled neutral controls (chips, toggles) */
+    /* Secondary/Muted */
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-    /* Muted - Subtle surfaces + subdued copy */
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
 
@@ -109,6 +113,7 @@ html {
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
+    /* ===== LAYOUT TOKENS ===== */
     /* Sidebar (NEW) */
     --sidebar-background: 50 2% 7%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -185,7 +190,7 @@ html {
   }
 }
 
-/* Icon animations */
+/* ===== ANIMATIONS ===== */
 @keyframes icon-pulse {
   0% {
     box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
@@ -224,4 +229,45 @@ html {
 
 .float-animation {
   animation: icon-float 3s ease-in-out infinite;
+}
+
+@layer utilities {
+  /* Custom font weights for modern typography */
+  .font-450 {
+    font-weight: 450;
+  }
+
+  .font-500 {
+    font-weight: 500;
+  }
+
+  /* Link color utility */
+  .text-primary-link {
+    color: hsl(var(--primary-link));
+  }
+
+  /* Prose customization for markdown/doc content */
+  .prose {
+    @apply dark:prose-invert;
+    @apply prose-h1:text-2xl prose-h1:font-semibold;
+    @apply prose-h2:mt-12 prose-h2:text-xl prose-h2:font-500;
+    @apply prose-h3:text-base prose-h3:font-500;
+    @apply prose-h4:text-base prose-h4:font-500;
+    @apply prose-strong:font-500;
+    @apply prose-img:m-0;
+    @apply max-w-6xl;
+  }
+
+  /* Override highlight.js backgrounds in code elements */
+  code[class*="language-"],
+  pre code[class*="language-"] {
+    background: transparent !important;
+  }
+
+  /* CLI and code viewer styling - ensure proper inheritance */
+  .cli-code,
+  .code-viewer code {
+    background: transparent !important;
+    color: inherit !important;
+  }
 }

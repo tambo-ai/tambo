@@ -14,11 +14,10 @@ import {
   ElicitResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { JSONSchema7 } from "json-schema";
+import { MCPTransport } from "../model/mcp-server-info";
 
-export enum MCPTransport {
-  SSE = "sse",
-  HTTP = "http",
-}
+// Re-export for backwards compatibility
+export { MCPTransport };
 
 /**
  * Handler for MCP elicitation requests.

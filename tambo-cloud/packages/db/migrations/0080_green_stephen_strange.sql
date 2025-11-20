@@ -1,0 +1,1 @@
+ALTER TABLE "tool_providers" ALTER COLUMN "mcp_transport" SET DEFAULT 'http';

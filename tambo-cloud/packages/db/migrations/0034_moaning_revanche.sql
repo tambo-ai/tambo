@@ -1,0 +1,2 @@
+DROP INDEX "context_tool_providers_context_key_tool_provider_idx";--> statement-breakpoint
+ALTER TABLE "tool_provider_user_contexts" ADD CONSTRAINT "context_tool_providers_context_key_tool_provider_idx" UNIQUE("context_key","tool_provider_id");

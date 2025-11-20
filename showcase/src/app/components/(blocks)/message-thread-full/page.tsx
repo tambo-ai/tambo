@@ -1,55 +1,101 @@
 "use client";
 
-import { CLI } from "@/components/cli";
+import { ComponentCodePreview } from "@/components/component-code-preview";
+import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadFull } from "@/components/ui/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
-import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
-import { DemoWrapper } from "../../demo-wrapper";
+import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
-const MCP_DEMO_URL =
-  process.env.NEXT_PUBLIC_MCP_DEMO_URL || "https://everything-mcp.tambo.co/mcp";
-
-function MessageThreadFullContent() {
+export default function MessageThreadFullPage() {
   const userContextKey = useUserContextKey("message-thread-full");
 
   return (
-    <TamboMcpProvider
-      mcpServers={[{ url: MCP_DEMO_URL, transport: MCPTransport.HTTP }]}
-    >
-      <DemoWrapper title="Message Thread Full">
-        <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
-          <MessageThreadFull
-            contextKey={userContextKey}
-            className="w-full rounded-lg"
+    <div className="prose max-w-8xl space-y-12">
+      {/* Title & Description */}
+      <header className="space-y-4">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+          Message Thread Full
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          A full-screen chat interface with message history, input field, and
+          controls. Designed to take up the entire viewport, perfect for
+          building conversational AI applications where chat is the primary
+          interaction method.
+        </p>
+      </header>
+
+      {/* Examples Section */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Examples</h2>
+
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="Basic Usage"
+            component={
+              <TamboMcpProvider>
+                <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
+                  <MessageThreadFull
+                    contextKey={userContextKey}
+                    className="w-full h-full rounded-lg"
+                  />
+                </div>
+              </TamboMcpProvider>
+            }
+            code={`import { MessageThreadFull } from "@tambo-ai/react";
+
+export function ChatPage() {
+  return (
+    <div className="h-screen">
+      <MessageThreadFull contextKey="main-chat" />
+    </div>
+  );
+}`}
+            previewClassName="p-0"
+            fullBleed
+            minHeight={650}
+            enableFullscreen
+            fullscreenTitle="Message Thread Full"
           />
         </div>
-      </DemoWrapper>
-    </TamboMcpProvider>
-  );
-}
+      </section>
 
-export default function MessageThreadFullPage() {
-  const installCommand = "npx tambo add message-thread-full";
+      {/* Installation */}
+      <section>
+        <InstallationSection cliCommand="npx tambo add message-thread-full" />
+      </section>
 
-  return (
-    <div className="py-8 max-w-4xl mx-auto">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-4">Message Thread Full</h1>
-          <p className="text-lg text-muted-foreground">
-            A full message thread component with chat history and input field.
-          </p>
+      {/* Component API */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Component API</h2>
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">MessageThreadFull</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Prop</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>contextKey</td>
+                <td>string</td>
+                <td>-</td>
+                <td>Unique identifier for the conversation thread</td>
+              </tr>
+              <tr>
+                <td>className</td>
+                <td>string</td>
+                <td>-</td>
+                <td>Additional CSS classes for customization</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Installation</h2>
-          <div className="rounded-md">
-            <CLI command={installCommand} />
-          </div>
-        </div>
-
-        <MessageThreadFullContent />
-      </div>
+      </section>
     </div>
   );
 }

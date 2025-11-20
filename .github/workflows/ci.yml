@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -43,3 +43,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          DATABASE_URL: "postgresql://dummy-user:dummy-password@dummy-host:5432/dummy-database"
+          API_KEY_SECRET: "dummy-api-key-secret"
+          PROVIDER_KEY_SECRET: "dummy-provider-key-secret"
+          NEXTAUTH_SECRET: "dummy-nextauth-secret"
+          NEXTAUTH_URL: "http://localhost:3000"
+          SKIP_ENV_VALIDATION: "true"

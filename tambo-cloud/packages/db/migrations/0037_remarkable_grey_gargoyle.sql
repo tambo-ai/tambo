@@ -1,0 +1,2 @@
+ALTER TABLE "tool_provider_user_contexts" ADD COLUMN "composio_connected_account_status" text;--> statement-breakpoint
+ALTER TABLE "tool_provider_user_contexts" ADD COLUMN "composio_redirect_url" text;

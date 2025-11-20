@@ -1,0 +1,220 @@
+---
+title: "Building an AI-Powered Spreadsheet with Tambo"
+date: "2025-10-28"
+description: "How I built a spreadsheet that understands natural language using markdown tables, custom tools, and selection-aware context."
+author: "Michael Magán"
+---
+
+I've been wanting to build an AI-powered spreadsheet for a while now, and honestly, Google's Gemini integration for Sheets hasn't impressed me yet. So I decided to see what we could do with [Tambo](https://github.com/tambo-ai/tambo) (please give us a star if you find it useful!).
+
+<video
+  src="https://github.com/user-attachments/assets/d7b89bf0-5070-4027-99ab-0be3edf7c91d"
+  controls
+/>
+
+Try it yourself: [cheatsheet.tambo.co](https://cheatsheet.tambo.co)
+
+The timing worked out perfectly. I'd been looking for a good excuse to show off some of Tambo's more advanced patterns, and when I found ReactGrid (this solid open-source spreadsheet library), I knew I had to build something with it. The whole project is completely open source and built with Tambo (a React SDK for adding a natural language interface to an application) and ReactGrid, so if you want to see how it works or build something similar, [the code is all there](https://github.com/michaelmagan/cheatsheet).
+
+## Making a Spreadsheet "AI-Aware"
+
+Here's the thing about spreadsheets: they're basically just 2D arrays of data, which is a pain to send back and forth to an AI model on every single interaction. You end up with this massive state blob that's expensive to serialize and hard for the model to reason about. So I needed a different approach.
+
+The pattern I ended up with has three layers: context helpers for reading state automatically, custom tools for precise mutations, and selection awareness so the AI knows what you're looking at.
+
+## Key Learnings
+
+- Markdown tables work way better than JSON as context
+- Nested arrays are hard for LLMs to patch correctly
+- AI can self-correct at runtime when tools return well structured errors
+- Mouse selection beats typing "A1:D5"
+
+Let me walk through each layer of the architecture.
+
+## Managing Tabs with Interactables
+
+<video
+  src="https://github.com/user-attachments/assets/39d1b5b0-cff2-4a57-b825-f6ae9785eec4"
+  controls
+/>
+
+Let me start with the simplest case: tab management.
+
+Tabs are just lightweight metadata: an ID and a name. The standard [interactable pattern](https://docs.tambo.co/docs/interactables/overview) works great for this.
+
+The interactable wrapper basically subscribes to the tab store and publishes a simple state object whenever anything changes:
+
+```typescript
+// Simplified pseudocode - see full implementation in repo
+const TabsInteractableWrapper = (props) => {
+  const publishState = useCallback(() => {
+    const store = useSpreadsheetTabsStore.getState();
+
+    const payload = {
+      tabs: store.tabs.map((tab) => ({
+        id: tab.id,
+        name: tab.name,
+      })),
+      activeTabId: store.activeTabId,
+    };
+
+    onPropsUpdate({ state: payload });
+  }, []);
+
+  // Subscribe to store changes
+  useEffect(() => {
+    const unsubscribe = useSpreadsheetTabsStore.subscribe(publishState);
+    return () => unsubscribe();
+  }, [publishState]);
+
+  return null; // This component doesn't render anything
+};
+
+export const InteractableTabs = withInteractable(TabsInteractableWrapper, {
+  componentName: "TabsState",
+  description: "Spreadsheet tab metadata (names and IDs only, no data)",
+  propsSchema: interactableTabsPropsSchema,
+});
+```
+
+This is way lighter than the full spreadsheet data, so it's fine to just emit it as structured metadata. The AI can see tab names, rename them, switch between them, whatever. And because it's using the standard interactable pattern, it all just works with Tambo's built-in machinery.
+
+[Full code: src/components/ui/interactable-tabs.tsx](https://github.com/michaelmagan/cheatsheet/blob/main/src/components/ui/interactable-tabs.tsx)
+
+## Passing Spreadsheet Data as Markdown
+
+I initially tried just passing the raw JSON of the spreadsheet data to the AI. It didn't work well. The model would get confused or hallucinate cell references.
+
+So I tried a few different formats and found that markdown tables worked surprisingly well. JSON is inherently noisy. All those brackets, quotes, and keys add a lot of extra tokens that don't really help the model understand the tabular structure. Markdown tables are much cleaner, and I think LLMs have probably seen millions of them in their training data, so they just naturally understand rows and columns.
+
+Tambo's [context helper feature](https://docs.tambo.co/docs/additional-context/context-helpers) makes this super easy. I just write a function that formats the data, register it, and it automatically gets included with every message. I don't have to think about when or how to inject that context. It's just always there.
+
+Here's the basic idea:
+
+```typescript
+function formatSpreadsheetAsMarkdown(activeTab) {
+  const { name, rows, columns } = activeTab;
+
+  // Map visible columns to their indices so row cell access stays aligned
+  const visibleCols = columns
+    .map((col, idx) => ({ id: col.columnId, idx }))
+    .filter((c) => c.id !== "ROW_HEADER");
+
+  // Escape pipes and newlines to prevent breaking markdown tables
+  const escapeMd = (val) => {
+    if (val == null) return "";
+    return String(val).replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+  };
+
+  let markdown = `# Spreadsheet: ${name}\n\n`;
+
+  // Build the table header
+  markdown += `|   | ${visibleCols.map((c) => c.id).join(" | ")} |\n`;
+  markdown += `|---|${visibleCols.map(() => "---").join("|")}|\n`;
+
+  // Add each row (skip header row)
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const cells = visibleCols.map(({ idx }) => {
+      const cell = row.cells?.[idx];
+      return escapeMd(cell?.text ?? cell?.value ?? "");
+    });
+    markdown += `| ${escapeMd(row.rowId)} | ${cells.join(" | ")} |\n`;
+  }
+
+  return markdown;
+}
+
+export const spreadsheetContextHelper = () => {
+  const activeTab = store.tabs.find((t) => t.id === store.activeTabId);
+  return formatSpreadsheetAsMarkdown(activeTab);
+};
+```
+
+That's it. Every message the AI receives automatically includes a formatted markdown table of the current spreadsheet. No manual serialization, no giant JSON blobs, just clean tabular data.
+
+[Full code: src/lib/spreadsheet-context-helper.ts](https://github.com/michaelmagan/cheatsheet/blob/main/src/lib/spreadsheet-context-helper.ts)
+
+## When to Roll Your Own Interactables
+
+One of the bigger challenges I hit was updating the spreadsheet state through interactables. The problem is that spreadsheets are arrays nested within arrays (rows containing arrays of cells). When you're working with this kind of structure, it's really hard for an LLM to generate the correct JSON patches or updates through the standard interactable pattern.
+
+Interactables work great for simple data:
+
+- Small arrays (dozens, not hundreds)
+- Flat structures
+- Lightweight metadata
+
+But spreadsheets need custom tools because they're arrays of rows containing arrays of cells. Custom tools let the AI work at the right level (individual cells and ranges) instead of manipulating nested structures.
+
+So I rolled my own set of tools custom-designed for spreadsheet operations. The key insight was letting the AI specify where it wants to update within the spreadsheet, whether that's a single cell (row 3, column B) or a range of cells (A1:D5), rather than trying to manipulate nested array structures directly. This turned out to be way faster and more accurate.
+
+I built tools like `updateCell`, `updateRange`, `addColumn`, `addRow`, `readRange`, `clearRange`, and `sortByColumn`. Having this variety gives the AI flexibility in how it chunks up the work. For simple changes, it can do everything in one call. For more complex updates, it can break it down (maybe add 5 rows, populate some data, then add 5 more rows). The AI gets to decide how to split things up based on what makes sense.
+
+Here's what a tool definition looks like:
+
+```typescript
+export const updateCellTool = {
+  name: "updateSpreadsheetCell",
+  description: "Update a single cell in the active spreadsheet tab. For text cells use: { type: 'text', text: 'your text' }. For number cells use: { type: 'number', value: 42, formatOptions: { style: 'currency', currency: 'USD' } }",
+  tool: updateCell,
+  toolSchema: z.function().args(
+    z.union([z.string(), z.number()]).describe("Row identifier"),
+    z.string().describe("Column identifier (e.g., 'A', 'B')"),
+    z.object({
+      type: z.literal("text"),
+      text: z.string()
+    }).or(z.object({
+      type: z.literal("number"),
+      value: z.number(),
+      formatOptions: z.object({...}).optional()
+    }))
+  )
+};
+```
+
+One interesting thing I discovered was how the AI learned to use the tools correctly. At first, it would make mistakes (passing flat arrays instead of 2D arrays, or using the wrong cell format).
+
+> **"The AI could actually self-correct at runtime by reading the error messages, understanding what went wrong, and retrying with the correct format."**
+
+But self-correction isn't the end goal—it's a signal that something needs fixing. Watch for recurring tool errors and use them to improve your tool definitions. I'd copy the incorrect tool call, the error message, and what worked, then feed it back to Claude to update the tool descriptions or schemas. Over time, the tools improved and self-correction became rare. It's a development pattern I hadn't used before: using AI to write better prompts and tool definitions for itself, turning runtime errors into design improvements.
+
+[Full code: src/tools/spreadsheet-tools.ts](https://github.com/michaelmagan/cheatsheet/blob/main/src/tools/spreadsheet-tools.ts)
+
+## Making Selections Part of the Context
+
+<video
+  src="https://github.com/user-attachments/assets/958dbd48-1b7d-4471-93a0-62125a685587"
+  controls
+/>
+
+For me, one of the most important UX patterns is letting users provide context to the AI through the GUI, not just text. I wanted to be able to select a range of cells and then say "sort this" or "sum this up" without having to type out "cells A1 through D5."
+
+Without selection context, you'd have to type something like: "Can you sort cells A1 through D5 by the values in column A?" That's clunky. With selection context, you just highlight the cells with your mouse and say "sort by column A." Much faster, much more natural. It's a great example of blending the best of graphical interfaces (direct manipulation) with natural language interfaces (flexibility and expressiveness).
+
+I used additional context helpers for this. They pass the selected range with every message. Since the AI already has the full spreadsheet state from the markdown context helper, it can figure out exactly what I'm referring to.
+
+```typescript
+export const spreadsheetSelectionContextHelper = () => {
+  if (!currentSpreadsheetSelection) return null;
+
+  const { selectedRange } = currentSpreadsheetSelection;
+  return `User currently has selected: ${selectedRange}`;
+};
+```
+
+Pretty simple. The spreadsheet component calls `updateSpreadsheetSelection()` whenever the selection changes, and Tambo's context helper system picks it up automatically.
+
+[Full code: src/lib/spreadsheet-selection-context.ts](https://github.com/michaelmagan/cheatsheet/blob/main/src/lib/spreadsheet-selection-context.ts)
+
+## What's Next
+
+Right now the spreadsheet is pretty bare-bones, but it works. I'm planning to add graph and chart components back in (we had them in an earlier version but pulled them out to simplify things). Drag-and-drop components would be cool too, something like Google Sheets where you can position stuff wherever you want.
+
+Formulas are obviously on the roadmap. Better formatting options, import/export for CSV and Excel files, all that stuff.
+
+One other thing: ReactGrid wasn't React 19 compatible yet when I built this, so I'm using legacy peer dependencies as a workaround. I'm planning to open a PR to update the package to support React 19 properly, then we can drop that workaround.
+
+The whole project is open source, so if you want to use this as a foundation for something in your own app, go for it. I'd love to hear how you end up using it or what you build on top of it.
+
+[https://github.com/michaelmagan/cheatsheet](https://github.com/michaelmagan/cheatsheet)

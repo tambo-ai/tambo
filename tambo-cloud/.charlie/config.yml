@@ -1,0 +1,10 @@
+## Commands Charlie can use to verify changes
+checkCommands:
+  fix: npm run lint -- --fix && npm run format
+  lint: npm run lint
+  types: npm run check-types
+  test: npm run test
+
+## Beta feature flags
+beta:
+  forceAllCheckCommands: true

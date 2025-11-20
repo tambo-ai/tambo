@@ -1,0 +1,1 @@
+ALTER TABLE "tool_providers" ADD COLUMN "server_key" text DEFAULT '' NOT NULL;

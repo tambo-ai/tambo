@@ -977,9 +977,7 @@ describe("handleInit", () => {
 
       // Verify browser was opened with repo URL
       expect(
-        openCalls.some((url) =>
-          url.includes("github.com/tambo-ai/tambo-cloud"),
-        ),
+        openCalls.some((url) => url.includes("github.com/tambo-ai/tambo")),
       ).toBe(true);
     });
   });
