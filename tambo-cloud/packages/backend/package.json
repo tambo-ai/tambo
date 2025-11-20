@@ -41,7 +41,7 @@
     "langfuse": "^3.38.6",
     "openai": "^6.4.0",
     "partial-json": "^0.1.7",
-    "rxjs": "7.8.1",
+    "rxjs": "7.8.2",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.24.3"
   },
