@@ -66,11 +66,19 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Philosophy
 
+- **Move fast while maintaining high standards** - prioritize clarity and maintainability over cleverness.
 - **Read the relevant code first**; follow existing patterns and naming.
 - **Keep solutions small and simple**; favor functions over classes; avoid unnecessary abstractions.
 - **Simplify Relentlessly**: Remove complexity aggressively - the simplest design that works is usually best.
 - **Prefer immutability**. Don't mutate inputs; return new values. Use const, toSorted, object/array spreads.
 - **Handle errors up-front** with guard clauses and early returns.
+
+### Separation of Concerns
+
+- **Keep business logic separate from UI components**.
+- Extract business logic, calculations, and data transformations into separate files (`utils/`, `services/`, `lib/`).
+- UI components should orchestrate, not implement complex logic.
+- Makes testing easier and code more reusable.
 
 ### Fail-Fast, No Fallbacks
 
@@ -96,10 +104,18 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 ### Code Organization (Functions & Classes)
 
 - Keep functions short and single-purpose; ideally <20 statements.
+- Keep files focused and reasonably sized; ideally <200-300 lines.
 - Avoid `let` - instead make a new function that returns the value.
 - Avoid deep nesting: prefer early exits and extracting helpers. Use map/filter for iteration.
 - Prefer immutable data; use readonly and as const where applicable.
 - Favor composition over inheritance. If classes are used, keep them small (<200 statements, <10 properties/methods) and validate invariants internally.
+
+### Avoiding Over-Abstraction
+
+- **DRY is good, but don't go overboard** - sometimes a little duplication is better than the wrong abstraction.
+- **Rule of Three**: Wait until you have 3 instances of similar code before extracting a shared utility.
+- Premature abstraction creates coupling and makes changes harder.
+- It's easier to extract commonality later than to undo a bad abstraction.
 
 ### Exports
 
@@ -109,17 +125,50 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ## 3. TypeScript Standards
 
+### Type Safety
+
 - **Generally use strict TypeScript**: no any, no type assertions unless unavoidable; define precise types.
+- **Avoid `any`** - do your best to assign proper types.
+- **Use `unknown` instead of `any`** when type is truly uncertain, then narrow it down.
+- **Prefer `Record<string, unknown>` over `object`** or `{ [key: string]: unknown }` when possible.
+- **Do not disable ESLint rules** unless explicitly requested - fix the root cause instead.
+- **Do not disable TypeScript errors** unless explicitly requested - fix the root cause instead.
+
+### Type Inference
+
 - **Do not add unnecessary type annotations** when the value is easily inferred, such as:
   - Arguments to functions that are well defined, such as event handlers or callback functions
   - Return values of functions that have an obvious return type
   - Local variables that are well defined
+- **Let TypeScript infer return types** when they're obvious.
+- **Avoid creating intermediate "helper" types** for internal functions.
+- **Use inferred types** from database schemas, tRPC schemas, and other sources of truth.
+- **Add explicit types** when it improves clarity or catches errors.
+
+### Type Conversions
+
 - **Do not use unnecessary constructors/casts** like `String()` or `Number()` or `Boolean()` unless absolutely necessary when types really do not line up:
   - If a string conversion is really necessary, use \`${value}\`
   - If a boolean conversion is really necessary, use !!value
   - If a number conversion is really necessary, use +value
-- **Prefer `unknown` over `any`** when possible.
-- **Prefer `Record<string, unknown>` over `object`** or `{ [key: string]: unknown }` when possible.
+
+### Async/Await
+
+- **Any function that returns a Promise must be declared `async`**.
+- **Always use `await`** when calling async functions.
+
+### Control Flow
+
+- **Avoid nested or chained ternary operators** - use `if/else` or `switch` instead.
+- **Use `switch` statements** when checking multiple values.
+- **Leverage TypeScript exhaustiveness checking** in switch statements (avoid `default` when possible).
+
+### Functional Patterns
+
+- **Use `map`, `filter`, `find`, `some`, `every`** - these are clear and expressive.
+- **Avoid `reduce()`** - it's often confusing and can usually be replaced with simpler patterns.
+  - Exception: when the mental model genuinely requires accumulation (e.g., summing numbers).
+- **Avoid complex method chaining** - break it into named intermediate steps for clarity.
 
 ## 4. Frontend Development (React + Next.js)
 
