@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.18...create-tambo-app-v0.2.0) (2025-11-20)
+
+
+### Features
+
+* merge cloud repo into mono repo ([#1314](https://github.com/tambo-ai/tambo/issues/1314)) ([6b88f60](https://github.com/tambo-ai/tambo/commit/6b88f609b3b7ba1b243a2be9a4bb426038e9e596))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1299](https://github.com/tambo-ai/tambo/issues/1299)) ([a5a7ecd](https://github.com/tambo-ai/tambo/commit/a5a7ecddb7e8fada5d4abf5ac4fd516e24d67b85))
+* **deps-dev:** bump the eslint group with 4 updates ([#1299](https://github.com/tambo-ai/tambo/issues/1299)) ([3287eaf](https://github.com/tambo-ai/tambo/commit/3287eaf83e6068fe5d2e0774506da3acf29eeba3))
+
 ## [0.1.18](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.1.17...create-tambo-app-v0.1.18) (2025-10-09)
 
 
