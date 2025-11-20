@@ -208,12 +208,14 @@ const mcpServers = [
   },
 ];
 
-<TamboProvider components={components}>
-  <TamboMcpProvider mcpServers={mcpServers}>
+<TamboProvider components={components} mcpServers={mcpServers}>
+  <TamboMcpProvider>
     <App />
   </TamboMcpProvider>
 </TamboProvider>;
 ```
+
+> **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
 
 <video
   src="https://github.com/user-attachments/assets/c7a13915-8fed-4758-be1b-30a60fad0cda"

@@ -17,7 +17,7 @@ This is useful for:
 
 **Note:** _There is currently no support for authenticated MCP servers when using client-side MCP connections_.
 
-To implement client-side MCP support, use the `TamboMcpProvider` component inside your `TamboProvider`:
+To implement client-side MCP support, pass `mcpServers` to `TamboProvider` and wrap your app with `TamboMcpProvider`:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
@@ -25,28 +25,31 @@ import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
 
 function MyApp() {
   return (
-    <TamboProvider components={...}>
-      <TamboMcpProvider
-        mcpServers={[
-          {
-            // MCP server configuration
-            url: "http://localhost:8123/",
-            // Optional stable prefix used when multiple MCP servers are configured
-            // If omitted, a key is derived from the URL hostname (e.g., "https://mcp.linear.app/mcp" -> "linear")
-            serverKey: "local",
-            // Optional custom headers, eg.
-            // { "Authorization": `Bearer ${token}` } or { "X-Api-Key": "1234567890" }
-            customHeaders: {},
-            transport: MCPTransport.HTTP, // optional, defaults to HTTP
-          },
-        ]}
-      >
+    <TamboProvider
+      components={...}
+      mcpServers={[
+        {
+          // MCP server configuration
+          url: "http://localhost:8123/",
+          // Optional stable prefix used when multiple MCP servers are configured
+          // If omitted, a key is derived from the URL hostname (e.g., "https://mcp.linear.app/mcp" -> "linear")
+          serverKey: "local",
+          // Optional custom headers, eg.
+          // { "Authorization": `Bearer ${token}` } or { "X-Api-Key": "1234567890" }
+          customHeaders: {},
+          transport: MCPTransport.HTTP, // optional, defaults to HTTP
+        },
+      ]}
+    >
+      <TamboMcpProvider>
         {/* Your application components */}
       </TamboMcpProvider>
     </TamboProvider>
   );
 }
 ```
+
+> **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
 
 The `TamboMcpProvider` establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
 
@@ -231,7 +234,7 @@ When multiple MCP servers are configured, tools, prompts, and resources are auto
 The `serverKey` is automatically derived from the server URL (e.g., "linear" from "https://mcp.linear.app"), or you can specify it explicitly:
 
 ```tsx
-<TamboMcpProvider
+<TamboProvider
   mcpServers={[
     {
       url: "https://mcp.linear.app",
@@ -245,8 +248,10 @@ The `serverKey` is automatically derived from the server URL (e.g., "linear" fro
     },
   ]}
 >
-  {/* Your app */}
-</TamboMcpProvider>
+  <TamboMcpProvider>
+    {/* Your app */}
+  </TamboMcpProvider>
+</TamboProvider>
 ```
 
 When only one server is configured, no prefixes are applied (backward compatible).

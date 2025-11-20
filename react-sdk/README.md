@@ -256,12 +256,14 @@ const mcpServers = [
   },
 ];
 
-<TamboProvider components={components}>
-  <TamboMcpProvider mcpServers={mcpServers}>
+<TamboProvider components={components} mcpServers={mcpServers}>
+  <TamboMcpProvider>
     <App />
   </TamboMcpProvider>
 </TamboProvider>;
 ```
+
+> **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
 
 Supports full MCP protocol: tools, prompts, elicitations, and sampling. Client-side or server-side execution.
 

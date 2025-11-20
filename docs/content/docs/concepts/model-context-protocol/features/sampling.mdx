@@ -57,8 +57,8 @@ import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 function App() {
   return (
-    <TamboProvider components={...}>
-      <TamboMcpProvider mcpServers={[]}>
+    <TamboProvider components={...} mcpServers={[]}>
+      <TamboMcpProvider>
         {/* Sampling from server-side MCP servers works automatically */}
       </TamboMcpProvider>
     </TamboProvider>
