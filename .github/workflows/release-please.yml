@@ -188,13 +188,14 @@ jobs:
           git push origin deploy-showcase
   sentry-release:
     name: Create Sentry Release
+    needs: release-please
+    if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Install Sentry CLI
-        run:
+        run: |
           curl -sL https://sentry.io/get-cli/ | bash
 
-          # The following steps run only if a release was created
       - uses: actions/checkout@v4
         with:
           fetch-depth: 100
@@ -206,7 +207,7 @@ jobs:
           SENTRY_ORG: tambo-ai
           SENTRY_PROJECT: tambo-cloud
         run: |
-          VERSION=$(sentry-cli releases propose-version)
+          VERSION="${{ needs.release-please.outputs.tag_name }}"
           sentry-cli releases new "$VERSION"
           sentry-cli releases set-commits "$VERSION" --auto
           sentry-cli releases finalize "$VERSION"
