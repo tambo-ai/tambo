@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.41.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.40.0...tambo-v0.41.0) (2025-11-20)
+
+
+### Features
+
+* merge cloud repo into mono repo ([#1314](https://github.com/tambo-ai/tambo/issues/1314)) ([6b88f60](https://github.com/tambo-ai/tambo/commit/6b88f609b3b7ba1b243a2be9a4bb426038e9e596))
+
+
+### Bug Fixes
+
+* **cli:** use base package name for mcp-components dependency ([#1312](https://github.com/tambo-ai/tambo/issues/1312)) ([83b987f](https://github.com/tambo-ai/tambo/commit/83b987ff8c0dfbd3c74c21bae5fd121c26c1012d))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump memfs from 4.50.0 to 4.51.0 ([#1304](https://github.com/tambo-ai/tambo/issues/1304)) ([3ee4d20](https://github.com/tambo-ai/tambo/commit/3ee4d20a790797784349576765061363932ea731))
+* **deps-dev:** bump memfs from 4.50.0 to 4.51.0 ([#1304](https://github.com/tambo-ai/tambo/issues/1304)) ([d1332f4](https://github.com/tambo-ai/tambo/commit/d1332f402bfcb6cf4a4614aa131be93ce7f481f6))
+* **deps-dev:** bump the eslint group with 4 updates ([#1299](https://github.com/tambo-ai/tambo/issues/1299)) ([a5a7ecd](https://github.com/tambo-ai/tambo/commit/a5a7ecddb7e8fada5d4abf5ac4fd516e24d67b85))
+* **deps-dev:** bump the eslint group with 4 updates ([#1299](https://github.com/tambo-ai/tambo/issues/1299)) ([3287eaf](https://github.com/tambo-ai/tambo/commit/3287eaf83e6068fe5d2e0774506da3acf29eeba3))
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.1 to 1.22.0 ([#1307](https://github.com/tambo-ai/tambo/issues/1307)) ([1242270](https://github.com/tambo-ai/tambo/commit/1242270c2e4949e2b4e342ed12da99dc29086a67))
+* **deps:** bump @modelcontextprotocol/sdk from 1.21.1 to 1.22.0 ([#1307](https://github.com/tambo-ai/tambo/issues/1307)) ([3351269](https://github.com/tambo-ai/tambo/commit/3351269f793be2ef261de55f979f32d672f2b6eb))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.76.0 to 0.77.0 ([#1278](https://github.com/tambo-ai/tambo/issues/1278)) ([5f46a57](https://github.com/tambo-ai/tambo/commit/5f46a576be373e7dac7f076a7c844db5faae27d8))
+* **deps:** bump @tambo-ai/typescript-sdk from 0.76.0 to 0.77.0 ([#1278](https://github.com/tambo-ai/tambo/issues/1278)) ([e4e880e](https://github.com/tambo-ai/tambo/commit/e4e880ea83b1e8f17d401dab8a9b4ef07bce86bf))
+* **showcase:** redesign of showcase site ([f081612](https://github.com/tambo-ai/tambo/commit/f0816127d3b0396c2f64b4cc6aa208098a5ae8a8))
+* **showcase:** redesign of showcase site ([4950523](https://github.com/tambo-ai/tambo/commit/49505239b63dc655bea338fcefb6cdc8386914ca))
+
 ## [0.40.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.39.0...tambo-v0.40.0) (2025-11-07)
 
 
