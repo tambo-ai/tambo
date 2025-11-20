@@ -263,8 +263,6 @@ const mcpServers = [
 </TamboProvider>;
 ```
 
-> **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
-
 Supports full MCP protocol: tools, prompts, elicitations, and sampling. Client-side or server-side execution.
 
 [→ Learn more about MCP](https://docs.tambo.co/concepts/model-context-protocol)
