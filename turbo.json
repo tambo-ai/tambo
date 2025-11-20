@@ -67,7 +67,7 @@
     "lint": { "dependsOn": ["^lint"] },
     "check-types": { "dependsOn": ["^check-types"] },
     "dev": { "dependsOn": ["^build"], "cache": false, "persistent": true },
-    "clean": { "cache": false, "persistent": true },
+    "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
     "test": { "dependsOn": ["^build", "^test"] }
   }
