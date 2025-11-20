@@ -80,12 +80,12 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Naming Conventions
 
-- **File/dir naming**: kebab-case
-- **Classes**: PascalCase
-- **Vars/functions/methods**: camelCase
-- **ENV vars**: UPPER_SNAKE_CASE
-- **Use English**; meaningful names with widely-recognized standard abbreviations only (API, URL, ctx, req, res, next)
-- **Booleans**: start with is/has/can/should
+- **File/dir naming**: kebab-case.
+- **Classes**: PascalCase.
+- **Vars/functions/methods**: camelCase.
+- **ENV vars**: UPPER_SNAKE_CASE.
+- **Use English**; meaningful names with widely-recognized standard abbreviations only (API, URL, ctx, req, res, next).
+- **Booleans**: start with is/has/can/should.
 - **Functions**: use verbs; boolean-returning: isX/hasX/canX. If a function returns void, prefer executeX/saveX naming.
 - **React-specific naming** (follows devdocs/NAMING_CONVENTIONS.md):
   - Components: TamboXxx
@@ -103,22 +103,22 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Exports
 
-- Prefer named exports; allow multiple exports when they belong together (e.g., component + related types)
-- Avoid default exports
-- Don't create generic index.ts barrels for internal modules; import directly from concrete files
+- Prefer named exports; allow multiple exports when they belong together (e.g., component + related types).
+- Avoid default exports.
+- Don't create generic index.ts barrels for internal modules; import directly from concrete files.
 
 ## 3. TypeScript Standards
 
 - **Generally use strict TypeScript**: no any, no type assertions unless unavoidable; define precise types.
 - **Do not add unnecessary type annotations** when the value is easily inferred, such as:
-  - arguments to functions that are well defined, such as event handlers or callback functions
-  - return values of functions that have an obvious return type
-  - local variables that are well defined
+  - Arguments to functions that are well defined, such as event handlers or callback functions
+  - Return values of functions that have an obvious return type
+  - Local variables that are well defined
 - **Do not use unnecessary constructors/casts** like `String()` or `Number()` or `Boolean()` unless absolutely necessary when types really do not line up:
-  - if a string conversion is really necessary, use \`${value}\`
-  - if a boolean conversion is really necessary, use !!value
-  - if a number conversion is really necessary, use +value
-- **Prefer `unknown` over `any`** when possible
+  - If a string conversion is really necessary, use \`${value}\`
+  - If a boolean conversion is really necessary, use !!value
+  - If a number conversion is really necessary, use +value
+- **Prefer `unknown` over `any`** when possible.
 - **Prefer `Record<string, unknown>` over `object`** or `{ [key: string]: unknown }` when possible.
 
 ## 4. Frontend Development (React + Next.js)
@@ -135,9 +135,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - Local UI elements should use useState.
 - For shared state between components, use React Context.
 - Minimize use of useEffect; derive state or memoize instead. Memoize callbacks with useCallback when passed to children.
-- When making network request, use tRPC/React Query loading states instead of manually tracking separate loading flags. Follow devdocs/LOADING_STATES.md patterns for skeletons and disabling controls.
-- Use loading states provided by react-query or tRPC, e.g. `isFetching`, `isError`, `isSuccess`, etc.
-- When using loading states, use the Skeleton components or show the real components in a disabled/blank state, rather than showing only loading spinner or not showing any content.
+- When making network requests, use tRPC/React Query loading states instead of manually tracking separate loading flags. Follow devdocs/LOADING_STATES.md patterns for skeletons and disabling controls.
+- During loading, use Skeleton components or show real components in a disabled/blank state, rather than only showing a loading spinner.
 
 ### Layout & Styling (Tailwind + shadcn)
 
@@ -151,7 +150,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Text Handling & JSX Patterns
 
-- **Avoid manually changing string cases**, as it is usually a code smell for not providing the correct string to the component. If an internal key should be shown to a user, the english string should be provided separately. e.g. if a key has a value agent_mode, the english string should be provided separately as "Agent Mode" rather than trying to capitalize it.
+- **Avoid manually changing string cases**, as it is usually a code smell for not providing the correct string to the component. If an internal key should be shown to a user, the English string should be provided separately. e.g. if a key has a value agent_mode, the English string should be provided separately as "Agent Mode" rather than trying to capitalize it.
 - **Avoid overly long JSX**, instead break out any complex JSX into a separate component.
   - use simple '&&' to hide/show simple elements, using simple boolean values, like `{hasError && <div>Error: ${error}</div>}`.
   - however, avoid ternaries unless the options are just one or two lines. nested or chained ternaries are a code smell.
@@ -162,8 +161,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - Use proper accessibility patterns for all components.
 - Use buttons for clickable elements, not divs or spans.
-- Use proper aria labels and roles when appropriate
-- Use semantic html elements when appropriate
+- Use proper aria labels and roles when appropriate.
+- Use semantic HTML elements when appropriate.
 
 ## 5. Backend Development (NestJS)
 
@@ -268,7 +267,7 @@ When working across multiple packages:
 - **Integration tests** via showcase app
 - **CLI testing** through template generation and installation
 - **Documentation testing** via example code validation
-- **Unit tests for public functions**; integration/e2e for controllers/modules via Jest + supertest
+- **Backend e2e tests** for controllers/modules via Jest + supertest
 
 ### Pre-commit/PR Verification Checklist
 
@@ -327,15 +326,15 @@ Include multiple TS examples with comments and good/poor markers (✅/❌) when 
 
 ### What Agents MUST Do
 
-- Run `npm run lint`, `npm run check-types`, `npm run test` in root before commits
-- Run `npm run build` in root and all packages successfully before merging
-- Cross-package changes should be tested together
+- Run `npm run lint`, `npm run check-types`, `npm run test` in root before commits.
+- Run `npm run build` in root and all packages successfully before merging.
+- Cross-package changes should be tested together.
 - Documentation updates required:
-  1. Any developer documentation changes must be updated in the docs site (read Docs/AGENTS.md)
+  1. Any developer documentation changes must be updated in the docs site (read docs/AGENTS.md)
   2. Review the README.md file in the root of the package and update if necessary
   3. Update the AGENTS.md files in the package tree to reflect the changes
-- Follow semantic versioning for package versions
-- Always add tests for new logic
+- Follow semantic versioning for package versions.
+- Always add tests for new logic.
 - If tests fail, do not just change the code to make the tests pass. Take one of 2 approaches:
   1. Make the code changes backwards compatible with existing tests
   2. Ask the user to change the tests to pass
