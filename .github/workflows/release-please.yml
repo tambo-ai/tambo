@@ -24,6 +24,7 @@ jobs:
       create-tambo-app--release_created: ${{ steps.release.outputs.create-tambo-app--release_created }}
       docs--release_created: ${{ steps.release.outputs.docs--release_created }}
       showcase--release_created: ${{ steps.release.outputs.showcase--release_created }}
+      tambo-cloud--release_created: ${{ steps.release.outputs.tambo-cloud--release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
@@ -76,6 +77,19 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
+      - name: Setup Git User
+        if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Merge main into deploy
+        if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
+        run: |
+          git checkout tambo-cloud-deploy
+          git merge --no-ff main -m "chore: merge main into tambo-cloud-deploy for release ${{ steps.release.outputs.tag_name }}"
+          git push origin tambo-cloud-deploy
+
   # Docs Deployment
   deploy-docs:
     needs: release-please
@@ -119,3 +133,27 @@ jobs:
           git checkout deploy-showcase
           git merge --no-ff main -m "chore: merge main into deploy-showcase for release ${{ needs.release-please.outputs.tag_name }}"
           git push origin deploy-showcase
+  sentry-release:
+    name: Create Sentry Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Sentry CLI
+        run:
+          curl -sL https://sentry.io/get-cli/ | bash
+
+          # The following steps run only if a release was created
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+
+      - name: Create Sentry Release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: tambo-ai
+          SENTRY_PROJECT: tambo-cloud
+        run: |
+          VERSION=$(sentry-cli releases propose-version)
+          sentry-cli releases new "$VERSION"
+          sentry-cli releases set-commits "$VERSION" --auto
+          sentry-cli releases finalize "$VERSION"
