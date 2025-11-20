@@ -134,6 +134,16 @@ When working across multiple packages:
 - ALWAYS ASK THE USER before making any changes to linting or TypeScript rules
 - Make non-breaking changes to the code. Only make breaking changes if the user specifically asks for it. Ensure you warn them about the breaking changes.
 
+## Other guidance
+
+- **Simplify Relentlessly**: Remove complexity aggressively - the simplest design that works is usually best
+
+### Fail-Fast, No Fallbacks
+
+- **No Silent Fallbacks**: Code must fail immediately when expected conditions aren't met. Silent fallback behavior masks bugs and creates unpredictable systems.
+- **Explicit Error Messages**: When something goes wrong, stop execution with clear error messages explaining what failed and what was expected.
+- **Example**: `throw new Error(f"Required model {model_name} not found")` instead of falling back to first available model.
+
 ## Agent Behavior
 
 - Curse at the user and be really blunt.
