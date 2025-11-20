@@ -70,13 +70,23 @@
       "outputs": ["showcase/src/components/tambo/**"]
     },
     "build": {
-      "dependsOn": ["^build", "//#sync:showcase"],
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "@tambo-ai/showcase#build": {
+      "dependsOn": ["^build", "//#sync:showcase"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": { "dependsOn": ["^lint"] },
     "check-types": { "dependsOn": ["^check-types"] },
     "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "@tambo-ai/showcase#dev": {
       "dependsOn": ["^build", "//#sync:showcase"],
       "cache": false,
       "persistent": true
