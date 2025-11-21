@@ -1,8 +1,8 @@
-import { execSync } from "child_process";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
 import { KNOWN_SAFE_PACKAGES } from "../../constants/packages.js";
+import { execFileSync } from "../../utils/interactive.js";
 import type { UpgradeOptions } from "./index.js";
 
 /**
@@ -12,6 +12,7 @@ export async function upgradeNpmPackages(
   options: UpgradeOptions,
 ): Promise<boolean> {
   const spinner = ora("Upgrading npm packages...").start();
+  const allowNonInteractive = Boolean(options.yes ?? options.acceptAll);
 
   try {
     // Read package.json to identify dependencies
@@ -24,7 +25,10 @@ export async function upgradeNpmPackages(
     // First, try to install npm-check-updates if not available
     spinner.text = "Checking for npm-check-updates...";
     try {
-      execSync("npx --version", { stdio: "ignore" });
+      execFileSync("npx", ["--version"], {
+        stdio: "ignore",
+        allowNonInteractive,
+      });
     } catch {
       spinner.fail("npx is required but not available");
       return false;
@@ -50,27 +54,33 @@ export async function upgradeNpmPackages(
     }
     spinner.stop();
 
-    const ncuFlags = [
+    const ncuArgs = [
+      "npm-check-updates",
       "--upgrade",
       "--target",
       "latest",
-      "--interactive",
+      ...(allowNonInteractive ? [] : ["--interactive"]),
       "--timeout",
       "60000",
       "--filter",
       installedSafePackages.join(","),
     ];
 
-    execSync(`npx npm-check-updates ${ncuFlags.join(" ")}`, {
+    execFileSync("npx", ncuArgs, {
       stdio: "inherit",
+      allowNonInteractive,
     });
 
     // Now install the updated dependencies
     const installSpinner = ora("Installing updated packages...").start();
-    const npmFlags = options.legacyPeerDeps ? " --legacy-peer-deps" : "";
+    const npmArgs = [
+      "install",
+      ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
+    ];
 
-    execSync(`npm install${npmFlags}`, {
+    execFileSync("npm", npmArgs, {
       stdio: options.silent ? "ignore" : "inherit",
+      allowNonInteractive,
     });
 
     console.log("\n");
