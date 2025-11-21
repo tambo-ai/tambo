@@ -64,4 +64,46 @@ export class AuthService {
       .sign(new TextEncoder().encode(secret));
     return signedJwt;
   }
+
+  /**
+   * Generates a session-less MCP access token (JWT) that includes projectId/contextKey
+   * in a namespaced claim and standard JWT claims (iss/sub/iat/exp).
+   *
+   * This token is not tied to a specific thread and cannot use session-specific features
+   * (elicitation, sampling). It is primarily used for accessing resources and prompts.
+   *
+   * Notes on expiry/iat:
+   * - We round down to the nearest 5 minutes and set `iat` to that window
+   *   start so tokens minted within the same 5‑minute window are identical.
+   * - `exp` is set to 15 minutes after the window start.
+   */
+  async generateSessionlessMcpAccessToken(
+    projectId: string,
+    contextKey: string,
+  ): Promise<string> {
+    const secret = this.configService.get<string>("API_KEY_SECRET");
+    if (!secret) {
+      throw new Error("API_KEY_SECRET is not configured");
+    }
+
+    const windowStartMs =
+      Math.floor(Date.now() / (5 * 60 * 1000)) * (5 * 60 * 1000);
+    const expiration = windowStartMs + 15 * 60 * 1000;
+    const expSeconds = Math.floor(expiration / 1000);
+    const windowStartSeconds = Math.floor(windowStartMs / 1000);
+
+    const signedJwt = await new SignJWT({
+      [TAMBO_MCP_ACCESS_KEY_CLAIM]: {
+        projectId,
+        contextKey,
+      },
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuer(projectId)
+      .setSubject(`${projectId}:sessionless`)
+      .setIssuedAt(windowStartSeconds)
+      .setExpirationTime(expSeconds)
+      .sign(new TextEncoder().encode(secret));
+    return signedJwt;
+  }
 }
