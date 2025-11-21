@@ -19,18 +19,36 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes in packages/db
+        id: check-changes
+        run: |
+          # Check if packages/db changed in the most recent commit
+          if git diff --quiet HEAD~1 HEAD -- tambo-cloud/packages/db/; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in tambo-cloud/packages/db/"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in tambo-cloud/packages/db/"
+            git diff --name-only HEAD~1 HEAD -- tambo-cloud/packages/db/
+          fi
 
       - name: Set up Node.js
+        if: steps.check-changes.outputs.changed == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
       - name: Install dependencies
+        if: steps.check-changes.outputs.changed == 'true'
         run: npm ci
         working-directory: tambo-cloud
 
       - name: Run database migrations
+        if: steps.check-changes.outputs.changed == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:migrate
