@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.123.2](https://github.com/tambo-ai/tambo/compare/repo-v0.123.1...repo-v0.123.2) (2025-11-20)
+
+
+### Documentation
+
+* **repo:** unify and reorganize AGENTS.md guidance ([#1336](https://github.com/tambo-ai/tambo/issues/1336)) ([a618d2f](https://github.com/tambo-ai/tambo/commit/a618d2fb23410e10d49641e536612eb0672c6ed0))
+
+## [0.123.1](https://github.com/tambo-ai/tambo/compare/repo-v0.123.0...repo-v0.123.1) (2025-11-20)
+
+
+### Miscellaneous Chores
+
+* **deps:** bump @tanstack/react-query from 5.90.9 to 5.90.10 ([#1323](https://github.com/tambo-ai/tambo/issues/1323)) ([36af738](https://github.com/tambo-ai/tambo/commit/36af738d16bb889252509ffc7df2a01883ab201a))
+* **deps:** bump recharts from 3.3.0 to 3.4.1 ([#1322](https://github.com/tambo-ai/tambo/issues/1322)) ([9fd3710](https://github.com/tambo-ai/tambo/commit/9fd37107757192f3d00462e542d60cf694d6eb04))
+* **deps:** bump tailwind-merge from 2.6.0 to 3.4.0 in the tailwind group ([#1321](https://github.com/tambo-ai/tambo/issues/1321)) ([ef368df](https://github.com/tambo-ai/tambo/commit/ef368df63b36222c520f14f5dbd1c2e478bbc83b))
+* **deps:** bump the small-safe-packages group with 7 updates ([#1319](https://github.com/tambo-ai/tambo/issues/1319)) ([5dfadc0](https://github.com/tambo-ai/tambo/commit/5dfadc07e9a13fcae9569cf5d939aa81a459df36))
+* **main:** release react 0.65.0 ([#1294](https://github.com/tambo-ai/tambo/issues/1294)) ([c98f6c0](https://github.com/tambo-ai/tambo/commit/c98f6c043379ec0b5f7229258f3f80ccd93c366c))
+
 ## [0.123.0](https://github.com/tambo-ai/tambo/compare/repo-v0.122.2...repo-v0.123.0) (2025-11-20)
 
 
