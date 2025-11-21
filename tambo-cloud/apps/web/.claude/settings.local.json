@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat(api): add session-less MCP token support\n\n- Add SessionlessMcpAccessTokenPayload type in core package\n- Add generateSessionlessMcpAccessToken method to AuthService\n- Update extractAndVerifyMcpAccessToken to support both token types\n- Add createSessionlessMcpServer for MCP connections without sessions\n- Update MCP server middleware to handle both thread-bound and session-less tokens\n- Session-less tokens contain contextKey instead of threadId\n- Session-less MCP servers only support resources and prompts (no elicitation/sampling)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(npm run check-types:*)",
+      "Bash(npm run lint:fix:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
