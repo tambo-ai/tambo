@@ -57,6 +57,8 @@ tambo upgrade               # Upgrade Tambo dependencies
 - Project structure detection and setup
 - Interactive prompts for user choices
 - Template-based component generation
+- Agent doc guardrail: `tambo init`, `tambo add`, and `tambo upgrade` prompt to add Tambo-specific sections to AGENTS.md/CLAUDE.md and always create `components/tambo/AGENTS.md` (use `--skip-agent-docs` to bypass)
+- Cursor rules replacement: `tambo upgrade` asks to swap any legacy Tambo cursor rules (including `.cursorrules`) with the new AGENTS.md/CLAUDE.md flow; legacy files are removed when accepted
 
 ## Key Files and Directories
 

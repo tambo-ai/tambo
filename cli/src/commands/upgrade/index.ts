@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { isInteractive } from "../../utils/interactive.js";
 import { upgradeComponents } from "./components.js";
-import { upgradeLlmRules } from "./llm-rules.js";
+import { upgradeAgentDocsAndRemoveCursorRules } from "./llm-rules.js";
 import { upgradeNpmPackages } from "./npm-packages.js";
 import { detectTemplate, generateAiUpgradePrompts } from "./utils.js";
 
@@ -13,6 +13,7 @@ export interface UpgradeOptions {
   silent?: boolean;
   prefix?: string;
   yes?: boolean;
+  skipAgentDocs?: boolean;
 }
 
 /**
@@ -75,11 +76,11 @@ export async function handleUpgrade(
       process.exit(1);
     }
 
-    // Upgrade LLM rules
-    console.log(chalk.bold("\n2. Upgrading cursor rules\n"));
-    const rulesSuccess = await upgradeLlmRules(detectedTemplate, options);
+    // Agent docs + cursor rule upgrade
+    console.log(chalk.bold("\n2. Agent docs and cursor rules\n"));
+    const rulesSuccess = await upgradeAgentDocsAndRemoveCursorRules(options);
     if (!rulesSuccess) {
-      console.error(chalk.red("\n❌ Cursor rules upgrade failed"));
+      console.error(chalk.red("\n❌ Agent docs/cursor rules failed"));
       process.exit(1);
     }
 
