@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.123.3](https://github.com/tambo-ai/tambo/compare/repo-v0.123.2...repo-v0.123.3) (2025-11-21)
+
+
+### Bug Fixes
+
+* **react-sdk:** remove duplicate UseTamboThreadListConfig interface ([#1343](https://github.com/tambo-ai/tambo/issues/1343)) ([fd70897](https://github.com/tambo-ai/tambo/commit/fd7089787d7393b2198c41e7b496f7841ca482be))
+* **sentry:** Pass SENTRY_AUTH_TOKEN to vercel build, remove broken package.json stuff from tambo-cloud ([#1346](https://github.com/tambo-ai/tambo/issues/1346)) ([d8caace](https://github.com/tambo-ai/tambo/commit/d8caace46fa1f9abeeade83490df54b8da7649a7))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump ai from 5.0.94 to 5.0.95 ([#1342](https://github.com/tambo-ai/tambo/issues/1342)) ([cbc746c](https://github.com/tambo-ai/tambo/commit/cbc746c5d99626740c9073dd7facb27305a2750a))
+
 ## [0.123.2](https://github.com/tambo-ai/tambo/compare/repo-v0.123.1...repo-v0.123.2) (2025-11-20)
 
 
