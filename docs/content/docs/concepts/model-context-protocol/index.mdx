@@ -16,26 +16,28 @@ Tambo supports two ways to connect to MCP servers:
 ## Quick Start
 
 ```tsx
-<TamboProvider>
-  <TamboMcpProvider
-    mcpServers={[
-      {
-        // MCP server configuration
-        url: "http://some-mcp-endpoint.com",
-        // Optional stable prefix used when multiple MCP servers are configured
-        // If omitted, a key is derived from the URL hostname
-        serverKey: "external",
-        // Optional custom headers, eg.
-        // { "Authorization": `Bearer ${token}` } or { "X-Api-Key": "1234567890" }
-        customHeaders: {},
-        transport: MCPTransport.HTTP, // optional, defaults to HTTP
-      },
-    ]}
-  >
+<TamboProvider
+  mcpServers={[
+    {
+      // MCP server configuration
+      url: "http://some-mcp-endpoint.com",
+      // Optional stable prefix used when multiple MCP servers are configured
+      // If omitted, a key is derived from the URL hostname
+      serverKey: "external",
+      // Optional custom headers, eg.
+      // { "Authorization": `Bearer ${token}` } or { "X-Api-Key": "1234567890" }
+      customHeaders: {},
+      transport: MCPTransport.HTTP, // optional, defaults to HTTP
+    },
+  ]}
+>
+  <TamboMcpProvider>
     <App />
   </TamboMcpProvider>
 </TamboProvider>
 ```
+
+> **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
 
 When more than one MCP server is configured, Tambo prefixes names using `serverKey` to avoid collisions:
 
