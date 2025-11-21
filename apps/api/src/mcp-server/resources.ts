@@ -19,16 +19,17 @@ export async function registerResourceHandlers(
 
         let registered = 0;
         for (const resource of listResponse.resources) {
-          const resourceName = serverKey
-            ? `${serverKey}:${resource.name}`
-            : resource.name;
-
           // We only support static URIs; resource templates require list/complete callbacks
           // which we can't easily proxy from remote MCP servers
           if (!resource.uri) {
-            console.warn(`Resource ${resourceName} has no URI, skipping`);
+            console.warn(`Resource ${resource.name} has no URI, skipping`);
             continue;
           }
+
+          // Add serverKey prefix to URI if present
+          const resourceUri = serverKey
+            ? `${serverKey}:${resource.uri}`
+            : String(resource.uri);
 
           // Build the resource metadata (Omit<Resource, 'uri' | 'name'>)
           const metadata: Omit<Resource, "uri" | "name"> = {
@@ -37,8 +38,8 @@ export async function registerResourceHandlers(
           };
 
           server.registerResource(
-            resourceName,
-            String(resource.uri),
+            resource.name,
+            resourceUri,
             metadata,
             async (uri) => {
               const readResponse = await client.client.readResource({
