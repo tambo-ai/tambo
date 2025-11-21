@@ -121,7 +121,7 @@ export class AgentClient {
   async *streamRunAgent(
     queue: AsyncQueue<EventHandlerParams>,
     params: {
-      messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
+      messages: ChatCompletionMessageParam[];
       tools: OpenAI.Chat.Completions.ChatCompletionTool[];
     },
   ): AsyncIterableIterator<AgentResponse> {
