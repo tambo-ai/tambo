@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.65.1](https://github.com/tambo-ai/tambo/compare/react-v0.65.0...react-v0.65.1) (2025-11-21)
+
+
+### Bug Fixes
+
+* **react-sdk:** remove duplicate UseTamboThreadListConfig interface ([#1343](https://github.com/tambo-ai/tambo/issues/1343)) ([fd70897](https://github.com/tambo-ai/tambo/commit/fd7089787d7393b2198c41e7b496f7841ca482be))
+
 ## [0.65.0](https://github.com/tambo-ai/tambo/compare/react-v0.64.1...react-v0.65.0) (2025-11-20)
 
 
