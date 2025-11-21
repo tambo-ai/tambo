@@ -1,6 +1,9 @@
 import chalk from "chalk";
-import inquirer from "inquirer";
 import ora from "ora";
+import {
+  interactivePrompt,
+  NonInteractiveError,
+} from "../utils/interactive.js";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -46,7 +49,8 @@ export async function handleUpdateComponents(
     }
 
     const projectRoot = process.cwd();
-    const installPath = options.prefix ?? (await getInstallationPath());
+    const installPath =
+      options.prefix ?? (await getInstallationPath(options.yes));
     const isExplicitPrefix = Boolean(options.prefix);
 
     let componentsToUpdate: string[] = [];
@@ -261,14 +265,19 @@ export async function handleUpdateComponents(
       finalComponents.forEach((comp) => console.log(`  - ${comp.name}`));
 
       if (!options.yes) {
-        const { confirm } = await inquirer.prompt({
-          type: "confirm",
-          name: "confirm",
-          message: chalk.yellow(
-            `⚠️  Warning: This will override your existing components with versions from the registry. Are you sure you want to continue?`,
+        const { confirm } = await interactivePrompt<{ confirm: boolean }>(
+          {
+            type: "confirm",
+            name: "confirm",
+            message: chalk.yellow(
+              `⚠️  Warning: This will override your existing components with versions from the registry. Are you sure you want to continue?`,
+            ),
+            default: false,
+          },
+          chalk.yellow(
+            "Use --yes flag to auto-proceed with component updates.",
           ),
-          default: false,
-        });
+        );
 
         if (!confirm) {
           console.log(chalk.gray("Update cancelled."));
@@ -359,9 +368,18 @@ export async function handleUpdateComponents(
       }
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
     if (!options.silent) {
-      console.error(chalk.red(`Failed to update components: ${errorMessage}`));
+      // NonInteractiveError has its own formatted message
+      if (error instanceof NonInteractiveError) {
+        console.error(error.message);
+        process.exit(1); // Exit directly, don't re-throw
+      } else {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error(
+          chalk.red(`Failed to update components: ${errorMessage}`),
+        );
+      }
     }
     throw error;
   }

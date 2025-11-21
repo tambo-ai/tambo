@@ -256,8 +256,8 @@ const mcpServers = [
   },
 ];
 
-<TamboProvider components={components}>
-  <TamboMcpProvider mcpServers={mcpServers}>
+<TamboProvider components={components} mcpServers={mcpServers}>
+  <TamboMcpProvider>
     <App />
   </TamboMcpProvider>
 </TamboProvider>;

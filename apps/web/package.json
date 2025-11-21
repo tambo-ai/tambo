@@ -1,6 +1,6 @@
 {
-  "name": "tambo-ai-landing-page",
-  "version": "0.1.0",
+  "name": "@tambo-ai-cloud/web",
+  "version": "0.123.3",
   "private": true,
   "type": "module",
   "scripts": {

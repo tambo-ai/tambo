@@ -39,7 +39,7 @@
     "cli",
     "create-tambo-app",
     "packages/*",
-    "tambo-cloud/apps/*",
+    "apps/*",
     "tambo-cloud/packages/*"
   ],
   "engines": {
