@@ -37,7 +37,7 @@ jobs:
           WORKFLOW_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '' }}
           HEAD_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
         run: |
-          set -euo pipefail
+          set -u
 
           DB_PATH="tambo-cloud/packages/db"
 
@@ -56,7 +56,12 @@ jobs:
 
             API_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?branch=main&per_page=20"
 
+            # Restrict -e/-o pipefail to the API/jq section so we can
+            # still fail open (changed=true) for git issues later on.
+            set -eo pipefail
+
             if ! runs_json="$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" "$API_URL")"; then
+              set +e
               echo "Warning: failed to fetch workflow runs from GitHub API; defaulting to changed=true" >&2
               echo "changed=true" >> "$GITHUB_OUTPUT"
               exit 0
@@ -77,10 +82,13 @@ jobs:
                   end
               end
             ')"; then
+              set +e
               echo "Warning: failed to resolve BASE_SHA from workflow runs; defaulting to changed=true" >&2
               echo "changed=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
+
+            set +e
           fi
 
           if [ -z "$BASE_SHA" ]; then
@@ -88,12 +96,18 @@ jobs:
 
             # For the first run, treat the database as "changed" only if there
             # are any files under the DB path at the current HEAD.
-            if git ls-tree -r --name-only "$HEAD_SHA" "$DB_PATH" | grep -q .; then
+            if git ls-tree -r --name-only "$HEAD_SHA" "$DB_PATH" | grep -q . 2>/dev/null; then
               echo "Initial run with database files present; running migrations."
               echo "changed=true" >> "$GITHUB_OUTPUT"
             else
-              echo "Initial run without database files; skipping migrations."
-              echo "changed=false" >> "$GITHUB_OUTPUT"
+              status=$?
+              if [ "$status" -eq 1 ]; then
+                echo "Initial run without database files; skipping migrations."
+                echo "changed=false" >> "$GITHUB_OUTPUT"
+              else
+                echo "Warning: git ls-tree or grep failed (exit status $status); defaulting to changed=true" >&2
+                echo "changed=true" >> "$GITHUB_OUTPUT"
+              fi
             fi
             exit 0
           fi
@@ -104,9 +118,15 @@ jobs:
             echo "No changes detected in $DB_PATH between $BASE_SHA and $HEAD_SHA"
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
-            echo "Changes detected in $DB_PATH between $BASE_SHA and $HEAD_SHA"
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- "$DB_PATH"
+            status=$?
+            if [ "$status" -eq 1 ]; then
+              echo "Changes detected in $DB_PATH between $BASE_SHA and $HEAD_SHA"
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- "$DB_PATH" || true
+            else
+              echo "Warning: git diff failed (exit status $status); defaulting to changed=true" >&2
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       - name: Set up Node.js
