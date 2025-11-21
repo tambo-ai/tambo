@@ -72,7 +72,8 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
     },
     "@tambo-ai/showcase#build": {
       "dependsOn": ["^build", "//#sync:showcase"],
