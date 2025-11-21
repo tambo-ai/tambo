@@ -15,8 +15,10 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-slot": "^1.2.4",
     "@react-leaflet/core": "^2.1.0",
+    "@tailwindcss/typography": "^0.5.19",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.77.0",
     "@vercel/og": "^0.8.5",
@@ -39,12 +41,15 @@
     "react-markdown": "^10.1.0",
     "recharts": "^3.4.1",
     "streamdown": "^1.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "@tailwindcss/postcss": "^4.1.17",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.16"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@svgr/webpack": "^8.1.0",
-    "@tailwindcss/typography": "^0.5.19",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/leaflet": "^1.9.21",
@@ -54,15 +59,12 @@
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@types/recharts": "^2.0.1",
-    "autoprefixer": "^10.4.22",
     "clsx": "^2.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "next-sitemap": "^4.2.3",
-    "postcss": "^8.5.6",
     "rimraf": "^6.1.0",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^3.4.18",
     "typescript": "^5"
   },
   "engines": {

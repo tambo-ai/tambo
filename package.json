@@ -15,14 +15,19 @@
     "test": "turbo test",
     "dev": "turbo dev --filter=@tambo-ai/showcase --filter=@tambo-ai/docs",
     "dev-api": "turbo dev --filter=hydra-api",
-    "dev-web": "turbo dev --filter=tambo-ai-landing-page"
+    "dev-web": "turbo dev --filter=tambo-ai-landing-page",
+    "sync:showcase": "tsx scripts/sync-showcase-components.ts",
+    "sync:showcase:watch": "tsx scripts/sync-showcase-components.ts --watch"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "chokidar": "^4.0.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
+    "tsx": "^4.19.2",
     "turbo": "^2.6.1",
     "typescript": "^5.9.3"
   },

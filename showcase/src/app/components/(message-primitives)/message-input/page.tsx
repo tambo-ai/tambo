@@ -10,7 +10,7 @@ import {
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-} from "@/components/ui/message-input";
+} from "@/components/tambo/message-input";
 
 export default function MessageInputPage() {
   return (

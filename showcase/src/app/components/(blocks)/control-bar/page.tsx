@@ -2,7 +2,7 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
-import { DemoControlBar } from "@/components/ui/control-bar";
+import { ControlBar } from "@/components/tambo/control-bar";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 
 export default function ControlBarPage() {
@@ -55,7 +55,7 @@ export default function ControlBarPage() {
                   </p>
                 </div>
 
-                <DemoControlBar contextKey={userContextKey} />
+                <ControlBar contextKey={userContextKey} />
               </div>
             }
             code={`import { ControlBar } from "@tambo-ai/react";
