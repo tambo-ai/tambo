@@ -57,6 +57,11 @@ export function validateToolCallLimits(
   currentToolCounts: Record<string, number>,
   newToolCallRequest: ToolCallRequest,
   maxToolCallLimit: number,
+  // Optional per-tool counts (toolName -> count). If not provided we will
+  // derive it from the signature-based currentToolCounts.
+  perToolCounts?: Record<string, number>,
+  // Optional tool limits metadata mapping: toolName -> { maxCalls?: number }
+  toolLimits?: Record<string, { maxCalls?: number }>,
 ): string | undefined {
   // Handle cases where tool calls are happening across requests - like we're
   // bouncing to the browser to make tool calls multiple times in a row
@@ -64,15 +69,35 @@ export function validateToolCallLimits(
     return `I've detected that I'm making the same tool call repeatedly (${newToolCallRequest.toolName}). This suggests I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
   }
 
-  const totalCalls = Object.values(currentToolCounts).reduce(
-    (sum, count) => sum + count,
-    0,
-  );
+  // Ensure we have per-tool totals. If not supplied,derive from signature counts.
+  const resolvedPerToolCounts: Record<string, number> = perToolCounts
+    ? { ...perToolCounts }
+    : computePerToolCountsFromSignatures(currentToolCounts);
 
-  if (totalCalls >= maxToolCallLimit) {
-    return `I've reached the maximum number of tool calls (${maxToolCallLimit}). This usually indicates I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
+  const toolName = newToolCallRequest.toolName;
+
+  // If a per-tool override exists, honor it for this tool only. This means
+  // the project-wide max is not applied to this tool when an override is set.
+  const perToolLimit = toolLimits?.[toolName]?.maxCalls;
+  if (perToolLimit != null) {
+    const currentToolTotal = resolvedPerToolCounts[toolName] || 0;
+    if (currentToolTotal >= perToolLimit) {
+      return `I've reached the maximum number of calls for tool ${toolName} (${perToolLimit}). This usually indicates I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
+    }
+    // Per-tool limit passed; still need to check identical-signature limit below.
+  } else {
+    // No per-tool override: fall back to project-wide total
+    const totalCalls = Object.values(currentToolCounts).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+
+    if (totalCalls >= maxToolCallLimit) {
+      return `I've reached the maximum number of tool calls (${maxToolCallLimit}). This usually indicates I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
+    }
   }
 
+  // Signature-level identical-call protection (independent of per-tool/project limits)
   const signature = createToolCallSignature(newToolCallRequest);
   const currentCount = currentToolCounts[signature] || 0;
 
@@ -83,6 +108,28 @@ export function validateToolCallLimits(
   return undefined;
 }
 
+/**
+ * Compute per-tool counts from signature-based counts. Signature format is the
+ * JSON produced by createToolCallSignature, which includes toolName at top
+ * level.
+ */
+export function computePerToolCountsFromSignatures(
+  signatureCounts: Record<string, number>,
+): Record<string, number> {
+  const perTool: Record<string, number> = {};
+  for (const [signature, count] of Object.entries(signatureCounts)) {
+    try {
+      const parsed = JSON.parse(signature) as { toolName?: string };
+      const name = parsed.toolName;
+      if (!name) continue;
+      perTool[name] = (perTool[name] || 0) + count;
+    } catch (_err) {
+      // If we can't parse a signature (shouldn't happen), skip it
+      continue;
+    }
+  }
+  return perTool;
+}
 /**
  * Updates the tool call counts with a new tool call request.
  * @param toolCallCounts - Current tool call counts
@@ -198,6 +245,11 @@ export async function checkToolCallLimitViolation(
   newToolCallRequest: ToolCallRequest | undefined,
   maxToolCallLimit: number,
   mcpAccessToken: string | undefined,
+  // Optional per-tool aggregated counts (toolName -> count). If provided
+  // this avoids recalculating them from signature counts.
+  perToolCounts?: Record<string, number>,
+  // Optional tool limits metadata mapping: toolName -> { maxCalls?: number }
+  toolLimits?: Record<string, { maxCalls?: number }>,
 ): Promise<AdvanceThreadResponseDto | undefined> {
   if (!newToolCallRequest) {
     // not a tool call
@@ -216,6 +268,8 @@ export async function checkToolCallLimitViolation(
     currentToolCounts,
     newToolCallRequest,
     maxToolCallLimit,
+    perToolCounts,
+    toolLimits,
   );
 
   if (!errorMessage) {
