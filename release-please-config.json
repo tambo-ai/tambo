@@ -15,9 +15,8 @@
     },
     "create-tambo-app": {},
     "docs": {},
-    "tambo-cloud": {
-      "component": "repo"
-    }
+    "apps/web": {},
+    "apps/api": {}
   },
   "changelog-sections": [
     {

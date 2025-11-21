@@ -1,6 +1,6 @@
 {
-  "name": "hydra-api",
-  "version": "0.0.1",
+  "name": "@tambo-ai-cloud/api",
+  "version": "0.123.3",
   "description": "",
   "author": "",
   "private": true,

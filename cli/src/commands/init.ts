@@ -1,10 +1,13 @@
 import chalk from "chalk";
 import clipboard from "clipboardy";
 import fs from "fs";
-import inquirer from "inquirer";
 import open from "open";
 import ora from "ora";
 import path from "path";
+import {
+  interactivePrompt,
+  NonInteractiveError,
+} from "../utils/interactive.js";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
@@ -78,14 +81,21 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
     const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/gm;
 
     if (keyRegex.test(existingContent)) {
-      const { confirmReplace } = await inquirer.prompt({
-        type: "confirm",
-        name: "confirmReplace",
-        message: chalk.yellow(
-          `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in ${targetEnvFile}, are you sure?`,
+      const { confirmReplace } = await interactivePrompt<{
+        confirmReplace: boolean;
+      }>(
+        {
+          type: "confirm",
+          name: "confirmReplace",
+          message: chalk.yellow(
+            `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in ${targetEnvFile}, are you sure?`,
+          ),
+          default: false,
+        },
+        chalk.yellow(
+          "Cannot prompt for API key confirmation in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY manually.",
         ),
-        default: false,
-      });
+      );
 
       if (!confirmReplace) {
         console.log(chalk.gray("\nKeeping existing API key."));
@@ -170,14 +180,21 @@ async function checkExistingApiKey(): Promise<string | null> {
       const content = fs.readFileSync(file, "utf8");
       const match = /^NEXT_PUBLIC_TAMBO_API_KEY=(.+)$/m.exec(content);
       if (match?.[1]) {
-        const { overwriteExisting } = await inquirer.prompt({
-          type: "confirm",
-          name: "overwriteExisting",
-          message: chalk.yellow(
-            `⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?`,
+        const { overwriteExisting } = await interactivePrompt<{
+          overwriteExisting: boolean;
+        }>(
+          {
+            type: "confirm",
+            name: "overwriteExisting",
+            message: chalk.yellow(
+              `⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?`,
+            ),
+            default: true,
+          },
+          chalk.yellow(
+            "Cannot prompt for API key overwrite in non-interactive mode. Keeping existing key.",
           ),
-          default: true,
-        });
+        );
 
         if (!overwriteExisting) {
           return match[1].trim();
@@ -223,18 +240,21 @@ export async function getInstallationPath(yes = false): Promise<string> {
     return useSrcDir ? "src/components" : "src/components";
   }
 
-  const { useSrcDir } = await inquirer.prompt({
-    type: "confirm",
-    name: "useSrcDir",
-    message: hasSrcDir
-      ? `Would you like to use the existing ${chalk.cyan(
-          "src/",
-        )} directory for components?`
-      : `Would you like to create and use a ${chalk.cyan(
-          "src/",
-        )} directory for components?`,
-    default: hasSrcDir,
-  });
+  const { useSrcDir } = await interactivePrompt<{ useSrcDir: boolean }>(
+    {
+      type: "confirm",
+      name: "useSrcDir",
+      message: hasSrcDir
+        ? `Would you like to use the existing ${chalk.cyan(
+            "src/",
+          )} directory for components?`
+        : `Would you like to create and use a ${chalk.cyan(
+            "src/",
+          )} directory for components?`,
+      default: hasSrcDir,
+    },
+    chalk.yellow("Use --yes flag to auto-select default component directory."),
+  );
 
   return useSrcDir ? "src/components" : "components";
 }
@@ -270,16 +290,21 @@ async function handleAuthentication(): Promise<boolean> {
     }
 
     // 2. Get API key from user
-    const { apiKey } = await inquirer.prompt({
-      type: "password",
-      name: "apiKey",
-      mask: "*",
-      message: "Please paste your API key from the browser:",
-      validate: (input: string) => {
-        if (!input?.trim()) return "API key is required";
-        return true;
+    const { apiKey } = await interactivePrompt<{ apiKey: string }>(
+      {
+        type: "password",
+        name: "apiKey",
+        mask: "*",
+        message: "Please paste your API key from the browser:",
+        validate: (input: string) => {
+          if (!input?.trim()) return "API key is required";
+          return true;
+        },
       },
-    });
+      chalk.yellow(
+        "Cannot prompt for API key in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+      ),
+    );
 
     // 3. Save API key to .env file
     const saved = await writeApiKeyToEnv(apiKey);
@@ -298,16 +323,23 @@ async function handleAuthentication(): Promise<boolean> {
  * Guides the user through choosing hosting mode and finishing auth/setup
  */
 async function handleHostingChoiceAndAuth(): Promise<boolean> {
-  const { hostingChoice } = await inquirer.prompt({
-    type: "list",
-    name: "hostingChoice",
-    message: "Choose where to connect your app:",
-    choices: [
-      { name: "Cloud (time: 1 minute) — recommended", value: "cloud" },
-      { name: "Self-host (time: 5-10 minutes)", value: "self" },
-    ],
-    default: "cloud",
-  });
+  const { hostingChoice } = await interactivePrompt<{
+    hostingChoice: string;
+  }>(
+    {
+      type: "list",
+      name: "hostingChoice",
+      message: "Choose where to connect your app:",
+      choices: [
+        { name: "Cloud (time: 1 minute) — recommended", value: "cloud" },
+        { name: "Self-host (time: 5-10 minutes)", value: "self" },
+      ],
+      default: "cloud",
+    },
+    chalk.yellow(
+      "Cannot prompt for hosting choice in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+    ),
+  );
 
   if (hostingChoice === "cloud") {
     console.log(chalk.blue("\nInitializing tambo Cloud connection..."));
@@ -318,12 +350,17 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   displaySelfHostInstructions();
 
   // Option to open repo in browser
-  const { openRepo } = await inquirer.prompt({
-    type: "confirm",
-    name: "openRepo",
-    message: "Open the self-host repo instructions in your browser?",
-    default: true,
-  });
+  const { openRepo } = await interactivePrompt<{ openRepo: boolean }>(
+    {
+      type: "confirm",
+      name: "openRepo",
+      message: "Open the self-host repo instructions in your browser?",
+      default: true,
+    },
+    chalk.yellow(
+      "Cannot prompt to open browser in non-interactive mode. Visit https://github.com/tambo-ai/tambo-cloud manually.",
+    ),
+  );
   if (openRepo) {
     try {
       await open(
@@ -342,32 +379,42 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   }
 
   console.log(chalk.cyan("\nStep 2: Provide your API key\n"));
-  const { apiKeyOrCloud } = await inquirer.prompt({
-    type: "list",
-    name: "apiKeyOrCloud",
-    message: "How would you like to proceed?",
-    choices: [
-      { name: "Paste API key (default)", value: "paste" },
-      { name: "Use Cloud instead (takes < 1 minute)", value: "cloud" },
-    ],
-    default: "paste",
-  });
+  const { apiKeyOrCloud } = await interactivePrompt<{ apiKeyOrCloud: string }>(
+    {
+      type: "list",
+      name: "apiKeyOrCloud",
+      message: "How would you like to proceed?",
+      choices: [
+        { name: "Paste API key (default)", value: "paste" },
+        { name: "Use Cloud instead (takes < 1 minute)", value: "cloud" },
+      ],
+      default: "paste",
+    },
+    chalk.yellow(
+      "Cannot prompt for API key method in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+    ),
+  );
 
   if (apiKeyOrCloud === "cloud") {
     console.log(chalk.blue("\nSwitching to Cloud setup..."));
     return await handleAuthentication();
   }
 
-  const { apiKey } = await inquirer.prompt({
-    type: "password",
-    name: "apiKey",
-    mask: "*",
-    message: "Paste your self-hosted Tambo API key:",
-    validate: (input: string) => {
-      if (!input?.trim()) return "API key is required";
-      return true;
+  const { apiKey } = await interactivePrompt<{ apiKey: string }>(
+    {
+      type: "password",
+      name: "apiKey",
+      mask: "*",
+      message: "Paste your self-hosted Tambo API key:",
+      validate: (input: string) => {
+        if (!input?.trim()) return "API key is required";
+        return true;
+      },
     },
-  });
+    chalk.yellow(
+      "Cannot prompt for API key in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+    ),
+  );
 
   return await writeApiKeyToEnv(apiKey);
 }
@@ -424,22 +471,29 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     },
   ];
 
-  const { selectedComponents } = await inquirer.prompt({
-    type: "checkbox",
-    name: "selectedComponents",
-    message: "Select the components you want to install:",
-    choices: availableComponents.map((comp) => ({
-      name: `${comp.name} - ${comp.description}`,
-      value: comp.name,
-      checked: false,
-    })),
-    validate: (choices: readonly unknown[]) => {
-      if (!Array.isArray(choices) || choices.length === 0) {
-        return "Please select at least one component";
-      }
-      return true;
+  const { selectedComponents } = await interactivePrompt<{
+    selectedComponents: string[];
+  }>(
+    {
+      type: "checkbox",
+      name: "selectedComponents",
+      message: "Select the components you want to install:",
+      choices: availableComponents.map((comp) => ({
+        name: `${comp.name} - ${comp.description}`,
+        value: comp.name,
+        checked: false,
+      })),
+      validate: (choices: readonly unknown[]) => {
+        if (!Array.isArray(choices) || choices.length === 0) {
+          return "Please select at least one component";
+        }
+        return true;
+      },
     },
-  });
+    chalk.yellow(
+      "Cannot prompt for component selection in non-interactive mode. Use 'tambo init' followed by 'tambo add <component>' to add components individually.",
+    ),
+  );
 
   let installationSuccess = true;
   for (const component of selectedComponents) {
@@ -614,7 +668,12 @@ export async function handleInit({
         " to discover all available components\n",
     );
   } catch (error) {
-    console.error(chalk.red("Initialization failed: " + error));
+    // NonInteractiveError has its own formatted message
+    if (error instanceof NonInteractiveError) {
+      console.error(error.message);
+    } else {
+      console.error(chalk.red("Initialization failed: " + error));
+    }
     process.exit(1);
   }
 }

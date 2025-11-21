@@ -1,8 +1,8 @@
 import chalk from "chalk";
 import path from "path";
 import fs from "fs";
-import inquirer from "inquirer";
 import ora from "ora";
+import { interactivePrompt } from "../utils/interactive.js";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -131,12 +131,15 @@ export async function handleMigrate(options: MigrateOptions = {}) {
         );
 
         if (!options.yes) {
-          const { proceed } = await inquirer.prompt({
-            type: "confirm",
-            name: "proceed",
-            message: "Continue migration? (may overwrite existing files)",
-            default: false,
-          });
+          const { proceed } = await interactivePrompt<{ proceed: boolean }>(
+            {
+              type: "confirm",
+              name: "proceed",
+              message: "Continue migration? (may overwrite existing files)",
+              default: false,
+            },
+            chalk.yellow("Use --yes flag to auto-proceed with migration."),
+          );
 
           if (!proceed) {
             console.log(chalk.gray("Migration cancelled."));
@@ -170,12 +173,15 @@ export async function handleMigrate(options: MigrateOptions = {}) {
     }
 
     if (!options.yes) {
-      const { confirm } = await inquirer.prompt({
-        type: "confirm",
-        name: "confirm",
-        message: `Migrate ${tamboFiles.length} Tambo components from ${LEGACY_COMPONENT_SUBDIR}/ to ${COMPONENT_SUBDIR}/?`,
-        default: true,
-      });
+      const { confirm } = await interactivePrompt<{ confirm: boolean }>(
+        {
+          type: "confirm",
+          name: "confirm",
+          message: `Migrate ${tamboFiles.length} Tambo components from ${LEGACY_COMPONENT_SUBDIR}/ to ${COMPONENT_SUBDIR}/?`,
+          default: true,
+        },
+        chalk.yellow("Use --yes flag to auto-proceed with migration."),
+      );
 
       if (!confirm) {
         console.log(chalk.gray("Migration cancelled."));

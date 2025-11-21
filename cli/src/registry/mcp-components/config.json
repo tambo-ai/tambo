@@ -1,17 +1,18 @@
 {
   "name": "mcp-components",
-  "type": "components:tambo",
   "description": "MCP prompt and resource picker buttons for message input",
+  "componentName": "MCPComponents",
   "dependencies": [
-    "@tambo-ai/react/mcp",
+    "@tambo-ai/react",
     "lucide-react",
     "@radix-ui/react-dropdown-menu"
   ],
-  "registryDependencies": ["suggestions-tooltip", "lib/utils"],
+  "devDependencies": [],
+  "requires": [],
   "files": [
     {
-      "path": "components/tambo/mcp-components.tsx",
-      "type": "components:tambo"
+      "name": "mcp-components.tsx",
+      "content": "src/registry/mcp-components/mcp-components.tsx"
     }
   ]
 }

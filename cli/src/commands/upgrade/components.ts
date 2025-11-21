@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
-import inquirer from "inquirer";
 import ora from "ora";
+import { interactivePrompt } from "../../utils/interactive.js";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -211,17 +211,22 @@ export async function upgradeComponents(
     let componentsToUpgrade = verifiedComponents;
 
     if (!options.acceptAll) {
-      const { selectedComponents } = await inquirer.prompt({
-        type: "checkbox",
-        name: "selectedComponents",
-        message: "Choose which components to update:",
-        choices: verifiedComponents.map((comp) => ({
-          name: comp.name,
-          value: comp.name,
-          checked: false,
-        })),
-        pageSize: 10,
-      });
+      const { selectedComponents } = await interactivePrompt<{
+        selectedComponents: string[];
+      }>(
+        {
+          type: "checkbox",
+          name: "selectedComponents",
+          message: "Choose which components to update:",
+          choices: verifiedComponents.map((comp) => ({
+            name: comp.name,
+            value: comp.name,
+            checked: false,
+          })),
+          pageSize: 10,
+        },
+        chalk.yellow("Use --accept-all flag to upgrade all components."),
+      );
 
       if (selectedComponents.length === 0) {
         console.log(chalk.gray("\nNo components selected for upgrade."));

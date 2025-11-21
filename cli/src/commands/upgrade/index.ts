@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
+import { isInteractive } from "../../utils/interactive.js";
 import { upgradeComponents } from "./components.js";
 import { upgradeLlmRules } from "./llm-rules.js";
 import { upgradeNpmPackages } from "./npm-packages.js";
@@ -11,6 +12,7 @@ export interface UpgradeOptions {
   acceptAll?: boolean;
   silent?: boolean;
   prefix?: string;
+  yes?: boolean;
 }
 
 /**
@@ -20,6 +22,19 @@ export async function handleUpgrade(
   options: UpgradeOptions = {},
 ): Promise<void> {
   console.log(chalk.cyan("\n🔄 Tambo Upgrade Tool\n"));
+
+  // Check for interactivity early - upgrade requires running external commands
+  if (!isInteractive() && !options.yes) {
+    throw new Error(
+      `${chalk.red("Error: Upgrade command requires an interactive environment or --yes flag.")}\n\n` +
+        `${chalk.yellow("Reason:")} This command runs external commands (npm, npx) that require user confirmation.\n\n` +
+        `${chalk.blue("Solutions:")}\n` +
+        `  1. Run in an interactive terminal (not piped)\n` +
+        `  2. Use ${chalk.cyan("--yes")} flag to auto-approve all changes\n` +
+        `  3. Use ${chalk.cyan("--accept-all")} flag to skip all prompts\n\n` +
+        `Example: ${chalk.cyan("tambo upgrade --yes")}`,
+    );
+  }
 
   try {
     // Check if we're in a tambo project

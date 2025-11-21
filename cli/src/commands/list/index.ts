@@ -12,11 +12,18 @@ import {
   getLegacyComponentDirectoryPath,
 } from "../shared/path-utils.js";
 
+export interface ListOptions {
+  prefix?: string;
+  yes?: boolean;
+}
+
 /**
  * Lists all installed components in the project
  */
-export async function handleListComponents(prefix?: string) {
+export async function handleListComponents(options: ListOptions = {}) {
   try {
+    const { prefix, yes } = options;
+
     // 1. Check package.json
     if (!fs.existsSync(path.join(process.cwd(), "package.json"))) {
       throw new Error(
@@ -25,7 +32,7 @@ export async function handleListComponents(prefix?: string) {
     }
 
     // 2. Get installation path
-    const installPath = prefix ?? (await getInstallationPath());
+    const installPath = prefix ?? (await getInstallationPath(yes));
     const isExplicitPrefix = Boolean(prefix);
 
     // 3. Get detailed Tambo component information

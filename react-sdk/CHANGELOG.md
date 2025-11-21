@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.65.2](https://github.com/tambo-ai/tambo/compare/react-v0.65.1...react-v0.65.2) (2025-11-21)
+
+
+### Documentation
+
+* update MCP provider API usage to reflect v0.65.0 changes ([#1332](https://github.com/tambo-ai/tambo/issues/1332)) ([4dc2cc2](https://github.com/tambo-ai/tambo/commit/4dc2cc22a3d8b141c57fa8439b1f478b15ed4b9c))
+
 ## [0.65.1](https://github.com/tambo-ai/tambo/compare/react-v0.65.0...react-v0.65.1) (2025-11-21)
 
 
