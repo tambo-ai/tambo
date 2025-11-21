@@ -1,6 +1,7 @@
 name: Migrate Database
 permissions:
   contents: read
+  actions: read
 
 on:
   workflow_run:
@@ -22,18 +23,90 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # For workflow_run events, explicitly check out the commit that
+          # triggered the upstream workflow. For manual dispatch, fall back
+          # to the workflow's own GITHUB_SHA.
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Check for changes in packages/db
         id: check-changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          WORKFLOW_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.workflow_id || '' }}
+          WORKFLOW_RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || '' }}
+          HEAD_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
         run: |
-          # Check if packages/db changed in the most recent commit
-          if git diff --quiet HEAD~1 HEAD -- tambo-cloud/packages/db/; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No changes detected in tambo-cloud/packages/db/"
+          set -euo pipefail
+
+          DB_PATH="tambo-cloud/packages/db"
+
+          if [ ! -d "$DB_PATH" ]; then
+            echo "Directory $DB_PATH does not exist; skipping migrations."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BASE_SHA=""
+
+          # When triggered by workflow_run, look up the previous run of the
+          # upstream workflow on main and use its head_sha as the diff base.
+          if [ -n "${WORKFLOW_ID:-}" ] && [ -n "${WORKFLOW_RUN_ID:-}" ]; then
+            echo "Resolving previous workflow run for diff base..."
+
+            API_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?branch=main&per_page=20"
+
+            if ! runs_json="$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" "$API_URL")"; then
+              echo "Warning: failed to fetch workflow runs from GitHub API; defaulting to changed=true" >&2
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if ! BASE_SHA="$(echo "$runs_json" | jq -r --arg current_id "$WORKFLOW_RUN_ID" '
+              if (.workflow_runs | type) != "array" then
+                ""
+              else
+                .workflow_runs
+                | sort_by(.run_started_at)
+                | to_entries
+                | (map(select(.value.id == ($current_id | tonumber)) | .key) | .[0]) as $idx
+                | if $idx == null or $idx == 0 then
+                    ""
+                  else
+                    .[$idx - 1].value.head_sha
+                  end
+              end
+            ')"; then
+              echo "Warning: failed to resolve BASE_SHA from workflow runs; defaulting to changed=true" >&2
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          if [ -z "$BASE_SHA" ]; then
+            echo "No previous workflow run found; treating this as the initial run for diff purposes."
+
+            # For the first run, treat the database as "changed" only if there
+            # are any files under the DB path at the current HEAD.
+            if git ls-tree -r --name-only "$HEAD_SHA" "$DB_PATH" | grep -q .; then
+              echo "Initial run with database files present; running migrations."
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "Initial run without database files; skipping migrations."
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+
+          echo "Comparing $BASE_SHA..$HEAD_SHA for changes under $DB_PATH"
+
+          if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- "$DB_PATH"; then
+            echo "No changes detected in $DB_PATH between $BASE_SHA and $HEAD_SHA"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in tambo-cloud/packages/db/"
-            git diff --name-only HEAD~1 HEAD -- tambo-cloud/packages/db/
+            echo "Changes detected in $DB_PATH between $BASE_SHA and $HEAD_SHA"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- "$DB_PATH"
           fi
 
       - name: Set up Node.js
