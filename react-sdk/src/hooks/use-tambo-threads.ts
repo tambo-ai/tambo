@@ -16,19 +16,6 @@ interface UseTamboThreadListConfig {
   contextKey?: string;
 }
 
-interface UseTamboThreadListConfig {
-  /**
-   * The projectId to get the threads for. If not provided, the current project
-   * will be used.
-   */
-  projectId?: string;
-  /**
-   * The context key to get the threads for. If not provided, all threads for
-   * the project will be returned.
-   */
-  contextKey?: string;
-}
-
 /**
  * Get all the threads for the specified project.
  *
