@@ -189,7 +189,6 @@ jobs:
   sentry-release:
     name: Create Sentry Release
     needs: release-please
-    if: ${{ needs.release-please.outputs.tambo-cloud--release_created == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Install Sentry CLI
@@ -207,7 +206,7 @@ jobs:
           SENTRY_ORG: tambo-ai
           SENTRY_PROJECT: tambo-cloud
         run: |
-          VERSION="${{ needs.release-please.outputs.tag_name }}"
+          VERSION=$(sentry-cli releases propose-version)
           sentry-cli releases new "$VERSION"
           sentry-cli releases set-commits "$VERSION" --auto
           sentry-cli releases finalize "$VERSION"
