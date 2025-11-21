@@ -13,10 +13,10 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "paths": {
-      "@tambo-ai-cloud/backend": ["../../tambo-cloud/packages/backend/src"],
-      "@tambo-ai-cloud/core": ["../../tambo-cloud/packages/core/src"],
-      "@tambo-ai-cloud/db": ["../../tambo-cloud/packages/db/src"],
-      "@tambo-ai-cloud/testing": ["../../tambo-cloud/packages/testing/src"]
+      "@tambo-ai-cloud/backend": ["../../packages/backend/src"],
+      "@tambo-ai-cloud/core": ["../../packages/core/src"],
+      "@tambo-ai-cloud/db": ["../../packages/db/src"],
+      "@tambo-ai-cloud/testing": ["../../packages/testing/src"]
     }
   }
 }
