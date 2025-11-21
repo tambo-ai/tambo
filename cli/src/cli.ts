@@ -38,6 +38,7 @@ interface CLIFlags extends Record<string, any> {
   prefix?: Flag<"string", string>;
   yes?: Flag<"boolean", boolean>;
   dryRun?: Flag<"boolean", boolean>;
+  skipAgentDocs?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -57,6 +58,7 @@ interface CommandHelp {
 const OPTION_DOCS: Record<string, string> = {
   prefix: `${chalk.yellow("--prefix <path>")}      Custom directory for components (e.g., src/components/ui)`,
   yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts`,
+  "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
   "accept-all": `${chalk.yellow("--accept-all")}         Accept all upgrades without prompting`,
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, analytics`,
@@ -73,7 +75,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       `$ ${chalk.cyan("tambo init")} [options]`,
       `$ ${chalk.cyan("tambo full-send")} [options]  ${chalk.dim("(includes component installation)")}`,
     ],
-    options: ["yes", "legacy-peer-deps"],
+    options: ["yes", "skip-agent-docs", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo init")}                      # Basic initialization`,
       `$ ${chalk.cyan("tambo init --yes")}                # Skip all prompts`,
@@ -87,7 +89,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     description:
       "Full initialization with auth flow and component installation",
     usage: [`$ ${chalk.cyan("tambo full-send")} [options]`],
-    options: ["yes", "legacy-peer-deps"],
+    options: ["yes", "skip-agent-docs", "legacy-peer-deps"],
     examples: [], // Shares examples with init
   },
   add: {
@@ -97,7 +99,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     usage: [
       `$ ${chalk.cyan("tambo add")} <component> [component2] [...] [options]`,
     ],
-    options: ["prefix", "yes", "legacy-peer-deps"],
+    options: ["prefix", "yes", "skip-agent-docs", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo add message")}                    # Add single component`,
       `$ ${chalk.cyan("tambo add message form graph")}         # Add multiple components`,
@@ -148,7 +150,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     syntax: "upgrade",
     description: "Upgrade packages, components, and LLM rules",
     usage: [`$ ${chalk.cyan("tambo upgrade")} [options]`],
-    options: ["prefix", "accept-all", "legacy-peer-deps"],
+    options: ["prefix", "accept-all", "skip-agent-docs", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo upgrade")}                    # Interactive upgrade`,
       `$ ${chalk.cyan("tambo upgrade --accept-all")}       # Auto-accept all changes`,
@@ -211,6 +213,7 @@ function generateGlobalHelp(): string {
   const optionDetails = [
     OPTION_DOCS.prefix,
     OPTION_DOCS.yes,
+    OPTION_DOCS["skip-agent-docs"],
     OPTION_DOCS["legacy-peer-deps"],
     `${OPTION_DOCS["accept-all"]} ${chalk.red("(upgrade only)")}`,
     `${OPTION_DOCS.template} ${chalk.red("(create-app only)")}`,
@@ -290,6 +293,10 @@ const cli = meow(generateGlobalHelp(), {
       description: "Answer yes to all prompts automatically",
       shortFlag: "y",
     },
+    skipAgentDocs: {
+      type: "boolean",
+      description: "Skip creating/updating agent docs",
+    },
     dryRun: {
       type: "boolean",
       description: "Dry run migration without making changes",
@@ -341,6 +348,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       fullSend: cmd === "full-send",
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       yes: Boolean(flags.yes),
+      skipAgentDocs: Boolean(flags.skipAgentDocs),
     });
     return;
   }
@@ -368,6 +376,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       installPath: flags.prefix as string | undefined,
       isExplicitPrefix: Boolean(flags.prefix),
       yes: Boolean(flags.yes),
+      skipAgentDocs: Boolean(flags.skipAgentDocs),
     });
     return;
   }
@@ -438,6 +447,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       acceptAll: Boolean(flags.acceptAll),
       prefix: flags.prefix as string | undefined,
       yes: Boolean(flags.yes ?? flags.y),
+      skipAgentDocs: Boolean(flags.skipAgentDocs),
     });
     return;
   }

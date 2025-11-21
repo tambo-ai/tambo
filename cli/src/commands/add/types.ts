@@ -17,4 +17,5 @@ export interface InstallComponentOptions {
   isExplicitPrefix?: boolean;
   yes?: boolean;
   baseInstallPath?: string;
+  skipAgentDocs?: boolean;
 }

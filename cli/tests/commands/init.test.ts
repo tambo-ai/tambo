@@ -482,6 +482,8 @@ describe("handleInit", () => {
         .toMatchInlineSnapshot(`
         "src/
         ├─ components/
+        │  ├─ tambo/
+        │  │  └─ AGENTS.md
         │  ├─ control-bar.tsx
         │  ├─ message-input.tsx
         │  ├─ message-suggestions.tsx
@@ -580,6 +582,8 @@ describe("handleInit", () => {
         .toMatchInlineSnapshot(`
         "src/
         ├─ components/
+        │  ├─ tambo/
+        │  │  └─ AGENTS.md
         │  ├─ message-input.tsx
         │  ├─ message-suggestions.tsx
         │  ├─ message-thread-full.tsx

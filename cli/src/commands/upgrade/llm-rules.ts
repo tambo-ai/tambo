@@ -1,94 +1,120 @@
+import chalk from "chalk";
 import fs from "fs";
+import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
+import { handleAgentDocsUpdate } from "../shared/agent-docs.js";
 import type { UpgradeOptions } from "./index.js";
-import { confirmAction, safeFetch } from "./utils.js";
 
-/**
- * Upgrade LLM rules in .cursor/rules folder based on template
- */
-export async function upgradeLlmRules(
-  template: string | null,
+function findLegacyCursorRules(): string[] {
+  const projectRoot = process.cwd();
+  const legacyFiles: string[] = [];
+
+  const rulesDir = path.join(projectRoot, ".cursor", "rules");
+  if (fs.existsSync(rulesDir)) {
+    for (const entry of fs.readdirSync(rulesDir)) {
+      const filePath = path.join(rulesDir, entry);
+      const stat = fs.statSync(filePath);
+      if (!stat.isFile()) continue;
+
+      const lowerName = entry.toLowerCase();
+      if (lowerName.includes("tambo")) {
+        legacyFiles.push(filePath);
+      }
+    }
+  }
+
+  const rootCursorRules = path.join(projectRoot, ".cursorrules");
+  if (fs.existsSync(rootCursorRules)) {
+    legacyFiles.push(rootCursorRules);
+  }
+
+  return legacyFiles;
+}
+
+async function confirmRulesUpgrade(hasLegacyRules: boolean): Promise<boolean> {
+  const message = hasLegacyRules
+    ? "Legacy cursor rules detected. Replace them with AGENTS.md/CLAUDE.md docs?"
+    : "Add AGENTS.md/CLAUDE.md guidance for LLMs?";
+
+  const { proceed } = await inquirer.prompt({
+    type: "confirm",
+    name: "proceed",
+    message,
+    default: true,
+  });
+
+  return proceed;
+}
+
+export async function upgradeAgentDocsAndRemoveCursorRules(
   options: UpgradeOptions,
 ): Promise<boolean> {
-  const spinner = ora("Upgrading LLM rules...").start();
+  if (options.skipAgentDocs) return true;
 
-  try {
-    const rulesDir = path.join(process.cwd(), ".cursor", "rules");
+  const legacyRules = findLegacyCursorRules();
+  const hasLegacyRules = legacyRules.length > 0;
 
-    // Check if .cursor/rules directory exists
-    if (!fs.existsSync(rulesDir)) {
-      spinner.info("No .cursor/rules directory found. Creating one...");
-      fs.mkdirSync(rulesDir, { recursive: true });
-    }
-
-    if (!template) {
-      spinner.warn("Could not detect template type. Skipping rules upgrade.");
+  if (!options.acceptAll) {
+    const proceed = await confirmRulesUpgrade(hasLegacyRules);
+    if (!proceed) {
+      console.log(chalk.gray("Skipped agent docs and cursor rule updates."));
       return true;
     }
+  }
 
-    // Define GitHub repository path for rules based on template
-    let repoRulesPath: string;
+  const spinner = ora(
+    "Updating agent docs and cleaning legacy cursor rules...",
+  ).start();
 
-    switch (template) {
-      case "standard":
-        repoRulesPath =
-          "https://api.github.com/repos/tambo-ai/tambo-template/contents/.cursor/rules";
-        break;
-      case "analytics":
-        repoRulesPath =
-          "https://api.github.com/repos/tambo-ai/analytics-template/contents/.cursor/rules";
-        break;
-      default:
-        spinner.warn(
-          `Unknown template type: ${template}. Skipping rules upgrade.`,
-        );
-        return true;
-    }
-
-    // Fetch rules from GitHub using our safeFetch wrapper
-    const response = await safeFetch(repoRulesPath);
-    if (!response.ok) {
-      spinner.fail(`Failed to fetch rules from GitHub: ${response.statusText}`);
-      return false;
-    }
-
-    const files = await response.json();
-    let updatedFiles = 0;
-
-    // Compare and update rules
-    for (const file of files) {
-      const fileResponse = await safeFetch(file.download_url);
-      if (!fileResponse.ok) continue;
-
-      const templateContent = await fileResponse.text();
-      const localFilePath = path.join(rulesDir, file.name);
-
-      // If file doesn't exist locally or content is different
-      if (
-        !fs.existsSync(localFilePath) ||
-        fs.readFileSync(localFilePath, "utf-8") !== templateContent
-      ) {
-        if (!options.acceptAll && fs.existsSync(localFilePath)) {
-          const proceed = await confirmAction(
-            `Update cursor rule file: ${file.name}?`,
-            true,
-          );
-
-          if (!proceed) continue;
-        }
-
-        fs.writeFileSync(localFilePath, templateContent);
-        updatedFiles++;
+  try {
+    for (const filePath of legacyRules) {
+      if (fs.existsSync(filePath)) {
+        fs.rmSync(filePath);
       }
     }
 
+    // Clean empty rules dir if we removed everything
+    const rulesDir = path.join(process.cwd(), ".cursor", "rules");
+    if (fs.existsSync(rulesDir)) {
+      const remaining = fs
+        .readdirSync(rulesDir)
+        .filter((item) => fs.statSync(path.join(rulesDir, item)).isFile());
+      if (remaining.length === 0) {
+        fs.rmSync(rulesDir, { recursive: true });
+      }
+    }
+
+    // Wrap agent docs update in try-catch
+    try {
+      await handleAgentDocsUpdate({
+        acceptAll: options.acceptAll,
+        prefix: options.prefix,
+        skipPrompt: true,
+        yes: options.acceptAll,
+      });
+    } catch (docError) {
+      console.log(
+        chalk.yellow(
+          `⚠  Warning: Agent docs update failed: ${
+            docError instanceof Error ? docError.message : String(docError)
+          }`,
+        ),
+      );
+    }
+
     spinner.succeed(
-      `Cursor rules upgrade complete. Updated ${updatedFiles} file(s).`,
+      hasLegacyRules
+        ? "Removed legacy cursor rules and updated agent docs."
+        : "Agent docs updated.",
     );
     return true;
   } catch (error) {
-    spinner.fail(`Failed to upgrade LLM rules: ${error}`);
+    spinner.fail(
+      `Failed to remove cursor rules: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
     return false;
   }
 }
