@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.123.2](https://github.com/tambo-ai/tambo/compare/repo-v0.123.1...repo-v0.123.2) (2025-11-20)
+
+
+### Documentation
+
+* **repo:** unify and reorganize AGENTS.md guidance ([#1336](https://github.com/tambo-ai/tambo/issues/1336)) ([a618d2f](https://github.com/tambo-ai/tambo/commit/a618d2fb23410e10d49641e536612eb0672c6ed0))
+
 ## [0.123.1](https://github.com/tambo-ai/tambo/compare/repo-v0.123.0...repo-v0.123.1) (2025-11-20)
 
 
