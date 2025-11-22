@@ -9,7 +9,6 @@ on:
 # Prevent multiple simultaneous runs
 concurrency:
   group: release-please-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: write
