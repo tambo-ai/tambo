@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.66.0](https://github.com/tambo-ai/tambo/compare/react-v0.65.2...react-v0.66.0) (2025-11-22)
+
+
+### Features
+
+* automate component sync from CLI registry to showcase ([#1292](https://github.com/tambo-ai/tambo/issues/1292)) ([ae309fc](https://github.com/tambo-ai/tambo/commit/ae309fcb832ecdbc376247435eb2176c82f3093b))
+
 ## [0.65.2](https://github.com/tambo-ai/tambo/compare/react-v0.65.1...react-v0.65.2) (2025-11-21)
 
 
