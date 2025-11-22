@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.31.0...showcase-v0.32.0) (2025-11-22)
+
+
+### Features
+
+* automate component sync from CLI registry to showcase ([#1292](https://github.com/tambo-ai/tambo/issues/1292)) ([ae309fc](https://github.com/tambo-ai/tambo/commit/ae309fcb832ecdbc376247435eb2176c82f3093b))
+
 ## [0.31.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.30.0...showcase-v0.31.0) (2025-11-20)
 
 
