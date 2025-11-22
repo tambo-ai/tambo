@@ -1,0 +1,324 @@
+/*
+ * Site-specific CSS for Tambo Showcase
+ * This file contains styles unique to the showcase site (not in the component registry)
+ */
+
+:root {
+  /* ===== SITE-SPECIFIC TOKENS ===== */
+  /* Brand Teal Primary Color (Override component registry) */
+  --primary: oklch(0.914 0.134 166.1); /* #7FFFC4 - bright teal */
+  --primary-foreground: oklch(0.319 0.054 208.3); /* #023A41 - dark teal */
+
+  /* Primary link color for showcase site */
+  --primary-link: 157 100% 35%;
+
+  /* Destructive foreground (showcase-specific) */
+  --destructive-foreground: 0 0% 98%;
+
+  /* Sidebar tokens (showcase-specific layout) */
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+
+  /* Color palette for showcase */
+  --color-1: 157 100% 75%; /* #7FFFC4 */
+  --color-2: 320 100% 88%; /* #FFC4EB */
+  --color-3: 217 91% 67%; /* #5C94F7 */
+  --color-4: 49 97% 51%; /* #FED807 */
+  --color-5: 186 94% 13%; /* #023A41 */
+
+  /* Layout-specific */
+  --header-height: 3.5rem;
+
+  /* Typography */
+  font-family: Inter, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
+}
+
+.dark {
+  /* Site-specific dark mode overrides */
+  /* Keep primary color light in dark mode for contrast */
+  --primary: oklch(0.98 0 0); /* Light/white for dark mode */
+  --primary-foreground: oklch(0.2 0 0); /* Dark for contrast */
+
+  --primary-link: 157 100% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  /* Sidebar (dark mode) */
+  --sidebar-background: 50 2% 7%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 0 0% 98%;
+  --sidebar-primary-foreground: 240 5.9% 10%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+@supports (font-variation-settings: normal) {
+  :root {
+    font-family: InterVariable, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Site-specific utility classes */
+  .border-flat {
+    border: 1px solid var(--border);
+  }
+
+  .shadow-light {
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.085);
+  }
+
+  .shadow-dark {
+    box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.141);
+  }
+
+  /* Font utility classes */
+  .font-sentient {
+    font-family: var(--font-sentient-light), serif;
+  }
+
+  .font-heading {
+    font-family: var(--font-sentient-light), serif;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  ::-webkit-scrollbar:horizontal {
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+  }
+}
+
+/* ===== SITE-SPECIFIC ANIMATIONS ===== */
+@keyframes icon-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes icon-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@layer utilities {
+  .icon-container {
+    transition: all 0.3s ease;
+  }
+
+  .icon-container:hover {
+    transform: scale(1.1);
+  }
+
+  .pulse-animation {
+    animation: icon-pulse 2s infinite;
+  }
+
+  .float-animation {
+    animation: icon-float 3s ease-in-out infinite;
+  }
+
+  /* Custom font weights for modern typography */
+  .font-450 {
+    font-weight: 450;
+  }
+
+  .font-500 {
+    font-weight: 500;
+  }
+
+  /* Link color utility */
+  .text-primary-link {
+    color: hsl(var(--primary-link));
+  }
+
+  /* Prose customization for markdown/doc content */
+  .prose {
+    --tw-prose-body: var(--foreground);
+    --tw-prose-headings: var(--foreground);
+    --tw-prose-links: hsl(var(--primary-link));
+    --tw-prose-bold: var(--foreground);
+    --tw-prose-counters: var(--muted-foreground);
+    --tw-prose-bullets: var(--muted-foreground);
+    --tw-prose-hr: var(--border);
+    --tw-prose-quotes: var(--foreground);
+    --tw-prose-quote-borders: var(--border);
+    --tw-prose-captions: var(--muted-foreground);
+    --tw-prose-code: var(--foreground);
+    --tw-prose-pre-code: var(--foreground);
+    --tw-prose-pre-bg: var(--muted);
+    --tw-prose-th-borders: var(--border);
+    --tw-prose-td-borders: var(--border);
+  }
+
+  .prose
+    :where(table):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    width: 100%;
+    table-layout: auto;
+    text-align: left;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+  }
+
+  .prose
+    :where(thead):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    border-bottom-width: 1px;
+    border-bottom-color: var(--border);
+  }
+
+  .prose
+    :where(thead th):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    color: var(--foreground);
+    font-weight: 600;
+    vertical-align: bottom;
+    padding-right: 0.5714286em;
+    padding-bottom: 0.5714286em;
+    padding-left: 0.5714286em;
+  }
+
+  .prose
+    :where(tbody tr):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    border-bottom-width: 1px;
+    border-bottom-color: var(--border);
+  }
+
+  .prose
+    :where(tbody tr:last-child):not(
+      :where([class~="not-prose"], [class~="not-prose"] *)
+    ) {
+    border-bottom-width: 0;
+  }
+
+  .prose
+    :where(tbody td):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    vertical-align: baseline;
+    padding: 0.5714286em;
+  }
+
+  .prose
+    :where(tbody td:first-child):not(
+      :where([class~="not-prose"], [class~="not-prose"] *)
+    ) {
+    padding-left: 0.5714286em;
+  }
+
+  .prose
+    :where(tbody td:last-child):not(
+      :where([class~="not-prose"], [class~="not-prose"] *)
+    ) {
+    padding-right: 0.5714286em;
+  }
+
+  /* List styling */
+  .prose :where(ul):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    list-style-type: disc;
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+  }
+
+  .prose :where(ol):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    list-style-type: decimal;
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+  }
+
+  .prose :where(li):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .prose
+    :where(ul > li):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    padding-left: 0.375em;
+  }
+
+  .prose
+    :where(ol > li):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    padding-left: 0.375em;
+  }
+
+  .prose
+    :where(ul ul, ul ol, ol ul, ol ol):not(
+      :where([class~="not-prose"], [class~="not-prose"] *)
+    ) {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+  }
+
+  .prose
+    :where(li p):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+  }
+
+  .prose
+    :where(li > *):not(
+      :where([class~="not-prose"], [class~="not-prose"] *)
+    ):first-child {
+    margin-top: 0;
+  }
+
+  .prose
+    :where(li > *):not(
+      :where([class~="not-prose"], [class~="not-prose"] *)
+    ):last-child {
+    margin-bottom: 0;
+  }
+
+  /* Override highlight.js backgrounds in code elements */
+  code[class*="language-"],
+  pre code[class*="language-"] {
+    background: transparent !important;
+  }
+
+  /* CLI and code viewer styling - ensure proper inheritance */
+  .cli-code,
+  .code-viewer code {
+    background: transparent !important;
+    color: inherit !important;
+  }
+}

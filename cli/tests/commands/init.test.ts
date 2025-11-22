@@ -29,48 +29,52 @@ const mockExecSync = (command: string) => {
   execSyncCalls.push(command);
   return "";
 };
+const mockExecFileSync = (file: string, args?: readonly string[]) => {
+  const commandStr = args ? `${file} ${args.join(" ")}` : file;
+  execSyncCalls.push(commandStr);
+  return "";
+};
 jest.unstable_mockModule("child_process", () => ({
   execSync: mockExecSync,
+  execFileSync: mockExecFileSync,
 }));
 
 // Mock inquirer for user prompts
 let inquirerResponses: Record<string, unknown> = {};
-jest.unstable_mockModule("inquirer", () => {
-  const mockPrompt = async (
-    question:
-      | { name: string; default?: unknown; type?: string; choices?: unknown[] }
-      | {
-          name: string;
-          default?: unknown;
-          type?: string;
-          choices?: unknown[];
-        }[],
-  ) => {
-    const questions = Array.isArray(question) ? question : [question];
-    const responses: Record<string, unknown> = {};
-    for (const q of questions) {
-      // Handle checkbox type - return array if response is provided, otherwise empty array
-      if (q.type === "checkbox") {
-        responses[q.name] =
-          inquirerResponses[q.name] !== undefined
-            ? inquirerResponses[q.name]
-            : (q.default ?? []);
-      } else {
-        responses[q.name] =
-          inquirerResponses[q.name] !== undefined
-            ? inquirerResponses[q.name]
-            : q.default;
-      }
+const mockPrompt = async (
+  question:
+    | { name: string; default?: unknown; type?: string; choices?: unknown[] }
+    | {
+        name: string;
+        default?: unknown;
+        type?: string;
+        choices?: unknown[];
+      }[],
+) => {
+  const questions = Array.isArray(question) ? question : [question];
+  const responses: Record<string, unknown> = {};
+  for (const q of questions) {
+    // Handle checkbox type - return array if response is provided, otherwise empty array
+    if (q.type === "checkbox") {
+      responses[q.name] =
+        inquirerResponses[q.name] !== undefined
+          ? inquirerResponses[q.name]
+          : (q.default ?? []);
+    } else {
+      responses[q.name] =
+        inquirerResponses[q.name] !== undefined
+          ? inquirerResponses[q.name]
+          : q.default;
     }
-    return responses;
-  };
+  }
+  return responses;
+};
 
-  return {
-    default: {
-      prompt: mockPrompt,
-    },
-  };
-});
+jest.unstable_mockModule("inquirer", () => ({
+  default: {
+    prompt: mockPrompt,
+  },
+}));
 
 // Mock open for browser opening
 let openCalls: string[] = [];
@@ -167,6 +171,20 @@ jest.unstable_mockModule("chalk", () => ({
       get: () => (text: string) => text,
     },
   ),
+}));
+
+// Mock the interactive module to make tests think they're in an interactive environment
+jest.unstable_mockModule("../../src/utils/interactive.js", () => ({
+  isInteractive: () => true, // Always return true in tests
+  interactivePrompt: mockPrompt, // Use the same mockPrompt as inquirer
+  execSync: mockExecSync, // Use the same mockExecSync as child_process
+  execFileSync: mockExecFileSync, // Use the same mockExecFileSync as child_process
+  NonInteractiveError: class NonInteractiveError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "NonInteractiveError";
+    }
+  },
 }));
 
 // Import after mocking

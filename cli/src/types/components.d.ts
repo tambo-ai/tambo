@@ -429,10 +429,9 @@ declare module "@/components/tambo/mcp-components" {
 declare module "@/lib/thread-hooks" {
   import type { TamboThreadMessage } from "@tambo-ai/react";
 
-  export function useMergedRef<T>(
-    ref1: React.Ref<T> | null | undefined,
-    ref2: React.Ref<T> | null | undefined,
-  ): React.RefCallback<T>;
+  export function useMergeRefs<Instance>(
+    ...refs: (React.Ref<Instance> | undefined)[]
+  ): null | React.RefCallback<Instance>;
 
   export function useCanvasDetection(ref: React.RefObject<HTMLElement>): {
     hasCanvasSpace: boolean;
@@ -462,7 +461,10 @@ declare module "@/lib/thread-hooks" {
 }
 
 declare module "@/components/tambo/thread-container" {
-  export type ThreadContainerProps = React.HTMLAttributes<HTMLDivElement>;
+  export interface ThreadContainerProps
+    extends React.HTMLAttributes<HTMLDivElement> {
+    disableSidebarSpacing?: boolean;
+  }
 
   export const ThreadContainer: React.ForwardRefExoticComponent<
     ThreadContainerProps & React.RefAttributes<HTMLDivElement>

@@ -1,6 +1,6 @@
 {
   "name": "create-tambo-app",
-  "version": "0.1.18",
+  "version": "0.2.0",
   "description": "Create a new Tambo application",
   "repository": {
     "type": "git",

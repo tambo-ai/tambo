@@ -86,8 +86,8 @@ import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 function App() {
   return (
-    <TamboProvider components={...}>
-      <TamboMcpProvider mcpServers={[]}>
+    <TamboProvider components={...} mcpServers={[]}>
+      <TamboMcpProvider>
         {/* Your app - elicitation from server-side MCP servers will work */}
       </TamboMcpProvider>
     </TamboProvider>
@@ -153,6 +153,7 @@ The handler is an async callback that receives the elicitation request and retur
 Apply a custom handler to all MCP servers:
 
 ```tsx
+import { TamboProvider } from "@tambo-ai/react";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 function App() {
@@ -173,14 +174,15 @@ function App() {
   };
 
   return (
-    <TamboMcpProvider
-      mcpServers={[...]}
-      handlers={{
-        elicitation: handleElicitation,
-      }}
-    >
-      {/* Your app */}
-    </TamboMcpProvider>
+    <TamboProvider mcpServers={[...]}>
+      <TamboMcpProvider
+        handlers={{
+          elicitation: handleElicitation,
+        }}
+      >
+        {/* Your app */}
+      </TamboMcpProvider>
+    </TamboProvider>
   );
 }
 ```
@@ -190,6 +192,7 @@ function App() {
 You can also override the handler for specific MCP servers, which is useful when different servers require different approval workflows or UI patterns:
 
 ```tsx
+import { TamboProvider } from "@tambo-ai/react";
 import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
 
 function App() {
@@ -202,7 +205,7 @@ function App() {
   };
 
   return (
-    <TamboMcpProvider
+    <TamboProvider
       mcpServers={[
         {
           url: "https://github-mcp.example.com",
@@ -213,8 +216,8 @@ function App() {
         },
       ]}
     >
-      {/* Your app */}
-    </TamboMcpProvider>
+      <TamboMcpProvider>{/* Your app */}</TamboMcpProvider>
+    </TamboProvider>
   );
 }
 ```
