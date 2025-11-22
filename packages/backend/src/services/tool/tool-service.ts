@@ -48,7 +48,7 @@ export const standardToolParameters: FunctionParameters = {
 // Public functions
 export function convertMetadataToTools(
   toolsMetadata: ComponentContextToolMetadata[],
-): OpenAI.Chat.Completions.ChatCompletionTool[] {
+): (OpenAI.Chat.Completions.ChatCompletionTool & { maxCalls?: number })[] {
   return toolsMetadata.map((tool) => {
     const parameters = {
       type: "object",
@@ -101,6 +101,7 @@ export function convertMetadataToTools(
           additionalProperties: false,
         },
       },
+      ...(tool.maxCalls !== undefined && { maxCalls: tool.maxCalls }),
     };
     return fn;
   });
