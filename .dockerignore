@@ -4,6 +4,8 @@ node_modules
 
 # Build outputs
 apps/web/.next
+apps/api/Dockerfile
+apps/web/Dockerfile
 .next/
 dist/
 build/

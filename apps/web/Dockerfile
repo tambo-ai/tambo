@@ -21,13 +21,14 @@ USER nodejs
 COPY --chown=nodejs:nodejs package.json package-lock.json turbo.json ./
 
 # Copy packages directory (contains shared configs required by react-sdk)
+# Copy tambo-cloud directory
 COPY --chown=nodejs:nodejs packages/ ./packages/
+COPY --chown=nodejs:nodejs apps/web ./apps/web/
+COPY --chown=nodejs:nodejs tambo-cloud/packages/ ./tambo-cloud/packages/
 
 # Copy react-sdk workspace package (required by tambo-cloud apps)
 COPY --chown=nodejs:nodejs react-sdk/ ./react-sdk/
 
-# Copy tambo-cloud directory
-COPY --chown=nodejs:nodejs tambo-cloud/ ./tambo-cloud/
 
 # Install all dependencies from root
 RUN npm ci
@@ -45,5 +46,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-WORKDIR /app/tambo-cloud/apps/web
+WORKDIR /app/apps/web
 CMD ["npx", "next", "start"]
