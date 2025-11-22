@@ -11,6 +11,8 @@ services:
     image: postgres:17
     container_name: tambo_postgres
     restart: unless-stopped
+    env_file:
+      - ./docker.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-tambo}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -36,6 +38,8 @@ services:
   # Web Service (Next.js)
   web:
     image: tambo-web:latest
+    env_file:
+      - ./docker.env
     build:
       context: .
       dockerfile: apps/web/Dockerfile
@@ -67,15 +71,10 @@ services:
       - EMAIL_FROM_PERSONAL=${EMAIL_FROM_PERSONAL:-}
       - EMAIL_REPLY_TO_SUPPORT=${EMAIL_REPLY_TO_SUPPORT:-}
       - EMAIL_REPLY_TO_PERSONAL=${EMAIL_REPLY_TO_PERSONAL:-}
-      - EMAIL_FROM_DEFAULT=${EMAIL_FROM_DEFAULT}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
-      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL}
-      - RESEND_API_KEY=${RESEND_API_KEY:-}
       - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN:-}
       - NEXT_PUBLIC_SENTRY_ORG=${NEXT_PUBLIC_SENTRY_ORG:-}
       - NEXT_PUBLIC_SENTRY_PROJECT=${NEXT_PUBLIC_SENTRY_PROJECT:-}
@@ -88,7 +87,7 @@ services:
       - tambo_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
       interval: 20s
       timeout: 8s
       retries: 3
@@ -97,7 +96,10 @@ services:
   # API Service (NestJS)
   api:
     image: tambo-api:latest
+    env_file:
+      - ./docker.env
     build:
+      # Run context from the repo top level so that Docker can access shared files
       context: .
       dockerfile: apps/api/Dockerfile
       # Conditional caching based on environment
@@ -143,7 +145,7 @@ services:
       - tambo_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
       interval: 20s
       timeout: 8s
       retries: 3

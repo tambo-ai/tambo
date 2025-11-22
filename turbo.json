@@ -28,6 +28,7 @@
     "LANGFUSE_HOST",
     "LANGFUSE_PUBLIC_KEY",
     "LANGFUSE_SECRET_KEY",
+    "NEXT_BUILD_STANDALONE",
     "NEXT_PUBLIC_CURSOR_MCP_DEEPLINK",
     "NEXT_PUBLIC_DOCS_URL",
     "NEXT_PUBLIC_POSTHOG_HOST",
@@ -76,7 +77,7 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "esm/**"],
       "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
     },
     "@tambo-ai/showcase#build": {

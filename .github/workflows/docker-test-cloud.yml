@@ -39,19 +39,41 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
+        id: setup-buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Set up Cache Mounts
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            workspace-npm
+            workspace-turbo
+            workspace-apps-web-next
+          key: cache-mount-${{ hashFiles('**/Dockerfile') }}
+
+      - name: Cache for Turbo
+        uses: rharkor/caching-for-turbo@v2.3.2
+        with:
+          server-port: 43210
+
+      - name: Restore Docker cache mounts
+        uses: reproducible-containers/buildkit-cache-dance@v3
+        with:
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          cache-map: |
+            {
+              "workspace-npm": "/workspace/.npm/cache",
+              "workspace-turbo": "/workspace/.turbo/cache",
+              "workspace-apps-web-next": "/workspace/apps/web/.next/cache"
+            }
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 
       - name: Setup Docker environment
         run: |
-          cd tambo-cloud
-          ./scripts/tambo-setup.sh
+          ./scripts/cloud/tambo-setup.sh
           # Set NODE_ENV to development for faster startup
           sed -i 's/NODE_ENV=production/NODE_ENV=development/g' docker.env
-
-      - name: Install jq (required for health checks)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
 
       - name: Determine if we should push to GHCR
         id: should_push
@@ -88,23 +110,32 @@ jobs:
             org.opencontainers.image.description=Next.js web frontend for Tambo AI platform
             org.opencontainers.image.vendor=Tambo AI
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/${{ github.sha }}/apps/web
             org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./tambo-cloud/apps/web/Dockerfile
+          file: ./apps/web/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || '' }}
           tags: ${{ steps.should_push.outputs.should_push == 'true' && steps.meta_web.outputs.tags || 'tambo-web:latest' }}
           labels: ${{ steps.meta_web.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha,scope=buildx-web-${{ github.ref_name }}
+            type=gha,scope=buildx-web-main
+          cache-to: |
+            type=gha,scope=buildx-web-${{ github.ref_name }},mode=max
           build-args: |
             NODE_ENV=production
+          secrets: |
+            TURBO_TEAM=${{ env.TURBO_TEAM }}
+            TURBO_TOKEN=${{ env.TURBO_TOKEN }}
+            TURBO_API=http://127.0.0.1:${{ env.TURBOGHA_PORT }}
+          allow: network.host
+          network: host
 
       - name: Extract metadata for api image
         id: meta_api
@@ -119,23 +150,32 @@ jobs:
             org.opencontainers.image.description=NestJS backend API for Tambo AI platform
             org.opencontainers.image.vendor=Tambo AI
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/{{ github.sha }}/apps/api
             org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Build and push api image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./tambo-cloud/apps/api/Dockerfile
+          file: ./apps/api/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || '' }}
           tags: ${{ steps.should_push.outputs.should_push == 'true' && steps.meta_api.outputs.tags || 'tambo-api:latest' }}
           labels: ${{ steps.meta_api.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha,scope=buildx-api-${{ github.ref_name }}
+            type=gha,scope=buildx-api-main
+          cache-to: |
+            type=gha,scope=buildx-api-${{ github.ref_name }},mode=max
           build-args: |
             NODE_ENV=production
+          secrets: |
+            TURBO_TEAM=${{ env.TURBO_TEAM }}
+            TURBO_TOKEN=${{ env.TURBO_TOKEN }}
+            TURBO_API=http://127.0.0.1:${{ env.TURBOGHA_PORT }}
+          allow: network.host
+          network: host
 
       - name: Ensure local tags for stack
         if: steps.should_push.outputs.should_push == 'true'
@@ -146,26 +186,22 @@ jobs:
           docker tag ghcr.io/tambo-ai/tambo-api-server:${{ steps.should_push.outputs.release_tag }} tambo-api:latest
 
       - name: Start Docker stack
-        run: |
-          cd tambo-cloud
-          ./scripts/tambo-start.sh
+        run: ./scripts/cloud/tambo-start.sh
         timeout-minutes: 8
 
       - name: Wait for services to be healthy
         run: |
-          cd tambo-cloud
           # Wait for PostgreSQL to be healthy (reduced wait time)
-          timeout 45 bash -c 'until docker compose --env-file docker.env ps postgres | grep -q "healthy"; do sleep 3; done'
+          timeout 45 bash -c 'until docker compose --env-file docker.env ps postgres | grep -q "(healthy)"; do sleep 3; done'
 
           # Wait for API to be ready (using the /health endpoint)
-          timeout 45 bash -c 'until curl -f http://localhost:3211/health 2>/dev/null; do sleep 3; done'
+          timeout 45 bash -c 'until curl -fso /dev/null http://localhost:3211/health 2>/dev/null; do sleep 3; done'
 
           # Wait for Web to be ready
-          timeout 45 bash -c 'until curl -f http://localhost:3210/ 2>/dev/null; do sleep 3; done'
+          timeout 45 bash -c 'until curl -fso /dev/null http://localhost:3210/ 2>/dev/null; do sleep 3; done'
 
       - name: Check service status
         run: |
-          cd tambo-cloud
           echo "=== Docker Compose Status ==="
           docker compose --env-file docker.env ps
 
@@ -174,24 +210,21 @@ jobs:
 
           echo "=== Service Endpoints ==="
           echo "Testing API health endpoint..."
-          curl -f http://localhost:3211/health && echo "API health endpoint responding"
+          curl -fso /dev/null http://localhost:3211/health && echo -e "\nAPI health endpoint responding"
 
           echo "Testing API root endpoint..."
-          curl -f http://localhost:3211/ && echo "API root endpoint responding"
+          curl -fso /dev/null http://localhost:3211/ && echo -e "\nAPI root endpoint responding"
 
           echo "Testing Web endpoint..."
-          curl -f http://localhost:3210/ && echo "Web endpoint responding"
+          curl -fso /dev/null http://localhost:3210/ && echo -e "\nWeb endpoint responding"
 
       - name: Initialize database
         run: |
-          cd tambo-cloud
-          # Run database migrations inside the api container from tambo-cloud directory
-          docker compose --env-file docker.env exec -T api sh -c "cd /app/tambo-cloud && npm run db:migrate"
+          docker compose --env-file docker.env exec -T api sh -c "npm -w @tambo-ai-cloud/db run db:migrate"
         timeout-minutes: 2
 
       - name: Verify database initialization
         run: |
-          cd tambo-cloud
           # Check if database tables were created
           echo "=== Database Tables ==="
           docker compose --env-file docker.env exec -T postgres psql -U postgres -d tambo -c "\dt" || echo "Database tables not found"
@@ -202,15 +235,16 @@ jobs:
 
       - name: Stop Docker stack
         if: always()
-        run: |
-          cd tambo-cloud
-          ./scripts/tambo-stop.sh
+        run: ./scripts/cloud/tambo-stop.sh
         timeout-minutes: 2
+
+      - name: Debug Docker logs on failure
+        if: failure()
+        run: ./scripts/cloud/tambo-logs.sh
 
       - name: Cleanup
         if: always()
         run: |
-          cd tambo-cloud
           # Force cleanup in case stop script didn't work
           docker compose --env-file docker.env down -v --remove-orphans || true
           docker network rm tambo_network 2>/dev/null || true

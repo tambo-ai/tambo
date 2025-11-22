@@ -11,7 +11,7 @@ This document describes how to run Tambo with a local PostgreSQL database using 
 1. **Setup the environment:**
 
    ```bash
-   ./scripts/tambo-setup.sh
+   ./scripts/cloud/tambo-setup.sh
    ```
 
    This will:
@@ -29,7 +29,7 @@ This document describes how to run Tambo with a local PostgreSQL database using 
 3. **Start the stack:**
 
    ```bash
-   ./scripts/tambo-start.sh
+   ./scripts/cloud/tambo-start.sh
    ```
 
    This will start the containers to run Tambo, using environment variables from your `docker.env` file.
@@ -39,7 +39,7 @@ This document describes how to run Tambo with a local PostgreSQL database using 
 4. **Initialize the database:**
 
    ```bash
-   ./scripts/init-database.sh
+   ./scripts/cloud/init-database.sh
    ```
 
    This script automatically detects if it's running on the host or in Docker:
@@ -148,7 +148,7 @@ For production deployments, use HTTPS for all redirect URIs (for example, `https
 
 ### Environment separation (recommended)
 
-Create separate OAuth clients for local development and for production. Each environment must use its own redirect/callback URL that matches that environment’s base URL plus the correct callback path.
+Create separate OAuth clients for local development and for production. Each environment must use its own redirect/callback URL that matches that environment's base URL plus the correct callback path.
 
 Examples (placeholders — use values that match your setup):
 
@@ -202,7 +202,7 @@ Behavior:
 You can also run it directly via docker compose if desired:
 
 ```bash
-docker compose --env-file docker.env exec -T api sh -lc "./scripts/init-database.sh"
+docker compose --env-file docker.env exec -T api sh -lc "./scripts/cloud/init-database.sh"
 ```
 
 ### `tambo-setup.sh`
@@ -251,12 +251,12 @@ docker compose --env-file docker.env ps
 
 ```bash
 # All services
-./scripts/tambo-logs.sh
+./scripts/cloud/tambo-logs.sh
 
 # Specific service
-./scripts/tambo-logs.sh postgres
-./scripts/tambo-logs.sh api
-./scripts/tambo-logs.sh web
+./scripts/cloud/tambo-logs.sh postgres
+./scripts/cloud/tambo-logs.sh api
+./scripts/cloud/tambo-logs.sh web
 ```
 
 ### Reset Everything
@@ -267,8 +267,8 @@ docker compose --env-file docker.env down -v
 docker volume rm tambo-cloud_tambo_postgres_data
 
 # Start fresh
-./scripts/tambo-start.sh
-./scripts/init-database.sh
+./scripts/cloud/tambo-start.sh
+./scripts/cloud/init-database.sh
 ```
 
 ## Development

@@ -14,16 +14,8 @@ YELLOW="$(printf '\033[1;33m')"
 BLUE="$(printf '\033[0;34m')"
 NC="$(printf '\033[0m')" # No Color
 
-# Determine script directory (POSIX-compatible)
-case "$0" in
-  /*) SCRIPT_PATH="$0" ;;
-  *) SCRIPT_PATH="$(pwd)/$0" ;;
-esac
-SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-
-# Change to project root directory
-cd "$PROJECT_ROOT"
+REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT_DIR" || { echo "Could not find repo root. Are you running from inside the tambo folder?"; exit 1; }
 
 printf "%s\n" "${GREEN}🗄️  Initializing Tambo Database...${NC}"
 printf "%s\n" "${BLUE}📁 Working directory: $(pwd)${NC}"
@@ -58,12 +50,12 @@ if [ "$IS_IN_DOCKER" = false ]; then
   fi
   if ! docker compose --env-file docker.env ps api | grep -q "Up"; then
     printf "%s\n" "${RED}❌ API container is not running. Please start the stack first:${NC}"
-    printf "%s\n" "${YELLOW}   ./scripts/tambo-start.sh${NC}"
+    printf "%s\n" "${YELLOW}   ./scripts/cloud/tambo-start.sh${NC}"
     exit 1
   fi
 
   printf "%s\n" "${BLUE}📦 Delegating to api container...${NC}"
-  exec docker compose --env-file docker.env exec -T api sh -lc "./scripts/init-database.sh"
+  exec docker compose --env-file docker.env exec -T api sh -lc "./scripts/cloud/init-database.sh"
 fi
 
 # From here on, we are inside a container
@@ -89,7 +81,7 @@ if [ -z "$DATABASE_URL" ]; then
 fi
 printf "%s\n" "${BLUE}📋 Using container DATABASE_URL: $DATABASE_URL${NC}"
 printf "%s\n" "${BLUE}📊 Running database migrations inside container...${NC}"
-npm run db:migrate
+npm -w @tambo-ai-cloud/db db:migrate
 
 printf "%s\n" "${GREEN}✅ Database initialization completed successfully!${NC}"
 printf "%s\n" "${BLUE}📋 Database is now ready for use.${NC}"

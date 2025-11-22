@@ -5,20 +5,16 @@
 
 set -e
 
+# Get the root directory of the git repository
+REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT_DIR" || { echo -e "Could not find repo root. Are you running from inside the tambo folder?"; exit 1; }
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
-
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Get the project root directory (parent of scripts directory)
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-
-# Change to project root directory
-cd "$PROJECT_ROOT"
 
 echo -e "${GREEN}🚀 Tambo Docker Setup${NC}"
 echo -e "${BLUE}This script will help you set up Tambo for self-hosting with Docker${NC}"
@@ -65,17 +61,17 @@ echo -e "   - Add your API keys (OpenAI, etc.)"
 echo -e "   - Configure other settings as needed"
 echo -e ""
 echo -e "2. ${YELLOW}Build the containers:${NC}"
-echo -e "   ./scripts/tambo-build.sh"
+echo -e "   ./scripts/cloud/tambo-build.sh"
 echo -e ""
 echo -e "3. ${YELLOW}Start the stack:${NC}"
-echo -e "   ./scripts/tambo-start.sh"
+echo -e "   ./scripts/cloud/tambo-start.sh"
 echo -e ""
 echo -e "4. ${YELLOW}Initialize the database:${NC}"
-echo -e "   ./scripts/init-database.sh"
+echo -e "   ./scripts/cloud/init-database.sh"
 echo -e ""
 echo -e "5. ${YELLOW}Access your applications:${NC}"
 echo -e "   - Tambo Web: http://localhost:3210"
 echo -e "   - Tambo API: http://localhost:3211"
 echo -e "   - PostgreSQL Database: localhost:5433"
 echo -e ""
-echo -e "${YELLOW}💡 For help, run: ./scripts/tambo-logs.sh --help${NC}" 
+echo -e "${YELLOW}💡 For help, run: ./scripts/cloud/tambo-logs.sh --help${NC}" 
