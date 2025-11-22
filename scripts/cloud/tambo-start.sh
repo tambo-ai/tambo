@@ -5,13 +5,9 @@
 
 set -e
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Get the project root directory (parent of scripts directory)
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-
-# Change to project root directory
-cd "$PROJECT_ROOT"
+# Get the root directory of the git repository
+REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT_DIR" || { echo -e "Could not find repo root. Are you running from inside the tambo folder?"; exit 1; }
 
 # Colors for output
 RED='\033[0;31m'
@@ -43,7 +39,7 @@ docker network create tambo_network 2>/dev/null || true
 # Pull latest images (skip in CI where images are built locally)
 if [ -z "$GITHUB_ACTIONS" ]; then
     echo -e "${YELLOW}📦 Pulling latest images...${NC}"
-    docker compose --env-file docker.env pull
+    docker compose --env-file docker.env pull --ignore-buildable
 else
     echo -e "${YELLOW}📦 Skipping pull in CI (using locally built images)...${NC}"
 fi
@@ -84,5 +80,5 @@ echo -e "  • Tambo Web: http://localhost:3210"
 echo -e "  • Tambo API: http://localhost:3211"
 echo -e "  • PostgreSQL Database: localhost:5433"
 echo -e ""
-echo -e "${YELLOW}💡 To stop the stack: ./scripts/tambo-stop.sh${NC}"
-echo -e "${YELLOW}💡 To view logs: ./scripts/tambo-logs.sh${NC}" 
+echo -e "${YELLOW}💡 To stop the stack: ./scripts/cloud/tambo-stop.sh${NC}"
+echo -e "${YELLOW}💡 To view logs: ./scripts/cloud/tambo-logs.sh${NC}" 

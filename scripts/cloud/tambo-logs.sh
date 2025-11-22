@@ -3,13 +3,11 @@
 # View Tambo Docker Stack Logs
 # This script displays logs from the Tambo application and PostgreSQL database
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Get the project root directory (parent of scripts directory)
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+set -e
 
-# Change to project root directory
-cd "$PROJECT_ROOT"
+# Get the root directory of the git repository
+REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT_DIR" || { echo -e "Could not find repo root. Are you running from inside the tambo folder?"; exit 1; }
 
 # Colors for output
 RED='\033[0;31m'
