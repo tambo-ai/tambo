@@ -95,7 +95,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./tambo-cloud/apps/web/Dockerfile
+          file: ./apps/web/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || '' }}
@@ -126,7 +126,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./tambo-cloud/apps/api/Dockerfile
+          file: ./apps/api/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || '' }}
