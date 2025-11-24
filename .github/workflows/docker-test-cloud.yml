@@ -150,7 +150,7 @@ jobs:
             org.opencontainers.image.description=NestJS backend API for Tambo AI platform
             org.opencontainers.image.vendor=Tambo AI
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/{{ github.sha }}/apps/api
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/${{ github.sha }}/apps/api
             org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Build and push api image
@@ -192,7 +192,7 @@ jobs:
       - name: Wait for services to be healthy
         run: |
           # Wait for PostgreSQL to be healthy (reduced wait time)
-          timeout 45 bash -c 'until docker compose --env-file docker.env ps postgres | grep -q "(healthy)"; do sleep 3; done'
+          timeout 45 bash -c 'until docker inspect --format={{.State.Health.Status}} tambo_postgres 2>/dev/null | grep -q ^healthy$; do sleep 3; done'
 
           # Wait for API to be ready (using the /health endpoint)
           timeout 45 bash -c 'until curl -fso /dev/null http://localhost:3211/health 2>/dev/null; do sleep 3; done'
