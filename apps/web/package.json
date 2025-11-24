@@ -50,7 +50,7 @@
     "@tiptap/extension-mention": "^3.10.2",
     "@tiptap/extension-placeholder": "^3.11.0",
     "@tiptap/react": "^3.10.2",
-    "@tiptap/starter-kit": "^3.10.2",
+    "@tiptap/starter-kit": "^3.11.0",
     "@tiptap/suggestion": "^3.10.2",
     "@trpc/client": "^11.7.1",
     "@trpc/react-query": "^11.7.1",
