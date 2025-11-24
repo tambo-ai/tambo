@@ -1116,7 +1116,9 @@ export class ThreadsService {
         projectId,
       );
       const mcpAccessTokenResult = hasMcpServers
-        ? await this.authService.generateMcpAccessToken(projectId, thread.id)
+        ? await this.authService.generateMcpAccessToken(projectId, {
+            threadId: thread.id,
+          })
         : undefined;
       const mcpAccessToken = mcpAccessTokenResult?.token;
 

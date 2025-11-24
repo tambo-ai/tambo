@@ -358,11 +358,16 @@ describe("ThreadsService.advanceThread initialization", () => {
         {
           provide: AuthService,
           useValue: {
-            generateMcpAccessToken: jest.fn().mockResolvedValue({
-              token: "mcp-token",
-              expiresAt: Date.now() + 15 * 60 * 1000,
-              hasSession: true,
-            }),
+            generateMcpAccessToken: jest
+              .fn()
+              .mockImplementation(async (projectId, options) => {
+                const hasSession = "threadId" in options;
+                return await Promise.resolve({
+                  token: "mcp-token",
+                  expiresAt: Date.now() + 15 * 60 * 1000,
+                  hasSession,
+                });
+              }),
           },
         },
         {
@@ -446,10 +451,9 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     const initArgs2 = mockedCreateTamboBackend.mock.calls[0];
     expect(initArgs2[2]).toBe(`${projectId}-${contextKey}`);
-    expect(authService.generateMcpAccessToken).toHaveBeenCalledWith(
-      projectId,
+    expect(authService.generateMcpAccessToken).toHaveBeenCalledWith(projectId, {
       threadId,
-    );
+    });
   });
 
   test("passes forceToolChoice parameter to decision loop", async () => {

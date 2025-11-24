@@ -25,8 +25,13 @@ export class AuthService {
   }
 
   /**
-   * Generates an MCP access token (JWT) that includes projectId/threadId in a
-   * namespaced claim and standard JWT claims (iss/sub/iat/exp).
+   * Generates an MCP access token (JWT) for either a thread session or sessionless access.
+   *
+   * When threadId is provided, creates a session-bound token that includes projectId/threadId
+   * and can use session-specific features (elicitation, sampling).
+   *
+   * When contextKey is provided, creates a sessionless token that includes projectId/contextKey
+   * and can only access resources and prompts (no session-specific features).
    *
    * Notes on expiry/iat:
    * - We round down to the nearest 5 minutes and set `iat` to that window
@@ -36,55 +41,14 @@ export class AuthService {
    */
   async generateMcpAccessToken(
     projectId: string,
-    threadId: string,
-  ): Promise<McpAccessTokenResult> {
-    return await this.createMcpAccessToken(projectId, {
-      threadId,
-      hasSession: true,
-    });
-  }
-
-  /**
-   * Generates a session-less MCP access token (JWT) that includes projectId/contextKey
-   * in a namespaced claim and standard JWT claims (iss/sub/iat/exp).
-   *
-   * This token is not tied to a specific thread and cannot use session-specific features
-   * (elicitation, sampling). It is primarily used for accessing resources and prompts.
-   *
-   * Notes on expiry/iat:
-   * - We round down to the nearest 5 minutes and set `iat` to that window
-   *   start so tokens minted within the same 5‑minute window are identical.
-   * - `exp` is set to 15 minutes after the window start.
-   */
-  async generateSessionlessMcpAccessToken(
-    projectId: string,
-    contextKey: string,
-  ): Promise<McpAccessTokenResult> {
-    return await this.createMcpAccessToken(projectId, {
-      contextKey,
-      hasSession: false,
-    });
-  }
-
-  /**
-   * Internal method to create an MCP access token with either threadId or contextKey.
-   *
-   * Notes on expiry/iat:
-   * - We round down to the nearest 5 minutes and set `iat` to that window
-   *   start so tokens minted within the same 5‑minute window are identical.
-   * - `exp` is set to 15 minutes after the window start. If we ever need a
-   *   guaranteed 15 minutes of validity from issuance, bump the offset to 20m.
-   */
-  private async createMcpAccessToken(
-    projectId: string,
-    options:
-      | { threadId: string; hasSession: true }
-      | { contextKey: string; hasSession: false },
+    options: { threadId: string } | { contextKey: string },
   ): Promise<McpAccessTokenResult> {
     const secret = this.configService.get<string>("API_KEY_SECRET");
     if (!secret) {
       throw new Error("API_KEY_SECRET is not configured");
     }
+
+    const hasSession = "threadId" in options;
 
     // https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4
     // Round down to the nearest 5 minutes, then add 15 minutes. This makes tokens
@@ -98,11 +62,11 @@ export class AuthService {
     const expSeconds = Math.floor(expiration / 1000);
     const windowStartSeconds = Math.floor(windowStartMs / 1000);
 
-    const claim = options.hasSession
+    const claim = hasSession
       ? { projectId, threadId: options.threadId }
       : { projectId, contextKey: options.contextKey };
 
-    const subject = options.hasSession
+    const subject = hasSession
       ? `${projectId}:${options.threadId}`
       : `${projectId}:sessionless`;
 
@@ -120,7 +84,7 @@ export class AuthService {
     return {
       token: signedJwt,
       expiresAt: expiration,
-      hasSession: options.hasSession,
+      hasSession,
     };
   }
 }

@@ -103,10 +103,9 @@ export class AppController {
         throw new NotFoundException("Thread not found");
       }
 
-      const result = await this.authService.generateMcpAccessToken(
-        projectId,
+      const result = await this.authService.generateMcpAccessToken(projectId, {
         threadId,
-      );
+      });
 
       return {
         mcpAccessToken: result.token,
@@ -122,10 +121,9 @@ export class AppController {
       );
     }
 
-    const result = await this.authService.generateSessionlessMcpAccessToken(
-      projectId,
+    const result = await this.authService.generateMcpAccessToken(projectId, {
       contextKey,
-    );
+    });
 
     return {
       mcpAccessToken: result.token,

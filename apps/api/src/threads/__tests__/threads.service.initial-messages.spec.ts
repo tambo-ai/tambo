@@ -36,11 +36,16 @@ describe("ThreadsService - Initial Messages", () => {
     };
 
     mockAuthService = {
-      generateMcpAccessToken: jest.fn().mockResolvedValue({
-        token: "mock-token",
-        expiresAt: Date.now() + 15 * 60 * 1000,
-        hasSession: true,
-      }),
+      generateMcpAccessToken: jest
+        .fn()
+        .mockImplementation(async (projectId, options) => {
+          const hasSession = "threadId" in options;
+          return await Promise.resolve({
+            token: "mock-token",
+            expiresAt: Date.now() + 15 * 60 * 1000,
+            hasSession,
+          });
+        }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
