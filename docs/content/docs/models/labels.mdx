@@ -26,29 +26,17 @@ Models in tambo carry a **status label**, shown when you select a model from the
 | `untested`     | Available, but not yet validated. Use it—but test in your context. |
 | `known-issues` | Usable, but we’ve observed behaviors worth noting (see below).     |
 
-### Observed Behaviors & Notes
+### Provider-Specific Notes
 
-These behaviors were noted during testing on common tambo tasks. The models below are still usable—just keep the caveats in mind.
+For detailed information about each model, including status, capabilities, and observed behaviors, see the provider-specific pages:
 
-#### Google
+- **[OpenAI Models](/models/openai)** - Notes on GPT-5.1, GPT-5.1 Chat Latest, GPT-4.1 Nano, and other untested models
+- **[Anthropic Models](/models/anthropic)** - Known issues with Claude 3.5 Haiku component rendering
+- **[Google Models](/models/google)** - Known issues with Gemini rendering consistency and untested Gemini 3.0 models
+- **[Groq Models](/models/groq)** - Notes on untested Llama 4 Scout and Maverick models
+- **[Mistral Models](/models/mistral)** - Known issues with Mistral Large 2.1 and Medium 3 rendering
 
-- **Gemini 2.5 Pro / 2.5 Flash / 2.0 Flash / 2.0 Flash Lite**:
-  - May occasionally resist rendering as requested. Sometimes it completes the request, but behavior can be inconsistent.
-  - Try clarifying instructions (e.g., “Return a bulleted list only”).
-  - Outputs may have formatting quirks. Be cautious when structure matters.
-
-#### Anthropic
-
-- **Claude 3.5 Haiku**:
-  - May fail to fully render components, even when receiving the correct data.
-  - _Example:_ When rendering a graph component, it may leave it in a loading state without streaming the data into props.
-
-#### Mistral
-
-- **Mistral Large 2.1 / Medium 3**:
-  - Similar to Gemini, may inconsistently follow rendering instructions.
-  - Try clarifying the prompt structure.
-  - Formatting idiosyncrasies can occur—validate outputs where structure is important.
+Each provider page includes complete model information, configuration guidance, and specific notes about observed behaviors during testing.
 
 <Callout type="info" title="Production Guidance">
   For production-critical formatting, use **Tested** models and validate
