@@ -49,10 +49,5 @@
   "volta": {
     "node": "22.21.0",
     "npm": "11.6.2"
-  },
-  "dependencies": {
-    "@ai-sdk/google": "^2.0.42",
-    "@ai-sdk/groq": "^2.0.31",
-    "@ai-sdk/openai": "^2.0.71"
   }
 }

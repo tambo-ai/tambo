@@ -34,6 +34,11 @@
     "extends": "../../package.json"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.47",
+    "@ai-sdk/google": "^2.0.43",
+    "@ai-sdk/groq": "^2.0.31",
+    "@ai-sdk/mistral": "^2.0.23",
+    "@ai-sdk/openai": "^2.0.72",
     "@modelcontextprotocol/sdk": "^1.20.2",
     "jose": "^5.10.0",
     "openai": "^6.4.0",
