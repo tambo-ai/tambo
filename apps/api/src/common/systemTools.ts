@@ -139,7 +139,7 @@ export async function getThreadMCPClients(
           customHeaders,
           authProvider,
           sessionId,
-          sessionId ? mcpHandlers : {},
+          threadId ? mcpHandlers : {},
         );
 
         if (

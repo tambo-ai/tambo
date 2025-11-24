@@ -5,6 +5,12 @@ import { type HydraDatabase } from "@tambo-ai-cloud/db";
 import { SignJWT } from "jose";
 import { DATABASE } from "../middleware/db-transaction-middleware";
 
+export interface McpAccessTokenResult {
+  token: string;
+  expiresAt: number;
+  hasSession: boolean;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -31,7 +37,7 @@ export class AuthService {
   async generateMcpAccessToken(
     projectId: string,
     threadId: string,
-  ): Promise<string> {
+  ): Promise<McpAccessTokenResult> {
     const secret = this.configService.get<string>("API_KEY_SECRET");
     if (!secret) {
       throw new Error("API_KEY_SECRET is not configured");
@@ -62,7 +68,12 @@ export class AuthService {
       .setIssuedAt(windowStartSeconds)
       .setExpirationTime(expSeconds)
       .sign(new TextEncoder().encode(secret));
-    return signedJwt;
+
+    return {
+      token: signedJwt,
+      expiresAt: expiration,
+      hasSession: true,
+    };
   }
 
   /**
@@ -80,7 +91,7 @@ export class AuthService {
   async generateSessionlessMcpAccessToken(
     projectId: string,
     contextKey: string,
-  ): Promise<string> {
+  ): Promise<McpAccessTokenResult> {
     const secret = this.configService.get<string>("API_KEY_SECRET");
     if (!secret) {
       throw new Error("API_KEY_SECRET is not configured");
@@ -104,6 +115,11 @@ export class AuthService {
       .setIssuedAt(windowStartSeconds)
       .setExpirationTime(expSeconds)
       .sign(new TextEncoder().encode(secret));
-    return signedJwt;
+
+    return {
+      token: signedJwt,
+      expiresAt: expiration,
+      hasSession: false,
+    };
   }
 }

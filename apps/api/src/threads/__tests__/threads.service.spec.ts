@@ -358,7 +358,11 @@ describe("ThreadsService.advanceThread initialization", () => {
         {
           provide: AuthService,
           useValue: {
-            generateMcpAccessToken: jest.fn().mockResolvedValue("mcp-token"),
+            generateMcpAccessToken: jest.fn().mockResolvedValue({
+              token: "mcp-token",
+              expiresAt: Date.now() + 15 * 60 * 1000,
+              hasSession: true,
+            }),
           },
         },
         {
