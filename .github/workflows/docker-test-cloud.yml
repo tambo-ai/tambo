@@ -134,7 +134,6 @@ jobs:
       - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
-          builder: ${{ steps.setup-buildx.outputs.name }}
           context: .
           file: ./${{ matrix.images.path }}/Dockerfile
           outputs: type=docker,dest=${{ runner.temp }}/docker-${{ matrix.images.name }}.tar
