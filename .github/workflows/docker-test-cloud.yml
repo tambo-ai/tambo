@@ -19,18 +19,12 @@ concurrency:
 
 jobs:
   meta:
-    name: Job Metadata
+    name: Meta
     runs-on: ubuntu-latest
     outputs:
       should-push: ${{ steps.should-push.outputs.should-push }}
       release-tag: ${{ steps.should-push.outputs.release-tag }}
     steps:
-      - name: Get metadata
-        id: meta
-        run: |
-          echo "image=ghcr.io/tambo-ai/tambo-web-server" >> $GITHUB_ENV
-          echo "tag=${{ github.sha }}" >> $GITHUB_ENV
-
       - name: Determine if we should push to GHCR
         id: should-push
         run: |
@@ -46,7 +40,7 @@ jobs:
           fi
 
   build-and-push:
-    name: Build and Push - ${{ matrix.images.name }}
+    name: Build (${{ matrix.images.name }})
     needs: [meta]
     runs-on: ubuntu-latest
     permissions:
@@ -140,13 +134,10 @@ jobs:
       - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
+          builder: ${{ steps.setup-buildx.outputs.name }}
           context: .
           file: ./${{ matrix.images.path }}/Dockerfile
-          outputs: |
-            type=local,dest=path
-            type=docker,dest=${{ runner.temp }}/${{ matrix.images.name }}.tar
-          push: ${{ needs.meta.outputs.should-push }}
-          load: ${{ needs.meta.outputs.should-push == 'false' }}
+          outputs: type=docker,dest=${{ runner.temp }}/docker-${{ matrix.images.name }}.tar
           platforms: ${{ needs.meta.outputs.should-push == 'true' && 'linux/amd64,linux/arm64' || '' }}
           tags: ${{ needs.meta.outputs.should-push == 'true' && steps.meta.outputs.tags || 'tambo-web:latest' }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -167,13 +158,13 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: image
-          path: ${{ runner.temp }}/${{ matrix.images.name }}.tar
+          name: docker-${{ matrix.images.name }}
+          path: ${{ runner.temp }}/docker-${{ matrix.images.name }}.tar
           retention-days: 1
 
   test:
     needs: [meta, build-and-push]
-    name: Test Docker Stack
+    name: Test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -188,15 +179,18 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          path: ${{ runner.temp }}/*.tar
+          path: ${{ runner.temp }}/
+          pattern: docker-*
 
-      - name: Load image
+      - name: Load images
         run: |
-          docker load --input ${{ runner.temp }}/*.tar
+          find ${{ runner.temp }} -type f -name "*.tar" -exec docker load --input "{}" \;
           docker image ls -a
 
-      - name: Start Docker stack
-        run: ./scripts/cloud/tambo-start.sh
+      - name: Setup and start Docker stack
+        run: |
+          ./scripts/cloud/tambo-setup.sh
+          ./scripts/cloud/tambo-start.sh
         timeout-minutes: 8
 
       - name: Wait for services to be healthy
