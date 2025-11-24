@@ -65,7 +65,7 @@
     "fast-equals": "^5.3.3",
     "inquirer": "^12.9.4",
     "meow": "^14.0.0",
-    "open": "^10.2.0",
+    "open": "^11.0.0",
     "ora": "^9.0.0",
     "react-markdown": "^10.1.0",
     "sanitize-html": "^2.17.0",
