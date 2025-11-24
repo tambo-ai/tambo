@@ -1,4 +1,3 @@
-# Simple fat Docker image for Web
 FROM node:22-alpine AS base
 # ---- base ----
 
@@ -6,7 +5,7 @@ FROM node:22-alpine AS base
 RUN npm install -g npm@^11
 
 # Install system dependencies (aligned with @tambo-ai-cloud/api)
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache gcompat dumb-init
 
 # ---- /base ----
 
@@ -15,7 +14,13 @@ FROM base AS installer
 # responsible for preparing the pruned workspace
 
 WORKDIR /workspace
-COPY . .
+
+COPY turbo.json package.json package-lock.json ./
+COPY react-sdk ./react-sdk
+COPY packages ./packages
+COPY apps/web ./apps/web
+COPY tambo-cloud/packages ./tambo-cloud/packages
+
 RUN npx turbo prune @tambo-ai-cloud/web --docker
 
 # ---- /installer ----
@@ -42,7 +47,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV TURBO_TELEMETRY_DISABLED=1
 ENV TURBO_CACHE_DIR=/workspace/.turbo/cache
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-ENV NEXT_BUILD_STANDALONE=true
 
 # Build the application
 RUN \
@@ -55,32 +59,31 @@ RUN \
 
 # ---- /builder ----
 
-FROM node:22-alpine AS runner
-# ---- runner ----
+FROM base
+# ---- final ----
 # responsible for running the built app
 
 # Set working directory
-WORKDIR /workspace
+WORKDIR /app
 
-# Create non-root user (aligned with API)
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nodejs
-RUN chown nodejs:nodejs /workspace
+# Create non-root user
+RUN addgroup -g 1001 nodejs \
+  && adduser -u 1001 -G nodejs -s /bin/sh -D nodejs \
+  && chown -R nodejs:nodejs ./
 USER nodejs
 
 # Copy files
 # Using standalone build to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nodejs:nodejs /workspace/apps/web/.next/standalone  ./
-COPY --from=builder --chown=nodejs:nodejs /workspace/apps/web/.next/static      ./apps/web/.next/static
-COPY --from=builder --chown=nodejs:nodejs /workspace/apps/web/public            ./apps/web/public
+COPY --from=builder /workspace/apps/web/.next/standalone  ./
+COPY --from=builder /workspace/apps/web/.next/static      ./apps/web/.next/static
+COPY --from=builder /workspace/apps/web/public            ./apps/web/public
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD [ "wget", "-qO-", "http://localhost:3000" ]
+  CMD wget -qO- http://${HOSTNAME}:${PORT}
 
-EXPOSE 3000
+# Set production environment
+ENV NODE_ENV=production
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-ENTRYPOINT [ "node", "/workspace/apps/web/server.js" ]
+# Run with dumb-init to not start node with PID=1, see: https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md
+CMD [ "dumb-init", "node", "apps/web/server.js" ]

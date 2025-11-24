@@ -1,7 +1,3 @@
-networks:
-  tambo_network:
-    driver: bridge
-
 volumes:
   tambo_postgres_data:
 
@@ -22,8 +18,6 @@ services:
       - tambo_postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
-    networks:
-      - tambo_network
     healthcheck:
       test:
         [
@@ -43,17 +37,13 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-      # Conditional caching based on environment
-      cache_from:
-        - type=gha
-      cache_to:
-        - type=gha,mode=max
       args:
         NODE_ENV: ${NODE_ENV:-production}
     container_name: tambo_web
     ports:
       - "3210:3000"
     environment:
+      - PORT=3000
       - NODE_ENV=${NODE_ENV:-production}
       - NEXT_PUBLIC_TAMBO_API_URL=${NEXT_PUBLIC_TAMBO_API_URL:-http://localhost:3211}
       - NEXT_PUBLIC_TAMBO_API_KEY=${NEXT_PUBLIC_TAMBO_API_KEY:-}
@@ -83,15 +73,7 @@ services:
         condition: service_healthy
       api:
         condition: service_healthy
-    networks:
-      - tambo_network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
-      interval: 20s
-      timeout: 8s
-      retries: 3
-      start_period: 30s
 
   # API Service (NestJS)
   api:
@@ -102,19 +84,14 @@ services:
       # Run context from the repo top level so that Docker can access shared files
       context: .
       dockerfile: apps/api/Dockerfile
-      # Conditional caching based on environment
-      cache_from:
-        - type=gha
-      cache_to:
-        - type=gha,mode=max
       args:
         NODE_ENV: ${NODE_ENV:-production}
     container_name: tambo_api
     ports:
       - "3211:3000"
     environment:
-      - NODE_ENV=${NODE_ENV:-production}
       - PORT=3000
+      - NODE_ENV=${NODE_ENV:-production}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@postgres:5432/${POSTGRES_DB:-tambo}
       - API_KEY_SECRET=${API_KEY_SECRET}
       - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
@@ -141,12 +118,4 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - tambo_network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
-      interval: 20s
-      timeout: 8s
-      retries: 3
-      start_period: 30s

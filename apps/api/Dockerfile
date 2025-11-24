@@ -4,8 +4,8 @@ FROM node:22-alpine AS base
 # Install NPM globally
 RUN npm install -g npm@^11
 
-# Install system dependencies (aligned with @tambo-ai-cloud/web)
-RUN apk add --no-cache libc6-compat
+# Install system dependencies (aligned with @tambo-ai-cloud/api)
+RUN apk add --no-cache gcompat dumb-init
 
 # ---- /base ----
 
@@ -14,7 +14,12 @@ FROM base AS installer
 # responsible for preparing the pruned workspace
 
 WORKDIR /workspace
-COPY . .
+
+COPY turbo.json package.json package-lock.json ./
+COPY packages ./packages
+COPY apps/api ./apps/api
+COPY tambo-cloud/packages ./tambo-cloud/packages
+
 RUN npx turbo prune @tambo-ai-cloud/api --docker
 
 # ---- /installer ----
@@ -53,29 +58,29 @@ RUN \
 
 # ---- /builder ----
 
-FROM node:22-alpine AS runner
+FROM base
 # ---- runner ----
 # responsible for running the built app
 
 # Set working directory
 WORKDIR /app
 
-# Create non-root user (aligned with Web)
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nodejs
-RUN chown nodejs:nodejs /app
+# Create non-root user
+RUN addgroup -g 1001 nodejs \
+  && adduser -u 1001 -G nodejs -s /bin/sh -D nodejs \
+  && chown -R nodejs:nodejs ./
 USER nodejs
 
-COPY --from=builder /workspace/ ./
+# Copy files
+# Using standalone build to reduce image size
+COPY --from=builder /workspace/      ./
+COPY                ./scripts/cloud  ./scripts/cloud
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD wget -qO- http://${HOSTNAME}:${PORT}
 
 # Set production environment
 ENV NODE_ENV=production
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD [ "wget", "-qO-", "http://localhost:3000/health" ]
-
-EXPOSE 3000
-
-ENV PORT=3000
-
-CMD ["node", "apps/api/dist/apps/api/src/main"]
+# Run with dumb-init to not start node with PID=1, see: https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md
+CMD [ "dumb-init", "node", "apps/api/dist/apps/api/src/main" ]

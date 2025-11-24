@@ -9,8 +9,8 @@ set -e
 
 . "$(cd "$(dirname "$0")" && pwd)/_cloud-helpers.sh"
 
-ensure_repo_root
-cd "$REPO_ROOT_DIR" || fail "Could not find repo root. Are you running from inside the tambo folder?"
+REPO_ROOT_DIR="$(get_repo_root)" || fail "Could not find repo root. Are you running from inside the tambo folder?"
+cd "$REPO_ROOT_DIR"
 
 info "🗄️  Initializing Tambo Database..."
 info "📁 Working directory: $(pwd)"
@@ -63,7 +63,7 @@ if [ -z "$DATABASE_URL" ]; then
 fi
 info "📋 Using container DATABASE_URL: $DATABASE_URL"
 info "📊 Running database migrations inside container..."
-npm -w @tambo-ai-cloud/db db:migrate
+npm -w @tambo-ai-cloud/db run db:migrate
 
 success \
   "✅ Database initialization completed successfully!" \

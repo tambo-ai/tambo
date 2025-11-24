@@ -231,7 +231,7 @@ jobs:
 
           # Check if migrations were applied
           echo "=== Migration Status ==="
-          docker compose --env-file docker.env exec -T postgres psql -U postgres -d tambo -c "SELECT * FROM __drizzle_migrations ORDER BY created_at DESC LIMIT 5;" || echo "Migration table not found"
+          docker compose --env-file docker.env exec -T postgres psql -U postgres -d tambo -c "SELECT * FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 5;" || echo "Migration table not found"
 
       - name: Stop Docker stack
         if: always()

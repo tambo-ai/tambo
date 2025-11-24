@@ -100,7 +100,8 @@ const config = {
     ];
   },
   reactStrictMode: true,
-  ...(process.env.NEXT_BUILD_STANDALONE && { output: "standalone" }),
+  outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
+  output: "standalone",
   images: {
     remotePatterns: [
       {

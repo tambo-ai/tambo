@@ -39,7 +39,7 @@ error() {
 #          (no extra coloring; callers control formatting if they need it)
 # fail:    print optional messages (one per argument) in red to stderr, then exit 1
 #
-# Both helpers are intentionally and permanently fatal – they always terminate
+# Both helpers are intentionally and permanently fatal - they always terminate
 # the current process. Do not reuse them for non-fatal logging.
 
 success() {
@@ -94,19 +94,4 @@ get_repo_root() {
   printf '%s\n' "Could not find project root (no package.json with name @tambo-ai/repo found above $start_dir)" >&2
   printf '%s\n' "Is this script inside the Tambo project folder?" >&2
   return 1
-}
-
-ensure_repo_root() {
-  # Resolve the directory of the *calling script* and set two globals:
-  #   SCRIPT_DIR    – directory containing the script being executed
-  #   REPO_ROOT_DIR – monorepo root (package.json name @tambo-ai/repo)
-  #
-  # On failure, get_repo_root prints a detailed error and this helper exits 1.
-  SCRIPT_DIR="$(get_scripts_dir)"
-  if REPO_ROOT_DIR="$(get_repo_root "$SCRIPT_DIR")"; then
-    :
-  else
-    # get_repo_root already printed a detailed error message
-    exit 1
-  fi
 }

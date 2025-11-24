@@ -7,8 +7,8 @@ set -e
 
 . "$(cd "$(dirname "$0")" && pwd)/_cloud-helpers.sh"
 
-ensure_repo_root
-cd "$REPO_ROOT_DIR" || fail "Could not find repo root. Are you running from inside the tambo folder?"
+REPO_ROOT_DIR="$(get_repo_root)" || fail "Could not find repo root. Are you running from inside the tambo folder?"
+cd "$REPO_ROOT_DIR"
 
 info "🗄️  Connecting to Tambo PostgreSQL Database..."
 info "📁 Working directory: $(pwd)"
