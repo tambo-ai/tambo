@@ -13,10 +13,12 @@ import { registerResourceHandlers } from "./resources";
 
 const MCP_REQUEST_PROJECT_ID = Symbol("mcpProjectId");
 const MCP_REQUEST_THREAD_ID = Symbol("mcpThreadId");
+const MCP_REQUEST_CONTEXT_KEY = Symbol("mcpContextKey");
 
 interface AuthenticatedMcpRequest extends Request {
   [MCP_REQUEST_PROJECT_ID]?: string;
   [MCP_REQUEST_THREAD_ID]?: string;
+  [MCP_REQUEST_CONTEXT_KEY]?: string;
 }
 
 export async function createMcpServer(
@@ -80,8 +82,65 @@ export async function createMcpServer(
 }
 
 /**
+ * Creates a session-less MCP server that only supports resources and prompts.
+ * Does not support elicitation or sampling as those require a thread/session.
+ */
+export async function createSessionlessMcpServer(
+  db: HydraDb,
+  projectId: string,
+  _contextKey: string,
+) {
+  const server = new McpServer(
+    {
+      name: "tambo-service",
+      version: "1.0.0",
+    },
+    {
+      capabilities: {
+        prompts: { listChanged: true },
+        // No elicitation capability for session-less servers
+      },
+      // Enable notification debouncing for specific methods
+      debouncedNotificationMethods: [
+        "notifications/tools/list_changed",
+        "notifications/resources/list_changed",
+        "notifications/prompts/list_changed",
+      ],
+    },
+  );
+
+  // Session-less servers don't support elicitation/sampling, so no handlers needed
+  // We create MCP clients without thread context
+  const mcpClients = await getThreadMCPClients(db, projectId, null, {});
+  await registerPromptHandlers(server, mcpClients);
+  await registerResourceHandlers(server, mcpClients);
+  // No elicitation handlers for session-less servers
+
+  return {
+    server,
+    /**
+     * Dispose any upstream MCP clients created for this request lifecycle.
+     * We intentionally swallow errors so one bad client doesn't prevent cleanup of others.
+     */
+    async dispose() {
+      await Promise.allSettled(
+        mcpClients.map(async ({ client }) => {
+          try {
+            await client.close();
+          } catch {
+            // swallow to keep cleanup best-effort
+          }
+          return;
+        }),
+      );
+    },
+  };
+}
+
+/**
  * Express middleware that authenticates MCP requests using bearer tokens.
- * Extracts projectId and threadId from the token claims and attaches them to the request.
+ * Extracts projectId and either threadId (for thread-bound tokens) or contextKey
+ * (for session-less tokens) from the token claims and attaches them to the request.
  */
 async function authenticateMcpRequest(
   req: Request,
@@ -107,19 +166,27 @@ async function authenticateMcpRequest(
       process.env.API_KEY_SECRET!,
     );
     const claim = payload[TAMBO_MCP_ACCESS_KEY_CLAIM] as
-      | { projectId?: string; threadId?: string }
+      | { projectId?: string; threadId?: string; contextKey?: string }
       | undefined;
 
-    if (!claim || !claim.projectId || !claim.threadId) {
+    if (!claim || !claim.projectId) {
       res.status(403).send("Forbidden");
       return;
     }
 
-    const { projectId, threadId } = claim;
+    // Attach projectId which is common to both token types
+    (req as AuthenticatedMcpRequest)[MCP_REQUEST_PROJECT_ID] = claim.projectId;
 
-    // Attach to request object using symbols
-    (req as AuthenticatedMcpRequest)[MCP_REQUEST_PROJECT_ID] = projectId;
-    (req as AuthenticatedMcpRequest)[MCP_REQUEST_THREAD_ID] = threadId;
+    // Attach either contextKey (session-less) or threadId (thread-bound)
+    if (claim.contextKey) {
+      (req as AuthenticatedMcpRequest)[MCP_REQUEST_CONTEXT_KEY] =
+        claim.contextKey;
+    } else if (claim.threadId) {
+      (req as AuthenticatedMcpRequest)[MCP_REQUEST_THREAD_ID] = claim.threadId;
+    } else {
+      res.status(403).send("Forbidden");
+      return;
+    }
 
     next();
   } catch (_err) {
@@ -131,14 +198,33 @@ async function authenticateMcpRequest(
 const handler = async (req: AuthenticatedMcpRequest, res: Response) => {
   const projectId = req[MCP_REQUEST_PROJECT_ID];
   const threadId = req[MCP_REQUEST_THREAD_ID];
-  if (!projectId || !threadId) {
+  const contextKey = req[MCP_REQUEST_CONTEXT_KEY];
+
+  if (!projectId) {
     res.status(401).send("Unauthorized");
     return;
   }
+
+  // Detect token type based on presence of contextKey (sessionless) vs threadId (thread-bound)
+  const isSessionless = !!contextKey;
+
+  // Validate we have the required fields for the token type
+  if (isSessionless && !contextKey) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+  if (!isSessionless && !threadId) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
   const db = getDb(process.env.DATABASE_URL!);
   // we create the "server" on the fly, it only lives for the duration of the request,
   // though the request could stay open for a long time if there is streaming/etc.
-  const { server, dispose } = await createMcpServer(db, projectId, threadId);
+  const { server, dispose } = isSessionless
+    ? await createSessionlessMcpServer(db, projectId, contextKey)
+    : await createMcpServer(db, projectId, threadId!);
+
   const transport = new StreamableHTTPServerTransport({
     // we don't actually use the session id, but it's required for the transport
     sessionIdGenerator: undefined,

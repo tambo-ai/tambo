@@ -109,9 +109,10 @@ describe("registerResourceHandlers", () => {
       expect(registerResourceSpy).toHaveBeenCalledTimes(3);
 
       // Verify specific resources were registered with correct metadata
+      // Note: names stay as-is, URIs get serverKey prefix
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:doc1",
-        "file://doc1.txt",
+        "doc1",
+        "test:file://doc1.txt",
         expect.objectContaining({
           description: "First document",
         }),
@@ -119,15 +120,15 @@ describe("registerResourceHandlers", () => {
       );
 
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:doc2",
-        "file://doc2.txt",
+        "doc2",
+        "test:file://doc2.txt",
         expect.any(Object),
         expect.any(Function),
       );
 
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:doc3",
-        "file://doc3.txt",
+        "doc3",
+        "test:file://doc3.txt",
         expect.any(Object),
         expect.any(Function),
       );
@@ -146,8 +147,8 @@ describe("registerResourceHandlers", () => {
       await registerResourceHandlers(mockServer, [mockClient]);
 
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:data_resource",
-        "file://data.json",
+        "data_resource",
+        "test:file://data.json",
         {
           description: "A JSON data resource",
           mimeType: "application/json",
@@ -175,8 +176,8 @@ describe("registerResourceHandlers", () => {
       // Only 1 resource should be registered (from the first client)
       expect(registerResourceSpy).toHaveBeenCalledTimes(1);
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:resource",
-        expect.any(String),
+        "resource",
+        expect.stringContaining("test:"),
         expect.any(Object),
         expect.any(Function),
       );
@@ -241,11 +242,12 @@ describe("registerResourceHandlers", () => {
       await registerResourceHandlers(mockServer, [mockClient1, mockClient2]);
 
       // Extract the handler functions that were registered (4th argument, index 3)
+      // Note: resource names are NOT prefixed, only URIs are
       const client1Handler = registerResourceSpy.mock.calls.find(
-        (call) => call[0] === "test:doc1",
+        (call) => call[0] === "doc1",
       )?.[3];
       const client2Handler = registerResourceSpy.mock.calls.find(
-        (call) => call[0] === "test:doc2",
+        (call) => call[0] === "doc2",
       )?.[3];
 
       expect(client1Handler).toBeDefined();
@@ -387,8 +389,8 @@ describe("registerResourceHandlers", () => {
       // Verify the working client's resource was still registered
       expect(registerResourceSpy).toHaveBeenCalledTimes(1);
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:working_resource",
-        expect.any(String),
+        "working_resource",
+        expect.stringContaining("test:"),
         expect.any(Object),
         expect.any(Function),
       );
@@ -462,14 +464,14 @@ describe("registerResourceHandlers", () => {
       // Both resources should be registered
       expect(registerResourceSpy).toHaveBeenCalledTimes(2);
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:resource1",
-        expect.any(String),
+        "resource1",
+        expect.stringContaining("test:"),
         expect.any(Object),
         expect.any(Function),
       );
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:resource2",
-        expect.any(String),
+        "resource2",
+        expect.stringContaining("test:"),
         expect.any(Object),
         expect.any(Function),
       );
@@ -505,8 +507,8 @@ describe("registerResourceHandlers", () => {
       // Only 1 resource should be registered (the one with a URI)
       expect(registerResourceSpy).toHaveBeenCalledTimes(1);
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "test:document1",
-        "file://document1.txt",
+        "document1",
+        "test:file://document1.txt",
         expect.any(Object),
         expect.any(Function),
       );
@@ -515,7 +517,7 @@ describe("registerResourceHandlers", () => {
   });
 
   describe("serverKey prefixing", () => {
-    it("should prefix resource names with serverKey when provided", async () => {
+    it("should prefix resource URIs with serverKey when provided", async () => {
       const mockClient = createMockMCPClient([
         {
           uri: "file://data.json",
@@ -528,14 +530,14 @@ describe("registerResourceHandlers", () => {
       await registerResourceHandlers(mockServer, [mockClient]);
 
       expect(registerResourceSpy).toHaveBeenCalledWith(
-        "github:data",
-        expect.any(String),
+        "data",
+        "github:file://data.json",
         expect.any(Object),
         expect.any(Function),
       );
     });
 
-    it("should not prefix resource names when serverKey is empty", async () => {
+    it("should not prefix resource URIs when serverKey is empty", async () => {
       const mockClient = createMockMCPClient([
         {
           uri: "file://data.json",
@@ -549,7 +551,7 @@ describe("registerResourceHandlers", () => {
 
       expect(registerResourceSpy).toHaveBeenCalledWith(
         "data",
-        expect.any(String),
+        "file://data.json",
         expect.any(Object),
         expect.any(Function),
       );

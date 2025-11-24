@@ -1,3 +1,5 @@
+import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
+
 /**
  * Derives a short, meaningful server key from an MCP server URL.
  * This key is used to namespace tools, resources, and prompts from the server.
@@ -80,3 +82,6 @@ export function isValidServerKey(key: string): boolean {
   // Allow alphanumeric and underscores
   return /^[a-zA-Z0-9_]+$/.test(trimmed);
 }
+
+export type ResourceFetcher = (uri: string) => Promise<ReadResourceResult>;
+export type ResourceFetchResult = ReadResourceResult;

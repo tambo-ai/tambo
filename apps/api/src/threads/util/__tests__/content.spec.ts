@@ -49,13 +49,30 @@ describe("content utilities", () => {
       expect(result).toEqual(input);
     });
 
-    it("should filter out resource parts", () => {
+    it("should convert resource parts with resource data", () => {
       const input = [
-        { type: "resource" as ContentPartType, text: "resource" },
+        {
+          type: "resource" as ContentPartType,
+          resource: {
+            uri: "file://test.txt",
+            name: "test",
+            text: "resource content",
+          },
+        },
         { type: ContentPartType.Text, text: "text" },
       ];
       const result = convertContentDtoToContentPart(input);
-      expect(result).toEqual([{ type: ContentPartType.Text, text: "text" }]);
+      expect(result).toEqual([
+        {
+          type: ContentPartType.Resource,
+          resource: {
+            uri: "file://test.txt",
+            name: "test",
+            text: "resource content",
+          },
+        },
+        { type: ContentPartType.Text, text: "text" },
+      ]);
     });
 
     it("should throw error for unknown content type", () => {

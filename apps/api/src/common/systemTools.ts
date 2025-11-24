@@ -1,4 +1,5 @@
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
+import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import { Logger } from "@nestjs/common";
 import {
   McpToolRegistry,
@@ -41,7 +42,7 @@ class ListToolsError extends Error {
 export async function getSystemTools(
   db: HydraDatabase,
   projectId: string,
-  threadId: string,
+  threadId: string | null,
   mcpHandlers: MCPHandlers,
 ): Promise<McpToolRegistry> {
   const { mcpToolsSchema, mcpToolSources } = await getMcpTools(
@@ -77,11 +78,17 @@ type ThreadMcpClient = {
   url: string;
 };
 
-/** Get all MCP clients for a given thread */
+/** Get all MCP clients for a project. If a threadId is provided, then the MCP
+ * clients will also be associated with the thread, using that thread's
+ * sessionId.
+ *
+ * If no threadId is provided, then the MCP clients will not be associated with
+ * any thread, and the elicitationa and sampling handlers will not be registered.
+ */
 export async function getThreadMCPClients(
   db: HydraDb,
   projectId: string,
-  threadId: string,
+  threadId: string | null,
   mcpHandlers: Partial<MCPHandlers>,
 ): Promise<ThreadMcpClient[]> {
   const mcpServers = await operations.getProjectMcpServers(db, projectId, null);
@@ -117,24 +124,29 @@ export async function getThreadMCPClients(
         const authProvider = await getAuthProvider(db, mcpServer);
         const customHeaders = mcpServer.customHeaders;
 
-        const mcpSessionInfo = await operations.getMcpThreadSession(
-          db,
-          threadId,
-          mcpServer.id,
-        );
+        let sessionId: string | undefined;
+        if (threadId) {
+          const mcpSessionInfo = await operations.getMcpThreadSession(
+            db,
+            threadId,
+            mcpServer.id,
+          );
+          sessionId = mcpSessionInfo?.sessionId;
+        }
 
         const mcpClient = await MCPClient.create(
           mcpServer.url,
           mcpServer.mcpTransport,
           customHeaders,
           authProvider,
-          mcpSessionInfo?.sessionId ?? undefined,
-          mcpHandlers,
+          sessionId,
+          threadId ? mcpHandlers : {},
         );
 
         if (
+          threadId &&
           mcpClient.sessionId &&
-          mcpSessionInfo?.sessionId !== mcpClient.sessionId
+          sessionId !== mcpClient.sessionId
         ) {
           await operations.updateMcpThreadSession(
             db,
@@ -184,7 +196,7 @@ export async function getThreadMCPClients(
 async function getMcpTools(
   db: HydraDb,
   projectId: string,
-  threadId: string,
+  threadId: string | null,
   mcpHandlers: MCPHandlers,
 ): Promise<McpToolRegistry> {
   const mcpClients = await getThreadMCPClients(
@@ -326,4 +338,38 @@ async function getAuthProvider(
     sessionId: client.sessionId,
   });
   return authProvider;
+}
+
+/**
+ * Create a map of resource fetchers from MCP clients, indexed by serverKey.
+ * Each fetcher function can be used to read resources from that MCP server.
+ *
+ * @param mcpClients - Array of MCP client instances with their server keys
+ * @returns Map of serverKey to fetcher functions that can fetch resources by URI
+ *
+ * @example
+ * const fetchers = createResourceFetcherMap(mcpClients);
+ * const result = await fetchers['github']('github:path/to/file.txt');
+ */
+export function createResourceFetcherMap(
+  mcpClients: ThreadMcpClient[],
+): Record<string, (uri: string) => Promise<ReadResourceResult>> {
+  const fetchers: Record<string, (uri: string) => Promise<ReadResourceResult>> =
+    {};
+
+  for (const { client, serverKey } of mcpClients) {
+    if (!serverKey) continue;
+
+    fetchers[serverKey] = async (uri: string) => {
+      // Validate that the URI starts with the serverKey prefix
+      if (!uri.startsWith(`${serverKey}:`)) {
+        throw new Error(`Invalid URI for server ${serverKey}: ${uri}`);
+      }
+      // Strip the serverKey prefix to get the MCP-native URI
+      const mcpUri = uri.slice(serverKey.length + 1);
+      return await client.client.readResource({ uri: mcpUri });
+    };
+  }
+
+  return fetchers;
 }
