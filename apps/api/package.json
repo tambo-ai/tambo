@@ -53,7 +53,7 @@
     "class-validator": "^0.14.2",
     "drizzle-orm": "^0.44.7",
     "helmet": "^8.1.0",
-    "jose": "^5.10.0",
+    "jose": "^6.1.2",
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^3.0.1",
