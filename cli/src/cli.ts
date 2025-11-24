@@ -34,7 +34,6 @@ interface CLIFlags extends Record<string, any> {
   initGit?: Flag<"boolean", boolean>;
   version?: Flag<"boolean", boolean>;
   template?: Flag<"string", string>;
-  acceptAll?: Flag<"boolean", boolean>;
   prefix?: Flag<"string", string>;
   yes?: Flag<"boolean", boolean>;
   dryRun?: Flag<"boolean", boolean>;
@@ -57,10 +56,9 @@ interface CommandHelp {
 
 const OPTION_DOCS: Record<string, string> = {
   prefix: `${chalk.yellow("--prefix <path>")}      Custom directory for components (e.g., src/components/ui)`,
-  yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts (implies --accept-all for upgrade)`,
+  yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts`,
   "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
-  "accept-all": `${chalk.yellow("--accept-all")}         Accept all upgrades without prompting (upgrade only)`,
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, analytics`,
   "init-git": `${chalk.yellow("--init-git")}           Initialize git repository automatically`,
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
@@ -150,17 +148,11 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     syntax: "upgrade",
     description: "Upgrade packages, components, and LLM rules",
     usage: [`$ ${chalk.cyan("tambo upgrade")} [options]`],
-    options: [
-      "yes",
-      "accept-all",
-      "prefix",
-      "skip-agent-docs",
-      "legacy-peer-deps",
-    ],
+    options: ["yes", "prefix", "skip-agent-docs", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo upgrade")}                                      # Interactive upgrade`,
       `$ ${chalk.cyan("tambo upgrade --yes --prefix src/components/ui")}     # Non-interactive (CI/CD)`,
-      `$ ${chalk.cyan("tambo upgrade --accept-all --skip-agent-docs")}       # Auto-accept, skip docs`,
+      `$ ${chalk.cyan("tambo upgrade --yes --skip-agent-docs")}              # Auto-accept, skip docs`,
     ],
   },
   "create-app": {
@@ -222,7 +214,6 @@ function generateGlobalHelp(): string {
     OPTION_DOCS.yes,
     OPTION_DOCS["skip-agent-docs"],
     OPTION_DOCS["legacy-peer-deps"],
-    `${OPTION_DOCS["accept-all"]} ${chalk.red("(upgrade only)")}`,
     `${OPTION_DOCS.template} ${chalk.red("(create-app only)")}`,
     `${OPTION_DOCS["init-git"]} ${chalk.red("(create-app only)")}`,
     `${OPTION_DOCS["dry-run"]} ${chalk.red("(migrate only)")}`,
@@ -286,10 +277,6 @@ const cli = meow(generateGlobalHelp(), {
       type: "string",
       description: "Specify template to use (standard, analytics)",
       shortFlag: "t",
-    },
-    acceptAll: {
-      type: "boolean",
-      description: "Accept all upgrades without prompting",
     },
     prefix: {
       type: "string",
@@ -451,7 +438,6 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     }
     await handleUpgrade({
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
-      acceptAll: Boolean(flags.acceptAll),
       prefix: flags.prefix as string | undefined,
       yes: Boolean(flags.yes ?? flags.y),
       skipAgentDocs: Boolean(flags.skipAgentDocs),

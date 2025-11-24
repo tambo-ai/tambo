@@ -9,7 +9,6 @@ import { detectTemplate, generateAiUpgradePrompts } from "./utils.js";
 
 export interface UpgradeOptions {
   legacyPeerDeps?: boolean;
-  acceptAll?: boolean;
   silent?: boolean;
   prefix?: string;
   yes?: boolean;
@@ -24,16 +23,8 @@ export async function handleUpgrade(
 ): Promise<void> {
   console.log(chalk.cyan("\n🔄 Tambo Upgrade Tool\n"));
 
-  // Make --yes imply --accept-all for simpler non-interactive usage
-  // Intentionally mutating options object to unify behavior across the command.
-  // This ensures that passing --yes automatically accepts all prompts without
-  // requiring users to specify both --yes and --accept-all flags.
-  if (options.yes && !options.acceptAll) {
-    options.acceptAll = true;
-  }
-
   // Check for interactivity early - upgrade requires running external commands
-  if (!isInteractive() && !options.yes && !options.acceptAll) {
+  if (!isInteractive() && !options.yes) {
     throw new Error(
       `${chalk.red("Error: Cannot run 'tambo upgrade' in non-interactive mode without flags.")}\n\n` +
         `${chalk.yellow("What happened:")} This command needs to prompt you for choices, but your environment\n` +

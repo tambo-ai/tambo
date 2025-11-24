@@ -53,7 +53,7 @@ describe("upgradeAgentDocsAndRemoveCursorRules", () => {
       "/mock-project/package.json": "{}",
     });
     await expect(
-      upgradeAgentDocsAndRemoveCursorRules({ acceptAll: true }),
+      upgradeAgentDocsAndRemoveCursorRules({ yes: true }),
     ).resolves.toBe(true);
   });
 
@@ -66,7 +66,7 @@ describe("upgradeAgentDocsAndRemoveCursorRules", () => {
     });
 
     const result = await upgradeAgentDocsAndRemoveCursorRules({
-      acceptAll: true,
+      yes: true,
     });
 
     expect(result).toBe(true);
@@ -89,7 +89,7 @@ describe("upgradeAgentDocsAndRemoveCursorRules", () => {
     });
 
     await expect(
-      upgradeAgentDocsAndRemoveCursorRules({ acceptAll: true }),
+      upgradeAgentDocsAndRemoveCursorRules({ yes: true }),
     ).resolves.toBe(true);
 
     expect(memfsFs.existsSync("/mock-project/.cursor/rules")).toBe(false);
@@ -103,7 +103,7 @@ describe("upgradeAgentDocsAndRemoveCursorRules", () => {
     });
 
     await expect(
-      upgradeAgentDocsAndRemoveCursorRules({ acceptAll: true }),
+      upgradeAgentDocsAndRemoveCursorRules({ yes: true }),
     ).resolves.toBe(true);
 
     expect(memfsFs.existsSync("/mock-project/.cursorrules")).toBe(false);

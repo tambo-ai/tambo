@@ -55,7 +55,7 @@ export async function upgradeAgentDocsAndRemoveCursorRules(
   const legacyRules = findLegacyCursorRules();
   const hasLegacyRules = legacyRules.length > 0;
 
-  if (!options.acceptAll) {
+  if (!options.yes) {
     const proceed = await confirmRulesUpgrade(hasLegacyRules);
     if (!proceed) {
       console.log(chalk.gray("Skipped agent docs and cursor rule updates."));
@@ -100,10 +100,9 @@ export async function upgradeAgentDocsAndRemoveCursorRules(
     // Wrap agent docs update in try-catch
     try {
       await handleAgentDocsUpdate({
-        acceptAll: options.acceptAll,
         prefix: options.prefix,
         skipPrompt: true,
-        yes: options.acceptAll,
+        yes: options.yes,
       });
     } catch (docError) {
       console.log(
