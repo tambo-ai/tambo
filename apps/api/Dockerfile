@@ -41,7 +41,6 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV TURBO_TELEMETRY_DISABLED=1
 ENV TURBO_CACHE_DIR=/workspace/.turbo/cache
-ENV NODE_OPTIONS="--experimental-require-module"
 
 # Build the application
 RUN \
