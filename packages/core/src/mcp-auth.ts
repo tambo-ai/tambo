@@ -19,3 +19,17 @@ export interface McpAccessTokenPayload extends JWTPayload {
     threadId: string;
   };
 }
+
+/**
+ * This is the payload of a session-less MCP access token.
+ * Unlike the regular MCP access token, this is not tied to a specific thread
+ * and cannot use session-specific features (elicitation, sampling).
+ * It is primarily used for accessing resources and prompts.
+ * The lack of threadId indicates this is a session-less token.
+ */
+export interface SessionlessMcpAccessTokenPayload extends JWTPayload {
+  [TAMBO_MCP_ACCESS_KEY_CLAIM]: {
+    projectId: string;
+    contextKey: string;
+  };
+}
