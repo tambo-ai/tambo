@@ -14,8 +14,35 @@ YELLOW="$(printf '\033[1;33m')"
 BLUE="$(printf '\033[0;34m')"
 NC="$(printf '\033[0m')" # No Color
 
-REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT_DIR" || { echo "Could not find repo root. Are you running from inside the tambo folder?"; exit 1; }
+find_repo_root() {
+  search_dir="${1:-$(pwd)}"
+
+  while [ "$search_dir" != "/" ]; do
+    if [ -f "$search_dir/package.json" ]; then
+      if grep -q '"name"[[:space:]]*:[[:space:]]*"@tambo-ai/repo"' "$search_dir/package.json"; then
+        printf '%s\n' "$search_dir"
+        return 0
+      fi
+    fi
+
+    search_dir="$(dirname "$search_dir")"
+  done
+
+  return 1
+}
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if REPO_ROOT_DIR="$(find_repo_root "$SCRIPT_DIR")"; then
+  :
+else
+  printf "%s\n" "Could not find repo root (no package.json with name @tambo-ai/repo found above $SCRIPT_DIR)" >&2
+  exit 1
+fi
+
+cd "$REPO_ROOT_DIR" || {
+  printf "%s\n" "Could not find repo root. Are you running from inside the tambo folder?" >&2
+  exit 1
+}
 
 printf "%s\n" "${GREEN}🗄️  Initializing Tambo Database...${NC}"
 printf "%s\n" "${BLUE}📁 Working directory: $(pwd)${NC}"
