@@ -14,28 +14,11 @@ YELLOW="$(printf '\033[1;33m')"
 BLUE="$(printf '\033[0;34m')"
 NC="$(printf '\033[0m')" # No Color
 
-find_repo_root() {
-  search_dir="${1:-$(pwd)}"
-
-  while [ "$search_dir" != "/" ]; do
-    if [ -f "$search_dir/package.json" ]; then
-      if grep -q '"name"[[:space:]]*:[[:space:]]*"@tambo-ai/repo"' "$search_dir/package.json"; then
-        printf '%s\n' "$search_dir"
-        return 0
-      fi
-    fi
-
-    search_dir="$(dirname "$search_dir")"
-  done
-
-  return 1
-}
-
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-if REPO_ROOT_DIR="$(find_repo_root "$SCRIPT_DIR")"; then
+if REPO_ROOT_DIR="$("$SCRIPT_DIR"/../find-repo-root.sh "$SCRIPT_DIR")"; then
   :
 else
-  printf "%s\n" "Could not find repo root (no package.json with name @tambo-ai/repo found above $SCRIPT_DIR)" >&2
+  # Helper already printed a detailed error message
   exit 1
 fi
 
