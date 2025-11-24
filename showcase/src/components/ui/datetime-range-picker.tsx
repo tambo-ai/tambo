@@ -4,14 +4,16 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { z } from "zod";
 
-export const dateTimeRangePickerSchema = z.object({
-  start: z.string().describe("Start date-time in ISO format"),
-  end: z.string().describe("End date-time in ISO format"),
-  preset: z
-    .string()
-    .optional()
-    .describe("Optional quick preset like 'today', 'last_7_days', etc."),
-});
+export const dateTimeRangePickerSchema = z
+  .object({
+    start: z.string().describe("Start date-time in ISO format"),
+    end: z.string().describe("End date-time in ISO format"),
+    preset: z
+      .string()
+      .optional()
+      .describe("Optional quick preset like 'today', 'last_7_days', etc."),
+  })
+  .strict();
 
 export type DateTimeRangePickerProps = z.infer<
   typeof dateTimeRangePickerSchema
