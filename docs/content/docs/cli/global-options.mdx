@@ -17,7 +17,7 @@ npx tambo --version
 
 ### `--yes, -y`
 
-Auto-answers "yes" to all confirmation prompts.
+Auto-answers "yes" to all confirmation prompts. Required for non-interactive environments like CI/CD.
 
 **Examples:**
 
@@ -33,12 +33,16 @@ npx tambo update installed --yes
 
 # Migrate components automatically
 npx tambo migrate --yes
+
+# Upgrade in CI/CD (required for non-interactive)
+npx tambo upgrade --yes
 ```
 
 **Use cases:**
 
+- CI/CD pipelines (required for upgrade command)
 - Automated deployments
-- CI/CD pipelines
+- Docker builds
 - Batch operations
 - When you're confident about the changes
 
@@ -100,19 +104,13 @@ npx tambo migrate --prefix=src/components/tambo
 
 ### `--dry-run`
 
-Preview changes before applying them. Available for commands that modify files.
+Preview changes before applying them. Currently only available for the `migrate` command.
 
 **Examples:**
 
 ```bash
 # Preview migration changes
 npx tambo migrate --dry-run
-
-# Preview component updates
-npx tambo update installed --dry-run
-
-# Preview upgrade changes
-npx tambo upgrade --dry-run
 ```
 
 **Output example:**
@@ -136,8 +134,8 @@ You can combine multiple options in a single command:
 # Install components with custom prefix, skip prompts, and handle conflicts
 npx tambo add form graph --prefix=src/components/ui --yes --legacy-peer-deps
 
-# Upgrade with all safety options
-npx tambo upgrade --dry-run --prefix=src/components/ui
+# Upgrade with custom prefix
+npx tambo upgrade --yes --prefix=src/components/ui
 
 # Migrate automatically with custom paths
 npx tambo migrate --yes --prefix=src/components/custom
@@ -154,15 +152,12 @@ Some commands have additional options beyond these global ones:
 npx tambo create-app my-app --init-git
 
 # Use specific template
-npx tambo create-app my-app --template=mcp
+npx tambo create-app my-app --template=standard
 ```
 
 ### `add` specific options
 
 ```bash
-# Preview component before installing
-npx tambo add form --preview
-
 # Install multiple components
 npx tambo add form graph canvas-space
 ```
@@ -172,9 +167,8 @@ npx tambo add form graph canvas-space
 ### For Development
 
 ```bash
-# Safe exploration - always preview first
+# Safe exploration - preview migration first
 npx tambo migrate --dry-run
-npx tambo upgrade --dry-run
 
 # Quick iterations
 npx tambo add form --yes
@@ -218,3 +212,36 @@ npx tambo list
 # Use correct prefix
 npx tambo list --prefix=src/components/ui
 ```
+
+## Exit Codes
+
+The Tambo CLI uses standard exit codes for shell integration and CI/CD:
+
+| Exit Code | Meaning | Common Causes |
+|-----------|---------|---------------|
+| `0` | Success | Command completed successfully |
+| `1` | Failure | Command failed, error details in output |
+
+**Usage in scripts:**
+
+```bash
+# Check if command succeeded
+if npx tambo add form --yes; then
+  echo "Component installed successfully"
+else
+  echo "Component installation failed"
+  exit 1
+fi
+
+# CI/CD example
+npx tambo upgrade --yes || exit 1
+npm run build || exit 1
+```
+
+**Common failure scenarios:**
+- Missing required files (package.json, tsconfig.json)
+- Invalid component names
+- Network errors during installation
+- User cancellation (Ctrl+C or answering "No" to prompts)
+- Non-interactive environment without `--yes` flag
+- File system permission errors

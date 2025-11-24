@@ -16,17 +16,20 @@ Upgrades your entire tambo project including npm packages, components, and curso
 **Examples:**
 
 ```bash
-# Interactive upgrade with prompts
+# Interactive upgrade - select components to upgrade
 npx tambo upgrade
 
-# Auto-accept all changes
-npx tambo upgrade --accept-all
+# Auto-accept all changes (required for CI/CD)
+npx tambo upgrade --yes
 
 # Upgrade with custom component directory
-npx tambo upgrade --prefix=src/components/ui
+npx tambo upgrade --yes --prefix=src/components/ui
 
 # Use legacy peer deps
-npx tambo upgrade --legacy-peer-deps
+npx tambo upgrade --yes --legacy-peer-deps
+
+# Skip agent docs updates
+npx tambo upgrade --yes --skip-agent-docs
 ```
 
 ## Safe Package Updates
@@ -79,3 +82,123 @@ import { Card, Cards } from "fumadocs-ui/components/card";
 <Card href="/cli/configuration" title="CSS & Tailwind Configuration">
   Complete guide to CSS variables and Tailwind configuration changes
 </Card>
+
+## Interactive Component Selection
+
+By default, the upgrade command shows an interactive checkbox list of all components that can be upgraded:
+
+```bash
+npx tambo upgrade
+
+# Output:
+? Select components to upgrade: (Press <space> to select, <a> to toggle all)
+❯ ◯ message-thread-full (v2.3.0 → v2.4.1)
+  ◯ message-thread-panel (v1.5.2 → v1.6.0)
+  ◯ control-bar (v1.2.0 → v1.3.0)
+  ◯ form (v2.1.0 → v2.2.0)
+```
+
+**Selection options:**
+- Press `<space>` to select/deselect individual components
+- Press `<a>` to toggle all components at once
+- Press `<enter>` to confirm your selection
+
+To skip the selection and upgrade all components automatically, use the `--yes` flag:
+
+```bash
+# Upgrade all components without prompting
+npx tambo upgrade --yes
+```
+
+<Callout type="info" title="Non-Interactive Environments">
+  The `--yes` flag is **required** in CI/CD pipelines and other non-interactive
+  environments. The upgrade command will fail without it if no terminal is available.
+</Callout>
+
+## Automatic Dependency Resolution
+
+When you select components to upgrade, the CLI automatically resolves and includes all their dependencies:
+
+```bash
+npx tambo upgrade
+
+# After selecting components:
+✓ Selected 2 components
+ℹ Including dependencies:
+  • button (required by form)
+  • card (required by message-thread-panel)
+
+✓ Will upgrade 4 components total
+```
+
+This ensures that your components have all the dependencies they need to work correctly. You don't need to manually track which components depend on others.
+
+**What happens:**
+1. You select the components you want to upgrade
+2. CLI analyzes component dependencies
+3. All required dependencies are automatically included
+4. CLI shows you the complete list before proceeding
+
+## Cross-Location Migration Detection
+
+If the upgrade command detects that your components are split across different locations (some in `components/tambo/`, others in `components/ui/`), it will offer to migrate them:
+
+```bash
+⚠ Warning: Found components in both locations:
+  • components/tambo/: message-thread-full, control-bar
+  • components/ui/: form, button
+
+? Components should be in the same location. Would you like to:
+  ❯ Migrate to components/tambo/ (recommended)
+    Continue without migrating
+    Cancel upgrade
+```
+
+**Why this matters:**
+- Tambo components should live in `components/tambo/` (current standard)
+- Legacy projects may have components in `components/ui/`
+- Having components in both locations can cause import confusion
+
+**Recommended action:**
+Run the migration before upgrading:
+
+```bash
+npx tambo migrate
+npx tambo upgrade
+```
+
+See the [migrate command documentation](/cli/commands/migrate) for details.
+
+## Cursor Rules Updates
+
+The upgrade command updates your `.cursor/rules` file (or `.cursorrules`) to ensure your AI coding assistant has the latest best practices and patterns:
+
+```bash
+✓ Checking cursor rules...
+ℹ Found cursor rules at: .cursor/rules
+? Update cursor rules to latest version? (Y/n)
+```
+
+**What gets updated:**
+- Component usage patterns and best practices
+- Updated API references
+- New features and capabilities
+- Template-specific guidance (standard vs analytics)
+
+**Files checked (in order):**
+1. `.cursor/rules`
+2. `.cursorrules`
+
+If neither file exists, this step is skipped.
+
+**Skip this step:**
+
+```bash
+# Skip cursor rules update entirely
+npx tambo upgrade --yes --skip-agent-docs
+```
+
+<Callout type="info" title="Template Detection">
+  The CLI detects your project template (standard or analytics) from your
+  README.md and fetches the appropriate cursor rules from GitHub.
+</Callout>

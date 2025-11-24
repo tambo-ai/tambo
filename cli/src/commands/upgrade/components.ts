@@ -105,7 +105,9 @@ export async function upgradeComponents(
     const projectRoot = process.cwd();
     console.log(chalk.blue("Determining component location..."));
 
-    const installPath = options.prefix ?? (await getInstallationPath());
+    const installPath =
+      options.prefix ??
+      (await getInstallationPath(options.yes ?? options.acceptAll));
     const isExplicitPrefix = Boolean(options.prefix);
 
     // Find and verify components

@@ -128,6 +128,8 @@ export async function handleAgentDocsUpdate(
       // Check if content matches the current template
       if (existingContent.trim() !== COMPONENT_AGENTS_TEMPLATE.trim()) {
         // Old version or user-modified, update it
+        // TODO: Consider adding prompting or merge strategy in the future to preserve
+        // user customizations when overwriting component AGENTS.md files
         console.log(
           chalk.yellow(
             `⚠  Updating components/tambo/AGENTS.md to version ${TAMBO_SECTION_VERSION}`,

@@ -70,7 +70,19 @@ export async function upgradeAgentDocsAndRemoveCursorRules(
   try {
     for (const filePath of legacyRules) {
       if (fs.existsSync(filePath)) {
-        fs.rmSync(filePath);
+        try {
+          fs.rmSync(filePath);
+        } catch (error) {
+          // Handle race condition where file might be deleted between existsSync check and removal
+          if (
+            error instanceof Error &&
+            "code" in error &&
+            error.code !== "ENOENT"
+          ) {
+            throw error;
+          }
+          // ENOENT means file was already deleted, which is fine
+        }
       }
     }
 
@@ -78,8 +90,8 @@ export async function upgradeAgentDocsAndRemoveCursorRules(
     const rulesDir = path.join(process.cwd(), ".cursor", "rules");
     if (fs.existsSync(rulesDir)) {
       const remaining = fs
-        .readdirSync(rulesDir)
-        .filter((item) => fs.statSync(path.join(rulesDir, item)).isFile());
+        .readdirSync(rulesDir, { withFileTypes: true })
+        .filter((item) => item.isFile());
       if (remaining.length === 0) {
         fs.rmSync(rulesDir, { recursive: true });
       }

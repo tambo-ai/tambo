@@ -17,14 +17,58 @@ For instant project setup, performs the same project setup steps as `init`, and 
 **Examples:**
 
 ```bash
-# Full setup with component selection
+# Interactive setup with component selection
 npx tambo full-send
 
-# Skip prompts and use defaults
+# Skip prompts and install all starter components
 npx tambo full-send --yes
 
 # Use legacy peer deps
 npx tambo full-send --legacy-peer-deps
+```
+
+## Component Selection
+
+The `full-send` command presents an interactive checkbox list of curated starter components:
+
+```bash
+? Select starter components to install: (Press <space> to select, <a> to toggle all)
+❯ ◯ message-thread-full - Full-featured message thread with controls
+  ◯ message-thread-panel - Message thread optimized for side panels
+  ◯ message-thread-collapsible - Collapsible message thread
+  ◯ control-bar - Control panel for managing thread settings
+```
+
+**Available starter components:**
+
+- **message-thread-full** - Complete message thread with all features, perfect for full-page chat interfaces
+- **message-thread-panel** - Optimized for sidebars and side panels, great for embedded chat
+- **message-thread-collapsible** - Can expand/collapse, ideal for compact layouts or mobile
+- **control-bar** - Settings and controls for managing thread behavior
+
+**Selection options:**
+- Press `<space>` to select/deselect individual components
+- Press `<a>` to toggle all components at once
+- Press `<enter>` to confirm your selection
+
+**Automatic setup:**
+
+After you select components, the CLI:
+1. Installs all selected components
+2. Installs all required dependencies automatically
+3. Creates the `lib/tambo.ts` configuration file
+4. Registers all components in the configuration
+5. Copies TamboProvider setup code to your clipboard
+
+<Callout type="info" title="Clipboard Integration">
+  The setup code for TamboProvider is automatically copied to your clipboard.
+  Just paste it into your layout file to complete the setup.
+</Callout>
+
+To skip selection and install all starter components:
+
+```bash
+npx tambo full-send --yes
 ```
 
 **Manual Provider Setup:**

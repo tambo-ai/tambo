@@ -57,10 +57,10 @@ interface CommandHelp {
 
 const OPTION_DOCS: Record<string, string> = {
   prefix: `${chalk.yellow("--prefix <path>")}      Custom directory for components (e.g., src/components/ui)`,
-  yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts`,
+  yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts (implies --accept-all for upgrade)`,
   "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
-  "accept-all": `${chalk.yellow("--accept-all")}         Accept all upgrades without prompting`,
+  "accept-all": `${chalk.yellow("--accept-all")}         Accept all upgrades without prompting (upgrade only)`,
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, analytics`,
   "init-git": `${chalk.yellow("--init-git")}           Initialize git repository automatically`,
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
@@ -150,10 +150,17 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     syntax: "upgrade",
     description: "Upgrade packages, components, and LLM rules",
     usage: [`$ ${chalk.cyan("tambo upgrade")} [options]`],
-    options: ["prefix", "accept-all", "skip-agent-docs", "legacy-peer-deps"],
+    options: [
+      "yes",
+      "accept-all",
+      "prefix",
+      "skip-agent-docs",
+      "legacy-peer-deps",
+    ],
     examples: [
-      `$ ${chalk.cyan("tambo upgrade")}                    # Interactive upgrade`,
-      `$ ${chalk.cyan("tambo upgrade --accept-all")}       # Auto-accept all changes`,
+      `$ ${chalk.cyan("tambo upgrade")}                                      # Interactive upgrade`,
+      `$ ${chalk.cyan("tambo upgrade --yes --prefix src/components/ui")}     # Non-interactive (CI/CD)`,
+      `$ ${chalk.cyan("tambo upgrade --accept-all --skip-agent-docs")}       # Auto-accept, skip docs`,
     ],
   },
   "create-app": {

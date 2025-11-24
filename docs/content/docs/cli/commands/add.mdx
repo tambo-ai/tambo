@@ -58,3 +58,74 @@ import { Card, Cards } from "fumadocs-ui/components/card";
 <Card href="/cli/configuration" title="CSS & Tailwind Configuration">
   Complete guide to CSS variables and Tailwind configuration changes
 </Card>
+
+## Automatic Dependency Resolution
+
+When you add components, the CLI automatically resolves and installs all dependencies:
+
+```bash
+npx tambo add message-thread-full
+
+# Output:
+✓ Analyzing dependencies...
+ℹ Will install 5 components:
+  • message-thread-full (selected)
+  • button (dependency)
+  • card (dependency)
+  • scroll-area (dependency)
+  • textarea (dependency)
+
+? Continue? (Y/n)
+```
+
+**What happens:**
+1. You specify which components to add
+2. CLI analyzes component dependencies
+3. All required dependencies are automatically included
+4. CLI shows you the complete list before installing
+
+You don't need to manually track which components depend on others - the CLI handles this for you.
+
+## Legacy Location Detection
+
+If you're working with an existing project that has Tambo components in the legacy `components/ui/` location, the CLI will detect this and offer guidance:
+
+```bash
+npx tambo add form
+
+# Output:
+⚠ Warning: Found existing Tambo components in components/ui/
+  • message-thread-full
+  • control-bar
+
+Recommended: Components should be in components/tambo/
+
+? What would you like to do?
+  ❯ Migrate components to components/tambo/ (recommended)
+    Continue installing to components/ui/ (legacy)
+    Cancel
+
+# If you continue:
+⚠ Installing to components/ui/ for consistency with existing components.
+⚠ This location is deprecated. Run `npx tambo migrate` to move to components/tambo/
+```
+
+**Why this matters:**
+- **Current standard:** Components should live in `components/tambo/`
+- **Legacy location:** Older projects may have components in `components/ui/`
+- **Mixed locations cause problems:** Import paths become confusing
+
+**Recommended action:**
+
+Migrate your components before adding new ones:
+
+```bash
+npx tambo migrate
+npx tambo add form
+```
+
+See the [migrate command documentation](/cli/commands/migrate) for details on the migration process.
+
+**If you skip migration:**
+
+The CLI will install new components in `components/ui/` to match your existing setup, but you'll continue to see warnings. It's best to migrate when convenient.
