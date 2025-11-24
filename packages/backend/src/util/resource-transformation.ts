@@ -52,28 +52,24 @@ export function extractServerKeyFromResource(resource: Resource): string {
 }
 
 /**
- * Pre-fetch all resources from thread messages and cache them inline.
- * This converts URI-based resources to cached text/blob resources.
- *
- * Strategy:
- * 1. Extract all unique resource URIs from messages
- * 2. Fetch them in parallel into a map (uri -> content)
- * 3. Apply the map to messages to cache content inline
- *
- * This approach:
- * - Handles duplicates efficiently (fetch once, use many times)
- * - Gracefully handles fetch failures
- * - Keeps async work in one phase, then does synchronous message updates
+ * Phase 1: Extract all unique resource URIs that need fetching from messages.
+ * Identifies resources with URIs but no cached content and maps them to their fetchers.
  *
  * @param messages - Thread messages potentially containing resources
  * @param resourceFetchers - Map of serverKey to fetch functions
- * @returns New messages with fetched resources cached as text/blob
+ * @returns Map of URIs to fetch with their associated metadata
  */
-export async function prefetchAndCacheResources(
+function extractUrisToFetch(
   messages: ThreadMessage[],
   resourceFetchers: ResourceFetcherMap,
-): Promise<ThreadMessage[]> {
-  // Phase 1: Extract all unique resource URIs that need fetching
+): Map<
+  string,
+  {
+    uri: string;
+    serverKey: string;
+    fetchFn: ResourceFetcher;
+  }
+> {
   const urisToFetch = new Map<
     string,
     {
@@ -128,7 +124,26 @@ export async function prefetchAndCacheResources(
     }
   }
 
-  // Phase 2: Fetch all unique URIs in parallel
+  return urisToFetch;
+}
+
+/**
+ * Phase 2: Fetch all unique URIs in parallel.
+ * Gracefully handles fetch failures without breaking other fetches.
+ *
+ * @param urisToFetch - Map of URIs to fetch with their metadata
+ * @returns Map of successfully fetched content indexed by URI
+ */
+async function fetchResourceContents(
+  urisToFetch: Map<
+    string,
+    {
+      uri: string;
+      serverKey: string;
+      fetchFn: ResourceFetcher;
+    }
+  >,
+): Promise<Map<string, ResourceFetchResult>> {
   const fetchedContent = new Map<string, ResourceFetchResult>();
 
   await Promise.all(
@@ -145,7 +160,21 @@ export async function prefetchAndCacheResources(
     }),
   );
 
-  // Phase 3: Apply cached content to messages
+  return fetchedContent;
+}
+
+/**
+ * Phase 3: Apply cached content to messages.
+ * Replaces resource parts with fetched content where available.
+ *
+ * @param messages - Original thread messages
+ * @param fetchedContent - Map of fetched content indexed by URI
+ * @returns New messages with fetched resources cached as text/blob
+ */
+function applyCachedContentToMessages(
+  messages: ThreadMessage[],
+  fetchedContent: Map<string, ResourceFetchResult>,
+): ThreadMessage[] {
   return messages.map((message) => {
     if (!Array.isArray(message.content)) {
       return message;
@@ -180,6 +209,33 @@ export async function prefetchAndCacheResources(
       content: transformedContent,
     };
   });
+}
+
+/**
+ * Pre-fetch all resources from thread messages and cache them inline.
+ * This converts URI-based resources to cached text/blob resources.
+ *
+ * Strategy:
+ * 1. Extract all unique resource URIs from messages
+ * 2. Fetch them in parallel into a map (uri -> content)
+ * 3. Apply the map to messages to cache content inline
+ *
+ * This approach:
+ * - Handles duplicates efficiently (fetch once, use many times)
+ * - Gracefully handles fetch failures
+ * - Keeps async work in one phase, then does synchronous message updates
+ *
+ * @param messages - Thread messages potentially containing resources
+ * @param resourceFetchers - Map of serverKey to fetch functions
+ * @returns New messages with fetched resources cached as text/blob
+ */
+export async function prefetchAndCacheResources(
+  messages: ThreadMessage[],
+  resourceFetchers: ResourceFetcherMap,
+): Promise<ThreadMessage[]> {
+  const urisToFetch = extractUrisToFetch(messages, resourceFetchers);
+  const fetchedContent = await fetchResourceContents(urisToFetch);
+  return applyCachedContentToMessages(messages, fetchedContent);
 }
 
 function convertResourceToContentParts(
