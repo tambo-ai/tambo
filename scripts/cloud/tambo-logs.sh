@@ -5,47 +5,35 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-if REPO_ROOT_DIR="$("$SCRIPT_DIR"/../find-repo-root.sh "$SCRIPT_DIR")"; then
-  :
-else
-  # Helper already printed a detailed error message
-  exit 1
-fi
+. "$(cd "$(dirname "$0")" && pwd)/_cloud-helpers.sh"
 
-cd "$REPO_ROOT_DIR" || { echo -e "Could not find repo root. Are you running from inside the tambo folder?" >&2; exit 1; }
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+ensure_repo_root
+cd "$REPO_ROOT_DIR" || fail "Could not find repo root. Are you running from inside the tambo folder?"
 
 # Check if docker.env exists
 if [ ! -f "docker.env" ]; then
-    echo -e "${RED}❌ docker.env file not found!${NC}"
-    echo -e "${YELLOW}📝 Please copy docker.env.example to docker.env and update with your values${NC}"
-    exit 1
+    fail \
+      "❌ docker.env file not found!" \
+      "📝 Please copy docker.env.example to docker.env and update with your values"
 fi
 
-echo -e "${BLUE}📋 Tambo Docker Stack Logs${NC}"
-echo -e "${YELLOW}Press Ctrl+C to exit${NC}"
-echo -e ""
+info "📋 Tambo Docker Stack Logs"
+warn "Press Ctrl+C to exit"
+printf '\n'
 
 # Function to show usage
 show_usage() {
-    echo -e "${YELLOW}Usage: $0 [service_name]${NC}"
-    echo -e "${YELLOW}Available services:${NC}"
-    echo -e "  • web - Tambo Web application"
-    echo -e "  • api - Tambo API application"
-    echo -e "  • postgres - PostgreSQL Database"
-    echo -e ""
-    echo -e "${YELLOW}Examples:${NC}"
-    echo -e "  $0           # Show all logs"
-    echo -e "  $0 web       # Show only web logs"
-    echo -e "  $0 api       # Show only api logs"
-    echo -e "  $0 postgres  # Show only postgres logs"
+    warn "Usage: $0 [service_name]"
+    warn "Available services:"
+    warn "  • web - Tambo Web application"
+    warn "  • api - Tambo API application"
+    warn "  • postgres - PostgreSQL Database"
+    warn ""
+    warn "Examples:"
+    warn "  $0           # Show all logs"
+    warn "  $0 web       # Show only web logs"
+    warn "  $0 api       # Show only api logs"
+    warn "  $0 postgres  # Show only postgres logs"
 }
 
 # Check if help requested
@@ -57,10 +45,10 @@ fi
 # If service name provided, show logs for that service only
 if [ -n "$1" ]; then
     SERVICE_NAME="$1"
-    echo -e "${GREEN}📋 Showing logs for: $SERVICE_NAME${NC}"
+    info "📋 Showing logs for: $SERVICE_NAME"
     docker compose --env-file docker.env logs -f "$SERVICE_NAME"
 else
     # Show all logs
-    echo -e "${GREEN}📋 Showing all logs${NC}"
+    info "📋 Showing all logs"
     docker compose --env-file docker.env logs -f
 fi 

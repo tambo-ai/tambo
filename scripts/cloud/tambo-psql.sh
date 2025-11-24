@@ -5,57 +5,44 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-if REPO_ROOT_DIR="$("$SCRIPT_DIR"/../find-repo-root.sh "$SCRIPT_DIR")"; then
-  :
-else
-  # Helper already printed a detailed error message
-  exit 1
-fi
+. "$(cd "$(dirname "$0")" && pwd)/_cloud-helpers.sh"
 
-cd "$REPO_ROOT_DIR" || { echo -e "Could not find repo root. Are you running from inside the tambo folder?" >&2; exit 1; }
+ensure_repo_root
+cd "$REPO_ROOT_DIR" || fail "Could not find repo root. Are you running from inside the tambo folder?"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-echo -e "${GREEN}🗄️  Connecting to Tambo PostgreSQL Database...${NC}"
-echo -e "${BLUE}📁 Working directory: $(pwd)${NC}"
+info "🗄️  Connecting to Tambo PostgreSQL Database..."
+info "📁 Working directory: $(pwd)"
 
 # Check if docker.env exists
 if [ ! -f "docker.env" ]; then
-    echo -e "${RED}❌ docker.env file not found!${NC}"
-    echo -e "${YELLOW}📝 Please copy docker.env.example to docker.env and update with your values${NC}"
-    exit 1
+    fail \
+      "❌ docker.env file not found!" \
+      "📝 Please copy docker.env.example to docker.env and update with your values"
 fi
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo -e "${RED}❌ Docker is not running. Please start Docker first.${NC}"
-    exit 1
+    fail "❌ Docker is not running. Please start Docker first."
 fi
 
 # Check if PostgreSQL container is running
 if ! docker compose --env-file docker.env ps postgres | grep -q "Up"; then
-    echo -e "${RED}❌ PostgreSQL container is not running. Please start the stack first:${NC}"
-    echo -e "${YELLOW}   ./scripts/cloud/tambo-start.sh${NC}"
-    exit 1
+    fail \
+      "❌ PostgreSQL container is not running. Please start the stack first:" \
+      "   ./scripts/cloud/tambo-start.sh"
 fi
 
 # Get database credentials from the running container
-echo -e "${BLUE}📋 Getting database credentials from running container...${NC}"
+info "📋 Getting database credentials from running container..."
 POSTGRES_PASSWORD=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_PASSWORD 2>/dev/null || echo "your-super-secret-and-long-postgres-password")
 POSTGRES_USER=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_USER 2>/dev/null || echo "postgres")
 POSTGRES_DB=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_DB 2>/dev/null || echo "tambo")
 
-echo -e "${GREEN}✅ Connecting to PostgreSQL...${NC}"
-echo -e "${BLUE}📋 Database: $POSTGRES_DB${NC}"
-echo -e "${BLUE}📋 User: $POSTGRES_USER${NC}"
-echo -e "${BLUE}📋 Host: localhost:5433${NC}"
-echo -e ""
+info "✅ Connecting to PostgreSQL..."
+info "📋 Database: $POSTGRES_DB"
+info "📋 User: $POSTGRES_USER"
+info "📋 Host: localhost:5433"
+printf '\n'
 
 # Connect to PostgreSQL using psql in the postgres container (no host psql required)
 docker compose --env-file docker.env exec -e PGPASSWORD="$POSTGRES_PASSWORD" -T postgres psql -h localhost -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"

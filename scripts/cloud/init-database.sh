@@ -7,28 +7,13 @@
 
 set -e
 
-# Colors for output (use literal escape bytes so they work without -e)
-RED="$(printf '\033[0;31m')"
-GREEN="$(printf '\033[0;32m')"
-YELLOW="$(printf '\033[1;33m')"
-BLUE="$(printf '\033[0;34m')"
-NC="$(printf '\033[0m')" # No Color
+. "$(cd "$(dirname "$0")" && pwd)/_cloud-helpers.sh"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-if REPO_ROOT_DIR="$("$SCRIPT_DIR"/../find-repo-root.sh "$SCRIPT_DIR")"; then
-  :
-else
-  # Helper already printed a detailed error message
-  exit 1
-fi
+ensure_repo_root
+cd "$REPO_ROOT_DIR" || fail "Could not find repo root. Are you running from inside the tambo folder?"
 
-cd "$REPO_ROOT_DIR" || {
-  printf "%s\n" "Could not find repo root. Are you running from inside the tambo folder?" >&2
-  exit 1
-}
-
-printf "%s\n" "${GREEN}🗄️  Initializing Tambo Database...${NC}"
-printf "%s\n" "${BLUE}📁 Working directory: $(pwd)${NC}"
+info "🗄️  Initializing Tambo Database..."
+info "📁 Working directory: $(pwd)"
 
 # Detect if running inside a Docker container
 IS_IN_DOCKER=false
@@ -42,56 +27,44 @@ fi
 if [ "$IS_IN_DOCKER" = false ]; then
   # Host mode: delegate to Docker container
   if [ ! -f "docker.env" ]; then
-    printf "%s\n" "${RED}❌ docker.env file not found!${NC}"
-    printf "%s\n" "${YELLOW}📝 Please copy docker.env.example to docker.env and update with your values${NC}"
-    exit 1
+    fail \
+      "❌ docker.env file not found!" \
+      "📝 Please copy docker.env.example to docker.env and update with your values"
   fi
   if ! command -v docker >/dev/null 2>&1; then
-    printf "%s\n" "${RED}❌ Docker is not installed. Please install Docker first.${NC}"
-    exit 1
+    fail "❌ Docker is not installed. Please install Docker first."
   fi
   if ! docker info >/dev/null 2>&1; then
-    printf "%s\n" "${RED}❌ Docker is not running. Please start Docker first.${NC}"
-    exit 1
+    fail "❌ Docker is not running. Please start Docker first."
   fi
   if ! command -v docker compose >/dev/null 2>&1; then
-    printf "%s\n" "${RED}❌ Docker Compose is not available. Please install Docker Compose.${NC}"
-    exit 1
+    fail "❌ Docker Compose is not available. Please install Docker Compose."
   fi
   if ! docker compose --env-file docker.env ps api | grep -q "Up"; then
-    printf "%s\n" "${RED}❌ API container is not running. Please start the stack first:${NC}"
-    printf "%s\n" "${YELLOW}   ./scripts/cloud/tambo-start.sh${NC}"
-    exit 1
+    fail \
+      "❌ API container is not running. Please start the stack first:" \
+      "   ./scripts/cloud/tambo-start.sh"
   fi
 
-  printf "%s\n" "${BLUE}📦 Delegating to api container...${NC}"
+  info "📦 Delegating to api container..."
   exec docker compose --env-file docker.env exec -T api sh -lc "./scripts/cloud/init-database.sh"
 fi
 
 # From here on, we are inside a container
 
-# Host-only: check if npm is available (not needed in-container if image already has Node)
-if [ "$IS_IN_DOCKER" = false ]; then
-  if ! command -v npm >/dev/null 2>&1; then
-    printf "%s\n" "${RED}❌ npm is not available. Please install Node.js and npm first.${NC}"
-    exit 1
-  fi
-fi
-
-# In-container: assume service orchestration handled readiness
-
 # Run database migrations
-printf "%s\n" "${BLUE}🔄 Running database migrations...${NC}"
+info "🔄 Running database migrations..."
 
 # In-container mode: rely on DATABASE_URL already present in environment
 if [ -z "$DATABASE_URL" ]; then
-  printf "%s\n" "${RED}❌ DATABASE_URL is not set in the container environment.${NC}"
-  printf "%s\n" "${YELLOW}   Please ensure your service sets DATABASE_URL, or run this script from the host to auto-delegate into the container.${NC}"
-  exit 1
+  fail \
+    "❌ DATABASE_URL is not set in the container environment." \
+    "   Please ensure your service sets DATABASE_URL, or run this script from the host to auto-delegate into the container."
 fi
-printf "%s\n" "${BLUE}📋 Using container DATABASE_URL: $DATABASE_URL${NC}"
-printf "%s\n" "${BLUE}📊 Running database migrations inside container...${NC}"
+info "📋 Using container DATABASE_URL: $DATABASE_URL"
+info "📊 Running database migrations inside container..."
 npm -w @tambo-ai-cloud/db db:migrate
 
-printf "%s\n" "${GREEN}✅ Database initialization completed successfully!${NC}"
-printf "%s\n" "${BLUE}📋 Database is now ready for use.${NC}"
+success \
+  "✅ Database initialization completed successfully!" \
+  "📋 Database is now ready for use."

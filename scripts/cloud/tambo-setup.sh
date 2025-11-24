@@ -5,79 +5,67 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-if REPO_ROOT_DIR="$("$SCRIPT_DIR"/../find-repo-root.sh "$SCRIPT_DIR")"; then
-  :
-else
-  # Helper already printed a detailed error message
-  exit 1
-fi
+. "$(cd "$(dirname "$0")" && pwd)/_cloud-helpers.sh"
 
-cd "$REPO_ROOT_DIR" || { echo -e "Could not find repo root. Are you running from inside the tambo folder?" >&2; exit 1; }
+ensure_repo_root
+cd "$REPO_ROOT_DIR" || fail "Could not find repo root. Are you running from inside the tambo folder?"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-echo -e "${GREEN}🚀 Tambo Docker Setup${NC}"
-echo -e "${BLUE}This script will help you set up Tambo for self-hosting with Docker${NC}"
-echo -e "${BLUE}📁 Working directory: $(pwd)${NC}"
-echo -e ""
+info "🚀 Tambo Docker Setup"
+info "This script will help you set up Tambo for self-hosting with Docker"
+info "📁 Working directory: $(pwd)"
+printf '\n'
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
-    echo -e "${RED}❌ Docker is not installed. Please install Docker first.${NC}"
-    echo -e "${YELLOW}💡 Visit: https://docs.docker.com/get-docker/${NC}"
-    exit 1
+    fail \
+      "❌ Docker is not installed. Please install Docker first." \
+      "💡 Visit: https://docs.docker.com/get-docker/"
 fi
 
 # Check if Docker Compose is installed
 if ! command -v docker compose &> /dev/null; then
-    echo -e "${RED}❌ Docker Compose is not installed. Please install Docker Compose first.${NC}"
-    echo -e "${YELLOW}💡 Visit: https://docs.docker.com/compose/install/${NC}"
-    exit 1
+    fail \
+      "❌ Docker Compose is not installed. Please install Docker Compose first." \
+      "💡 Visit: https://docs.docker.com/compose/install/"
 fi
 
-echo -e "${GREEN}✅ Prerequisites check passed!${NC}"
-echo -e ""
+info "✅ Prerequisites check passed!"
+printf '\n'
 
 # Create docker.env from example if it doesn't exist
 if [ ! -f "docker.env" ]; then
-    echo -e "${YELLOW}📝 Creating docker.env from example...${NC}"
+    warn "📝 Creating docker.env from example..."
     if [ -f "docker.env.example" ]; then
         cp docker.env.example docker.env
-        echo -e "${GREEN}✅ docker.env created successfully!${NC}"
+        info "✅ docker.env created successfully!"
     else
-        echo -e "${RED}❌ docker.env.example not found!${NC}"
-        exit 1
+        fail "❌ docker.env.example not found!"
     fi
 else
-    echo -e "${BLUE}ℹ️  docker.env already exists${NC}"
+    info "ℹ️  docker.env already exists"
 fi
 
-echo -e "${GREEN}✅ Setup completed successfully!${NC}"
-echo -e ""
-echo -e "${BLUE}📋 Next steps:${NC}"
-echo -e "1. ${YELLOW}Edit docker.env${NC} with your actual values:"
-echo -e "   - Update passwords and secrets"
-echo -e "   - Add your API keys (OpenAI, etc.)"
-echo -e "   - Configure other settings as needed"
-echo -e ""
-echo -e "2. ${YELLOW}Build the containers:${NC}"
-echo -e "   ./scripts/cloud/tambo-build.sh"
-echo -e ""
-echo -e "3. ${YELLOW}Start the stack:${NC}"
-echo -e "   ./scripts/cloud/tambo-start.sh"
-echo -e ""
-echo -e "4. ${YELLOW}Initialize the database:${NC}"
-echo -e "   ./scripts/cloud/init-database.sh"
-echo -e ""
-echo -e "5. ${YELLOW}Access your applications:${NC}"
-echo -e "   - Tambo Web: http://localhost:3210"
-echo -e "   - Tambo API: http://localhost:3211"
-echo -e "   - PostgreSQL Database: localhost:5433"
-echo -e ""
-echo -e "${YELLOW}💡 For help, run: ./scripts/cloud/tambo-logs.sh --help${NC}" 
+success \
+  "✅ Setup completed successfully!" \
+  "" \
+  "📋 Next steps:" \
+  "1. Edit docker.env with your actual values:" \
+  "   - Update passwords and secrets" \
+  "   - Add your API keys (OpenAI, etc.)" \
+  "   - Configure other settings as needed" \
+  "" \
+  "2. Build the containers:" \
+  "   ./scripts/cloud/tambo-build.sh" \
+  "" \
+  "3. Start the stack:" \
+  "   ./scripts/cloud/tambo-start.sh" \
+  "" \
+  "4. Initialize the database:" \
+  "   ./scripts/cloud/init-database.sh" \
+  "" \
+  "5. Access your applications:" \
+  "   - Tambo Web: http://localhost:3210" \
+  "   - Tambo API: http://localhost:3211" \
+  "   - PostgreSQL Database: localhost:5433" \
+  "" \
+  "💡 For help, run: ./scripts/cloud/tambo-logs.sh --help" 
