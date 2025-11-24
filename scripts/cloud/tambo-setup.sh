@@ -45,27 +45,26 @@ else
     info "ℹ️  docker.env already exists"
 fi
 
-success \
-  "✅ Setup completed successfully!" \
-  "" \
-  "📋 Next steps:" \
-  "1. Edit docker.env with your actual values:" \
-  "   - Update passwords and secrets" \
-  "   - Add your API keys (OpenAI, etc.)" \
-  "   - Configure other settings as needed" \
-  "" \
-  "2. Build the containers:" \
-  "   ./scripts/cloud/tambo-build.sh" \
-  "" \
-  "3. Start the stack:" \
-  "   ./scripts/cloud/tambo-start.sh" \
-  "" \
-  "4. Initialize the database:" \
-  "   ./scripts/cloud/init-database.sh" \
-  "" \
-  "5. Access your applications:" \
-  "   - Tambo Web: http://localhost:3210" \
-  "   - Tambo API: http://localhost:3211" \
-  "   - PostgreSQL Database: localhost:5433" \
-  "" \
-  "💡 For help, run: ./scripts/cloud/tambo-logs.sh --help" 
+echo -e "${GREEN}✅ Setup completed successfully!${NC}"
+echo -e ""
+echo -e "${BLUE}📋 Next steps:${NC}"
+echo -e "1. ${YELLOW}Edit docker.env${NC} with your actual values:"
+echo -e "   - Update passwords and secrets"
+echo -e "   - Add your API keys (OpenAI, etc.)"
+echo -e "   - Configure other settings as needed"
+echo -e ""
+echo -e "2. ${YELLOW}Build the containers:${NC}"
+echo -e "   ./scripts/cloud/tambo-build.sh"
+echo -e ""
+echo -e "3. ${YELLOW}Start the stack:${NC}"
+echo -e "   ./scripts/cloud/tambo-start.sh"
+echo -e ""
+echo -e "4. ${YELLOW}Initialize the database:${NC}"
+echo -e "   ./scripts/cloud/init-database.sh"
+echo -e ""
+echo -e "5. ${YELLOW}Access your applications:${NC}"
+echo -e "   - Tambo Web: http://localhost:3210"
+echo -e "   - Tambo API: http://localhost:3211"
+echo -e "   - PostgreSQL Database: localhost:5433"
+echo -e ""
+echo -e "${YELLOW}💡 For help, run: ./scripts/cloud/tambo-logs.sh --help${NC}" 

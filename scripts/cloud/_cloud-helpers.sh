@@ -35,7 +35,8 @@ error() {
 
 # Exit helpers
 #
-# success: print optional messages (one per argument) in green to stdout, then exit 0
+# success: print optional messages (one per argument) to stdout, then exit 0
+#          (no extra coloring; callers control formatting if they need it)
 # fail:    print optional messages (one per argument) in red to stderr, then exit 1
 #
 # Both helpers are intentionally and permanently fatal – they always terminate
@@ -45,7 +46,7 @@ success() {
   if [ "$#" -gt 0 ]; then
     # Print each argument on its own line to stdout
     for line in "$@"; do
-      printf '%s\n' "${GREEN}${line}${NC}"
+      printf '%s\n' "$line"
     done
   fi
   exit 0
