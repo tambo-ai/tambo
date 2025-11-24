@@ -123,7 +123,7 @@ const EnumField: React.FC<FieldProps> = ({
                 : "bg-background border-border hover:bg-muted",
             )}
           >
-            {optionNames[index] || option}
+            {optionNames[index] ?? option}
           </button>
         ))}
       </div>
@@ -146,12 +146,11 @@ const StringField: React.FC<FieldProps> = ({
   if (schema.type !== "string") {
     return null;
   }
-  const stringSchema = schema;
   const stringValue = (value as string | undefined) ?? "";
 
   // Map JSON Schema format to HTML5 input type
   const getInputType = (): string => {
-    const format = "format" in stringSchema ? stringSchema.format : undefined;
+    const format = "format" in schema ? schema.format : undefined;
     switch (format) {
       case "email":
         return "email";
@@ -190,12 +189,8 @@ const StringField: React.FC<FieldProps> = ({
             : "border-border focus:ring-accent",
         )}
         placeholder={schema.description ?? name}
-        minLength={
-          "minLength" in stringSchema ? stringSchema.minLength : undefined
-        }
-        maxLength={
-          "maxLength" in stringSchema ? stringSchema.maxLength : undefined
-        }
+        minLength={"minLength" in schema ? schema.minLength : undefined}
+        maxLength={"maxLength" in schema ? schema.maxLength : undefined}
         required={required}
         aria-invalid={hasError || undefined}
         aria-describedby={hasError ? errorId : undefined}
