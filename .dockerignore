@@ -3,11 +3,13 @@ node_modules
 **/node_modules
 
 # Build outputs
-apps/web/.next
-.next/
 dist/
 build/
 *.tsbuildinfo
+.next/
+.nuxt/
+.out/
+.storybook-out/
 
 # Environment files
 .env
@@ -33,50 +35,20 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
-
-# nyc test coverage
 .nyc_output
 
-# Dependency directories
+# Package manager files
 jspm_packages/
-
-# Optional npm cache directory
 .npm
-
-# Optional eslint cache
-.eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
 *.tgz
-
-# Yarn Integrity file
 .yarn-integrity
 
-# parcel-bundler cache (https://parceljs.org/)
+# build cache
+.turbo
 .cache
 .parcel-cache
-
-# Next.js build output
-.next
-
-# Nuxt.js build / generate output
-.nuxt
-
-# Gatsby files
-.cache/
-
-# Storybook build outputs
-.out
-.storybook-out
+.eslintcache
+.node_repl_history
 
 # Temporary folders
 tmp/
@@ -124,7 +96,3 @@ __tests__/
 .eslintrc*
 .prettierrc*
 jest.config.* 
-
-# Don't keep rebuilding when docker-compose.yml changes
-docker-compose.yml
-.turbo/
