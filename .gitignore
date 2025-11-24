@@ -14,3 +14,6 @@ coverage
 .claude/settings.local.json
 #coding agents
 .plans/
+#next.js
+next-env.d.ts
+.next/
