@@ -63,7 +63,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "next-sitemap": "^4.2.3",
-    "rimraf": "^6.1.0",
+    "rimraf": "^6.1.2",
     "tailwind-merge": "^3.4.0",
     "typescript": "^5"
   },
