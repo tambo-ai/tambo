@@ -41,7 +41,7 @@ class ListToolsError extends Error {
 export async function getSystemTools(
   db: HydraDatabase,
   projectId: string,
-  threadId: string,
+  threadId: string | null,
   mcpHandlers: MCPHandlers,
 ): Promise<McpToolRegistry> {
   const { mcpToolsSchema, mcpToolSources } = await getMcpTools(
@@ -77,11 +77,17 @@ type ThreadMcpClient = {
   url: string;
 };
 
-/** Get all MCP clients for a given thread */
+/** Get all MCP clients for a project. If a threadId is provided, then the MCP
+ * clients will also be associated with the thread, using that thread's
+ * sessionId.
+ *
+ * If no threadId is provided, then the MCP clients will not be associated with
+ * any thread, and the elicitationa and sampling handlers will not be registered.
+ */
 export async function getThreadMCPClients(
   db: HydraDb,
   projectId: string,
-  threadId: string,
+  threadId: string | null,
   mcpHandlers: Partial<MCPHandlers>,
 ): Promise<ThreadMcpClient[]> {
   const mcpServers = await operations.getProjectMcpServers(db, projectId, null);
@@ -117,24 +123,29 @@ export async function getThreadMCPClients(
         const authProvider = await getAuthProvider(db, mcpServer);
         const customHeaders = mcpServer.customHeaders;
 
-        const mcpSessionInfo = await operations.getMcpThreadSession(
-          db,
-          threadId,
-          mcpServer.id,
-        );
+        let sessionId: string | undefined;
+        if (threadId) {
+          const mcpSessionInfo = await operations.getMcpThreadSession(
+            db,
+            threadId,
+            mcpServer.id,
+          );
+          sessionId = mcpSessionInfo?.sessionId;
+        }
 
         const mcpClient = await MCPClient.create(
           mcpServer.url,
           mcpServer.mcpTransport,
           customHeaders,
           authProvider,
-          mcpSessionInfo?.sessionId ?? undefined,
-          mcpHandlers,
+          sessionId,
+          sessionId ? mcpHandlers : {},
         );
 
         if (
+          threadId &&
           mcpClient.sessionId &&
-          mcpSessionInfo?.sessionId !== mcpClient.sessionId
+          sessionId !== mcpClient.sessionId
         ) {
           await operations.updateMcpThreadSession(
             db,
@@ -184,7 +195,7 @@ export async function getThreadMCPClients(
 async function getMcpTools(
   db: HydraDb,
   projectId: string,
-  threadId: string,
+  threadId: string | null,
   mcpHandlers: MCPHandlers,
 ): Promise<McpToolRegistry> {
   const mcpClients = await getThreadMCPClients(

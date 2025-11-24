@@ -111,13 +111,7 @@ export async function createSessionlessMcpServer(
 
   // Session-less servers don't support elicitation/sampling, so no handlers needed
   // We create MCP clients without thread context
-  const mcpClients = await getThreadMCPClients(
-    db,
-    projectId,
-    // Use empty string for threadId to indicate session-less mode
-    "",
-    {},
-  );
+  const mcpClients = await getThreadMCPClients(db, projectId, null, {});
   await registerPromptHandlers(server, mcpClients);
   await registerResourceHandlers(server, mcpClients);
   // No elicitation handlers for session-less servers
