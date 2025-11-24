@@ -111,7 +111,7 @@ export async function* runDecisionLoop(
     stream: true,
     tool_choice: forceToolChoice
       ? { type: "function", function: { name: forceToolChoice } }
-      : "required",
+      : "auto",
   });
 
   const initialDecision: LegacyComponentDecision = {
