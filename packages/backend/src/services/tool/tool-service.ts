@@ -130,22 +130,6 @@ export function convertComponentsToUITools(
   );
 }
 
-export const displayMessageTool: OpenAI.Chat.Completions.ChatCompletionTool = {
-  type: "function",
-  function: {
-    name: "showMessage_tambo_internal",
-    description:
-      "Display a message to the user. Use this when you just want to communicate something or ask for clarification without taking any other action. The message can and should include markdown formatting when appropriate (e.g., ```typescript code blocks, **bold text**, lists) - especially when showing code examples.",
-    strict: true,
-    parameters: {
-      type: "object",
-      properties: {},
-      required: [],
-      additionalProperties: false,
-    },
-  },
-};
-
 function getComponentProperties(component: AvailableComponent) {
   if (
     !component.props ||
@@ -250,7 +234,6 @@ export function getToolsFromSources(
   const originalTools = [
     ...componentTools,
     ...allTools.clientToolsSchema,
-    displayMessageTool,
     ...allTools.mcpToolsSchema,
   ];
   const strictTools = originalTools.map(
