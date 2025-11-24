@@ -36,11 +36,18 @@ async function bootstrap() {
 
   // Graceful shutdown
   process.on("SIGTERM", async () => {
-    if (process.env.NODE_ENV === "production") {
-      console.log("SIGTERM received, shutting down...");
+    try {
+      await app.close();
+      if (process.env.NODE_ENV === "production") {
+        console.log("SIGTERM received, shutting down...");
 
-      // Flush Sentry and shutdown OpenTelemetry in parallel
-      await Promise.all([Sentry.close(2000), shutdownOpenTelemetry(sdk)]);
+        // Flush Sentry and shutdown OpenTelemetry in parallel
+        await Promise.all([Sentry.close(2000), shutdownOpenTelemetry(sdk)]);
+      }
+      process.exit(0);
+    } catch (error) {
+      console.error("Error during shutdown:", error);
+      process.exit(1);
     }
   });
 
