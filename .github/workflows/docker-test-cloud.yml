@@ -1,4 +1,4 @@
-name: Docker Stack Test
+name: Docker
 
 on:
   pull_request:
@@ -18,8 +18,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  docker-test:
-    name: Test Docker Stack
+  meta:
+    name: Job Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      should-push: ${{ steps.should-push.outputs.should-push }}
+      release-tag: ${{ steps.should-push.outputs.release-tag }}
+    steps:
+      - name: Get metadata
+        id: meta
+        run: |
+          echo "image=ghcr.io/tambo-ai/tambo-web-server" >> $GITHUB_ENV
+          echo "tag=${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Determine if we should push to GHCR
+        id: should-push
+        run: |
+          # Push to GHCR only when a release is published
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "should-push=true" >> $GITHUB_OUTPUT
+            echo "release-tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "Pushing to GHCR with release tag: ${{ github.event.release.tag_name }}"
+          else
+            echo "should-push=false" >> $GITHUB_OUTPUT
+            echo "release-tag=" >> $GITHUB_OUTPUT
+            echo "Building locally for testing (no GHCR push)"
+          fi
+
+  build-and-push:
+    name: Build and Push - ${{ matrix.images.name }}
+    needs: [meta]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,7 +58,24 @@ jobs:
       # Use GitHub's Docker layer caching
       DOCKER_BUILDKIT: 1
       COMPOSE_DOCKER_CLI_BUILD: 1
+    strategy:
+      matrix:
+        images:
+          - name: web
+            context: .
+            dockerfile: ./apps/web/Dockerfile
+            path: apps/web
+            repo: ghcr.io/tambo-ai
+            image: tambo-web-server
+            description: Next.js web frontend for Tambo AI platform
 
+          - name: api
+            context: .
+            dockerfile: ./apps/api/Dockerfile
+            path: apps/api
+            repo: ghcr.io/tambo-ai
+            image: tambo-api-server
+            description: NestJS backend API for Tambo AI platform
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -49,13 +94,8 @@ jobs:
           path: |
             workspace-npm
             workspace-turbo
-            workspace-apps-web-next
-          key: cache-mount-${{ hashFiles('**/Dockerfile') }}
-
-      - name: Cache for Turbo
-        uses: rharkor/caching-for-turbo@v2.3.2
-        with:
-          server-port: 43210
+            workspace-next
+          key: cache-mount-${{ matrix.images.name }}-${{ hashFiles(format('{0}/Dockerfile', matrix.images.path)) }}
 
       - name: Restore Docker cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
@@ -65,32 +105,15 @@ jobs:
             {
               "workspace-npm": "/workspace/.npm/cache",
               "workspace-turbo": "/workspace/.turbo/cache",
-              "workspace-apps-web-next": "/workspace/apps/web/.next/cache"
+              "workspace-next": "/workspace/${{ matrix.images.path }}/.next/cache"
             }
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 
-      - name: Setup Docker environment
-        run: |
-          ./scripts/cloud/tambo-setup.sh
-          # Set NODE_ENV to development for faster startup
-          sed -i 's/NODE_ENV=production/NODE_ENV=development/g' docker.env
-
-      - name: Determine if we should push to GHCR
-        id: should_push
-        run: |
-          # Push to GHCR only when a release is published
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "should_push=true" >> $GITHUB_OUTPUT
-            echo "release_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-            echo "Pushing to GHCR with release tag: ${{ github.event.release.tag_name }}"
-          else
-            echo "should_push=false" >> $GITHUB_OUTPUT
-            echo "release_tag=" >> $GITHUB_OUTPUT
-            echo "Building locally for testing (no GHCR push)"
-          fi
+      - name: Cache for Turbo
+        uses: rharkor/caching-for-turbo@v2.3.2
 
       - name: Login to GitHub Container Registry
-        if: steps.should_push.outputs.should_push == 'true'
+        if: needs.meta.outputs.should-push == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -98,36 +121,40 @@ jobs:
           password: ${{ secrets.RELEASE_PACKAGES }}
 
       - name: Extract metadata for web image
-        id: meta_web
+        id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/tambo-ai/tambo-web-server
+          images: ${{ matrix.images.repo }}/${{ matrix.images.image }}
           tags: |
-            type=raw,value=latest
-            type=semver,pattern={{version}},value=${{ steps.should_push.outputs.release_tag }}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,enable=true,priority=100,prefix=sha-,format=short
+            type=semver,pattern={{version}},value=${{ needs.meta.outputs.release-tag }}
           labels: |
-            org.opencontainers.image.title=Tambo Web Server
-            org.opencontainers.image.description=Next.js web frontend for Tambo AI platform
+            org.opencontainers.image.title=${{ matrix.images.title }}
+            org.opencontainers.image.description=${{ matrix.images.description }}
             org.opencontainers.image.vendor=Tambo AI
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/${{ github.sha }}/apps/web
+            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/${{ github.sha }}/${{ matrix.images.path }}
             org.opencontainers.image.documentation=https://docs.tambo.co
 
       - name: Build and push web image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./apps/web/Dockerfile
-          push: ${{ steps.should_push.outputs.should_push }}
-          load: ${{ steps.should_push.outputs.should_push == 'false' }}
-          platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || '' }}
-          tags: ${{ steps.should_push.outputs.should_push == 'true' && steps.meta_web.outputs.tags || 'tambo-web:latest' }}
-          labels: ${{ steps.meta_web.outputs.labels }}
+          file: ./${{ matrix.images.path }}/Dockerfile
+          outputs: |
+            type=local,dest=path
+            type=docker,dest=${{ runner.temp }}/${{ matrix.images.name }}.tar
+          push: ${{ needs.meta.outputs.should-push }}
+          load: ${{ needs.meta.outputs.should-push == 'false' }}
+          platforms: ${{ needs.meta.outputs.should-push == 'true' && 'linux/amd64,linux/arm64' || '' }}
+          tags: ${{ needs.meta.outputs.should-push == 'true' && steps.meta.outputs.tags || 'tambo-web:latest' }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
-            type=gha,scope=buildx-web-${{ github.ref_name }}
-            type=gha,scope=buildx-web-main
+            type=gha,scope=buildx-${{ matrix.images.name }}-${{ github.ref_name }}
+            type=gha,scope=buildx-${{ matrix.images.name }}-main
           cache-to: |
-            type=gha,scope=buildx-web-${{ github.ref_name }},mode=max
+            type=gha,scope=buildx-${{ matrix.images.name }}-${{ github.ref_name }},mode=max
           build-args: |
             NODE_ENV=production
           secrets: |
@@ -137,53 +164,36 @@ jobs:
           allow: network.host
           network: host
 
-      - name: Extract metadata for api image
-        id: meta_api
-        uses: docker/metadata-action@v5
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          images: ghcr.io/tambo-ai/tambo-api-server
-          tags: |
-            type=raw,value=latest
-            type=semver,pattern={{version}},value=${{ steps.should_push.outputs.release_tag }}
-          labels: |
-            org.opencontainers.image.title=Tambo API Server
-            org.opencontainers.image.description=NestJS backend API for Tambo AI platform
-            org.opencontainers.image.vendor=Tambo AI
-            org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.source=https://github.com/tambo-ai/tambo/blob/${{ github.sha }}/apps/api
-            org.opencontainers.image.documentation=https://docs.tambo.co
+          name: image
+          path: ${{ runner.temp }}/${{ matrix.images.name }}.tar
+          retention-days: 1
 
-      - name: Build and push api image
-        uses: docker/build-push-action@v6
+  test:
+    needs: [meta, build-and-push]
+    name: Test Docker Stack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
-          context: .
-          file: ./apps/api/Dockerfile
-          push: ${{ steps.should_push.outputs.should_push }}
-          load: ${{ steps.should_push.outputs.should_push == 'false' }}
-          platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || '' }}
-          tags: ${{ steps.should_push.outputs.should_push == 'true' && steps.meta_api.outputs.tags || 'tambo-api:latest' }}
-          labels: ${{ steps.meta_api.outputs.labels }}
-          cache-from: |
-            type=gha,scope=buildx-api-${{ github.ref_name }}
-            type=gha,scope=buildx-api-main
-          cache-to: |
-            type=gha,scope=buildx-api-${{ github.ref_name }},mode=max
-          build-args: |
-            NODE_ENV=production
-          secrets: |
-            TURBO_TEAM=${{ env.TURBO_TEAM }}
-            TURBO_TOKEN=${{ env.TURBO_TOKEN }}
-            TURBO_API=http://127.0.0.1:${{ env.TURBOGHA_PORT }}
-          allow: network.host
-          network: host
+          path: ${{ runner.temp }}/*.tar
 
-      - name: Ensure local tags for stack
-        if: steps.should_push.outputs.should_push == 'true'
+      - name: Load image
         run: |
-          docker pull ghcr.io/tambo-ai/tambo-web-server:${{ steps.should_push.outputs.release_tag }}
-          docker tag ghcr.io/tambo-ai/tambo-web-server:${{ steps.should_push.outputs.release_tag }} tambo-web:latest
-          docker pull ghcr.io/tambo-ai/tambo-api-server:${{ steps.should_push.outputs.release_tag }}
-          docker tag ghcr.io/tambo-ai/tambo-api-server:${{ steps.should_push.outputs.release_tag }} tambo-api:latest
+          docker load --input ${{ runner.temp }}/*.tar
+          docker image ls -a
 
       - name: Start Docker stack
         run: ./scripts/cloud/tambo-start.sh
@@ -219,8 +229,7 @@ jobs:
           curl -fso /dev/null http://localhost:3210/ && echo -e "\nWeb endpoint responding"
 
       - name: Initialize database
-        run: |
-          docker compose --env-file docker.env exec -T api sh -c "npm -w @tambo-ai-cloud/db run db:migrate"
+        run: ./scripts/cloud/init-database.sh
         timeout-minutes: 2
 
       - name: Verify database initialization
@@ -241,11 +250,3 @@ jobs:
       - name: Debug Docker logs on failure
         if: failure()
         run: ./scripts/cloud/tambo-logs.sh
-
-      - name: Cleanup
-        if: always()
-        run: |
-          # Force cleanup in case stop script didn't work
-          docker compose --env-file docker.env down -v --remove-orphans || true
-          docker network rm tambo_network 2>/dev/null || true
-          docker system prune -f || true
