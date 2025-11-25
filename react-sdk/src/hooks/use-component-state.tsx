@@ -93,9 +93,20 @@ export function useTamboComponentState<S>(
 
   const setValue = useCallback(
     (newState: S) => {
+      async function updateRemote() {
+        try {
+          await updateRemoteThreadMessage(newState, message);
+        } catch (error) {
+          console.error("Failed to update remote thread message:", error);
+        }
+      }
+
       setLocalState(newState);
       updateLocalThreadMessage(newState, message);
-      void updateRemoteThreadMessage(newState, message);
+      // Fire-and-forget remote update with error handling
+      updateRemote().catch((err) => {
+        console.error("Unexpected error in updateRemote:", err);
+      });
     },
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],
   );
@@ -120,7 +131,19 @@ export function useTamboComponentState<S>(
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
     return () => {
-      void updateRemoteThreadMessage.flush();
+      async function flushUpdates() {
+        try {
+          await updateRemoteThreadMessage.flush();
+        } catch (error) {
+          console.error(
+            "Failed to flush pending thread message updates:",
+            error,
+          );
+        }
+      }
+      flushUpdates().catch((err) => {
+        console.error("Unexpected error in flushUpdates:", err);
+      });
     };
   }, [updateRemoteThreadMessage]);
 

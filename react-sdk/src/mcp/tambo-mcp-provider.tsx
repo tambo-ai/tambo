@@ -211,6 +211,31 @@ export const TamboMcpProvider: FC<{
 
   // Main effect: manage client lifecycle (create/remove)
   useEffect(() => {
+    async function removeClients(keys: string[]) {
+      const clientMap = clientMapRef.current;
+      await Promise.allSettled(
+        keys.map(async (key) => {
+          const server = clientMap.get(key);
+          if (server?.client) {
+            try {
+              await server.client.close();
+            } catch (error) {
+              // Avoid logging sensitive data embedded in the key (headers)
+              const url = (server as McpServer).url ?? "(unknown url)";
+              console.error(`Error closing MCP client for ${url}:`, error);
+            }
+          }
+          // Release tool ownership for this server
+          const owned = keyToToolsRef.current.get(key);
+          if (owned) {
+            for (const name of owned) toolOwnerRef.current.delete(name);
+            keyToToolsRef.current.delete(key);
+          }
+          clientMap.delete(key);
+        }),
+      );
+    }
+
     const clientMap = clientMapRef.current;
     const currentKeys = new Set(currentServersMap.keys());
     const existingKeys = new Set(clientMap.keys());
@@ -219,35 +244,20 @@ export const TamboMcpProvider: FC<{
     const keysToRemove = Array.from(existingKeys).filter(
       (key) => !currentKeys.has(key),
     );
-    keysToRemove.forEach((key) => {
-      const server = clientMap.get(key);
-      if (server?.client) {
-        try {
-          void server.client.close();
-        } catch (error) {
-          // Avoid logging sensitive data embedded in the key (headers)
-          const url = (server as McpServer).url ?? "(unknown url)";
-          console.error(`Error closing MCP client for ${url}:`, error);
-        }
-      }
-      // Release tool ownership for this server
-      const owned = keyToToolsRef.current.get(key);
-      if (owned) {
-        for (const name of owned) toolOwnerRef.current.delete(name);
-        keyToToolsRef.current.delete(key);
-      }
-      clientMap.delete(key);
-    });
+    if (keysToRemove.length > 0) {
+      removeClients(keysToRemove).catch((err) => {
+        console.error("Unexpected error in removeClients:", err);
+      });
+    }
 
     // 2. Add new clients for servers that don't exist yet
     const keysToAdd = Array.from(currentKeys).filter(
       (key) => !existingKeys.has(key),
     );
 
-    if (keysToAdd.length > 0) {
-      // Async initialization of new clients
-      void Promise.allSettled(
-        keysToAdd.map(async (key) => {
+    async function addClients(keys: string[]) {
+      await Promise.allSettled(
+        keys.map(async (key) => {
           const serverInfo = currentServersMap.get(key)!;
 
           try {
@@ -366,6 +376,12 @@ export const TamboMcpProvider: FC<{
       );
     }
 
+    if (keysToAdd.length > 0) {
+      addClients(keysToAdd).catch((err) => {
+        console.error("Unexpected error in addClients:", err);
+      });
+    }
+
     // Update state after removals (additions update state asynchronously above)
     if (keysToRemove.length > 0) {
       setConnectedMcpServers(Array.from(clientMap.values()));
@@ -422,18 +438,26 @@ export const TamboMcpProvider: FC<{
     const ownerMapAtMount = toolOwnerRef.current;
     const keyToToolsAtMount = keyToToolsRef.current;
     return () => {
-      clientMap.forEach((server, _key) => {
-        if (server.client) {
-          try {
-            void server.client.close();
-          } catch (error) {
-            const url = (server as McpServer).url ?? "(unknown url)";
-            console.error(
-              `Error closing MCP client on unmount for ${url}:`,
-              error,
-            );
-          }
-        }
+      async function closeAllClients() {
+        await Promise.allSettled(
+          Array.from(clientMap.values()).map(async (server) => {
+            if (server.client) {
+              try {
+                await server.client.close();
+              } catch (error) {
+                const url = (server as McpServer).url ?? "(unknown url)";
+                console.error(
+                  `Error closing MCP client on unmount for ${url}:`,
+                  error,
+                );
+              }
+            }
+          }),
+        );
+      }
+
+      closeAllClients().catch((err) => {
+        console.error("Unexpected error in closeAllClients:", err);
       });
       clientMap.clear();
       ownerMapAtMount.clear();
@@ -529,6 +553,8 @@ export const useTamboElicitationContext = useTamboMcpElicitation;
  * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
  * `transport` and a `serverKey` derived by the registry, and narrows the
  * opaque `handlers` field to `Partial<MCPHandlers>`.
+ * @param server - The normalized MCP server info from the registry
+ * @returns The server config with typed handlers and unique key
  */
 function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
   const key = getMcpServerUniqueKey(server);
