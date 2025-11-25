@@ -17,7 +17,7 @@ Generative UI is an interface that _adapts in real-time_ to the user's context, 
 
 ## Why This Matters
 
-Traditional software forces an impossible trade-off: either overwhelm users with features upfront or hide functionality behind menus they'll never find. Every product team knows this pain: the power users demand shortcuts and advanced features, while new users bounce because they're lost.
+Traditional software forces an impossible trade-off—either overwhelm users with features upfront or hide functionality behind menus they'll never find. Every product team knows this pain. Power users demand shortcuts and advanced features, while new users bounce because they're lost.
 
 ![Diagram showing how interfaces grow with users - simple interface for startups evolving to complex interface for established companies](/blog/what-is-generative-ui/grow-with-users.png)
 
@@ -37,13 +37,13 @@ When people talk about "generative UI," they often mean different things. For so
 
 The explosive popularity of AI code generation shows users crave more control and flexibility. But that doesn't mean everyone should become a programmer. Your parents shouldn't need to write code to customize their email client.
 
-Code generation is powerful: like having Lego blocks that let you build anything from scratch. But imagine if you had to assemble individual blocks every single time you wanted to build something. Instead, we think engineers should put those Lego blocks together into reusable "sets" that the AI can select and configure as needed. Similar to how we don't expect AIs to generate code for every action (we give them tools like MCP that help perform tasks), we shouldn't expect them to generate UI from scratch when we can provide well-designed components.
+Code generation is like manufacturing your own plastic pieces from scratch—designing molds, heating materials, waiting for them to cure—every time you want to build something. With predefined components, engineers create the Lego bricks once: tested, reliable, ready to snap together. The AI just assembles them into whatever the user needs. Similar to how we don't expect AIs to generate code for every action (we give them tools like MCP that help perform tasks), we shouldn't expect them to generate UI from scratch when we can provide well-designed components.
 
-This approach gives you the flexibility users want without the risk of generating code on the fly or missing an HTML tag. As this approach matures, the demand for users to build their own interfaces will actually decrease.
+This approach gives you the flexibility users want without the risk of generating code on the fly or missing an HTML tag. That said, AI-assisted code generation has a valuable role in _creating_ new components—helping developers cast new Lego bricks for their library. But in production, when your app is out in the wild serving real users, those pre-built, tested bricks will rule the day over crafting new structures from scratch on every generation. As this approach matures, the demand for users to build their own interfaces will actually decrease.
 
 ## The Component Model
 
-Instead of generating code from scratch, generative UI works with **predefined components**:
+Instead of generating code from scratch, this form of generative UI works with **predefined components**:
 
 1. **You build:** UI components with typed props and schemas: such as a line graph, a flight picker, or a pre-filled form
 2. **AI chooses:** Which components to use and how to configure them: the LLM helps fill in the graph data, the available flights, or the best form defaults for the situation
@@ -59,7 +59,7 @@ While the AI doesn't generate code, you can expose conditional rendering or styl
 
 ## A Concrete Example: Intelligent Spreadsheets
 
-[video demo]
+<video src="https://github.com/user-attachments/assets/cf4fdfcc-b499-4f0d-8200-310891cd017b" controls width="100%" />
 
 Traditional spreadsheets demand upfront learning: formulas, cell references, chart configuration.
 
