@@ -137,7 +137,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
   "update-installed": {
     command: "update-installed",
     syntax: "update installed",
-    description: `${chalk.bold("Update ALL installed tambo components at once")}`,
+    description: chalk.bold("Update ALL installed tambo components at once"),
     usage: [`$ ${chalk.cyan("tambo update installed")} [options]`],
     options: ["prefix", "yes", "legacy-peer-deps"],
     note: "This will update every tambo component currently in your project",
@@ -584,4 +584,4 @@ async function main() {
     process.exit(1);
   }
 }
-main();
+void main();
