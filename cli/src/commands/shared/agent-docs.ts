@@ -29,7 +29,6 @@ Read the full documentation at https://docs.tambo.co/llms.txt for component crea
 export interface AgentDocsOptions {
   yes?: boolean;
   skipPrompt?: boolean;
-  acceptAll?: boolean;
   prefix?: string;
   skipAgentDocs?: boolean;
 }
@@ -65,7 +64,7 @@ export async function handleAgentDocsUpdate(
   const hasAgents = fs.existsSync(agentsMdPath);
   const hasClaude = fs.existsSync(claudeMdPath);
 
-  if (!options.yes && !options.acceptAll && !options.skipPrompt) {
+  if (!options.yes && !options.skipPrompt) {
     const isNonInteractive = !process.stdin?.isTTY || process.env.CI === "true";
 
     if (isNonInteractive) {

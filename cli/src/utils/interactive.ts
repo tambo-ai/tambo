@@ -62,7 +62,6 @@ Use command-line flags to skip prompts. Common options:
   ${chalk.cyan("--yes, -y")}            Auto-answer yes to all prompts
   ${chalk.cyan("--prefix <path>")}      Specify component directory
   ${chalk.cyan("--template <name>")}    Specify template to use
-  ${chalk.cyan("--accept-all")}         Accept all upgrades (upgrade command)
 
 Run ${chalk.cyan("tambo --help")} or ${chalk.cyan("tambo <command> --help")} for more options.
 `;
