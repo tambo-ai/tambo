@@ -92,10 +92,10 @@ export function useTamboComponentState<S>(
   );
 
   const setValue = useCallback(
-    async (newState: S) => {
+    (newState: S) => {
       setLocalState(newState);
-      await updateLocalThreadMessage(newState, message);
-      await updateRemoteThreadMessage(newState, message);
+      void updateLocalThreadMessage(newState, message);
+      void updateRemoteThreadMessage(newState, message);
     },
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],
   );

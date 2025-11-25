@@ -211,31 +211,6 @@ export const TamboMcpProvider: FC<{
 
   // Main effect: manage client lifecycle (create/remove)
   useEffect(() => {
-    async function removeClients(keys: string[]) {
-      const clientMap = clientMapRef.current;
-      await Promise.allSettled(
-        keys.map(async (key) => {
-          const server = clientMap.get(key);
-          if (server?.client) {
-            try {
-              await server.client.close();
-            } catch (error) {
-              // Avoid logging sensitive data embedded in the key (headers)
-              const url = (server as McpServer).url ?? "(unknown url)";
-              console.error(`Error closing MCP client for ${url}:`, error);
-            }
-          }
-          // Release tool ownership for this server
-          const owned = keyToToolsRef.current.get(key);
-          if (owned) {
-            for (const name of owned) toolOwnerRef.current.delete(name);
-            keyToToolsRef.current.delete(key);
-          }
-          clientMap.delete(key);
-        }),
-      );
-    }
-
     const clientMap = clientMapRef.current;
     const currentKeys = new Set(currentServersMap.keys());
     const existingKeys = new Set(clientMap.keys());
@@ -244,11 +219,32 @@ export const TamboMcpProvider: FC<{
     const keysToRemove = Array.from(existingKeys).filter(
       (key) => !currentKeys.has(key),
     );
-    if (keysToRemove.length > 0) {
-      removeClients(keysToRemove).catch((err) => {
-        console.error("Unexpected error in removeClients:", err);
-      });
-    }
+    keysToRemove.forEach((key) => {
+      const server = clientMap.get(key);
+      if (server?.client?.close) {
+        try {
+          // Call close() sync - it may or may not return a promise
+          const closeResult = server.client.close();
+          // If it returns a promise, handle errors but don't wait
+          if (closeResult && typeof closeResult.catch === "function") {
+            void closeResult.catch((error) => {
+              const url = (server as McpServer).url ?? "(unknown url)";
+              console.error(`Error closing MCP client for ${url}:`, error);
+            });
+          }
+        } catch (error) {
+          const url = (server as McpServer).url ?? "(unknown url)";
+          console.error(`Error closing MCP client for ${url}:`, error);
+        }
+      }
+      // Release tool ownership for this server
+      const owned = keyToToolsRef.current.get(key);
+      if (owned) {
+        for (const name of owned) toolOwnerRef.current.delete(name);
+        keyToToolsRef.current.delete(key);
+      }
+      clientMap.delete(key);
+    });
 
     // 2. Add new clients for servers that don't exist yet
     const keysToAdd = Array.from(currentKeys).filter(
@@ -438,26 +434,29 @@ export const TamboMcpProvider: FC<{
     const ownerMapAtMount = toolOwnerRef.current;
     const keyToToolsAtMount = keyToToolsRef.current;
     return () => {
-      async function closeAllClients() {
-        await Promise.allSettled(
-          Array.from(clientMap.values()).map(async (server) => {
-            if (server.client) {
-              try {
-                await server.client.close();
-              } catch (error) {
+      clientMap.forEach((server) => {
+        if (server?.client?.close) {
+          try {
+            // Call close() sync - it may or may not return a promise
+            const closeResult = server.client.close();
+            // If it returns a promise, handle errors but don't wait
+            if (closeResult && typeof closeResult.catch === "function") {
+              void closeResult.catch((error) => {
                 const url = (server as McpServer).url ?? "(unknown url)";
                 console.error(
                   `Error closing MCP client on unmount for ${url}:`,
                   error,
                 );
-              }
+              });
             }
-          }),
-        );
-      }
-
-      closeAllClients().catch((err) => {
-        console.error("Unexpected error in closeAllClients:", err);
+          } catch (error) {
+            const url = (server as McpServer).url ?? "(unknown url)";
+            console.error(
+              `Error closing MCP client on unmount for ${url}:`,
+              error,
+            );
+          }
+        }
       });
       clientMap.clear();
       ownerMapAtMount.clear();

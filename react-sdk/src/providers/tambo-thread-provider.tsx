@@ -573,7 +573,6 @@ export const TamboThreadProvider: React.FC<
   const maybeAutoGenerateThreadName = useCallback(
     (threadId: string, contextKey?: string) => {
       // Use setThreadMap to access the latest state
-      let shouldGenerate = false;
       setThreadMap((map) => {
         const thread = map[threadId];
 
@@ -592,18 +591,14 @@ export const TamboThreadProvider: React.FC<
 
         // Only auto-generate if thread has no name and threshold is met
         if (!thread.name && messageCount >= autoGenerateNameThreshold) {
-          shouldGenerate = true;
+          // Generating a thread name is not critical, so we can fire-and-forget
+          void generateThreadName(threadId, contextKey).catch((error) => {
+            console.error("Failed to generate thread name:", error);
+          });
         }
 
         return map;
       });
-
-      if (shouldGenerate) {
-        // Generating a thread name is not critical, so we can fire-and-forget
-        generateThreadName(threadId, contextKey).catch((error) => {
-          console.error("Failed to generate thread name:", error);
-        });
-      }
     },
     [
       autoGenerateThreadName,
