@@ -16,6 +16,7 @@
     "test:watch": "jest --watch",
     "check-types": "tsc --noEmit",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "clean": "rm -rf dist coverage"
   },
   "author": "",

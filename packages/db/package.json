@@ -9,6 +9,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
     "check-types": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

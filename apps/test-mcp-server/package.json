@@ -15,6 +15,7 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "test": "jest --passWithNoTests",
     "check-types": "tsc --noEmit"
   },
