@@ -149,6 +149,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - **Any function that returns a Promise must be declared `async`**.
 - **Always use `await`** when calling async functions.
+- **Avoid .catch() or .then()** when possible, and use try/catch instead. .catch() is sometimes required
+  in a useEffect, but callbacks should be made async if they would otherwise require a .catch().
 
 ### Control Flow
 
