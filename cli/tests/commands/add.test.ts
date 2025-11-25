@@ -602,8 +602,7 @@ describe("handleAddComponents", () => {
         "components/
         └─ ui/
            └─ tambo/
-              ├─ tambo/
-              │  └─ AGENTS.md
+              ├─ AGENTS.md
               └─ message.tsx"
       `);
       expect(toTreeSync(vol, { dir: "/mock-project/lib" }))

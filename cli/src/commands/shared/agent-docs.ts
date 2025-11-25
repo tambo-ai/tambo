@@ -39,13 +39,24 @@ function hasTamboSection(content: string): boolean {
 
 function getComponentDir(prefix?: string): string {
   const root = process.cwd();
-  if (prefix) {
-    return path.join(root, prefix, COMPONENT_SUBDIR);
-  }
 
+  // Standard paths to check (in order of preference)
   const srcPath = path.join(root, "src", "components", COMPONENT_SUBDIR);
   const rootPath = path.join(root, "components", COMPONENT_SUBDIR);
 
+  // If prefix is provided, it's an explicit CLI --prefix flag
+  // The prefix specifies the exact location where components are installed
+  if (prefix) {
+    const prefixPath = path.join(root, prefix);
+    // Check if it already ends with the component subdir
+    if (prefix.endsWith(COMPONENT_SUBDIR)) {
+      return prefixPath;
+    }
+    // Otherwise append COMPONENT_SUBDIR
+    return path.join(prefixPath, COMPONENT_SUBDIR);
+  }
+
+  // Auto-detect: check standard locations
   if (fs.existsSync(srcPath)) return srcPath;
   if (fs.existsSync(rootPath)) return rootPath;
   return srcPath;

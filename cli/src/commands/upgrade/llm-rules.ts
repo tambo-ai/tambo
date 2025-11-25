@@ -6,47 +6,22 @@ import path from "path";
 import { handleAgentDocsUpdate } from "../shared/agent-docs.js";
 import type { UpgradeOptions } from "./index.js";
 
+// Exact file that Tambo CLI previously created via templates
+const LEGACY_CURSOR_RULE_FILE = ".cursor/rules/tambo-ai.mdc";
+
 function findLegacyCursorRules(): string[] {
   const projectRoot = process.cwd();
-  const legacyFiles: string[] = [];
+  const legacyFile = path.join(projectRoot, LEGACY_CURSOR_RULE_FILE);
 
-  const rulesDir = path.join(projectRoot, ".cursor", "rules");
-  if (fs.existsSync(rulesDir)) {
-    for (const entry of fs.readdirSync(rulesDir)) {
-      const filePath = path.join(rulesDir, entry);
-      const stat = fs.statSync(filePath);
-      if (!stat.isFile()) continue;
-
-      const lowerName = entry.toLowerCase();
-      if (lowerName.includes("tambo")) {
-        legacyFiles.push(filePath);
-      }
-    }
+  if (fs.existsSync(legacyFile)) {
+    return [legacyFile];
   }
-
-  const rootCursorRules = path.join(projectRoot, ".cursorrules");
-  if (fs.existsSync(rootCursorRules)) {
-    legacyFiles.push(rootCursorRules);
-  }
-
-  return legacyFiles;
+  return [];
 }
 
-async function confirmRulesUpgrade(hasLegacyRules: boolean): Promise<boolean> {
-  const message = hasLegacyRules
-    ? "Legacy cursor rules detected. Replace them with AGENTS.md/CLAUDE.md docs?"
-    : "Add AGENTS.md/CLAUDE.md guidance for LLMs?";
-
-  const { proceed } = await inquirer.prompt({
-    type: "confirm",
-    name: "proceed",
-    message,
-    default: true,
-  });
-
-  return proceed;
-}
-
+/**
+ * Upgrade agent documentation (AGENTS.md/CLAUDE.md) and remove legacy cursor rules.
+ */
 export async function upgradeAgentDocsAndRemoveCursorRules(
   options: UpgradeOptions,
 ): Promise<boolean> {
@@ -56,63 +31,58 @@ export async function upgradeAgentDocsAndRemoveCursorRules(
   const hasLegacyRules = legacyRules.length > 0;
 
   if (!options.yes) {
-    const proceed = await confirmRulesUpgrade(hasLegacyRules);
+    const message = hasLegacyRules
+      ? "Found legacy tambo-ai.mdc cursor rules. Replace with AGENTS.md/CLAUDE.md?"
+      : "Add/update AGENTS.md and CLAUDE.md guidance for LLMs?";
+
+    const { proceed } = await inquirer.prompt({
+      type: "confirm",
+      name: "proceed",
+      message,
+      default: true,
+    });
+
     if (!proceed) {
-      console.log(chalk.gray("Skipped agent docs and cursor rule updates."));
+      console.log(chalk.gray("Skipped agent docs update."));
       return true;
     }
   }
 
-  const spinner = ora(
-    "Updating agent docs and cleaning legacy cursor rules...",
-  ).start();
+  const spinner = ora("Updating agent documentation...").start();
 
   try {
+    // Remove legacy cursor rules file if it exists
     for (const filePath of legacyRules) {
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.rmSync(filePath);
-        } catch (error) {
-          // Handle race condition where file might be deleted between existsSync check and removal
-          if (
+      try {
+        fs.rmSync(filePath);
+      } catch (error) {
+        // Ignore ENOENT (file already deleted)
+        if (
+          !(
             error instanceof Error &&
             "code" in error &&
-            error.code !== "ENOENT"
-          ) {
-            throw error;
-          }
-          // ENOENT means file was already deleted, which is fine
+            error.code === "ENOENT"
+          )
+        ) {
+          throw error;
         }
       }
     }
 
-    // Clean empty rules dir if we removed everything
+    // Clean up empty .cursor/rules directory
     const rulesDir = path.join(process.cwd(), ".cursor", "rules");
     if (fs.existsSync(rulesDir)) {
-      const remaining = fs
-        .readdirSync(rulesDir, { withFileTypes: true })
-        .filter((item) => item.isFile());
+      const remaining = fs.readdirSync(rulesDir);
       if (remaining.length === 0) {
-        fs.rmSync(rulesDir, { recursive: true });
+        fs.rmdirSync(rulesDir);
       }
     }
 
-    // Wrap agent docs update in try-catch
-    try {
-      await handleAgentDocsUpdate({
-        prefix: options.prefix,
-        skipPrompt: true,
-        yes: options.yes,
-      });
-    } catch (docError) {
-      console.log(
-        chalk.yellow(
-          `⚠  Warning: Agent docs update failed: ${
-            docError instanceof Error ? docError.message : String(docError)
-          }`,
-        ),
-      );
-    }
+    await handleAgentDocsUpdate({
+      prefix: options.prefix,
+      skipPrompt: true,
+      yes: options.yes,
+    });
 
     spinner.succeed(
       hasLegacyRules
@@ -122,7 +92,7 @@ export async function upgradeAgentDocsAndRemoveCursorRules(
     return true;
   } catch (error) {
     spinner.fail(
-      `Failed to remove cursor rules: ${
+      `Failed to update agent docs: ${
         error instanceof Error ? error.message : String(error)
       }`,
     );

@@ -28,8 +28,6 @@ jest.unstable_mockModule("inquirer", () => ({
   },
 }));
 
-// Don't mock agent-docs, let it run with the mocked fs
-
 const { upgradeAgentDocsAndRemoveCursorRules } = await import(
   "../../src/commands/upgrade/llm-rules.js"
 );
@@ -48,43 +46,78 @@ describe("upgradeAgentDocsAndRemoveCursorRules", () => {
     process.cwd = originalCwd;
   });
 
-  it("returns when cursor directory is missing", async () => {
+  it("creates agent docs when none exist", async () => {
     vol.fromJSON({
       "/mock-project/package.json": "{}",
     });
+
     await expect(
       upgradeAgentDocsAndRemoveCursorRules({ yes: true }),
     ).resolves.toBe(true);
+
+    expect(memfsFs.existsSync("/mock-project/AGENTS.md")).toBe(true);
   });
 
-  it("removes files with tambo markers and keeps others, then writes docs", async () => {
+  it("skips when skipAgentDocs is true", async () => {
     vol.fromJSON({
-      "/mock-project/.cursor/rules/tambo.md": "# Some rules",
-      "/mock-project/.cursor/rules/my-tambo-guide.md": "# More rules",
-      "/mock-project/.cursor/rules/keep.md": "# Keep me (no tambo in name)",
       "/mock-project/package.json": "{}",
     });
 
-    const result = await upgradeAgentDocsAndRemoveCursorRules({
-      yes: true,
+    await expect(
+      upgradeAgentDocsAndRemoveCursorRules({ yes: true, skipAgentDocs: true }),
+    ).resolves.toBe(true);
+
+    expect(memfsFs.existsSync("/mock-project/AGENTS.md")).toBe(false);
+  });
+
+  it("removes legacy tambo-ai.mdc cursor rules file", async () => {
+    vol.fromJSON({
+      "/mock-project/.cursor/rules/tambo-ai.mdc": "# Legacy Tambo rules",
+      "/mock-project/package.json": "{}",
     });
 
-    expect(result).toBe(true);
-    expect(memfsFs.existsSync("/mock-project/.cursor/rules/tambo.md")).toBe(
+    await expect(
+      upgradeAgentDocsAndRemoveCursorRules({ yes: true }),
+    ).resolves.toBe(true);
+
+    // Legacy file should be removed
+    expect(memfsFs.existsSync("/mock-project/.cursor/rules/tambo-ai.mdc")).toBe(
       false,
     );
-    expect(
-      memfsFs.existsSync("/mock-project/.cursor/rules/my-tambo-guide.md"),
-    ).toBe(false);
-    expect(memfsFs.existsSync("/mock-project/.cursor/rules/keep.md")).toBe(
+    // Empty rules directory should be cleaned up
+    expect(memfsFs.existsSync("/mock-project/.cursor/rules")).toBe(false);
+    // .cursor directory should still exist
+    expect(memfsFs.existsSync("/mock-project/.cursor")).toBe(true);
+    // Agent docs should be created
+    expect(memfsFs.existsSync("/mock-project/AGENTS.md")).toBe(true);
+  });
+
+  it("keeps other cursor rules files (user-owned)", async () => {
+    vol.fromJSON({
+      "/mock-project/.cursor/rules/tambo-ai.mdc": "# Legacy Tambo rules",
+      "/mock-project/.cursor/rules/my-rules.md": "# My custom rules",
+      "/mock-project/package.json": "{}",
+    });
+
+    await expect(
+      upgradeAgentDocsAndRemoveCursorRules({ yes: true }),
+    ).resolves.toBe(true);
+
+    // Legacy Tambo file should be removed
+    expect(memfsFs.existsSync("/mock-project/.cursor/rules/tambo-ai.mdc")).toBe(
+      false,
+    );
+    // User's custom rules should be kept
+    expect(memfsFs.existsSync("/mock-project/.cursor/rules/my-rules.md")).toBe(
       true,
     );
-    expect(memfsFs.existsSync("/mock-project/AGENTS.md")).toBe(true);
+    // Rules directory should still exist (not empty)
+    expect(memfsFs.existsSync("/mock-project/.cursor/rules")).toBe(true);
   });
 
-  it("removes directory when emptied", async () => {
+  it("does not touch .cursorrules (user-owned file)", async () => {
     vol.fromJSON({
-      "/mock-project/.cursor/rules/tambo-guidance.md": "Tambo AI guidance",
+      "/mock-project/.cursorrules": "user cursor rules",
       "/mock-project/package.json": "{}",
     });
 
@@ -92,13 +125,14 @@ describe("upgradeAgentDocsAndRemoveCursorRules", () => {
       upgradeAgentDocsAndRemoveCursorRules({ yes: true }),
     ).resolves.toBe(true);
 
-    expect(memfsFs.existsSync("/mock-project/.cursor/rules")).toBe(false);
-    expect(memfsFs.existsSync("/mock-project/.cursor")).toBe(true);
+    // .cursorrules is not a Tambo-created file, should be kept
+    expect(memfsFs.existsSync("/mock-project/.cursorrules")).toBe(true);
+    expect(memfsFs.existsSync("/mock-project/AGENTS.md")).toBe(true);
   });
 
-  it("removes .cursorrules", async () => {
+  it("updates existing CLAUDE.md instead of creating AGENTS.md", async () => {
     vol.fromJSON({
-      "/mock-project/.cursorrules": "legacy cursor rules",
+      "/mock-project/CLAUDE.md": "# Existing Claude instructions",
       "/mock-project/package.json": "{}",
     });
 
@@ -106,7 +140,9 @@ describe("upgradeAgentDocsAndRemoveCursorRules", () => {
       upgradeAgentDocsAndRemoveCursorRules({ yes: true }),
     ).resolves.toBe(true);
 
-    expect(memfsFs.existsSync("/mock-project/.cursorrules")).toBe(false);
-    expect(memfsFs.existsSync("/mock-project/AGENTS.md")).toBe(true);
+    // Should update CLAUDE.md, not create AGENTS.md
+    expect(memfsFs.existsSync("/mock-project/AGENTS.md")).toBe(false);
+    const content = memfsFs.readFileSync("/mock-project/CLAUDE.md", "utf-8");
+    expect(content).toContain("Tambo AI");
   });
 });
