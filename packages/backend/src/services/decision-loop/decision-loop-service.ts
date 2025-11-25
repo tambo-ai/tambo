@@ -26,7 +26,6 @@ import {
 } from "../llm/llm-client";
 import {
   addParametersToTools,
-  displayMessageTool,
   filterOutStandardToolParameters,
   standardToolParameters,
   TamboToolParameters,
@@ -111,7 +110,7 @@ export async function* runDecisionLoop(
     stream: true,
     tool_choice: forceToolChoice
       ? { type: "function", function: { name: forceToolChoice } }
-      : "required",
+      : "auto",
   });
 
   const initialDecision: LegacyComponentDecision = {
@@ -194,10 +193,7 @@ export async function* runDecisionLoop(
           : "",
         props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
-        toolCallId:
-          toolCall && getToolName(toolCall) === getToolName(displayMessageTool)
-            ? undefined
-            : getLLMResponseToolCallId(chunk),
+        toolCallId: toolCall ? getLLMResponseToolCallId(chunk) : undefined,
         statusMessage,
         completionStatusMessage,
         reasoning: chunk.reasoning ?? undefined,
@@ -238,11 +234,7 @@ function removeTamboToolParameters(
       parsedToolCall,
     );
 
-    // Only include tool call request if it's not the displayMessageTool
-    if (
-      filteredArgs &&
-      getToolName(toolCall) !== getToolName(displayMessageTool)
-    ) {
+    if (filteredArgs) {
       return {
         ...originalRequest,
         parameters: filteredArgs,
