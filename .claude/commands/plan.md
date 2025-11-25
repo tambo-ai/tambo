@@ -1,3 +1,7 @@
+---
+description: Plan a feature with clarification, research, and synthesis
+---
+
 **Step 1: Clarify Requirements**
 
 **Feature Request:** $ARGUMENTS
