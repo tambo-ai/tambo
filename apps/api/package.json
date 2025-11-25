@@ -70,7 +70,7 @@
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.8",
     "@tambo-ai-cloud/eslint-config": "*",
-    "@tambo-ai-cloud/typescript-config": "*",
+    "@tambo-ai/typescript-config": "*",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
