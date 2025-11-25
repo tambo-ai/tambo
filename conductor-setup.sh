@@ -23,65 +23,29 @@ npm ci
 # Setup .env files
 echo "🔧 Setting up environment files..."
 
-# Showcase .env
-if [ -f "$CONDUCTOR_ROOT_PATH/showcase/.env" ]; then
-    echo "  - Copying showcase/.env from root repo..."
-    cp "$CONDUCTOR_ROOT_PATH/showcase/.env" showcase/.env
-elif [ ! -f "showcase/.env" ]; then
-    echo "  - Creating showcase/.env from example..."
-    cp showcase/.env.example showcase/.env
-    echo "⚠️  WARNING: You need to add your NEXT_PUBLIC_TAMBO_API_KEY to showcase/.env"
-fi
+# Helper function to setup .env file
+setup_env_file() {
+  local path="$1"
+  local warning="$2"
 
-# Docs .env
-if [ -f "$CONDUCTOR_ROOT_PATH/docs/.env" ]; then
-    echo "  - Copying docs/.env from root repo..."
-    cp "$CONDUCTOR_ROOT_PATH/docs/.env" docs/.env
-elif [ ! -f "docs/.env" ]; then
-    echo "  - Creating docs/.env from example..."
-    cp docs/.env.example docs/.env
-    echo "⚠️  WARNING: You need to add your NEXT_PUBLIC_TAMBO_API_KEY to docs/.env"
-fi
+  if [ -f "$CONDUCTOR_ROOT_PATH/$path/.env" ]; then
+    echo "  - Copying $path/.env from root repo..."
+    cp "$CONDUCTOR_ROOT_PATH/$path/.env" "$path/.env"
+  elif [ ! -f "$path/.env" ]; then
+    echo "  - Creating $path/.env from example..."
+    cp "$path/.env.example" "$path/.env"
+    if [ -n "$warning" ]; then
+      echo "⚠️  WARNING: $warning"
+    fi
+  fi
+}
 
-# Apps/Web .env (Tambo Cloud frontend)
-if [ -f "$CONDUCTOR_ROOT_PATH/apps/web/.env" ]; then
-    echo "  - Copying apps/web/.env from root repo..."
-    cp "$CONDUCTOR_ROOT_PATH/apps/web/.env" apps/web/.env
-elif [ ! -f "apps/web/.env" ]; then
-    echo "  - Creating apps/web/.env from example..."
-    cp apps/web/.env.example apps/web/.env
-    echo "⚠️  WARNING: apps/web/.env created with defaults - update DATABASE_URL and API keys as needed"
-fi
-
-# Apps/API .env (Tambo Cloud backend)
-if [ -f "$CONDUCTOR_ROOT_PATH/apps/api/.env" ]; then
-    echo "  - Copying apps/api/.env from root repo..."
-    cp "$CONDUCTOR_ROOT_PATH/apps/api/.env" apps/api/.env
-elif [ ! -f "apps/api/.env" ]; then
-    echo "  - Creating apps/api/.env from example..."
-    cp apps/api/.env.example apps/api/.env
-    echo "⚠️  WARNING: apps/api/.env created with defaults - update OPENAI_API_KEY and other secrets"
-fi
-
-# Packages/DB .env (Database connection)
-if [ -f "$CONDUCTOR_ROOT_PATH/packages/db/.env" ]; then
-    echo "  - Copying packages/db/.env from root repo..."
-    cp "$CONDUCTOR_ROOT_PATH/packages/db/.env" packages/db/.env
-elif [ ! -f "packages/db/.env" ]; then
-    echo "  - Creating packages/db/.env from example..."
-    cp packages/db/.env.example packages/db/.env
-    echo "⚠️  WARNING: packages/db/.env created with default DATABASE_URL"
-fi
-
-# Apps/docs-mcp .env (optional - MCP documentation server)
-if [ -f "$CONDUCTOR_ROOT_PATH/apps/docs-mcp/.env" ]; then
-    echo "  - Copying apps/docs-mcp/.env from root repo..."
-    cp "$CONDUCTOR_ROOT_PATH/apps/docs-mcp/.env" apps/docs-mcp/.env
-elif [ ! -f "apps/docs-mcp/.env" ]; then
-    echo "  - Creating apps/docs-mcp/.env from example..."
-    cp apps/docs-mcp/.env.example apps/docs-mcp/.env
-    echo "⚠️  WARNING: apps/docs-mcp/.env created - set INKEEP_API_KEY if using MCP tools"
-fi
+setup_env_file "showcase" "You need to add your NEXT_PUBLIC_TAMBO_API_KEY to showcase/.env"
+setup_env_file "docs" "You need to add your NEXT_PUBLIC_TAMBO_API_KEY to docs/.env"
+setup_env_file "apps/web" "apps/web/.env created with defaults - update DATABASE_URL and API keys as needed"
+setup_env_file "apps/api" "apps/api/.env created with defaults - update OPENAI_API_KEY and other secrets"
+setup_env_file "packages/db" "packages/db/.env created with default DATABASE_URL"
+setup_env_file "apps/docs-mcp" "apps/docs-mcp/.env created - set INKEEP_API_KEY if using MCP tools"
 
 # Copy .plans directory if it exists in root repo
 if [ -d "$CONDUCTOR_ROOT_PATH/.plans" ]; then

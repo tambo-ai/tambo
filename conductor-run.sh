@@ -7,7 +7,13 @@ start_supabase_if_needed() {
     echo "🗄️  Checking Supabase status..."
     if ! supabase status &> /dev/null; then
       echo "🗄️  Starting Supabase..."
-      supabase start
+      if ! supabase start; then
+        echo "❌ Failed to start Supabase. Common issues:"
+        echo "   - Docker not running (start Docker Desktop)"
+        echo "   - supabase not initialized (run 'supabase init')"
+        echo "   - Port conflicts (check if ports 54322-54328 are available)"
+        exit 1
+      fi
     else
       echo "✓ Supabase already running"
     fi
@@ -38,30 +44,30 @@ case $choice in
     ;;
   2)
     echo "Starting framework only (showcase + docs)..."
-    turbo dev --filter=@tambo-ai/showcase --filter=@tambo-ai/docs
+    npx turbo dev --filter=@tambo-ai/showcase --filter=@tambo-ai/docs
     ;;
   3)
     echo "Starting cloud only (web + api)..."
     start_supabase_if_needed
-    turbo dev --filter=web --filter=api
+    npx turbo dev --filter=web --filter=api
     ;;
   4)
     echo "Starting showcase only..."
-    turbo dev --filter=@tambo-ai/showcase
+    npx turbo dev --filter=@tambo-ai/showcase
     ;;
   5)
     echo "Starting docs only..."
-    turbo dev --filter=@tambo-ai/docs
+    npx turbo dev --filter=@tambo-ai/docs
     ;;
   6)
     echo "Starting web only..."
     start_supabase_if_needed
-    turbo dev --filter=web
+    npx turbo dev --filter=web
     ;;
   7)
     echo "Starting API only..."
     start_supabase_if_needed
-    turbo dev --filter=api
+    npx turbo dev --filter=api
     ;;
   *)
     echo "Invalid choice. Exiting."
