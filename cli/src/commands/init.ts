@@ -56,11 +56,14 @@ interface InitOptions {
  */
 async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
   try {
-    const targetEnvFile = fs.existsSync(".env.local")
-      ? ".env.local"
-      : fs.existsSync(".env")
-        ? ".env"
-        : ".env.local"; // default when neither exists
+    let targetEnvFile: string;
+    if (fs.existsSync(".env.local")) {
+      targetEnvFile = ".env.local";
+    } else if (fs.existsSync(".env")) {
+      targetEnvFile = ".env";
+    } else {
+      targetEnvFile = ".env.local"; // default when neither exists
+    }
 
     const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
 

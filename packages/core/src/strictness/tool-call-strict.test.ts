@@ -481,7 +481,7 @@ describe("unstrictifyToolCallRequest", () => {
         name: "test",
         parameters: {
           type: "string", // Invalid type for parameters
-        } as any,
+        } as unknown as FunctionParameters,
       },
     };
 
