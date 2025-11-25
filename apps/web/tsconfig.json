@@ -8,7 +8,7 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@tambo-ai-cloud/testing": ["../../tambo-cloud/packages/testing/src"],
+      "@tambo-ai-cloud/testing": ["../../packages/testing/src"],
       "@tambo-ai/react": ["../../react-sdk/src"],
       "@tambo-ai/react/mcp": ["../../react-sdk/src/mcp"]
     }

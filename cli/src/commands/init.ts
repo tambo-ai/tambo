@@ -4,12 +4,12 @@ import fs from "fs";
 import open from "open";
 import ora from "ora";
 import path from "path";
+import { COMPONENT_SUBDIR } from "../constants/paths.js";
+import { tamboTsTemplate } from "../templates/tambo-template.js";
 import {
   interactivePrompt,
   NonInteractiveError,
 } from "../utils/interactive.js";
-import { COMPONENT_SUBDIR } from "../constants/paths.js";
-import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
 import { getLibDirectory } from "./shared/path-utils.js";
 
@@ -367,7 +367,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   if (openRepo) {
     try {
       await open(
-        "https://github.com/tambo-ai/tambo/blob/main/tambo-cloud/README.md#getting-started",
+        "https://github.com/tambo-ai/tambo/blob/main/README.md#getting-started",
       );
     } catch (_e) {
       // non-fatal
