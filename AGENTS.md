@@ -149,10 +149,9 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - **Any function that returns a Promise must be declared `async`**.
 - **Always use `await`** when calling async functions.
-- **Avoid .catch() or .then(), or explicity `void`** when calling functions that
-  return a Promise. Instead use async functions with try/catch instead. Note
-  that .catch() is sometimes required in a useEffect, but callbacks should be
-  made async if they would otherwise require a .catch().
+- **Avoid `.catch()` or `.then()` for async calls in most cases. Prefer `async`/`await` with `try/catch` so errors propagate naturally.** Use `.catch()` only when you truly cannot `await` (for example, in a `useEffect` cleanup) and use `void` only to explicitly mark an intentional fire‑and‑forget call that already handles its own errors.
+- **If a function is not critical, and you can't `await` it, use `void` to mark it as fire‑and‑forget.**
+- **avoid using IIFEs** especially as a workaround to call async functions.
 
 ### Control Flow
 
