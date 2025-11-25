@@ -410,7 +410,7 @@ export const TamboThreadProvider: React.FC<
       currentThreadId !== placeholderThread.id &&
       !threadMap[currentThreadId]
     ) {
-      fetchThread(currentThreadId);
+      void fetchThread(currentThreadId);
     }
   }, [currentThreadId, fetchThread, threadMap, placeholderThread.id]);
 
@@ -581,7 +581,7 @@ export const TamboThreadProvider: React.FC<
 
         // Only auto-generate if thread has no name and threshold is met
         if (!thread.name && messageCount >= autoGenerateNameThreshold) {
-          generateThreadName(threadId, contextKey);
+          void generateThreadName(threadId, contextKey);
         }
 
         return map;
@@ -764,7 +764,7 @@ export const TamboThreadProvider: React.FC<
             GenerationStage.FETCHING_CONTEXT,
           );
 
-          updateThreadMessage(
+          void updateThreadMessage(
             chunk.responseMessageDto.id,
             {
               ...chunk.responseMessageDto,
@@ -805,7 +805,7 @@ export const TamboThreadProvider: React.FC<
               },
             };
 
-          updateThreadMessage(
+          void updateThreadMessage(
             chunk.responseMessageDto.id,
             {
               ...chunk.responseMessageDto,
@@ -814,7 +814,7 @@ export const TamboThreadProvider: React.FC<
             false,
           );
 
-          addThreadMessage(
+          void addThreadMessage(
             {
               threadId: chunk.responseMessageDto.threadId,
               content: contentParts,
@@ -987,7 +987,7 @@ export const TamboThreadProvider: React.FC<
         { type: "text" as const, text: message },
       ];
 
-      addThreadMessage(
+      void addThreadMessage(
         {
           content: messageContent as any,
           renderedComponent: null,
@@ -1117,10 +1117,14 @@ export const TamboThreadProvider: React.FC<
               ...advanceResponse.responseMessageDto,
               error: toolCallResponse.error,
             };
-            updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
+            void updateThreadMessage(
+              toolCallMessage.id,
+              toolCallMessage,
+              false,
+            );
           }
           updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
-          addThreadMessage(
+          void addThreadMessage(
             {
               threadId: threadId,
               content: contentParts,

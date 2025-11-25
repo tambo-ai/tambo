@@ -72,7 +72,7 @@ export function useTamboComponentState<S>(
           [keyName]: newState,
         },
       };
-      updateThreadMessage(existingMessage.id, updatedMessage, false);
+      void updateThreadMessage(existingMessage.id, updatedMessage, false);
     },
     [updateThreadMessage, keyName],
   );
@@ -95,7 +95,7 @@ export function useTamboComponentState<S>(
     (newState: S) => {
       setLocalState(newState);
       updateLocalThreadMessage(newState, message);
-      updateRemoteThreadMessage(newState, message);
+      void updateRemoteThreadMessage(newState, message);
     },
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],
   );
@@ -120,7 +120,7 @@ export function useTamboComponentState<S>(
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
     return () => {
-      updateRemoteThreadMessage.flush();
+      void updateRemoteThreadMessage.flush();
     };
   }, [updateRemoteThreadMessage]);
 

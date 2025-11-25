@@ -223,7 +223,7 @@ export const TamboMcpProvider: FC<{
       const server = clientMap.get(key);
       if (server?.client) {
         try {
-          server.client.close();
+          void server.client.close();
         } catch (error) {
           // Avoid logging sensitive data embedded in the key (headers)
           const url = (server as McpServer).url ?? "(unknown url)";
@@ -246,7 +246,7 @@ export const TamboMcpProvider: FC<{
 
     if (keysToAdd.length > 0) {
       // Async initialization of new clients
-      Promise.allSettled(
+      void Promise.allSettled(
         keysToAdd.map(async (key) => {
           const serverInfo = currentServersMap.get(key)!;
 
@@ -425,7 +425,7 @@ export const TamboMcpProvider: FC<{
       clientMap.forEach((server, _key) => {
         if (server.client) {
           try {
-            server.client.close();
+            void server.client.close();
           } catch (error) {
             const url = (server as McpServer).url ?? "(unknown url)";
             console.error(

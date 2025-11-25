@@ -51,7 +51,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             capturedContexts = contexts;
           }
@@ -94,7 +94,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             capturedContexts = contexts;
           }
@@ -139,7 +139,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             capturedContexts = contexts;
           }
@@ -194,7 +194,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             capturedContexts = contexts;
           }
@@ -313,7 +313,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             capturedContexts = contexts;
           }
@@ -380,7 +380,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             capturedContexts = contexts;
           }
