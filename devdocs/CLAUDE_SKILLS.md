@@ -14,6 +14,12 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 **Details:** See `.claude/skills/ai-sdk-model-manager/SKILL.md`
 
+### Weekly Release Summarizer
+
+**When to use:** When preparing weekly or monthly developer updates, creating release notes for stakeholders, summarizing sprint deliverables, or generating changelog content for Discord/email announcements.
+
+**Details:** See `.claude/skills/weekly-release-summarizer/SKILL.md`
+
 ## Creating New Skills
 
 To create a new skill for this repository:
