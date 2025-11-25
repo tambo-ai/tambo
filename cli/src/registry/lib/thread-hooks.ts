@@ -125,11 +125,14 @@ export function usePositioning(
   // If panel has right class, history should be on right
   // If canvas is on left, history should be on right
   // Otherwise, history should be on left
-  const historyPosition: "left" | "right" = isRightClass
-    ? "right"
-    : hasCanvasSpace && canvasIsOnLeft
-      ? "right"
-      : "left";
+  let historyPosition: "left" | "right";
+  if (isRightClass) {
+    historyPosition = "right";
+  } else if (hasCanvasSpace && canvasIsOnLeft) {
+    historyPosition = "right";
+  } else {
+    historyPosition = "left";
+  }
 
   return { isLeftPanel, historyPosition };
 }
