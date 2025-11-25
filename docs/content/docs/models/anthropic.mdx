@@ -31,12 +31,14 @@ All Claude models support a 200,000 token context window, allowing for extensive
 Claude 4.5 Sonnet is Anthropic's best model for coding and reasoning. It excels at complex problem-solving, code generation, and multi-step reasoning tasks.
 
 **Best for:**
+
 - Advanced coding tasks and code review
 - Complex reasoning and problem-solving
 - Technical documentation generation
 - Multi-step analysis and planning
 
 **Notes:**
+
 - Top choice for software development workflows
 - Excellent balance of speed and capability
 - Strong performance on technical tasks
@@ -51,12 +53,14 @@ Claude 4.5 Sonnet is Anthropic's best model for coding and reasoning. It excels 
 Claude 4.5 Haiku is Anthropic's fastest and most intelligent model in the Haiku line. It provides rapid responses while maintaining high quality.
 
 **Best for:**
+
 - Real-time conversational AI
 - Fast code completion
 - Quick analysis tasks
 - High-throughput applications
 
 **Notes:**
+
 - Optimized for speed without sacrificing quality
 - Ideal for production environments requiring low latency
 - Good balance of cost and performance
@@ -73,12 +77,14 @@ Claude 4.5 Haiku is Anthropic's fastest and most intelligent model in the Haiku 
 Claude Opus 4.1 is Anthropic's most powerful model yet, with the highest level of intelligence and capability available. This model represents the cutting edge of Claude's capabilities.
 
 **Best for:**
+
 - Most complex reasoning tasks
 - Advanced research and analysis
 - Critical decision support
 - Tasks requiring maximum intelligence
 
 **Notes:**
+
 - Highest capability model in the Claude family
 - Best choice when accuracy and reasoning depth are paramount
 - Premium pricing reflects advanced capabilities
@@ -95,12 +101,14 @@ Claude Opus 4.1 is Anthropic's most powerful model yet, with the highest level o
 Claude Opus 4 has very high intelligence and capability. It is a good model for coding and reasoning tasks that require deep understanding.
 
 **Best for:**
+
 - Advanced coding projects
 - Complex reasoning tasks
 - Detailed analysis and synthesis
 - Technical problem-solving
 
 **Notes:**
+
 - Strong performance across diverse tasks
 - Excellent for professional development work
 - Good alternative to Claude Opus 4.1 for cost-sensitive projects
@@ -115,12 +123,14 @@ Claude Opus 4 has very high intelligence and capability. It is a good model for 
 Claude 4 Sonnet is Anthropic's high-performance model with exceptional reasoning and efficiency. It strikes an excellent balance between capability and speed.
 
 **Best for:**
+
 - Production applications
 - Balanced reasoning and speed requirements
 - General-purpose development tasks
 - Cost-effective complex tasks
 
 **Notes:**
+
 - Excellent efficiency for complex tasks
 - Good choice for production deployments
 - Strong performance across multiple domains
@@ -137,12 +147,14 @@ Claude 4 Sonnet is Anthropic's high-performance model with exceptional reasoning
 Claude 3.7 Sonnet is Anthropic's smartest model yet, with fast or step-by-step thinking capabilities. Great for coding and front-end development tasks.
 
 **Best for:**
+
 - Front-end development
 - UI/UX implementation
 - Web application development
 - Tasks requiring iterative refinement
 
 **Notes:**
+
 - Supports both fast and deliberate thinking modes
 - Excellent for web development workflows
 - Strong understanding of modern frameworks
@@ -159,23 +171,29 @@ Claude 3.7 Sonnet is Anthropic's smartest model yet, with fast or step-by-step t
 Claude 3.5 Haiku is Anthropic's fastest and most affordable model. Great for real-time tasks like chatbots, coding, and data extraction.
 
 **Best for:**
+
 - Real-time chatbots
 - Data extraction and parsing
 - Quick coding assistance
 - High-volume, cost-sensitive applications
 
 **Known Issues:**
+
 - May fail to fully render components, even when receiving the correct data
 - Example: When rendering a graph component, it may leave it in a loading state without streaming the data into props
 - Use with caution for complex component rendering tasks
 
 **Notes:**
+
 - Most cost-effective Claude model
 - Optimized for speed and throughput
 - Best for simpler tasks where the known issues don't impact functionality
 
 <Callout type="warning" title="Component Rendering Issues">
-  Claude 3.5 Haiku has known issues with component rendering. It may fail to fully render components or leave them in loading states. For production applications requiring reliable component rendering, consider using [Claude 4.5 Haiku](#claude-haiku-4-5) or higher models.
+  Claude 3.5 Haiku has known issues with component rendering. It may fail to
+  fully render components or leave them in loading states. For production
+  applications requiring reliable component rendering, consider using [Claude
+  4.5 Haiku](#claude-haiku-4-5) or higher models.
 </Callout>
 
 ## Configuration
@@ -194,16 +212,19 @@ Anthropic models support the standard LLM parameters available in Tambo. For det
 ## Model Selection Guide
 
 **For coding and reasoning:**
+
 - **Premium**: [Claude Opus 4.1](#claude-opus-4-1) or [Claude Sonnet 4.5](#claude-sonnet-4-5)
 - **Balanced**: [Claude Sonnet 4](#claude-sonnet-4) or [Claude Opus 4](#claude-opus-4)
 - **Fast**: [Claude Haiku 4.5](#claude-haiku-4-5)
 
 **For conversational AI:**
+
 - **High-quality**: [Claude Sonnet 4.5](#claude-sonnet-4-5) or [Claude 3.7 Sonnet](#claude-3-7-sonnet)
 - **Real-time**: [Claude Haiku 4.5](#claude-haiku-4-5)
 - **Cost-effective**: [Claude 3.5 Haiku](#claude-3-5-haiku) (with [known issue caveats](#claude-3-5-haiku))
 
 **For complex analysis:**
+
 - **Maximum capability**: [Claude Opus 4.1](#claude-opus-4-1)
 - **High performance**: [Claude Opus 4](#claude-opus-4)
 - **Efficient**: [Claude Sonnet 4](#claude-sonnet-4)

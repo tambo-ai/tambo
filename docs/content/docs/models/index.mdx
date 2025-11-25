@@ -11,13 +11,13 @@ Tambo supports multiple AI model providers, allowing you to choose the best mode
 
 Tambo integrates with five major AI providers:
 
-| Provider | Description | Best For |
-| --- | --- | --- |
-| **OpenAI** | Industry-leading models including GPT-4, GPT-5, and specialized reasoning models | General-purpose tasks, reasoning, and state-of-the-art performance |
-| **Anthropic** | Claude models with strong safety and reasoning capabilities | Complex reasoning, analysis, and safety-critical applications |
-| **Google** | Gemini models with multimodal support and extended thinking capabilities | Multimodal tasks, vision-based applications, and advanced reasoning |
-| **Groq** | High-speed inference with Llama models optimized for throughput | Low-latency applications and real-time processing |
-| **Mistral** | Fast, efficient open-source models with strong performance | Cost-effective alternatives with reliable performance |
+| Provider      | Description                                                                      | Best For                                                            |
+| ------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **OpenAI**    | Industry-leading models including GPT-4, GPT-5, and specialized reasoning models | General-purpose tasks, reasoning, and state-of-the-art performance  |
+| **Anthropic** | Claude models with strong safety and reasoning capabilities                      | Complex reasoning, analysis, and safety-critical applications       |
+| **Google**    | Gemini models with multimodal support and extended thinking capabilities         | Multimodal tasks, vision-based applications, and advanced reasoning |
+| **Groq**      | High-speed inference with Llama models optimized for throughput                  | Low-latency applications and real-time processing                   |
+| **Mistral**   | Fast, efficient open-source models with strong performance                       | Cost-effective alternatives with reliable performance               |
 
 ## Configuring Providers
 
@@ -29,8 +29,8 @@ All model providers are configured through your Tambo Cloud dashboard:
 4. (Optional) Add custom parameters for fine-tuned behavior
 
 <Callout type="tip" title="Multiple Providers">
-  You can configure multiple providers in a single project and switch between them
-  as needed. This is useful for testing different models or optimizing for
+  You can configure multiple providers in a single project and switch between
+  them as needed. This is useful for testing different models or optimizing for
   different use cases.
 </Callout>
 
@@ -45,9 +45,9 @@ Each model carries a status label indicating how thoroughly it has been tested w
 For detailed information about each label and specific model behaviors, see [Labels](/models/labels).
 
 <Callout type="warning" title="Streaming Considerations">
-  Streaming may behave inconsistently in models other than OpenAI. We're aware of
-  the issue and actively working on a fix. Please proceed with caution when using
-  streaming on non-OpenAI models.
+  Streaming may behave inconsistently in models other than OpenAI. We're aware
+  of the issue and actively working on a fix. Please proceed with caution when
+  using streaming on non-OpenAI models.
 </Callout>
 
 ## Advanced Configuration
@@ -57,6 +57,7 @@ For detailed information about each label and specific model behaviors, see [Lab
 Fine-tune model behavior with custom parameters like temperature, max tokens, and provider-specific settings. This allows you to optimize models for your specific use case—whether you need deterministic responses for analysis or creative outputs for generation.
 
 **Common parameters across all providers:**
+
 - `temperature` - Control randomness (0.0-1.0)
 - `maxOutputTokens` - Limit response length
 - `topP` - Nucleus sampling threshold
@@ -70,6 +71,7 @@ Learn more in [Custom LLM Parameters](/models/custom-llm-parameters).
 Advanced reasoning models from OpenAI (GPT-5, GPT-5.1, O3) and Google (Gemini 3.0 Pro, Gemini 3.0 Deep Think) expose their internal thinking process. These models excel at complex problem-solving by spending additional compute time analyzing problems before generating responses.
 
 Configure reasoning capabilities through your project's LLM provider settings to enable:
+
 - Multi-step problem decomposition
 - Solution exploration and verification
 - Detailed reasoning token access
