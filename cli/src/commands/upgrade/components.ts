@@ -320,6 +320,7 @@ export async function upgradeComponents(
           forceUpdate: true,
           installPath: component.installPath,
           silent: true,
+          yes: options.yes,
         };
 
         if (component.isLegacy) {
