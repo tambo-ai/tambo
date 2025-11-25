@@ -14,6 +14,7 @@
     "prettier-check": "prettier --check .",
     "test": "turbo test",
     "dev": "turbo dev --filter=@tambo-ai/showcase --filter=@tambo-ai/docs",
+    "dev:cloud": "turbo dev --filter=@tambo-ai-cloud/web --filter=@tambo-ai-cloud/api",
     "dev:web": "turbo dev --filter=@tambo-ai-cloud/web",
     "dev:api": "turbo dev --filter=@tambo-ai-cloud/api",
     "sync:showcase": "tsx scripts/sync-showcase-components.ts",
