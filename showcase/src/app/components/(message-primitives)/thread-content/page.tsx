@@ -5,7 +5,7 @@ import { InstallationSection } from "@/components/installation-section";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/thread-content";
+} from "@/components/tambo/thread-content";
 import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
 
 const mockThread: TamboThread = {

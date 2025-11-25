@@ -28,6 +28,7 @@
     "LANGFUSE_HOST",
     "LANGFUSE_PUBLIC_KEY",
     "LANGFUSE_SECRET_KEY",
+    "NEXT_BUILD_STANDALONE",
     "NEXT_PUBLIC_CURSOR_MCP_DEEPLINK",
     "NEXT_PUBLIC_DOCS_URL",
     "NEXT_PUBLIC_POSTHOG_HOST",
@@ -63,15 +64,39 @@
     "WEBHOOK_SECRET"
   ],
   "tasks": {
+    "//#sync:showcase": {
+      "cache": false,
+      "inputs": [
+        "cli/src/registry/**/*.tsx",
+        "cli/src/registry/**/*.ts",
+        "cli/src/registry/**/*.css",
+        "cli/src/registry/**/config.json"
+      ],
+      "outputs": ["showcase/src/components/tambo/**"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "esm/**"],
       "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
+    },
+    "@tambo-ai/showcase#build": {
+      "dependsOn": ["^build", "//#sync:showcase"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": { "dependsOn": ["^lint"] },
     "check-types": { "dependsOn": ["^check-types"] },
-    "dev": { "dependsOn": ["^build"], "cache": false, "persistent": true },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "@tambo-ai/showcase#dev": {
+      "dependsOn": ["^build", "//#sync:showcase"],
+      "cache": false,
+      "persistent": true
+    },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
     "test": { "dependsOn": ["^build", "^test"] }

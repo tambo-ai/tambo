@@ -31,7 +31,7 @@ export const SidebarLink = ({
     >
       <span>{item.title}</span>
       {item.isNew && (
-        <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground font-medium">
+        <span className="text-xs px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground font-medium border border-primary/40">
           new
         </span>
       )}

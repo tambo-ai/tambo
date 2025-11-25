@@ -22,6 +22,7 @@ import {
   GenerationStage,
   getToolName,
   LegacyComponentDecision,
+  MCPClient,
   MessageRole,
   ThreadMessage,
   throttle,
@@ -36,7 +37,11 @@ import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
-import { getSystemTools } from "../common/systemTools";
+import {
+  createResourceFetcherMap,
+  getSystemTools,
+  getThreadMCPClients,
+} from "../common/systemTools";
 import { ProjectsService } from "../projects/projects.service";
 import {
   AdvanceThreadDto,
@@ -1110,14 +1115,25 @@ export class ThreadsService {
         ],
       };
 
+      // Get MCP clients for resource fetching
+      const mcpClients = await getThreadMCPClients(
+        db,
+        projectId,
+        thread.id,
+        mcpHandlers,
+      );
+
       // Only generate MCP access token if project has MCP servers configured
       const hasMcpServers = await operations.projectHasMcpServers(
         db,
         projectId,
       );
-      const mcpAccessToken = hasMcpServers
-        ? await this.authService.generateMcpAccessToken(projectId, thread.id)
+      const mcpAccessTokenResult = hasMcpServers
+        ? await this.authService.generateMcpAccessToken(projectId, {
+            threadId: thread.id,
+          })
         : undefined;
+      const mcpAccessToken = mcpAccessTokenResult?.token;
 
       if (stream) {
         await this.generateStreamingResponse(
@@ -1133,6 +1149,7 @@ export class ThreadsService {
           allTools,
           mcpAccessToken,
           project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
+          mcpClients,
         );
         return;
       }
@@ -1145,6 +1162,7 @@ export class ThreadsService {
         advanceRequestDto,
         tamboBackend,
         allTools,
+        mcpClients,
       );
 
       const {
@@ -1380,6 +1398,12 @@ export class ThreadsService {
     allTools: ToolRegistry,
     mcpAccessToken: string | undefined,
     maxToolCallLimit: number,
+    mcpClients: Array<{
+      client: MCPClient;
+      serverKey: string;
+      url: string;
+      serverId: string;
+    }>,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -1409,6 +1433,7 @@ export class ThreadsService {
           allTools,
           mcpAccessToken,
           maxToolCallLimit,
+          mcpClients,
         ),
     );
   }
@@ -1426,6 +1451,12 @@ export class ThreadsService {
     allTools: ToolRegistry,
     mcpAccessToken: string | undefined,
     maxToolCallLimit: number,
+    mcpClients: Array<{
+      client: MCPClient;
+      serverKey: string;
+      url: string;
+      serverId: string;
+    }>,
   ): Promise<void> {
     try {
       const latestMessage = messages[messages.length - 1];
@@ -1489,9 +1520,13 @@ export class ThreadsService {
           },
         });
 
+        // Build resource fetchers from MCP clients
+        const resourceFetchers = createResourceFetcherMap(mcpClients);
+
         const messageStream = await tamboBackend.runDecisionLoop({
           messages,
           strictTools,
+          resourceFetchers,
         });
 
         decisionLoopSpan.end();
@@ -1563,6 +1598,7 @@ export class ThreadsService {
         messages,
         strictTools,
         forceToolChoice: advanceRequestDto.forceToolChoice,
+        resourceFetchers: createResourceFetcherMap(mcpClients),
       });
 
       decisionLoopSpan.end();

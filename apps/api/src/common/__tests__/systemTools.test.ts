@@ -817,5 +817,218 @@ describe("systemTools", () => {
         ),
       );
     });
+
+    it("should create sessionless MCP client when threadId is null", async () => {
+      const mockClient = {
+        listTools: jest
+          .fn<typeof _mcpClientInstance.listTools>()
+          .mockResolvedValue([mockMcpTool]),
+        sessionId: undefined,
+      };
+
+      jest
+        .mocked(MCPClient.create)
+        .mockResolvedValue(mockClient as unknown as MCPClient);
+
+      jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
+        {
+          id: "mcp1",
+          serverKey: "mcp1",
+          deprecatedComposioAppId: null,
+          createdAt: new Date(),
+          customHeaders: {},
+          projectId: "project123",
+          type: ToolProviderType.MCP,
+          updatedAt: new Date(),
+          url: "http://mcp1.example.com",
+          mcpTransport: MCPTransport.HTTP,
+          mcpRequiresAuth: false,
+          contexts: [],
+        },
+      ]);
+
+      const mcpHandlers = createMcpHandlerMocks();
+
+      const clients = await getThreadMCPClients(
+        mockDb,
+        "project123",
+        null,
+        mcpHandlers,
+      );
+
+      expect(clients).toHaveLength(1);
+      expect(clients[0].client).toBe(mockClient);
+      expect(clients[0].serverId).toBe("mcp1");
+      expect(clients[0].serverKey).toBe("mcp1");
+      expect(clients[0].url).toBe("http://mcp1.example.com");
+
+      // Verify MCPClient.create was called with empty handlers (sessionless)
+      expect(MCPClient.create).toHaveBeenCalledWith(
+        "http://mcp1.example.com",
+        MCPTransport.HTTP,
+        {},
+        undefined,
+        undefined, // sessionId should be undefined when threadId is null
+        {}, // handlers should be empty object when threadId is null
+      );
+
+      // Verify getMcpThreadSession was NOT called when threadId is null
+      expect(operations.getMcpThreadSession).not.toHaveBeenCalled();
+
+      // Verify updateMcpThreadSession was NOT called when threadId is null
+      expect(operations.updateMcpThreadSession).not.toHaveBeenCalled();
+    });
+
+    it("should create sessionless MCP client with auth when threadId is null", async () => {
+      const mockClient = {
+        listTools: jest
+          .fn<typeof _mcpClientInstance.listTools>()
+          .mockResolvedValue([mockMcpTool]),
+        sessionId: undefined,
+      };
+
+      jest
+        .mocked(MCPClient.create)
+        .mockResolvedValue(mockClient as unknown as MCPClient);
+
+      const mockOAuthTokens = {
+        access_token: "access123",
+        refresh_token: "refresh123",
+        expires_in: 3600,
+        token_type: "Bearer",
+      };
+
+      const mockClientInfo: OAuthClientInformation = {
+        client_id: "client123",
+        client_secret: "secret123",
+      };
+
+      jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
+        {
+          id: "mcp1",
+          serverKey: "mcp1",
+          deprecatedComposioAppId: null,
+          createdAt: new Date(),
+          customHeaders: {},
+          projectId: "project123",
+          type: ToolProviderType.MCP,
+          updatedAt: new Date(),
+          url: "http://mcp1.example.com",
+          mcpTransport: MCPTransport.HTTP,
+          mcpRequiresAuth: true,
+          contexts: [
+            {
+              id: "context1",
+              mcpOauthTokens: mockOAuthTokens,
+              mcpOauthClientInfo: mockClientInfo,
+            } as unknown as schema.DBToolProviderUserContext,
+          ],
+        },
+      ]);
+
+      // Mock the database query for mcpOauthClients
+      const findFirstMock = jest
+        .fn<typeof mockDb.query.mcpOauthClients.findFirst>()
+        .mockResolvedValue({
+          sessionId: "session123",
+          sessionInfo: {
+            clientInformation: mockClientInfo,
+          },
+        } as schema.DBMcpOauthClient);
+
+      mockDb.query = {
+        mcpOauthClients: {
+          findFirst: findFirstMock,
+        },
+      } as unknown as typeof mockDb.query;
+
+      const mcpHandlers = createMcpHandlerMocks();
+
+      const clients = await getThreadMCPClients(
+        mockDb,
+        "project123",
+        null,
+        mcpHandlers,
+      );
+
+      expect(clients).toHaveLength(1);
+
+      // Verify MCPClient.create was called with empty handlers (sessionless)
+      const createCalls = jest.mocked(MCPClient.create).mock.calls;
+      expect(createCalls).toHaveLength(1);
+      const [url, transport, _headers, _authProvider, sessionId, handlers] =
+        createCalls[0];
+
+      expect(url).toBe("http://mcp1.example.com");
+      expect(transport).toBe(MCPTransport.HTTP);
+      expect(sessionId).toBeUndefined(); // Should be undefined when threadId is null
+      expect(handlers).toEqual({}); // Should be empty object when threadId is null
+
+      // Verify getMcpThreadSession was NOT called when threadId is null
+      expect(operations.getMcpThreadSession).not.toHaveBeenCalled();
+
+      // Verify updateMcpThreadSession was NOT called when threadId is null
+      expect(operations.updateMcpThreadSession).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getSystemTools with null threadId", () => {
+    it("should return tools from sessionless MCP clients when threadId is null", async () => {
+      const mockClient = {
+        listTools: jest
+          .fn<typeof _mcpClientInstance.listTools>()
+          .mockResolvedValue([mockMcpTool]),
+        sessionId: undefined,
+      };
+
+      jest
+        .mocked(MCPClient.create)
+        .mockResolvedValue(mockClient as unknown as MCPClient);
+
+      jest.mocked(operations.getProjectMcpServers).mockResolvedValue([
+        {
+          id: "mcp1",
+          serverKey: "mcp1",
+          deprecatedComposioAppId: null,
+          createdAt: new Date(),
+          customHeaders: {},
+          projectId: "project123",
+          type: ToolProviderType.MCP,
+          updatedAt: new Date(),
+          url: "http://mcp1.example.com",
+          mcpTransport: MCPTransport.HTTP,
+          mcpRequiresAuth: false,
+          contexts: [],
+        },
+      ]);
+
+      const mcpHandlers = createMcpHandlerMocks();
+
+      const tools = await getSystemTools(
+        mockDb,
+        "project123",
+        null,
+        mcpHandlers,
+      );
+
+      expect(tools.mcpToolsSchema).toHaveLength(1);
+      expect(tools.mcpToolSources["mcp1__mockMcpTool"]).toEqual({
+        client: mockClient,
+        serverKey: "mcp1",
+      });
+
+      // Verify MCPClient.create was called with empty handlers (sessionless)
+      expect(MCPClient.create).toHaveBeenCalledWith(
+        "http://mcp1.example.com",
+        MCPTransport.HTTP,
+        {},
+        undefined,
+        undefined,
+        {}, // handlers should be empty object when threadId is null
+      );
+
+      // Verify getMcpThreadSession was NOT called when threadId is null
+      expect(operations.getMcpThreadSession).not.toHaveBeenCalled();
+    });
   });
 });

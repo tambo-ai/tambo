@@ -1,7 +1,7 @@
 "use client";
 
 import { InstallationSection } from "@/components/installation-section";
-import { ElicitationUI } from "@/components/ui/elicitation-ui";
+import { ElicitationUI } from "@/components/tambo/elicitation-ui";
 import type {
   TamboElicitationRequest,
   TamboElicitationResponse,

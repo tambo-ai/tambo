@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.42.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.41.0...tambo-v0.42.0) (2025-11-22)
+
+
+### Features
+
+* automate component sync from CLI registry to showcase ([#1292](https://github.com/tambo-ai/tambo/issues/1292)) ([ae309fc](https://github.com/tambo-ai/tambo/commit/ae309fcb832ecdbc376247435eb2176c82f3093b))
+* **cli:** detect non-interactive environments and fail with helpful errors ([#1311](https://github.com/tambo-ai/tambo/issues/1311)) ([e294390](https://github.com/tambo-ai/tambo/commit/e2943902bcee1444952a63d88c7a4bd897afdb74))
+
 ## [0.41.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.40.0...tambo-v0.41.0) (2025-11-20)
 
 

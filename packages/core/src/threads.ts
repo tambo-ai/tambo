@@ -93,8 +93,29 @@ export type ChatCompletionContentPart =
   | OpenAI.Chat.Completions.ChatCompletionContentPart
   | ChatCompletionContentPartResource;
 
+export type ChatCompletionUserMessageParam =
+  OpenAI.Chat.Completions.ChatCompletionUserMessageParam & {
+    content: ChatCompletionContentPart[] | string;
+  };
+export type ChatCompletionSystemMessageParam =
+  OpenAI.Chat.Completions.ChatCompletionSystemMessageParam;
+export type ChatCompletionToolMessageParam =
+  OpenAI.Chat.Completions.ChatCompletionToolMessageParam;
+export type ChatCompletionAssistantMessageParam =
+  OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam;
+export type ChatCompletionDeveloperMessageParam =
+  OpenAI.Chat.Completions.ChatCompletionDeveloperMessageParam;
+
+/** @deprecated so not exporting this type */
+type ChatCompletionFunctionMessageParam =
+  OpenAI.Chat.Completions.ChatCompletionFunctionMessageParam;
 export type ChatCompletionMessageParam =
-  OpenAI.Chat.Completions.ChatCompletionMessageParam;
+  | ChatCompletionUserMessageParam
+  | ChatCompletionSystemMessageParam
+  | ChatCompletionToolMessageParam
+  | ChatCompletionAssistantMessageParam
+  | ChatCompletionDeveloperMessageParam
+  | ChatCompletionFunctionMessageParam;
 /**
  * A "static" type that combines all the content part types without any
  * discriminators, useful for expressing a serialized content part in a

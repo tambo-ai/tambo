@@ -2,7 +2,7 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
-import { MessageThreadCollapsible } from "@/components/ui/message-thread-collapsible";
+import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
@@ -75,7 +75,7 @@ export function PageWithChat() {
 }`}
             previewClassName="p-0"
             fullBleed
-            minHeight={650}
+            minHeight={850}
             enableFullscreen
             fullscreenTitle="Message Thread Collapsible"
           />
@@ -120,6 +120,15 @@ export function PageWithChat() {
                 <td>string</td>
                 <td>-</td>
                 <td>Additional CSS classes for positioning and styling</td>
+              </tr>
+              <tr>
+                <td>height</td>
+                <td>string</td>
+                <td>80vh</td>
+                <td>
+                  Height of the thread content. Supports any CSS height value
+                  (e.g., &quot;700px&quot;, &quot;80vh&quot;, &quot;90%&quot;)
+                </td>
               </tr>
             </tbody>
           </table>

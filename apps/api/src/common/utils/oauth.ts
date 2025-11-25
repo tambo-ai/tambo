@@ -4,6 +4,7 @@ import {
   McpAccessTokenPayload,
   OAuthValidationMode,
   OidcProviderConfig,
+  SessionlessMcpAccessTokenPayload,
   TAMBO_MCP_ACCESS_KEY_CLAIM,
 } from "@tambo-ai-cloud/core";
 import {
@@ -314,7 +315,7 @@ async function readPublicKey(publicKeyString: string) {
 export async function extractAndVerifyMcpAccessToken(
   token: string,
   secret: string,
-): Promise<McpAccessTokenPayload> {
+): Promise<McpAccessTokenPayload | SessionlessMcpAccessTokenPayload> {
   const signingKey = new TextEncoder().encode(secret);
   const { payload: verifiedPayload } = await jwtVerify(token, signingKey, {
     algorithms: ALLOWED_SYMMETRIC_ALGORITHMS,
@@ -324,12 +325,28 @@ export async function extractAndVerifyMcpAccessToken(
   }
   const claim = verifiedPayload[TAMBO_MCP_ACCESS_KEY_CLAIM] as
     | McpAccessTokenPayload[typeof TAMBO_MCP_ACCESS_KEY_CLAIM]
+    | SessionlessMcpAccessTokenPayload[typeof TAMBO_MCP_ACCESS_KEY_CLAIM]
     | undefined;
   if (!claim) {
     throw new Error("MCP access token missing required claim");
   }
   if (verifiedPayload.iss !== claim.projectId) {
     throw new Error("Issuer does not match MCP claim projectId");
+  }
+
+  // Check if this is a session-less token by presence of contextKey
+  if ("contextKey" in claim && claim.contextKey) {
+    // Validate session-less token structure
+    const expectedSub = `${claim.projectId}:sessionless`;
+    if (verifiedPayload.sub !== expectedSub) {
+      throw new Error("Subject does not match session-less MCP claim");
+    }
+    return verifiedPayload as SessionlessMcpAccessTokenPayload;
+  }
+
+  // Validate thread-bound token structure
+  if (!("threadId" in claim) || !claim.threadId) {
+    throw new Error("Thread-bound MCP token missing threadId");
   }
   const expectedSub = `${claim.projectId}:${claim.threadId}`;
   if (verifiedPayload.sub !== expectedSub) {

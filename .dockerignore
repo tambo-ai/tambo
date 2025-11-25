@@ -1,0 +1,98 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+.next/
+.nuxt/
+.out/
+.storybook-out/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+docker.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output
+
+# Package manager files
+jspm_packages/
+.npm
+*.tgz
+.yarn-integrity
+
+# build cache
+.turbo
+.cache
+.parcel-cache
+.eslintcache
+.node_repl_history
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+README.md
+CHANGELOG.md
+*.md
+
+# Test files
+**/*.test.*
+**/*.spec.*
+test/
+tests/
+__tests__/
+
+# Development tools
+.cursorrules
+.eslintrc*
+.prettierrc*
+jest.config.* 

@@ -10,6 +10,10 @@ import {
 import OpenAI from "openai";
 import { parse } from "partial-json";
 import { generateDecisionLoopPrompt } from "../../prompt/decision-loop-prompts";
+import {
+  prefetchAndCacheResources,
+  ResourceFetcherMap,
+} from "../../util/resource-transformation";
 import { extractMessageContent } from "../../util/response-parsing";
 import { objectTemplate } from "../../util/template";
 import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
@@ -22,19 +26,42 @@ import {
 } from "../llm/llm-client";
 import {
   addParametersToTools,
-  displayMessageTool,
   filterOutStandardToolParameters,
   standardToolParameters,
   TamboToolParameters,
   UI_TOOLNAME_PREFIX,
 } from "../tool/tool-service";
 
+/**
+ * Run the decision loop for processing ThreadMessages and generating component
+ * decisions.
+ *
+ * This function handles the core decision-making flow:
+ * 1. Pre-fetches all MCP resources and caches them inline
+ * 2. Filters tools into component tools (UI) and agent tools (actions)
+ * 3. Adds standard parameters to all tools
+ * 4. Formats messages using the decision loop prompt template
+ * 5. Streams responses from the LLM client
+ * 6. Parses streaming responses into LegacyComponentDecision objects
+ * 7. Handles errors and malformed responses
+ *
+ * @param llmClient - The LLM client to use for generating responses
+ * @param messages - Array of thread messages to process
+ * @param strictTools - Array of available tools in OpenAI format
+ * @param customInstructions - Optional custom instructions to add to the system
+ *   prompt
+ * @param forceToolChoice - Optional tool name to force the LLM to use
+ * @param resourceFetchers - Map of serverKey to resource fetcher functions for
+ *   fetching MCP resources
+ * @returns Async iterator of component decisions
+ */
 export async function* runDecisionLoop(
   llmClient: LLMClient,
   messages: ThreadMessage[],
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   customInstructions: string | undefined,
-  forceToolChoice?: string,
+  forceToolChoice: string | undefined,
+  resourceFetchers: ResourceFetcherMap,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const componentTools = strictTools.filter((tool) =>
     getToolName(tool).startsWith(UI_TOOLNAME_PREFIX),
@@ -56,8 +83,17 @@ export async function* runDecisionLoop(
 
   const { template: systemPrompt, args: systemPromptArgs } =
     generateDecisionLoopPrompt(customInstructions);
-  const chatCompletionMessages =
-    threadMessagesToChatCompletionMessageParam(messages);
+
+  // Pre-fetch and cache all resources before converting messages
+  const messagesWithCachedResources = await prefetchAndCacheResources(
+    messages,
+    resourceFetchers,
+  );
+
+  const chatCompletionMessages = threadMessagesToChatCompletionMessageParam(
+    messagesWithCachedResources,
+  );
+
   const promptMessages = objectTemplate<ChatCompletionMessageParam[]>([
     { role: "system", content: systemPrompt },
     { role: "chat_history" as "user", content: "{chat_history}" },
@@ -74,7 +110,7 @@ export async function* runDecisionLoop(
     stream: true,
     tool_choice: forceToolChoice
       ? { type: "function", function: { name: forceToolChoice } }
-      : "required",
+      : "auto",
   });
 
   const initialDecision: LegacyComponentDecision = {
@@ -157,10 +193,7 @@ export async function* runDecisionLoop(
           : "",
         props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
-        toolCallId:
-          toolCall && getToolName(toolCall) === getToolName(displayMessageTool)
-            ? undefined
-            : getLLMResponseToolCallId(chunk),
+        toolCallId: toolCall ? getLLMResponseToolCallId(chunk) : undefined,
         statusMessage,
         completionStatusMessage,
         reasoning: chunk.reasoning ?? undefined,
@@ -201,11 +234,7 @@ function removeTamboToolParameters(
       parsedToolCall,
     );
 
-    // Only include tool call request if it's not the displayMessageTool
-    if (
-      filteredArgs &&
-      getToolName(toolCall) !== getToolName(displayMessageTool)
-    ) {
+    if (filteredArgs) {
       return {
         ...originalRequest,
         parameters: filteredArgs,
