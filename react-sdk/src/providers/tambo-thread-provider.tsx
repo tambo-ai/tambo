@@ -892,12 +892,11 @@ export const TamboThreadProvider: React.FC<
                 contextKey,
               );
               // Check if we should auto-generate name for the newly created thread
-              maybeAutoGenerateThreadName(
+              // Fire-and-forget - errors logged inside maybeAutoGenerateThreadName
+              void maybeAutoGenerateThreadName(
                 chunk.responseMessageDto.threadId,
                 contextKey,
-              ).catch((error) => {
-                console.error("Failed to auto-generate thread name:", error);
-              });
+              );
             }
           }
 
@@ -933,11 +932,8 @@ export const TamboThreadProvider: React.FC<
       const completedThreadId = finalMessage?.threadId ?? threadId;
 
       updateThreadStatus(completedThreadId, GenerationStage.COMPLETE);
-      maybeAutoGenerateThreadName(completedThreadId, contextKey).catch(
-        (error) => {
-          console.error("Failed to auto-generate thread name:", error);
-        },
-      );
+      // Fire-and-forget - errors logged inside maybeAutoGenerateThreadName
+      void maybeAutoGenerateThreadName(completedThreadId, contextKey);
 
       return (
         finalMessage ?? {
@@ -1022,9 +1018,8 @@ export const TamboThreadProvider: React.FC<
         false,
       );
 
-      maybeAutoGenerateThreadName(threadId, contextKey).catch((error) => {
-        console.error("Failed to auto-generate thread name:", error);
-      });
+      // Fire-and-forget - errors logged inside maybeAutoGenerateThreadName
+      void maybeAutoGenerateThreadName(threadId, contextKey);
 
       const availableComponents = getAvailableComponents(
         componentList,
@@ -1199,11 +1194,8 @@ export const TamboThreadProvider: React.FC<
       const completedThreadId = advanceResponse.responseMessageDto.threadId;
 
       updateThreadStatus(completedThreadId, GenerationStage.COMPLETE);
-      maybeAutoGenerateThreadName(completedThreadId, contextKey).catch(
-        (error) => {
-          console.error("Failed to auto-generate thread name:", error);
-        },
-      );
+      // Fire-and-forget - errors logged inside maybeAutoGenerateThreadName
+      void maybeAutoGenerateThreadName(completedThreadId, contextKey);
 
       return finalMessage;
     },

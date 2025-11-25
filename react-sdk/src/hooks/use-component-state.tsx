@@ -72,7 +72,12 @@ export function useTamboComponentState<S>(
           [keyName]: newState,
         },
       };
-      void updateThreadMessage(existingMessage.id, updatedMessage, false);
+      // Fire-and-forget local update - errors handled in updateThreadMessage
+      updateThreadMessage(existingMessage.id, updatedMessage, false).catch(
+        (error) => {
+          console.error("Failed to update local thread message:", error);
+        },
+      );
     },
     [updateThreadMessage, keyName],
   );
@@ -94,15 +99,17 @@ export function useTamboComponentState<S>(
   const setValue = useCallback(
     (newState: S) => {
       async function updateRemote() {
-        await updateRemoteThreadMessage(newState, message);
+        try {
+          await updateRemoteThreadMessage(newState, message);
+        } catch (error) {
+          console.error("Failed to update remote thread message:", error);
+        }
       }
 
       setLocalState(newState);
       updateLocalThreadMessage(newState, message);
-      // Fire-and-forget remote update - errors handled by debounced callback
-      updateRemote().catch((error) => {
-        console.error("Failed to update remote thread message:", error);
-      });
+      // Fire-and-forget remote update (errors handled inside)
+      void updateRemote();
     },
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],
   );
@@ -137,9 +144,8 @@ export function useTamboComponentState<S>(
           );
         }
       }
-      flushUpdates().catch((err) => {
-        console.error("Unexpected error in flushUpdates:", err);
-      });
+      // Fire-and-forget cleanup (errors handled inside)
+      void flushUpdates();
     };
   }, [updateRemoteThreadMessage]);
 
