@@ -16,7 +16,7 @@ export function throttle<FN extends (...args: never[]) => Promise<unknown>>(
     if (currentTime - lastUpdateTime >= updateIntervalMs) {
       const result = await callback(...args);
       lastUpdateTime = currentTime;
-      return result;
+      return result as ReturnType<FN>;
     }
   };
 }

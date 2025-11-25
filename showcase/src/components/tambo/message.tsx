@@ -197,7 +197,7 @@ function MessageContentRenderer({
   markdown,
 }: {
   contentToRender: unknown;
-  safeContent: string;
+  safeContent: string | React.ReactElement;
   markdown: boolean;
 }) {
   if (!contentToRender) {
@@ -370,8 +370,8 @@ function ToolcallStatusIcon({
   hasToolError,
   isLoading,
 }: {
-  hasToolError: boolean;
-  isLoading: boolean;
+  hasToolError: boolean | undefined;
+  isLoading: boolean | undefined;
 }) {
   if (hasToolError) {
     return <X className="w-3 h-3 text-bold text-red-500" />;
@@ -423,7 +423,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 
     const toolCallRequest: TamboAI.ToolCallRequest | undefined =
       getToolCallRequest(message);
-    const hasToolError = message.error;
+    const hasToolError = !!message.error;
 
     const toolStatusMessage = getToolStatusMessage(message, isLoading);
 
@@ -713,7 +713,7 @@ function ReasoningStatusText({
   reasoningDurationMS,
   reasoningSteps,
 }: {
-  isLoading: boolean;
+  isLoading: boolean | undefined;
   reasoningDurationMS?: number;
   reasoningSteps: number;
 }) {
