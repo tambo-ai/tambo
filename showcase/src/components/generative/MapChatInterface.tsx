@@ -43,7 +43,7 @@ export const MapChatInterface = () => {
       });
     };
 
-    register();
+    void register();
   }, [registerComponent]);
 
   return (

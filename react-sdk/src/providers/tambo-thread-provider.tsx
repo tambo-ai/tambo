@@ -405,12 +405,22 @@ export const TamboThreadProvider: React.FC<
   );
 
   useEffect(() => {
+    async function loadThread() {
+      try {
+        await fetchThread(currentThreadId);
+      } catch (error) {
+        console.error("Failed to fetch thread:", error);
+      }
+    }
+
     if (
       currentThreadId &&
       currentThreadId !== placeholderThread.id &&
       !threadMap[currentThreadId]
     ) {
-      fetchThread(currentThreadId);
+      loadThread().catch((err) => {
+        console.error("Unexpected error in loadThread:", err);
+      });
     }
   }, [currentThreadId, fetchThread, threadMap, placeholderThread.id]);
 
@@ -581,7 +591,10 @@ export const TamboThreadProvider: React.FC<
 
         // Only auto-generate if thread has no name and threshold is met
         if (!thread.name && messageCount >= autoGenerateNameThreshold) {
-          generateThreadName(threadId, contextKey);
+          // Generating a thread name is not critical, so we can fire-and-forget
+          void generateThreadName(threadId, contextKey).catch((error) => {
+            console.error("Failed to generate thread name:", error);
+          });
         }
 
         return map;
@@ -764,7 +777,7 @@ export const TamboThreadProvider: React.FC<
             GenerationStage.FETCHING_CONTEXT,
           );
 
-          updateThreadMessage(
+          await updateThreadMessage(
             chunk.responseMessageDto.id,
             {
               ...chunk.responseMessageDto,
@@ -805,7 +818,7 @@ export const TamboThreadProvider: React.FC<
               },
             };
 
-          updateThreadMessage(
+          await updateThreadMessage(
             chunk.responseMessageDto.id,
             {
               ...chunk.responseMessageDto,
@@ -814,7 +827,7 @@ export const TamboThreadProvider: React.FC<
             false,
           );
 
-          addThreadMessage(
+          await addThreadMessage(
             {
               threadId: chunk.responseMessageDto.threadId,
               content: contentParts,
@@ -987,7 +1000,7 @@ export const TamboThreadProvider: React.FC<
         { type: "text" as const, text: message },
       ];
 
-      addThreadMessage(
+      await addThreadMessage(
         {
           content: messageContent as any,
           renderedComponent: null,
@@ -1117,10 +1130,14 @@ export const TamboThreadProvider: React.FC<
               ...advanceResponse.responseMessageDto,
               error: toolCallResponse.error,
             };
-            updateThreadMessage(toolCallMessage.id, toolCallMessage, false);
+            await updateThreadMessage(
+              toolCallMessage.id,
+              toolCallMessage,
+              false,
+            );
           }
           updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
-          addThreadMessage(
+          await addThreadMessage(
             {
               threadId: threadId,
               content: contentParts,

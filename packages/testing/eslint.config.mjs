@@ -1,4 +1,4 @@
-import config from "@tambo-ai-cloud/eslint-config/base";
+import config from "@tambo-ai/eslint-config/base";
 
 export default [
   ...config,
@@ -6,7 +6,7 @@ export default [
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["jest.config.ts", "*.mjs"],
+          allowDefaultProject: ["jest.config.ts", "eslint.config.mjs"],
         },
       },
     },

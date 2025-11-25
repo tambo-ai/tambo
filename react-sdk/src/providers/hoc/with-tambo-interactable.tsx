@@ -57,8 +57,7 @@ export function withTamboInteractable<P extends object>(
     const lastParentProps = useRef<Record<string, any>>({});
 
     // Extract interactable-specific props
-    const { onInteractableReady, onPropsUpdate, ...componentProps } =
-      props as P & WithTamboInteractableProps;
+    const { onInteractableReady, onPropsUpdate, ...componentProps } = props;
 
     // Get the current interactable component to track prop updates
     const currentInteractable = interactableId

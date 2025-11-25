@@ -68,7 +68,7 @@ export const ThreadDropdown = React.forwardRef<
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.altKey && event.shiftKey && event.key === "n") {
         event.preventDefault();
-        handleNewThread();
+        void handleNewThread();
       }
     };
 
@@ -116,7 +116,7 @@ export const ThreadDropdown = React.forwardRef<
               className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
               onSelect={(e: Event) => {
                 e.preventDefault();
-                handleNewThread();
+                void handleNewThread();
               }}
             >
               <div className="flex items-center">
@@ -133,43 +133,12 @@ export const ThreadDropdown = React.forwardRef<
 
             <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
 
-            {isLoading ? (
-              <DropdownMenu.Item
-                className="px-2 py-1.5 text-sm text-muted-foreground"
-                disabled
-              >
-                Loading threads...
-              </DropdownMenu.Item>
-            ) : error ? (
-              <DropdownMenu.Item
-                className="px-2 py-1.5 text-sm text-destructive"
-                disabled
-              >
-                Error loading threads
-              </DropdownMenu.Item>
-            ) : threads?.items.length === 0 ? (
-              <DropdownMenu.Item
-                className="px-2 py-1.5 text-sm text-muted-foreground"
-                disabled
-              >
-                No previous threads
-              </DropdownMenu.Item>
-            ) : (
-              threads?.items.map((thread) => (
-                <DropdownMenu.Item
-                  key={thread.id}
-                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                  onSelect={(e: Event) => {
-                    e.preventDefault();
-                    handleSwitchThread(thread.id);
-                  }}
-                >
-                  <span className="truncate max-w-[180px]">
-                    {`Thread ${thread.id.substring(0, 8)}`}
-                  </span>
-                </DropdownMenu.Item>
-              ))
-            )}
+            <ThreadListContent
+              isLoading={isLoading}
+              error={error}
+              threads={threads}
+              onSwitchThread={handleSwitchThread}
+            />
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
@@ -177,3 +146,67 @@ export const ThreadDropdown = React.forwardRef<
   );
 });
 ThreadDropdown.displayName = "ThreadDropdown";
+
+/**
+ * Internal component to render thread list content based on loading/error/empty states
+ */
+function ThreadListContent({
+  isLoading,
+  error,
+  threads,
+  onSwitchThread,
+}: {
+  isLoading: boolean;
+  error: Error | null;
+  threads: { items: { id: string }[] } | null | undefined;
+  onSwitchThread: (threadId: string) => void;
+}) {
+  if (isLoading) {
+    return (
+      <DropdownMenu.Item
+        className="px-2 py-1.5 text-sm text-muted-foreground"
+        disabled
+      >
+        Loading threads...
+      </DropdownMenu.Item>
+    );
+  }
+  if (error) {
+    return (
+      <DropdownMenu.Item
+        className="px-2 py-1.5 text-sm text-destructive"
+        disabled
+      >
+        Error loading threads
+      </DropdownMenu.Item>
+    );
+  }
+  if (threads?.items.length === 0) {
+    return (
+      <DropdownMenu.Item
+        className="px-2 py-1.5 text-sm text-muted-foreground"
+        disabled
+      >
+        No previous threads
+      </DropdownMenu.Item>
+    );
+  }
+  return (
+    <>
+      {threads?.items.map((thread) => (
+        <DropdownMenu.Item
+          key={thread.id}
+          className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+          onSelect={(e: Event) => {
+            e.preventDefault();
+            void onSwitchThread(thread.id);
+          }}
+        >
+          <span className="truncate max-w-[180px]">
+            {`Thread ${thread.id.substring(0, 8)}`}
+          </span>
+        </DropdownMenu.Item>
+      ))}
+    </>
+  );
+}

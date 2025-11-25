@@ -65,8 +65,7 @@ export interface useTamboSuggestionsResultInternal {
 
   /** The full suggestions query object from React Query */
   suggestionsResult: UseTamboQueryResult<
-    TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse | undefined,
-    Error
+    TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse | undefined
   >;
 }
 

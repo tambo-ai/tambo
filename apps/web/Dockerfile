@@ -19,7 +19,6 @@ COPY turbo.json package.json package-lock.json ./
 COPY react-sdk ./react-sdk
 COPY packages ./packages
 COPY apps/web ./apps/web
-COPY tambo-cloud/packages ./tambo-cloud/packages
 
 RUN npx turbo prune @tambo-ai-cloud/web --docker
 

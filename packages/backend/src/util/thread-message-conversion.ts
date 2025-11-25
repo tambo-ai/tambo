@@ -253,6 +253,7 @@ function combineComponentWithState(
       ...component.componentState,
       ...componentState,
     },
+    props: component.props ?? {},
   };
 }
 

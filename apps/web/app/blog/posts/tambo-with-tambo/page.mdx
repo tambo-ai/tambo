@@ -51,7 +51,7 @@ It takes 5 steps to add an AI assistant to your app with Interactive React Compo
 
 ### 1. Create Zod Schemas for Your Components
 
-Example: the [APIKeyList component](https://github.com/tambo-ai/tambo/blob/main/tambo-cloud/apps/web/components/dashboard-components/project-details/api-key-list.tsx#L26).
+Example: the [APIKeyList component](https://github.com/tambo-ai/tambo/blob/main/apps/web/components/dashboard-components/project-details/api-key-list.tsx#L26).
 
 ```typescript
 export const APIKeyListProps = z.object({
@@ -81,7 +81,7 @@ export const APIKeyListProps = z.object({
 
 Register the component you just defined the schema for.
 
-Example: Registering the [APIKeyList component](https://github.com/tambo-ai/tambo/blob/main/tambo-cloud/apps/web/components/ui/tambo/chatwithtambo/config.ts#L62).
+Example: Registering the [APIKeyList component](https://github.com/tambo-ai/tambo/blob/main/apps/web/components/ui/tambo/chatwithtambo/config.ts#L62).
 
 ```typescript
 export const tamboRegisteredComponents = [
@@ -97,7 +97,7 @@ export const tamboRegisteredComponents = [
 
 ### 3. Register Your API Tools
 
-This is where your backend actually hooks in. In our case, we wired in the [`generateApiKey` endpoint](https://github.com/tambo-ai/tambo/blob/main/tambo-cloud/apps/web/components/ui/tambo/chatwithtambo/tools.ts#L162). You'd do the same with your own API.
+This is where your backend actually hooks in. In our case, we wired in the [`generateApiKey` endpoint](https://github.com/tambo-ai/tambo/blob/main/apps/web/components/ui/tambo/chatwithtambo/tools.ts#L162). You'd do the same with your own API.
 
 ```typescript
 export const generateProjectApiKeySchema = z

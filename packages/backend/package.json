@@ -16,6 +16,7 @@
     "test:watch": "jest --watch",
     "check-types": "tsc --noEmit",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "clean": "rm -rf dist coverage"
   },
   "author": "",
@@ -49,6 +50,8 @@
     "zod-to-json-schema": "^3.24.3"
   },
   "devDependencies": {
+    "@tambo-ai/eslint-config": "*",
+    "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
     "@types/mime-types": "^3.0.1",
