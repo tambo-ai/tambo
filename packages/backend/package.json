@@ -46,7 +46,7 @@
     "zod-to-json-schema": "^3.24.3"
   },
   "devDependencies": {
-    "@tambo-ai-cloud/eslint-config": "*",
+    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",

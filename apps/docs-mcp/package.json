@@ -22,7 +22,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@tambo-ai-cloud/eslint-config": "*",
+    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/node": "^22.15.32",
     "typescript": "^5.9.3"

@@ -26,7 +26,7 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
-    "@tambo-ai-cloud/eslint-config": "*",
+    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/express": "^5.0.0",
     "@types/node": "^22.15.32",

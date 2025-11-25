@@ -16,7 +16,7 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
-    "@tambo-ai-cloud/eslint-config": "*",
+    "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.15.32",
