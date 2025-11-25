@@ -94,18 +94,14 @@ export function useTamboComponentState<S>(
   const setValue = useCallback(
     (newState: S) => {
       async function updateRemote() {
-        try {
-          await updateRemoteThreadMessage(newState, message);
-        } catch (error) {
-          console.error("Failed to update remote thread message:", error);
-        }
+        await updateRemoteThreadMessage(newState, message);
       }
 
       setLocalState(newState);
       updateLocalThreadMessage(newState, message);
-      // Fire-and-forget remote update with error handling
-      updateRemote().catch((err) => {
-        console.error("Unexpected error in updateRemote:", err);
+      // Fire-and-forget remote update - errors handled by debounced callback
+      updateRemote().catch((error) => {
+        console.error("Failed to update remote thread message:", error);
       });
     },
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],

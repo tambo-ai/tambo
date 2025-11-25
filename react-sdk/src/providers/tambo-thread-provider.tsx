@@ -571,16 +571,9 @@ export const TamboThreadProvider: React.FC<
   );
 
   const maybeAutoGenerateThreadName = useCallback(
-    (threadId: string, contextKey?: string) => {
-      async function autoGenerateName() {
-        try {
-          await generateThreadName(threadId, contextKey);
-        } catch (error) {
-          console.error("Failed to auto-generate thread name:", error);
-        }
-      }
-
+    async (threadId: string, contextKey?: string) => {
       // Use setThreadMap to access the latest state
+      let shouldGenerate = false;
       setThreadMap((map) => {
         const thread = map[threadId];
 
@@ -599,13 +592,15 @@ export const TamboThreadProvider: React.FC<
 
         // Only auto-generate if thread has no name and threshold is met
         if (!thread.name && messageCount >= autoGenerateNameThreshold) {
-          autoGenerateName().catch((err) => {
-            console.error("Unexpected error in autoGenerateName:", err);
-          });
+          shouldGenerate = true;
         }
 
         return map;
       });
+
+      if (shouldGenerate) {
+        await generateThreadName(threadId, contextKey);
+      }
     },
     [
       autoGenerateThreadName,
@@ -900,7 +895,9 @@ export const TamboThreadProvider: React.FC<
               maybeAutoGenerateThreadName(
                 chunk.responseMessageDto.threadId,
                 contextKey,
-              );
+              ).catch((error) => {
+                console.error("Failed to auto-generate thread name:", error);
+              });
             }
           }
 
@@ -936,7 +933,11 @@ export const TamboThreadProvider: React.FC<
       const completedThreadId = finalMessage?.threadId ?? threadId;
 
       updateThreadStatus(completedThreadId, GenerationStage.COMPLETE);
-      maybeAutoGenerateThreadName(completedThreadId, contextKey);
+      maybeAutoGenerateThreadName(completedThreadId, contextKey).catch(
+        (error) => {
+          console.error("Failed to auto-generate thread name:", error);
+        },
+      );
 
       return (
         finalMessage ?? {
@@ -1021,7 +1022,9 @@ export const TamboThreadProvider: React.FC<
         false,
       );
 
-      maybeAutoGenerateThreadName(threadId, contextKey);
+      maybeAutoGenerateThreadName(threadId, contextKey).catch((error) => {
+        console.error("Failed to auto-generate thread name:", error);
+      });
 
       const availableComponents = getAvailableComponents(
         componentList,
@@ -1196,7 +1199,11 @@ export const TamboThreadProvider: React.FC<
       const completedThreadId = advanceResponse.responseMessageDto.threadId;
 
       updateThreadStatus(completedThreadId, GenerationStage.COMPLETE);
-      maybeAutoGenerateThreadName(completedThreadId, contextKey);
+      maybeAutoGenerateThreadName(completedThreadId, contextKey).catch(
+        (error) => {
+          console.error("Failed to auto-generate thread name:", error);
+        },
+      );
 
       return finalMessage;
     },
