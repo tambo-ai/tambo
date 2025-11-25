@@ -251,7 +251,7 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
   hasComponent: boolean,
   generationError?: Error,
 ): StreamStatus {
-  const propStatuses = Object.values(propStatus) as PropStatus[];
+  const propStatuses = Object.values(propStatus);
 
   // If all props are already successful, the component is complete regardless of generation stage
   const allPropsSuccessful =

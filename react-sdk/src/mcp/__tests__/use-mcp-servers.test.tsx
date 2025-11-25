@@ -16,7 +16,7 @@ import {
 // Provide a minimal client context instead of mocking the hook
 
 // Mock the MCP client; use a mutable implementation to avoid TDZ issues
-let createImpl: jest.Mock<any, any> = jest.fn();
+let createImpl: jest.Mock = jest.fn();
 jest.mock("../mcp-client", () => ({
   MCPClient: { create: (...args: any[]) => createImpl(...args) },
   MCPTransport: { SSE: "sse", HTTP: "http" },

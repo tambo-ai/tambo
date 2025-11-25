@@ -321,7 +321,7 @@ describe("TamboPropStreamProvider", () => {
       );
 
       const keyStatus = JSON.parse(
-        screen.getByTestId("key-status").textContent!,
+        screen.getByTestId("key-status").textContent,
       );
       expect(keyStatus.isPending).toBe(true);
     });
