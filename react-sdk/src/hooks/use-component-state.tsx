@@ -64,7 +64,7 @@ export function useTamboComponentState<S>(
 
   // Optimistically update the local thread message's componentState
   const updateLocalThreadMessage = useCallback(
-    (newState: S, existingMessage: TamboThreadMessage) => {
+    async (newState: S, existingMessage: TamboThreadMessage) => {
       const updatedMessage = {
         threadId: existingMessage.threadId,
         componentState: {
@@ -72,12 +72,7 @@ export function useTamboComponentState<S>(
           [keyName]: newState,
         },
       };
-      // Fire-and-forget local update - errors handled in updateThreadMessage
-      updateThreadMessage(existingMessage.id, updatedMessage, false).catch(
-        (error) => {
-          console.error("Failed to update local thread message:", error);
-        },
-      );
+      await updateThreadMessage(existingMessage.id, updatedMessage, false);
     },
     [updateThreadMessage, keyName],
   );
@@ -97,19 +92,10 @@ export function useTamboComponentState<S>(
   );
 
   const setValue = useCallback(
-    (newState: S) => {
-      async function updateRemote() {
-        try {
-          await updateRemoteThreadMessage(newState, message);
-        } catch (error) {
-          console.error("Failed to update remote thread message:", error);
-        }
-      }
-
+    async (newState: S) => {
       setLocalState(newState);
-      updateLocalThreadMessage(newState, message);
-      // Fire-and-forget remote update (errors handled inside)
-      void updateRemote();
+      await updateLocalThreadMessage(newState, message);
+      await updateRemoteThreadMessage(newState, message);
     },
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],
   );

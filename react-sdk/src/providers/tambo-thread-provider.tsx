@@ -571,7 +571,7 @@ export const TamboThreadProvider: React.FC<
   );
 
   const maybeAutoGenerateThreadName = useCallback(
-    async (threadId: string, contextKey?: string) => {
+    (threadId: string, contextKey?: string) => {
       // Use setThreadMap to access the latest state
       let shouldGenerate = false;
       setThreadMap((map) => {
@@ -599,7 +599,10 @@ export const TamboThreadProvider: React.FC<
       });
 
       if (shouldGenerate) {
-        await generateThreadName(threadId, contextKey);
+        // Generating a thread name is not critical, so we can fire-and-forget
+        generateThreadName(threadId, contextKey).catch((error) => {
+          console.error("Failed to generate thread name:", error);
+        });
       }
     },
     [
@@ -892,8 +895,7 @@ export const TamboThreadProvider: React.FC<
                 contextKey,
               );
               // Check if we should auto-generate name for the newly created thread
-              // Fire-and-forget - errors logged inside maybeAutoGenerateThreadName
-              void maybeAutoGenerateThreadName(
+              maybeAutoGenerateThreadName(
                 chunk.responseMessageDto.threadId,
                 contextKey,
               );
@@ -932,8 +934,7 @@ export const TamboThreadProvider: React.FC<
       const completedThreadId = finalMessage?.threadId ?? threadId;
 
       updateThreadStatus(completedThreadId, GenerationStage.COMPLETE);
-      // Fire-and-forget - errors logged inside maybeAutoGenerateThreadName
-      void maybeAutoGenerateThreadName(completedThreadId, contextKey);
+      maybeAutoGenerateThreadName(completedThreadId, contextKey);
 
       return (
         finalMessage ?? {
@@ -1018,8 +1019,7 @@ export const TamboThreadProvider: React.FC<
         false,
       );
 
-      // Fire-and-forget - errors logged inside maybeAutoGenerateThreadName
-      void maybeAutoGenerateThreadName(threadId, contextKey);
+      maybeAutoGenerateThreadName(threadId, contextKey);
 
       const availableComponents = getAvailableComponents(
         componentList,
@@ -1194,8 +1194,7 @@ export const TamboThreadProvider: React.FC<
       const completedThreadId = advanceResponse.responseMessageDto.threadId;
 
       updateThreadStatus(completedThreadId, GenerationStage.COMPLETE);
-      // Fire-and-forget - errors logged inside maybeAutoGenerateThreadName
-      void maybeAutoGenerateThreadName(completedThreadId, contextKey);
+      maybeAutoGenerateThreadName(completedThreadId, contextKey);
 
       return finalMessage;
     },
