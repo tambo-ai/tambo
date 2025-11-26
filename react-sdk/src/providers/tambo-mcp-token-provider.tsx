@@ -67,7 +67,13 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
   const currentThread = threadContext?.currentThread ?? null;
   const currentThreadId = threadContext?.currentThreadId ?? null;
   const setThreadMap = useMemo(
-    () => threadContext?.setThreadMap ?? (() => {}),
+    () =>
+      threadContext?.setThreadMap ??
+      (() => {
+        // Fail fast when the provider tree is misconfigured so callers don't
+        // silently drop thread token updates.
+        throw new Error("setThreadMap not implemented");
+      }),
     [threadContext?.setThreadMap],
   );
 
@@ -175,6 +181,9 @@ export const useTamboMcpToken = (
   const hasAttemptedFetch = useRef(false);
 
   // Determine if we should fetch a threadless token
+  // TODO: If contextKey changes before a real thread exists, reset
+  // threadlessToken/hasAttemptedFetch so tokens stay aligned with the
+  // active contextKey.
   const isPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
   const shouldFetchThreadless =
     contextKey &&
