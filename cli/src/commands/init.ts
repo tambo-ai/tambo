@@ -11,6 +11,7 @@ import {
   NonInteractiveError,
 } from "../utils/interactive.js";
 import { handleAddComponent } from "./add/index.js";
+import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
 
 /**
@@ -48,6 +49,7 @@ interface InitOptions {
   fullSend?: boolean;
   legacyPeerDeps?: boolean;
   yes?: boolean;
+  skipAgentDocs?: boolean;
 }
 
 /**
@@ -440,6 +442,11 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
 
   // Create tambo.ts file
   await createTamboTsFile(installPath);
+  await handleAgentDocsUpdate({
+    yes: options.yes,
+    skipAgentDocs: options.skipAgentDocs,
+    prefix: installPath,
+  });
 
   // Install required components
   console.log(chalk.cyan("\nStep 2: Choose starter components to install"));
@@ -638,10 +645,16 @@ export async function handleInit({
   fullSend = false,
   legacyPeerDeps = false,
   yes = false,
+  skipAgentDocs = false,
 }: InitOptions): Promise<void> {
   try {
     if (fullSend) {
-      return await handleFullSendInit({ fullSend, legacyPeerDeps, yes });
+      return await handleFullSendInit({
+        fullSend,
+        legacyPeerDeps,
+        yes,
+        skipAgentDocs,
+      });
     }
 
     if (!validateRootPackageJson()) return;
@@ -653,6 +666,8 @@ export async function handleInit({
 
     const authSuccess = await handleHostingChoiceAndAuth();
     if (!authSuccess) return;
+
+    await handleAgentDocsUpdate({ yes, skipAgentDocs });
 
     console.log(chalk.green("\n✨ Basic initialization complete!"));
 
