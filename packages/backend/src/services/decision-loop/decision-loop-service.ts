@@ -5,7 +5,6 @@ import {
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
-  tryParseJsonObject,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { parse } from "partial-json";
@@ -20,7 +19,6 @@ import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-me
 import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
-  getLLMResponseToolCallRequest,
   LLMClient,
   LLMResponse,
 } from "../llm/llm-client";
@@ -169,14 +167,10 @@ export async function* runDecisionLoop(
         ) as Partial<TamboToolParameters>;
       }
 
-      // If this is a non-UI tool call, make sure params are complete and filter out standard tool parameters
+      // If this is a non-UI tool call, build tool call request (even if incomplete)
       let clientToolRequest: ToolCallRequest | undefined;
       if (!isUITool && toolCall) {
-        clientToolRequest = removeTamboToolParameters(
-          toolCall,
-          strictTools,
-          chunk,
-        );
+        clientToolRequest = buildToolCallRequest(toolCall, strictTools, chunk);
       }
 
       const displayMessage = extractMessageContent(
@@ -205,6 +199,8 @@ export async function* runDecisionLoop(
         ...parsedChunk,
       };
 
+      console.log("accumulatedDecision: ", JSON.stringify(accumulatedDecision));
+
       yield accumulatedDecision;
     } catch (e) {
       console.error("Error parsing stream chunk:", e);
@@ -212,33 +208,53 @@ export async function* runDecisionLoop(
   }
 }
 
-function removeTamboToolParameters(
+/**
+ * Build a tool call request from a tool call, even if it's incomplete.
+ * Returns undefined if the tool call is not a function type.
+ * Uses partial-json parsing to handle incomplete JSON during streaming.
+ */
+function buildToolCallRequest(
   toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall,
   tools: OpenAI.Chat.Completions.ChatCompletionTool[],
   chunk: Partial<LLMResponse>,
-) {
-  const originalRequest = getLLMResponseToolCallRequest(chunk);
-  // Just means the tool call is still streaming
-  if (!originalRequest) {
-    return;
-  }
+): ToolCallRequest | undefined {
   // "custom" tool calls are not supported
   if (toolCall.type !== "function") {
-    return originalRequest;
+    return undefined;
   }
-  const parsedToolCall = tryParseJsonObject(toolCall.function.arguments, false);
-  if (parsedToolCall) {
-    const filteredArgs = filterOutStandardToolParameters(
-      toolCall,
-      tools,
-      parsedToolCall,
-    );
 
-    if (filteredArgs) {
-      return {
-        ...originalRequest,
-        parameters: filteredArgs,
-      };
-    }
+  const toolCallId = getLLMResponseToolCallId(chunk);
+  if (!toolCallId) {
+    return undefined;
   }
+
+  // Try to parse the arguments (may be incomplete during streaming)
+  let parsedArgs: Record<string, unknown> | undefined;
+  try {
+    // Use partial-json parse to handle incomplete JSON during streaming
+    parsedArgs = parse(toolCall.function.arguments) as Record<string, unknown>;
+  } catch (_e) {
+    // If parsing fails completely, we can't build a request
+    return undefined;
+  }
+
+  if (!parsedArgs) {
+    return undefined;
+  }
+
+  // Filter out standard Tambo parameters
+  const filteredArgs = filterOutStandardToolParameters(
+    toolCall,
+    tools,
+    parsedArgs,
+  );
+
+  if (!filteredArgs) {
+    return undefined;
+  }
+
+  return {
+    toolName: toolCall.function.name,
+    parameters: filteredArgs,
+  };
 }
