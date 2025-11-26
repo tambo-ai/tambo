@@ -81,28 +81,6 @@ jobs:
         id: setup-buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Set up Cache Mounts
-        uses: actions/cache@v4
-        id: cache
-        with:
-          path: |
-            workspace-npm
-            workspace-turbo
-            workspace-next
-          key: cache-mount-${{ matrix.images.name }}-${{ hashFiles(format('{0}/Dockerfile', matrix.images.path)) }}
-
-      - name: Restore Docker cache mounts
-        uses: reproducible-containers/buildkit-cache-dance@v3
-        with:
-          builder: ${{ steps.setup-buildx.outputs.name }}
-          cache-map: |
-            {
-              "workspace-npm": "/workspace/.npm/cache",
-              "workspace-turbo": "/workspace/.turbo/cache",
-              "workspace-next": "/workspace/${{ matrix.images.path }}/.next/cache"
-            }
-          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
-
       - name: Cache for Turbo
         uses: rharkor/caching-for-turbo@v2.3.2
 
