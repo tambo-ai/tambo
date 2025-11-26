@@ -160,8 +160,6 @@ describe("TamboThreadProvider", () => {
           client,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider components={mockRegistry}>
@@ -455,8 +453,6 @@ describe("TamboThreadProvider", () => {
             client,
             queryClient,
             isUpdatingToken: false,
-            mcpAccessToken: null,
-            setMcpAccessToken: () => {},
           }}
         >
           <TamboRegistryProvider
@@ -601,8 +597,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -703,8 +697,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -779,8 +771,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -855,8 +845,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -955,8 +943,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -1034,8 +1020,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -1333,8 +1317,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={customToolRegistry}>
@@ -1470,8 +1452,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={customToolRegistry}>
@@ -1620,8 +1600,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={toolWithoutTransform}>
@@ -1750,8 +1728,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={toolWithTransform}>
@@ -1858,8 +1834,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -1953,8 +1927,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -2041,8 +2013,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>
@@ -2135,8 +2105,6 @@ describe("TamboThreadProvider", () => {
               client,
               queryClient,
               isUpdatingToken: false,
-              mcpAccessToken: null,
-              setMcpAccessToken: () => {},
             }}
           >
             <TamboRegistryProvider components={mockRegistry}>

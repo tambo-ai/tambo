@@ -49,8 +49,6 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient: new QueryClient(),
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -92,8 +90,6 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient: new QueryClient(),
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider mcpServers={[{ url: "https://ok.example" }]}>
@@ -134,8 +130,6 @@ describe("useTamboMcpServers + TamboMcpProvider", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient: new QueryClient(),
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider mcpServers={[{ url: "https://fail.example" }]}>

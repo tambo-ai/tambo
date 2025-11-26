@@ -11,7 +11,7 @@ import React, {
 import { TamboThread } from "../model/tambo-thread";
 import { TamboClientContext } from "./tambo-client-provider";
 import { useTamboMcpServerInfos } from "./tambo-registry-provider";
-import { useTamboThread } from "./tambo-thread-provider";
+import { TamboThreadContext } from "./tambo-thread-provider";
 
 export interface TamboMcpTokenContextProps {
   /**
@@ -60,7 +60,15 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
   const tamboBaseUrl = client.baseURL;
 
   const mcpServerInfos = useTamboMcpServerInfos();
-  const { currentThread, currentThreadId, setThreadMap } = useTamboThread();
+
+  // Optional thread context - may not be available in all contexts
+  const threadContext = useContext(TamboThreadContext);
+  const currentThread = threadContext?.currentThread ?? null;
+  const currentThreadId = threadContext?.currentThreadId ?? null;
+  const setThreadMap = useMemo(
+    () => threadContext?.setThreadMap ?? (() => {}),
+    [threadContext?.setThreadMap],
+  );
 
   // Threadless token state (only used when no current thread)
   const [threadlessMcpToken, setThreadlessMcpToken] = useState<string | null>(
