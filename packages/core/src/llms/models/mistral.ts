@@ -31,7 +31,7 @@ export const mistralModels: Partial<LlmModelConfig<MistralModelId>> = {
     notes:
       "Mistral Large 2.1 is Mistral's top-tier large model for high-complexity tasks with the lastest version released November 2024.",
     docLink: "https://mistral.ai/news/pixtral-large",
-    tamboDocLink: "https://docs.tambo.co/models/mistral#mistral-large-2-1",
+    tamboDocLink: "https://docs.tambo.co/models/mistral#mistral-large-21",
     inputTokenLimit: 128000,
   },
 };
