@@ -32,7 +32,7 @@ export default function MessageThreadPanelPage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <TamboMcpProvider>
+              <TamboMcpProvider contextKey={userContextKey}>
                 <div className="w-full h-full relative flex rounded-lg overflow-hidden">
                   <div className="flex-1 bg-muted/20 flex flex-col gap-4 p-6 min-w-0">
                     <div className="h-8 w-[200px] bg-muted/80 rounded-md" />

@@ -86,8 +86,6 @@ const TamboStubClientProvider: React.FC<
         client,
         queryClient,
         isUpdatingToken,
-        mcpAccessToken: null,
-        setMcpAccessToken: () => {},
       }}
     >
       {children}
@@ -335,6 +333,10 @@ export const TamboStubProvider: React.FC<
   // Merge defaults with provided overrides
   const threadContextProps: TamboThreadContextProps = {
     thread,
+    currentThreadId: thread.id,
+    currentThread: thread,
+    threadMap: { [thread.id]: thread },
+    setThreadMap: () => {},
     switchCurrentThread:
       overrides.switchCurrentThread ?? defaults.switchCurrentThread,
     startNewThread: overrides.startNewThread ?? defaults.startNewThread,

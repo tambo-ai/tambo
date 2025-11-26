@@ -151,7 +151,7 @@ export function usePositioning(
 
 /**
  * Converts message content into a safely renderable format.
- * Primarily joins text blocks from arrays into a single string.
+ * Handles text, resource references, and other content types.
  * @param content - The message content (string, element, array, etc.)
  * @returns A renderable string or React element.
  */
@@ -162,10 +162,20 @@ export function getSafeContent(
   if (typeof content === "string") return content;
   if (React.isValidElement(content)) return content; // Pass elements through
   if (Array.isArray(content)) {
-    // Filter out non-text items and join text
-    return content
-      .map((item) => (item?.type === "text" ? (item.text ?? "") : ""))
-      .join("");
+    // Map content parts to strings, including resource references
+    const parts: string[] = [];
+    for (const item of content) {
+      if (item?.type === "text") {
+        parts.push(item.text ?? "");
+      } else if (item?.type === "resource") {
+        // Format resource references as @uri (uri already contains serverKey prefix if applicable)
+        const uri = item.resource?.uri;
+        if (uri) {
+          parts.push(`@${uri}`);
+        }
+      }
+    }
+    return parts.join(" ");
   }
   // Handle potential edge cases or unknown types
   // console.warn("getSafeContent encountered unknown content type:", content);
