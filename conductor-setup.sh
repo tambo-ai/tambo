@@ -23,24 +23,34 @@ npm ci
 # Setup .env files
 echo "🔧 Setting up environment files..."
 
-# Check if .env files exist in root repo
-if [ -f "$CONDUCTOR_ROOT_PATH/showcase/.env" ]; then
-    echo "  - Copying showcase/.env from root repo..."
-    cp "$CONDUCTOR_ROOT_PATH/showcase/.env" showcase/.env
-elif [ ! -f "showcase/.env" ]; then
-    echo "  - Creating showcase/.env from example..."
-    cp showcase/.env.example showcase/.env
-    echo "⚠️  WARNING: You need to add your NEXT_PUBLIC_TAMBO_API_KEY to showcase/.env"
-fi
+# Helper function to setup .env file
+setup_env_file() {
+  local path="$1"
+  local warning="$2"
 
-if [ -f "$CONDUCTOR_ROOT_PATH/docs/.env" ]; then
-    echo "  - Copying docs/.env from root repo..."
-    cp "$CONDUCTOR_ROOT_PATH/docs/.env" docs/.env
-elif [ ! -f "docs/.env" ]; then
-    echo "  - Creating docs/.env from example..."
-    cp docs/.env.example docs/.env
-    echo "⚠️  WARNING: You need to add your NEXT_PUBLIC_TAMBO_API_KEY to docs/.env"
-fi
+  # Skip if directory doesn't exist
+  if [ ! -d "$path" ]; then
+    return
+  fi
+
+  if [ -f "$CONDUCTOR_ROOT_PATH/$path/.env" ]; then
+    echo "  - Copying $path/.env from root repo..."
+    cp "$CONDUCTOR_ROOT_PATH/$path/.env" "$path/.env"
+  elif [ ! -f "$path/.env" ] && [ -f "$path/.env.example" ]; then
+    echo "  - Creating $path/.env from example..."
+    cp "$path/.env.example" "$path/.env"
+    if [ -n "$warning" ]; then
+      echo "⚠️  WARNING: $warning"
+    fi
+  fi
+}
+
+setup_env_file "showcase" "You need to add your NEXT_PUBLIC_TAMBO_API_KEY to showcase/.env"
+setup_env_file "docs" "You need to add your NEXT_PUBLIC_TAMBO_API_KEY to docs/.env"
+setup_env_file "apps/web" "apps/web/.env created with defaults - update DATABASE_URL and API keys as needed"
+setup_env_file "apps/api" "apps/api/.env created with defaults - update OPENAI_API_KEY and other secrets"
+setup_env_file "packages/db" "packages/db/.env created with default DATABASE_URL"
+setup_env_file "apps/docs-mcp" "apps/docs-mcp/.env created - set INKEEP_API_KEY if using MCP tools"
 
 # Copy .plans directory if it exists in root repo
 if [ -d "$CONDUCTOR_ROOT_PATH/.plans" ]; then
@@ -53,7 +63,3 @@ echo "🔨 Building packages..."
 npm run build
 
 echo "✅ Workspace setup complete!"
-echo ""
-echo "📝 Next steps:"
-echo "  1. Make sure you have your TAMBO_API_KEY set in showcase/.env and docs/.env"
-echo "  2. Click 'Run' to start the dev servers (showcase + docs)"
