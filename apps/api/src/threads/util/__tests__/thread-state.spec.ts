@@ -14,6 +14,7 @@ import { SQL } from "drizzle-orm";
 import { PgTable, PgTransaction } from "drizzle-orm/pg-core";
 import {
   addUserMessage,
+  DecisionWithInternalToolInfo,
   finishInProgressMessage,
   fixStreamedToolCalls,
   updateGenerationStage,
@@ -232,6 +233,56 @@ describe("Thread State", () => {
       expect(threadMessage.tool_call_id).toBe("tool-123");
       expect(threadMessage.actionType).toBeDefined();
     });
+
+    it("should read tool call info from internal fields when outer fields are undefined", () => {
+      const toolCallRequest = {
+        toolName: "myTool",
+        parameters: [{ parameterName: "param1", parameterValue: "value1" }],
+      };
+
+      // Simulate a streaming chunk with internal fields but no outer fields
+      const mockDecisionWithInternalFields: DecisionWithInternalToolInfo = {
+        id: "dec-1",
+        message: "With tool in internal fields",
+        componentName: "test-component",
+        props: {},
+        componentState: {},
+        reasoning: ["test reasoning"],
+        toolCallRequest: undefined, // Outer field is undefined
+        toolCallId: undefined, // Outer field is undefined
+        __toolCallRequest: toolCallRequest, // Internal field has the value
+        __toolCallId: "tool-456", // Internal field has the value
+      };
+
+      const mockInProgressMessage: ThreadMessage = {
+        id: "msg-1",
+        threadId: "thread-1",
+        role: MessageRole.Assistant,
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "initial",
+          } as ChatCompletionContentPart,
+        ],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const threadMessage = updateThreadMessageFromLegacyDecision(
+        mockInProgressMessage,
+        mockDecisionWithInternalFields,
+      );
+
+      // Should read from internal fields for component
+      expect(threadMessage.component?.toolCallRequest).toEqual(toolCallRequest);
+      expect(threadMessage.component?.toolCallId).toBe("tool-456");
+
+      // Should NOT set outer fields when only internal fields are present
+      // (this indicates it's a streaming chunk, not a final chunk)
+      expect(threadMessage.toolCallRequest).toBeUndefined();
+      expect(threadMessage.tool_call_id).toBeUndefined();
+      expect(threadMessage.actionType).toBeUndefined();
+    });
   });
 
   describe("fixStreamedToolCalls", () => {
@@ -326,6 +377,57 @@ describe("Thread State", () => {
       expect(result[2].toolCallId).toBe("tc-a");
       expect(result[5].toolCallRequest).toBeDefined();
       expect(result[5].toolCallId).toBe("tc-b");
+    });
+
+    it("should set internal fields on streaming chunks when tool call is present", async () => {
+      async function* makeStream() {
+        yield createDecision("a", "part1");
+        yield createDecision("a", "part2", {
+          id: "tc-1",
+          request: {
+            toolName: "toolA",
+            parameters: [],
+          },
+        });
+        yield createDecision("a", "part3", {
+          id: "tc-1",
+          request: {
+            toolName: "toolA",
+            parameters: [{ parameterName: "param1", parameterValue: "value1" }],
+          },
+        });
+      }
+
+      const result = await collect(fixStreamedToolCalls(makeStream()));
+
+      // Streaming chunks should have internal fields set
+      const streamingChunk1 = result[0];
+      expect(streamingChunk1.toolCallRequest).toBeUndefined();
+      expect(streamingChunk1.__toolCallRequest).toBeUndefined();
+
+      const streamingChunk2 = result[1];
+      expect(streamingChunk2.toolCallRequest).toBeUndefined();
+      expect(streamingChunk2.__toolCallRequest).toBeDefined();
+      expect(streamingChunk2.__toolCallRequest?.toolName).toBe("toolA");
+      expect(streamingChunk2.__toolCallId).toBe("tc-1");
+
+      const streamingChunk3 = result[2];
+      expect(streamingChunk3.toolCallRequest).toBeUndefined();
+      expect(streamingChunk3.__toolCallRequest).toBeDefined();
+      expect(streamingChunk3.__toolCallRequest?.toolName).toBe("toolA");
+      expect(streamingChunk3.__toolCallRequest?.parameters).toEqual([
+        { parameterName: "param1", parameterValue: "value1" },
+      ]);
+      expect(streamingChunk3.__toolCallId).toBe("tc-1");
+
+      // Final chunk should have outer fields
+      const finalChunk = result[3];
+      expect(finalChunk.toolCallRequest).toBeDefined();
+      expect(finalChunk.toolCallRequest?.toolName).toBe("toolA");
+      expect(finalChunk.toolCallRequest?.parameters).toEqual([
+        { parameterName: "param1", parameterValue: "value1" },
+      ]);
+      expect(finalChunk.toolCallId).toBe("tc-1");
     });
   });
 
