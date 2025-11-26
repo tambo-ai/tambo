@@ -60,8 +60,8 @@ import {
  * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
  * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
  * @param props.contextHelpers - Configuration for which context helpers are enabled/disabled
- * @param props.userToken - The user's OAuth token (access or ID) used to identify the user and exchange for a Tambo session token (preferred over contextKey)
- * @param props.contextKey - Optional context key to be used in the thread input provider
+ * @param props.userToken - The user's OAuth token (access or ID) used to identify the user and exchange for a Tambo session token
+ * @param props.contextKey - Optional context key passed to thread input provider for scoping threads
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
  * @param props.initialMessages - Initial messages to be included in new threads
  * @param props.getContextHelperData - Optional function to customize the data sent to the AI for each context attachment
@@ -100,7 +100,6 @@ export const TamboProvider: React.FC<
       apiKey={apiKey}
       environment={environment}
       userToken={userToken}
-      contextKey={contextKey}
     >
       <TamboRegistryProvider
         components={components}
@@ -166,7 +165,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
       "TamboCompositeProvider must be used within a TamboClientProvider",
     );
   }
-  const { client, queryClient, isUpdatingToken, contextKey } = clientContext;
+  const { client, queryClient, isUpdatingToken } = clientContext;
   const componentRegistry = useTamboComponent();
   const interactableComponents = useTamboInteractable();
   const contextHelpers = useTamboContextHelpers();
@@ -178,7 +177,6 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
         client,
         queryClient,
         isUpdatingToken,
-        contextKey,
         ...componentRegistry,
         ...threads,
         ...interactableComponents,
