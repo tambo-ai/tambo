@@ -4,13 +4,17 @@ import { type NarrowStrings } from "../../typeutils";
 
 type RawModelIds = Parameters<AnthropicProvider["languageModel"]>[0];
 type AnthropicModelId = NarrowStrings<RawModelIds>;
+
+// Models are sorted by version (newest first). Minor versions (e.g., 4.5) are
+// considered newer than their base versions (e.g., 4), so 4.5 comes before 4.1 before 4.
+// Display names follow the format: "Claude <Tier> <Version>" (e.g., "Claude Sonnet 4.5").
 export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
   "claude-sonnet-4-5-20250929": {
     apiName: "claude-sonnet-4-5-20250929",
     displayName: "Claude Sonnet 4.5",
     status: "tested",
     notes:
-      "Claude 4.5 Sonnet is Anthropic's best model for coding and reasoning.",
+      "Claude Sonnet 4.5 is Anthropic's best model for coding and reasoning.",
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://docs.tambo.co/models/anthropic#claude-sonnet-4-5",
     inputTokenLimit: 200000,
@@ -19,7 +23,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     apiName: "claude-haiku-4-5-20251001",
     displayName: "Claude Haiku 4.5",
     status: "tested",
-    notes: "Claude 4.5 Haiku is Anthropic's fastest and most intelligent model",
+    notes: "Claude Haiku 4.5 is Anthropic's fastest and most intelligent model",
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://docs.tambo.co/models/anthropic#claude-haiku-4-5",
     inputTokenLimit: 200000,
@@ -49,7 +53,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     displayName: "Claude Sonnet 4",
     status: "tested",
     notes:
-      "Claude 4 Sonnet is Anthropic's high-performance model with exceptional reasoning and efficiency.",
+      "Claude Sonnet 4 is Anthropic's high-performance model with exceptional reasoning and efficiency.",
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://docs.tambo.co/models/anthropic#claude-sonnet-4",
     inputTokenLimit: 200000,
@@ -59,7 +63,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     displayName: "Claude Sonnet 3.7",
     status: "tested",
     notes:
-      "Claude 3.7 Sonnet is Anthropic's smartest model yet, with fast or step-by-step thinking. Great for coding and front-end development.",
+      "Claude Sonnet 3.7 is Anthropic's smartest model yet, with fast or step-by-step thinking. Great for coding and front-end development.",
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://docs.tambo.co/models/anthropic#claude-sonnet-3-7",
     inputTokenLimit: 200000,
@@ -69,7 +73,7 @@ export const anthropicModels: Partial<LlmModelConfig<AnthropicModelId>> = {
     displayName: "Claude Haiku 3.5",
     status: "known-issues",
     notes:
-      "Claude 3.5 Haiku is Anthropic's fastest and most affordable model. Great for real-time tasks like chatbots, coding, and data extraction.",
+      "Claude Haiku 3.5 is Anthropic's fastest and most affordable model. Great for real-time tasks like chatbots, coding, and data extraction.",
     docLink: "https://docs.anthropic.com/en/docs/about-claude/models/overview",
     tamboDocLink: "https://docs.tambo.co/models/anthropic#claude-haiku-3-5",
     inputTokenLimit: 200000,

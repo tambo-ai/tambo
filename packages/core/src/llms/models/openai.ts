@@ -20,7 +20,32 @@ const reasoningParameters: LlmParameterMetadata = {
     example: "auto",
   },
 };
+// Models are sorted by version (newest first). Minor versions (e.g., 5.1) are
+// considered newer than their base versions (e.g., 5), so 5.1 comes before 5.
 export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
+  "gpt-5.1": {
+    apiName: "gpt-5.1",
+    displayName: "gpt-5.1 Thinking",
+    status: "tested",
+    notes:
+      "GPT-5.1 Thinking with adaptive reasoning. Dynamically varies thinking time based on task complexity for better token efficiency",
+    docLink: "https://platform.openai.com/docs/guides/latest-model",
+    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-1-thinking",
+    inputTokenLimit: 400000,
+    modelSpecificParams: reasoningParameters,
+  },
+  "gpt-5.1-chat-latest": {
+    apiName: "gpt-5.1-chat-latest",
+    displayName: "gpt-5.1 Instant",
+    status: "tested",
+    notes:
+      "GPT-5.1 Instant - warmer, more conversational model with adaptive reasoning. Defaults to 'none' reasoning effort for latency-sensitive workloads",
+    docLink: "https://platform.openai.com/docs/guides/latest-model",
+    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-1-instant",
+    inputTokenLimit: 400000,
+    modelSpecificParams: reasoningParameters,
+    isDefaultModel: true,
+  },
   "gpt-5-2025-08-07": {
     apiName: "gpt-5-2025-08-07",
     displayName: "gpt-5",
@@ -55,29 +80,6 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-nano",
     inputTokenLimit: 400000,
     modelSpecificParams: reasoningParameters,
-  },
-  "gpt-5.1": {
-    apiName: "gpt-5.1",
-    displayName: "gpt-5.1 Thinking",
-    status: "tested",
-    notes:
-      "GPT-5.1 Thinking with adaptive reasoning. Dynamically varies thinking time based on task complexity for better token efficiency",
-    docLink: "https://platform.openai.com/docs/guides/latest-model",
-    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-1-thinking",
-    inputTokenLimit: 400000,
-    modelSpecificParams: reasoningParameters,
-  },
-  "gpt-5.1-chat-latest": {
-    apiName: "gpt-5.1-chat-latest",
-    displayName: "gpt-5.1 Instant",
-    status: "tested",
-    notes:
-      "GPT-5.1 Instant - warmer, more conversational model with adaptive reasoning. Defaults to 'none' reasoning effort for latency-sensitive workloads",
-    docLink: "https://platform.openai.com/docs/guides/latest-model",
-    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-1-instant",
-    inputTokenLimit: 400000,
-    modelSpecificParams: reasoningParameters,
-    isDefaultModel: true,
   },
   "gpt-4.1-2025-04-14": {
     apiName: "gpt-4.1-2025-04-14",

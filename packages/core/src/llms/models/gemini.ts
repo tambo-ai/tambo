@@ -16,6 +16,8 @@ const reasoningParameters: LlmParameterMetadata = {
   },
 };
 
+// Models are sorted by version (newest first). Minor versions (e.g., 2.5) are
+// considered newer than their base versions (e.g., 2.0), so 2.5 comes before 2.0.
 export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
   "gemini-3-pro-preview": {
     apiName: "gemini-3-pro-preview",
