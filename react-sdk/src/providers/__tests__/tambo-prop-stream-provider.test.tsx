@@ -53,31 +53,38 @@ const createMockMessage = (
 // Helper function to create mock CombinedTamboThreadContextProps
 const createMockThreadContext = (
   overrides: Partial<CombinedTamboThreadContextProps> = {},
-): CombinedTamboThreadContextProps => ({
-  // TamboThreadContextProps properties
-  thread: {
+): CombinedTamboThreadContextProps => {
+  const mockThread = {
     id: "test-thread",
     projectId: "test-project",
     messages: [],
     name: "Test Thread",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  },
-  switchCurrentThread: jest.fn(),
-  startNewThread: jest.fn(),
-  updateThreadName: jest.fn(),
-  generateThreadName: jest.fn(),
-  addThreadMessage: jest.fn(),
-  updateThreadMessage: jest.fn(),
-  cancel: jest.fn(),
-  streaming: false,
-  sendThreadMessage: jest.fn(),
-  // GenerationStageContextProps properties
-  generationStage: GenerationStage.IDLE,
-  generationStatusMessage: "",
-  isIdle: true,
-  ...overrides,
-});
+  };
+  return {
+    // TamboThreadContextProps properties
+    thread: mockThread,
+    currentThreadId: mockThread.id,
+    currentThread: mockThread,
+    threadMap: { [mockThread.id]: mockThread },
+    setThreadMap: jest.fn(),
+    switchCurrentThread: jest.fn(),
+    startNewThread: jest.fn(),
+    updateThreadName: jest.fn(),
+    generateThreadName: jest.fn(),
+    addThreadMessage: jest.fn(),
+    updateThreadMessage: jest.fn(),
+    cancel: jest.fn(),
+    streaming: false,
+    sendThreadMessage: jest.fn(),
+    // GenerationStageContextProps properties
+    generationStage: GenerationStage.IDLE,
+    generationStatusMessage: "",
+    isIdle: true,
+    ...overrides,
+  };
+};
 
 // Helper component to test hook usage
 const TestHookComponent: React.FC<{ testKey?: string }> = ({
