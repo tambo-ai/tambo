@@ -77,7 +77,7 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
   // Return the current thread's token or null
   const selectedToken = useMemo(() => {
     return currentThread?.mcpAccessToken ?? null;
-  }, [currentThread?.mcpAccessToken]);
+  }, [currentThread]);
 
   // Fetch thread-specific token when switching to a thread without one
   // Always fetch to support server-side MCP servers (not just client-side)
