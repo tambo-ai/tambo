@@ -20,7 +20,7 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
   "gemini-3-pro-preview": {
     apiName: "gemini-3-pro-preview",
     displayName: "Gemini 3 Pro Preview",
-    status: "untested",
+    status: "tested",
     notes:
       "Google's most powerful model as of November 2025, best for multimodal understanding and agentic use cases",
     docLink:
