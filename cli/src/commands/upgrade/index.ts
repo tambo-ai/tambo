@@ -40,7 +40,9 @@ export async function handleUpgrade(
         `  ${chalk.cyan("tambo upgrade --yes --prefix src/components/ui")}       ${chalk.dim("# Custom components path")}\n` +
         `  ${chalk.cyan("tambo upgrade --yes --skip-agent-docs")}                ${chalk.dim("# Skip docs updates")}\n` +
         `  ${chalk.cyan("tambo upgrade --yes --legacy-peer-deps")}               ${chalk.dim("# Fix peer dep conflicts")}\n\n` +
-        `${chalk.dim("Or run this command in an interactive terminal (not in CI/CD).")}`,
+        chalk.dim(
+          "Or run this command in an interactive terminal (not in CI/CD).",
+        ),
     );
   }
 
