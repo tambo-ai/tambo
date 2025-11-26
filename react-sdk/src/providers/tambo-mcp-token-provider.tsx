@@ -10,7 +10,6 @@ import React, {
 } from "react";
 import { TamboThread } from "../model/tambo-thread";
 import { TamboClientContext } from "./tambo-client-provider";
-import { useTamboMcpServerInfos } from "./tambo-registry-provider";
 import { TamboThreadContext } from "./tambo-thread-provider";
 
 export interface TamboMcpTokenContextProps {
@@ -40,8 +39,10 @@ const TamboMcpTokenContext = createContext<
  * 3. Else → null
  *
  * Token fetching:
- * - Threadless token: fetched when MCP servers configured and no current thread
- * - Thread-specific token: fetched when switching to thread without token
+ * - Threadless token: always fetched when no current thread (supports server-side MCP servers)
+ * - Thread-specific token: always fetched when switching to thread without token
+ * - Tokens are fetched regardless of client-side MCP server configuration
+ *   to support server-side MCP servers that are not visible to the provider
  * @internal
  * @param props - The provider props
  * @param props.children - The children to wrap
@@ -58,8 +59,6 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
   }
   const { client, contextKey } = clientContext;
   const tamboBaseUrl = client.baseURL;
-
-  const mcpServerInfos = useTamboMcpServerInfos();
 
   // Optional thread context - may not be available in all contexts
   const threadContext = useContext(TamboThreadContext);
@@ -80,8 +79,6 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
   // Track previous thread ID to detect thread switches
   const previousThreadId = useRef<string | null>(null);
 
-  const hasMcpServers = mcpServerInfos.length > 0;
-
   // Select the appropriate token: prefer thread-specific over threadless
   const selectedToken = useMemo(() => {
     if (currentThread?.mcpAccessToken) {
@@ -91,9 +88,9 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
   }, [currentThread?.mcpAccessToken, threadlessMcpToken]);
 
   // Effect 1: Fetch threadless token on mount when no current thread
+  // Always fetch to support server-side MCP servers (not just client-side)
   useEffect(() => {
     if (
-      hasMcpServers &&
       !currentThreadId &&
       !threadlessMcpToken &&
       !hasAttemptedThreadlessFetch.current
@@ -111,15 +108,15 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
       };
       void fetchThreadlessToken();
     }
-  }, [hasMcpServers, currentThreadId, threadlessMcpToken, client, contextKey]);
+  }, [currentThreadId, threadlessMcpToken, client, contextKey]);
 
   // Effect 2: Fetch thread-specific token when switching to a thread without one
+  // Always fetch to support server-side MCP servers (not just client-side)
   useEffect(() => {
     const hasThreadChanged = previousThreadId.current !== currentThreadId;
     previousThreadId.current = currentThreadId;
 
     if (
-      hasMcpServers &&
       hasThreadChanged &&
       currentThreadId &&
       currentThread &&
@@ -156,14 +153,7 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
       };
       void fetchThreadToken();
     }
-  }, [
-    hasMcpServers,
-    currentThreadId,
-    currentThread,
-    client,
-    contextKey,
-    setThreadMap,
-  ]);
+  }, [currentThreadId, currentThread, client, contextKey, setThreadMap]);
 
   const value = useMemo(
     () => ({ mcpAccessToken: selectedToken, tamboBaseUrl }),
