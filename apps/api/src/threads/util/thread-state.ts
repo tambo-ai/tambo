@@ -284,11 +284,10 @@ export async function addAssistantResponse(
  * These fields are used to preserve tool call information during streaming
  * before it's moved to the outer fields on the final chunk.
  */
-export type LegacyComponentDecisionWithInternalFields =
-  LegacyComponentDecision & {
-    __toolCallRequest?: ToolCallRequest;
-    __toolCallId?: string;
-  };
+export type DecisionWithInternalToolInfo = LegacyComponentDecision & {
+  __toolCallRequest?: ToolCallRequest;
+  __toolCallId?: string;
+};
 
 /**
  * Processes a stream of component decisions to handle tool call information.
@@ -311,10 +310,9 @@ export type LegacyComponentDecisionWithInternalFields =
  */
 export async function* fixStreamedToolCalls(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
-): AsyncIterableIterator<LegacyComponentDecisionWithInternalFields> {
+): AsyncIterableIterator<DecisionWithInternalToolInfo> {
   let currentDecisionId: string | undefined = undefined;
-  let currentDecision: LegacyComponentDecisionWithInternalFields | undefined =
-    undefined;
+  let currentDecision: DecisionWithInternalToolInfo | undefined = undefined;
   let previousToolCallRequest: ToolCallRequest | undefined = undefined;
   let previousToolCallId: string | undefined = undefined;
 
@@ -345,7 +343,7 @@ export async function* fixStreamedToolCalls(
 
     // During streaming, strip tool call info from outer fields but preserve it for component
     // Store original values in hidden properties that updateThreadMessageFromLegacyDecision can access
-    const streamingChunk: LegacyComponentDecisionWithInternalFields = {
+    const streamingChunk: DecisionWithInternalToolInfo = {
       ...chunk,
       toolCallRequest: undefined, // Strip from outer fields during streaming
       toolCallId: undefined, // Strip from outer fields during streaming
@@ -362,7 +360,7 @@ export async function* fixStreamedToolCalls(
   // For the final chunk, if there's a tool call, put it on outer fields
   // (it will also be in component via updateThreadMessageFromLegacyDecision)
   if (currentDecision) {
-    const finalChunk: LegacyComponentDecisionWithInternalFields = {
+    const finalChunk: DecisionWithInternalToolInfo = {
       ...currentDecision,
       // Put tool call on outer fields for complete tool calls
       // It will also be in component field via updateThreadMessageFromLegacyDecision
@@ -375,7 +373,7 @@ export async function* fixStreamedToolCalls(
 
 export function updateThreadMessageFromLegacyDecision(
   initialMessage: ThreadMessage,
-  chunk: LegacyComponentDecisionWithInternalFields,
+  chunk: DecisionWithInternalToolInfo,
 ): ThreadMessage {
   // we explicitly remove certain fields from the component decision to avoid
   // duplication, because they appear in the thread message
