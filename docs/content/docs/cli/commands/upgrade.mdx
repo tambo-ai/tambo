@@ -4,13 +4,13 @@ title: upgrade
 
 `npx tambo upgrade`
 
-Upgrades your entire tambo project including npm packages, components, and cursor rules to the latest versions.
+Upgrades your entire tambo project including npm packages, components, and AI coding assistant guidance to the latest versions.
 
 **What it upgrades:**
 
 1. **NPM Packages**: Updates known safe packages (UI components, utilities, and tambo dependencies)
 2. **Components**: Updates all installed tambo components to latest versions
-3. **Cursor Rules**: Updates AI coding assistant rules for better development experience
+3. **Agent Docs**: Updates `AGENTS.md` and `CLAUDE.md` for AI coding assistants and removes legacy cursor rules
 4. **Configuration**: Updates CSS variables and Tailwind configuration as needed
 
 **Examples:**
@@ -173,38 +173,34 @@ npx tambo upgrade
 
 See the [migrate command documentation](/cli/commands/migrate) for details.
 
-## Cursor Rules Updates
+## Agent Docs and Legacy Cursor Rules
 
-The upgrade command updates your `.cursor/rules` file (or `.cursorrules`) to ensure your AI coding assistant has the latest best practices and patterns:
+Recent versions of the CLI use `AGENTS.md` and `CLAUDE.md` files for AI coding assistant guidance instead of cursor-specific rule files. These work across multiple AI tools (Claude Code, Cursor, Windsurf, etc.).
+
+During upgrade, the CLI will prompt:
 
 ```bash
-✓ Checking cursor rules...
-ℹ Found cursor rules at: .cursor/rules
-? Update cursor rules to latest version? (Y/n)
+? Found legacy tambo-ai.mdc cursor rules. Replace with AGENTS.md/CLAUDE.md? (Y/n)
+# or if no legacy rules exist:
+? Add/update AGENTS.md and CLAUDE.md guidance for LLMs? (Y/n)
 ```
 
-**What gets updated:**
+**What happens:**
 
-- Component usage patterns and best practices
-- Updated API references
-- New features and capabilities
-- Template-specific guidance (standard vs analytics)
-
-**Files checked (in order):**
-
-1. `.cursor/rules`
-2. `.cursorrules`
-
-If neither file exists, this step is skipped.
+- Removes the legacy `.cursor/rules/tambo-ai.mdc` file if it was created by older Tambo templates
+- Cleans up an empty `.cursor/rules/` directory (but keeps `.cursor/` itself)
+- Leaves any other cursor rule files (including `.cursorrules` and custom `.cursor/rules/*.md`) untouched
+- Creates or updates `AGENTS.md` and `CLAUDE.md` with current Tambo guidance
 
 **Skip this step:**
 
 ```bash
-# Skip cursor rules update entirely
+# Skip agent docs update entirely
 npx tambo upgrade --yes --skip-agent-docs
 ```
 
-<Callout type="info" title="Template Detection">
-  The CLI detects your project template (standard or analytics) from your
-  README.md and fetches the appropriate cursor rules from GitHub.
+<Callout type="info" title="Cross-Tool Compatibility">
+  The `AGENTS.md` and `CLAUDE.md` files provide guidance that works with Claude
+  Code, Cursor, Windsurf, and other AI coding assistants, replacing the
+  cursor-specific rule files from older versions.
 </Callout>
