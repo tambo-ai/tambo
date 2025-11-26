@@ -49,7 +49,7 @@ case $choice in
   3)
     echo "Starting cloud only (web + api)..."
     start_supabase_if_needed
-    npx turbo dev --filter=web --filter=api
+    npx turbo dev --filter=@tambo-ai-cloud/web --filter=@tambo-ai-cloud/api
     ;;
   4)
     echo "Starting showcase only..."
@@ -62,12 +62,12 @@ case $choice in
   6)
     echo "Starting web only..."
     start_supabase_if_needed
-    npx turbo dev --filter=web
+    npx turbo dev --filter=@tambo-ai-cloud/web
     ;;
   7)
     echo "Starting API only..."
     start_supabase_if_needed
-    npx turbo dev --filter=api
+    npx turbo dev --filter=@tambo-ai-cloud/api
     ;;
   *)
     echo "Invalid choice. Exiting."
