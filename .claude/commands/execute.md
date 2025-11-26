@@ -1,3 +1,7 @@
+---
+description: Orchestrate parallel implementation through subagents
+---
+
 **Execution Orchestrator**
 
 **Task:** $ARGUMENTS
