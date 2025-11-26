@@ -302,31 +302,34 @@ export async function* fixStreamedToolCalls(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   let currentDecisionId: string | undefined = undefined;
-  let currentToolCallRequest: ToolCallRequest | undefined = undefined;
-  let currentToolCallId: string | undefined = undefined;
   let currentDecision: LegacyComponentDecision | undefined = undefined;
-  let finalToolCallRequest: ToolCallRequest | undefined = undefined;
-  let finalToolCallId: string | undefined = undefined;
+  let previousToolCallRequest: ToolCallRequest | undefined = undefined;
+  let previousToolCallId: string | undefined = undefined;
 
   for await (const chunk of stream) {
     if (currentDecision?.id && currentDecisionId !== chunk.id) {
       // we're on to a new message, so emit the previous one with complete tool call info
       yield {
         ...currentDecision,
-        toolCallRequest: finalToolCallRequest,
-        toolCallId: finalToolCallId,
+        toolCallRequest: previousToolCallRequest,
+        toolCallId: previousToolCallId,
       };
       // and clear the current state
-      currentToolCallRequest = undefined;
-      currentToolCallId = undefined;
-      finalToolCallRequest = undefined;
-      finalToolCallId = undefined;
+      previousToolCallRequest = undefined;
+      previousToolCallId = undefined;
     }
 
-    // Track the tool call info
+    // Track the tool call info from the incoming chunk
     currentDecisionId = chunk.id;
-    currentToolCallId = chunk.toolCallId;
-    currentToolCallRequest = chunk.toolCallRequest;
+    const incomingToolCallId = chunk.toolCallId;
+    const incomingToolCallRequest = chunk.toolCallRequest;
+
+    // Store the tool call info for when we need to emit the final chunk
+    // (either when ID changes or at end of stream)
+    if (incomingToolCallRequest) {
+      previousToolCallRequest = incomingToolCallRequest;
+      previousToolCallId = incomingToolCallId;
+    }
 
     // During streaming, strip tool call info from outer fields but preserve it for component
     // Store original values in hidden properties that updateThreadMessageFromLegacyDecision can access
@@ -354,8 +357,8 @@ export async function* fixStreamedToolCalls(
       ...currentDecision,
       // Put tool call on outer fields for complete tool calls
       // It will also be in component field via updateThreadMessageFromLegacyDecision
-      toolCallRequest: currentToolCallRequest,
-      toolCallId: currentToolCallId,
+      toolCallRequest: previousToolCallRequest,
+      toolCallId: previousToolCallId,
     };
     yield finalChunk;
   }

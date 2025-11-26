@@ -272,10 +272,9 @@ describe("Thread State", () => {
 
       const result = await collect(fixStreamedToolCalls(makeStream()));
 
-      // New behavior: no synthesized final emission unless the final chunk
-      // itself contains the tool call (id does not change in this test)
+      // New behavior: final chunk has tool call info on outer fields
       expect(result).toHaveLength(4);
-      // all streamed chunks should have tool calls withheld
+      // all streamed chunks should have tool calls withheld from outer fields
       expect(result[0].message).toBe("part1");
       expect(result[0].toolCallRequest).toBeUndefined();
       expect(result[1].message).toBe("part2");
@@ -283,8 +282,11 @@ describe("Thread State", () => {
       expect(result[2].message).toBe("part3");
       expect(result[2].toolCallRequest).toBeUndefined();
 
-      // TODO: fix the implementation so we're not emitting the same chunk twice
-      expect(result[3]).toEqual(result[2]);
+      // Final chunk should have tool call info on outer fields
+      expect(result[3].message).toBe("part3");
+      expect(result[3].toolCallRequest).toBeDefined();
+      expect(result[3].toolCallRequest?.toolName).toBe("toolA");
+      expect(result[3].toolCallId).toBe("tc-1");
     });
 
     it("emits final tool call when message id changes, then continues streaming", async () => {
