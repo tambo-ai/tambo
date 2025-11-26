@@ -212,6 +212,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ tambo/
+        │     ├─ AGENTS.md
         │     └─ message.tsx
         └─ lib/
            └─ utils.ts"
@@ -248,6 +249,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ tambo/
+        │     ├─ AGENTS.md
         │     ├─ form.tsx
         │     └─ message.tsx
         └─ lib/
@@ -303,6 +305,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ tambo/
+        │     ├─ AGENTS.md
         │     ├─ form.tsx
         │     └─ message.tsx
         └─ lib/
@@ -333,6 +336,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ tambo/
+        │     ├─ AGENTS.md
         │     └─ message.tsx
         └─ lib/
            └─ utils.ts"
@@ -378,6 +382,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ tambo/
+        │     ├─ AGENTS.md
         │     └─ component-a.tsx
         └─ lib/
            └─ utils.ts"
@@ -405,6 +410,8 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ ui/
+        │     ├─ tambo/
+        │     │  └─ AGENTS.md
         │     ├─ form.tsx
         │     └─ message.tsx
         └─ lib/
@@ -470,6 +477,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  ├─ tambo/
+        │  │  ├─ AGENTS.md
         │  │  ├─ form.tsx
         │  │  └─ graph.tsx
         │  └─ ui/
@@ -500,6 +508,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ tambo/
+        │     ├─ AGENTS.md
         │     └─ message.tsx
         └─ lib/
            └─ utils.ts"
@@ -558,6 +567,8 @@ describe("handleAddComponents", () => {
         .toMatchInlineSnapshot(`
         "custom/
         └─ path/
+           ├─ tambo/
+           │  └─ AGENTS.md
            └─ message.tsx"
       `);
       expect(toTreeSync(vol, { dir: "/mock-project/lib" }))
@@ -591,6 +602,7 @@ describe("handleAddComponents", () => {
         "components/
         └─ ui/
            └─ tambo/
+              ├─ AGENTS.md
               └─ message.tsx"
       `);
       expect(toTreeSync(vol, { dir: "/mock-project/lib" }))
@@ -652,6 +664,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ tambo/
+        │     ├─ AGENTS.md
         │     └─ message.tsx
         └─ lib/
            └─ utils.ts"
@@ -726,6 +739,7 @@ describe("handleAddComponents", () => {
         "src/
         ├─ components/
         │  └─ tambo/
+        │     ├─ AGENTS.md
         │     └─ complex-component.tsx
         └─ lib/
            ├─ helper.ts
