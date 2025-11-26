@@ -20,7 +20,8 @@
     "*.mjs",
     ".next/types/**/*.ts",
     "types/*.d.ts",
-    "test/__mocks__/*.ts"
+    "__mocks__/*.ts",
+    "__fixtures__/*.ts"
   ],
   "exclude": ["node_modules", ".next"]
 }

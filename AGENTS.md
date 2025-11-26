@@ -311,6 +311,13 @@ When working across multiple packages:
 - **Documentation testing** via example code validation
 - **Backend e2e tests** for controllers/modules via Jest + supertest
 
+### Test File Layout
+
+- **File names**: every test ends with `.test.ts` or `.test.tsx` (no `.spec` or other suffixes).
+- **Unit tests**: live beside the file they cover (e.g. `foo.ts` has `foo.test.ts` in the same directory, not under `__tests__`).
+- **Integration tests**: the only tests that stay in a `__tests__` folder, and the filename must describe the scenario (never just mirror another file's name).
+- **Fixtures & mocks**: keep shared helpers in a `__fixtures__` or `__mocks__` directory at the package's source root (e.g. `apps/web/__mocks__`), never nested inside feature folders.
+
 ### Pre-commit/PR Verification Checklist
 
 Run these commands before commits/PRs:

@@ -9,7 +9,7 @@ export default tseslint.config(
       "next-env.d.ts",
       ".next/**",
       "coverage/**",
-      "test/__mocks__/fileMock.cjs",
+      "__mocks__/fileMock.cjs",
     ],
   },
   {
