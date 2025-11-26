@@ -14,7 +14,6 @@ import { SQL } from "drizzle-orm";
 import { PgTable, PgTransaction } from "drizzle-orm/pg-core";
 import {
   addUserMessage,
-  DecisionWithInternalToolInfo,
   finishInProgressMessage,
   fixStreamedToolCalls,
   updateGenerationStage,
@@ -193,7 +192,7 @@ describe("Thread State", () => {
       expect(threadMessage.actionType).toBeUndefined();
     });
 
-    it("should set tool call fields when chunk includes tool call", () => {
+    it("should set outer tool call fields when chunk includes tool call and isToolCallFinished is true", () => {
       const toolCallRequest = {
         toolName: "myTool",
         parameters: [{ parameterName: "param1", parameterValue: "value1" }],
@@ -208,6 +207,7 @@ describe("Thread State", () => {
         reasoning: ["test reasoning"],
         toolCallRequest,
         toolCallId: "tool-123",
+        isToolCallFinished: true,
       };
 
       const mockInProgressMessage: ThreadMessage = {
@@ -232,26 +232,29 @@ describe("Thread State", () => {
       expect(threadMessage.toolCallRequest).toEqual(toolCallRequest);
       expect(threadMessage.tool_call_id).toBe("tool-123");
       expect(threadMessage.actionType).toBeDefined();
+
+      // Tool call info should also be in component field
+      expect(threadMessage.component?.toolCallRequest).toEqual(toolCallRequest);
+      expect(threadMessage.component?.toolCallId).toBe("tool-123");
     });
 
-    it("should read tool call info from internal fields when outer fields are undefined", () => {
+    it("should include tool call info in component field but not set outer fields when isToolCallFinished is false", () => {
       const toolCallRequest = {
         toolName: "myTool",
         parameters: [{ parameterName: "param1", parameterValue: "value1" }],
       };
 
-      // Simulate a streaming chunk with internal fields but no outer fields
-      const mockDecisionWithInternalFields: DecisionWithInternalToolInfo = {
+      // Simulate a streaming chunk with tool call info but not finished
+      const mockDecisionInProgress: LegacyComponentDecision = {
         id: "dec-1",
-        message: "With tool in internal fields",
+        message: "With tool in progress",
         componentName: "test-component",
         props: {},
         componentState: {},
         reasoning: ["test reasoning"],
-        toolCallRequest: undefined, // Outer field is undefined
-        toolCallId: undefined, // Outer field is undefined
-        __toolCallRequest: toolCallRequest, // Internal field has the value
-        __toolCallId: "tool-456", // Internal field has the value
+        toolCallRequest, // Tool call info is present
+        toolCallId: "tool-456",
+        isToolCallFinished: false, // But not finished yet
       };
 
       const mockInProgressMessage: ThreadMessage = {
@@ -270,14 +273,14 @@ describe("Thread State", () => {
 
       const threadMessage = updateThreadMessageFromLegacyDecision(
         mockInProgressMessage,
-        mockDecisionWithInternalFields,
+        mockDecisionInProgress,
       );
 
-      // Should read from internal fields for component
+      // Should include tool call info in component field
       expect(threadMessage.component?.toolCallRequest).toEqual(toolCallRequest);
       expect(threadMessage.component?.toolCallId).toBe("tool-456");
 
-      // Should NOT set outer fields when only internal fields are present
+      // Should NOT set outer fields when isToolCallFinished is false
       // (this indicates it's a streaming chunk, not a final chunk)
       expect(threadMessage.toolCallRequest).toBeUndefined();
       expect(threadMessage.tool_call_id).toBeUndefined();
@@ -308,78 +311,7 @@ describe("Thread State", () => {
       return out;
     }
 
-    it("withholds tool calls until final chunk for a message id", async () => {
-      async function* makeStream() {
-        yield createDecision("a", "part1");
-        yield createDecision("a", "part2", {
-          id: "tc-1",
-          request: {
-            toolName: "toolA",
-            parameters: [],
-          },
-        });
-        yield createDecision("a", "part3");
-      }
-
-      const result = await collect(fixStreamedToolCalls(makeStream()));
-
-      // New behavior: final chunk has tool call info on outer fields
-      expect(result).toHaveLength(4);
-      // all streamed chunks should have tool calls withheld from outer fields
-      expect(result[0].message).toBe("part1");
-      expect(result[0].toolCallRequest).toBeUndefined();
-      expect(result[1].message).toBe("part2");
-      expect(result[1].toolCallRequest).toBeUndefined();
-      expect(result[2].message).toBe("part3");
-      expect(result[2].toolCallRequest).toBeUndefined();
-
-      // Final chunk should have tool call info on outer fields
-      expect(result[3].message).toBe("part3");
-      expect(result[3].toolCallRequest).toBeDefined();
-      expect(result[3].toolCallRequest?.toolName).toBe("toolA");
-      expect(result[3].toolCallId).toBe("tc-1");
-    });
-
-    it("emits final tool call when message id changes, then continues streaming", async () => {
-      async function* makeStream() {
-        yield createDecision("a", "a1");
-        yield createDecision("a", "a2", {
-          id: "tc-a",
-          request: { toolName: "toolA", parameters: [] },
-        });
-        // id switch here
-        yield createDecision("b", "b1");
-        yield createDecision("b", "b2", {
-          id: "tc-b",
-          request: { toolName: "toolB", parameters: [] },
-        });
-      }
-
-      const result = await collect(fixStreamedToolCalls(makeStream()));
-
-      // Sequence:
-      // 0: a1 (incomplete)
-      // 1: a2 (incomplete)
-      // 2: synthesized a-final with tool (from tc-a on last a chunk)
-      // 3: b1 (incomplete)
-      // 4: b2 (incomplete)
-      // 5: synthesized b-final with tool (end of stream)
-      expect(result.map((r: any) => r.message)).toEqual([
-        "a1",
-        "a2",
-        "a2",
-        "b1",
-        "b2",
-        "b2",
-      ]);
-
-      expect(result[2].toolCallRequest).toBeDefined();
-      expect(result[2].toolCallId).toBe("tc-a");
-      expect(result[5].toolCallRequest).toBeDefined();
-      expect(result[5].toolCallId).toBe("tc-b");
-    });
-
-    it("should set internal fields on streaming chunks when tool call is present", async () => {
+    it("preserves tool call info in chunks and marks completion status", async () => {
       async function* makeStream() {
         yield createDecision("a", "part1");
         yield createDecision("a", "part2", {
@@ -400,27 +332,135 @@ describe("Thread State", () => {
 
       const result = await collect(fixStreamedToolCalls(makeStream()));
 
-      // Streaming chunks should have internal fields set
-      const streamingChunk1 = result[0];
-      expect(streamingChunk1.toolCallRequest).toBeUndefined();
-      expect(streamingChunk1.__toolCallRequest).toBeUndefined();
+      expect(result).toHaveLength(4);
+      // Streaming chunks preserve tool call info and mark as not finished
+      expect(result[0].message).toBe("part1");
+      expect(result[0].toolCallRequest).toBeUndefined(); // No tool call in this chunk
+      expect(result[0].isToolCallFinished).toBe(false);
 
-      const streamingChunk2 = result[1];
-      expect(streamingChunk2.toolCallRequest).toBeUndefined();
-      expect(streamingChunk2.__toolCallRequest).toBeDefined();
-      expect(streamingChunk2.__toolCallRequest?.toolName).toBe("toolA");
-      expect(streamingChunk2.__toolCallId).toBe("tc-1");
+      expect(result[1].message).toBe("part2");
+      expect(result[1].toolCallRequest).toBeDefined(); // Tool call info preserved
+      expect(result[1].toolCallRequest?.toolName).toBe("toolA");
+      expect(result[1].toolCallId).toBe("tc-1");
+      expect(result[1].toolCallRequest?.parameters).toEqual([]);
+      expect(result[1].isToolCallFinished).toBe(false); // Not finished yet
 
-      const streamingChunk3 = result[2];
-      expect(streamingChunk3.toolCallRequest).toBeUndefined();
-      expect(streamingChunk3.__toolCallRequest).toBeDefined();
-      expect(streamingChunk3.__toolCallRequest?.toolName).toBe("toolA");
-      expect(streamingChunk3.__toolCallRequest?.parameters).toEqual([
+      expect(result[2].message).toBe("part3");
+      expect(result[2].toolCallRequest).toBeDefined();
+      expect(result[2].toolCallRequest?.toolName).toBe("toolA");
+      expect(result[2].toolCallId).toBe("tc-1");
+      expect(result[2].toolCallRequest?.parameters).toEqual([
         { parameterName: "param1", parameterValue: "value1" },
       ]);
-      expect(streamingChunk3.__toolCallId).toBe("tc-1");
+      expect(result[2].isToolCallFinished).toBe(false); // Not finished yet
 
-      // Final chunk should have outer fields
+      // Final chunk has tool call info and is marked as finished
+      expect(result[3].message).toBe("part3");
+      expect(result[3].toolCallRequest).toBeDefined();
+      expect(result[3].toolCallRequest?.toolName).toBe("toolA");
+      expect(result[3].toolCallId).toBe("tc-1");
+      expect(result[3].toolCallRequest?.parameters).toEqual([
+        { parameterName: "param1", parameterValue: "value1" },
+      ]);
+      expect(result[3].isToolCallFinished).toBe(true); // Finished
+    });
+
+    it("emits final chunk when message id changes, then continues streaming", async () => {
+      async function* makeStream() {
+        yield createDecision("a", "a1");
+        yield createDecision("a", "a2", {
+          id: "tc-a",
+          request: { toolName: "toolA", parameters: [] },
+        });
+        // id switch here
+        yield createDecision("b", "b1");
+        yield createDecision("b", "b2", {
+          id: "tc-b",
+          request: { toolName: "toolB", parameters: [] },
+        });
+      }
+
+      const result = await collect(fixStreamedToolCalls(makeStream()));
+
+      // Sequence:
+      // 0: a1 (streaming, no tool call)
+      // 1: a2 (streaming, has tool call, not finished)
+      // 2: a2 final (finished, has tool call)
+      // 3: b1 (streaming, no tool call)
+      // 4: b2 (streaming, has tool call, not finished)
+      // 5: b2 final (finished, has tool call)
+      expect(result.map((r: any) => r.message)).toEqual([
+        "a1",
+        "a2",
+        "a2",
+        "b1",
+        "b2",
+        "b2",
+      ]);
+
+      // Streaming chunks preserve tool call info
+      expect(result[1].toolCallRequest).toBeDefined();
+      expect(result[1].toolCallId).toBe("tc-a");
+      expect(result[1].isToolCallFinished).toBe(false);
+
+      // Final chunk has tool call info and is marked finished
+      expect(result[2].toolCallRequest).toBeDefined();
+      expect(result[2].toolCallId).toBe("tc-a");
+      expect(result[2].isToolCallFinished).toBe(true);
+
+      // Streaming chunks preserve tool call info
+      expect(result[4].toolCallRequest).toBeDefined();
+      expect(result[4].toolCallId).toBe("tc-b");
+      expect(result[4].isToolCallFinished).toBe(false);
+
+      // Final chunk has tool call info and is marked finished
+      expect(result[5].toolCallRequest).toBeDefined();
+      expect(result[5].toolCallId).toBe("tc-b");
+      expect(result[5].isToolCallFinished).toBe(true);
+    });
+
+    it("should preserve tool call info in streaming chunks and mark completion status", async () => {
+      async function* makeStream() {
+        yield createDecision("a", "part1");
+        yield createDecision("a", "part2", {
+          id: "tc-1",
+          request: {
+            toolName: "toolA",
+            parameters: [],
+          },
+        });
+        yield createDecision("a", "part3", {
+          id: "tc-1",
+          request: {
+            toolName: "toolA",
+            parameters: [{ parameterName: "param1", parameterValue: "value1" }],
+          },
+        });
+      }
+
+      const result = await collect(fixStreamedToolCalls(makeStream()));
+
+      // Streaming chunks preserve tool call info and mark as not finished
+      const streamingChunk1 = result[0];
+      expect(streamingChunk1.toolCallRequest).toBeUndefined(); // No tool call in this chunk
+      expect(streamingChunk1.isToolCallFinished).toBe(false);
+
+      const streamingChunk2 = result[1];
+      expect(streamingChunk2.toolCallRequest).toBeDefined(); // Tool call info preserved
+      expect(streamingChunk2.toolCallRequest?.toolName).toBe("toolA");
+      expect(streamingChunk2.toolCallId).toBe("tc-1");
+      expect(streamingChunk2.isToolCallFinished).toBe(false); // Not finished yet
+
+      const streamingChunk3 = result[2];
+      expect(streamingChunk3.toolCallRequest).toBeDefined(); // Tool call info preserved (updated)
+      expect(streamingChunk3.toolCallRequest?.toolName).toBe("toolA");
+      expect(streamingChunk3.toolCallRequest?.parameters).toEqual([
+        { parameterName: "param1", parameterValue: "value1" },
+      ]);
+      expect(streamingChunk3.toolCallId).toBe("tc-1");
+      expect(streamingChunk3.isToolCallFinished).toBe(false); // Not finished yet
+
+      // Final chunk has tool call info and is marked as finished
       const finalChunk = result[3];
       expect(finalChunk.toolCallRequest).toBeDefined();
       expect(finalChunk.toolCallRequest?.toolName).toBe("toolA");
@@ -428,6 +468,7 @@ describe("Thread State", () => {
         { parameterName: "param1", parameterValue: "value1" },
       ]);
       expect(finalChunk.toolCallId).toBe("tc-1");
+      expect(finalChunk.isToolCallFinished).toBe(true); // Finished
     });
   });
 

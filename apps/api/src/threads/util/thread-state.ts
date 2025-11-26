@@ -280,20 +280,11 @@ export async function addAssistantResponse(
 }
 
 /**
- * Type for LegacyComponentDecision with internal fields used during streaming.
- * These fields are used to preserve tool call information during streaming
- * before it's moved to the outer fields on the final chunk.
- */
-export type DecisionWithInternalToolInfo = LegacyComponentDecision & {
-  __toolCallRequest?: ToolCallRequest;
-  __toolCallId?: string;
-};
-
-/**
  * Processes a stream of component decisions to handle tool call information.
  *
- * For in-progress tool calls, the tool call info is kept in the component field.
- * For complete tool calls, the tool call info is moved to the outer toolCallRequest field.
+ * This function preserves tool call info (even if incomplete)in chunks during streaming and uses the
+ * `isToolCallFinished` flag to indicate completion status. Sets to false until the final chunk, when it is set to true.
+ *
  *
  * Messages will come in from the LLM or agent as a stream of component
  * decisions, as a flat stream or messages, even though there may be more than
@@ -310,9 +301,9 @@ export type DecisionWithInternalToolInfo = LegacyComponentDecision & {
  */
 export async function* fixStreamedToolCalls(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
-): AsyncIterableIterator<DecisionWithInternalToolInfo> {
+): AsyncIterableIterator<LegacyComponentDecision> {
   let currentDecisionId: string | undefined = undefined;
-  let currentDecision: DecisionWithInternalToolInfo | undefined = undefined;
+  let currentDecision: LegacyComponentDecision | undefined = undefined;
   let previousToolCallRequest: ToolCallRequest | undefined = undefined;
   let previousToolCallId: string | undefined = undefined;
 
@@ -323,6 +314,7 @@ export async function* fixStreamedToolCalls(
         ...currentDecision,
         toolCallRequest: previousToolCallRequest,
         toolCallId: previousToolCallId,
+        isToolCallFinished: true,
       };
       // and clear the current state
       previousToolCallRequest = undefined;
@@ -341,31 +333,24 @@ export async function* fixStreamedToolCalls(
       previousToolCallId = incomingToolCallId;
     }
 
-    // During streaming, strip tool call info from outer fields but preserve it for component
-    // Store original values in hidden properties that updateThreadMessageFromLegacyDecision can access
-    const streamingChunk: DecisionWithInternalToolInfo = {
+    const streamingChunk: LegacyComponentDecision = {
       ...chunk,
-      toolCallRequest: undefined, // Strip from outer fields during streaming
-      toolCallId: undefined, // Strip from outer fields during streaming
-      // Store original values for component field access
-      __toolCallRequest: chunk.toolCallRequest,
-      __toolCallId: chunk.toolCallId,
+      isToolCallFinished: false,
     };
 
     currentDecision = streamingChunk;
     yield streamingChunk;
   }
 
-  // account for the last iteration - this is the final chunk
-  // For the final chunk, if there's a tool call, put it on outer fields
-  // (it will also be in component via updateThreadMessageFromLegacyDecision)
+  // Account for the last iteration - this is the final chunk.
+  // For the final chunk, preserve tool call info and mark as finished.
+
   if (currentDecision) {
-    const finalChunk: DecisionWithInternalToolInfo = {
+    const finalChunk: LegacyComponentDecision = {
       ...currentDecision,
-      // Put tool call on outer fields for complete tool calls
-      // It will also be in component field via updateThreadMessageFromLegacyDecision
       toolCallRequest: previousToolCallRequest,
       toolCallId: previousToolCallId,
+      isToolCallFinished: true,
     };
     yield finalChunk;
   }
@@ -373,22 +358,11 @@ export async function* fixStreamedToolCalls(
 
 export function updateThreadMessageFromLegacyDecision(
   initialMessage: ThreadMessage,
-  chunk: DecisionWithInternalToolInfo,
+  chunk: LegacyComponentDecision,
 ): ThreadMessage {
   // we explicitly remove certain fields from the component decision to avoid
   // duplication, because they appear in the thread message
-  const { reasoning, ...simpleDecisionChunk } = chunk;
-
-  // Get tool call info - check both outer fields and hidden properties (for streaming chunks)
-  const toolCallRequest = chunk.toolCallRequest ?? chunk.__toolCallRequest;
-  const toolCallId = chunk.toolCallId ?? chunk.__toolCallId;
-
-  // Always include tool call info in component field if present
-  const componentWithToolCall: LegacyComponentDecision = {
-    ...simpleDecisionChunk,
-    toolCallRequest,
-    toolCallId,
-  };
+  const { reasoning, isToolCallFinished, ...simpleDecisionChunk } = chunk;
 
   const currentThreadMessage: ThreadMessage = {
     ...initialMessage,
@@ -399,17 +373,13 @@ export function updateThreadMessageFromLegacyDecision(
         text: chunk.message,
       },
     ],
-    component: componentWithToolCall,
+    component: simpleDecisionChunk,
     reasoning: reasoning,
     reasoningDurationMS: chunk.reasoningDurationMS,
   };
 
-  // Only set outer tool call fields if tool call is present on outer fields of chunk
-  // fixStreamedToolCalls ensures:
-  // - During streaming: tool call info NOT on outer fields (stored in __toolCallRequest)
-  // - On final chunk: tool call info ON outer fields (chunk.toolCallRequest exists)
-  // So if chunk.toolCallRequest exists (not from hidden property), it's complete
-  if (chunk.toolCallRequest) {
+  // Only set outer tool call fields if tool call is finished.
+  if (isToolCallFinished && chunk.toolCallRequest) {
     currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
     currentThreadMessage.tool_call_id = chunk.toolCallId;
     currentThreadMessage.actionType = ActionType.ToolCall;
