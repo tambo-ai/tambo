@@ -6,8 +6,8 @@ Guidelines for Claude Code (claude.ai/code) when touching this repo.
 
 ## Three Things to Remember
 
-1. **Follow @AGENTS.md.** It describes the Turborepo layout, command map, coding standards, doc rules, Charlie review flow, MCP notes, etc.
-2. **Use the workspace scripts listed in @AGENTS.md.** `npm run dev`, `npm run lint`, `npm run check-types`, `npm test`, `npm run db:*`, and the Docker helpers in `scripts/cloud/` are the source of truth.
-3. **Defer to @AGENTS.md for anything unclear.** If instructions conflict, @AGENTS.md wins; otherwise ask the user.
+1. Follow that doc for everything: repo layout, commands, coding standards, doc rules, Charlie workflow, MCP guidance, etc.
+2. Use the workspace scripts it lists (`npm run dev`, `npm run lint`, `npm run check-types`, `npm test`, `npm run db:*`, Docker helpers in `scripts/cloud/`, …).
+3. Defer to it whenever instructions collide; if something’s still unclear, ask the user.
 
-That’s it—stay minimal here so every agent gets the same authoritative direction from @AGENTS.md.
+That’s it—keep this doc minimal so every agent gets one authoritative direction.

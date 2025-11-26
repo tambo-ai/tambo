@@ -4,7 +4,7 @@ Thanks for helping! This guide covers workflow expectations only—**all coding 
 
 ## Quick Links
 
-- @AGENTS.md – canonical reference for architecture, naming, coding rules, doc expectations, AI usage, Charlie workflow, etc.
+- That guide – canonical reference for architecture, naming, coding rules, doc expectations, AI usage, Charlie workflow, etc.
 - `docs/` + `devdocs/` – public docs + internal references (update them with code changes).
 - [RELEASING.md](./RELEASING.md) – API/SDK/Cloud release process.
 
@@ -44,7 +44,7 @@ npm run check-types
 npm test
 ```
 
-Add targeted tests for new behavior and keep migrations in sync with DB changes. See @AGENTS.md if you’re unsure where tests belong.
+Add targeted tests for new behavior and keep migrations in sync with DB changes. When in doubt about placement, follow the guidance in that doc.
 
 ## Charlie (AI Review Agent)
 
@@ -69,7 +69,7 @@ Add targeted tests for new behavior and keep migrations in sync with DB changes.
 
 ## Need More Guidance?
 
-If you’re looking for coding standards, naming rules, CLI/showcase sync details, AI policy, or MCP instructions, stop here and read @AGENTS.md—that’s the single source of truth.
+If you’re looking for coding standards, naming rules, CLI/showcase sync details, AI policy, or MCP instructions, that single source of truth has you covered.
 
 ## Code of Conduct
 
@@ -141,7 +141,7 @@ Fix lint warnings, keep TypeScript strict, and add focused tests for new logic. 
 
 ## AI-Generated Code Policy
 
-AI output must be reviewed and cleaned up by you. Follow internal AI policies (see @AGENTS.md) and never paste secrets or private data into prompts.
+AI output must be reviewed and cleaned up by you. Follow the internal AI policies described there and never paste secrets or private data into prompts.
 
 ## Working with Charlie (AI Code Reviewer)
 
