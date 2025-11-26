@@ -138,6 +138,25 @@ const McpProviderContext = createContext<McpProviderContextValue>({
 const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
 
 /**
+ * Creates a stable hash of a string for use as a cache key.
+ * Uses Java-style string hashing (DJB2-like) for deterministic results.
+ *
+ * Note: We use a synchronous hash instead of crypto.subtle.digest because:
+ * - crypto.subtle.digest is async, which adds complexity in React hooks (useMemo, useEffect)
+ * - This is not for security, just for creating a stable identifier to detect token changes
+ * - Synchronous hashing avoids race conditions and simplifies component lifecycle
+ * @param input - The string to hash
+ * @returns A compact base36 hash string
+ */
+function hashString(input: string): string {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (Math.imul(31, hash) + input.charCodeAt(i)) | 0;
+  }
+  return (hash >>> 0).toString(36);
+}
+
+/**
  * This provider is used to register tools from MCP servers.
  * It automatically includes an internal Tambo MCP server when an MCP access token is available.
  *
@@ -189,11 +208,13 @@ export const TamboMcpProvider: FC<{
       const base = new URL(tamboBaseUrl);
       base.pathname = `${base.pathname.replace(/\/+$/, "")}/mcp`;
       const tamboMcpUrl = base.toString();
+      // Include token hash in serverKey so changing tokens trigger reconnection
+      const tokenHash = hashString(mcpAccessToken);
       servers.push({
         name: TAMBO_INTERNAL_MCP_SERVER_NAME,
         url: tamboMcpUrl,
         transport: MCPTransport.HTTP,
-        serverKey: "tambo", // Internal server always uses 'tambo' as serverKey
+        serverKey: `tambo-${tokenHash}`, // Include token hash in key to force reconnection on token change
         customHeaders: {
           Authorization: `Bearer ${mcpAccessToken}`,
         },
