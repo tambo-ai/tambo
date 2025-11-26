@@ -20,12 +20,12 @@ const config: Config = {
   moduleNameMapper: {
     "\\.(css|less|sass|scss)$": "identity-obj-proxy",
     "\\.(png|jpg|jpeg|gif|webp|avif|svg|ico)$":
-      "<rootDir>/test/__mocks__/fileMock.cjs",
-    "^@/lib/env$": "<rootDir>/test/__mocks__/envMock.ts",
+      "<rootDir>/__mocks__/fileMock.cjs",
+    "^@/lib/env$": "<rootDir>/__mocks__/envMock.ts",
     "^@modelcontextprotocol/sdk/client/streamableHttp\\.js$":
-      "<rootDir>/test/__mocks__/mcpStreamableHttpMock.ts",
+      "<rootDir>/__mocks__/mcpStreamableHttpMock.ts",
     "^@modelcontextprotocol/sdk/client/sse\\.js$":
-      "<rootDir>/test/__mocks__/mcpSseMock.ts",
+      "<rootDir>/__mocks__/mcpSseMock.ts",
     "^@/(.*)$": "<rootDir>/$1",
     "^@tambo-ai-cloud/(.*)$": "<rootDir>/../../packages/$1/src",
   },
