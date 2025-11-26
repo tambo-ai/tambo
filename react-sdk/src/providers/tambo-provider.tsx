@@ -108,13 +108,13 @@ export const TamboProvider: React.FC<
         onCallUnregisteredTool={onCallUnregisteredTool}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-          <TamboMcpTokenProvider>
-            <TamboThreadProvider
-              streaming={streaming}
-              autoGenerateThreadName={autoGenerateThreadName}
-              autoGenerateNameThreshold={autoGenerateNameThreshold}
-              initialMessages={initialMessages}
-            >
+          <TamboThreadProvider
+            streaming={streaming}
+            autoGenerateThreadName={autoGenerateThreadName}
+            autoGenerateNameThreshold={autoGenerateNameThreshold}
+            initialMessages={initialMessages}
+          >
+            <TamboMcpTokenProvider>
               <TamboThreadInputProvider contextKey={contextKey}>
                 <TamboContextAttachmentProvider
                   getContextHelperData={getContextHelperData}
@@ -128,8 +128,8 @@ export const TamboProvider: React.FC<
                   </TamboComponentProvider>
                 </TamboContextAttachmentProvider>
               </TamboThreadInputProvider>
-            </TamboThreadProvider>
-          </TamboMcpTokenProvider>
+            </TamboMcpTokenProvider>
+          </TamboThreadProvider>
         </TamboContextHelpersProvider>
       </TamboRegistryProvider>
     </TamboClientProvider>

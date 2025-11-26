@@ -579,7 +579,10 @@ export const useTamboElicitationContext = useTamboMcpElicitation;
  * @returns The server config with typed handlers and unique key
  */
 function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
-  const key = getMcpServerUniqueKey(server);
+  // Use the provided serverKey if available, otherwise generate a unique key
+  // based on connection properties. This allows callers to explicitly control
+  // when a server should be treated as "different" (e.g., when auth token changes).
+  const key = server.serverKey || getMcpServerUniqueKey(server);
   // Cast handlers to proper type if present
   const handlers = server.handlers as Partial<MCPHandlers> | undefined;
   return {
