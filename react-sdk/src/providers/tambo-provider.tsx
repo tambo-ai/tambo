@@ -100,6 +100,7 @@ export const TamboProvider: React.FC<
       apiKey={apiKey}
       environment={environment}
       userToken={userToken}
+      contextKey={contextKey}
     >
       <TamboRegistryProvider
         components={components}
@@ -165,13 +166,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
       "TamboCompositeProvider must be used within a TamboClientProvider",
     );
   }
-  const {
-    client,
-    queryClient,
-    isUpdatingToken,
-    mcpAccessToken,
-    setMcpAccessToken,
-  } = clientContext;
+  const { client, queryClient, isUpdatingToken, contextKey } = clientContext;
   const componentRegistry = useTamboComponent();
   const interactableComponents = useTamboInteractable();
   const contextHelpers = useTamboContextHelpers();
@@ -183,8 +178,7 @@ export const TamboCompositeProvider: React.FC<PropsWithChildren> = ({
         client,
         queryClient,
         isUpdatingToken,
-        mcpAccessToken,
-        setMcpAccessToken,
+        contextKey,
         ...componentRegistry,
         ...threads,
         ...interactableComponents,
