@@ -364,10 +364,11 @@ suggestions.map((s) => (
 
 ### Supported LLM Providers
 
-- **OpenAI** (GPT-4.1, GPT-5, O3, and more)
+- **OpenAI** (GPT-4.1, GPT-5, GPT-5.1, O3, and more)
 - **Anthropic** (Claude 3.5, Claude 4.5, and more)
-- **Google Gemini** (1.5 Pro, 2.0 Flash, and more)
+- **Google Gemini** (1.5 Pro, 2.0 Flash, 2.5 Pro, 3.0 Pro, and more)
 - **Mistral** (Large, Small, Codestral, and more)
+- **Groq** (Llama 4 Scout, Llama 4 Maverick, and more)
 - Custom OpenAI-compatible providers
 
 Don't see your favorite? [Let us know →](https://github.com/tambo-ai/tambo/issues)

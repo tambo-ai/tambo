@@ -1,17 +1,22 @@
 ---
 title: Reasoning Models
-description: Configure and use advanced reasoning capabilities models that show their thinking process.
+description: Configure and use advanced reasoning capabilities in models that show their thinking process.
 ---
 
 Reasoning models are specialized LLMs that expose their internal thought process before generating a final response. These models excel at complex tasks requiring multi-step reasoning, problem-solving, and logical analysis by spending additional compute time "thinking" through the problem.
 
-You can add reasoning parameters through your project's LLM provider settings.
-
-<Callout type="info" title="Model Support">
-  Tambo currently supports reasoning capabilities for **OpenAI models** (GPT-5,
-  GPT-5 Mini, GPT-5 Nano, O3) and **Google Gemini models** (2.5 Pro, 2.5 Flash).
-  Each provider uses different parameter names to control reasoning behavior.
+<Callout type="info" title="Supported Providers">
+  Tambo currently supports reasoning capabilities for **OpenAI** and **Google
+  Gemini** models. Each provider uses different parameter names to control
+  reasoning behavior.
 </Callout>
+
+## Provider-Specific Documentation
+
+For detailed information about reasoning parameters and configuration for each provider, see:
+
+- **[OpenAI Models](/models/openai#provider-specific-parameters)** - Configure `reasoningEffort` and `reasoningSummary` for GPT-5, O3, and other OpenAI reasoning models
+- **[Google Models](/models/google#provider-specific-parameters)** - Configure `thinkingConfig` for Gemini 3.0 Pro, Deep Think, and other Gemini reasoning models
 
 ## What Are Reasoning Models?
 
@@ -26,115 +31,12 @@ This thinking process is captured as **reasoning tokens** that you can access, d
 
 ## Supported Models
 
-### OpenAI Models
+See the provider-specific pages for complete model lists:
 
-OpenAI's reasoning models expose their thought process through dedicated parameters:
+- **[OpenAI Models](/models/openai)** - GPT-5, GPT-5.1, GPT-5 Mini, GPT-5 Nano, GPT-4.1 Nano, O3, and more
+- **[Google Models](/models/google)** - Gemini 3.0 Pro, Deep Think, 2.5 Pro, 2.5 Flash, and more
 
-| Model          | Description                                   |
-| -------------- | --------------------------------------------- |
-| **GPT-5**      | Latest flagship model with advanced reasoning |
-| **GPT-5 Mini** | Faster, cost-effective reasoning model        |
-| **GPT-5 Nano** | Smallest, most efficient reasoning model      |
-| **O3**         | Specialized reasoning model                   |
-
-**OpenAI Reasoning Parameters:**
-
-| Parameter          | Type   | Description                             | Values                                     |
-| ------------------ | ------ | --------------------------------------- | ------------------------------------------ |
-| `reasoningEffort`  | string | Controls intensity of reasoning process | `"minimal"`, `"low"`, `"medium"`, `"high"` |
-| `reasoningSummary` | string | Enables reasoning token output          | `"auto"`, `"detailed"`                     |
-
-### Google Gemini Models
-
-Gemini models use a "thinking budget" approach to control reasoning:
-
-| Model                | Description                                      |
-| -------------------- | ------------------------------------------------ |
-| **gemini-2.5-pro**   | Most capable Gemini model with extended thinking |
-| **gemini-2.5-flash** | Fast, efficient reasoning for production use     |
-
-**Gemini Reasoning Parameters:**
-
-| Parameter                        | Type    | Description                             |
-| -------------------------------- | ------- | --------------------------------------- |
-| `thinkingConfig`                 | object  | Configuration for thinking behavior     |
-| `thinkingConfig.thinkingBudget`  | number  | Token budget allocated for thinking     |
-| `thinkingConfig.includeThoughts` | boolean | Whether to include thinking in response |
-
-## Configuring Reasoning in the Dashboard
-
-Reasoning parameters are configured in your project's LLM provider settings on the dashboard. Here's how to set them up:
-
-### Step 1: Access Provider Settings
-
-1. Navigate to your project in the dashboard
-2. Go to **Settings** → **LLM Providers**
-3. Select your provider and model that supports reasoning
-
-### Step 2: Configure OpenAI Reasoning Parameters
-
-For OpenAI models (GPT-5, GPT-5 Mini, GPT-5 Nano, O3):
-
-1. Under **Custom LLM Parameters**, you'll see suggested parameters
-2. Click **+ reasoningEffort** to add it
-3. Set the value to control reasoning intensity:
-   - **`"low"`** - Quick reasoning for simple tasks (faster, cheaper)
-   - **`"medium"`** - Balanced reasoning for most use cases (recommended)
-   - **`"high"`** - Deep reasoning for complex problems (slower, more expensive)
-4. Click **+ reasoningSummary** to add it
-5. Set the value to **`"auto"`** to receive reasoning tokens in responses
-6. Click **Save** to apply the configuration
-
-<Callout type="tip" title="Dashboard Suggestions">
-  When you select an OpenAI reasoning model, the dashboard automatically shows
-  **reasoningEffort** and **reasoningSummary** as suggested parameters. Just
-  click them to add!
-</Callout>
-
-### Step 3: Configure Gemini Reasoning Parameters
-
-For Gemini models (2.5 Pro, 2.5 Flash):
-
-1. Under **Custom LLM Parameters**, look for the **+ thinkingConfig** suggestion
-2. Click **+ thinkingConfig** to add it
-3. Configure the thinking behavior with a JSON object:
-   ```json
-   {
-     "thinkingBudget": 5000,
-     "includeThoughts": true
-   }
-   ```
-4. Set **`thinkingBudget`** based on your needs:
-   - **1000-2000**: Quick reasoning for simple tasks
-   - **3000-5000**: Standard reasoning for most use cases (recommended)
-   - **7000+**: Extended reasoning for complex problems
-5. Set **`includeThoughts`** to **`true`** to receive thinking tokens
-6. Click **Save** to apply the configuration
-
-<Callout type="tip" title="Dashboard Suggestions">
-  When you select a Gemini reasoning model, the dashboard automatically shows
-  **thinkingConfig** as a suggested parameter. Just click it to add!
-</Callout>
-
-### Example Configurations
-
-**OpenAI - Balanced Reasoning:**
-
-- Parameter: `reasoningEffort` → Value: `"medium"`
-- Parameter: `reasoningSummary` → Value: `"auto"`
-
-**OpenAI - Deep Reasoning:**
-
-- Parameter: `reasoningEffort` → Value: `"high"`
-- Parameter: `reasoningSummary` → Value: `"auto"`
-
-**Gemini - Standard Reasoning:**
-
-- Parameter: `thinkingConfig` → Value: `{"thinkingBudget": 5000, "includeThoughts": true}`
-
-**Gemini - Extended Reasoning:**
-
-- Parameter: `thinkingConfig` → Value: `{"thinkingBudget": 8000, "includeThoughts": true}`
+For configuration instructions and parameter details, see the **Provider-Specific Parameters** sections on each provider page.
 
 ## When to Use Reasoning Models
 
@@ -209,59 +111,44 @@ Access it like any other message property:
 
 ### Performance Optimization
 
-**Balance reasoning effort with cost and latency in your dashboard configuration:**
+Balance reasoning effort with cost and latency in your dashboard configuration. See provider-specific pages for parameter details:
 
-**Development Environment:**
+- **[OpenAI Configuration](/models/openai#provider-specific-parameters)** - Adjust `reasoningEffort` levels
+- **[Google Configuration](/models/google#provider-specific-parameters)** - Optimize `thinkingBudget` values
 
-- Use `reasoningEffort: "high"` for thorough testing
-- Enable `reasoningSummary: "auto"` to debug thinking process
-- Higher costs acceptable for development
+**General Guidelines:**
 
-**Production Environment:**
-
-- Use `reasoningEffort: "medium"` for balanced performance
-- Enable `reasoningSummary: "auto"` to maintain reasoning capabilities
-- Optimize for cost-performance balance
-
-**High-Volume Applications:**
-
-- Use `reasoningEffort: "low"` or disable reasoning parameters
-- Consider using non-reasoning models for simple queries
-- Monitor token usage and costs closely
+- **Development**: Use maximum reasoning effort for thorough testing
+- **Production**: Use balanced reasoning settings for most use cases
+- **High-Volume**: Consider using non-reasoning models for simple queries
 
 ### Cost Considerations
 
 Reasoning tokens are billed separately and typically cost more than standard tokens:
 
 - **Monitor usage** - Track reasoning token consumption in your dashboard
-- **Optimize effort** - Use lower reasoning effort when appropriate
-- **Token budgets** - For Gemini, set appropriate `thinkingBudget` values based on task complexity
+- **Optimize effort** - Use lower reasoning settings when appropriate
+- **Test different levels** - Compare quality vs. cost at different reasoning levels
 
 ## Troubleshooting
 
 **Reasoning not appearing in responses?**
 
-- Verify you're using a supported model (GPT-5, GPT-5 Mini, GPT-5 Nano, O3, or Gemini 2.5)
+- Verify you're using a supported reasoning model (see [OpenAI](/models/openai) or [Google](/models/google) model lists)
 - Check your dashboard settings under **LLM Providers** → **Custom LLM Parameters**
-- For OpenAI: Ensure `reasoningSummary` is added and set to `"auto"`
-- For Gemini: Ensure `thinkingConfig` has `includeThoughts: true`
+- Ensure reasoning parameters are properly configured (see provider-specific documentation)
 - Click **Save Settings** after making changes
 
 **Reasoning tokens consuming too many resources?**
 
-- In your dashboard settings, lower `reasoningEffort` from `"high"` to `"medium"` or `"low"`
-- For Gemini models, reduce the `thinkingBudget` value in `thinkingConfig`
+- Lower your reasoning effort settings (see provider-specific parameter documentation)
 - Create separate projects with different configurations for simple vs. complex queries
 - Monitor token usage in your Tambo Cloud usage dashboard
 - Consider using non-reasoning models for high-volume, simple tasks
 
 ## Additional Resources
 
-<Callout type="tip" title="Learn More">
-  Reasoning parameters are part of Tambo's custom LLM parameter system. For
-  information on configuring other model parameters, see [Custom LLM
-  Parameters](/models/custom-llm-parameters).
-</Callout>
-
-- **OpenAI Reasoning Models**: [OpenAI Documentation](https://platform.openai.com/docs/guides/reasoning)
-- **Gemini Thinking Config**: [Google AI Documentation](https://ai.google.dev/gemini-api/docs/thinking)
+- **[OpenAI Models](/models/openai)** - Complete OpenAI model list and reasoning configuration
+- **[Google Models](/models/google)** - Complete Google model list and thinking configuration
+- **[Custom LLM Parameters](/models/custom-llm-parameters)** - General parameter configuration guide
+- **[Model Labels](/models/labels)** - Understanding model status and observed behaviors
