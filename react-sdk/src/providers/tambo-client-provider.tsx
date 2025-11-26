@@ -27,11 +27,6 @@ export interface TamboClientProviderProps {
    * user when calling the Tambo API.
    */
   userToken?: string;
-
-  /**
-   * Optional context key for scoping threads and MCP tokens
-   */
-  contextKey?: string;
 }
 
 export interface TamboClientContextProps {
@@ -41,8 +36,6 @@ export interface TamboClientContextProps {
   queryClient: QueryClient;
   /** Whether the session token is currently being updated */
   isUpdatingToken: boolean;
-  /** Optional context key for scoping threads and MCP tokens */
-  contextKey?: string;
 }
 
 export const TamboClientContext = createContext<
@@ -58,12 +51,11 @@ export const TamboClientContext = createContext<
  * @param props.apiKey - The API key for the Tambo API
  * @param props.environment - The environment to use for the Tambo API
  * @param props.userToken - The oauth access token to use to identify the user in the Tambo API
- * @param props.contextKey - Optional context key for scoping threads and MCP tokens
  * @returns The TamboClientProvider component
  */
 export const TamboClientProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps>
-> = ({ children, tamboUrl, apiKey, environment, userToken, contextKey }) => {
+> = ({ children, tamboUrl, apiKey, environment, userToken }) => {
   const tamboConfig: ClientOptions = {
     apiKey,
     defaultHeaders: {
@@ -92,7 +84,6 @@ export const TamboClientProvider: React.FC<
         client,
         queryClient,
         isUpdatingToken,
-        contextKey,
       }}
     >
       {children}

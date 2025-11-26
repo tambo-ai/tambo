@@ -86,7 +86,6 @@ const TamboStubClientProvider: React.FC<
         client,
         queryClient,
         isUpdatingToken,
-        contextKey,
       }}
     >
       {children}
