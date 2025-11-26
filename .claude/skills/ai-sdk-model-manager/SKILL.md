@@ -27,8 +27,8 @@ Use this skill when:
 
 ## Files This Skill Works With
 
-- `tambo-cloud/packages/core/src/llms/models/*.ts` - Model configuration files
-- `tambo-cloud/packages/core/package.json` - AI SDK dependencies
+- `packages/core/src/llms/models/*.ts` - Model configuration files
+- `packages/backend/package.json` - AI SDK dependencies (source of truth for versions)
 - `docs/content/docs/models/*.mdx` - Model documentation
 - `README.md` - Main documentation file
 
@@ -39,7 +39,7 @@ Use this skill when:
 Check current versions and update to latest:
 
 ```bash
-cd tambo-cloud/packages/core
+cd packages/backend
 npm outdated | grep '@ai-sdk'
 npm install @ai-sdk/openai@latest @ai-sdk/google@latest @ai-sdk/groq@latest @ai-sdk/anthropic@latest @ai-sdk/mistral@latest
 ```
@@ -57,11 +57,11 @@ cat node_modules/@ai-sdk/groq/dist/index.d.ts | grep 'type.*ModelId'
 
 Compare against current model configurations in:
 
-- `tambo-cloud/packages/core/src/llms/models/openai.ts`
-- `tambo-cloud/packages/core/src/llms/models/gemini.ts`
-- `tambo-cloud/packages/core/src/llms/models/groq.ts`
-- `tambo-cloud/packages/core/src/llms/models/anthropic.ts`
-- `tambo-cloud/packages/core/src/llms/models/mistral.ts`
+- `packages/core/src/llms/models/openai.ts`
+- `packages/core/src/llms/models/gemini.ts`
+- `packages/core/src/llms/models/groq.ts`
+- `packages/core/src/llms/models/anthropic.ts`
+- `packages/core/src/llms/models/mistral.ts`
 
 ### Step 3: Research New Models
 
@@ -137,7 +137,7 @@ Example:
 Run type checking to ensure all model IDs are valid:
 
 ```bash
-cd tambo-cloud/packages/core
+cd packages/core
 npm run check-types
 ```
 
@@ -162,7 +162,7 @@ If updating multiple documentation files, launch parallel subagents to handle:
 Before completing:
 
 ```bash
-cd tambo-cloud/packages/core
+cd packages/core
 npm run lint
 npm run check-types
 npm run test
