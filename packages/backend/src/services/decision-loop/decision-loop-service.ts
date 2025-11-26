@@ -169,10 +169,8 @@ export async function* runDecisionLoop(
       // If this is a non-UI tool call, build tool call request (even if incomplete)
       let clientToolRequest: ToolCallRequest | undefined;
       if (!isUITool && toolCall) {
-        console.log("toolcall: ", JSON.stringify(toolCall));
         clientToolRequest = buildToolCallRequest(toolCall, strictTools);
       }
-      console.log("clientToolRequest: ", JSON.stringify(clientToolRequest));
 
       const displayMessage = extractMessageContent(
         message.length > 0 ? message.trim() : paramDisplayMessage || " ",
@@ -199,8 +197,6 @@ export async function* runDecisionLoop(
         ...accumulatedDecision,
         ...parsedChunk,
       };
-
-      console.log("accumulatedDecision: ", JSON.stringify(accumulatedDecision));
 
       yield accumulatedDecision;
     } catch (e) {
