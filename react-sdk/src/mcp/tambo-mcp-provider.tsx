@@ -146,15 +146,17 @@ const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
  * This provider must be wrapped inside `TamboProvider` to access the MCP server registry.
  * @param props - The provider props
  * @param props.handlers - Optional handlers applied to all MCP servers unless overridden per-server
+ * @param props.contextKey - Optional context key for fetching threadless MCP tokens when not in a thread
  * @param props.children - The children to wrap
  * @returns The TamboMcpProvider component
  */
 export const TamboMcpProvider: FC<{
   handlers?: ProviderMCPHandlers;
+  contextKey?: string;
   children: React.ReactNode;
-}> = ({ handlers, children }) => {
+}> = ({ handlers, contextKey, children }) => {
   const { registerTool } = useTamboRegistry();
-  const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
+  const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken(contextKey);
   const mcpServers = useTamboMcpServerInfos();
   const providerSamplingHandler = handlers?.sampling;
 

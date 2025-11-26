@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { TamboThread } from "../model/tambo-thread";
 import { TamboClientContext } from "./tambo-client-provider";
@@ -139,16 +140,80 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
 };
 
 /**
- * Hook to access the current MCP access token.
- * @internal
+ * Hook to access the current MCP access token with optional threadless token fetching.
+ *
+ * Token selection logic:
+ * 1. If current thread has mcpAccessToken → use thread-specific token
+ * 2. Else if contextKey provided and no thread (or placeholder thread) → fetch and use threadless token
+ * 3. Else → null
+ * @param contextKey - Optional context key for fetching threadless tokens when not in a thread
  * @returns The current MCP access token and base URL
  */
-export const useTamboMcpToken = (): TamboMcpTokenContextProps => {
+export const useTamboMcpToken = (
+  contextKey?: string,
+): TamboMcpTokenContextProps => {
   const context = useContext(TamboMcpTokenContext);
   if (context === undefined) {
     throw new Error(
       "useTamboMcpToken must be used within a TamboMcpTokenProvider",
     );
   }
-  return context;
+
+  const clientContext = useContext(TamboClientContext);
+  if (!clientContext) {
+    throw new Error(
+      "useTamboMcpToken must be used within a TamboClientProvider",
+    );
+  }
+  const { client } = clientContext;
+
+  const threadContext = useContext(TamboThreadContext);
+  const currentThreadId = threadContext?.currentThreadId ?? null;
+
+  // State for threadless token
+  const [threadlessToken, setThreadlessToken] = useState<string | null>(null);
+  const hasAttemptedFetch = useRef(false);
+
+  // Determine if we should fetch a threadless token
+  const isPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
+  const shouldFetchThreadless =
+    contextKey &&
+    (!currentThreadId || isPlaceholderThread) &&
+    !context.mcpAccessToken &&
+    !threadlessToken &&
+    !hasAttemptedFetch.current;
+
+  // Fetch threadless token when needed
+  useEffect(() => {
+    if (shouldFetchThreadless) {
+      hasAttemptedFetch.current = true;
+      const fetchThreadlessToken = async () => {
+        try {
+          const response = await client.beta.auth.getMcpToken({ contextKey });
+          if (response.mcpAccessToken) {
+            setThreadlessToken(response.mcpAccessToken);
+          }
+        } catch (error) {
+          console.error("Failed to fetch threadless MCP token:", error);
+        }
+      };
+      void fetchThreadlessToken();
+    }
+  }, [shouldFetchThreadless, client, contextKey]);
+
+  // Reset threadless token when switching to a real thread
+  useEffect(() => {
+    if (currentThreadId && currentThreadId !== PLACEHOLDER_THREAD.id) {
+      setThreadlessToken(null);
+      hasAttemptedFetch.current = false;
+    }
+  }, [currentThreadId]);
+
+  // Return thread token if available, otherwise threadless token
+  const selectedToken = context.mcpAccessToken ?? threadlessToken;
+
+  return {
+    mcpAccessToken: selectedToken,
+    tamboBaseUrl: context.tamboBaseUrl,
+  };
 };
