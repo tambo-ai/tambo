@@ -37,6 +37,7 @@ export function useMergeRefs<Instance>(
     return () => {
       cleanups.forEach((refCleanup) => refCleanup?.());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, refs);
 
   return React.useMemo(() => {
@@ -56,7 +57,8 @@ export function useMergeRefs<Instance>(
           refEffect(value);
       }
     };
-  }, refs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refEffect, ...refs]);
 }
 /**
  * Custom hook to detect canvas space presence and position
@@ -125,11 +127,14 @@ export function usePositioning(
   // If panel has right class, history should be on right
   // If canvas is on left, history should be on right
   // Otherwise, history should be on left
-  const historyPosition: "left" | "right" = isRightClass
-    ? "right"
-    : hasCanvasSpace && canvasIsOnLeft
-      ? "right"
-      : "left";
+  let historyPosition: "left" | "right";
+  if (isRightClass) {
+    historyPosition = "right";
+  } else if (hasCanvasSpace && canvasIsOnLeft) {
+    historyPosition = "right";
+  } else {
+    historyPosition = "left";
+  }
 
   return { isLeftPanel, historyPosition };
 }

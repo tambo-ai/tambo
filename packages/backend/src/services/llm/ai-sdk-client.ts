@@ -4,14 +4,17 @@ import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { LanguageModelV2 } from "@ai-sdk/provider";
 import {
   ChatCompletionContentPart,
   ChatCompletionMessageParam,
+  ContentPartType,
   CustomLlmParameters,
   getToolDescription,
   getToolName,
   llmProviderConfig,
   PARAMETER_METADATA,
+  Resource,
   tryParseJson,
   type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
@@ -21,19 +24,21 @@ import {
   generateText,
   jsonSchema,
   JSONValue,
-  LanguageModel,
   ModelMessage,
   streamText,
+  TextPart,
   Tool,
   tool,
   ToolCallPart,
   ToolChoice,
   ToolContent,
   ToolResultPart,
+  UserContent,
   UserModelMessage,
   type GenerateTextResult,
   type ToolSet,
 } from "ai";
+import * as mimeTypes from "mime-types";
 import type OpenAI from "openai";
 import { UnreachableCaseError } from "ts-essentials";
 import { z } from "zod";
@@ -61,7 +66,7 @@ interface ProviderConfig {
 }
 
 // Type for a configured provider instance that can create language models
-type ConfiguredProvider = (modelId: string) => LanguageModel;
+type ConfiguredProvider = (modelId: string) => LanguageModelV2;
 
 // Provider factory function type - creates configured provider instances
 type ProviderFactory = (config?: ProviderConfig) => ConfiguredProvider;
@@ -151,6 +156,8 @@ export class AISdkClient implements LLMClient {
 
     // Get the model instance with proper configuration
     const modelInstance = this.getModelInstance(providerKey);
+    const isSupportedMimeType =
+      await getSupportedMimeTypePredicate(modelInstance);
 
     // Format messages using the same template system as token.js client
     const nonStringParams = Object.entries(params.promptTemplateParams).filter(
@@ -201,6 +208,7 @@ export class AISdkClient implements LLMClient {
         convertOpenAIMessageToCoreMessage(
           message,
           messagesFormatted.slice(0, index),
+          isSupportedMimeType,
         ),
     );
 
@@ -309,7 +317,7 @@ export class AISdkClient implements LLMClient {
     }
   }
 
-  private getModelInstance(providerKey: string): LanguageModel {
+  private getModelInstance(providerKey: string): LanguageModelV2 {
     const config: ProviderConfig = {};
 
     if (this.apiKey) {
@@ -607,6 +615,7 @@ function findToolNameById(
 function convertOpenAIMessageToCoreMessage(
   message: ChatCompletionMessageParam,
   previousMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+  isSupportedMimeType: (mimeType: string) => boolean,
 ): ModelMessage {
   if (message.role === "developer" || message.role === "function") {
     throw new Error("Developer messages are not supported");
@@ -730,27 +739,15 @@ function convertOpenAIMessageToCoreMessage(
         content: message.content,
       } satisfies UserModelMessage;
     } else if (Array.isArray(message.content)) {
-      const processedContent = message.content
-        .map((part) => {
-          if (part.type === "text") {
-            return {
-              type: "text" as const,
-              text: part.text,
-            };
-          } else if (part.type === "image_url" && part.image_url.url) {
-            // Convert image_url to AI SDK's expected image format
-            return {
-              type: "image" as const,
-              image: part.image_url.url,
-            };
-          }
-          return null;
-        })
+      const userContentItems = message.content
+        .map((part) =>
+          convertContentPartToUserContent(part, isSupportedMimeType),
+        )
         .filter((part) => part !== null);
 
       return {
         role: message.role,
-        content: processedContent,
+        content: userContentItems,
       } satisfies UserModelMessage;
     }
     console.error(
@@ -771,6 +768,184 @@ function convertOpenAIMessageToCoreMessage(
   ])[0];
 }
 
+type UserContentItem = Exclude<UserContent[number], string>;
+
+/**
+ * Convert a ChatCompletionContentPart to AI SDK's UserContent format.
+ *
+ * This handles the conversion of various content types (text, images, resources, files)
+ * into formats that AI SDK providers can consume. For MCP resources, it performs
+ * intelligent fallback based on MIME type support.
+ *
+ * @param part - The content part to convert
+ * @param isSupportedMimeType - Predicate to check if provider supports a MIME type
+ * @returns AI SDK-compatible UserContentItem, or null if the part should be skipped
+ */
+function convertContentPartToUserContent(
+  part: ChatCompletionContentPart,
+  isSupportedMimeType: (mimeType: string) => boolean,
+): UserContentItem | null {
+  switch (part.type) {
+    case "text":
+      return {
+        type: "text",
+        text: part.text,
+      };
+    case "image_url":
+      if (part.image_url.url) {
+        // Convert image_url to AI SDK's expected image format
+        return {
+          type: "image" as const,
+          image: part.image_url.url,
+        };
+      }
+      return null;
+    case ContentPartType.Resource: {
+      const resourceData = part.resource;
+
+      // Handle binary resource content (blob)
+      if (resourceData.blob) {
+        const mimeType =
+          resourceData.mimeType ??
+          (mimeTypes.lookup(resourceData.uri ?? "") ||
+            "application/octet-stream");
+        if (isSupportedMimeType(mimeType)) {
+          // Provider supports this MIME type, send as file part
+          return {
+            type: "file",
+            mediaType: mimeType,
+            data: Buffer.from(resourceData.blob, "base64"),
+          };
+        } else {
+          // Provider doesn't support this type, fallback to text representation
+          return makeTextContentFromResource(resourceData);
+        }
+      }
+
+      // Handle text resource content
+      if (resourceData.text) {
+        // This is a pretty hacky way to do this, but we have to do it because
+        // the OpenAI SDK doesn't support text parts with mime types of
+        // text/plain
+
+        // Could be text/csv or something
+        const mimeType =
+          resourceData.mimeType ??
+          (mimeTypes.lookup(resourceData.uri ?? "") || "text/plain");
+
+        if (isSupportedMimeType(mimeType)) {
+          // Provider supports this text-based MIME type (e.g., text/csv)
+          // Send as a file part to preserve MIME type information
+          return {
+            type: "file",
+            mediaType: mimeType,
+            data: Buffer.from(resourceData.text),
+            // a bit of a hack, but assume the filename is in the uri
+            filename: resourceData.uri,
+          };
+        }
+
+        // What we really need to do here is upload the resource to S3 and return a file part
+        const result = makeTextContentFromResource(resourceData);
+        return result;
+      }
+      throw new Error("Resource has no text or blob content");
+    }
+    case "file": {
+      if (!part.file.file_data) {
+        throw new Error("File has no file_data");
+      }
+      const mimeType = part.file.filename
+        ? mimeTypes.lookup(part.file.filename) || "application/octet-stream"
+        : "application/octet-stream";
+      return {
+        type: "file",
+        mediaType: mimeType,
+        data: part.file.file_data,
+      };
+    }
+    case "input_audio": {
+      return {
+        type: "file",
+        mediaType: `audio/${part.input_audio.format}`,
+        data: part.input_audio.data,
+      };
+    }
+    default:
+      throw new UnreachableCaseError(part);
+  }
+}
+
+const nonAttributeKeys = ["text", "blob", "uri", "annotations"];
+
+function makeTextContentFromResource(resourceData: Resource): TextPart {
+  const resourceProps = Object.entries(resourceData)
+    .filter(([key]) => !nonAttributeKeys.includes(key))
+    .map(([key, value]) => {
+      // Not sure if we should be passing annotations as attributes?
+      if (key === "annotations") {
+        return Object.entries(value)
+          .filter(([, value]) => typeof value === "string")
+          .map(([key, value]) => {
+            return `${makeSafeMLKey(key)}="${makeSafeMLValue(value as string)}"`;
+          })
+          .join(" ");
+      }
+      // had to let non-string values through to let "annotations" work
+      if (typeof value !== "string") {
+        return null;
+      }
+      return `${makeSafeMLKey(key)}="${makeSafeMLValue(value)}"`;
+    })
+    .filter((prop) => prop !== null)
+    .join(" ");
+
+  const result = {
+    type: "text" as const,
+    text: `
+<resource ${resourceProps}>
+${resourceData.text}
+</resource>
+`,
+  };
+  return result;
+}
+
+/** Make into a safe value for markup keys, e.g. `<keyname>=..` */
+function makeSafeMLKey(key: string): string {
+  return key.replace(/[^a-zA-Z0-9]/g, "_");
+}
+
+/** Make into a safe value for markup values, e.g. `="<value>"` */
+function makeSafeMLValue(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 function warnUnknownMessageType(message: never) {
   console.warn("Unknown message type:", message);
+}
+
+async function getSupportedMimeTypePredicate(
+  model: LanguageModelV2,
+): Promise<(mimeType: string) => boolean> {
+  const supportedUrls = await model.supportedUrls;
+  const mimeTypePatterns = Object.keys(supportedUrls);
+  return (mimeType: string) => {
+    return mimeTypePatterns.some((pattern) => {
+      // Handle '*' wildcard
+      if (pattern === "*") {
+        return true;
+      }
+      // Handle 'image/*' wildcard
+      if (pattern.endsWith("*")) {
+        return mimeType.startsWith(pattern.slice(0, -1));
+      }
+      // Handle exact match
+      return mimeType === pattern;
+    });
+  };
 }

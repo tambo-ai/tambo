@@ -19,6 +19,7 @@ import { LLMClient } from "./services/llm/llm-client";
 import { generateSuggestions } from "./services/suggestion/suggestion.service";
 import { SuggestionDecision } from "./services/suggestion/suggestion.types";
 import { generateThreadName } from "./services/thread-name/thread-name.service";
+import { ResourceFetcherMap } from "./util/resource-transformation";
 
 interface TamboBackendOptions {
   model?: string;
@@ -46,6 +47,7 @@ interface RunDecisionLoopParams {
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[];
   customInstructions?: string | undefined;
   forceToolChoice?: string;
+  resourceFetchers: ResourceFetcherMap;
 }
 
 export interface TamboBackend {
@@ -200,6 +202,7 @@ class AgenticTamboBackend implements TamboBackend {
         queue,
         params.messages,
         params.strictTools,
+        params.resourceFetchers,
       );
     }
     return runDecisionLoop(
@@ -208,6 +211,7 @@ class AgenticTamboBackend implements TamboBackend {
       params.strictTools,
       params.customInstructions,
       params.forceToolChoice,
+      params.resourceFetchers,
     );
   }
 

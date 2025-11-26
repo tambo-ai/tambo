@@ -7,6 +7,7 @@ import meow, { type Flag, type Result } from "meow";
 import { dirname, join } from "path";
 import semver from "semver";
 import { fileURLToPath } from "url";
+import { NonInteractiveError } from "./utils/interactive.js";
 import { handleAddComponents } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
 import { handleCreateApp } from "./commands/create-app.js";
@@ -136,7 +137,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
   "update-installed": {
     command: "update-installed",
     syntax: "update installed",
-    description: `${chalk.bold("Update ALL installed tambo components at once")}`,
+    description: chalk.bold("Update ALL installed tambo components at once"),
     usage: [`$ ${chalk.cyan("tambo update installed")} [options]`],
     options: ["prefix", "yes", "legacy-peer-deps"],
     note: "This will update every tambo component currently in your project",
@@ -376,7 +377,10 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       showListHelp();
       return;
     }
-    await handleListComponents(flags.prefix as string | undefined);
+    await handleListComponents({
+      prefix: flags.prefix as string | undefined,
+      yes: Boolean(flags.yes ?? flags.y),
+    });
     return;
   }
 
@@ -433,6 +437,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       acceptAll: Boolean(flags.acceptAll),
       prefix: flags.prefix as string | undefined,
+      yes: Boolean(flags.yes ?? flags.y),
     });
     return;
   }
@@ -567,11 +572,16 @@ async function main() {
 
     await handleCommand(command, flags);
   } catch (error) {
-    console.error(
-      chalk.red("Error executing command:"),
-      error instanceof Error ? error.message : String(error),
-    );
+    // NonInteractiveError already has a well-formatted message, don't add prefix
+    if (error instanceof NonInteractiveError) {
+      console.error(error.message);
+    } else {
+      console.error(
+        chalk.red("Error executing command:"),
+        error instanceof Error ? error.message : String(error),
+      );
+    }
     process.exit(1);
   }
 }
-main();
+void main();

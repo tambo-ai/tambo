@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -53,11 +54,11 @@ export class AppController {
 
   @ApiSecurity("apiKey")
   @UseGuards(ApiKeyGuard, BearerTokenGuard)
-  @Post("auth/mcp-access-token")
+  @Post("auth/mcp/access-token")
   @ApiOperation({
     summary: "Create an MCP access token",
     description:
-      "Creates a JWT MCP access token using the project ID from the API key and a context key. The token expires in 15 minutes and can be used as a bearer token.",
+      "Creates a JWT MCP access token for the project. If threadId is provided, the token will be bound to that thread. If threadId is omitted, a sessionless token will be created using the provided contextKey (or from Bearer token if not provided). Sessionless tokens can only access resources and prompts, not session-specific features. The token expires in 15 minutes and can be used as a bearer token.",
   })
   @ApiResponse({
     status: 201,
@@ -68,38 +69,66 @@ export class AppController {
     status: 400,
     description: "Bad request - invalid authentication context or API key",
   })
+  @ApiResponse({
+    status: 404,
+    description: "Thread not found or does not belong to project",
+  })
   async createMcpAccessToken(
     @Body() createMcpAccessTokenDto: CreateMcpAccessTokenDto,
     @Req() request: Request,
   ): Promise<McpAccessTokenResponseDto> {
-    const { projectId } = extractContextInfo(
-      request,
-      createMcpAccessTokenDto.contextKey,
-    );
-
-    const { threadId } = createMcpAccessTokenDto;
-
-    // Lightweight ownership check: ensure the thread exists for this project
-    const thread = await operations.getThreadForProjectId(
-      this.authService.getDb(),
-      threadId,
-      projectId,
-    );
-    if (!thread) {
-      throw new NotFoundException("Thread not found");
-    }
+    const { threadId, contextKey: bodyContextKey } = createMcpAccessTokenDto;
+    const contextInfo = extractContextInfo(request, bodyContextKey);
+    const { projectId, contextKey } = contextInfo;
 
     // Only generate MCP access token if project has MCP servers configured
     const hasMcpServers = await operations.projectHasMcpServers(
       this.authService.getDb(),
       projectId,
     );
-    const mcpAccessToken = hasMcpServers
-      ? await this.authService.generateMcpAccessToken(projectId, threadId)
-      : undefined;
+
+    if (!hasMcpServers) {
+      return {};
+    }
+
+    // If threadId is provided, create a session-bound token
+    if (threadId) {
+      // Verify thread exists and belongs to project
+      const thread = await operations.getThreadForProjectId(
+        this.authService.getDb(),
+        threadId,
+        projectId,
+      );
+      if (!thread) {
+        throw new NotFoundException("Thread not found");
+      }
+
+      const result = await this.authService.generateMcpAccessToken(projectId, {
+        threadId,
+      });
+
+      return {
+        mcpAccessToken: result.token,
+        expiresAt: result.expiresAt,
+        hasSession: result.hasSession,
+      };
+    }
+
+    // Otherwise, create a sessionless token
+    if (!contextKey) {
+      throw new BadRequestException(
+        "Context key is required for sessionless tokens (provide in body or use Bearer token authentication)",
+      );
+    }
+
+    const result = await this.authService.generateMcpAccessToken(projectId, {
+      contextKey,
+    });
 
     return {
-      ...(mcpAccessToken && { mcpAccessToken }),
+      mcpAccessToken: result.token,
+      expiresAt: result.expiresAt,
+      hasSession: result.hasSession,
     };
   }
 }

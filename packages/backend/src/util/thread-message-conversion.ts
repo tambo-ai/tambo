@@ -1,8 +1,12 @@
 import {
+  ChatCompletionAssistantMessageParam,
+  ChatCompletionContentPart,
   ChatCompletionContentPartText,
   ChatCompletionMessageParam,
+  ChatCompletionSystemMessageParam,
+  ChatCompletionToolMessageParam,
+  ChatCompletionUserMessageParam,
   ComponentDecisionV2,
-  ContentPartType,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -13,7 +17,7 @@ import { formatFunctionCall, generateAdditionalContext } from "./tools";
 
 export function threadMessagesToChatCompletionMessageParam(
   messages: ThreadMessage[],
-): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+): ChatCompletionMessageParam[] {
   // as per
   // https://platform.openai.com/docs/guides/function-calling?api-mode=chat#handling-function-calls,
   // if the model responds with a tool call then the user MUST respond to the
@@ -38,8 +42,14 @@ export function threadMessagesToChatCompletionMessageParam(
         case MessageRole.Assistant: {
           return makeAssistantMessages(message, respondedToolIds);
         }
-        default: {
+        case MessageRole.User: {
           return makeUserMessages(message);
+        }
+        case MessageRole.System: {
+          return makeUserMessages(message);
+        }
+        default: {
+          throw new Error(`Unknown message role: ${message.role}`);
         }
       }
     },
@@ -50,37 +60,29 @@ export function threadMessagesToChatCompletionMessageParam(
 
 function makeToolMessages(
   message: ThreadMessage,
-): (
-  | OpenAI.Chat.Completions.ChatCompletionToolMessageParam
-  | OpenAI.Chat.Completions.ChatCompletionUserMessageParam
-)[] {
+): (ChatCompletionToolMessageParam | ChatCompletionUserMessageParam)[] {
   if (message.tool_call_id) {
-    const toolMessage: OpenAI.Chat.Completions.ChatCompletionToolMessageParam =
-      {
-        role: "tool",
-        content: message.content as ChatCompletionContentPartText[],
-        tool_call_id: message.tool_call_id,
-      };
+    const toolMessage: ChatCompletionToolMessageParam = {
+      role: "tool",
+      content: message.content as ChatCompletionContentPartText[],
+      tool_call_id: message.tool_call_id,
+    };
     return [toolMessage];
   }
   console.warn(
     `no tool id in tool message ${message.id}, converting to user message`,
   );
   // If there's no tool id the we just call it a user message
-  const userToolMessage: OpenAI.Chat.Completions.ChatCompletionUserMessageParam =
-    {
-      role: "user",
-      content: message.content as ChatCompletionContentPartText[],
-    };
+  const userToolMessage: ChatCompletionUserMessageParam = {
+    role: "user",
+    content: message.content as ChatCompletionContentPartText[],
+  };
   return [userToolMessage];
 }
 function makeAssistantMessages(
   message: ThreadMessage,
   respondedToolIds: string[],
-): (
-  | OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam
-  | OpenAI.Chat.Completions.ChatCompletionToolMessageParam
-)[] {
+): (ChatCompletionAssistantMessageParam | ChatCompletionToolMessageParam)[] {
   // Old entries in the db had toolcallrequest in the component decision, but this has since been elevated to its own column/prop
   const toolCallRequest =
     message.toolCallRequest ?? message.component?.toolCallRequest;
@@ -251,6 +253,7 @@ function combineComponentWithState(
       ...component.componentState,
       ...componentState,
     },
+    props: component.props ?? {},
   };
 }
 
@@ -278,10 +281,7 @@ function makeFakeDecisionCall(component: ComponentDecisionV2): ToolCallRequest {
 
 function makeUserMessages(
   message: ThreadMessage,
-): (
-  | OpenAI.Chat.Completions.ChatCompletionUserMessageParam
-  | OpenAI.Chat.Completions.ChatCompletionSystemMessageParam
-)[] {
+): (ChatCompletionUserMessageParam | ChatCompletionSystemMessageParam)[] {
   if (
     message.role === MessageRole.Hydra ||
     message.role === MessageRole.Assistant ||
@@ -291,45 +291,34 @@ function makeUserMessages(
   }
   const additionalContextMessage = generateAdditionalContext(message);
 
-  // TODO: Handle Resource types - filter them out before passing to AI SDK
-  // When Resource content parts are properly stored in S3 and converted to appropriate
-  // formats (text, image_url, etc.), this filter can be updated to convert instead of remove
-  const contentWithoutResources = message.content.filter(
-    (p): p is OpenAI.Chat.Completions.ChatCompletionContentPart => {
-      if (p.type === ContentPartType.Resource) {
-        console.warn("Filtering out 'resource' content part for provider call");
-        return false;
-      }
-      return true;
-    },
-  );
-
   // Only wrap text content with <User> tags, preserve other content types as-is
-  const wrappedContent: OpenAI.Chat.Completions.ChatCompletionContentPart[] =
+  const wrappedContent: ChatCompletionContentPart[] =
     message.role === MessageRole.User
       ? [
           { type: "text", text: "<User>" },
-          ...contentWithoutResources,
+          ...message.content,
           { type: "text", text: "</User>" },
         ]
-      : contentWithoutResources;
+      : message.content;
 
   // Combine additional context (if any) with the wrapped content
-  const content = additionalContextMessage
+  const content: ChatCompletionContentPart[] = additionalContextMessage
     ? [additionalContextMessage, ...wrappedContent]
     : wrappedContent;
 
   // user messages support mixed content, system messages only support text
-  // Type assertion is safe here because we've filtered out Resource types above
+  if (message.role === MessageRole.User) {
+    return [
+      {
+        role: message.role,
+        content: content as ChatCompletionContentPartText[],
+      } satisfies ChatCompletionUserMessageParam,
+    ] satisfies ChatCompletionUserMessageParam[];
+  }
   return [
-    message.role === MessageRole.User
-      ? {
-          role: message.role,
-          content: content,
-        }
-      : {
-          role: message.role,
-          content: content as ChatCompletionContentPartText[],
-        },
-  ];
+    {
+      role: message.role,
+      content: content as ChatCompletionContentPartText[],
+    } satisfies ChatCompletionSystemMessageParam,
+  ] satisfies ChatCompletionSystemMessageParam[];
 }

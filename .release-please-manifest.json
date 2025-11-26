@@ -1,1 +1,2 @@
-{"react-sdk":"0.65.1","showcase":"0.31.0","cli":"0.41.0","create-tambo-app":"0.2.0","docs":"1.19.0","tambo-cloud":"0.123.2"}
+
+{"react-sdk":"0.65.2","showcase":"0.31.0","cli":"0.42.0","create-tambo-app":"0.2.0","docs":"1.19.1","apps/web":"0.123.4","apps/api":"0.124.0"}

@@ -1,5 +1,5 @@
 {
-  "extends": "@tambo-ai-cloud/typescript-config/base",
+  "extends": "@tambo-ai/typescript-config/base",
   "compilerOptions": {
     "declaration": true,
     "outDir": "./dist",

@@ -179,6 +179,34 @@ const LoadingIndicator: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 LoadingIndicator.displayName = "LoadingIndicator";
 
 /**
+ * Internal component to render message content based on its type
+ */
+function MessageContentRenderer({
+  contentToRender,
+  safeContent,
+  markdown,
+}: {
+  contentToRender: unknown;
+  safeContent: string | React.ReactElement;
+  markdown: boolean;
+}) {
+  if (!contentToRender) {
+    return <span className="text-muted-foreground italic">Empty message</span>;
+  }
+  if (React.isValidElement(contentToRender)) {
+    return contentToRender;
+  }
+  if (markdown) {
+    return (
+      <Streamdown components={markdownComponents}>
+        {typeof safeContent === "string" ? safeContent : ""}
+      </Streamdown>
+    );
+  }
+  return safeContent;
+}
+
+/**
  * Props for the MessageImages component.
  */
 export type MessageImagesProps = React.HTMLAttributes<HTMLDivElement>;
@@ -282,19 +310,11 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
             className={cn("break-words", !markdown && "whitespace-pre-wrap")}
             data-slot="message-content-text"
           >
-            {!contentToRender ? (
-              <span className="text-muted-foreground italic">
-                Empty message
-              </span>
-            ) : React.isValidElement(contentToRender) ? (
-              contentToRender
-            ) : markdown ? (
-              <Streamdown components={markdownComponents}>
-                {typeof safeContent === "string" ? safeContent : ""}
-              </Streamdown>
-            ) : (
-              safeContent
-            )}
+            <MessageContentRenderer
+              contentToRender={contentToRender}
+              safeContent={safeContent}
+              markdown={markdown}
+            />
             {message.isCancelled && (
               <span className="text-muted-foreground text-xs">cancelled</span>
             )}
@@ -331,6 +351,27 @@ function getToolStatusMessage(
     ? message.component?.statusMessage
     : message.component?.completionStatusMessage;
   return toolStatusMessage ?? toolCallMessage;
+}
+
+/**
+ * Internal component to render tool call status icon
+ */
+function ToolcallStatusIcon({
+  hasToolError,
+  isLoading,
+}: {
+  hasToolError: boolean | undefined;
+  isLoading: boolean | undefined;
+}) {
+  if (hasToolError) {
+    return <X className="w-3 h-3 text-bold text-red-500" />;
+  }
+  if (isLoading) {
+    return (
+      <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
+    );
+  }
+  return <Check className="w-3 h-3 text-bold text-green-500" />;
 }
 
 /**
@@ -372,7 +413,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
 
     const toolCallRequest: TamboAI.ToolCallRequest | undefined =
       getToolCallRequest(message);
-    const hasToolError = message.error;
+    const hasToolError = !!message.error;
 
     const toolStatusMessage = getToolStatusMessage(message, isLoading);
 
@@ -396,13 +437,10 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
               "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none w-fit",
             )}
           >
-            {hasToolError ? (
-              <X className="w-3 h-3 text-bold text-red-500" />
-            ) : isLoading ? (
-              <Loader2 className="w-3 h-3 text-muted-foreground text-bold animate-spin" />
-            ) : (
-              <Check className="w-3 h-3 text-bold text-green-500" />
-            )}
+            <ToolcallStatusIcon
+              hasToolError={hasToolError}
+              isLoading={isLoading}
+            />
             <span>{toolStatusMessage}</span>
             <ChevronDown
               className={cn(
@@ -602,14 +640,11 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
             )}
           >
             <span className={isLoading ? "animate-thinking-gradient" : ""}>
-              {isLoading
-                ? "Thinking "
-                : message.reasoningDurationMS
-                  ? formatReasoningDuration(message.reasoningDurationMS) + " "
-                  : "Done Thinking "}
-              {message.reasoning.length > 1
-                ? `(${message.reasoning.length} steps)`
-                : ""}
+              <ReasoningStatusText
+                isLoading={isLoading}
+                reasoningDurationMS={message.reasoningDurationMS}
+                reasoningSteps={message.reasoning.length}
+              />
             </span>
             <ChevronDown
               className={cn(
@@ -657,6 +692,35 @@ function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
   if (!parameters) return;
   return Object.fromEntries(
     parameters.map((p) => [p.parameterName, p.parameterValue]),
+  );
+}
+
+/**
+ * Internal component to render reasoning status text
+ */
+function ReasoningStatusText({
+  isLoading,
+  reasoningDurationMS,
+  reasoningSteps,
+}: {
+  isLoading: boolean | undefined;
+  reasoningDurationMS?: number;
+  reasoningSteps: number;
+}) {
+  let statusText: string;
+  if (isLoading) {
+    statusText = "Thinking ";
+  } else if (reasoningDurationMS) {
+    statusText = formatReasoningDuration(reasoningDurationMS) + " ";
+  } else {
+    statusText = "Done Thinking ";
+  }
+
+  return (
+    <>
+      {statusText}
+      {reasoningSteps > 1 ? `(${reasoningSteps} steps)` : ""}
+    </>
   );
 }
 

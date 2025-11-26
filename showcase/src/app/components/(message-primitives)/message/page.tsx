@@ -7,7 +7,7 @@ import {
   MessageContent,
   MessageRenderedComponentArea,
   ReasoningInfo,
-} from "@/components/ui/message";
+} from "@/components/tambo/message";
 
 export default function MessagePage() {
   // Sample message data for examples

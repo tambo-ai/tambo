@@ -1,4 +1,5 @@
 import {
+  ChatCompletionMessageParam,
   FunctionParameters,
   getToolName,
   SUGGESTION_MODEL,
@@ -66,8 +67,7 @@ export async function generateSuggestions(
 
   try {
     const response = await suggestionLlmClient.complete({
-      messages:
-        suggestionMessages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+      messages: suggestionMessages as ChatCompletionMessageParam[],
       promptTemplateName: "suggestion-generation",
       promptTemplateParams: {},
       tools: [suggestionsResponseTool],

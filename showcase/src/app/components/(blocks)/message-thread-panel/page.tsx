@@ -2,7 +2,7 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
-import { MessageThreadPanel } from "@/components/ui/message-thread-panel";
+import { MessageThreadPanel } from "@/components/tambo/message-thread-panel";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 

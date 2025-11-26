@@ -118,6 +118,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -160,6 +161,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -230,6 +232,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -279,6 +282,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -323,6 +327,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -376,6 +381,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -416,6 +422,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -565,6 +572,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -603,6 +611,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -639,6 +648,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -675,6 +685,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
