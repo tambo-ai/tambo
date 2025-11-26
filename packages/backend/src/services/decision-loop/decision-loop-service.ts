@@ -223,7 +223,12 @@ function buildToolCallRequest(
   let parsedArgs: Record<string, unknown> | undefined;
   try {
     // Use partial-json parse to handle incomplete JSON during streaming
-    parsedArgs = parse(toolCall.function.arguments) as Record<string, unknown>;
+    const parsed = parse(toolCall.function.arguments);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return undefined;
+    }
+
+    parsedArgs = parsed;
   } catch (_e) {
     // If parsing fails completely, we can't build a request
     return undefined;
