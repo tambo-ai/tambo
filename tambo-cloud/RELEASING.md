@@ -27,9 +27,9 @@ Once the Tambo API client is updated, the React SDK can be updated.
 
 ### Tambo Cloud (this repository)
 
-When you update either or both of the Tambo client SDKs, you must also update the dependencies in this repository (in the `tambo-cloud/` directory) to ensure that the smoketests are using the latest versions of the Tambo client SDKs.
+When you update either or both of the Tambo client SDKs, you must also update the dependencies in this repository (in the `apps/api/` directory) to ensure that the smoketests are using the latest versions of the Tambo client SDKs.
 
-1. **OPTIONAL:** After both `@tambo-ai/typescript-sdk` and `@tambo-ai/react` are published, update the dependencies in this repository (in the `tambo-cloud/` directory) either:
+1. **OPTIONAL:** After both `@tambo-ai/typescript-sdk` and `@tambo-ai/react` are published, update the dependencies in this repository (in the `apps/api/` directory) either:
    - Through Dependabot at https://github.com/tambo-ai/tambo/network/updates
    - Or manually by running:
      ```bash

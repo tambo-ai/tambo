@@ -9,6 +9,7 @@ import {
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
+import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
 import { ChatCompletionContentPartDto } from "../dto/message.dto";
 import { tryParseJson } from "./content";
 
@@ -107,7 +108,7 @@ export async function callSystemTool(
     const messageWithToolResponse: AdvanceThreadDto = {
       messageToAppend: {
         actionType: ActionType.ToolResponse,
-        component: componentDecision,
+        component: componentDecision as ComponentDecisionV2Dto,
         role: MessageRole.Tool,
         content: responseContent,
         tool_call_id: toolCallId,

@@ -81,6 +81,7 @@ describe("AgentClient", () => {
 
     it("should create a Mastra agent with name", async () => {
       jest.spyOn(MastraAgent, "getRemoteAgents").mockResolvedValue({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         "test-name": {} as any,
       });
       const client = await AgentClient.create({
@@ -175,6 +176,7 @@ describe("AgentClient", () => {
     });
 
     it("should throw error if agent not initialized", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const client: AgentClient = new (AgentClient as any)(
         "test-chain",
         undefined,
@@ -235,6 +237,7 @@ describe("AgentClient", () => {
 
       // Mock the agent's setMessages method
       const mockSetMessages = jest.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (agentClient as any).aguiAgent = { setMessages: mockSetMessages };
 
       // Create a mock generator that finishes immediately
@@ -308,6 +311,7 @@ describe("AgentClient", () => {
 
       // Verify runStreamingAgent was called with converted tools
       expect(mockRunStreamingAgent).toHaveBeenCalledWith(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (agentClient as any).aguiAgent,
         queue,
         [
@@ -409,7 +413,6 @@ describe("AgentClient", () => {
           }
 
           // After waiting, if finished, return done
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (isFinished) {
             return {
               done: true,

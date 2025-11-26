@@ -50,7 +50,7 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             capturedContexts = contexts;
           }
@@ -98,7 +98,7 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
       React.useEffect(() => {
         let mounted = true;
         const interval = setInterval(() => {
-          getAdditionalContext().then((contexts) => {
+          void getAdditionalContext().then((contexts) => {
             if (mounted) {
               capturedContexts = contexts;
             }
@@ -181,7 +181,7 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
       React.useEffect(() => {
         let mounted = true;
         const interval = setInterval(() => {
-          getAdditionalContext().then((contexts) => {
+          void getAdditionalContext().then((contexts) => {
             if (mounted) {
               capturedContexts = contexts;
             }
@@ -255,7 +255,7 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             outerContexts = contexts;
           }
@@ -273,7 +273,7 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
 
       React.useEffect(() => {
         let mounted = true;
-        getAdditionalContext().then((contexts) => {
+        void getAdditionalContext().then((contexts) => {
           if (mounted) {
             innerContexts = contexts;
           }
@@ -351,7 +351,7 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
       React.useEffect(() => {
         let mounted = true;
         const interval = setInterval(() => {
-          getAdditionalContext().then((contexts) => {
+          void getAdditionalContext().then((contexts) => {
             if (mounted) {
               capturedContexts = contexts;
             }

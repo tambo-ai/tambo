@@ -15,6 +15,7 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "test": "jest --passWithNoTests",
     "check-types": "tsc --noEmit"
   },
@@ -26,10 +27,11 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@tambo-ai/eslint-config": "*",
+    "@tambo-ai/typescript-config": "*",
     "@types/express": "^5.0.0",
     "@types/node": "^22.15.32",
     "tsx": "^4.19.2",
-    "typescript": "^5.9.2",
-    "@tambo-ai-cloud/eslint-config": "*"
+    "typescript": "^5.9.2"
   }
 }

@@ -40,7 +40,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - **community/** - Community resources and event materials
 - **packages/** - Shared configuration packages (ESLint, TypeScript configs)
 
-### Tambo Cloud Platform (tambo-cloud/)
+### Tambo Cloud Platform
 
 - **apps/web** - Next.js app (UI)
 - **apps/api** - NestJS app (OpenAPI server)
@@ -149,6 +149,9 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - **Any function that returns a Promise must be declared `async`**.
 - **Always use `await`** when calling async functions.
+- **Avoid `.catch()` or `.then()` for async calls in most cases. Prefer `async`/`await` with `try/catch` so errors propagate naturally.** Use `.catch()` only when you truly cannot `await` (for example, in a `useEffect` cleanup) and use `void` only to explicitly mark an intentional fire‑and‑forget call that already handles its own errors.
+- **If a function is not critical, and you can't `await` it, use `void` to mark it as fire‑and‑forget.**
+- **avoid using IIFEs** especially as a workaround to call async functions.
 
 ### Control Flow
 
@@ -188,7 +191,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Typography
 
-- Sentient for headings (font-heading/font-sentient), Geist Sans for body (font-sans), Geist Mono for code (font-mono). See tambo-cloud/apps/web/lib/fonts.ts for font configuration.
+- Sentient for headings (font-heading/font-sentient), Geist Sans for body (font-sans), Geist Mono for code (font-mono). See apps/web/lib/fonts.ts for font configuration.
 
 ### Text Handling & JSX Patterns
 
@@ -225,7 +228,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ## 6. Database (Drizzle ORM)
 
-- Source of truth is tambo-cloud/packages/db/src/schema.ts. Do not hand-edit generated SQL.
+- Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
 
 Database commands:

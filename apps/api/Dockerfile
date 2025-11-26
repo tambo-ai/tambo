@@ -18,7 +18,6 @@ WORKDIR /workspace
 COPY turbo.json package.json package-lock.json ./
 COPY packages ./packages
 COPY apps/api ./apps/api
-COPY tambo-cloud/packages ./tambo-cloud/packages
 
 RUN npx turbo prune @tambo-ai-cloud/api --docker
 

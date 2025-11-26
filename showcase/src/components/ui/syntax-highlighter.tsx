@@ -17,9 +17,9 @@ const CodeHeader = ({
 }) => {
   const [copied, setCopied] = React.useState(false);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (!code) return;
-    navigator.clipboard.writeText(code);
+    await navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - "tambo-cloud/apps/mcp-everything/**"
+      - "apps/mcp-everything/**"
       - ".github/workflows/mcp-everything-docker-cloud.yml"
   pull_request:
     branches:
       - main
     paths:
-      - "tambo-cloud/apps/mcp-everything/**"
+      - "apps/mcp-everything/**"
       - ".github/workflows/mcp-everything-docker-cloud.yml"
   workflow_dispatch:
 
@@ -77,7 +77,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: tambo-cloud
-          file: ./tambo-cloud/apps/mcp-everything/Dockerfile
+          file: ./apps/mcp-everything/Dockerfile
           push: ${{ steps.should_push.outputs.should_push }}
           load: ${{ steps.should_push.outputs.should_push == 'false' }}
           platforms: ${{ steps.should_push.outputs.should_push == 'true' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
