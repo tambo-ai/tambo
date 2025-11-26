@@ -28,10 +28,15 @@ setup_env_file() {
   local path="$1"
   local warning="$2"
 
+  # Skip if directory doesn't exist
+  if [ ! -d "$path" ]; then
+    return
+  fi
+
   if [ -f "$CONDUCTOR_ROOT_PATH/$path/.env" ]; then
     echo "  - Copying $path/.env from root repo..."
     cp "$CONDUCTOR_ROOT_PATH/$path/.env" "$path/.env"
-  elif [ ! -f "$path/.env" ]; then
+  elif [ ! -f "$path/.env" ] && [ -f "$path/.env.example" ]; then
     echo "  - Creating $path/.env from example..."
     cp "$path/.env.example" "$path/.env"
     if [ -n "$warning" ]; then

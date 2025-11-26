@@ -5,7 +5,8 @@ set -e
 start_supabase_if_needed() {
   if command -v supabase &> /dev/null; then
     echo "🗄️  Checking Supabase status..."
-    if ! supabase status &> /dev/null; then
+    # Use timeout to prevent hanging if Docker isn't running
+    if ! timeout 10 supabase status &> /dev/null; then
       echo "🗄️  Starting Supabase..."
       if ! supabase start; then
         echo "❌ Failed to start Supabase. Common issues:"
@@ -40,7 +41,7 @@ case $choice in
   1)
     echo "Starting full dev (everything)..."
     start_supabase_if_needed
-    npm run dev
+    npx turbo dev --filter=@tambo-ai/showcase --filter=@tambo-ai/docs --filter=@tambo-ai-cloud/web --filter=@tambo-ai-cloud/api
     ;;
   2)
     echo "Starting framework only (showcase + docs)..."
