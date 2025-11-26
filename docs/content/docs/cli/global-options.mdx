@@ -217,10 +217,10 @@ npx tambo list --prefix=src/components/ui
 
 The Tambo CLI uses standard exit codes for shell integration and CI/CD:
 
-| Exit Code | Meaning | Common Causes |
-|-----------|---------|---------------|
-| `0` | Success | Command completed successfully |
-| `1` | Failure | Command failed, error details in output |
+| Exit Code | Meaning | Common Causes                           |
+| --------- | ------- | --------------------------------------- |
+| `0`       | Success | Command completed successfully          |
+| `1`       | Failure | Command failed, error details in output |
 
 **Usage in scripts:**
 
@@ -239,6 +239,7 @@ npm run build || exit 1
 ```
 
 **Common failure scenarios:**
+
 - Missing required files (package.json, tsconfig.json)
 - Invalid component names
 - Network errors during installation

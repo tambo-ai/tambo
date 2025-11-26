@@ -40,12 +40,14 @@ The init command offers two hosting options for your Tambo project:
 The fastest way to get started. Tambo Cloud handles all backend infrastructure for you.
 
 **What you get:**
+
 - Hosted AI backend
 - Automatic scaling
 - No infrastructure to manage
 - Free tier available
 
 **When to choose:**
+
 - You want to start quickly
 - You don't want to manage backend infrastructure
 - You're building a prototype or MVP
@@ -58,11 +60,13 @@ The fastest way to get started. Tambo Cloud handles all backend infrastructure f
 Run the Tambo backend on your own infrastructure using Docker.
 
 **What's required:**
+
 - Docker installed on your machine
 - Basic terminal/command line knowledge
 - Port 3030 available
 
 **When to choose:**
+
 - You need full control over your infrastructure
 - You have data residency requirements
 - You want to customize the backend
@@ -111,6 +115,7 @@ The init command automatically detects your project structure and helps set up t
 ```
 
 **What happens:**
+
 - If `src/` exists, CLI offers to use it
 - If no `src/` exists, CLI offers to create one
 - Components will be installed relative to your choice
@@ -155,10 +160,12 @@ The init command protects your existing API keys:
 ```
 
 **Files checked (in order):**
+
 1. `.env.local`
 2. `.env`
 
 **Why this matters:**
+
 - Prevents accidentally overwriting your production API key
 - Lets you keep existing configuration
 - Avoids breaking existing deployments
