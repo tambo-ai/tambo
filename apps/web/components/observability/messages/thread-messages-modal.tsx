@@ -44,7 +44,10 @@ function searchInMessage(message: MessageType, query: string): boolean {
   // Search in tool call arguments
   if (message.toolCallRequest?.parameters) {
     const formattedParams = formatToolParameters(
-      message.toolCallRequest.parameters,
+      message.toolCallRequest.parameters as {
+        parameterName: string;
+        parameterValue: string;
+      }[],
     );
     if (formattedParams.toLowerCase().includes(lowerQuery)) return true;
   }
@@ -118,7 +121,10 @@ function findAllMatches(thread: ThreadType, query: string): SearchMatch[] {
     // Check tool calls
     if (message.toolCallRequest) {
       const formattedParams = formatToolParameters(
-        message.toolCallRequest.parameters,
+        message.toolCallRequest.parameters as {
+          parameterName: string;
+          parameterValue: string;
+        }[],
       );
       if (formattedParams.toLowerCase().includes(query.toLowerCase())) {
         matches.push({

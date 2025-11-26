@@ -64,7 +64,7 @@ export function useTamboComponentState<S>(
 
   // Optimistically update the local thread message's componentState
   const updateLocalThreadMessage = useCallback(
-    (newState: S, existingMessage: TamboThreadMessage) => {
+    async (newState: S, existingMessage: TamboThreadMessage) => {
       const updatedMessage = {
         threadId: existingMessage.threadId,
         componentState: {
@@ -72,7 +72,7 @@ export function useTamboComponentState<S>(
           [keyName]: newState,
         },
       };
-      updateThreadMessage(existingMessage.id, updatedMessage, false);
+      await updateThreadMessage(existingMessage.id, updatedMessage, false);
     },
     [updateThreadMessage, keyName],
   );
@@ -94,8 +94,8 @@ export function useTamboComponentState<S>(
   const setValue = useCallback(
     (newState: S) => {
       setLocalState(newState);
-      updateLocalThreadMessage(newState, message);
-      updateRemoteThreadMessage(newState, message);
+      void updateLocalThreadMessage(newState, message);
+      void updateRemoteThreadMessage(newState, message);
     },
     [message, updateLocalThreadMessage, updateRemoteThreadMessage],
   );
@@ -120,7 +120,18 @@ export function useTamboComponentState<S>(
   // Ensure pending changes are flushed on unmount
   useEffect(() => {
     return () => {
-      updateRemoteThreadMessage.flush();
+      async function flushUpdates() {
+        try {
+          await updateRemoteThreadMessage.flush();
+        } catch (error) {
+          console.error(
+            "Failed to flush pending thread message updates:",
+            error,
+          );
+        }
+      }
+      // Fire-and-forget cleanup (errors handled inside)
+      void flushUpdates();
     };
   }, [updateRemoteThreadMessage]);
 

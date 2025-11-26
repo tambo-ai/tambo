@@ -1,6 +1,6 @@
-import type { ToolCallRequest } from "../ComponentDecision";
 import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 import OpenAI from "openai";
+import type { ToolCallRequest } from "../ComponentDecision";
 import { canBeNull, unstrictifyToolCallRequest } from "./tool-call-strict";
 
 describe("unstrictifyToolCallRequest", () => {
@@ -481,7 +481,7 @@ describe("unstrictifyToolCallRequest", () => {
         name: "test",
         parameters: {
           type: "string", // Invalid type for parameters
-        } as any,
+        },
       },
     };
 

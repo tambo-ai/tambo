@@ -61,7 +61,7 @@ const CodeHeader = ({
 
   const copyToClipboard = () => {
     if (!code) return;
-    navigator.clipboard.writeText(code);
+    void navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

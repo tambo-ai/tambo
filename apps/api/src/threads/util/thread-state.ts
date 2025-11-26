@@ -21,6 +21,7 @@ import OpenAI from "openai";
 import { createResourceFetcherMap } from "../../common/systemTools";
 import { ThreadMcpClient } from "../../mcp-server/elicitations";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
+import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
 import { MessageRequest } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
 import {
@@ -442,6 +443,7 @@ export async function finishInProgressMessage(
 
         await updateMessage(tx, inProgressMessageId, {
           ...finalThreadMessage,
+          component: finalThreadMessage.component as ComponentDecisionV2Dto,
           content: convertContentPartToDto(finalThreadMessage.content),
         });
 

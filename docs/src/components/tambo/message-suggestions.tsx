@@ -173,7 +173,7 @@ const MessageSuggestions = React.forwardRef<
     useEffect(() => {
       if (!suggestions || suggestions.length === 0) return;
 
-      const handleKeyDown = (event: KeyboardEvent) => {
+      const handleKeyDown = async (event: KeyboardEvent) => {
         const modifierPressed = isMac
           ? event.metaKey && event.altKey
           : event.ctrlKey && event.altKey;
@@ -183,7 +183,7 @@ const MessageSuggestions = React.forwardRef<
           if (!isNaN(keyNum) && keyNum > 0 && keyNum <= suggestions.length) {
             event.preventDefault();
             const suggestionIndex = keyNum - 1;
-            accept({ suggestion: suggestions[suggestionIndex] as Suggestion });
+            await accept({ suggestion: suggestions[suggestionIndex] });
           }
         }
       };
@@ -267,19 +267,39 @@ const MessageSuggestionsStatus = React.forwardRef<
 
       {/* Always render a container for generation stage to prevent layout shifts */}
       <div className="generation-stage-container">
-        {thread?.generationStage && thread.generationStage !== "COMPLETE" ? (
-          <MessageGenerationStage />
-        ) : isGenerating ? (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2Icon className="h-4 w-4 animate-spin" />
-            <p>Generating suggestions...</p>
-          </div>
-        ) : null}
+        <GenerationStageContent
+          generationStage={thread?.generationStage}
+          isGenerating={isGenerating}
+        />
       </div>
     </div>
   );
 });
 MessageSuggestionsStatus.displayName = "MessageSuggestions.Status";
+
+/**
+ * Internal component to render generation stage content
+ */
+function GenerationStageContent({
+  generationStage,
+  isGenerating,
+}: {
+  generationStage?: string;
+  isGenerating: boolean;
+}) {
+  if (generationStage && generationStage !== "COMPLETE") {
+    return <MessageGenerationStage />;
+  }
+  if (isGenerating) {
+    return (
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Loader2Icon className="h-4 w-4 animate-spin" />
+        <p>Generating suggestions...</p>
+      </div>
+    );
+  }
+  return null;
+}
 
 /**
  * Props for the MessageSuggestionsList component.
@@ -316,7 +336,7 @@ const MessageSuggestionsList = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex space-x-2 overflow-x-auto pb-2 rounded-md bg-transparent min-h-[2.5rem]",
+        "flex space-x-2 overflow-x-auto pb-2 rounded-md bg-transparent min-h-10",
         isGenerating ? "opacity-70" : "",
         className,
       )}
@@ -338,11 +358,10 @@ const MessageSuggestionsList = React.forwardRef<
                 className={cn(
                   "py-2 px-2.5 rounded-2xl text-xs transition-colors",
                   "border border-flat",
-                  isGenerating
-                    ? "bg-muted/50 text-muted-foreground"
-                    : selectedSuggestionId === suggestion.id
-                      ? "bg-accent text-accent-foreground"
-                      : "bg-background hover:bg-accent hover:text-accent-foreground",
+                  getSuggestionButtonClassName({
+                    isGenerating,
+                    isSelected: selectedSuggestionId === suggestion.id,
+                  }),
                 )}
                 onClick={async () =>
                   !isGenerating && (await accept({ suggestion }))
@@ -369,5 +388,24 @@ const MessageSuggestionsList = React.forwardRef<
   );
 });
 MessageSuggestionsList.displayName = "MessageSuggestions.List";
+
+/**
+ * Internal function to get className for suggestion button based on state
+ */
+function getSuggestionButtonClassName({
+  isGenerating,
+  isSelected,
+}: {
+  isGenerating: boolean;
+  isSelected: boolean;
+}) {
+  if (isGenerating) {
+    return "bg-muted/50 text-muted-foreground";
+  }
+  if (isSelected) {
+    return "bg-accent text-accent-foreground";
+  }
+  return "bg-background hover:bg-accent hover:text-accent-foreground";
+}
 
 export { MessageSuggestions, MessageSuggestionsList, MessageSuggestionsStatus };

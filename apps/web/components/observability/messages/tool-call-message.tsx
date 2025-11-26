@@ -93,7 +93,12 @@ export const ToolCallMessage = memo(
 
               {/* View Arguments Dropdown */}
               <ToolArgumentsSection
-                parameters={parameters}
+                parameters={
+                  parameters as {
+                    parameterName: string;
+                    parameterValue: string;
+                  }[]
+                }
                 formatToolParameters={formatToolParameters}
                 searchQuery={searchQuery}
               />
