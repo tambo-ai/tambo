@@ -280,9 +280,10 @@ export async function addAssistantResponse(
 }
 
 /**
- * The purpose if this function is to make sure that we do not stream
- * intermediate tool calls and instead withhold the toolCallRequest and
- * toolCallId until the final message.
+ * Processes a stream of component decisions to handle tool call information.
+ *
+ * For in-progress tool calls, the tool call info is kept in the component field.
+ * For complete tool calls, the tool call info is moved to the outer toolCallRequest field.
  *
  * Messages will come in from the LLM or agent as a stream of component
  * decisions, as a flat stream or messages, even though there may be more than
@@ -290,11 +291,10 @@ export async function addAssistantResponse(
  * incomplete tool call.
  *
  * For LLMs, this mostly just looks like a stream of messages that ultimately
- * results in a single final message, so just the last message in the resulting
- * stream has a tool call in it.
+ * results in a single final message.
  *
  * For agents, this may be a stream of multiple distinct messages, (like a user
- * message, then two asisstant messages, then another user message, etc) and we
+ * message, then two assistant messages, then another user message, etc) and we
  * distinguish between them because the `id` of the LegacyComponentDecision will
  * change with each message.
  */
@@ -302,40 +302,62 @@ export async function* fixStreamedToolCalls(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   let currentDecisionId: string | undefined = undefined;
-
   let currentToolCallRequest: ToolCallRequest | undefined = undefined;
   let currentToolCallId: string | undefined = undefined;
   let currentDecision: LegacyComponentDecision | undefined = undefined;
+  let finalToolCallRequest: ToolCallRequest | undefined = undefined;
+  let finalToolCallId: string | undefined = undefined;
 
   for await (const chunk of stream) {
     if (currentDecision?.id && currentDecisionId !== chunk.id) {
-      // we're on to a new chunk, so if we have a previous tool call request, emit it
+      // we're on to a new message, so emit the previous one with complete tool call info
       yield {
         ...currentDecision,
-        toolCallRequest: currentToolCallRequest,
-        toolCallId: currentToolCallId,
+        toolCallRequest: finalToolCallRequest,
+        toolCallId: finalToolCallId,
       };
-      // and clear the current tool call request and id
+      // and clear the current state
       currentToolCallRequest = undefined;
       currentToolCallId = undefined;
+      finalToolCallRequest = undefined;
+      finalToolCallId = undefined;
     }
 
-    // now emit the next chunk
-    const { toolCallRequest, ...incompleteChunk } = chunk;
-    currentDecision = incompleteChunk;
+    // Track the tool call info
     currentDecisionId = chunk.id;
     currentToolCallId = chunk.toolCallId;
-    currentToolCallRequest = toolCallRequest;
-    yield incompleteChunk;
+    currentToolCallRequest = chunk.toolCallRequest;
+
+    // During streaming, strip tool call info from outer fields but preserve it for component
+    // Store original values in hidden properties that updateThreadMessageFromLegacyDecision can access
+    const streamingChunk = {
+      ...chunk,
+      toolCallRequest: undefined, // Strip from outer fields during streaming
+      toolCallId: undefined, // Strip from outer fields during streaming
+      // Store original values for component field access
+      __toolCallRequest: chunk.toolCallRequest,
+      __toolCallId: chunk.toolCallId,
+    } as LegacyComponentDecision & {
+      __toolCallRequest?: ToolCallRequest;
+      __toolCallId?: string;
+    };
+
+    currentDecision = streamingChunk as LegacyComponentDecision;
+    yield streamingChunk as LegacyComponentDecision;
   }
 
-  // account for the last iteration
+  // account for the last iteration - this is the final chunk
+  // For the final chunk, if there's a tool call, put it on outer fields
+  // (it will also be in component via updateThreadMessageFromLegacyDecision)
   if (currentDecision) {
-    yield {
+    const finalChunk = {
       ...currentDecision,
+      // Put tool call on outer fields for complete tool calls
+      // It will also be in component field via updateThreadMessageFromLegacyDecision
       toolCallRequest: currentToolCallRequest,
       toolCallId: currentToolCallId,
     };
+    yield finalChunk;
   }
 }
 
@@ -346,6 +368,23 @@ export function updateThreadMessageFromLegacyDecision(
   // we explicitly remove certain fields from the component decision to avoid
   // duplication, because they appear in the thread message
   const { reasoning, ...simpleDecisionChunk } = chunk;
+
+  // Get tool call info - check both outer fields and hidden properties (for streaming chunks)
+  const chunkWithHidden = chunk as LegacyComponentDecision & {
+    __toolCallRequest?: ToolCallRequest;
+    __toolCallId?: string;
+  };
+  const toolCallRequest =
+    chunk.toolCallRequest ?? chunkWithHidden.__toolCallRequest;
+  const toolCallId = chunk.toolCallId ?? chunkWithHidden.__toolCallId;
+
+  // Always include tool call info in component field if present
+  const componentWithToolCall: LegacyComponentDecision = {
+    ...simpleDecisionChunk,
+    toolCallRequest,
+    toolCallId,
+  };
+
   const currentThreadMessage: ThreadMessage = {
     ...initialMessage,
     componentState: chunk.componentState ?? {},
@@ -355,18 +394,22 @@ export function updateThreadMessageFromLegacyDecision(
         text: chunk.message,
       },
     ],
-    component: simpleDecisionChunk,
+    component: componentWithToolCall,
     reasoning: reasoning,
     reasoningDurationMS: chunk.reasoningDurationMS,
-    // If the chunk includes a tool call, propagate it onto the thread message.
-    // Intermediate chunks from fixStreamedToolCalls will not include tool calls; only
-    // final/synthesized chunks carry tool call metadata.
   };
-  currentThreadMessage.tool_call_id = chunk.toolCallId;
+
+  // Only set outer tool call fields if tool call is present on outer fields of chunk
+  // fixStreamedToolCalls ensures:
+  // - During streaming: tool call info NOT on outer fields (stored in __toolCallRequest)
+  // - On final chunk: tool call info ON outer fields (chunk.toolCallRequest exists)
+  // So if chunk.toolCallRequest exists (not from hidden property), it's complete
   if (chunk.toolCallRequest) {
     currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
+    currentThreadMessage.tool_call_id = chunk.toolCallId;
     currentThreadMessage.actionType = ActionType.ToolCall;
   }
+
   return currentThreadMessage;
 }
 
