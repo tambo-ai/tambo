@@ -303,56 +303,41 @@ export async function* fixStreamedToolCalls(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   let currentDecisionId: string | undefined = undefined;
+  let currentToolCallRequest: ToolCallRequest | undefined = undefined;
+  let currentToolCallId: string | undefined = undefined;
   let currentDecision: LegacyComponentDecision | undefined = undefined;
-  let previousToolCallRequest: ToolCallRequest | undefined = undefined;
-  let previousToolCallId: string | undefined = undefined;
 
   for await (const chunk of stream) {
     if (currentDecision?.id && currentDecisionId !== chunk.id) {
-      // we're on to a new message, so emit the previous one with complete tool call info
+      // we're on to a new chunk, so if we have a previous tool call request, emit it
       yield {
         ...currentDecision,
-        toolCallRequest: previousToolCallRequest,
-        toolCallId: previousToolCallId,
+        toolCallRequest: currentToolCallRequest,
+        toolCallId: currentToolCallId,
         isToolCallFinished: true,
       };
-      // and clear the current state
-      previousToolCallRequest = undefined;
-      previousToolCallId = undefined;
+      // and clear the current tool call request and id
+      currentToolCallRequest = undefined;
+      currentToolCallId = undefined;
     }
 
-    // Track the tool call info from the incoming chunk
+    // now emit the next chunk
+    const { toolCallRequest, ...incompleteChunk } = chunk;
+    currentDecision = incompleteChunk;
     currentDecisionId = chunk.id;
-    const incomingToolCallId = chunk.toolCallId;
-    const incomingToolCallRequest = chunk.toolCallRequest;
-
-    // Store the tool call info for when we need to emit the final chunk
-    // (either when ID changes or at end of stream)
-    if (incomingToolCallRequest) {
-      previousToolCallRequest = incomingToolCallRequest;
-      previousToolCallId = incomingToolCallId;
-    }
-
-    const streamingChunk: LegacyComponentDecision = {
-      ...chunk,
-      isToolCallFinished: false,
-    };
-
-    currentDecision = streamingChunk;
-    yield streamingChunk;
+    currentToolCallId = chunk.toolCallId;
+    currentToolCallRequest = toolCallRequest;
+    yield { ...chunk, isToolCallFinished: false };
   }
 
-  // Account for the last iteration - this is the final chunk.
-  // For the final chunk, preserve tool call info and mark as finished.
-
+  // account for the last iteration
   if (currentDecision) {
-    const finalChunk: LegacyComponentDecision = {
+    yield {
       ...currentDecision,
-      toolCallRequest: previousToolCallRequest,
-      toolCallId: previousToolCallId,
+      toolCallRequest: currentToolCallRequest,
+      toolCallId: currentToolCallId,
       isToolCallFinished: true,
     };
-    yield finalChunk;
   }
 }
 
