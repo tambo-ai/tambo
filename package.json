@@ -6,7 +6,7 @@
     "build": "turbo build",
     "check-types": "turbo check-types",
     "clean": "turbo clean",
-    "format": "prettier --write \"**/*.{ts,tsx,md,yml}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,md,mdx,yml}\"",
     "lint:fix": "turbo lint -- --fix",
     "lint": "turbo lint",
     "format:code": "turbo run format:code",
