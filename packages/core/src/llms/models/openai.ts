@@ -30,7 +30,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     notes:
       "GPT-5.1 Thinking with adaptive reasoning. Dynamically varies thinking time based on task complexity for better token efficiency",
     docLink: "https://platform.openai.com/docs/guides/latest-model",
-    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-1-thinking",
+    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-51-thinking",
     inputTokenLimit: 400000,
     modelSpecificParams: reasoningParameters,
   },
@@ -41,7 +41,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     notes:
       "GPT-5.1 Instant - warmer, more conversational model with adaptive reasoning. Defaults to 'none' reasoning effort for latency-sensitive workloads",
     docLink: "https://platform.openai.com/docs/guides/latest-model",
-    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-1-instant",
+    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-51-instant",
     inputTokenLimit: 400000,
     modelSpecificParams: reasoningParameters,
     isDefaultModel: true,
@@ -93,7 +93,7 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
   "gpt-4.1-nano-2025-04-14": {
     apiName: "gpt-4.1-nano-2025-04-14",
     displayName: "gpt-4.1-nano",
-    status: "tested",
+    status: "untested",
     notes: "Fastest, most cost-efficient version of GPT-4.1",
     docLink: "https://platform.openai.com/docs/models/gpt-4.1-nano",
     tamboDocLink: "https://docs.tambo.co/models/openai#gpt-4-1-nano",

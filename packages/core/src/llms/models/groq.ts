@@ -12,7 +12,8 @@ export const groqModels: Partial<LlmModelConfig<GroqModelId>> = {
       "Meta's Llama 4 Scout model (17Bx16E), ideal for summarization, reasoning, and code. Runs at 460+ tokens/sec on Groq",
     docLink:
       "https://groq.com/blog/llama-4-now-live-on-groq-build-fast-at-the-lowest-cost-without-compromise",
-    tamboDocLink: "https://docs.tambo.co/models/groq#llama-4-scout",
+    tamboDocLink:
+      "https://docs.tambo.co/models/groq#llama-4-scout-17b-16e-instruct",
     inputTokenLimit: 131072,
   },
   "meta-llama/llama-4-maverick-17b-128e-instruct": {
@@ -23,7 +24,8 @@ export const groqModels: Partial<LlmModelConfig<GroqModelId>> = {
       "Meta's Llama 4 Maverick model (17Bx128E), optimized for multilingual and multimodal tasks—great for assistants, chat, and creative applications",
     docLink:
       "https://groq.com/blog/llama-4-now-live-on-groq-build-fast-at-the-lowest-cost-without-compromise",
-    tamboDocLink: "https://docs.tambo.co/models/groq#llama-4-maverick",
+    tamboDocLink:
+      "https://docs.tambo.co/models/groq#llama-4-maverick-17b-128e-instruct",
     inputTokenLimit: 131072,
   },
   "llama-3.3-70b-versatile": {
