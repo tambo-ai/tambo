@@ -20,7 +20,6 @@ import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
   LLMClient,
-  LLMResponse,
 } from "../llm/llm-client";
 import {
   addParametersToTools,
@@ -170,8 +169,10 @@ export async function* runDecisionLoop(
       // If this is a non-UI tool call, build tool call request (even if incomplete)
       let clientToolRequest: ToolCallRequest | undefined;
       if (!isUITool && toolCall) {
-        clientToolRequest = buildToolCallRequest(toolCall, strictTools, chunk);
+        console.log("toolcall: ", JSON.stringify(toolCall));
+        clientToolRequest = buildToolCallRequest(toolCall, strictTools);
       }
+      console.log("clientToolRequest: ", JSON.stringify(clientToolRequest));
 
       const displayMessage = extractMessageContent(
         message.length > 0 ? message.trim() : paramDisplayMessage || " ",
@@ -216,15 +217,9 @@ export async function* runDecisionLoop(
 function buildToolCallRequest(
   toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall,
   tools: OpenAI.Chat.Completions.ChatCompletionTool[],
-  chunk: Partial<LLMResponse>,
 ): ToolCallRequest | undefined {
   // "custom" tool calls are not supported
   if (toolCall.type !== "function") {
-    return undefined;
-  }
-
-  const toolCallId = getLLMResponseToolCallId(chunk);
-  if (!toolCallId) {
     return undefined;
   }
 
