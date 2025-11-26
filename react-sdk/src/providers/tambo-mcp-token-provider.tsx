@@ -10,7 +10,10 @@ import React, {
 } from "react";
 import { TamboThread } from "../model/tambo-thread";
 import { TamboClientContext } from "./tambo-client-provider";
-import { TamboThreadContext } from "./tambo-thread-provider";
+import {
+  PLACEHOLDER_THREAD,
+  TamboThreadContext,
+} from "./tambo-thread-provider";
 
 export interface TamboMcpTokenContextProps {
   /**
@@ -89,12 +92,15 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
 
   // Effect 1: Fetch threadless token on mount when no current thread
   // Always fetch to support server-side MCP servers (not just client-side)
+  // Treat PLACEHOLDER_THREAD as "no thread" - never send it to the server
   useEffect(() => {
-    if (
-      !currentThreadId &&
+    const isPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
+    const shouldFetchThreadless =
+      (!currentThreadId || isPlaceholderThread) &&
       !threadlessMcpToken &&
-      !hasAttemptedThreadlessFetch.current
-    ) {
+      !hasAttemptedThreadlessFetch.current;
+
+    if (shouldFetchThreadless) {
       hasAttemptedThreadlessFetch.current = true;
       const fetchThreadlessToken = async () => {
         try {
@@ -112,16 +118,20 @@ export const TamboMcpTokenProvider: React.FC<PropsWithChildren> = ({
 
   // Effect 2: Fetch thread-specific token when switching to a thread without one
   // Always fetch to support server-side MCP servers (not just client-side)
+  // Skip PLACEHOLDER_THREAD - never send it to the server
   useEffect(() => {
     const hasThreadChanged = previousThreadId.current !== currentThreadId;
     previousThreadId.current = currentThreadId;
 
-    if (
+    const isPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
+    const shouldFetchThreadToken =
       hasThreadChanged &&
       currentThreadId &&
+      !isPlaceholderThread &&
       currentThread &&
-      !currentThread.mcpAccessToken
-    ) {
+      !currentThread.mcpAccessToken;
+
+    if (shouldFetchThreadToken) {
       const fetchThreadToken = async () => {
         try {
           const response = await client.beta.auth.getMcpToken({
