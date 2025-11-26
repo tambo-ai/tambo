@@ -509,11 +509,13 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   medium: "w-10 h-10 text-sm",
                   large: "w-12 h-12 text-base",
                 };
-              let iconSize = 48;
+              let iconSize: number;
               if (size === "small") {
                 iconSize = 32;
               } else if (size === "medium") {
                 iconSize = 40;
+              } else {
+                iconSize = 48;
               }
               return L.divIcon({
                 html: `<div class="flex items-center justify-center ${colorClass} ${sizeClasses[size]} text-white font-bold rounded-xl border-2 border-white shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-90">${count}</div>`,

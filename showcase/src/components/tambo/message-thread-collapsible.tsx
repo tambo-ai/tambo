@@ -18,6 +18,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   // MessageInputMcpConfigButton,
 } from "@/components/tambo/message-input";
 import {
@@ -305,6 +306,7 @@ export const MessageThreadCollapsible = React.forwardRef<
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputMcpPromptButton />
+                  <MessageInputMcpResourceButton />
                   {/* Uncomment this to enable client-side MCP config modal button */}
                   {/* <MessageInputMcpConfigButton /> */}
                   <MessageInputSubmitButton />
