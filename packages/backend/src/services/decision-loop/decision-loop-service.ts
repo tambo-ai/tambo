@@ -216,6 +216,10 @@ function buildToolCallRequest(
 ): ToolCallRequest | undefined {
   // "custom" tool calls are not supported
   if (toolCall.type !== "function") {
+    console.warn(
+      "Unsupported tool call type, only 'function' is supported, received: ",
+      toolCall.type,
+    );
     return undefined;
   }
 
@@ -223,18 +227,21 @@ function buildToolCallRequest(
   let parsedArgs: Record<string, unknown> | undefined;
   try {
     // Use partial-json parse to handle incomplete JSON during streaming
-    const parsed = parse(toolCall.function.arguments);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return undefined;
-    }
-
-    parsedArgs = parsed;
+    parsedArgs = parse(toolCall.function.arguments);
   } catch (_e) {
     // If parsing fails completely, we can't build a request
+    console.warn(
+      "Failed to parse tool call arguments, received: ",
+      toolCall.function.arguments,
+    );
     return undefined;
   }
-
-  if (!parsedArgs) {
+  if (
+    !parsedArgs ||
+    typeof parsedArgs !== "object" ||
+    Array.isArray(parsedArgs)
+  ) {
+    console.warn("Invalid tool call arguments, received: ", parsedArgs);
     return undefined;
   }
 
