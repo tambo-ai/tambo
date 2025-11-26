@@ -15,7 +15,7 @@ import {
 } from "./mcp-hooks";
 
 // Mock the MCP client to avoid ES module issues
-let createImpl: jest.Mock = jest.fn();
+let createImpl: jest.Mock<any, any> = jest.fn();
 jest.mock("./mcp-client", () => ({
   MCPClient: { create: (...args: any[]) => createImpl(...args) },
   MCPTransport: { SSE: "sse", HTTP: "http" },

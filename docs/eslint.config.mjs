@@ -1,13 +1,12 @@
+import config from "@tambo-ai/eslint-config/base";
 import nextJsConfig from "@tambo-ai/eslint-config/next-js";
 import { defineConfig } from "eslint/config";
 import globals from "globals";
 
 export default defineConfig([
-  ...nextJsConfig,
   {
     ignores: [".next/**", ".source/**"],
-  },
-  {
+    extends: [config, nextJsConfig],
     languageOptions: {
       parserOptions: {
         ecmaVersion: "latest",
