@@ -1,24 +1,22 @@
 import type { Config } from "jest";
 
 const config: Config = {
-  preset: "ts-jest",
-  testEnvironment: "jsdom",
+  preset: "ts-jest/presets/default-esm",
+  testEnvironment: "node",
+  extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
-    "^@tambo-ai/react$": "<rootDir>/../react-sdk/src/index.ts",
-    "^@tambo-ai/react/(.*)$": "<rootDir>/../react-sdk/src/$1",
-    "^@/(.*)$": "<rootDir>/src/$1",
-    "^@/components/tambo/(.*)$": "<rootDir>/src/registry/$1",
-    "^@/lib/(.*)$": "<rootDir>/src/lib/$1",
+    "^(\\.{1,2}/.*)\\.js$": "$1",
   },
-  testMatch: [
-    "<rootDir>/src/**/*.test.ts",
-    "<rootDir>/__tests__/**/*.test.tsx",
-  ],
+  testMatch: ["<rootDir>/src/**/*.test.ts"],
   transform: {
-    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        useESM: true,
+      },
+    ],
   },
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
-  setupFilesAfterEnv: ["<rootDir>/__tests__/setup.ts"],
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
