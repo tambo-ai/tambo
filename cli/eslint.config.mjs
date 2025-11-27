@@ -10,6 +10,7 @@ export default tseslint.config(
       "dist/**/*",
       "esm/**/*",
       "jest.config.ts",
+      "jest.config.react.ts",
       "eslint.config.mjs",
       "tests/**/*",
     ],
