@@ -15,6 +15,7 @@ export interface LegacyComponentDecision {
   reasoningDurationMS?: number;
   statusMessage?: string;
   completionStatusMessage?: string;
+  isToolCallFinished?: boolean;
 }
 
 export interface ComponentDecisionV2 {

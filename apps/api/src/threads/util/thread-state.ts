@@ -280,9 +280,11 @@ export async function addAssistantResponse(
 }
 
 /**
- * The purpose if this function is to make sure that we do not stream
- * intermediate tool calls and instead withhold the toolCallRequest and
- * toolCallId until the final message.
+ * Processes a stream of component decisions to handle tool call information.
+ *
+ * This function preserves tool call info (even if incomplete)in chunks during streaming and uses the
+ * `isToolCallFinished` flag to indicate completion status. Sets to false until the final chunk, when it is set to true.
+ *
  *
  * Messages will come in from the LLM or agent as a stream of component
  * decisions, as a flat stream or messages, even though there may be more than
@@ -290,11 +292,10 @@ export async function addAssistantResponse(
  * incomplete tool call.
  *
  * For LLMs, this mostly just looks like a stream of messages that ultimately
- * results in a single final message, so just the last message in the resulting
- * stream has a tool call in it.
+ * results in a single final message.
  *
  * For agents, this may be a stream of multiple distinct messages, (like a user
- * message, then two asisstant messages, then another user message, etc) and we
+ * message, then two assistant messages, then another user message, etc) and we
  * distinguish between them because the `id` of the LegacyComponentDecision will
  * change with each message.
  */
@@ -302,7 +303,6 @@ export async function* fixStreamedToolCalls(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   let currentDecisionId: string | undefined = undefined;
-
   let currentToolCallRequest: ToolCallRequest | undefined = undefined;
   let currentToolCallId: string | undefined = undefined;
   let currentDecision: LegacyComponentDecision | undefined = undefined;
@@ -314,6 +314,7 @@ export async function* fixStreamedToolCalls(
         ...currentDecision,
         toolCallRequest: currentToolCallRequest,
         toolCallId: currentToolCallId,
+        isToolCallFinished: true,
       };
       // and clear the current tool call request and id
       currentToolCallRequest = undefined;
@@ -326,7 +327,7 @@ export async function* fixStreamedToolCalls(
     currentDecisionId = chunk.id;
     currentToolCallId = chunk.toolCallId;
     currentToolCallRequest = toolCallRequest;
-    yield incompleteChunk;
+    yield { ...chunk, isToolCallFinished: false };
   }
 
   // account for the last iteration
@@ -335,6 +336,7 @@ export async function* fixStreamedToolCalls(
       ...currentDecision,
       toolCallRequest: currentToolCallRequest,
       toolCallId: currentToolCallId,
+      isToolCallFinished: true,
     };
   }
 }
@@ -345,7 +347,8 @@ export function updateThreadMessageFromLegacyDecision(
 ): ThreadMessage {
   // we explicitly remove certain fields from the component decision to avoid
   // duplication, because they appear in the thread message
-  const { reasoning, ...simpleDecisionChunk } = chunk;
+  const { reasoning, isToolCallFinished, ...simpleDecisionChunk } = chunk;
+
   const currentThreadMessage: ThreadMessage = {
     ...initialMessage,
     componentState: chunk.componentState ?? {},
@@ -358,15 +361,15 @@ export function updateThreadMessageFromLegacyDecision(
     component: simpleDecisionChunk,
     reasoning: reasoning,
     reasoningDurationMS: chunk.reasoningDurationMS,
-    // If the chunk includes a tool call, propagate it onto the thread message.
-    // Intermediate chunks from fixStreamedToolCalls will not include tool calls; only
-    // final/synthesized chunks carry tool call metadata.
   };
-  currentThreadMessage.tool_call_id = chunk.toolCallId;
-  if (chunk.toolCallRequest) {
+
+  // Only set outer tool call fields if tool call is finished.
+  if (isToolCallFinished && chunk.toolCallRequest) {
     currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
+    currentThreadMessage.tool_call_id = chunk.toolCallId;
     currentThreadMessage.actionType = ActionType.ToolCall;
   }
+
   return currentThreadMessage;
 }
 
