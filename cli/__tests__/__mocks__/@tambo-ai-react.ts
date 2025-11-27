@@ -2,7 +2,7 @@
 const mockFn = () => {
   const fn = (...args: unknown[]) => {
     fn.mock.calls.push(args);
-    return fn.mockReturnValue || fn.defaultReturn;
+    return fn.mockReturnValue ?? fn.defaultReturn;
   };
   fn.mock = { calls: [] as unknown[][] };
   fn.mockReturnValue = undefined;

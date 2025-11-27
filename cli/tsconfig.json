@@ -25,13 +25,12 @@
     },
     "outDir": "./dist"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/types/*.d.ts"],
-  "exclude": [
-    "node_modules",
-    "./dist",
-    "tests",
-    "__tests__",
-    "**/*.test.ts",
-    "**/*.test.tsx"
-  ]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/types/*.d.ts",
+    "__tests__/**/*.ts",
+    "__tests__/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "./dist", "tests"]
 }
