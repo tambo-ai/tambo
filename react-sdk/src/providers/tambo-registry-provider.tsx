@@ -1,4 +1,5 @@
 "use client";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import React, {
   createContext,
@@ -9,12 +10,14 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { ZodSchema } from "zod/v3";
-import zodToJsonSchema from "zod-to-json-schema";
+import { ZodTuple, ZodType } from "zod/v3";
 import {
   ComponentRegistry,
   TamboComponent,
   TamboTool,
+  TamboToolArgsReturns,
+  TamboToolJSONSchema,
+  TamboToolZod3Function,
 } from "../model/component-metadata";
 import {
   getMcpServerUniqueKey,
@@ -22,8 +25,13 @@ import {
   MCPTransport,
   type NormalizedMcpServerInfo,
 } from "../model/mcp-server-info";
+import {
+  isStandardSchema,
+  looksLikeJSONSchema,
+  schemaToJsonSchema,
+} from "../util/schema";
 import { assertValidName } from "../util/validate-component-name";
-import { assertNoZodRecord } from "../util/validate-zod-schema";
+import { assertNoRecordSchema } from "../util/validate-schema";
 
 /**
  * Derives a short, meaningful key from a server URL.
@@ -106,13 +114,39 @@ function normalizeServerInfo(
   return { ...base, transport, serverKey };
 }
 
+/**
+ * Overloaded function type for registerTool with proper type inference.
+ * Order matters: most specific first (ArgsReturns → Zod3 → JSON → base).
+ * Each overload constrains the tool object to a specific schema variant,
+ * enabling TypeScript to infer the tool function's parameter types from the schema.
+ */
+export interface RegisterToolFn {
+  <Args extends StandardSchemaV1, Returns extends StandardSchemaV1>(
+    tool: TamboToolArgsReturns<Args, Returns>,
+    warnOnOverwrite?: boolean,
+  ): void;
+  /**
+   * @deprecated Use TamboToolArgsReturns format instead. z.function() will be removed in the next major version.
+   */
+  <Args extends ZodTuple<any, any>, Returns extends ZodType>(
+    tool: TamboToolZod3Function<Args, Returns>,
+    warnOnOverwrite?: boolean,
+  ): void;
+  <Args extends unknown[], Returns = unknown>(
+    tool: TamboToolJSONSchema<Args, Returns>,
+    warnOnOverwrite?: boolean,
+  ): void;
+  // Fallback for pre-defined tools typed as TamboTool union
+  (tool: TamboTool, warnOnOverwrite?: boolean): void;
+}
+
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
   toolRegistry: Record<string, TamboTool>;
   componentToolAssociations: Record<string, string[]>;
   mcpServerInfos: NormalizedMcpServerInfo[];
   registerComponent: (options: TamboComponent) => void;
-  registerTool: (tool: TamboTool) => void;
+  registerTool: RegisterToolFn;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
   registerMcpServer: (info: McpServerInfo) => void;
@@ -210,14 +244,17 @@ export const TamboRegistryProvider: React.FC<
     NormalizedMcpServerInfo[]
   >([]);
 
-  const registerTool = useCallback(
+  const registerTool: RegisterToolFn = useCallback(
     (tool: TamboTool, warnOnOverwrite = true) => {
       // Validate tool name
       assertValidName(tool.name, "tool");
 
-      // Validate tool schemas
-      if (tool.toolSchema && isZodSchema(tool.toolSchema)) {
-        assertNoZodRecord(tool.toolSchema, `toolSchema of tool "${tool.name}"`);
+      // Validate tool schemas (works with Standard Schema, Zod, and JSON Schema)
+      if (tool.toolSchema) {
+        assertNoRecordSchema(
+          tool.toolSchema,
+          `toolSchema of tool "${tool.name}"`,
+        );
       }
       setToolRegistry((prev) => {
         if (prev[tool.name] && warnOnOverwrite) {
@@ -302,9 +339,9 @@ export const TamboRegistryProvider: React.FC<
         );
       }
 
-      // Validate that the propsSchema does not include z.record()
-      if (propsSchema && isZodSchema(propsSchema)) {
-        assertNoZodRecord(propsSchema, `propsSchema of component "${name}"`);
+      // Validate that the propsSchema does not include record types
+      if (propsSchema) {
+        assertNoRecordSchema(propsSchema, `propsSchema of component "${name}"`);
       }
 
       // Convert propsSchema to JSON Schema if it exists
@@ -457,62 +494,32 @@ export const useTamboMcpServerInfos = (): NormalizedMcpServerInfo[] => {
   return useContext(TamboRegistryContext).mcpServerInfos;
 };
 function getSerializedProps(
-  propsDefinition: any,
-  propsSchema: any,
+  propsDefinition: unknown,
+  propsSchema: unknown,
   name: string,
-) {
+): Record<string, unknown> {
   if (propsDefinition) {
     console.warn(`propsDefinition is deprecated. Use propsSchema instead.`);
-    return propsDefinition;
+    return propsDefinition as Record<string, unknown>;
   }
 
-  if (isZodSchema(propsSchema)) {
+  // Handle Standard Schema compliant validators (Zod, Valibot, ArkType, etc.)
+  if (isStandardSchema(propsSchema)) {
     try {
-      return zodToJsonSchema(propsSchema);
+      return schemaToJsonSchema(propsSchema) as Record<string, unknown>;
     } catch (error) {
       console.error(
         `Error converting ${name} props schema to JSON Schema:`,
         error,
       );
+      throw new Error(`Failed to convert props schema for ${name}: ${error}`);
     }
   }
-  // try to roughly detect JSONSchema, should always be an object with a properties key
-  if (isJSONSchema(propsSchema)) {
-    return propsSchema;
+
+  // Handle raw JSON Schema objects
+  if (looksLikeJSONSchema(propsSchema)) {
+    return propsSchema as Record<string, unknown>;
   }
 
   throw new Error(`Invalid props schema for ${name}`);
-}
-
-/**
- * Checks if the propsSchema is a JSON Schema. This is a rough check, and the
- * server will provide the definitive check.
- * @param propsSchema - The props schema to check
- * @returns True if the props schema is a JSON Schema, false otherwise
- */
-function isJSONSchema(propsSchema: any) {
-  return (
-    propsSchema &&
-    typeof propsSchema === "object" &&
-    propsSchema.type === "object" &&
-    propsSchema.properties
-  );
-}
-
-/**
- * Since we require a certain zod version, we need to check if the object is a ZodSchema
- * @param obj - The object to check
- * @returns True if the object is a ZodSchema, false otherwise
- */
-function isZodSchema(obj: unknown): obj is ZodSchema {
-  if (obj instanceof ZodSchema) {
-    return true;
-  }
-  // try to detect if the object is a ZodSchema
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    typeof (obj as any).safeParse === "function" &&
-    typeof (obj as any)._def === "object"
-  );
 }

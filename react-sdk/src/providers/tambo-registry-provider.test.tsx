@@ -1,7 +1,11 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { z } from "zod/v3";
-import { TamboComponent, TamboTool } from "../model/component-metadata";
+import { z } from "zod/v4";
+import {
+  defineTamboTool,
+  TamboComponent,
+  TamboTool,
+} from "../model/component-metadata";
 import {
   TamboRegistryProvider,
   useTamboRegistry,
@@ -9,24 +13,24 @@ import {
 
 // Shared tool registry for all tests
 const createMockTools = (): TamboTool[] => [
-  {
+  defineTamboTool({
     name: "test-tool-1",
     description: "First test tool",
     tool: jest.fn().mockResolvedValue("test-tool-1-result"),
-    toolSchema: z
-      .function()
-      .args(z.string().describe("input parameter"))
-      .returns(z.string()),
-  },
-  {
+    toolSchema: {
+      args: z.tuple([z.string().describe("input parameter")]),
+      returns: z.string(),
+    },
+  }),
+  defineTamboTool({
     name: "test-tool-2",
     description: "Second test tool",
     tool: jest.fn().mockResolvedValue("test-tool-2-result"),
-    toolSchema: z
-      .function()
-      .args(z.number().describe("number parameter"))
-      .returns(z.string()),
-  },
+    toolSchema: {
+      args: z.tuple([z.number().describe("number parameter")]),
+      returns: z.string(),
+    },
+  }),
 ];
 
 const createMockComponents = (tools: TamboTool[]): TamboComponent[] => [
@@ -148,10 +152,10 @@ describe("TamboRegistryProvider", () => {
         name: "new-tool",
         description: "New tool",
         tool: jest.fn().mockResolvedValue("new-tool-result"),
-        toolSchema: z
-          .function()
-          .args(z.string().describe("input"))
-          .returns(z.string()),
+        toolSchema: {
+          args: z.tuple([z.string().describe("input")]),
+          returns: z.string(),
+        },
       };
 
       // First register the tool
@@ -180,10 +184,10 @@ describe("TamboRegistryProvider", () => {
         name: "new-tool",
         description: "New tool",
         tool: jest.fn().mockResolvedValue("new-tool-result"),
-        toolSchema: z
-          .function()
-          .args(z.string().describe("input"))
-          .returns(z.string()),
+        toolSchema: {
+          args: z.tuple([z.string().describe("input")]),
+          returns: z.string(),
+        },
       };
 
       expect(() => {
@@ -204,7 +208,7 @@ describe("TamboRegistryProvider", () => {
         name: "invalid-tool",
         description: "Invalid tool",
         tool: jest.fn().mockResolvedValue("result"),
-        toolSchema: z.record(z.string()), // This should cause validation to fail
+        toolSchema: z.record(z.string(), z.string()), // This should cause validation to fail
       };
 
       // This should throw during registration due to invalid schema
@@ -213,7 +217,7 @@ describe("TamboRegistryProvider", () => {
           result.current.registerTool(invalidTool);
         });
       }).toThrow(
-        'z.record() is not supported in toolSchema of tool "invalid-tool"',
+        'Record types (objects with dynamic keys) are not supported in toolSchema of tool "invalid-tool"',
       );
     });
 
@@ -222,7 +226,7 @@ describe("TamboRegistryProvider", () => {
         name: "InvalidComponent",
         component: () => <div>Invalid</div>,
         description: "Invalid component",
-        propsSchema: z.record(z.string()), // This should cause validation to fail
+        propsSchema: z.record(z.string(), z.string()), // This should cause validation to fail
       };
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -237,7 +241,7 @@ describe("TamboRegistryProvider", () => {
           result.current.registerComponent(invalidComponent);
         });
       }).toThrow(
-        'z.record() is not supported in propsSchema of component "InvalidComponent"',
+        'Record types (objects with dynamic keys) are not supported in propsSchema of component "InvalidComponent"',
       );
     });
 
@@ -299,7 +303,10 @@ describe("TamboRegistryProvider", () => {
         name: "invalid tool name", // Contains spaces
         description: "Tool with spaces in name",
         tool: jest.fn().mockResolvedValue("result"),
-        toolSchema: z.function().args(z.string()).returns(z.string()),
+        toolSchema: {
+          args: z.tuple([z.string()]),
+          returns: z.string(),
+        },
       };
 
       expect(() => {

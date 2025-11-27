@@ -78,7 +78,7 @@ const findTool = (
   const contextTool = mapTamboToolToContextTool(registryTool);
   return {
     tool: {
-      getComponentContext: registryTool.tool,
+      getComponentContext: async (...args) => await registryTool.tool(...args),
       definition: contextTool,
     },
     tamboTool: registryTool,

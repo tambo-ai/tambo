@@ -1,0 +1,582 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Edge cases should handle empty tuple 1`] = `[]`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Edge cases should handle single parameter without description 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "string",
+    },
+    "type": "string",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) JSON Schema should extract individual parameters from items array (draft-07) 1`] = `
+[
+  {
+    "description": "Name",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "description": "Name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "Age",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "description": "Age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) JSON Schema should extract individual parameters from prefixItems (draft 2020-12) 1`] = `
+[
+  {
+    "description": "Name",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "description": "Name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "Age",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "description": "Age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) JSON Schema should wrap as args for array schema with single items (not tuple) 1`] = `
+[
+  {
+    "description": "List of names",
+    "isRequired": true,
+    "name": "args",
+    "schema": {
+      "description": "List of names",
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "type": "object",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) JSON Schema should wrap as args for object schema without prefixItems 1`] = `
+[
+  {
+    "description": "User data",
+    "isRequired": true,
+    "name": "args",
+    "schema": {
+      "description": "User data",
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Object with {args, returns} format should extract individual parameters from Zod 3 tuple 1`] = `
+[
+  {
+    "description": "Name",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "description": "Name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "Age",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "description": "Age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Object with {args, returns} format should extract individual parameters from Zod 4 tuple 1`] = `
+[
+  {
+    "description": "Name",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "description": "Name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "Age",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "description": "Age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Object with {args, returns} format should fall back to args wrapper for non-tuple Standard Schema 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "args",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Object with {args, returns} format should handle complex Zod 4 tuple types 1`] = `
+[
+  {
+    "description": "Point",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "additionalProperties": false,
+      "description": "Point",
+      "properties": {
+        "x": {
+          "type": "number",
+        },
+        "y": {
+          "type": "number",
+        },
+      },
+      "required": [
+        "x",
+        "y",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+  {
+    "description": "Tags",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "description": "Tags",
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "type": "array",
+  },
+  {
+    "description": "Color",
+    "isRequired": true,
+    "name": "param3",
+    "schema": {
+      "description": "Color",
+      "enum": [
+        "red",
+        "green",
+        "blue",
+      ],
+      "type": "string",
+    },
+    "type": "string",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Other Standard Schema (non-function) should wrap Zod 3 object as args parameter 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "args",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Other Standard Schema (non-function) should wrap Zod 4 object as args parameter 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "args",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Valibot schemas (library-agnostic) should extract individual parameters from Valibot tuple via {args, returns} 1`] = `
+[
+  {
+    "description": "Name",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "description": "Name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "Age",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "description": "Age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Valibot schemas (library-agnostic) should fall back to args wrapper for non-tuple Valibot schema 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "args",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Valibot schemas (library-agnostic) should handle complex Valibot tuple types 1`] = `
+[
+  {
+    "description": "Point",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "description": "Point",
+      "properties": {
+        "x": {
+          "type": "number",
+        },
+        "y": {
+          "type": "number",
+        },
+      },
+      "required": [
+        "x",
+        "y",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+  {
+    "description": "Tags",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "description": "Tags",
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "type": "array",
+  },
+  {
+    "description": "Color",
+    "isRequired": true,
+    "name": "param3",
+    "schema": {
+      "description": "Color",
+      "enum": [
+        "red",
+        "green",
+        "blue",
+      ],
+    },
+    "type": "object",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Valibot schemas (library-agnostic) should wrap Valibot object as args parameter when used directly 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "args",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "age": {
+          "type": "number",
+        },
+        "name": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "name",
+        "age",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Zod 3 function schemas should extract individual parameters from multiple args 1`] = `
+[
+  {
+    "description": "First name",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "First name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "Age",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "Age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+  {
+    "description": "Is active",
+    "isRequired": true,
+    "name": "param3",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "Is active",
+      "type": "boolean",
+    },
+    "type": "boolean",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Zod 3 function schemas should extract individual parameters from single arg 1`] = `
+[
+  {
+    "description": "The name",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "The name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Zod 3 function schemas should handle complex types 1`] = `
+[
+  {
+    "description": "Point",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "description": "Point",
+      "properties": {
+        "x": {
+          "type": "number",
+        },
+        "y": {
+          "type": "number",
+        },
+      },
+      "required": [
+        "x",
+        "y",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+  {
+    "description": "Tags",
+    "isRequired": true,
+    "name": "param2",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "Tags",
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "type": "array",
+  },
+  {
+    "description": "Color",
+    "isRequired": true,
+    "name": "param3",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "Color",
+      "enum": [
+        "red",
+        "green",
+        "blue",
+      ],
+      "type": "string",
+    },
+    "type": "enum",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Zod 3 function schemas should handle optional parameters 1`] = `
+[
+  {
+    "description": "Required name",
+    "isRequired": true,
+    "name": "param1",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "Required name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "Optional age",
+    "isRequired": false,
+    "name": "param2",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "anyOf": [
+        {
+          "not": {},
+        },
+        {
+          "type": "number",
+        },
+      ],
+      "description": "Optional age",
+    },
+    "type": "string",
+  },
+]
+`;
