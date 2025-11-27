@@ -95,28 +95,114 @@ If you do update the components directly, you should also update the documentati
 
 ## Testing
 
-Tests are in `tests/` directory using Jest with ESM support and memfs for filesystem mocking.
+The CLI package has two types of tests with different layouts:
+
+### Test File Layout
+
+**Registry Component Tests** (React/shadcn components):
+
+- Location: `__tests__/registry/` mirroring the registry structure
+- Example: `src/registry/thread-dropdown/thread-dropdown.tsx` → `__tests__/registry/thread-dropdown/thread-dropdown.test.tsx`
+- **Rationale**: Registry components are distributed to users via npm. Tests must be in a separate directory to exclude them from the published package.
+
+**CLI Utility Tests** (commands, utils):
+
+- Location: Beside the file they cover
+- Example: `src/commands/add/index.ts` → `src/commands/add/index.test.ts`
 
 ### Running Tests
 
 ```bash
-npm test                 # Run all tests
-npm test -- --watch     # Run tests in watch mode
-npm test -- add          # Run specific test file
+npm test                        # Run all tests
+npm test -- --watch            # Run tests in watch mode
+npm test -- __tests__/registry # Run only registry component tests
+npm test -- thread-dropdown    # Run specific component test
+npm test -- add                # Run specific CLI utility test
 ```
 
-### Writing Tests
+### Writing Registry Component Tests
+
+Registry components use `@testing-library/react` with jsdom:
+
+```tsx
+import { render } from "@testing-library/react";
+import { ComponentName } from "@/components/tambo/component-name";
+import { useTamboHook } from "@tambo-ai/react";
+
+jest.mock("@tambo-ai/react", () => ({
+  useTamboHook: jest.fn(),
+}));
+
+describe("ComponentName", () => {
+  const mockUseTamboHook = useTamboHook as jest.MockedFunction<
+    typeof useTamboHook
+  >;
+
+  beforeEach(() => {
+    mockUseTamboHook.mockReturnValue({
+      // mock return value
+    } as never);
+  });
+
+  it("renders correctly", () => {
+    const { getByText } = render(<ComponentName />);
+    expect(getByText("Expected Text")).toBeInTheDocument();
+  });
+
+  it("applies custom className", () => {
+    const { container } = render(<ComponentName className="custom-class" />);
+    expect(container.firstChild).toHaveClass("custom-class");
+  });
+});
+```
+
+Focus on:
+
+- Component renders without crashing
+- Props are passed correctly
+- Custom className is applied
+- Basic user interactions work
+- Error states are handled
+
+### Writing CLI Utility Tests
+
+CLI utilities use Jest with ESM support and memfs for filesystem mocking:
 
 - Use `memfs` (`vol.fromJSON()`) to mock filesystem operations
 - Mock external dependencies: `child_process.execSync`, `inquirer.prompt`, registry utilities
 - Helper functions in `tests/helpers/mock-fs-setup.ts` for common test scenarios
-- See `tests/commands/list.test.ts` and `tests/commands/add.test.ts` for examples
+- See `src/commands/list/index.test.ts` and `src/commands/add/index.test.ts` for examples
 
 Key requirements:
 
 - Command handlers must have unit tests
 - Test both success and error cases
 - Mock external dependencies (don't hit real filesystem/network/npm)
+
+### Package Distribution
+
+The package.json and tsconfig.json are configured to exclude test files from the published package:
+
+```json
+// package.json
+"files": [
+  "src",
+  "dist",
+  "!**/*.test.ts",
+  "!**/*.test.tsx",
+  "!__tests__"
+]
+
+// tsconfig.json
+"exclude": ["__tests__", "**/*.test.ts", "**/*.test.tsx"]
+```
+
+This ensures:
+
+1. Test files are not included in the npm package
+2. Registry components stay clean (no test files in the distributed components)
+3. Tests don't get synced to the showcase app
+4. Package size stays minimal for end users
 
 ## Important Development Rules
 

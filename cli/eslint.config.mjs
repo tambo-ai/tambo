@@ -12,6 +12,7 @@ export default tseslint.config(
       "jest.config.ts",
       "eslint.config.mjs",
       "tests/**/*",
+      "__tests__/**/*",
     ],
   },
   reactConfig,
