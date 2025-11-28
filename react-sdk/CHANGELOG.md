@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.66.0](https://github.com/tambo-ai/tambo/compare/react-v0.65.2...react-v0.66.0) (2025-11-28)
+
+
+### Features
+
+* automate component sync from CLI registry to showcase ([#1292](https://github.com/tambo-ai/tambo/issues/1292)) ([ae309fc](https://github.com/tambo-ai/tambo/commit/ae309fcb832ecdbc376247435eb2176c82f3093b))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump eslint-plugin-jsdoc from 61.3.0 to 61.4.0 in the eslint group ([#1381](https://github.com/tambo-ai/tambo/issues/1381)) ([2d4ad81](https://github.com/tambo-ai/tambo/commit/2d4ad811ebf4557926d755380e025bf1d0cec082))
+* **deps-dev:** bump the eslint group with 2 updates ([#1361](https://github.com/tambo-ai/tambo/issues/1361)) ([81825c5](https://github.com/tambo-ai/tambo/commit/81825c5cf1a8fa7c284f89c5bc7d9405aca37401))
+* **deps:** Bump @tambo-ai/typescript-sdk to 0.78.0 to pick up mcp token API ([#1406](https://github.com/tambo-ai/tambo/issues/1406)) ([dd16776](https://github.com/tambo-ai/tambo/commit/dd16776acba4902da239e479c62a7bfcc29e5c6d))
+* **deps:** bump the small-safe-packages group with 4 updates ([#1366](https://github.com/tambo-ai/tambo/issues/1366)) ([422376c](https://github.com/tambo-ai/tambo/commit/422376c7b3cc1cc153b81c3e8eacee2b5681a473))
+* **repo:** standardize test layout ([#1409](https://github.com/tambo-ai/tambo/issues/1409)) ([126d6ee](https://github.com/tambo-ai/tambo/commit/126d6eec32c8a828fb0c3071dd3ba793d624d1db))
+
+
+### Code Refactoring
+
+* consolidate config packages and improve async error handling ([#1401](https://github.com/tambo-ai/tambo/issues/1401)) ([c9e0dd3](https://github.com/tambo-ai/tambo/commit/c9e0dd37d5bdeee79ac8ff8ddb3f6f4aae5aa5fb))
+
 ## [0.65.2](https://github.com/tambo-ai/tambo/compare/react-v0.65.1...react-v0.65.2) (2025-11-21)
 
 
