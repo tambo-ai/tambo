@@ -87,6 +87,10 @@ export const navigation: NavigationItem[] = [
             title: "Map",
             href: "/components/map",
           },
+          {
+            title: "Date Time Range",
+            href: "/components/date-time-range-picker",
+          },
         ],
       },
       {
