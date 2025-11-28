@@ -4,16 +4,18 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
-import { useMessageImages, StagedImage } from "../hooks/use-message-images";
+import { StagedImage, useMessageImages } from "../hooks/use-message-images";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
+import { useTamboMessageDrafts } from "./hooks/use-tambo-message-drafts";
 import { useTamboThread } from "./tambo-thread-provider";
 
 /**
@@ -93,8 +95,22 @@ export const TamboThreadInputProvider: React.FC<
   PropsWithChildren<TamboThreadInputProviderProps>
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
+  const { currentDraft, saveDraft } = useTamboMessageDrafts(thread?.id);
   const [inputValue, setInputValue] = useState("");
   const imageState = useMessageImages();
+
+  // Sync with draft when thread changes
+  useEffect(() => {
+    setInputValue(currentDraft);
+  }, [currentDraft]);
+
+  const handleSetInputValue = useCallback(
+    (value: string) => {
+      setInputValue(value);
+      saveDraft(value);
+    },
+    [saveDraft],
+  );
 
   const submit = useCallback(
     async ({
@@ -196,8 +212,16 @@ export const TamboThreadInputProvider: React.FC<
 
       // Clear text after successful submission
       setInputValue("");
+      saveDraft("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
+    [
+      inputValue,
+      sendThreadMessage,
+      thread.id,
+      contextKey,
+      imageState,
+      saveDraft,
+    ],
   );
 
   const {
@@ -211,7 +235,7 @@ export const TamboThreadInputProvider: React.FC<
   const value = {
     ...mutationState,
     value: inputValue,
-    setValue: setInputValue,
+    setValue: handleSetInputValue,
     submit: submitAsync,
     images: imageState.images,
     addImage: imageState.addImage,
