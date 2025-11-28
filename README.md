@@ -415,6 +415,73 @@ Zero setup. Free tier. Pay as you grow.
 
 [View full pricing →](https://tambo.co/pricing)
 
+## Repository Structure
+
+This Turborepo hosts both the React SDK ecosystem and the full Tambo Cloud platform.
+
+### Applications (`apps/`)
+
+- `apps/web` – Next.js App Router UI (marketing + dashboard, tRPC, Tailwind/Shadcn, NextAuth).
+- `apps/api` – NestJS API with Swagger/OpenAPI, Langfuse/Sentry instrumentation.
+- MCP services – `apps/mcp-proxy`, `apps/docs-mcp`, `apps/test-mcp-server`.
+
+### Shared Packages (`packages/`)
+
+- `packages/db` – Drizzle schema, migrations, and DB helpers (single source of truth).
+- `packages/backend` – LLM/agent helpers and streaming utilities.
+- `packages/core` – Pure utilities (validation, JSON, crypto, threading).
+- Tooling configs – `packages/eslint-config`, `packages/typescript-config`, etc.
+
+### Framework Packages (root)
+
+- `react-sdk/`, `cli/`, `showcase/`, `docs/`, `create-tambo-app/`, `community/`, and shared configs under `packages/`.
+
+### Scripts
+
+Cloud automation lives in `scripts/cloud/` (Docker helpers, database init, logs, etc.). Additional repo tooling sits in `scripts/`.
+
+## Local Development & Docker
+
+### Common npm Scripts
+
+```bash
+npm run dev          # Start apps/web and apps/api
+npm run build        # Build all apps + packages
+npm run lint         # Lint (use npm run lint:fix to autofix)
+npm run check-types  # Workspace-wide type checks
+npm test             # Run tests
+```
+
+### Database Helpers
+
+```bash
+npm run db:generate  # Generate Drizzle migrations
+npm run db:migrate   # Apply migrations
+npm run db:check     # Check migration status
+npm run db:studio    # Launch Drizzle Studio
+```
+
+### Docker Workflow (`scripts/cloud/`)
+
+```bash
+./scripts/cloud/tambo-setup.sh   # One-time setup + env scaffolding
+./scripts/cloud/tambo-start.sh   # Start Docker stack (web, api, postgres)
+./scripts/cloud/init-database.sh # Initialize database
+./scripts/cloud/tambo-stop.sh    # Stop the stack
+```
+
+Docker uses alternate ports: web `http://localhost:3210`, API `http://localhost:3211`, Postgres `localhost:5433`. Detailed instructions live in [README.DOCKER.md](./README.DOCKER.md).
+
+## Slack Integration
+
+When a new customer requests a dedicated Slack channel, Tambo Cloud:
+
+1. Creates a public channel (`conversations.create`).
+2. Invites the customer’s email via `conversations.inviteShared`.
+3. Adds an internal teammate with `conversations.invite`.
+
+Slack marks shared users as limited by default. Set `external_limited: false` so customers can invite their own teammates. This requires adding the `conversations.connect:write` scope (along with existing scopes such as `channels:manage`, `chat:write`) to `SLACK_OAUTH_TOKEN`. Store that token in `apps/web/.env.local`.
+
 ## Community
 
 - **Discord:** [Join our community](https://discord.gg/dJNvPEHth6) for help, feedback, and discussions
@@ -438,8 +505,9 @@ Built something with Tambo? [Open a PR](https://github.com/tambo-ai/tambo/pulls)
 
 Prerequisites:
 
-- Node.js 20.x or higher
-- npm 11.x or higher
+- Node.js 22.x or higher
+- npm 11.x or higher (Volta pins the exact versions)
+- Docker + Docker Compose (optional but required for the Docker workflow)
 
 For contributing to Tambo:
 
@@ -447,7 +515,9 @@ For contributing to Tambo:
 git clone https://github.com/tambo-ai/tambo.git
 cd tambo
 npm install
-turbo dev
+npm run dev        # apps/web + apps/api
+# or
+turbo dev         # run every package in dev mode
 ```
 
 Read our [Contributing Guide](./CONTRIBUTING.md) for details on development workflow, testing, and pull requests.
@@ -458,7 +528,7 @@ Read our [Contributing Guide](./CONTRIBUTING.md) for details on development work
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-Both the React SDK and backend ([tambo-cloud](./tambo-cloud)) are fully open source under MIT.
+Both the React SDK packages and the Tambo Cloud apps (`apps/` + `packages/`) are MIT-licensed.
 
 ---
 
