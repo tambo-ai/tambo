@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.20.0](https://github.com/tambo-ai/tambo/compare/docs-v1.19.1...docs-v1.20.0) (2025-11-28)
+
+
+### Features
+
+* **cli:** add agent docs guardrails and cursor rules migration ([#1400](https://github.com/tambo-ai/tambo/issues/1400)) ([350b39a](https://github.com/tambo-ai/tambo/commit/350b39a44c95a0c7d1acf543320d34362a897f02))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump rimraf from 6.1.0 to 6.1.2 ([#1371](https://github.com/tambo-ai/tambo/issues/1371)) ([480f11d](https://github.com/tambo-ai/tambo/commit/480f11d31978b2b95e99316f9b738cbbc1c6d5cf))
+* **deps:** Bump @tambo-ai/typescript-sdk to 0.78.0 to pick up mcp token API ([#1406](https://github.com/tambo-ai/tambo/issues/1406)) ([dd16776](https://github.com/tambo-ai/tambo/commit/dd16776acba4902da239e479c62a7bfcc29e5c6d))
+* **deps:** bump streamdown from 1.4.0 to 1.5.1 ([#1393](https://github.com/tambo-ai/tambo/issues/1393)) ([9b3ec7d](https://github.com/tambo-ai/tambo/commit/9b3ec7d1362a242af22b0c2b1453635958fb432d))
+* **deps:** bump the small-safe-packages group with 4 updates ([#1366](https://github.com/tambo-ai/tambo/issues/1366)) ([422376c](https://github.com/tambo-ai/tambo/commit/422376c7b3cc1cc153b81c3e8eacee2b5681a473))
+* **lint:** Make sure lint-staged is localized to the docs/showcase directory like the other packages ([#1411](https://github.com/tambo-ai/tambo/issues/1411)) ([d6323ee](https://github.com/tambo-ai/tambo/commit/d6323ee6a0725772e735149f928f861428e8ccf9))
+
+
+### Documentation
+
+* **models:** update model configurations and documentation ([#1384](https://github.com/tambo-ai/tambo/issues/1384)) ([c689a0b](https://github.com/tambo-ai/tambo/commit/c689a0baf3bd3d4d3cf08cc482ddfa5902a665da))
+
+
+### Code Refactoring
+
+* consolidate config packages and improve async error handling ([#1401](https://github.com/tambo-ai/tambo/issues/1401)) ([c9e0dd3](https://github.com/tambo-ai/tambo/commit/c9e0dd37d5bdeee79ac8ff8ddb3f6f4aae5aa5fb))
+
 ## [1.19.1](https://github.com/tambo-ai/tambo/compare/docs-v1.19.0...docs-v1.19.1) (2025-11-22)
 
 
