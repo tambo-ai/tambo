@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.43.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.42.0...tambo-v0.43.0) (2025-11-28)
+
+
+### Features
+
+* **cli:** add agent docs guardrails and cursor rules migration ([#1400](https://github.com/tambo-ai/tambo/issues/1400)) ([350b39a](https://github.com/tambo-ai/tambo/commit/350b39a44c95a0c7d1acf543320d34362a897f02))
+
+
+### Miscellaneous Chores
+
+* **deps:** Bump @tambo-ai/typescript-sdk to 0.78.0 to pick up mcp token API ([#1406](https://github.com/tambo-ai/tambo/issues/1406)) ([dd16776](https://github.com/tambo-ai/tambo/commit/dd16776acba4902da239e479c62a7bfcc29e5c6d))
+* **deps:** bump open from 10.2.0 to 11.0.0 ([#1372](https://github.com/tambo-ai/tambo/issues/1372)) ([a232a41](https://github.com/tambo-ai/tambo/commit/a232a414b7a21b8cef44da29b32fd361cf790046))
+* **deps:** bump streamdown from 1.4.0 to 1.5.1 ([#1393](https://github.com/tambo-ai/tambo/issues/1393)) ([9b3ec7d](https://github.com/tambo-ai/tambo/commit/9b3ec7d1362a242af22b0c2b1453635958fb432d))
+* **lint:** Make sure lint-staged is localized to the docs/showcase directory like the other packages ([#1411](https://github.com/tambo-ai/tambo/issues/1411)) ([d6323ee](https://github.com/tambo-ai/tambo/commit/d6323ee6a0725772e735149f928f861428e8ccf9))
+* **repo:** standardize test layout ([#1409](https://github.com/tambo-ai/tambo/issues/1409)) ([126d6ee](https://github.com/tambo-ai/tambo/commit/126d6eec32c8a828fb0c3071dd3ba793d624d1db))
+
+
+### Code Refactoring
+
+* consolidate config packages and improve async error handling ([#1401](https://github.com/tambo-ai/tambo/issues/1401)) ([c9e0dd3](https://github.com/tambo-ai/tambo/commit/c9e0dd37d5bdeee79ac8ff8ddb3f6f4aae5aa5fb))
+
 ## [0.42.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.41.0...tambo-v0.42.0) (2025-11-22)
 
 
