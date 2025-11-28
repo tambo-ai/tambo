@@ -10,18 +10,22 @@ Thanks for helping! This guide covers workflow expectations only—**all coding 
 
 ## Workflow Overview
 
-1. Pick or open an issue.
-2. Branch from `main` (Conductor: `alecf/<descriptive-name>`).
-3. Ship the change with docs + tests.
-4. Run local checks: `npm run lint`, `npm run check-types`, `npm test`.
-5. Open a PR using the checklist below.
-6. Resolve reviewer + Charlie feedback, keep CI green.
+1. Pick or file an issue.
+2. Branch from `main` (`alecf/<descriptive-name>` when using Conductor).
+3. Build the feature/fix with tests + docs alongside the code.
+4. Run lint, types, and tests locally.
+5. Open a PR with a Conventional Commit title and include the checklist below.
+6. Iterate with reviewers (and Charlie, the AI code reviewer) until CI is green and approvals are in.
 
 ## PR Titles and Semantic Versioning
 
-- Use Conventional Commits syntax: `feat(scope): ...`, `fix(scope): ...`, `chore(scope): ...`.
-- Breaking changes: `feat(scope)!: ...` or add a `BREAKING CHANGE:` footer.
-- Scopes describe areas like `api`, `web`, `core`, `cli`, `docs`, `sdk`.
+We infer release impact from PR titles using [Conventional Commits](https://www.conventionalcommits.org/) syntax:
+
+- `feat(scope): ...` → Minor bump
+- `fix(scope): ...`, `perf(scope): ...`, `refactor(scope): ...`, `docs(scope): ...`, `chore(scope): ...` → Patch bump or none
+- Breaking change → `feat(scope)!: ...` or include a `BREAKING CHANGE:` footer
+
+Scopes reference areas like `api`, `web`, `core`, `cli`, `docs`, `sdk`. Keep titles imperative and concise. Examples: `feat(api): add transcript export endpoint`, `fix(web): prevent duplicate project creation`.
 
 ## Documentation & Visual Changes
 
@@ -74,25 +78,6 @@ If you’re looking for coding standards, naming rules, CLI/showcase sync detail
 ## Code of Conduct
 
 Participate respectfully and keep collaboration constructive.
-
-## Workflow Overview
-
-1. Pick or file an issue.
-2. Branch from `main` (`alecf/<descriptive-name>` when using Conductor).
-3. Build the feature/fix with tests + docs alongside the code.
-4. Run lint, types, and tests locally.
-5. Open a PR with a Conventional Commit title and include the checklist below.
-6. Iterate with reviewers (and Charlie, the AI code reviewer) until CI is green and approvals are in.
-
-## PR Titles and Semantic Versioning (Required)
-
-We infer release impact from PR titles using [Conventional Commits](https://www.conventionalcommits.org/) syntax:
-
-- `feat(scope): ...` → Minor bump
-- `fix(scope): ...`, `perf(scope): ...`, `refactor(scope): ...`, `docs(scope): ...`, `chore(scope): ...` → Patch bump or none
-- Breaking change → `feat(scope)!: ...` or include a `BREAKING CHANGE:` footer
-
-Scopes reference areas like `api`, `web`, `core`, `cli`, `docs`, `sdk`. Keep titles imperative and concise. Examples: `feat(api): add transcript export endpoint`, `fix(web): prevent duplicate project creation`.
 
 ## API and SDK Source of Truth
 
@@ -159,13 +144,7 @@ Do not commit API keys or credentials. Use the documented env files (`apps/api/.
 
 ## PR Checklist (Copy into Description)
 
-- [ ] Title follows Conventional Commits (with `!` for breaking changes)
-- [ ] Linked issue(s) or context
-- [ ] Docs updated (or follow-up issue linked)
-- [ ] If API/SDK change: confirmed Stainless-generated SDK workflow (no manual edits)
-- [ ] Showcase + CLI updated for component changes
-- [ ] Visual change demo attached (if UI)
-- [ ] Tests added/updated; `npm run lint`, `npm run check-types`, and `npm test` pass locally
+Copy the checklist from the **PR Checklist** section above into your PR description.
 
 ## Branching, Commits, and Reviews
 
