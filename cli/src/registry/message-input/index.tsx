@@ -1,5 +1,6 @@
 export {
   MessageInput,
+  MessageInputContexts,
   MessageInputError,
   MessageInputSubmitButton,
   MessageInputTextarea,
