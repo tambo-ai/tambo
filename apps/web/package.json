@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai-cloud/web",
-  "version": "0.123.4",
+  "version": "0.123.5",
   "private": true,
   "type": "module",
   "scripts": {

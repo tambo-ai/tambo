@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.123.5](https://github.com/tambo-ai/tambo/compare/web-v0.123.4...web-v0.123.5) (2025-11-28)
+
+
+### Miscellaneous Chores
+
+* **repo:** standardize test layout ([#1409](https://github.com/tambo-ai/tambo/issues/1409)) ([126d6ee](https://github.com/tambo-ai/tambo/commit/126d6eec32c8a828fb0c3071dd3ba793d624d1db))
+
+
+### Code Refactoring
+
+* **ci:** update docker test pipeline to use parallel jobs ([#1389](https://github.com/tambo-ai/tambo/issues/1389)) ([3738c0a](https://github.com/tambo-ai/tambo/commit/3738c0a21f18cff082933260a5c4630f059dbcaf))
+
 ## [0.123.4](https://github.com/tambo-ai/tambo/compare/web-v0.123.3...web-v0.123.4) (2025-11-26)
 
 ### Miscellaneous Chores
