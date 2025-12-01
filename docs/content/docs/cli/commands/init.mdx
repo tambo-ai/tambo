@@ -19,7 +19,7 @@ After obtaining your API key, you'll need to set it up in your project:
 **Examples:**
 
 ```bash
-# Interactive setup
+# Interactive setup with hosting choice
 npx tambo init
 
 # Skip prompts and use defaults
@@ -27,4 +27,153 @@ npx tambo init --yes
 
 # Use legacy peer deps
 npx tambo init --legacy-peer-deps
+```
+
+## Hosting Options
+
+The init command offers two hosting options for your Tambo project:
+
+### Tambo Cloud (Recommended)
+
+**Setup time:** ~1 minute
+
+The fastest way to get started. Tambo Cloud handles all backend infrastructure for you.
+
+**What you get:**
+
+- Hosted AI backend
+- Automatic scaling
+- No infrastructure to manage
+- Free tier available
+
+**When to choose:**
+
+- You want to start quickly
+- You don't want to manage backend infrastructure
+- You're building a prototype or MVP
+- You want automatic updates and scaling
+
+### Self-Hosted
+
+**Setup time:** ~5-10 minutes
+
+Run the Tambo backend on your own infrastructure using Docker.
+
+**What's required:**
+
+- Docker installed on your machine
+- Basic terminal/command line knowledge
+- Port 3030 available
+
+**When to choose:**
+
+- You need full control over your infrastructure
+- You have data residency requirements
+- You want to customize the backend
+- You're deploying to your own servers
+
+**Setup steps shown:**
+
+After selecting self-host, the CLI provides detailed instructions:
+
+```bash
+? How would you like to host your Tambo project?
+  ❯ Tambo Cloud (~1 minute) [Recommended]
+    Self-host (~5-10 minutes)
+
+# If self-host selected:
+To self-host Tambo:
+
+1. Clone the repository:
+   git clone https://github.com/tambo-ai/tambo-core.git
+   cd tambo-core/tambo-cloud
+
+2. Run the start script:
+   ./scripts/tambo-start.sh
+
+3. Your API will be running at http://localhost:3030
+
+4. Set this in your .env.local:
+   NEXT_PUBLIC_TAMBO_API_URL=http://localhost:3030
+
+? Continue with self-host setup? (Y/n)
+```
+
+## Project Setup Flow
+
+### Source Directory Detection
+
+The init command automatically detects your project structure and helps set up the correct directory:
+
+```bash
+✓ Checking project structure...
+ℹ Found existing src/ directory
+
+? Where should components be installed?
+  ❯ Use existing src/ directory
+    Create new src/ directory
+```
+
+**What happens:**
+
+- If `src/` exists, CLI offers to use it
+- If no `src/` exists, CLI offers to create one
+- Components will be installed relative to your choice
+
+**Directory structure created:**
+
+```
+your-project/
+├── src/                    # If selected
+│   ├── components/
+│   │   └── tambo/         # Tambo components
+│   └── lib/
+│       └── tambo.ts       # Component registration
+└── .env.local             # API key (not committed)
+```
+
+Or without `src/`:
+
+```
+your-project/
+├── components/
+│   └── tambo/             # Tambo components
+├── lib/
+│   └── tambo.ts           # Component registration
+└── .env.local             # API key (not committed)
+```
+
+### API Key Management
+
+The init command protects your existing API keys:
+
+**If API key already exists:**
+
+```bash
+✓ Checking for existing API key...
+⚠ Found existing API key in .env.local
+
+? An API key already exists. What would you like to do?
+  ❯ Keep existing key
+    Replace with new key
+    Skip API key setup
+```
+
+**Files checked (in order):**
+
+1. `.env.local`
+2. `.env`
+
+**Why this matters:**
+
+- Prevents accidentally overwriting your production API key
+- Lets you keep existing configuration
+- Avoids breaking existing deployments
+
+**Best practice:**
+
+If you're not sure which key is in your `.env.local`, check it first:
+
+```bash
+cat .env.local | grep TAMBO_API_KEY
 ```

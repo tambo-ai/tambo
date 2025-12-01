@@ -101,7 +101,7 @@ jobs:
 
       - name: Run Tambo upgrade
         working-directory: template-repo
-        run: npx -y tambo@latest upgrade --accept-all --silent
+        run: npx -y tambo@latest upgrade --yes --silent
 
       - name: Capture post-upgrade state and generate diff
         working-directory: template-repo

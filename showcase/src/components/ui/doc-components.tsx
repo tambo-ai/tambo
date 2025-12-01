@@ -28,11 +28,10 @@ export function CopyablePrompt({ prompt }: { prompt: string }) {
           Try this prompt in the chat interface
         </h3>
         <button
-          onClick={() => {
-            navigator.clipboard.writeText(prompt).then(() => {
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            });
+          onClick={async () => {
+            await navigator.clipboard.writeText(prompt);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
           }}
           className="px-2 py-1 text-xs bg-background/80 rounded hover:bg-accent/20 transition-colors flex items-center gap-1"
         >

@@ -19,7 +19,9 @@
     "paths": {
       "@/*": ["src/*"],
       "@/components/tambo/*": ["src/registry/*"],
-      "@/lib/*": ["src/registry/lib/*"]
+      "@/lib/*": ["src/registry/lib/*"],
+      "@tambo-ai/react": ["../react-sdk/src"],
+      "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"]
     },
     "outDir": "./dist"
   },

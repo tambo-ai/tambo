@@ -23,7 +23,7 @@ jobs:
         working-directory: tambo-cloud
       # Run the generate-config script from the apps/api directory
       - run: OPENAPI_SPEC_FILE=${{ runner.temp }}/openapi.json npm run generate-config
-        working-directory: tambo-cloud/apps/api
+        working-directory: apps/api
 
       # Run the upload-openapi-spec-action
       - uses: stainless-api/upload-openapi-spec-action@main

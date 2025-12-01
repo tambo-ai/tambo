@@ -16,7 +16,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           enabled: false,
         }}
       >
-        {children as React.ReactNode}
+        {children}
       </DocsLayout>
     </div>
   );

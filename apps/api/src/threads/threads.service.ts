@@ -47,6 +47,7 @@ import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
 } from "./dto/advance-thread.dto";
+import { ComponentDecisionV2Dto } from "./dto/component-decision.dto";
 import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
@@ -1227,6 +1228,7 @@ export class ThreadsService {
           ...responseMessageDto,
           content: convertContentPartToDto(responseMessageDto.content),
           componentState: responseMessageDto.componentState ?? {},
+          component: responseMessageDto.component as ComponentDecisionV2Dto,
         },
         generationStage: resultingGenerationStage,
         statusMessage: resultingStatusMessage,
@@ -1767,6 +1769,8 @@ export class ThreadsService {
                 ? ActionType.ToolCall
                 : undefined,
               reasoning: currentThreadMessage.reasoning,
+              component:
+                currentThreadMessage.component as ComponentDecisionV2Dto,
             });
           }
           previousMessageId = currentThreadMessage?.id ?? userMessage.id;
@@ -1843,6 +1847,8 @@ export class ThreadsService {
             ...messageWithoutToolCall,
             content: convertContentPartToDto(messageWithoutToolCall.content),
             componentState: messageWithoutToolCall.componentState ?? {},
+            component:
+              messageWithoutToolCall.component as ComponentDecisionV2Dto,
           },
           generationStage: GenerationStage.STREAMING_RESPONSE,
           statusMessage: `Streaming response...`,
@@ -1932,6 +1938,7 @@ export class ThreadsService {
             componentState: finalThreadMessage.componentState ?? {},
             toolCallRequest: undefined,
             tool_call_id: undefined,
+            component: finalThreadMessage.component as ComponentDecisionV2Dto,
           },
           generationStage: resultingGenerationStage,
           statusMessage: resultingStatusMessage,
@@ -1972,6 +1979,7 @@ export class ThreadsService {
           ...finalThreadMessage,
           content: convertContentPartToDto(finalThreadMessage.content),
           componentState: finalThreadMessage.componentState ?? {},
+          component: finalThreadMessage.component as ComponentDecisionV2Dto,
         },
         generationStage: resultingGenerationStage,
         statusMessage: resultingStatusMessage,
@@ -2261,7 +2269,7 @@ async function syncThreadStatus(
         threadId,
       },
     },
-    async () => {
+    async (): Promise<AdvanceThreadResponseDto | undefined> => {
       // Update db message on interval
       const isCancelled = await checkCancellationStatus(
         db,
@@ -2277,6 +2285,7 @@ async function syncThreadStatus(
             ...currentThreadMessage,
             content: convertContentPartToDto(currentThreadMessage.content),
             componentState: currentThreadMessage.componentState ?? {},
+            component: currentThreadMessage.component as ComponentDecisionV2Dto,
           },
           generationStage: GenerationStage.CANCELLED,
           statusMessage: "cancelled",
@@ -2287,6 +2296,7 @@ async function syncThreadStatus(
       await updateMessage(db, messageId, {
         ...currentThreadMessage,
         content: convertContentPartToDto(currentThreadMessage.content),
+        component: currentThreadMessage.component as ComponentDecisionV2Dto,
       });
     },
   );

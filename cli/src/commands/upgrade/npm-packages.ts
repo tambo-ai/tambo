@@ -12,7 +12,7 @@ export async function upgradeNpmPackages(
   options: UpgradeOptions,
 ): Promise<boolean> {
   const spinner = ora("Upgrading npm packages...").start();
-  const allowNonInteractive = Boolean(options.yes ?? options.acceptAll);
+  const allowNonInteractive = Boolean(options.yes);
 
   try {
     // Read package.json to identify dependencies

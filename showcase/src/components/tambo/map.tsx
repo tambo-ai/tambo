@@ -158,7 +158,7 @@ const HeatLayer = createLayerComponent<L.HeatLayer, HeatLayerProps>(
  * Loads marker icons from CDN to prevent missing icon issues
  */
 if (typeof window !== "undefined") {
-  import("leaflet").then((L) => {
+  void import("leaflet").then((L) => {
     delete (L.Icon.Default.prototype as { _getIconUrl?: () => string })
       ._getIconUrl;
     L.Icon.Default.mergeOptions({
@@ -169,7 +169,7 @@ if (typeof window !== "undefined") {
       shadowUrl:
         "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
     });
-    import("leaflet.heat");
+    void import("leaflet.heat");
   });
 }
 
@@ -468,17 +468,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
           scrollWheelZoom
           zoomControl={zoomControl}
         >
-          <TileLayer
-            url={
-              theme === "dark"
-                ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                : theme === "light"
-                  ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                  : theme === "satellite"
-                    ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                    : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            }
-          />
+          <TileLayer url={getTileLayerUrl(theme)} />
 
           {validHeatData.length > 0 && (
             <HeatLayer
@@ -519,8 +509,14 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
                   medium: "w-10 h-10 text-sm",
                   large: "w-12 h-12 text-base",
                 };
-              const iconSize =
-                size === "small" ? 32 : size === "medium" ? 40 : 48;
+              let iconSize: number;
+              if (size === "small") {
+                iconSize = 32;
+              } else if (size === "medium") {
+                iconSize = 40;
+              } else {
+                iconSize = 48;
+              }
               return L.divIcon({
                 html: `<div class="flex items-center justify-center ${colorClass} ${sizeClasses[size]} text-white font-bold rounded-xl border-2 border-white shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-90">${count}</div>`,
                 className: "custom-cluster-icon",
@@ -546,3 +542,21 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
 );
 
 Map.displayName = "Map";
+
+/**
+ * Internal function to get tile layer URL based on theme
+ */
+function getTileLayerUrl(
+  theme: "default" | "dark" | "light" | "satellite" | "bordered" | "shadow",
+): string {
+  if (theme === "dark") {
+    return "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  }
+  if (theme === "light") {
+    return "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+  }
+  if (theme === "satellite") {
+    return "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+  }
+  return "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+}

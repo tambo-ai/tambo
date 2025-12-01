@@ -251,7 +251,7 @@ async function main() {
       }
 
       const sessionId = req.headers["mcp-session-id"] as string | undefined;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
       if (sessionId === undefined || !sessionTransports[sessionId]) {
         res.status(400).send("Invalid or missing session ID");
         return;

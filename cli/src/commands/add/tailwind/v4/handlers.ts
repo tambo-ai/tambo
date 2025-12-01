@@ -60,13 +60,13 @@ export function handleInlineTheme(root: Root) {
     const colorValue = `var(--${color})`;
 
     // Check if this color mapping already exists
-    const exists = inlineThemeRule!.nodes?.some(
+    const exists = inlineThemeRule.nodes?.some(
       (node): node is postcss.Declaration =>
         node.type === "decl" && node.prop === colorProp,
     );
 
     if (!exists) {
-      inlineThemeRule!.append(
+      inlineThemeRule.append(
         postcss.decl({
           prop: colorProp,
           value: colorValue,

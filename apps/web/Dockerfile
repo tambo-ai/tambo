@@ -19,7 +19,6 @@ COPY turbo.json package.json package-lock.json ./
 COPY react-sdk ./react-sdk
 COPY packages ./packages
 COPY apps/web ./apps/web
-COPY tambo-cloud/packages ./tambo-cloud/packages
 
 RUN npx turbo prune @tambo-ai-cloud/web --docker
 
@@ -31,12 +30,9 @@ FROM base AS builder
 
 WORKDIR /workspace
 
-ENV NPM_CONFIG_CACHE=/workspace/.npm/cache
 # install dependencies solo
 COPY --from=installer /workspace/out/json/ .
-RUN \
-  --mount=type=cache,id=npm-cache,target=/workspace/.npm/cache \
-  npm ci
+RUN npm ci
 
 # copy source from pruned output and then build
 COPY --from=installer /workspace/out/full/ .
@@ -50,8 +46,6 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Build the application
 RUN \
-  --mount=type=cache,id=turbo-cache,target=/workspace/.turbo/cache \
-  --mount=type=cache,id=next-cache,target=/workspace/apps/web/.next/cache \
   --mount=type=secret,id=TURBO_TEAM,env=TURBO_TEAM \
   --mount=type=secret,id=TURBO_TOKEN,env=TURBO_TOKEN \
   --mount=type=secret,id=TURBO_API,env=TURBO_API \

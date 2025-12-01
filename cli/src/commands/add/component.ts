@@ -9,6 +9,7 @@ import {
   getLibDirectory,
 } from "../shared/path-utils.js";
 import { updateImportPaths } from "../migrate.js";
+import { handleAgentDocsUpdate } from "../shared/agent-docs.js";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
 
@@ -219,5 +220,14 @@ export function cn(...inputs: ClassValue[]) {
     console.log(
       `${chalk.green("✔")} ${options.forceUpdate ? "Updated" : "Installed"} ${componentNames.join(", ")}`,
     );
+  }
+
+  if (!options.silent && !options.skipAgentDocs) {
+    await handleAgentDocsUpdate({
+      skipPrompt: true,
+      yes: options.yes,
+      prefix: options.installPath,
+      skipAgentDocs: options.skipAgentDocs,
+    });
   }
 }

@@ -1,5 +1,5 @@
 {
-  "extends": "@tambo-ai-cloud/typescript-config/base",
+  "extends": "@tambo-ai/typescript-config/base",
   "compilerOptions": {
     "target": "es2023",
     "lib": ["es2024", "ESNext.Array", "ESNext.Collection", "ESNext.Iterator"],

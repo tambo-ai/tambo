@@ -1,0 +1,147 @@
+---
+title: Mistral
+description: Configure and use Mistral AI models in your Tambo project
+---
+
+Mistral AI provides a range of powerful language models designed for professional use cases and complex reasoning tasks. This page covers the Mistral models available in Tambo, their capabilities, and how to configure them.
+
+<Callout type="warning" title="Known Rendering Issues">
+  Mistral models (Large 2.1 and Medium 3) may inconsistently follow rendering
+  instructions, similar to Gemini models. Try clarifying prompt structure if you
+  encounter formatting issues. See [Labels](/models/labels) for more details.
+</Callout>
+
+## Available Models
+
+Tambo supports three Mistral models, ranging from frontier-class reasoning to high-performance production models.
+
+### Magistral Medium 1
+
+**Status:** Tested
+**API Name:** `magistral-medium-2506`
+**Context Window:** 40,000 tokens
+
+A frontier-class reasoning model released in June 2025, designed for advanced problem-solving and analytical tasks.
+
+**Best for:**
+
+- Complex reasoning and multi-step problem solving
+- Code generation and debugging
+- Professional knowledge work requiring deep analysis
+- Tasks benefiting from extended thinking
+
+**Provider Documentation:** [Mistral AI - Magistral](https://mistral.ai/news/magistral)
+
+---
+
+### Mistral Medium 3
+
+**Status:** Known Issues
+**API Name:** `mistral-medium-2505`
+**Context Window:** 128,000 tokens
+
+Designed to be frontier-class, particularly excelling in categories of professional use. This model provides a balance of power and versatility for production workloads.
+
+**Best for:**
+
+- Professional applications requiring reliable performance
+- Long-form content generation and analysis
+- Multi-document reasoning with large context windows
+- Production deployments where consistency matters
+
+**Notes:** May occasionally resist rendering as requested. Try clarifying instructions (e.g., "Return a bulleted list only"). Outputs may have formatting quirks when structure is important.
+
+**Provider Documentation:** [Mistral AI - Mistral Medium 3](https://mistral.ai/news/mistral-medium-3)
+
+---
+
+### Mistral Large 2.1
+
+**Status:** Known Issues
+**API Name:** `mistral-large-latest`
+**Context Window:** 128,000 tokens
+
+Mistral's top-tier large model for high-complexity tasks, with the latest version released in November 2024. This model represents Mistral's most capable offering for demanding workloads.
+
+**Best for:**
+
+- High-complexity reasoning and analysis
+- Advanced code generation and review
+- Multi-turn conversations requiring context retention
+- Tasks demanding maximum model capability
+
+**Notes:** Similar to Medium 3, may inconsistently follow rendering instructions. Validate outputs where structure is critical.
+
+**Provider Documentation:** [Mistral AI - Pixtral Large](https://mistral.ai/news/pixtral-large)
+
+## Configuration
+
+### Setting Up Mistral in Your Project
+
+1. Navigate to your project in the Tambo dashboard
+2. Go to **Settings** → **LLM Providers**
+3. Add or configure your Mistral API credentials
+4. Select your preferred [Mistral model](#available-models)
+5. Adjust token limits and parameters as needed
+6. Click **Save** to apply your configuration
+
+### Custom Parameters
+
+Mistral models support standard LLM parameters like temperature, max tokens, and more. Configure these in the dashboard under [**Custom LLM Parameters**](/models/custom-llm-parameters).
+
+For detailed information on available parameters, see [Custom LLM Parameters](/models/custom-llm-parameters).
+
+## Model Comparison
+
+| Model              | Context Window | Status       | Best Use Case               |
+| ------------------ | -------------- | ------------ | --------------------------- |
+| Magistral Medium 1 | 40K tokens     | Tested       | Reasoning & problem solving |
+| Mistral Medium 3   | 128K tokens    | Known Issues | Professional applications   |
+| Mistral Large 2.1  | 128K tokens    | Known Issues | High-complexity tasks       |
+
+## Best Practices
+
+### Choosing the Right Model
+
+- **Start with [Magistral Medium 1](#magistral-medium-1)** for reasoning-heavy tasks where the smaller context window is sufficient
+- **Use [Mistral Medium 3](#mistral-medium-3)** when you need larger context windows for professional applications
+- **Reserve [Mistral Large 2.1](#mistral-large-2-1)** for the most demanding tasks requiring maximum capability
+
+### Handling Rendering Issues
+
+If you encounter formatting inconsistencies with [Medium 3](#mistral-medium-3) or [Large 2.1](#mistral-large-2-1):
+
+1. **Clarify instructions** - Be explicit about desired output format
+2. **Use structured prompts** - Provide clear examples of expected structure
+3. **Validate outputs** - Add checks for critical formatting requirements
+4. **Test thoroughly** - Run a prompt suite to verify behavior in your workload
+
+For production-critical formatting, consider using [**Tested**](/models/labels) models and validating outputs. See [Labels](/models/labels) for more guidance.
+
+## Troubleshooting
+
+**Model not appearing in dashboard?**
+
+- Verify your Mistral API key is [configured correctly](#setting-up-mistral-in-your-project)
+- Check that your Tambo Cloud instance is up to date
+- Ensure you have proper permissions for your project
+
+**Inconsistent formatting in responses?**
+
+- This is a [known issue](#available-models) with [Medium 3](#mistral-medium-3) and [Large 2.1](#mistral-large-2-1) models
+- Try being more explicit in your prompt instructions
+- Consider using [Magistral Medium 1](#magistral-medium-1) if formatting is critical
+- See [Labels](/models/labels) for detailed behavior notes
+
+**High token usage?**
+
+- [Mistral Large 2.1](#mistral-large-2-1) and [Medium 3](#mistral-medium-3) have 128K context windows
+- Monitor your input length and conversation history
+- Use token limits in [dashboard settings](#setting-up-mistral-in-your-project) to control costs
+- Consider [Magistral Medium 1](#magistral-medium-1) for shorter context needs
+
+## See Also
+
+- [Labels](/models/labels) - Understanding model status labels and observed behaviors
+- [Custom LLM Parameters](/models/custom-llm-parameters) - Configuring model parameters
+- [Reasoning Models](/models/reasoning-models) - Advanced reasoning capabilities

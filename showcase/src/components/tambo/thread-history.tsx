@@ -273,7 +273,7 @@ const ThreadHistoryNewButton = React.forwardRef<
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.altKey && event.shiftKey && event.key === "n") {
         event.preventDefault();
-        handleNewThread();
+        void handleNewThread();
       }
     };
 

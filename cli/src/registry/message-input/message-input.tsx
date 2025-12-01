@@ -810,7 +810,7 @@ const MessageInputMcpPromptButton = React.forwardRef<
     <McpPromptButton
       ref={ref}
       {...props}
-      value={value as string}
+      value={value}
       onInsertText={setValue}
     />
   );
@@ -849,7 +849,7 @@ const MessageInputMcpResourceButton = React.forwardRef<
     <McpResourceButton
       ref={ref}
       {...props}
-      value={value as string}
+      value={value}
       onInsertText={setValue}
     />
   );

@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "setup": "./conductor-setup.sh",
-    "run": "npm run dev"
+    "setup": "bash ./conductor-setup.sh",
+    "run": "bash ./conductor-run.sh"
   }
 }

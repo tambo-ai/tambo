@@ -1,26 +1,13 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidelines for Claude Code (claude.ai/code) when touching this repo.
 
-**⚠️ IMPORTANT: Read @AGENTS.md before making any changes or using any tools. It contains detailed architectural guidance and development workflows.**
+**Read @AGENTS.md first.** It owns architecture, naming, workflow rules, testing expectations, and anything code-related. Keep that file open—this doc just points you there.
 
-## Quick Reference
+## Three Things to Remember
 
-This is a Turborepo monorepo for Tambo AI containing:
+1. Follow that doc for everything: repo layout, commands, coding standards, doc rules, Charlie workflow, MCP guidance, etc.
+2. Use the workspace scripts it lists (`npm run dev`, `npm run lint`, `npm run check-types`, `npm test`, `npm run db:*`, Docker helpers in `scripts/cloud/`, …).
+3. Defer to it whenever instructions collide; if something’s still unclear, ask the user.
 
-- **react-sdk/** - Core React hooks and providers
-- **cli/** - Command-line tools and component registry
-- **showcase/** - Next.js demo application
-- **docs/** - Documentation site with Fumadocs
-- **create-tambo-app/** - App creation bootstrap tool
-
-## Essential Commands
-
-```bash
-turbo dev               # Start all packages in development
-turbo build             # Build all packages
-turbo lint              # Lint all packages
-turbo test              # Test all packages
-```
-
-For detailed information on architecture, development patterns, and cross-package workflows, see @AGENTS.md.
+That’s it—keep this doc minimal so every agent gets one authoritative direction.

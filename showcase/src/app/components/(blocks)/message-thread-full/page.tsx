@@ -32,7 +32,7 @@ export default function MessageThreadFullPage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <TamboMcpProvider>
+              <TamboMcpProvider contextKey={userContextKey}>
                 <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
                   <MessageThreadFull
                     contextKey={userContextKey}

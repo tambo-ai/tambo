@@ -1,4 +1,4 @@
-import nextJsConfig from "@tambo-ai-cloud/eslint-config/next-js";
+import nextJsConfig from "@tambo-ai/eslint-config/next-js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -9,7 +9,7 @@ export default tseslint.config(
       "next-env.d.ts",
       ".next/**",
       "coverage/**",
-      "test/__mocks__/fileMock.cjs",
+      "__mocks__/fileMock.cjs",
     ],
   },
   {

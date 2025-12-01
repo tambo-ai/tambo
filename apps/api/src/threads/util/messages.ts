@@ -163,7 +163,7 @@ export async function addAssistantMessageToThread(
   const serializedMessage: ComponentDecisionV2 = {
     message: component.message,
     componentName: component.componentName,
-    props: component.props,
+    props: component.props ?? {},
     componentState: component.componentState,
   };
   return await addMessage(db, threadId, {

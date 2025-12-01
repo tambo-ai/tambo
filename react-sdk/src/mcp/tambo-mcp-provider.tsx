@@ -138,6 +138,25 @@ const McpProviderContext = createContext<McpProviderContextValue>({
 const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
 
 /**
+ * Creates a stable hash of a string for use as a cache key.
+ * Uses Java-style string hashing (DJB2-like) for deterministic results.
+ *
+ * Note: We use a synchronous hash instead of crypto.subtle.digest because:
+ * - crypto.subtle.digest is async, which adds complexity in React hooks (useMemo, useEffect)
+ * - This is not for security, just for creating a stable identifier to detect token changes
+ * - Synchronous hashing avoids race conditions and simplifies component lifecycle
+ * @param input - The string to hash
+ * @returns A compact base36 hash string
+ */
+function hashString(input: string): string {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (Math.imul(31, hash) + input.charCodeAt(i)) | 0;
+  }
+  return (hash >>> 0).toString(36);
+}
+
+/**
  * This provider is used to register tools from MCP servers.
  * It automatically includes an internal Tambo MCP server when an MCP access token is available.
  *
@@ -146,15 +165,17 @@ const TAMBO_INTERNAL_MCP_SERVER_NAME = "__tambo_internal_mcp_server__";
  * This provider must be wrapped inside `TamboProvider` to access the MCP server registry.
  * @param props - The provider props
  * @param props.handlers - Optional handlers applied to all MCP servers unless overridden per-server
+ * @param props.contextKey - Optional context key for fetching threadless MCP tokens when not in a thread
  * @param props.children - The children to wrap
  * @returns The TamboMcpProvider component
  */
 export const TamboMcpProvider: FC<{
   handlers?: ProviderMCPHandlers;
+  contextKey?: string;
   children: React.ReactNode;
-}> = ({ handlers, children }) => {
+}> = ({ handlers, contextKey, children }) => {
   const { registerTool } = useTamboRegistry();
-  const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken();
+  const { mcpAccessToken, tamboBaseUrl } = useTamboMcpToken(contextKey);
   const mcpServers = useTamboMcpServerInfos();
   const providerSamplingHandler = handlers?.sampling;
 
@@ -187,11 +208,13 @@ export const TamboMcpProvider: FC<{
       const base = new URL(tamboBaseUrl);
       base.pathname = `${base.pathname.replace(/\/+$/, "")}/mcp`;
       const tamboMcpUrl = base.toString();
+      // Include token hash in serverKey so changing tokens trigger reconnection
+      const tokenHash = hashString(mcpAccessToken);
       servers.push({
         name: TAMBO_INTERNAL_MCP_SERVER_NAME,
         url: tamboMcpUrl,
         transport: MCPTransport.HTTP,
-        serverKey: "tambo", // Internal server always uses 'tambo' as serverKey
+        serverKey: `tambo-${tokenHash}`, // Include token hash in key to force reconnection on token change
         customHeaders: {
           Authorization: `Bearer ${mcpAccessToken}`,
         },
@@ -221,11 +244,18 @@ export const TamboMcpProvider: FC<{
     );
     keysToRemove.forEach((key) => {
       const server = clientMap.get(key);
-      if (server?.client) {
+      if (server?.client?.close) {
         try {
-          server.client.close();
+          // Call close() sync - it may or may not return a promise
+          const closeResult = server.client.close();
+          // If it returns a promise, handle errors but don't wait
+          if (closeResult && typeof closeResult.catch === "function") {
+            void closeResult.catch((error) => {
+              const url = (server as McpServer).url ?? "(unknown url)";
+              console.error(`Error closing MCP client for ${url}:`, error);
+            });
+          }
         } catch (error) {
-          // Avoid logging sensitive data embedded in the key (headers)
           const url = (server as McpServer).url ?? "(unknown url)";
           console.error(`Error closing MCP client for ${url}:`, error);
         }
@@ -244,10 +274,9 @@ export const TamboMcpProvider: FC<{
       (key) => !existingKeys.has(key),
     );
 
-    if (keysToAdd.length > 0) {
-      // Async initialization of new clients
-      Promise.allSettled(
-        keysToAdd.map(async (key) => {
+    async function addClients(keys: string[]) {
+      await Promise.allSettled(
+        keys.map(async (key) => {
           const serverInfo = currentServersMap.get(key)!;
 
           try {
@@ -366,6 +395,12 @@ export const TamboMcpProvider: FC<{
       );
     }
 
+    if (keysToAdd.length > 0) {
+      addClients(keysToAdd).catch((err) => {
+        console.error("Unexpected error in addClients:", err);
+      });
+    }
+
     // Update state after removals (additions update state asynchronously above)
     if (keysToRemove.length > 0) {
       setConnectedMcpServers(Array.from(clientMap.values()));
@@ -422,10 +457,21 @@ export const TamboMcpProvider: FC<{
     const ownerMapAtMount = toolOwnerRef.current;
     const keyToToolsAtMount = keyToToolsRef.current;
     return () => {
-      clientMap.forEach((server, _key) => {
-        if (server.client) {
+      clientMap.forEach((server) => {
+        if (server?.client?.close) {
           try {
-            server.client.close();
+            // Call close() sync - it may or may not return a promise
+            const closeResult = server.client.close();
+            // If it returns a promise, handle errors but don't wait
+            if (closeResult && typeof closeResult.catch === "function") {
+              void closeResult.catch((error) => {
+                const url = (server as McpServer).url ?? "(unknown url)";
+                console.error(
+                  `Error closing MCP client on unmount for ${url}:`,
+                  error,
+                );
+              });
+            }
           } catch (error) {
             const url = (server as McpServer).url ?? "(unknown url)";
             console.error(
@@ -529,8 +575,14 @@ export const useTamboElicitationContext = useTamboMcpElicitation;
  * Accepts a `NormalizedMcpServerInfo`, which already guarantees a concrete
  * `transport` and a `serverKey` derived by the registry, and narrows the
  * opaque `handlers` field to `Partial<MCPHandlers>`.
+ * @param server - The normalized MCP server info from the registry
+ * @returns The server config with typed handlers and unique key
  */
 function normalizeServerInfo(server: NormalizedMcpServerInfo): McpServerConfig {
+  // Always use getMcpServerUniqueKey for connection identity to ensure
+  // that changes to URL, transport, or customHeaders trigger client recreation.
+  // The serverKey is kept for namespacing purposes (readable short name),
+  // but the connection identity key must include all connection properties.
   const key = getMcpServerUniqueKey(server);
   // Cast handlers to proper type if present
   const handlers = server.handlers as Partial<MCPHandlers> | undefined;

@@ -37,6 +37,7 @@ export function useMergeRefs<Instance>(
     return () => {
       cleanups.forEach((refCleanup) => refCleanup?.());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, refs);
 
   return React.useMemo(() => {
@@ -56,7 +57,8 @@ export function useMergeRefs<Instance>(
           refEffect(value);
       }
     };
-  }, refs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refEffect, ...refs]);
 }
 
 /**

@@ -77,7 +77,7 @@ export function useTamboMcpPromptList() {
   return queries;
 }
 // TODO: find a more general place for this
-function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]): {
+function combineArrayResults<T>(results: UseQueryResult<T[]>[]): {
   data: T[];
   error: Error | null;
   errors: Error[];
@@ -92,7 +92,7 @@ function combineArrayResults<T>(results: UseQueryResult<T[], Error>[]): {
 } {
   const errors = results
     .filter((result) => result.isError)
-    .map((result) => result.error as Error);
+    .map((result) => result.error);
 
   // Treat queries that are idle (disabled) as non-blocking for aggregate status
   const enabledish = results.filter(

@@ -6,7 +6,7 @@ export interface LegacyComponentDecision {
   role?: MessageRole;
   parentMessageId?: string;
   componentName: string | null;
-  props: any | null;
+  props: Record<string, unknown> | null;
   message: string;
   toolCallRequest?: ToolCallRequest;
   toolCallId?: string;
@@ -15,6 +15,7 @@ export interface LegacyComponentDecision {
   reasoningDurationMS?: number;
   statusMessage?: string;
   completionStatusMessage?: string;
+  isToolCallFinished?: boolean;
 }
 
 export interface ComponentDecisionV2 {
@@ -33,7 +34,7 @@ export interface ToolCallRequest {
   tool_call_id?: string;
   parameters: {
     parameterName: string;
-    parameterValue: any;
+    parameterValue: unknown;
   }[];
 }
 

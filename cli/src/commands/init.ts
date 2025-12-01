@@ -4,13 +4,14 @@ import fs from "fs";
 import open from "open";
 import ora from "ora";
 import path from "path";
+import { COMPONENT_SUBDIR } from "../constants/paths.js";
+import { tamboTsTemplate } from "../templates/tambo-template.js";
 import {
   interactivePrompt,
   NonInteractiveError,
 } from "../utils/interactive.js";
-import { COMPONENT_SUBDIR } from "../constants/paths.js";
-import { tamboTsTemplate } from "../templates/tambo-template.js";
 import { handleAddComponent } from "./add/index.js";
+import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
 
 /**
@@ -48,6 +49,7 @@ interface InitOptions {
   fullSend?: boolean;
   legacyPeerDeps?: boolean;
   yes?: boolean;
+  skipAgentDocs?: boolean;
 }
 
 /**
@@ -56,11 +58,11 @@ interface InitOptions {
  */
 async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
   try {
-    const targetEnvFile = fs.existsSync(".env.local")
-      ? ".env.local"
-      : fs.existsSync(".env")
-        ? ".env"
-        : ".env.local"; // default when neither exists
+    // use `.env.local` by default or fall back to .env if it exists and .env.local does not
+    let targetEnvFile = ".env.local";
+    if (fs.existsSync(".env") && !fs.existsSync(".env.local")) {
+      targetEnvFile = ".env";
+    }
 
     const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
 
@@ -364,7 +366,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   if (openRepo) {
     try {
       await open(
-        "https://github.com/tambo-ai/tambo/blob/main/tambo-cloud/README.md#getting-started",
+        "https://github.com/tambo-ai/tambo/blob/main/README.md#getting-started",
       );
     } catch (_e) {
       // non-fatal
@@ -440,6 +442,11 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
 
   // Create tambo.ts file
   await createTamboTsFile(installPath);
+  await handleAgentDocsUpdate({
+    yes: options.yes,
+    skipAgentDocs: options.skipAgentDocs,
+    prefix: installPath,
+  });
 
   // Install required components
   console.log(chalk.cyan("\nStep 2: Choose starter components to install"));
@@ -638,10 +645,16 @@ export async function handleInit({
   fullSend = false,
   legacyPeerDeps = false,
   yes = false,
+  skipAgentDocs = false,
 }: InitOptions): Promise<void> {
   try {
     if (fullSend) {
-      return await handleFullSendInit({ fullSend, legacyPeerDeps, yes });
+      return await handleFullSendInit({
+        fullSend,
+        legacyPeerDeps,
+        yes,
+        skipAgentDocs,
+      });
     }
 
     if (!validateRootPackageJson()) return;
@@ -653,6 +666,8 @@ export async function handleInit({
 
     const authSuccess = await handleHostingChoiceAndAuth();
     if (!authSuccess) return;
+
+    await handleAgentDocsUpdate({ yes, skipAgentDocs });
 
     console.log(chalk.green("\n✨ Basic initialization complete!"));
 

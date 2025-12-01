@@ -39,7 +39,7 @@ jobs:
         run: |
           set -u
 
-          DB_PATH="tambo-cloud/packages/db"
+          DB_PATH="packages/db"
 
           if [ ! -d "$DB_PATH" ]; then
             echo "Directory $DB_PATH does not exist; skipping migrations."
@@ -145,4 +145,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:migrate
-        working-directory: tambo-cloud/packages/db
+        working-directory: packages/db

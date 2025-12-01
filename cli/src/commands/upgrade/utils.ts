@@ -113,7 +113,7 @@ export async function confirmAction(
       message: chalk.yellow(message),
       default: defaultValue,
     },
-    chalk.yellow("Use --accept-all flag to skip all confirmations."),
+    chalk.yellow("Use --yes flag to skip all confirmations."),
   );
 
   return confirm;

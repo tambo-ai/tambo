@@ -69,7 +69,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               defaultTheme="light"
               enableSystem={false}
             >
-              <RootProvider>{children as React.ReactNode}</RootProvider>
+              <RootProvider>{children}</RootProvider>
             </ThemeProvider>
           </PostHogRootProvider>
         </TamboRootProvider>

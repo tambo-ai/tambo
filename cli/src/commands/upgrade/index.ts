@@ -3,16 +3,16 @@ import fs from "fs";
 import path from "path";
 import { isInteractive } from "../../utils/interactive.js";
 import { upgradeComponents } from "./components.js";
-import { upgradeLlmRules } from "./llm-rules.js";
+import { upgradeAgentDocsAndRemoveCursorRules } from "./llm-rules.js";
 import { upgradeNpmPackages } from "./npm-packages.js";
 import { detectTemplate, generateAiUpgradePrompts } from "./utils.js";
 
 export interface UpgradeOptions {
   legacyPeerDeps?: boolean;
-  acceptAll?: boolean;
   silent?: boolean;
   prefix?: string;
   yes?: boolean;
+  skipAgentDocs?: boolean;
 }
 
 /**
@@ -26,13 +26,23 @@ export async function handleUpgrade(
   // Check for interactivity early - upgrade requires running external commands
   if (!isInteractive() && !options.yes) {
     throw new Error(
-      `${chalk.red("Error: Upgrade command requires an interactive environment or --yes flag.")}\n\n` +
-        `${chalk.yellow("Reason:")} This command runs external commands (npm, npx) that require user confirmation.\n\n` +
-        `${chalk.blue("Solutions:")}\n` +
-        `  1. Run in an interactive terminal (not piped)\n` +
-        `  2. Use ${chalk.cyan("--yes")} flag to auto-approve all changes\n` +
-        `  3. Use ${chalk.cyan("--accept-all")} flag to skip all prompts\n\n` +
-        `Example: ${chalk.cyan("tambo upgrade --yes")}`,
+      `${chalk.red("Error: Cannot run 'tambo upgrade' in non-interactive mode without flags.")}\n\n` +
+        `${chalk.yellow("What happened:")} This command needs to prompt you for choices, but your environment\n` +
+        `doesn't support prompts (likely CI/CD, Docker, or piped output).\n\n` +
+        `${chalk.blue("Required flag:")}\n` +
+        `  ${chalk.cyan("--yes")} ${chalk.dim("Auto-accepts all upgrades and skips prompts")}\n\n` +
+        `${chalk.blue("Other available flags:")}\n` +
+        `  ${chalk.cyan("--prefix <path>")} ${chalk.dim("Component directory (default: src/components/tambo)")}\n` +
+        `  ${chalk.cyan("--skip-agent-docs")} ${chalk.dim("Skip updating AGENTS.md/CLAUDE.md files")}\n` +
+        `  ${chalk.cyan("--legacy-peer-deps")} ${chalk.dim("Pass --legacy-peer-deps to npm (fixes some conflicts)")}\n\n` +
+        `${chalk.blue("Examples:")}\n` +
+        `  ${chalk.cyan("tambo upgrade --yes")}                                  ${chalk.dim("# Standard components path")}\n` +
+        `  ${chalk.cyan("tambo upgrade --yes --prefix src/components/ui")}       ${chalk.dim("# Custom components path")}\n` +
+        `  ${chalk.cyan("tambo upgrade --yes --skip-agent-docs")}                ${chalk.dim("# Skip docs updates")}\n` +
+        `  ${chalk.cyan("tambo upgrade --yes --legacy-peer-deps")}               ${chalk.dim("# Fix peer dep conflicts")}\n\n` +
+        chalk.dim(
+          "Or run this command in an interactive terminal (not in CI/CD).",
+        ),
     );
   }
 
@@ -75,11 +85,11 @@ export async function handleUpgrade(
       process.exit(1);
     }
 
-    // Upgrade LLM rules
-    console.log(chalk.bold("\n2. Upgrading cursor rules\n"));
-    const rulesSuccess = await upgradeLlmRules(detectedTemplate, options);
+    // Agent docs + cursor rule upgrade
+    console.log(chalk.bold("\n2. Agent docs and cursor rules\n"));
+    const rulesSuccess = await upgradeAgentDocsAndRemoveCursorRules(options);
     if (!rulesSuccess) {
-      console.error(chalk.red("\n❌ Cursor rules upgrade failed"));
+      console.error(chalk.red("\n❌ Agent docs/cursor rules failed"));
       process.exit(1);
     }
 

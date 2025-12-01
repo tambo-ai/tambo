@@ -39,8 +39,7 @@ export interface TamboThreadInputContextProps
           forceToolChoice?: string;
           additionalContext?: Record<string, any>;
         }
-      | undefined,
-      unknown
+      | undefined
     >,
     "mutate" | "mutateAsync"
   > {
