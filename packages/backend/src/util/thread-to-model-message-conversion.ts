@@ -368,7 +368,7 @@ function convertAssistantMessage(
 function convertUserOrSystemMessage(
   message: ThreadMessage,
   isSupportedMimeType: (mimeType: string) => boolean,
-): UserModelMessage {
+): ModelMessage {
   // System messages are handled specially - they use the convertToModelMessages function
   // which converts system messages to have a "system" role with string content
   if (message.role === MessageRole.System) {
@@ -379,11 +379,10 @@ function convertUserOrSystemMessage(
       .join("");
 
     // Return as system message with string content (matches old behavior)
-     
     return {
       role: "system",
       content: textContent,
-    } as any; // Type cast needed because AI SDK system messages have different shape
+    };
   }
 
   // Generate additional context if present
