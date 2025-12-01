@@ -60,11 +60,12 @@ describe("extractProviderKey", () => {
     expect(providerKey).toBe("sk-ant-api03-key.with.dots.in.it");
   });
 
-  it("throws error when delimiter is missing", () => {
+  it("handles missing delimiter with backward compatibility", () => {
     const decrypted = "nodelimiterhere";
+    const { providerName, providerKey } = extractProviderNameAndKey(decrypted);
 
-    expect(() => extractProviderNameAndKey(decrypted)).toThrow(
-      "Invalid provider key format - missing delimiter",
-    );
+    // Backward compatibility: old splitFromEnd would return empty providerName
+    expect(providerName).toBe("");
+    expect(providerKey).toBe("nodelimiterhere");
   });
 });

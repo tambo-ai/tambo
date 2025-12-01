@@ -18,7 +18,9 @@ export function extractProviderNameAndKey(decrypted: string): {
   // Split on first '.' to handle providerKeys that contain '.'
   const firstDotIndex = decrypted.indexOf(".");
   if (firstDotIndex === -1) {
-    throw new Error("Invalid provider key format - missing delimiter");
+    // Backward compatibility: old format without delimiter would have returned
+    // empty providerName and entire string as providerKey
+    return { providerName: "", providerKey: decrypted };
   }
 
   const providerName = decrypted.substring(0, firstDotIndex);
