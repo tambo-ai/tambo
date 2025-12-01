@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.125.0](https://github.com/tambo-ai/tambo/compare/api-v0.124.0...api-v0.125.0) (2025-12-01)
+
+
+### Features
+
+* return partial (building) toolcall requests to client ([#1410](https://github.com/tambo-ai/tambo/issues/1410)) ([22f4451](https://github.com/tambo-ai/tambo/commit/22f4451b99fab9d62659d2aa18d40df005f8deda))
+
+
+### Miscellaneous Chores
+
+* **repo:** standardize test layout ([#1409](https://github.com/tambo-ai/tambo/issues/1409)) ([126d6ee](https://github.com/tambo-ai/tambo/commit/126d6eec32c8a828fb0c3071dd3ba793d624d1db))
+
+
+### Code Refactoring
+
+* **ci:** update docker test pipeline to use parallel jobs ([#1389](https://github.com/tambo-ai/tambo/issues/1389)) ([3738c0a](https://github.com/tambo-ai/tambo/commit/3738c0a21f18cff082933260a5c4630f059dbcaf))
+* consolidate config packages and improve async error handling ([#1401](https://github.com/tambo-ai/tambo/issues/1401)) ([c9e0dd3](https://github.com/tambo-ai/tambo/commit/c9e0dd37d5bdeee79ac8ff8ddb3f6f4aae5aa5fb))
+
 ## [0.124.0](https://github.com/tambo-ai/tambo/compare/api-v0.123.3...api-v0.124.0) (2025-11-25)
 
 
