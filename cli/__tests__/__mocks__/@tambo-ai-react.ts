@@ -1,37 +1,24 @@
-// Mock implementation of @tambo-ai/react for testing registry components
-const mockFn = () => {
-  const fn = (...args: unknown[]) => {
-    fn.mock.calls.push(args);
-    return fn.mockReturnValue ?? fn.defaultReturn;
-  };
-  fn.mock = { calls: [] as unknown[][] };
-  fn.mockReturnValue = undefined;
-  fn.defaultReturn = undefined;
-  return fn;
-};
+// Jest manual mock for @tambo-ai/react used by registry component tests.
+//
+// Tests should call `jest.mock("@tambo-ai/react")` and then cast the
+// exported hooks to `jest.MockedFunction<typeof useTambo>` (etc) when they
+// need to override behavior for a specific scenario.
 
-const createMockHook = (defaultReturn: unknown) => {
-  const fn = mockFn();
-  fn.defaultReturn = defaultReturn;
-  fn.mockReturnValue = defaultReturn;
-  return fn;
-};
-
-export const useTambo = createMockHook({
+export const useTambo = jest.fn().mockReturnValue({
   thread: {
     messages: [],
     generationStage: "IDLE",
   },
 });
 
-export const useTamboThread = createMockHook({
-  switchCurrentThread: mockFn(),
-  startNewThread: mockFn(),
+export const useTamboThread = jest.fn().mockReturnValue({
+  switchCurrentThread: jest.fn(),
+  startNewThread: jest.fn(),
 });
 
-export const useTamboThreadList = createMockHook({
+export const useTamboThreadList = jest.fn().mockReturnValue({
   data: { items: [] },
   isLoading: false,
   error: null,
-  refetch: mockFn(),
+  refetch: jest.fn(),
 });

@@ -122,25 +122,30 @@ npm test -- add                # Run specific CLI utility test
 
 ### Writing Registry Component Tests
 
-Registry components use `@testing-library/react` with jsdom:
+Registry components use `@testing-library/react` with jsdom and a shared Jest
+mock for `@tambo-ai/react`:
+
+- The default mock implementation lives in
+  `__tests__/__mocks__/@tambo-ai-react.ts`.
+- In tests, call `jest.mock("@tambo-ai/react")` once at the top of the file.
+- Cast the exported hooks to `jest.MockedFunction<typeof useTambo>` (etc) when
+  you need to override behavior for a specific scenario.
+
+Example:
 
 ```tsx
 import { render } from "@testing-library/react";
 import { ComponentName } from "@/components/tambo/component-name";
-import { useTamboHook } from "@tambo-ai/react";
+import { useTambo } from "@tambo-ai/react";
 
-jest.mock("@tambo-ai/react", () => ({
-  useTamboHook: jest.fn(),
-}));
+jest.mock("@tambo-ai/react");
 
 describe("ComponentName", () => {
-  const mockUseTamboHook = useTamboHook as jest.MockedFunction<
-    typeof useTamboHook
-  >;
+  const mockUseTambo = useTambo as jest.MockedFunction<typeof useTambo>;
 
   beforeEach(() => {
-    mockUseTamboHook.mockReturnValue({
-      // mock return value
+    mockUseTambo.mockReturnValue({
+      // per-test mock return value
     } as never);
   });
 
@@ -181,10 +186,10 @@ Key requirements:
 
 ### Package Distribution
 
-The package.json and tsconfig.json are configured to exclude test files from the published package:
+The CLI `package.json` is configured so test files are excluded from the
+published npm package:
 
-```json
-// package.json
+```jsonc
 "files": [
   "src",
   "dist",
@@ -192,12 +197,10 @@ The package.json and tsconfig.json are configured to exclude test files from the
   "!**/*.test.tsx",
   "!__tests__"
 ]
-
-// tsconfig.json
-"exclude": ["__tests__", "**/*.test.ts", "**/*.test.tsx"]
 ```
 
-This ensures:
+Keeping registry tests under `__tests__/` and using `*.test.ts(x)` along with
+the `files` configuration ensures:
 
 1. Test files are not included in the npm package
 2. Registry components stay clean (no test files in the distributed components)
