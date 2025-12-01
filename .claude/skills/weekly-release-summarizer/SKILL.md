@@ -5,24 +5,22 @@ description: Generates weekly or monthly developer summaries for Tambo releases 
 
 # Weekly/Monthly Release Summarizer
 
-This skill generates developer-friendly release summaries for the Tambo ecosystem. It analyzes git history, release notes, and changelogs to produce concise summaries of what shipped during a specified time period.
+This skill generates **external user-focused** release summaries for the Tambo ecosystem. It analyzes git history, release notes, and changelogs to produce scannable summaries that emphasize user benefits.
 
 ## What This Skill Does
 
 1. **Gathers Release Data** - Collects commits, merged PRs, and release tags from the specified time period
-2. **Categorizes Changes** - Groups changes by type (features, fixes, improvements, dependencies)
-3. **Identifies Highlights** - Surfaces the most impactful changes worth calling out
-4. **Cross-Repository Analysis** - Handles Tambo's monorepo structure (react-sdk, cli, docs, showcase, tambo-cloud)
-5. **Generates Summary** - Produces a formatted developer-friendly summary
+2. **Identifies User-Facing Changes** - Filters for changes that matter to external users
+3. **Frames Benefits** - Translates technical changes into user benefits
+4. **Generates Scannable Summary** - Produces a clean, easy-to-read format
 
 ## When to Use This Skill
 
 Use this skill when:
 
 - Preparing weekly or monthly developer update emails
-- Creating release notes for stakeholders
-- Summarizing what the team shipped in a sprint
-- Generating changelog content
+- Creating release notes for external users
+- Summarizing what shipped in a sprint
 - Preparing content for Discord announcements or blog posts
 
 ## Repositories Covered
@@ -82,22 +80,7 @@ git log --since="1 week ago" --oneline -- "**/CHANGELOG.md"
 
 Read any updated CHANGELOG.md files to extract version numbers and summaries.
 
-### Step 4: Categorize Changes
-
-Group commits by conventional commit type:
-
-| Type       | Category      | Description               |
-| ---------- | ------------- | ------------------------- |
-| `feat`     | Features      | New functionality         |
-| `fix`      | Bug Fixes     | Bug corrections           |
-| `perf`     | Performance   | Performance improvements  |
-| `refactor` | Improvements  | Code quality improvements |
-| `docs`     | Documentation | Documentation updates     |
-| `chore`    | Maintenance   | Tooling, deps, configs    |
-| `deps`     | Dependencies  | Dependency updates        |
-| `test`     | Testing       | Test additions/fixes      |
-
-### Step 5: Identify Package Changes
+### Step 4: Identify Package Changes
 
 For each package in the monorepo, check for changes:
 
@@ -118,123 +101,106 @@ git log --since="1 week ago" --oneline -- showcase/
 git log --since="1 week ago" --oneline -- tambo-cloud/
 ```
 
-### Step 6: Extract Highlights
+### Step 5: Filter for User-Facing Changes
 
-Identify the most significant changes by looking for:
+Focus on changes that matter to external users:
 
-1. **New features** (`feat:` commits)
-2. **Breaking changes** (commits mentioning "BREAKING" or major version bumps)
-3. **New releases** (release-please commits with version numbers)
-4. **Major bug fixes** (important `fix:` commits)
-5. **New integrations** (MCP servers, AI providers, etc.)
+1. **New features** (`feat:` commits) - What can users do now?
+2. **Bug fixes** that affected user experience
+3. **Performance improvements** users would notice
+4. **New integrations** (MCP servers, AI providers, etc.)
+5. **DX improvements** (better errors, CLI improvements, agent support)
+
+**Skip internal changes** like:
+
+- Pure refactors with no user impact
+- Internal tooling changes
+- Most dependency bumps (unless significant)
+- Test additions
+- CI/CD changes
+
+### Step 6: Ask User for Context
+
+Before writing the summary, present the detected features to the user and ask for context. This ensures you frame each change correctly.
+
+```
+I found these user-facing changes from [date range]:
+
+1. **[Feature/Fix Name]** - [Brief technical description from commit]
+2. **[Feature/Fix Name]** - [Brief technical description from commit]
+3. **[Feature/Fix Name]** - [Brief technical description from commit]
+
+For each of these, can you help me understand:
+- Why does this matter to users?
+- What's the main benefit or use case?
+- Any specific framing I should use?
+
+Feel free to skip any that are self-explanatory or add context only where needed.
+```
+
+Use the user's input to write benefit-focused descriptions. If the user doesn't provide context for an item, use your best judgment based on the commit messages and code changes.
 
 ### Step 7: Generate Summary
 
-Produce a formatted summary using this template:
+Produce a **scannable, benefit-focused** summary using this template:
 
 ```markdown
-# Tambo Release Summary: [Date Range]
+# Tambo Weekly Update
 
-## Highlights
+**[Date Range]**
 
-- [Most important change 1]
-- [Most important change 2]
-- [Most important change 3]
+---
 
-## Releases
+**[Feature Name]** — [1-2 sentence description of what it does and why users care. Focus on the benefit, not the implementation.]
 
-### @tambo-ai/react v0.X.X
+**[Feature Name]** — [Description focusing on user benefit.]
 
-- [Key changes from changelog]
+**[Bug Fix]** — [What was broken and how it's fixed now.]
 
-### tambo CLI v0.X.X
+---
 
-- [Key changes from changelog]
-
-## Features
-
-- **[Feature Name]** - Brief description (PR #XXX)
-
-## Bug Fixes
-
-- **[Fix Description]** - What was fixed (PR #XXX)
-
-## Improvements
-
-- [Improvement 1]
-- [Improvement 2]
-
-## Dependencies
-
-Updated packages:
-
-- `package-name`: X.X.X -> Y.Y.Y
-
-## Contributors
-
-Thanks to everyone who contributed this period!
+**Releases:** @tambo-ai/react vX.X.X · tambo CLI vX.X.X · API vX.X.X
 ```
+
+### Key Formatting Rules
+
+1. **Bold feature names** as the lead-in
+2. **Em dash (—)** separates the name from description
+3. **One paragraph per item** - no bullet lists for main content
+4. **Benefit-first language** - explain what users can do, not what we did
+5. **Releases on one line** at the bottom, separated by middle dots (·)
+6. **Horizontal rules** to separate header and footer from content
 
 ### Step 8: Review and Refine
 
-Present the draft summary to the user:
+Present the draft summary to the user. Be ready to adjust length or emphasis based on feedback.
 
-```
-Here's the generated release summary for [date range]:
+## Writing Guidelines
 
-[Summary content]
+### Focus on User Benefits
 
-Would you like me to:
-1. Adjust the format?
-2. Add more detail to any section?
-3. Change the highlight selection?
-4. Generate a shorter/longer version?
-```
+BAD: "Refactored MCP authentication endpoints"
+GOOD: "Connecting to authenticated MCP services like GitHub, Linear, or Notion is now more reliable out of the box."
 
-## Output Formats
+BAD: "CLI now detects non-interactive environments"
+GOOD: "AI coding agents like Claude Code, Cursor, and Copilot can now run `tambo init` and `tambo add` reliably."
 
-The skill can generate summaries in different formats:
+BAD: "Fixed hot-reloading issues"
+GOOD: "Your changes now reflect immediately during local development."
 
-### Developer Summary (Default)
+### Be Scannable
 
-Comprehensive technical summary with all categories
+- Each item should be readable in 5 seconds
+- Lead with the most important word (the feature name)
+- Keep descriptions to 1-2 sentences max
+- No nested bullets or complex structure
 
-### Discord Announcement
+### Skip the Noise
 
-Shorter, casual format suitable for Discord:
-
-```markdown
-Hey everyone! Here's what shipped this week:
-
-**New Features**
-
-- Feature 1
-- Feature 2
-
-**Bug Fixes**
-
-- Fix 1
-
-Check out the full changelog: [link]
-```
-
-### Email Newsletter
-
-More formal format suitable for stakeholder updates
-
-### Changelog Entry
-
-Raw changelog format for CHANGELOG.md files
-
-## Guidelines
-
-- **Be concise** - Summaries should be scannable, not exhaustive
-- **Highlight impact** - Focus on user-facing changes over internal refactors
-- **Credit contributors** - Mention PRs and authors when relevant
-- **Group related changes** - Multiple commits for one feature should be one bullet point
-- **Skip trivial changes** - Omit pure chore/dependency updates unless significant
-- **Use consistent formatting** - Follow the templates above
-- **Include version numbers** - Always mention specific versions when discussing releases
+- Don't list dependency updates unless they unlock new features
+- Don't mention internal refactors
+- Don't include PR numbers in the main summary
+- Don't add "Contributors" sections for weekly updates
 
 ## Error Handling
 
