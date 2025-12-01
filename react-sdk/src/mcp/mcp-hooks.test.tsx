@@ -100,8 +100,6 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -209,8 +207,6 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -252,8 +248,6 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -346,8 +340,6 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -450,8 +442,6 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -541,8 +531,6 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -576,8 +564,6 @@ describe("useTamboMcpPromptList - individual server caching", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -709,8 +695,6 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -801,8 +785,6 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -902,8 +884,6 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -943,8 +923,6 @@ describe("useTamboMcpResourceList - resource management", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -1051,8 +1029,6 @@ describe("useTamboMcpResource - read individual resource", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider
@@ -1164,8 +1140,6 @@ describe("useTamboMcpResource - read individual resource", () => {
           client: { baseURL: "https://api.tambo.co" } as any,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider

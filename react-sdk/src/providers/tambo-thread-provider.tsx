@@ -28,7 +28,6 @@ import {
 import { handleToolCall } from "../util/tool-caller";
 import { useTamboClient, useTamboQueryClient } from "./tambo-client-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
-import { useTamboMcpToken } from "./tambo-mcp-token-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 // Generation Stage Context - separate from thread context to prevent re-renders
@@ -84,6 +83,16 @@ type PartialTamboThreadMessageWithThreadId = Partial<TamboThreadMessage> & {
 export interface TamboThreadContextProps {
   /** The current thread */
   thread: TamboThread;
+  /** The current thread ID */
+  currentThreadId: string | null;
+  /** The current thread (alias for thread, may be null) */
+  currentThread: TamboThread | null;
+  /** Map of all threads by ID */
+  threadMap: Record<string, TamboThread>;
+  /** Update the thread map (internal use only) */
+  setThreadMap: React.Dispatch<
+    React.SetStateAction<Record<string, TamboThread>>
+  >;
   /** Switch to a different thread */
   switchCurrentThread: (threadId: string, fetch?: boolean) => void;
   /** Start a new thread */
@@ -144,6 +153,12 @@ export const PLACEHOLDER_THREAD: TamboThread = {
 
 export const TamboThreadContext = createContext<TamboThreadContextProps>({
   thread: PLACEHOLDER_THREAD,
+  currentThreadId: PLACEHOLDER_THREAD.id,
+  currentThread: PLACEHOLDER_THREAD,
+  threadMap: { [PLACEHOLDER_THREAD.id]: PLACEHOLDER_THREAD },
+  setThreadMap: () => {
+    throw new Error("setThreadMap not implemented");
+  },
   /**
    *
    */
@@ -271,7 +286,6 @@ export const TamboThreadProvider: React.FC<
     onCallUnregisteredTool,
   } = useTamboRegistry();
   const { getAdditionalContext } = useTamboContextHelpers();
-  const { setMcpAccessToken } = useTamboMcpToken();
   const [ignoreResponse, setIgnoreResponse] = useState(false);
   const ignoreResponseRef = useRef(ignoreResponse);
   const [currentThreadId, setCurrentThreadId] = useState<string>(
@@ -757,11 +771,23 @@ export const TamboThreadProvider: React.FC<
       updateThreadStatus(threadId, GenerationStage.STREAMING_RESPONSE);
 
       for await (const chunk of stream) {
-        // Update or clear MCP access token
+        // Store MCP access token in thread data
         if (chunk.mcpAccessToken) {
-          // note that we're only setting it positively it during streaming, because it might
+          // note that we're only setting it positively during streaming, because it might
           // not have been set yet in the chunk (i.e. we're not unsetting it in the chunk)
-          setMcpAccessToken(chunk.mcpAccessToken);
+          setThreadMap((prev) => {
+            const thread = prev[threadId];
+            if (thread) {
+              return {
+                ...prev,
+                [threadId]: {
+                  ...thread,
+                  mcpAccessToken: chunk.mcpAccessToken,
+                },
+              };
+            }
+            return prev;
+          });
         }
 
         if (chunk.responseMessageDto.toolCallRequest) {
@@ -951,7 +977,6 @@ export const TamboThreadProvider: React.FC<
       currentThread?.id,
       currentThreadId,
       onCallUnregisteredTool,
-      setMcpAccessToken,
       switchCurrentThread,
       toolRegistry,
       updateThreadMessage,
@@ -1085,8 +1110,23 @@ export const TamboThreadProvider: React.FC<
           ? client.beta.threads.advance(params)
           : client.beta.threads.advanceByID(threadId, params));
 
-        // Update or clear MCP access token
-        setMcpAccessToken(advanceResponse.mcpAccessToken ?? null);
+        // Store MCP access token in thread data
+        const actualThreadId = advanceResponse.responseMessageDto.threadId;
+        if (advanceResponse.mcpAccessToken && actualThreadId) {
+          setThreadMap((prev) => {
+            const thread = prev[actualThreadId];
+            if (thread) {
+              return {
+                ...prev,
+                [actualThreadId]: {
+                  ...thread,
+                  mcpAccessToken: advanceResponse.mcpAccessToken,
+                },
+              };
+            }
+            return prev;
+          });
+        }
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
         throw error;
@@ -1157,8 +1197,25 @@ export const TamboThreadProvider: React.FC<
             toolCallResponseParams,
           );
 
-          // Update MCP or clear access token
-          setMcpAccessToken(advanceResponse.mcpAccessToken ?? null);
+          // Store MCP access token in thread data
+          if (advanceResponse.mcpAccessToken) {
+            const actualThreadId = advanceResponse.responseMessageDto.threadId;
+            if (actualThreadId) {
+              setThreadMap((prev) => {
+                const thread = prev[actualThreadId];
+                if (thread) {
+                  return {
+                    ...prev,
+                    [actualThreadId]: {
+                      ...thread,
+                      mcpAccessToken: advanceResponse.mcpAccessToken,
+                    },
+                  };
+                }
+                return prev;
+              });
+            }
+          }
         }
       } catch (error) {
         updateThreadStatus(
@@ -1211,7 +1268,6 @@ export const TamboThreadProvider: React.FC<
       onCallUnregisteredTool,
       addThreadToCache,
       maybeAutoGenerateThreadName,
-      setMcpAccessToken,
     ],
   );
 
@@ -1219,6 +1275,10 @@ export const TamboThreadProvider: React.FC<
     <TamboThreadContext.Provider
       value={{
         thread: currentThread,
+        currentThreadId,
+        currentThread,
+        threadMap,
+        setThreadMap,
         switchCurrentThread,
         startNewThread,
         updateThreadName,
