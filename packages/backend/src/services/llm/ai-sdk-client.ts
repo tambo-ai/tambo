@@ -53,6 +53,7 @@ import {
   LLMResponse,
   StreamingCompleteParams,
 } from "./llm-client";
+import { limitTokens } from "./token-limiter";
 
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
@@ -174,12 +175,12 @@ export class AISdkClient implements LLMClient {
       );
     }
 
-    const messagesFormatted = tryFormatTemplate(
+    let messagesFormatted = tryFormatTemplate(
       params.messages,
       params.promptTemplateParams,
     );
 
-    // Get model configuration for later use
+    // Get model configuration for token limiting and other params
     const providerCfg = (
       llmProviderConfig as Partial<Record<Provider, LlmProviderConfigInfo>>
     )[this.provider];
@@ -191,6 +192,11 @@ export class AISdkClient implements LLMClient {
         `Unknown model "${this.model}" for provider "${this.provider}"`,
       );
     }
+
+    // Apply token limiting
+    const modelTokenLimit = modelCfg?.inputTokenLimit;
+    const effectiveTokenLimit = this.maxInputTokens ?? modelTokenLimit;
+    messagesFormatted = limitTokens(messagesFormatted, effectiveTokenLimit);
 
     // Prepare tools
     const tools = params.tools ? this.convertTools(params.tools) : undefined;
