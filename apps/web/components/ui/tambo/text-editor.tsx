@@ -510,46 +510,6 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       tamboContextAttachment,
     ]);
 
-    // Handle image paste from clipboard when onSubmit is provided
-    React.useEffect(() => {
-      if (!onSubmit) return;
-
-      const handlePaste = async (e: Event) => {
-        const clipboardEvent = e as ClipboardEvent;
-        const items = Array.from(clipboardEvent.clipboardData?.items ?? []);
-        const imageItems = items.filter((item) =>
-          item.type.startsWith("image/"),
-        );
-
-        if (imageItems.length === 0) return;
-
-        const hasText = clipboardEvent.clipboardData?.getData("text/plain");
-        if (!hasText) e.preventDefault();
-
-        for (const item of imageItems) {
-          const file = item.getAsFile();
-          if (file) {
-            try {
-              file[IS_PASTED_IMAGE] = true;
-              await tamboThreadInput.addImage(file);
-            } catch (error) {
-              console.error("Failed to add pasted image:", error);
-            }
-          }
-        }
-      };
-
-      const editorElement = document.querySelector(
-        '[data-slot="message-input-textarea"]',
-      );
-      editorElement?.addEventListener("paste", handlePaste as EventListener);
-      return () =>
-        editorElement?.removeEventListener(
-          "paste",
-          handlePaste as EventListener,
-        );
-    }, [onSubmit, tamboThreadInput]);
-
     // Merge provided commands with Tambo-specific commands
     const commands = React.useMemo(
       () => [...providedCommands, ...tamboCommands],
@@ -618,6 +578,48 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
             "break-words whitespace-pre-wrap",
             className,
           ),
+        },
+        handlePaste: (_view, event) => {
+          if (!onSubmit) {
+            return false;
+          }
+
+          const items = Array.from(event.clipboardData?.items ?? []);
+          const imageItems = items.filter((item) =>
+            item.type.startsWith("image/"),
+          );
+
+          // If there are no images, let TipTap handle the paste normally
+          if (imageItems.length === 0) {
+            return false;
+          }
+
+          const text = event.clipboardData?.getData("text/plain") ?? "";
+          const hasText = text.length > 0;
+
+          // Only prevent default when it's an image-only paste so users can still
+          // paste mixed text + images and keep the text in the editor
+          if (!hasText) {
+            event.preventDefault();
+          }
+
+          void (async () => {
+            for (const item of imageItems) {
+              const file = item.getAsFile();
+              if (!file) continue;
+              try {
+                file[IS_PASTED_IMAGE] = true;
+                await tamboThreadInput.addImage(file);
+              } catch (error) {
+                console.error("Failed to add pasted image:", error);
+              }
+            }
+          })();
+
+          // For pure image pastes we've already prevented the default and
+          // signal that the event was handled. For mixed text+image pastes,
+          // return false so TipTap can still process the text payload.
+          return !hasText;
         },
         handleKeyDown: (view, event) => {
           // Check if any command menu is open
