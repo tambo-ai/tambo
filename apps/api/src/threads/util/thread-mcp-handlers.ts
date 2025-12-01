@@ -3,10 +3,10 @@ import {
   AsyncQueue,
   ChatCompletionContentPart,
   ContentPartType,
-  ChatCompletionMessageParam,
   GenerationStage,
   MCPHandlers,
   MessageRole,
+  ThreadMessage,
 } from "@tambo-ai-cloud/core";
 import type { HydraDb } from "@tambo-ai-cloud/db";
 import { operations } from "@tambo-ai-cloud/db";
@@ -67,9 +67,11 @@ export function createMcpHandlers(
           statusMessage: `Streaming response...`,
         });
       }
-      // Filter unsupported parts (resource content) and narrow to provider message type using the MCP input
-      const messagesForLLM = messages.map((m) => ({
-        role: m.role,
+      // Filter unsupported parts (resource content) and convert to ThreadMessage format
+      const messagesForLLM: ThreadMessage[] = messages.map((m, i) => ({
+        id: `mcp-sampling-${i}`,
+        threadId,
+        role: m.role as MessageRole,
         content: m.content.filter((p) => {
           if (p.type === ContentPartType.Resource) {
             console.warn(
@@ -79,7 +81,9 @@ export function createMcpHandlers(
           }
           return true;
         }),
-      })) as unknown as ChatCompletionMessageParam[];
+        createdAt: new Date(),
+        componentState: {},
+      }));
       const response = await tamboBackend.llmClient.complete({
         stream: false,
         promptTemplateName: "sampling",
