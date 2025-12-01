@@ -111,41 +111,48 @@ function convertToolMessage(
   }
 
   // Convert content to tool result format
-  const content: ToolContent = message.content.map((part): ToolResultPart => {
-    switch (part.type) {
-      case ContentPartType.Text:
-        return {
-          type: "tool-result",
-          output: {
-            type: "text",
-            value: part.text,
-          },
-          toolCallId: message.tool_call_id!,
-          toolName,
-        } satisfies ToolResultPart;
-      case ContentPartType.ImageUrl:
-        return {
-          type: "tool-result",
-          output: {
-            type: "content",
-            value: [
-              {
-                type: "media",
-                data: part.image_url.url.split(",")[1],
-                mediaType: "image/jpeg",
-              },
-            ],
-          },
-          toolCallId: message.tool_call_id!,
-          toolName,
-        } satisfies ToolResultPart;
-      default:
-        // TODO: handle file and audio content in tool results
-        throw new Error(
-          `Unexpected content type in tool message: ${part.type}`,
-        );
-    }
-  });
+  const content: ToolContent = message.content
+    .map((part): ToolResultPart | null => {
+      switch (part.type) {
+        case ContentPartType.Text:
+          return {
+            type: "tool-result",
+            output: {
+              type: "text",
+              value: part.text,
+            },
+            toolCallId: message.tool_call_id!,
+            toolName,
+          } satisfies ToolResultPart;
+        case ContentPartType.ImageUrl:
+          return {
+            type: "tool-result",
+            output: {
+              type: "content",
+              value: [
+                {
+                  type: "media",
+                  data: part.image_url.url.split(",")[1],
+                  mediaType: "image/jpeg",
+                },
+              ],
+            },
+            toolCallId: message.tool_call_id!,
+            toolName,
+          } satisfies ToolResultPart;
+        default: {
+          console.warn(
+            `Unexpected content type in tool message ${
+              message.id
+            } (tool_call_id=${message.tool_call_id}, toolName=${toolName}): ${
+              part.type
+            }, skipping`,
+          );
+          return null;
+        }
+      }
+    })
+    .filter((part): part is ToolResultPart => part !== null);
 
   return {
     role: "tool",
