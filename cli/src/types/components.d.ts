@@ -168,6 +168,9 @@ declare module "@/components/tambo/message-input" {
 
   export type MessageInputContextsProps = React.HTMLAttributes<HTMLDivElement>;
 
+  export type MessageInputPlainTextareaProps =
+    React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+
   export const MessageInput: React.ForwardRefExoticComponent<
     MessageInputProps & React.RefAttributes<HTMLFormElement>
   >;
@@ -178,6 +181,10 @@ declare module "@/components/tambo/message-input" {
 
   export const MessageInputTextarea: React.ForwardRefExoticComponent<
     MessageInputTextareaProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const MessageInputPlainTextarea: React.ForwardRefExoticComponent<
+    MessageInputPlainTextareaProps & React.RefAttributes<HTMLTextAreaElement>
   >;
 
   export const MessageInputMcpConfigButton: React.ForwardRefExoticComponent<

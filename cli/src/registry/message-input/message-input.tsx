@@ -486,6 +486,98 @@ const MessageInputTextarea = ({
 MessageInputTextarea.displayName = "MessageInput.Textarea";
 
 /**
+ * Props for the legacy plain textarea message input component.
+ * This preserves the original MessageInput.Textarea API for backward compatibility.
+ */
+export interface MessageInputPlainTextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  /** Custom placeholder text. */
+  placeholder?: string;
+}
+
+/**
+ * Legacy textarea-based message input component.
+ *
+ * This mirrors the previous MessageInput.Textarea implementation using a native
+ * `<textarea>` element. It remains available as an opt-in escape hatch for
+ * consumers that relied on textarea-specific props or refs.
+ */
+const MessageInputPlainTextarea = ({
+  className,
+  placeholder = "What do you want to do?",
+  ...props
+}: MessageInputPlainTextareaProps) => {
+  const { value, setValue, handleSubmit } = useMessageInputContext();
+  const { isIdle } = useTamboThread();
+  const { addImage } = useTamboThreadInput();
+  const isUpdatingToken = useIsTamboTokenUpdating();
+  const isPending = !isIdle;
+  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setValue(e.target.value);
+  };
+
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (value.trim()) {
+        await handleSubmit(e as unknown as React.FormEvent);
+      }
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = Array.from(e.clipboardData.items);
+    const imageItems = items.filter((item) => item.type.startsWith("image/"));
+
+    // Allow default paste if there is text, even when images exist
+    const hasText = e.clipboardData.getData("text/plain").length > 0;
+
+    if (imageItems.length === 0) {
+      return; // Allow default text paste
+    }
+
+    if (!hasText) {
+      e.preventDefault(); // Only prevent when image-only paste
+    }
+
+    for (const item of imageItems) {
+      const file = item.getAsFile();
+      if (file) {
+        try {
+          // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
+          file[IS_PASTED_IMAGE] = true;
+          await addImage(file);
+        } catch (error) {
+          console.error("Failed to add pasted image:", error);
+        }
+      }
+    }
+  };
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={handleChange}
+      onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
+      className={cn(
+        "flex-1 p-3 rounded-t-lg bg-background text-foreground resize-none text-sm min-h-[82px] max-h-[40vh] focus:outline-none placeholder:text-muted-foreground/50",
+        className,
+      )}
+      disabled={isPending || isUpdatingToken}
+      placeholder={placeholder}
+      aria-label="Chat Message Input"
+      data-slot="message-input-textarea"
+      {...props}
+    />
+  );
+};
+MessageInputPlainTextarea.displayName = "MessageInput.PlainTextarea";
+
+/**
  * Props for the MessageInputSubmitButton component.
  * Extends standard ButtonHTMLAttributes.
  */
@@ -1063,6 +1155,7 @@ export {
   MessageInputMcpResourceButton,
   MessageInputStagedImages,
   MessageInputSubmitButton,
+  MessageInputPlainTextarea,
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,

@@ -3,6 +3,7 @@ export {
   MessageInputContexts,
   MessageInputError,
   MessageInputSubmitButton,
+  MessageInputPlainTextarea,
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,

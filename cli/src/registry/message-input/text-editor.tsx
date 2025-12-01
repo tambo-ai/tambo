@@ -122,7 +122,13 @@ const resolveResourceItems = async (
   }
 
   if (typeof items === "function") {
-    return await items(query);
+    try {
+      return await items(query);
+    } catch (error) {
+      // Swallow mention fetch errors to avoid breaking the editor UI
+      console.error("Failed to fetch resource items", error);
+      return [];
+    }
   }
 
   const staticResults = filterResourceItems(items.staticItems ?? [], query);
@@ -130,8 +136,13 @@ const resolveResourceItems = async (
     return dedupeResourceItems(staticResults);
   }
 
-  const fetched = await items.fetchItems(query);
-  return dedupeResourceItems([...staticResults, ...fetched]);
+  try {
+    const fetched = await items.fetchItems(query);
+    return dedupeResourceItems([...staticResults, ...fetched]);
+  } catch (error) {
+    console.error("Failed to fetch resource items", error);
+    return dedupeResourceItems(staticResults);
+  }
 };
 
 /**
