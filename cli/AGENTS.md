@@ -193,9 +193,8 @@ published npm package:
 "files": [
   "src",
   "dist",
-  "!**/*.test.ts",
-  "!**/*.test.tsx",
-  "!__tests__"
+  "!**/*.test.*",
+  "!**/__tests__/**"
 ]
 ```
 

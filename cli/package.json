@@ -23,13 +23,12 @@
   "files": [
     "src",
     "dist",
-    "!**/*.test.ts",
-    "!**/*.test.tsx",
-    "!__tests__"
+    "!**/*.test.*",
+    "!**/__tests__/**"
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project tsconfig.build.json",
     "dev": "concurrently -c blue.bold,green.bold \"npm run dev:esm\"",
     "dev:esm": "tsc --watch",
     "check-types": "tsc --project tsconfig.check.json --noEmit",
