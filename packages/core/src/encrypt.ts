@@ -11,6 +11,23 @@ function splitFromEnd(str: string, delimiter: string): [string, string] {
   return [parts.join(delimiter), lastPart];
 }
 
+export function extractProviderNameAndKey(decrypted: string): {
+  providerName: string;
+  providerKey: string;
+} {
+  // Split on first '.' to handle providerKeys that contain '.'
+  const firstDotIndex = decrypted.indexOf(".");
+  if (firstDotIndex === -1) {
+    // Backward compatibility: old format without delimiter would have returned
+    // empty providerName and entire string as providerKey
+    return { providerName: "", providerKey: decrypted };
+  }
+
+  const providerName = decrypted.substring(0, firstDotIndex);
+  const providerKey = decrypted.substring(firstDotIndex + 1);
+  return { providerName, providerKey };
+}
+
 const algorithm = "aes-256-cbc";
 const IV_LENGTH = 16; // 16 bytes for AES
 /** Prefix for user-facing API keys – intentionally NOT exported. */
@@ -173,8 +190,7 @@ export function decryptProviderKey(
     });
   }
 
-  const [providerName, providerKey] = splitFromEnd(decrypted, ".");
-  return { providerName, providerKey };
+  return extractProviderNameAndKey(decrypted);
 }
 
 export function hideApiKey(apiKey: string, visibleCharacters = 4): string {
