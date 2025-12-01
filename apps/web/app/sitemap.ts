@@ -2,9 +2,15 @@ import { getPostListItems } from "@/lib/get-posts";
 import { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const fallbackBaseUrl =
+    process.env.NODE_ENV === "production"
+      ? "https://ui.tambo.co"
+      : "http://localhost:3000";
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || fallbackBaseUrl;
+
   try {
     // Use hardcoded domain for production instead of dynamic headers
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://localhost:3000";
 
     // Get blog posts
     const posts = await getPostListItems();
@@ -41,10 +47,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch (error) {
     console.error("Error generating sitemap:", error);
 
-    // Return at least the homepage as fallback
+    // Return at least the homepage as fallback using the same base URL logic
     return [
       {
-        url: "https://tambo.co",
+        url: baseUrl,
         lastModified: new Date(),
         changeFrequency: "weekly" as const,
         priority: 1.0,
