@@ -1,5 +1,5 @@
 import {
-  ChatCompletionMessageParam,
+  ContentPartType,
   FunctionParameters,
   getToolName,
   SUGGESTION_MODEL,
@@ -65,9 +65,19 @@ export async function generateSuggestions(
     client.userId,
   );
 
+  // Convert suggestion messages to ThreadMessage format
+  const threadMessages: ThreadMessage[] = suggestionMessages.map((msg, i) => ({
+    id: `suggestion-${i}`,
+    threadId,
+    role: msg.role,
+    content: [{ type: ContentPartType.Text, text: msg.content }],
+    createdAt: new Date(),
+    componentState: {},
+  }));
+
   try {
     const response = await suggestionLlmClient.complete({
-      messages: suggestionMessages as ChatCompletionMessageParam[],
+      messages: threadMessages,
       promptTemplateName: "suggestion-generation",
       promptTemplateParams: {},
       tools: [suggestionsResponseTool],

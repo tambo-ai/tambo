@@ -15,6 +15,7 @@ import {
   llmProviderConfig,
   PARAMETER_METADATA,
   Resource,
+  ThreadMessage,
   tryParseJson,
   type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
@@ -45,13 +46,13 @@ import { z } from "zod";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import { Provider } from "../../model/providers";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
+import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
 import {
   CompleteParams,
   LLMClient,
   LLMResponse,
   StreamingCompleteParams,
 } from "./llm-client";
-import { limitTokens } from "./token-limiter";
 
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
@@ -173,16 +174,15 @@ export class AISdkClient implements LLMClient {
       );
     }
 
-    let messagesFormatted = tryFormatTemplate(
+    const messagesFormatted = tryFormatTemplate(
       params.messages,
       params.promptTemplateParams,
     );
 
-    // Apply token limiting
+    // Get model configuration for later use
     const providerCfg = (
       llmProviderConfig as Partial<Record<Provider, LlmProviderConfigInfo>>
     )[this.provider];
-
     const models = providerCfg?.models;
     const modelCfg = models ? models[this.model] : undefined;
 
@@ -192,24 +192,16 @@ export class AISdkClient implements LLMClient {
       );
     }
 
-    const modelTokenLimit = modelCfg?.inputTokenLimit;
-    const effectiveTokenLimit = this.maxInputTokens ?? modelTokenLimit;
-    messagesFormatted = limitTokens(messagesFormatted, effectiveTokenLimit);
-
     // Prepare tools
     const tools = params.tools ? this.convertTools(params.tools) : undefined;
 
     // Prepare response format
     const responseFormat = this.extractResponseFormat(params);
 
-    // Convert to AI SDK format
-    const modelMessages = messagesFormatted.map(
-      (message, index): ModelMessage =>
-        convertOpenAIMessageToCoreMessage(
-          message,
-          messagesFormatted.slice(0, index),
-          isSupportedMimeType,
-        ),
+    // Convert to AI SDK format using new direct conversion
+    const modelMessages = threadMessagesToModelMessages(
+      messagesFormatted,
+      isSupportedMimeType,
     );
 
     // Prepare experimental telemetry for Langfuse
@@ -577,12 +569,12 @@ export class AISdkClient implements LLMClient {
 
 /** We have to manually format this because objectTemplate doesn't seem to support chat_history */
 function tryFormatTemplate(
-  messages: ChatCompletionMessageParam[],
-  promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>,
-): ChatCompletionMessageParam[] {
+  messages: ThreadMessage[],
+  promptTemplateParams: Record<string, string | ThreadMessage[]>,
+): ThreadMessage[] {
   try {
     return formatTemplate(
-      messages as ObjectTemplate<ChatCompletionMessageParam[]>,
+      messages as ObjectTemplate<ThreadMessage[]>,
       promptTemplateParams,
     );
   } catch (_e) {

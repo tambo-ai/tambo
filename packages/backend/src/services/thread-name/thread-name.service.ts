@@ -2,7 +2,6 @@ import { FunctionParameters, ThreadMessage } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import { LLMClient, LLMResponse } from "../llm/llm-client";
 
 const nameLengthLimit = 30;
@@ -27,10 +26,8 @@ export async function generateThreadName(
   llmClient: LLMClient,
   messages: ThreadMessage[],
 ) {
-  const chatCompletionMessages =
-    threadMessagesToChatCompletionMessageParam(messages);
   const response = await llmClient.complete({
-    messages: chatCompletionMessages,
+    messages,
     promptTemplateName: "thread-name-generation",
     promptTemplateParams: {},
     tools: [threadNameTool],

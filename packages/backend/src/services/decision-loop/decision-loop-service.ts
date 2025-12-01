@@ -1,5 +1,5 @@
 import {
-  ChatCompletionMessageParam,
+  ContentPartType,
   getToolName,
   LegacyComponentDecision,
   MessageRole,
@@ -15,7 +15,6 @@ import {
 } from "../../util/resource-transformation";
 import { extractMessageContent } from "../../util/response-parsing";
 import { objectTemplate } from "../../util/template";
-import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
@@ -87,13 +86,30 @@ export async function* runDecisionLoop(
     resourceFetchers,
   );
 
-  const chatCompletionMessages = threadMessagesToChatCompletionMessageParam(
-    messagesWithCachedResources,
-  );
+  const threadId = messages[0]?.threadId ?? "unknown";
+  const baseThreadMessage: Pick<
+    ThreadMessage,
+    "threadId" | "createdAt" | "componentState"
+  > = {
+    threadId,
+    createdAt: new Date(),
+    componentState: {},
+  };
 
-  const promptMessages = objectTemplate<ChatCompletionMessageParam[]>([
-    { role: "system", content: systemPrompt },
-    { role: "chat_history" as "user", content: "{chat_history}" },
+  const promptMessages = objectTemplate<ThreadMessage[]>([
+    {
+      ...baseThreadMessage,
+      id: "system",
+      role: MessageRole.System,
+      content: [{ type: ContentPartType.Text, text: systemPrompt }],
+    },
+    {
+      ...baseThreadMessage,
+      id: "chat_history_placeholder",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      role: "chat_history" as any,
+      content: [{ type: ContentPartType.Text, text: "{chat_history}" }],
+    },
   ]);
 
   const responseStream = await llmClient.complete({
@@ -101,7 +117,7 @@ export async function* runDecisionLoop(
     tools: toolsWithStandardParameters,
     promptTemplateName: "decision-loop",
     promptTemplateParams: {
-      chat_history: chatCompletionMessages,
+      chat_history: messagesWithCachedResources,
       ...systemPromptArgs,
     },
     stream: true,
