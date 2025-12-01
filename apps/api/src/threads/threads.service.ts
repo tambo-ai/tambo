@@ -1181,7 +1181,7 @@ export class ThreadsService {
       const toolCallRequest = responseMessage.toolCallRequest;
 
       // Check tool call limits if we have a tool call request
-      const toolLimits = deriveToolLimitsFromRegistry(allTools);
+      const toolLimits = deriveToolLimitsFromDto(advanceRequestDto);
       const toolLimitErrorMessage = await checkToolCallLimitViolation(
         this.getDb(),
         thread.id,
@@ -1890,7 +1890,7 @@ export class ThreadsService {
 
       // Check tool call limits if we have a tool call request
       if (currentThreadMessage) {
-        const toolLimits = deriveToolLimitsFromRegistry(allTools);
+        const toolLimits = deriveToolLimitsFromDto(originalRequest);
         const toolLimitErrorMessage = await checkToolCallLimitViolation(
           this.getDb(),
           threadId,
@@ -2308,53 +2308,30 @@ async function syncThreadStatus(
   );
 }
 /**
- * Extracts per-tool maxCalls limits from the unified tool registry.
+ * Extracts per-tool maxCalls limits from the advance request DTO.
  * Returns a map of tool name → { maxCalls?: number }.
- * MCP tools take precedence over client tools when names collide.
  */
-function deriveToolLimitsFromRegistry(
-  allTools?: ToolRegistry | McpToolRegistry,
+function deriveToolLimitsFromDto(
+  advanceRequest: AdvanceThreadDto,
 ): Record<string, { maxCalls?: number }> {
   const limits: Record<string, { maxCalls?: number }> = {};
-  if (!allTools) return limits;
 
-  const clientTools =
-    "clientToolsSchema" in allTools ? allTools.clientToolsSchema : undefined;
-
-  if (Array.isArray(clientTools)) {
-    for (const tool of clientTools) {
-      if (tool.type !== "function") continue;
-      const name = tool.function.name;
+  if (Array.isArray(advanceRequest.clientTools)) {
+    for (const tool of advanceRequest.clientTools) {
+      const name = tool.name;
       if (!name) continue;
-      // maxCalls is preserved from convertMetadataToTools
-      const raw = (tool as { maxCalls?: unknown }).maxCalls;
-      const maxCalls = (() => {
-        if (raw === undefined || raw === null) return undefined;
-        const n = Number(raw);
-        if (!Number.isFinite(n) || n < 0) return undefined;
-        return Math.trunc(n);
-      })();
-      limits[name] = { maxCalls };
+      limits[name] = { maxCalls: tool.maxCalls };
     }
   }
 
-  const mcpTools =
-    "mcpToolsSchema" in allTools ? allTools.mcpToolsSchema : undefined;
-
-  if (Array.isArray(mcpTools)) {
-    for (const tool of mcpTools) {
-      if (tool.type !== "function") continue;
-      const name = tool.function.name;
-      if (!name) continue;
-      const raw = (tool as { maxCalls?: unknown }).maxCalls;
-      const maxCalls = (() => {
-        if (raw === undefined || raw === null) return undefined;
-        const n = Number(raw);
-        if (!Number.isFinite(n) || n < 0) return undefined;
-        return Math.trunc(n);
-      })();
-      // MCP tools overwrite client tools on name collision (intentional)
-      limits[name] = { maxCalls };
+  if (Array.isArray(advanceRequest.availableComponents)) {
+    for (const component of advanceRequest.availableComponents) {
+      if (!Array.isArray(component.contextTools)) continue;
+      for (const tool of component.contextTools) {
+        const name = tool.name;
+        if (!name) continue;
+        limits[name] = { maxCalls: tool.maxCalls };
+      }
     }
   }
 
