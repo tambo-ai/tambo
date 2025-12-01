@@ -57,7 +57,6 @@ export function threadMessagesToModelMessages(
         }
         break;
       }
-      case MessageRole.Hydra:
       case MessageRole.Assistant: {
         const converted = convertAssistantMessage(
           message,
@@ -171,10 +170,7 @@ function findToolNameById(
   // Search backwards through messages to find the most recent assistant message with this tool call ID
   for (let i = previousMessages.length - 1; i >= 0; i--) {
     const msg = previousMessages[i];
-    if (
-      (msg.role === MessageRole.Assistant || msg.role === MessageRole.Hydra) &&
-      msg.tool_call_id === toolCallId
-    ) {
+    if (msg.role === MessageRole.Assistant && msg.tool_call_id === toolCallId) {
       // Check if this message has a toolCallRequest
       if (msg.toolCallRequest) {
         return msg.toolCallRequest.toolName;
