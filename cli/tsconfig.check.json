@@ -4,9 +4,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/types/*.d.ts",
-    "tests/**/*.ts",
-    "__tests__/**/*.ts",
-    "__tests__/**/*.tsx"
+    "tests/**/*.ts"
   ],
-  "exclude": ["node_modules", "./dist"]
+  "exclude": ["node_modules", "./dist", "__tests__"]
 }
