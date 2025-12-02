@@ -35,18 +35,21 @@ declare module "@/components/tambo/message" {
     children?: React.ReactNode;
   }
 
-  export interface MessageContentProps
-    extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
+  export interface MessageContentProps extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "content"
+  > {
     content?: string | { type: string; text?: string }[];
   }
 
-  export interface MessageRenderedComponentAreaProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface MessageRenderedComponentAreaProps extends React.HTMLAttributes<HTMLDivElement> {
     enableCanvasSpace?: boolean;
   }
 
-  export interface ToolcallInfoProps
-    extends Omit<React.HTMLAttributes<HTMLDivElement>, "content"> {
+  export interface ToolcallInfoProps extends Omit<
+    React.HTMLAttributes<HTMLDivElement>,
+    "content"
+  > {
     /** Optional flag to render response content as Markdown. Default is true. */
     markdown?: boolean;
   }
@@ -86,14 +89,12 @@ declare module "@/components/tambo/message" {
 }
 
 declare module "@/components/tambo/thread-content" {
-  export interface ThreadContentProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface ThreadContentProps extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
     enableCanvasSpace?: boolean;
   }
 
-  export interface ThreadContentRootProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface ThreadContentRootProps extends React.HTMLAttributes<HTMLDivElement> {
     enableCanvasSpace?: boolean;
     variant?: ComponentVariant;
     children?: React.ReactNode;
@@ -115,8 +116,7 @@ declare module "@/components/tambo/thread-content" {
 }
 
 declare module "@/components/tambo/message-input" {
-  export interface MessageInputProps
-    extends React.HTMLAttributes<HTMLFormElement> {
+  export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement> {
     variant?: ComponentVariant;
     contextKey?: string;
   }
@@ -127,22 +127,19 @@ declare module "@/components/tambo/message-input" {
     componentData?: unknown;
   }
 
-  export interface MessageInputRootProps
-    extends React.HTMLAttributes<HTMLFormElement> {
+  export interface MessageInputRootProps extends React.HTMLAttributes<HTMLFormElement> {
     contextKey?: string;
     variant?: ComponentVariant;
     children?: React.ReactNode;
   }
 
-  export interface MessageInputTextareaProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
     placeholder?: string;
     staticMentionItems?: MessageInputMentionItem[];
     mentionItemFetcher?: (query: string) => Promise<MessageInputMentionItem[]>;
   }
 
-  export interface MessageInputSubmitButtonProps
-    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  export interface MessageInputSubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children?: React.ReactNode;
   }
 
@@ -283,15 +280,13 @@ declare module "@/components/tambo/message-input/text-editor" {
 declare module "@/components/tambo/message-suggestions" {
   import type { Suggestion } from "@tambo-ai/react";
 
-  export interface MessageSuggestionsProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface MessageSuggestionsProps extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
     maxSuggestions?: number;
     initialSuggestions?: Suggestion[];
   }
 
-  export interface MessageSuggestionsRootProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface MessageSuggestionsRootProps extends React.HTMLAttributes<HTMLDivElement> {
     maxSuggestions?: number;
     initialSuggestions?: Suggestion[];
     children?: React.ReactNode;
@@ -330,16 +325,14 @@ declare module "@/components/tambo/markdown-components" {
 }
 
 declare module "@/components/tambo/thread-history" {
-  export interface ThreadHistoryProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface ThreadHistoryProps extends React.HTMLAttributes<HTMLDivElement> {
     contextKey?: string;
     onThreadChange?: () => void;
     defaultCollapsed?: boolean;
     position?: "left" | "right";
   }
 
-  export interface ThreadHistoryRootProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface ThreadHistoryRootProps extends React.HTMLAttributes<HTMLDivElement> {
     children?: React.ReactNode;
   }
 
@@ -379,8 +372,7 @@ declare module "@/components/tambo/thread-history" {
 }
 
 declare module "@/components/tambo/thread-list" {
-  export interface ThreadListProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface ThreadListProps extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
     threads: TamboThread[];
     selectedThreadId?: string | null;
@@ -402,8 +394,7 @@ declare module "@/components/tambo/thread-list" {
 }
 
 declare module "@/components/tambo/message-generation-stage" {
-  export interface GenerationStageProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface GenerationStageProps extends React.HTMLAttributes<HTMLDivElement> {
     showLabel?: boolean;
   }
   export const MessageGenerationStage: React.ForwardRefExoticComponent<
@@ -441,8 +432,7 @@ declare module "@/components/tambo/suggestions-tooltip" {
 }
 
 declare module "@/components/tambo/thread-dropdown" {
-  export interface ThreadDropdownProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface ThreadDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
     variant?: ComponentVariant;
     contextKey?: string | undefined;
     onThreadChange?: () => void;
@@ -474,15 +464,13 @@ declare module "@/components/tambo/elicitation-ui" {
 }
 
 declare module "@/components/tambo/mcp-components" {
-  export interface McpPromptButtonProps
-    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  export interface McpPromptButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     onInsertText: (text: string) => void;
     value: string;
     className?: string;
   }
 
-  export interface McpResourceButtonProps
-    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  export interface McpResourceButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     onInsertText: (text: string) => void;
     value: string;
     className?: string;
@@ -532,8 +520,7 @@ declare module "@/lib/thread-hooks" {
 }
 
 declare module "@/components/tambo/thread-container" {
-  export interface ThreadContainerProps
-    extends React.HTMLAttributes<HTMLDivElement> {
+  export interface ThreadContainerProps extends React.HTMLAttributes<HTMLDivElement> {
     disableSidebarSpacing?: boolean;
   }
 
