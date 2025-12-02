@@ -1,5 +1,9 @@
 import { jest } from "@jest/globals";
-import { decryptApiKey, encryptApiKey } from "./encrypt";
+import {
+  decryptApiKey,
+  encryptApiKey,
+  extractProviderNameAndKey,
+} from "./encrypt";
 
 /**
  * Deterministic IV so we can compare final user-facing strings.
@@ -36,5 +40,32 @@ describe("encryptApiKey / decryptApiKey", () => {
     const secondEncoded = encryptApiKey(storedString, apiKey, SECRET);
 
     expect(secondEncoded).toBe(firstEncoded);
+  });
+});
+
+describe("extractProviderKey", () => {
+  it("extracts providerName and providerKey from decrypted string", () => {
+    const decrypted = "openai.sk-1234567890";
+    const { providerName, providerKey } = extractProviderNameAndKey(decrypted);
+
+    expect(providerName).toBe("openai");
+    expect(providerKey).toBe("sk-1234567890");
+  });
+
+  it("handles providerKeys that contain '.' characters", () => {
+    const decrypted = "anthropic.sk-ant-api03-key.with.dots.in.it";
+    const { providerName, providerKey } = extractProviderNameAndKey(decrypted);
+
+    expect(providerName).toBe("anthropic");
+    expect(providerKey).toBe("sk-ant-api03-key.with.dots.in.it");
+  });
+
+  it("handles missing delimiter with backward compatibility", () => {
+    const decrypted = "nodelimiterhere";
+    const { providerName, providerKey } = extractProviderNameAndKey(decrypted);
+
+    // Backward compatibility: old splitFromEnd would return empty providerName
+    expect(providerName).toBe("");
+    expect(providerKey).toBe("nodelimiterhere");
   });
 });

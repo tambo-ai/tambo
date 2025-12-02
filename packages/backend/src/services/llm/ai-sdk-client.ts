@@ -611,8 +611,10 @@ function findToolNameById(
  * This is effectively the same thing as as singular version of
  * convertToCoreMessages, (which is supposedly deprecated anyway)
  * but for some reason that function doesn't deal with tool calls.
+ *
+ * NOTE: Exported for testing purposes. This function will be removed in a future refactoring.
  */
-function convertOpenAIMessageToCoreMessage(
+export function convertOpenAIMessageToCoreMessage(
   message: ChatCompletionMessageParam,
   previousMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
   isSupportedMimeType: (mimeType: string) => boolean,
@@ -929,7 +931,11 @@ function warnUnknownMessageType(message: never) {
   console.warn("Unknown message type:", message);
 }
 
-async function getSupportedMimeTypePredicate(
+/**
+ * Get a predicate function to check if a model supports a given MIME type.
+ * Exported for testing purposes.
+ */
+export async function getSupportedMimeTypePredicate(
   model: LanguageModelV2,
 ): Promise<(mimeType: string) => boolean> {
   const supportedUrls = await model.supportedUrls;

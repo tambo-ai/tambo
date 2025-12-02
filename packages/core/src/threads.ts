@@ -15,12 +15,6 @@ export enum MessageRole {
   System = "system",
   /** A tool call response - generally from the user, often JSON */
   Tool = "tool",
-  /**
-   * Hydra is a new role that is used to represent a message from the Hydra assistant.
-   * It is used to represent a message from the Hydra assistant.
-   * @deprecated
-   */
-  Hydra = "hydra",
 }
 
 export type OpenAIRole =

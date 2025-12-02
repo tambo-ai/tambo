@@ -17,7 +17,6 @@ import { UnreachableCaseError } from "ts-essentials";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
-import { fixLegacyRole } from "../util/legacyMessages";
 
 export type ThreadMetadata = Record<string, unknown>;
 export type MessageContent = string | Record<string, unknown>;
@@ -184,10 +183,9 @@ export async function updateThread(
   const messages = await db.query.messages.findMany({
     where: eq(schema.messages.threadId, threadId),
   });
-  const messagesWithCorrectedRole = fixLegacyRole(messages);
   return {
     ...updated,
-    messages: messagesWithCorrectedRole.map((msg) => ({
+    messages: messages.map((msg) => ({
       ...msg,
       suggestions: [],
     })),
@@ -272,7 +270,7 @@ export async function getMessages(
     where,
     orderBy: (messages, { asc }) => [asc(messages.createdAt)],
   });
-  return fixLegacyRole(messages);
+  return messages;
 }
 
 export async function getLatestMessage(

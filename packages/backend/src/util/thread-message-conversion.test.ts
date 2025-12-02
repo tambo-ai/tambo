@@ -1,5 +1,6 @@
 import {
   ChatCompletionContentPartText,
+  ContentPartType,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -340,6 +341,169 @@ describe("threadMessagesToChatHistory", () => {
           },
         ]
       `);
+    });
+  });
+
+  describe("content types", () => {
+    it("should handle Text content type", () => {
+      const message: ThreadMessage = {
+        ...baseThreadMessage,
+        id: "1",
+        role: MessageRole.User,
+        content: [{ type: ContentPartType.Text, text: "Hello world" }],
+      };
+
+      const result = threadMessagesToChatCompletionMessageParam([message]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].role).toBe("user");
+      expect(result[0].content).toContainEqual({
+        type: "text",
+        text: "Hello world",
+      });
+    });
+
+    it("should handle ImageUrl content type", () => {
+      const message: ThreadMessage = {
+        ...baseThreadMessage,
+        id: "1",
+        role: MessageRole.User,
+        content: [
+          {
+            type: ContentPartType.ImageUrl,
+            image_url: { url: "https://example.com/image.jpg" },
+          },
+        ],
+      };
+
+      const result = threadMessagesToChatCompletionMessageParam([message]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].role).toBe("user");
+      expect(result[0].content).toContainEqual({
+        type: "image_url",
+        image_url: { url: "https://example.com/image.jpg" },
+      });
+    });
+
+    it("should handle InputAudio content type", () => {
+      const message: ThreadMessage = {
+        ...baseThreadMessage,
+        id: "1",
+        role: MessageRole.User,
+        content: [
+          {
+            type: ContentPartType.InputAudio,
+            input_audio: {
+              data: "base64audiodata",
+              format: "wav",
+            },
+          },
+        ],
+      };
+
+      const result = threadMessagesToChatCompletionMessageParam([message]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].role).toBe("user");
+      expect(result[0].content).toContainEqual({
+        type: "input_audio",
+        input_audio: {
+          data: "base64audiodata",
+          format: "wav",
+        },
+      });
+    });
+
+    it("should handle Resource content type", () => {
+      const message: ThreadMessage = {
+        ...baseThreadMessage,
+        id: "1",
+        role: MessageRole.User,
+        content: [
+          {
+            type: ContentPartType.Resource,
+            resource: {
+              uri: "file:///path/to/file.txt",
+              text: "File contents",
+              mimeType: "text/plain",
+            },
+          },
+        ],
+      };
+
+      const result = threadMessagesToChatCompletionMessageParam([message]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].role).toBe("user");
+      expect(result[0].content).toContainEqual({
+        type: ContentPartType.Resource,
+        resource: {
+          uri: "file:///path/to/file.txt",
+          text: "File contents",
+          mimeType: "text/plain",
+        },
+      });
+    });
+
+    it("should handle mixed content types in single message", () => {
+      const message: ThreadMessage = {
+        ...baseThreadMessage,
+        id: "1",
+        role: MessageRole.User,
+        content: [
+          { type: ContentPartType.Text, text: "Check this image:" },
+          {
+            type: ContentPartType.ImageUrl,
+            image_url: { url: "https://example.com/image.jpg" },
+          },
+          { type: ContentPartType.Text, text: "What do you see?" },
+        ],
+      };
+
+      const result = threadMessagesToChatCompletionMessageParam([message]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].content).toHaveLength(5); // <User>, text, image, text, </User>
+    });
+  });
+
+  describe("edge cases", () => {
+    it("should handle empty content arrays", () => {
+      const message: ThreadMessage = {
+        ...baseThreadMessage,
+        id: "1",
+        role: MessageRole.User,
+        content: [],
+      };
+
+      const result = threadMessagesToChatCompletionMessageParam([message]);
+
+      expect(result).toHaveLength(1);
+      // Should have <User> and </User> tags even with empty content
+      expect(result[0].content).toEqual([
+        { type: "text", text: "<User>" },
+        { type: "text", text: "</User>" },
+      ]);
+    });
+
+    it("should handle null/undefined values gracefully", () => {
+      const message: ThreadMessage = {
+        ...baseThreadMessage,
+        id: "1",
+        role: MessageRole.Assistant,
+        content: [{ type: "text", text: "response" }],
+        // Missing tool_call_id and toolCallRequest
+      };
+
+      const result = threadMessagesToChatCompletionMessageParam([message]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        role: "assistant",
+        content: [{ type: "text", text: "response" }],
+        tool_calls: undefined,
+      });
     });
   });
 });

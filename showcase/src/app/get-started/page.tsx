@@ -19,6 +19,9 @@ export default function GetStartedPage() {
         </TabsList>
 
         <TabsContent value="new-project" className="mt-6">
+          <h2 className="text-xl md:text-2xl font-semibold mb-4">
+            New project setup
+          </h2>
           {newProjectSteps.map((step) => (
             <div
               key={step.number}
@@ -41,6 +44,9 @@ export default function GetStartedPage() {
         </TabsContent>
 
         <TabsContent value="existing-project" className="mt-6">
+          <h2 className="text-xl md:text-2xl font-semibold mb-4">
+            Add tambo-ai to an existing project
+          </h2>
           {existingProjectSteps.map((step) => (
             <div
               key={step.number}

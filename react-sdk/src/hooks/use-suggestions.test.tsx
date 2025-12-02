@@ -136,7 +136,7 @@ describe("useTamboSuggestions", () => {
         thread: createMockThread({
           messages: [
             createMockMessage({
-              role: "hydra",
+              role: "assistant",
             }),
           ],
         }),

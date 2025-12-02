@@ -38,7 +38,6 @@ export function threadMessagesToChatCompletionMessageParam(
         case MessageRole.Tool: {
           return makeToolMessages(message);
         }
-        case MessageRole.Hydra:
         case MessageRole.Assistant: {
           return makeAssistantMessages(message, respondedToolIds);
         }
@@ -283,7 +282,6 @@ function makeUserMessages(
   message: ThreadMessage,
 ): (ChatCompletionUserMessageParam | ChatCompletionSystemMessageParam)[] {
   if (
-    message.role === MessageRole.Hydra ||
     message.role === MessageRole.Assistant ||
     message.role === MessageRole.Tool
   ) {
