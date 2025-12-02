@@ -181,6 +181,13 @@ export interface ThreadMessage {
   reasoningDurationMS?: number;
 }
 
+/**
+ * Represents a thread message that has not yet been persisted to the database.
+ * Used for in-memory message construction before saving.
+ * The database is responsible for assigning id and threadId.
+ */
+export type UnsavedThreadMessage = Omit<ThreadMessage, "id" | "threadId">;
+
 /** Temporary internal type to make sure that subclasses are aligned on types */
 export interface InternalThreadMessage {
   role: MessageRole;

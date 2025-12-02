@@ -43,8 +43,9 @@ export function createMcpHandlers(
         role: m.role as "user",
         content: [mcpContentToContentPart(m.content)],
       }));
-      // add serially for now
+      // add serially for now and collect the saved messages
       // TODO: add messages in a batch
+      const savedMessages: ThreadMessage[] = [];
       for (const m of messages) {
         const message = await operations.addMessage(db, {
           threadId,
@@ -52,6 +53,24 @@ export function createMcpHandlers(
           content: m.content,
           parentMessageId,
         });
+
+        // Convert DB message (with null fields) to ThreadMessage (with undefined fields)
+        const threadMessage: ThreadMessage = {
+          ...message,
+          parentMessageId: message.parentMessageId ?? undefined,
+          component: message.componentDecision ?? undefined,
+          componentState: message.componentState ?? {},
+          additionalContext: message.additionalContext ?? {},
+          actionType: message.actionType ?? undefined,
+          error: message.error ?? undefined,
+          metadata: message.metadata ?? undefined,
+          tool_call_id: message.toolCallId ?? undefined,
+          toolCallRequest: message.toolCallRequest ?? undefined,
+          reasoning: message.reasoning ?? undefined,
+          reasoningDurationMS: message.reasoningDurationMS ?? undefined,
+        };
+
+        savedMessages.push(threadMessage);
 
         queue.push({
           responseMessageDto: {
@@ -67,11 +86,9 @@ export function createMcpHandlers(
           statusMessage: `Streaming response...`,
         });
       }
-      // Filter unsupported parts (resource content) and convert to ThreadMessage format
-      const messagesForLLM: ThreadMessage[] = messages.map((m, i) => ({
-        id: `mcp-sampling-${i}`,
-        threadId,
-        role: m.role as MessageRole,
+      // Filter unsupported parts (resource content) for LLM
+      const messagesForLLM: ThreadMessage[] = savedMessages.map((m) => ({
+        ...m,
         content: m.content.filter((p) => {
           if (p.type === ContentPartType.Resource) {
             console.warn(
@@ -81,8 +98,6 @@ export function createMcpHandlers(
           }
           return true;
         }),
-        createdAt: new Date(),
-        componentState: {},
       }));
       const response = await tamboBackend.llmClient.complete({
         stream: false,
