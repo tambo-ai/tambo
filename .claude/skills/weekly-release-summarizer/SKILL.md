@@ -1,11 +1,11 @@
 ---
 name: weekly-release-summarizer
-description: Generates weekly or monthly developer summaries for Tambo releases across repositories
+description: Generates weekly or monthly release summaries for external developers using Tambo
 ---
 
 # Weekly/Monthly Release Summarizer
 
-This skill generates **external user-focused** release summaries for the Tambo ecosystem. It analyzes git history, release notes, and changelogs to produce scannable summaries that emphasize user benefits.
+This skill generates release summaries for **external developers** who use Tambo. It analyzes git history, release notes, and changelogs to produce scannable summaries that emphasize developer benefits.
 
 ## What This Skill Does
 
@@ -42,40 +42,51 @@ Ask the user for the time period if not specified:
 
 ```
 What time period would you like to summarize?
-- "last week" (past 7 days)
-- "last month" (past 30 days)
+- "last week" (Monday through Sunday of the previous week)
+- "this week" (Monday through today)
+- "last month" (1st through last day of the previous month)
 - "since [date]" (e.g., "since 2024-01-15")
 - "between [date] and [date]" (e.g., "between 2024-01-01 and 2024-01-15")
 ```
+
+**Important:** Use specific calendar dates, not rolling periods like "7 days ago". For example:
+
+- "last week" = Monday Nov 25 through Sunday Dec 1 (not "past 7 days")
+- "last month" = November 1-30 (not "past 30 days")
+
+This ensures consistent, reproducible summaries that align with release cadences.
 
 ### Step 2: Gather Git History
 
 Run these commands to collect relevant data:
 
 ```bash
-# Get commits in the time range (adjust --since accordingly)
-git log --oneline --since="1 week ago" --no-merges
+# Get commits in the time range (use specific dates based on Step 1)
+# Example for "last week" (Nov 25 - Dec 1):
+git log --oneline --after="2024-11-25" --before="2024-12-02" --no-merges
 
 # Get merged PRs (via merge commits)
-git log --oneline --since="1 week ago" --merges
+git log --oneline --after="2024-11-25" --before="2024-12-02" --merges
 
 # Get release tags in the range
 git tag --sort=-creatordate | head -20
 
 # Get detailed commit info for categorization
-git log --since="1 week ago" --no-merges --format="%h %s" | head -100
+git log --after="2024-11-25" --before="2024-12-02" --no-merges --format="%h %s" | head -100
 ```
+
+**Note:** Always use `--after` and `--before` with specific dates rather than `--since="1 week ago"` to ensure reproducible results.
 
 ### Step 3: Identify Releases
 
 Look for release commits and tags:
 
 ```bash
-# Find release-please commits
-git log --oneline --since="1 week ago" | grep -i "release"
+# Find release-please commits (use specific dates from Step 1)
+git log --oneline --after="2024-11-25" --before="2024-12-02" | grep -i "release"
 
 # Check changelog files for recent updates
-git log --since="1 week ago" --oneline -- "**/CHANGELOG.md"
+git log --after="2024-11-25" --before="2024-12-02" --oneline -- "**/CHANGELOG.md"
 ```
 
 Read any updated CHANGELOG.md files to extract version numbers and summaries.
@@ -85,20 +96,20 @@ Read any updated CHANGELOG.md files to extract version numbers and summaries.
 For each package in the monorepo, check for changes:
 
 ```bash
-# react-sdk changes
-git log --since="1 week ago" --oneline -- react-sdk/
+# react-sdk changes (use specific dates from Step 1)
+git log --after="2024-11-25" --before="2024-12-02" --oneline -- react-sdk/
 
 # cli changes
-git log --since="1 week ago" --oneline -- cli/
+git log --after="2024-11-25" --before="2024-12-02" --oneline -- cli/
 
 # docs changes
-git log --since="1 week ago" --oneline -- docs/
+git log --after="2024-11-25" --before="2024-12-02" --oneline -- docs/
 
 # showcase changes
-git log --since="1 week ago" --oneline -- showcase/
+git log --after="2024-11-25" --before="2024-12-02" --oneline -- showcase/
 
 # tambo-cloud changes (if present)
-git log --since="1 week ago" --oneline -- tambo-cloud/
+git log --after="2024-11-25" --before="2024-12-02" --oneline -- tambo-cloud/
 ```
 
 ### Step 5: Filter for User-Facing Changes
