@@ -52,7 +52,7 @@
     "@tiptap/react": "^3.10.2",
     "@tiptap/starter-kit": "^3.11.0",
     "@tiptap/suggestion": "^3.10.2",
-    "@trpc/client": "^11.7.1",
+    "@trpc/client": "^11.7.2",
     "@trpc/react-query": "^11.7.1",
     "@trpc/server": "^11.0.2",
     "@types/react-speech-recognition": "^3.9.6",
