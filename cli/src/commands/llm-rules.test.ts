@@ -28,9 +28,8 @@ jest.unstable_mockModule("inquirer", () => ({
   },
 }));
 
-const { upgradeAgentDocsAndRemoveCursorRules } = await import(
-  "../../src/commands/upgrade/llm-rules.js"
-);
+const { upgradeAgentDocsAndRemoveCursorRules } =
+  await import("../../src/commands/upgrade/llm-rules.js");
 
 describe("upgradeAgentDocsAndRemoveCursorRules", () => {
   let originalCwd: () => string;

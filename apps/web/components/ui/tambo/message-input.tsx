@@ -109,8 +109,7 @@ const useMessageInputContext = () => {
  * Props for the MessageInput component.
  * Extends standard HTMLFormElement attributes.
  */
-export interface MessageInputProps
-  extends React.HTMLAttributes<HTMLFormElement> {
+export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement> {
   /** The context key identifying which thread to send messages to. */
   contextKey?: string;
   /** Optional styling variant for the input container. */
@@ -357,8 +356,7 @@ MessageInput.displayName = "MessageInput";
 /**
  * Props for the MessageInputTextarea component.
  */
-export interface MessageInputTextareaProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Custom placeholder text. */
   placeholder?: string;
 }
@@ -417,8 +415,7 @@ MessageInputTextarea.displayName = "MessageInput.Textarea";
  * Props for the MessageInputSubmitButton component.
  * Extends standard ButtonHTMLAttributes.
  */
-export interface MessageInputSubmitButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputSubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Optional content to display inside the button. */
   children?: React.ReactNode;
 }
@@ -606,8 +603,7 @@ MessageInputError.displayName = "MessageInput.Error";
 /**
  * Props for the MessageInputFileButton component.
  */
-export interface MessageInputFileButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputFileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Accept attribute for file input - defaults to image types */
   accept?: string;
   /** Allow multiple file selection */

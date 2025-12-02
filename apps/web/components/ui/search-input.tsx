@@ -3,8 +3,7 @@ import { Search } from "lucide-react";
 import * as React from "react";
 import { Input } from "./input";
 
-export interface SearchInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface SearchInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: "default" | "rounded";
   containerClassName?: string;
 }

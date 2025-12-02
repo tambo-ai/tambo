@@ -58,8 +58,7 @@ const useMessageSuggestionsContext = () => {
  * Props for the MessageSuggestions component.
  * Extends standard HTMLDivElement attributes.
  */
-export interface MessageSuggestionsProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageSuggestionsProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Maximum number of suggestions to display (default: 3) */
   maxSuggestions?: number;
   /** The child elements to render within the container. */
