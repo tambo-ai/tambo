@@ -581,6 +581,8 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
               ref.isMenuOpenRef,
             ),
             renderLabel: cmd.renderLabel,
+            renderText: ({ node }) =>
+              `${cmd.triggerChar}${(node.attrs.label as string) ?? ""}`,
           });
         }),
       ],
