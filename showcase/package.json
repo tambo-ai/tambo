@@ -21,7 +21,7 @@
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/typography": "^0.5.19",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.78.0",
+    "@tambo-ai/typescript-sdk": "^0.79.0",
     "@vercel/og": "^0.8.5",
     "autoprefixer": "^10.4.22",
     "class-variance-authority": "^0.7.1",
