@@ -10,7 +10,14 @@ jest.mock("./message-id-generator", () => ({
   generateMessageId: jest.fn(() => `message-${++messageIdCounter}`),
 }));
 
-import { AgentProviderType } from "@tambo-ai-cloud/core";
+import {
+  AgentProviderType,
+  ContentPartType,
+  MessageRole,
+  ThreadMessage,
+  ToolCallRequest,
+} from "@tambo-ai-cloud/core";
+import { createMockThreadMessage } from "@tambo-ai-cloud/testing";
 import OpenAI from "openai";
 import { AgentClient, AgentResponse } from "./agent-client";
 
@@ -25,6 +32,13 @@ jest.mock("@mastra/client-js", () => ({
   MastraClient: jest.fn(),
 }));
 jest.mock("@ag-ui/mastra");
+
+// Helper to create simple mock ThreadMessage for tests
+function mockMessage(text: string, id = "msg-1"): ThreadMessage {
+  return createMockThreadMessage(id, "thread-1", MessageRole.User, [
+    { type: ContentPartType.Text, text },
+  ]);
+}
 
 describe("AgentClient", () => {
   let agentClient: AgentClient;
@@ -193,30 +207,34 @@ describe("AgentClient", () => {
     });
 
     it("should convert messages and tools correctly", async () => {
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        {
-          role: "user",
-          content: "Hello, world!",
-        },
-        {
-          role: "assistant",
-          content: "Hi there!",
-          tool_calls: [
-            {
-              id: "call_123",
-              type: "function",
-              function: {
-                name: "test_tool",
-                arguments: '{"param": "value"}',
-              },
-            },
-          ],
-        },
-        {
-          role: "tool",
-          content: "Tool result",
-          tool_call_id: "call_123",
-        },
+      const toolCallRequest: ToolCallRequest = {
+        toolName: "test_tool",
+        parameters: [{ parameterName: "param", parameterValue: "value" }],
+      };
+
+      const messages: ThreadMessage[] = [
+        createMockThreadMessage("msg-1", "thread-1", MessageRole.User, [
+          { type: ContentPartType.Text, text: "Hello, world!" },
+        ]),
+        createMockThreadMessage(
+          "msg-2",
+          "thread-1",
+          MessageRole.Assistant,
+          [{ type: ContentPartType.Text, text: "Hi there!" }],
+          {
+            tool_call_id: "call_123",
+            toolCallRequest,
+          },
+        ),
+        createMockThreadMessage(
+          "msg-3",
+          "thread-1",
+          MessageRole.Tool,
+          [{ type: ContentPartType.Text, text: "Tool result" }],
+          {
+            tool_call_id: "call_123",
+          },
+        ),
       ];
 
       const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
@@ -284,19 +302,19 @@ describe("AgentClient", () => {
         {
           role: "user",
           content: "Hello, world!",
-          id: "tambo-user-0",
+          id: "msg-1",
         },
         {
           role: "assistant",
           content: "Hi there!",
-          id: "tambo-assistant-1",
+          id: "msg-2",
           toolCalls: [
             {
               id: "call_123",
               type: "function",
               function: {
                 name: "test_tool",
-                arguments: '{"param": "value"}',
+                arguments: '{"param":"value"}',
               },
             },
           ],
@@ -304,7 +322,7 @@ describe("AgentClient", () => {
         {
           role: "tool",
           content: "Tool result",
-          id: "tambo-tool-2",
+          id: "msg-3",
           toolCallId: "call_123",
         },
       ]);
@@ -330,22 +348,6 @@ describe("AgentClient", () => {
             ],
           },
         ],
-      );
-    });
-
-    it("should throw error for function messages", async () => {
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        {
-          role: "function",
-          content: "Function result",
-          name: "test_tool",
-        },
-      ];
-      const queue = new AsyncQueue<EventHandlerParams>();
-      const stream = agentClient.streamRunAgent(queue, { messages, tools: [] });
-
-      await expect(stream.next()).rejects.toThrow(
-        "Function messages are not supported",
       );
     });
 
@@ -465,7 +467,7 @@ describe("AgentClient", () => {
       it("should handle text message start/content/end sequence", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
@@ -511,7 +513,7 @@ describe("AgentClient", () => {
       it("should handle text message chunk events", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
@@ -553,7 +555,7 @@ describe("AgentClient", () => {
       it("should handle tool call start/args/end sequence", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Use a tool" }],
+          messages: [mockMessage("Use a tool")],
           tools: [
             {
               type: "function",
@@ -602,7 +604,7 @@ describe("AgentClient", () => {
       it("should handle tool call chunk events", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Use a tool" }],
+          messages: [mockMessage("Use a tool")],
           tools: [
             {
               type: "function",
@@ -652,7 +654,7 @@ describe("AgentClient", () => {
       it("should handle tool call result", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Use a tool" }],
+          messages: [mockMessage("Use a tool")],
           tools: [
             {
               type: "function",
@@ -692,7 +694,7 @@ describe("AgentClient", () => {
       it("should handle thinking start/content/end sequence", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Think about this" }],
+          messages: [mockMessage("Think about this")],
           tools: [],
         });
 
@@ -740,7 +742,7 @@ describe("AgentClient", () => {
       it("should handle multiple thinking text messages", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Think step by step" }],
+          messages: [mockMessage("Think step by step")],
           tools: [],
         });
 
@@ -800,7 +802,7 @@ describe("AgentClient", () => {
       it("should handle run started/finished sequence", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Run something" }],
+          messages: [mockMessage("Run something")],
           tools: [],
         });
 
@@ -826,7 +828,7 @@ describe("AgentClient", () => {
       it("should handle run error", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Run something" }],
+          messages: [mockMessage("Run something")],
           tools: [],
         });
 
@@ -855,7 +857,7 @@ describe("AgentClient", () => {
       it("should handle step started/finished sequence", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Execute steps" }],
+          messages: [mockMessage("Execute steps")],
           tools: [],
         });
 
@@ -887,7 +889,7 @@ describe("AgentClient", () => {
       it("should handle state snapshot", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Check state" }],
+          messages: [mockMessage("Check state")],
           tools: [],
         });
 
@@ -914,7 +916,7 @@ describe("AgentClient", () => {
       it("should handle state delta", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Update state" }],
+          messages: [mockMessage("Update state")],
           tools: [],
         });
 
@@ -943,7 +945,7 @@ describe("AgentClient", () => {
       it("should handle messages snapshot with assistant message", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
@@ -976,7 +978,7 @@ describe("AgentClient", () => {
       it("should handle messages snapshot with tool message", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Use a tool" }],
+          messages: [mockMessage("Use a tool")],
           tools: [],
         });
 
@@ -1010,7 +1012,7 @@ describe("AgentClient", () => {
       it("should handle messages snapshot with user message", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
@@ -1045,7 +1047,7 @@ describe("AgentClient", () => {
       it("should handle a complete conversation with assistant message, tool call, tool result, user message, and another assistant message", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [
             {
               type: "function",
@@ -1205,7 +1207,7 @@ describe("AgentClient", () => {
 
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
@@ -1260,7 +1262,7 @@ describe("AgentClient", () => {
 
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Use a tool" }],
+          messages: [mockMessage("Use a tool")],
           tools: [],
         });
 
@@ -1314,7 +1316,7 @@ describe("AgentClient", () => {
 
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Use a tool" }],
+          messages: [mockMessage("Use a tool")],
           tools: [],
         });
 
@@ -1368,7 +1370,7 @@ describe("AgentClient", () => {
 
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Think" }],
+          messages: [mockMessage("Think")],
           tools: [],
         });
 
@@ -1385,7 +1387,7 @@ describe("AgentClient", () => {
       it("should handle empty tool calls array", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
@@ -1420,7 +1422,7 @@ describe("AgentClient", () => {
       it("should handle tool calls with non-function type", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
@@ -1456,7 +1458,7 @@ describe("AgentClient", () => {
       it("should handle run finished with string result", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
@@ -1478,7 +1480,7 @@ describe("AgentClient", () => {
       it("should handle run finished with object result", async () => {
         const queue = new AsyncQueue<EventHandlerParams>();
         const stream = agentClient.streamRunAgent(queue, {
-          messages: [{ role: "user", content: "Hello" }],
+          messages: [mockMessage("Hello")],
           tools: [],
         });
 
