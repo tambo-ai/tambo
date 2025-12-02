@@ -61,7 +61,7 @@
     "@types/recharts": "^2.0.1",
     "clsx": "^2.1.1",
     "eslint": "^9",
-    "eslint-config-next": "16.0.3",
+    "eslint-config-next": "16.0.5",
     "next-sitemap": "^4.2.3",
     "rimraf": "^6.1.2",
     "tailwind-merge": "^3.4.0",
