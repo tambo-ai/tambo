@@ -376,6 +376,10 @@ function createResourceItemConfig(
          * Shows the resource item dropdown.
          */
         onStart: (props) => {
+          if (props.items.length === 0) {
+            if (isMenuOpenRef) isMenuOpenRef.current = false;
+            return;
+          }
           if (isMenuOpenRef) isMenuOpenRef.current = true;
           popupHandlers.onStart({
             items: props.items,
@@ -390,6 +394,11 @@ function createResourceItemConfig(
          * Updates the filtered resource items in the dropdown.
          */
         onUpdate: (props) => {
+          if (props.items.length === 0) {
+            popupHandlers.onExit();
+            if (isMenuOpenRef) isMenuOpenRef.current = false;
+            return;
+          }
           popupHandlers.onUpdate({
             items: props.items,
             clientRect: props.clientRect,
