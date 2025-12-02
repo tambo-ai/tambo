@@ -229,7 +229,7 @@ describe("createMcpHandlers", () => {
           id: "msg-1",
           threadId: mockThreadId,
           role: MessageRole.User,
-          content: [],
+          content: [{ type: ContentPartType.Text, text: "Hello" }],
           componentState: {},
           createdAt: new Date(),
         } as any);
@@ -260,10 +260,12 @@ describe("createMcpHandlers", () => {
           promptTemplateName: "sampling",
           promptTemplateParams: {},
           messages: [
-            {
-              role: "user",
+            expect.objectContaining({
+              role: MessageRole.User,
               content: [{ type: ContentPartType.Text, text: "Hello" }],
-            },
+              id: "msg-1",
+              threadId: mockThreadId,
+            }),
           ],
         });
       });
@@ -666,7 +668,7 @@ describe("createMcpHandlers", () => {
           id: "msg-1",
           threadId: mockThreadId,
           role: MessageRole.User,
-          content: [],
+          content: [{ type: ContentPartType.Text, text: "Hello world" }],
           componentState: {},
           createdAt: new Date(),
         } as any);
@@ -695,10 +697,12 @@ describe("createMcpHandlers", () => {
         expect(mockTamboBackend.llmClient.complete).toHaveBeenCalledWith(
           expect.objectContaining({
             messages: [
-              {
-                role: "user",
+              expect.objectContaining({
+                role: MessageRole.User,
                 content: [{ type: ContentPartType.Text, text: "Hello world" }],
-              },
+                id: "msg-1",
+                threadId: mockThreadId,
+              }),
             ],
           }),
         );
@@ -709,7 +713,14 @@ describe("createMcpHandlers", () => {
           id: "msg-1",
           threadId: mockThreadId,
           role: MessageRole.User,
-          content: [],
+          content: [
+            {
+              type: ContentPartType.ImageUrl,
+              image_url: {
+                url: "data:image/png;base64,base64encodeddata",
+              },
+            },
+          ],
           componentState: {},
           createdAt: new Date(),
         } as any);
@@ -745,8 +756,8 @@ describe("createMcpHandlers", () => {
         expect(mockTamboBackend.llmClient.complete).toHaveBeenCalledWith(
           expect.objectContaining({
             messages: [
-              {
-                role: "user",
+              expect.objectContaining({
+                role: MessageRole.User,
                 content: [
                   {
                     type: ContentPartType.ImageUrl,
@@ -755,7 +766,9 @@ describe("createMcpHandlers", () => {
                     },
                   },
                 ],
-              },
+                id: "msg-1",
+                threadId: mockThreadId,
+              }),
             ],
           }),
         );
@@ -766,7 +779,15 @@ describe("createMcpHandlers", () => {
           id: "msg-1",
           threadId: mockThreadId,
           role: MessageRole.User,
-          content: [],
+          content: [
+            {
+              type: ContentPartType.InputAudio,
+              input_audio: {
+                data: "base64audiodata",
+                format: "mp3",
+              },
+            },
+          ],
           componentState: {},
           createdAt: new Date(),
         } as any);
@@ -802,8 +823,8 @@ describe("createMcpHandlers", () => {
         expect(mockTamboBackend.llmClient.complete).toHaveBeenCalledWith(
           expect.objectContaining({
             messages: [
-              {
-                role: "user",
+              expect.objectContaining({
+                role: MessageRole.User,
                 content: [
                   {
                     type: ContentPartType.InputAudio,
@@ -813,7 +834,9 @@ describe("createMcpHandlers", () => {
                     },
                   },
                 ],
-              },
+                id: "msg-1",
+                threadId: mockThreadId,
+              }),
             ],
           }),
         );
@@ -824,7 +847,15 @@ describe("createMcpHandlers", () => {
           id: "msg-1",
           threadId: mockThreadId,
           role: MessageRole.User,
-          content: [],
+          content: [
+            {
+              type: ContentPartType.InputAudio,
+              input_audio: {
+                data: "base64audiodata",
+                format: "wav",
+              },
+            },
+          ],
           componentState: {},
           createdAt: new Date(),
         } as any);
@@ -860,8 +891,8 @@ describe("createMcpHandlers", () => {
         expect(mockTamboBackend.llmClient.complete).toHaveBeenCalledWith(
           expect.objectContaining({
             messages: [
-              {
-                role: "user",
+              expect.objectContaining({
+                role: MessageRole.User,
                 content: [
                   {
                     type: ContentPartType.InputAudio,
@@ -871,7 +902,9 @@ describe("createMcpHandlers", () => {
                     },
                   },
                 ],
-              },
+                id: "msg-1",
+                threadId: mockThreadId,
+              }),
             ],
           }),
         );
@@ -886,7 +919,12 @@ describe("createMcpHandlers", () => {
           id: "msg-1",
           threadId: mockThreadId,
           role: MessageRole.User,
-          content: [],
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: "[Audio content not supported]",
+            },
+          ],
           componentState: {},
           createdAt: new Date(),
         } as any);
@@ -922,15 +960,17 @@ describe("createMcpHandlers", () => {
         expect(mockTamboBackend.llmClient.complete).toHaveBeenCalledWith(
           expect.objectContaining({
             messages: [
-              {
-                role: "user",
+              expect.objectContaining({
+                role: MessageRole.User,
                 content: [
                   {
                     type: ContentPartType.Text,
                     text: "[Audio content not supported]",
                   },
                 ],
-              },
+                id: "msg-1",
+                threadId: mockThreadId,
+              }),
             ],
           }),
         );
@@ -951,7 +991,12 @@ describe("createMcpHandlers", () => {
           id: "msg-1",
           threadId: mockThreadId,
           role: MessageRole.User,
-          content: [],
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: "[Unsupported content type: video]",
+            },
+          ],
           componentState: {},
           createdAt: new Date(),
         } as any);
@@ -987,15 +1032,17 @@ describe("createMcpHandlers", () => {
         expect(mockTamboBackend.llmClient.complete).toHaveBeenCalledWith(
           expect.objectContaining({
             messages: [
-              {
-                role: "user",
+              expect.objectContaining({
+                role: MessageRole.User,
                 content: [
                   {
                     type: ContentPartType.Text,
                     text: "[Unsupported content type: video]",
                   },
                 ],
-              },
+                id: "msg-1",
+                threadId: mockThreadId,
+              }),
             ],
           }),
         );

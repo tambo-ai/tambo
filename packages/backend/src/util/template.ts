@@ -1,7 +1,7 @@
 /** Migrated from libretto: https://github.com/libretto-ai/openai-ts/blob/main/src/template.ts  */
 // we only support the simplest of template expressions
 
-import { ChatCompletionMessageParam } from "@tambo-ai-cloud/core";
+import { ThreadMessage } from "@tambo-ai-cloud/core";
 
 /** Match a full template expression, e.g. '{foo}' in 'replace {foo} now' */
 const templateExpression = /({[a-zA-Z0-9_[\].]+})/g;
@@ -64,10 +64,7 @@ export function f(
   );
   return {
     [formatProp]: (
-      parameters: Record<
-        string,
-        string | ChatCompletionMessageParam[] | undefined
-      >,
+      parameters: Record<string, string | ThreadMessage[] | undefined>,
     ) => {
       return str
         .replace(templateExpressionVarName, (match, variableName) => {
@@ -96,7 +93,7 @@ const variablesProp = Symbol("variables");
 
 export function formatTemplate<T>(
   o: ObjectTemplate<T>,
-  parameters: Record<string, string | ChatCompletionMessageParam[]>,
+  parameters: Record<string, string | ThreadMessage[]>,
 ): T {
   const format = o[formatProp];
   return format(parameters);
@@ -119,9 +116,7 @@ export interface ObjectTemplate_<T> {
   /**
    * A function that takes a dictionary of variable names to values, and returns the formatted object
    */
-  [formatProp]: (
-    parameters: Record<string, string | ChatCompletionMessageParam[]>,
-  ) => T;
+  [formatProp]: (parameters: Record<string, string | ThreadMessage[]>) => T;
   /**
    * The names of the variables used in the template
    */
@@ -162,9 +157,7 @@ export type ObjectTemplate<T> = T extends string
 export function objectTemplate<T>(objs: T): ObjectTemplate<T> {
   const variables = objTemplateVariables(objs);
 
-  function format(
-    parameters: Record<string, string | ChatCompletionMessageParam[]>,
-  ): T {
+  function format(parameters: Record<string, string | ThreadMessage[]>): T {
     if (objs === undefined || objs === null || typeof objs == "number") {
       return objs;
     }

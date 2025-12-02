@@ -1,5 +1,5 @@
 import {
-  ChatCompletionMessageParam,
+  ContentPartType,
   getToolName,
   LegacyComponentDecision,
   MessageRole,
@@ -14,8 +14,6 @@ import {
   ResourceFetcherMap,
 } from "../../util/resource-transformation";
 import { extractMessageContent } from "../../util/response-parsing";
-import { objectTemplate } from "../../util/template";
-import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
@@ -81,29 +79,43 @@ export async function* runDecisionLoop(
   const { template: systemPrompt, args: systemPromptArgs } =
     generateDecisionLoopPrompt(customInstructions);
 
-  // Pre-fetch and cache all resources before converting messages
+  // Pre-fetch and cache all resources before sending to LLM
   const messagesWithCachedResources = await prefetchAndCacheResources(
     messages,
     resourceFetchers,
   );
 
-  const chatCompletionMessages = threadMessagesToChatCompletionMessageParam(
-    messagesWithCachedResources,
-  );
+  // Get threadId from messages - should always be present
+  if (messages.length === 0) {
+    throw new Error("Cannot run decision loop with no messages");
+  }
+  const threadId = messages[0].threadId;
+  if (!threadId) {
+    throw new Error("Cannot run decision loop: messages missing threadId");
+  }
 
-  const promptMessages = objectTemplate<ChatCompletionMessageParam[]>([
-    { role: "system", content: systemPrompt },
-    { role: "chat_history" as "user", content: "{chat_history}" },
-  ]);
+  // Build prompt messages: system message + chat history
+  const systemMessage: ThreadMessage = {
+    // This is a synthetic message id that is used to identify the system message -
+    // we give it a synthetic id because it is not saved to the database.
+    id: "synthetic-system-message-id",
+    threadId,
+    role: MessageRole.System,
+    content: [{ type: ContentPartType.Text, text: systemPrompt }],
+    createdAt: new Date(),
+    componentState: {},
+  };
+
+  const promptMessages: ThreadMessage[] = [
+    systemMessage,
+    ...messagesWithCachedResources,
+  ];
 
   const responseStream = await llmClient.complete({
     messages: promptMessages,
     tools: toolsWithStandardParameters,
     promptTemplateName: "decision-loop",
-    promptTemplateParams: {
-      chat_history: chatCompletionMessages,
-      ...systemPromptArgs,
-    },
+    promptTemplateParams: systemPromptArgs,
     stream: true,
     tool_choice: forceToolChoice
       ? { type: "function", function: { name: forceToolChoice } }
