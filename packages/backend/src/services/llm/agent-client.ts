@@ -573,12 +573,9 @@ function getToolCallId(m: ChatCompletionMessageParam): string {
 }
 
 function createNewMessage(
-  role: "system" | "user" | "assistant" | "tool" | "developer" | "hydra",
+  role: "system" | "user" | "assistant" | "tool" | "developer",
   id: string,
 ): AgentMessage {
-  if (role === MessageRole.Hydra) {
-    role = MessageRole.Assistant;
-  }
   if (role === MessageRole.Tool) {
     return {
       id: id,

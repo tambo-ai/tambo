@@ -3,7 +3,6 @@ import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { schema } from "..";
 import { messages, projectMembers } from "../schema";
 import type { HydraDb } from "../types";
-import { fixLegacyRole } from "../util/legacyMessages";
 
 /**
  * Retrieves a message with its associated thread and project information.
@@ -35,7 +34,7 @@ export async function getMessageWithAccess(
     // TODO: throw error?
     return message;
   }
-  return fixLegacyRole([message])[0];
+  return message;
 }
 
 /**

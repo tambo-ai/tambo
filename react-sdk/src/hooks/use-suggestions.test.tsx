@@ -89,22 +89,29 @@ describe("useTamboSuggestions", () => {
   // Helper function to create mock CombinedTamboThreadContextProps
   const createMockThreadContext = (
     overrides: Partial<CombinedTamboThreadContextProps> = {},
-  ): CombinedTamboThreadContextProps => ({
-    thread: createMockThread(),
-    switchCurrentThread: jest.fn(),
-    startNewThread: jest.fn(),
-    updateThreadName: jest.fn(),
-    generateThreadName: jest.fn(),
-    addThreadMessage: jest.fn(),
-    updateThreadMessage: jest.fn(),
-    cancel: jest.fn(),
-    streaming: false,
-    sendThreadMessage: jest.fn(),
-    generationStage: GenerationStage.IDLE,
-    generationStatusMessage: "",
-    isIdle: true,
-    ...overrides,
-  });
+  ): CombinedTamboThreadContextProps => {
+    const mockThread = createMockThread();
+    return {
+      thread: mockThread,
+      currentThreadId: mockThread.id,
+      currentThread: mockThread,
+      threadMap: { [mockThread.id]: mockThread },
+      setThreadMap: jest.fn(),
+      switchCurrentThread: jest.fn(),
+      startNewThread: jest.fn(),
+      updateThreadName: jest.fn(),
+      generateThreadName: jest.fn(),
+      addThreadMessage: jest.fn(),
+      updateThreadMessage: jest.fn(),
+      cancel: jest.fn(),
+      streaming: false,
+      sendThreadMessage: jest.fn(),
+      generationStage: GenerationStage.IDLE,
+      generationStatusMessage: "",
+      isIdle: true,
+      ...overrides,
+    };
+  };
 
   beforeEach(() => {
     jest.mocked(useTamboQueryClient).mockReturnValue(new QueryClient());
@@ -129,7 +136,7 @@ describe("useTamboSuggestions", () => {
         thread: createMockThread({
           messages: [
             createMockMessage({
-              role: "hydra",
+              role: "assistant",
             }),
           ],
         }),

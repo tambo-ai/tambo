@@ -62,8 +62,6 @@ const createWrapper = (initialMessages: TamboThreadMessage[] = []) => {
           client,
           queryClient,
           isUpdatingToken: false,
-          mcpAccessToken: null,
-          setMcpAccessToken: () => {},
         }}
       >
         <TamboRegistryProvider components={[]} tools={[]}>
