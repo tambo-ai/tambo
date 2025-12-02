@@ -96,7 +96,9 @@ export async function* runDecisionLoop(
 
   // Build prompt messages: system message + chat history
   const systemMessage: ThreadMessage = {
-    id: "system",
+    // This is a synthetic message id that is used to identify the system message -
+    // we give it a synthetic id because it is not saved to the database.
+    id: "synthetic-system-message-id",
     threadId,
     role: MessageRole.System,
     content: [{ type: ContentPartType.Text, text: systemPrompt }],
