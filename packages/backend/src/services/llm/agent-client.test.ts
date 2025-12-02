@@ -351,6 +351,144 @@ describe("AgentClient", () => {
       );
     });
 
+    it("should create deterministic tool call arguments and ignore undefined values", async () => {
+      const toolCallRequest: ToolCallRequest = {
+        toolName: "test_tool",
+        parameters: [
+          { parameterName: "b", parameterValue: "second" },
+          { parameterName: "a", parameterValue: "first" },
+          { parameterName: "c", parameterValue: undefined },
+        ],
+      };
+
+      const messages: ThreadMessage[] = [
+        createMockThreadMessage(
+          "msg-1",
+          "thread-1",
+          MessageRole.Assistant,
+          [{ type: ContentPartType.Text, text: "Hi there!" }],
+          {
+            tool_call_id: "call_123",
+            toolCallRequest,
+          },
+        ),
+      ];
+
+      const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+        {
+          type: "function",
+          function: {
+            name: "test_tool",
+            description: "A test tool",
+            parameters: {
+              type: "object",
+            },
+          },
+        },
+      ];
+
+      const mockSetMessages = jest.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (agentClient as any).aguiAgent = { setMessages: mockSetMessages };
+
+      // Create a mock generator that finishes immediately
+      const mockGenerator: AsyncIterableIterator<
+        EventHandlerParams,
+        RunAgentResult
+      > = {
+        async next() {
+          return {
+            done: true,
+            value: { result: null, newMessages: [] },
+          } as IteratorReturnResult<RunAgentResult>;
+        },
+        async return() {
+          return {
+            done: true,
+            value: { result: null, newMessages: [] },
+          } as IteratorReturnResult<RunAgentResult>;
+        },
+        async throw() {
+          return {
+            done: true,
+            value: { result: null, newMessages: [] },
+          } as IteratorReturnResult<RunAgentResult>;
+        },
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+      };
+
+      mockRunStreamingAgent.mockReturnValue(mockGenerator);
+      const queue = new AsyncQueue<EventHandlerParams>();
+      const stream = agentClient.streamRunAgent(queue, { messages, tools });
+
+      // Consume the stream to trigger the message conversion
+      for await (const _response of stream) {
+        // no-op
+      }
+
+      expect(mockSetMessages).toHaveBeenCalledWith([
+        {
+          role: "assistant",
+          content: "Hi there!",
+          id: "msg-1",
+          toolCalls: [
+            {
+              id: "call_123",
+              type: "function",
+              function: {
+                name: "test_tool",
+                arguments: '{"a":"first","b":"second"}',
+              },
+            },
+          ],
+        },
+      ]);
+    });
+
+    it("should throw when assistant message has toolCallRequest but no tool_call_id", async () => {
+      const toolCallRequest: ToolCallRequest = {
+        toolName: "test_tool",
+        parameters: [{ parameterName: "param", parameterValue: "value" }],
+      };
+
+      const messages: ThreadMessage[] = [
+        createMockThreadMessage(
+          "msg-1",
+          "thread-1",
+          MessageRole.Assistant,
+          [{ type: ContentPartType.Text, text: "Hi there!" }],
+          {
+            toolCallRequest,
+          },
+        ),
+      ];
+
+      const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+        {
+          type: "function",
+          function: {
+            name: "test_tool",
+            description: "A test tool",
+            parameters: {
+              type: "object",
+              properties: {
+                param: { type: "string" },
+              },
+            },
+          },
+        },
+      ];
+
+      const queue = new AsyncQueue<EventHandlerParams>();
+      const stream = agentClient.streamRunAgent(queue, { messages, tools });
+
+      await expect(stream.next()).rejects.toThrow(
+        "Assistant message has toolCallRequest but no tool_call_id",
+      );
+    });
+
     it("should throw error for non-function tools", async () => {
       const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         {

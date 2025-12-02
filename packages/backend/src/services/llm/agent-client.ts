@@ -140,6 +140,11 @@ export class AgentClient {
         };
       }
       if (m.role === MessageRole.Assistant) {
+        if (m.toolCallRequest && !m.tool_call_id) {
+          throw new Error(
+            "Assistant message has toolCallRequest but no tool_call_id",
+          );
+        }
         const toolCalls = m.toolCallRequest
           ? [convertToolCallRequestToAGUI(m.toolCallRequest, m.tool_call_id)]
           : undefined;
@@ -538,21 +543,31 @@ function convertContentPartsToString(
     .join("\n");
 }
 
-/** Convert ToolCallRequest to AGUI-compatible tool call format */
+/**
+ * Convert ToolCallRequest to AGUI-compatible tool call format.
+ * Drops parameters with undefined values and sorts keys for
+ * deterministic JSON argument strings.
+ */
 function convertToolCallRequestToAGUI(
   toolCallRequest: ToolCallRequest,
   toolCallId: string | undefined,
 ): OpenAI.Chat.Completions.ChatCompletionMessageFunctionToolCall {
   const parameters: Record<string, unknown> = {};
-  for (const param of toolCallRequest.parameters) {
-    parameters[param.parameterName] = param.parameterValue;
+  for (const { parameterName, parameterValue } of toolCallRequest.parameters) {
+    if (parameterValue === undefined) {
+      continue;
+    }
+    parameters[parameterName] = parameterValue;
   }
+  const orderedParameters = Object.fromEntries(
+    Object.entries(parameters).sort(([a], [b]) => a.localeCompare(b)),
+  );
   return {
     id: toolCallId ?? "",
     type: "function",
     function: {
       name: toolCallRequest.toolName,
-      arguments: JSON.stringify(parameters),
+      arguments: JSON.stringify(orderedParameters),
     },
   };
 }
