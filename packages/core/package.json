@@ -35,7 +35,7 @@
     "extends": "../../package.json"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.20.2",
+    "@modelcontextprotocol/sdk": "^1.23.0",
     "jose": "^5.10.0",
     "openai": "^6.4.0",
     "resend": "^6.5.0"
