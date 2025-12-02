@@ -911,13 +911,39 @@ const MessageInputMcpResourceButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputMcpResourceButtonProps
 >(({ ...props }, ref) => {
-  const { setValue, value } = useMessageInputContext();
+  const { setValue, value, editorRef } = useMessageInputContext();
+
+  const insertResourceReference = React.useCallback(
+    (resourceRef: string) => {
+      const editor = editorRef.current;
+      if (editor) {
+        editor
+          .chain()
+          .focus()
+          .insertContent([
+            {
+              type: "mention",
+              attrs: { id: resourceRef.slice(1), label: resourceRef.slice(1) },
+            },
+            { type: "text", text: " " },
+          ])
+          .run();
+        setValue(editor.getText());
+        return;
+      }
+      // Fallback: append to end of plain text value
+      const newValue = value ? `${value} ${resourceRef}` : resourceRef;
+      setValue(newValue);
+    },
+    [editorRef, setValue, value],
+  );
+
   return (
     <McpResourceButton
       ref={ref}
       {...props}
       value={value}
-      onInsertText={setValue}
+      onInsertText={insertResourceReference}
     />
   );
 });

@@ -342,7 +342,7 @@ export interface McpResourceButtonProps extends React.ButtonHTMLAttributes<HTMLB
 export const McpResourceButton = React.forwardRef<
   HTMLButtonElement,
   McpResourceButtonProps
->(({ className, onInsertText, value, ...props }, ref) => {
+>(({ className, onInsertText, value: _value, ...props }, ref) => {
   const { data: resourceList, isLoading } = useTamboMcpResourceList();
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -368,11 +368,9 @@ export const McpResourceButton = React.forwardRef<
   }, [resourceList, searchQuery]);
 
   const handleSelectResource = (resourceUri: string) => {
-    // Insert the resource reference with @ syntax
+    // Pass raw @resource string to caller; caller decides how to insert
     const resourceRef = `@${resourceUri}`;
-    // Insert at cursor position or append
-    const newValue = value ? `${value}\n${resourceRef}` : resourceRef;
-    onInsertText(newValue);
+    onInsertText(resourceRef);
     setIsOpen(false);
     setSearchQuery("");
   };
