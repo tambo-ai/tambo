@@ -11,8 +11,7 @@ import * as React from "react";
  * @property {boolean} showLabel - Whether to show the label
  */
 
-export interface GenerationStageProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface GenerationStageProps extends React.HTMLAttributes<HTMLDivElement> {
   showLabel?: boolean;
 }
 

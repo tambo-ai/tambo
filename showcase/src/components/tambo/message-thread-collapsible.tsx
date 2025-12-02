@@ -45,8 +45,7 @@ import type { Suggestion } from "@tambo-ai/react";
  * @interface
  * @extends React.HTMLAttributes<HTMLDivElement>
  */
-export interface MessageThreadCollapsibleProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional context key for the thread */
   contextKey?: string;
   /** Whether the collapsible should be open by default (default: false) */
@@ -105,8 +104,7 @@ const useCollapsibleState = (defaultOpen = false) => {
 /**
  * Props for the CollapsibleContainer component
  */
-interface CollapsibleContainerProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface CollapsibleContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;

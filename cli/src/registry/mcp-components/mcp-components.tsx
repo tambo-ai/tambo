@@ -17,8 +17,7 @@ import * as React from "react";
 /**
  * Props for the McpPromptButton component.
  */
-export interface McpPromptButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface McpPromptButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Callback to insert text into the input */
   onInsertText: (text: string) => void;
   /** Current input value */
@@ -319,8 +318,7 @@ function ResourceListContent({
 /**
  * Props for the McpResourceButton component.
  */
-export interface McpResourceButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface McpResourceButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Callback to insert text into the input */
   onInsertText: (text: string) => void;
   /** Current input value */

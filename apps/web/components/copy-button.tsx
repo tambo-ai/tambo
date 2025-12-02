@@ -7,8 +7,7 @@ import * as React from "react";
 import { ButtonHTMLAttributes, useCallback } from "react";
 import { Button } from "./ui/button";
 
-export interface CopyButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface CopyButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   clipboardValue: string;
   successDuration?: number;
 }

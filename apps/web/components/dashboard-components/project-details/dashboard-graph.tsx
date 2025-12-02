@@ -51,7 +51,8 @@ export type DashboardGraphDataType = z.infer<typeof graphDataSchema>;
 
 // Extend the GraphProps with additional tambo properties
 export interface DashboardGraphProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "data" | "title" | "size">,
+  extends
+    Omit<React.HTMLAttributes<HTMLDivElement>, "data" | "title" | "size">,
     Omit<VariantProps<typeof graphVariants>, "size" | "variant"> {
   /** Data object containing chart configuration and values */
   data?: DashboardGraphDataType;
