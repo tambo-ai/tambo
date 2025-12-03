@@ -41,38 +41,12 @@ type LooseThreadMessage = {
  */
 export function validateThreadMessage(msg: LooseThreadMessage): ThreadMessage {
   const {
-    id,
-    threadId,
-    content,
-    parentMessageId,
-    component,
-    componentState,
-    additionalContext,
-    error,
-    metadata,
-    isCancelled,
-    createdAt,
-    actionType,
     tool_call_id,
     toolCallRequest,
     reasoning,
     reasoningDurationMS,
+    ...base
   } = msg;
-
-  const base = {
-    id,
-    threadId,
-    content,
-    parentMessageId,
-    component,
-    componentState,
-    additionalContext,
-    error,
-    metadata,
-    isCancelled,
-    createdAt,
-    actionType,
-  };
 
   if (msg.role === MessageRole.User) {
     return { ...base, role: MessageRole.User } satisfies ThreadUserMessage;
@@ -131,34 +105,12 @@ export function validateUnsavedThreadMessage(
   msg: LooseUnsavedThreadMessage,
 ): UnsavedThreadMessage {
   const {
-    content,
-    parentMessageId,
-    component,
-    componentState,
-    additionalContext,
-    error,
-    metadata,
-    isCancelled,
-    createdAt,
-    actionType,
     tool_call_id,
     toolCallRequest,
     reasoning,
     reasoningDurationMS,
+    ...base
   } = msg;
-
-  const base = {
-    content,
-    parentMessageId,
-    component,
-    componentState,
-    additionalContext,
-    error,
-    metadata,
-    isCancelled,
-    createdAt,
-    actionType,
-  };
 
   if (msg.role === MessageRole.User) {
     return {
