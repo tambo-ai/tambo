@@ -20,6 +20,10 @@ If you're building components that receive **streamed props** and then become
 3. Use
    [`useTamboStreamStatus`](/concepts/streaming/component-streaming-status) to
    drive loading skeletons, disable inputs while streaming, and show errors.
+4. If you have existing components built on the legacy
+   [`useTamboStreamingProps`](/concepts/streaming/streaming-props) helper,
+   treat it as deprecated and plan to migrate those components to this pattern
+   when you next touch them.
 
 At a glance, the recipe is: **stream props → seed editable state with
 `setFromProp` → render UI from that state → use `useTamboStreamStatus` for
@@ -30,13 +34,6 @@ If you're maintaining older components that already use
 [Streaming Props into State](/concepts/streaming/streaming-props) for legacy
 reference and high-level migration guidance. New components should avoid this
 hook, which is deprecated for typical streaming scenarios.
-
-Future deep dives (tracked as separate docs issues) will cover:
-
-- Schema constraints for generative component props
-- Defensive coding patterns for streaming
-- A centralized error reference for common streaming failures
-
 ### useTamboRegistry
 
 This hook provides helpers for component and tool registration.

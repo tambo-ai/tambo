@@ -25,7 +25,8 @@ This example shows the full recipe:
 - **`useTamboStreamStatus`** – drives loading and disabled states
 - **`useTamboComponentState` + `setFromProp`** – copies AI props into editable
   state once
-- **Defensive null checks** – safe during partial streaming
+- **Defensive streaming checks** – keeps fields disabled until their props
+  finish streaming
 - **Inputs disabled while streaming** – AI owns the draft until it is ready
 
 ```tsx title="email-composer.tsx"
@@ -108,7 +109,6 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault();
       setDraft({ ...draft, isSending: true });
-
       try {
         // ...send draft to your backend or API here
         // If sending fails, surface an error (toast, banner, or state field)
@@ -178,6 +178,11 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
    done and while the message is being sent.
 7. **UI reads from state only** – the JSX uses `draft`, not raw props, so the
    user is always editing the same source of truth that Tambo sees.
+
+`EmailComposerState` uses non-nullable `string` fields, so `draft.subject` and
+`draft.body` are always defined in this example. If your own state type allows
+`undefined` or `null`, coerce those values to `""` when binding to inputs to
+avoid React controlled/uncontrolled warnings.
 
 ## Variations
 
@@ -274,15 +279,18 @@ local state, you can usually:
 The result is easier to reason about and stays aligned with the rest of the
 docs and templates.
 
-## When to use low-level streaming helpers
+## Legacy helper: `useTamboStreamingProps` (deprecated)
 
-The older `useTamboStreamingProps` hook is now **deprecated**. It exists only
-for backwards compatibility with apps that already depend on it.
+The older `useTamboStreamingProps` hook is deprecated and will be removed in a
+future major version of `@tambo-ai/react`. It exists only to keep existing apps
+working while they migrate to the **stream → state → UI** pattern shown above.
 
-Avoid this hook in new components. If you absolutely cannot use
-`useTamboComponentState` (for example, because you're wiring into a pre-existing
-state store) and already rely on `useTamboStreamingProps`, keep that usage
-isolated and plan to migrate when possible rather than expanding it further.
+- Do **not** use `useTamboStreamingProps` for new components.
+- If you already rely on it, prefer to migrate those components to
+  `useTamboComponentState` + `useTamboStreamStatus` when you next touch them.
+
+For details on the legacy behavior and migration tips, see
+[`Streaming Props into State`](/concepts/streaming/streaming-props).
 
 ## Where to go next
 

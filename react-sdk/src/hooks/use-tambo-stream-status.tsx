@@ -300,6 +300,12 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
  * `useTamboComponentState`, it forms the streaming-status piece of the
  * canonical **stream → state → UI** pattern.
  *
+ * `propStatus` is derived from the props on the current message only. Optional
+ * props that were never generated for that message simply won't appear in the
+ * record (for those keys `propStatus.someKey` will be `undefined`), so you
+ * should treat that as "no streaming information" and fall back to your own
+ * defaults or `streamStatus.isSuccess`.
+ *
  * This hook tracks status for the specific component in the current message
  * only. Once a component's props complete streaming, they remain stable
  * regardless of other components being generated in the thread.
@@ -307,6 +313,21 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
  * For an end-to-end example that combines streaming status with editable
  * component state, see
  * https://docs.tambo.co/concepts/streaming/building-streaming-components.
+ *
+ * For optional props, prefer `streamStatus.isSuccess` for overall readiness
+ * and treat `propStatus.someOptionalKey === undefined` as "not generated for
+ * this message" rather than an error. For example:
+ *
+ * ```tsx
+ * const { streamStatus, propStatus } = useTamboStreamStatus<Props>();
+ *
+ * if (!streamStatus.isSuccess) return <Spinner />;
+ *
+ * // `subtitle` is optional – it may be missing even when the stream is done
+ * return (
+ *   <Subtitle text={propStatus.subtitle?.isSuccess ? props.subtitle : ""} />
+ * );
+ * ```
  * @template Props - The type of the component props being tracked (defaults to Record<string, any>)
  * @returns An object containing both global streamStatus and per-prop propStatus
  * @throws {Error} When used during SSR/SSG

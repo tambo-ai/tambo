@@ -14,6 +14,19 @@ import { useEffect } from "react";
  * https://docs.tambo.co/concepts/streaming/building-streaming-components for a
  * full example. Existing usages should be migrated to that pattern when
  * feasible rather than expanded.
+ *
+ * This function exists only for legacy components that already rely on
+ * `useTamboStreamingProps` or for very advanced integration points where you
+ * cannot use `useTamboComponentState`. If you do reach for it, keep
+ * `currentState` shallow and serializable and avoid deeply nested objects with
+ * custom merge semantics, since this hook performs a shallow diff-and-merge on
+ * each render.
+ *
+ * For best results, pass a stable, memoized `streamingProps` object rather
+ * than recreating it inline on every render. This hook does a shallow
+ * comparison of `streamingProps` against `currentState`, so frequently changing
+ * object identities or deeply nested structures can trigger unnecessary
+ * updates or make merge behavior difficult to reason about.
  * @param currentState - The current state object (usually from useTamboComponentState)
  * @param setState - The state setter function
  * @param streamingProps - An object mapping state keys to prop values that should update the state
