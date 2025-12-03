@@ -28,6 +28,12 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
  * is still streaming and then hand full control to the user once streaming
  * completes.
  *
+ * `componentState` is scoped to an individual Tambo message. When your
+ * component appears in a new message in the same thread, this hook evaluates
+ * `initialValue`/`setFromProp` again for that message. The "only while no
+ * componentState value exists" rule applies per-message, not globally across
+ * the entire thread.
+ *
  * See the docs page at
  * https://docs.tambo.co/concepts/streaming/building-streaming-components for a
  * complete example of this pattern.

@@ -17,8 +17,10 @@ role, but for typical streaming components you should now prefer the
 
 <Callout type="warning" title="Deprecated helper (legacy reference only)">
   `useTamboStreamingProps` is a low-level helper and is now deprecated for
-  typical streaming components. It remains available only so existing apps can
-  migrate away from it.
+  typical streaming components. It remains available primarily so existing apps
+  can migrate away from it. In rare, advanced integrations where you genuinely
+  cannot adopt the **stream → state → UI** pattern yet, you may still use this
+  helper as an interim solution, but new components should not be built on it.
 
 For new work, start with the **stream → state → UI** pattern using
 [`useTamboComponentState`](/concepts/components/component-state) and

@@ -12,7 +12,8 @@ import { useEffect } from "react";
  * props, editable local state, and loading/disabled UI in sync without needing
  * this hook. See the docs page at
  * https://docs.tambo.co/concepts/streaming/building-streaming-components for a
- * full example. Existing usages should be migrated to that pattern when
+ * full example, including migration guidance in the "Migration and starting
+ * points" section. Existing usages should be migrated to that pattern when
  * feasible rather than expanded.
  *
  * This function exists only for legacy components that already rely on

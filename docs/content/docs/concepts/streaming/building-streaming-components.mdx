@@ -182,7 +182,11 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
 `EmailComposerState` uses non-nullable `string` fields, so `draft.subject` and
 `draft.body` are always defined in this example. If your own state type allows
 `undefined` or `null`, coerce those values to `""` when binding to inputs to
-avoid React controlled/uncontrolled warnings.
+avoid React controlled/uncontrolled warnings. In older versions of this
+example you may see `draft.subject ?? ""` or similar fallbacks; those are
+still appropriate when your state type allows `null`/`undefined`. In this
+updated version, `EmailComposerState` is non-nullable, so the JSX no longer
+needs the `?? ""` pattern.
 
 ## Variations
 

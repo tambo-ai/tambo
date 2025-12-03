@@ -324,9 +324,9 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
  * if (!streamStatus.isSuccess) return <Spinner />;
  *
  * // `subtitle` is optional – it may be missing even when the stream is done
- * return (
- *   <Subtitle text={propStatus.subtitle?.isSuccess ? props.subtitle : ""} />
- * );
+ * const hasSubtitle = !!propStatus.subtitle?.isSuccess;
+ *
+ * return <>{hasSubtitle && <Subtitle text={props.subtitle} />}</>;
  * ```
  * @template Props - The type of the component props being tracked (defaults to Record<string, any>)
  * @returns An object containing both global streamStatus and per-prop propStatus
