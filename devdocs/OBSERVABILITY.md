@@ -4,12 +4,12 @@ Tambo relies on a consistent observability stack across the monorepo. This docum
 
 ## Stack Overview
 
-| Layer            | Tools                                                    | Location                                                   |
-| ---------------- | -------------------------------------------------------- | ---------------------------------------------------------- |
-| API (NestJS)     | OpenTelemetry + Langfuse + Sentry                        | `apps/api/src/telemetry.ts`, `apps/api/src/sentry.ts`      |
-| Web (Next.js)    | Sentry (edge + server) + PostHog                         | `apps/web/sentry.*.config.ts`, `apps/web/lib/analytics.ts` |
-| Backend packages | Langfuse helpers + OTEL context propagation              | `packages/backend`, `packages/core`                        |
-| React SDK        | Streaming telemetry via Langfuse + browser logging hooks | `react-sdk/src/providers`                                  |
+| Layer            | Tools                                                 | Location                                                   |
+| ---------------- | ----------------------------------------------------- | ---------------------------------------------------------- |
+| API (NestJS)     | OpenTelemetry + Langfuse + Sentry                     | `apps/api/src/telemetry.ts`, `apps/api/src/sentry.ts`      |
+| Web (Next.js)    | Sentry (edge + server) + PostHog                      | `apps/web/sentry.*.config.ts`, `apps/web/lib/analytics.ts` |
+| Backend packages | Langfuse helpers + OTEL context propagation           | `packages/backend`, `packages/core`                        |
+| React SDK        | Host-app instrumentation only (no built-in telemetry) | `react-sdk/` (wrap `TamboProvider` in your own handlers)   |
 
 ## Principles
 
@@ -46,8 +46,9 @@ Tambo relies on a consistent observability stack across the monorepo. This docum
 
 ## React SDK
 
-- Streaming providers emit telemetry via Langfuse to tie client UI state to backend events. When adding new providers/hooks, surface identifiers (threadId, contextKey) to the telemetry helpers so dashboards can correlate events.
-- Avoid logging directly in components. Instead, expose dedicated callbacks (e.g., `onStreamingError`) that the hosting app can wire to Sentry/PostHog.
+- The SDK intentionally ships **without** Sentry/Langfuse/PostHog dependencies. Host apps are responsible for instrumenting via their own providers.
+- When you need telemetry, derive identifiers through hooks such as `useTamboThread`, `useTamboStreamStatus`, or props exposed by `TamboProvider` (e.g., `contextKey`, `onCallUnregisteredTool`) and forward events to your app’s logging layer.
+- Avoid sprinkling `console.log` in exported hooks/components. Instead, surface callbacks/return values so downstream apps can plug in their own analytics.
 
 ## Adding New Instrumentation
 
