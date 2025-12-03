@@ -8,6 +8,7 @@ import { TamboChatTrigger } from "@/components/tambo-chat-trigger";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface HeaderActionsProps {
   showDashboardButton: boolean;
@@ -20,6 +21,9 @@ export function HeaderActions({
   showLogoutButton,
   showDiscordButton = true,
 }: HeaderActionsProps) {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
+
   return (
     <div className="hidden lg:flex items-center gap-x-4">
       <Link
@@ -71,7 +75,7 @@ export function HeaderActions({
             "h-9 rounded-md group tracking-tight font-medium",
           )}
         >
-          Dashboard
+          {isAuthenticated ? "Dashboard" : "Sign In"}
         </Link>
       )}
       {showLogoutButton && <NextAuthLogoutButton />}
