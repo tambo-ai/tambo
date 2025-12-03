@@ -76,4 +76,3 @@ __mocks__/    # Jest mocks
 
 - `apps/web/AGENTS.md` – canonical rules for this package.
 - `devdocs/NAMING_CONVENTIONS.md` + `devdocs/LOADING_STATES.md`
-- Audit summary: `docs/0001-audit.md`

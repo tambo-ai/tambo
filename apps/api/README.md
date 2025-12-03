@@ -79,4 +79,3 @@ See `devdocs/OBSERVABILITY.md` for expectations and tag conventions.
 
 - `apps/api/AGENTS.md` – canonical architecture + workflow guidance for agents
 - Root `AGENTS.md` – repository-wide rules
-- `docs/0001-audit.md` – high-level architectural audit driving these docs
