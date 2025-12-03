@@ -40,80 +40,64 @@ type LooseThreadMessage = {
  * @throws Error if the message is invalid (e.g., tool message without tool_call_id)
  */
 export function validateThreadMessage(msg: LooseThreadMessage): ThreadMessage {
+  const {
+    id,
+    threadId,
+    content,
+    parentMessageId,
+    component,
+    componentState,
+    additionalContext,
+    error,
+    metadata,
+    isCancelled,
+    createdAt,
+    actionType,
+    tool_call_id,
+    toolCallRequest,
+    reasoning,
+    reasoningDurationMS,
+  } = msg;
+
+  const base = {
+    id,
+    threadId,
+    content,
+    parentMessageId,
+    component,
+    componentState,
+    additionalContext,
+    error,
+    metadata,
+    isCancelled,
+    createdAt,
+    actionType,
+  };
+
   if (msg.role === MessageRole.User) {
-    return {
-      id: msg.id,
-      threadId: msg.threadId,
-      role: MessageRole.User,
-      content: msg.content,
-      parentMessageId: msg.parentMessageId,
-      component: msg.component,
-      componentState: msg.componentState,
-      additionalContext: msg.additionalContext,
-      error: msg.error,
-      metadata: msg.metadata,
-      isCancelled: msg.isCancelled,
-      createdAt: msg.createdAt,
-      actionType: msg.actionType,
-    } satisfies ThreadUserMessage;
+    return { ...base, role: MessageRole.User } satisfies ThreadUserMessage;
   }
   if (msg.role === MessageRole.System) {
-    return {
-      id: msg.id,
-      threadId: msg.threadId,
-      role: MessageRole.System,
-      content: msg.content,
-      parentMessageId: msg.parentMessageId,
-      component: msg.component,
-      componentState: msg.componentState,
-      additionalContext: msg.additionalContext,
-      error: msg.error,
-      metadata: msg.metadata,
-      isCancelled: msg.isCancelled,
-      createdAt: msg.createdAt,
-      actionType: msg.actionType,
-    } satisfies ThreadSystemMessage;
+    return { ...base, role: MessageRole.System } satisfies ThreadSystemMessage;
   }
   if (msg.role === MessageRole.Assistant) {
     return {
-      id: msg.id,
-      threadId: msg.threadId,
+      ...base,
       role: MessageRole.Assistant,
-      content: msg.content,
-      parentMessageId: msg.parentMessageId,
-      component: msg.component,
-      componentState: msg.componentState,
-      additionalContext: msg.additionalContext,
-      error: msg.error,
-      metadata: msg.metadata,
-      isCancelled: msg.isCancelled,
-      createdAt: msg.createdAt,
-      actionType: msg.actionType,
-      toolCallRequest: msg.toolCallRequest,
-      tool_call_id: msg.tool_call_id,
-      reasoning: msg.reasoning,
-      reasoningDurationMS: msg.reasoningDurationMS,
+      toolCallRequest,
+      tool_call_id,
+      reasoning,
+      reasoningDurationMS,
     } satisfies ThreadAssistantMessage;
   }
   if (msg.role === MessageRole.Tool) {
-    if (!msg.tool_call_id) {
+    if (!tool_call_id) {
       throw new Error("Tool messages require tool_call_id");
     }
     return {
-      id: msg.id,
-      threadId: msg.threadId,
+      ...base,
       role: MessageRole.Tool,
-      content: msg.content,
-      parentMessageId: msg.parentMessageId,
-      component: msg.component,
-      componentState: msg.componentState,
-      additionalContext: msg.additionalContext,
-      error: msg.error,
-      metadata: msg.metadata,
-      isCancelled: msg.isCancelled,
-      createdAt: msg.createdAt,
-      actionType: msg.actionType,
-      tool_call_id: msg.tool_call_id,
+      tool_call_id,
     } satisfies ThreadToolMessage;
   }
   throw new Error(`Unknown message role: ${msg.role}`);
@@ -146,72 +130,66 @@ type LooseUnsavedThreadMessage = {
 export function validateUnsavedThreadMessage(
   msg: LooseUnsavedThreadMessage,
 ): UnsavedThreadMessage {
+  const {
+    content,
+    parentMessageId,
+    component,
+    componentState,
+    additionalContext,
+    error,
+    metadata,
+    isCancelled,
+    createdAt,
+    actionType,
+    tool_call_id,
+    toolCallRequest,
+    reasoning,
+    reasoningDurationMS,
+  } = msg;
+
+  const base = {
+    content,
+    parentMessageId,
+    component,
+    componentState,
+    additionalContext,
+    error,
+    metadata,
+    isCancelled,
+    createdAt,
+    actionType,
+  };
+
   if (msg.role === MessageRole.User) {
     return {
+      ...base,
       role: MessageRole.User,
-      content: msg.content,
-      parentMessageId: msg.parentMessageId,
-      component: msg.component,
-      componentState: msg.componentState,
-      additionalContext: msg.additionalContext,
-      error: msg.error,
-      metadata: msg.metadata,
-      isCancelled: msg.isCancelled,
-      createdAt: msg.createdAt,
-      actionType: msg.actionType,
     } satisfies UnsavedThreadUserMessage;
   }
   if (msg.role === MessageRole.System) {
     return {
+      ...base,
       role: MessageRole.System,
-      content: msg.content,
-      parentMessageId: msg.parentMessageId,
-      component: msg.component,
-      componentState: msg.componentState,
-      additionalContext: msg.additionalContext,
-      error: msg.error,
-      metadata: msg.metadata,
-      isCancelled: msg.isCancelled,
-      createdAt: msg.createdAt,
-      actionType: msg.actionType,
     } satisfies UnsavedThreadSystemMessage;
   }
   if (msg.role === MessageRole.Assistant) {
     return {
+      ...base,
       role: MessageRole.Assistant,
-      content: msg.content,
-      parentMessageId: msg.parentMessageId,
-      component: msg.component,
-      componentState: msg.componentState,
-      additionalContext: msg.additionalContext,
-      error: msg.error,
-      metadata: msg.metadata,
-      isCancelled: msg.isCancelled,
-      createdAt: msg.createdAt,
-      actionType: msg.actionType,
-      toolCallRequest: msg.toolCallRequest,
-      tool_call_id: msg.tool_call_id,
-      reasoning: msg.reasoning,
-      reasoningDurationMS: msg.reasoningDurationMS,
+      toolCallRequest,
+      tool_call_id,
+      reasoning,
+      reasoningDurationMS,
     } satisfies UnsavedThreadAssistantMessage;
   }
   if (msg.role === MessageRole.Tool) {
-    if (!msg.tool_call_id) {
+    if (!tool_call_id) {
       throw new Error("Tool messages require tool_call_id");
     }
     return {
+      ...base,
       role: MessageRole.Tool,
-      content: msg.content,
-      parentMessageId: msg.parentMessageId,
-      component: msg.component,
-      componentState: msg.componentState,
-      additionalContext: msg.additionalContext,
-      error: msg.error,
-      metadata: msg.metadata,
-      isCancelled: msg.isCancelled,
-      createdAt: msg.createdAt,
-      actionType: msg.actionType,
-      tool_call_id: msg.tool_call_id,
+      tool_call_id,
     } satisfies UnsavedThreadToolMessage;
   }
   throw new Error(`Unknown message role: ${msg.role}`);
