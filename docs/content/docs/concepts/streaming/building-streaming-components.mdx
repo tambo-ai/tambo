@@ -53,6 +53,10 @@ type EmailComposerState = {
   isSending: boolean;
 };
 
+// In this example, `EmailComposerState` always normalizes `subject` and
+// `body` to concrete strings (we seed them with empty strings and never assign
+// `null`/`undefined`), so the inputs below are safely controlled.
+
 export const EmailComposer: TamboComponent<EmailComposerProps> = {
   name: "EmailComposer",
   description: "Compose and edit an email before sending.",
@@ -104,8 +108,15 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault();
       setDraft({ ...draft, isSending: true });
-      // ...send draft to your backend or API here
-      // setDraft({ ...draft, isSending: false });
+
+      try {
+        // ...send draft to your backend or API here
+        // If sending fails, surface an error (toast, banner, or state field)
+        // so the user knows what happened.
+      } finally {
+        // Re-enable inputs once the send completes
+        setDraft({ ...draft, isSending: false });
+      }
     }
 
     return (
@@ -124,7 +135,7 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
           Subject
           <input
             type="text"
-            value={draft.subject ?? ""}
+            value={draft.subject}
             onChange={handleChange("subject")}
             disabled={isDisabled || !canEditSubject}
           />
@@ -133,7 +144,7 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
         <label>
           Body
           <textarea
-            value={draft.body ?? ""}
+            value={draft.body}
             onChange={handleChange("body")}
             disabled={isDisabled || !canEditBody}
           />
@@ -158,8 +169,11 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
    `propStatus` so the UI knows when each prop is safe to edit.
 4. **Stream → state wiring** – `setFromProp` seeds the editable `draft` state
    from `subject`/`body` exactly once, so later renders keep the user's edits.
-5. **Defensive null checks** – `propStatus.subject?.isSuccess ?? false` and
-   `draft.subject ?? ""` keep the UI safe while props are still streaming.
+5. **Defensive streaming checks** – `propStatus.subject?.isSuccess ?? false`
+   and `propStatus.body?.isSuccess ?? false` make it safe to gate editing and
+   rendering while props are still streaming. In richer UIs you can also use
+   these flags to show skeletons, placeholder text, or hide inputs until each
+   field is ready.
 6. **Disabling while streaming** – `isDisabled` stays `true` until streaming is
    done and while the message is being sent.
 7. **UI reads from state only** – the JSX uses `draft`, not raw props, so the
@@ -196,8 +210,8 @@ great loading states.
 ### If you don't need streaming status UI
 
 In very simple flows you might only care about keeping generated props and
-editable state in sync. You can still use `setFromProp` without
-`useTamboStreamStatus`:
+editable state in sync. You can still use `setFromProp` without explicitly
+reading `useTamboStreamStatus`:
 
 ```tsx title="editable-without-status.tsx"
 function SimpleComposer({ subject, body }: EmailComposerProps) {
@@ -221,19 +235,54 @@ This is fine for prototypes or low-risk UIs. For production apps we recommend
 pairing `useTamboComponentState` with `useTamboStreamStatus` so you can disable
 inputs and show errors while streaming.
 
+## Migration and starting points
+
+Teams will hit this pattern from different places. A few common starting
+points:
+
+### 1. New streaming components
+
+Use the full example above as your default. Define a props schema with
+AI-controlled fields, a local state type that adds user-only fields, wire
+`setFromProp` to seed editable state, and gate editing with
+`useTamboStreamStatus`.
+
+### 2. Components already using `useTamboStreamingProps`
+
+Treat those components as legacy. When you have a chance to touch them:
+
+1. Replace the `useTamboStreamingProps` call with `useTamboComponentState`
+   using a single `setFromProp` object that mirrors the `streamingProps` you
+   previously passed in.
+2. Add `useTamboStreamStatus` and use `propStatus` to decide when each field is
+   safe to edit.
+3. Remove any remaining `useEffect` logic that was only there to merge streamed
+   props into local state.
+
+This keeps behavior similar while moving toward the canonical pattern and away
+from a deprecated helper.
+
+### 3. Components that manually copy props into state with `useEffect`
+
+If you have hand-rolled `useEffect` logic that diffs props and writes into
+local state, you can usually:
+
+1. Replace the `useEffect` with `useTamboComponentState` and `setFromProp`.
+2. Use `useTamboStreamStatus` instead of custom booleans for loading/error
+   handling.
+
+The result is easier to reason about and stays aligned with the rest of the
+docs and templates.
+
 ## When to use low-level streaming helpers
 
-The older `useTamboStreamingProps` hook is still available for advanced use
-cases, but is now **deprecated** and should be avoided for most components.
+The older `useTamboStreamingProps` hook is now **deprecated**. It exists only
+for backwards compatibility with apps that already depend on it.
 
-Use it only when you:
-
-- Maintain your own state store and cannot use `useTamboComponentState`, or
-- Need a custom merge strategy that cannot be expressed as a single
-  `setFromProp` value.
-
-For new work, start with the stream → state → UI pattern shown above and fall
-back to `useTamboStreamingProps` only when you have a very specific reason.
+Avoid this hook in new components. If you absolutely cannot use
+`useTamboComponentState` (for example, because you're wiring into a pre-existing
+state store) and already rely on `useTamboStreamingProps`, keep that usage
+isolated and plan to migrate when possible rather than expanding it further.
 
 ## Where to go next
 

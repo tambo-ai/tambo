@@ -1,26 +1,45 @@
 ---
-title: Streaming Props into State
-description: Stream component props into components with a few lines of code and no need for useEffect dependency hell.
+title: Legacy: Streaming Props into State
+description: Legacy helper for merging streamed props into state. Kept only to help migrate existing components away from `useTamboStreamingProps`.
 ---
+
+This page describes a legacy pattern built around `useTamboStreamingProps`.
+For new components you should start with
+[Building Streaming Components](/concepts/streaming/building-streaming-components)
+and the **stream → state → UI** pattern instead.
 
 When working with AI-generated content in Tambo, you sometimes need
 fine-grained, low-level control over how streamed props are merged into
-component state. In those advanced cases, the `useTamboStreamingProps` hook
-can help, but for typical streaming components you should prefer the
+component state. Historically the `useTamboStreamingProps` hook filled that
+role, but for typical streaming components you should now prefer the
 **stream → state → UI** pattern described in
 [Building Streaming Components](/concepts/streaming/building-streaming-components).
 
-<Callout type="warning" title="Deprecated for most components">
+<Callout type="warning" title="Deprecated helper (legacy reference only)">
   `useTamboStreamingProps` is a low-level helper and is now deprecated for
-  typical streaming components. For new work, start with the **stream → state →
-  UI** pattern using
-  [`useTamboComponentState`](/concepts/components/component-state) and
-  [`useTamboStreamStatus`](/concepts/streaming/component-streaming-status), as
-  shown in [Building Streaming
-  Components](/concepts/streaming/building-streaming-components). This page
-  exists as a reference for advanced cases where you truly need manual control
-  over how streamed props are merged into state.
+  typical streaming components. It remains available only so existing apps can
+  migrate away from it.
+
+For new work, start with the **stream → state → UI** pattern using
+[`useTamboComponentState`](/concepts/components/component-state) and
+[`useTamboStreamStatus`](/concepts/streaming/component-streaming-status), as
+shown in [Building Streaming
+Components](/concepts/streaming/building-streaming-components). This page
+exists only as a reference for legacy, advanced cases where you truly need
+manual control over how streamed props are merged into state and cannot use
+the canonical pattern yet.
+
 </Callout>
+
+## Migration overview
+
+For concrete migration steps, start from the **Migration and starting points**
+section in [Building Streaming
+Components](/concepts/streaming/building-streaming-components), which shows how
+to replace `useTamboStreamingProps` with `useTamboComponentState` and
+`useTamboStreamStatus`. This page is intentionally a lighter-weight reference
+focused on explaining the legacy helper for teams that still have it in
+production.
 
 ## Building on Previous Concepts
 

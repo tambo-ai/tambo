@@ -18,15 +18,19 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
  * 3. You render UI exclusively from that state, not directly from props.
  * 4. `useTamboStreamStatus` drives loading/disabled states while streaming.
  *
- * Use the `setFromProp` parameter to copy an initial value from generated
- * props into local state exactly once, without overwriting later edits when a
- * message is re-rendered. Combined with `useTamboStreamStatus`, this lets you
- * disable inputs while AI is still streaming and then hand full control to the
- * user once streaming completes.
+ * Use the `setFromProp` parameter to copy generated props into local state
+ * only while the current message has no `componentState[keyName]` value. As
+ * soon as a value is written for this key in `componentState`, `setFromProp`
+ * is ignored for that message, so later prop changes (including re-renders of
+ * the same message) will not overwrite user edits.
+ *
+ * Combined with `useTamboStreamStatus`, this lets you disable inputs while AI
+ * is still streaming and then hand full control to the user once streaming
+ * completes.
  *
  * See the docs page at
- * `/concepts/streaming/building-streaming-components` for a complete example
- * of this pattern.
+ * https://docs.tambo.co/concepts/streaming/building-streaming-components for a
+ * complete example of this pattern.
  * @param keyName - The unique key to identify this state value within the message's componentState object
  * @param initialValue - Optional initial value for the state, used if no componentState value exists in the Tambo message containing this hook usage.
  * @param setFromProp - Optional value used to set the state value, only while no componentState value exists in the Tambo message containing this hook usage. Use this to allow streaming updates from a prop to the state value.

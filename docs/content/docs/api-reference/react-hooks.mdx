@@ -20,13 +20,16 @@ If you're building components that receive **streamed props** and then become
 3. Use
    [`useTamboStreamStatus`](/concepts/streaming/component-streaming-status) to
    drive loading skeletons, disable inputs while streaming, and show errors.
-4. Reach for the low-level
-   [`useTamboStreamingProps`](/concepts/streaming/streaming-props) helper only
-   when you need custom merging logic or cannot use `useTamboComponentState`.
 
 At a glance, the recipe is: **stream props → seed editable state with
 `setFromProp` → render UI from that state → use `useTamboStreamStatus` for
 loading and disabled controls.**
+
+If you're maintaining older components that already use
+`useTamboStreamingProps`, see
+[Streaming Props into State](/concepts/streaming/streaming-props) for legacy
+reference and high-level migration guidance. New components should avoid this
+hook, which is deprecated for typical streaming scenarios.
 
 Future deep dives (tracked as separate docs issues) will cover:
 
