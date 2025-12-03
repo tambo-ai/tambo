@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Easing, motion } from "framer-motion";
-import { Check, ExternalLink, Github } from "lucide-react";
+import { Check, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FC } from "react";
+import GithubIcon from "../icons/github-icon";
 
 // Animation configuration
 const ease: Easing = [0.16, 1, 0.3, 1];
@@ -24,7 +25,7 @@ interface PricingTier {
   price: string;
   priceSubtext?: string;
   features: (string | PricingFeature)[];
-  cta: string;
+  cta: string | React.ReactNode;
   popular: boolean;
   isOpenSource: boolean;
   isEnterprise?: boolean;
@@ -44,7 +45,7 @@ const pricingData: PricingTier[] = [
       "Analytics + observability",
       "Community support",
     ],
-    cta: "Signup",
+    cta: "Sign Up",
     popular: false,
     isOpenSource: false,
   },
@@ -61,7 +62,7 @@ const pricingData: PricingTier[] = [
       "Analytics + observability",
       "Email support",
     ],
-    cta: "Signup",
+    cta: "Sign Up",
     popular: true,
     isOpenSource: false,
   },
@@ -87,20 +88,23 @@ const pricingData: PricingTier[] = [
   },
   {
     name: "Open Source",
-    subtitle: "Self-host for Free. Forever.",
-    price: "Free",
+    subtitle: "For free. Forever.",
+    price: "Self-host",
     features: [
       "tambo-ai/react package",
-      "ui component library",
+      "UI component library",
       {
         text: "tambo-ai/tambo-cloud",
         link: "https://github.com/tambo-ai/tambo",
       },
     ],
-    cta: "GitHub",
+    cta: (
+      <>
+        <GithubIcon className="mr-2 size-5" /> GitHub
+      </>
+    ),
     popular: false,
     isOpenSource: true,
-    isSimplified: true,
   },
 ];
 
@@ -195,104 +199,62 @@ function PricingTier({
         )}
       >
         <div className="flex flex-col h-full">
-          {!tier.isSimplified && (
-            <CardHeader className="border-b p-6 h-fit">
-              <CardTitle className="flex items-center justify-between">
-                <span className="text-xl font-semibold font-heading text-foreground">
-                  {tier.name}
-                </span>
-                {tier.popular && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-primary font-semibold text-sm text-primary-foreground hover:bg-secondary-foreground"
-                  >
-                    Most Popular
-                  </Badge>
-                )}
-              </CardTitle>
-              <div className="pt-2">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold font-heading">
-                    {tier.price}
-                  </span>
-                  {tier.priceSubtext && (
-                    <span className="text-md font-medium text-muted-foreground">
-                      {tier.priceSubtext}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 text-md font-medium text-muted-foreground">
-                  {tier.subtitle}
-                </div>
-              </div>
-            </CardHeader>
-          )}
-
-          {tier.isSimplified ? (
-            <div className="flex-grow p-6 pt-5 flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div className="flex-shrink-0 space-y-2">
-                  <div className="text-xl font-semibold font-heading text-foreground">
-                    {tier.name}
-                  </div>
-                  <div className="text-sm font-medium text-muted-foreground">
-                    {tier.subtitle}
-                  </div>
-                </div>
-                <div className="flex-shrink-0 sm:self-center">
-                  <Button
-                    size="sm"
-                    onClick={handleClick}
-                    className="bg-muted text-foreground hover:bg-muted/80 w-full sm:w-auto"
-                  >
-                    <Github className="mr-2 size-4" />
-                    {tier.cta}
-                  </Button>
-                </div>
-              </div>
-
-              {tier.features.length > 0 && (
-                <div className="border-t pt-4">
-                  <ul className="space-y-2">
-                    {tier.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start">
-                        <Check className="mr-3 size-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <FeatureItem feature={feature} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <CardContent className="flex-grow p-6 pt-5">
-                <ul className="space-y-3">
-                  {tier.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-start">
-                      <Check className="mr-3 size-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <FeatureItem feature={feature} />
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-
-              <div className="p-6 pt-0">
-                <Button
-                  size="lg"
-                  onClick={handleClick}
-                  className={cn(
-                    "w-full",
-                    tier.popular
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "bg-muted text-foreground hover:bg-muted/80",
-                  )}
+          <CardHeader className="border-b p-6 h-fit">
+            <CardTitle className="flex items-center justify-between">
+              <span className="text-xl font-semibold font-heading text-foreground">
+                {tier.name}
+              </span>
+              {tier.popular && (
+                <Badge
+                  variant="secondary"
+                  className="bg-primary font-semibold text-sm text-primary-foreground hover:bg-secondary-foreground"
                 >
-                  {tier.cta}
-                </Button>
+                  Most Popular
+                </Badge>
+              )}
+            </CardTitle>
+            <div className="pt-2">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-extrabold font-heading">
+                  {tier.price}
+                </span>
+                {tier.priceSubtext && (
+                  <span className="text-md font-medium text-muted-foreground">
+                    {tier.priceSubtext}
+                  </span>
+                )}
               </div>
-            </>
-          )}
+              <div className="mt-2 text-md font-medium text-muted-foreground">
+                {tier.subtitle}
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="flex-grow p-6 pt-5">
+            <ul className="space-y-3">
+              {tier.features.map((feature, featureIndex) => (
+                <li key={featureIndex} className="flex items-start">
+                  <Check className="mr-3 size-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <FeatureItem feature={feature} />
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+
+          <div className="p-6 pt-0">
+            <Button
+              size="lg"
+              onClick={handleClick}
+              className={cn(
+                "w-full",
+                tier.popular
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-muted text-foreground hover:bg-muted/80",
+              )}
+            >
+              {tier.cta}
+            </Button>
+          </div>
           {(tier as any).ctaSubtext && (
             <p className="text-xs text-muted-foreground text-center pb-2">
               {(tier as any).ctaSubtext}
