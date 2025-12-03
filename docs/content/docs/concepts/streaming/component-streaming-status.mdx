@@ -5,6 +5,10 @@ description: Track individual prop streaming status with fine-grained control ov
 
 The `useTamboStreamStatus` hook lets you track both overall and per-prop streaming status, so you can show loading or completed states for each prop as they arrive.
 
+For a full example that combines streaming status with editable component
+state, see
+[Building Streaming Components](/concepts/streaming/building-streaming-components).
+
 ## How Does It Work?
 
 Without per-prop tracking, you're forced to show nothing until all props are ready (poor UX) or show everything with default values (potentially confusing). This hook gives you granular control over what renders when.
@@ -190,7 +194,7 @@ function EnhancedComponent({ title, content, metadata }) {
   states for individual props.
 </Callout>
 
-### With Streaming Props Hook
+### With Streaming Props Hook (advanced)
 
 ```tsx title="with-streaming-props.tsx"
 import { useTamboStreamingProps, useTamboStreamStatus } from "@tambo-ai/react";
@@ -213,8 +217,10 @@ function StatefulComponent({ streamedTitle, streamedContent }) {
 }
 ```
 
-<Callout type="info" title="Streaming Props into State">
-  The **[Streaming Props into State](/concepts/streaming/streaming-props)**
-  feature allows you to automatically update component state as props stream in,
-  providing seamless integration with React state management.
+<Callout type="warning" title="Low-level, deprecated helper">
+  `useTamboStreamingProps` is a low-level helper and is now deprecated for most
+  components. Prefer the **stream → state → UI** pattern described in [Building
+  Streaming Components](/concepts/streaming/building-streaming-components). The
+  **[Streaming Props into State](/concepts/streaming/streaming-props)** page
+  covers this helper in more detail for advanced use cases.
 </Callout>

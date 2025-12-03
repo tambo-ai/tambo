@@ -2,12 +2,19 @@
 import { useEffect } from "react";
 
 /**
- * A helper hook that automatically updates Tambo component state when specified props change.
- *
- * This hook streamlines the common pattern of updating component state when receiving new
- * streamed values from Tambo, eliminating the need to write repetitive useEffect code.
- * @param currentState - The current state object from useTamboComponentState
- * @param setState - The setState function from useTamboComponentState
+ * Low-level helper that automatically updates Tambo component state when specified props change.
+ * @deprecated Prefer the "stream → state → UI" pattern that combines
+ * `useTamboComponentState` (with the `setFromProp` parameter) and
+ * `useTamboStreamStatus`. That pattern keeps AI-generated props, editable
+ * local state, and loading/disabled UI in sync without needing this hook. See
+ * the docs page at `/concepts/streaming/building-streaming-components` for a
+ * full example. This hook remains available for advanced use cases where you
+ * need to manually reconcile streamed props into an existing state object, or
+ * when you are not using `useTamboComponentState` at all. New components
+ * should avoid this hook and instead adopt the canonical stream → state → UI
+ * recipe.
+ * @param currentState - The current state object (usually from useTamboComponentState)
+ * @param setState - The state setter function
  * @param streamingProps - An object mapping state keys to prop values that should update the state
  * @example
  * ```tsx
@@ -18,7 +25,7 @@ import { useEffect } from "react";
  * useTamboStreamingProps(emailState, setEmailState, {
  *   subject: aiGeneratedSubject,
  *   body: aiGeneratedBody,
- *   usersEmail: usersEmail
+ *   usersEmail: usersEmail,
  * });
  * ```
  */

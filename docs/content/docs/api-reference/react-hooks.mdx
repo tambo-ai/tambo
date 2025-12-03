@@ -6,6 +6,34 @@ The `@tambo-ai/react` npm package provides hooks that expose state values and fu
 
 Here you'll find a description of each state value and function, organized by hook.
 
+## Choosing hooks for streaming components
+
+If you're building components that receive **streamed props** and then become
+**editable**, start here:
+
+1. Read
+   [Building Streaming Components](/concepts/streaming/building-streaming-components)
+   for a complete stream → state → UI example.
+2. Use
+   [`useTamboComponentState`](/concepts/components/component-state) to store an
+   editable copy of generated props (via the `setFromProp` parameter).
+3. Use
+   [`useTamboStreamStatus`](/concepts/streaming/component-streaming-status) to
+   drive loading skeletons, disable inputs while streaming, and show errors.
+4. Reach for the low-level
+   [`useTamboStreamingProps`](/concepts/streaming/streaming-props) helper only
+   when you need custom merging logic or cannot use `useTamboComponentState`.
+
+At a glance, the recipe is: **stream props → seed editable state with
+`setFromProp` → render UI from that state → use `useTamboStreamStatus` for
+loading and disabled controls.**
+
+Future deep dives (tracked as separate docs issues) will cover:
+
+- Schema constraints for generative component props
+- Defensive coding patterns for streaming
+- A centralized error reference for common streaming failures
+
 ### useTamboRegistry
 
 This hook provides helpers for component and tool registration.

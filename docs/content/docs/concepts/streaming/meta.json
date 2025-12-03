@@ -4,6 +4,7 @@
     "response-text-streaming",
     "response-component-streaming",
     "component-streaming-status",
+    "building-streaming-components",
     "tambo-prop-stream-provider",
     "streaming-props"
   ]

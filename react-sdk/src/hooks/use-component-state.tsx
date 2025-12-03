@@ -7,8 +7,26 @@ import { useTamboCurrentMessage } from "./use-current-message";
 type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 
 /**
- * A React hook that acts like useState, but also automatically updates the thread message's componentState.
- * Benefits: Passes user changes to AI, and when threads are returned, state is preserved.
+ * A React hook that acts like useState, but also automatically updates the
+ * thread message's `componentState`.
+ *
+ * This is the core of the canonical **stream → state → UI** pattern for
+ * editable components:
+ *
+ * 1. Tambo streams props into your component.
+ * 2. You derive a local editable state value with `useTamboComponentState`.
+ * 3. You render UI exclusively from that state, not directly from props.
+ * 4. `useTamboStreamStatus` drives loading/disabled states while streaming.
+ *
+ * Use the `setFromProp` parameter to copy an initial value from generated
+ * props into local state exactly once, without overwriting later edits when a
+ * message is re-rendered. Combined with `useTamboStreamStatus`, this lets you
+ * disable inputs while AI is still streaming and then hand full control to the
+ * user once streaming completes.
+ *
+ * See the docs page at
+ * `/concepts/streaming/building-streaming-components` for a complete example
+ * of this pattern.
  * @param keyName - The unique key to identify this state value within the message's componentState object
  * @param initialValue - Optional initial value for the state, used if no componentState value exists in the Tambo message containing this hook usage.
  * @param setFromProp - Optional value used to set the state value, only while no componentState value exists in the Tambo message containing this hook usage. Use this to allow streaming updates from a prop to the state value.

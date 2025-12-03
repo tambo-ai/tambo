@@ -1,0 +1,249 @@
+---
+title: Building Streaming Components
+description: Learn the canonical stream → state → UI pattern for components that stream AI props into editable local state.
+---
+
+When you let Tambo stream props into a component and also want the user to edit
+those values, you need a clear contract between **AI-controlled props** and
+**user-controlled state**.
+
+This page shows the canonical **stream → state → UI** pattern using
+`useTamboComponentState` and `useTamboStreamStatus`. It replaces ad-hoc
+`useEffect` code and low-level helpers like `useTamboStreamingProps` for most
+use cases.
+
+> Want the deep dives first? See
+> [Component State](/concepts/components/component-state) and
+> [Component Streaming Status](/concepts/streaming/component-streaming-status).
+
+## Complete example: streaming email composer
+
+This example shows the full recipe:
+
+- **Props schema** – AI controls only the generated fields
+- **State type** – includes user-only fields and UI flags
+- **`useTamboStreamStatus`** – drives loading and disabled states
+- **`useTamboComponentState` + `setFromProp`** – copies AI props into editable
+  state once
+- **Defensive null checks** – safe during partial streaming
+- **Inputs disabled while streaming** – AI owns the draft until it is ready
+
+```tsx title="email-composer.tsx"
+import * as React from "react";
+import { z } from "zod";
+import {
+  type TamboComponent,
+  useTamboComponentState,
+  useTamboStreamStatus,
+} from "@tambo-ai/react";
+
+// 1️⃣ Props schema: AI-only fields
+const EmailComposerPropsSchema = z.object({
+  subject: z.string().describe("Short, clear subject line."),
+  body: z.string().describe("Draft email body in plain text."),
+});
+
+type EmailComposerProps = z.infer<typeof EmailComposerPropsSchema>;
+
+// 2️⃣ Local state type: includes user-only fields
+type EmailComposerState = {
+  to: string;
+  subject: string;
+  body: string;
+  isSending: boolean;
+};
+
+export const EmailComposer: TamboComponent<EmailComposerProps> = {
+  name: "EmailComposer",
+  description: "Compose and edit an email before sending.",
+  propsSchema: EmailComposerPropsSchema,
+  component: function EmailComposerComponent({
+    subject,
+    body,
+  }: EmailComposerProps) {
+    // 3️⃣ Streaming status drives loading + disabled UI
+    const { streamStatus, propStatus } =
+      useTamboStreamStatus<EmailComposerProps>();
+
+    // 4️⃣ Stream → state: copy props into editable state once
+    const [draft, setDraft] = useTamboComponentState<EmailComposerState>(
+      "emailComposerDraft",
+      {
+        to: "",
+        subject: "",
+        body: "",
+        isSending: false,
+      },
+      // Only seed from props once we have both values
+      subject && body
+        ? {
+            to: "",
+            subject,
+            body,
+            isSending: false,
+          }
+        : undefined,
+    );
+
+    // 5️⃣ Defensive checks during streaming
+    const canEditSubject = propStatus.subject?.isSuccess ?? false;
+    const canEditBody = propStatus.body?.isSuccess ?? false;
+
+    // 6️⃣ Disable inputs while streaming or sending
+    const isDisabled = streamStatus.isStreaming || draft.isSending;
+
+    const handleChange =
+      (field: keyof Pick<EmailComposerState, "to" | "subject" | "body">) =>
+      (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setDraft({
+          ...draft,
+          [field]: event.target.value,
+        });
+      };
+
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+      event.preventDefault();
+      setDraft({ ...draft, isSending: true });
+      // ...send draft to your backend or API here
+      // setDraft({ ...draft, isSending: false });
+    }
+
+    return (
+      <form aria-busy={streamStatus.isStreaming} onSubmit={handleSubmit}>
+        <label>
+          To
+          <input
+            type="email"
+            value={draft.to}
+            onChange={handleChange("to")}
+            disabled={isDisabled}
+          />
+        </label>
+
+        <label>
+          Subject
+          <input
+            type="text"
+            value={draft.subject ?? ""}
+            onChange={handleChange("subject")}
+            disabled={isDisabled || !canEditSubject}
+          />
+        </label>
+
+        <label>
+          Body
+          <textarea
+            value={draft.body ?? ""}
+            onChange={handleChange("body")}
+            disabled={isDisabled || !canEditBody}
+          />
+        </label>
+
+        <button type="submit" disabled={isDisabled}>
+          {draft.isSending ? "Sending…" : "Send"}
+        </button>
+      </form>
+    );
+  },
+};
+```
+
+### How the example maps to the pattern
+
+1. **Props schema (AI-only)** – `EmailComposerPropsSchema` contains only the
+   fields the model controls (`subject`, `body`).
+2. **State type (AI + user)** – `EmailComposerState` adds user-only fields like
+   `to` and UI flags like `isSending`.
+3. **Streaming status** – `useTamboStreamStatus` exposes `streamStatus` and
+   `propStatus` so the UI knows when each prop is safe to edit.
+4. **Stream → state wiring** – `setFromProp` seeds the editable `draft` state
+   from `subject`/`body` exactly once, so later renders keep the user's edits.
+5. **Defensive null checks** – `propStatus.subject?.isSuccess ?? false` and
+   `draft.subject ?? ""` keep the UI safe while props are still streaming.
+6. **Disabling while streaming** – `isDisabled` stays `true` until streaming is
+   done and while the message is being sent.
+7. **UI reads from state only** – the JSX uses `draft`, not raw props, so the
+   user is always editing the same source of truth that Tambo sees.
+
+## Variations
+
+### If you don't need user editing
+
+If users never edit the generated content, you can skip `useTamboComponentState`
+entirely and render directly from props using `useTamboStreamStatus`:
+
+```tsx title="read-only-streaming.tsx"
+function ReadOnlySummary(props: EmailComposerProps) {
+  const { streamStatus, propStatus } =
+    useTamboStreamStatus<EmailComposerProps>();
+
+  if (streamStatus.isPending) {
+    return <div className="animate-pulse h-24" />;
+  }
+
+  return (
+    <article>
+      {propStatus.subject?.isSuccess && <h2>{props.subject}</h2>}
+      {propStatus.body?.isSuccess && <p>{props.body}</p>}
+    </article>
+  );
+}
+```
+
+Use this when the component is effectively "display-only" and you just want
+great loading states.
+
+### If you don't need streaming status UI
+
+In very simple flows you might only care about keeping generated props and
+editable state in sync. You can still use `setFromProp` without
+`useTamboStreamStatus`:
+
+```tsx title="editable-without-status.tsx"
+function SimpleComposer({ subject, body }: EmailComposerProps) {
+  const [draft, setDraft] = useTamboComponentState<EmailComposerState>(
+    "simpleComposerDraft",
+    {
+      to: "",
+      subject: "",
+      body: "",
+      isSending: false,
+    },
+    subject && body ? { to: "", subject, body, isSending: false } : undefined,
+  );
+
+  // No explicit stream status – just edit the seeded state
+  // ...render inputs from `draft` as in the main example
+}
+```
+
+This is fine for prototypes or low-risk UIs. For production apps we recommend
+pairing `useTamboComponentState` with `useTamboStreamStatus` so you can disable
+inputs and show errors while streaming.
+
+## When to use low-level streaming helpers
+
+The older `useTamboStreamingProps` hook is still available for advanced use
+cases, but is now **deprecated** and should be avoided for most components.
+
+Use it only when you:
+
+- Maintain your own state store and cannot use `useTamboComponentState`, or
+- Need a custom merge strategy that cannot be expressed as a single
+  `setFromProp` value.
+
+For new work, start with the stream → state → UI pattern shown above and fall
+back to `useTamboStreamingProps` only when you have a very specific reason.
+
+## Where to go next
+
+- Learn more about
+  [`useTamboComponentState`](/concepts/components/component-state).
+- Explore status flags and per-prop streaming in
+  [`useTamboStreamStatus`](/concepts/streaming/component-streaming-status).
+- Review best practices for shaping props in
+  [Component Props and Performance](/best-practices/component-data-props).
+- Upcoming deep dives (tracked as separate issues):
+  - Schema constraints for generative component props
+  - Defensive coding patterns for streaming
+  - Centralized error reference for common streaming failures

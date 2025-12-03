@@ -3,7 +3,24 @@ title: Streaming Props into State
 description: Stream component props into components with a few lines of code and no need for useEffect dependency hell.
 ---
 
-When working with AI-generated content in Tambo, you often need to update your component state when new content streams in. The `useTamboStreamingProps` hook simplifies this common pattern.
+When working with AI-generated content in Tambo, you sometimes need
+fine-grained, low-level control over how streamed props are merged into
+component state. In those advanced cases, the `useTamboStreamingProps` hook
+can help, but for typical streaming components you should prefer the
+**stream → state → UI** pattern described in
+[Building Streaming Components](/concepts/streaming/building-streaming-components).
+
+<Callout type="warning" title="Deprecated for most components">
+  `useTamboStreamingProps` is a low-level helper and is now deprecated for
+  typical streaming components. For new work, start with the **stream → state →
+  UI** pattern using
+  [`useTamboComponentState`](/concepts/components/component-state) and
+  [`useTamboStreamStatus`](/concepts/streaming/component-streaming-status), as
+  shown in [Building Streaming
+  Components](/concepts/streaming/building-streaming-components). This page
+  exists as a reference for advanced cases where you truly need manual control
+  over how streamed props are merged into state.
+</Callout>
 
 ## Building on Previous Concepts
 

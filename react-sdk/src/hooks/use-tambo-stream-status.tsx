@@ -292,12 +292,26 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
 }
 
 /**
- * Hook that exposes per-prop and global streaming status for tambo-ai components.
- * Provides streaming readiness flags so consumers can show loaders, skeletons,
- * or errors while LLM-generated props stream in.
- * This hook tracks status for the specific component in the current message only.
- * Once a component's props complete streaming, they remain stable regardless of
- * other components being generated in the thread.
+ * Hook that exposes per-prop and global streaming status for tambo-ai
+ * components.
+ *
+ * Together with `useTamboComponentState`, this powers the canonical
+ * **stream → state → UI** pattern:
+ *
+ * 1. LLM-generated props stream into your component.
+ * 2. `useTamboComponentState` stores an editable copy of those values via its
+ *    `setFromProp` parameter.
+ * 3. `useTamboStreamStatus` tells you when to show skeletons, disable inputs
+ *    while streaming, and when it is safe for the user to fully edit the
+ *    state.
+ *
+ * This hook tracks status for the specific component in the current message
+ * only. Once a component's props complete streaming, they remain stable
+ * regardless of other components being generated in the thread.
+ *
+ * See the docs page at
+ * `/concepts/streaming/building-streaming-components` for an end-to-end
+ * example combining streaming status with editable component state.
  * @template Props - The type of the component props being tracked (defaults to Record<string, any>)
  * @returns An object containing both global streamStatus and per-prop propStatus
  * @throws {Error} When used during SSR/SSG
