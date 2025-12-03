@@ -1207,7 +1207,12 @@ function ProviderKeySectionBase({
                               </p>
                             )}
                             <p className="text-xs text-foreground">
-                              Requests will be sent to{" "}
+                              We append{" "}
+                              <span className="font-mono">
+                                /chat/completions
+                              </span>{" "}
+                              to this base URL when making requests. The final
+                              request URL will be{" "}
                               <span className="inline-flex rounded-md bg-muted px-2 py-0.5 font-mono">
                                 {baseUrl.trim()
                                   ? baseUrl.trim().replace(/\/$/, "")
