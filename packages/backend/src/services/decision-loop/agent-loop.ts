@@ -11,7 +11,6 @@ import {
   prefetchAndCacheResources,
   ResourceFetcherMap,
 } from "../../util/resource-transformation";
-import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import { AgentClient } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
 
@@ -20,9 +19,8 @@ import { EventHandlerParams } from "../llm/async-adapters";
  *
  * This is a simpler alternative to the full decision loop that:
  * 1. Pre-fetches all MCP resources and caches them inline
- * 2. Converts messages to ChatCompletion format
- * 3. Streams responses from the LLM via the AgentClient
- * 4. Yields component decisions as they arrive
+ * 2. Streams responses from the LLM via the AgentClient
+ * 3. Yields component decisions as they arrive
  *
  * @param agentClient - The agent client to use for generating responses
  * @param queue - Async queue for handling streaming events
@@ -40,27 +38,15 @@ export async function* runAgentLoop(
   resourceFetchers: ResourceFetcherMap,
   //   customInstructions: string | undefined,
 ): AsyncIterableIterator<LegacyComponentDecision> {
-  // Pre-fetch and cache all resources before converting messages
+  // Pre-fetch and cache all resources before passing to agent
   const messagesWithCachedResources = await prefetchAndCacheResources(
     messages,
     resourceFetchers,
   );
 
-  const chatCompletionMessages = threadMessagesToChatCompletionMessageParam(
-    messagesWithCachedResources,
-  );
-  // const systemPromptArgs = customInstructions
-  //     ? { custom_instructions: customInstructions }
-  //     : {};
-
   const stream = agentClient.streamRunAgent(queue, {
-    messages: chatCompletionMessages,
+    messages: messagesWithCachedResources,
     tools: strictTools,
-    // promptTemplateName: "decision-loop",
-    // promptTemplateParams: {
-    //   chat_history: chatCompletionMessages,
-    //   ...systemPromptArgs,
-    // },
   });
   for await (const event of stream) {
     const { message } = event;
