@@ -1,22 +1,18 @@
-import {
-  MessageRole,
-  ThreadAssistantMessage,
-  ThreadMessage,
-  ThreadSystemMessage,
-  ThreadToolMessage,
-  ThreadUserMessage,
-} from "@tambo-ai-cloud/core";
+import { ThreadMessage, validateThreadMessage } from "@tambo-ai-cloud/core";
 import { DBMessage } from "../schema";
 
 /**
  * Converts a database message (DBMessage) to a properly-typed ThreadMessage.
- * Maps DB field names to ThreadMessage field names and converts nulls to undefined.
- * Assumes database data is valid (no validation performed).
+ * Maps DB field names to ThreadMessage field names and converts nulls to undefined,
+ * then passes the result through validateThreadMessage to enforce core invariants
+ * (for example, tool messages must include tool_call_id).
  */
 export function dbMessageToThreadMessage(dbMsg: DBMessage): ThreadMessage {
-  const base = {
+  return validateThreadMessage({
     id: dbMsg.id,
     threadId: dbMsg.threadId,
+    role: dbMsg.role,
+    content: dbMsg.content,
     parentMessageId: dbMsg.parentMessageId ?? undefined,
     component: dbMsg.componentDecision ?? undefined,
     componentState: dbMsg.componentState ?? undefined,
@@ -26,48 +22,9 @@ export function dbMessageToThreadMessage(dbMsg: DBMessage): ThreadMessage {
     isCancelled: dbMsg.isCancelled,
     createdAt: dbMsg.createdAt,
     actionType: dbMsg.actionType ?? undefined,
-    content: dbMsg.content,
-  };
-
-  switch (dbMsg.role) {
-    case MessageRole.User: {
-      const msg: ThreadUserMessage = {
-        ...base,
-        role: MessageRole.User,
-      };
-      return msg;
-    }
-
-    case MessageRole.System: {
-      const msg: ThreadSystemMessage = {
-        ...base,
-        role: MessageRole.System,
-      };
-      return msg;
-    }
-
-    case MessageRole.Assistant: {
-      const msg: ThreadAssistantMessage = {
-        ...base,
-        role: MessageRole.Assistant,
-        toolCallRequest: dbMsg.toolCallRequest ?? undefined,
-        tool_call_id: dbMsg.toolCallId ?? undefined,
-        reasoning: dbMsg.reasoning ?? undefined,
-        reasoningDurationMS: dbMsg.reasoningDurationMS ?? undefined,
-      };
-      return msg;
-    }
-
-    case MessageRole.Tool: {
-      const msg: ThreadToolMessage = {
-        ...base,
-        role: MessageRole.Tool,
-        tool_call_id: dbMsg.toolCallId!,
-      };
-      return msg;
-    }
-
-    default:
-      throw new Error(`Unknown message role: ${dbMsg.role}`);
-  }
+    tool_call_id: dbMsg.toolCallId ?? undefined,
+    toolCallRequest: dbMsg.toolCallRequest ?? undefined,
+    reasoning: dbMsg.reasoning ?? undefined,
+    reasoningDurationMS: dbMsg.reasoningDurationMS ?? undefined,
+  });
 }

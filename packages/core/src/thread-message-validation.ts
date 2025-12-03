@@ -55,6 +55,11 @@ export function validateThreadMessage(msg: LooseThreadMessage): ThreadMessage {
     return { ...base, role: MessageRole.System } satisfies ThreadSystemMessage;
   }
   if (msg.role === MessageRole.Assistant) {
+    if (tool_call_id && !toolCallRequest) {
+      throw new Error(
+        "Assistant messages with tool_call_id must include toolCallRequest",
+      );
+    }
     return {
       ...base,
       role: MessageRole.Assistant,
@@ -125,6 +130,11 @@ export function validateUnsavedThreadMessage(
     } satisfies UnsavedThreadSystemMessage;
   }
   if (msg.role === MessageRole.Assistant) {
+    if (tool_call_id && !toolCallRequest) {
+      throw new Error(
+        "Assistant messages with tool_call_id must include toolCallRequest",
+      );
+    }
     return {
       ...base,
       role: MessageRole.Assistant,

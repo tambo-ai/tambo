@@ -1,11 +1,13 @@
 import {
-  ContentPartType,
   FunctionParameters,
   getToolName,
   MessageRole,
   SUGGESTION_MODEL,
   SUGGESTION_PROVIDER,
+  ThreadAssistantMessage,
   ThreadMessage,
+  ThreadSystemMessage,
+  ThreadUserMessage,
   tryParseJsonObject,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
@@ -68,26 +70,32 @@ export async function generateSuggestions(
 
   // Convert suggestion messages to ThreadMessage format
   const threadMessages: ThreadMessage[] = suggestionMessages.map((msg, i) => {
-    const baseMsg = {
+    const base = {
       id: `suggestion-${i}`,
       threadId,
-      role: msg.role,
-      content: [{ type: ContentPartType.Text, text: msg.content }],
+      content: [{ type: "text" as const, text: msg.content }],
       createdAt: new Date(),
       componentState: {},
     };
 
-    // Create properly-typed messages based on role
     switch (msg.role) {
       case MessageRole.User:
-        return baseMsg as ThreadMessage;
+        return {
+          ...base,
+          role: MessageRole.User,
+        } satisfies ThreadUserMessage;
       case MessageRole.System:
-        return baseMsg as ThreadMessage;
+        return {
+          ...base,
+          role: MessageRole.System,
+        } satisfies ThreadSystemMessage;
       case MessageRole.Assistant:
-        return baseMsg as ThreadMessage;
+        return {
+          ...base,
+          role: MessageRole.Assistant,
+        } satisfies ThreadAssistantMessage;
       default:
-        // Shouldn't hit tool role in suggestions
-        return baseMsg as ThreadMessage;
+        throw new Error(`Unexpected suggestion message role: ${msg.role}`);
     }
   });
 
