@@ -1,7 +1,7 @@
 <div align="center">
   <h1>@tambo-ai/react</h1>
-  <h3>The core React SDK for generative UI</h3>
-  <p>Register your components once. The AI decides which to render and what props to pass based on user conversations.</p>
+  <h3>Generative UI for React</h3>
+  <p>Build apps that adapt to your users.</p>
 </div>
 
 <p align="center">
@@ -18,31 +18,26 @@
 
 ---
 
-## Overview
+## What is Tambo?
 
-The `@tambo-ai/react` package provides React hooks and providers for building generative UI applications. The AI dynamically decides which components to render and what props to pass based on natural language conversations.
+Tambo is a generative UI SDK for React. Register your components, and the AI decides which ones to render based on natural language conversations.
 
-**MCP-native** from the ground up — integrates the Model Context Protocol (MCP) for seamless integrations with databases, APIs, files, and external systems.
+## Why We Built This
 
-## Why Use This SDK?
+Most software is built around a one-size-fits-all mental model that doesn't fit every user.
 
-You don't want to write 200 lines of boilerplate to show a chart.
+**Users shouldn't have to learn your app.** Generative UI shows the right components based on what someone is trying to do. First-time users and power users see different things.
 
-Tambo handles:
+**Users shouldn't have to click through your workflows.** "Show me sales from last quarter grouped by region" should just work. The AI translates what users want into the right interface.
 
-- ✅ AI orchestration (which component to render)
-- ✅ Streaming (progressive prop updates)
-- ✅ State management (persistence across conversation)
-- ✅ Error handling (retries, fallbacks)
-- ✅ Tool coordination (MCP servers, local functions)
-
-You write:
-
-- Your existing React components
-- Zod schemas for props
-- React hooks for advanced AI features
-
-That's the entire API.
+```tsx
+const components: TamboComponent[] = [{
+  name: "Graph",
+  description: "Displays data as charts",
+  component: Graph,
+  propsSchema: z.object({ data: z.array(...), type: z.enum(["line", "bar", "pie"]) })
+}];
+```
 
 ## Key Benefits
 
@@ -200,7 +195,7 @@ Wrap your app with `TamboProvider` to enable AI capabilities:
 
 ### Generative Components
 
-AI renders these once in response to user messages. Best for charts, data visualizations, and summary cards.
+**Generative components** render once in response to a message. Charts, summaries, data visualizations.
 
 ```tsx
 const components: TamboComponent[] = [
@@ -220,7 +215,7 @@ const components: TamboComponent[] = [
 
 ### Interactable Components
 
-Components that persist on the page and update by ID across conversations. Perfect for shopping carts, spreadsheets, task boards, or dashboards.
+**Interactable components** persist and update as users refine requests. Shopping carts, spreadsheets, task boards.
 
 ```tsx
 import { withInteractable } from "@tambo-ai/react";
@@ -243,7 +238,7 @@ const InteractableNote = withInteractable(Note, {
 
 ### MCP Integration
 
-Connect to external systems using the Model Context Protocol:
+Connect to Linear, Slack, databases, or your own MCP servers. Tambo supports the full MCP protocol: tools, prompts, elicitations, and sampling.
 
 ```tsx
 import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
@@ -263,13 +258,11 @@ const mcpServers = [
 </TamboProvider>;
 ```
 
-Supports full MCP protocol: tools, prompts, elicitations, and sampling. Client-side or server-side execution.
-
 [→ Learn more about MCP](https://docs.tambo.co/concepts/model-context-protocol)
 
 ### Local Tools
 
-Write JavaScript functions that execute in your React app:
+Sometimes you need functions that run in the browser. DOM manipulation, authenticated fetches, accessing React state. Define them as tools and the AI can call them.
 
 ```tsx
 import { type TamboTool } from "@tambo-ai/react";
@@ -298,9 +291,7 @@ const tools: TamboTool[] = [
 </TamboProvider>;
 ```
 
-**When to use:** DOM interactions, wrapping authenticated fetch requests, or accessing React state. Runs entirely in the browser.
-
-[→ Learn more about tools](https://docs.tambo.co/concepts/tools)
+[→ Learn more about tools](https://docs.tambo.co/concepts/tools/adding-tools)
 
 #### Advanced: Transforming Tool Responses
 
@@ -354,46 +345,38 @@ function LoadingComponent({ title, data }) {
 
 [→ Learn more about streaming](https://docs.tambo.co/concepts/streaming/component-streaming-status)
 
-### Additional Context
+### Context, Auth, and Suggestions
 
-Send metadata about user state, app settings, or environment:
-
-```tsx
-const contextHelpers = {
-  selectedItems: () => ({
-    key: "selectedItems",
-    value: `User has selected: ${selectedItems.map((i) => i.name).join(", ")}`,
-  }),
-  currentPage: () => ({
-    key: "page",
-    value: window.location.pathname,
-  }),
-};
-
-<TamboProvider contextHelpers={contextHelpers} />;
-```
-
-[→ Learn more](https://docs.tambo.co/concepts/additional-context)
-
-### Suggestions
-
-Auto-generate contextual suggestions:
+**Additional context** lets you pass metadata to give the AI better responses. User state, app settings, current page. **User authentication** passes tokens from your auth provider. **Suggestions** generates prompts users can click based on what they're doing.
 
 ```tsx
-import { useTamboSuggestions } from "@tambo-ai/react";
-
-function SuggestionsList() {
-  const { suggestions, accept } = useTamboSuggestions({ maxSuggestions: 3 });
-
-  return suggestions.map((s) => (
-    <button key={s.id} onClick={() => accept(s)}>
-      {s.title}
-    </button>
-  ));
-}
+<TamboProvider
+  userToken={userToken}
+  contextHelpers={{
+    selectedItems: () => ({
+      key: "selectedItems",
+      value: selectedItems.map((i) => i.name).join(", "),
+    }),
+    currentPage: () => ({ key: "page", value: window.location.pathname }),
+  }}
+/>
 ```
 
-[→ Learn more](https://docs.tambo.co/concepts/suggestions)
+```tsx
+const { suggestions, accept } = useTamboSuggestions({ maxSuggestions: 3 });
+
+suggestions.map((s) => (
+  <button key={s.id} onClick={() => accept(s)}>
+    {s.title}
+  </button>
+));
+```
+
+[→ Learn more](https://docs.tambo.co/concepts/additional-context) • [User authentication](https://docs.tambo.co/concepts/user-authentication) • [Suggestions](https://docs.tambo.co/concepts/suggestions)
+
+### Supported LLM Providers
+
+OpenAI, Anthropic, Google Gemini, Mistral, Groq, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/models). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
 
 ## When to Use This SDK
 
