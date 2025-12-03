@@ -6,7 +6,10 @@ import {
   Tooltip,
   TooltipProvider,
 } from "@/components/ui/tambo/suggestions-tooltip";
-import { TextEditor } from "@/components/ui/tambo/text-editor";
+import {
+  TextEditor,
+  type ResourceItem,
+} from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import {
   useIsTamboTokenUpdating,
@@ -359,13 +362,17 @@ MessageInput.displayName = "MessageInput";
 export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Custom placeholder text. */
   placeholder?: string;
+  /** Static mention items to include in @ suggestions. */
+  staticMentionItems?: ResourceItem[];
+  /** Async fetcher to load mention items (e.g., MCP resources). */
+  mentionItemFetcher?: (query: string) => Promise<ResourceItem[]>;
 }
 
 /**
  * Textarea component for entering message text with @ mention support.
  *
  * Uses the TipTap-based TextEditor component which provides:
- * - @ mention autocomplete for interactable components
+ * - @ mention autocomplete for interactable components plus optional static items and async fetchers
  * - Keyboard navigation (Enter to submit, Shift+Enter for newline)
  * - Image paste support
  *
@@ -385,6 +392,8 @@ export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivE
 const MessageInputTextarea = ({
   className,
   placeholder = "What do you want to do?",
+  staticMentionItems,
+  mentionItemFetcher,
   ...props
 }: MessageInputTextareaProps) => {
   const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
@@ -405,6 +414,8 @@ const MessageInputTextarea = ({
         disabled={!isIdle || isUpdatingToken}
         editorRef={editorRef}
         className="bg-background text-foreground"
+        staticMentionItems={staticMentionItems}
+        mentionItemFetcher={mentionItemFetcher}
       />
     </div>
   );

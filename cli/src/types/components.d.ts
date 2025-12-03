@@ -120,6 +120,12 @@ declare module "@/components/tambo/message-input" {
     variant?: ComponentVariant;
     contextKey?: string;
   }
+  export interface MessageInputMentionItem {
+    id: string;
+    name: string;
+    icon?: React.ReactNode;
+    componentData?: unknown;
+  }
 
   export interface MessageInputRootProps extends React.HTMLAttributes<HTMLFormElement> {
     contextKey?: string;
@@ -127,8 +133,10 @@ declare module "@/components/tambo/message-input" {
     children?: React.ReactNode;
   }
 
-  export interface MessageInputTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
     placeholder?: string;
+    staticMentionItems?: MessageInputMentionItem[];
+    mentionItemFetcher?: (query: string) => Promise<MessageInputMentionItem[]>;
   }
 
   export interface MessageInputSubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -155,8 +163,13 @@ declare module "@/components/tambo/message-input" {
   export type MessageInputMcpConfigButtonProps =
     React.HTMLAttributes<HTMLButtonElement>;
 
+  export type MessageInputContextsProps = React.HTMLAttributes<HTMLDivElement>;
+
+  export type MessageInputPlainTextareaProps =
+    React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+
   export const MessageInput: React.ForwardRefExoticComponent<
-    MessageInputProps & React.RefAttributes<HTMLTextAreaElement>
+    MessageInputProps & React.RefAttributes<HTMLFormElement>
   >;
 
   export const MessageInputRoot: React.ForwardRefExoticComponent<
@@ -164,7 +177,11 @@ declare module "@/components/tambo/message-input" {
   >;
 
   export const MessageInputTextarea: React.ForwardRefExoticComponent<
-    MessageInputTextareaProps & React.RefAttributes<HTMLTextAreaElement>
+    MessageInputTextareaProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export const MessageInputPlainTextarea: React.ForwardRefExoticComponent<
+    MessageInputPlainTextareaProps & React.RefAttributes<HTMLTextAreaElement>
   >;
 
   export const MessageInputMcpConfigButton: React.ForwardRefExoticComponent<
@@ -204,6 +221,60 @@ declare module "@/components/tambo/message-input" {
   export const MessageInputStagedImages: React.ForwardRefExoticComponent<
     MessageInputStagedImagesProps & React.RefAttributes<HTMLDivElement>
   >;
+
+  export const MessageInputContexts: React.ForwardRefExoticComponent<
+    MessageInputContextsProps & React.RefAttributes<HTMLDivElement>
+  >;
+}
+
+declare module "@/components/tambo/message-input/text-editor" {
+  import type { Editor } from "@tiptap/react";
+
+  export interface ResourceItem {
+    id: string;
+    name: string;
+    icon?: React.ReactNode;
+    componentData?: unknown;
+  }
+
+  export interface CommandConfig {
+    triggerChar: string;
+    items:
+      | ResourceItem[]
+      | ((query: string) => Promise<ResourceItem[]>)
+      | {
+          staticItems?: ResourceItem[];
+          fetchItems?: (query: string) => Promise<ResourceItem[]>;
+        };
+    onSelect?: (item: ResourceItem) => void;
+    renderLabel: (props: {
+      options: unknown;
+      node: { attrs: Record<string, unknown> };
+      suggestion: unknown;
+    }) => string;
+    HTMLAttributes?: Record<string, string>;
+    isMenuOpenRef?: React.MutableRefObject<boolean>;
+  }
+
+  export interface TextEditorProps {
+    value: string;
+    onChange: (text: string) => void;
+    onKeyDown?: (event: React.KeyboardEvent, editor: Editor) => void;
+    placeholder?: string;
+    disabled?: boolean;
+    className?: string;
+    editorRef?: React.MutableRefObject<Editor | null>;
+    commands?: CommandConfig[];
+    onSubmit?: (e: React.FormEvent) => Promise<void>;
+    staticMentionItems?: ResourceItem[];
+    mentionItemFetcher?: (query: string) => Promise<ResourceItem[]>;
+  }
+
+  export const TextEditor: React.ForwardRefExoticComponent<
+    TextEditorProps & React.RefAttributes<HTMLDivElement>
+  >;
+
+  export function hasExistingMention(editor: Editor, label: string): boolean;
 }
 
 declare module "@/components/tambo/message-suggestions" {

@@ -22,6 +22,13 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.79.0",
+    "@tiptap/extension-document": "^3.11.1",
+    "@tiptap/extension-mention": "^3.11.1",
+    "@tiptap/extension-paragraph": "^3.11.1",
+    "@tiptap/extension-placeholder": "^3.11.1",
+    "@tiptap/extension-text": "^3.11.1",
+    "@tiptap/react": "^3.11.1",
+    "@tiptap/suggestion": "^3.11.1",
     "@vercel/og": "^0.8.5",
     "autoprefixer": "^10.4.22",
     "class-variance-authority": "^0.7.1",
@@ -45,7 +52,8 @@
     "recharts": "^3.5.1",
     "streamdown": "^1.5.1",
     "tailwindcss": "^4.1.16",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "tippy.js": "^6.3.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
