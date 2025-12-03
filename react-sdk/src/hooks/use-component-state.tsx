@@ -7,60 +7,18 @@ import { useTamboCurrentMessage } from "./use-current-message";
 type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 
 /**
- * A React hook that acts like useState, but also automatically updates the
- * thread message's `componentState`.
+ * Like useState, but syncs to the thread message's `componentState`.
  *
- * This is the core of the canonical **stream → state → UI** pattern for
- * editable components:
+ * Use `setFromProp` to seed state from streamed props. During streaming,
+ * state updates as new prop values arrive. Once streaming completes,
+ * user edits take precedence over the original prop value.
  *
- * 1. Tambo streams props into your component.
- * 2. You derive a local editable state value with `useTamboComponentState`.
- * 3. You render UI exclusively from that state, not directly from props.
- * 4. `useTamboStreamStatus` drives loading/disabled states while streaming.
- *
- * Use the `setFromProp` parameter to copy generated props into local state
- * only while the current message has no `componentState[keyName]` value. As
- * soon as a value is written for this key in `componentState`, `setFromProp`
- * is ignored for that message, so later prop changes (including re-renders of
- * the same message) will not overwrite user edits.
- *
- * Combined with `useTamboStreamStatus`, this lets you disable inputs while AI
- * is still streaming and then hand full control to the user once streaming
- * completes.
- *
- * `componentState` is scoped to an individual Tambo message. When your
- * component appears in a new message in the same thread, this hook evaluates
- * `initialValue`/`setFromProp` again for that message. The "only while no
- * componentState value exists" rule applies per-message, not globally across
- * the entire thread.
- *
- * See the docs page at
- * https://docs.tambo.co/concepts/streaming/building-streaming-components for a
- * complete example of this pattern.
- * @param keyName - The unique key to identify this state value within the message's componentState object
- * @param initialValue - Optional initial value for the state, used if no componentState value exists in the Tambo message containing this hook usage.
- * @param setFromProp - Optional value used to set the state value, only while no componentState value exists in the Tambo message containing this hook usage. Use this to allow streaming updates from a prop to the state value.
- * @param debounceTime - Optional debounce time in milliseconds (default: 500ms) to limit API calls.
- * @returns A tuple containing:
- *   - The current state value
- *   - A setter function to update the state (updates UI immediately, debounces server sync)
- * @example
- * const [count, setCount] = useTamboComponentState("counter", 0);
- *
- * // Usage with object state
- * const [formState, setFormState] = useTamboComponentState("myForm", {
- *   name: "",
- *   email: "",
- *   message: ""
- * });
- *
- * // Handling form input
- * const handleChange = (e) => {
- *   setFormState({
- *     ...formState,
- *     [e.target.name]: e.target.value
- *   });
- * };
+ * Pair with `useTamboStreamStatus` to disable inputs while streaming.
+ * @see https://docs.tambo.co/concepts/streaming/streaming-best-practices
+ * @param keyName - Unique key within the message's componentState
+ * @param initialValue - Default value if no componentState exists
+ * @param setFromProp - Seeds state from props (updates during streaming, then user edits take over)
+ * @param debounceTime - Server sync debounce in ms (default: 500)
  */
 export function useTamboComponentState<S = undefined>(
   keyName: string,

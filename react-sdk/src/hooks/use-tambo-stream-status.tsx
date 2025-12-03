@@ -292,44 +292,15 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
 }
 
 /**
- * Hook that exposes per-prop and global streaming status for tambo-ai
- * components.
+ * Track streaming status for Tambo component props.
  *
- * Use this to show skeletons, disable inputs while props are still streaming,
- * and surface errors from either generation or individual props. Paired with
- * `useTamboComponentState`, it forms the streaming-status piece of the
- * canonical **stream → state → UI** pattern.
+ * **Important**: Props update repeatedly during streaming and may be partial.
+ * Use `propStatus.<field>?.isSuccess` before treating a prop as complete.
  *
- * `propStatus` is derived from the props on the current message only. Optional
- * props that were never generated for that message simply won't appear in the
- * record (for those keys `propStatus.someKey` will be `undefined`), so you
- * should treat that as "no streaming information" and fall back to your own
- * defaults or `streamStatus.isSuccess`.
- *
- * This hook tracks status for the specific component in the current message
- * only. Once a component's props complete streaming, they remain stable
- * regardless of other components being generated in the thread.
- *
- * For an end-to-end example that combines streaming status with editable
- * component state, see
- * https://docs.tambo.co/concepts/streaming/building-streaming-components.
- *
- * For optional props, prefer `streamStatus.isSuccess` for overall readiness
- * and treat `propStatus.someOptionalKey === undefined` as "not generated for
- * this message" rather than an error. For example:
- *
- * ```tsx
- * const { streamStatus, propStatus } = useTamboStreamStatus<Props>();
- *
- * if (!streamStatus.isSuccess) return <Spinner />;
- *
- * // `subtitle` is optional – it may be missing even when the stream is done
- * const hasSubtitle = !!propStatus.subtitle?.isSuccess;
- *
- * return <>{hasSubtitle && <Subtitle text={props.subtitle} />}</>;
- * ```
- * @template Props - The type of the component props being tracked (defaults to Record<string, any>)
- * @returns An object containing both global streamStatus and per-prop propStatus
+ * Pair with `useTamboComponentState` to disable inputs while streaming.
+ * @see https://docs.tambo.co/concepts/streaming/streaming-best-practices
+ * @template Props - Component props type
+ * @returns `streamStatus` (overall) and `propStatus` (per-prop) flags
  * @throws {Error} When used during SSR/SSG
  * @example
  * ```tsx

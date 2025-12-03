@@ -6,34 +6,6 @@ The `@tambo-ai/react` npm package provides hooks that expose state values and fu
 
 Here you'll find a description of each state value and function, organized by hook.
 
-## Choosing hooks for streaming components
-
-If you're building components that receive **streamed props** and then become
-**editable**, start here:
-
-1. Read
-   [Building Streaming Components](/concepts/streaming/building-streaming-components)
-   for a complete stream → state → UI example.
-2. Use
-   [`useTamboComponentState`](/concepts/components/component-state) to store an
-   editable copy of generated props (via the `setFromProp` parameter).
-3. Use
-   [`useTamboStreamStatus`](/concepts/streaming/component-streaming-status) to
-   drive loading skeletons, disable inputs while streaming, and show errors.
-4. If you have existing components built on the legacy
-   [`useTamboStreamingProps`](/concepts/streaming/streaming-props) helper,
-   treat it as deprecated and plan to migrate those components to this pattern
-   when you next touch them.
-
-At a glance, the recipe is: **stream props → seed editable state with
-`setFromProp` → render UI from that state → use `useTamboStreamStatus` for
-loading and disabled controls.**
-
-If you're maintaining older components that already use
-`useTamboStreamingProps`, see
-[Streaming Props into State](/concepts/streaming/streaming-props) for legacy
-reference and high-level migration guidance. New components should avoid this
-hook, which is deprecated for typical streaming scenarios.
 ### useTamboRegistry
 
 This hook provides helpers for component and tool registration.
@@ -312,7 +284,12 @@ The Tambo client instance for direct API access.
 
 This hook is similar to React's `useState`, but allows Tambo to see the state values to help respond to later messages.
 
-`const [myValue, setMyValue] = useTamboComponentState()`
+`const [myValue, setMyValue] = useTamboComponentState(keyName, initialValue, setFromProp)`
+
+For streaming components, use the third parameter (`setFromProp`) to seed
+editable state from AI-generated props. Combined with `useTamboStreamStatus`,
+this lets you disable inputs while streaming and hand control to the user once
+complete. See [Streaming Best Practices](/concepts/streaming/streaming-best-practices).
 
 #### value and setValue
 
