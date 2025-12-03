@@ -15,7 +15,7 @@ import GithubIcon from "../icons/github-icon";
 const ease: Easing = [0.16, 1, 0.3, 1];
 
 interface PricingFeature {
-  text: string;
+  text: string | React.ReactNode;
   link: string;
 }
 
@@ -24,7 +24,7 @@ interface PricingTier {
   subtitle: string;
   price: string;
   priceSubtext?: string;
-  features: (string | PricingFeature)[];
+  features: (string | PricingFeature | React.ReactNode)[];
   cta: string | React.ReactNode;
   popular: boolean;
   isOpenSource: boolean;
@@ -91,10 +91,28 @@ const pricingData: PricingTier[] = [
     subtitle: "For free. Forever.",
     price: "Self-host",
     features: [
-      "tambo-ai/react package",
-      "UI component library",
       {
-        text: "tambo-ai/tambo-cloud",
+        text: (
+          <>
+            <code>@tambo-ai/react</code> package
+          </>
+        ),
+        link: "https://github.com/tambo-ai/tambo/tree/main/react-sdk",
+      },
+      {
+        text: (
+          <>
+            <code>@tambo-ai/ui</code> component library
+          </>
+        ),
+        link: "https://ui.tambo.co/",
+      },
+      {
+        text: (
+          <>
+            <code>tambo-cloud</code>
+          </>
+        ),
         link: "https://github.com/tambo-ai/tambo",
       },
     ],
@@ -109,12 +127,20 @@ const pricingData: PricingTier[] = [
 ];
 
 // Component to render feature items with optional links
-const FeatureItem: FC<{ feature: string | PricingFeature }> = ({ feature }) => {
-  const isObject = typeof feature === "object";
+const FeatureItem: FC<{
+  feature: string | PricingFeature | React.ReactNode;
+}> = ({ feature }) => {
+  if (typeof feature !== "string" && typeof feature !== "object") {
+    return <span className="text-sm font-medium">{feature}</span>;
+  }
+
+  const isObject =
+    typeof feature === "object" && feature !== null && "text" in feature;
   const featureText = isObject ? feature.text : feature;
-  const hasComingSoon = featureText.includes(" (coming soon)");
+  const featureTextString = typeof featureText === "string" ? featureText : "";
+  const hasComingSoon = featureTextString.includes(" (coming soon)");
   const displayText = hasComingSoon
-    ? featureText.replace(" (coming soon)", "")
+    ? featureTextString.replace(" (coming soon)", "")
     : featureText;
   const link = isObject ? feature.link : null;
 

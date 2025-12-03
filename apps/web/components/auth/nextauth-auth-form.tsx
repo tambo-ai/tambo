@@ -17,7 +17,7 @@ export function NextAuthAuthForm({
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-3">
           <h1 className="text-3xl md:text-5xl font-medium tracking-tight">
-            Welcome to <span className="italic font-sentient">tambo!</span>
+            Welcome to Tambo
           </h1>
           <p className="text-muted-foreground text-base md:text-lg">
             Get started by signing in with your preferred method
