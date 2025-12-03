@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   },
   description:
     "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+  alternates: {
+    canonical: "./",
+  },
   openGraph: {
     title: "Tambo AI Documentation",
     description:
