@@ -12,12 +12,16 @@ import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
 import { createMcpHandlers } from "./thread-mcp-handlers";
 
 // Mock dependencies
-jest.mock("@tambo-ai-cloud/db", () => ({
-  operations: {
-    addMessage: jest.fn(),
-    findLastMessageWithoutParent: jest.fn(),
-  },
-}));
+jest.mock("@tambo-ai-cloud/db", () => {
+  const actual = jest.requireActual("@tambo-ai-cloud/db");
+  return {
+    ...actual,
+    operations: {
+      addMessage: jest.fn(),
+      findLastMessageWithoutParent: jest.fn(),
+    },
+  };
+});
 
 // Import the actual module so we can mock it
 import { convertContentPartToDto } from "./content";

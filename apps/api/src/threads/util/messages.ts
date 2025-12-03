@@ -5,8 +5,10 @@ import {
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
+  validateThreadMessage,
 } from "@tambo-ai-cloud/core";
 import {
+  dbMessageToThreadMessage,
   HydraDb,
   HydraTransaction,
   operations,
@@ -55,24 +57,7 @@ export async function addMessage(
     );
   }
 
-  return {
-    id: message.id,
-    threadId: message.threadId,
-    role: message.role,
-    parentMessageId: message.parentMessageId ?? undefined,
-    metadata: message.metadata ?? undefined,
-    actionType: message.actionType ?? undefined,
-    toolCallRequest: message.toolCallRequest ?? undefined,
-    componentState: message.componentState ?? {},
-    createdAt: message.createdAt,
-    component: message.componentDecision ?? undefined,
-    content: message.content,
-    tool_call_id: message.toolCallId ?? undefined,
-    error: message.error ?? undefined,
-    isCancelled: message.isCancelled,
-    additionalContext: message.additionalContext ?? {},
-    reasoning: message.reasoning ?? undefined,
-  };
+  return dbMessageToThreadMessage(message);
 }
 
 /**
@@ -224,8 +209,8 @@ export async function verifyLatestMessageConsistency(
 export function threadMessageDtoToThreadMessage(
   messages: ThreadMessageDto[],
 ): ThreadMessage[] {
-  return messages.map(
-    (message): ThreadMessage => ({
+  return messages.map((message) =>
+    validateThreadMessage({
       ...message,
       content: convertContentDtoToContentPart(message.content),
     }),

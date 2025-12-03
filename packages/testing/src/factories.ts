@@ -6,7 +6,11 @@ import {
   GenerationStage,
   MessageRole,
   OAuthValidationMode,
+  ThreadAssistantMessage,
   ThreadMessage,
+  ThreadSystemMessage,
+  ThreadToolMessage,
+  ThreadUserMessage,
 } from "@tambo-ai-cloud/core";
 import { schema } from "@tambo-ai-cloud/db";
 
@@ -121,10 +125,9 @@ export function createMockThreadMessage(
   overrides: Partial<ThreadMessage> = {},
 ): ThreadMessage {
   const now = new Date();
-  const message: ThreadMessage = {
+  const base = {
     id,
     threadId,
-    role,
     content,
     componentState: overrides.componentState ?? {},
     additionalContext: overrides.additionalContext ?? {},
@@ -133,9 +136,49 @@ export function createMockThreadMessage(
     metadata: overrides.metadata,
     isCancelled: overrides.isCancelled ?? false,
     createdAt: overrides.createdAt ?? now,
-    tool_call_id: overrides.tool_call_id,
-    toolCallRequest: overrides.toolCallRequest,
-    reasoning: overrides.reasoning,
+    parentMessageId: overrides.parentMessageId,
+    component: overrides.component,
   };
-  return message;
+
+  switch (role) {
+    case MessageRole.User: {
+      const msg: ThreadUserMessage = {
+        ...base,
+        role: MessageRole.User,
+      };
+      return msg;
+    }
+
+    case MessageRole.System: {
+      const msg: ThreadSystemMessage = {
+        ...base,
+        role: MessageRole.System,
+      };
+      return msg;
+    }
+
+    case MessageRole.Assistant: {
+      const msg: ThreadAssistantMessage = {
+        ...base,
+        role: MessageRole.Assistant,
+        tool_call_id: overrides.tool_call_id,
+        toolCallRequest: overrides.toolCallRequest,
+        reasoning: overrides.reasoning,
+        reasoningDurationMS: overrides.reasoningDurationMS,
+      };
+      return msg;
+    }
+
+    case MessageRole.Tool: {
+      const msg: ThreadToolMessage = {
+        ...base,
+        role: MessageRole.Tool,
+        tool_call_id: overrides.tool_call_id ?? "default-tool-call-id",
+      };
+      return msg;
+    }
+
+    default:
+      throw new Error(`Unknown message role: ${role}`);
+  }
 }

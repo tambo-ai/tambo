@@ -2,6 +2,7 @@ import {
   ContentPartType,
   FunctionParameters,
   getToolName,
+  MessageRole,
   SUGGESTION_MODEL,
   SUGGESTION_PROVIDER,
   ThreadMessage,
@@ -66,14 +67,29 @@ export async function generateSuggestions(
   );
 
   // Convert suggestion messages to ThreadMessage format
-  const threadMessages: ThreadMessage[] = suggestionMessages.map((msg, i) => ({
-    id: `suggestion-${i}`,
-    threadId,
-    role: msg.role,
-    content: [{ type: ContentPartType.Text, text: msg.content }],
-    createdAt: new Date(),
-    componentState: {},
-  }));
+  const threadMessages: ThreadMessage[] = suggestionMessages.map((msg, i) => {
+    const baseMsg = {
+      id: `suggestion-${i}`,
+      threadId,
+      role: msg.role,
+      content: [{ type: ContentPartType.Text, text: msg.content }],
+      createdAt: new Date(),
+      componentState: {},
+    };
+
+    // Create properly-typed messages based on role
+    switch (msg.role) {
+      case MessageRole.User:
+        return baseMsg as ThreadMessage;
+      case MessageRole.System:
+        return baseMsg as ThreadMessage;
+      case MessageRole.Assistant:
+        return baseMsg as ThreadMessage;
+      default:
+        // Shouldn't hit tool role in suggestions
+        return baseMsg as ThreadMessage;
+    }
+  });
 
   try {
     const response = await suggestionLlmClient.complete({

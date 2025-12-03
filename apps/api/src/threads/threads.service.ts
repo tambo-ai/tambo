@@ -741,7 +741,7 @@ export class ThreadsService {
       );
 
       const suggestions = await tamboBackend.generateSuggestions(
-        threadMessages as ThreadMessage[],
+        threadMessageDtoToThreadMessage(threadMessages),
         generateSuggestionsDto.maxSuggestions ?? 3,
         generateSuggestionsDto.availableComponents ?? [],
         message.threadId,
