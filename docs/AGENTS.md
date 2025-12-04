@@ -74,6 +74,16 @@ npm run postbuild    # Generate sitemap (automatic)
 - Maintain consistent heading structure
 - Optimize images and include alt text
 
+#### SEO and heading structure
+
+- Use exactly one H1 per page that clearly describes the main topic (for example, "Tambo CLI overview" instead of just "Overview").
+- Structure sections as `H1 -> H2 -> H3` wherever possible. Avoid jumping straight to H3/H4 without an H2.
+- Make sure primary key phrases for the page appear in the H1 (or first H2) and in the opening paragraph.
+- Prefer descriptive headings over generic ones. Replace bare headings like "Overview" or "Introduction" with topic-aware variants such as "User authentication in Tambo".
+- Keep headings scannable and short (aim for 3-7 words), and avoid repeating the exact same phrase across multiple headings on a single page.
+- Follow our existing product naming conventions (for example, "Tambo AI" and "Tambo Cloud") when including product names in headings so SEO signals stay consistent.
+- When configuring agents or templates to generate docs, bake these heading and keyword rules into your prompts/system messages so automated output follows the same standard.
+
 ## Documentation Structure and Patterns
 
 ### Site Organization Philosophy
