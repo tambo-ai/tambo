@@ -39,7 +39,8 @@ jobs:
         run: npm run lint
 
       - name: Run Tests
-        run: turbo test -- --coverage
+        # Have to use extra -- -- because of turbo wrapping
+        run: npm run test -- -- --coverage
 
       - name: Build
         run: npm run build
