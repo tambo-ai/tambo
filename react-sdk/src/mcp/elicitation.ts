@@ -1,6 +1,6 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
-  ElicitRequestFormParams,
+  ElicitRequestParams,
   PrimitiveSchemaDefinition,
 } from "@modelcontextprotocol/sdk/spec.types.js";
 import type {
@@ -15,8 +15,7 @@ import { MCPElicitationHandler } from "./mcp-client";
 /**
  * Schema type for elicitation request fields
  */
-export type ElicitationRequestedSchema =
-  ElicitRequestFormParams["requestedSchema"];
+export type ElicitationRequestedSchema = ElicitRequestParams["requestedSchema"];
 
 /**
  * Elicitation request from MCP server
@@ -54,6 +53,23 @@ export interface ElicitationContextState {
 }
 
 /**
+ * Narrow the runtime ElicitRequest requestedSchema into the public
+ * ElicitationRequestedSchema type.
+ *
+ * The MCP SDK guarantees that the runtime
+ * `ElicitRequest["params"]["requestedSchema"]` shape stays aligned with the
+ * spec-defined `ElicitRequestParams["requestedSchema"]`. This helper
+ * centralizes the cast based on that contract so that if a future SDK version
+ * ever diverges, we have a single place to tighten the implementation (for
+ * example with structural validation or normalization).
+ */
+function toElicitationRequestedSchema(
+  value: ElicitRequest["params"]["requestedSchema"],
+): ElicitationRequestedSchema {
+  return value as ElicitationRequestedSchema;
+}
+
+/**
  * Internal hook that manages elicitation state and creates a default handler.
  * This bundles all the state management and handler creation for elicitation.
  *
@@ -78,8 +94,9 @@ export function useElicitation() {
         // we use the pure TypeScript spec types for the public interface
         setElicitation({
           message: request.params.message,
-          requestedSchema: request.params
-            .requestedSchema as ElicitationRequestedSchema,
+          requestedSchema: toElicitationRequestedSchema(
+            request.params.requestedSchema,
+          ),
           signal: extra.signal,
         });
 
