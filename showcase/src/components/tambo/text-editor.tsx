@@ -24,10 +24,10 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Text from "@tiptap/extension-text";
 import {
   EditorContent,
+  Extension,
   ReactRenderer,
   useEditor,
   type Editor,
-  Extension,
 } from "@tiptap/react";
 import type { SuggestionOptions } from "@tiptap/suggestion";
 import Suggestion from "@tiptap/suggestion";
