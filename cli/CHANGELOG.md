@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.43.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.43.0...tambo-v0.43.1) (2025-12-04)
+
+
+### Bug Fixes
+
+* **cli:** fix build output structure for correct dist/cli.js location ([#1460](https://github.com/tambo-ai/tambo/issues/1460)) ([3281637](https://github.com/tambo-ai/tambo/commit/32816371f4da7c83af9eea166e5b3188307fc195))
+
 ## [0.43.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.42.0...tambo-v0.43.0) (2025-12-04)
 
 
