@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tambo/suggestions-tooltip";
 import {
   TextEditor,
+  type CommandConfig,
   type ResourceItem,
 } from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
@@ -366,6 +367,8 @@ export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivE
   staticMentionItems?: ResourceItem[];
   /** Async fetcher to load mention items (e.g., MCP resources). */
   mentionItemFetcher?: (query: string) => Promise<ResourceItem[]>;
+  /** Command configurations for @ mentions and / commands. */
+  commands?: CommandConfig[];
 }
 
 /**
@@ -394,6 +397,7 @@ const MessageInputTextarea = ({
   placeholder = "What do you want to do?",
   staticMentionItems,
   mentionItemFetcher,
+  commands,
   ...props
 }: MessageInputTextareaProps) => {
   const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
@@ -416,6 +420,7 @@ const MessageInputTextarea = ({
         className="bg-background text-foreground"
         staticMentionItems={staticMentionItems}
         mentionItemFetcher={mentionItemFetcher}
+        commands={commands}
       />
     </div>
   );
@@ -790,3 +795,6 @@ export {
   MessageInputToolbar,
   messageInputVariants,
 };
+
+// Re-export types from text-editor for convenience
+export type { CommandConfig, ResourceItem };

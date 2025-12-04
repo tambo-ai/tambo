@@ -23,12 +23,14 @@ import {
 } from "@/components/ui/tambo/thread-content";
 import { ThreadDropdown } from "@/components/ui/tambo/thread-dropdown";
 import { registerAllTools } from "@/lib/tambo/tools/tool-registry";
+import { useMcpCommands } from "@/lib/tambo/use-mcp-commands";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import { api, useTRPCClient } from "@/trpc/react";
 import {
   useTambo,
   useTamboContextAttachment,
+  useTamboThreadInput,
   type Suggestion,
   type TamboThreadMessage,
 } from "@tambo-ai/react";
@@ -36,6 +38,7 @@ import type { Editor } from "@tiptap/react";
 import type { VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
+import * as React from "react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
 /**
@@ -194,7 +197,53 @@ export const MessageThreadPanel = forwardRef<
   } = useMessageThreadPanel();
   const { customSuggestions, setCustomSuggestions } =
     useTamboContextAttachment();
+  const { value: editorValue, setValue: setEditorValue } =
+    useTamboThreadInput();
   const editorRef = useRef<Editor | null>(null);
+
+  // Callbacks for MCP commands
+  const handleInsertResource = useCallback(
+    (resourceUri: string) => {
+      const editor = editorRef.current;
+      if (editor) {
+        // Insert the resource URI as a mention in the editor
+        editor
+          .chain()
+          .focus()
+          .insertContent([
+            {
+              type: "mention",
+              attrs: { id: resourceUri.slice(1), label: resourceUri.slice(1) },
+            },
+            { type: "text", text: " " },
+          ])
+          .run();
+        setEditorValue(editor.getText());
+      }
+    },
+    [setEditorValue],
+  );
+
+  const handleInsertPrompt = useCallback(
+    (promptText: string) => {
+      const editor = editorRef.current;
+      if (editor) {
+        // Replace entire content with prompt text
+        editor.commands.setContent(promptText);
+        setEditorValue(editor.getText());
+        // Focus at the end
+        editor.commands.focus("end");
+      }
+    },
+    [setEditorValue],
+  );
+
+  // Get MCP commands for the editor
+  const mcpCommands = useMcpCommands({
+    value: editorValue,
+    onInsertResource: handleInsertResource,
+    onInsertPrompt: handleInsertPrompt,
+  });
 
   // Sync local editorRef with provider's editorRef whenever it changes
   useEffect(() => {
@@ -359,7 +408,10 @@ export const MessageThreadPanel = forwardRef<
         <div className="p-4 flex-shrink-0">
           <MessageInput contextKey={contextKey} inputRef={editorRef}>
             <MessageInputContexts />
-            <MessageInputTextarea placeholder="Type your message or paste images..." />
+            <MessageInputTextarea
+              placeholder="Type your message or paste images..."
+              commands={mcpCommands}
+            />
             <MessageInputToolbar>
               <MessageInputFileButton />
               {/* Uncomment this to enable client-side MCP config modal button */}
