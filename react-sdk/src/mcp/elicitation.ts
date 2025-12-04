@@ -1,6 +1,6 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
-  ElicitRequestParams,
+  ElicitRequestFormParams,
   PrimitiveSchemaDefinition,
 } from "@modelcontextprotocol/sdk/spec.types.js";
 import type {
@@ -15,7 +15,8 @@ import { MCPElicitationHandler } from "./mcp-client";
 /**
  * Schema type for elicitation request fields
  */
-export type ElicitationRequestedSchema = ElicitRequestParams["requestedSchema"];
+export type ElicitationRequestedSchema =
+  ElicitRequestFormParams["requestedSchema"];
 
 /**
  * Elicitation request from MCP server
@@ -58,10 +59,11 @@ export interface ElicitationContextState {
  *
  * The MCP SDK guarantees that the runtime
  * `ElicitRequest["params"]["requestedSchema"]` shape stays aligned with the
- * spec-defined `ElicitRequestParams["requestedSchema"]`. This helper
+ * spec-defined `ElicitRequestFormParams["requestedSchema"]`. This helper
  * centralizes the cast based on that contract so that if a future SDK version
  * ever diverges, we have a single place to tighten the implementation (for
  * example with structural validation or normalization).
+ * @returns requestedSchema as ElicitationRequestedSchema
  */
 function toElicitationRequestedSchema(
   value: ElicitRequest["params"]["requestedSchema"],
