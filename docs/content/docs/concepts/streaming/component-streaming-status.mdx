@@ -16,7 +16,8 @@ function Note({ title, content, createdAt }) {
   const { streamStatus, propStatus } = useTamboStreamStatus();
 
   if (streamStatus.isPending) return <Skeleton />;
-  if (streamStatus.isError) return <div>Error: {streamStatus.streamError?.message}</div>;
+  if (streamStatus.isError)
+    return <div>Error: {streamStatus.streamError?.message}</div>;
 
   return (
     <div>
@@ -34,24 +35,24 @@ function Note({ title, content, createdAt }) {
 
 Tracks the overall state of the component:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `isPending` | `boolean` | No tokens received yet |
-| `isStreaming` | `boolean` | Active data transmission |
-| `isSuccess` | `boolean` | All props completed successfully |
-| `isError` | `boolean` | Fatal error occurred |
-| `streamError?` | `Error` | First error encountered |
+| Field          | Type      | Description                      |
+| -------------- | --------- | -------------------------------- |
+| `isPending`    | `boolean` | No tokens received yet           |
+| `isStreaming`  | `boolean` | Active data transmission         |
+| `isSuccess`    | `boolean` | All props completed successfully |
+| `isError`      | `boolean` | Fatal error occurred             |
+| `streamError?` | `Error`   | First error encountered          |
 
 ### `propStatus` (Per-Prop)
 
 Tracks individual prop streaming states. Access via `propStatus.propName`:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `isPending` | `boolean` | No tokens received for this prop |
-| `isStreaming` | `boolean` | Prop is actively streaming |
-| `isSuccess` | `boolean` | Prop finished successfully |
-| `error?` | `Error` | Error for this specific prop |
+| Field         | Type      | Description                      |
+| ------------- | --------- | -------------------------------- |
+| `isPending`   | `boolean` | No tokens received for this prop |
+| `isStreaming` | `boolean` | Prop is actively streaming       |
+| `isSuccess`   | `boolean` | Prop finished successfully       |
+| `error?`      | `Error`   | Error for this specific prop     |
 
 ## Type Safety
 
@@ -111,7 +112,9 @@ return (
   <div>
     {propStatus.title?.isSuccess && <h1>{title}</h1>}
     {propStatus.tags?.error && <p>Failed to load tags</p>}
-    {streamStatus.isError && <p>Generation failed: {streamStatus.streamError?.message}</p>}
+    {streamStatus.isError && (
+      <p>Generation failed: {streamStatus.streamError?.message}</p>
+    )}
   </div>
 );
 ```
@@ -119,6 +122,7 @@ return (
 ## When to Use
 
 **Use `useTamboStreamStatus` when:**
+
 - You need to show/hide content based on streaming progress
 - Different props have different loading times
 - You want fine-grained error handling per prop

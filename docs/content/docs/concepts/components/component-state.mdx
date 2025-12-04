@@ -94,7 +94,11 @@ streaming:
 ```tsx
 import { useTamboComponentState, useTamboStreamStatus } from "@tambo-ai/react";
 
-export const EmailSender = ({ initialEmailBody }: { initialEmailBody: string }) => {
+export const EmailSender = ({
+  initialEmailBody,
+}: {
+  initialEmailBody: string;
+}) => {
   const { streamStatus } = useTamboStreamStatus();
 
   // Seed state from prop, user edits take precedence after streaming

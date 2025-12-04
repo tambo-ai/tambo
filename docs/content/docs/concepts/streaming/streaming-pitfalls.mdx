@@ -33,7 +33,10 @@ function MyComponent({ title, items }: Props) {
   return (
     <div>
       <h1>{title}</h1> {/* May show nothing or partial text */}
-      {items.map((item) => <Item key={item.id} {...item} />)} {/* Crashes if items undefined */}
+      {items.map((item) => (
+        <Item key={item.id} {...item} />
+      ))}{" "}
+      {/* Crashes if items undefined */}
     </div>
   );
 }
@@ -377,7 +380,9 @@ function SearchComponent({ query }: Props) {
       {propStatus.query?.isSuccess && (
         <>
           <p>Searching for: {query}</p>
-          {results.map((r) => <Result key={r.id} {...r} />)}
+          {results.map((r) => (
+            <Result key={r.id} {...r} />
+          ))}
         </>
       )}
     </div>

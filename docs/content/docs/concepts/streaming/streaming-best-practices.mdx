@@ -295,8 +295,7 @@ export const ApiConfig: TamboComponent<ApiConfigProps> = {
     serviceName,
     instructions,
   }: ApiConfigProps) {
-    const { streamStatus, propStatus } =
-      useTamboStreamStatus<ApiConfigProps>();
+    const { streamStatus, propStatus } = useTamboStreamStatus<ApiConfigProps>();
 
     // Visible to AI - helps with follow-up questions
     const [config, setConfig] = useTamboComponentState("apiConfig", {
@@ -366,12 +365,12 @@ async function saveApiKey(service: string, key: string): Promise<void> {
 
 ## Summary
 
-| Pattern | Schema | `useTamboComponentState` | `useState` |
-|---------|--------|--------------------------|------------|
-| Read-only | All props | — | — |
-| AI → Editable | Initial values | User's edited values | — |
-| AI options + selection | Options | Selected indices | — |
-| Sensitive data | Display content | Non-sensitive state | Passwords, keys |
+| Pattern                | Schema          | `useTamboComponentState` | `useState`      |
+| ---------------------- | --------------- | ------------------------ | --------------- |
+| Read-only              | All props       | —                        | —               |
+| AI → Editable          | Initial values  | User's edited values     | —               |
+| AI options + selection | Options         | Selected indices         | —               |
+| Sensitive data         | Display content | Non-sensitive state      | Passwords, keys |
 
 **Key principles:**
 
