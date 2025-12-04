@@ -26,6 +26,9 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   getInteractableComponent: () => undefined,
   getInteractableComponentsByName: () => [],
   clearAllInteractableComponents: () => {},
+  getInteractableState: () => ({}),
+  setInteractableState: () => {},
+  getInteractableComponentState: () => undefined,
 });
 
 /**
@@ -42,6 +45,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const [interactableComponents, setInteractableComponents] = useState<
     TamboInteractableComponent[]
   >([]);
+  // State is keyed by componentId, then by state key name
+  const [interactableState, setInteractableState] = useState<
+    Record<string, Record<string, unknown>>
+  >({});
   const { registerTool } = useTamboComponent();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
@@ -280,6 +287,11 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
   const removeInteractableComponent = useCallback((id: string) => {
     setInteractableComponents((prev) => prev.filter((c) => c.id !== id));
+    // Clean up state when component is removed
+    setInteractableState((prev) => {
+      const { [id]: _, ...rest } = prev;
+      return rest;
+    });
   }, []);
 
   const getInteractableComponent = useCallback(
@@ -298,7 +310,40 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
   const clearAllInteractableComponents = useCallback(() => {
     setInteractableComponents([]);
+    setInteractableState({});
   }, []);
+
+  const setInteractableStateValue = useCallback(
+    (componentId: string, key: string, value: unknown) => {
+      setInteractableState((prev) => ({
+        ...prev,
+        [componentId]: {
+          ...prev[componentId],
+          [key]: value,
+        },
+      }));
+    },
+    [],
+  );
+
+  const getInteractableComponentState = useCallback(
+    (componentId: string) => {
+      return interactableState[componentId];
+    },
+    [interactableState],
+  );
+
+  const getInteractableState = useCallback(() => {
+    // Flatten the nested structure for sending to Tambo
+    const flattened: Record<string, unknown> = {};
+    for (const [componentId, state] of Object.entries(interactableState)) {
+      for (const [key, value] of Object.entries(state)) {
+        // Use componentId:key as the flattened key to avoid collisions
+        flattened[`${componentId}:${key}`] = value;
+      }
+    }
+    return flattened;
+  }, [interactableState]);
 
   const value: TamboInteractableContext = {
     interactableComponents,
@@ -308,6 +353,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     getInteractableComponent,
     getInteractableComponentsByName,
     clearAllInteractableComponents,
+    getInteractableState,
+    setInteractableState: setInteractableStateValue,
+    getInteractableComponentState,
   };
 
   return (

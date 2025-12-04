@@ -31,4 +31,16 @@ export interface TamboInteractableContext {
   ) => TamboInteractableComponent[];
   /** Clear all interactable components */
   clearAllInteractableComponents: () => void;
+  /** Get all interactable state (flattened for sending to Tambo) */
+  getInteractableState: () => Record<string, unknown>;
+  /** Set state for a specific interactable component */
+  setInteractableState: (
+    componentId: string,
+    key: string,
+    value: unknown,
+  ) => void;
+  /** Get state for a specific interactable component */
+  getInteractableComponentState: (
+    componentId: string,
+  ) => Record<string, unknown> | undefined;
 }

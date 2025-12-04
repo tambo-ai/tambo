@@ -1,8 +1,16 @@
-// react-sdk/src/providers/with-interactable.tsx
+// react-sdk/src/providers/hoc/with-tambo-interactable.tsx
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { z } from "zod";
 import { useTamboInteractable } from "../tambo-interactable-provider";
+
+export const InteractableIdContext = createContext<string | null>(null);
 
 export interface InteractableConfig {
   componentName: string;
@@ -110,7 +118,11 @@ export function withTamboInteractable<P extends object>(
       onPropsUpdate,
     ]);
 
-    return <WrappedComponent {...(effectiveProps as P)} />;
+    return (
+      <InteractableIdContext.Provider value={interactableId}>
+        <WrappedComponent {...(effectiveProps as P)} />
+      </InteractableIdContext.Provider>
+    );
   };
 
   TamboInteractableWrapper.displayName = `withTamboInteractable(${displayName})`;
