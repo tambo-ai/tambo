@@ -47,8 +47,7 @@ export function createMcpHandlers(
       // TODO: add messages in a batch
       const savedMessages: ThreadMessage[] = [];
       for (const m of messages) {
-        const message = await operations.addMessage(db, {
-          threadId,
+        const message = await operations.addMessage(db, threadId, {
           role: m.role as MessageRole,
           content: m.content,
           parentMessageId,
@@ -91,8 +90,7 @@ export function createMcpHandlers(
         messages: messagesForLLM,
       });
 
-      const message = await operations.addMessage(db, {
-        threadId,
+      const message = await operations.addMessage(db, threadId, {
         role: response.message.role as MessageRole,
         content: [
           {
