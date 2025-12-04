@@ -284,7 +284,12 @@ The Tambo client instance for direct API access.
 
 This hook is similar to React's `useState`, but allows Tambo to see the state values to help respond to later messages.
 
-`const [myValue, setMyValue] = useTamboComponentState()`
+`const [myValue, setMyValue] = useTamboComponentState(keyName, initialValue, setFromProp)`
+
+For streaming components, use the third parameter (`setFromProp`) to seed
+editable state from AI-generated props. Combined with `useTamboStreamStatus`,
+this lets you disable inputs while streaming and hand control to the user once
+complete. See [Streaming Best Practices](/concepts/streaming/streaming-best-practices).
 
 ### value and setValue
 

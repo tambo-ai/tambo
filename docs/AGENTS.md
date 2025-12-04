@@ -351,6 +351,14 @@ When adding custom components:
 
 ## Important Development Rules
 
+### Page Management
+
+Never delete doc pages that exist on main. This breaks external links.
+
+Instead, remove the page from `meta.json` (delists from nav) and replace content with pointers to the new/better pages. Old URLs keep working, users find current content.
+
+### General Rules
+
 - All components must be SSR compatible
 - Maintain frontmatter for all MDX files
 - Keep meta.json navigation updated
