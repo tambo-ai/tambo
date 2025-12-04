@@ -39,7 +39,7 @@ jobs:
         run: npm run lint
 
       - name: Run Tests
-        run: npm run test
+        run: turbo test -- --coverage
 
       - name: Build
         run: npm run build
