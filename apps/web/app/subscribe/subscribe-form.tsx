@@ -7,7 +7,7 @@ import {
   useTamboComponentState,
   useTamboStreamingProps,
 } from "@tambo-ai/react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 // Schema with descriptions to help Tambo understand the component
 export const SubscribeFormProps = z.object({
