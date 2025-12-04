@@ -135,6 +135,20 @@ type McpContent = Parameters<
 // Single content item type (for when content is not an array)
 type McpContentItem = Exclude<McpContent, readonly unknown[]>;
 
+function isMcpContentItem(value: unknown): value is McpContentItem {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  if (!("type" in value)) {
+    return false;
+  }
+
+  const { type } = value as { type?: unknown };
+
+  return typeof type === "string";
+}
+
 function mcpContentItemToContentPart(
   content: McpContentItem,
 ): ChatCompletionContentPart {
@@ -195,7 +209,24 @@ function mcpContentToContentPart(
     if (content.length === 0) {
       return { type: ContentPartType.Text, text: "" };
     }
-    return mcpContentItemToContentPart(content[0] as McpContentItem);
+    if (content.length > 1) {
+      console.warn(
+        `[MCP content] Received multi-item content array (length=${content.length}); only the first item will be used.`,
+      );
+    }
+
+    const first = content[0];
+    if (!isMcpContentItem(first)) {
+      console.warn("Unexpected MCP content array element", first);
+      return { type: ContentPartType.Text, text: "" };
+    }
+
+    return mcpContentItemToContentPart(first);
   }
+  if (!isMcpContentItem(content)) {
+    console.warn("Unexpected MCP content value", content);
+    return { type: ContentPartType.Text, text: "" };
+  }
+
   return mcpContentItemToContentPart(content);
 }
