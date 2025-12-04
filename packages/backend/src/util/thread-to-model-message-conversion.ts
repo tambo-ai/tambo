@@ -76,8 +76,10 @@ export function threadMessagesToModelMessages(
         break;
       }
       default: {
+        // Exhaustiveness check - TypeScript will error if we miss a case
+        const _exhaustive: never = message;
         throw new Error(
-          `Unknown message role: ${message.role satisfies never}`,
+          `Unknown message role: ${(_exhaustive as ThreadMessage).role}`,
         );
       }
     }

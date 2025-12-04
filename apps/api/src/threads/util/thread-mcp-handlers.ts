@@ -9,7 +9,7 @@ import {
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
 import type { HydraDb } from "@tambo-ai-cloud/db";
-import { operations } from "@tambo-ai-cloud/db";
+import { dbMessageToThreadMessage, operations } from "@tambo-ai-cloud/db";
 import mimeTypes from "mime-types";
 import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
 import { AudioFormat } from "../dto/message.dto";
@@ -54,23 +54,8 @@ export function createMcpHandlers(
           parentMessageId,
         });
 
-        // Convert DB message (with null fields) to ThreadMessage (with undefined fields)
-        const threadMessage: ThreadMessage = {
-          ...message,
-          parentMessageId: message.parentMessageId ?? undefined,
-          component: message.componentDecision ?? undefined,
-          componentState: message.componentState ?? {},
-          additionalContext: message.additionalContext ?? {},
-          actionType: message.actionType ?? undefined,
-          error: message.error ?? undefined,
-          metadata: message.metadata ?? undefined,
-          tool_call_id: message.toolCallId ?? undefined,
-          toolCallRequest: message.toolCallRequest ?? undefined,
-          reasoning: message.reasoning ?? undefined,
-          reasoningDurationMS: message.reasoningDurationMS ?? undefined,
-        };
-
-        savedMessages.push(threadMessage);
+        // Convert DBMessage to ThreadMessage (field name mapping)
+        savedMessages.push(dbMessageToThreadMessage(message));
 
         queue.push({
           responseMessageDto: {

@@ -15,6 +15,7 @@ export * from "./strictness/json-schema";
 export * from "./strictness/tool-call-strict";
 export * from "./templates";
 export * from "./threads";
+export * from "./thread-message-validation";
 export * from "./tools";
 export type * from "./typeutils";
 // Auth helpers

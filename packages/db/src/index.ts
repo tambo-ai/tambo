@@ -78,4 +78,5 @@ async function closeDb() {
 
 export * from "./oauth/OAuthLocalProvider";
 export * from "./types";
+export * from "./converters/message-converters";
 export { closeDb, getDb, operations, schema }; // `withDbClient` exported above
