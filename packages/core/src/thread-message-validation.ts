@@ -10,28 +10,24 @@ import {
   UnsavedThreadSystemMessage,
   UnsavedThreadAssistantMessage,
   UnsavedThreadToolMessage,
-  ChatCompletionContentPart,
 } from "./threads";
 
-type LooseThreadMessage = {
-  id: string;
-  threadId: string;
-  role: MessageRole;
-  content: ChatCompletionContentPart[];
-  parentMessageId?: string;
+/**
+ * Loosens a strictly-typed message for validation.
+ * Allows component and toolCallRequest to be any type for external input.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Loosen<T extends { component?: any; toolCallRequest?: any }> = Omit<
+  T,
+  "component" | "toolCallRequest"
+> & {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component?: any;
-  componentState?: Record<string, unknown>;
-  additionalContext?: Record<string, unknown>;
-  error?: string;
-  metadata?: Record<string, unknown>;
-  isCancelled?: boolean;
-  createdAt: Date;
-  actionType?: any;
-  tool_call_id?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   toolCallRequest?: any;
-  reasoning?: string[];
-  reasoningDurationMS?: number;
 };
+
+type LooseThreadMessage = Loosen<ThreadMessage>;
 
 /**
  * Validates and converts a loosely-typed message object to a properly-typed ThreadMessage.
@@ -82,23 +78,7 @@ export function validateThreadMessage(msg: LooseThreadMessage): ThreadMessage {
   throw new Error(`Unknown message role: ${msg.role}`);
 }
 
-type LooseUnsavedThreadMessage = {
-  role: MessageRole;
-  content: ChatCompletionContentPart[];
-  parentMessageId?: string;
-  component?: any;
-  componentState?: Record<string, unknown>;
-  additionalContext?: Record<string, unknown>;
-  error?: string;
-  metadata?: Record<string, unknown>;
-  isCancelled?: boolean;
-  createdAt: Date;
-  actionType?: any;
-  tool_call_id?: string;
-  toolCallRequest?: any;
-  reasoning?: string[];
-  reasoningDurationMS?: number;
-};
+type LooseUnsavedThreadMessage = Loosen<UnsavedThreadMessage>;
 
 /**
  * Validates and converts a loosely-typed unsaved message object to a properly-typed UnsavedThreadMessage.
