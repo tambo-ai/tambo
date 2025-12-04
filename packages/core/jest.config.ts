@@ -17,6 +17,12 @@ const config: JestConfigWithTsJest = {
     ],
   },
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
+  coverageThreshold: {
+    global: {
+      branches: 82,
+      lines: 82,
+    },
+  },
 };
 
 export default config;
