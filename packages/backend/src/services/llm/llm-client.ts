@@ -1,7 +1,7 @@
 import { ThreadMessage } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
-import { ZodObject, ZodRawShape } from "zod";
+import { ZodObject, ZodRawShape } from "zod/v3";
 
 interface BaseResponseFormat {
   jsonMode?: boolean;

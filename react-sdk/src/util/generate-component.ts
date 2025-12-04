@@ -1,7 +1,7 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { parse } from "partial-json";
 import React from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { wrapWithTamboMessageProvider } from "../hooks/use-current-message";
 import { ComponentRegistry } from "../model/component-metadata";
 import { TamboThreadMessage } from "../model/generate-component-response";
