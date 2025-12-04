@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export const CreateSlackChannelSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),

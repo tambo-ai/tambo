@@ -7,7 +7,7 @@ import {
   updateMcpServerInput,
 } from "@/lib/schemas/mcp";
 import { MCPTransport } from "@tambo-ai-cloud/core";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { invalidateMcpServersCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 

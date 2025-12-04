@@ -64,7 +64,7 @@ import {
   max,
   sql,
 } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 // Helper function to get date filter based on period
 function getDateFilter(period: string): Date | null {

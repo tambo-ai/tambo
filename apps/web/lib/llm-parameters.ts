@@ -1,5 +1,5 @@
 import type { CustomLlmParameters, JSONValue } from "@tambo-ai-cloud/core";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Recursive Zod schema for JSONValue type.

@@ -17,7 +17,7 @@ import type { Suggestion } from "@tambo-ai/react";
 import { withInteractable } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 const COMPONENT_NAME = "ToolCallLimit";
 

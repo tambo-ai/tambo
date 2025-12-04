@@ -1,6 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { operations } from "@tambo-ai-cloud/db";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export const threadRouter = createTRPCRouter({
   getThreads: protectedProcedure

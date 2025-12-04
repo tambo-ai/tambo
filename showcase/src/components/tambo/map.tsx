@@ -37,7 +37,7 @@ import {
   Tooltip,
   useMapEvents,
 } from "react-leaflet";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Props interface for MarkerClusterGroup component

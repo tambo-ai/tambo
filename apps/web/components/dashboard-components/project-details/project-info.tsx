@@ -4,7 +4,7 @@ import { type RouterOutputs, api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { FREE_MESSAGE_LIMIT } from "./provider-key-section";
 
 export const ProjectInfoSchema = z.object({

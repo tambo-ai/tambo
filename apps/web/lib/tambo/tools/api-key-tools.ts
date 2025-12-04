@@ -1,5 +1,5 @@
 import { apiKeySchema, getApiKeysInput } from "@/lib/schemas/api-key";
-import { z } from "zod";
+import { z } from "zod/v3";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**

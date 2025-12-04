@@ -28,7 +28,7 @@ import type { TamboComponent } from "@tambo-ai/react";
  * Example of adding a component:
  * 
  * \`\`\`typescript
- * import { z } from "zod";
+ * import { z } from "zod/v4";
  * import { CustomChart } from "../components/ui/custom-chart";
  * 
  * // Define and add your component
