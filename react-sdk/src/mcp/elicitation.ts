@@ -1,5 +1,9 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
+  ElicitRequestFormParams,
+  PrimitiveSchemaDefinition,
+} from "@modelcontextprotocol/sdk/spec.types.js";
+import type {
   ClientNotification,
   ClientRequest,
   ElicitRequest,
@@ -9,14 +13,25 @@ import { useCallback, useState } from "react";
 import { MCPElicitationHandler } from "./mcp-client";
 
 /**
+ * Schema type for elicitation request fields
+ */
+export type ElicitationRequestedSchema =
+  ElicitRequestFormParams["requestedSchema"];
+
+/**
  * Elicitation request from MCP server
  */
 export interface TamboElicitationRequest {
   message: string;
-  requestedSchema: ElicitRequest["params"]["requestedSchema"];
+  requestedSchema: ElicitationRequestedSchema;
   /** AbortSignal that fires when the server cancels the request (e.g., timeout) */
   signal?: AbortSignal;
 }
+
+/**
+ * Re-export PrimitiveSchemaDefinition for consumers that need to work with schema fields
+ */
+export type { PrimitiveSchemaDefinition };
 
 /**
  * Elicitation response to be sent back
@@ -59,9 +74,12 @@ export function useElicitation() {
     ): Promise<ElicitResult> => {
       return await new Promise<ElicitResult>((resolve, reject) => {
         // Set the elicitation request to show the UI
+        // Cast is needed because ElicitRequest uses Zod v4 inferred types while
+        // we use the pure TypeScript spec types for the public interface
         setElicitation({
           message: request.params.message,
-          requestedSchema: request.params.requestedSchema,
+          requestedSchema: request.params
+            .requestedSchema as ElicitationRequestedSchema,
           signal: extra.signal,
         });
 

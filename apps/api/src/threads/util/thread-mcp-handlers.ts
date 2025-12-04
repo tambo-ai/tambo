@@ -131,8 +131,12 @@ export function createMcpHandlers(
 type McpContent = Parameters<
   MCPHandlers["sampling"]
 >[0]["params"]["messages"][0]["content"];
-function mcpContentToContentPart(
-  content: McpContent,
+
+// Single content item type (for when content is not an array)
+type McpContentItem = Exclude<McpContent, readonly unknown[]>;
+
+function mcpContentItemToContentPart(
+  content: McpContentItem,
 ): ChatCompletionContentPart {
   switch (content.type) {
     case "text":
@@ -171,10 +175,27 @@ function mcpContentToContentPart(
     default:
       // content is `never` at this point, but we don't want to fully break
       // the app, so we just return a text content part with a warning
-      console.warn(`Unknown content type: ${String((content as any)?.type)}`);
+      console.warn(
+        `Unknown content type: ${String((content as { type?: unknown })?.type)}`,
+      );
       return {
         type: ContentPartType.Text,
-        text: `[Unsupported content type: ${String((content as any)?.type)}]`,
+        text: `[Unsupported content type: ${String((content as { type?: unknown })?.type)}]`,
       };
   }
+}
+
+function mcpContentToContentPart(
+  content: McpContent,
+): ChatCompletionContentPart {
+  // MCP SDK 1.24+ allows content to be either a single item or an array
+  if (Array.isArray(content)) {
+    // For arrays, we take the first item (most common case is single-item arrays)
+    // TODO: Support multi-item content arrays if needed
+    if (content.length === 0) {
+      return { type: ContentPartType.Text, text: "" };
+    }
+    return mcpContentItemToContentPart(content[0] as McpContentItem);
+  }
+  return mcpContentItemToContentPart(content);
 }

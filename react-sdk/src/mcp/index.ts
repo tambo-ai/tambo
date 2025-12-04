@@ -5,6 +5,8 @@ export type {
   MCPSamplingHandler,
 } from "./mcp-client";
 export type {
+  ElicitationRequestedSchema,
+  PrimitiveSchemaDefinition,
   TamboElicitationRequest,
   TamboElicitationResponse,
 } from "./elicitation";
