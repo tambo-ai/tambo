@@ -14,7 +14,7 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
  * user edits take precedence over the original prop value.
  *
  * Pair with `useTamboStreamStatus` to disable inputs while streaming.
- * @see https://docs.tambo.co/concepts/streaming/streaming-best-practices
+ * @see {@link https://docs.tambo.co/concepts/streaming/streaming-best-practices}
  * @param keyName - Unique key within the message's componentState
  * @param initialValue - Default value if no componentState exists
  * @param setFromProp - Seeds state from props (updates during streaming, then user edits take over)

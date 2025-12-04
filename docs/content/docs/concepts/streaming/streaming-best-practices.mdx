@@ -107,24 +107,35 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
     const { streamStatus, propStatus } =
       useTamboStreamStatus<EmailComposerProps>();
 
-    // State seeds from props once streaming completes
-    // After that, user edits take precedence
+    // Seed state from props as they stream in
+    // Once user edits, their changes take precedence
     const [draft, setDraft] = useTamboComponentState<EmailDraft>(
       "emailDraft",
       { to: "", subject: "", body: "" },
-      subject && body ? { to: "", subject, body } : undefined,
+      { to: "", subject: subject ?? "", body: body ?? "" },
     );
 
     const isStreaming = streamStatus.isStreaming;
 
     function handleChange(field: keyof EmailDraft) {
       return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setDraft((prev) => ({ ...prev, [field]: e.target.value }));
+        const value = e.target.value;
+        setDraft((prev) => ({ ...prev, [field]: value }));
       };
     }
 
+    async function handleSubmit(e: React.FormEvent) {
+      e.preventDefault();
+      try {
+        // Send draft to your backend
+        await sendEmail(draft);
+      } catch (err) {
+        console.error("Failed to send:", err);
+      }
+    }
+
     return (
-      <form aria-busy={isStreaming}>
+      <form aria-busy={isStreaming} onSubmit={handleSubmit}>
         <label>
           To
           <input
@@ -167,6 +178,13 @@ export const EmailComposer: TamboComponent<EmailComposerProps> = {
     );
   },
 };
+```
+
+```tsx
+// Placeholder - implement your own email sending
+async function sendEmail(draft: EmailDraft): Promise<void> {
+  // Send to your backend API
+}
 ```
 
 ---
