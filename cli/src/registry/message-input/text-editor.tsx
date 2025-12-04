@@ -181,18 +181,12 @@ function useCombinedResourceProvider(
  */
 function useCombinedPromptProvider(
   externalProvider: PromptProvider | undefined,
-  editorValue: string,
 ): PromptProvider {
   const { data: mcpPrompts } = useTamboMcpPromptList();
 
   return React.useMemo<PromptProvider>(
     () => ({
       search: async (query: string): Promise<PromptItem[]> => {
-        // Only show prompts when editor is empty
-        if (editorValue.trim().length > 0) {
-          return [];
-        }
-
         try {
           // Get MCP prompts (mark with mcp-prompt: prefix so we know to handle them specially)
           const mcpItems: PromptItem[] = mcpPrompts
@@ -238,7 +232,7 @@ function useCombinedPromptProvider(
         throw new Error(`Prompt not found: ${id}`);
       },
     }),
-    [mcpPrompts, externalProvider, editorValue],
+    [mcpPrompts, externalProvider],
   );
 }
 
@@ -641,8 +635,13 @@ function createPromptCommandExtension(
         Suggestion({
           editor: this.editor,
           char: "/",
-          items: async ({ query }) => {
+          items: async ({ query, editor }) => {
             try {
+              // Only show prompts when editor is empty (except for the "/" char)
+              const editorValue = editor.getText().replace("/", "").trim();
+              if (editorValue.length > 0) {
+                return [];
+              }
               return await provider.search(query);
             } catch (error) {
               console.error("Failed to fetch prompts", error);
@@ -734,10 +733,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
     // Get combined providers (MCP + external)
     const combinedResourceProvider =
       useCombinedResourceProvider(resourceProvider);
-    const combinedPromptProvider = useCombinedPromptProvider(
-      promptProvider,
-      value,
-    );
+    const combinedPromptProvider = useCombinedPromptProvider(promptProvider);
 
     // State for MCP prompt fetching (since we can't call hooks inside get())
     const [selectedMcpPromptName, setSelectedMcpPromptName] = React.useState<
@@ -798,6 +794,41 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
     const resourceMenuOpenRef = React.useRef<boolean>(false);
     const promptMenuOpenRef = React.useRef<boolean>(false);
 
+    // Use refs to hold the latest provider functions so the TipTap extensions
+    // always access the current data even when MCP resources/prompts load async
+    const resourceProviderRef = React.useRef<ResourceProvider>(
+      combinedResourceProvider,
+    );
+    const promptProviderRef = React.useRef<PromptProvider>(
+      combinedPromptProvider,
+    );
+
+    React.useEffect(() => {
+      resourceProviderRef.current = combinedResourceProvider;
+    }, [combinedResourceProvider]);
+
+    React.useEffect(() => {
+      promptProviderRef.current = combinedPromptProvider;
+    }, [combinedPromptProvider]);
+
+    // Create stable provider wrappers that always use the latest ref values
+    const stableResourceProvider = React.useMemo<ResourceProvider>(
+      () => ({
+        search: async (query: string) =>
+          await resourceProviderRef.current.search(query),
+      }),
+      [],
+    );
+
+    const stablePromptProvider = React.useMemo<PromptProvider>(
+      () => ({
+        search: async (query: string) =>
+          await promptProviderRef.current.search(query),
+        get: async (id: string) => await promptProviderRef.current.get(id),
+      }),
+      [],
+    );
+
     // Handle resource selection
     const handleResourceSelect = React.useCallback(
       (item: ResourceItem) => {
@@ -818,7 +849,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         } else {
           // External prompt - fetch and insert the text
           try {
-            const fullPrompt = await combinedPromptProvider.get(item.id);
+            const fullPrompt = await promptProviderRef.current.get(item.id);
             const editor = editorRef?.current;
             if (editor) {
               editor.commands.setContent(fullPrompt.text);
@@ -833,7 +864,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           }
         }
       },
-      [combinedPromptProvider, editorRef, onChange, onPromptSelect],
+      [editorRef, onChange, onPromptSelect],
     );
 
     // Handle Enter key to submit message when onSubmit is provided
@@ -862,10 +893,11 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         Text,
         Placeholder.configure({ placeholder }),
         // Always register the "@" mention extension for resources
+        // Use stable provider that always accesses latest data via ref
         Mention.configure({
           HTMLAttributes: { class: "mention resource" },
           suggestion: createResourceMentionConfig(
-            combinedResourceProvider,
+            stableResourceProvider,
             handleResourceSelect,
             resourceMenuOpenRef,
           ),
@@ -873,8 +905,9 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           renderText: ({ node }) => `@${(node.attrs.label as string) ?? ""}`,
         }),
         // Always register the "/" command extension for prompts
+        // Use stable provider that always accesses latest data via ref
         createPromptCommandExtension(
-          combinedPromptProvider,
+          stablePromptProvider,
           handlePromptSelect,
           promptMenuOpenRef,
         ),
