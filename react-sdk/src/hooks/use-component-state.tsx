@@ -19,6 +19,7 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
  * @param initialValue - Default value if no componentState exists
  * @param setFromProp - Seeds state from props (updates during streaming, then user edits take over)
  * @param debounceTime - Server sync debounce in ms (default: 500)
+ * @returns A tuple of [currentState, setState] similar to React's useState
  */
 export function useTamboComponentState<S = undefined>(
   keyName: string,
