@@ -2,7 +2,7 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
-import { MessageThreadPanel } from "@/components/tambo/message-thread-panel";
+import { MessageThreadPanelWithMcp } from "@/components/tambo/message-thread-panel-with-mcp";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
@@ -43,7 +43,7 @@ export default function MessageThreadPanelPage() {
                       <div className="h-32 bg-muted/80 rounded-lg" />
                     </div>
                   </div>
-                  <MessageThreadPanel
+                  <MessageThreadPanelWithMcp
                     contextKey={userContextKey}
                     className="right rounded-r-lg"
                     style={{ height: "100%", width: "60%" }}
