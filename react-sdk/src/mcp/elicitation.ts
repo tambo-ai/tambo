@@ -92,8 +92,9 @@ export function useElicitation() {
     ): Promise<ElicitResult> => {
       return await new Promise<ElicitResult>((resolve, reject) => {
         // Set the elicitation request to show the UI
-        // Cast is needed because ElicitRequest uses Zod v4 inferred types while
-        // we use the pure TypeScript spec types for the public interface
+        // Cast is needed because ElicitRequest uses Zod-inferred types (from the
+        // user's installed zod version), while we use pure TypeScript spec types
+        // for cross-version compatibility
         setElicitation({
           message: request.params.message,
           requestedSchema: toElicitationRequestedSchema(
