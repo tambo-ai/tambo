@@ -20,8 +20,10 @@ import {
 import type { Editor } from "@tiptap/react";
 import {
   TextEditor,
-  type CommandConfig,
   type ResourceItem,
+  type ResourceProvider,
+  type PromptProvider,
+  type PromptItem,
 } from "./text-editor";
 import {
   useTamboElicitationContext,
@@ -431,12 +433,10 @@ declare global {
 export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Custom placeholder text. */
   placeholder?: string;
-  /** Static mention items to include in @ suggestions. */
-  staticMentionItems?: ResourceItem[];
-  /** Async fetcher to load mention items (e.g., MCP resources). */
-  mentionItemFetcher?: (query: string) => Promise<ResourceItem[]>;
-  /** Command configurations for @ mentions and / commands. */
-  commands?: CommandConfig[];
+  /** Resource provider for @ mentions (optional - includes interactables by default) */
+  resourceProvider?: ResourceProvider;
+  /** Prompt provider for / commands (optional) */
+  promptProvider?: PromptProvider;
 }
 
 /**
@@ -451,7 +451,12 @@ export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivE
  * <MessageInput>
  *   <MessageInput.Textarea
  *     placeholder="Type your message..."
- *     staticMentionItems={[{ id: "foo", name: "Foo" }]}
+ *     resourceProvider={{
+ *       search: async (query) => {
+ *         // Return custom resources
+ *         return [{ id: "foo", name: "Foo" }];
+ *       }
+ *     }}
  *   />
  * </MessageInput>
  * ```
@@ -459,9 +464,8 @@ export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivE
 const MessageInputTextarea = ({
   className,
   placeholder = "What do you want to do?",
-  staticMentionItems,
-  mentionItemFetcher,
-  commands,
+  resourceProvider,
+  promptProvider,
   ...props
 }: MessageInputTextareaProps) => {
   const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
@@ -482,9 +486,8 @@ const MessageInputTextarea = ({
         disabled={!isIdle || isUpdatingToken}
         editorRef={editorRef}
         className="bg-background text-foreground"
-        staticMentionItems={staticMentionItems}
-        mentionItemFetcher={mentionItemFetcher}
-        commands={commands}
+        resourceProvider={resourceProvider}
+        promptProvider={promptProvider}
       />
     </div>
   );
@@ -1191,4 +1194,4 @@ export {
 };
 
 // Re-export types from text-editor for convenience
-export type { CommandConfig, ResourceItem };
+export type { ResourceItem, ResourceProvider, PromptProvider, PromptItem };

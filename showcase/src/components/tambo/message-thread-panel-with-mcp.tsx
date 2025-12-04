@@ -1,47 +1,46 @@
 "use client";
 
-import * as React from "react";
-import { useCallback, useRef } from "react";
-import type { Editor } from "@tiptap/react";
-import { useTamboThreadInput } from "@tambo-ai/react";
-import { useMcpCommands } from "@/lib/use-mcp-commands";
+import type { messageVariants } from "@/components/tambo/message";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@/components/tambo/message-suggestions";
-import {
-  ThreadHistory,
-  ThreadHistoryHeader,
-  ThreadHistoryNewButton,
-  ThreadHistorySearch,
-  ThreadHistoryList,
-} from "@/components/tambo/thread-history";
+import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/tambo/thread-content";
-import type { messageVariants } from "@/components/tambo/message";
-import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
-import { cn } from "@/lib/utils";
 import {
-  useMergeRefs,
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+} from "@/components/tambo/thread-history";
+import {
   useCanvasDetection,
+  useMergeRefs,
   usePositioning,
 } from "@/lib/thread-hooks";
+import { cn } from "@/lib/utils";
+import { useTamboThreadInput } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
+import * as React from "react";
+import { useRef } from "react";
 
 /**
  * Message Thread Panel with MCP commands integration.
- * This is a wrapper around MessageThreadPanel that adds MCP resource and prompt commands.
+ * This component demonstrates how MCP resources and prompts are automatically
+ * integrated into the text editor via the built-in MCP provider system.
  */
 export const MessageThreadPanelWithMcp = React.forwardRef<
   HTMLDivElement,
@@ -50,53 +49,8 @@ export const MessageThreadPanelWithMcp = React.forwardRef<
     variant?: VariantProps<typeof messageVariants>["variant"];
   }
 >(({ className, variant, contextKey, ...props }, forwardedRef) => {
-  const { value: editorValue, setValue: setEditorValue } =
-    useTamboThreadInput();
-  const editorRef = useRef<Editor | null>(null);
-
-  // Callbacks for MCP commands
-  const handleInsertResource = useCallback(
-    (resourceUri: string) => {
-      const editor = editorRef.current;
-      if (editor) {
-        // Insert the resource URI as a mention in the editor
-        editor
-          .chain()
-          .focus()
-          .insertContent([
-            {
-              type: "mention",
-              attrs: { id: resourceUri.slice(1), label: resourceUri.slice(1) },
-            },
-            { type: "text", text: " " },
-          ])
-          .run();
-        setEditorValue(editor.getText());
-      }
-    },
-    [setEditorValue],
-  );
-
-  const handleInsertPrompt = useCallback(
-    (promptText: string) => {
-      const editor = editorRef.current;
-      if (editor) {
-        // Replace entire content with prompt text
-        editor.commands.setContent(promptText);
-        setEditorValue(editor.getText());
-        // Focus at the end
-        editor.commands.focus("end");
-      }
-    },
-    [setEditorValue],
-  );
-
-  // Get MCP commands for the editor
-  const mcpCommands = useMcpCommands({
-    value: editorValue,
-    onInsertResource: handleInsertResource,
-    onInsertPrompt: handleInsertPrompt,
-  });
+  useTamboThreadInput(); // Keep for dependency tracking
+  const editorRef = useRef(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const refs = useMergeRefs(forwardedRef, containerRef);
@@ -216,10 +170,7 @@ export const MessageThreadPanelWithMcp = React.forwardRef<
 
       <div className="p-4">
         <MessageInput contextKey={contextKey} inputRef={editorRef}>
-          <MessageInputTextarea
-            placeholder="Type your message or paste images..."
-            commands={mcpCommands}
-          />
+          <MessageInputTextarea placeholder="Type your message or paste images..." />
           <MessageInputToolbar>
             <MessageInputFileButton />
             <MessageInputSubmitButton />

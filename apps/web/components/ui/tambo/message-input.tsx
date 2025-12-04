@@ -8,16 +8,20 @@ import {
 } from "@/components/ui/tambo/suggestions-tooltip";
 import {
   TextEditor,
-  type CommandConfig,
   type ResourceItem,
+  type ResourceProvider,
+  type PromptProvider,
+  type PromptItem,
 } from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import {
+  useCurrentInteractablesSnapshot,
   useIsTamboTokenUpdating,
   useTamboContextAttachment,
   useTamboThread,
   useTamboThreadInput,
 } from "@tambo-ai/react";
+import { Cuboid } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square } from "lucide-react";
@@ -363,24 +367,23 @@ MessageInput.displayName = "MessageInput";
 export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Custom placeholder text. */
   placeholder?: string;
-  /** Static mention items to include in @ suggestions. */
-  staticMentionItems?: ResourceItem[];
-  /** Async fetcher to load mention items (e.g., MCP resources). */
-  mentionItemFetcher?: (query: string) => Promise<ResourceItem[]>;
-  /** Command configurations for @ mentions and / commands. */
-  commands?: CommandConfig[];
+  /** Resource provider for @ mentions (optional - includes interactables by default) */
+  resourceProvider?: ResourceProvider;
+  /** Prompt provider for / commands (optional) */
+  promptProvider?: PromptProvider;
 }
 
 /**
  * Textarea component for entering message text with @ mention support.
  *
  * Uses the TipTap-based TextEditor component which provides:
- * - @ mention autocomplete for interactable components plus optional static items and async fetchers
+ * - @ mention autocomplete for interactable components plus optional external resources
  * - Keyboard navigation (Enter to submit, Shift+Enter for newline)
  * - Image paste support
  *
  * **How @ mentions work here:**
  * - When user types "@", suggestions appear from `interactables` (components that can be mentioned)
+ * - External resources can be provided via `resourceProvider` prop
  * - Selecting a mention adds it as a context attachment via `addContextAttachment`
  * - Mentions appear as badges above the input (via ContextAttachmentBadgeList)
  *
@@ -395,14 +398,55 @@ export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivE
 const MessageInputTextarea = ({
   className,
   placeholder = "What do you want to do?",
-  staticMentionItems,
-  mentionItemFetcher,
-  commands,
+  resourceProvider: externalResourceProvider,
+  promptProvider,
   ...props
 }: MessageInputTextareaProps) => {
   const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
   const { isIdle } = useTamboThread();
   const isUpdatingToken = useIsTamboTokenUpdating();
+  const { addContextAttachment } = useTamboContextAttachment();
+  const interactables = useCurrentInteractablesSnapshot();
+
+  // Create a combined resource provider that includes interactables + external provider
+  const combinedResourceProvider = React.useMemo<ResourceProvider>(
+    () => ({
+      search: async (query: string): Promise<ResourceItem[]> => {
+        // Get interactable items
+        const interactableItems: ResourceItem[] = interactables.map(
+          (component) => ({
+            id: component.id,
+            name: component.name,
+            icon: React.createElement(Cuboid, { className: "w-4 h-4" }),
+            componentData: component,
+          }),
+        );
+
+        // Get external resources if provider is available
+        const externalItems = externalResourceProvider
+          ? await externalResourceProvider.search(query)
+          : [];
+
+        // Combine and filter by query
+        const combined = [...interactableItems, ...externalItems];
+        if (query === "") return combined;
+
+        const normalizedQuery = query.toLocaleLowerCase();
+        return combined.filter((item) =>
+          item.name.toLocaleLowerCase().includes(normalizedQuery),
+        );
+      },
+    }),
+    [interactables, externalResourceProvider],
+  );
+
+  // Handle resource selection - add as context attachment
+  const handleResourceSelect = React.useCallback(
+    (item: ResourceItem) => {
+      addContextAttachment({ name: item.name });
+    },
+    [addContextAttachment],
+  );
 
   return (
     <div
@@ -418,9 +462,9 @@ const MessageInputTextarea = ({
         disabled={!isIdle || isUpdatingToken}
         editorRef={editorRef}
         className="bg-background text-foreground"
-        staticMentionItems={staticMentionItems}
-        mentionItemFetcher={mentionItemFetcher}
-        commands={commands}
+        resourceProvider={combinedResourceProvider}
+        promptProvider={promptProvider}
+        onResourceSelect={handleResourceSelect}
       />
     </div>
   );
@@ -797,4 +841,4 @@ export {
 };
 
 // Re-export types from text-editor for convenience
-export type { CommandConfig, ResourceItem };
+export type { ResourceItem, ResourceProvider, PromptProvider, PromptItem };
