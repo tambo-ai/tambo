@@ -204,6 +204,31 @@ export async function verifyLatestMessageConsistency(
 }
 
 /**
+ * Convert a thread message to its DTO representation for HTTP responses
+ */
+export function threadMessageToDto(message: ThreadMessage): ThreadMessageDto {
+  return {
+    id: message.id,
+    threadId: message.threadId,
+    role: message.role,
+    parentMessageId: message.parentMessageId,
+    createdAt: message.createdAt,
+    component: message.component as ComponentDecisionV2 | undefined,
+    content: convertContentPartToDto(message.content),
+    metadata: message.metadata,
+    componentState: message.componentState ?? {},
+    toolCallRequest: message.toolCallRequest,
+    actionType: message.actionType,
+    tool_call_id: message.tool_call_id,
+    error: message.error,
+    isCancelled: message.isCancelled,
+    additionalContext: message.additionalContext ?? {},
+    reasoning: message.reasoning,
+    reasoningDurationMS: message.reasoningDurationMS,
+  };
+}
+
+/**
  * Convert a list of serialized thread message DTOs to a list of thread messages
  */
 export function threadMessageDtoToThreadMessage(

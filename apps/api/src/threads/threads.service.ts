@@ -15,7 +15,6 @@ import {
 import {
   ActionType,
   AsyncQueue,
-  ComponentDecisionV2,
   ContentPartType,
   decryptProviderKey,
   DEFAULT_OPENAI_MODEL,
@@ -30,7 +29,11 @@ import {
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
-import { operations, schema } from "@tambo-ai-cloud/db";
+import {
+  dbMessageToThreadMessage,
+  operations,
+  schema,
+} from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
@@ -60,11 +63,7 @@ import {
   SuggestionNotFoundException,
 } from "./types/errors";
 import { convertContentPartToDto } from "./util/content";
-import {
-  addMessage,
-  threadMessageDtoToThreadMessage,
-  updateMessage,
-} from "./util/messages";
+import { addMessage, threadMessageToDto, updateMessage } from "./util/messages";
 import { mapSuggestionToDto } from "./util/suggestions";
 import { createMcpHandlers } from "./util/thread-mcp-handlers";
 import {
@@ -106,36 +105,6 @@ export class ThreadsService {
   getDb() {
     // return this.tx ?? this.db;
     return this.db;
-  }
-
-  /**
-   * Map a DB message row to the public ThreadMessageDto shape.
-   * Centralizing this keeps `findOne()` and `getMessages()` consistent when
-   * fields are added/renamed (e.g., tool calls, reasoning, additionalContext).
-   */
-  private mapDbMessageToDto(
-    message: typeof schema.messages.$inferSelect,
-  ): ThreadMessageDto {
-    return {
-      id: message.id,
-      threadId: message.threadId,
-      role: message.role,
-      parentMessageId: message.parentMessageId ?? undefined,
-      createdAt: message.createdAt,
-      // Persist the component decision as-is; callers interpret as needed
-      component: message.componentDecision as ComponentDecisionV2 | undefined,
-      content: convertContentPartToDto(message.content),
-      metadata: message.metadata ?? undefined,
-      componentState: message.componentState ?? {},
-      toolCallRequest: message.toolCallRequest ?? undefined,
-      actionType: message.actionType ?? undefined,
-      tool_call_id: message.toolCallId ?? undefined,
-      error: message.error ?? undefined,
-      isCancelled: message.isCancelled,
-      additionalContext: message.additionalContext ?? {},
-      reasoning: message.reasoning ?? undefined,
-      reasoningDurationMS: message.reasoningDurationMS ?? undefined,
-    };
   }
 
   private async createTamboBackendForThread(
@@ -368,7 +337,9 @@ export class ThreadsService {
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
       name: thread.name ?? undefined,
-      messages: thread.messages.map((m) => this.mapDbMessageToDto(m)),
+      messages: thread.messages.map((m) =>
+        threadMessageToDto(dbMessageToThreadMessage(m)),
+      ),
     };
   }
 
@@ -629,14 +600,14 @@ export class ThreadsService {
     threadId: string;
     includeSystem?: boolean;
     includeChildMessages?: boolean;
-  }): Promise<ThreadMessageDto[]> {
+  }): Promise<ThreadMessage[]> {
     const messages = await operations.getMessages(
       this.getDb(),
       threadId,
       includeChildMessages,
       includeSystem,
     );
-    return messages.map((m) => this.mapDbMessageToDto(m));
+    return messages.map((m) => dbMessageToThreadMessage(m));
   }
 
   async deleteMessage(messageId: string) {
@@ -741,7 +712,7 @@ export class ThreadsService {
       );
 
       const suggestions = await tamboBackend.generateSuggestions(
-        threadMessageDtoToThreadMessage(threadMessages),
+        threadMessages,
         generateSuggestionsDto.maxSuggestions ?? 3,
         generateSuggestionsDto.availableComponents ?? [],
         message.threadId,
@@ -856,9 +827,7 @@ export class ThreadsService {
       threadId,
       `${projectId}-${contextKey ?? TAMBO_ANON_CONTEXT_KEY}`,
     );
-    const generatedName = await tamboBackend.generateThreadName(
-      threadMessageDtoToThreadMessage(messages),
-    );
+    const generatedName = await tamboBackend.generateThreadName(messages);
 
     const updatedThread = await operations.updateThread(
       this.getDb(),
@@ -889,7 +858,7 @@ export class ThreadsService {
       messageId,
       newState,
     );
-    return this.mapDbMessageToDto(message);
+    return threadMessageToDto(dbMessageToThreadMessage(message));
   }
 
   /**
@@ -1143,7 +1112,7 @@ export class ThreadsService {
           db,
           tamboBackend,
           queue,
-          threadMessageDtoToThreadMessage(messages),
+          messages,
           userMessage,
           advanceRequestDto,
           toolCallCounts,
@@ -1158,7 +1127,7 @@ export class ThreadsService {
       const responseMessage = await processThreadMessage(
         db,
         thread.id,
-        threadMessageDtoToThreadMessage(messages),
+        messages,
         userMessage,
         advanceRequestDto,
         tamboBackend,
@@ -1186,7 +1155,7 @@ export class ThreadsService {
         thread.id,
         responseMessageDto.id,
         responseMessageDto,
-        threadMessageDtoToThreadMessage(messages),
+        messages,
         toolCallCounts,
         toolCallRequest,
         project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
