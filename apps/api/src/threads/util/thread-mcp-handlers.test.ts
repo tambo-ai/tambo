@@ -1058,11 +1058,7 @@ describe("createMcpHandlers", () => {
         consoleWarnSpy.mockRestore();
       });
 
-      it("should log a warning and use the first item for multi-item MCP content arrays", async () => {
-        const consoleWarnSpy = jest
-          .spyOn(console, "warn")
-          .mockImplementation(() => {});
-
+      it("should handle multi-item MCP content arrays by including all items", async () => {
         jest.mocked(operations.addMessage).mockResolvedValue({
           id: "msg-1",
           threadId: mockThreadId,
@@ -1071,6 +1067,10 @@ describe("createMcpHandlers", () => {
             {
               type: ContentPartType.Text,
               text: "First",
+            },
+            {
+              type: ContentPartType.Text,
+              text: "Second",
             },
           ],
           componentState: {},
@@ -1112,17 +1112,13 @@ describe("createMcpHandlers", () => {
               type: ContentPartType.Text,
               text: "First",
             },
+            {
+              type: ContentPartType.Text,
+              text: "Second",
+            },
           ],
           parentMessageId: undefined,
         });
-
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining(
-            "[MCP content] Received multi-item content array",
-          ),
-        );
-
-        consoleWarnSpy.mockRestore();
       });
 
       it("should handle invalid MCP content array elements with text fallback", async () => {

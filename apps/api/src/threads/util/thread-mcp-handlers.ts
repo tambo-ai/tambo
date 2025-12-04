@@ -41,7 +41,7 @@ export function createMcpHandlers(
         // Have pretend this is "user" to let audio/image content through to
         // ChatCompletionContentPart
         role: m.role as "user",
-        content: [mcpContentToContentPart(m.content)],
+        content: mcpContentToContentParts(m.content),
       }));
       // add serially for now and collect the saved messages
       // TODO: add messages in a batch
@@ -199,34 +199,36 @@ function mcpContentItemToContentPart(
   }
 }
 
-function mcpContentToContentPart(
+function mcpContentToContentParts(
   content: McpContent,
-): ChatCompletionContentPart {
+): ChatCompletionContentPart[] {
+  const emptyTextPart: ChatCompletionContentPart[] = [
+    { type: ContentPartType.Text, text: "" },
+  ];
+
   // MCP SDK 1.24+ allows content to be either a single item or an array
   if (Array.isArray(content)) {
-    // For arrays, we take the first item (most common case is single-item arrays)
-    // TODO: Support multi-item content arrays if needed
     if (content.length === 0) {
-      return { type: ContentPartType.Text, text: "" };
-    }
-    if (content.length > 1) {
-      console.warn(
-        `[MCP content] Received multi-item content array (length=${content.length}); only the first item will be used.`,
-      );
+      return emptyTextPart;
     }
 
-    const first = content[0];
-    if (!isMcpContentItem(first)) {
-      console.warn("Unexpected MCP content array element", first);
-      return { type: ContentPartType.Text, text: "" };
-    }
+    const parts = content
+      .filter((item): item is McpContentItem => {
+        if (!isMcpContentItem(item)) {
+          console.warn("Unexpected MCP content array element", item);
+          return false;
+        }
+        return true;
+      })
+      .map(mcpContentItemToContentPart);
 
-    return mcpContentItemToContentPart(first);
+    return parts.length > 0 ? parts : emptyTextPart;
   }
+
   if (!isMcpContentItem(content)) {
     console.warn("Unexpected MCP content value", content);
-    return { type: ContentPartType.Text, text: "" };
+    return emptyTextPart;
   }
 
-  return mcpContentItemToContentPart(content);
+  return [mcpContentItemToContentPart(content)];
 }
