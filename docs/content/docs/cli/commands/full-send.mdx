@@ -103,8 +103,8 @@ export default function Layout({ children }) {
   The `message-thread-*` components use a shared `useMergeRefs` hook (exported
   from `@/lib/thread-hooks` in generated projects) to merge multiple refs (for
   example, the scroll container and any parent layout refs). In React 19,
-  callback refs can return a cleanup function, so `useMergeRefs` tracks and
-  runs those cleanups whenever the underlying DOM node changes. You may see
+  callback refs can return a cleanup function, so `useMergeRefs` tracks and runs
+  those cleanups whenever the underlying DOM node changes. You may see
   `react-hooks/exhaustive-deps` disables around this hook in generated
   code&mdash;those are intentional and required for the React 19 ref cleanup
   pattern to work correctly.
