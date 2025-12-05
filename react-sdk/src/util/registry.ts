@@ -1,16 +1,24 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { z } from "zod/v3";
-import zodToJsonSchema from "zod-to-json-schema";
+import type { JSONSchema7 } from "json-schema";
+import type { ZodTypeAny } from "zod/v3";
 import {
   ComponentContextToolMetadata,
   ComponentRegistry,
-  JSONSchemaLite,
   ParameterSpec,
   RegisteredComponent,
   TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
 } from "../model/component-metadata";
+import {
+  getJsonSchemaTupleItems,
+  isJsonSchemaTuple,
+  isStandardSchema,
+  isZod3FunctionSchema,
+  type JSONSchema7Extended,
+  looksLikeJSONSchema,
+  schemaToJsonSchema,
+} from "./schema";
 
 /**
  * Get all the available components from the component registry
@@ -29,13 +37,13 @@ export const getAvailableComponents = (
   for (const [name, componentEntry] of Object.entries(componentRegistry)) {
     const associatedToolNames = toolAssociations[name] || [];
 
-    const contextTools = [
-      ...associatedToolNames.map((toolName) => {
+    const contextTools = associatedToolNames
+      .map((toolName) => {
         const tool = toolRegistry[toolName];
         if (!tool) return null;
         return mapTamboToolToContextTool(tool);
-      }),
-    ].filter((tool): tool is ComponentContextToolMetadata => tool !== null);
+      })
+      .filter((tool): tool is ComponentContextToolMetadata => tool !== null);
 
     availableComponents.push({
       name: componentEntry.name,
@@ -65,23 +73,23 @@ export const getUnassociatedTools = (
 };
 
 /**
- * Helper function to convert component props from Zod schema to JSON Schema
+ * Helper function to convert component props from Standard Schema or JSON Schema
  * @param component - The component to convert
- * @returns The converted props
+ * @returns The converted props as JSON Schema
  */
 export const convertPropsToJsonSchema = (
   component: RegisteredComponent,
-): any => {
+): unknown => {
   if (!component.props) {
     return component.props;
   }
 
-  // Check if props is a Zod schema (we can't directly check the type, so we check for _def)
-  if (component.props._def && typeof component.props.parse === "function") {
-    // Use two-step type assertion for safety
-    return zodToJsonSchema(component.props as unknown as z.ZodTypeAny);
+  // Check if props is a Standard Schema (Zod, Valibot, ArkType, etc.)
+  if (isStandardSchema(component.props)) {
+    return schemaToJsonSchema(component.props);
   }
 
+  // Already JSON Schema or unknown format - return as-is
   return component.props;
 };
 
@@ -114,7 +122,7 @@ export const getComponentFromRegistry = (
 export const mapTamboToolToContextTool = (
   tool: TamboTool,
 ): ComponentContextToolMetadata => {
-  const parameters = getParametersFromZodFunction(tool.toolSchema);
+  const parameters = getParametersFromToolSchema(tool.toolSchema);
 
   return {
     name: tool.name,
@@ -123,52 +131,76 @@ export const mapTamboToolToContextTool = (
   };
 };
 
-function isJsonSchema(
+/**
+ * Detects if a schema is an object with `args` and optional `returns` properties.
+ * This format preserves tuple structure and works with any Standard Schema library.
+ */
+function isToolSchemaObject(
   schema: unknown,
-): schema is ReturnType<typeof zodToJsonSchema> {
+): schema is { args: unknown; returns?: unknown } {
   return (
     typeof schema === "object" &&
     schema !== null &&
-    "type" in schema &&
-    typeof (schema as { type: unknown }).type === "string" &&
-    (schema as { type: string }).type === "object"
+    "args" in schema &&
+    (schema as { args: unknown }).args !== undefined
   );
 }
 
-const getParametersFromZodFunction = (
-  schema: z.ZodFunction<any, any> | JSONSchemaLite,
-): ParameterSpec[] => {
-  if (isJsonSchema(schema)) {
-    return [
-      {
-        name: "args",
-        type: "object",
-        description: schema.description ?? "",
-        isRequired: true,
-        schema: schema,
-      },
-    ];
-  }
+/**
+ * Extracts parameter specifications from Zod 3 function tuple args.
+ * This is Zod 3-specific because it uses the `.parameters()` method.
+ */
+function extractParamsFromZod3Function(schema: unknown): ParameterSpec[] {
+  const fn = schema as { parameters: () => { items: ZodTypeAny[] } };
+  const parameters = fn.parameters();
+  return parameters.items.map(
+    (param, index): ParameterSpec => ({
+      name: `param${index + 1}`,
+      type: getZodBaseType(param),
+      description: param.description ?? "",
+      isRequired: !param.isOptional(),
+      schema: schemaToJsonSchema(param),
+    }),
+  );
+}
 
-  const parameters: z.ZodTuple = schema.parameters();
-  return parameters.items.map((param, index): ParameterSpec => {
-    const name = `param${index + 1}`;
-    const type = getZodBaseType(param);
-    const description = param.description ?? "";
-    const isRequired = !param.isOptional();
-    const schema = zodToJsonSchema(param);
+/**
+ * Extracts parameter specifications from JSON Schema tuple items.
+ * Supports both draft-07 (items as array) and draft 2020-12 (prefixItems).
+ * This is library-agnostic - works with Zod, Valibot, ArkType, etc.
+ */
+function extractParamsFromJsonSchemaTuple(
+  tupleItems: JSONSchema7[],
+): ParameterSpec[] {
+  return tupleItems.map((item, index) => ({
+    name: `param${index + 1}`,
+    type: typeof item.type === "string" ? item.type : "object",
+    description: item.description ?? "",
+    isRequired: true, // tuple items are positional
+    schema: item,
+  }));
+}
 
-    return {
-      name,
-      type,
-      description,
-      isRequired,
-      schema,
-    };
-  });
-};
+/**
+ * Wraps a JSON Schema as a single "args" parameter.
+ */
+function wrapAsArgsParam(jsonSchema: JSONSchema7): ParameterSpec[] {
+  return [
+    {
+      name: "args",
+      type: "object",
+      description: jsonSchema.description ?? "",
+      isRequired: true,
+      schema: jsonSchema,
+    },
+  ];
+}
 
-const getZodBaseType = (schema: z.ZodTypeAny): string => {
+/**
+ * Gets the base type name from a Zod 3 schema.
+ * This is Zod 3-specific for extracting function parameters.
+ */
+function getZodBaseType(schema: ZodTypeAny): string {
   const typeName = schema._def.typeName;
   switch (typeName) {
     case "ZodString":
@@ -186,7 +218,65 @@ const getZodBaseType = (schema: z.ZodTypeAny): string => {
     case "ZodObject":
       return "object";
     default:
-      console.warn("falling back to string for", typeName);
       return "string";
   }
+}
+
+/**
+ * Extracts parameter specifications from a tool schema.
+ * Supports multiple schema formats in a library-agnostic way:
+ *
+ * 1. **JSON Schema tuple** (prefixItems or items array) → individual params
+ * 2. **Object with {args, returns}** → convert args to JSON Schema, extract tuple items (recommended)
+ * 3. **Zod 3 function** → individual params via `.parameters().items` (deprecated)
+ * 4. **Other Standard Schema** → "args" wrapper
+ * @param schema - The tool's schema (Standard Schema, JSON Schema, or {args, returns} object)
+ * @returns An array of parameter specifications
+ */
+const getParametersFromToolSchema = (
+  schema: TamboTool["toolSchema"],
+): ParameterSpec[] => {
+  // 1. Handle JSON Schema - check for tuple pattern
+  if (looksLikeJSONSchema(schema)) {
+    const jsonSchema = schema as JSONSchema7Extended;
+    if (isJsonSchemaTuple(jsonSchema)) {
+      const tupleItems = getJsonSchemaTupleItems(jsonSchema);
+      if (tupleItems) {
+        return extractParamsFromJsonSchemaTuple(tupleItems);
+      }
+    }
+    return wrapAsArgsParam(jsonSchema);
+  }
+
+  // 2. Handle object with {args, returns} - library-agnostic tuple extraction (recommended)
+  //    Convert args to JSON Schema, then check for tuple pattern
+  if (isToolSchemaObject(schema)) {
+    const argsSchema = schema.args;
+    if (isStandardSchema(argsSchema)) {
+      const jsonSchema = schemaToJsonSchema(argsSchema) as JSONSchema7Extended;
+      if (isJsonSchemaTuple(jsonSchema)) {
+        const tupleItems = getJsonSchemaTupleItems(jsonSchema);
+        if (tupleItems) {
+          return extractParamsFromJsonSchemaTuple(tupleItems);
+        }
+      }
+      return wrapAsArgsParam(jsonSchema);
+    }
+  }
+
+  // 3. Handle Zod 3 function schema - extract individual params from tuple (deprecated)
+  if (isZod3FunctionSchema(schema)) {
+    console.warn(
+      "[Tambo] z.function() is deprecated. Use { args: z.tuple([...]), returns: z.type() } instead.",
+    );
+    return extractParamsFromZod3Function(schema);
+  }
+
+  // 4. Handle other Standard Schema - wrap as "args"
+  if (isStandardSchema(schema)) {
+    return wrapAsArgsParam(schemaToJsonSchema(schema));
+  }
+
+  console.warn("Unknown tool schema type, returning empty parameters");
+  return [];
 };

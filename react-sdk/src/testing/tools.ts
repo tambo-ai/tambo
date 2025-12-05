@@ -1,11 +1,13 @@
-import { z } from "zod/v3";
-import zodToJsonSchema from "zod-to-json-schema";
 import { TamboComponent } from "../providers";
+import { mapTamboToolToContextTool } from "../util/registry";
+import { isStandardSchema, safeSchemaToJsonSchema } from "../util/schema";
 
 /**
- * Serializes the registry for testing purposes
+ * Serializes the registry for testing purposes.
+ * Converts Standard Schema validators to JSON Schema format.
+ * Uses the same logic as production code via mapTamboToolToContextTool.
  * @param mockRegistry - The registry to serialize
- * @returns The serialized registry
+ * @returns The serialized registry with JSON Schema representations
  */
 export function serializeRegistry(mockRegistry: TamboComponent[]) {
   return mockRegistry.map(
@@ -16,20 +18,11 @@ export function serializeRegistry(mockRegistry: TamboComponent[]) {
       ...componentEntry
     }) => ({
       ...componentEntry,
-      props: zodToJsonSchema(propsSchema as z.ZodTypeAny),
-      contextTools: associatedTools?.map(
-        ({ toolSchema, tool: _tool, ...toolEntry }) => ({
-          ...toolEntry,
-          parameters: (toolSchema as z.ZodFunction<any, any>)
-            .parameters()
-            .items.map((p: z.ZodTypeAny, index: number) => ({
-              name: `param${index + 1}`,
-              schema: zodToJsonSchema(p),
-              isRequired: true,
-              description: p.description,
-              type: (zodToJsonSchema(p) as any).type,
-            })),
-        }),
+      props: isStandardSchema(propsSchema)
+        ? safeSchemaToJsonSchema(propsSchema)
+        : propsSchema,
+      contextTools: associatedTools?.map((tool) =>
+        mapTamboToolToContextTool(tool),
       ),
     }),
   );

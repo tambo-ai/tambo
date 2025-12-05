@@ -98,15 +98,7 @@ const TamboStubClientProvider: React.FC<
  * @returns The TamboStubRegistryProvider component
  */
 const TamboStubRegistryProvider: React.FC<
-  PropsWithChildren<{
-    componentList: Record<string, any>;
-    toolRegistry: Record<string, TamboTool>;
-    componentToolAssociations: Record<string, string[]>;
-    registerComponent: (options: TamboComponent) => void;
-    registerTool: (tool: TamboTool) => void;
-    registerTools: (tools: TamboTool[]) => void;
-    addToolAssociation: (componentName: string, tool: TamboTool) => void;
-  }>
+  PropsWithChildren<TamboRegistryContext>
 > = ({
   children,
   componentList,
@@ -378,6 +370,9 @@ export const TamboStubProvider: React.FC<
         registerTool={componentContextProps.registerTool}
         registerTools={componentContextProps.registerTools}
         addToolAssociation={componentContextProps.addToolAssociation}
+        mcpServerInfos={[]}
+        registerMcpServer={() => []}
+        registerMcpServers={() => []}
       >
         <TamboStubThreadProvider {...threadContextProps}>
           <TamboContextHelpersProvider contextHelpers={contextHelpers}>

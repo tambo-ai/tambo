@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { TamboTool } from "../model/component-metadata";
+import { JSONSchemaLite } from "../model/component-metadata";
 import {
   getMcpServerUniqueKey,
   type NormalizedMcpServerInfo,
@@ -364,7 +364,8 @@ export const TamboMcpProvider: FC<{
                     }
                     return result.content;
                   },
-                  toolSchema: tool.inputSchema as TamboTool["toolSchema"],
+                  // TODO(lachieh): this cast should not be needed. Do we need to check that inputSchema is not undefined?
+                  toolSchema: tool.inputSchema ?? ({} as JSONSchemaLite),
                   transformToContent: (content: unknown) => {
                     if (isContentPartArray(content)) {
                       return content;

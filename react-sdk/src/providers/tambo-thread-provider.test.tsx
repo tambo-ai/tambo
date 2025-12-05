@@ -3,7 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { DeepPartial } from "ts-essentials";
-import { z } from "zod/v3";
+import { z } from "zod/v4";
 import { TamboComponent } from "../model/component-metadata";
 import {
   GenerationStage,
@@ -140,10 +140,10 @@ describe("TamboThreadProvider", () => {
           name: "test-tool",
           tool: jest.fn().mockResolvedValue("test-tool"),
           description: "test-tool",
-          toolSchema: z
-            .function()
-            .args(z.string().describe("test-param-description"))
-            .returns(z.string()),
+          toolSchema: {
+            args: z.tuple([z.string().describe("test-param-description")]),
+            returns: z.string(),
+          },
         },
       ],
     },
@@ -1293,10 +1293,10 @@ describe("TamboThreadProvider", () => {
               name: "custom-tool",
               tool: jest.fn().mockResolvedValue({ data: "tool result" }),
               description: "Tool with custom transform",
-              toolSchema: z
-                .function()
-                .args(z.string())
-                .returns(z.object({ data: z.string() })),
+              toolSchema: {
+                args: z.tuple([z.string()]),
+                returns: z.object({ data: z.string() }),
+              },
               transformToContent: mockTransformToContent,
             },
           ],
@@ -1428,10 +1428,10 @@ describe("TamboThreadProvider", () => {
               name: "async-tool",
               tool: jest.fn().mockResolvedValue({ data: "async tool result" }),
               description: "Tool with async transform",
-              toolSchema: z
-                .function()
-                .args(z.string())
-                .returns(z.object({ data: z.string() })),
+              toolSchema: {
+                args: z.tuple([z.string()]),
+                returns: z.object({ data: z.string() }),
+              },
               transformToContent: mockTransformToContent,
             },
           ],
@@ -1571,15 +1571,13 @@ describe("TamboThreadProvider", () => {
                 .fn()
                 .mockResolvedValue({ complex: "data", nested: { value: 42 } }),
               description: "Tool without custom transform",
-              toolSchema: z
-                .function()
-                .args(z.string())
-                .returns(
-                  z.object({
-                    complex: z.string(),
-                    nested: z.object({ value: z.number() }),
-                  }),
-                ),
+              toolSchema: {
+                args: z.tuple([z.string()]),
+                returns: z.object({
+                  complex: z.string(),
+                  nested: z.object({ value: z.number() }),
+                }),
+              },
               // No transformToContent provided
             },
           ],
@@ -1707,7 +1705,10 @@ describe("TamboThreadProvider", () => {
                 .fn()
                 .mockRejectedValue(new Error("Tool execution failed")),
               description: "Tool that errors",
-              toolSchema: z.function().args(z.string()).returns(z.string()),
+              toolSchema: {
+                args: z.tuple([z.string()]),
+                returns: z.string(),
+              },
               transformToContent: mockTransformToContent,
             },
           ],
