@@ -153,3 +153,30 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
   -webkit-text-fill-color: transparent;
   animation: thinking-gradient 2s linear infinite;
 }
+
+/* Suggestion dropdown (tippy.js) */
+.tippy-box[data-theme~="light-border"] {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  padding: 0;
+  max-width: 24rem !important;
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="bottom"]
+  > .tippy-arrow::before {
+  border-bottom-color: hsl(var(--border));
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="top"]
+  > .tippy-arrow::before {
+  border-top-color: hsl(var(--border));
+}
+
+.tippy-box[data-theme~="light-border"] .tippy-content {
+  padding: 0;
+}
