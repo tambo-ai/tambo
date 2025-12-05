@@ -120,20 +120,28 @@ describe("createMcpHandlers", () => {
         const result = await handlers.sampling(mcpRequest);
 
         // Verify input message was added to db
-        expect(operations.addMessage).toHaveBeenNthCalledWith(1, mockDb, {
-          threadId: mockThreadId,
-          role: "user",
-          content: [{ type: ContentPartType.Text, text: "Hello" }],
-          parentMessageId: undefined,
-        });
+        expect(operations.addMessage).toHaveBeenNthCalledWith(
+          1,
+          mockDb,
+          mockThreadId,
+          {
+            role: "user",
+            content: [{ type: ContentPartType.Text, text: "Hello" }],
+            parentMessageId: undefined,
+          },
+        );
 
         // Verify response message was added to db
-        expect(operations.addMessage).toHaveBeenNthCalledWith(2, mockDb, {
-          threadId: mockThreadId,
-          role: "assistant",
-          content: [{ type: "text", text: "Hi there" }],
-          parentMessageId: undefined,
-        });
+        expect(operations.addMessage).toHaveBeenNthCalledWith(
+          2,
+          mockDb,
+          mockThreadId,
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "Hi there" }],
+            parentMessageId: undefined,
+          },
+        );
 
         // Verify result structure
         expect(result).toEqual({
@@ -315,6 +323,7 @@ describe("createMcpHandlers", () => {
         // Verify parentMessageId passed to database operations
         expect(operations.addMessage).toHaveBeenCalledWith(
           mockDb,
+          mockThreadId,
           expect.objectContaining({
             parentMessageId: parentMsgId,
           }),
@@ -355,6 +364,7 @@ describe("createMcpHandlers", () => {
         // Verify parentMessageId is undefined
         expect(operations.addMessage).toHaveBeenCalledWith(
           mockDb,
+          mockThreadId,
           expect.objectContaining({
             parentMessageId: undefined,
           }),
@@ -453,6 +463,7 @@ describe("createMcpHandlers", () => {
         // Verify parentMessageId from fallback passed to database operations
         expect(operations.addMessage).toHaveBeenCalledWith(
           mockDb,
+          mockThreadId,
           expect.objectContaining({
             parentMessageId: lastMessageId,
           }),
@@ -503,6 +514,7 @@ describe("createMcpHandlers", () => {
         // Verify parentMessageId is undefined
         expect(operations.addMessage).toHaveBeenCalledWith(
           mockDb,
+          mockThreadId,
           expect.objectContaining({
             parentMessageId: undefined,
           }),
@@ -551,6 +563,7 @@ describe("createMcpHandlers", () => {
         // Verify provided parentMessageId was used
         expect(operations.addMessage).toHaveBeenCalledWith(
           mockDb,
+          mockThreadId,
           expect.objectContaining({
             parentMessageId: parentMsgId,
           }),
@@ -607,26 +620,38 @@ describe("createMcpHandlers", () => {
         expect(operations.addMessage).toHaveBeenCalledTimes(4); // 3 input + 1 response
 
         // Verify 3 input messages were added with correct content
-        expect(operations.addMessage).toHaveBeenNthCalledWith(1, mockDb, {
-          threadId: mockThreadId,
-          role: "user",
-          content: [{ type: ContentPartType.Text, text: "First" }],
-          parentMessageId: undefined,
-        });
+        expect(operations.addMessage).toHaveBeenNthCalledWith(
+          1,
+          mockDb,
+          mockThreadId,
+          {
+            role: "user",
+            content: [{ type: ContentPartType.Text, text: "First" }],
+            parentMessageId: undefined,
+          },
+        );
 
-        expect(operations.addMessage).toHaveBeenNthCalledWith(2, mockDb, {
-          threadId: mockThreadId,
-          role: "user",
-          content: [{ type: ContentPartType.Text, text: "Second" }],
-          parentMessageId: undefined,
-        });
+        expect(operations.addMessage).toHaveBeenNthCalledWith(
+          2,
+          mockDb,
+          mockThreadId,
+          {
+            role: "user",
+            content: [{ type: ContentPartType.Text, text: "Second" }],
+            parentMessageId: undefined,
+          },
+        );
 
-        expect(operations.addMessage).toHaveBeenNthCalledWith(3, mockDb, {
-          threadId: mockThreadId,
-          role: "user",
-          content: [{ type: ContentPartType.Text, text: "Third" }],
-          parentMessageId: undefined,
-        });
+        expect(operations.addMessage).toHaveBeenNthCalledWith(
+          3,
+          mockDb,
+          mockThreadId,
+          {
+            role: "user",
+            content: [{ type: ContentPartType.Text, text: "Third" }],
+            parentMessageId: undefined,
+          },
+        );
       });
 
       it("should push each message to queue individually", async () => {

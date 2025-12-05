@@ -29,15 +29,14 @@ export async function addMessage(
   threadId: string,
   messageDto: MessageRequest,
 ): Promise<ThreadMessage> {
-  const message = await operations.addMessage(db, {
-    threadId,
+  const message = await operations.addMessage(db, threadId, {
     role: messageDto.role,
     content: convertContentDtoToContentPart(messageDto.content),
-    componentDecision: messageDto.component ?? undefined,
+    component: messageDto.component ?? undefined,
     metadata: messageDto.metadata,
     actionType: messageDto.actionType ?? undefined,
     toolCallRequest: messageDto.toolCallRequest ?? undefined,
-    toolCallId: messageDto.tool_call_id,
+    tool_call_id: messageDto.tool_call_id,
     componentState: messageDto.componentState ?? {},
     error: messageDto.error,
     isCancelled: messageDto.isCancelled ?? false,

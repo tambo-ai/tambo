@@ -239,19 +239,19 @@ export function isToolMessage(msg: ThreadMessage): msg is ThreadToolMessage {
  */
 export type UnsavedThreadUserMessage = Omit<
   ThreadUserMessage,
-  "id" | "threadId"
+  "id" | "threadId" | "createdAt"
 >;
 export type UnsavedThreadSystemMessage = Omit<
   ThreadSystemMessage,
-  "id" | "threadId"
+  "id" | "threadId" | "createdAt"
 >;
 export type UnsavedThreadAssistantMessage = Omit<
   ThreadAssistantMessage,
-  "id" | "threadId"
+  "id" | "threadId" | "createdAt"
 >;
 export type UnsavedThreadToolMessage = Omit<
   ThreadToolMessage,
-  "id" | "threadId"
+  "id" | "threadId" | "createdAt"
 >;
 
 export type UnsavedThreadMessage =
