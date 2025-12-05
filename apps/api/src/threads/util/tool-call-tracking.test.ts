@@ -1,6 +1,5 @@
 import { MessageRole, ToolCallRequest } from "@tambo-ai-cloud/core";
 import {
-  computePerToolCountsFromSignatures,
   DEFAULT_MAX_TOTAL_TOOL_CALLS,
   updateToolCallCounts,
   validateToolCallLimits,
@@ -177,12 +176,8 @@ describe("tool-call-tracking utilities", () => {
       const finalMessage = createMockThreadMessage(toolCallRequest);
       const messages = [createMockThreadMessage()];
 
-      // Create counts where this specific tool call has been made 3 times
-      const signature = JSON.stringify({
-        toolName: "testTool",
-        parameters: [],
-      });
-      const toolCounts = { [signature]: 3 };
+      // Per-tool counts: testTool has been called 3 times
+      const toolCounts = { testTool: 3 };
 
       const result = validateToolCallLimits(
         finalMessage,
@@ -320,31 +315,25 @@ describe("tool-call-tracking utilities", () => {
     });
 
     it("should aggregate different signatures for the same tool and enforce derived per-tool limits", () => {
-      const toolCall1 = createMockToolCallRequest("aggTool", [
-        { parameterName: "p1", parameterValue: "a" },
-      ]);
-      const toolCall2 = createMockToolCallRequest("aggTool", [
-        { parameterName: "p1", parameterValue: "b" },
-      ]);
+      // Pass per-tool limit of 2 calls
+      // When making a 3rd call, it should exceed the limit
+      const perToolCounts = { aggTool: 2 };
 
-      // two different signatures for the same tool -> per-tool total should be 2
-      let counts: Record<string, number> = {};
-      counts = updateToolCallCounts(counts, toolCall1);
-      counts = updateToolCallCounts(counts, toolCall2);
+      const finalMessage = createMockThreadMessage(
+        createMockToolCallRequest("aggTool"),
+      );
 
-      const finalMessage = createMockThreadMessage(toolCall1);
-
-      // Provide a per-tool limit equal to 2; since derived per-tool total == 2,
-      // validateToolCallLimits should return an error
+      // Provide a per-tool limit equal to 2; since perToolCounts == 2,
+      // the next call would exceed the limit
       const toolLimits = { aggTool: { maxCalls: 2 } };
 
       const result = validateToolCallLimits(
         finalMessage,
         [],
-        counts,
+        { aggTool: 2 }, // currentToolCounts (per-tool format)
         createMockToolCallRequest("aggTool"),
         DEFAULT_MAX_TOTAL_TOOL_CALLS,
-        undefined,
+        perToolCounts,
         toolLimits,
       );
 
@@ -374,11 +363,8 @@ describe("tool-call-tracking utilities", () => {
     });
 
     it("per-tool override should allow exceeding project-wide limit for that tool", () => {
-      // Create counts so that the totalCalls (across signatures) >= project limit
-      const otherCall = createMockToolCallRequest("otherTool");
-      let counts: Record<string, number> = {};
-      counts = updateToolCallCounts(counts, otherCall);
-      counts = updateToolCallCounts(counts, otherCall); // totalCalls = 2
+      // Create per-tool counts so that total calls >= project limit
+      const toolCounts = { otherTool: 2 }; // total = 2, which meets project limit of 2
 
       // Per-tool override for `specialTool` should bypass project-level total check
       const perToolCounts = { specialTool: 1 };
@@ -387,7 +373,7 @@ describe("tool-call-tracking utilities", () => {
       const result = validateToolCallLimits(
         createMockThreadMessage(createMockToolCallRequest("specialTool")),
         [],
-        counts,
+        toolCounts, // per-tool format
         createMockToolCallRequest("specialTool"),
         2, // project maxToolCallLimit set to 2
         perToolCounts,
@@ -396,81 +382,6 @@ describe("tool-call-tracking utilities", () => {
 
       // Should be allowed because per-tool override exists and current per-tool total(1) < 5
       expect(result).toBeUndefined();
-    });
-  });
-
-  describe("computePerToolCountsFromSignatures", () => {
-    it("should aggregate counts for the same tool with different parameters", () => {
-      const signatureCounts = {
-        '{"toolName":"searchDatabase","parameters":[{"parameterName":"query","parameterValue":"test1"}]}': 2,
-        '{"toolName":"searchDatabase","parameters":[{"parameterName":"query","parameterValue":"test2"}]}': 3,
-        '{"toolName":"createUser","parameters":[{"parameterName":"name","parameterValue":"John"}]}': 1,
-      };
-
-      const result = computePerToolCountsFromSignatures(signatureCounts);
-
-      expect(result).toEqual({
-        searchDatabase: 5, // 2 + 3
-        createUser: 1,
-      });
-    });
-
-    it("should handle empty signature counts", () => {
-      const result = computePerToolCountsFromSignatures({});
-
-      expect(result).toEqual({});
-    });
-
-    it("should skip invalid JSON signatures", () => {
-      const signatureCounts = {
-        "invalid json": 2,
-        '{"toolName":"validTool","parameters":[]}': 3,
-      };
-
-      const result = computePerToolCountsFromSignatures(signatureCounts);
-
-      expect(result).toEqual({
-        validTool: 3,
-      });
-    });
-
-    it("should skip signatures without toolName", () => {
-      const signatureCounts = {
-        '{"parameters":[]}': 2,
-        '{"toolName":"validTool","parameters":[]}': 3,
-      };
-
-      const result = computePerToolCountsFromSignatures(signatureCounts);
-
-      expect(result).toEqual({
-        validTool: 3,
-      });
-    });
-
-    it("should handle multiple calls to the same tool", () => {
-      const signatureCounts = {
-        '{"toolName":"searchDatabase","parameters":[{"parameterName":"query","parameterValue":"test"}]}': 10,
-      };
-
-      const result = computePerToolCountsFromSignatures(signatureCounts);
-
-      expect(result).toEqual({
-        searchDatabase: 10,
-      });
-    });
-
-    it("should correctly aggregate when tool is called with no parameters", () => {
-      const signatureCounts = {
-        '{"toolName":"noParamTool","parameters":[]}': 5,
-        '{"toolName":"paramTool","parameters":[{"parameterName":"x","parameterValue":"y"}]}': 3,
-      };
-
-      const result = computePerToolCountsFromSignatures(signatureCounts);
-
-      expect(result).toEqual({
-        noParamTool: 5,
-        paramTool: 3,
-      });
     });
   });
 });

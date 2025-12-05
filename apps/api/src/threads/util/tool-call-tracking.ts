@@ -57,8 +57,8 @@ export function validateToolCallLimits(
   currentToolCounts: Record<string, number>,
   newToolCallRequest: ToolCallRequest,
   maxToolCallLimit: number,
-  // Optional per-tool counts (toolName -> count). If not provided we will
-  // derive it from the signature-based currentToolCounts.
+  // Optional per-tool counts (toolName -> count). If not provided, we will
+  // use currentToolCounts directly (which is already in per-tool format).
   perToolCounts?: Record<string, number>,
   // Optional tool limits metadata mapping: toolName -> { maxCalls?: number }
   toolLimits?: Record<string, { maxCalls?: number }>,
@@ -69,10 +69,10 @@ export function validateToolCallLimits(
     return `I've detected that I'm making the same tool call repeatedly (${newToolCallRequest.toolName}). This suggests I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
   }
 
-  // Ensure we have per-tool totals. If not supplied,derive from signature counts.
+  // Ensure we have per-tool totals. If not supplied, use currentToolCounts directly.
   const resolvedPerToolCounts: Record<string, number> = perToolCounts
     ? { ...perToolCounts }
-    : computePerToolCountsFromSignatures(currentToolCounts);
+    : { ...currentToolCounts };
 
   const toolName = newToolCallRequest.toolName;
 
@@ -98,38 +98,16 @@ export function validateToolCallLimits(
   }
 
   // Signature-level identical-call protection (independent of per-tool/project limits)
-  const signature = createToolCallSignature(newToolCallRequest);
-  const currentCount = currentToolCounts[signature] || 0;
+  // Note: this check uses the per-tool count as a proxy for identical calls
+  const currentToolTotal = resolvedPerToolCounts[toolName] || 0;
 
-  if (currentCount >= MAX_IDENTICAL_TOOL_CALLS) {
+  if (currentToolTotal >= MAX_IDENTICAL_TOOL_CALLS) {
     return `I've detected that I'm making the same tool call repeatedly (${newToolCallRequest.toolName}). This suggests I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
   }
 
   return undefined;
 }
 
-/**
- * Compute per-tool counts from signature-based counts. Signature format is the
- * JSON produced by createToolCallSignature, which includes toolName at top
- * level.
- */
-export function computePerToolCountsFromSignatures(
-  signatureCounts: Record<string, number>,
-): Record<string, number> {
-  const perTool: Record<string, number> = {};
-  for (const [signature, count] of Object.entries(signatureCounts)) {
-    try {
-      const parsed = JSON.parse(signature) as { toolName?: string };
-      const name = parsed.toolName;
-      if (!name) continue;
-      perTool[name] = (perTool[name] || 0) + count;
-    } catch (_err) {
-      // If we can't parse a signature (shouldn't happen), skip it
-      continue;
-    }
-  }
-  return perTool;
-}
 /**
  * Updates the tool call counts with a new tool call request.
  * @param toolCallCounts - Current tool call counts
