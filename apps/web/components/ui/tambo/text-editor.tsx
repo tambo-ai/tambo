@@ -698,7 +698,10 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         // Always register the "@" mention extension for resources
         // Visual display uses label, but getTextWithResourceURIs() will use ID
         Mention.configure({
-          HTMLAttributes: { class: "mention resource" },
+          HTMLAttributes: {
+            class:
+              "mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground",
+          },
           suggestion: createResourceMentionConfig(
             stableResourceProvider,
             handleResourceSelect,
