@@ -707,65 +707,33 @@ function createPromptCommandExtension(
 }
 
 /**
- * Extended Mention node that properly serializes using the ID (resource URI)
- * instead of the label when converting to text.
+ * Extended Mention node for resource mentions.
+ * Visual display shows the label, but text serialization uses the ID.
  */
 const ResourceMention = Mention.extend({
   name: "mention",
-
-  // Override the atom property's toText to use ID instead of label
-  addNodeView() {
-    return () => {
-      return {};
-    };
-  },
-
-  // Add custom text content getter
-  addStorage() {
-    return {
-      // This will be used by editor.getText() via textContent
-      getTextContent: (node: { attrs: { id?: string; label?: string } }) => {
-        return `@${node.attrs.id ?? node.attrs.label ?? ""}`;
-      },
-    };
-  },
-
-  // Override parseHTML to ensure proper serialization
-  parseHTML() {
-    return [
-      {
-        tag: `span[data-type="${this.name}"]`,
-        getAttrs: (dom: HTMLElement | string) => {
-          if (typeof dom === "string") return null;
-          return {
-            id: dom.getAttribute("data-id"),
-            label: dom.getAttribute("data-label"),
-          };
-        },
-      },
-    ];
-  },
-
-  // Override renderHTML to store ID in the text content for getText()
-  renderHTML({ node }: { node: { attrs: { id?: string; label?: string } } }) {
-    return [
-      "span",
-      {
-        "data-type": this.name,
-        "data-id": node.attrs.id,
-        "data-label": node.attrs.label,
-        class: "mention resource",
-      },
-      // Use ID for text content so getText() returns the URI
-      `@${node.attrs.id ?? ""}`,
-    ];
-  },
-
-  // renderLabel controls the visual display in the editor
-  renderLabel({ node }: { node: { attrs: { id?: string; label?: string } } }) {
-    return `@${node.attrs.label ?? ""}`;
-  },
 });
+
+/**
+ * Custom text extraction that serializes mention nodes with their ID (resource URI)
+ * instead of their label. This is needed for message submission.
+ */
+function getTextWithResourceURIs(editor: Editor | null): string {
+  if (!editor) return "";
+
+  let text = "";
+  editor.state.doc.descendants((node) => {
+    if (node.type.name === "mention") {
+      // Use ID for mentions (full resource URI)
+      text += `@${node.attrs.id ?? node.attrs.label ?? ""}`;
+    } else if (node.isText) {
+      text += node.text;
+    }
+    return true;
+  });
+
+  return text;
+}
 
 /**
  * Text editor component with resource ("@") and prompt ("/") support.
@@ -827,7 +795,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           const editor = editorRef?.current;
           if (editor) {
             editor.commands.setContent(promptText);
-            onChange(editor.getText());
+            onChange(getTextWithResourceURIs(editor));
             editor.commands.focus("end");
           }
 
@@ -914,7 +882,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
             const editor = editorRef?.current;
             if (editor) {
               editor.commands.setContent(fullPrompt.text);
-              onChange(editor.getText());
+              onChange(getTextWithResourceURIs(editor));
               editor.commands.focus("end");
             }
             if (onPromptSelect) {
@@ -954,13 +922,15 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         Text,
         Placeholder.configure({ placeholder }),
         // Always register the "@" mention extension for resources
-        // Use custom ResourceMention that serializes with ID instead of label
+        // Visual display uses label, but getTextWithResourceURIs() will use ID
         ResourceMention.configure({
+          HTMLAttributes: { class: "mention resource" },
           suggestion: createResourceMentionConfig(
             stableResourceProvider,
             handleResourceSelect,
             resourceMenuOpenRef,
           ),
+          renderLabel: ({ node }) => `@${(node.attrs.label as string) ?? ""}`,
         }),
         // Always register the "/" command extension for prompts
         // Use stable provider that always accesses latest data via ref
@@ -972,7 +942,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       ],
       content: value,
       editable: !disabled,
-      onUpdate: ({ editor }) => onChange(editor.getText()),
+      onUpdate: ({ editor }) => onChange(getTextWithResourceURIs(editor)),
       editorProps: {
         attributes: {
           class: cn(
@@ -1054,7 +1024,8 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
     // Sync external value changes and disabled state with editor
     React.useEffect(() => {
       if (!editor) return;
-      if (value !== editor.getText()) {
+      const currentText = getTextWithResourceURIs(editor);
+      if (value !== currentText) {
         editor.commands.setContent(value);
       }
       editor.setEditable(!disabled);
