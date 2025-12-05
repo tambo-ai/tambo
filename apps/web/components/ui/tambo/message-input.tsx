@@ -9,9 +9,7 @@ import {
 import {
   TextEditor,
   type PromptItem,
-  type PromptProvider,
   type ResourceItem,
-  type ResourceProvider,
 } from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import {
@@ -29,6 +27,26 @@ import type { Editor } from "@tiptap/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, AtSign, FileText, Paperclip, Square } from "lucide-react";
 import * as React from "react";
+
+/**
+ * Provider interface for searching resources (for "@" mentions).
+ * Empty query string "" should return all available resources.
+ */
+export interface ResourceProvider {
+  /** Search for resources matching the query */
+  search(query: string): Promise<ResourceItem[]>;
+}
+
+/**
+ * Provider interface for searching and fetching prompts (for "/" commands).
+ * Empty query string "" should return all available prompts.
+ */
+export interface PromptProvider {
+  /** Search for prompts matching the query */
+  search(query: string): Promise<PromptItem[]>;
+  /** Get the full prompt details including text by ID */
+  get(id: string): Promise<PromptItem>;
+}
 
 /**
  * Symbol for marking pasted images.
@@ -1038,4 +1056,7 @@ export {
 };
 
 // Re-export types from text-editor for convenience
-export type { PromptItem, PromptProvider, ResourceItem, ResourceProvider };
+export type {
+  PromptItem,
+  ResourceItem,
+} from "@/components/ui/tambo/text-editor";

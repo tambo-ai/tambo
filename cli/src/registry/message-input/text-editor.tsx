@@ -44,28 +44,6 @@ export interface PromptItem {
   text: string;
 }
 
-/**
- * Provider interface for searching resources (for "@" mentions).
- * Empty query string "" should return all available resources.
- * @deprecated Use onSearchResources callback prop on TextEditor instead
- */
-export interface ResourceProvider {
-  /** Search for resources matching the query */
-  search(query: string): Promise<ResourceItem[]>;
-}
-
-/**
- * Provider interface for searching and fetching prompts (for "/" commands).
- * Empty query string "" should return all available prompts.
- * @deprecated Use onSearchPrompts callback prop on TextEditor instead
- */
-export interface PromptProvider {
-  /** Search for prompts matching the query */
-  search(query: string): Promise<PromptItem[]>;
-  /** Get the full prompt details including text by ID */
-  get(id: string): Promise<PromptItem>;
-}
-
 export interface TextEditorProps {
   value: string;
   onChange: (text: string) => void;

@@ -18,13 +18,7 @@ import {
   type StagedImage,
 } from "@tambo-ai/react";
 import type { Editor } from "@tiptap/react";
-import {
-  TextEditor,
-  type ResourceItem,
-  type ResourceProvider,
-  type PromptProvider,
-  type PromptItem,
-} from "./text-editor";
+import { TextEditor, type ResourceItem, type PromptItem } from "./text-editor";
 import {
   useTamboElicitationContext,
   useTamboMcpPrompt,
@@ -50,6 +44,26 @@ import * as React from "react";
 const DictationButton = dynamic(() => import("./dictation-button"), {
   ssr: false,
 });
+
+/**
+ * Provider interface for searching resources (for "@" mentions).
+ * Empty query string "" should return all available resources.
+ */
+export interface ResourceProvider {
+  /** Search for resources matching the query */
+  search(query: string): Promise<ResourceItem[]>;
+}
+
+/**
+ * Provider interface for searching and fetching prompts (for "/" commands).
+ * Empty query string "" should return all available prompts.
+ */
+export interface PromptProvider {
+  /** Search for prompts matching the query */
+  search(query: string): Promise<PromptItem[]>;
+  /** Get the full prompt details including text by ID */
+  get(id: string): Promise<PromptItem>;
+}
 
 /**
  * Removes duplicate resource items based on ID.
@@ -1427,4 +1441,4 @@ export {
 };
 
 // Re-export types from text-editor for convenience
-export type { ResourceItem, ResourceProvider, PromptProvider, PromptItem };
+export type { ResourceItem, PromptItem } from "./text-editor";
