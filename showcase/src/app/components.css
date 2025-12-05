@@ -165,7 +165,6 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
     0 2px 4px -2px rgb(0 0 0 / 0.1);
   padding: 0;
   max-width: 24rem !important;
-  z-index: 9999;
 }
 
 .tippy-box[data-theme~="light-border"][data-placement^="bottom"]
