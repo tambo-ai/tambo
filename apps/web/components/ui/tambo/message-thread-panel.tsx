@@ -8,9 +8,9 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputSubmitButton,
-  MessageInputTextarea,
   MessageInputToolbar,
 } from "@/components/ui/tambo/message-input";
+import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
 import {
   MessageSuggestions,
   MessageSuggestionsList,
@@ -360,7 +360,7 @@ export const MessageThreadPanel = forwardRef<
         <div className="p-4 flex-shrink-0">
           <MessageInput contextKey={contextKey} inputRef={editorRef}>
             <MessageInputContexts />
-            <MessageInputTextarea placeholder="Type your message or paste images..." />
+            <MessageInputTextareaWithInteractables placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
               <MessageInputFileButton />
               {/* Uncomment this to enable client-side MCP config modal button */}

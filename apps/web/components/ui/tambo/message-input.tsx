@@ -15,13 +15,11 @@ import {
 } from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import {
-  useCurrentInteractablesSnapshot,
   useIsTamboTokenUpdating,
   useTamboContextAttachment,
   useTamboThread,
   useTamboThreadInput,
 } from "@tambo-ai/react";
-import { Cuboid } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, Paperclip, Square } from "lucide-react";
@@ -367,25 +365,26 @@ MessageInput.displayName = "MessageInput";
 export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Custom placeholder text. */
   placeholder?: string;
-  /** Resource provider for @ mentions (optional - includes interactables by default) */
+  /** Resource provider for @ mentions (optional) */
   resourceProvider?: ResourceProvider;
   /** Prompt provider for / commands (optional) */
   promptProvider?: PromptProvider;
+  /** Callback when a resource is selected from @ mentions (optional) */
+  onResourceSelect?: (item: ResourceItem) => void;
 }
 
 /**
- * Textarea component for entering message text with @ mention support.
+ * Textarea component for entering message text with @ mention and / command support.
  *
  * Uses the TipTap-based TextEditor component which provides:
- * - @ mention autocomplete for interactable components plus optional external resources
+ * - @ mention autocomplete via resourceProvider
+ * - / command autocomplete via promptProvider
  * - Keyboard navigation (Enter to submit, Shift+Enter for newline)
  * - Image paste support
  *
- * **How @ mentions work here:**
- * - When user types "@", suggestions appear from `interactables` (components that can be mentioned)
- * - External resources can be provided via `resourceProvider` prop
- * - Selecting a mention adds it as a context attachment via `addContextAttachment`
- * - Mentions appear as badges above the input (via ContextAttachmentBadgeList)
+ * **Note:** This component uses refs internally to ensure callbacks stay fresh,
+ * so consumers can pass updated providers on each render without worrying about
+ * closure issues with the TipTap editor.
  *
  * @component MessageInput.Textarea
  * @example
@@ -398,55 +397,74 @@ export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivE
 const MessageInputTextarea = ({
   className,
   placeholder = "What do you want to do?",
-  resourceProvider: externalResourceProvider,
+  resourceProvider,
   promptProvider,
+  onResourceSelect,
   ...props
 }: MessageInputTextareaProps) => {
   const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
   const { isIdle } = useTamboThread();
   const isUpdatingToken = useIsTamboTokenUpdating();
-  const { addContextAttachment } = useTamboContextAttachment();
-  const interactables = useCurrentInteractablesSnapshot();
 
-  // Create a combined resource provider that includes interactables + external provider
-  const combinedResourceProvider = React.useMemo<ResourceProvider>(
-    () => ({
-      search: async (query: string): Promise<ResourceItem[]> => {
-        // Get interactable items
-        const interactableItems: ResourceItem[] = interactables.map(
-          (component) => ({
-            id: component.id,
-            name: component.name,
-            icon: React.createElement(Cuboid, { className: "w-4 h-4" }),
-            componentData: component,
-          }),
-        );
+  // Store each callback in its own ref so TipTap always calls the latest version
+  const resourceSearchRef = React.useRef(resourceProvider?.search);
+  const promptSearchRef = React.useRef(promptProvider?.search);
+  const promptGetRef = React.useRef(promptProvider?.get);
+  const onResourceSelectRef = React.useRef(onResourceSelect);
 
-        // Get external resources if provider is available
-        const externalItems = externalResourceProvider
-          ? await externalResourceProvider.search(query)
-          : [];
+  // Update refs whenever callbacks change
+  React.useEffect(() => {
+    resourceSearchRef.current = resourceProvider?.search;
+  }, [resourceProvider]);
 
-        // Combine and filter by query
-        const combined = [...interactableItems, ...externalItems];
-        if (query === "") return combined;
+  React.useEffect(() => {
+    promptSearchRef.current = promptProvider?.search;
+    promptGetRef.current = promptProvider?.get;
+  }, [promptProvider]);
 
-        const normalizedQuery = query.toLocaleLowerCase();
-        return combined.filter((item) =>
-          item.name.toLocaleLowerCase().includes(normalizedQuery),
-        );
-      },
-    }),
-    [interactables, externalResourceProvider],
+  React.useEffect(() => {
+    onResourceSelectRef.current = onResourceSelect;
+  }, [onResourceSelect]);
+
+  // Create stable provider objects with callbacks that forward to refs
+  // We include the provider in deps so the wrapper recreates if provider changes
+  const stableResourceProvider = React.useMemo<ResourceProvider | undefined>(
+    () =>
+      resourceProvider
+        ? {
+            search: async (query: string) => {
+              if (!resourceSearchRef.current) return [];
+              return await resourceSearchRef.current(query);
+            },
+          }
+        : undefined,
+    [resourceProvider],
   );
 
-  // Handle resource selection - add as context attachment
-  const handleResourceSelect = React.useCallback(
-    (item: ResourceItem) => {
-      addContextAttachment({ name: item.name });
-    },
-    [addContextAttachment],
+  const stablePromptProvider = React.useMemo<PromptProvider | undefined>(
+    () =>
+      promptProvider
+        ? {
+            search: async (query: string) => {
+              if (!promptSearchRef.current) return [];
+              return await promptSearchRef.current(query);
+            },
+            get: async (id: string) => {
+              if (!promptGetRef.current) {
+                throw new Error("PromptProvider.get not available");
+              }
+              return await promptGetRef.current(id);
+            },
+          }
+        : undefined,
+    [promptProvider],
   );
+
+  const stableOnResourceSelect = React.useCallback((item: ResourceItem) => {
+    if (onResourceSelectRef.current) {
+      onResourceSelectRef.current(item);
+    }
+  }, []); // Stable callback that forwards to ref
 
   return (
     <div
@@ -462,9 +480,9 @@ const MessageInputTextarea = ({
         disabled={!isIdle || isUpdatingToken}
         editorRef={editorRef}
         className="bg-background text-foreground"
-        resourceProvider={combinedResourceProvider}
-        promptProvider={promptProvider}
-        onResourceSelect={handleResourceSelect}
+        resourceProvider={stableResourceProvider}
+        promptProvider={stablePromptProvider}
+        onResourceSelect={onResourceSelect ? stableOnResourceSelect : undefined}
       />
     </div>
   );
