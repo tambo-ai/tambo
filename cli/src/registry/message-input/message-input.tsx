@@ -190,7 +190,7 @@ const MessageInputInternal = React.forwardRef<
     error,
     images,
     addImages,
-    clearImages,
+    removeImage,
   } = useTamboThreadInput();
   const { cancel } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
@@ -219,16 +219,18 @@ const MessageInputInternal = React.forwardRef<
       setDisplayValue("");
       setIsSubmitting(true);
 
+      const imageIdsAtSubmitTime = images.map((image) => image.id);
+
       try {
         await submit({
           contextKey,
           streamResponse: true,
         });
         setValue("");
-        // Clear staged images only after a successful submit so they are
-        // preserved if the request fails and the input is restored.
-        if (images.length > 0) {
-          setTimeout(() => clearImages(), 0);
+        // Clear only the images that were staged when submission started so
+        // any images added while the request was in-flight are preserved.
+        if (imageIdsAtSubmitTime.length > 0) {
+          imageIdsAtSubmitTime.forEach((id) => removeImage(id));
         }
         // Refocus the editor after a successful submission
         setTimeout(() => {
@@ -259,7 +261,7 @@ const MessageInputInternal = React.forwardRef<
       cancel,
       isSubmitting,
       images,
-      clearImages,
+      removeImage,
     ],
   );
 
