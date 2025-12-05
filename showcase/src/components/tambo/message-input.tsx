@@ -727,9 +727,9 @@ const MessageInputTextarea = ({
         disabled={!isIdle || isUpdatingToken}
         editorRef={editorRef}
         className="bg-background text-foreground"
-        resourceProvider={combinedResourceProvider}
-        promptProvider={combinedPromptProvider}
-        onResourceSelect={onResourceSelect}
+        onSearchResources={combinedResourceProvider.search}
+        onSearchPrompts={combinedPromptProvider.search}
+        onResourceSelect={onResourceSelect ?? (() => {})}
         onPromptSelect={handlePromptSelect}
       />
     </div>

@@ -47,6 +47,7 @@ export interface PromptItem {
 /**
  * Provider interface for searching resources (for "@" mentions).
  * Empty query string "" should return all available resources.
+ * @deprecated Use onSearchResources callback prop on TextEditor instead
  */
 export interface ResourceProvider {
   /** Search for resources matching the query */
@@ -56,6 +57,7 @@ export interface ResourceProvider {
 /**
  * Provider interface for searching and fetching prompts (for "/" commands).
  * Empty query string "" should return all available prompts.
+ * @deprecated Use onSearchPrompts callback prop on TextEditor instead
  */
 export interface PromptProvider {
   /** Search for prompts matching the query */
@@ -76,14 +78,14 @@ export interface TextEditorProps {
   onSubmit: (e: React.FormEvent) => Promise<void>;
   /** Called when an image is pasted into the editor */
   onAddImage: (file: File) => Promise<void>;
-  /** Provider for resource items (displayed with "@" mentions) */
-  resourceProvider?: ResourceProvider;
-  /** Provider for prompt items (displayed with "/" commands) */
-  promptProvider?: PromptProvider;
+  /** Search for resources matching the query (for "@" mentions) */
+  onSearchResources: (query: string) => Promise<ResourceItem[]>;
+  /** Search for prompts matching the query (for "/" commands) */
+  onSearchPrompts: (query: string) => Promise<PromptItem[]>;
   /** Called when a resource is selected from the "@" menu */
-  onResourceSelect?: (item: ResourceItem) => void;
+  onResourceSelect: (item: ResourceItem) => void;
   /** Called when a prompt is selected from the "/" menu */
-  onPromptSelect?: (item: PromptItem) => void;
+  onPromptSelect: (item: PromptItem) => void;
 }
 
 /**
@@ -272,7 +274,7 @@ function createResourceItemPopup() {
  * Used for "@" mentions that insert visual mention nodes in the editor.
  */
 function createResourceMentionConfig(
-  provider: ResourceProvider,
+  searchResources: (query: string) => Promise<ResourceItem[]>,
   onSelect: (item: ResourceItem) => void,
   isMenuOpenRef: React.MutableRefObject<boolean>,
 ): Omit<SuggestionOptions, "editor"> {
@@ -280,7 +282,7 @@ function createResourceMentionConfig(
     char: "@",
     items: async ({ query }) => {
       try {
-        return await provider.search(query);
+        return await searchResources(query);
       } catch (error) {
         console.error("Failed to fetch resources", error);
         return [];
@@ -473,7 +475,7 @@ function createPromptItemPopup() {
  * Unlike Mention, this doesn't create special nodes - it just triggers text insertion.
  */
 function createPromptCommandExtension(
-  provider: PromptProvider,
+  searchPrompts: (query: string) => Promise<PromptItem[]>,
   onSelect: (item: PromptItem) => void,
   isMenuOpenRef: React.MutableRefObject<boolean>,
 ) {
@@ -492,7 +494,7 @@ function createPromptCommandExtension(
               if (editorValue.length > 0) {
                 return [];
               }
-              return await provider.search(query);
+              return await searchPrompts(query);
             } catch (error) {
               console.error("Failed to fetch prompts", error);
               return [];
@@ -592,29 +594,27 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       editorRef,
       onSubmit,
       onAddImage,
-      resourceProvider,
-      promptProvider,
+      onSearchResources,
+      onSearchPrompts,
       onResourceSelect,
       onPromptSelect,
     },
     ref,
   ) => {
     // Store each callback in its own ref so TipTap always calls the latest version
-    const resourceSearchRef = React.useRef(resourceProvider?.search);
-    const promptSearchRef = React.useRef(promptProvider?.search);
-    const promptGetRef = React.useRef(promptProvider?.get);
+    const onSearchResourcesRef = React.useRef(onSearchResources);
+    const onSearchPromptsRef = React.useRef(onSearchPrompts);
     const onResourceSelectRef = React.useRef(onResourceSelect);
     const onPromptSelectRef = React.useRef(onPromptSelect);
 
     // Update refs whenever callbacks change
     React.useEffect(() => {
-      resourceSearchRef.current = resourceProvider?.search;
-    }, [resourceProvider]);
+      onSearchResourcesRef.current = onSearchResources;
+    }, [onSearchResources]);
 
     React.useEffect(() => {
-      promptSearchRef.current = promptProvider?.search;
-      promptGetRef.current = promptProvider?.get;
-    }, [promptProvider]);
+      onSearchPromptsRef.current = onSearchPrompts;
+    }, [onSearchPrompts]);
 
     React.useEffect(() => {
       onResourceSelectRef.current = onResourceSelect;
@@ -624,31 +624,14 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       onPromptSelectRef.current = onPromptSelect;
     }, [onPromptSelect]);
 
-    // Create stable provider objects with callbacks that forward to refs
-    // Always create providers - they'll be no-ops if the original wasn't provided
-    const stableResourceProvider = React.useMemo<ResourceProvider>(
-      () => ({
-        search: async (query: string) => {
-          if (!resourceSearchRef.current) return [];
-          return await resourceSearchRef.current(query);
-        },
-      }),
+    // Create stable callbacks that forward to refs
+    const stableSearchResources = React.useCallback(
+      async (query: string) => await onSearchResourcesRef.current(query),
       [],
     );
 
-    const stablePromptProvider = React.useMemo<PromptProvider>(
-      () => ({
-        search: async (query: string) => {
-          if (!promptSearchRef.current) return [];
-          return await promptSearchRef.current(query);
-        },
-        get: async (id: string) => {
-          if (!promptGetRef.current) {
-            throw new Error("PromptProvider.get not available");
-          }
-          return await promptGetRef.current(id);
-        },
-      }),
+    const stableSearchPrompts = React.useCallback(
+      async (query: string) => await onSearchPromptsRef.current(query),
       [],
     );
 
@@ -657,18 +640,16 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
     const promptMenuOpenRef = React.useRef<boolean>(false);
 
     // Handle resource selection
-    const handleResourceSelect = React.useCallback((item: ResourceItem) => {
-      if (onResourceSelectRef.current) {
-        onResourceSelectRef.current(item);
-      }
-    }, []);
+    const handleResourceSelect = React.useCallback(
+      (item: ResourceItem) => onResourceSelectRef.current(item),
+      [],
+    );
 
     // Handle prompt selection
-    const handlePromptSelect = React.useCallback(async (item: PromptItem) => {
-      if (onPromptSelectRef.current) {
-        onPromptSelectRef.current(item);
-      }
-    }, []);
+    const handlePromptSelect = React.useCallback(
+      (item: PromptItem) => onPromptSelectRef.current(item),
+      [],
+    );
 
     // Handle Enter key to submit message
     const handleKeyDown = React.useCallback(
@@ -703,7 +684,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
               "mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground",
           },
           suggestion: createResourceMentionConfig(
-            stableResourceProvider,
+            stableSearchResources,
             handleResourceSelect,
             resourceMenuOpenRef,
           ),
@@ -711,7 +692,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         }),
         // Always register the "/" command extension for prompts
         createPromptCommandExtension(
-          stablePromptProvider,
+          stableSearchPrompts,
           handlePromptSelect,
           promptMenuOpenRef,
         ),
