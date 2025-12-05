@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.44.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.43.1...tambo-v0.44.0) (2025-12-05)
+
+
+### Features
+
+* **mcp-resources:** Enable @-resource and /-command inline completion ([#1464](https://github.com/tambo-ai/tambo/issues/1464)) ([775ca87](https://github.com/tambo-ai/tambo/commit/775ca8789341de492bd084e1fbede76ffd3d1f8c))
+
+
+### Bug Fixes
+
+* **cli:** add null guard for staged image file access (TAM-813) ([#1468](https://github.com/tambo-ai/tambo/issues/1468)) ([1b11871](https://github.com/tambo-ai/tambo/commit/1b11871dfd976171b4bad66b5364b96d9a24cf5d))
+* **deps:** upgrade to zod v3 subpath imports and MCP SDK 1.24 ([#1465](https://github.com/tambo-ai/tambo/issues/1465)) ([c8b7f07](https://github.com/tambo-ai/tambo/commit/c8b7f079560d423082c005018a103b9eb3cf6993))
+
+
+### Tests
+
+* simplify coverage thresholds and fix CI coverage ([#1458](https://github.com/tambo-ai/tambo/issues/1458)) ([719b9e6](https://github.com/tambo-ai/tambo/commit/719b9e660700b5eb420b288cab52cbc11c83028d))
+
 ## [0.43.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.43.0...tambo-v0.43.1) (2025-12-04)
 
 
