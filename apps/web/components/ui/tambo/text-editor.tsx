@@ -870,7 +870,8 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
             resourceMenuOpenRef,
           ),
           renderLabel: ({ node }) => `@${(node.attrs.label as string) ?? ""}`,
-          renderText: ({ node }) => `@${(node.attrs.label as string) ?? ""}`,
+          // Use the id (full resource URI) for text serialization when submitting
+          renderText: ({ node }) => `@${(node.attrs.id as string) ?? ""}`,
         }),
         // Always register the "/" command extension for prompts
         createPromptCommandExtension(
