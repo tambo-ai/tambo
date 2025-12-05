@@ -31,6 +31,23 @@ import { ArrowUp, AtSign, FileText, Paperclip, Square } from "lucide-react";
 import * as React from "react";
 
 /**
+ * Symbol for marking pasted images.
+ * Using Symbol.for to create a global symbol that can be accessed across modules.
+ * @internal
+ */
+const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
+
+/**
+ * Extend the File interface to include the IS_PASTED_IMAGE property.
+ * This is a type-safe way to mark pasted images without using a broad index signature.
+ */
+declare global {
+  interface File {
+    [IS_PASTED_IMAGE]?: boolean;
+  }
+}
+
+/**
  * Removes duplicate resource items based on ID.
  */
 const dedupeResourceItems = (resourceItems: ResourceItem[]) => {
@@ -563,6 +580,7 @@ const MessageInputTextarea = ({
 }: MessageInputTextareaProps) => {
   const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
   const { isIdle } = useTamboThread();
+  const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
 
   // Combine MCP resources/prompts with external providers
@@ -616,6 +634,15 @@ const MessageInputTextarea = ({
     }
   }, []);
 
+  // Handle image paste - mark as pasted and add to thread
+  const handleAddImage = React.useCallback(
+    async (file: File) => {
+      file[IS_PASTED_IMAGE] = true;
+      await addImage(file);
+    },
+    [addImage],
+  );
+
   return (
     <div
       className={cn("flex-1", className)}
@@ -626,6 +653,7 @@ const MessageInputTextarea = ({
         value={value}
         onChange={setValue}
         onSubmit={handleSubmit}
+        onAddImage={handleAddImage}
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
         editorRef={editorRef}

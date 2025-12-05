@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useTamboThreadInput } from "@tambo-ai/react";
 import Document from "@tiptap/extension-document";
 import Mention from "@tiptap/extension-mention";
 import Paragraph from "@tiptap/extension-paragraph";
@@ -73,8 +72,10 @@ export interface TextEditorProps {
   disabled?: boolean;
   className?: string;
   editorRef?: React.MutableRefObject<Editor | null>;
-  /** Optional submit handler for Tambo-specific Enter key behavior */
-  onSubmit?: (e: React.FormEvent) => Promise<void>;
+  /** Submit handler for Enter key behavior */
+  onSubmit: (e: React.FormEvent) => Promise<void>;
+  /** Called when an image is pasted into the editor */
+  onAddImage: (file: File) => Promise<void>;
   /** Provider for resource items (displayed with "@" mentions) */
   resourceProvider?: ResourceProvider;
   /** Provider for prompt items (displayed with "/" commands) */
@@ -590,6 +591,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       className,
       editorRef,
       onSubmit,
+      onAddImage,
       resourceProvider,
       promptProvider,
       onResourceSelect,
@@ -597,9 +599,6 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
     },
     ref,
   ) => {
-    // Use Tambo-specific hooks if onSubmit is provided
-    const tamboThreadInput = onSubmit ? useTamboThreadInput() : null;
-
     // Store each callback in its own ref so TipTap always calls the latest version
     const resourceSearchRef = React.useRef(resourceProvider?.search);
     const promptSearchRef = React.useRef(promptProvider?.search);
@@ -671,11 +670,11 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       }
     }, []);
 
-    // Handle Enter key to submit message when onSubmit is provided
+    // Handle Enter key to submit message
     const handleKeyDown = React.useCallback(
       (e: React.KeyboardEvent, editor: Editor) => {
-        // Handle Tambo-specific Enter key behavior
-        if (onSubmit && e.key === "Enter" && !e.shiftKey && value.trim()) {
+        // Handle Enter key behavior
+        if (e.key === "Enter" && !e.shiftKey && value.trim()) {
           e.preventDefault();
           void onSubmit(e as React.FormEvent);
           return;
@@ -729,10 +728,6 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           ),
         },
         handlePaste: (_view, event) => {
-          if (!onSubmit || !tamboThreadInput) {
-            return false;
-          }
-
           const items = Array.from(event.clipboardData?.items ?? []);
           const imageItems = items.filter((item) =>
             item.type.startsWith("image/"),
@@ -753,14 +748,11 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           }
 
           void (async () => {
-            if (!tamboThreadInput) return;
-
             for (const item of imageItems) {
               const file = item.getAsFile();
               if (!file) continue;
               try {
-                file[IS_PASTED_IMAGE] = true;
-                await tamboThreadInput.addImage(file);
+                await onAddImage(file);
               } catch (error) {
                 console.error("Failed to add pasted image:", error);
               }
@@ -817,20 +809,3 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
 );
 
 TextEditor.displayName = "TextEditor";
-
-/**
- * Symbol for marking pasted images.
- * Using Symbol.for to create a global symbol that can be accessed across modules.
- * @internal
- */
-const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
-
-/**
- * Extend the File interface to include the IS_PASTED_IMAGE property.
- * This is a type-safe way to mark pasted images without using a broad index signature.
- */
-declare global {
-  interface File {
-    [IS_PASTED_IMAGE]?: boolean;
-  }
-}

@@ -649,6 +649,7 @@ const MessageInputTextarea = ({
 }: MessageInputTextareaProps) => {
   const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
   const { isIdle } = useTamboThread();
+  const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
 
   // Combine MCP resources/prompts with external providers
@@ -702,6 +703,15 @@ const MessageInputTextarea = ({
     }
   }, []);
 
+  // Handle image paste - mark as pasted and add to thread
+  const handleAddImage = React.useCallback(
+    async (file: File) => {
+      file[IS_PASTED_IMAGE] = true;
+      await addImage(file);
+    },
+    [addImage],
+  );
+
   return (
     <div
       className={cn("flex-1", className)}
@@ -712,6 +722,7 @@ const MessageInputTextarea = ({
         value={value}
         onChange={setValue}
         onSubmit={handleSubmit}
+        onAddImage={handleAddImage}
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
         editorRef={editorRef}
