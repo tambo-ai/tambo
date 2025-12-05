@@ -125,7 +125,9 @@ function useCombinedResourceProvider(
                   resource: { uri: string; name?: string };
                 }[]
               ).map((entry) => ({
-                id: `mcp-resource:${entry.resource.uri}`,
+                // Use the full URI (already includes serverKey prefix from MCP hook)
+                // When inserted as @{id}, parseResourceReferences will strip serverKey before sending to backend
+                id: entry.resource.uri,
                 name: entry.resource.name ?? entry.resource.uri,
                 icon: React.createElement(AtSign, { className: "w-4 h-4" }),
                 componentData: { type: "mcp-resource", data: entry },
