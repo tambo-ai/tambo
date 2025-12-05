@@ -156,9 +156,9 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
 
 /* Suggestion dropdown (tippy.js) */
 .tippy-box[data-theme~="light-border"] {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--border));
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.1),
@@ -170,12 +170,12 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
 
 .tippy-box[data-theme~="light-border"][data-placement^="bottom"]
   > .tippy-arrow::before {
-  border-bottom-color: hsl(var(--border));
+  border-bottom-color: var(--border);
 }
 
 .tippy-box[data-theme~="light-border"][data-placement^="top"]
   > .tippy-arrow::before {
-  border-top-color: hsl(var(--border));
+  border-top-color: var(--border);
 }
 
 .tippy-box[data-theme~="light-border"] .tippy-content {
