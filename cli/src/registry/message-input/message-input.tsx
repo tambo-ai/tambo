@@ -1076,7 +1076,7 @@ const MessageInputStagedImages = React.forwardRef<
           key={image.id}
           image={image}
           displayName={
-            image.file[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
+            image.file?.[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
           }
           isExpanded={expandedImageId === image.id}
           onToggle={() =>
