@@ -5,9 +5,9 @@ import {
   MessageInput,
   MessageInputError,
   MessageInputSubmitButton,
-  MessageInputTextarea,
   MessageInputToolbar,
 } from "@/components/ui/tambo/message-input";
+import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
 import {
   MessageSuggestions,
   MessageSuggestionsList,
@@ -90,7 +90,7 @@ export const MessageThreadFull = React.forwardRef<
         {/* Message input */}
         <div className="p-4">
           <MessageInput contextKey={contextKey}>
-            <MessageInputTextarea />
+            <MessageInputTextareaWithInteractables />
             <MessageInputToolbar>
               <MessageInputSubmitButton />
             </MessageInputToolbar>
