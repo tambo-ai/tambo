@@ -219,18 +219,18 @@ const MessageInputInternal = React.forwardRef<
       setDisplayValue("");
       setIsSubmitting(true);
 
-      // Clear images in next tick for immediate UI feedback
-      if (images.length > 0) {
-        setTimeout(() => clearImages(), 0);
-      }
-
       try {
         await submit({
           contextKey,
           streamResponse: true,
         });
         setValue("");
-        // Images are cleared automatically by the TamboThreadInputProvider
+        // Clear staged images only after a successful submit so they are
+        // preserved if the request fails and the input is restored.
+        if (images.length > 0) {
+          setTimeout(() => clearImages(), 0);
+        }
+        // Refocus the editor after a successful submission
         setTimeout(() => {
           editorRef.current?.commands.focus();
         }, 0);
