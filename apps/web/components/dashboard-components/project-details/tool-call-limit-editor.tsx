@@ -83,12 +83,18 @@ export function ToolCallLimitEditor({
 
   // Track previous editedLimit to prevent unnecessary re-triggers
   const prevEditedLimitRef = useRef<number | undefined>(undefined);
+  // Track if we just saved to prevent useEffect from resetting to old prop value
+  const justSavedRef = useRef(false);
 
   const { mutateAsync: updateProject, isPending: isUpdating } =
     api.project.updateProject.useMutation();
 
-  // Sync current value from prop (but respect ongoing edits)
+  // Sync current value from prop (but respect ongoing edits and just-saved state)
   useEffect(() => {
+    if (justSavedRef.current) {
+      justSavedRef.current = false;
+      return;
+    }
     if (maxToolCallLimit && !isEditing) {
       setLimitValue(maxToolCallLimit.toString());
     }
@@ -96,10 +102,7 @@ export function ToolCallLimitEditor({
 
   // When Tambo sends editedLimit, enter edit mode with that value
   useEffect(() => {
-    if (
-      editedLimit !== undefined &&
-      editedLimit !== prevEditedLimitRef.current
-    ) {
+    if (editedLimit != null && editedLimit !== prevEditedLimitRef.current) {
       prevEditedLimitRef.current = editedLimit;
       setLimitValue(editedLimit.toString());
       setIsEditing(true);
@@ -129,6 +132,8 @@ export function ToolCallLimitEditor({
         description: "Tool call limit updated successfully",
       });
 
+      // Mark as just saved to prevent useEffect from resetting limitValue to old prop
+      justSavedRef.current = true;
       setIsEditing(false);
       // Reset ref so Tambo can trigger the same action again later
       prevEditedLimitRef.current = undefined;
@@ -227,7 +232,7 @@ export function ToolCallLimitEditor({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">Current Limit</p>
-                    <p className="text-2xl font-bold">{maxToolCallLimit}</p>
+                    <p className="text-2xl font-bold">{limitValue}</p>
                   </div>
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
