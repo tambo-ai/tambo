@@ -2,11 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
-import {
-  useTamboMcpPrompt,
-  useTamboMcpPromptList,
-  useTamboMcpResourceList,
-} from "@tambo-ai/react/mcp";
 import Document from "@tiptap/extension-document";
 import Mention from "@tiptap/extension-mention";
 import Paragraph from "@tiptap/extension-paragraph";
@@ -21,7 +16,7 @@ import {
 } from "@tiptap/react";
 import type { SuggestionOptions } from "@tiptap/suggestion";
 import Suggestion from "@tiptap/suggestion";
-import { AtSign, Cuboid, FileText } from "lucide-react";
+import { Cuboid, FileText } from "lucide-react";
 import * as React from "react";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import tippy, { type Instance as TippyInstance } from "tippy.js";
@@ -88,152 +83,6 @@ export interface TextEditorProps {
   onResourceSelect?: (item: ResourceItem) => void;
   /** Called when a prompt is selected from the "/" menu */
   onPromptSelect?: (item: PromptItem) => void;
-}
-
-const dedupeResourceItems = (resourceItems: ResourceItem[]) => {
-  const seen = new Set<string>();
-  return resourceItems.filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-    return true;
-  });
-};
-
-const filterResourceItems = (
-  resourceItems: ResourceItem[],
-  query: string,
-): ResourceItem[] => {
-  // Empty query returns all items
-  if (query === "") return resourceItems;
-
-  const normalizedQuery = query.toLocaleLowerCase();
-  return resourceItems.filter((item) =>
-    item.name.toLocaleLowerCase().includes(normalizedQuery),
-  );
-};
-
-const filterPromptItems = (
-  promptItems: PromptItem[],
-  query: string,
-): PromptItem[] => {
-  // Empty query returns all items
-  if (query === "") return promptItems;
-
-  const normalizedQuery = query.toLocaleLowerCase();
-  return promptItems.filter((item) =>
-    item.name.toLocaleLowerCase().includes(normalizedQuery),
-  );
-};
-
-/**
- * Hook to create a combined resource provider that merges MCP resources with an external provider.
- * Returns a stable ResourceProvider that searches both sources.
- */
-function useCombinedResourceProvider(
-  externalProvider: ResourceProvider | undefined,
-): ResourceProvider {
-  const { data: mcpResources } = useTamboMcpResourceList();
-
-  return React.useMemo<ResourceProvider>(
-    () => ({
-      search: async (query: string): Promise<ResourceItem[]> => {
-        try {
-          // Get MCP resources
-          const mcpItems: ResourceItem[] = mcpResources
-            ? (
-                mcpResources as {
-                  resource: { uri: string; name?: string };
-                }[]
-              ).map((entry) => ({
-                id: `mcp-resource:${entry.resource.uri}`,
-                name: entry.resource.name ?? entry.resource.uri,
-                icon: React.createElement(AtSign, { className: "w-4 h-4" }),
-                componentData: { type: "mcp-resource", data: entry },
-              }))
-            : [];
-
-          // Get external resources
-          const externalItems = externalProvider
-            ? await externalProvider.search(query)
-            : [];
-
-          // Combine and dedupe
-          const combined = [...mcpItems, ...externalItems];
-          const filtered = filterResourceItems(combined, query);
-          return dedupeResourceItems(filtered);
-        } catch (error) {
-          console.error("Failed to fetch resources", error);
-          return [];
-        }
-      },
-    }),
-    [mcpResources, externalProvider],
-  );
-}
-
-/**
- * Hook to create a combined prompt provider that merges MCP prompts with an external provider.
- * Returns a stable PromptProvider that searches both sources and fetches prompt details.
- * Only returns prompts when editor is empty.
- *
- * Note: MCP prompts are marked with a special ID prefix so they can be handled separately
- * via the useTamboMcpPrompt hook (since we can't call hooks inside get()).
- */
-function useCombinedPromptProvider(
-  externalProvider: PromptProvider | undefined,
-): PromptProvider {
-  const { data: mcpPrompts } = useTamboMcpPromptList();
-
-  return React.useMemo<PromptProvider>(
-    () => ({
-      search: async (query: string): Promise<PromptItem[]> => {
-        try {
-          // Get MCP prompts (mark with mcp-prompt: prefix so we know to handle them specially)
-          const mcpItems: PromptItem[] = mcpPrompts
-            ? (mcpPrompts as { prompt: { name: string } }[]).map((entry) => ({
-                id: `mcp-prompt:${entry.prompt.name}`,
-                name: entry.prompt.name,
-                icon: React.createElement(FileText, { className: "w-4 h-4" }),
-                text: "", // Text will be fetched when selected via useTamboMcpPrompt
-              }))
-            : [];
-
-          // Get external prompts
-          const externalItems = externalProvider
-            ? await externalProvider.search(query)
-            : [];
-
-          // Combine and filter
-          const combined = [...mcpItems, ...externalItems];
-          return filterPromptItems(combined, query);
-        } catch (error) {
-          console.error("Failed to fetch prompts", error);
-          return [];
-        }
-      },
-      get: async (id: string): Promise<PromptItem> => {
-        // Check if this is an MCP prompt (marked with mcp-prompt: prefix)
-        if (id.startsWith("mcp-prompt:")) {
-          // Return a placeholder - actual text will be fetched via useTamboMcpPrompt hook
-          const promptName = id.replace("mcp-prompt:", "");
-          return {
-            id,
-            name: promptName,
-            icon: React.createElement(FileText, { className: "w-4 h-4" }),
-            text: "", // Will be populated by MCP hook
-          };
-        }
-
-        // Delegate to external provider
-        if (externalProvider) {
-          return await externalProvider.get(id);
-        }
-
-        throw new Error(`Prompt not found: ${id}`);
-      },
-    }),
-    [mcpPrompts, externalProvider],
-  );
 }
 
 /**
@@ -751,107 +600,76 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
     // Use Tambo-specific hooks if onSubmit is provided
     const tamboThreadInput = onSubmit ? useTamboThreadInput() : null;
 
-    // Get combined providers (MCP + external)
-    const combinedResourceProvider =
-      useCombinedResourceProvider(resourceProvider);
-    const combinedPromptProvider = useCombinedPromptProvider(promptProvider);
+    // Store each callback in its own ref so TipTap always calls the latest version
+    const resourceSearchRef = React.useRef(resourceProvider?.search);
+    const promptSearchRef = React.useRef(promptProvider?.search);
+    const promptGetRef = React.useRef(promptProvider?.get);
+    const onResourceSelectRef = React.useRef(onResourceSelect);
+    const onPromptSelectRef = React.useRef(onPromptSelect);
 
-    // State for MCP prompt fetching (since we can't call hooks inside get())
-    const [selectedMcpPromptName, setSelectedMcpPromptName] = React.useState<
-      string | null
-    >(null);
-    const { data: selectedMcpPromptData } = useTamboMcpPrompt(
-      selectedMcpPromptName ?? "",
+    // Update refs whenever callbacks change
+    React.useEffect(() => {
+      resourceSearchRef.current = resourceProvider?.search;
+    }, [resourceProvider]);
+
+    React.useEffect(() => {
+      promptSearchRef.current = promptProvider?.search;
+      promptGetRef.current = promptProvider?.get;
+    }, [promptProvider]);
+
+    React.useEffect(() => {
+      onResourceSelectRef.current = onResourceSelect;
+    }, [onResourceSelect]);
+
+    React.useEffect(() => {
+      onPromptSelectRef.current = onPromptSelect;
+    }, [onPromptSelect]);
+
+    // Create stable provider objects with callbacks that forward to refs
+    // Always create providers - they'll be no-ops if the original wasn't provided
+    const stableResourceProvider = React.useMemo<ResourceProvider>(
+      () => ({
+        search: async (query: string) => {
+          if (!resourceSearchRef.current) return [];
+          return await resourceSearchRef.current(query);
+        },
+      }),
+      [],
     );
 
-    // Handle MCP prompt insertion when data is fetched
-    React.useEffect(() => {
-      if (selectedMcpPromptData && selectedMcpPromptName) {
-        const promptMessages = (
-          selectedMcpPromptData as { messages?: unknown[] }
-        )?.messages;
-        if (promptMessages) {
-          const promptText = promptMessages
-            .map((msg: unknown) => {
-              const typedMsg = msg as {
-                content?: { type?: string; text?: string };
-              };
-              if (typedMsg.content?.type === "text") {
-                return typedMsg.content.text;
-              }
-              return "";
-            })
-            .filter(Boolean)
-            .join("\n");
-
-          const editor = editorRef?.current;
-          if (editor) {
-            editor.commands.setContent(promptText);
-            onChange(getTextWithResourceURIs(editor));
-            editor.commands.focus("end");
+    const stablePromptProvider = React.useMemo<PromptProvider>(
+      () => ({
+        search: async (query: string) => {
+          if (!promptSearchRef.current) return [];
+          return await promptSearchRef.current(query);
+        },
+        get: async (id: string) => {
+          if (!promptGetRef.current) {
+            throw new Error("PromptProvider.get not available");
           }
-
-          // Call onPromptSelect if provided
-          if (onPromptSelect) {
-            onPromptSelect({
-              id: `mcp-prompt:${selectedMcpPromptName}`,
-              name: selectedMcpPromptName,
-              text: promptText,
-              icon: React.createElement(FileText, { className: "w-4 h-4" }),
-            });
-          }
-        }
-        setSelectedMcpPromptName(null);
-      }
-    }, [
-      selectedMcpPromptData,
-      selectedMcpPromptName,
-      editorRef,
-      onChange,
-      onPromptSelect,
-    ]);
+          return await promptGetRef.current(id);
+        },
+      }),
+      [],
+    );
 
     // Separate refs for tracking "@" and "/" menu states
     const resourceMenuOpenRef = React.useRef<boolean>(false);
     const promptMenuOpenRef = React.useRef<boolean>(false);
 
     // Handle resource selection
-    const handleResourceSelect = React.useCallback(
-      (item: ResourceItem) => {
-        if (onResourceSelect) {
-          onResourceSelect(item);
-        }
-      },
-      [onResourceSelect],
-    );
+    const handleResourceSelect = React.useCallback((item: ResourceItem) => {
+      if (onResourceSelectRef.current) {
+        onResourceSelectRef.current(item);
+      }
+    }, []);
 
     // Handle prompt selection
-    const handlePromptSelect = React.useCallback(
-      async (item: PromptItem) => {
-        // Check if this is an MCP prompt
-        if (item.id.startsWith("mcp-prompt:")) {
-          const promptName = item.id.replace("mcp-prompt:", "");
-          setSelectedMcpPromptName(promptName);
-        } else {
-          // External prompt - fetch and insert the text
-          try {
-            const fullPrompt = await combinedPromptProvider.get(item.id);
-            const editor = editorRef?.current;
-            if (editor) {
-              editor.commands.setContent(fullPrompt.text);
-              onChange(getTextWithResourceURIs(editor));
-              editor.commands.focus("end");
-            }
-            if (onPromptSelect) {
-              onPromptSelect(fullPrompt);
-            }
-          } catch (error) {
-            console.error("Failed to fetch prompt", error);
-          }
-        }
-      },
-      [combinedPromptProvider, editorRef, onChange, onPromptSelect],
-    );
+    const handlePromptSelect = React.useCallback(async (item: PromptItem) => {
+      if (onPromptSelectRef.current) {
+        onPromptSelectRef.current(item);
+      }
+    }, []);
 
     // Handle Enter key to submit message when onSubmit is provided
     const handleKeyDown = React.useCallback(
@@ -883,7 +701,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         Mention.configure({
           HTMLAttributes: { class: "mention resource" },
           suggestion: createResourceMentionConfig(
-            combinedResourceProvider,
+            stableResourceProvider,
             handleResourceSelect,
             resourceMenuOpenRef,
           ),
@@ -891,7 +709,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         }),
         // Always register the "/" command extension for prompts
         createPromptCommandExtension(
-          combinedPromptProvider,
+          stablePromptProvider,
           handlePromptSelect,
           promptMenuOpenRef,
         ),
