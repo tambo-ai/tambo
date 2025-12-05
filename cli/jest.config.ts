@@ -20,6 +20,12 @@ const config: Config = {
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
+  coverageThreshold: {
+    global: {
+      branches: 60,
+      lines: 65,
+    },
+  },
 };
 
 export default config;
