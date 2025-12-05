@@ -1,14 +1,20 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
-import { useTamboCurrentMessage } from "./use-current-message";
+import { InteractableIdContext } from "../providers/hoc/with-tambo-interactable";
+import { useTamboInteractable } from "../providers/tambo-interactable-provider";
+import { TamboMessageContext } from "./use-current-message";
 
 type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 
 /**
  * A React hook that acts like useState, but also automatically updates the thread message's componentState.
+ * If used within an interactable component (wrapped with withTamboInteractable), it also updates the
+ * interactable provider's global state (sent to Tambo on every request).
+ *
  * Benefits: Passes user changes to AI, and when threads are returned, state is preserved.
+ * Works in both generative and interactable component contexts.
  * @param keyName - The unique key to identify this state value within the message's componentState object
  * @param initialValue - Optional initial value for the state, used if no componentState value exists in the Tambo message containing this hook usage.
  * @param setFromProp - Optional value used to set the state value, only while no componentState value exists in the Tambo message containing this hook usage. Use this to allow streaming updates from a prop to the state value.
@@ -52,19 +58,33 @@ export function useTamboComponentState<S>(
   setFromProp?: S,
   debounceTime = 500,
 ): StateUpdateResult<S> {
-  const message = useTamboCurrentMessage();
+  const message = useContext(TamboMessageContext);
   const { updateThreadMessage } = useTamboThread();
   const client = useTamboClient();
+  const componentId = useContext(InteractableIdContext);
+  const { setInteractableState, getInteractableComponentState } =
+    useTamboInteractable();
+  const isInteractable = componentId !== null;
+  const hasMessage = message !== null;
   const messageState = message?.componentState?.[keyName];
-  const [localState, setLocalState] = useState<S | undefined>(
-    (messageState as S) ?? initialValue,
-  );
+
+  // If in interactable context, check interactable state first, then message state, then initial value
+  const interactableState =
+    isInteractable && componentId
+      ? getInteractableComponentState(componentId)?.[keyName]
+      : undefined;
+  const initialState =
+    (interactableState as S) ?? (messageState as S) ?? initialValue;
+  const [localState, setLocalState] = useState<S | undefined>(initialState);
   const [initializedFromThreadMessage, setInitializedFromThreadMessage] =
     useState(messageState ? true : false);
 
   // Optimistically update the local thread message's componentState
   const updateLocalThreadMessage = useCallback(
-    async (newState: S, existingMessage: TamboThreadMessage) => {
+    async (newState: S, existingMessage: TamboThreadMessage | null) => {
+      if (!existingMessage) {
+        return;
+      }
       const updatedMessage = {
         threadId: existingMessage.threadId,
         componentState: {
@@ -79,7 +99,10 @@ export function useTamboComponentState<S>(
 
   // Debounced callback to update the remote thread message's componentState
   const updateRemoteThreadMessage = useDebouncedCallback(
-    async (newState: S, existingMessage: TamboThreadMessage) => {
+    async (newState: S, existingMessage: TamboThreadMessage | null) => {
+      if (!existingMessage) {
+        return;
+      }
       await client.beta.threads.messages.updateComponentState(
         existingMessage.id,
         {
@@ -94,21 +117,53 @@ export function useTamboComponentState<S>(
   const setValue = useCallback(
     (newState: S) => {
       setLocalState(newState);
-      void updateLocalThreadMessage(newState, message);
-      void updateRemoteThreadMessage(newState, message);
+      // Update interactable provider state (sent to Tambo on every request) only if in interactable context
+      if (isInteractable && componentId) {
+        setInteractableState(componentId, keyName, newState);
+      }
+      // Update message componentState (for persistence) only if in a message context
+      if (hasMessage && message) {
+        void updateLocalThreadMessage(newState, message);
+        void updateRemoteThreadMessage(newState, message);
+      }
     },
-    [message, updateLocalThreadMessage, updateRemoteThreadMessage],
+    [
+      message,
+      updateLocalThreadMessage,
+      updateRemoteThreadMessage,
+      setInteractableState,
+      componentId,
+      keyName,
+      isInteractable,
+      hasMessage,
+    ],
   );
 
-  // Mirror the thread message's componentState value to the local state
+  // Mirror the thread message's componentState value to the local state and interactable state
   useEffect(() => {
-    const messageState = message?.componentState?.[keyName];
+    if (!hasMessage || !message) {
+      return;
+    }
+    const messageState = message.componentState?.[keyName];
     if (!messageState) {
       return;
     }
     setInitializedFromThreadMessage(true);
-    setLocalState(message.componentState?.[keyName] as S);
-  }, [message?.componentState?.[keyName], message, keyName]);
+    const stateValue = message.componentState?.[keyName] as S;
+    setLocalState(stateValue);
+    // Update interactable state only if in interactable context
+    if (isInteractable && componentId) {
+      setInteractableState(componentId, keyName, stateValue);
+    }
+  }, [
+    message?.componentState?.[keyName],
+    message,
+    keyName,
+    setInteractableState,
+    componentId,
+    isInteractable,
+    hasMessage,
+  ]);
 
   // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
   useEffect(() => {

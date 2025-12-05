@@ -2,7 +2,9 @@
 import React, { createContext, PropsWithChildren, useContext } from "react";
 import { TamboThreadMessage } from "../model/generate-component-response";
 
-const TamboMessageContext = createContext<TamboThreadMessage | null>(null);
+export const TamboMessageContext = createContext<TamboThreadMessage | null>(
+  null,
+);
 
 /**
  * Wraps all components, so that they can find what message they are in
