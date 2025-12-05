@@ -707,14 +707,6 @@ function createPromptCommandExtension(
 }
 
 /**
- * Extended Mention node for resource mentions.
- * Visual display shows the label, but text serialization uses the ID.
- */
-const ResourceMention = Mention.extend({
-  name: "mention",
-});
-
-/**
  * Custom text extraction that serializes mention nodes with their ID (resource URI)
  * instead of their label. This is needed for message submission.
  */
@@ -923,7 +915,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         Placeholder.configure({ placeholder }),
         // Always register the "@" mention extension for resources
         // Visual display uses label, but getTextWithResourceURIs() will use ID
-        ResourceMention.configure({
+        Mention.configure({
           HTMLAttributes: { class: "mention resource" },
           suggestion: createResourceMentionConfig(
             stableResourceProvider,
