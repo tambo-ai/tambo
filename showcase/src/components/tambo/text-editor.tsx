@@ -717,6 +717,67 @@ function createPromptCommandExtension(
 }
 
 /**
+ * Extended Mention node that properly serializes using the ID (resource URI)
+ * instead of the label when converting to text.
+ */
+const ResourceMention = Mention.extend({
+  name: "mention",
+
+  // Override the atom property's toText to use ID instead of label
+  addNodeView() {
+    return () => {
+      return {};
+    };
+  },
+
+  // Add custom text content getter
+  addStorage() {
+    return {
+      // This will be used by editor.getText() via textContent
+      getTextContent: (node: { attrs: { id?: string; label?: string } }) => {
+        return `@${node.attrs.id ?? node.attrs.label ?? ""}`;
+      },
+    };
+  },
+
+  // Override parseHTML to ensure proper serialization
+  parseHTML() {
+    return [
+      {
+        tag: `span[data-type="${this.name}"]`,
+        getAttrs: (dom: HTMLElement | string) => {
+          if (typeof dom === "string") return null;
+          return {
+            id: dom.getAttribute("data-id"),
+            label: dom.getAttribute("data-label"),
+          };
+        },
+      },
+    ];
+  },
+
+  // Override renderHTML to store ID in the text content for getText()
+  renderHTML({ node }: { node: { attrs: { id?: string; label?: string } } }) {
+    return [
+      "span",
+      {
+        "data-type": this.name,
+        "data-id": node.attrs.id,
+        "data-label": node.attrs.label,
+        class: "mention resource",
+      },
+      // Use ID for text content so getText() returns the URI
+      `@${node.attrs.id ?? ""}`,
+    ];
+  },
+
+  // renderLabel controls the visual display in the editor
+  renderLabel({ node }: { node: { attrs: { id?: string; label?: string } } }) {
+    return `@${node.attrs.label ?? ""}`;
+  },
+});
+
+/**
  * Text editor component with resource ("@") and prompt ("/") support.
  */
 export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
@@ -903,17 +964,13 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         Text,
         Placeholder.configure({ placeholder }),
         // Always register the "@" mention extension for resources
-        // Use stable provider that always accesses latest data via ref
-        Mention.configure({
-          HTMLAttributes: { class: "mention resource" },
+        // Use custom ResourceMention that serializes with ID instead of label
+        ResourceMention.configure({
           suggestion: createResourceMentionConfig(
             stableResourceProvider,
             handleResourceSelect,
             resourceMenuOpenRef,
           ),
-          renderLabel: ({ node }) => `@${(node.attrs.label as string) ?? ""}`,
-          // Use the id (full resource URI) for text serialization when submitting
-          renderText: ({ node }) => `@${(node.attrs.id as string) ?? ""}`,
         }),
         // Always register the "/" command extension for prompts
         // Use stable provider that always accesses latest data via ref
