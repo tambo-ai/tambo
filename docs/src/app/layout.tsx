@@ -12,6 +12,8 @@ import { Inter } from "next/font/google";
 import { Suspense } from "react";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://docs.tambo.co";
+const docsDescription =
+  "Official Tambo AI documentation for building generative UI in React with MCP-native tools, streaming components, and the Tambo React SDK.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -19,15 +21,13 @@ export const metadata: Metadata = {
     default: "Tambo AI Documentation",
     template: "%s | Tambo AI Docs",
   },
-  description:
-    "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+  description: docsDescription,
   alternates: {
-    canonical: "./",
+    canonical: "/",
   },
   openGraph: {
     title: "Tambo AI Documentation",
-    description:
-      "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+    description: docsDescription,
     url: baseUrl,
     siteName: "Tambo AI Docs",
     type: "website",
@@ -35,8 +35,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Tambo AI Documentation",
-    description:
-      "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+    description: docsDescription,
   },
   robots: {
     index: true,
