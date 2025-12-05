@@ -27,6 +27,8 @@ import {
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
+import type { Editor } from "@tiptap/react";
+import { TextEditor, type ResourceItem } from "./text-editor";
 import {
   useTamboElicitationContext,
   type TamboElicitationRequest,
@@ -90,7 +92,7 @@ const messageInputVariants = cva("w-full", {
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
  * @property {string|undefined} contextKey - The thread context key
- * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
+ * @property {Editor|null} editorRef - Reference to the TipTap editor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
  * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
@@ -107,7 +109,7 @@ interface MessageInputContextValue {
   isPending: boolean;
   error: Error | null;
   contextKey?: string;
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  editorRef: React.RefObject<Editor | null>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
   elicitation: TamboElicitationRequest | null;
@@ -142,14 +144,13 @@ const useMessageInputContext = () => {
  * Props for the MessageInput component.
  * Extends standard HTMLFormElement attributes.
  */
-export interface MessageInputProps
-  extends React.HTMLAttributes<HTMLFormElement> {
+export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement> {
   /** The context key identifying which thread to send messages to. */
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
-  /** Optional ref to forward to the textarea element. */
-  inputRef?: React.RefObject<HTMLTextAreaElement>;
+  /** Optional ref to forward to the TipTap editor instance. */
+  inputRef?: React.RefObject<Editor | null>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -206,7 +207,7 @@ const MessageInputInternal = React.forwardRef<
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const editorRef = React.useRef<Editor | null>(null);
   const dragCounter = React.useRef(0);
 
   // Use elicitation context (optional)
@@ -214,8 +215,8 @@ const MessageInputInternal = React.forwardRef<
 
   React.useEffect(() => {
     setDisplayValue(value);
-    if (value && textareaRef.current) {
-      textareaRef.current.focus();
+    if (value && editorRef.current) {
+      editorRef.current.commands.focus();
     }
   }, [value]);
 
@@ -241,7 +242,7 @@ const MessageInputInternal = React.forwardRef<
         setValue("");
         // Images are cleared automatically by the TamboThreadInputProvider
         setTimeout(() => {
-          textareaRef.current?.focus();
+          editorRef.current?.commands.focus();
         }, 0);
       } catch (error) {
         console.error("Failed to submit message:", error);
@@ -344,7 +345,7 @@ const MessageInputInternal = React.forwardRef<
       isPending: isPending ?? isSubmitting,
       error,
       contextKey,
-      textareaRef: inputRef ?? textareaRef,
+      editorRef: inputRef ?? editorRef,
       submitError,
       setSubmitError,
       elicitation,
@@ -360,7 +361,7 @@ const MessageInputInternal = React.forwardRef<
       error,
       contextKey,
       inputRef,
-      textareaRef,
+      editorRef,
       submitError,
       elicitation,
       resolveElicitation,
@@ -418,7 +419,7 @@ MessageInput.displayName = "MessageInput";
 /**
  * Symbol for marking pasted images
  */
-const IS_PASTED_IMAGE = Symbol("is-pasted-image");
+const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
 
 /**
  * Extend the File interface to include IS_PASTED_IMAGE symbol
@@ -433,34 +434,92 @@ declare global {
  * Props for the MessageInputTextarea component.
  * Extends standard TextareaHTMLAttributes.
  */
-export interface MessageInputTextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Custom placeholder text. */
   placeholder?: string;
+  /** Static mention items to include in @ suggestions. */
+  staticMentionItems?: ResourceItem[];
+  /** Async fetcher to load mention items (e.g., MCP resources). */
+  mentionItemFetcher?: (query: string) => Promise<ResourceItem[]>;
 }
 
 /**
- * Textarea component for entering message text.
- * Automatically connects to the context to handle value changes and key presses.
+ * Rich-text textarea component for entering message text with @ mention support.
+ * Uses the TipTap-based TextEditor which supports:
+ * - @ mention autocomplete for interactables plus optional static items and async fetchers
+ * - Keyboard navigation (Enter to submit, Shift+Enter for newline)
+ * - Image paste handling via the thread input context
  * @component MessageInput.Textarea
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.Textarea placeholder="Type your message..." />
+ *   <MessageInput.Textarea
+ *     placeholder="Type your message..."
+ *     staticMentionItems={[{ id: "foo", name: "Foo" }]}
+ *   />
  * </MessageInput>
  * ```
  */
 const MessageInputTextarea = ({
   className,
   placeholder = "What do you want to do?",
+  staticMentionItems,
+  mentionItemFetcher,
   ...props
 }: MessageInputTextareaProps) => {
-  const { value, setValue, textareaRef, handleSubmit } =
-    useMessageInputContext();
+  const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
+  const { isIdle } = useTamboThread();
+  const isUpdatingToken = useIsTamboTokenUpdating();
+
+  return (
+    <div
+      className={cn("flex-1", className)}
+      data-slot="message-input-textarea"
+      {...props}
+    >
+      <TextEditor
+        value={value}
+        onChange={setValue}
+        onSubmit={handleSubmit}
+        placeholder={placeholder}
+        disabled={!isIdle || isUpdatingToken}
+        editorRef={editorRef}
+        className="bg-background text-foreground"
+        staticMentionItems={staticMentionItems}
+        mentionItemFetcher={mentionItemFetcher}
+      />
+    </div>
+  );
+};
+MessageInputTextarea.displayName = "MessageInput.Textarea";
+
+/**
+ * Props for the legacy plain textarea message input component.
+ * This preserves the original MessageInput.Textarea API for backward compatibility.
+ */
+export interface MessageInputPlainTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  /** Custom placeholder text. */
+  placeholder?: string;
+}
+
+/**
+ * Legacy textarea-based message input component.
+ *
+ * This mirrors the previous MessageInput.Textarea implementation using a native
+ * `<textarea>` element. It remains available as an opt-in escape hatch for
+ * consumers that relied on textarea-specific props or refs.
+ */
+const MessageInputPlainTextarea = ({
+  className,
+  placeholder = "What do you want to do?",
+  ...props
+}: MessageInputPlainTextareaProps) => {
+  const { value, setValue, handleSubmit } = useMessageInputContext();
   const { isIdle } = useTamboThread();
   const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
+  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
@@ -523,14 +582,13 @@ const MessageInputTextarea = ({
     />
   );
 };
-MessageInputTextarea.displayName = "MessageInput.Textarea";
+MessageInputPlainTextarea.displayName = "MessageInput.PlainTextarea";
 
 /**
  * Props for the MessageInputSubmitButton component.
  * Extends standard ButtonHTMLAttributes.
  */
-export interface MessageInputSubmitButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputSubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Optional content to display inside the button. */
   children?: React.ReactNode;
 }
@@ -713,8 +771,7 @@ MessageInputError.displayName = "MessageInput.Error";
 /**
  * Props for the MessageInputFileButton component.
  */
-export interface MessageInputFileButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputFileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Accept attribute for file input - defaults to image types */
   accept?: string;
   /** Allow multiple file selection */
@@ -854,13 +911,39 @@ const MessageInputMcpResourceButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputMcpResourceButtonProps
 >(({ ...props }, ref) => {
-  const { setValue, value } = useMessageInputContext();
+  const { setValue, value, editorRef } = useMessageInputContext();
+
+  const insertResourceReference = React.useCallback(
+    (resourceRef: string) => {
+      const editor = editorRef.current;
+      if (editor) {
+        editor
+          .chain()
+          .focus()
+          .insertContent([
+            {
+              type: "mention",
+              attrs: { id: resourceRef.slice(1), label: resourceRef.slice(1) },
+            },
+            { type: "text", text: " " },
+          ])
+          .run();
+        setValue(editor.getText());
+        return;
+      }
+      // Fallback: append to end of plain text value
+      const newValue = value ? `${value} ${resourceRef}` : resourceRef;
+      setValue(newValue);
+    },
+    [editorRef, setValue, value],
+  );
+
   return (
     <McpResourceButton
       ref={ref}
       {...props}
       value={value}
-      onInsertText={setValue}
+      onInsertText={insertResourceReference}
     />
   );
 });
@@ -1018,6 +1101,22 @@ const MessageInputStagedImages = React.forwardRef<
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";
 
 /**
+ * Convenience wrapper that renders staged images as context badges.
+ * Keeps API parity with the web app's MessageInputContexts component.
+ */
+const MessageInputContexts = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <MessageInputStagedImages
+    ref={ref}
+    className={cn("pb-2 pt-1 border-b border-border", className)}
+    {...props}
+  />
+));
+MessageInputContexts.displayName = "MessageInputContexts";
+
+/**
  * Container for the toolbar components (like submit button and MCP config button).
  * Provides correct spacing and alignment.
  * @component MessageInput.Toolbar
@@ -1079,6 +1178,7 @@ MessageInputToolbar.displayName = "MessageInput.Toolbar";
 export {
   DictationButton,
   MessageInput,
+  MessageInputContexts,
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpConfigButton,
@@ -1086,6 +1186,7 @@ export {
   MessageInputMcpResourceButton,
   MessageInputStagedImages,
   MessageInputSubmitButton,
+  MessageInputPlainTextarea,
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,

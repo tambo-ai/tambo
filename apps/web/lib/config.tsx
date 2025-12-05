@@ -82,19 +82,21 @@ export const siteConfig = {
         url: "https://github.com/tambo-ai/tambo",
       },
       {
-        icon: <Icons.twitter className="h-5 w-5" />,
+        icon: <Icons.twitter className="h-4 w-4" />,
         url: "https://x.com/tambo_ai",
+      },
+      {
+        icon: <Icons.discord className="h-5 w-5" />,
+        url: "https://discord.gg/dJNvPEHth6",
       },
     ],
     links: [
       { text: "Documentation", url: "/docs" },
-      { text: "Discord", url: "https://discord.gg/dJNvPEHth6" },
-      { text: "Twitter", url: "https://x.com/tambo_ai" },
+      { text: "License", url: "/license" },
       { text: "Privacy Notice", url: "/privacy" },
       { text: "Terms of Use", url: "/terms" },
-      { text: "License", url: "/license" },
     ],
-    bottomText: "Fractal Dynamics Inc © 2024",
+    bottomText: "Fractal Dynamics Inc © 2025",
     brandText: "tambo-ai",
   },
 };

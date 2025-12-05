@@ -58,7 +58,7 @@ declare module "json-stringify-pretty-compact" {
       indent?: number | string;
       maxLength?: number;
       replacer?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((this: any, key: string, value: any) => any) | (number | string)[];
+        ((this: any, key: string, value: any) => any) | (number | string)[];
     },
   ) => string;
   export default stringify;

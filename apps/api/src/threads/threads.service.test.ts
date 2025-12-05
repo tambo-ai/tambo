@@ -1168,9 +1168,13 @@ describe("ThreadsService.advanceThread initialization", () => {
         operations.getLatestMessage.mockResolvedValue(mockToolCallMessage);
         operations.updateMessage.mockResolvedValue(mockToolCallMessage);
         operations.addMessage.mockResolvedValue(
-          createMockDBMessage("m2", threadId, MessageRole.Tool, [
-            { type: "text", text: "" },
-          ]),
+          createMockDBMessage(
+            "m2",
+            threadId,
+            MessageRole.Tool,
+            [{ type: "text", text: "" }],
+            { toolCallId: "tc_123" },
+          ),
         );
 
         await service.cancelThread(threadId);

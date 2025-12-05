@@ -1,7 +1,7 @@
 import { customLlmParametersSchema } from "@/lib/llm-parameters";
 import { agentHeadersSchema } from "@/lib/schemas/project";
 import { AgentProviderType, AiProviderType } from "@tambo-ai-cloud/core";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Shared schemas for LLM operations.

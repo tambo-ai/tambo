@@ -10,8 +10,7 @@ import { useRef } from "react";
 /**
  * Props for the ThreadContainer component
  */
-export interface ThreadContainerProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface ThreadContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Whether to disable automatic sidebar spacing.
    * When true, the component will not add margins for the sidebar.

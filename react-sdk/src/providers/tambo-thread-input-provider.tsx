@@ -28,21 +28,20 @@ export const INPUT_ERROR_MESSAGES = {
   VALIDATION: "Invalid message format",
 } as const;
 
-export interface TamboThreadInputContextProps
-  extends Omit<
-    UseTamboMutationResult<
-      void,
-      Error,
-      | {
-          contextKey?: string;
-          streamResponse?: boolean;
-          forceToolChoice?: string;
-          additionalContext?: Record<string, any>;
-        }
-      | undefined
-    >,
-    "mutate" | "mutateAsync"
-  > {
+export interface TamboThreadInputContextProps extends Omit<
+  UseTamboMutationResult<
+    void,
+    Error,
+    | {
+        contextKey?: string;
+        streamResponse?: boolean;
+        forceToolChoice?: string;
+        additionalContext?: Record<string, any>;
+      }
+    | undefined
+  >,
+  "mutate" | "mutateAsync"
+> {
   /** Current value of the input field */
   value: string;
   /**

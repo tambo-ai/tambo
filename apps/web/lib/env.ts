@@ -1,7 +1,7 @@
 // src/env.mjs
 import { createEnv } from "@t3-oss/env-nextjs";
 import { vercel } from "@t3-oss/env-nextjs/presets-zod";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 function allowEmptyString(value: string) {
   return value === "" ? undefined : value;

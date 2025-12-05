@@ -11,7 +11,11 @@ import {
   getToolName,
   LegacyComponentDecision,
   MessageRole,
+  ThreadAssistantMessage,
   ThreadMessage,
+  ThreadSystemMessage,
+  ThreadToolMessage,
+  ThreadUserMessage,
   ToolCallRequest,
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
@@ -349,28 +353,76 @@ export function updateThreadMessageFromLegacyDecision(
   // duplication, because they appear in the thread message
   const { reasoning, isToolCallFinished, ...simpleDecisionChunk } = chunk;
 
-  const currentThreadMessage: ThreadMessage = {
-    ...initialMessage,
+  const commonFields = {
+    id: initialMessage.id,
+    threadId: initialMessage.threadId,
+    parentMessageId: initialMessage.parentMessageId,
+    isCancelled: initialMessage.isCancelled,
+    createdAt: initialMessage.createdAt,
+    error: initialMessage.error,
+    metadata: initialMessage.metadata,
+    additionalContext: initialMessage.additionalContext,
+    actionType: initialMessage.actionType,
     componentState: chunk.componentState ?? {},
     content: [
       {
-        type: ContentPartType.Text,
+        type: ContentPartType.Text as const,
         text: chunk.message,
       },
     ],
     component: simpleDecisionChunk,
-    reasoning: reasoning,
-    reasoningDurationMS: chunk.reasoningDurationMS,
   };
 
-  // Only set outer tool call fields if tool call is finished.
-  if (isToolCallFinished && chunk.toolCallRequest) {
-    currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
-    currentThreadMessage.tool_call_id = chunk.toolCallId;
-    currentThreadMessage.actionType = ActionType.ToolCall;
+  // Handle reasoning and tool calls based on role
+  if (initialMessage.role === MessageRole.Assistant) {
+    const currentThreadMessage: ThreadAssistantMessage = {
+      ...commonFields,
+      role: MessageRole.Assistant,
+      reasoning: reasoning,
+      reasoningDurationMS: chunk.reasoningDurationMS,
+    };
+
+    // Only set outer tool call fields if tool call is finished.
+    if (isToolCallFinished && chunk.toolCallRequest) {
+      currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
+      currentThreadMessage.tool_call_id = chunk.toolCallId;
+      currentThreadMessage.actionType = ActionType.ToolCall;
+    }
+
+    return currentThreadMessage;
   }
 
-  return currentThreadMessage;
+  // For non-assistant messages, reconstruct based on the role
+  switch (initialMessage.role) {
+    case MessageRole.User: {
+      const msg: ThreadUserMessage = {
+        ...commonFields,
+        role: MessageRole.User,
+      };
+      return msg;
+    }
+    case MessageRole.System: {
+      const msg: ThreadSystemMessage = {
+        ...commonFields,
+        role: MessageRole.System,
+      };
+      return msg;
+    }
+    case MessageRole.Tool: {
+      const msg: ThreadToolMessage = {
+        ...commonFields,
+        role: MessageRole.Tool,
+        tool_call_id: initialMessage.tool_call_id,
+      };
+      return msg;
+    }
+    default: {
+      const _exhaustive: never = initialMessage;
+      throw new Error(
+        `Unexpected role: ${(_exhaustive as ThreadMessage).role}`,
+      );
+    }
+  }
 }
 
 /**

@@ -132,8 +132,7 @@ export interface TamboThreadContextProps {
 
 // Combined context interface that includes generation stage fields
 export interface CombinedTamboThreadContextProps
-  extends TamboThreadContextProps,
-    TamboGenerationStageContextProps {}
+  extends TamboThreadContextProps, TamboGenerationStageContextProps {}
 
 /**
  * This is a stub entry for when the thread is not yet created, the first time

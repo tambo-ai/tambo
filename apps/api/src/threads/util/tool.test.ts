@@ -24,6 +24,7 @@ describe("tool utilities", () => {
           },
         ],
         role: MessageRole.Tool,
+        tool_call_id: "test-tool-call-id",
       };
       expect(validateToolResponse(message)).toBe(true);
     });
@@ -41,6 +42,7 @@ describe("tool utilities", () => {
           },
         ],
         role: MessageRole.Tool,
+        tool_call_id: "test-tool-call-id",
       };
       expect(validateToolResponse(message)).toBe(true);
     });
@@ -62,6 +64,7 @@ describe("tool utilities", () => {
           },
         ],
         role: MessageRole.Tool,
+        tool_call_id: "test-tool-call-id",
       };
       expect(validateToolResponse(message)).toBe(true);
     });
@@ -77,6 +80,7 @@ describe("tool utilities", () => {
             image_url: { url: "test.jpg" },
           },
         ],
+        tool_call_id: "test-tool-call-id",
         role: MessageRole.Tool,
       };
       expect(validateToolResponse(message)).toBe(true);

@@ -31,9 +31,7 @@ export class ToolParameters {
 }
 
 @ApiSchema({ name: "ComponentContextToolMetadata" })
-export class ComponentContextToolMetadataDto
-  implements ComponentContextToolMetadata
-{
+export class ComponentContextToolMetadataDto implements ComponentContextToolMetadata {
   name!: string;
   description!: string;
   parameters!: ToolParameters[];

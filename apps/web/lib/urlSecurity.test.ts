@@ -65,9 +65,8 @@ describe("urlSecurity", () => {
       parse: () => ({ isIcann: true, hostname: "example.com" }),
     }));
     jest.doMock("dns/promises", () => ({ resolve: async () => ["1.1.1.1"] }));
-    const { validateSafeURL, validateServerUrl } = await import(
-      "@/lib/urlSecurity"
-    );
+    const { validateSafeURL, validateServerUrl } =
+      await import("@/lib/urlSecurity");
     await expect(validateSafeURL("example.com")).resolves.toEqual({
       safe: true,
     });

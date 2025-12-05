@@ -26,7 +26,7 @@ import {
 } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNotNull } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 type McpServer = Awaited<
   ReturnType<typeof operations.getProjectMcpServers>

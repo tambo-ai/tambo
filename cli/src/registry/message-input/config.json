@@ -5,11 +5,19 @@
   "dependencies": [
     "class-variance-authority",
     "@tambo-ai/react",
+    "@tiptap/extension-document",
+    "@tiptap/extension-mention",
+    "@tiptap/extension-paragraph",
+    "@tiptap/extension-placeholder",
+    "@tiptap/extension-text",
+    "@tiptap/react",
+    "@tiptap/suggestion",
     "lucide-react",
     "radix-ui",
     "react-dom",
     "framer-motion",
-    "streamdown"
+    "streamdown",
+    "tippy.js"
   ],
   "devDependencies": [],
   "requires": ["elicitation-ui", "mcp-components"],
@@ -17,6 +25,10 @@
     {
       "name": "message-input.tsx",
       "content": "src/registry/message-input/message-input.tsx"
+    },
+    {
+      "name": "text-editor.tsx",
+      "content": "src/registry/message-input/text-editor.tsx"
     },
     {
       "name": "mcp-config-modal.tsx",

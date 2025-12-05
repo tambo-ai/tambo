@@ -2,7 +2,7 @@
 
 import { api } from "@/trpc/react";
 import { useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { ProjectTable } from "./project-table";
 
 /**

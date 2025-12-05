@@ -28,9 +28,8 @@ jest.unstable_mockModule("ora", () => ({
   }),
 }));
 
-const { handleAgentDocsUpdate } = await import(
-  "../../src/commands/shared/agent-docs.js"
-);
+const { handleAgentDocsUpdate } =
+  await import("../../src/commands/shared/agent-docs.js");
 
 describe("Agent Docs", () => {
   let originalCwd: () => string;

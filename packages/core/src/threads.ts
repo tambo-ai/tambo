@@ -87,29 +87,6 @@ export type ChatCompletionContentPart =
   | OpenAI.Chat.Completions.ChatCompletionContentPart
   | ChatCompletionContentPartResource;
 
-export type ChatCompletionUserMessageParam =
-  OpenAI.Chat.Completions.ChatCompletionUserMessageParam & {
-    content: ChatCompletionContentPart[] | string;
-  };
-export type ChatCompletionSystemMessageParam =
-  OpenAI.Chat.Completions.ChatCompletionSystemMessageParam;
-export type ChatCompletionToolMessageParam =
-  OpenAI.Chat.Completions.ChatCompletionToolMessageParam;
-export type ChatCompletionAssistantMessageParam =
-  OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam;
-export type ChatCompletionDeveloperMessageParam =
-  OpenAI.Chat.Completions.ChatCompletionDeveloperMessageParam;
-
-/** @deprecated so not exporting this type */
-type ChatCompletionFunctionMessageParam =
-  OpenAI.Chat.Completions.ChatCompletionFunctionMessageParam;
-export type ChatCompletionMessageParam =
-  | ChatCompletionUserMessageParam
-  | ChatCompletionSystemMessageParam
-  | ChatCompletionToolMessageParam
-  | ChatCompletionAssistantMessageParam
-  | ChatCompletionDeveloperMessageParam
-  | ChatCompletionFunctionMessageParam;
 /**
  * A "static" type that combines all the content part types without any
  * discriminators, useful for expressing a serialized content part in a
@@ -123,57 +100,165 @@ export type FunctionParameters = {
 };
 
 /**
- * Represents a single message within a thread
- * Can be from a user, assistant, or system
+ * Base properties shared by all thread messages
  */
-export interface ThreadMessage {
+interface BaseThreadMessage {
   /** Unique identifier for the message */
   id: string;
   /** ID of the thread this message belongs to */
   threadId: string;
-  /** The role of who sent the message */
-  role: MessageRole;
   /**
    * The id of the parent message, if the message was created during the
    * generation of another message, such as during an agent call,
    * MCP Elicitation, or MCP Sample.
    */
   parentMessageId?: string;
-  /** Array of content parts making up the message */
-  content: ChatCompletionContentPart[];
   /** Component decision for this message */
   component?: LegacyComponentDecision;
   componentState?: Record<string, unknown>;
   /** Additional context for the message */
   additionalContext?: Record<string, unknown>;
-
-  /**
-   * Type of action performed
-   * @deprecated - use the role and the presence of tool calls to determine the action type
-   */
-  actionType?: ActionType;
-
   /** Error message for the message */
   error?: string;
-
   /** Additional metadata for the message */
   metadata?: Record<string, unknown>;
   /** Whether the message has been cancelled */
   isCancelled?: boolean;
   /** Timestamp when the message was created */
   createdAt: Date;
-
-  /** Used only when role === "tool" */
-  tool_call_id?: string;
   /**
-   * The tool call request for the message
+   * Type of action performed
+   * @deprecated - use the role and the presence of tool calls to determine the action type
    */
+  actionType?: ActionType;
+}
+
+/**
+ * User message - content from the user
+ */
+export interface ThreadUserMessage extends BaseThreadMessage {
+  role: MessageRole.User;
+  content: ChatCompletionContentPart[];
+  // User messages don't have tool calls
+  tool_call_id?: never;
+  toolCallRequest?: never;
+  reasoning?: never;
+  reasoningDurationMS?: never;
+}
+
+/**
+ * System message - instructions for the AI
+ */
+export interface ThreadSystemMessage extends BaseThreadMessage {
+  role: MessageRole.System;
+  content: ChatCompletionContentPart[];
+  // System messages don't have tool calls
+  tool_call_id?: never;
+  toolCallRequest?: never;
+  reasoning?: never;
+  reasoningDurationMS?: never;
+}
+
+/**
+ * Assistant message - response from the AI
+ * May include tool calls
+ */
+export interface ThreadAssistantMessage extends BaseThreadMessage {
+  role: MessageRole.Assistant;
+  content: ChatCompletionContentPart[];
+  /** The tool call request for the message (if making a tool call) */
   toolCallRequest?: ToolCallRequest;
+  /** Tool call ID (if this is part of a tool call flow) */
+  tool_call_id?: string;
   /** Reasoning text from the LLM */
   reasoning?: string[];
   /** Duration of reasoning in milliseconds */
   reasoningDurationMS?: number;
 }
+
+/**
+ * Tool message - result from a tool execution
+ */
+export interface ThreadToolMessage extends BaseThreadMessage {
+  role: MessageRole.Tool;
+  content: ChatCompletionContentPart[];
+  /** REQUIRED: Tool call ID that this message responds to */
+  tool_call_id: string;
+  // Tool messages don't make tool calls themselves
+  toolCallRequest?: never;
+  reasoning?: never;
+  reasoningDurationMS?: never;
+}
+
+/**
+ * Discriminated union of all message types
+ * TypeScript can narrow the type based on the role field
+ */
+export type ThreadMessage =
+  | ThreadUserMessage
+  | ThreadSystemMessage
+  | ThreadAssistantMessage
+  | ThreadToolMessage;
+
+/**
+ * Type guard to check if a message is a user message
+ */
+export function isUserMessage(msg: ThreadMessage): msg is ThreadUserMessage {
+  return msg.role === MessageRole.User;
+}
+
+/**
+ * Type guard to check if a message is an assistant message
+ */
+export function isAssistantMessage(
+  msg: ThreadMessage,
+): msg is ThreadAssistantMessage {
+  return msg.role === MessageRole.Assistant;
+}
+
+/**
+ * Type guard to check if a message is a system message
+ */
+export function isSystemMessage(
+  msg: ThreadMessage,
+): msg is ThreadSystemMessage {
+  return msg.role === MessageRole.System;
+}
+
+/**
+ * Type guard to check if a message is a tool message
+ */
+export function isToolMessage(msg: ThreadMessage): msg is ThreadToolMessage {
+  return msg.role === MessageRole.Tool;
+}
+
+/**
+ * Represents a thread message that has not yet been persisted to the database.
+ * Used for in-memory message construction before saving.
+ * The database is responsible for assigning id and threadId.
+ */
+export type UnsavedThreadUserMessage = Omit<
+  ThreadUserMessage,
+  "id" | "threadId"
+>;
+export type UnsavedThreadSystemMessage = Omit<
+  ThreadSystemMessage,
+  "id" | "threadId"
+>;
+export type UnsavedThreadAssistantMessage = Omit<
+  ThreadAssistantMessage,
+  "id" | "threadId"
+>;
+export type UnsavedThreadToolMessage = Omit<
+  ThreadToolMessage,
+  "id" | "threadId"
+>;
+
+export type UnsavedThreadMessage =
+  | UnsavedThreadUserMessage
+  | UnsavedThreadSystemMessage
+  | UnsavedThreadAssistantMessage
+  | UnsavedThreadToolMessage;
 
 /** Temporary internal type to make sure that subclasses are aligned on types */
 export interface InternalThreadMessage {

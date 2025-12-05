@@ -42,8 +42,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
  * Props for the MessageThreadPanel component
  * @interface
  */
-export interface MessageThreadPanelProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Optional key to identify the context of the thread
    * Used to maintain separate thread histories for different contexts

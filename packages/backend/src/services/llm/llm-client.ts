@@ -1,7 +1,7 @@
-import { ChatCompletionMessageParam } from "@tambo-ai-cloud/core";
+import { ThreadMessage } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
-import { ZodObject, ZodRawShape } from "zod";
+import { ZodObject, ZodRawShape } from "zod/v3";
 
 interface BaseResponseFormat {
   jsonMode?: boolean;
@@ -29,12 +29,12 @@ type ResponseFormat =
   | SchemaResponseFormat;
 
 interface StreamingCompleteBaseParams {
-  messages: ChatCompletionMessageParam[];
+  messages: ThreadMessage[];
   stream: true;
   tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
   tool_choice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
   promptTemplateName: string;
-  promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
+  promptTemplateParams: Record<string, string | ThreadMessage[]>;
   chainId?: string;
 }
 
@@ -42,12 +42,12 @@ export type StreamingCompleteParams = StreamingCompleteBaseParams &
   ResponseFormat;
 
 interface CompleteBaseParams {
-  messages: ChatCompletionMessageParam[];
+  messages: ThreadMessage[];
   stream?: false | undefined;
   tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
   tool_choice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
   promptTemplateName: string;
-  promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
+  promptTemplateParams: Record<string, string | ThreadMessage[]>;
   chainId?: string;
 }
 

@@ -47,6 +47,12 @@ const config: Config = {
     "/node_modules/(?!@modelcontextprotocol/sdk|pkce-challenge)/",
   ],
   testPathIgnorePatterns: ["/node_modules/", "/.next/", "/dist/"],
+  coverageThreshold: {
+    global: {
+      branches: 6,
+      lines: 11,
+    },
+  },
 };
 
 export default config;

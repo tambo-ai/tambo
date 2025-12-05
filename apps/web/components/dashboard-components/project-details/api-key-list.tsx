@@ -206,7 +206,7 @@ export function APIKeyList({
   // When Tambo sends createKeyWithName, automatically create the key
   useEffect(() => {
     if (
-      createKeyWithName !== undefined &&
+      createKeyWithName &&
       projectId &&
       createKeyWithName !== lastCreateKeyRef.current
     ) {
@@ -234,10 +234,7 @@ export function APIKeyList({
 
   // When Tambo sends deleteKeyWithId, open the delete confirmation dialog
   useEffect(() => {
-    if (
-      deleteKeyWithId !== undefined &&
-      deleteKeyWithId !== lastDeleteKeyRef.current
-    ) {
+    if (deleteKeyWithId && deleteKeyWithId !== lastDeleteKeyRef.current) {
       lastDeleteKeyRef.current = deleteKeyWithId;
       handleDeleteKey(deleteKeyWithId);
     }

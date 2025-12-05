@@ -1,7 +1,7 @@
 "use client";
 
 import { useTamboComponentState } from "@tambo-ai/react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { Button } from "../button";
 import { Input } from "../input";
 import { Textarea } from "../textarea";

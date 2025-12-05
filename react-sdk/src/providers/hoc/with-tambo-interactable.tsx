@@ -1,7 +1,7 @@
 // react-sdk/src/providers/with-interactable.tsx
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { useTamboInteractable } from "../tambo-interactable-provider";
 
 export interface InteractableConfig {

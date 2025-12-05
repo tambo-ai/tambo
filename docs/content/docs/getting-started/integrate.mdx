@@ -1,6 +1,6 @@
 ---
-title: Integrate
-description: Learn how to integrate Tambo into an existing application
+title: Integrate Tambo into an existing React app
+description: Add Tambo generative UI to an existing React or Next.js application.
 icon: Blocks
 ---
 
@@ -10,7 +10,7 @@ icon: Blocks
 
 If you have an existing React application and want to add Tambo functionality, follow these steps:
 
-### Step 1: Install tambo-ai
+## Step 1: Install tambo-ai
 
 ```bash
 npx tambo full-send
@@ -24,7 +24,7 @@ This command will:
 
 If you prefer manual setup, you can run `npx tambo init` which will just get you set up with an API key. If you don't have an account yet, <a href="https://tambo.co/dashboard" className="font-medium underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors">sign up for free</a> first.
 
-### Step 2: Add the TamboProvider
+## Step 2: Add the TamboProvider
 
 Once the installation completes, update your `src/app/layout.tsx` file to enable Tambo:
 
@@ -58,7 +58,7 @@ Note that the `TamboProvider` only works in the browser. On Next.js, specify
 `"use client"` at the top of your file to ensure that the `TamboProvider` is
 rendered in the browser.
 
-### Step 3: Add the MessageThreadCollapsible component
+## Step 3: Add the MessageThreadCollapsible component
 
 The `<MessageThreadCollapsible>` component that the `full-send` command installed provides a complete chat interface for your AI assistant. Here's how to add it to your `src/app/page.tsx` file:
 
@@ -75,7 +75,7 @@ export default function Home() {
 }
 ```
 
-### Run your app
+## Step 4: Run your app
 
 ```bash
 npm run dev

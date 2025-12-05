@@ -20,17 +20,21 @@ import {
   verifyLatestMessageConsistency,
 } from "./messages";
 
-jest.mock("@tambo-ai-cloud/db", () => ({
-  operations: {
-    addMessage: jest.fn(),
-    updateMessage: jest.fn(),
-  },
-  schema: {
-    messages: {
-      threadId: { name: "threadId" },
+jest.mock("@tambo-ai-cloud/db", () => {
+  const actual = jest.requireActual("@tambo-ai-cloud/db");
+  return {
+    ...actual,
+    operations: {
+      addMessage: jest.fn(),
+      updateMessage: jest.fn(),
     },
-  },
-}));
+    schema: {
+      messages: {
+        threadId: { name: "threadId" },
+      },
+    },
+  };
+});
 
 describe("messages utilities", () => {
   const mockDb = {
@@ -193,7 +197,7 @@ describe("messages utilities", () => {
         reasoning: ["test reasoning"],
       };
 
-      const mockResponse = {
+      const mockResponse: ThreadMessage = {
         id: "msg1",
         threadId: "thread1",
         role: MessageRole.Assistant,
@@ -274,17 +278,18 @@ describe("messages utilities", () => {
       };
 
       const newMessage: ThreadMessage = {
-        ...mockMessage,
+        id: mockMessage.id,
+        threadId: mockMessage.threadId,
+        role: MessageRole.User,
+        content: mockMessage.content,
+        createdAt: mockMessage.createdAt,
         parentMessageId: undefined,
         componentState: {},
         actionType: ActionType.ToolCall,
         metadata: {},
         additionalContext: { extra: "context" },
-        toolCallRequest: undefined,
-        tool_call_id: undefined,
         error: undefined,
-        reasoning: undefined,
-        reasoningDurationMS: undefined,
+        isCancelled: mockMessage.isCancelled,
       };
 
       jest

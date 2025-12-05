@@ -6,7 +6,10 @@ import {
   Tooltip,
   TooltipProvider,
 } from "@/components/ui/tambo/suggestions-tooltip";
-import { TextEditor } from "@/components/ui/tambo/text-editor";
+import {
+  TextEditor,
+  type ResourceItem,
+} from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import {
   useIsTamboTokenUpdating,
@@ -109,8 +112,7 @@ const useMessageInputContext = () => {
  * Props for the MessageInput component.
  * Extends standard HTMLFormElement attributes.
  */
-export interface MessageInputProps
-  extends React.HTMLAttributes<HTMLFormElement> {
+export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement> {
   /** The context key identifying which thread to send messages to. */
   contextKey?: string;
   /** Optional styling variant for the input container. */
@@ -357,17 +359,20 @@ MessageInput.displayName = "MessageInput";
 /**
  * Props for the MessageInputTextarea component.
  */
-export interface MessageInputTextareaProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageInputTextareaProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Custom placeholder text. */
   placeholder?: string;
+  /** Static mention items to include in @ suggestions. */
+  staticMentionItems?: ResourceItem[];
+  /** Async fetcher to load mention items (e.g., MCP resources). */
+  mentionItemFetcher?: (query: string) => Promise<ResourceItem[]>;
 }
 
 /**
  * Textarea component for entering message text with @ mention support.
  *
  * Uses the TipTap-based TextEditor component which provides:
- * - @ mention autocomplete for interactable components
+ * - @ mention autocomplete for interactable components plus optional static items and async fetchers
  * - Keyboard navigation (Enter to submit, Shift+Enter for newline)
  * - Image paste support
  *
@@ -387,6 +392,8 @@ export interface MessageInputTextareaProps
 const MessageInputTextarea = ({
   className,
   placeholder = "What do you want to do?",
+  staticMentionItems,
+  mentionItemFetcher,
   ...props
 }: MessageInputTextareaProps) => {
   const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
@@ -407,6 +414,8 @@ const MessageInputTextarea = ({
         disabled={!isIdle || isUpdatingToken}
         editorRef={editorRef}
         className="bg-background text-foreground"
+        staticMentionItems={staticMentionItems}
+        mentionItemFetcher={mentionItemFetcher}
       />
     </div>
   );
@@ -417,8 +426,7 @@ MessageInputTextarea.displayName = "MessageInput.Textarea";
  * Props for the MessageInputSubmitButton component.
  * Extends standard ButtonHTMLAttributes.
  */
-export interface MessageInputSubmitButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputSubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Optional content to display inside the button. */
   children?: React.ReactNode;
 }
@@ -606,8 +614,7 @@ MessageInputError.displayName = "MessageInput.Error";
 /**
  * Props for the MessageInputFileButton component.
  */
-export interface MessageInputFileButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MessageInputFileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Accept attribute for file input - defaults to image types */
   accept?: string;
   /** Allow multiple file selection */
