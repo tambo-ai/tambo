@@ -31,19 +31,18 @@ export const currentInteractablesContextHelper: ContextHelperFn = () => {
  * @returns Context helper function
  */
 export const createInteractablesContextHelper = (
-  getComponents: () => any[],
+  components: any[],
+  interactableState: Record<string, unknown>,
 ): ContextHelperFn => {
   return () => {
     try {
-      const components = getComponents();
-
       if (!Array.isArray(components) || components.length === 0) {
         return null; // No interactable components on the page
       }
 
       return {
         description:
-          "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, and optional schema. You can use tools to update these components on behalf of the user.",
+          "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, current state,and optional schema. You can use tools to update these components on behalf of the user. Don't tell the user the ID of the components, only the name, unless they ask for it.",
         components: components.map((component) => ({
           id: component.id,
           componentName: component.name,
@@ -52,6 +51,7 @@ export const createInteractablesContextHelper = (
           propsSchema: component.propsSchema
             ? "Available - use component-specific update tools"
             : "Not specified",
+          state: interactableState[component.id],
         })),
       };
     } catch (e) {
