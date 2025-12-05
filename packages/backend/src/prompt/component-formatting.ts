@@ -1,6 +1,6 @@
 import { createPromptTemplate } from "@tambo-ai-cloud/core";
 import Ajv from "ajv";
-import { z } from "zod";
+import { z } from "zod/v3";
 import zodToJsonSchema from "zod-to-json-schema";
 import {
   AvailableComponent,

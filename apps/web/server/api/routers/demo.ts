@@ -1,7 +1,7 @@
 // apps/web/server/api/routers/demo.ts
 import { env } from "@/lib/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export const demoRouter = createTRPCRouter({
   aqi: protectedProcedure

@@ -1,7 +1,7 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { JSONSchema7 } from "json-schema";
 import { ComponentType } from "react";
-import z from "zod";
+import z from "zod/v3";
 import type zodToJsonSchema from "zod-to-json-schema";
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {

@@ -1,6 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export interface ApiKeyValidationResult {
   isValid: boolean;

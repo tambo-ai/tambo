@@ -1,4 +1,4 @@
-import { z, ZodFirstPartyTypeKind, ZodTypeAny } from "zod";
+import { z, ZodFirstPartyTypeKind, ZodTypeAny } from "zod/v3";
 
 /**
  * Recursively walks a Zod schema and throws when it encounters `z.record()`.

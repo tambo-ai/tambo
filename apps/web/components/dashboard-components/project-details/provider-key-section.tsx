@@ -26,7 +26,7 @@ import {
   useState,
 } from "react";
 import { useDebounce } from "use-debounce";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { AgentSettings } from "./agent-settings";
 import { CustomLlmParametersEditor } from "./custom-llm-parameters/editor";
 

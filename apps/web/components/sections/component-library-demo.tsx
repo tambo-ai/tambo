@@ -104,7 +104,7 @@ export default function Chat() {
   props: `// Now we define the props for the component
 // We use zod to validate the props
 
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export const EmailProps = z.object({
   subject: z.string().optional(),

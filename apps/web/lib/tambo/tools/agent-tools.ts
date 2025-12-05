@@ -3,7 +3,7 @@ import {
   updateProjectAgentSettingsToolInput,
 } from "@/lib/schemas/agent";
 import { AgentProviderType, AiProviderType } from "@tambo-ai-cloud/core";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 

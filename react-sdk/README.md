@@ -260,6 +260,16 @@ const mcpServers = [
 
 [→ Learn more about MCP](https://docs.tambo.co/concepts/model-context-protocol)
 
+> **Dependency note**
+>
+> The `@tambo-ai/react/mcp` subpath declares `@modelcontextprotocol/sdk`, `zod`, and `zod-to-json-schema` as optional peer dependencies. If you import this MCP entrypoint in your app, make sure these packages are installed with compatible versions:
+>
+> ```bash
+> npm install @modelcontextprotocol/sdk@^1.24.0 zod@^4.0.0 zod-to-json-schema@^3.25.0
+> ```
+>
+> `zod` can also be `^3.25` if you prefer Zod 3; both `^3.25` and `^4.0` satisfy the SDK's `zod/v3` subpath constraints.
+
 ### Local Tools
 
 Sometimes you need functions that run in the browser. DOM manipulation, authenticated fetches, accessing React state. Define them as tools and the AI can call them.

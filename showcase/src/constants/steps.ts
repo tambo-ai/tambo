@@ -103,7 +103,7 @@ export const existingProjectSteps = [
     code: `"use client";
   
   import { TamboProvider } from "@tambo-ai/react";
-  import { z } from "zod";
+  import { z } from "zod/v3";
   import { MyComponent } from "@/components/MyComponent";
   
   // Define component props schema

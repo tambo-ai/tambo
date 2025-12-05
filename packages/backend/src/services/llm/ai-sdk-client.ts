@@ -26,7 +26,7 @@ import {
   type ToolSet,
 } from "ai";
 import type OpenAI from "openai";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import { Provider } from "../../model/providers";
 import { formatTemplate, ObjectTemplate } from "../../util/template";

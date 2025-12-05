@@ -21,7 +21,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import * as z from "zod/v3";
 
 /**
  * Props for the CreateProjectDialog component

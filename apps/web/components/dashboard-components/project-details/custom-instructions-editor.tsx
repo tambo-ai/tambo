@@ -16,7 +16,7 @@ import { withInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 const COMPONENT_NAME = "CustomInstructions";
 

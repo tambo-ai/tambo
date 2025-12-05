@@ -4,7 +4,7 @@ import { auth } from "@modelcontextprotocol/sdk/client/auth.js";
 import { getDb, OAuthLocalProvider, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 // Define schema for validating query parameters
 const callbackParamsSchema = z

@@ -1,6 +1,6 @@
 import { FunctionParameters, ThreadMessage } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { LLMClient, LLMResponse } from "../llm/llm-client";
 

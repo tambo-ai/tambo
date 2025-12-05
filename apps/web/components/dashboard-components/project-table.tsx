@@ -14,7 +14,7 @@ import { type RouterOutputs } from "@/trpc/react";
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export const ProjectTableProps = z.object({
   compact: z

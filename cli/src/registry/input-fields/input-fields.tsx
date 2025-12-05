@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useTambo, useTamboComponentState } from "@tambo-ai/react";
 import { cva } from "class-variance-authority";
 import * as React from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Zod schema for Field

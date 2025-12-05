@@ -36,7 +36,7 @@ import {
   SiOkta,
   SiSupabase,
 } from "react-icons/si";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 const COMPONENT_NAME = "OAuthTokenValidation";
 
