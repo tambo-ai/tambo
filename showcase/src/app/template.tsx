@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/sidebar";
 import { MobileProvider } from "@/providers/mobile-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
-import { MCPTransport, TamboMcpProvider } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 import { usePathname } from "next/navigation";
 
 const MCP_DEMO_URL =
@@ -44,11 +44,9 @@ export default function Template({
                     { url: MCP_DEMO_URL, transport: MCPTransport.HTTP },
                   ]}
                 >
-                  <TamboMcpProvider>
-                    <div className="container mx-auto px-4 md:px-6 pt-6">
-                      {children}
-                    </div>
-                  </TamboMcpProvider>
+                  <div className="container mx-auto px-4 md:px-6 pt-6">
+                    {children}
+                  </div>
                 </TamboProvider>
               )}
             </main>
