@@ -35,4 +35,12 @@ export class ComponentContextToolMetadataDto implements ComponentContextToolMeta
   name!: string;
   description!: string;
   parameters!: ToolParameters[];
+
+  @ApiProperty({
+    required: false,
+    type: Number,
+    description:
+      "Maximum number of times this tool can be called in a single thread execution.Overrides project-level maxToolCalls setting for this specific tool.",
+  })
+  maxCalls?: number;
 }
