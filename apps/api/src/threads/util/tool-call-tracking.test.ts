@@ -176,8 +176,13 @@ describe("tool-call-tracking utilities", () => {
       const finalMessage = createMockThreadMessage(toolCallRequest);
       const messages = [createMockThreadMessage()];
 
-      // Per-tool counts: testTool has been called 3 times
-      const toolCounts = { testTool: 3 };
+      // Create counts with signature-based keys (like updateToolCallCounts does)
+      // Simulate 3 identical calls to testTool
+      let toolCounts: Record<string, number> = {};
+      toolCounts = updateToolCallCounts(toolCounts, toolCallRequest);
+      toolCounts = updateToolCallCounts(toolCounts, toolCallRequest);
+      toolCounts = updateToolCallCounts(toolCounts, toolCallRequest);
+      // Now toolCounts has the signature with count 3
 
       const result = validateToolCallLimits(
         finalMessage,

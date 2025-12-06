@@ -98,10 +98,11 @@ export function validateToolCallLimits(
   }
 
   // Signature-level identical-call protection (independent of per-tool/project limits)
-  // Note: this check uses the per-tool count as a proxy for identical calls
-  const currentToolTotal = resolvedPerToolCounts[toolName] || 0;
+  // Check if this EXACT call (tool + specific parameters) has been made too many times
+  const signature = createToolCallSignature(newToolCallRequest);
+  const currentSignatureCount = currentToolCounts[signature] || 0;
 
-  if (currentToolTotal >= MAX_IDENTICAL_TOOL_CALLS) {
+  if (currentSignatureCount >= MAX_IDENTICAL_TOOL_CALLS) {
     return `I've detected that I'm making the same tool call repeatedly (${newToolCallRequest.toolName}). This suggests I'm stuck in a loop. Please try a different approach or contact support if this persists.`;
   }
 
