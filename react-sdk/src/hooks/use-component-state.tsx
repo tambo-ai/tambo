@@ -139,6 +139,30 @@ export function useTamboComponentState<S>(
     ],
   );
 
+  // Set initial value in interactable state if we're in an interactable context and there's no existing state
+  useEffect(() => {
+    if (!isInteractable || !componentId) {
+      return;
+    }
+
+    if (messageState !== undefined) {
+      return;
+    }
+    const existingInteractableState =
+      getInteractableComponentState(componentId)?.[keyName];
+    if (existingInteractableState === undefined && initialValue !== undefined) {
+      setInteractableState(componentId, keyName, initialValue);
+    }
+  }, [
+    isInteractable,
+    componentId,
+    keyName,
+    initialValue,
+    messageState,
+    getInteractableComponentState,
+    setInteractableState,
+  ]);
+
   // Mirror the thread message's componentState value to the local state and interactable state
   useEffect(() => {
     if (!hasMessage || !message) {
