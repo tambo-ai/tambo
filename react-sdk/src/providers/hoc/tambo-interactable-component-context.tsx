@@ -1,18 +1,13 @@
 "use client";
 import React, { createContext, useContext } from "react";
-
-export interface TamboInteractableComponent {
-  id: string;
-  name: string;
-  description: string;
-}
+import type { InteractableConfig } from "./with-tambo-interactable";
 
 const TamboInteractableComponentContext =
-  createContext<TamboInteractableComponent | null>(null);
+  createContext<InteractableConfig | null>(null);
 
 export interface TamboInteractableComponentProviderProps {
   children: React.ReactNode;
-  component: TamboInteractableComponent;
+  component: InteractableConfig;
 }
 
 /**
@@ -84,6 +79,6 @@ export function TamboInteractableComponentProvider({
  * }
  * ```
  */
-export function useTamboInteractableComponent(): TamboInteractableComponent | null {
+export function useTamboInteractableComponent(): InteractableConfig | null {
   return useContext(TamboInteractableComponentContext);
 }

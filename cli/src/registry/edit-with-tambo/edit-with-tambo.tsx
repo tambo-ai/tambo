@@ -223,7 +223,7 @@ export function EditWithTambo({
         additionalContext: {
           inlineEdit: {
             componentId: component.id,
-            componentName: component.name,
+            componentName: component.componentName,
             description: component.description,
             instruction:
               "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
@@ -368,7 +368,7 @@ export function EditWithTambo({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{tooltip}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {component.name}
+                    {component.componentName}
                   </p>
                 </div>
                 <button

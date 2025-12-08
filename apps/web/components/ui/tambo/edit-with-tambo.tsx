@@ -223,7 +223,7 @@ export function EditWithTambo({
         additionalContext: {
           inlineEdit: {
             componentId: component.id,
-            componentName: component.name,
+            componentName: component.componentName,
             description: component.description,
             instruction:
               "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
@@ -256,7 +256,7 @@ export function EditWithTambo({
 
     // Add the component as a context attachment
     addContextAttachment({
-      name: component.name,
+      name: component.componentName,
     });
 
     // Open the thread panel first
@@ -271,7 +271,7 @@ export function EditWithTambo({
       const editor = editorRef.current;
       if (editor) {
         // Check if mention already exists to avoid duplicates
-        if (hasExistingMention(editor, component.name)) {
+        if (hasExistingMention(editor, component.componentName)) {
           // If mention exists, just append the user query with a space before it
           editor
             .chain()
@@ -288,7 +288,7 @@ export function EditWithTambo({
                 type: "mention",
                 attrs: {
                   id: component.id,
-                  label: component.name,
+                  label: component.componentName,
                 },
               },
               {
@@ -303,7 +303,7 @@ export function EditWithTambo({
   }, [
     prompt,
     component.id,
-    component.name,
+    component.componentName,
     addContextAttachment,
     onOpenThread,
     editorRef,
@@ -400,7 +400,7 @@ export function EditWithTambo({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{tooltip}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {component.name}
+                    {component.componentName}
                   </p>
                 </div>
                 <button

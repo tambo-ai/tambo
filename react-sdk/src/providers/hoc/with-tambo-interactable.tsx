@@ -6,6 +6,7 @@ import { useTamboInteractable } from "../tambo-interactable-provider";
 import { TamboInteractableComponentProvider } from "./tambo-interactable-component-context";
 
 export interface InteractableConfig {
+  id: string;
   componentName: string;
   description: string;
   propsSchema?: z.ZodTypeAny;
@@ -114,8 +115,8 @@ export function withTamboInteractable<P extends object>(
     return (
       <TamboInteractableComponentProvider
         component={{
-          id: interactableId ?? "",
-          name: config.componentName,
+          id: interactableId ?? Math.random().toString(36).slice(2, 5),
+          componentName: config.componentName,
           description: config.description,
         }}
       >
