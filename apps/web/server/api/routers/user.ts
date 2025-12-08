@@ -1,7 +1,7 @@
 import { LEGAL_CONFIG, needsLegalAcceptance } from "@/lib/legal-config";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { operations, schema } from "@tambo-ai-cloud/db";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export const userRouter = createTRPCRouter({
   getUser: protectedProcedure.query(async ({ ctx }) => {

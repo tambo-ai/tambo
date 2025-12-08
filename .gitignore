@@ -1,16 +1,52 @@
-node_modules
+# dependencies
+node_modules/
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# vercel
+.vercel
+
+# turborepo
 .turbo
-showcase/.next/
+
+# next.js
+.next
+out
+.source
+
+# env files
 .env
 .env.*
+docker.env
 !.env.example
+
+# build output
 dist
 build
+tmp
+
+# testing
 coverage
 *.log
 .DS_Store
 .idea
-#claude local settings
+
+# ides and agents
+*.code*
 .claude/settings.local.json
-#coding agents
 .plans/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+react-sdk/dist/**

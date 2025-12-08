@@ -105,7 +105,8 @@ export async function upgradeComponents(
     const projectRoot = process.cwd();
     console.log(chalk.blue("Determining component location..."));
 
-    const installPath = options.prefix ?? (await getInstallationPath());
+    const installPath =
+      options.prefix ?? (await getInstallationPath(options.yes));
     const isExplicitPrefix = Boolean(options.prefix);
 
     // Find and verify components
@@ -210,7 +211,7 @@ export async function upgradeComponents(
     // Component selection
     let componentsToUpgrade = verifiedComponents;
 
-    if (!options.acceptAll) {
+    if (!options.yes) {
       const { selectedComponents } = await interactivePrompt<{
         selectedComponents: string[];
       }>(
@@ -225,7 +226,7 @@ export async function upgradeComponents(
           })),
           pageSize: 10,
         },
-        chalk.yellow("Use --accept-all flag to upgrade all components."),
+        chalk.yellow("Use --yes flag to upgrade all components."),
       );
 
       if (selectedComponents.length === 0) {
@@ -281,7 +282,7 @@ export async function upgradeComponents(
         installPath,
         "upgrade",
       );
-    } else if (legacyComponents.length > 0 && !options.acceptAll) {
+    } else if (legacyComponents.length > 0 && !options.yes) {
       console.log(
         chalk.yellow(
           `\n⚠️  Found ${legacyComponents.length} components in legacy location (${LEGACY_COMPONENT_SUBDIR}/):`,
@@ -319,6 +320,7 @@ export async function upgradeComponents(
           forceUpdate: true,
           installPath: component.installPath,
           silent: true,
+          yes: options.yes,
         };
 
         if (component.isLegacy) {

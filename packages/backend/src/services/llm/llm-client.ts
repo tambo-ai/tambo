@@ -1,11 +1,7 @@
-import {
-  ChatCompletionMessageParam,
-  ToolCallRequest,
-  tryParseJsonObject,
-} from "@tambo-ai-cloud/core";
+import { ThreadMessage } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
-import { ZodObject, ZodRawShape } from "zod";
+import { ZodObject, ZodRawShape } from "zod/v3";
 
 interface BaseResponseFormat {
   jsonMode?: boolean;
@@ -33,12 +29,12 @@ type ResponseFormat =
   | SchemaResponseFormat;
 
 interface StreamingCompleteBaseParams {
-  messages: ChatCompletionMessageParam[];
+  messages: ThreadMessage[];
   stream: true;
   tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
   tool_choice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
   promptTemplateName: string;
-  promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
+  promptTemplateParams: Record<string, string | ThreadMessage[]>;
   chainId?: string;
 }
 
@@ -46,12 +42,12 @@ export type StreamingCompleteParams = StreamingCompleteBaseParams &
   ResponseFormat;
 
 interface CompleteBaseParams {
-  messages: ChatCompletionMessageParam[];
+  messages: ThreadMessage[];
   stream?: false | undefined;
   tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
   tool_choice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
   promptTemplateName: string;
-  promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>;
+  promptTemplateParams: Record<string, string | ThreadMessage[]>;
   chainId?: string;
 }
 
@@ -93,34 +89,4 @@ export function getLLMResponseMessage(response: Partial<LLMResponse>) {
 /** Get the tool call id from the LLM response */
 export function getLLMResponseToolCallId(response: Partial<LLMResponse>) {
   return response.message?.tool_calls?.[0]?.id;
-}
-
-/**
- * Get the tool call request from the LLM response, as a ToolCallRequest
- *
- * This is for backwards compatibility with the homegrown tool call format.
- */
-export function getLLMResponseToolCallRequest(
-  response: Partial<LLMResponse>,
-): ToolCallRequest | undefined {
-  const llmToolCall = response.message?.tool_calls?.[0];
-  if (llmToolCall?.type !== "function") {
-    return undefined;
-  }
-
-  const args = tryParseJsonObject(llmToolCall.function.arguments, false);
-  if (!args) {
-    // This is expected when tool calls are streaming, so generaly we assume
-    // that a parsing error here is just a temporary issue
-    return;
-  }
-  const parameters = Object.entries(args).map(([key, value]) => ({
-    parameterName: key,
-    parameterValue: value,
-  }));
-
-  return {
-    toolName: llmToolCall.function.name,
-    parameters,
-  };
 }

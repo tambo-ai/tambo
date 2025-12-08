@@ -8,9 +8,9 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputSubmitButton,
-  MessageInputTextarea,
   MessageInputToolbar,
 } from "@/components/ui/tambo/message-input";
+import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
 import {
   MessageSuggestions,
   MessageSuggestionsList,
@@ -36,14 +36,14 @@ import type { Editor } from "@tiptap/react";
 import type { VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
+import * as React from "react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Props for the MessageThreadPanel component
  * @interface
  */
-export interface MessageThreadPanelProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Optional key to identify the context of the thread
    * Used to maintain separate thread histories for different contexts
@@ -360,7 +360,7 @@ export const MessageThreadPanel = forwardRef<
         <div className="p-4 flex-shrink-0">
           <MessageInput contextKey={contextKey} inputRef={editorRef}>
             <MessageInputContexts />
-            <MessageInputTextarea placeholder="Type your message or paste images..." />
+            <MessageInputTextareaWithInteractables placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
               <MessageInputFileButton />
               {/* Uncomment this to enable client-side MCP config modal button */}

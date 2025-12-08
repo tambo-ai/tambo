@@ -1,40 +1,62 @@
 import {
-  ChatCompletionMessageParam,
+  ContentPartType,
   getToolName,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
-  tryParseJsonObject,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { parse } from "partial-json";
 import { generateDecisionLoopPrompt } from "../../prompt/decision-loop-prompts";
+import {
+  prefetchAndCacheResources,
+  ResourceFetcherMap,
+} from "../../util/resource-transformation";
 import { extractMessageContent } from "../../util/response-parsing";
-import { objectTemplate } from "../../util/template";
-import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
-  getLLMResponseToolCallRequest,
   LLMClient,
-  LLMResponse,
 } from "../llm/llm-client";
 import {
   addParametersToTools,
-  displayMessageTool,
   filterOutStandardToolParameters,
   standardToolParameters,
   TamboToolParameters,
   UI_TOOLNAME_PREFIX,
 } from "../tool/tool-service";
 
+/**
+ * Run the decision loop for processing ThreadMessages and generating component
+ * decisions.
+ *
+ * This function handles the core decision-making flow:
+ * 1. Pre-fetches all MCP resources and caches them inline
+ * 2. Filters tools into component tools (UI) and agent tools (actions)
+ * 3. Adds standard parameters to all tools
+ * 4. Formats messages using the decision loop prompt template
+ * 5. Streams responses from the LLM client
+ * 6. Parses streaming responses into LegacyComponentDecision objects
+ * 7. Handles errors and malformed responses
+ *
+ * @param llmClient - The LLM client to use for generating responses
+ * @param messages - Array of thread messages to process
+ * @param strictTools - Array of available tools in OpenAI format
+ * @param customInstructions - Optional custom instructions to add to the system
+ *   prompt
+ * @param forceToolChoice - Optional tool name to force the LLM to use
+ * @param resourceFetchers - Map of serverKey to resource fetcher functions for
+ *   fetching MCP resources
+ * @returns Async iterator of component decisions
+ */
 export async function* runDecisionLoop(
   llmClient: LLMClient,
   messages: ThreadMessage[],
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   customInstructions: string | undefined,
-  forceToolChoice?: string,
+  forceToolChoice: string | undefined,
+  resourceFetchers: ResourceFetcherMap,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const componentTools = strictTools.filter((tool) =>
     getToolName(tool).startsWith(UI_TOOLNAME_PREFIX),
@@ -56,25 +78,48 @@ export async function* runDecisionLoop(
 
   const { template: systemPrompt, args: systemPromptArgs } =
     generateDecisionLoopPrompt(customInstructions);
-  const chatCompletionMessages =
-    threadMessagesToChatCompletionMessageParam(messages);
-  const promptMessages = objectTemplate<ChatCompletionMessageParam[]>([
-    { role: "system", content: systemPrompt },
-    { role: "chat_history" as "user", content: "{chat_history}" },
-  ]);
+
+  // Pre-fetch and cache all resources before sending to LLM
+  const messagesWithCachedResources = await prefetchAndCacheResources(
+    messages,
+    resourceFetchers,
+  );
+
+  // Get threadId from messages - should always be present
+  if (messages.length === 0) {
+    throw new Error("Cannot run decision loop with no messages");
+  }
+  const threadId = messages[0].threadId;
+  if (!threadId) {
+    throw new Error("Cannot run decision loop: messages missing threadId");
+  }
+
+  // Build prompt messages: system message + chat history
+  const systemMessage: ThreadMessage = {
+    // This is a synthetic message id that is used to identify the system message -
+    // we give it a synthetic id because it is not saved to the database.
+    id: "synthetic-system-message-id",
+    threadId,
+    role: MessageRole.System,
+    content: [{ type: ContentPartType.Text, text: systemPrompt }],
+    createdAt: new Date(),
+    componentState: {},
+  };
+
+  const promptMessages: ThreadMessage[] = [
+    systemMessage,
+    ...messagesWithCachedResources,
+  ];
 
   const responseStream = await llmClient.complete({
     messages: promptMessages,
     tools: toolsWithStandardParameters,
     promptTemplateName: "decision-loop",
-    promptTemplateParams: {
-      chat_history: chatCompletionMessages,
-      ...systemPromptArgs,
-    },
+    promptTemplateParams: systemPromptArgs,
     stream: true,
     tool_choice: forceToolChoice
       ? { type: "function", function: { name: forceToolChoice } }
-      : "required",
+      : "auto",
   });
 
   const initialDecision: LegacyComponentDecision = {
@@ -133,14 +178,10 @@ export async function* runDecisionLoop(
         ) as Partial<TamboToolParameters>;
       }
 
-      // If this is a non-UI tool call, make sure params are complete and filter out standard tool parameters
+      // If this is a non-UI tool call, build tool call request (even if incomplete)
       let clientToolRequest: ToolCallRequest | undefined;
       if (!isUITool && toolCall) {
-        clientToolRequest = removeTamboToolParameters(
-          toolCall,
-          strictTools,
-          chunk,
-        );
+        clientToolRequest = buildToolCallRequest(toolCall, strictTools);
       }
 
       const displayMessage = extractMessageContent(
@@ -157,10 +198,7 @@ export async function* runDecisionLoop(
           : "",
         props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
-        toolCallId:
-          toolCall && getToolName(toolCall) === getToolName(displayMessageTool)
-            ? undefined
-            : getLLMResponseToolCallId(chunk),
+        toolCallId: toolCall ? getLLMResponseToolCallId(chunk) : undefined,
         statusMessage,
         completionStatusMessage,
         reasoning: chunk.reasoning ?? undefined,
@@ -179,37 +217,59 @@ export async function* runDecisionLoop(
   }
 }
 
-function removeTamboToolParameters(
+/**
+ * Build a tool call request from a tool call, even if it's incomplete.
+ * Returns undefined if the tool call is not a function type.
+ * Uses partial-json parsing to handle incomplete JSON during streaming.
+ */
+function buildToolCallRequest(
   toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall,
   tools: OpenAI.Chat.Completions.ChatCompletionTool[],
-  chunk: Partial<LLMResponse>,
-) {
-  const originalRequest = getLLMResponseToolCallRequest(chunk);
-  // Just means the tool call is still streaming
-  if (!originalRequest) {
-    return;
-  }
+): ToolCallRequest | undefined {
   // "custom" tool calls are not supported
   if (toolCall.type !== "function") {
-    return originalRequest;
-  }
-  const parsedToolCall = tryParseJsonObject(toolCall.function.arguments, false);
-  if (parsedToolCall) {
-    const filteredArgs = filterOutStandardToolParameters(
-      toolCall,
-      tools,
-      parsedToolCall,
+    console.warn(
+      "Unsupported tool call type, only 'function' is supported, received: ",
+      toolCall.type,
     );
-
-    // Only include tool call request if it's not the displayMessageTool
-    if (
-      filteredArgs &&
-      getToolName(toolCall) !== getToolName(displayMessageTool)
-    ) {
-      return {
-        ...originalRequest,
-        parameters: filteredArgs,
-      };
-    }
+    return undefined;
   }
+
+  // Try to parse the arguments (may be incomplete during streaming)
+  let parsedArgs: Record<string, unknown> | undefined;
+  try {
+    // Use partial-json parse to handle incomplete JSON during streaming
+    parsedArgs = parse(toolCall.function.arguments);
+  } catch (_e) {
+    // If parsing fails completely, we can't build a request
+    console.warn(
+      "Failed to parse tool call arguments, received: ",
+      toolCall.function.arguments,
+    );
+    return undefined;
+  }
+  if (
+    !parsedArgs ||
+    typeof parsedArgs !== "object" ||
+    Array.isArray(parsedArgs)
+  ) {
+    console.warn("Invalid tool call arguments, received: ", parsedArgs);
+    return undefined;
+  }
+
+  // Filter out standard Tambo parameters
+  const filteredArgs = filterOutStandardToolParameters(
+    toolCall,
+    tools,
+    parsedArgs,
+  );
+
+  if (!filteredArgs) {
+    return undefined;
+  }
+
+  return {
+    toolName: toolCall.function.name,
+    parameters: filteredArgs,
+  };
 }

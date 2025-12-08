@@ -1,5 +1,9 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import type {
+  ElicitRequestFormParams,
+  PrimitiveSchemaDefinition,
+} from "@modelcontextprotocol/sdk/spec.types.js";
+import type {
   ClientNotification,
   ClientRequest,
   ElicitRequest,
@@ -9,14 +13,25 @@ import { useCallback, useState } from "react";
 import { MCPElicitationHandler } from "./mcp-client";
 
 /**
+ * Schema type for elicitation request fields
+ */
+export type ElicitationRequestedSchema =
+  ElicitRequestFormParams["requestedSchema"];
+
+/**
  * Elicitation request from MCP server
  */
 export interface TamboElicitationRequest {
   message: string;
-  requestedSchema: ElicitRequest["params"]["requestedSchema"];
+  requestedSchema: ElicitationRequestedSchema;
   /** AbortSignal that fires when the server cancels the request (e.g., timeout) */
   signal?: AbortSignal;
 }
+
+/**
+ * Re-export PrimitiveSchemaDefinition for consumers that need to work with schema fields
+ */
+export type { PrimitiveSchemaDefinition };
 
 /**
  * Elicitation response to be sent back
@@ -36,6 +51,24 @@ export interface ElicitationContextState {
   elicitation: TamboElicitationRequest | null;
   /** Function to call when user responds to elicitation (clears state automatically) */
   resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
+}
+
+/**
+ * Narrow the runtime ElicitRequest requestedSchema into the public
+ * ElicitationRequestedSchema type.
+ *
+ * The MCP SDK guarantees that the runtime
+ * `ElicitRequest["params"]["requestedSchema"]` shape stays aligned with the
+ * spec-defined `ElicitRequestFormParams["requestedSchema"]`. This helper
+ * centralizes the cast based on that contract so that if a future SDK version
+ * ever diverges, we have a single place to tighten the implementation (for
+ * example with structural validation or normalization).
+ * @returns requestedSchema as ElicitationRequestedSchema
+ */
+function toElicitationRequestedSchema(
+  value: ElicitRequest["params"]["requestedSchema"],
+): ElicitationRequestedSchema {
+  return value as ElicitationRequestedSchema;
 }
 
 /**
@@ -59,9 +92,14 @@ export function useElicitation() {
     ): Promise<ElicitResult> => {
       return await new Promise<ElicitResult>((resolve, reject) => {
         // Set the elicitation request to show the UI
+        // Cast is needed because ElicitRequest uses Zod-inferred types (from the
+        // user's installed zod version), while we use pure TypeScript spec types
+        // for cross-version compatibility
         setElicitation({
           message: request.params.message,
-          requestedSchema: request.params.requestedSchema,
+          requestedSchema: toElicitationRequestedSchema(
+            request.params.requestedSchema,
+          ),
           signal: extra.signal,
         });
 

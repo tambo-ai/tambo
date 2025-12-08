@@ -36,6 +36,8 @@ updates:
         - "*"
       exclude:
         - "@tambo-ai/*"
+        - "ai"
+        - "@ai-sdk/*"
     ignore:
       - dependency-name: "react"
         versions: [">=19"]

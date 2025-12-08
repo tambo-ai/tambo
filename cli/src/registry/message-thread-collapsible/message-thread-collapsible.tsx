@@ -8,6 +8,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   // MessageInputMcpConfigButton,
 } from "@/components/tambo/message-input";
 import {
@@ -34,8 +35,7 @@ import type { Suggestion } from "@tambo-ai/react";
  * @interface
  * @extends React.HTMLAttributes<HTMLDivElement>
  */
-export interface MessageThreadCollapsibleProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional context key for the thread */
   contextKey?: string;
   /** Whether the collapsible should be open by default (default: false) */
@@ -94,8 +94,7 @@ const useCollapsibleState = (defaultOpen = false) => {
 /**
  * Props for the CollapsibleContainer component
  */
-interface CollapsibleContainerProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface CollapsibleContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
@@ -295,6 +294,7 @@ export const MessageThreadCollapsible = React.forwardRef<
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputMcpPromptButton />
+                  <MessageInputMcpResourceButton />
                   {/* Uncomment this to enable client-side MCP config modal button */}
                   {/* <MessageInputMcpConfigButton /> */}
                   <MessageInputSubmitButton />

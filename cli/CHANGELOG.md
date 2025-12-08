@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.43.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.43.0...tambo-v0.43.1) (2025-12-04)
+
+
+### Bug Fixes
+
+* **cli:** fix build output structure for correct dist/cli.js location ([#1460](https://github.com/tambo-ai/tambo/issues/1460)) ([3281637](https://github.com/tambo-ai/tambo/commit/32816371f4da7c83af9eea166e5b3188307fc195))
+
+## [0.43.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.42.0...tambo-v0.43.0) (2025-12-04)
+
+
+### Features
+
+* **cli:** add agent docs guardrails and cursor rules migration ([#1400](https://github.com/tambo-ai/tambo/issues/1400)) ([350b39a](https://github.com/tambo-ai/tambo/commit/350b39a44c95a0c7d1acf543320d34362a897f02))
+* **cli:** bring wysiwyg editor into main message-input component ([#1415](https://github.com/tambo-ai/tambo/issues/1415)) ([6d0a89d](https://github.com/tambo-ai/tambo/commit/6d0a89dfa75c953279b56771209c74c4b3bcc58d))
+* per-thread and threadless MCP token management with contextKey support ([#1408](https://github.com/tambo-ai/tambo/issues/1408)) ([463bf67](https://github.com/tambo-ai/tambo/commit/463bf672d9207f1c52f13763744a3ed03627d5b5))
+
+
+### Miscellaneous Chores
+
+* **deps:** Bump @tambo-ai/typescript-sdk to 0.78.0 to pick up mcp token API ([#1406](https://github.com/tambo-ai/tambo/issues/1406)) ([dd16776](https://github.com/tambo-ai/tambo/commit/dd16776acba4902da239e479c62a7bfcc29e5c6d))
+* **deps:** Bump @tambo-ai/typescript-sdk to get updated enum ([#1445](https://github.com/tambo-ai/tambo/issues/1445)) ([7bee1f3](https://github.com/tambo-ai/tambo/commit/7bee1f32b7864d381eb2b5f346ec050ed61358a3))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1436](https://github.com/tambo-ai/tambo/issues/1436)) ([5974a87](https://github.com/tambo-ai/tambo/commit/5974a87c06577da92cd6ef9a500ebc9226f46fec))
+* **lint:** Make sure lint-staged is localized to the docs/showcase directory like the other packages ([#1411](https://github.com/tambo-ai/tambo/issues/1411)) ([d6323ee](https://github.com/tambo-ai/tambo/commit/d6323ee6a0725772e735149f928f861428e8ccf9))
+* **repo:** standardize test layout ([#1409](https://github.com/tambo-ai/tambo/issues/1409)) ([126d6ee](https://github.com/tambo-ai/tambo/commit/126d6eec32c8a828fb0c3071dd3ba793d624d1db))
+* sync iconsize changes ([#1426](https://github.com/tambo-ai/tambo/issues/1426)) ([19d0528](https://github.com/tambo-ai/tambo/commit/19d052843d78c0b18134c89c2cfa7669b028e4f4))
+
+
+### Code Refactoring
+
+* consolidate config packages and improve async error handling ([#1401](https://github.com/tambo-ai/tambo/issues/1401)) ([c9e0dd3](https://github.com/tambo-ai/tambo/commit/c9e0dd37d5bdeee79ac8ff8ddb3f6f4aae5aa5fb))
+
+
+### Tests
+
+* **cli:** add registry component tests ([#1416](https://github.com/tambo-ai/tambo/issues/1416)) ([79705a2](https://github.com/tambo-ai/tambo/commit/79705a2d7ee605a1f8c20e467848a3a1d77792a6))
+
+## [0.42.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.41.0...tambo-v0.42.0) (2025-11-22)
+
+
+### Features
+
+* automate component sync from CLI registry to showcase ([#1292](https://github.com/tambo-ai/tambo/issues/1292)) ([ae309fc](https://github.com/tambo-ai/tambo/commit/ae309fcb832ecdbc376247435eb2176c82f3093b))
+* **cli:** detect non-interactive environments and fail with helpful errors ([#1311](https://github.com/tambo-ai/tambo/issues/1311)) ([e294390](https://github.com/tambo-ai/tambo/commit/e2943902bcee1444952a63d88c7a4bd897afdb74))
+
 ## [0.41.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.40.0...tambo-v0.41.0) (2025-11-20)
 
 

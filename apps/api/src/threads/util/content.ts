@@ -5,9 +5,11 @@ import {
 import { ChatCompletionContentPartDto } from "../dto/message.dto";
 
 /**
- * Convert a serialized content part to a content part that can be consumed by an LLM.
- * Unsupported parts (e.g., resource content) are removed inline here to avoid
- * over-abstracting a one-off filter.
+ * Convert a serialized content part to a content part that can be consumed by
+ * an LLM.
+ *
+ * this mostly does runtime validation to make sure that the more tolerant Dto
+ * type is converted to the more strict internal type.
  */
 export function convertContentDtoToContentPart(
   content: string | ChatCompletionContentPartDto[],
@@ -15,15 +17,7 @@ export function convertContentDtoToContentPart(
   if (!Array.isArray(content)) {
     return [{ type: ContentPartType.Text, text: content }];
   }
-  const filtered = content.filter((p) => {
-    // Filter our extended Resource parts before provider consumption
-    if (p.type === ContentPartType.Resource) {
-      console.warn("Filtering out 'resource' content part for provider call");
-      return false;
-    }
-    return true;
-  });
-  return filtered
+  return content
     .map((part): ChatCompletionContentPart | null => {
       switch (part.type) {
         case ContentPartType.Text:
@@ -65,7 +59,17 @@ export function convertContentDtoToContentPart(
             input_audio: part.input_audio,
           };
         }
+        case ContentPartType.Resource: {
+          if (!part.resource) {
+            throw new Error("resource is required for resource type");
+          }
+          return {
+            type: ContentPartType.Resource,
+            resource: part.resource,
+          };
+        }
         default:
+          console.log("Unknown content part type:", part);
           throw new Error(`Unknown content part type: ${part.type}`);
       }
     })

@@ -116,9 +116,7 @@ export class ResourceDto implements Resource {
  * may be filtered or converted.
  */
 @ApiSchema({ name: "ChatCompletionContentPart" })
-export class ChatCompletionContentPartDto
-  implements ChatCompletionContentPartUnion
-{
+export class ChatCompletionContentPartDto implements ChatCompletionContentPartUnion {
   @ApiProperty({
     description: "The type of content part",
     enum: ContentPartType,

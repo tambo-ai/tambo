@@ -47,9 +47,7 @@ export async function setupTailwindandGlobals(projectRoot: string) {
   const isV4 = !!(tailwindVersion && semver.gte(tailwindVersion, "4.0.0"));
 
   if (tailwindVersion) {
-    console.log(
-      `${chalk.blue("ℹ")} Detected Tailwind CSS v${tailwindVersion}`,
-    );
+    console.log(`${chalk.blue("ℹ")} Detected Tailwind CSS v${tailwindVersion}`);
   } else {
     console.log(
       `${chalk.yellow("⚠")} Could not detect Tailwind CSS version, assuming v3`,

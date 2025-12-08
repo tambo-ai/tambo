@@ -1,7 +1,7 @@
 // react-sdk/src/providers/with-interactable.tsx
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { useTamboInteractable } from "../tambo-interactable-provider";
 
 export interface InteractableConfig {
@@ -57,8 +57,7 @@ export function withTamboInteractable<P extends object>(
     const lastParentProps = useRef<Record<string, any>>({});
 
     // Extract interactable-specific props
-    const { onInteractableReady, onPropsUpdate, ...componentProps } =
-      props as P & WithTamboInteractableProps;
+    const { onInteractableReady, onPropsUpdate, ...componentProps } = props;
 
     // Get the current interactable component to track prop updates
     const currentInteractable = interactableId

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 
 // Common disposable email domains - you can expand this list as needed
 const DISPOSABLE_DOMAINS = new Set([

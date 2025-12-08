@@ -47,6 +47,7 @@ export function useMergeRefs<Instance>(
     return () => {
       cleanups.forEach((refCleanup) => refCleanup?.());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, refs);
 
   return React.useMemo(() => {
@@ -66,7 +67,8 @@ export function useMergeRefs<Instance>(
           refEffect(value);
       }
     };
-  }, refs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refEffect, ...refs]);
 }
 /**
  * Custom hook to detect canvas space presence and position
@@ -135,18 +137,21 @@ export function usePositioning(
   // If panel has right class, history should be on right
   // If canvas is on left, history should be on right
   // Otherwise, history should be on left
-  const historyPosition: "left" | "right" = isRightClass
-    ? "right"
-    : hasCanvasSpace && canvasIsOnLeft
-      ? "right"
-      : "left";
+  let historyPosition: "left" | "right";
+  if (isRightClass) {
+    historyPosition = "right";
+  } else if (hasCanvasSpace && canvasIsOnLeft) {
+    historyPosition = "right";
+  } else {
+    historyPosition = "left";
+  }
 
   return { isLeftPanel, historyPosition };
 }
 
 /**
  * Converts message content into a safely renderable format.
- * Primarily joins text blocks from arrays into a single string.
+ * Handles text, resource references, and other content types.
  * @param content - The message content (string, element, array, etc.)
  * @returns A renderable string or React element.
  */
@@ -157,10 +162,20 @@ export function getSafeContent(
   if (typeof content === "string") return content;
   if (React.isValidElement(content)) return content; // Pass elements through
   if (Array.isArray(content)) {
-    // Filter out non-text items and join text
-    return content
-      .map((item) => (item?.type === "text" ? (item.text ?? "") : ""))
-      .join("");
+    // Map content parts to strings, including resource references
+    const parts: string[] = [];
+    for (const item of content) {
+      if (item?.type === "text") {
+        parts.push(item.text ?? "");
+      } else if (item?.type === "resource") {
+        // Format resource references as @uri (uri already contains serverKey prefix if applicable)
+        const uri = item.resource?.uri;
+        if (uri) {
+          parts.push(`@${uri}`);
+        }
+      }
+    }
+    return parts.join(" ");
   }
   // Handle potential edge cases or unknown types
   // console.warn("getSafeContent encountered unknown content type:", content);

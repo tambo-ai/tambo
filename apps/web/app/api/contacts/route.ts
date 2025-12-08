@@ -3,7 +3,7 @@ import { getDb, schema } from "@tambo-ai-cloud/db";
 import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 // Validation schema for contact submission
 const contactSchema = z.object({

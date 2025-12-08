@@ -1,7 +1,7 @@
 // src/env.mjs
 import { createEnv } from "@t3-oss/env-nextjs";
 import { vercel } from "@t3-oss/env-nextjs/presets-zod";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 function allowEmptyString(value: string) {
   return value === "" ? undefined : value;
@@ -45,11 +45,11 @@ export const env = createEnv({
     EMAIL_FROM_DEFAULT: z.string().transform(allowEmptyString).optional(),
 
     // Whitelabeling (server-side copies; optional so can be omitted)
-    TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional(),
-    TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional(),
+    TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional().or(z.literal("")),
+    TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional().or(z.literal("")),
     // Restrict logins to a specific verified email domain when self-hosting.
     // When unset, any verified email is allowed.
-    ALLOWED_LOGIN_DOMAIN: z.string().min(1).optional(),
+    ALLOWED_LOGIN_DOMAIN: z.string().optional().or(z.literal("")),
   },
   /*
    * Environment variables available on the client (and server).
@@ -68,8 +68,16 @@ export const env = createEnv({
     NEXT_PUBLIC_SMOKETEST_PROJECT_ID: z.string().min(1).optional(),
 
     // Whitelabeling vars
-    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional(),
-    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional(),
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z
+      .string()
+      .min(1)
+      .optional()
+      .or(z.literal("")),
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z
+      .string()
+      .url()
+      .optional()
+      .or(z.literal("")),
 
     // Sentry
     NEXT_PUBLIC_SENTRY_DSN: z.string().transform(allowEmptyString).optional(),

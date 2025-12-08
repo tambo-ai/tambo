@@ -1,0 +1,241 @@
+---
+title: Google Gemini Models
+description: Google's Gemini models for multimodal understanding, reasoning, and agentic use cases.
+---
+
+Google's Gemini models provide powerful multimodal capabilities with advanced reasoning features. Tambo supports Gemini models across three generations: Gemini 3, Gemini 2.5, and Gemini 2.0.
+
+<Callout type="warning" title="Known Issues">
+  Gemini models may occasionally resist rendering as requested. Sometimes they
+  complete the request, but behavior can be inconsistent. Try clarifying
+  instructions (e.g., "Return a bulleted list only"). Outputs may have
+  formatting quirks—be cautious when structure matters.
+</Callout>
+
+## Model Families
+
+### Gemini 3 Family
+
+The latest generation of Gemini models with enhanced multimodal and reasoning capabilities.
+
+#### gemini-3-pro-preview
+
+**Status:** Tested
+
+Google's most powerful model as of November 2025, best for multimodal understanding and agentic use cases.
+
+- **API Name:** `gemini-3-pro-preview`
+- **Context Window:** 1,048,576 tokens
+- **Provider Documentation:** [Gemini 3.0 Pro](https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-0-pro)
+
+**Best For:**
+
+- Complex multimodal understanding tasks
+- Agentic workflows requiring reasoning
+- Advanced problem-solving scenarios
+
+**Notes:**
+
+- Expected to have improved performance over 2.5 models
+- Supports reasoning via [thinking configuration](#reasoning-configuration)
+
+### Gemini 2.5 Family
+
+Advanced reasoning models with extended thinking capabilities.
+
+#### gemini-2.5-pro
+
+**Status:** Known Issues
+
+Gemini 2.5 Pro is Google's most advanced reasoning model, capable of solving complex problems.
+
+- **API Name:** `gemini-2.5-pro`
+- **Context Window:** 1,048,576 tokens
+- **Provider Documentation:** [Gemini 2.5 Pro](https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro)
+
+**Best For:**
+
+- Complex reasoning tasks
+- Multi-step problem-solving
+- Tasks requiring deep analysis
+
+**Notes:**
+
+- May occasionally resist rendering as requested
+- Behavior can be inconsistent with formatting
+- Supports reasoning via [thinking configuration](#reasoning-configuration)
+
+#### gemini-2.5-flash
+
+**Status:** Known Issues
+
+Gemini 2.5 Flash is Google's best model in terms of price and performance, offering well-rounded capabilities.
+
+- **API Name:** `gemini-2.5-flash`
+- **Context Window:** 1,048,576 tokens
+- **Provider Documentation:** [Gemini 2.5 Flash](https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash)
+
+**Best For:**
+
+- Production workloads requiring speed
+- Cost-effective reasoning tasks
+- Balanced performance across various use cases
+
+**Notes:**
+
+- Fast and efficient for production use
+- May have formatting quirks occasionally
+- Supports reasoning via [thinking configuration](#reasoning-configuration)
+
+### Gemini 2.0 Family
+
+Next-generation features designed for the agentic era with superior speed and built-in tool use.
+
+#### gemini-2.0-flash
+
+**Status:** Known Issues
+
+Gemini 2.0 Flash delivers next-generation features and improved capabilities designed for the agentic era, including superior speed, built-in tool use, multimodal generation, and a 1M token context window.
+
+- **API Name:** `gemini-2.0-flash`
+- **Context Window:** 1,048,576 tokens
+- **Provider Documentation:** [Gemini 2.0 Flash](https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash)
+
+**Best For:**
+
+- Agentic workflows with built-in tool use
+- Applications requiring superior speed
+- Multimodal generation tasks
+
+**Notes:**
+
+- Optimized for the agentic era
+- May occasionally have inconsistent rendering behavior
+- Strong tool-calling capabilities
+
+#### gemini-2.0-flash-lite
+
+**Status:** Known Issues
+
+Gemini 2.0 Flash Lite is a model optimized for cost efficiency and low latency.
+
+- **API Name:** `gemini-2.0-flash-lite`
+- **Context Window:** 1,048,576 tokens
+- **Provider Documentation:** [Gemini 2.0 Flash Lite](https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash-lite)
+
+**Best For:**
+
+- High-volume applications
+- Cost-sensitive deployments
+- Low-latency requirements
+
+**Notes:**
+
+- Most cost-efficient Gemini model
+- Optimized for speed over capability
+- May have formatting quirks
+
+## Provider-Specific Parameters
+
+### Reasoning Configuration
+
+Gemini models support reasoning capabilities through a thinking configuration. All Gemini models can use these parameters to control reasoning behavior.
+
+**thinkingConfig**
+
+Configure thinking behavior with a JSON object:
+
+| Field             | Type    | Description                             |
+| ----------------- | ------- | --------------------------------------- |
+| `thinkingBudget`  | number  | Token budget allocated for thinking     |
+| `includeThoughts` | boolean | Whether to include thinking in response |
+
+**Example Configuration:**
+
+```json
+{
+  "thinkingBudget": 5000,
+  "includeThoughts": true
+}
+```
+
+**Recommended Settings:**
+
+- **Quick reasoning (1000-2000 tokens)**: Simple tasks requiring minimal thinking
+- **Standard reasoning (3000-5000 tokens)**: Most use cases (recommended)
+- **Extended reasoning (7000+ tokens)**: Complex problems requiring deep analysis
+
+### Configuring in the Dashboard
+
+1. Navigate to your project in the dashboard
+2. Go to **Settings** → **LLM Providers**
+3. Select Google Gemini as your provider
+4. Choose your model
+5. Under [**Custom LLM Parameters**](/models/custom-llm-parameters), click **+ thinkingConfig**
+6. Enter your configuration as a JSON object:
+   ```json
+   {
+     "thinkingBudget": 5000,
+     "includeThoughts": true
+   }
+   ```
+7. Click **Save** to apply the configuration
+
+<Callout type="tip" title="Dashboard Suggestions">
+  When you select a Gemini reasoning model, the dashboard automatically shows
+  [**thinkingConfig**](#reasoning-configuration) as a suggested parameter. Just
+  click it to add!
+</Callout>
+
+## Best Practices
+
+### Model Selection
+
+- [**Gemini 3.0 Pro Preview**](#gemini-3-pro-preview): Use for cutting-edge multimodal and agentic tasks (test thoroughly as untested)
+- [**Gemini 2.5 Pro**](#gemini-2-5-pro): Best for complex reasoning requiring extended thinking
+- [**Gemini 2.5 Flash**](#gemini-2-5-flash): Recommended for production workloads needing speed and cost efficiency
+- [**Gemini 2.0 Flash**](#gemini-2-0-flash): Choose for agentic workflows with strong tool-calling needs
+- [**Gemini 2.0 Flash Lite**](#gemini-2-0-flash-lite): Select for high-volume, cost-sensitive applications
+
+### Performance Optimization
+
+- Start with [Gemini 2.5 Flash](#gemini-2-5-flash) for balanced performance
+- Use lower [thinking budgets](#reasoning-configuration) for simple tasks to reduce latency
+- Monitor token usage when using [reasoning features](#reasoning-configuration)
+- Test formatting requirements carefully due to [known inconsistencies](#model-families)
+
+### Cost Considerations
+
+- [Gemini 2.0 Flash Lite](#gemini-2-0-flash-lite) offers the best cost efficiency
+- Reasoning tokens ([thinking budget](#reasoning-configuration)) are billed separately
+- Balance [thinking budget](#reasoning-configuration) with task complexity
+- Consider caching for repeated queries with large context windows
+
+## Troubleshooting
+
+**Inconsistent rendering behavior?**
+
+- Try clarifying instructions more explicitly
+- Use specific formatting directives (e.g., "Return a bulleted list only")
+- Test with different prompt phrasings
+- Consider using a tested OpenAI model for production-critical formatting
+
+**Reasoning not appearing in responses?**
+
+- Verify [`thinkingConfig`](#reasoning-configuration) is added in your [dashboard settings](#configuring-in-the-dashboard)
+- Ensure `includeThoughts` is set to `true`
+- Check that you've saved your [configuration](#configuring-in-the-dashboard)
+- Try increasing the `thinkingBudget` value
+
+**Model performance issues?**
+
+- Lower the `thinkingBudget` for faster responses
+- Use [Gemini 2.0 Flash Lite](#gemini-2-0-flash-lite) for speed-critical applications
+- Consider [Gemini 2.5 Flash](#gemini-2-5-flash) for balanced performance
+- Monitor your context window usage
+
+## See Also
+
+- [Labels](/models/labels) - Understanding model status labels and observed behaviors
+- [Custom LLM Parameters](/models/custom-llm-parameters) - Configure additional model parameters
+- [Reasoning Models](/models/reasoning-models) - Comprehensive guide to reasoning capabilities

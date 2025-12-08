@@ -1,7 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import { createJiti } from "jiti";
 import nextra from "nextra";
-import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import rehypeKatex from "rehype-katex";
@@ -101,12 +100,8 @@ const config = {
     ];
   },
   reactStrictMode: true,
-  // This lets us use `npm link` and still get hot reloading - it allows
-  // ../../node_modules to be included in the list of watched files
-  outputFileTracingRoot: path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "../../",
-  ),
+  outputFileTracingRoot: fileURLToPath(new URL("../../", import.meta.url)),
+  output: "standalone",
   images: {
     remotePatterns: [
       {
@@ -180,7 +175,6 @@ export default withSentryConfig(withNextra(config), {
   project: process.env.NEXT_PUBLIC_SENTRY_PROJECT,
 
   // Only print logs for uploading source maps in CI
-  // eslint-disable-next-line turbo/no-undeclared-env-vars
   silent: !process.env.CI,
 
   // For all available options, see:

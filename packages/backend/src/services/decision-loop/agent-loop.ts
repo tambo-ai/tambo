@@ -7,31 +7,46 @@ import {
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
-import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
+import {
+  prefetchAndCacheResources,
+  ResourceFetcherMap,
+} from "../../util/resource-transformation";
 import { AgentClient } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
 
+/**
+ * Run the agent loop for processing ThreadMessages and generating decisions.
+ *
+ * This is a simpler alternative to the full decision loop that:
+ * 1. Pre-fetches all MCP resources and caches them inline
+ * 2. Streams responses from the LLM via the AgentClient
+ * 3. Yields component decisions as they arrive
+ *
+ * @param agentClient - The agent client to use for generating responses
+ * @param queue - Async queue for handling streaming events
+ * @param messages - Array of thread messages to process
+ * @param strictTools - Array of available tools in OpenAI format
+ * @param resourceFetchers - Map of serverKey to resource fetcher functions for
+ *   fetching MCP resources
+ * @returns Async iterator of component decisions
+ */
 export async function* runAgentLoop(
   agentClient: AgentClient,
   queue: AsyncQueue<EventHandlerParams>,
   messages: ThreadMessage[],
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
+  resourceFetchers: ResourceFetcherMap,
   //   customInstructions: string | undefined,
 ): AsyncIterableIterator<LegacyComponentDecision> {
-  const chatCompletionMessages =
-    threadMessagesToChatCompletionMessageParam(messages);
-  // const systemPromptArgs = customInstructions
-  //     ? { custom_instructions: customInstructions }
-  //     : {};
+  // Pre-fetch and cache all resources before passing to agent
+  const messagesWithCachedResources = await prefetchAndCacheResources(
+    messages,
+    resourceFetchers,
+  );
 
   const stream = agentClient.streamRunAgent(queue, {
-    messages: chatCompletionMessages,
+    messages: messagesWithCachedResources,
     tools: strictTools,
-    // promptTemplateName: "decision-loop",
-    // promptTemplateParams: {
-    //   chat_history: chatCompletionMessages,
-    //   ...systemPromptArgs,
-    // },
   });
   for await (const event of stream) {
     const { message } = event;

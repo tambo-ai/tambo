@@ -1,8 +1,10 @@
 import {
   AsyncQueue,
+  ChatCompletionContentPart,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
+  ThreadUserMessage,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import {
@@ -27,14 +29,22 @@ const createMockEvent = (message: AgentMessage): AgentResponse => ({
   message,
 });
 
-// Helper to create base thread message
-const createBaseThreadMessage = (): Omit<
-  ThreadMessage,
-  "id" | "role" | "content"
-> => ({
+// Helper to create base thread message properties
+const baseMessageProps = {
   threadId: "test-thread",
   componentState: {},
   createdAt: new Date("2024-01-01T00:00:00Z"),
+};
+
+// Helper to create user messages
+const createUserMessage = (
+  id: string,
+  content: ChatCompletionContentPart[],
+): ThreadUserMessage => ({
+  ...baseMessageProps,
+  id,
+  role: MessageRole.User,
+  content,
 });
 
 // Helper to create mock tools
@@ -70,12 +80,9 @@ describe("runAgentLoop", () => {
   describe("message event sequences", () => {
     it("should handle complete assistant message sequence", async () => {
       const messages: ThreadMessage[] = [
-        {
-          ...createBaseThreadMessage(),
-          id: "user-1",
-          role: MessageRole.User,
-          content: [{ type: "text", text: "Hello, how are you?" }],
-        },
+        createUserMessage("user-1", [
+          { type: "text", text: "Hello, how are you?" },
+        ]),
       ];
 
       const events = [
@@ -118,6 +125,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -160,6 +168,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -230,6 +239,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -279,6 +289,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -323,6 +334,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -376,6 +388,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -416,6 +429,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -427,12 +441,7 @@ describe("runAgentLoop", () => {
   describe("complete conversation flow", () => {
     it("should handle full conversation with assistant, tool call, tool result, and follow-up", async () => {
       const messages: ThreadMessage[] = [
-        {
-          ...createBaseThreadMessage(),
-          id: "user-1",
-          role: MessageRole.User,
-          content: [{ type: "text", text: "What's 2 + 2?" }],
-        },
+        createUserMessage("user-1", [{ type: "text", text: "What's 2 + 2?" }]),
       ];
 
       const events = [
@@ -565,6 +574,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -603,6 +613,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -639,6 +650,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }
@@ -675,6 +687,7 @@ describe("runAgentLoop", () => {
         queue,
         messages,
         createMockTools(),
+        {},
       )) {
         results.push(result);
       }

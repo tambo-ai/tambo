@@ -48,6 +48,7 @@ import {
 } from "./dto/thread.dto";
 import { ThreadInProjectGuard } from "./guards/thread-in-project-guard";
 import { ThreadsService } from "./threads.service";
+import { threadMessageToDto } from "./util/messages";
 import { throttleChunks } from "./util/streaming";
 
 @ApiTags("threads")
@@ -241,7 +242,8 @@ export class ThreadsController {
         "includeInternal is deprecated, if passed, it can only be `true`",
       );
     }
-    return await this.threadsService.getMessages({ threadId });
+    const messages = await this.threadsService.getMessages({ threadId });
+    return messages.map(threadMessageToDto);
   }
 
   @UseGuards(ThreadInProjectGuard)

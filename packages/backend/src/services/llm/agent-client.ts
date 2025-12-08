@@ -24,8 +24,9 @@ import {
   AgentProviderType,
   AsyncQueue,
   ChatCompletionContentPart,
-  ChatCompletionMessageParam,
   MessageRole,
+  ThreadMessage,
+  ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { EventHandlerParams, runStreamingAgent } from "./async-adapters";
@@ -121,7 +122,7 @@ export class AgentClient {
   async *streamRunAgent(
     queue: AsyncQueue<EventHandlerParams>,
     params: {
-      messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
+      messages: ThreadMessage[];
       tools: OpenAI.Chat.Completions.ChatCompletionTool[];
     },
   ): AsyncIterableIterator<AgentResponse> {
@@ -129,40 +130,35 @@ export class AgentClient {
       throw new Error("Agent not initialized");
     }
 
-    const agentMessages = params.messages.map((m, msgIndex): AGUIMessage => {
-      if (m.role === "function") {
-        throw new Error("Function messages are not supported");
-      }
-      const toolCallId = getToolCallId(m);
-      if (m.role === "tool") {
+    const agentMessages = params.messages.map((m): AGUIMessage => {
+      if (m.role === MessageRole.Tool) {
         return {
-          role: m.role,
-          content: convertMessagesToString(m.content),
-          id: `tambo-${m.role}-${msgIndex}`,
-          toolCallId: toolCallId,
+          role: "tool" as const,
+          content: convertContentPartsToString(m.content),
+          id: m.id,
+          toolCallId: m.tool_call_id ?? "",
         };
       }
-      if (m.role === "assistant") {
+      if (m.role === MessageRole.Assistant) {
+        if (m.toolCallRequest && !m.tool_call_id) {
+          throw new Error(
+            "Assistant message has toolCallRequest but no tool_call_id",
+          );
+        }
+        const toolCalls = m.toolCallRequest
+          ? [convertToolCallRequestToAGUI(m.toolCallRequest, m.tool_call_id)]
+          : undefined;
         return {
-          role: m.role,
-          content: convertMessagesToString(m.content),
-          id: `tambo-${m.role}-${msgIndex}`,
-          toolCalls: m.tool_calls
-            ?.map((t) => {
-              if (t.type === "function") {
-                return t;
-              }
-              console.warn(`Unexpected tool call type: ${t.type}`);
-              return undefined;
-            })
-            .filter((t) => t !== undefined),
+          role: "assistant" as const,
+          content: convertContentPartsToString(m.content),
+          id: m.id,
+          toolCalls,
         };
       }
       return {
         role: m.role,
-        content: convertMessagesToString(m.content),
-        // TODO: probably include message id in the incoming type
-        id: `tambo-${m.role}-${msgIndex}`,
+        content: convertContentPartsToString(m.content),
+        id: m.id,
       };
     });
     this.aguiAgent.setMessages(agentMessages);
@@ -537,48 +533,49 @@ function invalidEvent(eventType: never) {
   console.error(`Invalid event type: ${eventType}`);
 }
 
-/** Hacky conversion of messages to string */
-function convertMessagesToString(
-  messages:
-    | (
-        | ChatCompletionContentPart
-        | OpenAI.Chat.Completions.ChatCompletionContentPartRefusal
-      )[]
-    | null
-    | undefined
-    | string,
+/** Convert ChatCompletionContentPart[] to string for AGUI messages */
+function convertContentPartsToString(
+  content: ChatCompletionContentPart[],
 ): string {
-  if (!messages) {
-    return "";
-  }
-  if (typeof messages === "string") {
-    return messages;
-  }
-  return messages
-    .filter((m) => m.type === "text")
-    .map((m) => m.text)
+  return content
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
     .join("\n");
 }
 
-/** Hacky tool id retrieval - types seem to imply that toolCallId can't be undefined */
-function getToolCallId(m: ChatCompletionMessageParam): string {
-  if (m.role === "assistant") {
-    // HACK: grab the first tool call id
-    return m.tool_calls?.find((t) => t.id)?.id ?? "";
+/**
+ * Convert ToolCallRequest to AGUI-compatible tool call format.
+ * Drops parameters with undefined values and sorts keys for
+ * deterministic JSON argument strings.
+ */
+function convertToolCallRequestToAGUI(
+  toolCallRequest: ToolCallRequest,
+  toolCallId: string | undefined,
+): OpenAI.Chat.Completions.ChatCompletionMessageFunctionToolCall {
+  const parameters: Record<string, unknown> = {};
+  for (const { parameterName, parameterValue } of toolCallRequest.parameters) {
+    if (parameterValue === undefined) {
+      continue;
+    }
+    parameters[parameterName] = parameterValue;
   }
-  if (m.role === "tool") {
-    return m.tool_call_id;
-  }
-  return "";
+  const orderedParameters = Object.fromEntries(
+    Object.entries(parameters).sort(([a], [b]) => a.localeCompare(b)),
+  );
+  return {
+    id: toolCallId ?? "",
+    type: "function",
+    function: {
+      name: toolCallRequest.toolName,
+      arguments: JSON.stringify(orderedParameters),
+    },
+  };
 }
 
 function createNewMessage(
-  role: "system" | "user" | "assistant" | "tool" | "developer" | "hydra",
+  role: "system" | "user" | "assistant" | "tool" | "developer",
   id: string,
 ): AgentMessage {
-  if (role === MessageRole.Hydra) {
-    role = MessageRole.Assistant;
-  }
   if (role === MessageRole.Tool) {
     return {
       id: id,

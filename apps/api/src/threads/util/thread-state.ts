@@ -11,14 +11,21 @@ import {
   getToolName,
   LegacyComponentDecision,
   MessageRole,
+  ThreadAssistantMessage,
   ThreadMessage,
+  ThreadSystemMessage,
+  ThreadToolMessage,
+  ThreadUserMessage,
   ToolCallRequest,
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
+import { createResourceFetcherMap } from "../../common/systemTools";
+import { ThreadMcpClient } from "../../mcp-server/elicitations";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
+import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
 import { MessageRequest } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
 import {
@@ -95,7 +102,7 @@ export async function updateGenerationStage(
  * @param advanceRequestDto
  * @param tamboBackend
  * @param allTools
- * @param availableComponentMap
+ * @param mcpClients - MCP clients for resource fetching
  * @returns
  */
 export async function processThreadMessage(
@@ -106,6 +113,7 @@ export async function processThreadMessage(
   advanceRequestDto: AdvanceThreadDto,
   tamboBackend: ITamboBackend,
   allTools: ToolRegistry,
+  mcpClients: ThreadMcpClient[],
 ): Promise<LegacyComponentDecision> {
   const latestMessage = messages[messages.length - 1];
   // For tool responses, we can fully hydrate the component
@@ -135,6 +143,9 @@ export async function processThreadMessage(
     advanceRequestDto.availableComponents ?? [],
   );
 
+  // Build resource fetchers from MCP clients
+  const resourceFetchers = createResourceFetcherMap(mcpClients);
+
   const decisionStream = await tamboBackend.runDecisionLoop({
     messages,
     strictTools,
@@ -142,6 +153,7 @@ export async function processThreadMessage(
       latestMessage.role === MessageRole.User
         ? advanceRequestDto.forceToolChoice
         : undefined,
+    resourceFetchers,
   });
 
   return await getFinalDecision(decisionStream, originalTools);
@@ -272,9 +284,11 @@ export async function addAssistantResponse(
 }
 
 /**
- * The purpose if this function is to make sure that we do not stream
- * intermediate tool calls and instead withhold the toolCallRequest and
- * toolCallId until the final message.
+ * Processes a stream of component decisions to handle tool call information.
+ *
+ * This function preserves tool call info (even if incomplete)in chunks during streaming and uses the
+ * `isToolCallFinished` flag to indicate completion status. Sets to false until the final chunk, when it is set to true.
+ *
  *
  * Messages will come in from the LLM or agent as a stream of component
  * decisions, as a flat stream or messages, even though there may be more than
@@ -282,11 +296,10 @@ export async function addAssistantResponse(
  * incomplete tool call.
  *
  * For LLMs, this mostly just looks like a stream of messages that ultimately
- * results in a single final message, so just the last message in the resulting
- * stream has a tool call in it.
+ * results in a single final message.
  *
  * For agents, this may be a stream of multiple distinct messages, (like a user
- * message, then two asisstant messages, then another user message, etc) and we
+ * message, then two assistant messages, then another user message, etc) and we
  * distinguish between them because the `id` of the LegacyComponentDecision will
  * change with each message.
  */
@@ -294,7 +307,6 @@ export async function* fixStreamedToolCalls(
   stream: AsyncIterableIterator<LegacyComponentDecision>,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   let currentDecisionId: string | undefined = undefined;
-
   let currentToolCallRequest: ToolCallRequest | undefined = undefined;
   let currentToolCallId: string | undefined = undefined;
   let currentDecision: LegacyComponentDecision | undefined = undefined;
@@ -306,6 +318,7 @@ export async function* fixStreamedToolCalls(
         ...currentDecision,
         toolCallRequest: currentToolCallRequest,
         toolCallId: currentToolCallId,
+        isToolCallFinished: true,
       };
       // and clear the current tool call request and id
       currentToolCallRequest = undefined;
@@ -318,7 +331,7 @@ export async function* fixStreamedToolCalls(
     currentDecisionId = chunk.id;
     currentToolCallId = chunk.toolCallId;
     currentToolCallRequest = toolCallRequest;
-    yield incompleteChunk;
+    yield { ...chunk, isToolCallFinished: false };
   }
 
   // account for the last iteration
@@ -327,6 +340,7 @@ export async function* fixStreamedToolCalls(
       ...currentDecision,
       toolCallRequest: currentToolCallRequest,
       toolCallId: currentToolCallId,
+      isToolCallFinished: true,
     };
   }
 }
@@ -337,29 +351,78 @@ export function updateThreadMessageFromLegacyDecision(
 ): ThreadMessage {
   // we explicitly remove certain fields from the component decision to avoid
   // duplication, because they appear in the thread message
-  const { reasoning, ...simpleDecisionChunk } = chunk;
-  const currentThreadMessage: ThreadMessage = {
-    ...initialMessage,
+  const { reasoning, isToolCallFinished, ...simpleDecisionChunk } = chunk;
+
+  const commonFields = {
+    id: initialMessage.id,
+    threadId: initialMessage.threadId,
+    parentMessageId: initialMessage.parentMessageId,
+    isCancelled: initialMessage.isCancelled,
+    createdAt: initialMessage.createdAt,
+    error: initialMessage.error,
+    metadata: initialMessage.metadata,
+    additionalContext: initialMessage.additionalContext,
+    actionType: initialMessage.actionType,
     componentState: chunk.componentState ?? {},
     content: [
       {
-        type: ContentPartType.Text,
+        type: ContentPartType.Text as const,
         text: chunk.message,
       },
     ],
     component: simpleDecisionChunk,
-    reasoning: reasoning,
-    reasoningDurationMS: chunk.reasoningDurationMS,
-    // If the chunk includes a tool call, propagate it onto the thread message.
-    // Intermediate chunks from fixStreamedToolCalls will not include tool calls; only
-    // final/synthesized chunks carry tool call metadata.
   };
-  currentThreadMessage.tool_call_id = chunk.toolCallId;
-  if (chunk.toolCallRequest) {
-    currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
-    currentThreadMessage.actionType = ActionType.ToolCall;
+
+  // Handle reasoning and tool calls based on role
+  if (initialMessage.role === MessageRole.Assistant) {
+    const currentThreadMessage: ThreadAssistantMessage = {
+      ...commonFields,
+      role: MessageRole.Assistant,
+      reasoning: reasoning,
+      reasoningDurationMS: chunk.reasoningDurationMS,
+    };
+
+    // Only set outer tool call fields if tool call is finished.
+    if (isToolCallFinished && chunk.toolCallRequest) {
+      currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
+      currentThreadMessage.tool_call_id = chunk.toolCallId;
+      currentThreadMessage.actionType = ActionType.ToolCall;
+    }
+
+    return currentThreadMessage;
   }
-  return currentThreadMessage;
+
+  // For non-assistant messages, reconstruct based on the role
+  switch (initialMessage.role) {
+    case MessageRole.User: {
+      const msg: ThreadUserMessage = {
+        ...commonFields,
+        role: MessageRole.User,
+      };
+      return msg;
+    }
+    case MessageRole.System: {
+      const msg: ThreadSystemMessage = {
+        ...commonFields,
+        role: MessageRole.System,
+      };
+      return msg;
+    }
+    case MessageRole.Tool: {
+      const msg: ThreadToolMessage = {
+        ...commonFields,
+        role: MessageRole.Tool,
+        tool_call_id: initialMessage.tool_call_id,
+      };
+      return msg;
+    }
+    default: {
+      const _exhaustive: never = initialMessage;
+      throw new Error(
+        `Unexpected role: ${(_exhaustive as ThreadMessage).role}`,
+      );
+    }
+  }
 }
 
 /**
@@ -435,6 +498,7 @@ export async function finishInProgressMessage(
 
         await updateMessage(tx, inProgressMessageId, {
           ...finalThreadMessage,
+          component: finalThreadMessage.component as ComponentDecisionV2Dto,
           content: convertContentPartToDto(finalThreadMessage.content),
         });
 

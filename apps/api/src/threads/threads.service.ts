@@ -15,13 +15,13 @@ import {
 import {
   ActionType,
   AsyncQueue,
-  ComponentDecisionV2,
   ContentPartType,
   decryptProviderKey,
   DEFAULT_OPENAI_MODEL,
   GenerationStage,
   getToolName,
   LegacyComponentDecision,
+  MCPClient,
   MessageRole,
   ThreadMessage,
   throttle,
@@ -29,19 +29,28 @@ import {
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
-import { operations, schema } from "@tambo-ai-cloud/db";
+import {
+  dbMessageToThreadMessage,
+  operations,
+  schema,
+} from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
-import { getSystemTools } from "../common/systemTools";
+import {
+  createResourceFetcherMap,
+  getSystemTools,
+  getThreadMCPClients,
+} from "../common/systemTools";
 import { ProjectsService } from "../projects/projects.service";
 import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
 } from "./dto/advance-thread.dto";
+import { ComponentDecisionV2Dto } from "./dto/component-decision.dto";
 import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
@@ -54,11 +63,7 @@ import {
   SuggestionNotFoundException,
 } from "./types/errors";
 import { convertContentPartToDto } from "./util/content";
-import {
-  addMessage,
-  threadMessageDtoToThreadMessage,
-  updateMessage,
-} from "./util/messages";
+import { addMessage, threadMessageToDto, updateMessage } from "./util/messages";
 import { mapSuggestionToDto } from "./util/suggestions";
 import { createMcpHandlers } from "./util/thread-mcp-handlers";
 import {
@@ -100,36 +105,6 @@ export class ThreadsService {
   getDb() {
     // return this.tx ?? this.db;
     return this.db;
-  }
-
-  /**
-   * Map a DB message row to the public ThreadMessageDto shape.
-   * Centralizing this keeps `findOne()` and `getMessages()` consistent when
-   * fields are added/renamed (e.g., tool calls, reasoning, additionalContext).
-   */
-  private mapDbMessageToDto(
-    message: typeof schema.messages.$inferSelect,
-  ): ThreadMessageDto {
-    return {
-      id: message.id,
-      threadId: message.threadId,
-      role: message.role,
-      parentMessageId: message.parentMessageId ?? undefined,
-      createdAt: message.createdAt,
-      // Persist the component decision as-is; callers interpret as needed
-      component: message.componentDecision as ComponentDecisionV2 | undefined,
-      content: convertContentPartToDto(message.content),
-      metadata: message.metadata ?? undefined,
-      componentState: message.componentState ?? {},
-      toolCallRequest: message.toolCallRequest ?? undefined,
-      actionType: message.actionType ?? undefined,
-      tool_call_id: message.toolCallId ?? undefined,
-      error: message.error ?? undefined,
-      isCancelled: message.isCancelled,
-      additionalContext: message.additionalContext ?? {},
-      reasoning: message.reasoning ?? undefined,
-      reasoningDurationMS: message.reasoningDurationMS ?? undefined,
-    };
   }
 
   private async createTamboBackendForThread(
@@ -362,7 +337,9 @@ export class ThreadsService {
       statusMessage: thread.statusMessage ?? undefined,
       projectId: thread.projectId,
       name: thread.name ?? undefined,
-      messages: thread.messages.map((m) => this.mapDbMessageToDto(m)),
+      messages: thread.messages.map((m) =>
+        threadMessageToDto(dbMessageToThreadMessage(m)),
+      ),
     };
   }
 
@@ -623,14 +600,14 @@ export class ThreadsService {
     threadId: string;
     includeSystem?: boolean;
     includeChildMessages?: boolean;
-  }): Promise<ThreadMessageDto[]> {
+  }): Promise<ThreadMessage[]> {
     const messages = await operations.getMessages(
       this.getDb(),
       threadId,
       includeChildMessages,
       includeSystem,
     );
-    return messages.map((m) => this.mapDbMessageToDto(m));
+    return messages.map((m) => dbMessageToThreadMessage(m));
   }
 
   async deleteMessage(messageId: string) {
@@ -735,7 +712,7 @@ export class ThreadsService {
       );
 
       const suggestions = await tamboBackend.generateSuggestions(
-        threadMessages as ThreadMessage[],
+        threadMessages,
         generateSuggestionsDto.maxSuggestions ?? 3,
         generateSuggestionsDto.availableComponents ?? [],
         message.threadId,
@@ -850,9 +827,7 @@ export class ThreadsService {
       threadId,
       `${projectId}-${contextKey ?? TAMBO_ANON_CONTEXT_KEY}`,
     );
-    const generatedName = await tamboBackend.generateThreadName(
-      threadMessageDtoToThreadMessage(messages),
-    );
+    const generatedName = await tamboBackend.generateThreadName(messages);
 
     const updatedThread = await operations.updateThread(
       this.getDb(),
@@ -883,7 +858,7 @@ export class ThreadsService {
       messageId,
       newState,
     );
-    return this.mapDbMessageToDto(message);
+    return threadMessageToDto(dbMessageToThreadMessage(message));
   }
 
   /**
@@ -1110,14 +1085,25 @@ export class ThreadsService {
         ],
       };
 
+      // Get MCP clients for resource fetching
+      const mcpClients = await getThreadMCPClients(
+        db,
+        projectId,
+        thread.id,
+        mcpHandlers,
+      );
+
       // Only generate MCP access token if project has MCP servers configured
       const hasMcpServers = await operations.projectHasMcpServers(
         db,
         projectId,
       );
-      const mcpAccessToken = hasMcpServers
-        ? await this.authService.generateMcpAccessToken(projectId, thread.id)
+      const mcpAccessTokenResult = hasMcpServers
+        ? await this.authService.generateMcpAccessToken(projectId, {
+            threadId: thread.id,
+          })
         : undefined;
+      const mcpAccessToken = mcpAccessTokenResult?.token;
 
       if (stream) {
         await this.generateStreamingResponse(
@@ -1126,13 +1112,14 @@ export class ThreadsService {
           db,
           tamboBackend,
           queue,
-          threadMessageDtoToThreadMessage(messages),
+          messages,
           userMessage,
           advanceRequestDto,
           toolCallCounts,
           allTools,
           mcpAccessToken,
           project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
+          mcpClients,
         );
         return;
       }
@@ -1140,11 +1127,12 @@ export class ThreadsService {
       const responseMessage = await processThreadMessage(
         db,
         thread.id,
-        threadMessageDtoToThreadMessage(messages),
+        messages,
         userMessage,
         advanceRequestDto,
         tamboBackend,
         allTools,
+        mcpClients,
       );
 
       const {
@@ -1167,7 +1155,7 @@ export class ThreadsService {
         thread.id,
         responseMessageDto.id,
         responseMessageDto,
-        threadMessageDtoToThreadMessage(messages),
+        messages,
         toolCallCounts,
         toolCallRequest,
         project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
@@ -1209,6 +1197,7 @@ export class ThreadsService {
           ...responseMessageDto,
           content: convertContentPartToDto(responseMessageDto.content),
           componentState: responseMessageDto.componentState ?? {},
+          component: responseMessageDto.component as ComponentDecisionV2Dto,
         },
         generationStage: resultingGenerationStage,
         statusMessage: resultingStatusMessage,
@@ -1380,6 +1369,12 @@ export class ThreadsService {
     allTools: ToolRegistry,
     mcpAccessToken: string | undefined,
     maxToolCallLimit: number,
+    mcpClients: Array<{
+      client: MCPClient;
+      serverKey: string;
+      url: string;
+      serverId: string;
+    }>,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -1409,6 +1404,7 @@ export class ThreadsService {
           allTools,
           mcpAccessToken,
           maxToolCallLimit,
+          mcpClients,
         ),
     );
   }
@@ -1426,6 +1422,12 @@ export class ThreadsService {
     allTools: ToolRegistry,
     mcpAccessToken: string | undefined,
     maxToolCallLimit: number,
+    mcpClients: Array<{
+      client: MCPClient;
+      serverKey: string;
+      url: string;
+      serverId: string;
+    }>,
   ): Promise<void> {
     try {
       const latestMessage = messages[messages.length - 1];
@@ -1489,9 +1491,13 @@ export class ThreadsService {
           },
         });
 
+        // Build resource fetchers from MCP clients
+        const resourceFetchers = createResourceFetcherMap(mcpClients);
+
         const messageStream = await tamboBackend.runDecisionLoop({
           messages,
           strictTools,
+          resourceFetchers,
         });
 
         decisionLoopSpan.end();
@@ -1563,6 +1569,7 @@ export class ThreadsService {
         messages,
         strictTools,
         forceToolChoice: advanceRequestDto.forceToolChoice,
+        resourceFetchers: createResourceFetcherMap(mcpClients),
       });
 
       decisionLoopSpan.end();
@@ -1731,6 +1738,8 @@ export class ThreadsService {
                 ? ActionType.ToolCall
                 : undefined,
               reasoning: currentThreadMessage.reasoning,
+              component:
+                currentThreadMessage.component as ComponentDecisionV2Dto,
             });
           }
           previousMessageId = currentThreadMessage?.id ?? userMessage.id;
@@ -1807,6 +1816,8 @@ export class ThreadsService {
             ...messageWithoutToolCall,
             content: convertContentPartToDto(messageWithoutToolCall.content),
             componentState: messageWithoutToolCall.componentState ?? {},
+            component:
+              messageWithoutToolCall.component as ComponentDecisionV2Dto,
           },
           generationStage: GenerationStage.STREAMING_RESPONSE,
           statusMessage: `Streaming response...`,
@@ -1896,6 +1907,7 @@ export class ThreadsService {
             componentState: finalThreadMessage.componentState ?? {},
             toolCallRequest: undefined,
             tool_call_id: undefined,
+            component: finalThreadMessage.component as ComponentDecisionV2Dto,
           },
           generationStage: resultingGenerationStage,
           statusMessage: resultingStatusMessage,
@@ -1936,6 +1948,7 @@ export class ThreadsService {
           ...finalThreadMessage,
           content: convertContentPartToDto(finalThreadMessage.content),
           componentState: finalThreadMessage.componentState ?? {},
+          component: finalThreadMessage.component as ComponentDecisionV2Dto,
         },
         generationStage: resultingGenerationStage,
         statusMessage: resultingStatusMessage,
@@ -2225,7 +2238,7 @@ async function syncThreadStatus(
         threadId,
       },
     },
-    async () => {
+    async (): Promise<AdvanceThreadResponseDto | undefined> => {
       // Update db message on interval
       const isCancelled = await checkCancellationStatus(
         db,
@@ -2241,6 +2254,7 @@ async function syncThreadStatus(
             ...currentThreadMessage,
             content: convertContentPartToDto(currentThreadMessage.content),
             componentState: currentThreadMessage.componentState ?? {},
+            component: currentThreadMessage.component as ComponentDecisionV2Dto,
           },
           generationStage: GenerationStage.CANCELLED,
           statusMessage: "cancelled",
@@ -2251,6 +2265,7 @@ async function syncThreadStatus(
       await updateMessage(db, messageId, {
         ...currentThreadMessage,
         content: convertContentPartToDto(currentThreadMessage.content),
+        component: currentThreadMessage.component as ComponentDecisionV2Dto,
       });
     },
   );

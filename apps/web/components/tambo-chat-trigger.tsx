@@ -4,8 +4,7 @@ import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import * as React from "react";
 
-export interface TamboChatTriggerProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface TamboChatTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Additional CSS classes */
   className?: string;
 }

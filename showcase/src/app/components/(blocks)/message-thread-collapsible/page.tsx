@@ -4,7 +4,6 @@ import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 import { useUserContextKey } from "@/lib/useUserContextKey";
-import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 export default function MessageThreadCollapsiblePage() {
   const userContextKey = useUserContextKey("message-thread-collapsible");
@@ -32,28 +31,26 @@ export default function MessageThreadCollapsiblePage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <TamboMcpProvider>
-                <div className="w-full flex-1 bg-muted/20 flex flex-col gap-4 p-6 h-full relative">
-                  <div className="h-8 w-[200px] bg-muted/80 rounded-md" />
-                  <div className="h-4 w-[300px] bg-muted/80 rounded-md" />
-                  <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
-                  <div className="grid grid-cols-3 gap-4 mt-4">
-                    <div className="h-32 bg-muted/80 rounded-lg" />
-                    <div className="h-32 bg-muted/80 rounded-lg" />
-                    <div className="h-32 bg-muted/80 rounded-lg" />
-                  </div>
-                  <div className="mt-4 h-4 w-[280px] bg-muted/80 rounded-md" />
-                  <div className="h-4 w-[320px] bg-muted/80 rounded-md" />
-                  <div className="flex-grow" />
-                  <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
-                  <div className="h-4 w-[200px] bg-muted/80 rounded-md" />
-                  <MessageThreadCollapsible
-                    defaultOpen={false}
-                    contextKey={userContextKey}
-                    className="absolute bottom-6 right-4"
-                  />
+              <div className="w-full flex-1 bg-muted/20 flex flex-col gap-4 p-6 h-full relative">
+                <div className="h-8 w-[200px] bg-muted/80 rounded-md" />
+                <div className="h-4 w-[300px] bg-muted/80 rounded-md" />
+                <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div className="h-32 bg-muted/80 rounded-lg" />
+                  <div className="h-32 bg-muted/80 rounded-lg" />
+                  <div className="h-32 bg-muted/80 rounded-lg" />
                 </div>
-              </TamboMcpProvider>
+                <div className="mt-4 h-4 w-[280px] bg-muted/80 rounded-md" />
+                <div className="h-4 w-[320px] bg-muted/80 rounded-md" />
+                <div className="flex-grow" />
+                <div className="h-4 w-[250px] bg-muted/80 rounded-md" />
+                <div className="h-4 w-[200px] bg-muted/80 rounded-md" />
+                <MessageThreadCollapsible
+                  defaultOpen={false}
+                  contextKey={userContextKey}
+                  className="absolute bottom-6 right-4"
+                />
+              </div>
             }
             code={`import { MessageThreadCollapsible } from "@tambo-ai/react";
 

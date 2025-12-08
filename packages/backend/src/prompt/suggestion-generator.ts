@@ -53,12 +53,11 @@ export function buildSuggestionPrompt(
 
 ${componentList}
 
-CRITICAL LANGUAGE REQUIREMENT:
-- You MUST detect the language used by the user in their messages
-- ALL suggestions (both title and detailedSuggestion) MUST be written in EXACTLY the same language as the user's messages
-- If the user writes in Spanish, respond in Spanish. If they write in French, respond in French. If they write in English, respond in English.
-- Do NOT mix languages. Do NOT default to English if the user is using another language.
-- Pay close attention to the user's messages in the conversation history to determine their language
+LANGUAGE REQUIREMENT:
+- Detect the language used by the user in their messages
+- ALL suggestions (both title and detailedSuggestion) MUST be written in the same language as the user's messages
+- If no user messages exist or the language is unclear, DEFAULT TO ENGLISH
+- Only use a non-English language if the user has clearly written in that language
 
 Your task is to suggest ${suggestionCount} messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
 
@@ -105,7 +104,7 @@ Rules:
 
 The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
 
-CRITICAL: The suggestions MUST be written in the EXACT same language as the user's messages in the conversation above. Detect the language from the user's messages and match it precisely. Do not default to English if the user is using another language.
+IMPORTANT: Write suggestions in the same language as the user's messages above. If no user messages exist or the language is unclear, use English.
 
 ${componentContext}`;
 

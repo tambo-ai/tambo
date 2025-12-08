@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   },
   description:
     "The documentation for Tambo AI - Build AI-powered applications with React components and streaming.",
+  alternates: {
+    canonical: "./",
+  },
   openGraph: {
     title: "Tambo AI Documentation",
     description:
@@ -69,7 +72,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               defaultTheme="light"
               enableSystem={false}
             >
-              <RootProvider>{children as React.ReactNode}</RootProvider>
+              <RootProvider>{children}</RootProvider>
             </ThemeProvider>
           </PostHogRootProvider>
         </TamboRootProvider>

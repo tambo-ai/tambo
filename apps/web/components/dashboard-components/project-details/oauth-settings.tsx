@@ -36,7 +36,7 @@ import {
   SiOkta,
   SiSupabase,
 } from "react-icons/si";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 const COMPONENT_NAME = "OAuthTokenValidation";
 
@@ -233,14 +233,14 @@ export function OAuthSettings({
 
   // When Tambo sends setSecretKeyValue, update the secret key
   useEffect(() => {
-    if (setSecretKeyValue !== undefined) {
+    if (setSecretKeyValue) {
       setSecretKey(setSecretKeyValue);
     }
   }, [setSecretKeyValue]);
 
   // When Tambo sends setPublicKeyValue, update the public key
   useEffect(() => {
-    if (setPublicKeyValue !== undefined) {
+    if (setPublicKeyValue) {
       setPublicKey(setPublicKeyValue);
     }
   }, [setPublicKeyValue]);

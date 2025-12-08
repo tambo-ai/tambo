@@ -4,7 +4,7 @@ import { DashboardCardComponent } from "@/components/dashboard-card";
 import { DiscordInvite } from "@/components/discord-invite";
 import { GitHubIssueCreator } from "@/components/github-issue-creator";
 import { TamboComponent } from "@tambo-ai/react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export const components: TamboComponent[] = [
   {

@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.41.0",
+  "version": "0.43.1",
   "description": "Tambo command-line tool",
   "repository": {
     "type": "git",
@@ -22,15 +22,19 @@
   },
   "files": [
     "src",
-    "dist"
+    "dist",
+    "!**/*.test.*",
+    "!**/__tests__/**"
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project tsconfig.build.json",
     "dev": "concurrently -c blue.bold,green.bold \"npm run dev:esm\"",
     "dev:esm": "tsc --watch",
     "check-types": "tsc --project tsconfig.check.json --noEmit",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.ts",
+    "test": "npm run test:esm && npm run test:react",
+    "test:esm": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.ts",
+    "test:react": "jest --config jest.config.react.ts",
     "format": "prettier --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -55,7 +59,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.77.0",
+    "@tambo-ai/typescript-sdk": "^0.79.0",
     "chalk": "^5.6.0",
     "cli-table3": "^0.6.5",
     "clipboardy": "^5.0.0",
@@ -65,12 +69,12 @@
     "fast-equals": "^5.3.3",
     "inquirer": "^12.9.4",
     "meow": "^14.0.0",
-    "open": "^10.2.0",
+    "open": "^11.0.0",
     "ora": "^9.0.0",
     "react-markdown": "^10.1.0",
     "sanitize-html": "^2.17.0",
     "semver": "^7.7.3",
-    "streamdown": "^1.4.0",
+    "streamdown": "^1.5.1",
     "ts-morph": "^27.0.2"
   },
   "devDependencies": {

@@ -12,13 +12,13 @@ export const authProviderConfigs: Record<string, AuthProviderConfig> = {
   github: {
     id: "github",
     name: "GitHub",
-    displayName: "Continue with GitHub",
+    displayName: "Sign in with GitHub",
     icon: "github",
   },
   google: {
     id: "google",
     name: "Google",
-    displayName: "Continue with Google",
+    displayName: "Sign in with Google",
     icon: "google",
   },
   email: {

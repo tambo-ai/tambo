@@ -32,14 +32,14 @@ export default function MessageThreadFullPage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <TamboMcpProvider>
-                <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
+              <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
+                <TamboMcpProvider contextKey={userContextKey}>
                   <MessageThreadFull
                     contextKey={userContextKey}
                     className="w-full h-full rounded-lg"
                   />
-                </div>
-              </TamboMcpProvider>
+                </TamboMcpProvider>
+              </div>
             }
             code={`import { MessageThreadFull } from "@tambo-ai/react";
 

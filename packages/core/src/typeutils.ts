@@ -3,7 +3,7 @@
  * This is useful when you want to get all possible keys that could exist in any member of the union.
  * @template U The union type to extract keys from
  */
-type AllKeys<U> = U extends any ? keyof U : never;
+type AllKeys<U> = U extends unknown ? keyof U : never;
 
 /**
  * Gets the property type for a given key K in a union type U.
@@ -21,7 +21,10 @@ type PropType<U, K extends PropertyKey> =
  * @template U The union type to extract required keys from
  */
 type RequiredKeys<U> = {
-  [K in AllKeys<U> as [U] extends [Record<K, any>] ? K : never]: PropType<U, K>;
+  [K in AllKeys<U> as [U] extends [Record<K, unknown>] ? K : never]: PropType<
+    U,
+    K
+  >;
 };
 
 /**
@@ -31,7 +34,7 @@ type RequiredKeys<U> = {
  * @template U The union type to extract optional keys from
  */
 type OptionalKeys<U> = {
-  [K in AllKeys<U> as [U] extends [Record<K, any>] ? never : K]?: PropType<
+  [K in AllKeys<U> as [U] extends [Record<K, unknown>] ? never : K]?: PropType<
     U,
     K
   >;

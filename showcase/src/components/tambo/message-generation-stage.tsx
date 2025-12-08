@@ -21,8 +21,7 @@ import * as React from "react";
  * @property {boolean} showLabel - Whether to show the label
  */
 
-export interface GenerationStageProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface GenerationStageProps extends React.HTMLAttributes<HTMLDivElement> {
   showLabel?: boolean;
 }
 
@@ -52,7 +51,7 @@ export function MessageGenerationStage({
   };
 
   const label =
-    stageLabels[stage] || `${stage.charAt(0).toUpperCase() + stage.slice(1)}`;
+    stageLabels[stage] || stage.charAt(0).toUpperCase() + stage.slice(1);
 
   if (isIdle) {
     return null;

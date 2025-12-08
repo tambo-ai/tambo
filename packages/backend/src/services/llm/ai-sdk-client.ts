@@ -4,42 +4,33 @@ import { createGroq } from "@ai-sdk/groq";
 import { createMistral } from "@ai-sdk/mistral";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { LanguageModelV2 } from "@ai-sdk/provider";
 import {
-  ChatCompletionContentPart,
-  ChatCompletionMessageParam,
   CustomLlmParameters,
   getToolDescription,
   getToolName,
   llmProviderConfig,
   PARAMETER_METADATA,
-  tryParseJson,
+  ThreadMessage,
   type LlmProviderConfigInfo,
 } from "@tambo-ai-cloud/core";
 import {
-  AssistantModelMessage,
-  convertToModelMessages,
   generateText,
   jsonSchema,
   JSONValue,
-  LanguageModel,
-  ModelMessage,
   streamText,
   Tool,
   tool,
-  ToolCallPart,
   ToolChoice,
-  ToolContent,
-  ToolResultPart,
-  UserModelMessage,
   type GenerateTextResult,
   type ToolSet,
 } from "ai";
 import type OpenAI from "openai";
-import { UnreachableCaseError } from "ts-essentials";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import { Provider } from "../../model/providers";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
+import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
 import {
   CompleteParams,
   LLMClient,
@@ -61,7 +52,7 @@ interface ProviderConfig {
 }
 
 // Type for a configured provider instance that can create language models
-type ConfiguredProvider = (modelId: string) => LanguageModel;
+type ConfiguredProvider = (modelId: string) => LanguageModelV2;
 
 // Provider factory function type - creates configured provider instances
 type ProviderFactory = (config?: ProviderConfig) => ConfiguredProvider;
@@ -151,6 +142,8 @@ export class AISdkClient implements LLMClient {
 
     // Get the model instance with proper configuration
     const modelInstance = this.getModelInstance(providerKey);
+    const isSupportedMimeType =
+      await getSupportedMimeTypePredicate(modelInstance);
 
     // Format messages using the same template system as token.js client
     const nonStringParams = Object.entries(params.promptTemplateParams).filter(
@@ -171,11 +164,10 @@ export class AISdkClient implements LLMClient {
       params.promptTemplateParams,
     );
 
-    // Apply token limiting
+    // Get model configuration for token limiting and other params
     const providerCfg = (
       llmProviderConfig as Partial<Record<Provider, LlmProviderConfigInfo>>
     )[this.provider];
-
     const models = providerCfg?.models;
     const modelCfg = models ? models[this.model] : undefined;
 
@@ -185,6 +177,7 @@ export class AISdkClient implements LLMClient {
       );
     }
 
+    // Apply token limiting
     const modelTokenLimit = modelCfg?.inputTokenLimit;
     const effectiveTokenLimit = this.maxInputTokens ?? modelTokenLimit;
     messagesFormatted = limitTokens(messagesFormatted, effectiveTokenLimit);
@@ -195,13 +188,10 @@ export class AISdkClient implements LLMClient {
     // Prepare response format
     const responseFormat = this.extractResponseFormat(params);
 
-    // Convert to AI SDK format
-    const modelMessages = messagesFormatted.map(
-      (message, index): ModelMessage =>
-        convertOpenAIMessageToCoreMessage(
-          message,
-          messagesFormatted.slice(0, index),
-        ),
+    // Convert to AI SDK format using new direct conversion
+    const modelMessages = threadMessagesToModelMessages(
+      messagesFormatted,
+      isSupportedMimeType,
     );
 
     // Prepare experimental telemetry for Langfuse
@@ -309,7 +299,7 @@ export class AISdkClient implements LLMClient {
     }
   }
 
-  private getModelInstance(providerKey: string): LanguageModel {
+  private getModelInstance(providerKey: string): LanguageModelV2 {
     const config: ProviderConfig = {};
 
     if (this.apiKey) {
@@ -569,12 +559,12 @@ export class AISdkClient implements LLMClient {
 
 /** We have to manually format this because objectTemplate doesn't seem to support chat_history */
 function tryFormatTemplate(
-  messages: ChatCompletionMessageParam[],
-  promptTemplateParams: Record<string, string | ChatCompletionMessageParam[]>,
-): ChatCompletionMessageParam[] {
+  messages: ThreadMessage[],
+  promptTemplateParams: Record<string, string | ThreadMessage[]>,
+): ThreadMessage[] {
   try {
     return formatTemplate(
-      messages as ObjectTemplate<ChatCompletionMessageParam[]>,
+      messages as ObjectTemplate<ThreadMessage[]>,
       promptTemplateParams,
     );
   } catch (_e) {
@@ -582,195 +572,31 @@ function tryFormatTemplate(
   }
 }
 
-function findToolNameById(
-  messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-  toolCallId: string,
-): string | undefined {
-  const toolNames = messages
-    .map((message) => {
-      if (message.role === "assistant" && message.tool_calls) {
-        const toolCall = message.tool_calls.find(
-          (call) => call.id === toolCallId,
-        );
-        return toolCall ? getToolName(toolCall) : undefined;
-      }
-    })
-    .filter((name) => name !== undefined);
-  return toolNames.length > 0 ? toolNames[0] : undefined;
+function warnUnknownMessageType(message: never) {
+  console.warn("Unknown message type:", message);
 }
 
 /**
- * This is effectively the same thing as as singular version of
- * convertToCoreMessages, (which is supposedly deprecated anyway)
- * but for some reason that function doesn't deal with tool calls.
+ * Get a predicate function to check if a model supports a given MIME type.
+ * Exported for testing purposes.
  */
-function convertOpenAIMessageToCoreMessage(
-  message: ChatCompletionMessageParam,
-  previousMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-): ModelMessage {
-  if (message.role === "developer" || message.role === "function") {
-    throw new Error("Developer messages are not supported");
-  }
-  if (message.role === "tool") {
-    const toolName = findToolNameById(previousMessages, message.tool_call_id);
-    if (!toolName) {
-      throw new Error(
-        `Unable to find previous message for tool call ${message.tool_call_id}`,
-      );
-    }
-    return {
-      role: "tool",
-      content:
-        typeof message.content === "string"
-          ? ([
-              {
-                output: {
-                  type: "text",
-                  value: message.content,
-                },
-                toolCallId: message.tool_call_id,
-                type: "tool-result",
-                toolName: toolName,
-              } satisfies ToolResultPart,
-            ] satisfies ToolContent)
-          : message.content.map((part): ToolResultPart => {
-              // For some reason, the OpenAI SDK thinks that these are only
-              // text, but the backend supports other content types like images
-              // so we have to broaden the type
-              const multiPart = part as ChatCompletionContentPart;
-              switch (multiPart.type) {
-                case "text":
-                  return {
-                    type: "tool-result",
-                    output: {
-                      type: "text",
-                      value: multiPart.text,
-                    },
-                    toolCallId: message.tool_call_id,
-                    toolName: toolName,
-                  };
-                case "image_url":
-                  return {
-                    type: "tool-result",
-                    output: {
-                      type: "content",
-                      value: [
-                        {
-                          type: "media",
-                          // this splits base64 encoded image data from the url
-                          data: multiPart.image_url.url.split(",")[1],
-                          mediaType: "image/jpeg",
-                        },
-                      ],
-                    },
-                    toolCallId: message.tool_call_id,
-                    toolName: toolName,
-                  };
-                default:
-                  // TODO: handle "file" and "audio" content
-                  throw new Error(`Unexpected content type: ${multiPart.type}`);
-              }
-            }),
-    } satisfies ModelMessage;
-  }
-  if (message.role === "assistant" && message.tool_calls) {
-    const content: (ToolCallPart | { type: "text"; text: string })[] = [];
-
-    // Add text content if it exists
-    if (message.content) {
-      if (typeof message.content === "string") {
-        content.push({ type: "text", text: message.content });
-      } else if (Array.isArray(message.content)) {
-        message.content.forEach((part) => {
-          switch (part.type) {
-            case "text":
-              content.push({ type: "text", text: part.text });
-              break;
-            case "refusal":
-              // Handle refusal content
-              content.push({
-                type: "text",
-                text: `[Refusal]: ${part.refusal}`,
-              });
-              break;
-            default:
-              // This should never happen - unreachable case
-              console.error(
-                `Unexpected content type in assistant message: `,
-                part,
-              );
-              throw new UnreachableCaseError(part);
-          }
-        });
+export async function getSupportedMimeTypePredicate(
+  model: LanguageModelV2,
+): Promise<(mimeType: string) => boolean> {
+  const supportedUrls = await model.supportedUrls;
+  const mimeTypePatterns = Object.keys(supportedUrls);
+  return (mimeType: string) => {
+    return mimeTypePatterns.some((pattern) => {
+      // Handle '*' wildcard
+      if (pattern === "*") {
+        return true;
       }
-    }
-
-    // Add tool calls
-    message.tool_calls.forEach((call) => {
-      content.push({
-        type: "tool-call",
-        input:
-          call.type === "function"
-            ? tryParseJson(call.function.arguments)
-            : call.custom.input,
-        toolCallId: call.id,
-        toolName: getToolName(call),
-      } satisfies ToolCallPart);
+      // Handle 'image/*' wildcard
+      if (pattern.endsWith("*")) {
+        return mimeType.startsWith(pattern.slice(0, -1));
+      }
+      // Handle exact match
+      return mimeType === pattern;
     });
-
-    return {
-      role: "assistant",
-      content: content,
-    } satisfies AssistantModelMessage;
-  }
-  if (message.role === "user") {
-    if (typeof message.content === "string") {
-      return {
-        role: "user",
-        content: message.content,
-      } satisfies UserModelMessage;
-    } else if (Array.isArray(message.content)) {
-      const processedContent = message.content
-        .map((part) => {
-          if (part.type === "text") {
-            return {
-              type: "text" as const,
-              text: part.text,
-            };
-          } else if (part.type === "image_url" && part.image_url.url) {
-            // Convert image_url to AI SDK's expected image format
-            return {
-              type: "image" as const,
-              image: part.image_url.url,
-            };
-          }
-          return null;
-        })
-        .filter((part) => part !== null);
-
-      return {
-        role: message.role,
-        content: processedContent,
-      } satisfies UserModelMessage;
-    }
-    console.error(
-      "Unexpected content type in user message:",
-      typeof message.content,
-    );
-    throw new UnreachableCaseError(message.content);
-  }
-  return convertToModelMessages([
-    {
-      role: message.role,
-      parts:
-        typeof message.content === "string"
-          ? [{ type: "text", text: message.content }]
-          : // this a hack but it works
-            (message.content?.map((part) => part as any) ?? []),
-    },
-  ])[0];
-}
-
-function warnUnknownMessageType(message: never) {
-  console.warn("Unknown message type:", message);
+  };
 }

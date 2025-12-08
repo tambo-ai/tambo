@@ -7,7 +7,7 @@ const config: Config = {
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
-  testMatch: ["**/tests/**/*.test.ts"],
+  testMatch: ["<rootDir>/src/**/*.test.ts"],
   transform: {
     "^.+\\.ts$": [
       "ts-jest",
@@ -20,6 +20,12 @@ const config: Config = {
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
+  coverageThreshold: {
+    global: {
+      branches: 60,
+      lines: 65,
+    },
+  },
 };
 
 export default config;
