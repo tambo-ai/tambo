@@ -3,25 +3,11 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 
 /**
- * Custom hook to merge multiple refs into one callback ref.
+ * Merges multiple refs into a single callback ref.
  *
- * In React 19, callback refs are allowed to return a cleanup function that
- * runs when the ref is detached. When we merge refs we need to:
- *
- * - Fan out both the ref assignment _and_ any returned cleanup function.
- * - Remember the last cleanup so we can call it before attaching a new
- *   instance, otherwise observers/listeners created in a ref can leak.
- *
- * The `cleanupRef` and manual tracking here are what make this safe in
- * React 19. The `react-hooks/exhaustive-deps` disables on `useCallback`
- * and `useMemo` are intentional: this hook takes a rest parameter of refs
- * (`...refs`) and passes them directly as the dependency array. The hooks
- * linter cannot express that pattern, but React will still treat each ref
- * as an explicit dependency.
- *
- * @param refs - Refs to merge (callback or object refs)
- * @returns A callback ref that updates all provided refs and runs cleanups
- *          returned from React 19 callback refs.
+ * In React 19, callback refs may return cleanup functions; this hook fans out
+ * both assignments and cleanups to all provided refs and tracks the last
+ * cleanup so it runs when the instance changes.
  */
 export function useMergeRefs<Instance>(
   ...refs: (React.Ref<Instance> | undefined)[]
