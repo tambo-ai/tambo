@@ -1,5 +1,4 @@
 import type { api, useTRPCClient } from "@/trpc/react";
-import { type TamboTool } from "@tambo-ai/react";
 
 /**
  * Tool context containing TRPC client and utilities
@@ -10,6 +9,8 @@ export interface ToolContext {
 }
 
 /**
- * Tool registration function
+ * Tool registration function.
+ * Uses a permissive signature to be compatible with the SDK's RegisterToolFn
+ * without importing the complex generic types that cause type explosion.
  */
-export type RegisterToolFn = (tool: TamboTool) => void;
+export type RegisterToolFn = (tool: any) => void;

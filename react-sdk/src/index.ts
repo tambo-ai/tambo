@@ -64,35 +64,41 @@ export type {
   SuggestionGenerateResponse,
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
+export {
+  withTamboInteractable as withInteractable,
+  type InteractableConfig,
+  type WithTamboInteractableProps,
+} from "./hoc/with-tambo-interactable";
 export { useTamboThreadList } from "./hooks/use-tambo-threads";
 export {
   type ComponentContextToolMetadata,
   type ComponentRegistry,
   type ParameterSpec,
   type RegisteredComponent,
-  type TamboTool,
 } from "./model/component-metadata";
 export {
   GenerationStage,
   type InteractableMetadata,
   type TamboThreadMessage,
 } from "./model/generate-component-response";
-export { type TamboThread } from "./model/tambo-thread";
-export { type InitialTamboThreadMessage } from "./providers/tambo-thread-provider";
-
-export {
-  withTamboInteractable as withInteractable,
-  type InteractableConfig,
-  type WithTamboInteractableProps,
-} from "./hoc/with-tambo-interactable";
 export type {
   TamboInteractableComponent as InteractableComponent,
   TamboInteractableContext,
 } from "./model/tambo-interactable";
+export { type TamboThread } from "./model/tambo-thread";
 export {
   useCurrentInteractablesSnapshot,
   useTamboInteractable,
 } from "./providers/tambo-interactable-provider";
+export { type InitialTamboThreadMessage } from "./providers/tambo-thread-provider";
+export { defineTool } from "./util/registry";
+import {
+  TamboToolWithToolSchema,
+  type TamboTool as TamboToolBase,
+} from "./model/component-metadata";
+export type TamboTool<Params = any, Returns = any, Rest extends any[] = []> =
+  | TamboToolBase<Params, Returns, Rest>
+  | TamboToolWithToolSchema<[Params, ...Rest], Returns>;
 
 // Context helpers exports
 export {
@@ -115,8 +121,8 @@ export type {
 // Resource types for registry resource registration
 export type {
   ListResourceItem,
-  ResourceSource,
   ReadResourceResult,
+  ResourceSource,
 } from "./model/resource-info";
 
 // Note: Full MCP exports like TamboMcpProvider are available separately in the

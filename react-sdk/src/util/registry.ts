@@ -1,16 +1,21 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { z } from "zod/v3";
-import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentContextToolMetadata,
   ComponentRegistry,
-  JSONSchemaLite,
-  ParameterSpec,
+  DefineToolFn,
   RegisteredComponent,
   TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
+  TamboToolWithToolSchema,
 } from "../model/component-metadata";
+import {
+  getParametersFromToolSchema,
+  getZodFunctionArgs,
+  getZodFunctionReturns,
+  isStandardSchema,
+  schemaToJsonSchema,
+} from "../schema";
 
 /**
  * Get all the available components from the component registry
@@ -29,13 +34,13 @@ export const getAvailableComponents = (
   for (const [name, componentEntry] of Object.entries(componentRegistry)) {
     const associatedToolNames = toolAssociations[name] || [];
 
-    const contextTools = [
-      ...associatedToolNames.map((toolName) => {
+    const contextTools = associatedToolNames
+      .map((toolName) => {
         const tool = toolRegistry[toolName];
         if (!tool) return null;
         return mapTamboToolToContextTool(tool);
-      }),
-    ].filter((tool): tool is ComponentContextToolMetadata => tool !== null);
+      })
+      .filter((tool): tool is ComponentContextToolMetadata => tool !== null);
 
     availableComponents.push({
       name: componentEntry.name,
@@ -57,7 +62,7 @@ export const getAvailableComponents = (
 export const getUnassociatedTools = (
   toolRegistry: TamboToolRegistry,
   toolAssociations: TamboToolAssociations,
-): TamboTool[] => {
+): (TamboTool | TamboToolWithToolSchema)[] => {
   return Object.values(toolRegistry).filter((tool) => {
     // Check if the tool's name appears in any of the tool association arrays
     return !Object.values(toolAssociations).flat().includes(tool.name);
@@ -65,25 +70,46 @@ export const getUnassociatedTools = (
 };
 
 /**
- * Helper function to convert component props from Zod schema to JSON Schema
+ * Helper function to convert component props from Standard Schema or JSON Schema
  * @param component - The component to convert
- * @returns The converted props
+ * @returns The converted props as JSON Schema
  */
 export const convertPropsToJsonSchema = (
   component: RegisteredComponent,
-): any => {
+): unknown => {
   if (!component.props) {
     return component.props;
   }
 
-  // Check if props is a Zod schema (we can't directly check the type, so we check for _def)
-  if (component.props._def && typeof component.props.parse === "function") {
-    // Use two-step type assertion for safety
-    return zodToJsonSchema(component.props as unknown as z.ZodTypeAny);
+  // Check if props is a Standard Schema (Zod, Valibot, ArkType, etc.)
+  if (isStandardSchema(component.props)) {
+    return schemaToJsonSchema(component.props);
   }
 
+  // Already JSON Schema or unknown format - return as-is
   return component.props;
 };
+
+/**
+ * Adapt a Tambo tool defined with function schema to a standard Tambo tool
+ * @param tool - The Tambo tool with function schema
+ * @returns The adapted Tambo tool
+ */
+export function adaptToolFromFnSchema(
+  tool: TamboTool | TamboToolWithToolSchema,
+): TamboTool {
+  if (!("toolSchema" in tool)) {
+    return tool;
+  }
+
+  return {
+    name: tool.name,
+    description: tool.description,
+    tool: tool.tool,
+    inputSchema: getZodFunctionArgs(tool.toolSchema),
+    outputSchema: getZodFunctionReturns(tool.toolSchema),
+  };
+}
 
 /**
  * Get a component by name from the component registry
@@ -108,13 +134,13 @@ export const getComponentFromRegistry = (
 
 /**
  * Map a Tambo tool to a context tool
- * @param tool - The tool to map
+ * @param tool - The tool to map (supports both new inputSchema and deprecated toolSchema interfaces)
  * @returns The context tool
  */
 export const mapTamboToolToContextTool = (
-  tool: TamboTool,
+  tool: TamboTool | TamboToolWithToolSchema,
 ): ComponentContextToolMetadata => {
-  const parameters = getParametersFromZodFunction(tool.toolSchema);
+  const parameters = getParametersFromToolSchema(tool);
 
   return {
     name: tool.name,
@@ -123,70 +149,27 @@ export const mapTamboToolToContextTool = (
   };
 };
 
-function isJsonSchema(
-  schema: unknown,
-): schema is ReturnType<typeof zodToJsonSchema> {
-  return (
-    typeof schema === "object" &&
-    schema !== null &&
-    "type" in schema &&
-    typeof (schema as { type: unknown }).type === "string" &&
-    (schema as { type: string }).type === "object"
-  );
-}
-
-const getParametersFromZodFunction = (
-  schema: z.ZodFunction<any, any> | JSONSchemaLite,
-): ParameterSpec[] => {
-  if (isJsonSchema(schema)) {
-    return [
-      {
-        name: "args",
-        type: "object",
-        description: schema.description ?? "",
-        isRequired: true,
-        schema: schema,
-      },
-    ];
-  }
-
-  const parameters: z.ZodTuple = schema.parameters();
-  return parameters.items.map((param, index): ParameterSpec => {
-    const name = `param${index + 1}`;
-    const type = getZodBaseType(param);
-    const description = param.description ?? "";
-    const isRequired = !param.isOptional();
-    const schema = zodToJsonSchema(param);
-
-    return {
-      name,
-      type,
-      description,
-      isRequired,
-      schema,
-    };
-  });
-};
-
-const getZodBaseType = (schema: z.ZodTypeAny): string => {
-  const typeName = schema._def.typeName;
-  switch (typeName) {
-    case "ZodString":
-      return "string";
-    case "ZodNumber":
-      return "number";
-    case "ZodBoolean":
-      return "boolean";
-    case "ZodArray":
-      return "array";
-    case "ZodEnum":
-      return "enum";
-    case "ZodDate":
-      return "date";
-    case "ZodObject":
-      return "object";
-    default:
-      console.warn("falling back to string for", typeName);
-      return "string";
-  }
+/**
+ * Provides type safety for defining a Tambo Tool.
+ *
+ * Tambo uses the [standard-schema.dev](https://standard-schema.dev) spec which means you can use any Standard Schema
+ * compliant validator (Zod, Valibot, ArkType, etc.). This ensures the tool function args and output types are correctly
+ * inferred from the provided schemas.
+ * @example
+ * ```typescript
+ * import { z } from "zod/v4";
+ *
+ * const myTool = defineTamboTool({
+ *   inputSchema: z.tuple([z.string()]),
+ *   outputSchema: z.number(),
+ *   tool: yourToolFunction,
+ *   // ^-- (input: [string]) => number | Promise<number>
+ *   // Types are inferred from and must match inputSchema/outputSchema definitions
+ * });
+ * ```
+ * @param tool The tool definition to register
+ * @returns The registered tool definition
+ */
+export const defineTool: DefineToolFn = (tool: any) => {
+  return tool;
 };

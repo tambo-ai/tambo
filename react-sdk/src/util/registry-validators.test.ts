@@ -1,5 +1,9 @@
 import { z } from "zod/v3";
-import type { TamboComponent, TamboTool } from "../model/component-metadata";
+import type {
+  TamboComponent,
+  TamboTool,
+  TamboToolWithToolSchema,
+} from "../model/component-metadata";
 import {
   validateAndPrepareComponent,
   validateTool,
@@ -8,7 +12,7 @@ import {
 
 describe("validateTool", () => {
   it("should validate tool with valid name", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "valid-tool-name",
       description: "A valid tool",
       tool: () => "result",
@@ -19,7 +23,7 @@ describe("validateTool", () => {
   });
 
   it("should throw when tool name contains invalid characters", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "invalid tool name",
       description: "A tool",
       tool: () => "result",
@@ -32,7 +36,7 @@ describe("validateTool", () => {
   });
 
   it("should throw when tool name contains special characters", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "tool@name",
       description: "A tool",
       tool: () => "result",
@@ -45,7 +49,7 @@ describe("validateTool", () => {
   });
 
   it("should validate tool with valid Zod schema", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "valid-tool",
       description: "A tool",
       tool: () => "result",
@@ -56,7 +60,7 @@ describe("validateTool", () => {
   });
 
   it("should throw when tool schema contains z.record()", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "invalid-tool",
       description: "A tool",
       tool: () => "result",
@@ -71,12 +75,12 @@ describe("validateTool", () => {
     };
 
     expect(() => validateTool(tool)).toThrow(
-      'z.record() is not supported in toolSchema of tool "invalid-tool". Found at path "args.0.metadata". Replace it with z.object({ ... }) using explicit keys.',
+      'Record types (objects with dynamic keys) are not supported in toolSchema of tool "invalid-tool".',
     );
   });
 
   it("should allow tool with JSON Schema (non-Zod)", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "tool-with-json-schema",
       description: "A tool",
       tool: () => "result",
@@ -86,6 +90,20 @@ describe("validateTool", () => {
           query: { type: "string" },
         },
       },
+    };
+
+    expect(() => validateTool(tool)).not.toThrow();
+  });
+
+  it("should validate tool with inputSchema (new interface)", () => {
+    const tool: TamboTool = {
+      name: "tool-with-input-schema",
+      description: "A tool with input schema",
+      tool: (input: { query: string }) => input.query,
+      inputSchema: z.object({
+        query: z.string(),
+      }),
+      outputSchema: z.string(),
     };
 
     expect(() => validateTool(tool)).not.toThrow();
@@ -182,7 +200,7 @@ describe("validateAndPrepareComponent", () => {
     };
 
     expect(() => validateAndPrepareComponent(component)).toThrow(
-      'z.record() is not supported in propsSchema of component "component-with-record". Found at path "metadata". Replace it with z.object({ ... }) using explicit keys.',
+      'Record types (objects with dynamic keys) are not supported in propsSchema of component "component-with-record".',
     );
   });
 

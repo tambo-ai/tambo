@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { z } from "zod/v3";
+import { z } from "zod/v4";
 import { TamboInteractableComponent } from "../model/tambo-interactable";
 import {
   TamboInteractableProvider,

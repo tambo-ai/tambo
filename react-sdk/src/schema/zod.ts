@@ -1,0 +1,154 @@
+import {
+  ZodFunction,
+  ZodTuple,
+  ZodTupleItems,
+  ZodType,
+  ZodTypeAny,
+} from "zod/v3";
+import { z } from "zod/v4";
+import {
+  $ZodFunction,
+  $ZodType,
+  toJSONSchema as zod4ToJSONSchema,
+} from "zod/v4/core";
+
+/**
+ * @returns True if the schema is a Zod 3 function schema
+ */
+export function isZod3FunctionSchema(
+  schema: unknown,
+): schema is ZodFunction<ZodTuple<ZodTupleItems, any>, ZodTypeAny> {
+  if (!isZod3Schema(schema)) {
+    return false;
+  }
+
+  return "typeName" in schema._def && schema._def.typeName === "ZodFunction";
+}
+
+/**
+ * @returns True if the schema is a Zod 4 function schema
+ */
+export function isZod4FunctionSchema(schema: unknown): schema is $ZodFunction {
+  if (!isZod4Schema(schema)) {
+    return false;
+  }
+
+  return "def" in schema && schema._zod.def.type === "function";
+}
+
+/**
+ * Checks if a schema is a Zod function schema (Zod 3 or Zod 4).
+ * @param schema - The schema to check
+ * @returns True if the schema is a Zod function schema
+ */
+export function isZodFunctionSchema(schema: unknown) {
+  return isZod3FunctionSchema(schema) || isZod4FunctionSchema(schema);
+}
+
+/**
+ * Extracts the args schema from a Zod 3 function schema.
+ * @param schema - The Zod 3 function schema
+ * @returns The args schema, or undefined if not a Zod 3 function schema
+ */
+export function getZodFunctionArgs(schema: unknown) {
+  if (isZod3FunctionSchema(schema)) {
+    return schema._def.args;
+  }
+
+  if (isZod4FunctionSchema(schema)) {
+    return schema._zod.def.input;
+  }
+
+  throw new Error("Unable to determine parameters from zod function schema");
+}
+
+/**
+ * Extracts the return schema from a Zod 3 or Zod 4 function schema.
+ * @param schema - The Zod function schema
+ * @returns The return schema, or undefined if not a Zod function schema
+ */
+export function getZodFunctionReturns(schema: unknown) {
+  if (isZod3FunctionSchema(schema)) {
+    return schema._def.returns;
+  }
+
+  if (isZod4FunctionSchema(schema)) {
+    return schema._zod.def.output;
+  }
+
+  throw new Error("Unable to determine return type from zod function schema");
+}
+
+/**
+ * Handles conversion of Zod schemas to JSON Schema.
+ * Supports both Zod 3 (via zod-to-json-schema) and Zod 4 (native).
+ * @param schema - The Zod schema to convert
+ * @returns The JSON Schema representation
+ */
+export function handleZodSchemaToJson(schema: unknown) {
+  // Detect Zod 4 by checking for def.type
+  if (isZod4Schema(schema)) return zod4ToJSONSchema(schema);
+
+  try {
+    // Dynamic require for optional peer dependency
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- need require because zod-to-json-schema may be missing
+    const { zodToJsonSchema } = require("zod-to-json-schema");
+    return zodToJsonSchema(schema);
+  } catch (error) {
+    throw new Error(
+      "Zod 3 requires 'zod-to-json-schema' package for JSON Schema conversion. " +
+        "Install it with: npm install zod-to-json-schema",
+      {
+        cause: error,
+      },
+    );
+  }
+}
+
+// Zod 3 schemas have _def with typeName and ~standard with vendor "zod"
+// Use looseObject to allow any _def shape (different for each type)
+const zod3SchemaType = z.object({
+  _def: z.looseObject({
+    typeName: z.string().optional(),
+  }),
+  "~standard": z.looseObject({
+    vendor: z.literal("zod"),
+  }),
+});
+
+/**
+ * Checks if a schema is probably a Zod 3 schema.
+ * @param schema - The schema to check
+ * @returns True if the schema looks like a Zod 3 schema
+ */
+export function isZod3Schema(schema: unknown): schema is ZodType {
+  return zod3SchemaType.safeParse(schema).success;
+}
+
+const zod4SchemaType = z.object({
+  def: z.object(),
+  _zod: z.looseObject({
+    def: z.looseObject({}),
+  }),
+  "~standard": z.looseObject({}),
+});
+
+/**
+ * Detects if a schema is Zod 4 by checking for def.type property.
+ * Zod 4 uses `def.type` with lowercase type names like "object", "string".
+ * @returns True if the schema appears to be Zod 4 style
+ */
+export function isZod4Schema(schema: unknown): schema is $ZodType {
+  return zod4SchemaType.safeParse(schema).success;
+}
+
+/**
+ * Checks if a schema is a Zod schema
+ * @param schema - The schema to check
+ * @returns True if the schema is a Zod schema
+ */
+export function isZodSchema(
+  schema: unknown,
+): ReturnType<typeof isZod3Schema> | ReturnType<typeof isZod4Schema> {
+  return isZod3Schema(schema) || isZod4Schema(schema);
+}

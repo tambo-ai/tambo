@@ -1,15 +1,15 @@
 // react-sdk/src/providers/with-interactable.tsx
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { z } from "zod/v3";
 import { TamboMessageProvider } from "../hooks/use-current-message";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
+import { SupportedSchema } from "../schema";
 
 export interface InteractableConfig {
   componentName: string;
   description: string;
-  propsSchema?: z.ZodTypeAny;
+  propsSchema?: SupportedSchema;
 }
 
 export interface WithTamboInteractableProps {
