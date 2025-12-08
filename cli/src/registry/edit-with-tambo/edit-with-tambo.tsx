@@ -362,10 +362,10 @@ export function EditWithTambo({
               left: `${popoverPosition.left}px`,
             }}
           >
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-4">
               {/* Header */}
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{tooltip}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {meta.name}
@@ -377,7 +377,7 @@ export function EditWithTambo({
                     setIsOpen(false);
                     setPrompt("");
                   }}
-                  className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
+                  className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground shrink-0"
                   aria-label="Close"
                 >
                   <X className="h-4 w-4" />
@@ -385,7 +385,7 @@ export function EditWithTambo({
               </div>
 
               {/* Prompt input */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <textarea
                   ref={textareaRef}
                   value={prompt}
