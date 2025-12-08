@@ -1129,21 +1129,25 @@ describe("createMcpHandlers", () => {
           },
         });
 
-        expect(operations.addMessage).toHaveBeenNthCalledWith(1, mockDb, {
-          threadId: mockThreadId,
-          role: "user",
-          content: [
-            {
-              type: ContentPartType.Text,
-              text: "First",
-            },
-            {
-              type: ContentPartType.Text,
-              text: "Second",
-            },
-          ],
-          parentMessageId: undefined,
-        });
+        expect(operations.addMessage).toHaveBeenNthCalledWith(
+          1,
+          mockDb,
+          mockThreadId,
+          {
+            role: MessageRole.User,
+            content: [
+              {
+                type: ContentPartType.Text,
+                text: "First",
+              },
+              {
+                type: ContentPartType.Text,
+                text: "Second",
+              },
+            ],
+            parentMessageId: undefined,
+          },
+        );
       });
 
       it("should handle invalid MCP content array elements with text fallback", async () => {
@@ -1189,17 +1193,21 @@ describe("createMcpHandlers", () => {
           },
         });
 
-        expect(operations.addMessage).toHaveBeenNthCalledWith(1, mockDb, {
-          threadId: mockThreadId,
-          role: "user",
-          content: [
-            {
-              type: ContentPartType.Text,
-              text: "",
-            },
-          ],
-          parentMessageId: undefined,
-        });
+        expect(operations.addMessage).toHaveBeenNthCalledWith(
+          1,
+          mockDb,
+          mockThreadId,
+          {
+            role: MessageRole.User,
+            content: [
+              {
+                type: ContentPartType.Text,
+                text: "",
+              },
+            ],
+            parentMessageId: undefined,
+          },
+        );
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
           "Unexpected MCP content array element",

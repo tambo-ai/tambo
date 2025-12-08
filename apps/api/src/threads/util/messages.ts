@@ -5,6 +5,7 @@ import {
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
+  UnsavedThreadMessage,
   validateThreadMessage,
 } from "@tambo-ai-cloud/core";
 import {
@@ -29,21 +30,55 @@ export async function addMessage(
   threadId: string,
   messageDto: MessageRequest,
 ): Promise<ThreadMessage> {
-  const message = await operations.addMessage(db, threadId, {
-    role: messageDto.role,
+  // Build the base message properties
+  const baseMessage = {
     content: convertContentDtoToContentPart(messageDto.content),
     component: messageDto.component ?? undefined,
     metadata: messageDto.metadata,
     actionType: messageDto.actionType ?? undefined,
-    toolCallRequest: messageDto.toolCallRequest ?? undefined,
-    tool_call_id: messageDto.tool_call_id,
     componentState: messageDto.componentState ?? {},
     error: messageDto.error,
     isCancelled: messageDto.isCancelled ?? false,
     additionalContext: messageDto.additionalContext ?? {},
-    reasoning: messageDto.reasoning ?? undefined,
-    reasoningDurationMS: messageDto.reasoningDurationMS ?? undefined,
-  });
+  };
+
+  // Construct the message based on role to satisfy discriminated union types
+  let unsavedMessage: UnsavedThreadMessage;
+  if (messageDto.role === MessageRole.Tool) {
+    // Tool messages REQUIRE tool_call_id
+    if (!messageDto.tool_call_id) {
+      throw new Error("Tool messages must have a tool_call_id");
+    }
+    unsavedMessage = {
+      ...baseMessage,
+      role: MessageRole.Tool,
+      tool_call_id: messageDto.tool_call_id,
+    };
+  } else if (messageDto.role === MessageRole.Assistant) {
+    // Assistant messages can optionally have tool_call_id, toolCallRequest, reasoning
+    unsavedMessage = {
+      ...baseMessage,
+      role: MessageRole.Assistant,
+      tool_call_id: messageDto.tool_call_id,
+      toolCallRequest: messageDto.toolCallRequest ?? undefined,
+      reasoning: messageDto.reasoning ?? undefined,
+      reasoningDurationMS: messageDto.reasoningDurationMS ?? undefined,
+    };
+  } else if (messageDto.role === MessageRole.System) {
+    // System messages don't have tool-related fields
+    unsavedMessage = {
+      ...baseMessage,
+      role: MessageRole.System,
+    };
+  } else {
+    // User messages don't have tool-related fields
+    unsavedMessage = {
+      ...baseMessage,
+      role: MessageRole.User,
+    };
+  }
+
+  const message = await operations.addMessage(db, threadId, unsavedMessage);
 
   if (messageDto.role === MessageRole.Tool && messageDto.error) {
     //Update the previous request message with the error

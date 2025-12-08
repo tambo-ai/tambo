@@ -55,9 +55,7 @@ describe("ThreadsController HTTP response handling without network sockets", () 
         reply: replySpy,
         isHeadersSent: jest.fn().mockReturnValue(false),
         end: jest.fn(),
-      } as unknown as Parameters<
-        ConstructorParameters<typeof SentryExceptionFilter>
-      >[0];
+      } as unknown as ConstructorParameters<typeof SentryExceptionFilter>[0];
       filter = new SentryExceptionFilter(mockHttpAdapter);
     });
 
