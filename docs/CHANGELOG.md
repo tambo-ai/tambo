@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.20.0](https://github.com/tambo-ai/tambo/compare/docs-v1.19.1...docs-v1.20.0) (2025-12-08)
+
+
+### Features
+
+* add claude opus 4.5 ([#1444](https://github.com/tambo-ai/tambo/issues/1444)) ([d581560](https://github.com/tambo-ai/tambo/commit/d581560597e810f0d88c6b357a2cdb75e727f9eb))
+
+
+### Bug Fixes
+
+* **deps:** upgrade to zod v3 subpath imports and MCP SDK 1.24 ([#1465](https://github.com/tambo-ai/tambo/issues/1465)) ([c8b7f07](https://github.com/tambo-ai/tambo/commit/c8b7f079560d423082c005018a103b9eb3cf6993))
+* **docs:** add canonical URLs for docs.tambo.co pages ([#1454](https://github.com/tambo-ai/tambo/issues/1454)) ([ce01815](https://github.com/tambo-ai/tambo/commit/ce0181585e3304f7f6e738845410d43af440b459))
+* **react-sdk,docs:** address streaming docs review feedback ([#1459](https://github.com/tambo-ai/tambo/issues/1459)) ([3fb4ed2](https://github.com/tambo-ai/tambo/commit/3fb4ed269c8ad13bd04c142743c2268ae8a29fec))
+
+
+### Miscellaneous Chores
+
+* **deps:** Bump @tambo-ai/typescript-sdk to get updated enum ([#1445](https://github.com/tambo-ai/tambo/issues/1445)) ([7bee1f3](https://github.com/tambo-ai/tambo/commit/7bee1f32b7864d381eb2b5f346ec050ed61358a3))
+* **deps:** bump next from 15.5.6 to 15.5.7 ([#1473](https://github.com/tambo-ai/tambo/issues/1473)) ([d8c7f1e](https://github.com/tambo-ai/tambo/commit/d8c7f1e0e8bab619daccf774822c421891ac3e5f))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1436](https://github.com/tambo-ai/tambo/issues/1436)) ([5974a87](https://github.com/tambo-ai/tambo/commit/5974a87c06577da92cd6ef9a500ebc9226f46fec))
+
+
+### Documentation
+
+* **docs:** standardize core docs headings for SEO ([#1456](https://github.com/tambo-ai/tambo/issues/1456)) ([3bc7333](https://github.com/tambo-ai/tambo/commit/3bc73331980ed0d8f459bafc0a773ef8fca51ef9))
+* **react-sdk:** document streaming components pattern ([#1457](https://github.com/tambo-ai/tambo/issues/1457)) ([d0beb5a](https://github.com/tambo-ai/tambo/commit/d0beb5a9efe992137407c00481f342d38be9c293))
+
 ## [1.19.1](https://github.com/tambo-ai/tambo/compare/docs-v1.19.0...docs-v1.19.1) (2025-11-22)
 
 
