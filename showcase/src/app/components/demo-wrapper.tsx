@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface DemoWrapperProps {
   children: React.ReactNode;
@@ -26,7 +27,8 @@ export function DemoWrapper({
   hidePreviewHeading = false,
 }: DemoWrapperProps) {
   const containerHeight = typeof height === "number" ? `${height}px` : height;
-
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  console.log("isFullScreen", isFullScreen);
   return (
     <div>
       <div
@@ -38,7 +40,7 @@ export function DemoWrapper({
         )}
       >
         {!hidePreviewHeading && <h2 className="text-xl font-500">Preview</h2>}
-        <Dialog>
+        <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="text-xs">
               Go Full Screen
@@ -63,9 +65,11 @@ export function DemoWrapper({
                 </div>
               </div>
               {/* Content area with padding to account for header */}
-              <div className="h-full w-full pt-[var(--header-height)] bg-gradient-to-br from-muted/10 via-transparent to-background/5 shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)]">
-                {children}
-              </div>
+              {isFullScreen && (
+                <div className="h-full w-full pt-[var(--header-height)] bg-gradient-to-br from-muted/10 via-transparent to-background/5 shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)]">
+                  {children}
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -79,7 +83,9 @@ export function DemoWrapper({
         )}
         style={{ height: containerHeight }}
       >
-        <div className="h-full w-full">{children}</div>
+        <div className="h-full w-full">
+          <div className="h-full w-full">{isFullScreen ? null : children}</div>
+        </div>
       </div>
     </div>
   );
