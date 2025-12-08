@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.65.2",
+  "version": "0.65.3",
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
@@ -102,7 +102,7 @@
     "@types/react-dom": "^18.3.7",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
-    "eslint-plugin-jsdoc": "^61.4.1",
+    "eslint-plugin-jsdoc": "^61.4.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.1.1",
     "jest": "^30.2.0",
@@ -112,9 +112,9 @@
     "prettier-2": "npm:prettier@^2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "ts-jest": "^29.4.5",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.0",
+    "typescript-eslint": "^8.48.1",
     "zod": "^3.25 || ^4.0",
     "zod-to-json-schema": "^3.25.0"
   }

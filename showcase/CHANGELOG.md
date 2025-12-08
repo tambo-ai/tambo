@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.32.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.32.0...showcase-v0.32.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* **showcase:** do not render components twice in full screen mode ([#1490](https://github.com/tambo-ai/tambo/issues/1490)) ([331ede1](https://github.com/tambo-ai/tambo/commit/331ede1e3476cf704e929a7cfdb69d9181416608))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1483](https://github.com/tambo-ai/tambo/issues/1483)) ([892f7a4](https://github.com/tambo-ai/tambo/commit/892f7a4ed55beb99c5b540f2cb6139bb62dcd880))
+
 ## [0.32.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.31.0...showcase-v0.32.0) (2025-12-08)
 
 
