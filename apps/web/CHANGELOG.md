@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.124.0](https://github.com/tambo-ai/tambo/compare/web-v0.123.4...web-v0.124.0) (2025-12-08)
+
+
+### Features
+
+* **cli:** bring wysiwyg editor into main message-input component ([#1415](https://github.com/tambo-ai/tambo/issues/1415)) ([6d0a89d](https://github.com/tambo-ai/tambo/commit/6d0a89dfa75c953279b56771209c74c4b3bcc58d))
+* **mcp-resources:** Enable @-resource and /-command inline completion ([#1464](https://github.com/tambo-ai/tambo/issues/1464)) ([775ca87](https://github.com/tambo-ai/tambo/commit/775ca8789341de492bd084e1fbede76ffd3d1f8c))
+* **web:** register dashboard components with Tambo ([#1467](https://github.com/tambo-ai/tambo/issues/1467)) ([0cd2f6e](https://github.com/tambo-ai/tambo/commit/0cd2f6eec4587385da8c9ecb725d25d79ead4c21))
+
+
+### Bug Fixes
+
+* **deps:** upgrade to zod v3 subpath imports and MCP SDK 1.24 ([#1465](https://github.com/tambo-ai/tambo/issues/1465)) ([c8b7f07](https://github.com/tambo-ai/tambo/commit/c8b7f079560d423082c005018a103b9eb3cf6993))
+* **web:** clarify OpenAI-compatible base URL hint ([#1455](https://github.com/tambo-ai/tambo/issues/1455)) ([1da60e2](https://github.com/tambo-ai/tambo/commit/1da60e24887c9dfa3eb6dffc0156d11996a61b7d))
+
+
+### Miscellaneous Chores
+
+* **deps:** Bump @tambo-ai/typescript-sdk to get updated enum ([#1445](https://github.com/tambo-ai/tambo/issues/1445)) ([7bee1f3](https://github.com/tambo-ai/tambo/commit/7bee1f32b7864d381eb2b5f346ec050ed61358a3))
+* **deps:** bump next from 15.5.6 to 15.5.7 ([#1473](https://github.com/tambo-ai/tambo/issues/1473)) ([d8c7f1e](https://github.com/tambo-ai/tambo/commit/d8c7f1e0e8bab619daccf774822c421891ac3e5f))
+* **deps:** bump recharts from 3.4.1 to 3.5.0 ([#1439](https://github.com/tambo-ai/tambo/issues/1439)) ([f2d2200](https://github.com/tambo-ai/tambo/commit/f2d220039cee70670c2740d46d192eed42e3894e))
+* **deps:** bump shiki from 2.5.0 to 3.15.0 ([#1373](https://github.com/tambo-ai/tambo/issues/1373)) ([b2734e5](https://github.com/tambo-ai/tambo/commit/b2734e5817d6b85edd0829bd86199563613edaf3))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1436](https://github.com/tambo-ai/tambo/issues/1436)) ([5974a87](https://github.com/tambo-ai/tambo/commit/5974a87c06577da92cd6ef9a500ebc9226f46fec))
+* **deps:** bump the trpc group with 3 updates ([#1427](https://github.com/tambo-ai/tambo/issues/1427)) ([500f3bf](https://github.com/tambo-ai/tambo/commit/500f3bf70be85a7b0c9fc99385ebd24efede6bbc))
+
+
+### Documentation
+
+* Update / add some AGENTS.md and README.md as per some code audits I ran... ([#1451](https://github.com/tambo-ai/tambo/issues/1451)) ([600e862](https://github.com/tambo-ai/tambo/commit/600e8628be591748d19df31adbe8dac14c572207))
+* **web:** link generative UI blog post to Hacker News ([#1476](https://github.com/tambo-ai/tambo/issues/1476)) ([71c83c8](https://github.com/tambo-ai/tambo/commit/71c83c85c6cf082e1381093012daa88bdbdeb4ac))
+
+
+### Styles
+
+* **web-app:** update UI for tambo.co ([#1453](https://github.com/tambo-ai/tambo/issues/1453)) ([095284e](https://github.com/tambo-ai/tambo/commit/095284ec96fcbbaf44937767893f972ec0e0c59c))
+
+
+### Tests
+
+* simplify coverage thresholds and fix CI coverage ([#1458](https://github.com/tambo-ai/tambo/issues/1458)) ([719b9e6](https://github.com/tambo-ai/tambo/commit/719b9e660700b5eb420b288cab52cbc11c83028d))
+
 ## [0.123.4](https://github.com/tambo-ai/tambo/compare/web-v0.123.3...web-v0.123.4) (2025-11-26)
 
 ### Miscellaneous Chores
