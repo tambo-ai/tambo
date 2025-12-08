@@ -31,7 +31,7 @@
     "@ai-sdk/google": "^2.0.44",
     "@ai-sdk/groq": "^2.0.32",
     "@ai-sdk/mistral": "^2.0.25",
-    "@ai-sdk/openai": "^2.0.75",
+    "@ai-sdk/openai": "^2.0.80",
     "@ai-sdk/openai-compatible": "^1.0.28",
     "@ai-sdk/provider": "^2.0.0",
     "@mastra/client-js": "^0.15.2",
