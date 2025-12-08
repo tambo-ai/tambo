@@ -1,0 +1,14 @@
+{
+  "extends": "@tambo-ai/typescript-config/base",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@tambo-ai-cloud/core": ["../core/src"],
+      "@tambo-ai-cloud/db": ["../db/src"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}

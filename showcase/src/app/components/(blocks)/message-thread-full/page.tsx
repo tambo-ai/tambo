@@ -2,7 +2,7 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
-import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
@@ -32,14 +32,14 @@ export default function MessageThreadFullPage() {
           <ComponentCodePreview
             title="Basic Usage"
             component={
-              <TamboMcpProvider>
-                <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
+              <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
+                <TamboMcpProvider contextKey={userContextKey}>
                   <MessageThreadFull
                     contextKey={userContextKey}
                     className="w-full h-full rounded-lg"
                   />
-                </div>
-              </TamboMcpProvider>
+                </TamboMcpProvider>
+              </div>
             }
             code={`import { MessageThreadFull } from "@tambo-ai/react";
 

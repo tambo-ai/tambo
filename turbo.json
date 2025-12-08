@@ -2,10 +2,11 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
   "globalEnv": [
-    "ALLOWED_LOGIN_DOMAIN",
     "ALLOW_LOCAL_MCP_SERVERS",
+    "ALLOWED_LOGIN_DOMAIN",
     "API_KEY_SECRET",
     "CALENDAR_URL",
+    "CI",
     "DATABASE_URL",
     "DISALLOWED_EMAIL_DOMAINS",
     "EMAIL_FROM_DEFAULT",
@@ -14,17 +15,21 @@
     "EMAIL_REPLY_TO_SUPPORT",
     "EXTRACTION_OPENAI_API_KEY",
     "FALLBACK_OPENAI_API_KEY",
+    "FORCE_INTERACTIVE",
+    "GITHUB_ACTIONS",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
     "GITHUB_TOKEN",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
+    "HOST",
     "INKEEP_API_BASE_URL",
     "INKEEP_API_KEY",
     "INTERNAL_SLACK_USER_ID",
     "LANGFUSE_HOST",
     "LANGFUSE_PUBLIC_KEY",
     "LANGFUSE_SECRET_KEY",
+    "NEXT_BUILD_STANDALONE",
     "NEXT_PUBLIC_CURSOR_MCP_DEEPLINK",
     "NEXT_PUBLIC_DOCS_URL",
     "NEXT_PUBLIC_POSTHOG_HOST",
@@ -54,19 +59,45 @@
     "TAMBO_SERVER_URL",
     "TAMBO_WHITELABEL_ORG_LOGO",
     "TAMBO_WHITELABEL_ORG_NAME",
+    "TERM",
     "VERCEL_URL",
-    "WEBHOOK_SECRET",
-    "WEATHER_API_KEY"
+    "WEATHER_API_KEY",
+    "WEBHOOK_SECRET"
   ],
   "tasks": {
+    "//#sync:showcase": {
+      "cache": false,
+      "inputs": [
+        "cli/src/registry/**/*.tsx",
+        "cli/src/registry/**/*.ts",
+        "cli/src/registry/**/*.css",
+        "cli/src/registry/**/config.json"
+      ],
+      "outputs": ["showcase/src/components/tambo/**"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "esm/**"],
+      "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
+    },
+    "@tambo-ai/showcase#build": {
+      "dependsOn": ["^build", "//#sync:showcase"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": { "dependsOn": ["^lint"] },
     "check-types": { "dependsOn": ["^check-types"] },
-    "dev": { "dependsOn": ["^build"], "cache": false, "persistent": true },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "@tambo-ai/showcase#dev": {
+      "dependsOn": ["^build", "//#sync:showcase"],
+      "cache": false,
+      "persistent": true
+    },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
     "test": { "dependsOn": ["^build", "^test"] }

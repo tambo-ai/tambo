@@ -1,0 +1,184 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`suggestion-generator buildSuggestionPrompt should include correct number of suggestions in prompt 1`] = `
+[
+  {
+    "content": "Review the available components and conversation history to generate natural follow-up messages that a user might send.
+
+You may use only the following components:
+
+- componentName: "Button":
+    description: A simple button component
+    props:
+    {
+      "label": "string",
+      "onClick": "(event: MouseEvent) => void"
+    }
+
+- componentName: "Input":
+    description: An input field component
+    props:
+    {
+      "value": {
+        "type": "string",
+        "description": "Current input value",
+        "required": true
+      },
+      "onChange": {
+        "type": "(value: string) => void",
+        "description": "Change handler",
+        "required": true
+      }
+    }
+
+LANGUAGE REQUIREMENT:
+- Detect the language used by the user in their messages
+- ALL suggestions (both title and detailedSuggestion) MUST be written in the same language as the user's messages
+- If no user messages exist or the language is unclear, DEFAULT TO ENGLISH
+- Only use a non-English language if the user has clearly written in that language
+
+Your task is to suggest 1 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
+
+Rules:
+1. Write each suggestion as a complete message that could be sent by the user
+2. Focus on practical requests that use the available components
+3. Make suggestions contextually relevant to the conversation and previous actions
+4. If a component is currently in use, suggest natural variations or new ways to use it
+5. Write in a natural, conversational tone as if the user is typing
+6. Avoid technical language or system-focused phrasing",
+    "role": "system",
+  },
+  {
+    "content": "Generate 1 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+
+The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
+
+IMPORTANT: Write suggestions in the same language as the user's messages above. If no user messages exist or the language is unclear, use English.
+
+No component currently in use.",
+    "role": "user",
+  },
+]
+`;
+
+exports[`suggestion-generator buildSuggestionPrompt should include correct number of suggestions in prompt 2`] = `
+[
+  {
+    "content": "Review the available components and conversation history to generate natural follow-up messages that a user might send.
+
+You may use only the following components:
+
+- componentName: "Button":
+    description: A simple button component
+    props:
+    {
+      "label": "string",
+      "onClick": "(event: MouseEvent) => void"
+    }
+
+- componentName: "Input":
+    description: An input field component
+    props:
+    {
+      "value": {
+        "type": "string",
+        "description": "Current input value",
+        "required": true
+      },
+      "onChange": {
+        "type": "(value: string) => void",
+        "description": "Change handler",
+        "required": true
+      }
+    }
+
+LANGUAGE REQUIREMENT:
+- Detect the language used by the user in their messages
+- ALL suggestions (both title and detailedSuggestion) MUST be written in the same language as the user's messages
+- If no user messages exist or the language is unclear, DEFAULT TO ENGLISH
+- Only use a non-English language if the user has clearly written in that language
+
+Your task is to suggest 3 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
+
+Rules:
+1. Write each suggestion as a complete message that could be sent by the user
+2. Focus on practical requests that use the available components
+3. Make suggestions contextually relevant to the conversation and previous actions
+4. If a component is currently in use, suggest natural variations or new ways to use it
+5. Write in a natural, conversational tone as if the user is typing
+6. Avoid technical language or system-focused phrasing",
+    "role": "system",
+  },
+  {
+    "content": "Generate 3 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+
+The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
+
+IMPORTANT: Write suggestions in the same language as the user's messages above. If no user messages exist or the language is unclear, use English.
+
+No component currently in use.",
+    "role": "user",
+  },
+]
+`;
+
+exports[`suggestion-generator buildSuggestionPrompt should include correct number of suggestions in prompt 3`] = `
+[
+  {
+    "content": "Review the available components and conversation history to generate natural follow-up messages that a user might send.
+
+You may use only the following components:
+
+- componentName: "Button":
+    description: A simple button component
+    props:
+    {
+      "label": "string",
+      "onClick": "(event: MouseEvent) => void"
+    }
+
+- componentName: "Input":
+    description: An input field component
+    props:
+    {
+      "value": {
+        "type": "string",
+        "description": "Current input value",
+        "required": true
+      },
+      "onChange": {
+        "type": "(value: string) => void",
+        "description": "Change handler",
+        "required": true
+      }
+    }
+
+LANGUAGE REQUIREMENT:
+- Detect the language used by the user in their messages
+- ALL suggestions (both title and detailedSuggestion) MUST be written in the same language as the user's messages
+- If no user messages exist or the language is unclear, DEFAULT TO ENGLISH
+- Only use a non-English language if the user has clearly written in that language
+
+Your task is to suggest 5 messages written exactly as if they came from the user. These suggestions should represent natural follow-up requests based on the available components and context.
+
+Rules:
+1. Write each suggestion as a complete message that could be sent by the user
+2. Focus on practical requests that use the available components
+3. Make suggestions contextually relevant to the conversation and previous actions
+4. If a component is currently in use, suggest natural variations or new ways to use it
+5. Write in a natural, conversational tone as if the user is typing
+6. Avoid technical language or system-focused phrasing",
+    "role": "system",
+  },
+  {
+    "content": "Generate 5 natural follow-up messages that a user might send. Each suggestion should be a complete message that could be sent directly to the system.
+
+The suggestions should be written exactly as a user would type them, not as descriptions or commands, in a JSON structure.
+
+IMPORTANT: Write suggestions in the same language as the user's messages above. If no user messages exist or the language is unclear, use English.
+
+No component currently in use.",
+    "role": "user",
+  },
+]
+`;

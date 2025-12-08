@@ -140,13 +140,13 @@ export function mergeTheme(root: Root, newThemeVars: Map<string, string>) {
 
   // Add only missing theme variables
   newThemeVars.forEach((value, prop) => {
-    const exists = themeRule!.nodes?.some(
+    const exists = themeRule.nodes?.some(
       (node): node is postcss.Declaration =>
         node.type === "decl" && node.prop === prop,
     );
 
     if (!exists) {
-      themeRule!.append(
+      themeRule.append(
         postcss.decl({
           prop,
           value,
@@ -206,13 +206,13 @@ export function addUtilities(root: Root, newUtilities: postcss.Rule[]) {
   // Add only missing utilities
   newUtilities.forEach((newRule) => {
     // Check if this utility already exists
-    const exists = utilitiesLayer!.nodes?.some(
+    const exists = utilitiesLayer.nodes?.some(
       (node): node is postcss.Rule =>
         node.type === "rule" && node.selector === newRule.selector,
     );
 
     if (!exists) {
-      utilitiesLayer!.append(newRule);
+      utilitiesLayer.append(newRule);
     }
   });
 }

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import fs from "node:fs/promises";
+import path from "node:path";
+import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 import prettier from "prettier";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 const APP_DIR = path.resolve(__dirname, "../src/app");
 
-test("component code snippets stay Prettier formatted", async () => {
+void test("component code snippets stay Prettier formatted", async () => {
   const tsxFiles = await collectTsxFiles(APP_DIR);
   const failures = [];
 

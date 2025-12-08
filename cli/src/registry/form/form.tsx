@@ -5,7 +5,7 @@ import { useTambo, useTamboComponentState } from "@tambo-ai/react";
 import { cva } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Zod schema for FormField
@@ -449,7 +449,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                   required={field.required}
                   className="w-full px-3 py-2 rounded-lg 
                             bg-background border border-border
-                            focus:ring-2 focus:ring-ring focus:border-input
+                            focus:ring-2 focus:ring-accent focus:border-input
                             placeholder:text-muted-foreground
                             transition-colors duration-200"
                 />
@@ -464,7 +464,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                   required={field.required}
                   className="w-full px-3 py-2 rounded-lg
                             bg-background border border-border
-                            focus:ring-2 focus:ring-ring focus:border-input
+                            focus:ring-2 focus:ring-accent focus:border-input
                             placeholder:text-muted-foreground
                             transition-colors duration-200"
                 />
@@ -479,7 +479,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                   rows={4}
                   className="w-full px-3 py-2 rounded-lg
                             bg-background border border-border
-                            focus:ring-2 focus:ring-ring focus:border-input
+                            focus:ring-2 focus:ring-accent focus:border-input
                             placeholder:text-muted-foreground
                             transition-colors duration-200 resize-y"
                 />
@@ -497,7 +497,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                     onClick={() => handleDropdownToggle(field.id)}
                     className="w-full px-3 py-2 rounded-lg border border-border
                               bg-background text-foreground
-                              focus:ring-2 focus:ring-ring focus:border-input
+                              focus:ring-2 focus:ring-accent focus:border-input
                               hover:bg-muted/50
                               transition-colors duration-200
                               text-left flex items-center justify-between"
@@ -567,7 +567,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                         name={field.id}
                         value={option}
                         required={field.required}
-                        className="h-4 w-4 border-border focus:ring-ring accent-primary"
+                        className="h-4 w-4 border-border focus:ring-accent accent-accent"
                       />
                       <span>{option}</span>
                     </label>
@@ -592,7 +592,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                           id={`${field.id}-${option}`}
                           checked={isChecked}
                           value={option}
-                          className="h-4 w-4 border-border focus:ring-ring accent-primary"
+                          className="h-4 w-4 border-border focus:ring-accent accent-accent"
                           onChange={(e) =>
                             handleCheckboxChange(
                               field.id,
@@ -635,7 +635,7 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
                         : "5")
                     }
                     required={field.required}
-                    className="w-full h-2 bg-muted rounded-lg cursor-pointer accent-primary"
+                    className="w-full h-2 bg-muted rounded-lg cursor-pointer accent-accent"
                     onChange={(e) =>
                       handleSliderChange(field.id, e.target.value, field)
                     }
@@ -704,8 +704,8 @@ export const FormComponent = React.forwardRef<HTMLFormElement, FormProps>(
           <button
             type="submit"
             disabled={isGenerating}
-            className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg 
-                     hover:bg-primary/90 focus:ring-2 focus:ring-ring
+            className="w-full px-4 py-2.5 bg-accent text-accent-foreground rounded-lg
+                     hover:bg-accent/90 focus:ring-2 focus:ring-accent
                      disabled:opacity-50 disabled:pointer-events-none
                      font-medium transition-colors duration-200"
           >

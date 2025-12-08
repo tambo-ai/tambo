@@ -44,15 +44,15 @@
   --popover-foreground: oklch(0.14 0 285);
   --primary: oklch(0.31 0.02 281);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.54 0.027 261);
-  --secondary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9676 0.0013 286.4);
+  --secondary-foreground: oklch(0.2103 0.0059 285.9);
   --muted: oklch(0.92 0 260);
-  --muted-foreground: oklch(0.73 0.022 260);
+  --muted-foreground: oklch(0.5519 0.0137 285.9);
   --accent: oklch(0.97 0 286);
   --accent-foreground: oklch(0.21 0 286);
   --destructive: oklch(0.64 0.2 25);
-  --border: oklch(0.93 0 242);
-  --input: oklch(0.92 0 286);
+  --border: oklch(0.9219 0.0096 242.3);
+  --input: oklch(0.9197 0.004 286.3);
   --ring: oklch(0.14 0 285);
   --chart-1: oklch(0.72 0.15 60);
   --chart-2: oklch(0.62 0.2 6);
@@ -143,4 +143,31 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: thinking-gradient 2s linear infinite;
+}
+
+/* Suggestion dropdown (tippy.js) */
+.tippy-box[data-theme~="light-border"] {
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  padding: 0;
+  max-width: 24rem !important;
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="bottom"]
+  > .tippy-arrow::before {
+  border-bottom-color: var(--border);
+}
+
+.tippy-box[data-theme~="light-border"][data-placement^="top"]
+  > .tippy-arrow::before {
+  border-top-color: var(--border);
+}
+
+.tippy-box[data-theme~="light-border"] .tippy-content {
+  padding: 0;
 }

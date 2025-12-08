@@ -1,6 +1,6 @@
 ---
-title: What is Tambo?
-description: Generative UI for React
+title: Tambo generative UI for React
+description: Build generative UI apps in React with Tambo components, hooks, and MCP-native tools.
 icon: GraduationCap
 ---
 
@@ -208,8 +208,8 @@ const mcpServers = [
   },
 ];
 
-<TamboProvider components={components}>
-  <TamboMcpProvider mcpServers={mcpServers}>
+<TamboProvider components={components} mcpServers={mcpServers}>
+  <TamboMcpProvider>
     <App />
   </TamboMcpProvider>
 </TamboProvider>;

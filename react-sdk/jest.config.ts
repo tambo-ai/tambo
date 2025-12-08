@@ -6,7 +6,7 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  testMatch: ["**/__tests__/**/*.test.ts?(x)"],
+  testMatch: ["<rootDir>/src/**/*.test.ts?(x)"],
   transform: {
     "^.+\\.tsx?$": "ts-jest",
   },
@@ -15,6 +15,12 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
   clearMocks: true,
   resetMocks: true,
+  coverageThreshold: {
+    global: {
+      branches: 61,
+      lines: 76,
+    },
+  },
 };
 
 export default config;

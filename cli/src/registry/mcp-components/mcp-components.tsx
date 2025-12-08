@@ -17,8 +17,7 @@ import * as React from "react";
 /**
  * Props for the McpPromptButton component.
  */
-export interface McpPromptButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface McpPromptButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Callback to insert text into the input */
   onInsertText: (text: string) => void;
   /** Current input value */
@@ -108,40 +107,11 @@ export const McpPromptButton = React.forwardRef<
               align="start"
               sideOffset={5}
             >
-              {isLoading ? (
-                <DropdownMenu.Item
-                  className="px-2 py-1.5 text-sm text-muted-foreground"
-                  disabled
-                >
-                  Loading prompts...
-                </DropdownMenu.Item>
-              ) : !promptList || promptList.length === 0 ? (
-                <DropdownMenu.Item
-                  className="px-2 py-1.5 text-sm text-muted-foreground"
-                  disabled
-                >
-                  No prompts available
-                </DropdownMenu.Item>
-              ) : (
-                promptList.map((promptEntry) => (
-                  <DropdownMenu.Item
-                    key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
-                    className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                    onSelect={() => {
-                      setSelectedPromptName(promptEntry.prompt.name);
-                    }}
-                  >
-                    <span className="font-medium truncate max-w-full">
-                      {promptEntry.prompt.name}
-                    </span>
-                    {promptEntry.prompt.description && (
-                      <span className="text-xs text-muted-foreground truncate max-w-full">
-                        {promptEntry.prompt.description}
-                      </span>
-                    )}
-                  </DropdownMenu.Item>
-                ))
-              )}
+              <PromptListContent
+                isLoading={isLoading}
+                promptList={promptList}
+                onSelectPrompt={setSelectedPromptName}
+              />
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
@@ -150,6 +120,67 @@ export const McpPromptButton = React.forwardRef<
   );
 });
 McpPromptButton.displayName = "McpPromptButton";
+
+/**
+ * Internal component to render prompt list content
+ */
+function PromptListContent({
+  isLoading,
+  promptList,
+  onSelectPrompt,
+}: {
+  isLoading: boolean;
+  promptList:
+    | {
+        server: { url: string };
+        prompt: { name: string; description?: string };
+      }[]
+    | undefined;
+  onSelectPrompt: (name: string) => void;
+}) {
+  if (isLoading) {
+    return (
+      <DropdownMenu.Item
+        className="px-2 py-1.5 text-sm text-muted-foreground"
+        disabled
+      >
+        Loading prompts...
+      </DropdownMenu.Item>
+    );
+  }
+  if (!promptList || promptList.length === 0) {
+    return (
+      <DropdownMenu.Item
+        className="px-2 py-1.5 text-sm text-muted-foreground"
+        disabled
+      >
+        No prompts available
+      </DropdownMenu.Item>
+    );
+  }
+  return (
+    <>
+      {promptList.map((promptEntry) => (
+        <DropdownMenu.Item
+          key={`${promptEntry.server.url}-${promptEntry.prompt.name}`}
+          className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+          onSelect={() => {
+            onSelectPrompt(promptEntry.prompt.name);
+          }}
+        >
+          <span className="font-medium truncate max-w-full">
+            {promptEntry.prompt.name}
+          </span>
+          {promptEntry.prompt.description && (
+            <span className="text-xs text-muted-foreground truncate max-w-full">
+              {promptEntry.prompt.description}
+            </span>
+          )}
+        </DropdownMenu.Item>
+      ))}
+    </>
+  );
+}
 
 /**
  * Props for the ResourceCombobox internal component
@@ -211,43 +242,12 @@ const ResourceCombobox: React.FC<ResourceComboboxProps> = ({
 
         {/* Resource list */}
         <div className="overflow-y-auto max-h-[320px] p-1">
-          {isLoading ? (
-            <div className="px-2 py-8 text-center text-sm text-muted-foreground">
-              Loading resources...
-            </div>
-          ) : !filteredResources || filteredResources.length === 0 ? (
-            <div className="px-2 py-8 text-center text-sm text-muted-foreground">
-              {searchQuery
-                ? `No resources matching "${searchQuery}"`
-                : "No resources available"}
-            </div>
-          ) : (
-            filteredResources.map((resourceEntry) => (
-              <DropdownMenu.Item
-                key={`${resourceEntry.server.url}-${resourceEntry.resource.uri}`}
-                className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
-                onSelect={() => {
-                  onSelectResource(resourceEntry.resource.uri);
-                }}
-              >
-                <div className="flex items-start justify-between w-full gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">
-                      {resourceEntry.resource.name ?? "Unnamed Resource"}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate font-mono">
-                      {resourceEntry.resource.uri}
-                    </div>
-                    {resourceEntry.resource.description && (
-                      <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                        {resourceEntry.resource.description}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </DropdownMenu.Item>
-            ))
-          )}
+          <ResourceListContent
+            isLoading={isLoading}
+            filteredResources={filteredResources}
+            searchQuery={searchQuery}
+            onSelectResource={onSelectResource}
+          />
         </div>
       </DropdownMenu.Content>
     </DropdownMenu.Portal>
@@ -255,10 +255,70 @@ const ResourceCombobox: React.FC<ResourceComboboxProps> = ({
 };
 
 /**
+ * Internal component to render resource list content
+ */
+function ResourceListContent({
+  isLoading,
+  filteredResources,
+  searchQuery,
+  onSelectResource,
+}: {
+  isLoading: boolean;
+  filteredResources: ReturnType<typeof useTamboMcpResourceList>["data"];
+  searchQuery: string;
+  onSelectResource: (uri: string) => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className="px-2 py-8 text-center text-sm text-muted-foreground">
+        Loading resources...
+      </div>
+    );
+  }
+  if (!filteredResources || filteredResources.length === 0) {
+    return (
+      <div className="px-2 py-8 text-center text-sm text-muted-foreground">
+        {searchQuery
+          ? `No resources matching "${searchQuery}"`
+          : "No resources available"}
+      </div>
+    );
+  }
+  return (
+    <>
+      {filteredResources.map((resourceEntry) => (
+        <DropdownMenu.Item
+          key={`${resourceEntry.server.url}-${resourceEntry.resource.uri}`}
+          className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
+          onSelect={() => {
+            onSelectResource(resourceEntry.resource.uri);
+          }}
+        >
+          <div className="flex items-start justify-between w-full gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="font-medium truncate">
+                {resourceEntry.resource.name ?? "Unnamed Resource"}
+              </div>
+              <div className="text-xs text-muted-foreground truncate font-mono">
+                {resourceEntry.resource.uri}
+              </div>
+              {resourceEntry.resource.description && (
+                <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                  {resourceEntry.resource.description}
+                </div>
+              )}
+            </div>
+          </div>
+        </DropdownMenu.Item>
+      ))}
+    </>
+  );
+}
+
+/**
  * Props for the McpResourceButton component.
  */
-export interface McpResourceButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface McpResourceButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Callback to insert text into the input */
   onInsertText: (text: string) => void;
   /** Current input value */
@@ -282,7 +342,7 @@ export interface McpResourceButtonProps
 export const McpResourceButton = React.forwardRef<
   HTMLButtonElement,
   McpResourceButtonProps
->(({ className, onInsertText, value, ...props }, ref) => {
+>(({ className, onInsertText, value: _value, ...props }, ref) => {
   const { data: resourceList, isLoading } = useTamboMcpResourceList();
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -308,11 +368,9 @@ export const McpResourceButton = React.forwardRef<
   }, [resourceList, searchQuery]);
 
   const handleSelectResource = (resourceUri: string) => {
-    // Insert the resource reference with @ syntax
+    // Pass raw @resource string to caller; caller decides how to insert
     const resourceRef = `@${resourceUri}`;
-    // Insert at cursor position or append
-    const newValue = value ? `${value}\n${resourceRef}` : resourceRef;
-    onInsertText(newValue);
+    onInsertText(resourceRef);
     setIsOpen(false);
     setSearchQuery("");
   };

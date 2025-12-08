@@ -7,6 +7,7 @@ import meow, { type Flag, type Result } from "meow";
 import { dirname, join } from "path";
 import semver from "semver";
 import { fileURLToPath } from "url";
+import { NonInteractiveError } from "./utils/interactive.js";
 import { handleAddComponents } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
 import { handleCreateApp } from "./commands/create-app.js";
@@ -33,10 +34,10 @@ interface CLIFlags extends Record<string, any> {
   initGit?: Flag<"boolean", boolean>;
   version?: Flag<"boolean", boolean>;
   template?: Flag<"string", string>;
-  acceptAll?: Flag<"boolean", boolean>;
   prefix?: Flag<"string", string>;
   yes?: Flag<"boolean", boolean>;
   dryRun?: Flag<"boolean", boolean>;
+  skipAgentDocs?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -56,8 +57,8 @@ interface CommandHelp {
 const OPTION_DOCS: Record<string, string> = {
   prefix: `${chalk.yellow("--prefix <path>")}      Custom directory for components (e.g., src/components/ui)`,
   yes: `${chalk.yellow("--yes, -y")}            Auto-answer yes to all prompts`,
+  "skip-agent-docs": `${chalk.yellow("--skip-agent-docs")}     Skip creating/updating agent docs`,
   "legacy-peer-deps": `${chalk.yellow("--legacy-peer-deps")}   Use --legacy-peer-deps flag for npm install`,
-  "accept-all": `${chalk.yellow("--accept-all")}         Accept all upgrades without prompting`,
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, analytics`,
   "init-git": `${chalk.yellow("--init-git")}           Initialize git repository automatically`,
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
@@ -72,7 +73,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       `$ ${chalk.cyan("tambo init")} [options]`,
       `$ ${chalk.cyan("tambo full-send")} [options]  ${chalk.dim("(includes component installation)")}`,
     ],
-    options: ["yes", "legacy-peer-deps"],
+    options: ["yes", "skip-agent-docs", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo init")}                      # Basic initialization`,
       `$ ${chalk.cyan("tambo init --yes")}                # Skip all prompts`,
@@ -86,7 +87,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     description:
       "Full initialization with auth flow and component installation",
     usage: [`$ ${chalk.cyan("tambo full-send")} [options]`],
-    options: ["yes", "legacy-peer-deps"],
+    options: ["yes", "skip-agent-docs", "legacy-peer-deps"],
     examples: [], // Shares examples with init
   },
   add: {
@@ -96,7 +97,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     usage: [
       `$ ${chalk.cyan("tambo add")} <component> [component2] [...] [options]`,
     ],
-    options: ["prefix", "yes", "legacy-peer-deps"],
+    options: ["prefix", "yes", "skip-agent-docs", "legacy-peer-deps"],
     examples: [
       `$ ${chalk.cyan("tambo add message")}                    # Add single component`,
       `$ ${chalk.cyan("tambo add message form graph")}         # Add multiple components`,
@@ -136,7 +137,7 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
   "update-installed": {
     command: "update-installed",
     syntax: "update installed",
-    description: `${chalk.bold("Update ALL installed tambo components at once")}`,
+    description: chalk.bold("Update ALL installed tambo components at once"),
     usage: [`$ ${chalk.cyan("tambo update installed")} [options]`],
     options: ["prefix", "yes", "legacy-peer-deps"],
     note: "This will update every tambo component currently in your project",
@@ -147,10 +148,11 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     syntax: "upgrade",
     description: "Upgrade packages, components, and LLM rules",
     usage: [`$ ${chalk.cyan("tambo upgrade")} [options]`],
-    options: ["prefix", "accept-all", "legacy-peer-deps"],
+    options: ["yes", "prefix", "skip-agent-docs", "legacy-peer-deps"],
     examples: [
-      `$ ${chalk.cyan("tambo upgrade")}                    # Interactive upgrade`,
-      `$ ${chalk.cyan("tambo upgrade --accept-all")}       # Auto-accept all changes`,
+      `$ ${chalk.cyan("tambo upgrade")}                                      # Interactive upgrade`,
+      `$ ${chalk.cyan("tambo upgrade --yes --prefix src/components/ui")}     # Non-interactive (CI/CD)`,
+      `$ ${chalk.cyan("tambo upgrade --yes --skip-agent-docs")}              # Auto-accept, skip docs`,
     ],
   },
   "create-app": {
@@ -210,8 +212,8 @@ function generateGlobalHelp(): string {
   const optionDetails = [
     OPTION_DOCS.prefix,
     OPTION_DOCS.yes,
+    OPTION_DOCS["skip-agent-docs"],
     OPTION_DOCS["legacy-peer-deps"],
-    `${OPTION_DOCS["accept-all"]} ${chalk.red("(upgrade only)")}`,
     `${OPTION_DOCS.template} ${chalk.red("(create-app only)")}`,
     `${OPTION_DOCS["init-git"]} ${chalk.red("(create-app only)")}`,
     `${OPTION_DOCS["dry-run"]} ${chalk.red("(migrate only)")}`,
@@ -276,10 +278,6 @@ const cli = meow(generateGlobalHelp(), {
       description: "Specify template to use (standard, analytics)",
       shortFlag: "t",
     },
-    acceptAll: {
-      type: "boolean",
-      description: "Accept all upgrades without prompting",
-    },
     prefix: {
       type: "string",
       description: "Specify custom directory prefix for components",
@@ -288,6 +286,10 @@ const cli = meow(generateGlobalHelp(), {
       type: "boolean",
       description: "Answer yes to all prompts automatically",
       shortFlag: "y",
+    },
+    skipAgentDocs: {
+      type: "boolean",
+      description: "Skip creating/updating agent docs",
     },
     dryRun: {
       type: "boolean",
@@ -340,6 +342,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       fullSend: cmd === "full-send",
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       yes: Boolean(flags.yes),
+      skipAgentDocs: Boolean(flags.skipAgentDocs),
     });
     return;
   }
@@ -367,6 +370,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       installPath: flags.prefix as string | undefined,
       isExplicitPrefix: Boolean(flags.prefix),
       yes: Boolean(flags.yes),
+      skipAgentDocs: Boolean(flags.skipAgentDocs),
     });
     return;
   }
@@ -376,7 +380,10 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       showListHelp();
       return;
     }
-    await handleListComponents(flags.prefix as string | undefined);
+    await handleListComponents({
+      prefix: flags.prefix as string | undefined,
+      yes: Boolean(flags.yes ?? flags.y),
+    });
     return;
   }
 
@@ -431,8 +438,9 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     }
     await handleUpgrade({
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
-      acceptAll: Boolean(flags.acceptAll),
       prefix: flags.prefix as string | undefined,
+      yes: Boolean(flags.yes ?? flags.y),
+      skipAgentDocs: Boolean(flags.skipAgentDocs),
     });
     return;
   }
@@ -567,11 +575,16 @@ async function main() {
 
     await handleCommand(command, flags);
   } catch (error) {
-    console.error(
-      chalk.red("Error executing command:"),
-      error instanceof Error ? error.message : String(error),
-    );
+    // NonInteractiveError already has a well-formatted message, don't add prefix
+    if (error instanceof NonInteractiveError) {
+      console.error(error.message);
+    } else {
+      console.error(
+        chalk.red("Error executing command:"),
+        error instanceof Error ? error.message : String(error),
+      );
+    }
     process.exit(1);
   }
 }
-main();
+void main();

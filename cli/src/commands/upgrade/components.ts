@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
-import inquirer from "inquirer";
 import ora from "ora";
+import { interactivePrompt } from "../../utils/interactive.js";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
@@ -105,7 +105,8 @@ export async function upgradeComponents(
     const projectRoot = process.cwd();
     console.log(chalk.blue("Determining component location..."));
 
-    const installPath = options.prefix ?? (await getInstallationPath());
+    const installPath =
+      options.prefix ?? (await getInstallationPath(options.yes));
     const isExplicitPrefix = Boolean(options.prefix);
 
     // Find and verify components
@@ -210,18 +211,23 @@ export async function upgradeComponents(
     // Component selection
     let componentsToUpgrade = verifiedComponents;
 
-    if (!options.acceptAll) {
-      const { selectedComponents } = await inquirer.prompt({
-        type: "checkbox",
-        name: "selectedComponents",
-        message: "Choose which components to update:",
-        choices: verifiedComponents.map((comp) => ({
-          name: comp.name,
-          value: comp.name,
-          checked: false,
-        })),
-        pageSize: 10,
-      });
+    if (!options.yes) {
+      const { selectedComponents } = await interactivePrompt<{
+        selectedComponents: string[];
+      }>(
+        {
+          type: "checkbox",
+          name: "selectedComponents",
+          message: "Choose which components to update:",
+          choices: verifiedComponents.map((comp) => ({
+            name: comp.name,
+            value: comp.name,
+            checked: false,
+          })),
+          pageSize: 10,
+        },
+        chalk.yellow("Use --yes flag to upgrade all components."),
+      );
 
       if (selectedComponents.length === 0) {
         console.log(chalk.gray("\nNo components selected for upgrade."));
@@ -276,7 +282,7 @@ export async function upgradeComponents(
         installPath,
         "upgrade",
       );
-    } else if (legacyComponents.length > 0 && !options.acceptAll) {
+    } else if (legacyComponents.length > 0 && !options.yes) {
       console.log(
         chalk.yellow(
           `\n⚠️  Found ${legacyComponents.length} components in legacy location (${LEGACY_COMPONENT_SUBDIR}/):`,
@@ -314,6 +320,7 @@ export async function upgradeComponents(
           forceUpdate: true,
           installPath: component.installPath,
           silent: true,
+          yes: options.yes,
         };
 
         if (component.isLegacy) {

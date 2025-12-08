@@ -18,6 +18,10 @@ export default defineConfig([
         },
       },
     },
+    rules: {
+      "no-nested-ternary": "warn",
+      "@typescript-eslint/no-floating-promises": "warn",
+    },
   },
   {
     files: ["next-sitemap.config.js"],

@@ -1,16 +1,19 @@
-CHANGELOG.md
+# Managed by release-please
 .release-please-manifest.json
 **/CHANGELOG.md
-**/.next
-react/esm/
-react/dist/
-react-sdk/esm
-docs/.source/
 
-# Ignore the tambo-cloud directory
-tambo-cloud/apps/web/.source/
-tambo-cloud/apps/*/dist/
-tambo-cloud/packages/*/dist/
-tambo-cloud/packages/db/migrations/
-tambo-cloud/packages/ag-ui-mastra/
-tambo-cloud/.vscode/
+# Build outputs
+**/.next
+react-sdk/esm/
+react-sdk/dist/
+apps/*/dist/
+packages/*/dist/
+
+# Generated files
+docs/.source/
+apps/web/.source/
+packages/db/migrations/
+
+# Other
+packages/ag-ui-mastra/
+.vscode/

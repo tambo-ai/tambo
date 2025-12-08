@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageThreadFull } from "@/components/ui/message-thread-full";
+import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { useUserContextKey } from "@/lib/useUserContextKey";
 import Link from "next/link";
 import { DemoWrapper } from "./components/demo-wrapper";
@@ -34,12 +34,23 @@ export default function DocsPage() {
         </div>
       </div>
 
-      {/* Demo Chat Component */}
-      <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
-        <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
-          <MessageThreadFull contextKey={userContextKey} />
-        </div>
-      </DemoWrapper>
+      {/* Live demo section */}
+      <section
+        aria-labelledby="showcase-live-demo-heading"
+        className="space-y-6"
+      >
+        <h2
+          id="showcase-live-demo-heading"
+          className="text-2xl md:text-3xl font-semibold tracking-tight"
+        >
+          Live demo
+        </h2>
+        <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
+          <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
+            <MessageThreadFull contextKey={userContextKey} />
+          </div>
+        </DemoWrapper>
+      </section>
     </div>
   );
 }

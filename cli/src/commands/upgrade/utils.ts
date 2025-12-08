@@ -1,8 +1,8 @@
 import chalk from "chalk";
 import fs from "fs";
-import inquirer from "inquirer";
 import ora from "ora";
 import path from "path";
+import { interactivePrompt } from "../../utils/interactive.js";
 import { COMPONENT_SUBDIR } from "../../constants/paths.js";
 import { updateImportPaths } from "../migrate.js";
 import {
@@ -106,12 +106,15 @@ export async function confirmAction(
   message: string,
   defaultValue = true,
 ): Promise<boolean> {
-  const { confirm } = await inquirer.prompt({
-    type: "confirm",
-    name: "confirm",
-    message: chalk.yellow(message),
-    default: defaultValue,
-  });
+  const { confirm } = await interactivePrompt<{ confirm: boolean }>(
+    {
+      type: "confirm",
+      name: "confirm",
+      message: chalk.yellow(message),
+      default: defaultValue,
+    },
+    chalk.yellow("Use --yes flag to skip all confirmations."),
+  );
 
   return confirm;
 }

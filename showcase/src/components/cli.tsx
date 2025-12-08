@@ -32,9 +32,9 @@ export function CLI({
     }
   }, [command, isCode, language]);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (command) {
-      navigator.clipboard.writeText(command);
+      await navigator.clipboard.writeText(command);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }

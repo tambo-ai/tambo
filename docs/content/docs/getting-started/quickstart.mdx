@@ -1,6 +1,6 @@
 ---
-title: Start Here
-description: Get an introduction to Tambo's features by using our starter app
+title: Tambo quickstart template
+description: Launch a Tambo generative UI chat app locally and explore core features.
 icon: Rocket
 ---
 
@@ -16,9 +16,9 @@ import { ImageZoom } from "fumadocs-ui/components/image-zoom";
   style={{ border: "2px solid #e5e7eb", borderRadius: "8px", width: "80%" }}
 />
 
-### Template Installation
+## Set up the Tambo starter app
 
-#### 1. Download the code
+### 1. Download the starter app
 
 ```bash title="Create and navigate to your project"
 npm create tambo-app@latest my-tambo-app && cd my-tambo-app
@@ -26,7 +26,7 @@ npm create tambo-app@latest my-tambo-app && cd my-tambo-app
 
 This will copy the source code of the template app into your directory and install the dependencies. See the source repo [here.](https://github.com/tambo-ai/tambo-template)
 
-#### 2. Get a Tambo API key
+### 2. Create a Tambo API key
 
 ```bash title="Initialize Tambo"
 npx tambo init
@@ -34,7 +34,7 @@ npx tambo init
 
 To send messages to Tambo, you need to create a Project through Tambo and generate an API key to send with requests. This command will walk you through the setup of your first Tambo project, generate an API key, and set the API key in your project automatically.
 
-#### 3. Run the app
+### 3. Run the app
 
 ```bash title="Run the app"
 npm run dev
@@ -42,13 +42,13 @@ npm run dev
 
 Start the app and go to `localhost:3000` in your browser to start sending messages to Tambo!
 
-### Customize
+## Customize your Tambo template
 
 To get a better understanding of what's happening in this application, try to make a change to update Tambo's capabilities.
 
 In `/src/lib/tambo.ts` you'll see how the template registers components and tools with Tambo. In `/src/app/chat/page.tsx` you'll see how those tools and components are passed to the `TamboProvider` to 'register' them.
 
-#### Add a component
+### Add a Tambo component
 
 Let's create and register a new component with Tambo to give our AI chat a new feature.
 
@@ -221,7 +221,7 @@ Now refresh the browser page and send a message like "Show me a recipe" and you 
   style={{ border: "2px solid #e5e7eb", borderRadius: "8px", width: "80%" }}
 />
 
-#### Add a tool
+### Add a Tambo tool
 
 You might notice that when using our added `RecipeCard` component above, Tambo generates recipe data completely from scratch. To allow Tambo to retrieve the list of ingredients we actually have, we can add a tool to get them.
 

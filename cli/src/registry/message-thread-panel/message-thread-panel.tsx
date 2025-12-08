@@ -8,6 +8,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   // MessageInputMcpConfigButton,
 } from "@/components/tambo/message-input";
 import {
@@ -30,7 +31,7 @@ import type { messageVariants } from "@/components/tambo/message";
 import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import { cn } from "@/lib/utils";
 import {
-  useMergedRef,
+  useMergeRefs,
   useCanvasDetection,
   usePositioning,
 } from "@/lib/thread-hooks";
@@ -43,8 +44,7 @@ import type { Suggestion } from "@tambo-ai/react";
  * Props for the MessageThreadPanel component
  * @interface
  */
-export interface MessageThreadPanelProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Optional key to identify the context of the thread
    * Used to maintain separate thread histories for different contexts
@@ -199,7 +199,7 @@ export const MessageThreadPanel = React.forwardRef<
     canvasIsOnLeft,
     hasCanvasSpace,
   );
-  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, panelRef);
+  const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, panelRef);
 
   const defaultSuggestions: Suggestion[] = [
     {
@@ -269,6 +269,7 @@ export const MessageThreadPanel = React.forwardRef<
               <MessageInputToolbar>
                 <MessageInputFileButton />
                 <MessageInputMcpPromptButton />
+                <MessageInputMcpResourceButton />
                 {/* Uncomment this to enable client-side MCP config modal button */}
                 {/* <MessageInputMcpConfigButton /> */}
                 <MessageInputSubmitButton />

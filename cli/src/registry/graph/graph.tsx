@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 import * as React from "react";
 import * as RechartsCore from "recharts";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Type for graph variant
@@ -74,7 +74,7 @@ class GraphErrorBoundary extends React.Component<
     console.error("Error rendering chart:", error, errorInfo);
   }
 
-  render() {
+  render(): React.ReactNode {
     if (this.state.hasError) {
       return (
         <div
@@ -301,22 +301,22 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
               <RechartsCore.CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="hsl(var(--border))"
+                stroke="var(--border)"
               />
               <RechartsCore.XAxis
                 dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 axisLine={false}
                 tickLine={false}
               />
               <RechartsCore.YAxis
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 axisLine={false}
                 tickLine={false}
               />
               <RechartsCore.Tooltip
                 cursor={{
-                  fill: "hsl(var(--muted-foreground))",
+                  fill: "var(--muted-foreground)",
                   fillOpacity: 0.1,
                   radius: 4,
                 }}
@@ -324,13 +324,13 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
                   backgroundColor: "white",
                   border: "1px solid #e5e7eb",
                   borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))",
+                  color: "var(--foreground)",
                 }}
               />
               {showLegend && (
                 <RechartsCore.Legend
                   wrapperStyle={{
-                    color: "hsl(var(--foreground))",
+                    color: "var(--foreground)",
                   }}
                 />
               )}
@@ -353,22 +353,22 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
               <RechartsCore.CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="hsl(var(--border))"
+                stroke="var(--border)"
               />
               <RechartsCore.XAxis
                 dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 axisLine={false}
                 tickLine={false}
               />
               <RechartsCore.YAxis
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 axisLine={false}
                 tickLine={false}
               />
               <RechartsCore.Tooltip
                 cursor={{
-                  stroke: "hsl(var(--muted))",
+                  stroke: "var(--muted)",
                   strokeWidth: 2,
                   strokeOpacity: 0.3,
                 }}
@@ -376,13 +376,13 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
                   backgroundColor: "white",
                   border: "1px solid #e5e7eb",
                   borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))",
+                  color: "var(--foreground)",
                 }}
               />
               {showLegend && (
                 <RechartsCore.Legend
                   wrapperStyle={{
-                    color: "hsl(var(--foreground))",
+                    color: "var(--foreground)",
                   }}
                 />
               )}
@@ -436,20 +436,20 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
                   backgroundColor: "white",
                   border: "1px solid #e5e7eb",
                   borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))",
+                  color: "var(--foreground)",
                   boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                 }}
                 itemStyle={{
-                  color: "hsl(var(--foreground))",
+                  color: "var(--foreground)",
                 }}
                 labelStyle={{
-                  color: "hsl(var(--foreground))",
+                  color: "var(--foreground)",
                 }}
               />
               {showLegend && (
                 <RechartsCore.Legend
                   wrapperStyle={{
-                    color: "hsl(var(--foreground))",
+                    color: "var(--foreground)",
                   }}
                 />
               )}

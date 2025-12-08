@@ -1,14 +1,15 @@
 import chalk from "chalk";
-import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
+import { execFileSync } from "../../utils/interactive.js";
 import {
   getComponentDirectoryPath,
   getLibDirectory,
 } from "../shared/path-utils.js";
 import { updateImportPaths } from "../migrate.js";
+import { handleAgentDocsUpdate } from "../shared/agent-docs.js";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
 
@@ -116,18 +117,31 @@ export function cn(...inputs: ClassValue[]) {
     }
 
     try {
-      const legacyFlag = options.legacyPeerDeps ? " --legacy-peer-deps" : "";
+      const allowNonInteractive = Boolean(options.yes);
 
       if (prodDeps.length > 0) {
-        execSync(`npm install${legacyFlag} ${prodDeps.join(" ")}`, {
+        const args = [
+          "install",
+          ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
+          ...prodDeps,
+        ];
+        execFileSync("npm", args, {
           stdio: "inherit",
           encoding: "utf-8",
+          allowNonInteractive,
         });
       }
       if (devDeps.length > 0) {
-        execSync(`npm install -D${legacyFlag} ${devDeps.join(" ")}`, {
+        const args = [
+          "install",
+          "-D",
+          ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
+          ...devDeps,
+        ];
+        execFileSync("npm", args, {
           stdio: "inherit",
           encoding: "utf-8",
+          allowNonInteractive,
         });
       }
     } catch (error) {
@@ -206,5 +220,14 @@ export function cn(...inputs: ClassValue[]) {
     console.log(
       `${chalk.green("✔")} ${options.forceUpdate ? "Updated" : "Installed"} ${componentNames.join(", ")}`,
     );
+  }
+
+  if (!options.silent && !options.skipAgentDocs) {
+    await handleAgentDocsUpdate({
+      skipPrompt: true,
+      yes: options.yes,
+      prefix: options.installPath,
+      skipAgentDocs: options.skipAgentDocs,
+    });
   }
 }
