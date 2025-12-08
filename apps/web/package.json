@@ -76,7 +76,7 @@
     "next": "^15.5.7",
     "next-auth": "^4.24.12",
     "next-themes": "^0.4.5",
-    "nextra": "^4.6.0",
+    "nextra": "^4.6.1",
     "nextra-theme-blog": "^4.6.0",
     "posthog-js": "^1.298.1",
     "radix-ui": "^1.4.3",
