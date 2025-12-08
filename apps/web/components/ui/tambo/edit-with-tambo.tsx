@@ -1,10 +1,15 @@
 "use client";
 
 import { MessageGenerationStage } from "@/components/ui/tambo/message-generation-stage";
+import { hasExistingMention } from "@/components/ui/tambo/text-editor";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
-import { useTambo, useTamboInteractableComponentMeta } from "@tambo-ai/react";
+import {
+  useTambo,
+  useTamboContextAttachment,
+  useTamboInteractableComponentMeta,
+} from "@tambo-ai/react";
 import { Bot, ChevronDown, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -55,6 +60,7 @@ export function EditWithTambo({
   const meta = useTamboInteractableComponentMeta();
   const { sendThreadMessage, isIdle } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
+  const { addContextAttachment } = useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
   const [isPending, setIsPending] = useState(false);
@@ -244,6 +250,15 @@ export function EditWithTambo({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
+    // NOTE: This implementation uses TipTap Mention nodes and context attachments
+    // which are specific to our apps/web setup. The CLI registry version uses
+    // simple text insertion to remain portable across different editor setups.
+
+    // Add the component as a context attachment
+    addContextAttachment({
+      name: meta.name,
+    });
+
     // Open the thread panel first
     onOpenThread();
 
@@ -251,16 +266,41 @@ export function EditWithTambo({
     setPrompt("");
     setIsOpen(false);
 
-    // Insert text into the editor after panel opens
+    // Insert @mention + user query into the editor after panel opens
     setTimeout(() => {
       const editor = editorRef.current;
       if (editor) {
-        // Set the content of the editor
-        editor.commands.setContent(messageToInsert);
-        editor.commands.focus("end");
+        // Check if mention already exists to avoid duplicates
+        if (hasExistingMention(editor, meta.name)) {
+          // If mention exists, just append the user query with a space before it
+          editor
+            .chain()
+            .focus("end")
+            .insertContent(" " + messageToInsert)
+            .run();
+        } else {
+          // Insert @mention + space + user query
+          editor
+            .chain()
+            .focus()
+            .insertContent([
+              {
+                type: "mention",
+                attrs: {
+                  id: meta.name,
+                  label: meta.name,
+                },
+              },
+              {
+                type: "text",
+                text: " " + messageToInsert,
+              },
+            ])
+            .run();
+        }
       }
     }, 150); // Wait for panel animation to complete
-  }, [prompt, onOpenThread, editorRef]);
+  }, [prompt, meta.name, addContextAttachment, onOpenThread, editorRef]);
 
   const handleMainAction = useCallback(() => {
     if (sendMode === "thread") {

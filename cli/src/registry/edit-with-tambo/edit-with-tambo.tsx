@@ -20,7 +20,14 @@ export interface EditWithTamboProps {
   className?: string;
   /** Optional callback to open the thread panel/chat interface */
   onOpenThread?: () => void;
-  /** Optional TipTap editor ref for inserting text when using "Send in Thread" */
+  /**
+   * Optional TipTap editor ref for inserting text when using "Send in Thread"
+   *
+   * NOTE: This implementation uses simple text insertion (setContent) to remain
+   * portable across different editor setups. It does NOT use TipTap Mention nodes
+   * or context attachments. If you need those features, implement them in your
+   * own wrapper or see apps/web/components/ui/tambo/edit-with-tambo.tsx for reference.
+   */
   editorRef?: React.MutableRefObject<Editor | null>;
 }
 
@@ -243,6 +250,11 @@ export function EditWithTambo({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
+    // NOTE: This registry version uses simple text insertion for portability.
+    // It does NOT use TipTap Mention nodes or context attachments to avoid
+    // dependencies on specific editor configurations. Users can implement
+    // their own context system if needed.
+
     // Open the thread panel if callback provided
     if (onOpenThread) {
       onOpenThread();
@@ -314,7 +326,7 @@ export function EditWithTambo({
         createPortal(
           <div
             className={cn(
-              "absolute z-[9999]",
+              "absolute z-9999",
               "px-3 py-2 text-sm rounded-lg whitespace-nowrap",
               "bg-popover text-popover-foreground border shadow-md",
               "animate-in fade-in-0 zoom-in-95 duration-200",
@@ -340,7 +352,7 @@ export function EditWithTambo({
           <div
             ref={popoverRef}
             className={cn(
-              "absolute z-[9999]",
+              "absolute z-9999",
               "w-[450px] max-w-[calc(100vw-2rem)]",
               "bg-popover text-popover-foreground border shadow-lg rounded-lg",
               "animate-in fade-in-0 zoom-in-95 duration-200",
@@ -499,7 +511,7 @@ export function EditWithTambo({
               {/* Error display */}
               {error && (
                 <div className="p-2 rounded-md bg-destructive/10 text-destructive text-sm flex items-start gap-2">
-                  <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
                   <span>{error.message}</span>
                 </div>
               )}
