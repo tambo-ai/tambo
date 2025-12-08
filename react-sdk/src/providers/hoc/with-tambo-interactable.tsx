@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod/v3";
 import { useTamboInteractable } from "../tambo-interactable-provider";
-import { TamboInteractableComponentMetaProvider } from "./tambo-interactable-component-meta-context";
+import { TamboInteractableComponentProvider } from "./tambo-interactable-component-context";
 
 export interface InteractableConfig {
   componentName: string;
@@ -112,15 +112,15 @@ export function withTamboInteractable<P extends object>(
     ]);
 
     return (
-      <TamboInteractableComponentMetaProvider
-        meta={{
+      <TamboInteractableComponentProvider
+        component={{
           id: interactableId ?? "",
           name: config.componentName,
           description: config.description,
         }}
       >
         <WrappedComponent {...(effectiveProps as P)} />
-      </TamboInteractableComponentMetaProvider>
+      </TamboInteractableComponentProvider>
     );
   };
 

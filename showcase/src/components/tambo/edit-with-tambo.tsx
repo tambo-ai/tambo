@@ -12,7 +12,7 @@
 
 import { MessageGenerationStage } from "@/components/tambo/message-generation-stage";
 import { cn } from "@/lib/utils";
-import { useTambo, useTamboInteractableComponentMeta } from "@tambo-ai/react";
+import { useTambo, useTamboInteractableComponent } from "@tambo-ai/react";
 import type { Editor } from "@tiptap/react";
 import { Bot, ChevronDown, X, XCircle } from "lucide-react";
 import * as React from "react";
@@ -30,7 +30,14 @@ export interface EditWithTamboProps {
   className?: string;
   /** Optional callback to open the thread panel/chat interface */
   onOpenThread?: () => void;
-  /** Optional TipTap editor ref for inserting text when using "Send in Thread" */
+  /**
+   * Optional TipTap editor ref for inserting text when using "Send in Thread"
+   *
+   * NOTE: This implementation uses simple text insertion (setContent) to remain
+   * portable across different editor setups. It does NOT use TipTap Mention nodes
+   * or context attachments. If you need those features, implement them in your
+   * own wrapper or see apps/web/components/ui/tambo/edit-with-tambo.tsx for reference.
+   */
   editorRef?: React.MutableRefObject<Editor | null>;
 }
 
@@ -66,7 +73,7 @@ export function EditWithTambo({
   onOpenThread,
   editorRef,
 }: EditWithTamboProps) {
-  const meta = useTamboInteractableComponentMeta();
+  const component = useTamboInteractableComponent();
   const { sendThreadMessage, isIdle } = useTambo();
 
   const [prompt, setPrompt] = useState("");
@@ -82,8 +89,8 @@ export function EditWithTambo({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const wasGeneratingRef = useRef(false);
 
-  // If no meta, component is not within an interactable - don't render
-  if (!meta) {
+  // If no component, the current component is not an interactable - don't render.
+  if (!component) {
     return null;
   }
 
@@ -225,9 +232,9 @@ export function EditWithTambo({
         streamResponse: true,
         additionalContext: {
           inlineEdit: {
-            componentId: meta.id,
-            componentName: meta.name,
-            description: meta.description,
+            componentId: component.id,
+            componentName: component.name,
+            description: component.description,
             instruction:
               "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
           },
@@ -243,7 +250,7 @@ export function EditWithTambo({
     } finally {
       setIsPending(false);
     }
-  }, [prompt, isPending, meta, sendThreadMessage]);
+  }, [prompt, isPending, component, sendThreadMessage]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {
@@ -252,6 +259,11 @@ export function EditWithTambo({
 
     // Save the message before clearing
     const messageToInsert = prompt.trim();
+
+    // NOTE: This registry version uses simple text insertion for portability.
+    // It does NOT use TipTap Mention nodes or context attachments to avoid
+    // dependencies on specific editor configurations. Users can implement
+    // their own context system if needed.
 
     // Open the thread panel if callback provided
     if (onOpenThread) {
@@ -337,7 +349,7 @@ export function EditWithTambo({
           >
             <p className="font-medium">{tooltip}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              {description ?? meta.description}
+              {description ?? component.description}
             </p>
           </div>,
           document.body,
@@ -366,7 +378,7 @@ export function EditWithTambo({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{tooltip}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {meta.name}
+                    {component.name}
                   </p>
                 </div>
                 <button

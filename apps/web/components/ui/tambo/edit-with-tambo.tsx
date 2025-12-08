@@ -8,7 +8,7 @@ import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider
 import {
   useTambo,
   useTamboContextAttachment,
-  useTamboInteractableComponentMeta,
+  useTamboInteractableComponent,
 } from "@tambo-ai/react";
 import { Bot, ChevronDown, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -57,7 +57,7 @@ export function EditWithTambo({
   className,
   onOpenThread: onOpenThreadProp,
 }: EditWithTamboProps) {
-  const meta = useTamboInteractableComponentMeta();
+  const component = useTamboInteractableComponent();
   const { sendThreadMessage, isIdle } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
   const { addContextAttachment } = useTamboContextAttachment();
@@ -81,8 +81,8 @@ export function EditWithTambo({
   );
   const isGenerating = !isIdle;
 
-  // If no meta, component is not within an interactable - don't render
-  if (!meta) {
+  // If no component, the current component is not an interactable - don't render.
+  if (!component) {
     return null;
   }
 
@@ -222,9 +222,9 @@ export function EditWithTambo({
         streamResponse: true,
         additionalContext: {
           inlineEdit: {
-            componentId: meta.id,
-            componentName: meta.name,
-            description: meta.description,
+            componentId: component.id,
+            componentName: component.name,
+            description: component.description,
             instruction:
               "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
           },
@@ -240,7 +240,7 @@ export function EditWithTambo({
     } finally {
       setIsPending(false);
     }
-  }, [prompt, isPending, meta, sendThreadMessage]);
+  }, [prompt, isPending, component, sendThreadMessage]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {
@@ -256,7 +256,7 @@ export function EditWithTambo({
 
     // Add the component as a context attachment
     addContextAttachment({
-      name: meta.name,
+      name: component.name,
     });
 
     // Open the thread panel first
@@ -271,7 +271,7 @@ export function EditWithTambo({
       const editor = editorRef.current;
       if (editor) {
         // Check if mention already exists to avoid duplicates
-        if (hasExistingMention(editor, meta.name)) {
+        if (hasExistingMention(editor, component.name)) {
           // If mention exists, just append the user query with a space before it
           editor
             .chain()
@@ -287,8 +287,8 @@ export function EditWithTambo({
               {
                 type: "mention",
                 attrs: {
-                  id: meta.name,
-                  label: meta.name,
+                  id: component.id,
+                  label: component.name,
                 },
               },
               {
@@ -300,7 +300,14 @@ export function EditWithTambo({
         }
       }
     }, 150); // Wait for panel animation to complete
-  }, [prompt, meta.name, addContextAttachment, onOpenThread, editorRef]);
+  }, [
+    prompt,
+    component.id,
+    component.name,
+    addContextAttachment,
+    onOpenThread,
+    editorRef,
+  ]);
 
   const handleMainAction = useCallback(() => {
     if (sendMode === "thread") {
@@ -364,7 +371,7 @@ export function EditWithTambo({
           >
             <p className="font-medium">{tooltip}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              {description ?? meta.description}
+              {description ?? component.description}
             </p>
           </div>,
           document.body,
@@ -393,7 +400,7 @@ export function EditWithTambo({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm">{tooltip}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {meta.name}
+                    {component.name}
                   </p>
                 </div>
                 <button

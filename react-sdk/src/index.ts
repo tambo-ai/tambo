@@ -82,9 +82,9 @@ export type {
   TamboInteractableContext,
 } from "./model/tambo-interactable";
 export {
-  useTamboInteractableComponentMeta,
-  type TamboInteractableComponentMeta,
-} from "./providers/hoc/tambo-interactable-component-meta-context";
+  useTamboInteractableComponent,
+  type TamboInteractableComponent,
+} from "./providers/hoc/tambo-interactable-component-context";
 export {
   withTamboInteractable as withInteractable,
   type InteractableConfig,
