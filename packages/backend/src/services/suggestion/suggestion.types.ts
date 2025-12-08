@@ -18,12 +18,12 @@ export const SuggestionsResponseSchema = z.object({
       title: z
         .string()
         .describe(
-          "A concise, action-oriented title that clearly states what will happen. Example: 'Apple Stock Price' or 'Sales Report'. Use the same language as the user's messages, or English if unclear.",
+          "A concise, action-oriented title that clearly states what will happen. Example: 'Apple Stock Price' or 'Sales Report'.",
         ),
       detailedSuggestion: z
         .string()
         .describe(
-          "A natural, conversational message that could be sent by the user, focused on practical requests using available components. Use the same language as the user's messages, or English if unclear.",
+          "A natural, conversational message that could be sent by the user, focused on practical requests using available components.",
         ),
     }),
   ),
