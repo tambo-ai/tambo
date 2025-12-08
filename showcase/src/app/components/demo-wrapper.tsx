@@ -28,7 +28,7 @@ export function DemoWrapper({
 }: DemoWrapperProps) {
   const containerHeight = typeof height === "number" ? `${height}px` : height;
   const [isFullScreen, setIsFullScreen] = useState(false);
-  console.log("isFullScreen", isFullScreen);
+
   return (
     <div>
       <div
