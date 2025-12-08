@@ -6,7 +6,6 @@ import { useTamboInteractable } from "../tambo-interactable-provider";
 import { TamboInteractableComponentProvider } from "./tambo-interactable-component-context";
 
 export interface InteractableConfig {
-  id: string;
   componentName: string;
   description: string;
   propsSchema?: z.ZodTypeAny;
