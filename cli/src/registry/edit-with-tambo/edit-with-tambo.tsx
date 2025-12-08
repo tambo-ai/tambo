@@ -1,0 +1,364 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import {
+  useTamboInteractableComponentMeta,
+  useTamboThread,
+} from "@tambo-ai/react";
+import { Bot, Loader2, X, XCircle } from "lucide-react";
+import * as React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+
+export interface EditWithTamboProps {
+  /** Custom icon component */
+  icon?: React.ReactNode;
+  /** Custom tooltip text */
+  tooltip?: string;
+  /** Description for tooltip. Falls back to interactable component description if not provided */
+  description?: string;
+  /** Optional className for the button */
+  className?: string;
+}
+
+/**
+ * Inline "Edit with Tambo" button and floating popover for interactable components.
+ * When clicked, opens a floating popover with a prompt input. Sends messages to Tambo
+ * with the interactable component in context and displays only the latest reply.
+ *
+ * Must be used within a component wrapped with `withInteractable`.
+ *
+ * @example
+ * ```tsx
+ * const MyInteractableForm = withInteractable(MyForm, {
+ *   componentName: "MyForm",
+ *   description: "A form component",
+ * });
+ *
+ * function MyForm() {
+ *   return (
+ *     <div>
+ *       <EditWithTambo />
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+
+export function EditWithTambo({
+  icon,
+  tooltip = "Edit with tambo",
+  description,
+  className,
+}: EditWithTamboProps) {
+  const meta = useTamboInteractableComponentMeta();
+  const { sendThreadMessage } = useTamboThread();
+
+  const [prompt, setPrompt] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // If no meta, component is not within an interactable - don't render
+  if (!meta) {
+    return null;
+  }
+
+  // Update popover position based on button position
+  const updatePosition = useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      // getBoundingClientRect() gives viewport coordinates, which already account for
+      // all scroll containers. We only need to add window scroll to get document coordinates
+      setPopoverPosition({
+        top: rect.bottom + window.scrollY + 8, // 8px spacing below button
+        left: rect.left + window.scrollX,
+      });
+    }
+  }, []);
+
+  // Update position immediately when opening
+  useEffect(() => {
+    if (isOpen || showPopover) {
+      updatePosition();
+    }
+  }, [isOpen, showPopover, updatePosition]);
+
+  // Update position on scroll and resize
+  useEffect(() => {
+    if (!isOpen && !showPopover) return;
+
+    // Use requestAnimationFrame for smoother updates
+    let rafId: number;
+    const handleUpdate = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        updatePosition();
+      });
+    };
+
+    // Listen to scroll on window and all scrollable parents (capture phase)
+    // This catches scroll events from any scrollable container
+    window.addEventListener("scroll", handleUpdate, true);
+    window.addEventListener("resize", handleUpdate);
+
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener("scroll", handleUpdate, true);
+      window.removeEventListener("resize", handleUpdate);
+    };
+  }, [isOpen, showPopover, updatePosition]);
+
+  // Focus textarea when popover opens
+  useEffect(() => {
+    if (isOpen && textareaRef.current) {
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
+
+  // Handle click outside to close
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+        setPrompt("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, setIsOpen, setPrompt]);
+
+  // Handle ESC key to close
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        setPrompt("");
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, setIsOpen, setPrompt]);
+
+  const handleButtonClick = useCallback(() => {
+    setIsOpen(!isOpen);
+    if (!isOpen) {
+      setShowPopover(true);
+    }
+  }, [isOpen, setIsOpen]);
+
+  const handleSend = useCallback(async () => {
+    if (!prompt.trim() || isPending) {
+      return;
+    }
+
+    setIsPending(true);
+    setError(null);
+    setIsOpen(true);
+
+    try {
+      // Send the message with the interactable component in context
+      await sendThreadMessage(prompt.trim(), {
+        streamResponse: true,
+        additionalContext: {
+          inlineEdit: {
+            componentId: meta.id,
+            componentName: meta.name,
+            description: meta.description,
+            instruction:
+              "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
+          },
+        },
+      });
+
+      // Clear the prompt after successful send
+      setPrompt("");
+    } catch (err) {
+      const error =
+        err instanceof Error ? err : new Error("Failed to send message");
+      setError(error);
+    } finally {
+      setIsPending(false);
+    }
+  }, [prompt, isPending, meta, sendThreadMessage]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        void handleSend();
+      }
+    },
+    [handleSend],
+  );
+
+  return (
+    <>
+      <span className="inline-flex items-center">
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleButtonClick}
+          onMouseEnter={() => setShowPopover(true)}
+          onMouseLeave={() => setShowPopover(false)}
+          className={cn(
+            "inline-flex items-center justify-center ml-2 p-1 rounded-md",
+            "text-muted-foreground/60 hover:text-primary",
+            "hover:bg-accent transition-colors duration-200",
+            "cursor-pointer",
+            isOpen && "text-primary bg-accent",
+            className,
+          )}
+          aria-label={tooltip}
+        >
+          {icon ?? <Bot className="h-3.5 w-3.5" />}
+        </button>
+      </span>
+
+      {/* Hover tooltip - rendered in portal */}
+      {showPopover &&
+        !isOpen &&
+        buttonRef.current &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className={cn(
+              "absolute z-[9999]",
+              "px-3 py-2 text-sm rounded-lg whitespace-nowrap",
+              "bg-popover text-popover-foreground border shadow-md",
+              "animate-in fade-in-0 zoom-in-95 duration-200",
+              "pointer-events-none",
+            )}
+            style={{
+              top: `${popoverPosition.top}px`,
+              left: `${popoverPosition.left}px`,
+            }}
+          >
+            <p className="font-medium">{tooltip}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {description ?? meta.description}
+            </p>
+          </div>,
+          document.body,
+        )}
+
+      {/* Floating popover - rendered in portal */}
+      {isOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            className={cn(
+              "absolute z-[9999]",
+              "w-96 max-w-[calc(100vw-2rem)]",
+              "bg-popover text-popover-foreground border shadow-lg rounded-lg",
+              "animate-in fade-in-0 zoom-in-95 duration-200",
+            )}
+            style={{
+              top: `${popoverPosition.top}px`,
+              left: `${popoverPosition.left}px`,
+            }}
+          >
+            <div className="p-4 space-y-3">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm">{tooltip}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {meta.name}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setPrompt("");
+                  }}
+                  className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground"
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Prompt input */}
+              <div className="space-y-2">
+                <textarea
+                  ref={textareaRef}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Describe what you want to change..."
+                  className={cn(
+                    "w-full min-h-[80px] px-3 py-2 rounded-md",
+                    "bg-background border border-input",
+                    "text-sm placeholder:text-muted-foreground",
+                    "resize-none focus:outline-none focus:ring-2 focus:ring-ring",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                  )}
+                  disabled={isPending}
+                />
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Cmd/Ctrl + Enter to send
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleSend}
+                    disabled={!prompt.trim() || isPending}
+                    className={cn(
+                      "px-3 py-1.5 rounded-md text-sm font-medium",
+                      "bg-primary text-primary-foreground",
+                      "hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed",
+                      "transition-colors flex items-center gap-1",
+                    )}
+                  >
+                    {isPending ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      "Send"
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error display */}
+              {error && (
+                <div className="p-2 rounded-md bg-destructive/10 text-destructive text-sm flex items-start gap-2">
+                  <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <span>{error.message}</span>
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}

@@ -381,7 +381,7 @@ const MessageInputInternal = React.forwardRef<
     error,
     images,
     addImages,
-    clearImages,
+    removeImage,
   } = useTamboThreadInput();
   const { cancel } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
@@ -410,10 +410,7 @@ const MessageInputInternal = React.forwardRef<
       setDisplayValue("");
       setIsSubmitting(true);
 
-      // Clear images in next tick for immediate UI feedback
-      if (images.length > 0) {
-        setTimeout(() => clearImages(), 0);
-      }
+      const imageIdsAtSubmitTime = images.map((image) => image.id);
 
       try {
         await submit({
@@ -421,7 +418,12 @@ const MessageInputInternal = React.forwardRef<
           streamResponse: true,
         });
         setValue("");
-        // Images are cleared automatically by the TamboThreadInputProvider
+        // Clear only the images that were staged when submission started so
+        // any images added while the request was in-flight are preserved.
+        if (imageIdsAtSubmitTime.length > 0) {
+          imageIdsAtSubmitTime.forEach((id) => removeImage(id));
+        }
+        // Refocus the editor after a successful submission
         setTimeout(() => {
           editorRef.current?.commands.focus();
         }, 0);
@@ -450,7 +452,7 @@ const MessageInputInternal = React.forwardRef<
       cancel,
       isSubmitting,
       images,
-      clearImages,
+      removeImage,
     ],
   );
 
@@ -1344,7 +1346,7 @@ const MessageInputStagedImages = React.forwardRef<
           key={image.id}
           image={image}
           displayName={
-            image.file[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
+            image.file?.[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
           }
           isExpanded={expandedImageId === image.id}
           onToggle={() =>

@@ -9,6 +9,7 @@ import {
 import { EditableHint } from "@/components/ui/editable-hint";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { EditWithTambo } from "@/components/ui/tambo/edit-with-tambo";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
@@ -243,6 +244,7 @@ export function CustomInstructionsEditor({
             description="Click to know more about how to manage the custom instructions for this project"
             componentName={COMPONENT_NAME}
           />
+          <EditWithTambo description="Edit custom instructions and system prompt override settings" />
         </CardTitle>
       </CardHeader>
       <CardContent>
