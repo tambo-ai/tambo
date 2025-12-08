@@ -438,6 +438,126 @@ When there are interactable components present, the following tools are register
 
 These tools enable the AI to discover what's on the page and perform targeted updates.
 
+## Accessing Component Context from Child Components
+
+When building child components inside an interactable (like inline editors or custom controls), use `useTamboInteractableComponent` to access the parent component's metadata.
+
+### useTamboInteractableComponent
+
+Returns the current interactable component context or `null` if used outside an interactable component.
+
+<Callout type="warn" title="Only Works Inside Interactables">
+
+This hook **ONLY** works when used inside a component that has been wrapped with `withInteractable`. It will return `null` if used anywhere else in your component tree.
+
+</Callout>
+
+```tsx
+import { useTamboInteractableComponent } from "@tambo-ai/react";
+
+// This component MUST be rendered inside an interactable component
+function InlineEditor() {
+  const component = useTamboInteractableComponent();
+
+  if (!component) {
+    return null; // Not inside an interactable component
+  }
+
+  return (
+    <div>
+      <p>Editing: {component.name}</p>
+      <p>Component ID: {component.id}</p>
+    </div>
+  );
+}
+```
+
+The hook returns an object with:
+
+- `id` - Unique identifier for this interactable component instance
+- `name` - The component name (from `InteractableConfig.componentName`)
+- `description` - The component description (from `InteractableConfig.description`)
+
+**How it works**: When you wrap a component with `withInteractable`, it automatically provides a `TamboInteractableComponentProvider` that makes this context available to all child components.
+
+### Common Use Cases
+
+**Inline Editors**: Display which component is being edited
+
+```tsx
+// Child component using the hook
+function ComponentEditor() {
+  const component = useTamboInteractableComponent();
+
+  return (
+    <div className="editor">
+      <h3>Editing {component?.name}</h3>
+      {/* Editor controls here */}
+    </div>
+  );
+}
+
+// Parent interactable component
+const InteractableNote = withInteractable(Note, {
+  componentName: "Note",
+  description: "A note component",
+  propsSchema: noteSchema,
+});
+
+function Note({ title, content }) {
+  return (
+    <div>
+      <h3>{title}</h3>
+      <p>{content}</p>
+      <ComponentEditor /> {/* ✓ Hook works here */}
+    </div>
+  );
+}
+```
+
+**Context-Aware Actions**: Pass component ID to update APIs
+
+```tsx
+function QuickActions() {
+  const component = useTamboInteractableComponent();
+
+  const handleDelete = async () => {
+    if (component) {
+      await deleteComponent(component.id);
+    }
+  };
+
+  return <button onClick={handleDelete}>Delete</button>;
+}
+
+// Use inside an interactable:
+function Note({ title, content }) {
+  return (
+    <div>
+      <h3>{title}</h3>
+      <p>{content}</p>
+      <QuickActions /> {/* ✓ Can access component.id */}
+    </div>
+  );
+}
+```
+
+**Conditional Rendering**: Show different UI based on component type
+
+```tsx
+function ComponentBadge() {
+  const component = useTamboInteractableComponent();
+
+  if (!component) return null;
+
+  const badgeColor = component.name === "Note" ? "blue" : "gray";
+
+  return <Badge color={badgeColor}>{component.name}</Badge>;
+}
+
+// Must be rendered inside an interactable component tree
+```
+
 ## Snapshot Hook: useCurrentInteractablesSnapshot
 
 Use this hook to read the current interactables without risking accidental mutation of internal state. It returns a cloned snapshot of each item and its props.

@@ -370,3 +370,11 @@ Function to set custom suggestions or clear them by passing `null`.
 `const snapshot = useCurrentInteractablesSnapshot()`
 
 Returns a cloned snapshot of the current interactable components.
+
+## useTamboInteractableComponent
+
+`const component = useTamboInteractableComponent()`
+
+Returns the current interactable component context (with `id`, `name`, `description`) or `null` if used outside an interactable component.
+
+**Important**: Only works when called inside a component wrapped with `withInteractable`. Returns `null` otherwise. See [Interactable Components](/concepts/components/interactable-components) for detailed usage.
