@@ -1,14 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { MessageGenerationStage } from "@/components/ui/tambo/message-generation-stage";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import {
-  useTamboInteractableComponentMeta,
-  useTamboThread,
-} from "@tambo-ai/react";
-import { Bot, Loader2, X, XCircle } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
+import { useTambo, useTamboInteractableComponentMeta } from "@tambo-ai/react";
+import { Bot, ChevronDown, X, XCircle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export interface EditWithTamboProps {
@@ -20,6 +18,8 @@ export interface EditWithTamboProps {
   description?: string;
   /** Optional className for the button */
   className?: string;
+  /** Optional callback to open the thread panel/chat interface. Uses useMessageThreadPanel by default if not provided */
+  onOpenThread?: () => void;
 }
 
 /**
@@ -50,9 +50,11 @@ export function EditWithTambo({
   tooltip = "Edit with tambo",
   description,
   className,
+  onOpenThread: onOpenThreadProp,
 }: EditWithTamboProps) {
   const meta = useTamboInteractableComponentMeta();
-  const { sendThreadMessage } = useTamboThread();
+  const { sendThreadMessage, isIdle } = useTambo();
+  const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
 
   const [prompt, setPrompt] = useState("");
   const [isPending, setIsPending] = useState(false);
@@ -60,10 +62,18 @@ export function EditWithTambo({
   const [isOpen, setIsOpen] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const [sendMode, setSendMode] = useState<"send" | "thread">("send");
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const wasGeneratingRef = useRef(false);
+
+  const onOpenThread = useMemo(
+    () => onOpenThreadProp ?? (() => setThreadPanelOpen(true)),
+    [onOpenThreadProp, setThreadPanelOpen],
+  );
+  const isGenerating = !isIdle;
 
   // If no meta, component is not within an interactable - don't render
   if (!meta) {
@@ -133,15 +143,19 @@ export function EditWithTambo({
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      // Don't close if clicking inside popover, button, or dropdown menu (rendered in portal)
       if (
-        popoverRef.current &&
-        !popoverRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
+        popoverRef.current?.contains(target) ||
+        buttonRef.current?.contains(target) ||
+        (target as Element).closest('[role="menu"]')
       ) {
-        setIsOpen(false);
-        setPrompt("");
+        return;
       }
+
+      setIsOpen(false);
+      setPrompt("");
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -162,6 +176,23 @@ export function EditWithTambo({
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, setIsOpen, setPrompt]);
+
+  // Close modal when generation completes
+  useEffect(() => {
+    if (isGenerating) {
+      wasGeneratingRef.current = true;
+    } else if (wasGeneratingRef.current && !isPending) {
+      // Generation just completed - close the modal
+      wasGeneratingRef.current = false;
+      setIsOpen(false);
+      setPrompt("");
+    }
+  }, [isGenerating, isPending]);
+
+  const handleMouseEnter = useCallback(() => {
+    updatePosition();
+    setShowPopover(true);
+  }, [updatePosition]);
 
   const handleButtonClick = useCallback(() => {
     setIsOpen(!isOpen);
@@ -205,14 +236,48 @@ export function EditWithTambo({
     }
   }, [prompt, isPending, meta, sendThreadMessage]);
 
+  const handleSendInThread = useCallback(() => {
+    if (!prompt.trim()) {
+      return;
+    }
+
+    // Save the message before clearing
+    const messageToInsert = prompt.trim();
+
+    // Open the thread panel first
+    onOpenThread();
+
+    // Clear the prompt and close the modal
+    setPrompt("");
+    setIsOpen(false);
+
+    // Insert text into the editor after panel opens
+    setTimeout(() => {
+      const editor = editorRef.current;
+      if (editor) {
+        // Set the content of the editor
+        editor.commands.setContent(messageToInsert);
+        editor.commands.focus("end");
+      }
+    }, 150); // Wait for panel animation to complete
+  }, [prompt, onOpenThread, editorRef]);
+
+  const handleMainAction = useCallback(() => {
+    if (sendMode === "thread") {
+      handleSendInThread();
+    } else {
+      void handleSend();
+    }
+  }, [sendMode, handleSendInThread, handleSend]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        void handleSend();
+        handleMainAction();
       }
     },
-    [handleSend],
+    [handleMainAction],
   );
 
   return (
@@ -222,7 +287,7 @@ export function EditWithTambo({
           ref={buttonRef}
           type="button"
           onClick={handleButtonClick}
-          onMouseEnter={() => setShowPopover(true)}
+          onMouseEnter={handleMouseEnter}
           onMouseLeave={() => setShowPopover(false)}
           className={cn(
             "inline-flex items-center justify-center ml-2 p-1 rounded-md",
@@ -273,7 +338,7 @@ export function EditWithTambo({
             ref={popoverRef}
             className={cn(
               "absolute z-9999",
-              "w-96 max-w-[calc(100vw-2rem)]",
+              "w-[450px] max-w-[calc(100vw-2rem)]",
               "bg-popover text-popover-foreground border shadow-lg rounded-lg",
               "animate-in fade-in-0 zoom-in-95 duration-200",
             )}
@@ -316,23 +381,109 @@ export function EditWithTambo({
                   disabled={isPending}
                 />
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">
-                    Cmd/Ctrl + Enter to send
-                  </p>
-                  <Button
-                    size="sm"
-                    onClick={handleSend}
-                    disabled={!prompt.trim() || isPending}
-                  >
-                    {isPending ? (
-                      <>
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      "Send"
-                    )}
-                  </Button>
+                  {/* Helper text or generation status */}
+                  {isGenerating ? (
+                    <div className="flex items-center gap-2">
+                      <MessageGenerationStage className="px-0 py-0" />
+                      <button
+                        type="button"
+                        onClick={onOpenThread}
+                        className="text-xs text-primary hover:text-primary/80 underline transition-colors"
+                      >
+                        View in thread
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Cmd/Ctrl + Enter to send
+                    </p>
+                  )}
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={handleMainAction}
+                      disabled={!prompt.trim() || isPending}
+                      className={cn(
+                        "h-9 px-3 text-sm font-medium",
+                        "bg-primary text-primary-foreground",
+                        "hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed",
+                        "transition-colors flex items-center gap-1",
+                        "rounded-l-md border-r border-primary-foreground/20",
+                      )}
+                    >
+                      {isPending && <>Sending...</>}
+                      {!isPending &&
+                        (sendMode === "thread" ? "Send in Thread" : "Send")}
+                    </button>
+                    <div className="relative inline-block">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const menu = e.currentTarget
+                            .nextElementSibling as HTMLElement;
+                          if (menu) {
+                            menu.classList.toggle("hidden");
+                          }
+                        }}
+                        disabled={!prompt.trim() || isPending}
+                        className={cn(
+                          "h-9 px-2 text-sm font-medium",
+                          "bg-primary text-primary-foreground",
+                          "hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed",
+                          "transition-colors rounded-r-md",
+                          "flex items-center justify-center",
+                        )}
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </button>
+                      <div
+                        className="hidden absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-popover text-popover-foreground border border-border z-50 p-1 animate-in fade-in-0 zoom-in-95 duration-100"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const menu = e.currentTarget.parentElement;
+                            if (menu) {
+                              menu.classList.add("hidden");
+                            }
+                            setSendMode("send");
+                          }}
+                          className={cn(
+                            "w-full px-2 py-1.5 text-left text-sm rounded-sm",
+                            "hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer",
+                            "focus:bg-accent focus:text-accent-foreground outline-none",
+                            sendMode === "send" &&
+                              "bg-accent text-accent-foreground",
+                          )}
+                        >
+                          Send
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const menu = e.currentTarget.parentElement;
+                            if (menu) {
+                              menu.classList.add("hidden");
+                            }
+                            setSendMode("thread");
+                          }}
+                          className={cn(
+                            "w-full px-2 py-1.5 text-left text-sm rounded-sm",
+                            "hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer",
+                            "focus:bg-accent focus:text-accent-foreground outline-none",
+                            sendMode === "thread" &&
+                              "bg-accent text-accent-foreground",
+                          )}
+                        >
+                          Send in Thread
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
