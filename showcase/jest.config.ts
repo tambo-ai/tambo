@@ -25,6 +25,12 @@ const config: Config = {
   clearMocks: true,
   resetMocks: true,
   testPathIgnorePatterns: ["/node_modules/", "/.next/", "/dist/"],
+  coverageThreshold: {
+    global: {
+      branches: 52,
+      lines: 79,
+    },
+  },
 };
 
 export default config;
