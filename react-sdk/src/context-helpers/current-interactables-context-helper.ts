@@ -27,12 +27,11 @@ export const currentInteractablesContextHelper: ContextHelperFn = () => {
 /**
  * Creates an interactables context helper with access to the current components.
  * This is used internally by TamboInteractableProvider.
- * @param getComponents Function to get current interactable components
+ * @param components Array of interactable components
  * @returns Context helper function
  */
 export const createInteractablesContextHelper = (
   components: any[],
-  interactableState: Record<string, unknown>,
 ): ContextHelperFn => {
   return () => {
     try {
@@ -51,7 +50,7 @@ export const createInteractablesContextHelper = (
           propsSchema: component.propsSchema
             ? "Available - use component-specific update tools"
             : "Not specified",
-          state: interactableState[component.id],
+          state: component.state,
         })),
       };
     } catch (e) {
