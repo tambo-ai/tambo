@@ -7,12 +7,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { api } from "@/trpc/react";
 import {
   deriveServerKey,
-  MCPTransport,
   isValidServerKey,
+  MCPTransport,
 } from "@tambo-ai-cloud/core";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
@@ -387,12 +387,14 @@ export function McpServerEditor({
             <label htmlFor={serverKeyId} className="block text-sm font-medium">
               Server Key
             </label>
-            <Tooltip
-              content="Unique name for this MCP server to disambiguate tools, prompts, and resources from other servers in this project"
-              side="top"
-            >
-              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-            </Tooltip>
+            <TooltipProvider>
+              <Tooltip
+                content="Unique name for this MCP server to disambiguate tools, prompts, and resources from other servers in this project"
+                side="top"
+              >
+                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <Input
             id={serverKeyId}

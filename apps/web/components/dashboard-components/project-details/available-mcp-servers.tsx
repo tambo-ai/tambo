@@ -7,7 +7,7 @@ import type { Suggestion } from "@tambo-ai/react";
 import { withInteractable } from "@tambo-ai/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { McpServerRow } from "./mcp-server-row";
 
 const COMPONENT_NAME = "McpServers";

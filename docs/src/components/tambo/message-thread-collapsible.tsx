@@ -38,8 +38,7 @@ import * as React from "react";
  * @interface
  * @extends React.HTMLAttributes<HTMLDivElement>
  */
-export interface MessageThreadCollapsibleProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional context key for the thread */
   contextKey?: string;
   /** Whether the collapsible should be open by default (default: false) */
@@ -72,8 +71,7 @@ export interface MessageThreadCollapsibleProps
 /**
  * Props for the CollapsibleContainer component
  */
-interface CollapsibleContainerProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface CollapsibleContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;

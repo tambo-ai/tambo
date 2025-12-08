@@ -15,7 +15,7 @@ import { useTambo, useTamboComponentState } from "@tambo-ai/react";
 import { cva } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Zod schema for FormField

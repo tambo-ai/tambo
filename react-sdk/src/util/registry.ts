@@ -1,5 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { z } from "zod";
+import { z } from "zod/v3";
 import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentContextToolMetadata,

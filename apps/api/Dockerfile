@@ -30,12 +30,9 @@ FROM base AS builder
 # Set working directory
 WORKDIR /workspace
 
-ENV NPM_CONFIG_CACHE=/workspace/.npm/cache
 # install dependencies solo
 COPY --from=installer /workspace/out/json/ .
-RUN \
-  --mount=type=cache,id=npm-cache,target=/workspace/.npm/cache \
-  npm ci
+RUN npm ci
 
 # copy source from pruned output and then build
 COPY --from=installer /workspace/out/full/ .
@@ -48,8 +45,6 @@ ENV TURBO_CACHE_DIR=/workspace/.turbo/cache
 
 # Build the application
 RUN \
-  --mount=type=cache,id=turbo-cache,target=/workspace/.turbo/cache \
-  --mount=type=cache,id=next-cache,target=/workspace/apps/api/.next/cache \
   --mount=type=secret,id=TURBO_TEAM,env=TURBO_TEAM \
   --mount=type=secret,id=TURBO_TOKEN,env=TURBO_TOKEN \
   --mount=type=secret,id=TURBO_API,env=TURBO_API \

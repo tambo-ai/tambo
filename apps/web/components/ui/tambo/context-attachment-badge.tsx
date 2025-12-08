@@ -111,8 +111,7 @@ export interface ContextAttachmentBadgeListData {
 /**
  * Props for the ContextAttachmentBadgeList component.
  */
-export interface ContextAttachmentBadgeListProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface ContextAttachmentBadgeListProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional message to display attachments from (display mode) */
   message?: TamboThreadMessage | ContextAttachmentBadgeListData;
   /** Whether to show remove buttons (input mode) */

@@ -1,10 +1,10 @@
-import { ChatCompletionMessageParam } from "@tambo-ai-cloud/core";
+import { MessageRole, ThreadMessage } from "@tambo-ai-cloud/core";
 import { encode } from "gpt-tokenizer";
 
 export function limitTokens(
-  messages: ChatCompletionMessageParam[],
+  messages: ThreadMessage[],
   tokenLimit = 120000,
-): ChatCompletionMessageParam[] {
+): ThreadMessage[] {
   const tokenEncoding = encode(JSON.stringify(messages));
 
   if (tokenEncoding.length <= tokenLimit) {
@@ -23,16 +23,16 @@ export function limitTokens(
  * @returns The limited messages.
  */
 function truncateLimitingStrategy(
-  messages: ChatCompletionMessageParam[],
+  messages: ThreadMessage[],
   tokenLimit: number,
-): ChatCompletionMessageParam[] {
-  const systemMessage = messages.find((msg: any) => msg.role === "system");
+): ThreadMessage[] {
+  const systemMessage = messages.find((msg) => msg.role === MessageRole.System);
 
   const nonSystemMessages = messages.filter(
-    (msg: any) => msg.role !== "system",
+    (msg) => msg.role !== MessageRole.System,
   );
 
-  const limitedMessages: any[] = [];
+  const limitedMessages: ThreadMessage[] = [];
   let currentTokenCount = systemMessage
     ? encode(JSON.stringify([systemMessage])).length
     : 0;

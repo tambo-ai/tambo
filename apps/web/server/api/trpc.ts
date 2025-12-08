@@ -10,7 +10,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type JWTPayload } from "jose";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { ZodError } from "zod/v3";
 
 import { authOptions } from "@/lib/auth";
 import { env } from "@/lib/env";

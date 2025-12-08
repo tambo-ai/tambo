@@ -16,6 +16,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -49,8 +50,7 @@ import * as React from "react";
 /**
  * Props for the MessageThreadFull component
  */
-export interface MessageThreadFullProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageThreadFullProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional context key for the thread */
   contextKey?: string;
   /**
@@ -131,6 +131,7 @@ export const MessageThreadFull = React.forwardRef<
             <MessageInputToolbar>
               <MessageInputFileButton />
               <MessageInputMcpPromptButton />
+              <MessageInputMcpResourceButton />
               {/* Uncomment this to enable client-side MCP config modal button */}
               {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />

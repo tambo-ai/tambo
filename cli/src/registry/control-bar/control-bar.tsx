@@ -13,6 +13,8 @@ import {
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
+  MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   // MessageInputMcpConfigButton,
 } from "@/components/tambo/message-input";
 import {
@@ -101,9 +103,11 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
                   <MessageInput contextKey={contextKey}>
                     <MessageInputTextarea />
                     <MessageInputToolbar>
+                      <MessageInputFileButton />
+                      <MessageInputMcpPromptButton />
+                      <MessageInputMcpResourceButton />
                       {/* Uncomment this to enable client-side MCP config modal button */}
                       {/* <MessageInputMcpConfigButton /> */}
-                      <MessageInputFileButton />
                       <MessageInputSubmitButton />
                     </MessageInputToolbar>
                     <MessageInputError />

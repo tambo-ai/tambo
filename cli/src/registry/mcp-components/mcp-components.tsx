@@ -17,8 +17,7 @@ import * as React from "react";
 /**
  * Props for the McpPromptButton component.
  */
-export interface McpPromptButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface McpPromptButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Callback to insert text into the input */
   onInsertText: (text: string) => void;
   /** Current input value */
@@ -319,8 +318,7 @@ function ResourceListContent({
 /**
  * Props for the McpResourceButton component.
  */
-export interface McpResourceButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface McpResourceButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Callback to insert text into the input */
   onInsertText: (text: string) => void;
   /** Current input value */
@@ -344,7 +342,7 @@ export interface McpResourceButtonProps
 export const McpResourceButton = React.forwardRef<
   HTMLButtonElement,
   McpResourceButtonProps
->(({ className, onInsertText, value, ...props }, ref) => {
+>(({ className, onInsertText, value: _value, ...props }, ref) => {
   const { data: resourceList, isLoading } = useTamboMcpResourceList();
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -370,11 +368,9 @@ export const McpResourceButton = React.forwardRef<
   }, [resourceList, searchQuery]);
 
   const handleSelectResource = (resourceUri: string) => {
-    // Insert the resource reference with @ syntax
+    // Pass raw @resource string to caller; caller decides how to insert
     const resourceRef = `@${resourceUri}`;
-    // Insert at cursor position or append
-    const newValue = value ? `${value}\n${resourceRef}` : resourceRef;
-    onInsertText(newValue);
+    onInsertText(resourceRef);
     setIsOpen(false);
     setSearchQuery("");
   };

@@ -2,7 +2,7 @@ import { env } from "@/lib/env";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { Resend } from "resend";
 import { isResendEmailUnsubscribed } from "@tambo-ai-cloud/core";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * This router is used to handle application-level operations, mostly internal stuff

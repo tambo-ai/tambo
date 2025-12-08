@@ -6,7 +6,7 @@ import {
   updateProjectLlmSettingsOutputSchema,
 } from "@/lib/schemas/llm";
 import type { CustomLlmParameters } from "@tambo-ai-cloud/core";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { invalidateLlmSettingsCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 

@@ -1,11 +1,10 @@
 import {
-  ChatCompletionMessageParam,
+  ContentPartType,
   getToolName,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
-  tryParseJsonObject,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { parse } from "partial-json";
@@ -15,14 +14,10 @@ import {
   ResourceFetcherMap,
 } from "../../util/resource-transformation";
 import { extractMessageContent } from "../../util/response-parsing";
-import { objectTemplate } from "../../util/template";
-import { threadMessagesToChatCompletionMessageParam } from "../../util/thread-message-conversion";
 import {
   getLLMResponseMessage,
   getLLMResponseToolCallId,
-  getLLMResponseToolCallRequest,
   LLMClient,
-  LLMResponse,
 } from "../llm/llm-client";
 import {
   addParametersToTools,
@@ -84,29 +79,43 @@ export async function* runDecisionLoop(
   const { template: systemPrompt, args: systemPromptArgs } =
     generateDecisionLoopPrompt(customInstructions);
 
-  // Pre-fetch and cache all resources before converting messages
+  // Pre-fetch and cache all resources before sending to LLM
   const messagesWithCachedResources = await prefetchAndCacheResources(
     messages,
     resourceFetchers,
   );
 
-  const chatCompletionMessages = threadMessagesToChatCompletionMessageParam(
-    messagesWithCachedResources,
-  );
+  // Get threadId from messages - should always be present
+  if (messages.length === 0) {
+    throw new Error("Cannot run decision loop with no messages");
+  }
+  const threadId = messages[0].threadId;
+  if (!threadId) {
+    throw new Error("Cannot run decision loop: messages missing threadId");
+  }
 
-  const promptMessages = objectTemplate<ChatCompletionMessageParam[]>([
-    { role: "system", content: systemPrompt },
-    { role: "chat_history" as "user", content: "{chat_history}" },
-  ]);
+  // Build prompt messages: system message + chat history
+  const systemMessage: ThreadMessage = {
+    // This is a synthetic message id that is used to identify the system message -
+    // we give it a synthetic id because it is not saved to the database.
+    id: "synthetic-system-message-id",
+    threadId,
+    role: MessageRole.System,
+    content: [{ type: ContentPartType.Text, text: systemPrompt }],
+    createdAt: new Date(),
+    componentState: {},
+  };
+
+  const promptMessages: ThreadMessage[] = [
+    systemMessage,
+    ...messagesWithCachedResources,
+  ];
 
   const responseStream = await llmClient.complete({
     messages: promptMessages,
     tools: toolsWithStandardParameters,
     promptTemplateName: "decision-loop",
-    promptTemplateParams: {
-      chat_history: chatCompletionMessages,
-      ...systemPromptArgs,
-    },
+    promptTemplateParams: systemPromptArgs,
     stream: true,
     tool_choice: forceToolChoice
       ? { type: "function", function: { name: forceToolChoice } }
@@ -169,14 +178,10 @@ export async function* runDecisionLoop(
         ) as Partial<TamboToolParameters>;
       }
 
-      // If this is a non-UI tool call, make sure params are complete and filter out standard tool parameters
+      // If this is a non-UI tool call, build tool call request (even if incomplete)
       let clientToolRequest: ToolCallRequest | undefined;
       if (!isUITool && toolCall) {
-        clientToolRequest = removeTamboToolParameters(
-          toolCall,
-          strictTools,
-          chunk,
-        );
+        clientToolRequest = buildToolCallRequest(toolCall, strictTools);
       }
 
       const displayMessage = extractMessageContent(
@@ -212,33 +217,59 @@ export async function* runDecisionLoop(
   }
 }
 
-function removeTamboToolParameters(
+/**
+ * Build a tool call request from a tool call, even if it's incomplete.
+ * Returns undefined if the tool call is not a function type.
+ * Uses partial-json parsing to handle incomplete JSON during streaming.
+ */
+function buildToolCallRequest(
   toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall,
   tools: OpenAI.Chat.Completions.ChatCompletionTool[],
-  chunk: Partial<LLMResponse>,
-) {
-  const originalRequest = getLLMResponseToolCallRequest(chunk);
-  // Just means the tool call is still streaming
-  if (!originalRequest) {
-    return;
-  }
+): ToolCallRequest | undefined {
   // "custom" tool calls are not supported
   if (toolCall.type !== "function") {
-    return originalRequest;
-  }
-  const parsedToolCall = tryParseJsonObject(toolCall.function.arguments, false);
-  if (parsedToolCall) {
-    const filteredArgs = filterOutStandardToolParameters(
-      toolCall,
-      tools,
-      parsedToolCall,
+    console.warn(
+      "Unsupported tool call type, only 'function' is supported, received: ",
+      toolCall.type,
     );
-
-    if (filteredArgs) {
-      return {
-        ...originalRequest,
-        parameters: filteredArgs,
-      };
-    }
+    return undefined;
   }
+
+  // Try to parse the arguments (may be incomplete during streaming)
+  let parsedArgs: Record<string, unknown> | undefined;
+  try {
+    // Use partial-json parse to handle incomplete JSON during streaming
+    parsedArgs = parse(toolCall.function.arguments);
+  } catch (_e) {
+    // If parsing fails completely, we can't build a request
+    console.warn(
+      "Failed to parse tool call arguments, received: ",
+      toolCall.function.arguments,
+    );
+    return undefined;
+  }
+  if (
+    !parsedArgs ||
+    typeof parsedArgs !== "object" ||
+    Array.isArray(parsedArgs)
+  ) {
+    console.warn("Invalid tool call arguments, received: ", parsedArgs);
+    return undefined;
+  }
+
+  // Filter out standard Tambo parameters
+  const filteredArgs = filterOutStandardToolParameters(
+    toolCall,
+    tools,
+    parsedArgs,
+  );
+
+  if (!filteredArgs) {
+    return undefined;
+  }
+
+  return {
+    toolName: toolCall.function.name,
+    parameters: filteredArgs,
+  };
 }

@@ -1,6 +1,30 @@
 "use client";
 
 import {
+  CustomInstructionsEditor,
+  InteractableCustomInstructionsEditorProps,
+} from "@/components/dashboard-components/project-details/custom-instructions-editor";
+import {
+  ProviderKeySectionBase,
+  InteractableProviderKeySectionProps,
+} from "@/components/dashboard-components/project-details/provider-key-section";
+import {
+  ToolCallLimitEditor,
+  InteractableToolCallLimitEditorProps,
+} from "@/components/dashboard-components/project-details/tool-call-limit-editor";
+import {
+  AvailableMcpServers,
+  InteractableAvailableMcpServersProps,
+} from "@/components/dashboard-components/project-details/available-mcp-servers";
+import {
+  OAuthSettings,
+  InteractableOAuthSettingsProps,
+} from "@/components/dashboard-components/project-details/oauth-settings";
+import {
+  APIKeyList,
+  InteractableAPIKeyListProps,
+} from "@/components/dashboard-components/project-details/api-key-list";
+import {
   DailyMessagesChart,
   DailyMessagesChartSchema,
 } from "@/components/dashboard-components/project-details/daily-messages-chart";
@@ -45,5 +69,47 @@ export const tamboRegisteredComponents = [
       "Displays a comprehensive table of all threads for a specific project with full functionality including search, sorting, deletion, and message viewing. Features responsive design with smooth animations, loading states, and empty state handling. Shows thread ID, creation date, message count, tools, components, and errors. Supports compact mode which hides Updated, Context Key, and Thread Name columns for a cleaner view. IMPORTANT: This component requires a valid project ID (not project name). Always set compact=true for a cleaner interface. Use when users want to view and manage all threads for a specific project.",
     component: ThreadTableContainer,
     propsSchema: ThreadTableContainerSchema,
+  },
+  {
+    name: "CustomInstructionsEditor",
+    description:
+      "A component that allows users to edit custom instructions for their AI assistant project. Users can toggle edit mode, update the custom instructions text, and control whether system prompts can override these instructions.",
+    component: CustomInstructionsEditor,
+    propsSchema: InteractableCustomInstructionsEditorProps,
+  },
+  {
+    name: "ProviderKeySection",
+    description:
+      "Manages LLM and Agent provider configuration for a project. Allows switching between LLM mode (traditional language models) and Agent mode (custom agent endpoints). In LLM mode, users can select providers (OpenAI, Anthropic, OpenAI-compatible, etc.), choose models, configure API keys, set custom model names and base URLs for compatible providers, and adjust input token limits. In Agent mode, users can configure custom agent URLs and metadata. This component validates API keys, handles free message limits for OpenAI's default model, and saves all configuration changes to the project.",
+    component: ProviderKeySectionBase,
+    propsSchema: InteractableProviderKeySectionProps,
+  },
+  {
+    name: "ToolCallLimitEditor",
+    description:
+      "Manages the maximum number of tool calls allowed per response for a project. This helps prevent infinite loops and controls resource usage. Users can view the current limit and edit it to a new value.",
+    component: ToolCallLimitEditor,
+    propsSchema: InteractableToolCallLimitEditorProps,
+  },
+  {
+    name: "AvailableMcpServers",
+    description:
+      "Manages and displays MCP (Model Context Protocol) servers for a project. Shows a list of configured MCP servers with options to add new servers, edit existing ones, or delete them. Each server can be configured with a URL and custom headers.",
+    component: AvailableMcpServers,
+    propsSchema: InteractableAvailableMcpServersProps,
+  },
+  {
+    name: "OAuthSettings",
+    description:
+      "Manages OAuth token validation settings for a project. Configure how OAuth bearer tokens are validated, including validation mode (None, Symmetric, Asymmetric Auto, Asymmetric Manual), token required setting, secret keys, and public keys. Users can view current settings and update them.",
+    component: OAuthSettings,
+    propsSchema: InteractableOAuthSettingsProps,
+  },
+  {
+    name: "APIKeyList",
+    description:
+      "A component that allows users to manage API keys for their project. Users can view existing API keys, create new keys with custom names, and delete keys they no longer need. Each key is displayed with its creation date and preview, and newly created keys are shown once for copying.",
+    component: APIKeyList,
+    propsSchema: InteractableAPIKeyListProps,
   },
 ];

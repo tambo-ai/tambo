@@ -26,7 +26,7 @@ import {
   useState,
 } from "react";
 import { useDebounce } from "use-debounce";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { AgentSettings } from "./agent-settings";
 import { CustomLlmParametersEditor } from "./custom-llm-parameters/editor";
 
@@ -200,7 +200,7 @@ function agentHeadersRecordToArray(
   return Object.entries(record).map(([header, value]) => ({ header, value }));
 }
 
-function ProviderKeySectionBase({
+export function ProviderKeySectionBase({
   projectId,
   changeMode,
   changeProviderAndModel,
@@ -428,7 +428,7 @@ function ProviderKeySectionBase({
 
   // Watch changeProviderAndModel to update provider/model selection
   useEffect(() => {
-    if (changeProviderAndModel !== undefined) {
+    if (changeProviderAndModel != null) {
       const { provider, model } = changeProviderAndModel;
       const combinedValue = model
         ? `${provider}|${model}`
@@ -440,7 +440,7 @@ function ProviderKeySectionBase({
 
   // Watch updateApiKey to enter edit mode with pre-filled value
   useEffect(() => {
-    if (updateApiKey !== undefined) {
+    if (updateApiKey) {
       setApiKeyInput(updateApiKey);
       setIsEditingApiKey(true);
     }
@@ -456,21 +456,21 @@ function ProviderKeySectionBase({
 
   // Watch updateCustomModelName to update custom model name field
   useEffect(() => {
-    if (externalCustomModelName !== undefined) {
+    if (externalCustomModelName) {
       setCustomModelName(externalCustomModelName);
     }
   }, [externalCustomModelName]);
 
   // Watch updateBaseUrl to update base URL field
   useEffect(() => {
-    if (externalBaseUrl !== undefined) {
+    if (externalBaseUrl) {
       setBaseUrl(externalBaseUrl);
     }
   }, [externalBaseUrl]);
 
   // Watch updateMaxInputTokens to update token limit
   useEffect(() => {
-    if (externalMaxInputTokens !== undefined) {
+    if (externalMaxInputTokens) {
       setMaxInputTokens(externalMaxInputTokens.toString());
     }
   }, [externalMaxInputTokens]);
@@ -485,14 +485,14 @@ function ProviderKeySectionBase({
 
   // Watch updateAgentUrl to update agent URL field
   useEffect(() => {
-    if (externalAgentUrl !== undefined) {
+    if (externalAgentUrl) {
       setAgentUrl(externalAgentUrl);
     }
   }, [externalAgentUrl]);
 
   // Watch updateAgentName to update agent name field
   useEffect(() => {
-    if (externalAgentName !== undefined) {
+    if (externalAgentName) {
       setAgentName(externalAgentName);
     }
   }, [externalAgentName]);
@@ -930,7 +930,11 @@ function ProviderKeySectionBase({
       return;
     }
 
-    if (apiKeyInput.trim() && apiKeyValidation && !apiKeyValidation.isValid) {
+    if (
+      (apiKeyInput || "").trim() &&
+      apiKeyValidation &&
+      !apiKeyValidation.isValid
+    ) {
       toast({
         title: "Invalid API Key",
         description: apiKeyValidation.error || "Please enter a valid API key",
@@ -941,7 +945,7 @@ function ProviderKeySectionBase({
 
     if (
       !["openai", "openai-compatible"].includes(parsedSelection.provider) &&
-      !apiKeyInput.trim()
+      !(apiKeyInput || "").trim()
     ) {
       toast({
         title: "Error",
@@ -954,7 +958,7 @@ function ProviderKeySectionBase({
     addOrUpdateApiKey({
       projectId,
       provider: parsedSelection.provider,
-      providerKey: apiKeyInput.trim() || undefined,
+      providerKey: (apiKeyInput || "").trim() || undefined,
     });
   }, [
     parsedSelection.provider,
@@ -1207,7 +1211,12 @@ function ProviderKeySectionBase({
                               </p>
                             )}
                             <p className="text-xs text-foreground">
-                              Requests will be sent to{" "}
+                              We append{" "}
+                              <span className="font-mono">
+                                /chat/completions
+                              </span>{" "}
+                              to this base URL when making requests. The final
+                              request URL will be{" "}
                               <span className="inline-flex rounded-md bg-muted px-2 py-0.5 font-mono">
                                 {baseUrl.trim()
                                   ? baseUrl.trim().replace(/\/$/, "")
@@ -1317,12 +1326,12 @@ function ProviderKeySectionBase({
                               disabled={
                                 isUpdatingApiKey ||
                                 isValidatingApiKey ||
-                                (!apiKeyInput.trim() &&
+                                (!(apiKeyInput || "").trim() &&
                                   !["openai", "openai-compatible"].includes(
                                     parsedSelection.provider || "",
                                   )) ||
                                 (!apiKeyValidation?.isValid &&
-                                  !!apiKeyInput.trim())
+                                  !!(apiKeyInput || "").trim())
                               }
                             >
                               {isUpdatingApiKey ? "Saving..." : "Save Key"}

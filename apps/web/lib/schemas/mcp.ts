@@ -1,5 +1,5 @@
 import { MCPTransport, isValidServerKey } from "@tambo-ai-cloud/core";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Shared schemas for MCP (Model Context Protocol) server operations.

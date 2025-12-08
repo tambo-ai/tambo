@@ -8,6 +8,7 @@ import {
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   // MessageInputMcpConfigButton,
 } from "@/components/tambo/message-input";
 import {
@@ -43,8 +44,7 @@ import type { Suggestion } from "@tambo-ai/react";
  * Props for the MessageThreadPanel component
  * @interface
  */
-export interface MessageThreadPanelProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Optional key to identify the context of the thread
    * Used to maintain separate thread histories for different contexts
@@ -269,6 +269,7 @@ export const MessageThreadPanel = React.forwardRef<
               <MessageInputToolbar>
                 <MessageInputFileButton />
                 <MessageInputMcpPromptButton />
+                <MessageInputMcpResourceButton />
                 {/* Uncomment this to enable client-side MCP config modal button */}
                 {/* <MessageInputMcpConfigButton /> */}
                 <MessageInputSubmitButton />

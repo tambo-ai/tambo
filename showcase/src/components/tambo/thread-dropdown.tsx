@@ -22,8 +22,7 @@ import { useCallback } from "react";
  * @interface
  * @extends React.HTMLAttributes<HTMLDivElement>
  */
-export interface ThreadDropdownProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface ThreadDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Optional context key for filtering threads */
   contextKey?: string;
   /** Optional callback function called when the current thread changes */

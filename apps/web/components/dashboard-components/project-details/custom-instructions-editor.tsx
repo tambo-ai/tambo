@@ -15,8 +15,8 @@ import { api } from "@/trpc/react";
 import { withInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import { useEffect, useId, useState } from "react";
-import { z } from "zod";
+import { useEffect, useId, useRef, useState } from "react";
+import { z } from "zod/v3";
 
 const COMPONENT_NAME = "CustomInstructions";
 
@@ -69,7 +69,7 @@ export const InteractableCustomInstructionsEditorProps = z.object({
     ),
 });
 
-interface CustomInstructionsEditorProps {
+export interface CustomInstructionsEditorProps {
   projectId: string;
   customInstructions?: string | null;
   allowSystemPromptOverride?: boolean | null;
@@ -104,14 +104,20 @@ export function CustomInstructionsEditor({
       : Boolean(allowSystemPromptOverrideProp),
   );
   const [hasEditedToggle, setHasEditedToggle] = useState(false);
+  // Track if we just saved to prevent useEffect from resetting to old prop value
+  const justSavedRef = useRef(false);
 
   // Separate mutations to prevent state interference
   const updateInstructions = api.project.updateProject.useMutation();
   const updateToggle = api.project.updateProject.useMutation();
 
   // Update the saved value when props change (e.g., after loading or Tambo updates)
-  // Only sync if not currently editing to avoid overwriting unsaved changes
+  // Only sync if not currently editing and not just saved to avoid overwriting unsaved changes
   useEffect(() => {
+    if (justSavedRef.current) {
+      justSavedRef.current = false;
+      return;
+    }
     if (customInstructions !== undefined && !isEditing) {
       setSavedValue(customInstructions ?? "");
       setDisplayValue(customInstructions ?? "");
@@ -120,6 +126,9 @@ export function CustomInstructionsEditor({
 
   // Sync toggle state from props (no auto-save, just state sync)
   useEffect(() => {
+    if (justSavedRef.current) {
+      return;
+    }
     if (allowSystemPromptOverrideProp !== undefined && !isEditing) {
       setAllowSystemPromptOverride(Boolean(allowSystemPromptOverrideProp));
       setSavedToggleValue(Boolean(allowSystemPromptOverrideProp));
@@ -128,7 +137,7 @@ export function CustomInstructionsEditor({
 
   // When Tambo sends a new editedValue, enter edit mode automatically
   useEffect(() => {
-    if (editedValue !== undefined) {
+    if (editedValue) {
       setDisplayValue(editedValue);
       setIsEditing(true);
     }
@@ -193,6 +202,8 @@ export function CustomInstructionsEditor({
         if (hasEditedToggle) {
           setSavedToggleValue(Boolean(allowSystemPromptOverride));
         }
+        // Mark as just saved to prevent useEffect from resetting to old prop values
+        justSavedRef.current = true;
         setIsEditing(false);
         setHasEditedToggle(false);
         toast({
@@ -311,7 +322,7 @@ export function CustomInstructionsEditor({
               </motion.div>
             ) : (
               <div className="flex justify-between items-start">
-                {customInstructions ? (
+                {savedValue ? (
                   <motion.div
                     key="display-instructions"
                     initial={{ opacity: 0, y: 10 }}
@@ -320,7 +331,7 @@ export function CustomInstructionsEditor({
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="flex-1 whitespace-pre-wrap rounded-md text-sm"
                   >
-                    {customInstructions}
+                    {savedValue}
                   </motion.div>
                 ) : (
                   <CardDescription className="text-sm text-foreground">
@@ -341,9 +352,7 @@ export function CustomInstructionsEditor({
                     className="font-sans"
                     onClick={() => setIsEditing(true)}
                   >
-                    {customInstructions
-                      ? "Edit Instructions"
-                      : "Add Instructions"}
+                    {savedValue ? "Edit Instructions" : "Add Instructions"}
                   </Button>
                 </motion.div>
               </div>

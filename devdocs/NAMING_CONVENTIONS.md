@@ -39,23 +39,16 @@ useMessageTambo(); // ✗ Wrong prefix order
 
 ```typescript
 // Props - Always Readonly
-interface TamboMessageProps
-  extends Readonly<{
-    id: string; // Required props first
-    onUpdate: (message: TamboMessage) => void; // Callbacks use 'on' prefix
-    isLoading?: boolean; // Optional props last
-  }> {}
+interface TamboMessageProps extends Readonly<{
+  id: string; // Required props first
+  onUpdate: (message: TamboMessage) => void; // Callbacks use 'on' prefix
+  isLoading?: boolean; // Optional props last
+}> {}
 
 // Types - Clear hierarchy
-type TamboMessage = {
-  /* ... */
-}; // Core type
-type TamboMessageState = {
-  /* ... */
-}; // State type
-type TamboMessageConfig = {
-  /* ... */
-}; // Config type
+type TamboMessage = { /* ... */ }; // Core type
+type TamboMessageState = { /* ... */ }; // State type
+type TamboMessageConfig = { /* ... */ }; // Config type
 ```
 
 ## Event Handlers
