@@ -157,11 +157,11 @@ export function EditWithTambo({
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
 
-      // Don't close if clicking inside popover, button, or dropdown menu (rendered in portal)
+      // Don't close if clicking inside popover, button, or dropdown menu
       if (
         popoverRef.current?.contains(target) ||
         buttonRef.current?.contains(target) ||
-        (target as Element).closest('[role="menu"]')
+        (target as Element).closest("[data-edit-with-tambo-menu]")
       ) {
         return;
       }
@@ -465,6 +465,7 @@ export function EditWithTambo({
                         <ChevronDown className="h-3 w-3" />
                       </button>
                       <div
+                        data-edit-with-tambo-menu
                         className="hidden absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-popover text-popover-foreground border border-border z-50 p-1 animate-in fade-in-0 zoom-in-95 duration-100"
                         onClick={(e) => e.stopPropagation()}
                       >
