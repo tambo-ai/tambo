@@ -2,11 +2,6 @@ import type { TamboThreadMessage } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useState } from "react";
 
-/**
- * Custom hook to merge multiple refs into one callback ref
- * @param refs - Array of refs to merge
- * @returns A callback ref that updates all provided refs
- */
 export function useMergeRefs<Instance>(
   ...refs: (React.Ref<Instance> | undefined)[]
 ): null | React.RefCallback<Instance> {
