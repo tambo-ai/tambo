@@ -4,7 +4,7 @@
   "componentName": "EditWithTambo",
   "dependencies": ["@tambo-ai/react", "lucide-react", "react-dom"],
   "devDependencies": [],
-  "requires": [],
+  "requires": ["message-suggestions"],
   "files": [
     {
       "name": "edit-with-tambo.tsx",
