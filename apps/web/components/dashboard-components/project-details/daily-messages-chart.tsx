@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { MessageCircleIcon } from "lucide-react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { DashboardGraph } from "./dashboard-graph";
 
 export const DailyMessagesChartSchema = z.object({

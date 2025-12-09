@@ -9,7 +9,7 @@ import {
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
 import type { HydraDb } from "@tambo-ai-cloud/db";
-import { operations } from "@tambo-ai-cloud/db";
+import { dbMessageToThreadMessage, operations } from "@tambo-ai-cloud/db";
 import mimeTypes from "mime-types";
 import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
 import { AudioFormat } from "../dto/message.dto";
@@ -41,7 +41,7 @@ export function createMcpHandlers(
         // Have pretend this is "user" to let audio/image content through to
         // ChatCompletionContentPart
         role: m.role as "user",
-        content: [mcpContentToContentPart(m.content)],
+        content: mcpContentToContentParts(m.content),
       }));
       // add serially for now and collect the saved messages
       // TODO: add messages in a batch
@@ -54,23 +54,8 @@ export function createMcpHandlers(
           parentMessageId,
         });
 
-        // Convert DB message (with null fields) to ThreadMessage (with undefined fields)
-        const threadMessage: ThreadMessage = {
-          ...message,
-          parentMessageId: message.parentMessageId ?? undefined,
-          component: message.componentDecision ?? undefined,
-          componentState: message.componentState ?? {},
-          additionalContext: message.additionalContext ?? {},
-          actionType: message.actionType ?? undefined,
-          error: message.error ?? undefined,
-          metadata: message.metadata ?? undefined,
-          tool_call_id: message.toolCallId ?? undefined,
-          toolCallRequest: message.toolCallRequest ?? undefined,
-          reasoning: message.reasoning ?? undefined,
-          reasoningDurationMS: message.reasoningDurationMS ?? undefined,
-        };
-
-        savedMessages.push(threadMessage);
+        // Convert DBMessage to ThreadMessage (field name mapping)
+        savedMessages.push(dbMessageToThreadMessage(message));
 
         queue.push({
           responseMessageDto: {
@@ -146,8 +131,26 @@ export function createMcpHandlers(
 type McpContent = Parameters<
   MCPHandlers["sampling"]
 >[0]["params"]["messages"][0]["content"];
-function mcpContentToContentPart(
-  content: McpContent,
+
+// Single content item type (for when content is not an array)
+type McpContentItem = Exclude<McpContent, readonly unknown[]>;
+
+function isMcpContentItem(value: unknown): value is McpContentItem {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  if (!("type" in value)) {
+    return false;
+  }
+
+  const { type } = value as { type?: unknown };
+
+  return typeof type === "string";
+}
+
+function mcpContentItemToContentPart(
+  content: McpContentItem,
 ): ChatCompletionContentPart {
   switch (content.type) {
     case "text":
@@ -186,10 +189,46 @@ function mcpContentToContentPart(
     default:
       // content is `never` at this point, but we don't want to fully break
       // the app, so we just return a text content part with a warning
-      console.warn(`Unknown content type: ${String((content as any)?.type)}`);
+      console.warn(
+        `Unknown content type: ${String((content as { type?: unknown })?.type)}`,
+      );
       return {
         type: ContentPartType.Text,
-        text: `[Unsupported content type: ${String((content as any)?.type)}]`,
+        text: `[Unsupported content type: ${String((content as { type?: unknown })?.type)}]`,
       };
   }
+}
+
+function mcpContentToContentParts(
+  content: McpContent,
+): ChatCompletionContentPart[] {
+  const emptyTextPart: ChatCompletionContentPart[] = [
+    { type: ContentPartType.Text, text: "" },
+  ];
+
+  // MCP SDK 1.24+ allows content to be either a single item or an array
+  if (Array.isArray(content)) {
+    if (content.length === 0) {
+      return emptyTextPart;
+    }
+
+    const parts = content
+      .filter((item): item is McpContentItem => {
+        if (!isMcpContentItem(item)) {
+          console.warn("Unexpected MCP content array element", item);
+          return false;
+        }
+        return true;
+      })
+      .map(mcpContentItemToContentPart);
+
+    return parts.length > 0 ? parts : emptyTextPart;
+  }
+
+  if (!isMcpContentItem(content)) {
+    console.warn("Unexpected MCP content value", content);
+    return emptyTextPart;
+  }
+
+  return [mcpContentItemToContentPart(content)];
 }

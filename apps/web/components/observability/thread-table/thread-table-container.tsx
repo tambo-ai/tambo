@@ -3,7 +3,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { api, RouterOutputs } from "@/trpc/react";
 import { useCallback, useEffect, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { ThreadMessagesModal } from "../messages/thread-messages-modal";
 import { ThreadTable } from "./index";
 import { THREADS_PER_PAGE } from "../utils";

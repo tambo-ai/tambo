@@ -23,7 +23,7 @@
     "@types/node": "^22.15.32",
     "jest": "^30.2.0",
     "prettier-2": "npm:prettier@^2",
-    "ts-jest": "^29.4.5",
+    "ts-jest": "^29.4.6",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.24.6"
   },
@@ -35,7 +35,7 @@
     "extends": "../../package.json"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.20.2",
+    "@modelcontextprotocol/sdk": "^1.24.0",
     "jose": "^5.10.0",
     "openai": "^6.4.0",
     "resend": "^6.5.0"

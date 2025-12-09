@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Set of standard HTTP headers that should not be overridden in custom headers

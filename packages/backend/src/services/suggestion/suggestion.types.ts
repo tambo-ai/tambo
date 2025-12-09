@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export interface SuggestionDecision {
   suggestions: Array<{
@@ -18,12 +18,12 @@ export const SuggestionsResponseSchema = z.object({
       title: z
         .string()
         .describe(
-          "A concise, action-oriented title that clearly states what will happen. Example: 'Apple Stock Price' or 'Sales Report'. MUST be in the same language as the user's messages.",
+          "A concise, action-oriented title that clearly states what will happen. Example: 'Apple Stock Price' or 'Sales Report'.",
         ),
       detailedSuggestion: z
         .string()
         .describe(
-          "A natural, conversational message that could be sent by the user, focused on practical requests using available components. MUST be in the same language as the user's messages.",
+          "A natural, conversational message that could be sent by the user, focused on practical requests using available components.",
         ),
     }),
   ),

@@ -2,7 +2,7 @@ import {
   totalMessageUsageSchema,
   totalUsersSchema,
 } from "@/lib/schemas/project";
-import { z } from "zod";
+import { z } from "zod/v3";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**

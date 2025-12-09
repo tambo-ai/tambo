@@ -82,7 +82,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Cache for Turbo
-        uses: rharkor/caching-for-turbo@v2.3.2
+        uses: rharkor/caching-for-turbo@v2.3.5
 
       - name: Login to GitHub Container Registry
         if: needs.meta.outputs.should-push == 'true'

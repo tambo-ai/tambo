@@ -12,12 +12,16 @@ import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
 import { createMcpHandlers } from "./thread-mcp-handlers";
 
 // Mock dependencies
-jest.mock("@tambo-ai-cloud/db", () => ({
-  operations: {
-    addMessage: jest.fn(),
-    findLastMessageWithoutParent: jest.fn(),
-  },
-}));
+jest.mock("@tambo-ai-cloud/db", () => {
+  const actual = jest.requireActual("@tambo-ai-cloud/db");
+  return {
+    ...actual,
+    operations: {
+      addMessage: jest.fn(),
+      findLastMessageWithoutParent: jest.fn(),
+    },
+  };
+});
 
 // Import the actual module so we can mock it
 import { convertContentPartToDto } from "./content";
@@ -1049,6 +1053,132 @@ describe("createMcpHandlers", () => {
 
         expect(consoleWarnSpy).toHaveBeenCalledWith(
           expect.stringContaining("Unknown content type"),
+        );
+
+        consoleWarnSpy.mockRestore();
+      });
+
+      it("should handle multi-item MCP content arrays by including all items", async () => {
+        jest.mocked(operations.addMessage).mockResolvedValue({
+          id: "msg-1",
+          threadId: mockThreadId,
+          role: MessageRole.User,
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: "First",
+            },
+            {
+              type: ContentPartType.Text,
+              text: "Second",
+            },
+          ],
+          componentState: {},
+          createdAt: new Date(),
+        } as any);
+
+        jest.mocked(mockTamboBackend.llmClient.complete).mockResolvedValue({
+          message: { role: "assistant", content: "Response" },
+        } as any);
+
+        const handlers = createMcpHandlers(
+          mockDb,
+          mockTamboBackend,
+          mockThreadId,
+          mockQueue,
+        );
+
+        await handlers.sampling({
+          method: "sampling/createMessage",
+          params: {
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: "First" },
+                  { type: "text", text: "Second" },
+                ] as any,
+              },
+            ],
+            maxTokens: 1000,
+          },
+        });
+
+        expect(operations.addMessage).toHaveBeenNthCalledWith(1, mockDb, {
+          threadId: mockThreadId,
+          role: "user",
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: "First",
+            },
+            {
+              type: ContentPartType.Text,
+              text: "Second",
+            },
+          ],
+          parentMessageId: undefined,
+        });
+      });
+
+      it("should handle invalid MCP content array elements with text fallback", async () => {
+        const consoleWarnSpy = jest
+          .spyOn(console, "warn")
+          .mockImplementation(() => {});
+
+        jest.mocked(operations.addMessage).mockResolvedValue({
+          id: "msg-1",
+          threadId: mockThreadId,
+          role: MessageRole.User,
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: "",
+            },
+          ],
+          componentState: {},
+          createdAt: new Date(),
+        } as any);
+
+        jest.mocked(mockTamboBackend.llmClient.complete).mockResolvedValue({
+          message: { role: "assistant", content: "Response" },
+        } as any);
+
+        const handlers = createMcpHandlers(
+          mockDb,
+          mockTamboBackend,
+          mockThreadId,
+          mockQueue,
+        );
+
+        await handlers.sampling({
+          method: "sampling/createMessage",
+          params: {
+            messages: [
+              {
+                role: "user",
+                content: [{}] as any,
+              },
+            ],
+            maxTokens: 1000,
+          },
+        });
+
+        expect(operations.addMessage).toHaveBeenNthCalledWith(1, mockDb, {
+          threadId: mockThreadId,
+          role: "user",
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: "",
+            },
+          ],
+          parentMessageId: undefined,
+        });
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          "Unexpected MCP content array element",
+          expect.anything(),
         );
 
         consoleWarnSpy.mockRestore();

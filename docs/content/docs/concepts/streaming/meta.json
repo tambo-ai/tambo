@@ -3,8 +3,9 @@
   "pages": [
     "response-text-streaming",
     "response-component-streaming",
+    "streaming-pitfalls",
     "component-streaming-status",
     "tambo-prop-stream-provider",
-    "streaming-props"
+    "streaming-best-practices"
   ]
 }

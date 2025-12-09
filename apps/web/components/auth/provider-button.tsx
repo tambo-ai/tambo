@@ -4,6 +4,7 @@ import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useSignIn } from "@/hooks/nextauth";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 interface ProviderButtonProps {
@@ -13,11 +14,13 @@ interface ProviderButtonProps {
     icon: string;
   };
   routeOnSuccess?: string;
+  variant?: "default" | "outline";
 }
 
 export function ProviderButton({
   provider,
   routeOnSuccess = "/dashboard",
+  variant = "default",
 }: ProviderButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -48,13 +51,26 @@ export function ProviderButton({
 
   return (
     <Button
-      variant="outline"
+      variant={variant}
       onClick={handleAuth}
       disabled={isLoading}
-      className="w-full h-12 text-base font-medium transition-all hover:scale-[1.02] hover:bg-accent hover:text-accent-foreground"
+      className={cn(
+        "w-full h-12 text-base font-medium active:scale-95 transition-transform",
+      )}
     >
-      {IconComponent && <IconComponent className="mr-3 h-5 w-5" />}
-      {provider.displayName}
+      {isLoading ? (
+        <>
+          <div className="flex flex-row items-center justify-center space-x-3">
+            <Icons.spinner className="h-5 w-5 animate-spin" />
+            <p>Loading...</p>
+          </div>
+        </>
+      ) : (
+        <>
+          {IconComponent && <IconComponent className="mr-3 h-5 w-5" />}
+          {provider.displayName}
+        </>
+      )}
     </Button>
   );
 }

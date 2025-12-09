@@ -12,9 +12,9 @@ import {
   MessageInput,
   MessageInputError,
   MessageInputSubmitButton,
-  MessageInputTextarea,
   MessageInputToolbar,
 } from "@/components/ui/tambo/message-input";
+import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
 import {
   ThreadContent,
   ThreadContentMessages,
@@ -113,7 +113,7 @@ export function TamboSubscribeIntegration() {
           </div>
           <div className="p-3 sm:p-4 border-t border-gray-200">
             <MessageInput contextKey={contextKey}>
-              <MessageInputTextarea />
+              <MessageInputTextareaWithInteractables />
               <MessageInputToolbar>
                 <MessageInputSubmitButton />
               </MessageInputToolbar>

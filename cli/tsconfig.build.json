@@ -1,4 +1,12 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/components/tambo/*": ["src/registry/*"],
+      "@/lib/*": ["src/lib/*"]
+    }
+  },
   "exclude": ["__tests__", "**/*.test.ts", "**/*.test.tsx", "tests"]
 }

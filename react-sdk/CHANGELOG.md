@@ -1,11 +1,32 @@
 # Changelog
 
-## [0.65.2](https://github.com/tambo-ai/tambo/compare/react-v0.65.1...react-v0.65.2) (2025-11-21)
+## [0.65.3](https://github.com/tambo-ai/tambo/compare/react-v0.65.2...react-v0.65.3) (2025-12-08)
 
+### Bug Fixes
+
+- **deps:** upgrade to zod v3 subpath imports and MCP SDK 1.24 ([#1465](https://github.com/tambo-ai/tambo/issues/1465)) ([c8b7f07](https://github.com/tambo-ai/tambo/commit/c8b7f079560d423082c005018a103b9eb3cf6993))
+- **react-sdk,docs:** address streaming docs review feedback ([#1459](https://github.com/tambo-ai/tambo/issues/1459)) ([3fb4ed2](https://github.com/tambo-ai/tambo/commit/3fb4ed269c8ad13bd04c142743c2268ae8a29fec))
+
+### Miscellaneous Chores
+
+- **deps-dev:** bump the eslint group with 4 updates ([#1431](https://github.com/tambo-ai/tambo/issues/1431)) ([50e1f34](https://github.com/tambo-ai/tambo/commit/50e1f3446320d3319339eef233fe3347576fff08))
+- **deps:** Bump @tambo-ai/typescript-sdk to get updated enum ([#1445](https://github.com/tambo-ai/tambo/issues/1445)) ([7bee1f3](https://github.com/tambo-ai/tambo/commit/7bee1f32b7864d381eb2b5f346ec050ed61358a3))
+- **deps:** bump the small-safe-packages group with 5 updates ([#1436](https://github.com/tambo-ai/tambo/issues/1436)) ([5974a87](https://github.com/tambo-ai/tambo/commit/5974a87c06577da92cd6ef9a500ebc9226f46fec))
 
 ### Documentation
 
-* update MCP provider API usage to reflect v0.65.0 changes ([#1332](https://github.com/tambo-ai/tambo/issues/1332)) ([4dc2cc2](https://github.com/tambo-ai/tambo/commit/4dc2cc22a3d8b141c57fa8439b1f478b15ed4b9c))
+- **react-sdk:** document streaming components pattern ([#1457](https://github.com/tambo-ai/tambo/issues/1457)) ([d0beb5a](https://github.com/tambo-ai/tambo/commit/d0beb5a9efe992137407c00481f342d38be9c293))
+- **readme:** simplify and streamline README content ([#1450](https://github.com/tambo-ai/tambo/issues/1450)) ([9aed4de](https://github.com/tambo-ai/tambo/commit/9aed4dea2424f14ceef4d6747fe894895a21f3c9))
+
+### Tests
+
+- simplify coverage thresholds and fix CI coverage ([#1458](https://github.com/tambo-ai/tambo/issues/1458)) ([719b9e6](https://github.com/tambo-ai/tambo/commit/719b9e660700b5eb420b288cab52cbc11c83028d))
+
+## [0.65.2](https://github.com/tambo-ai/tambo/compare/react-v0.65.1...react-v0.65.2) (2025-11-21)
+
+### Documentation
+
+- update MCP provider API usage to reflect v0.65.0 changes ([#1332](https://github.com/tambo-ai/tambo/issues/1332)) ([4dc2cc2](https://github.com/tambo-ai/tambo/commit/4dc2cc22a3d8b141c57fa8439b1f478b15ed4b9c))
 
 ## [0.65.1](https://github.com/tambo-ai/tambo/compare/react-v0.65.0...react-v0.65.1) (2025-11-21)
 

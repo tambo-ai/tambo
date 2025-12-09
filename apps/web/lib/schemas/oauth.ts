@@ -1,5 +1,5 @@
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Shared schemas for OAuth validation settings.

@@ -15,6 +15,12 @@ const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
   clearMocks: true,
   resetMocks: true,
+  coverageThreshold: {
+    global: {
+      branches: 61,
+      lines: 76,
+    },
+  },
 };
 
 export default config;

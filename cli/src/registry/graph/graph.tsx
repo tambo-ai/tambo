@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 import * as React from "react";
 import * as RechartsCore from "recharts";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 /**
  * Type for graph variant

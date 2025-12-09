@@ -9,7 +9,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { ZodSchema } from "zod";
+import { ZodSchema } from "zod/v3";
 import zodToJsonSchema from "zod-to-json-schema";
 import {
   ComponentRegistry,

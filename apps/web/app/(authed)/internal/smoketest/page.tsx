@@ -17,7 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { AirQuality } from "./components/air-quality";
 import {
   ApiActivityMonitor,

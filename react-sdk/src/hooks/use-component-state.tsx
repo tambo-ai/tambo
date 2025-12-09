@@ -25,20 +25,17 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
  * @example
  * const [count, setCount] = useTamboComponentState("counter", 0);
  *
- * // Usage with object state
- * const [formState, setFormState] = useTamboComponentState("myForm", {
- *   name: "",
- *   email: "",
- *   message: ""
- * });
+ * Use `setFromProp` to seed state from streamed props. During streaming,
+ * state updates as new prop values arrive. Once streaming completes,
+ * user edits take precedence over the original prop value.
  *
- * // Handling form input
- * const handleChange = (e) => {
- *   setFormState({
- *     ...formState,
- *     [e.target.name]: e.target.value
- *   });
- * };
+ * Pair with `useTamboStreamStatus` to disable inputs while streaming.
+ * @see {@link https://docs.tambo.co/concepts/streaming/streaming-best-practices}
+ * @param keyName - Unique key within the message's componentState
+ * @param initialValue - Default value if no componentState exists
+ * @param setFromProp - Seeds state from props (updates during streaming, then user edits take over)
+ * @param debounceTime - Server sync debounce in ms (default: 500)
+ * @returns A tuple of [currentState, setState] similar to React's useState
  */
 export function useTamboComponentState<S = undefined>(
   keyName: string,
