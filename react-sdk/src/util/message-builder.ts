@@ -1,5 +1,3 @@
-import type { ChatCompletionContentPartText } from "@tambo-ai-cloud/core";
-import { ContentPartType } from "@tambo-ai-cloud/core";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { StagedImage } from "../hooks/use-message-images";
 
@@ -9,9 +7,9 @@ import { StagedImage } from "../hooks/use-message-images";
  * The resource part uses a simplified resource object with just uri and optional name.
  */
 type ParsedContentPart =
-  | ChatCompletionContentPartText
+  | TamboAI.Beta.Threads.ChatCompletionContentPart
   | {
-      type: ContentPartType.Resource;
+      type: "resource";
       resource: { uri: string; name?: string };
     };
 
@@ -62,7 +60,10 @@ function parseResourceReferences(
     if (match.index > lastIndex) {
       const textBefore = text.slice(lastIndex, match.index);
       if (textBefore.trim()) {
-        parts.push({ type: "text", text: textBefore });
+        parts.push({
+          type: "text",
+          text: textBefore,
+        });
       }
     }
 
@@ -77,7 +78,7 @@ function parseResourceReferences(
     if (name) {
       resource.name = name;
     }
-    parts.push({ type: ContentPartType.Resource, resource });
+    parts.push({ type: "resource", resource });
 
     lastIndex = match.index + fullMatch.length;
   }
@@ -86,7 +87,10 @@ function parseResourceReferences(
   if (lastIndex < text.length) {
     const textAfter = text.slice(lastIndex);
     if (textAfter.trim()) {
-      parts.push({ type: "text", text: textAfter });
+      parts.push({
+        type: "text",
+        text: textAfter,
+      });
     }
   }
 
