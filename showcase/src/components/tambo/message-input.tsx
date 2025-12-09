@@ -291,7 +291,6 @@ interface MessageInputContextValue {
     contextKey?: string;
     streamResponse?: boolean;
     resourceNames: Record<string, string>;
-    text?: string;
   }) => Promise<void>;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   isPending: boolean;
@@ -712,16 +711,12 @@ const MessageInputTextarea = ({
   // Handle MCP prompt insertion when data is fetched
   React.useEffect(() => {
     if (selectedMcpPromptData && selectedMcpPromptName) {
-      const promptMessages = (selectedMcpPromptData as { messages?: unknown[] })
-        ?.messages;
+      const promptMessages = selectedMcpPromptData?.messages;
       if (promptMessages) {
         const promptText = promptMessages
-          .map((msg: unknown) => {
-            const typedMsg = msg as {
-              content?: { type?: string; text?: string };
-            };
-            if (typedMsg.content?.type === "text") {
-              return typedMsg.content.text;
+          .map((msg) => {
+            if (msg.content?.type === "text") {
+              return msg.content.text;
             }
             return "";
           })
