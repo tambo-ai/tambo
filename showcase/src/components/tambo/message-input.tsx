@@ -28,12 +28,6 @@ import {
   type StagedImage,
 } from "@tambo-ai/react";
 import {
-  TextEditor,
-  type TamboEditor,
-  type ResourceItem,
-  type PromptItem,
-} from "./text-editor";
-import {
   useTamboElicitationContext,
   useTamboMcpPrompt,
   useTamboMcpPromptList,
@@ -54,6 +48,13 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import * as React from "react";
+import {
+  TextEditor,
+  getTextWithResourceURIs,
+  type PromptItem,
+  type ResourceItem,
+  type TamboEditor,
+} from "./text-editor";
 // eslint-disable-next-line @typescript-eslint/promise-function-async
 const DictationButton = dynamic(() => import("./dictation-button"), {
   ssr: false,
@@ -289,6 +290,8 @@ interface MessageInputContextValue {
   submit: (options: {
     contextKey?: string;
     streamResponse?: boolean;
+    resourceNames: Record<string, string>;
+    text?: string;
   }) => Promise<void>;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   isPending: boolean;
@@ -414,12 +417,21 @@ const MessageInputInternal = React.forwardRef<
       setDisplayValue("");
       setIsSubmitting(true);
 
+      // Extract resource names directly from editor at submit time to ensure we have the latest
+      let latestResourceNames: Record<string, string> = {};
+      const editor = editorRef.current;
+      if (editor) {
+        const extracted = getTextWithResourceURIs(editor);
+        latestResourceNames = extracted.resourceNames;
+      }
+
       const imageIdsAtSubmitTime = images.map((image) => image.id);
 
       try {
         await submit({
           contextKey,
           streamResponse: true,
+          resourceNames: latestResourceNames,
         });
         setValue("");
         // Clear only the images that were staged when submission started so
@@ -457,6 +469,7 @@ const MessageInputInternal = React.forwardRef<
       isSubmitting,
       images,
       removeImage,
+      editorRef,
     ],
   );
 
@@ -671,6 +684,17 @@ const MessageInputTextarea = ({
   const { isIdle } = useTamboThread();
   const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
+  // Resource names are extracted from editor at submit time, no need to track in state
+  const setResourceNames = React.useCallback(
+    (
+      _resourceNames:
+        | Record<string, string>
+        | ((prev: Record<string, string>) => Record<string, string>),
+    ) => {
+      // No-op - we extract resource names directly from editor at submit time
+    },
+    [],
+  );
 
   // Combine MCP resources/prompts with external providers
   const combinedResourceProvider =
@@ -742,6 +766,7 @@ const MessageInputTextarea = ({
         ref={editorRef}
         value={value}
         onChange={setValue}
+        onResourceNamesChange={setResourceNames}
         onSubmit={handleSubmit}
         onAddImage={handleAddImage}
         placeholder={placeholder}
@@ -1439,13 +1464,13 @@ export {
   MessageInputMcpConfigButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
+  MessageInputPlainTextarea,
   MessageInputStagedImages,
   MessageInputSubmitButton,
-  MessageInputPlainTextarea,
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,
 };
 
 // Re-export types from text-editor for convenience
-export type { ResourceItem, PromptItem } from "./text-editor";
+export type { PromptItem, ResourceItem } from "./text-editor";

@@ -66,6 +66,11 @@ export interface PromptItem {
 export interface TextEditorProps {
   value: string;
   onChange: (text: string) => void;
+  onResourceNamesChange?: (
+    resourceNames:
+      | Record<string, string>
+      | ((prev: Record<string, string>) => Record<string, string>),
+  ) => void;
   onKeyDown?: (event: React.KeyboardEvent) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -566,24 +571,36 @@ function createPromptCommandExtension(
 }
 
 /**
- * Custom text extraction that serializes mention nodes with their ID (resource URI)
- * instead of their label. This is needed for message submission.
+ * Custom text extraction that serializes mention nodes with their ID (resource URI).
+ * Returns both the text (with URIs only) and a map of URI -> name for lookups.
+ * This avoids string manipulation issues with names containing special characters.
  */
-function getTextWithResourceURIs(editor: Editor | null): string {
-  if (!editor) return "";
+export function getTextWithResourceURIs(editor: Editor | null): {
+  text: string;
+  resourceNames: Record<string, string>;
+} {
+  if (!editor) return { text: "", resourceNames: {} };
 
   let text = "";
+  const resourceNames: Record<string, string> = {};
+
   editor.state.doc.descendants((node) => {
     if (node.type.name === "mention") {
-      // Use ID for mentions (full resource URI)
-      text += `@${node.attrs.id ?? node.attrs.label ?? ""}`;
+      const id = node.attrs.id ?? "";
+      const label = node.attrs.label ?? "";
+      // Only include URI in text (no name to avoid parsing issues)
+      text += `@${id}`;
+      // Store name separately for lookup
+      if (label && id) {
+        resourceNames[id] = label;
+      }
     } else if (node.isText) {
       text += node.text;
     }
     return true;
   });
 
-  return text;
+  return { text, resourceNames };
 }
 
 /**
@@ -594,6 +611,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
     {
       value,
       onChange,
+      onResourceNamesChange,
       onKeyDown,
       placeholder = "What do you want to do?",
       disabled = false,
@@ -705,7 +723,19 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       ],
       content: value,
       editable: !disabled,
-      onUpdate: ({ editor }) => onChange(getTextWithResourceURIs(editor)),
+      onUpdate: ({ editor }) => {
+        // Extract text and resource names, notify parent - editor is the source of truth for user input
+        const { text, resourceNames } = getTextWithResourceURIs(editor);
+        // Only update the value prop if it's different from what we're about to set
+        // This prevents unnecessary updates that could trigger syncing and replace mention nodes
+        if (text !== value) {
+          onChange(text);
+        }
+        if (onResourceNamesChange) {
+          // Merge with existing state to preserve resource names that might not be in current editor state
+          onResourceNamesChange((prev) => ({ ...prev, ...resourceNames }));
+        }
+      },
       editorProps: {
         attributes: {
           class: cn(
@@ -836,12 +866,33 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
     }, [editor]);
 
     // Sync external value changes and disabled state with editor
+    // Only sync when value changes externally (not from our own onUpdate)
+    // We track the last value we set to distinguish external vs internal changes
+    const lastSyncedValueRef = React.useRef<string>(value);
+
     React.useEffect(() => {
       if (!editor) return;
-      const currentText = getTextWithResourceURIs(editor);
-      if (value !== currentText) {
+
+      const { text: currentText } = getTextWithResourceURIs(editor);
+
+      // Only sync if:
+      // 1. Value is different from what's in the editor, AND
+      // 2. Value is different from what we last synced (meaning it's an external change)
+      // This prevents syncing when our own onUpdate updates the value prop
+      // IMPORTANT: If value === currentText, don't sync - this means the value prop
+      // is just the serialized form of what's already in the editor (with mention nodes),
+      // and syncing would replace the mention nodes with plain text
+      if (value !== currentText && value !== lastSyncedValueRef.current) {
+        // External value change - sync it to editor
         editor.commands.setContent(value);
+        lastSyncedValueRef.current = value;
+      } else if (value === currentText) {
+        // Value matches editor content - update our tracking but don't sync
+        // (editor already has the right content with mention nodes)
+        lastSyncedValueRef.current = value;
       }
+      // If value === currentText, we don't sync - editor already has the right content
+
       editor.setEditable(!disabled);
     }, [editor, value, disabled]);
 
