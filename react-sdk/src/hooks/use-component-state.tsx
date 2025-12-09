@@ -64,15 +64,10 @@ export function useTamboComponentState<S>(
   const componentId = useContext(InteractableIdContext);
   const { setInteractableState, getInteractableComponentState } =
     useTamboInteractable();
-  const isInteractable = componentId !== null;
-  const hasMessage = message !== null;
   const messageState = message?.componentState?.[keyName];
-
-  // If in interactable context, check interactable state first, then message state, then initial value
-  const interactableState =
-    isInteractable && componentId
-      ? getInteractableComponentState(componentId)?.[keyName]
-      : undefined;
+  const interactableState = componentId
+    ? getInteractableComponentState(componentId)?.[keyName]
+    : undefined;
   const initialState =
     (interactableState as S) ?? (messageState as S) ?? initialValue;
   const [localState, setLocalState] = useState<S | undefined>(initialState);
@@ -117,12 +112,10 @@ export function useTamboComponentState<S>(
   const setValue = useCallback(
     (newState: S) => {
       setLocalState(newState);
-      // Update interactable provider state (sent to Tambo on every request) only if in interactable context
-      if (isInteractable && componentId) {
+      if (componentId) {
         setInteractableState(componentId, keyName, newState);
       }
-      // Update message componentState (for persistence) only if in a message context
-      if (hasMessage && message) {
+      if (message) {
         void updateLocalThreadMessage(newState, message);
         void updateRemoteThreadMessage(newState, message);
       }
@@ -134,14 +127,12 @@ export function useTamboComponentState<S>(
       setInteractableState,
       componentId,
       keyName,
-      isInteractable,
-      hasMessage,
     ],
   );
 
   // Set initial value in interactable state if we're in an interactable context and there's no existing state
   useEffect(() => {
-    if (!isInteractable || !componentId) {
+    if (!componentId) {
       return;
     }
 
@@ -154,7 +145,6 @@ export function useTamboComponentState<S>(
       setInteractableState(componentId, keyName, initialValue);
     }
   }, [
-    isInteractable,
     componentId,
     keyName,
     initialValue,
@@ -165,7 +155,7 @@ export function useTamboComponentState<S>(
 
   // Mirror the thread message's componentState value to the local state and interactable state
   useEffect(() => {
-    if (!hasMessage || !message) {
+    if (!message) {
       return;
     }
     const messageState = message.componentState?.[keyName];
@@ -175,8 +165,7 @@ export function useTamboComponentState<S>(
     setInitializedFromThreadMessage(true);
     const stateValue = message.componentState?.[keyName] as S;
     setLocalState(stateValue);
-    // Update interactable state only if in interactable context
-    if (isInteractable && componentId) {
+    if (componentId) {
       setInteractableState(componentId, keyName, stateValue);
     }
   }, [
@@ -185,8 +174,6 @@ export function useTamboComponentState<S>(
     keyName,
     setInteractableState,
     componentId,
-    isInteractable,
-    hasMessage,
   ]);
 
   // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
