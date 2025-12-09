@@ -475,7 +475,7 @@ function InlineEditor() {
 The hook returns an object with:
 
 - `id` - Unique identifier for this interactable component instance
-- `name` - The component name (from `InteractableConfig.componentName`)
+- `componentName` - The component name (from `InteractableConfig.componentName`)
 - `description` - The component description (from `InteractableConfig.description`)
 
 **How it works**: When you wrap a component with `withInteractable`, it automatically provides a `TamboInteractableComponentProvider` that makes this context available to all child components.
