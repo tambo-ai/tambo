@@ -364,7 +364,7 @@ describe("buildMessageContent", () => {
       ]);
     });
 
-    it("should parse consecutive resource references with space separator (whitespace skipped)", () => {
+    it("should preserve whitespace between consecutive resource references", () => {
       const result = buildMessageContent(
         "@tambo-1hfs429:tambo:test://static/resource/1 @tambo-1hfs429:tambo:test://static/resource/2",
         [],
@@ -377,6 +377,10 @@ describe("buildMessageContent", () => {
           resource: {
             uri: "tambo:test://static/resource/1",
           },
+        },
+        {
+          type: "text",
+          text: " ",
         },
         {
           type: "resource",
@@ -449,7 +453,7 @@ describe("buildMessageContent", () => {
       ]);
     });
 
-    it("should parse resources with various URI formats", () => {
+    it("should parse resources with various URI formats and preserve whitespace", () => {
       const result = buildMessageContent(
         "@server1:file:///path/to/file.txt @server2:https://example.com/doc.pdf @server3:s3://bucket/key.json",
         [],
@@ -464,10 +468,18 @@ describe("buildMessageContent", () => {
           },
         },
         {
+          type: "text",
+          text: " ",
+        },
+        {
           type: "resource",
           resource: {
             uri: "https://example.com/doc.pdf",
           },
+        },
+        {
+          type: "text",
+          text: " ",
         },
         {
           type: "resource",
@@ -767,7 +779,7 @@ describe("buildMessageContent", () => {
       ]);
     });
 
-    it("should skip whitespace-only text between consecutive resources", () => {
+    it("should preserve multiple whitespace characters between consecutive resources", () => {
       const result = buildMessageContent(
         "@tambo-1hfs429:tambo:test://static/resource/1   @tambo-1hfs429:tambo:test://static/resource/2",
         [],
@@ -780,6 +792,10 @@ describe("buildMessageContent", () => {
           resource: {
             uri: "tambo:test://static/resource/1",
           },
+        },
+        {
+          type: "text",
+          text: "   ",
         },
         {
           type: "resource",

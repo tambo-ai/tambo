@@ -43,10 +43,10 @@ function parseResourceReferences(
     const [fullMatch, serverKey, uri] = match;
     const fullId = `${serverKey}:${uri}`;
 
-    // Add text before this resource reference
+    // Add text before this resource reference (preserve whitespace)
     if (match.index !== undefined && match.index > lastIndex) {
       const textBefore = text.slice(lastIndex, match.index);
-      if (textBefore.trim()) {
+      if (textBefore.length > 0) {
         parts.push({
           type: "text",
           text: textBefore,
@@ -66,10 +66,10 @@ function parseResourceReferences(
     }
   }
 
-  // Add remaining text after the last resource reference
+  // Add remaining text after the last resource reference (preserve whitespace)
   if (lastIndex < text.length) {
     const textAfter = text.slice(lastIndex);
-    if (textAfter.trim()) {
+    if (textAfter.length > 0) {
       parts.push({
         type: "text",
         text: textAfter,
