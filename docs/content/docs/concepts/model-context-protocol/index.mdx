@@ -39,9 +39,10 @@ Tambo supports two ways to connect to MCP servers:
 
 > **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
 
-When more than one MCP server is configured, Tambo prefixes names using `serverKey` to avoid collisions:
+Tambo **always prefixes** prompts, resources, and tools with the `serverKey` to identify which MCP server they come from:
 
 - Prompts: `serverKey:promptName`
+- Resources: `serverKey:serverSidePrefix:resourceUri` (server-side) or `serverKey:resourceUri` (client-side)
 - Tools: `serverKey__toolName`
 
-If you don't specify `serverKey`, Tambo derives one from the server URL hostname (for example, `https://mcp.linear.app/mcp` becomes `linear`). For predictable behavior across environments, set `serverKey` explicitly. Avoid `:` and `__` in the `serverKey` (since prompts use `:` and tools use `__` as separators); prefer letters, numbers, `_`, and `-`. With a single MCP server, names are not prefixed.
+If you don't specify `serverKey`, Tambo derives one from the server URL hostname (for example, `https://mcp.linear.app/mcp` becomes `linear`). For predictable behavior across environments, set `serverKey` explicitly. Avoid `:` and `__` in the `serverKey` (since prompts/resources use `:` and tools use `__` as separators); prefer letters, numbers, `_`, and `-`.
