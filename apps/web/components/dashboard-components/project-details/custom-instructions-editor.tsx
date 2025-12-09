@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { EditableHint } from "@/components/ui/editable-hint";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { EditWithTambo } from "@/components/ui/tambo/edit-with-tambo";
@@ -239,12 +238,10 @@ export function CustomInstructionsEditor({
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           Custom Instructions
-          <EditableHint
+          <EditWithTambo
+            description="Edit custom instructions and system prompt override settings"
             suggestions={customInstructionsEditorSuggestions}
-            description="Click to know more about how to manage the custom instructions for this project"
-            componentName={COMPONENT_NAME}
           />
-          <EditWithTambo description="Edit custom instructions and system prompt override settings" />
         </CardTitle>
       </CardHeader>
       <CardContent>

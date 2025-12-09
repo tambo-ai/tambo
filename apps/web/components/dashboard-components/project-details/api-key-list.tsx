@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { EditableHint } from "@/components/ui/editable-hint";
+import { EditWithTambo } from "@/components/ui/tambo/edit-with-tambo";
 import { Input } from "@/components/ui/input";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useToast } from "@/hooks/use-toast";
@@ -309,10 +309,9 @@ export function APIKeyList({
           <div className="flex items-center gap-2">
             <h4 className="text-lg font-semibold">
               API Keys
-              <EditableHint
+              <EditWithTambo
                 suggestions={apiKeyListSuggestions}
-                description="Click to know more about how to manage API keys"
-                componentName={COMPONENT_NAME}
+                description="Manage API keys for this project. You can add, delete, and generate new API keys."
               />
             </h4>
           </div>

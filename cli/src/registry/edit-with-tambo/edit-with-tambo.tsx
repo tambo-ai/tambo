@@ -2,7 +2,11 @@
 
 import { MessageGenerationStage } from "@/components/tambo/message-generation-stage";
 import { cn } from "@/lib/utils";
-import { useTambo, useTamboInteractableComponent } from "@tambo-ai/react";
+import {
+  type Suggestion,
+  useTambo,
+  useTamboInteractableComponent,
+} from "@tambo-ai/react";
 import type { Editor } from "@tiptap/react";
 import { Bot, ChevronDown, X, XCircle } from "lucide-react";
 import * as React from "react";
@@ -29,6 +33,8 @@ export interface EditWithTamboProps {
    * own wrapper or see apps/web/components/ui/tambo/edit-with-tambo.tsx for reference.
    */
   editorRef?: React.MutableRefObject<Editor | null>;
+  /** Optional suggestions to display when using "Send in Thread" */
+  suggestions?: Suggestion[];
 }
 
 /**

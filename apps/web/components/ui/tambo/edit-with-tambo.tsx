@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import {
+  type Suggestion,
   useTambo,
   useTamboContextAttachment,
   useTamboInteractableComponent,
@@ -25,6 +26,8 @@ export interface EditWithTamboProps {
   className?: string;
   /** Optional callback to open the thread panel/chat interface. Uses useMessageThreadPanel by default if not provided */
   onOpenThread?: () => void;
+  /** Optional suggestions to display when using "Send in Thread" */
+  suggestions?: Suggestion[];
 }
 
 /**
@@ -56,11 +59,13 @@ export function EditWithTambo({
   description,
   className,
   onOpenThread: onOpenThreadProp,
+  suggestions,
 }: EditWithTamboProps) {
   const component = useTamboInteractableComponent();
   const { sendThreadMessage, isIdle } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
-  const { addContextAttachment } = useTamboContextAttachment();
+  const { addContextAttachment, setCustomSuggestions } =
+    useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
   const [isPending, setIsPending] = useState(false);
@@ -254,6 +259,11 @@ export function EditWithTambo({
     // which are specific to our apps/web setup. The CLI registry version uses
     // simple text insertion to remain portable across different editor setups.
 
+    // Set custom suggestions if available
+    if (suggestions) {
+      setCustomSuggestions(suggestions);
+    }
+
     // Add the component as a context attachment
     addContextAttachment({
       name: component.componentName,
@@ -304,6 +314,8 @@ export function EditWithTambo({
     prompt,
     component.id,
     component.componentName,
+    suggestions,
+    setCustomSuggestions,
     addContextAttachment,
     onOpenThread,
     editorRef,

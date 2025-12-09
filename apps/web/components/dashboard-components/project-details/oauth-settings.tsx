@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EditableHint } from "@/components/ui/editable-hint";
+import { EditWithTambo } from "@/components/ui/tambo/edit-with-tambo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -342,10 +342,9 @@ export function OAuthSettings({
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           OAuth Token Validation
-          <EditableHint
+          <EditWithTambo
             suggestions={oauthSettingsSuggestions}
-            description="Click to know more about how to manage token required for this project"
-            componentName={COMPONENT_NAME}
+            description="Manage OAuth token validation settings for this project."
           />
         </CardTitle>
         <p className="text-sm font-sans text-foreground">

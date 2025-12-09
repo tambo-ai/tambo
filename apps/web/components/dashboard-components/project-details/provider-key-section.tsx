@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
-import { EditableHint } from "@/components/ui/editable-hint";
+import { EditWithTambo } from "@/components/ui/tambo/edit-with-tambo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -1006,10 +1006,9 @@ export function ProviderKeySectionBase({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">
             LLM Providers
-            <EditableHint
+            <EditWithTambo
               suggestions={providerKeySectionSuggestions}
-              description="Click to know more about how to manage the LLM provider for this project"
-              componentName={COMPONENT_NAME}
+              description="Manage LLM providers for this project. Edit the provider and model, set the API key, and more."
             />
           </CardTitle>
           {hasActualChanges && (
