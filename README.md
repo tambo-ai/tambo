@@ -22,6 +22,9 @@
 
 ## What is Tambo?
 
+[![Run in Smithery](https://smithery.ai/badge/skills/tambo-ai)](https://smithery.ai/skills?ns=tambo-ai&utm_source=github&utm_medium=badge)
+
+
 Tambo is a generative UI SDK for React. Register your components, and the AI decides which ones to render based on natural language conversations.
 
 https://github.com/user-attachments/assets/8381d607-b878-4823-8b24-ecb8053bef23
