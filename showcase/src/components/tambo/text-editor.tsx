@@ -158,14 +158,19 @@ const ResourceItemList = forwardRef<
           key={item.id}
           type="button"
           className={cn(
-            "flex items-center gap-2 px-3 py-2 text-sm rounded-md text-left",
+            "flex items-start gap-2 px-2 py-2 text-sm rounded-md text-left",
             "hover:bg-accent hover:text-accent-foreground transition-colors",
             index === selectedIndex && "bg-accent text-accent-foreground",
           )}
           onClick={() => command(item)}
         >
-          {item.icon ?? <Cuboid className="w-4 h-4 flex-shrink-0" />}
-          <span className="truncate">{item.name}</span>
+          {item.icon ?? <Cuboid className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+          <div className="flex-1 min-w-0">
+            <div className="font-medium truncate">{item.name}</div>
+            <div className="text-xs text-muted-foreground truncate font-mono">
+              {item.id}
+            </div>
+          </div>
         </button>
       ))}
     </div>
@@ -413,14 +418,19 @@ const PromptItemList = forwardRef<
           key={item.id}
           type="button"
           className={cn(
-            "flex items-center gap-2 px-3 py-2 text-sm rounded-md text-left",
+            "flex items-start gap-2 px-2 py-2 text-sm rounded-md text-left",
             "hover:bg-accent hover:text-accent-foreground transition-colors",
             index === selectedIndex && "bg-accent text-accent-foreground",
           )}
           onClick={() => command(item)}
         >
-          {item.icon ?? <FileText className="w-4 h-4 flex-shrink-0" />}
-          <span className="truncate">{item.name}</span>
+          {item.icon ?? <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+          <div className="flex-1 min-w-0">
+            <div className="font-medium truncate">{item.name}</div>
+            <div className="text-xs text-muted-foreground truncate">
+              {item.id}
+            </div>
+          </div>
         </button>
       ))}
     </div>
