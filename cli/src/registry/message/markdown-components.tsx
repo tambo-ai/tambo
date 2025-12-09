@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Copy, Check, ExternalLink } from "lucide-react";
+import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import DOMPurify from "dompurify";
+import { Check, Copy, ExternalLink } from "lucide-react";
+import * as React from "react";
 
 /**
  * Markdown Components for Streamdown
@@ -46,6 +46,22 @@ const looksLikeCode = (text: string): boolean => {
   ];
   return codeIndicators.some((pattern) => pattern.test(text));
 };
+
+/**
+ * Resource mention component that displays resource names.
+ * Matches the styling from text-editor.tsx mention components.
+ */
+function ResourceMention({ name, uri }: { name: string; uri: string }) {
+  return (
+    <span
+      className="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+      data-resource-uri={uri}
+      title={uri}
+    >
+      @{name}
+    </span>
+  );
+}
 
 /**
  * Header component for code blocks with language display and copy functionality
@@ -209,20 +225,55 @@ export const createMarkdownComponents = (): Record<
 
   /**
    * Anchor component for links
-   * Opens links in new tab with security attributes
-   * Includes hover underline effect
+   * Detects tambo-resource:// URIs and renders them as ResourceMention components.
+   * Regular links open in new tab with security attributes.
    */
-  a: ({ href, children }) => (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 text-foreground underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors"
-    >
-      <span>{children}</span>
-      <ExternalLink className="w-3 h-3" />
-    </a>
-  ),
+  a: ({ href, children }) => {
+    // Check if href uses tambo-resource:// protocol to signal it's a resource
+    if (href?.startsWith("tambo-resource://")) {
+      // Extract encoded URI (everything after tambo-resource://)
+      const encodedUri = href.slice("tambo-resource://".length);
+      // Decode the URI
+      let uri: string;
+      try {
+        uri = decodeURIComponent(encodedUri);
+      } catch {
+        // If decoding fails, use the encoded version as fallback
+        uri = encodedUri;
+      }
+      // Extract name from children (link text)
+      // Handle different children types (string, number, array, etc.)
+      let name: string;
+      if (typeof children === "string") {
+        name = children;
+      } else if (typeof children === "number") {
+        name = String(children);
+      } else if (Array.isArray(children)) {
+        // If children is an array, join string elements
+        name = children
+          .map((child) =>
+            typeof child === "string" ? child : String(child ?? ""),
+          )
+          .join("");
+      } else {
+        name = String(children ?? uri);
+      }
+      return <ResourceMention name={name || uri} uri={uri} />;
+    }
+
+    // Regular link rendering
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 text-foreground underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors"
+      >
+        <span>{children}</span>
+        <ExternalLink className="w-3 h-3" />
+      </a>
+    );
+  },
 
   /**
    * Horizontal rule component
