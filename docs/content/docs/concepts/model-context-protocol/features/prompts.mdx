@@ -17,6 +17,32 @@ Prompts are predefined text templates exposed by MCP servers that users can inse
 
 For example, a GitHub MCP server might provide prompts like "Create a detailed issue report" or "Review this pull request", which expand into well-structured templates when selected.
 
+## User Experience
+
+### Using the Prompts Button
+
+![Prompts Button](prompts-button.png)
+
+When prompts are available:
+
+1. A document icon (📄) appears in the message input area
+2. Clicking it opens a dropdown showing all available prompts
+3. Prompts are organized by MCP server
+4. Selecting a prompt inserts its content into the message input
+5. The user can then edit the prompt before sending
+
+### Using the "/" Hotkey
+
+In addition to the button, users can type "/" at the start of an empty text field to quickly access prompts:
+
+![Selecting a prompt with / hotkey](prompt-slash-selection.png)
+
+1. Type "/" at the beginning of an empty message input
+2. A dropdown appears showing all available prompts
+3. Type to filter prompts by name
+4. Use arrow keys to navigate and Enter to select
+5. The selected prompt text is inserted into the message input
+
 ## Prompt Naming
 
 Prompts are **always prefixed** with the `serverKey` to identify which MCP server they come from. The format is:
@@ -79,32 +105,6 @@ sequenceDiagram
     Tambo->>Browser: Prompt content
     Browser->>User: Insert prompt into input
 ```
-
-## User Experience
-
-### Using the Prompts Button
-
-![Prompts Button](prompts-button.png)
-
-When prompts are available:
-
-1. A document icon (📄) appears in the message input area
-2. Clicking it opens a dropdown showing all available prompts
-3. Prompts are organized by MCP server
-4. Selecting a prompt inserts its content into the message input
-5. The user can then edit the prompt before sending
-
-### Using the "/" Hotkey
-
-In addition to the button, users can type "/" at the start of an empty text field to quickly access prompts:
-
-![Selecting a prompt with / hotkey](prompt-slash-selection.png)
-
-1. Type "/" at the beginning of an empty message input
-2. A dropdown appears showing all available prompts
-3. Type to filter prompts by name
-4. Use arrow keys to navigate and Enter to select
-5. The selected prompt text is inserted into the message input
 
 ## Current Limitations
 

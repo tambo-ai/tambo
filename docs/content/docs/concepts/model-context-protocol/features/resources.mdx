@@ -17,6 +17,38 @@ Resources are data sources exposed by MCP servers that users can reference in th
 
 For example, a Linear MCP server might expose issues as resources (`linear:file://issue/TAM-123`), allowing users to reference specific issues in their conversations with the AI.
 
+## User Experience
+
+### Using the Resources Button
+
+![Resource button in message input](resource-button.png)
+
+When resources are available, an @ icon appears in the message input area. Click it to browse and select resources:
+
+![Browsing resources via button](resource-button-search.png)
+
+1. Click the @ button to open the resource picker
+2. A dropdown appears showing all available resources
+3. Resources are organized by MCP server
+4. Type to search and filter resources by name
+5. Select a resource to insert its reference into the message input
+
+### Using the "@" Mention
+
+Users can also type "@" directly in the message input to search for resources:
+
+![Searching resources with @ mention](resource-mention-search.png)
+
+1. Type "@" anywhere in the message input
+2. A dropdown appears showing all available resources
+3. Type to filter resources by name
+4. Use arrow keys to navigate and Enter to select
+5. The selected resource reference is inserted as `@resourceUri`
+
+After selecting a resource, it appears as a mention in the message:
+
+![Resource inserted via @ mention](resource-inserted-mention.png)
+
 ## Built-in Support
 
 The `message-input` component automatically supports resource selection and insertion from all connected MCP servers:
@@ -196,38 +228,6 @@ sequenceDiagram
     AI Provider->>Tambo API: Process with resource content
     Tambo API->>Browser: Display AI response
 ```
-
-## User Experience
-
-### Using the Resources Button
-
-![Resource button in message input](resource-button.png)
-
-When resources are available, an @ icon appears in the message input area. Click it to browse and select resources:
-
-![Browsing resources via button](resource-button-search.png)
-
-1. Click the @ button to open the resource picker
-2. A dropdown appears showing all available resources
-3. Resources are organized by MCP server
-4. Type to search and filter resources by name
-5. Select a resource to insert its reference into the message input
-
-### Using the "@" Mention
-
-Users can also type "@" directly in the message input to search for resources:
-
-![Searching resources with @ mention](resource-mention-search.png)
-
-1. Type "@" anywhere in the message input
-2. A dropdown appears showing all available resources
-3. Type to filter resources by name
-4. Use arrow keys to navigate and Enter to select
-5. The selected resource reference is inserted as `@resourceUri`
-
-After selecting a resource, it appears as a mention in the message:
-
-![Resource inserted via @ mention](resource-inserted-mention.png)
 
 ## Programmatic Access
 
