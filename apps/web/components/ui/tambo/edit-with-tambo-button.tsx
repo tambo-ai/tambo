@@ -1,19 +1,21 @@
 "use client";
 
-import { MessageGenerationStage } from "@/components/tambo/message-generation-stage";
+import { MessageGenerationStage } from "@/components/ui/tambo/message-generation-stage";
+import { hasExistingMention } from "@/components/ui/tambo/text-editor";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import {
   type Suggestion,
   useTambo,
+  useTamboContextAttachment,
   useTamboCurrentComponent,
 } from "@tambo-ai/react";
-import type { Editor } from "@tiptap/react";
 import { Bot, ChevronDown, X, XCircle } from "lucide-react";
-import * as React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-export interface EditWithTamboProps {
+export interface EditWithTamboButtonProps {
   /** Custom icon component */
   icon?: React.ReactNode;
   /** Custom tooltip text */
@@ -22,17 +24,8 @@ export interface EditWithTamboProps {
   description?: string;
   /** Optional className for the button */
   className?: string;
-  /** Optional callback to open the thread panel/chat interface */
+  /** Optional callback to open the thread panel/chat interface. Uses useMessageThreadPanel by default if not provided */
   onOpenThread?: () => void;
-  /**
-   * Optional TipTap editor ref for inserting text when using "Send in Thread"
-   *
-   * NOTE: This implementation uses simple text insertion (setContent) to remain
-   * portable across different editor setups. It does NOT use TipTap Mention nodes
-   * or context attachments. If you need those features, implement them in your
-   * own wrapper or see apps/web/components/ui/tambo/edit-with-tambo.tsx for reference.
-   */
-  editorRef?: React.MutableRefObject<Editor | null>;
   /** Optional suggestions to display when using "Send in Thread" */
   suggestions?: Suggestion[];
 }
@@ -54,23 +47,25 @@ export interface EditWithTamboProps {
  * function MyForm() {
  *   return (
  *     <div>
- *       <EditWithTambo />
+ *       <EditWithTamboButton />
  *     </div>
  *   );
  * }
  * ```
  */
-
-export function EditWithTambo({
+export function EditWithTamboButton({
   icon,
   tooltip = "Edit with tambo",
   description,
   className,
-  onOpenThread,
-  editorRef,
-}: EditWithTamboProps) {
+  onOpenThread: onOpenThreadProp,
+  suggestions,
+}: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle } = useTambo();
+  const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
+  const { addContextAttachment, setCustomSuggestions } =
+    useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
   const [isPending, setIsPending] = useState(false);
@@ -85,12 +80,16 @@ export function EditWithTambo({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const wasGeneratingRef = useRef(false);
 
+  const onOpenThread = useMemo(
+    () => onOpenThreadProp ?? (() => setThreadPanelOpen(true)),
+    [onOpenThreadProp, setThreadPanelOpen],
+  );
+  const isGenerating = !isIdle;
+
   // If no component, the current component is not an interactable - don't render.
   if (!component) {
     return null;
   }
-
-  const isGenerating = !isIdle;
 
   // Update popover position based on button position
   const updatePosition = useCallback(() => {
@@ -254,32 +253,76 @@ export function EditWithTambo({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // NOTE: This registry version uses simple text insertion for portability.
-    // It does NOT use TipTap Mention nodes or context attachments to avoid
-    // dependencies on specific editor configurations. Users can implement
-    // their own context system if needed.
+    // NOTE: This implementation uses TipTap Mention nodes and context attachments
+    // which are specific to our apps/web setup. The CLI registry version uses
+    // simple text insertion to remain portable across different editor setups.
 
-    // Open the thread panel if callback provided
-    if (onOpenThread) {
-      onOpenThread();
+    // Set custom suggestions if available
+    if (suggestions) {
+      setCustomSuggestions(suggestions);
     }
+
+    // Add the component as a context attachment
+    addContextAttachment({
+      name: component.componentName ?? "Unknown Component",
+    });
+
+    // Open the thread panel first
+    onOpenThread();
 
     // Clear the prompt and close the modal
     setPrompt("");
     setIsOpen(false);
 
-    // Insert text into the editor if editorRef is provided
-    if (editorRef?.current) {
-      setTimeout(() => {
-        const editor = editorRef.current;
-        if (editor) {
-          // Set the content of the editor
-          editor.commands.setContent(messageToInsert);
-          editor.commands.focus("end");
+    // Insert @mention + user query into the editor after panel opens
+    setTimeout(() => {
+      const editor = editorRef.current;
+      if (editor) {
+        // Check if mention already exists to avoid duplicates
+        if (
+          hasExistingMention(
+            editor,
+            component.componentName ?? "Unknown Component",
+          )
+        ) {
+          // If mention exists, just append the user query with a space before it
+          editor
+            .chain()
+            .focus("end")
+            .insertContent(" " + messageToInsert)
+            .run();
+        } else {
+          // Insert @mention + space + user query
+          editor
+            .chain()
+            .focus()
+            .insertContent([
+              {
+                type: "mention",
+                attrs: {
+                  id: component.interactableId,
+                  label: component.componentName,
+                },
+              },
+              {
+                type: "text",
+                text: " " + messageToInsert,
+              },
+            ])
+            .run();
         }
-      }, 150); // Wait for panel animation to complete
-    }
-  }, [prompt, onOpenThread, editorRef]);
+      }
+    }, 150); // Wait for panel animation to complete
+  }, [
+    prompt,
+    component.interactableId,
+    component.componentName,
+    suggestions,
+    setCustomSuggestions,
+    addContextAttachment,
+    onOpenThread,
+    editorRef,
+  ]);
 
   const handleMainAction = useCallback(() => {
     if (sendMode === "thread") {
@@ -390,24 +433,18 @@ export function EditWithTambo({
 
               {/* Prompt input */}
               <div className="space-y-3">
-                <textarea
+                <Textarea
                   ref={textareaRef}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Describe what you want to change..."
-                  className={cn(
-                    "w-full min-h-[80px] px-3 py-2 rounded-md",
-                    "bg-background border border-input",
-                    "text-sm placeholder:text-muted-foreground",
-                    "resize-none focus:outline-none focus:ring-2 focus:ring-ring",
-                    "disabled:opacity-50 disabled:cursor-not-allowed",
-                  )}
+                  className="min-h-[80px] resize-none"
                   disabled={isPending}
                 />
                 <div className="flex items-center justify-between">
                   {/* Helper text or generation status */}
-                  {isGenerating && onOpenThread ? (
+                  {isGenerating ? (
                     <div className="flex items-center gap-2">
                       <MessageGenerationStage className="px-0 py-0" />
                       <button

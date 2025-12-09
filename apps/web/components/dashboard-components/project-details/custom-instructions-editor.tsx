@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { EditWithTambo } from "@/components/ui/tambo/edit-with-tambo";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
@@ -238,7 +238,7 @@ export function CustomInstructionsEditor({
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           Custom Instructions
-          <EditWithTambo
+          <EditWithTamboButton
             description="Edit custom instructions and system prompt override settings"
             suggestions={customInstructionsEditorSuggestions}
           />

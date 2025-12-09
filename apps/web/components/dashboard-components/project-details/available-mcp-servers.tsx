@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EditWithTambo } from "@/components/ui/tambo/edit-with-tambo";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { api } from "@/trpc/react";
 import { AiProviderType } from "@tambo-ai-cloud/core";
 import type { Suggestion } from "@tambo-ai/react";
@@ -192,7 +192,7 @@ export function AvailableMcpServers({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">
             MCP Servers
-            <EditWithTambo
+            <EditWithTamboButton
               suggestions={availableMcpServersSuggestions}
               description="Manage MCP servers for this project. Add, edit, and delete MCP servers."
             />

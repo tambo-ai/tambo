@@ -8,9 +8,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { EditWithTambo } from "@/components/ui/tambo/edit-with-tambo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import type { Suggestion } from "@tambo-ai/react";
@@ -159,7 +159,7 @@ export function ToolCallLimitEditor({
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           Tool Call Limit
-          <EditWithTambo
+          <EditWithTamboButton
             suggestions={toolCallLimitEditorSuggestions}
             description="Manage the tool call limit for this project."
           />
