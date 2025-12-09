@@ -3,7 +3,9 @@
 export { useTamboComponentState } from "./hooks/use-component-state";
 export {
   TamboMessageProvider,
+  useTamboCurrentComponent,
   useTamboCurrentMessage,
+  type TamboCurrentComponent,
 } from "./hooks/use-current-message";
 export { useMessageImages, type StagedImage } from "./hooks/use-message-images";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
@@ -72,6 +74,7 @@ export {
 } from "./model/component-metadata";
 export {
   GenerationStage,
+  type InteractableMetadata,
   type TamboThreadMessage,
 } from "./model/generate-component-response";
 export { type TamboThread } from "./model/tambo-thread";
@@ -81,10 +84,6 @@ export type {
   TamboInteractableComponent as InteractableComponent,
   TamboInteractableContext,
 } from "./model/tambo-interactable";
-export {
-  useTamboInteractableComponent,
-  type TamboInteractableComponent,
-} from "./providers/hoc/tambo-interactable-component-context";
 export {
   withTamboInteractable as withInteractable,
   type InteractableConfig,

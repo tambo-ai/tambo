@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import {
   type Suggestion,
   useTambo,
-  useTamboInteractableComponent,
+  useTamboCurrentComponent,
 } from "@tambo-ai/react";
 import type { Editor } from "@tiptap/react";
 import { Bot, ChevronDown, X, XCircle } from "lucide-react";
@@ -79,7 +79,7 @@ export function EditWithTambo({
   onOpenThread,
   editorRef,
 }: EditWithTamboProps) {
-  const component = useTamboInteractableComponent();
+  const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle } = useTambo();
 
   const [prompt, setPrompt] = useState("");
@@ -238,9 +238,7 @@ export function EditWithTambo({
         streamResponse: true,
         additionalContext: {
           inlineEdit: {
-            componentId: component.id,
-            componentName: component.componentName,
-            description: component.description,
+            componentId: component.interactableId,
             instruction:
               "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
           },

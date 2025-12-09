@@ -9,7 +9,7 @@ import {
   type Suggestion,
   useTambo,
   useTamboContextAttachment,
-  useTamboInteractableComponent,
+  useTamboCurrentComponent,
 } from "@tambo-ai/react";
 import { Bot, ChevronDown, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -61,7 +61,7 @@ export function EditWithTambo({
   onOpenThread: onOpenThreadProp,
   suggestions,
 }: EditWithTamboProps) {
-  const component = useTamboInteractableComponent();
+  const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
   const { addContextAttachment, setCustomSuggestions } =
@@ -227,9 +227,7 @@ export function EditWithTambo({
         streamResponse: true,
         additionalContext: {
           inlineEdit: {
-            componentId: component.id,
-            componentName: component.componentName,
-            description: component.description,
+            componentId: component.interactableId,
             instruction:
               "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
           },
@@ -266,7 +264,7 @@ export function EditWithTambo({
 
     // Add the component as a context attachment
     addContextAttachment({
-      name: component.componentName,
+      name: component.componentName ?? "Unknown Component",
     });
 
     // Open the thread panel first
@@ -281,7 +279,12 @@ export function EditWithTambo({
       const editor = editorRef.current;
       if (editor) {
         // Check if mention already exists to avoid duplicates
-        if (hasExistingMention(editor, component.componentName)) {
+        if (
+          hasExistingMention(
+            editor,
+            component.componentName ?? "Unknown Component",
+          )
+        ) {
           // If mention exists, just append the user query with a space before it
           editor
             .chain()
@@ -297,7 +300,7 @@ export function EditWithTambo({
               {
                 type: "mention",
                 attrs: {
-                  id: component.id,
+                  id: component.interactableId,
                   label: component.componentName,
                 },
               },
@@ -312,7 +315,7 @@ export function EditWithTambo({
     }, 150); // Wait for panel animation to complete
   }, [
     prompt,
-    component.id,
+    component.interactableId,
     component.componentName,
     suggestions,
     setCustomSuggestions,

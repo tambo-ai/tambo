@@ -2,8 +2,9 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod/v3";
+import { TamboMessageProvider } from "../../hooks/use-current-message";
+import { TamboThreadMessage } from "../../model/generate-component-response";
 import { useTamboInteractable } from "../tambo-interactable-provider";
-import { TamboInteractableComponentProvider } from "./tambo-interactable-component-context";
 
 export interface InteractableConfig {
   componentName: string;
@@ -111,21 +112,40 @@ export function withTamboInteractable<P extends object>(
       onPropsUpdate,
     ]);
 
-    // If the interactable ID is not yet set, render the component without the TamboInteractableComponentProvider.
+    // If the interactable ID is not yet set, render the component without provider
     if (!interactableId) {
       return <WrappedComponent {...(effectiveProps as P)} />;
     }
 
+    // Create a minimal message with interactable metadata
+    // This allows useTamboCurrentComponent to work with standalone interactable components
+    const minimalMessage: TamboThreadMessage = {
+      id: interactableId,
+      role: "assistant" as const,
+      content: [],
+      threadId: "",
+      createdAt: new Date().toISOString(),
+      component: {
+        componentName: config.componentName,
+        componentState: {},
+        message: "",
+        props: effectiveProps,
+      },
+      componentState: {},
+    };
+
+    // Wrap with TamboMessageProvider including interactable metadata
     return (
-      <TamboInteractableComponentProvider
-        component={{
+      <TamboMessageProvider
+        message={minimalMessage}
+        interactableMetadata={{
           id: interactableId,
           componentName: config.componentName,
           description: config.description,
         }}
       >
         <WrappedComponent {...(effectiveProps as P)} />
-      </TamboInteractableComponentProvider>
+      </TamboMessageProvider>
     );
   };
 

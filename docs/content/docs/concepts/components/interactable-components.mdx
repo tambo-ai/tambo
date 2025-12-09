@@ -440,123 +440,239 @@ These tools enable the AI to discover what's on the page and perform targeted up
 
 ## Accessing Component Context from Child Components
 
-When building child components inside an interactable (like inline editors or custom controls), use `useTamboInteractableComponent` to access the parent component's metadata.
+When building child components inside an interactable (like inline editors, toolbars, or custom controls), use `useTamboCurrentComponent` to access the parent component's metadata.
 
-### useTamboInteractableComponent
+<Callout title="Related Hooks">
 
-Returns the current interactable component context or `null` if used outside an interactable component.
+- [`useTamboCurrentComponent`](/api-reference/react-hooks#usetambocurrentcomponent) - Access component metadata (this guide)
+- [`useTamboCurrentMessage`](/api-reference/react-hooks#usetambocurrentmessage) - Access full message object with component and thread data
 
-<Callout type="warn" title="Only Works Inside Interactables">
-
-This hook **ONLY** works when used inside a component that has been wrapped with `withInteractable`. It will return `null` if used anywhere else in your component tree.
+Use `useTamboCurrentComponent` when you only need component information. Use `useTamboCurrentMessage` when you need the complete message context, including thread ID, timestamps, and component state.
 
 </Callout>
 
-```tsx
-import { useTamboInteractableComponent } from "@tambo-ai/react";
+### useTamboCurrentComponent
 
-// This component MUST be rendered inside an interactable component
+The `useTamboCurrentComponent` hook provides access to component metadata from any nested child component. It works seamlessly with both inline rendered components and interactable components.
+
+```tsx
+import { useTamboCurrentComponent } from "@tambo-ai/react";
+
 function InlineEditor() {
-  const component = useTamboInteractableComponent();
+  const component = useTamboCurrentComponent();
 
   if (!component) {
-    return null; // Not inside an interactable component
+    return null; // Not inside a component context
   }
 
   return (
-    <div>
-      <p>Editing: {component.name}</p>
-      <p>Component ID: {component.id}</p>
+    <div className="inline-editor">
+      <h4>Editing: {component.componentName}</h4>
+      {component.interactableId && (
+        <span className="badge">ID: {component.interactableId}</span>
+      )}
+      {component.description && (
+        <p className="description">{component.description}</p>
+      )}
     </div>
   );
 }
 ```
 
-The hook returns an object with:
+#### Return Value
 
-- `id` - Unique identifier for this interactable component instance
-- `componentName` - The component name (from `InteractableConfig.componentName`)
-- `description` - The component description (from `InteractableConfig.description`)
+The hook returns an object with the following fields, or `null` if used outside a component context:
 
-**How it works**: When you wrap a component with `withInteractable`, it automatically provides a `TamboInteractableComponentProvider` that makes this context available to all child components.
+| Field            | Type                               | Description                                              |
+| ---------------- | ---------------------------------- | -------------------------------------------------------- |
+| `componentName`  | `string \| undefined`              | The component's registered name                          |
+| `props`          | `Record<string, any> \| undefined` | The component's current props                            |
+| `interactableId` | `string \| undefined`              | Unique identifier (only for interactable components)     |
+| `description`    | `string \| undefined`              | Component description (only for interactable components) |
 
-### Common Use Cases
+#### How It Works
 
-**Inline Editors**: Display which component is being edited
+When you wrap a component with `withInteractable`, it automatically creates a `TamboMessageProvider` that makes component metadata available to all child components. This means any component nested inside can access the parent's context using this hook.
 
-```tsx
-// Child component using the hook
-function ComponentEditor() {
-  const component = useTamboInteractableComponent();
+### Usage Patterns
 
-  return (
-    <div className="editor">
-      <h3>Editing {component?.name}</h3>
-      {/* Editor controls here */}
-    </div>
-  );
-}
+#### Pattern 1: Inline Editor with Component Context
 
-// Parent interactable component
-const InteractableNote = withInteractable(Note, {
-  componentName: "Note",
-  description: "A note component",
-  propsSchema: noteSchema,
-});
-
-function Note({ title, content }) {
-  return (
-    <div>
-      <h3>{title}</h3>
-      <p>{content}</p>
-      <ComponentEditor /> {/* ✓ Hook works here */}
-    </div>
-  );
-}
-```
-
-**Context-Aware Actions**: Pass component ID to update APIs
+Build an inline editor that automatically adapts to the component it's embedded in:
 
 ```tsx
-function QuickActions() {
-  const component = useTamboInteractableComponent();
+import { useTambo, useTamboCurrentComponent } from "@tambo-ai/react";
+import { useState } from "react";
 
-  const handleDelete = async () => {
-    if (component) {
-      await deleteComponent(component.id);
-    }
-  };
-
-  return <button onClick={handleDelete}>Delete</button>;
-}
-
-// Use inside an interactable:
-function Note({ title, content }) {
-  return (
-    <div>
-      <h3>{title}</h3>
-      <p>{content}</p>
-      <QuickActions /> {/* ✓ Can access component.id */}
-    </div>
-  );
-}
-```
-
-**Conditional Rendering**: Show different UI based on component type
-
-```tsx
-function ComponentBadge() {
-  const component = useTamboInteractableComponent();
+function InlineAIEditor() {
+  const component = useTamboCurrentComponent();
+  const { sendThreadMessage } = useTambo();
+  const [prompt, setPrompt] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
   if (!component) return null;
 
-  const badgeColor = component.name === "Note" ? "blue" : "gray";
+  const handleEdit = async () => {
+    await sendThreadMessage(prompt, {
+      additionalContext: {
+        inlineEdit: {
+          componentId: component.interactableId,
+          componentName: component.componentName,
+          description: component.description,
+          currentProps: component.props,
+        },
+      },
+    });
+    setPrompt("");
+    setIsEditing(false);
+  };
 
-  return <Badge color={badgeColor}>{component.name}</Badge>;
+  return (
+    <div className="inline-editor">
+      {!isEditing ? (
+        <button onClick={() => setIsEditing(true)}>✨ Edit with AI</button>
+      ) : (
+        <div className="editor-form">
+          <input
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder={`Edit ${component.componentName}...`}
+          />
+          <button onClick={handleEdit}>Apply</button>
+          <button onClick={() => setIsEditing(false)}>Cancel</button>
+        </div>
+      )}
+    </div>
+  );
 }
 
-// Must be rendered inside an interactable component tree
+// Use in any interactable component:
+const InteractableCard = withInteractable(Card, {
+  componentName: "Card",
+  description: "A card component with title and content",
+  propsSchema: cardSchema,
+});
+
+function Card({ title, content }) {
+  return (
+    <div className="card">
+      <h3>{title}</h3>
+      <p>{content}</p>
+      <InlineAIEditor /> {/* Automatically knows it's in a Card */}
+    </div>
+  );
+}
 ```
+
+#### Pattern 2: Component-Aware Toolbar
+
+Create a reusable toolbar that adapts based on the component it's in:
+
+```tsx
+import { useTamboCurrentComponent } from "@tambo-ai/react";
+
+function ComponentToolbar() {
+  const component = useTamboCurrentComponent();
+
+  if (!component?.interactableId) {
+    return null; // Only show for interactable components
+  }
+
+  const handleDuplicate = () => {
+    // Use component.props to create a duplicate
+    console.log("Duplicating", component.componentName, component.props);
+  };
+
+  const handleDelete = () => {
+    // Use component.interactableId to delete
+    console.log("Deleting", component.interactableId);
+  };
+
+  return (
+    <div className="toolbar">
+      <span className="component-name">{component.componentName}</span>
+      <button onClick={handleDuplicate}>Duplicate</button>
+      <button onClick={handleDelete}>Delete</button>
+    </div>
+  );
+}
+
+// Works in any interactable component without modifications
+function Note({ title, content }) {
+  return (
+    <div>
+      <ComponentToolbar />
+      <h3>{title}</h3>
+      <p>{content}</p>
+    </div>
+  );
+}
+```
+
+#### Pattern 3: Dynamic UI Based on Component State
+
+Show different controls based on the component's current props:
+
+```tsx
+import { useTamboCurrentComponent } from "@tambo-ai/react";
+
+function StatusBadge() {
+  const component = useTamboCurrentComponent();
+
+  if (!component?.props) return null;
+
+  // Access current props to show relevant UI
+  const status = component.props.status;
+  const priority = component.props.priority;
+
+  return (
+    <div className="status-bar">
+      {status && <Badge variant={status}>{status}</Badge>}
+      {priority && <PriorityIcon level={priority} />}
+      <span className="component-type">{component.componentName}</span>
+    </div>
+  );
+}
+
+const InteractableTask = withInteractable(Task, {
+  componentName: "Task",
+  description: "A task item",
+  propsSchema: z.object({
+    title: z.string(),
+    status: z.enum(["todo", "in-progress", "done"]),
+    priority: z.enum(["low", "medium", "high"]).optional(),
+  }),
+});
+
+function Task({ title, status, priority }) {
+  return (
+    <div className="task">
+      <StatusBadge /> {/* Automatically shows correct status */}
+      <h4>{title}</h4>
+    </div>
+  );
+}
+```
+
+### Key Concepts
+
+**When to Use `interactableId`**
+
+- Identifying specific component instances for updates/deletion
+- Tracking components across renders
+- API calls that need a unique identifier
+
+**When to Use `componentName`**
+
+- Conditional UI based on component type
+- Type-specific behaviors or styling
+- Component-type-aware suggestions
+
+**Accessing Props**
+
+- Always check if `component.props` exists before accessing
+- Props are read-only - use state or callbacks to modify
+- Useful for displaying current values or conditional logic
 
 ## Snapshot Hook: useCurrentInteractablesSnapshot
 

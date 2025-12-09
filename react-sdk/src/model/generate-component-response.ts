@@ -1,12 +1,24 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { ReactElement } from "react";
+import type { InteractableConfig } from "../providers/hoc/with-tambo-interactable";
+
+/**
+ * Metadata for interactable components.
+ * Used when a component is wrapped with withInteractable.
+ */
+export interface InteractableMetadata extends InteractableConfig {
+  /** Unique identifier for this interactable instance */
+  id: string;
+}
 
 /**
  * An extension of the TamboAI.Beta.Threads.ThreadMessage type that includes a
- * renderedComponent
+ * renderedComponent and optional interactable metadata
  */
 export interface TamboThreadMessage extends TamboAI.Beta.Threads.ThreadMessage {
   renderedComponent?: ReactElement | null;
+  /** Optional metadata for interactable components */
+  interactableMetadata?: InteractableMetadata;
 }
 
 export enum GenerationStage {
