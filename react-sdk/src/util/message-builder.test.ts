@@ -573,6 +573,31 @@ describe("buildMessageContent", () => {
       ]);
     });
 
+    it("should preserve newlines and spaces around resource references", () => {
+      const result = buildMessageContent(
+        "\n  @tambo-1hfs429:tambo:test://static/resource/1  text",
+        [],
+        {},
+      );
+
+      expect(result).toEqual([
+        {
+          type: "text",
+          text: "\n  ",
+        },
+        {
+          type: "resource",
+          resource: {
+            uri: "tambo:test://static/resource/1",
+          },
+        },
+        {
+          type: "text",
+          text: "  text",
+        },
+      ]);
+    });
+
     it("should parse resource-only message without text", () => {
       const result = buildMessageContent(
         "@tambo-1hfs429:tambo:test://static/resource/1",
