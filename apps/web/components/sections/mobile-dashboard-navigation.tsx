@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
@@ -23,17 +23,12 @@ import { siteConfig } from "@/lib/config";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import { api } from "@/trpc/react";
 import { track } from "@vercel/analytics";
-import {
-  BookOpen,
-  Bug,
-  Calendar,
-  LogOut,
-  Menu,
-  MessageSquare,
-} from "lucide-react";
+import { BookOpen, Bug, Calendar, LogOut, Menu } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
+import { Icons } from "../icons";
+import { cn } from "@/lib/utils";
 
 export function MobileDashboardNavigation() {
   const { data: session } = useSession();
@@ -85,7 +80,7 @@ export function MobileDashboardNavigation() {
         </Button>
       </DrawerTrigger>
       <DrawerContent>
-        <DrawerHeader className="px-6">
+        <DrawerHeader className="px-5">
           <DrawerTitle className="flex items-center gap-3">
             <Avatar className="h-8 w-8">
               <AvatarImage
@@ -123,22 +118,14 @@ export function MobileDashboardNavigation() {
           )}
         </DrawerHeader>
 
-        <div className="px-6 flex flex-col gap-2">
-          <a
-            href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
-            className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
-          >
-            <BookOpen className="h-4 w-4" />
-            Docs
-          </a>
-
+        <div className="px-2 flex flex-col">
           <a
             href={siteConfig.links.discord}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
           >
-            <MessageSquare className="h-4 w-4" />
+            <Icons.discord className="h-4 w-4" />
             Discord
           </a>
 
@@ -177,6 +164,16 @@ export function MobileDashboardNavigation() {
         </div>
 
         <DrawerFooter>
+          <a
+            href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "text-black rounded-md group",
+            )}
+          >
+            <BookOpen className="mr-2 h-4 w-4" />
+            Docs
+          </a>
           <Button
             onClick={handleLogout}
             variant="destructive"
