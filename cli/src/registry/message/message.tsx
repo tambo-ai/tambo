@@ -362,10 +362,6 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
 
     const markdownContent = React.useMemo(() => {
       const result = convertContentToMarkdown(contentToRender);
-      // Debug: log markdown content to verify resource links are generated correctly
-      if (result.includes("tambo-resource://")) {
-        console.log("Generated markdown with resource:", result);
-      }
       return result;
     }, [contentToRender]);
     const hasContent = React.useMemo(
