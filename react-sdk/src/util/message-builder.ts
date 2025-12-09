@@ -68,8 +68,12 @@ function parseResourceReferences(
 
     // Add the resource part (serverKey is stripped, only URI is sent)
     // Look up name from the provided map
+    // Try both fullId (serverKey:uri) and the original fullMatch (which includes @)
     const resource: { uri: string; name?: string } = { uri };
-    const name = resourceNames[fullId];
+    const name =
+      resourceNames[fullId] ||
+      resourceNames[fullMatch.slice(1)] || // Remove @ prefix
+      resourceNames[uri]; // Fallback to just URI (for single-server case)
     if (name) {
       resource.name = name;
     }

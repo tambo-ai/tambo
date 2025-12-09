@@ -50,15 +50,6 @@ export interface TamboThreadInputContextProps extends Omit<
    */
   setValue: (value: string) => void;
   /**
-   * Function to update the resource names map (URI -> name)
-   * @param resourceNames - Map of resource URIs to their display names, or a function that receives previous state and returns new state
-   */
-  setResourceNames: (
-    resourceNames:
-      | Record<string, string>
-      | ((prev: Record<string, string>) => Record<string, string>),
-  ) => void;
-  /**
    * Function to submit the current input value
    * @param options - Submission options
    */
@@ -67,6 +58,7 @@ export interface TamboThreadInputContextProps extends Omit<
     streamResponse?: boolean;
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
+    resourceNames?: Record<string, string>;
   }) => Promise<void>;
   /** Currently staged images */
   images: StagedImage[];
@@ -102,9 +94,6 @@ export const TamboThreadInputProvider: React.FC<
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
-  const [resourceNames, setResourceNames] = useState<Record<string, string>>(
-    {},
-  );
   const imageState = useMessageImages();
 
   const submit = useCallback(
@@ -113,11 +102,13 @@ export const TamboThreadInputProvider: React.FC<
       streamResponse,
       forceToolChoice,
       additionalContext,
+      resourceNames = {},
     }: {
       contextKey?: string;
       streamResponse?: boolean;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
+      resourceNames?: Record<string, string>;
     } = {}) => {
       // Validate text input if present
       if (inputValue?.trim()) {
@@ -209,18 +200,10 @@ export const TamboThreadInputProvider: React.FC<
         throw error;
       }
 
-      // Clear text and resource names after successful submission
+      // Clear text after successful submission
       setInputValue("");
-      setResourceNames({});
     },
-    [
-      inputValue,
-      resourceNames,
-      sendThreadMessage,
-      thread.id,
-      contextKey,
-      imageState,
-    ],
+    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
   );
 
   const {
@@ -235,7 +218,6 @@ export const TamboThreadInputProvider: React.FC<
     ...mutationState,
     value: inputValue,
     setValue: setInputValue,
-    setResourceNames,
     submit: submitAsync,
     images: imageState.images,
     addImage: imageState.addImage,
