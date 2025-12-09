@@ -14,6 +14,7 @@ import {
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { IoMenuSharp } from "react-icons/io5";
 
@@ -29,6 +30,8 @@ export function MobileDrawer({
   showDiscordButton: _showDiscordButton = false,
 }: MobileDrawerProps) {
   const { togglePanel } = useMessageThreadPanel();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
 
   return (
     <Drawer>
@@ -43,25 +46,11 @@ export function MobileDrawer({
               title="brand-logo"
               className="relative mr-6 flex items-center space-x-2"
             >
-              <Icons.logo
-                className="pl-4 h-6 w-auto"
-                aria-label={siteConfig.name}
-              />
+              <Icons.logo className="h-6 w-auto" aria-label={siteConfig.name} />
             </Link>
           </DrawerTitle>
         </DrawerHeader>
-        <div className="px-6 flex flex-col gap-2">
-          {showDashboardButton && (
-            <Link
-              href="/dashboard"
-              className={cn(
-                buttonVariants({ variant: "ghost" }),
-                "justify-start text-base w-full",
-              )}
-            >
-              Dashboard
-            </Link>
-          )}
+        <div className="px-2 flex font-semibold flex-col">
           <DrawerClose asChild>
             <Link
               href="/#pricing"
@@ -119,12 +108,23 @@ export function MobileDrawer({
           <a
             href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
             className={cn(
-              buttonVariants({ variant: "default" }),
-              "text-white rounded-full group",
+              buttonVariants({ variant: "outline" }),
+              "text-black rounded-md group",
             )}
           >
             Docs
           </a>
+          {showDashboardButton && (
+            <Link
+              href="/dashboard"
+              className={cn(
+                buttonVariants({ variant: "default" }),
+                "text-black rounded-md group",
+              )}
+            >
+              {isAuthenticated ? "Dashboard" : "Sign In"}
+            </Link>
+          )}
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
