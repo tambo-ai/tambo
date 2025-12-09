@@ -142,6 +142,7 @@ When using [server-side MCP connections](/concepts/model-context-protocol/provid
 4. The AI receives the full resource content in the conversation
 
 This approach is better for resources that:
+
 - Require server-side authentication (OAuth, API keys)
 - Are large or vary in size
 - Should be fetched at request time for freshness
@@ -156,6 +157,7 @@ When using [client-side MCP connections](/concepts/model-context-protocol/provid
 4. The AI receives the full resource content in the conversation
 
 This approach works well for resources that:
+
 - Are accessible from the browser
 - Don't require server-side authentication
 - Are reasonably sized (won't exceed token limits)
@@ -279,7 +281,11 @@ import { useTamboMcpResource } from "@tambo-ai/react/mcp";
 
 function ResourceContent({ resourceUri }: { resourceUri: string }) {
   // resourceUri should include the prefix(es) (e.g., "linear:file://issue/123")
-  const { data: resourceData, isLoading, error } = useTamboMcpResource(resourceUri);
+  const {
+    data: resourceData,
+    isLoading,
+    error,
+  } = useTamboMcpResource(resourceUri);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading resource</div>;
@@ -291,7 +297,9 @@ function ResourceContent({ resourceUri }: { resourceUri: string }) {
         <div key={idx}>
           {content.mimeType && <small>Type: {content.mimeType}</small>}
           {content.text && <pre>{content.text}</pre>}
-          {content.blob && <div>Binary content ({content.blob.length} bytes)</div>}
+          {content.blob && (
+            <div>Binary content ({content.blob.length} bytes)</div>
+          )}
         </div>
       ))}
     </div>
