@@ -1,8 +1,14 @@
 "use client";
 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { MessageGenerationStage } from "@/components/ui/tambo/message-generation-stage";
 import { hasExistingMention } from "@/components/ui/tambo/text-editor";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import {
@@ -13,7 +19,6 @@ import {
 } from "@tambo-ai/react";
 import { Bot, ChevronDown, X, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
 export interface EditWithTamboButtonProps {
   /** Custom icon component */
@@ -71,12 +76,9 @@ export function EditWithTamboButton({
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [showPopover, setShowPopover] = useState(false);
-  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
   const [sendMode, setSendMode] = useState<"send" | "thread">("send");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const wasGeneratingRef = useRef(false);
 
@@ -91,104 +93,7 @@ export function EditWithTamboButton({
     return null;
   }
 
-  // Update popover position based on button position
-  const updatePosition = useCallback(() => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      // getBoundingClientRect() gives viewport coordinates, which already account for
-      // all scroll containers. We only need to add window scroll to get document coordinates
-      setPopoverPosition({
-        top: rect.bottom + window.scrollY + 8, // 8px spacing below button
-        left: rect.left + window.scrollX,
-      });
-    }
-  }, []);
-
-  // Update position immediately when opening
-  useEffect(() => {
-    if (isOpen || showPopover) {
-      updatePosition();
-    }
-  }, [isOpen, showPopover, updatePosition]);
-
-  // Update position on scroll and resize
-  useEffect(() => {
-    if (!isOpen && !showPopover) return;
-
-    // Use requestAnimationFrame for smoother updates
-    let rafId: number;
-    const handleUpdate = () => {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-      rafId = requestAnimationFrame(() => {
-        updatePosition();
-      });
-    };
-
-    // Listen to scroll on window and all scrollable parents (capture phase)
-    // This catches scroll events from any scrollable container
-    window.addEventListener("scroll", handleUpdate, true);
-    window.addEventListener("resize", handleUpdate);
-
-    return () => {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-      window.removeEventListener("scroll", handleUpdate, true);
-      window.removeEventListener("resize", handleUpdate);
-    };
-  }, [isOpen, showPopover, updatePosition]);
-
-  // Focus textarea when popover opens
-  useEffect(() => {
-    if (isOpen && textareaRef.current) {
-      setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 100);
-    }
-  }, [isOpen]);
-
-  // Handle click outside to close
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-
-      // Don't close if clicking inside popover, button, or dropdown menu
-      if (
-        popoverRef.current?.contains(target) ||
-        buttonRef.current?.contains(target) ||
-        (target as Element).closest("[data-edit-with-tambo-menu]")
-      ) {
-        return;
-      }
-
-      setIsOpen(false);
-      setPrompt("");
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, setIsOpen, setPrompt]);
-
-  // Handle ESC key to close
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-        setPrompt("");
-      }
-    };
-
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, setIsOpen, setPrompt]);
-
-  // Close modal when generation completes
+  // Close popover when generation completes
   useEffect(() => {
     if (isGenerating) {
       wasGeneratingRef.current = true;
@@ -200,18 +105,6 @@ export function EditWithTamboButton({
     }
   }, [isGenerating, isPending]);
 
-  const handleMouseEnter = useCallback(() => {
-    updatePosition();
-    setShowPopover(true);
-  }, [updatePosition]);
-
-  const handleButtonClick = useCallback(() => {
-    setIsOpen(!isOpen);
-    if (!isOpen) {
-      setShowPopover(true);
-    }
-  }, [isOpen, setIsOpen]);
-
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isPending) {
       return;
@@ -219,7 +112,6 @@ export function EditWithTamboButton({
 
     setIsPending(true);
     setError(null);
-    setIsOpen(true);
 
     try {
       // Send the message with the interactable component in context
@@ -343,224 +235,185 @@ export function EditWithTamboButton({
   );
 
   return (
-    <>
-      <span className="inline-flex items-center">
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={handleButtonClick}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={() => setShowPopover(false)}
-          className={cn(
-            "inline-flex items-center justify-center ml-2 p-1 rounded-md",
-            "text-muted-foreground/60 hover:text-primary",
-            "hover:bg-accent transition-colors duration-200",
-            "cursor-pointer",
-            isOpen && "text-primary bg-accent",
-            className,
-          )}
-          aria-label={tooltip}
+    <TooltipProvider>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <Tooltip
+          content={
+            <div className="space-y-1">
+              <p className="font-medium">{tooltip}</p>
+              <p className="text-xs opacity-70 text-foreground">
+                {description ?? component.description}
+              </p>
+            </div>
+          }
+          side="bottom"
+          align="start"
+          className="bg-popover text-popover-foreground border shadow-md px-3 py-2 text-sm rounded-lg"
         >
-          {icon ?? <Bot className="h-3.5 w-3.5" />}
-        </button>
-      </span>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center justify-center ml-2 p-1 rounded-md",
+                "text-muted-foreground/60 hover:text-primary",
+                "hover:bg-accent transition-colors duration-200",
+                "cursor-pointer",
+                isOpen && "text-primary bg-accent",
+                className,
+              )}
+              aria-label={tooltip}
+            >
+              {icon ?? <Bot className="h-3.5 w-3.5" />}
+            </button>
+          </PopoverTrigger>
+        </Tooltip>
 
-      {/* Hover tooltip - rendered in portal */}
-      {showPopover &&
-        !isOpen &&
-        buttonRef.current &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className={cn(
-              "absolute z-9999",
-              "px-3 py-2 text-sm rounded-lg whitespace-nowrap",
-              "bg-popover text-popover-foreground border shadow-md",
-              "animate-in fade-in-0 zoom-in-95 duration-200",
-              "pointer-events-none",
-            )}
-            style={{
-              top: `${popoverPosition.top}px`,
-              left: `${popoverPosition.left}px`,
-            }}
-          >
-            <p className="font-medium">{tooltip}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {description ?? component.description}
-            </p>
-          </div>,
-          document.body,
-        )}
+        <PopoverContent
+          className="w-[450px] max-w-[calc(100vw-2rem)] p-4 space-y-4"
+          align="start"
+          side="bottom"
+          sideOffset={8}
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            textareaRef.current?.focus();
+          }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-sm">{tooltip}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {component.componentName}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                setPrompt("");
+              }}
+              className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground shrink-0"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-      {/* Floating popover - rendered in portal */}
-      {isOpen &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            ref={popoverRef}
-            className={cn(
-              "absolute z-9999",
-              "w-[450px] max-w-[calc(100vw-2rem)]",
-              "bg-popover text-popover-foreground border shadow-lg rounded-lg",
-              "animate-in fade-in-0 zoom-in-95 duration-200",
-            )}
-            style={{
-              top: `${popoverPosition.top}px`,
-              left: `${popoverPosition.left}px`,
-            }}
-          >
-            <div className="p-4 space-y-4">
-              {/* Header */}
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm">{tooltip}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {component.componentName}
-                  </p>
+          {/* Prompt input */}
+          <div className="space-y-3">
+            <Textarea
+              ref={textareaRef}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Describe what you want to change..."
+              className="min-h-[80px] resize-none"
+              disabled={isPending}
+            />
+            <div className="flex items-center justify-between">
+              {/* Helper text or generation status */}
+              {isGenerating ? (
+                <div className="flex items-center gap-2">
+                  <MessageGenerationStage className="px-0 py-0" />
+                  <button
+                    type="button"
+                    onClick={onOpenThread}
+                    className="text-xs text-primary hover:text-primary/80 underline transition-colors"
+                  >
+                    View in thread
+                  </button>
                 </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Cmd/Ctrl + Enter to send
+                </p>
+              )}
+              <div className="flex items-center">
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setPrompt("");
-                  }}
-                  className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground shrink-0"
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Prompt input */}
-              <div className="space-y-3">
-                <Textarea
-                  ref={textareaRef}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Describe what you want to change..."
-                  className="min-h-[80px] resize-none"
-                  disabled={isPending}
-                />
-                <div className="flex items-center justify-between">
-                  {/* Helper text or generation status */}
-                  {isGenerating ? (
-                    <div className="flex items-center gap-2">
-                      <MessageGenerationStage className="px-0 py-0" />
-                      <button
-                        type="button"
-                        onClick={onOpenThread}
-                        className="text-xs text-primary hover:text-primary/80 underline transition-colors"
-                      >
-                        View in thread
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      Cmd/Ctrl + Enter to send
-                    </p>
+                  onClick={handleMainAction}
+                  disabled={!prompt.trim() || isPending}
+                  className={cn(
+                    "h-9 px-3 text-sm font-medium",
+                    "bg-primary text-primary-foreground",
+                    "hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed",
+                    "transition-colors flex items-center gap-1",
+                    "rounded-l-md border-r border-primary-foreground/20",
                   )}
-                  <div className="flex items-center">
+                >
+                  {isPending && <>Sending...</>}
+                  {!isPending &&
+                    (sendMode === "thread" ? "Send in Thread" : "Send")}
+                </button>
+                <Popover open={dropdownOpen} onOpenChange={setDropdownOpen}>
+                  <PopoverTrigger asChild>
                     <button
                       type="button"
-                      onClick={handleMainAction}
                       disabled={!prompt.trim() || isPending}
                       className={cn(
-                        "h-9 px-3 text-sm font-medium",
+                        "h-9 px-2 text-sm font-medium",
                         "bg-primary text-primary-foreground",
                         "hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed",
-                        "transition-colors flex items-center gap-1",
-                        "rounded-l-md border-r border-primary-foreground/20",
+                        "transition-colors rounded-r-md",
+                        "flex items-center justify-center",
                       )}
                     >
-                      {isPending && <>Sending...</>}
-                      {!isPending &&
-                        (sendMode === "thread" ? "Send in Thread" : "Send")}
+                      <ChevronDown className="h-3 w-3" />
                     </button>
-                    <div className="relative inline-block">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const menu = e.currentTarget
-                            .nextElementSibling as HTMLElement;
-                          if (menu) {
-                            menu.classList.toggle("hidden");
-                          }
-                        }}
-                        disabled={!prompt.trim() || isPending}
-                        className={cn(
-                          "h-9 px-2 text-sm font-medium",
-                          "bg-primary text-primary-foreground",
-                          "hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed",
-                          "transition-colors rounded-r-md",
-                          "flex items-center justify-center",
-                        )}
-                      >
-                        <ChevronDown className="h-3 w-3" />
-                      </button>
-                      <div
-                        data-edit-with-tambo-menu
-                        className="hidden absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-popover text-popover-foreground border border-border z-50 p-1 animate-in fade-in-0 zoom-in-95 duration-100"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const menu = e.currentTarget.parentElement;
-                            if (menu) {
-                              menu.classList.add("hidden");
-                            }
-                            setSendMode("send");
-                          }}
-                          className={cn(
-                            "w-full px-2 py-1.5 text-left text-sm rounded-sm",
-                            "hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer",
-                            "focus:bg-accent focus:text-accent-foreground outline-none",
-                            sendMode === "send" &&
-                              "bg-accent text-accent-foreground",
-                          )}
-                        >
-                          Send
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const menu = e.currentTarget.parentElement;
-                            if (menu) {
-                              menu.classList.add("hidden");
-                            }
-                            setSendMode("thread");
-                          }}
-                          className={cn(
-                            "w-full px-2 py-1.5 text-left text-sm rounded-sm",
-                            "hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer",
-                            "focus:bg-accent focus:text-accent-foreground outline-none",
-                            sendMode === "thread" &&
-                              "bg-accent text-accent-foreground",
-                          )}
-                        >
-                          Send in Thread
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-40 p-1"
+                    align="end"
+                    side="bottom"
+                    sideOffset={4}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSendMode("send");
+                        setDropdownOpen(false);
+                      }}
+                      className={cn(
+                        "w-full px-2 py-1.5 text-left text-sm rounded-sm",
+                        "hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer",
+                        "focus:bg-accent focus:text-accent-foreground outline-none",
+                        sendMode === "send" &&
+                          "bg-accent text-accent-foreground",
+                      )}
+                    >
+                      Send
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSendMode("thread");
+                        setDropdownOpen(false);
+                      }}
+                      className={cn(
+                        "w-full px-2 py-1.5 text-left text-sm rounded-sm",
+                        "hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer",
+                        "focus:bg-accent focus:text-accent-foreground outline-none",
+                        sendMode === "thread" &&
+                          "bg-accent text-accent-foreground",
+                      )}
+                    >
+                      Send in Thread
+                    </button>
+                  </PopoverContent>
+                </Popover>
               </div>
-
-              {/* Error display */}
-              {error && (
-                <div className="p-2 rounded-md bg-destructive/10 text-destructive text-sm flex items-start gap-2">
-                  <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                  <span>{error.message}</span>
-                </div>
-              )}
             </div>
-          </div>,
-          document.body,
-        )}
-    </>
+          </div>
+
+          {/* Error display */}
+          {error && (
+            <div className="p-2 rounded-md bg-destructive/10 text-destructive text-sm flex items-start gap-2">
+              <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{error.message}</span>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+    </TooltipProvider>
   );
 }
