@@ -1,6 +1,6 @@
-import { buildMessageContent } from "./message-builder";
-import { StagedImage } from "../hooks/use-message-images";
 import type TamboAI from "@tambo-ai/typescript-sdk";
+import { StagedImage } from "../hooks/use-message-images";
+import { buildMessageContent } from "./message-builder";
 
 describe("buildMessageContent", () => {
   const createMockStagedImage = (
@@ -16,7 +16,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should build content with text only", () => {
-    const result = buildMessageContent("Hello world", []);
+    const result = buildMessageContent("Hello world", [], {});
 
     expect(result).toEqual([
       {
@@ -31,7 +31,7 @@ describe("buildMessageContent", () => {
       dataUrl: "data:image/png;base64,abc123",
     });
 
-    const result = buildMessageContent("", [image]);
+    const result = buildMessageContent("", [image], {});
 
     expect(result).toEqual([
       {
@@ -55,7 +55,7 @@ describe("buildMessageContent", () => {
       }),
     ];
 
-    const result = buildMessageContent("Check these images:", images);
+    const result = buildMessageContent("Check these images:", images, {});
 
     expect(result).toEqual([
       {
@@ -78,7 +78,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should trim whitespace from text", () => {
-    const result = buildMessageContent("  Hello world  ", []);
+    const result = buildMessageContent("  Hello world  ", [], {});
 
     expect(result).toEqual([
       {
@@ -90,7 +90,7 @@ describe("buildMessageContent", () => {
 
   it("should skip empty text but keep images", () => {
     const image = createMockStagedImage();
-    const result = buildMessageContent("   ", [image]);
+    const result = buildMessageContent("   ", [image], {});
 
     expect(result).toEqual([
       {
@@ -121,7 +121,7 @@ describe("buildMessageContent", () => {
       }),
     ];
 
-    const result = buildMessageContent("Multiple images:", images);
+    const result = buildMessageContent("Multiple images:", images, {});
 
     expect(result).toHaveLength(4); // 1 text + 3 images
     expect(result[0]).toEqual({
@@ -150,19 +150,19 @@ describe("buildMessageContent", () => {
 
   it("should throw error when no content provided", () => {
     expect(() => {
-      buildMessageContent("", []);
+      buildMessageContent("", [], {});
     }).toThrow("Message must contain text or images");
   });
 
   it("should throw error when only whitespace provided", () => {
     expect(() => {
-      buildMessageContent("   \n\t  ", []);
+      buildMessageContent("   \n\t  ", [], {});
     }).toThrow("Message must contain text or images");
   });
 
   it("should return correct content type structure", () => {
     const image = createMockStagedImage();
-    const result = buildMessageContent("Test", [image]);
+    const result = buildMessageContent("Test", [image], {});
 
     // Verify the structure matches ChatCompletionContentPart interface
     result.forEach((part: TamboAI.Beta.Threads.ChatCompletionContentPart) => {
@@ -183,7 +183,7 @@ describe("buildMessageContent", () => {
   });
 
   it("should handle edge case with empty array but valid text", () => {
-    const result = buildMessageContent("Just text", []);
+    const result = buildMessageContent("Just text", [], {});
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
@@ -204,7 +204,7 @@ describe("buildMessageContent", () => {
       }),
     ];
 
-    const result = buildMessageContent("Text content", images);
+    const result = buildMessageContent("Text content", images, {});
 
     expect(result[0].type).toBe("text");
     expect(result[1].type).toBe("image_url");

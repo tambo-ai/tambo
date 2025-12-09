@@ -10,7 +10,7 @@ import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
-import { useMessageImages, StagedImage } from "../hooks/use-message-images";
+import { StagedImage, useMessageImages } from "../hooks/use-message-images";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
@@ -49,6 +49,15 @@ export interface TamboThreadInputContextProps extends Omit<
    * @param value - New value for the input field
    */
   setValue: (value: string) => void;
+  /**
+   * Function to update the resource names map (URI -> name)
+   * @param resourceNames - Map of resource URIs to their display names, or a function that receives previous state and returns new state
+   */
+  setResourceNames: (
+    resourceNames:
+      | Record<string, string>
+      | ((prev: Record<string, string>) => Record<string, string>),
+  ) => void;
   /**
    * Function to submit the current input value
    * @param options - Submission options
@@ -93,6 +102,9 @@ export const TamboThreadInputProvider: React.FC<
 > = ({ children, contextKey }) => {
   const { thread, sendThreadMessage } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
+  const [resourceNames, setResourceNames] = useState<Record<string, string>>(
+    {},
+  );
   const imageState = useMessageImages();
 
   const submit = useCallback(
@@ -125,8 +137,12 @@ export const TamboThreadInputProvider: React.FC<
         });
       }
 
-      // Build message content with text and images
-      const messageContent = buildMessageContent(inputValue, imageState.images);
+      // Build message content with text, images, and resource names
+      const messageContent = buildMessageContent(
+        inputValue,
+        imageState.images,
+        resourceNames,
+      );
 
       try {
         await sendThreadMessage(inputValue || "Image message", {
@@ -193,10 +209,18 @@ export const TamboThreadInputProvider: React.FC<
         throw error;
       }
 
-      // Clear text after successful submission
+      // Clear text and resource names after successful submission
       setInputValue("");
+      setResourceNames({});
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
+    [
+      inputValue,
+      resourceNames,
+      sendThreadMessage,
+      thread.id,
+      contextKey,
+      imageState,
+    ],
   );
 
   const {
@@ -211,6 +235,7 @@ export const TamboThreadInputProvider: React.FC<
     ...mutationState,
     value: inputValue,
     setValue: setInputValue,
+    setResourceNames,
     submit: submitAsync,
     images: imageState.images,
     addImage: imageState.addImage,
