@@ -111,10 +111,15 @@ export function withTamboInteractable<P extends object>(
       onPropsUpdate,
     ]);
 
+    // If the interactable ID is not yet set, render the component without the TamboInteractableComponentProvider.
+    if (!interactableId) {
+      return <WrappedComponent {...(effectiveProps as P)} />;
+    }
+
     return (
       <TamboInteractableComponentProvider
         component={{
-          id: interactableId ?? Math.random().toString(36).slice(2, 5),
+          id: interactableId,
           componentName: config.componentName,
           description: config.description,
         }}
