@@ -162,7 +162,7 @@ function ChatInterface() {
 }
 ```
 
-When a user selects a resource from the button, it inserts a reference with the syntax `@<serverKey>:<resourceUri>` (e.g., `@linear:file://issue/123`).
+When a user selects a resource from the button, it inserts a reference with the syntax `@<serverKey>:<resourceUri>` (e.g., `@linear:issue://TAM-123`). The `resourceUri` portion (for example, `issue://TAM-123`) is defined by the MCP server; Tambo only adds the `@<serverKey>:` prefix.
 
 ## Working with MCP Prompts
 
@@ -240,7 +240,9 @@ Tools, prompts, and resources are **always prefixed** with the `serverKey` to id
 
 - **Tools**: `<serverKey>__<toolName>` (e.g., `linear__create_issue`)
 - **Prompts**: `<serverKey>:<promptName>` (e.g., `linear:new-issue`)
-- **Resources**: `<serverKey>:<resourceUri>` (e.g., `linear:file://issue/123`)
+- **Resources**: `<serverKey>:<resourceUri>` (e.g., `linear:issue://TAM-123`)
+
+In all cases, the `serverKey` portion is managed by Tambo or your configuration, while `<resourceUri>` is defined by the MCP server itself.
 
 The `serverKey` is automatically derived from the server URL (e.g., "linear" from "https://mcp.linear.app"), or you can specify it explicitly:
 

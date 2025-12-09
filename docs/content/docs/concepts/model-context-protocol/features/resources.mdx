@@ -15,7 +15,7 @@ Resources are data sources exposed by MCP servers that users can reference in th
 - You want users to easily include context from external services
 - Content needs to be dynamically fetched and included in AI conversations
 
-For example, a Linear MCP server might expose issues as resources (`linear:file://issue/TAM-123`), allowing users to reference specific issues in their conversations with the AI.
+For example, a Linear MCP server might expose issues as resources (`linear:issue://TAM-123`), allowing users to reference specific issues in their conversations with the AI. The exact URI scheme (such as `issue://...`) is defined by the MCP server implementation.
 
 ## User Experience
 
@@ -87,9 +87,9 @@ Server-side resources have a **double prefix** (client-side `serverKey` + server
 @<serverKey>:<serverSidePrefix>:<resourceUri>
 ```
 
-Example: `@linear-h3s:tambo:issue://TAM-123`
+Example: `@linear:tambo:issue://TAM-123`
 
-- `linear-h3s` is the client-side `serverKey` for this MCP server instance
+- `linear` is the client-side `serverKey` for this MCP server instance
 - `tambo` is the server-side prefix configured in your project's MCP configuration
 - `issue://TAM-123` is the actual resource URI from the MCP server
 
@@ -103,9 +103,9 @@ Client-side resources have a **single prefix** (the `serverKey`):
 @<serverKey>:<resourceUri>
 ```
 
-Example: `@linear-43k:issue://TAM-123`
+Example: `@linear:issue://TAM-123`
 
-- `linear-43k` is the `serverKey` configured in the client-side MCP server definition
+- `linear` is the `serverKey` configured in the client-side MCP server definition
 - `issue://TAM-123` is the actual resource URI from the MCP server
 
 Configure the `serverKey` when setting up the MCP server:
@@ -115,7 +115,7 @@ Configure the `serverKey` when setting up the MCP server:
   mcpServers={[
     {
       url: "http://localhost:8123/",
-      serverKey: "linear-43k", // This becomes the resource prefix
+      serverKey: "linear", // This becomes the resource prefix (use env-specific keys like "linear-staging" in multi-env setups)
       transport: MCPTransport.HTTP,
     },
   ]}
@@ -126,7 +126,7 @@ Configure the `serverKey` when setting up the MCP server:
 </TamboProvider>
 ```
 
-If you don't specify `serverKey`, Tambo derives one from the URL hostname (e.g., `https://mcp.linear.app/mcp` becomes `linear`).
+If you don't specify `serverKey`, Tambo derives one from the URL (e.g., `https://mcp.linear.app/mcp` becomes `linear`).
 
 ## Server-Side vs Client-Side Resources
 
@@ -270,7 +270,7 @@ The hook returns an array of `ListResourceEntry` objects, each containing:
 - `server` - The connected MCP server providing this resource
 - `resource` - The resource metadata (uri, name, description, mimeType)
 
-**Note:** The `resource.uri` field will include both client-side `serverKey` and server-side prefix for server-side resources (e.g., `linear-h3s:tambo:issue://TAM-123`) or just the client-side `serverKey` prefix for client-side resources (e.g., `linear:file://issue/123`).
+**Note:** The `resource.uri` field is the Tambo-prefixed resource identifier: it includes both the client-side `serverKey` and server-side prefix for server-side resources (e.g., `linear:tambo:issue://TAM-123`), or just the client-side `serverKey` prefix for client-side resources (e.g., `linear:issue://TAM-123`). This is the same value that appears in the message after `@`.
 
 ### Get Specific Resource
 
@@ -280,7 +280,7 @@ Use `useTamboMcpResource` to fetch a specific resource's content:
 import { useTamboMcpResource } from "@tambo-ai/react/mcp";
 
 function ResourceContent({ resourceUri }: { resourceUri: string }) {
-  // resourceUri should include the prefix(es) (e.g., "linear:file://issue/123")
+  // resourceUri should include the prefix(es) (e.g., "linear:issue://TAM-123")
   const {
     data: resourceData,
     isLoading,
@@ -309,7 +309,9 @@ function ResourceContent({ resourceUri }: { resourceUri: string }) {
 
 The hook accepts:
 
-- `resourceUri` - The URI of the resource to fetch (e.g., `"linear:file://issue/123"`)
+- `resourceUri` - The URI of the resource to fetch (e.g., `"linear:issue://TAM-123"`)
+
+In these examples, `issue://TAM-123` is just a sample scheme; your MCP server defines the actual URI scheme and path format.
 
 The returned data contains:
 

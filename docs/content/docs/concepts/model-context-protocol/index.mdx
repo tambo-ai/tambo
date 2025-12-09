@@ -45,4 +45,4 @@ Tambo **always prefixes** prompts, resources, and tools with the `serverKey` to 
 - Resources: `serverKey:serverSidePrefix:resourceUri` (server-side) or `serverKey:resourceUri` (client-side)
 - Tools: `serverKey__toolName`
 
-If you don't specify `serverKey`, Tambo derives one from the server URL hostname (for example, `https://mcp.linear.app/mcp` becomes `linear`). For predictable behavior across environments, set `serverKey` explicitly. Avoid `:` and `__` in the `serverKey` (since prompts/resources use `:` and tools use `__` as separators); prefer letters, numbers, `_`, and `-`.
+If you don't specify `serverKey`, Tambo derives one from the server URL (for example, `https://mcp.linear.app/mcp` becomes `linear`); see [Server namespacing](/concepts/model-context-protocol/providers/clientside-mcp-connection#server-namespacing) for more details. For predictable behavior across environments, set `serverKey` explicitly. Avoid `:` and `__` in the `serverKey` (since prompts/resources use `:` and tools use `__` as separators); prefer letters, numbers, `_`, and `-`.
