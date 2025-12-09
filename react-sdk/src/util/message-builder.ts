@@ -34,18 +34,17 @@ function parseResourceReferences(
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
   const parts: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
-  // Reset regex lastIndex to ensure we start from the beginning
-  RESOURCE_REFERENCE_PATTERN.lastIndex = 0;
+  // Use matchAll to avoid global regex state issues
+  const matches = Array.from(text.matchAll(RESOURCE_REFERENCE_PATTERN));
   let lastIndex = 0;
-  let match: RegExpExecArray | null;
 
   // Find all resource references and interleave with text
-  while ((match = RESOURCE_REFERENCE_PATTERN.exec(text)) !== null) {
+  for (const match of matches) {
     const [fullMatch, serverKey, uri] = match;
     const fullId = `${serverKey}:${uri}`;
 
     // Add text before this resource reference
-    if (match.index > lastIndex) {
+    if (match.index !== undefined && match.index > lastIndex) {
       const textBefore = text.slice(lastIndex, match.index);
       if (textBefore.trim()) {
         parts.push({
@@ -62,7 +61,9 @@ function parseResourceReferences(
     }
     parts.push({ type: "resource", resource });
 
-    lastIndex = match.index + fullMatch.length;
+    if (match.index !== undefined) {
+      lastIndex = match.index + fullMatch.length;
+    }
   }
 
   // Add remaining text after the last resource reference
