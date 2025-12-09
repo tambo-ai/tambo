@@ -39,13 +39,13 @@ const streamdownRehypePlugins: PluggableList = [
       // Allow standard protocols plus our custom tambo-resource protocol
       // Protocol names should match exactly (without ://)
       allowedProtocols: ["http", "https", "mailto", "tambo-resource"],
-      // Explicitly allow our protocol prefix to ensure it passes through
+      // Explicitly allow our protocol prefix to ensure it passes through,
+      // without re-opening arbitrary custom protocols.
       allowedLinkPrefixes: [
         "tambo-resource://",
         "http://",
         "https://",
         "mailto:",
-        "*",
       ],
       allowDataImages: true,
     },

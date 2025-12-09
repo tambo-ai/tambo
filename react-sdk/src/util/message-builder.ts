@@ -99,9 +99,13 @@ export function buildMessageContent(
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
   const content: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
-  if (text.trim()) {
-    // Parse resource references from text - returns interleaved text and resource parts
-    const parts = parseResourceReferences(text.trim(), resourceNames);
+  const hasNonWhitespaceText = text.trim().length > 0;
+
+  if (hasNonWhitespaceText) {
+    // Parse resource references from the original text so that all
+    // user-visible whitespace (including leading/trailing spaces and
+    // internal spacing) is preserved in the resulting content parts.
+    const parts = parseResourceReferences(text, resourceNames);
     content.push(...parts);
   }
 

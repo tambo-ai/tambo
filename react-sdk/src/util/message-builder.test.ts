@@ -77,13 +77,13 @@ describe("buildMessageContent", () => {
     ]);
   });
 
-  it("should trim whitespace from text", () => {
+  it("should preserve leading and trailing whitespace in text", () => {
     const result = buildMessageContent("  Hello world  ", [], {});
 
     expect(result).toEqual([
       {
         type: "text",
-        text: "Hello world",
+        text: "  Hello world  ",
       },
     ]);
   });
@@ -530,12 +530,10 @@ describe("buildMessageContent", () => {
         [],
         {},
       );
-
-      // Input is trimmed, so leading/trailing whitespace removed, but internal whitespace preserved
       expect(result).toEqual([
         {
           type: "text",
-          text: "Before  ",
+          text: "  Before  ",
         },
         {
           type: "resource",
@@ -545,7 +543,7 @@ describe("buildMessageContent", () => {
         },
         {
           type: "text",
-          text: "  After",
+          text: "  After  ",
         },
       ]);
     });
@@ -559,10 +557,18 @@ describe("buildMessageContent", () => {
 
       expect(result).toEqual([
         {
+          type: "text",
+          text: "   ",
+        },
+        {
           type: "resource",
           resource: {
             uri: "tambo:test://static/resource/1",
           },
+        },
+        {
+          type: "text",
+          text: "   ",
         },
       ]);
     });
