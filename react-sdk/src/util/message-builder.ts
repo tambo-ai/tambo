@@ -2,18 +2,6 @@ import type TamboAI from "@tambo-ai/typescript-sdk";
 import { StagedImage } from "../hooks/use-message-images";
 
 /**
- * A parsed content part from text that can be either text or a resource reference.
- * This is an intermediate type used during parsing before converting to ChatCompletionContentPart.
- * The resource part uses a simplified resource object with just uri and optional name.
- */
-type ParsedContentPart =
-  | TamboAI.Beta.Threads.ChatCompletionContentPart
-  | {
-      type: "resource";
-      resource: { uri: string; name?: string };
-    };
-
-/**
  * Regular expression to match MCP resource references in the format: \@serverKey:uri
  *
  * Examples:
@@ -43,8 +31,8 @@ const RESOURCE_REFERENCE_PATTERN = /@([a-zA-Z0-9-]+):(\S+)/g;
 function parseResourceReferences(
   text: string,
   resourceNames: Record<string, string>,
-): ParsedContentPart[] {
-  const parts: ParsedContentPart[] = [];
+): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
+  const parts: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
   // Reset regex lastIndex to ensure we start from the beginning
   RESOURCE_REFERENCE_PATTERN.lastIndex = 0;
@@ -67,14 +55,8 @@ function parseResourceReferences(
       }
     }
 
-    // Add the resource part (serverKey is stripped, only URI is sent)
-    // Look up name from the provided map
-    // Try both fullId (serverKey:uri) and the original fullMatch (which includes @)
-    const resource: { uri: string; name?: string } = { uri };
-    const name =
-      resourceNames[fullId] ||
-      resourceNames[fullMatch.slice(1)] || // Remove @ prefix
-      resourceNames[uri]; // Fallback to just URI (for single-server case)
+    const resource: TamboAI.Resource = { uri };
+    const name = resourceNames[fullId];
     if (name) {
       resource.name = name;
     }
