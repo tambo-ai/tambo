@@ -5,6 +5,15 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   ...nextJsConfig,
   {
+    ignores: [
+      ".source/",
+      "next-env.d.ts",
+      ".next/**",
+      "coverage/**",
+      "__mocks__/fileMock.cjs",
+    ],
+  },
+  {
     languageOptions: {
       parserOptions: {
         ecmaVersion: "latest",

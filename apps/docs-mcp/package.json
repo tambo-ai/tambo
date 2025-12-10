@@ -13,7 +13,7 @@
     "clean": "rm -rf .next dist coverage"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.26.0",
+    "@sentry/nextjs": "^10.29.0",
     "mcp-handler": "^1.0.4",
     "next": "^15.5.7",
     "openai": "^6.4.0",
