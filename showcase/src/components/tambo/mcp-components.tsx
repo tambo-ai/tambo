@@ -298,7 +298,7 @@ function ResourceListContent({
     <>
       {filteredResources.map((resourceEntry) => (
         <DropdownMenu.Item
-          key={`${resourceEntry.server.url}-${resourceEntry.resource.uri}`}
+          key={resourceEntry.resource.uri}
           className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
           onSelect={() => {
             onSelectResource(resourceEntry.resource.uri);

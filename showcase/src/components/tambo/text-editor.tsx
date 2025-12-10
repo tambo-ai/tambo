@@ -32,6 +32,25 @@ import tippy, { type Instance as TippyInstance } from "tippy.js";
 import "tippy.js/dist/tippy.css";
 
 /**
+ * Minimal editor interface exposed to parent components.
+ * Hides TipTap implementation details and exposes only necessary operations.
+ */
+export interface TamboEditor {
+  /** Focus the editor at a specific position */
+  focus(position?: "start" | "end"): void;
+  /** Set the editor content */
+  setContent(content: string): void;
+  /** Get the current editor text with resource URIs */
+  getText(): string;
+  /** Check if a mention with the given label exists */
+  hasMention(label: string): boolean;
+  /** Insert a mention node with a following space */
+  insertMention(id: string, label: string): void;
+  /** Set whether the editor is editable */
+  setEditable(editable: boolean): void;
+}
+
+/**
  * Represents a resource item that appears in the "@" mention dropdown.
  * Resources are referenced by ID/URI and appear as visual mention nodes in the editor.
  */
@@ -57,11 +76,10 @@ export interface PromptItem {
 export interface TextEditorProps {
   value: string;
   onChange: (text: string) => void;
-  onKeyDown?: (event: React.KeyboardEvent, editor: Editor) => void;
+  onKeyDown?: (event: React.KeyboardEvent) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-  editorRef?: React.MutableRefObject<Editor | null>;
   /** Submit handler for Enter key behavior */
   onSubmit: (e: React.FormEvent) => Promise<void>;
   /** Called when an image is pasted into the editor */
@@ -151,26 +169,37 @@ const ResourceItemList = forwardRef<
 ResourceItemList.displayName = "ResourceItemList";
 
 /**
- * Checks if a mention with the given label already exists in the editor.
- * Used to prevent duplicate mentions when inserting via @ command or EditableHint.
- *
- * @param editor - The TipTap editor instance
- * @param label - The mention label to check for
- * @returns true if a mention with the given label exists, false otherwise
+ * Internal helper to check if a mention exists in a raw TipTap Editor.
+ * Used within the suggestion plugin where we only have access to the Editor instance.
  */
-export function hasExistingMention(editor: Editor, label: string): boolean {
-  let hasMention = false;
+function checkMentionExists(editor: Editor, label: string): boolean {
+  let exists = false;
   editor.state.doc.descendants((node) => {
     if (node.type.name === "mention") {
       const mentionLabel = node.attrs.label as string;
       if (mentionLabel === label) {
-        hasMention = true;
+        exists = true;
         return false; // Stop traversing
       }
     }
     return true;
   });
-  return hasMention;
+  return exists;
+}
+
+/**
+ * Checks if a mention with the given label already exists in the editor.
+ * Used to prevent duplicate mentions when inserting via @ command or EditableHint.
+ *
+ * @param editor - The TamboEditor instance
+ * @param label - The mention label to check for
+ * @returns true if a mention with the given label exists, false otherwise
+ */
+export function hasExistingMention(
+  editor: TamboEditor,
+  label: string,
+): boolean {
+  return editor.hasMention(label);
 }
 
 /**
@@ -285,7 +314,7 @@ function createResourceMentionConfig(
         (tiptapCommand: (attrs: { id: string; label: string }) => void) =>
         (item: ResourceItem) => {
           // Check if mention already exists in the editor
-          if (hasExistingMention(editor, item.name)) {
+          if (checkMentionExists(editor, item.name)) {
             return;
           }
 
@@ -570,7 +599,7 @@ function getTextWithResourceURIs(editor: Editor | null): string {
 /**
  * Text editor component with resource ("@") and prompt ("/") support.
  */
-export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
+export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
   (
     {
       value,
@@ -579,7 +608,6 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       placeholder = "What do you want to do?",
       disabled = false,
       className,
-      editorRef,
       onSubmit,
       onAddImage,
       onSearchResources,
@@ -641,7 +669,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
 
     // Handle Enter key to submit message
     const handleKeyDown = React.useCallback(
-      (e: React.KeyboardEvent, editor: Editor) => {
+      (e: React.KeyboardEvent) => {
         // Handle Enter key behavior
         if (e.key === "Enter" && !e.shiftKey && value.trim()) {
           e.preventDefault();
@@ -651,7 +679,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
 
         // Delegate to provided onKeyDown handler
         if (onKeyDown) {
-          onKeyDown(e, editor);
+          onKeyDown(e);
         }
       },
       [onSubmit, value, onKeyDown],
@@ -736,7 +764,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           // return false so TipTap can still process the text payload.
           return !hasText;
         },
-        handleKeyDown: (view, event) => {
+        handleKeyDown: (_view, event) => {
           // Check if any menu is open ("@" or "/")
           const anyMenuOpen =
             resourceMenuOpenRef.current || promptMenuOpenRef.current;
@@ -751,13 +779,71 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           // Delegate to handleKeyDown (which handles both Tambo-specific and custom handlers)
           if (editor) {
             const reactEvent = event as unknown as React.KeyboardEvent;
-            handleKeyDown(reactEvent, editor);
+            handleKeyDown(reactEvent);
             return reactEvent.defaultPrevented;
           }
           return false;
         },
       },
     });
+
+    // Expose TamboEditor interface via ref
+    useImperativeHandle(ref, () => {
+      if (!editor) {
+        // Return a no-op implementation if editor isn't ready yet
+        return {
+          focus: () => {},
+          setContent: () => {},
+          getText: () => "",
+          hasMention: () => false,
+          insertMention: () => {},
+          setEditable: () => {},
+        };
+      }
+
+      return {
+        focus: (position?: "start" | "end") => {
+          if (position) {
+            editor.commands.focus(position);
+          } else {
+            editor.commands.focus();
+          }
+        },
+        setContent: (content: string) => {
+          editor.commands.setContent(content);
+        },
+        getText: () => {
+          return getTextWithResourceURIs(editor);
+        },
+        hasMention: (label: string) => {
+          let exists = false;
+          editor.state.doc.descendants((node) => {
+            if (node.type.name === "mention") {
+              const mentionLabel = node.attrs.label as string;
+              if (mentionLabel === label) {
+                exists = true;
+                return false; // Stop traversing
+              }
+            }
+            return true;
+          });
+          return exists;
+        },
+        insertMention: (id: string, label: string) => {
+          editor
+            .chain()
+            .focus()
+            .insertContent([
+              { type: "mention", attrs: { id, label } },
+              { type: "text", text: " " },
+            ])
+            .run();
+        },
+        setEditable: (editable: boolean) => {
+          editor.setEditable(editable);
+        },
+      };
+    }, [editor]);
 
     // Sync external value changes and disabled state with editor
     React.useEffect(() => {
@@ -767,13 +853,10 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
         editor.commands.setContent(value);
       }
       editor.setEditable(!disabled);
-      if (editorRef) {
-        editorRef.current = editor;
-      }
-    }, [editor, value, disabled, editorRef]);
+    }, [editor, value, disabled]);
 
     return (
-      <div ref={ref} className="w-full">
+      <div className="w-full">
         <EditorContent editor={editor} />
       </div>
     );

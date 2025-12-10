@@ -13,9 +13,11 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 
 /**
- * Custom hook to merge multiple refs into one callback ref
- * @param refs - Array of refs to merge
- * @returns A callback ref that updates all provided refs
+ * Merges multiple refs into a single callback ref.
+ *
+ * In React 19, callback refs may return cleanup functions; this hook fans out
+ * both assignments and cleanups to all provided refs and tracks the last
+ * cleanup so it runs when the instance changes.
  */
 export function useMergeRefs<Instance>(
   ...refs: (React.Ref<Instance> | undefined)[]

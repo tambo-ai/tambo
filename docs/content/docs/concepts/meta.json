@@ -4,6 +4,7 @@
     "components",
     "message-threads",
     "tools",
+    "resources",
     "model-context-protocol",
     "streaming",
     "user-authentication",
