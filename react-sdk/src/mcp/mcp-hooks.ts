@@ -317,6 +317,14 @@ export function useTamboMcpResource(resourceUri: string | undefined) {
       ? resourceUri?.replace(`${mcpServer.serverKey}:`, "")
       : resourceUri;
 
+  // Check if we can fetch this resource
+  const hasRegistrySource = isRegistryResource && resourceSource != null;
+  const hasConnectedMcpServer =
+    !isRegistryResource && mcpServer != null && isConnectedMcpServer(mcpServer);
+  const canFetchResource = Boolean(
+    resourceUri && (hasRegistrySource || hasConnectedMcpServer),
+  );
+
   return useTamboQuery({
     // Include server identity or "registry" to prevent stale cache hits
     queryKey: [
@@ -324,15 +332,7 @@ export function useTamboMcpResource(resourceUri: string | undefined) {
       resourceUri,
       isRegistryResource ? "registry" : mcpServer?.key,
     ],
-    // Enable when we have a resource URI and either:
-    // - A registry resource with resourceSource
-    // - An MCP resource with connected server
-    enabled: Boolean(
-      resourceUri &&
-      (isRegistryResource
-        ? resourceSource != null
-        : mcpServer && isConnectedMcpServer(mcpServer)),
-    ),
+    enabled: canFetchResource,
     queryFn: async (): Promise<ReadResourceResult | null> => {
       if (!originalResourceUri) {
         return null;
