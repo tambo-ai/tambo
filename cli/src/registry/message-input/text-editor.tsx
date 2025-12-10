@@ -381,6 +381,7 @@ function ResourceItemList() {
  * Used within the suggestion plugin where we only have access to the Editor instance.
  */
 function checkMentionExists(editor: Editor, label: string): boolean {
+  if (!editor.state?.doc) return false;
   let exists = false;
   editor.state.doc.descendants((node) => {
     if (node.type.name === "mention") {
@@ -703,7 +704,7 @@ function getTextWithResourceURIs(editor: Editor | null): {
   text: string;
   resourceNames: Record<string, string>;
 } {
-  if (!editor) return { text: "", resourceNames: {} };
+  if (!editor?.state?.doc) return { text: "", resourceNames: {} };
 
   let text = "";
   const resourceNames: Record<string, string> = {};
@@ -1022,6 +1023,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
           return getTextWithResourceURIs(editor);
         },
         hasMention: (label: string) => {
+          if (!editor.state?.doc) return false;
           let exists = false;
           editor.state.doc.descendants((node) => {
             if (node.type.name === "mention") {
