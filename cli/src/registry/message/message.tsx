@@ -16,7 +16,83 @@ import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
-import { Streamdown } from "streamdown";
+import { harden } from "rehype-harden";
+import { Streamdown, defaultRehypePlugins } from "streamdown";
+import type { PluggableList } from "unified";
+/**
+ * Rehype plugins configuration for Streamdown to allow custom tambo-resource:// protocol
+ * This allows our custom protocol for resource links to pass through security checks
+ * and be rendered as Mention components.
+ *
+ * Note: defaultRehypePlugins already includes a harden plugin with permissive defaults.
+ * We replace it with our own configured version to allow the tambo-resource:// protocol.
+ */
+const streamdownRehypePlugins: PluggableList = [
+  defaultRehypePlugins.raw,
+  defaultRehypePlugins.katex,
+  // Configure harden to allow our custom tambo-resource:// protocol
+  // We explicitly configure harden here (replacing any default) to ensure
+  // tambo-resource:// links are allowed and reach our custom component
+  [
+    harden,
+    {
+      // Allow standard protocols plus our custom tambo-resource protocol
+      // Protocol names should match exactly (without ://)
+      allowedProtocols: ["http", "https", "mailto", "tambo-resource"],
+      // Explicitly allow our protocol prefix to ensure it passes through,
+      // without re-opening arbitrary custom protocols.
+      allowedLinkPrefixes: [
+        "tambo-resource://",
+        "http://",
+        "https://",
+        "mailto:",
+      ],
+      allowDataImages: true,
+    },
+  ],
+];
+
+/**
+ * Converts message content to markdown format for rendering with streamdown.
+ * Handles text and resource content parts, converting resources to markdown links
+ * with a custom URL scheme that will be rendered as Mention components.
+ *
+ * @param content - The message content (string, element, array, etc.)
+ * @returns A markdown string ready for streamdown rendering
+ */
+function convertContentToMarkdown(
+  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+): string {
+  if (!content) return "";
+  if (typeof content === "string") return content;
+  if (React.isValidElement(content)) {
+    // For React elements, we can't convert to markdown - this shouldn't happen
+    // in normal flow, but keep backward compatibility
+    return "";
+  }
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const item of content) {
+      if (item?.type === "text") {
+        parts.push(item.text ?? "");
+      } else if (item?.type === "resource") {
+        const resource = item.resource;
+        const uri = resource?.uri;
+        if (uri) {
+          // Use resource name for display, fallback to URI if no name
+          const displayName = resource?.name ?? uri;
+          // Use a custom protocol that looks more standard to avoid blocking
+          // Format: tambo-resource://<encoded-uri>
+          // We'll detect this in the link component and decode the URI
+          const encodedUri = encodeURIComponent(uri);
+          parts.push(`[${displayName}](tambo-resource://${encodedUri})`);
+        }
+      }
+    }
+    return parts.join(" ");
+  }
+  return "";
+}
 
 /**
  * CSS variants for the message container
@@ -185,11 +261,11 @@ LoadingIndicator.displayName = "LoadingIndicator";
  */
 function MessageContentRenderer({
   contentToRender,
-  safeContent,
+  markdownContent,
   markdown,
 }: {
   contentToRender: unknown;
-  safeContent: string | React.ReactElement;
+  markdownContent: string;
   markdown: boolean;
 }) {
   if (!contentToRender) {
@@ -200,12 +276,15 @@ function MessageContentRenderer({
   }
   if (markdown) {
     return (
-      <Streamdown components={markdownComponents}>
-        {typeof safeContent === "string" ? safeContent : ""}
+      <Streamdown
+        components={markdownComponents}
+        rehypePlugins={streamdownRehypePlugins}
+      >
+        {markdownContent}
       </Streamdown>
     );
   }
-  return safeContent;
+  return markdownContent;
 }
 
 /**
@@ -263,7 +342,7 @@ export interface MessageContentProps extends Omit<
   "content"
 > {
   /** Optional override for the message content. If not provided, uses the content from the message object in the context. */
-  content?: string | { type: string; text?: string }[];
+  content?: string | TamboThreadMessage["content"];
   /** Optional flag to render as Markdown. Default is true. */
   markdown?: boolean;
 }
@@ -281,12 +360,12 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     const { message, isLoading } = useMessageContext();
     const contentToRender = children ?? contentProp ?? message.content;
 
-    const safeContent = React.useMemo(
-      () => getSafeContent(contentToRender as TamboThreadMessage["content"]),
-      [contentToRender],
-    );
+    const markdownContent = React.useMemo(() => {
+      const result = convertContentToMarkdown(contentToRender);
+      return result;
+    }, [contentToRender]);
     const hasContent = React.useMemo(
-      () => checkHasContent(contentToRender as TamboThreadMessage["content"]),
+      () => checkHasContent(contentToRender),
       [contentToRender],
     );
 
@@ -316,7 +395,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
           >
             <MessageContentRenderer
               contentToRender={contentToRender}
-              safeContent={safeContent}
+              markdownContent={markdownContent}
               markdown={markdown}
             />
             {message.isCancelled && (
@@ -677,7 +756,10 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
                 {reasoningStep ? (
                   <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
                     <div className="whitespace-pre-wrap break-words">
-                      <Streamdown components={markdownComponents}>
+                      <Streamdown
+                        components={markdownComponents}
+                        rehypePlugins={streamdownRehypePlugins}
+                      >
                         {reasoningStep}
                       </Streamdown>
                     </div>
@@ -793,7 +875,12 @@ function formatToolResult(
       // JSON parsing failed, render as markdown or plain text
       if (!enableMarkdown) return contentString;
       return (
-        <Streamdown components={markdownComponents}>{contentString}</Streamdown>
+        <Streamdown
+          components={markdownComponents}
+          rehypePlugins={streamdownRehypePlugins}
+        >
+          {contentString}
+        </Streamdown>
       );
     }
   }
@@ -894,7 +981,7 @@ export {
   MessageContent,
   MessageImages,
   MessageRenderedComponentArea,
-  messageVariants,
   ReasoningInfo,
   ToolcallInfo,
+  messageVariants,
 };
