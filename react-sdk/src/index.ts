@@ -80,15 +80,15 @@ export {
 export { type TamboThread } from "./model/tambo-thread";
 export { type InitialTamboThreadMessage } from "./providers/tambo-thread-provider";
 
-export type {
-  TamboInteractableComponent as InteractableComponent,
-  TamboInteractableContext,
-} from "./model/tambo-interactable";
 export {
   withTamboInteractable as withInteractable,
   type InteractableConfig,
   type WithTamboInteractableProps,
-} from "./providers/hoc/with-tambo-interactable";
+} from "./hoc/with-tambo-interactable";
+export type {
+  TamboInteractableComponent as InteractableComponent,
+  TamboInteractableContext,
+} from "./model/tambo-interactable";
 export {
   useCurrentInteractablesSnapshot,
   useTamboInteractable,
@@ -106,11 +106,11 @@ export type {
 } from "./context-helpers";
 
 // MCP server metadata types (used by TamboProvider / registry / MCP provider)
+export { MCPTransport } from "./model/mcp-server-info";
 export type {
   McpServerInfo,
   NormalizedMcpServerInfo,
 } from "./model/mcp-server-info";
-export { MCPTransport } from "./model/mcp-server-info";
 
 // Note: Full MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package

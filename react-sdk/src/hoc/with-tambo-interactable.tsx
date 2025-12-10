@@ -2,9 +2,9 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod/v3";
-import { TamboMessageProvider } from "../../hooks/use-current-message";
-import { TamboThreadMessage } from "../../model/generate-component-response";
-import { useTamboInteractable } from "../tambo-interactable-provider";
+import { TamboMessageProvider } from "../hooks/use-current-message";
+import { TamboThreadMessage } from "../model/generate-component-response";
+import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 
 export interface InteractableConfig {
   componentName: string;

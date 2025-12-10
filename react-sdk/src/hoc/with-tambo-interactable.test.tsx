@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { z } from "zod/v3";
-import { useTamboCurrentComponent } from "../../hooks/use-current-message";
-import { TamboInteractableProvider } from "../tambo-interactable-provider";
+import { useTamboCurrentComponent } from "../hooks/use-current-message";
+import { TamboInteractableProvider } from "../providers/tambo-interactable-provider";
 import { withTamboInteractable } from "./with-tambo-interactable";
 
 // Create a consistent mock implementation
@@ -14,7 +14,7 @@ const mockGetInteractableComponentsByName = jest.fn(() => []);
 const mockClearAllInteractableComponents = jest.fn();
 
 // Mock the interactable provider
-jest.mock("../tambo-interactable-provider", () => ({
+jest.mock("../providers/tambo-interactable-provider", () => ({
   TamboInteractableProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="interactable-provider">{children}</div>
   ),
