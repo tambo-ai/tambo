@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.33.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.32.1...showcase-v0.33.0) (2025-12-10)
+
+
+### Features
+
+* integrate EditWithTambo component for inline component editing ([#1477](https://github.com/tambo-ai/tambo/issues/1477)) ([390c204](https://github.com/tambo-ai/tambo/commit/390c2045148c63dfb85f1988861e1cf6ad7f021e))
+* **react-sdk:** add local resource registration to TamboRegistryProvider ([#1504](https://github.com/tambo-ai/tambo/issues/1504)) ([59c94a9](https://github.com/tambo-ai/tambo/commit/59c94a9214c165cbc6728d5a17f39697e4d4c370))
+
+
+### Bug Fixes
+
+* **editor:** Clean up message-input and text-editor to only expose a limited set of capabilities in the editor ([#1502](https://github.com/tambo-ai/tambo/issues/1502)) ([2938064](https://github.com/tambo-ai/tambo/commit/2938064b2ff4b4504af1e13de24117192a6dc811))
+* **resources:** Make sure to show resource names in text editor and user messages ([#1497](https://github.com/tambo-ai/tambo/issues/1497)) ([b2d8013](https://github.com/tambo-ai/tambo/commit/b2d8013c0b4bf5fbf7801eca20e97fcf98b5ae55))
+
+
+### Documentation
+
+* **cli:** document useMergeRefs React 19 cleanup ([#1470](https://github.com/tambo-ai/tambo/issues/1470)) ([e215716](https://github.com/tambo-ai/tambo/commit/e21571673b4c92c6fedbb6e74dceb27b921d0a19))
+
 ## [0.32.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.32.0...showcase-v0.32.1) (2025-12-08)
 
 
