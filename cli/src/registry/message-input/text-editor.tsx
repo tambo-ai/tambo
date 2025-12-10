@@ -226,7 +226,7 @@ function getPositionFromClientRect(
   if (!clientRect) return null;
   const rect = clientRect();
   if (!rect) return null;
-  return { top: rect.bottom + 8, left: rect.left };
+  return { top: rect.bottom, left: rect.left };
 }
 
 /**
@@ -243,9 +243,9 @@ function ResourceSuggestionPopover() {
       <Popover.Anchor asChild>
         <div
           style={{
-            position: "absolute",
-            top: state.position.top,
-            left: state.position.left,
+            position: "fixed",
+            top: `${state.position.top}px`,
+            left: `${state.position.left}px`,
             width: 0,
             height: 0,
             pointerEvents: "none",
@@ -280,9 +280,9 @@ function PromptSuggestionPopover() {
       <Popover.Anchor asChild>
         <div
           style={{
-            position: "absolute",
-            top: state.position.top,
-            left: state.position.left,
+            position: "fixed",
+            top: `${state.position.top}px`,
+            left: `${state.position.left}px`,
             width: 0,
             height: 0,
             pointerEvents: "none",
@@ -942,7 +942,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         handleKeyDown: (_view, event) => {
           // Check if any menu is open ("@" or "/")
           const anyMenuOpen =
-            resourceSuggestionRef.current.state.isOpen ??
+            resourceSuggestionRef.current.state.isOpen ||
             promptSuggestionRef.current.state.isOpen;
 
           // Prevent Enter from submitting form when selecting from any menu
