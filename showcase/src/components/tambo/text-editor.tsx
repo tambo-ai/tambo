@@ -43,8 +43,11 @@ export interface TamboEditor {
   focus(position?: "start" | "end"): void;
   /** Set the editor content */
   setContent(content: string): void;
-  /** Get the current editor text with resource URIs */
-  getText(): string;
+  /** Get the text and resource names */
+  getTextWithResourceURIs(): {
+    text: string;
+    resourceNames: Record<string, string>;
+  };
   /** Check if a mention with the given label exists */
   hasMention(label: string): boolean;
   /** Insert a mention node with a following space */
@@ -79,7 +82,7 @@ export interface PromptItem {
 export interface TextEditorProps {
   value: string;
   onChange: (text: string) => void;
-  onResourceNamesChange?: (
+  onResourceNamesChange: (
     resourceNames:
       | Record<string, string>
       | ((prev: Record<string, string>) => Record<string, string>),
@@ -706,7 +709,7 @@ function createPromptCommandExtension(
  * Returns both the text (with URIs only) and a map of URI -> name for lookups.
  * This avoids string manipulation issues with names containing special characters.
  */
-export function getTextWithResourceURIs(editor: Editor | null): {
+function getTextWithResourceURIs(editor: Editor | null): {
   text: string;
   resourceNames: Record<string, string>;
 } {
@@ -772,6 +775,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
             onSearchPrompts={onSearchPrompts}
             onResourceSelect={onResourceSelect}
             onPromptSelect={onPromptSelect}
+            onResourceNamesChange={onResourceNamesChange}
             ref={ref}
           />
         </PromptSuggestionProvider>
@@ -800,6 +804,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       onSearchPrompts,
       onResourceSelect,
       onPromptSelect,
+      onResourceNamesChange,
     },
     ref,
   ) => {
@@ -1005,7 +1010,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         return {
           focus: () => {},
           setContent: () => {},
-          getText: () => "",
+          getTextWithResourceURIs: () => ({ text: "", resourceNames: {} }),
           hasMention: () => false,
           insertMention: () => {},
           setEditable: () => {},
@@ -1023,7 +1028,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         setContent: (content: string) => {
           editor.commands.setContent(content);
         },
-        getText: () => {
+        getTextWithResourceURIs: () => {
           return getTextWithResourceURIs(editor);
         },
         hasMention: (label: string) => {

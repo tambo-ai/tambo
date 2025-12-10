@@ -72,7 +72,7 @@ export interface PromptItem {
 export interface TextEditorProps {
   value: string;
   onChange: (text: string) => void;
-  onResourceNamesChange?: (
+  onResourceNamesChange: (
     resourceNames:
       | Record<string, string>
       | ((prev: Record<string, string>) => Record<string, string>),
@@ -765,6 +765,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
             onSearchPrompts={onSearchPrompts}
             onResourceSelect={onResourceSelect}
             onPromptSelect={onPromptSelect}
+            onResourceNamesChange={onResourceNamesChange}
             ref={ref}
           />
         </PromptSuggestionProvider>
@@ -793,6 +794,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       onSearchPrompts,
       onResourceSelect,
       onPromptSelect,
+      onResourceNamesChange,
     },
     ref,
   ) => {
