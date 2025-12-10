@@ -123,8 +123,8 @@ jobs:
             type=gha,scope=buildx-${{ matrix.images.name }}-${{ github.ref_name }},mode=max
           build-args: |
             NODE_ENV=production
-          secrets: |
             TURBO_TEAM=${{ vars.TURBO_TEAM }}
+          secrets: |
             TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
           allow: network.host
           network: host
@@ -140,6 +140,9 @@ jobs:
     needs: [meta, build-and-push]
     name: Test
     runs-on: ubuntu-latest
+    env:
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
     permissions:
       contents: read
       actions: read
