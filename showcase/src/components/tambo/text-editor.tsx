@@ -241,12 +241,17 @@ function getPositionFromClientRect(
  * Renders a positioned popover at the cursor location with the resource item list.
  */
 function ResourceSuggestionPopover() {
-  const { state } = useResourceSuggestion();
+  const { state, setState } = useResourceSuggestion();
 
   if (!state.isOpen || !state.position) return null;
 
   return (
-    <Popover.Root open={state.isOpen}>
+    <Popover.Root
+      open={state.isOpen}
+      onOpenChange={(open) => {
+        if (!open) setState({ isOpen: false });
+      }}
+    >
       <Popover.Anchor asChild>
         <div
           style={{
@@ -262,10 +267,14 @@ function ResourceSuggestionPopover() {
       <Popover.Content
         side="bottom"
         align="start"
-        sideOffset={0}
+        sideOffset={4}
         className="z-50 w-96 rounded-md border bg-popover p-0 shadow-md animate-in fade-in-0 zoom-in-95"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          setState({ isOpen: false });
+        }}
       >
         <ResourceItemList />
       </Popover.Content>
@@ -278,12 +287,17 @@ function ResourceSuggestionPopover() {
  * Renders a positioned popover at the cursor location with the prompt item list.
  */
 function PromptSuggestionPopover() {
-  const { state } = usePromptSuggestion();
+  const { state, setState } = usePromptSuggestion();
 
   if (!state.isOpen || !state.position) return null;
 
   return (
-    <Popover.Root open={state.isOpen}>
+    <Popover.Root
+      open={state.isOpen}
+      onOpenChange={(open) => {
+        if (!open) setState({ isOpen: false });
+      }}
+    >
       <Popover.Anchor asChild>
         <div
           style={{
@@ -299,10 +313,14 @@ function PromptSuggestionPopover() {
       <Popover.Content
         side="bottom"
         align="start"
-        sideOffset={0}
+        sideOffset={4}
         className="z-50 w-96 rounded-md border bg-popover p-0 shadow-md animate-in fade-in-0 zoom-in-95"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          setState({ isOpen: false });
+        }}
       >
         <PromptItemList />
       </Popover.Content>
