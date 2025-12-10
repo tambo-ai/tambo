@@ -22,9 +22,11 @@ import {
   deduplicateMcpServers,
   normalizeServerInfo,
 } from "../util/mcp-server-utils";
-import { getSerializedProps, isZodSchema } from "../util/schema-utils";
-import { assertValidName } from "../util/validate-component-name";
-import { assertNoZodRecord } from "../util/validate-zod-schema";
+import {
+  validateAndPrepareComponent,
+  validateTool,
+  validateToolAssociation,
+} from "../util/registry-validators";
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
@@ -132,13 +134,8 @@ export const TamboRegistryProvider: React.FC<
 
   const registerTool = useCallback(
     (tool: TamboTool, warnOnOverwrite = true) => {
-      // Validate tool name
-      assertValidName(tool.name, "tool");
+      validateTool(tool);
 
-      // Validate tool schemas
-      if (tool.toolSchema && isZodSchema(tool.toolSchema)) {
-        assertNoZodRecord(tool.toolSchema, `toolSchema of tool "${tool.name}"`);
-      }
       setToolRegistry((prev) => {
         if (prev[tool.name] && warnOnOverwrite) {
           console.warn(`Overwriting tool ${tool.name}`);
@@ -174,16 +171,12 @@ export const TamboRegistryProvider: React.FC<
 
   const addToolAssociation = useCallback(
     (componentName: string, tool: TamboTool) => {
-      // Validate component and tool names
-      assertValidName(componentName, "component");
-      assertValidName(tool.name, "tool");
-
-      if (!componentList[componentName]) {
-        throw new Error(`Component ${componentName} not found in registry`);
-      }
-      if (!toolRegistry[tool.name]) {
-        throw new Error(`Tool ${tool.name} not found in registry`);
-      }
+      validateToolAssociation(
+        componentName,
+        tool.name,
+        !!componentList[componentName],
+        !!toolRegistry[tool.name],
+      );
 
       setComponentToolAssociations((prev) => ({
         ...prev,
@@ -199,36 +192,11 @@ export const TamboRegistryProvider: React.FC<
         name,
         description,
         component,
-        propsSchema,
-        propsDefinition,
         loadingComponent,
         associatedTools,
       } = options;
 
-      // Validate component name
-      assertValidName(name, "component");
-
-      // Validate that at least one props definition is provided
-      if (!propsSchema && !propsDefinition) {
-        throw new Error(
-          `Component ${name} must have either propsSchema (recommended) or propsDefinition defined`,
-        );
-      }
-
-      // Validate that only one props definition is provided
-      if (propsSchema && propsDefinition) {
-        throw new Error(
-          `Component ${name} cannot have both propsSchema and propsDefinition defined. Use only one. We recommend using propsSchema.`,
-        );
-      }
-
-      // Validate that the propsSchema does not include z.record()
-      if (propsSchema && isZodSchema(propsSchema)) {
-        assertNoZodRecord(propsSchema, `propsSchema of component "${name}"`);
-      }
-
-      // Convert propsSchema to JSON Schema if it exists
-      const props = getSerializedProps(propsDefinition, propsSchema, name);
+      const { props } = validateAndPrepareComponent(options);
 
       setComponentList((prev) => {
         if (prev[name] && warnOnOverwrite) {
