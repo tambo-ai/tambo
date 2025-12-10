@@ -109,5 +109,12 @@ export type {
 } from "./model/mcp-server-info";
 export { MCPTransport } from "./model/mcp-server-info";
 
+// Resource types for registry resource registration
+export type {
+  ListResourceItem,
+  ResourceSource,
+  ReadResourceResult,
+} from "./model/resource-info";
+
 // Note: Full MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package

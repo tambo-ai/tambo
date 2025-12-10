@@ -18,6 +18,7 @@ import type {
   McpServerInfo,
   NormalizedMcpServerInfo,
 } from "../model/mcp-server-info";
+import type { ListResourceItem, ResourceSource } from "../model/resource-info";
 import {
   deduplicateMcpServers,
   normalizeServerInfo,
@@ -27,18 +28,27 @@ import {
   validateTool,
   validateToolAssociation,
 } from "../util/registry-validators";
+import {
+  validateResource,
+  validateResourceSource,
+} from "../util/resource-validators";
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
   toolRegistry: Record<string, TamboTool>;
   componentToolAssociations: Record<string, string[]>;
   mcpServerInfos: NormalizedMcpServerInfo[];
+  resources: ListResourceItem[];
+  resourceSource: ResourceSource | null;
   registerComponent: (options: TamboComponent) => void;
   registerTool: (tool: TamboTool) => void;
   registerTools: (tools: TamboTool[]) => void;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
   registerMcpServer: (info: McpServerInfo) => void;
   registerMcpServers: (infos: McpServerInfo[]) => void;
+  registerResource: (resource: ListResourceItem) => void;
+  registerResources: (resources: ListResourceItem[]) => void;
+  registerResourceSource: (source: ResourceSource) => void;
   onCallUnregisteredTool?: (
     toolName: string,
     args: TamboAI.ToolCallParameter[],
@@ -50,6 +60,8 @@ export const TamboRegistryContext = createContext<TamboRegistryContext>({
   toolRegistry: {},
   componentToolAssociations: {},
   mcpServerInfos: [],
+  resources: [],
+  resourceSource: null,
   /**
    *
    */
@@ -74,6 +86,18 @@ export const TamboRegistryContext = createContext<TamboRegistryContext>({
    *
    */
   registerMcpServers: () => {},
+  /**
+   *
+   */
+  registerResource: () => {},
+  /**
+   *
+   */
+  registerResources: () => {},
+  /**
+   *
+   */
+  registerResourceSource: () => {},
 });
 
 export interface TamboRegistryProviderProps {
@@ -83,6 +107,20 @@ export interface TamboRegistryProviderProps {
   tools?: TamboTool[];
   /** The MCP servers to register */
   mcpServers?: (McpServerInfo | string)[];
+  /** The static resources to register */
+  resources?: ListResourceItem[];
+
+  /**
+   * Dynamic resource search function. Must be paired with getResource.
+   * Called when useTamboMcpResourceList() is used to fetch resources.
+   */
+  listResources?: ResourceSource["listResources"];
+
+  /**
+   * Dynamic resource fetch function. Must be paired with listResources.
+   * Called when useTamboMcpResource() is used to fetch a specific resource.
+   */
+  getResource?: ResourceSource["getResource"];
 
   /**
    * A function to call when an unknown tool is called. If this function is not
@@ -106,6 +144,9 @@ export interface TamboRegistryProviderProps {
  * @param props.components - The components to register
  * @param props.tools - The tools to register
  * @param props.mcpServers - The MCP servers to register
+ * @param props.resources - The static resources to register
+ * @param props.listResources - The dynamic resource search function (must be paired with getResource)
+ * @param props.getResource - The dynamic resource fetch function (must be paired with listResources)
  * @param props.onCallUnregisteredTool - The function to call when an unknown tool is called (optional)
  * @returns The TamboRegistryProvider component
  */
@@ -116,6 +157,9 @@ export const TamboRegistryProvider: React.FC<
   components: userComponents,
   tools: userTools,
   mcpServers: userMcpServers,
+  resources: userResources,
+  listResources: userListResources,
+  getResource: userGetResource,
   onCallUnregisteredTool,
 }) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
@@ -131,6 +175,12 @@ export const TamboRegistryProvider: React.FC<
   const [dynamicMcpServerInfos, setDynamicMcpServerInfos] = useState<
     NormalizedMcpServerInfo[]
   >([]);
+  const [staticResources, setStaticResources] = useState<ListResourceItem[]>(
+    [],
+  );
+  const [resourceSource, setResourceSource] = useState<ResourceSource | null>(
+    null,
+  );
 
   const registerTool = useCallback(
     (tool: TamboTool, warnOnOverwrite = true) => {
@@ -249,6 +299,44 @@ export const TamboRegistryProvider: React.FC<
     setStaticMcpServerInfos(normalized);
   }, [userMcpServers]);
 
+  useEffect(() => {
+    // Validate that listResources and getResource are both provided or both omitted
+    validateResourceSource(userListResources, userGetResource);
+
+    // Set static resources from props
+    if (userResources) {
+      userResources.forEach((resource) => validateResource(resource));
+      setStaticResources(userResources);
+    } else {
+      setStaticResources([]);
+    }
+
+    // Set resource source from props
+    if (userListResources && userGetResource) {
+      setResourceSource({
+        listResources: userListResources,
+        getResource: userGetResource,
+      });
+    } else {
+      setResourceSource(null);
+    }
+  }, [userResources, userListResources, userGetResource]);
+
+  const registerResource = useCallback((resource: ListResourceItem) => {
+    validateResource(resource);
+    setStaticResources((prev) => [...prev, resource]);
+  }, []);
+
+  const registerResources = useCallback((resources: ListResourceItem[]) => {
+    resources.forEach((resource) => validateResource(resource));
+    setStaticResources((prev) => [...prev, ...resources]);
+  }, []);
+
+  const registerResourceSource = useCallback((source: ResourceSource) => {
+    validateResourceSource(source.listResources, source.getResource);
+    setResourceSource(source);
+  }, []);
+
   const mcpServerInfos: NormalizedMcpServerInfo[] = useMemo(() => {
     const allServers = [...staticMcpServerInfos, ...dynamicMcpServerInfos];
     return deduplicateMcpServers(allServers);
@@ -259,12 +347,17 @@ export const TamboRegistryProvider: React.FC<
     toolRegistry,
     componentToolAssociations,
     mcpServerInfos,
+    resources: staticResources,
+    resourceSource,
     registerComponent,
     registerTool,
     registerTools,
     addToolAssociation,
     registerMcpServer,
     registerMcpServers,
+    registerResource,
+    registerResources,
+    registerResourceSource,
     onCallUnregisteredTool,
   };
 
