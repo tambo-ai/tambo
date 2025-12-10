@@ -268,17 +268,17 @@ describe("useTamboMcpPromptList - individual server caching", () => {
     );
 
     // Wait for prompts to be updated (server B prompts should disappear)
-    // When only 1 server remains, prompts should NOT be prefixed
+    // Prompts are now always prefixed (breaking change)
     await waitFor(() => {
       expect(capturedPrompts.length).toBe(2);
     });
 
     const updatedPromptNames = capturedPrompts.map((p) => p.prompt.name);
-    expect(updatedPromptNames).toContain("prompt-a1");
-    expect(updatedPromptNames).toContain("prompt-a2");
+    expect(updatedPromptNames).toContain("server-a:prompt-a1");
+    expect(updatedPromptNames).toContain("server-a:prompt-a2");
     expect(updatedPromptNames).not.toContain("prompt-b1");
     expect(updatedPromptNames).not.toContain("prompt-b2");
-    expect(updatedPromptNames).not.toContain("server-a:prompt-a1"); // No prefix when only 1 server
+    expect(updatedPromptNames).not.toContain("prompt-a1"); // Always prefixed now
 
     // Verify server B's client was closed
     expect(clientB.close).toHaveBeenCalled();
@@ -550,12 +550,14 @@ describe("useTamboMcpPromptList - individual server caching", () => {
       </TamboClientContext.Provider>,
     );
 
-    // Wait for initial prompts from server A
+    // Wait for initial prompts from server A (always prefixed)
     await waitFor(() => {
       expect(capturedPrompts.length).toBe(1);
     });
 
-    expect(capturedPrompts.map((p) => p.prompt.name)).toContain("prompt-a");
+    expect(capturedPrompts.map((p) => p.prompt.name)).toContain(
+      "server-a:prompt-a",
+    );
 
     // Add server B
     rerender(
@@ -734,15 +736,19 @@ describe("useTamboMcpResourceList - resource management", () => {
     const resource1 = capturedResources.find(
       (r) => r.resource.uri === "server-a:file:///home/user/doc1.txt",
     );
-    expect(resource1?.server.url).toBe("https://server-a.example");
+    expect(resource1).toBeDefined();
+    expect(resource1!.server).not.toBeNull();
+    expect(resource1!.server!.url).toBe("https://server-a.example");
 
     const resource2 = capturedResources.find(
       (r) => r.resource.uri === "server-b:file:///workspace/code.js",
     );
-    expect(resource2?.server.url).toBe("https://server-b.example");
+    expect(resource2).toBeDefined();
+    expect(resource2!.server).not.toBeNull();
+    expect(resource2!.server!.url).toBe("https://server-b.example");
   });
 
-  it("should not prefix resources when only one server exists", async () => {
+  it("should always prefix MCP resources even with single server", async () => {
     const serverAResources = {
       resources: [
         {
@@ -808,11 +814,13 @@ describe("useTamboMcpResourceList - resource management", () => {
       expect(capturedResources.length).toBe(1);
     });
 
-    // No prefix when only 1 server
-    expect(capturedResources[0].resource.uri).toBe("file:///home/user/doc.txt");
+    // Always prefix MCP resources, even with 1 server (breaking change)
+    expect(capturedResources[0].resource.uri).toBe(
+      "server-a:file:///home/user/doc.txt",
+    );
   });
 
-  it("should remove resource prefixes when a server is removed", async () => {
+  it("should maintain prefixes even when servers are removed", async () => {
     const serverAResources = {
       resources: [
         {
@@ -942,15 +950,16 @@ describe("useTamboMcpResourceList - resource management", () => {
       </TamboClientContext.Provider>,
     );
 
-    // Wait for server B resources to be removed and prefixes stripped
+    // Wait for server B resources to be removed (prefixes maintained)
     await waitFor(() => {
       expect(capturedResources.length).toBe(2);
     });
 
     const updatedUris = capturedResources.map((r) => r.resource.uri);
-    expect(updatedUris).toContain("file:///home/user/doc1.txt"); // No prefix
-    expect(updatedUris).toContain("file:///home/user/doc2.txt");
-    expect(updatedUris).not.toContain("server-a:file:///home/user/doc1.txt"); // No prefix when only 1 server
+    // Prefixes are maintained even with only 1 server (breaking change)
+    expect(updatedUris).toContain("server-a:file:///home/user/doc1.txt");
+    expect(updatedUris).toContain("server-a:file:///home/user/doc2.txt");
+    expect(updatedUris).not.toContain("file:///home/user/doc1.txt"); // Always prefixed now
     expect(updatedUris).not.toContain("server-b:file:///workspace/code.js"); // Server B removed
   });
 });
@@ -973,7 +982,7 @@ describe("useTamboMcpResource - read individual resource", () => {
     queryClient.clear();
   });
 
-  it("should read a resource from a single server (unprefixed)", async () => {
+  it("should read a resource from a single server (prefixed)", async () => {
     const serverAResources = {
       resources: [
         {
@@ -1012,8 +1021,9 @@ describe("useTamboMcpResource - read individual resource", () => {
 
     let capturedResourceData: any = null;
     const Capture: React.FC = () => {
+      // MCP resources are always prefixed, even with single server
       const { data: resourceData } = useTamboMcpResource(
-        "file:///home/user/doc.txt",
+        "server-a:file:///home/user/doc.txt",
       );
       useEffect(() => {
         if (resourceData) {

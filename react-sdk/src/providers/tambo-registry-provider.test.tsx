@@ -381,4 +381,205 @@ describe("TamboRegistryProvider", () => {
       expect(result.current.onCallUnregisteredTool).toBeUndefined();
     });
   });
+
+  describe("Resource registration", () => {
+    it("should register static resources via props", () => {
+      const staticResources = [
+        {
+          uri: "file:///local/doc.txt",
+          name: "Local Document",
+          mimeType: "text/plain",
+        },
+        {
+          uri: "file:///local/image.png",
+          name: "Local Image",
+          mimeType: "image/png",
+        },
+      ];
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider resources={staticResources}>
+          {children}
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      expect(result.current.resources).toHaveLength(2);
+      expect(result.current.resources[0].uri).toBe("file:///local/doc.txt");
+      expect(result.current.resources[1].uri).toBe("file:///local/image.png");
+    });
+
+    it("should register resources dynamically via registerResource", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const newResource = {
+        uri: "file:///dynamic/doc.txt",
+        name: "Dynamic Document",
+        mimeType: "text/plain",
+      };
+
+      act(() => {
+        result.current.registerResource(newResource);
+      });
+
+      expect(result.current.resources).toHaveLength(1);
+      expect(result.current.resources[0].uri).toBe("file:///dynamic/doc.txt");
+    });
+
+    it("should register multiple resources via registerResources", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const newResources = [
+        {
+          uri: "file:///batch/doc1.txt",
+          name: "Batch Document 1",
+          mimeType: "text/plain",
+        },
+        {
+          uri: "file:///batch/doc2.txt",
+          name: "Batch Document 2",
+          mimeType: "text/plain",
+        },
+      ];
+
+      act(() => {
+        result.current.registerResources(newResources);
+      });
+
+      expect(result.current.resources).toHaveLength(2);
+      expect(result.current.resources[0].uri).toBe("file:///batch/doc1.txt");
+      expect(result.current.resources[1].uri).toBe("file:///batch/doc2.txt");
+    });
+
+    it("should register resource source via props", () => {
+      const mockListResources = jest.fn().mockResolvedValue([]);
+      const mockGetResource = jest.fn().mockResolvedValue({
+        contents: [{ uri: "", mimeType: "text/plain", text: "" }],
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider
+          listResources={mockListResources}
+          getResource={mockGetResource}
+        >
+          {children}
+        </TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      expect(result.current.resourceSource).not.toBeNull();
+      expect(result.current.resourceSource?.listResources).toBe(
+        mockListResources,
+      );
+      expect(result.current.resourceSource?.getResource).toBe(mockGetResource);
+    });
+
+    it("should register resource source via registerResourceSource", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const mockListResources = jest.fn().mockResolvedValue([]);
+      const mockGetResource = jest.fn().mockResolvedValue({
+        contents: [{ uri: "", mimeType: "text/plain", text: "" }],
+      });
+
+      act(() => {
+        result.current.registerResourceSource({
+          listResources: mockListResources,
+          getResource: mockGetResource,
+        });
+      });
+
+      expect(result.current.resourceSource).not.toBeNull();
+      expect(result.current.resourceSource?.listResources).toBe(
+        mockListResources,
+      );
+      expect(result.current.resourceSource?.getResource).toBe(mockGetResource);
+    });
+
+    it("should throw error when only listResources is provided", () => {
+      const mockListResources = jest.fn().mockResolvedValue([]);
+
+      expect(() => {
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+          <TamboRegistryProvider listResources={mockListResources}>
+            {children}
+          </TamboRegistryProvider>
+        );
+        renderHook(() => useTamboRegistry(), { wrapper });
+      }).toThrow(
+        "Both listResources and getResource must be provided together",
+      );
+    });
+
+    it("should throw error when only getResource is provided", () => {
+      const mockGetResource = jest.fn().mockResolvedValue({
+        contents: [{ uri: "", mimeType: "text/plain", text: "" }],
+      });
+
+      expect(() => {
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+          <TamboRegistryProvider getResource={mockGetResource}>
+            {children}
+          </TamboRegistryProvider>
+        );
+        renderHook(() => useTamboRegistry(), { wrapper });
+      }).toThrow(
+        "Both listResources and getResource must be provided together",
+      );
+    });
+
+    it("should validate resource has required uri field", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const invalidResource = {
+        name: "Document without URI",
+        mimeType: "text/plain",
+      } as any;
+
+      expect(() => {
+        act(() => {
+          result.current.registerResource(invalidResource);
+        });
+      }).toThrow("Resource must have a 'uri' field");
+    });
+
+    it("should validate resource has required name field", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const invalidResource = {
+        uri: "file:///doc.txt",
+        mimeType: "text/plain",
+      } as any;
+
+      expect(() => {
+        act(() => {
+          result.current.registerResource(invalidResource);
+        });
+      }).toThrow(
+        "Resource with URI 'file:///doc.txt' must have a 'name' field",
+      );
+    });
+  });
 });
