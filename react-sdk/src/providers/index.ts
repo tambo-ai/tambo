@@ -1,4 +1,9 @@
-export type { TamboComponent, TamboTool } from "../model/component-metadata";
+export type {
+  RegisterToolFn,
+  RegisterToolsFn,
+  TamboComponent,
+  TamboTool,
+} from "../model/component-metadata";
 export {
   TamboClientProvider,
   useIsTamboTokenUpdating,

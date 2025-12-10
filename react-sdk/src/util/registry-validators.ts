@@ -22,21 +22,22 @@ export function validateTool(tool: TamboTool | TamboToolWithToolSchema): void {
   // Validate tool name
   assertValidName(tool.name, "tool");
 
-  // Validate tool schemas - check inputSchema or deprecated toolSchema
+  // Validate tool schemas
+  // 1. check inputSchema
   if ("inputSchema" in tool && tool.inputSchema) {
     assertNoRecordSchema(
       tool.inputSchema,
       `inputSchema of tool "${tool.name}"`,
     );
-  } else if ("toolSchema" in tool && tool.toolSchema) {
-    // For deprecated toolSchema, only validate if it's a Zod function schema
-    // (JSON Schema toolSchemas don't need validation)
+  }
+  // 2. check deprecated toolSchema
+  else if ("toolSchema" in tool && tool.toolSchema) {
+    let inputSchema = tool.toolSchema;
+    // toolSchema may sometimes be a zod function schema, extract args if so
     if (isZodFunctionSchema(tool.toolSchema)) {
-      const args = getZodFunctionArgs(tool.toolSchema);
-      if (args) {
-        assertNoRecordSchema(args, `toolSchema of tool "${tool.name}"`);
-      }
+      inputSchema = getZodFunctionArgs(tool.toolSchema);
     }
+    assertNoRecordSchema(inputSchema, `toolSchema of tool "${tool.name}"`);
   }
 }
 

@@ -9,8 +9,6 @@ export interface ToolContext {
 }
 
 /**
- * Tool registration function.
- * Uses a permissive signature to be compatible with the SDK's RegisterToolFn
- * without importing the complex generic types that cause type explosion.
+ * Tool registration function
  */
-export type RegisterToolFn = (tool: any) => void;
+export type { RegisterToolFn } from "@tambo-ai/react";

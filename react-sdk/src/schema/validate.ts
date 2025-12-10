@@ -186,6 +186,3 @@ export function assertNoRecordSchema(
 
   assertNoRecordInJsonSchema(jsonSchema, [], contextName);
 }
-
-// Re-export with old name for backwards compatibility during transition
-export { assertNoRecordSchema as assertNoZodRecord };

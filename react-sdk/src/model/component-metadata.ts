@@ -70,35 +70,50 @@ export type JSONSchemaLite = JSONSchema7 & {
 type MaybeAsync<T> = T | Promise<T>;
 
 /**
- * A tool that can be registered with Tambo and invoked by the AI.
+ * TamboTool is a type that represents a tool that can be registered with Tambo.
  *
- * Tools allow the AI to perform actions and retrieve information. Each tool has:
- * - A unique name for identification
- * - A description that helps the AI understand when to use it
- * - A function that executes the tool's logic
- * - A schema describing the tool's parameters (StandardSchema or JSON Schema)
- * @param Params - The type of the tool's input parameters
- * @param Returns - The type of the tool's return value
- * @param Rest - Additional `...rest` parameters for the tool function
+ * It is preferable to use the `defineTool` helper function to create tools, as
+ * it provides better type inference and safety.
  * @example
- * ```typescript
- * import { z } from "zod/v4";
+ * ```ts
+ * import { TamboTool, defineTool } from "@tambo-ai/react";
+ * import { z } from "zod";
  *
- * const weatherTool: TamboTool = {
- *   name: "getWeather",
- *   description: "Get current weather for a location",
- *   tool: (location: string) => fetchWeather(location),
+ * const locationToLatLon = defineTool({
+ *   name: "location_to_latlon",
+ *   description:
+ *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
+ *   tool: async ({ location }) => getLatLonFromLocation(location),
  *   inputSchema: z.object({
- *     location: z.string().describe("Location name"),
+ *     location: z.string(),
  *   }),
  *   outputSchema: z.object({
- *     temperature: z.number(),
- *     conditions: z.string(),
+ *     lat: z.number(),
+ *     lon: z.number(),
  *   }),
- * };
+ * });
+ * ```
+ * Alternatively, you manually construct a TamboTool with type safety by passing
+ * the expected parameter and return types as generics:
+ * ```ts
+ * import { TamboTool } from "@tambo-ai/react";
+ * import { z } from "zod";
+ *
+ * const locationToLatLon: TamboTool<{ location: string }, { lat: number; lon: number }> = {
+ *   name: "location_to_latlon",
+ *   description:
+ *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
+ *   tool: async ({ location }) => getLatLonFromLocation(location),
+ *   inputSchema: z.object({
+ *     location: z.string(),
+ *   }),
+ *   outputSchema: z.object({
+ *     lat: z.number(),
+ *     lon: z.number(),
+ *   }),
+ * });
  * ```
  */
-
 export interface TamboTool<
   Params = any,
   Returns = any,
@@ -196,6 +211,56 @@ export type TamboToolWithToolSchema<
   /** @deprecated Use `inputSchema`/`outputSchema` properties instead. */
   toolSchema: unknown;
 };
+
+// NOTE(lachieh): this comment mirrors the one from `TamboTool` above
+/**
+ * TamboTool is a type that represents a tool that can be registered with Tambo.
+ *
+ * It is preferable to use the `defineTool` helper function to create tools, as
+ * it provides better type inference and safety.
+ * @example
+ * ```ts
+ * import { TamboTool, defineTool } from "@tambo-ai/react";
+ * import { z } from "zod";
+ *
+ * const locationToLatLon = defineTool({
+ *   name: "location_to_latlon",
+ *   description:
+ *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
+ *   tool: async ({ location }) => getLatLonFromLocation(location),
+ *   inputSchema: z.object({
+ *     location: z.string(),
+ *   }),
+ *   outputSchema: z.object({
+ *     lat: z.number(),
+ *     lon: z.number(),
+ *   }),
+ * });
+ * ```
+ * Alternatively, you manually construct a TamboTool with type safety by passing
+ * the expected parameter and return types as generics:
+ * ```ts
+ * import { TamboTool } from "@tambo-ai/react";
+ * import { z } from "zod";
+ *
+ * const locationToLatLon: TamboTool<{ location: string }, { lat: number; lon: number }> = {
+ *   name: "location_to_latlon",
+ *   description:
+ *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
+ *   tool: async ({ location }) => getLatLonFromLocation(location),
+ *   inputSchema: z.object({
+ *     location: z.string(),
+ *   }),
+ *   outputSchema: z.object({
+ *     lat: z.number(),
+ *     lon: z.number(),
+ *   }),
+ * });
+ * ```
+ */
+export type TamboToolBase<Params = any, Returns = any> =
+  | TamboToolWithToolSchema
+  | TamboTool<Params, Returns>;
 
 /**
  * A tool that uses JSON Schema compliant input and output schemas.

@@ -42,6 +42,8 @@ export {
   type ContextAttachment,
   type ContextAttachmentState,
   type ContextHelperData,
+  type RegisterToolFn,
+  type RegisterToolsFn,
   type TamboComponent,
   type TamboContextAttachmentProviderProps,
   type TamboContextHelpersContextProps,
@@ -75,6 +77,13 @@ export {
   type ComponentRegistry,
   type ParameterSpec,
   type RegisteredComponent,
+  /*
+   * NOTE(lachieh): TamboToolBase is used as a wrapper around current TamboTool
+   * and the deprecated TamboToolWithToolSchema to allow both to be used while
+   * supporting the migration to a single TamboTool type.
+   * TamboToolWithToolSchema should be removed in a future release.
+   */
+  type TamboToolBase as TamboTool,
 } from "./model/component-metadata";
 export {
   GenerationStage,
@@ -92,13 +101,6 @@ export {
 } from "./providers/tambo-interactable-provider";
 export { type InitialTamboThreadMessage } from "./providers/tambo-thread-provider";
 export { defineTool } from "./util/registry";
-import {
-  TamboToolWithToolSchema,
-  type TamboTool as TamboToolBase,
-} from "./model/component-metadata";
-export type TamboTool<Params = any, Returns = any, Rest extends any[] = []> =
-  | TamboToolBase<Params, Returns, Rest>
-  | TamboToolWithToolSchema<[Params, ...Rest], Returns>;
 
 // Context helpers exports
 export {
