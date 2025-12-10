@@ -40,7 +40,6 @@ import Image from "next/image";
 import * as React from "react";
 import {
   TextEditor,
-  getTextWithResourceURIs,
   type PromptItem,
   type ResourceItem,
   type TamboEditor,
@@ -410,7 +409,7 @@ const MessageInputInternal = React.forwardRef<
       let latestResourceNames: Record<string, string> = {};
       const editor = editorRef.current;
       if (editor) {
-        const extracted = getTextWithResourceURIs(editor);
+        const extracted = editor.getTextWithResourceURIs();
         latestResourceNames = extracted.resourceNames;
       }
 
@@ -1188,16 +1187,15 @@ const MessageInputMcpResourceButton = React.forwardRef<
   const { setValue, value, editorRef } = useMessageInputContext();
 
   const insertResourceReference = React.useCallback(
-    (resourceRef: string) => {
+    (id: string, label: string) => {
       const editor = editorRef.current;
       if (editor) {
-        const resourceId = resourceRef.slice(1);
-        editor.insertMention(resourceId, resourceId);
-        setValue(editor.getText());
+        editor.insertMention(id, label);
+        setValue(editor.getTextWithResourceURIs().text);
         return;
       }
       // Fallback: append to end of plain text value
-      const newValue = value ? `${value} ${resourceRef}` : resourceRef;
+      const newValue = value ? `${value} ${id}` : id;
       setValue(newValue);
     },
     [editorRef, setValue, value],
@@ -1208,7 +1206,7 @@ const MessageInputMcpResourceButton = React.forwardRef<
       ref={ref}
       {...props}
       value={value}
-      onInsertText={insertResourceReference}
+      onInsertResource={insertResourceReference}
     />
   );
 });
