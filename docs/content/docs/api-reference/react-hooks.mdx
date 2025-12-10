@@ -371,3 +371,21 @@ Function to set custom suggestions or clear them by passing `null`.
 `const snapshot = useCurrentInteractablesSnapshot()`
 
 Returns a cloned snapshot of the current interactable components.
+
+## useTamboCurrentMessage
+
+`const message = useTamboCurrentMessage()`
+
+Returns the complete `TamboThreadMessage` object for the current message, including thread ID, component data, state, and timestamps. Must be used within a component rendered as part of a message thread.
+
+Use when you need full message/thread context. For component metadata only, see [`useTamboCurrentComponent`](#usetambocurrentcomponent).
+
+## useTamboCurrentComponent
+
+`const component = useTamboCurrentComponent()`
+
+Returns component metadata (`componentName`, `props`, `interactableId`, `description`) from the parent component context. Returns `null` if used outside a component. Works with both inline rendered and interactable components.
+
+Use when you only need component information. For full message context, see [`useTamboCurrentMessage`](#usetambocurrentmessage).
+
+See [Interactable Components](/concepts/components/interactable-components#accessing-component-context-from-child-components) for detailed patterns and examples.

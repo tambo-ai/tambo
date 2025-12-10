@@ -3,7 +3,9 @@
 export { useTamboComponentState } from "./hooks/use-component-state";
 export {
   TamboMessageProvider,
+  useTamboCurrentComponent,
   useTamboCurrentMessage,
+  type TamboCurrentComponent,
 } from "./hooks/use-current-message";
 export { useMessageImages, type StagedImage } from "./hooks/use-message-images";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
@@ -72,20 +74,21 @@ export {
 } from "./model/component-metadata";
 export {
   GenerationStage,
+  type InteractableMetadata,
   type TamboThreadMessage,
 } from "./model/generate-component-response";
 export { type TamboThread } from "./model/tambo-thread";
 export { type InitialTamboThreadMessage } from "./providers/tambo-thread-provider";
 
-export type {
-  TamboInteractableComponent as InteractableComponent,
-  TamboInteractableContext,
-} from "./model/tambo-interactable";
 export {
   withTamboInteractable as withInteractable,
   type InteractableConfig,
   type WithTamboInteractableProps,
-} from "./providers/hoc/with-tambo-interactable";
+} from "./hoc/with-tambo-interactable";
+export type {
+  TamboInteractableComponent as InteractableComponent,
+  TamboInteractableContext,
+} from "./model/tambo-interactable";
 export {
   useCurrentInteractablesSnapshot,
   useTamboInteractable,
@@ -103,11 +106,11 @@ export type {
 } from "./context-helpers";
 
 // MCP server metadata types (used by TamboProvider / registry / MCP provider)
+export { MCPTransport } from "./model/mcp-server-info";
 export type {
   McpServerInfo,
   NormalizedMcpServerInfo,
 } from "./model/mcp-server-info";
-export { MCPTransport } from "./model/mcp-server-info";
 
 // Resource types for registry resource registration
 export type {

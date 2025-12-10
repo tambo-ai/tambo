@@ -1,7 +1,11 @@
 // Export all hooks from this directory
 export * from "./react-query-hooks";
 export { useTamboComponentState } from "./use-component-state";
-export { useTamboCurrentMessage } from "./use-current-message";
+export {
+  useTamboCurrentComponent,
+  useTamboCurrentMessage,
+  type TamboCurrentComponent,
+} from "./use-current-message";
 export { useTamboStreamingProps } from "./use-streaming-props";
 export * from "./use-suggestions";
 export {
