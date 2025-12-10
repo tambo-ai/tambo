@@ -17,8 +17,12 @@ import {
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
-import type { Editor } from "@tiptap/react";
-import { TextEditor, type ResourceItem, type PromptItem } from "./text-editor";
+import {
+  TextEditor,
+  type TamboEditor,
+  type ResourceItem,
+  type PromptItem,
+} from "./text-editor";
 import {
   useTamboElicitationContext,
   useTamboMcpPrompt,
@@ -263,7 +267,7 @@ const messageInputVariants = cva("w-full", {
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
  * @property {string|undefined} contextKey - The thread context key
- * @property {Editor|null} editorRef - Reference to the TipTap editor instance
+ * @property {TamboEditor|null} editorRef - Reference to the TamboEditor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
  * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
@@ -280,7 +284,7 @@ interface MessageInputContextValue {
   isPending: boolean;
   error: Error | null;
   contextKey?: string;
-  editorRef: React.RefObject<Editor | null>;
+  editorRef: React.RefObject<TamboEditor>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
   elicitation: TamboElicitationRequest | null;
@@ -320,8 +324,8 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
-  /** Optional ref to forward to the TipTap editor instance. */
-  inputRef?: React.RefObject<Editor | null>;
+  /** Optional ref to forward to the TamboEditor instance. */
+  inputRef?: React.RefObject<TamboEditor>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -378,7 +382,7 @@ const MessageInputInternal = React.forwardRef<
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  const editorRef = React.useRef<Editor | null>(null);
+  const editorRef = React.useRef<TamboEditor>(null!);
   const dragCounter = React.useRef(0);
 
   // Use elicitation context (optional)
@@ -387,7 +391,7 @@ const MessageInputInternal = React.forwardRef<
   React.useEffect(() => {
     setDisplayValue(value);
     if (value && editorRef.current) {
-      editorRef.current.commands.focus();
+      editorRef.current.focus();
     }
   }, [value]);
 
@@ -415,7 +419,7 @@ const MessageInputInternal = React.forwardRef<
         }
         // Refocus the editor after a successful submission
         setTimeout(() => {
-          editorRef.current?.commands.focus();
+          editorRef.current?.focus();
         }, 0);
       } catch (error) {
         console.error("Failed to submit message:", error);
@@ -692,9 +696,9 @@ const MessageInputTextarea = ({
 
         const editor = editorRef.current;
         if (editor) {
-          editor.commands.setContent(promptText);
+          editor.setContent(promptText);
           setValue(promptText);
-          editor.commands.focus("end");
+          editor.focus("end");
         }
       }
       setSelectedMcpPromptName(null);
@@ -725,13 +729,13 @@ const MessageInputTextarea = ({
       {...props}
     >
       <TextEditor
+        ref={editorRef}
         value={value}
         onChange={setValue}
         onSubmit={handleSubmit}
         onAddImage={handleAddImage}
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
-        editorRef={editorRef}
         className="bg-background text-foreground"
         onSearchResources={combinedResourceProvider.search}
         onSearchPrompts={combinedPromptProvider.search}
@@ -1167,17 +1171,8 @@ const MessageInputMcpResourceButton = React.forwardRef<
     (resourceRef: string) => {
       const editor = editorRef.current;
       if (editor) {
-        editor
-          .chain()
-          .focus()
-          .insertContent([
-            {
-              type: "mention",
-              attrs: { id: resourceRef.slice(1), label: resourceRef.slice(1) },
-            },
-            { type: "text", text: " " },
-          ])
-          .run();
+        const resourceId = resourceRef.slice(1);
+        editor.insertMention(resourceId, resourceId);
         setValue(editor.getText());
         return;
       }
