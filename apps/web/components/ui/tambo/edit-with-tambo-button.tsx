@@ -17,7 +17,7 @@ import {
   useTamboContextAttachment,
   useTamboCurrentComponent,
 } from "@tambo-ai/react";
-import { Bot, ChevronDown, X, XCircle } from "lucide-react";
+import { Bot, ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface EditWithTamboButtonProps {
@@ -73,8 +73,9 @@ export function EditWithTamboButton({
     useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
+  // The useTambo() hook already manages generation state and error handling through sendThreadMessage,
+  // so tracking them separately here would cause states to get out of sync or mask errors.
   const [isOpen, setIsOpen] = useState(false);
   const [sendMode, setSendMode] = useState<"send" | "thread">("send");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -95,46 +96,34 @@ export function EditWithTamboButton({
 
   // Close popover when generation completes
   useEffect(() => {
-    if (shouldCloseOnComplete && !isGenerating && !isPending) {
+    if (shouldCloseOnComplete && !isGenerating) {
       setShouldCloseOnComplete(false);
       setIsOpen(false);
       setPrompt("");
     }
-  }, [shouldCloseOnComplete, isGenerating, isPending]);
+  }, [shouldCloseOnComplete, isGenerating]);
 
   const handleSend = useCallback(async () => {
-    if (!prompt.trim() || isPending) {
+    if (!prompt.trim() || isGenerating) {
       return;
     }
 
-    setIsPending(true);
-    setError(null);
     setShouldCloseOnComplete(true);
 
-    try {
-      // Send the message with the interactable component in context
-      await sendThreadMessage(prompt.trim(), {
-        streamResponse: true,
-        additionalContext: {
-          inlineEdit: {
-            componentId: component.interactableId,
-            instruction:
-              "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
-          },
+    await sendThreadMessage(prompt.trim(), {
+      streamResponse: true,
+      additionalContext: {
+        inlineEdit: {
+          componentId: component.interactableId,
+          instruction:
+            "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
         },
-      });
+      },
+    });
 
-      // Clear the prompt after successful send
-      setPrompt("");
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("Failed to send message");
-      setError(error);
-      setShouldCloseOnComplete(false);
-    } finally {
-      setIsPending(false);
-    }
-  }, [prompt, isPending, component, sendThreadMessage]);
+    // Clear the prompt after successful send
+    setPrompt("");
+  }, [prompt, isGenerating, component, sendThreadMessage]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {
@@ -293,7 +282,7 @@ export function EditWithTamboButton({
               onKeyDown={handleKeyDown}
               placeholder="Describe what you want to change..."
               className="min-h-[80px] resize-none"
-              disabled={isPending}
+              disabled={isGenerating}
             />
             <div className="flex items-center justify-between">
               {/* Helper text or generation status */}
@@ -317,7 +306,7 @@ export function EditWithTamboButton({
                 <button
                   type="button"
                   onClick={handleMainAction}
-                  disabled={!prompt.trim() || isPending}
+                  disabled={!prompt.trim() || isGenerating}
                   className={cn(
                     "h-9 px-3 text-sm font-medium",
                     "bg-primary text-primary-foreground",
@@ -326,15 +315,15 @@ export function EditWithTamboButton({
                     "rounded-l-md border-r border-primary-foreground/20",
                   )}
                 >
-                  {isPending && <>Sending...</>}
-                  {!isPending &&
+                  {isGenerating && <>Sending...</>}
+                  {!isGenerating &&
                     (sendMode === "thread" ? "Send in Thread" : "Send")}
                 </button>
                 <Popover open={dropdownOpen} onOpenChange={setDropdownOpen}>
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      disabled={!prompt.trim() || isPending}
+                      disabled={!prompt.trim() || isGenerating}
                       className={cn(
                         "h-9 px-2 text-sm font-medium",
                         "bg-primary text-primary-foreground",
@@ -389,14 +378,6 @@ export function EditWithTamboButton({
               </div>
             </div>
           </div>
-
-          {/* Error display */}
-          {error && (
-            <div className="p-2 rounded-md bg-destructive/10 text-destructive text-sm flex items-start gap-2">
-              <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
-              <span>{error.message}</span>
-            </div>
-          )}
         </PopoverContent>
       </Popover>
     </TooltipProvider>
