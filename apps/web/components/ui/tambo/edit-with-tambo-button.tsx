@@ -133,10 +133,6 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // NOTE: This implementation uses TipTap Mention nodes and context attachments
-    // which are specific to our apps/web setup. The CLI registry version uses
-    // simple text insertion to remain portable across different editor setups.
-
     // Set custom suggestions if available
     if (suggestions) {
       setCustomSuggestions(suggestions);

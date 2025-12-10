@@ -140,11 +140,6 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // NOTE: This registry version uses simple text insertion for portability.
-    // It does NOT use TipTap Mention nodes or context attachments to avoid
-    // dependencies on specific editor configurations. Users can implement
-    // their own context system if needed.
-
     // Open the thread panel if callback provided
     if (onOpenThread) {
       onOpenThread();
