@@ -1,13 +1,13 @@
 "use client";
 
-import type { Editor } from "@tiptap/react";
+import type { TamboEditor } from "@/components/ui/tambo/text-editor";
 import * as React from "react";
 
 interface MessageThreadPanelContextType {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   togglePanel: () => void;
-  editorRef: React.MutableRefObject<Editor | null>;
+  editorRef: React.MutableRefObject<TamboEditor | null>;
 }
 
 const MessageThreadPanelContext =
@@ -19,7 +19,7 @@ export function MessageThreadPanelProvider({
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const editorRef = React.useRef<Editor | null>(null);
+  const editorRef = React.useRef<TamboEditor | null>(null);
 
   const togglePanel = React.useCallback(() => {
     setIsOpen((prev) => !prev);
