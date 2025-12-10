@@ -1,6 +1,6 @@
 import { render, waitFor } from "@testing-library/react";
 import React from "react";
-import { z } from "zod/v4";
+import { z } from "zodInternalAlias";
 import { withTamboInteractable } from "../hoc/with-tambo-interactable";
 import {
   TamboContextHelpersProvider,

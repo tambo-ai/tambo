@@ -1,5 +1,5 @@
 import type { JSONSchema7 } from "json-schema";
-import { z } from "zod/v4";
+import { z } from "zodInternalAlias";
 import { looksLikeJSONSchema } from "./json-schema";
 import { isStandardSchema } from "./standard-schema";
 

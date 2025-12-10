@@ -3,7 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { DeepPartial } from "ts-essentials";
-import { z } from "zod/v4";
+import { z } from "zodInternalAlias";
 import { TamboComponent } from "../model/component-metadata";
 import {
   GenerationStage,

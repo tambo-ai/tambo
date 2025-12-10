@@ -5,12 +5,12 @@ import {
   ZodType,
   ZodTypeAny,
 } from "zod/v3";
-import { z } from "zod/v4";
 import {
   $ZodFunction,
   $ZodType,
   toJSONSchema as zod4ToJSONSchema,
 } from "zod/v4/core";
+import { z } from "zodInternalAlias";
 
 /**
  * @returns True if the schema is a Zod 3 function schema
@@ -33,6 +33,7 @@ export function isZod4FunctionSchema(schema: unknown): schema is $ZodFunction {
     return false;
   }
 
+  // @ts-expect-error -- Error in Zod types for v3 vs v4
   return "def" in schema && schema._zod.def.type === "function";
 }
 
@@ -56,6 +57,7 @@ export function getZodFunctionArgs(schema: unknown) {
   }
 
   if (isZod4FunctionSchema(schema)) {
+    // @ts-expect-error -- Error in Zod types for v3 vs v4
     return schema._zod.def.input;
   }
 
@@ -73,6 +75,7 @@ export function getZodFunctionReturns(schema: unknown) {
   }
 
   if (isZod4FunctionSchema(schema)) {
+    // @ts-expect-error -- Error in Zod types for v3 vs v4
     return schema._zod.def.output;
   }
 

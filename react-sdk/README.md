@@ -276,23 +276,23 @@ Sometimes you need functions that run in the browser. DOM manipulation, authenti
 
 ```tsx
 import { z } from "zod/v4";
-import { type TamboTool } from "@tambo-ai/react";
+import { defineTool } from "@tambo-ai/react";
 
-const tools: TamboTool[] = [
-  {
+const tools = [
+  defineTool({
     name: "getWeather",
     description: "Fetches weather data for a location",
-    tool: async (location: string) =>
+    tool: async ({ location }) =>
       fetch(`/api/weather?q=${location}`).then((r) => r.json()),
-    toolSchema: z.function({
-      input: z.string(),
-      output: z.object({
-        temperature: z.number(),
-        condition: z.string(),
-        location: z.string(),
-      }),
+    inputSchema: z.object({
+      location: z.string(),
     }),
-  },
+    outputSchema: z.object({
+      temperature: z.number(),
+      condition: z.string(),
+      location: z.string(),
+    }),
+  }),
 ];
 
 <TamboProvider tools={tools} components={components}>
