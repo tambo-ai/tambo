@@ -177,31 +177,19 @@ export function EditWithTamboButton({
             component.componentName ?? "Unknown Component",
           )
         ) {
-          // If mention exists, just append the user query with a space before it
-          editor
-            .chain()
-            .focus("end")
-            .insertContent(" " + messageToInsert)
-            .run();
+          // If mention exists, just append the user query
+          editor.focus("end");
+          const currentText = editor.getText();
+          editor.setContent(currentText + " " + messageToInsert);
         } else {
-          // Insert @mention + space + user query
-          editor
-            .chain()
-            .focus()
-            .insertContent([
-              {
-                type: "mention",
-                attrs: {
-                  id: component.interactableId,
-                  label: component.componentName,
-                },
-              },
-              {
-                type: "text",
-                text: " " + messageToInsert,
-              },
-            ])
-            .run();
+          // Insert @mention (which adds a space after), then append the user query
+          editor.focus();
+          editor.insertMention(
+            component.interactableId ?? "",
+            component.componentName ?? "Unknown Component",
+          );
+          const currentText = editor.getText();
+          editor.setContent(currentText + messageToInsert);
         }
       }
     }, 150); // Wait for panel animation to complete
