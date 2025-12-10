@@ -168,14 +168,10 @@ export function EditWithTamboButton({
 
     // Insert text into the editor if editorRef is provided
     if (editorRef?.current) {
-      setTimeout(() => {
-        const editor = editorRef.current;
-        if (editor) {
-          // Set the content of the editor
-          editor.commands.setContent(messageToInsert);
-          editor.commands.focus("end");
-        }
-      }, 150); // Wait for panel animation to complete
+      const editor = editorRef.current;
+      // Set the content of the editor
+      editor.commands.setContent(messageToInsert);
+      editor.commands.focus("end");
     }
   }, [prompt, onOpenThread, editorRef]);
 

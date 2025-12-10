@@ -166,33 +166,31 @@ export function EditWithTamboButton({
     setPrompt("");
     setIsOpen(false);
 
-    // Insert @mention + user query into the editor after panel opens
-    setTimeout(() => {
-      const editor = editorRef.current;
-      if (editor) {
-        // Check if mention already exists to avoid duplicates
-        if (
-          hasExistingMention(
-            editor,
-            component.componentName ?? "Unknown Component",
-          )
-        ) {
-          // If mention exists, just append the user query
-          editor.focus("end");
-          const currentText = editor.getText();
-          editor.setContent(currentText + " " + messageToInsert);
-        } else {
-          // Insert @mention (which adds a space after), then append the user query
-          editor.focus();
-          editor.insertMention(
-            component.interactableId ?? "",
-            component.componentName ?? "Unknown Component",
-          );
-          const currentText = editor.getText();
-          editor.setContent(currentText + messageToInsert);
-        }
+    // Insert @mention + user query into the editor
+    const editor = editorRef.current;
+    if (editor) {
+      // Check if mention already exists to avoid duplicates
+      if (
+        hasExistingMention(
+          editor,
+          component.componentName ?? "Unknown Component",
+        )
+      ) {
+        // If mention exists, just append the user query
+        editor.focus("end");
+        const currentText = editor.getText();
+        editor.setContent(currentText + " " + messageToInsert);
+      } else {
+        // Insert @mention (which adds a space after), then append the user query
+        editor.focus();
+        editor.insertMention(
+          component.interactableId ?? "",
+          component.componentName ?? "Unknown Component",
+        );
+        const currentText = editor.getText();
+        editor.setContent(currentText + messageToInsert);
       }
-    }, 150); // Wait for panel animation to complete
+    }
   }, [
     prompt,
     component.interactableId,
