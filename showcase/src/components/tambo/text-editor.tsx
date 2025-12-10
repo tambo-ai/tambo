@@ -990,15 +990,17 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
           if (event.key === "Enter" && !event.shiftKey && anyMenuOpen) {
             event.preventDefault();
             event.stopPropagation();
-            return false;
+            return true;
           }
 
-          // Delegate to handleKeyDown (which handles both Tambo-specific and custom handlers)
-          if (editor) {
+          // Only handle Enter key for form submission - let TipTap handle everything else
+          if (event.key === "Enter" && !event.shiftKey && editor) {
             const reactEvent = event as unknown as React.KeyboardEvent;
             handleKeyDown(reactEvent);
             return reactEvent.defaultPrevented;
           }
+
+          // For all other keys (including Shift+Enter), let TipTap handle them
           return false;
         },
       },

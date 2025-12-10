@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import * as Popover from "@radix-ui/react-popover";
 import Document from "@tiptap/extension-document";
+import HardBreak from "@tiptap/extension-hard-break";
 import Mention from "@tiptap/extension-mention";
 import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -885,6 +886,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         Document,
         Paragraph,
         Text,
+        HardBreak,
         Placeholder.configure({ placeholder }),
         // Always register the "@" mention extension for resources
         // Visual display uses label, but getTextWithResourceURIs() will use ID

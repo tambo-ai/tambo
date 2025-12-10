@@ -4,6 +4,7 @@
   "componentName": "MessageInput",
   "dependencies": [
     "class-variance-authority",
+    "@radix-ui/react-popover",
     "@tambo-ai/react",
     "@tiptap/extension-document",
     "@tiptap/extension-mention",
