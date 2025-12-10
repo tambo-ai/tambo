@@ -310,8 +310,10 @@ function createResourceMentionConfig(
       const popupHandlers = createResourceItemPopup();
 
       const createWrapCommand =
-        (editor: Editor) =>
-        (tiptapCommand: (attrs: { id: string; label: string }) => void) =>
+        (
+          editor: Editor,
+          tiptapCommand: (attrs: { id: string; label: string }) => void,
+        ) =>
         (item: ResourceItem) => {
           // Check if mention already exists in the editor
           if (checkMentionExists(editor, item.name)) {
@@ -335,7 +337,7 @@ function createResourceMentionConfig(
             items: props.items,
             editor: props.editor,
             clientRect: props.clientRect,
-            command: createWrapCommand(props.editor)(props.command),
+            command: createWrapCommand(props.editor, props.command),
           });
         },
         onUpdate: (props) => {
@@ -347,7 +349,7 @@ function createResourceMentionConfig(
           popupHandlers.onUpdate({
             items: props.items,
             clientRect: props.clientRect,
-            command: createWrapCommand(props.editor)(props.command),
+            command: createWrapCommand(props.editor, props.command),
           });
         },
         onKeyDown: popupHandlers.onKeyDown,
