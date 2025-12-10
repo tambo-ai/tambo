@@ -89,9 +89,9 @@ export function EditWithTamboButton({
   const [isOpen, setIsOpen] = useState(false);
   const [sendMode, setSendMode] = useState<"send" | "thread">("send");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [shouldCloseOnComplete, setShouldCloseOnComplete] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const wasGeneratingRef = useRef(false);
 
   // If no component, the current component is not an interactable - don't render.
   if (!component) {
@@ -102,15 +102,12 @@ export function EditWithTamboButton({
 
   // Close popover when generation completes
   useEffect(() => {
-    if (isGenerating) {
-      wasGeneratingRef.current = true;
-    } else if (wasGeneratingRef.current && !isPending) {
-      // Generation just completed - close the popover
-      wasGeneratingRef.current = false;
+    if (shouldCloseOnComplete && !isGenerating && !isPending) {
+      setShouldCloseOnComplete(false);
       setIsOpen(false);
       setPrompt("");
     }
-  }, [isGenerating, isPending]);
+  }, [shouldCloseOnComplete, isGenerating, isPending]);
 
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isPending) {
@@ -119,6 +116,7 @@ export function EditWithTamboButton({
 
     setIsPending(true);
     setError(null);
+    setShouldCloseOnComplete(true);
 
     try {
       // Send the message with the interactable component in context
@@ -139,6 +137,7 @@ export function EditWithTamboButton({
       const error =
         err instanceof Error ? err : new Error("Failed to send message");
       setError(error);
+      setShouldCloseOnComplete(false);
     } finally {
       setIsPending(false);
     }
