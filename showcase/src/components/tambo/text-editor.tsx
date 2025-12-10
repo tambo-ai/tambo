@@ -109,7 +109,7 @@ interface ResourceSuggestionState {
   isOpen: boolean;
   items: ResourceItem[];
   selectedIndex: number;
-  position: { top: number; left: number } | null;
+  position: { top: number; left: number; lineHeight: number } | null;
   command: ((item: ResourceItem) => void) | null;
 }
 
@@ -120,7 +120,7 @@ interface PromptSuggestionState {
   isOpen: boolean;
   items: PromptItem[];
   selectedIndex: number;
-  position: { top: number; left: number } | null;
+  position: { top: number; left: number; lineHeight: number } | null;
   command: ((item: PromptItem) => void) | null;
 }
 
@@ -226,14 +226,16 @@ function PromptSuggestionProvider({ children }: { children: React.ReactNode }) {
 
 /**
  * Utility function to convert TipTap clientRect to position coordinates.
+ * Includes line height for proper spacing when popup flips above cursor.
  */
 function getPositionFromClientRect(
   clientRect?: (() => DOMRect | null) | null,
-): { top: number; left: number } | null {
+): { top: number; left: number; lineHeight: number } | null {
   if (!clientRect) return null;
   const rect = clientRect();
   if (!rect) return null;
-  return { top: rect.bottom, left: rect.left };
+  const lineHeight = rect.height || 20; // Fallback to 20px if height not available
+  return { top: rect.bottom, left: rect.left, lineHeight };
 }
 
 /**
@@ -244,6 +246,10 @@ function ResourceSuggestionPopover() {
   const { state, setState } = useResourceSuggestion();
 
   if (!state.isOpen || !state.position) return null;
+
+  // Use line height + small padding for vertical offset
+  // When popup appears above cursor, this ensures text stays visible
+  const sideOffset = state.position.lineHeight + 4;
 
   return (
     <Popover.Root
@@ -267,7 +273,7 @@ function ResourceSuggestionPopover() {
       <Popover.Content
         side="bottom"
         align="start"
-        sideOffset={4}
+        sideOffset={sideOffset}
         className="z-50 w-96 rounded-md border bg-popover p-0 shadow-md animate-in fade-in-0 zoom-in-95"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
@@ -291,6 +297,10 @@ function PromptSuggestionPopover() {
 
   if (!state.isOpen || !state.position) return null;
 
+  // Use line height + small padding for vertical offset
+  // When popup appears above cursor, this ensures text stays visible
+  const sideOffset = state.position.lineHeight + 4;
+
   return (
     <Popover.Root
       open={state.isOpen}
@@ -313,7 +323,7 @@ function PromptSuggestionPopover() {
       <Popover.Content
         side="bottom"
         align="start"
-        sideOffset={4}
+        sideOffset={sideOffset}
         className="z-50 w-96 rounded-md border bg-popover p-0 shadow-md animate-in fade-in-0 zoom-in-95"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
