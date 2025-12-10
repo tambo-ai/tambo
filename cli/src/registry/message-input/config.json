@@ -16,8 +16,7 @@
     "radix-ui",
     "react-dom",
     "framer-motion",
-    "streamdown",
-    "tippy.js"
+    "streamdown"
   ],
   "devDependencies": [],
   "requires": ["elicitation-ui", "mcp-components"],
