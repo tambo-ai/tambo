@@ -1,6 +1,5 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,9 +7,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { cn } from "@/lib/utils";
-import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
+import { useState } from "react";
 
 interface ComponentCodePreviewProps {
   component: React.ReactNode;
@@ -46,7 +47,7 @@ export function ComponentCodePreview({
   const heightStyle = isFullBleed
     ? { height: `${minHeight}px` }
     : { minHeight: `${minHeight}px` };
-
+  const [isFullScreen, setIsFullScreen] = useState(false);
   return (
     <div className={cn("not-prose w-full", className)}>
       {title && <h3 className="text-base font-500 mb-4">{title}</h3>}
@@ -59,7 +60,7 @@ export function ComponentCodePreview({
           </TabsList>
 
           {enableFullscreen && (
-            <Dialog>
+            <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="text-xs">
                   Go Full Screen
@@ -83,9 +84,11 @@ export function ComponentCodePreview({
                       </DialogTrigger>
                     </div>
                   </div>
-                  <div className="h-full w-full pt-[var(--header-height)] bg-gradient-to-br from-muted/10 via-transparent to-background/5 shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)]">
-                    {component}
-                  </div>
+                  {isFullScreen && (
+                    <div className="h-full w-full pt-[var(--header-height)] bg-gradient-to-br from-muted/10 via-transparent to-background/5 shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)]">
+                      {component}
+                    </div>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
@@ -102,7 +105,7 @@ export function ComponentCodePreview({
             )}
             style={heightStyle}
           >
-            {component}
+            {isFullScreen ? null : component}
           </div>
         </TabsContent>
 

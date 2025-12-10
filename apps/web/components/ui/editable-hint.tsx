@@ -98,29 +98,12 @@ export function EditableHint({
           // Check if mention already exists to avoid duplicates
           if (hasExistingMention(editor, contextName)) {
             // Just focus the editor if mention already exists
-            editor.commands.focus();
+            editor.focus();
             return;
           }
 
-          // Insert mention using TipTap's Mention extension
-          // The mention node structure: { type: 'mention', attrs: { id: string, label: string } }
-          editor
-            .chain()
-            .focus()
-            .insertContent([
-              {
-                type: "mention",
-                attrs: {
-                  id: contextName,
-                  label: contextName,
-                },
-              },
-              {
-                type: "text",
-                text: " ",
-              },
-            ])
-            .run();
+          // Insert mention using the TamboEditor interface
+          editor.insertMention(contextName, contextName);
         }
       }, 350); // Wait for panel animation to complete
     },

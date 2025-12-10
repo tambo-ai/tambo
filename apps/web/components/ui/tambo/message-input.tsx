@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tambo/suggestions-tooltip";
 import {
   TextEditor,
+  type TamboEditor,
   type PromptItem,
   type ResourceItem,
 } from "@/components/ui/tambo/text-editor";
@@ -23,7 +24,6 @@ import {
   useTamboMcpPromptList,
   useTamboMcpResourceList,
 } from "@tambo-ai/react/mcp";
-import type { Editor } from "@tiptap/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, AtSign, FileText, Paperclip, Square } from "lucide-react";
 import * as React from "react";
@@ -261,7 +261,7 @@ const messageInputVariants = cva("w-full", {
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
  * @property {string|undefined} contextKey - The thread context key
- * @property {Editor|null} editorRef - Reference to the TipTap editor instance
+ * @property {TamboEditor|null} editorRef - Reference to the TamboEditor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
  */
@@ -276,7 +276,9 @@ interface MessageInputContextValue {
   isPending: boolean;
   error: Error | null;
   contextKey?: string;
-  editorRef: React.RefObject<Editor | null>;
+  editorRef:
+    | React.RefObject<TamboEditor>
+    | React.MutableRefObject<TamboEditor | null>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
 }
@@ -314,8 +316,10 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
-  /** Optional ref to forward to the TipTap editor instance. */
-  inputRef?: React.RefObject<Editor | null>;
+  /** Optional ref to forward to the TamboEditor instance. */
+  inputRef?:
+    | React.RefObject<TamboEditor>
+    | React.MutableRefObject<TamboEditor | null>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -373,7 +377,7 @@ const MessageInputInternal = React.forwardRef<
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  const editorRef = React.useRef<Editor | null>(null);
+  const editorRef = React.useRef<TamboEditor>(null!);
   const dragCounter = React.useRef(0);
 
   React.useEffect(() => {
@@ -635,9 +639,9 @@ const MessageInputTextarea = ({
 
         const editor = editorRef.current;
         if (editor) {
-          editor.commands.setContent(promptText);
+          editor.setContent(promptText);
           setValue(promptText);
-          editor.commands.focus("end");
+          editor.focus("end");
         }
       }
       setSelectedMcpPromptName(null);
@@ -668,13 +672,13 @@ const MessageInputTextarea = ({
       {...props}
     >
       <TextEditor
+        ref={editorRef}
         value={value}
         onChange={setValue}
         onSubmit={handleSubmit}
         onAddImage={handleAddImage}
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
-        editorRef={editorRef}
         className="bg-background text-foreground"
         onSearchResources={combinedResourceProvider.search}
         onSearchPrompts={combinedPromptProvider.search}
