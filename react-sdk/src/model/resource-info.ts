@@ -9,6 +9,10 @@ import type {
  */
 export type ListResourceItem = ListResourcesResult["resources"][number];
 
+// Re-export the MCP SDK ReadResourceResult type so consumers can depend on
+// a stable SDK surface without importing directly from the MCP package.
+export type { ReadResourceResult };
+
 /**
  * Configuration for a dynamic resource source that can search and fetch resources.
  *
@@ -46,6 +50,11 @@ export interface ResourceSource {
 
   /**
    * Fetches the content of a specific resource by URI.
+   *
+   * Note: `getResource` may be invoked for URIs that have not previously
+   * been returned by `listResources` (for example, when the caller already
+   * knows a concrete URI). Implementations should handle unknown URIs
+   * gracefully rather than assuming they were listed first.
    * @param uri - The URI of the resource to fetch
    * @param args - Optional arguments to pass to the resource fetch
    * @returns Promise resolving to the resource content

@@ -24,6 +24,7 @@ export {
   useTamboMcpPromptList,
   useTamboMcpResource,
   useTamboMcpResourceList,
+  isMcpResourceEntry,
 } from "./mcp-hooks";
 export type {
   ListPromptEntry,

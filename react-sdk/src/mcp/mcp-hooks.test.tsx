@@ -10,6 +10,7 @@ import {
   useTamboMcpPromptList,
   useTamboMcpResourceList,
   useTamboMcpResource,
+  isMcpResourceEntry,
   type ListPromptEntry,
   type ListResourceEntry,
 } from "./mcp-hooks";
@@ -619,6 +620,31 @@ describe("useTamboMcpResourceList - resource management", () => {
     queryClient.clear();
   });
 
+  it("should identify MCP-backed entries with isMcpResourceEntry", () => {
+    const registryEntry: ListResourceEntry = {
+      server: null,
+      // Resource shape is not important for this helper, so cast to keep the
+      // test focused on the discriminant field.
+      resource: {
+        uri: "file:///registry/doc.txt",
+        name: "Registry Doc",
+        mimeType: "text/plain",
+      } as any,
+    };
+
+    const mcpEntry: ListResourceEntry = {
+      server: { key: "server-a", client: {} } as any,
+      resource: {
+        uri: "server-a:file:///home/user/doc.txt",
+        name: "Document",
+        mimeType: "text/plain",
+      } as any,
+    };
+
+    expect(isMcpResourceEntry(mcpEntry)).toBe(true);
+    expect(isMcpResourceEntry(registryEntry)).toBe(false);
+  });
+
   it("should fetch and combine resources from multiple servers", async () => {
     // Mock two servers with different resources
     const serverAResources = {
@@ -1182,5 +1208,59 @@ describe("useTamboMcpResource - read individual resource", () => {
     expect(mockClientA.readResource).toHaveBeenCalledWith({
       uri: "file:///home/user/doc.txt",
     });
+  });
+
+  it("should read registry resources via resourceSource even when not listed", async () => {
+    const registryUri = "file:///local/registry-doc.txt";
+
+    const listResources = jest.fn().mockResolvedValue([]);
+    const getResource = jest.fn().mockResolvedValue({
+      contents: [
+        {
+          uri: registryUri,
+          mimeType: "text/plain",
+          text: "Registry content",
+        },
+      ],
+    });
+
+    let capturedResourceData: any = null;
+    const Capture: React.FC = () => {
+      const { data: resourceData } = useTamboMcpResource(registryUri);
+      useEffect(() => {
+        if (resourceData) {
+          capturedResourceData = resourceData;
+        }
+      }, [resourceData]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          listResources={listResources}
+          getResource={getResource}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(capturedResourceData).not.toBeNull();
+    });
+
+    expect(getResource).toHaveBeenCalledWith(registryUri);
+    expect(capturedResourceData.contents[0].text).toBe("Registry content");
   });
 });

@@ -24,6 +24,10 @@ export type ListResourceItem = ListResourcesResult["resources"][number];
 
 /**
  * Registry resource entry - resources from the local registry (not MCP servers).
+ *
+ * These entries always have `server === null` and represent resources that
+ * are registered locally via `TamboRegistryProvider` (static `resources`
+ * props or dynamic `ResourceSource` functions).
  */
 export interface RegistryResourceEntry {
   server: null;
@@ -32,6 +36,9 @@ export interface RegistryResourceEntry {
 
 /**
  * MCP server resource entry - resources from connected MCP servers.
+ *
+ * These entries always have a non-null `server` with connection metadata and
+ * are produced by the active MCP clients managed by `TamboMcpProvider`.
  */
 export interface McpResourceEntry {
   server: ConnectedMcpServer;
@@ -39,9 +46,22 @@ export interface McpResourceEntry {
 }
 
 /**
- * Union type for all resource entries (registry or MCP server).
+ * Union type for all resource entries returned by `useTamboMcpResourceList`.
+ *
+ * - Registry resources have `server === null`.
+ * - MCP-backed resources have a non-null `server` with connection metadata.
  */
 export type ListResourceEntry = RegistryResourceEntry | McpResourceEntry;
+
+/**
+ * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource
+ * (entries where `server` is non-null).
+ */
+export function isMcpResourceEntry(
+  entry: ListResourceEntry,
+): entry is McpResourceEntry {
+  return entry.server !== null && isConnectedMcpServer(entry.server);
+}
 
 /**
  * Hook to get the prompts for all the registered MCP servers.
@@ -306,32 +326,39 @@ export function useTamboMcpResource(resourceUri: string | undefined) {
     (entry) => entry.resource.uri === resourceUri,
   );
 
-  // Determine if this is a registry resource or MCP resource
-  const isRegistryResource = resourceEntry?.server === null;
-  const mcpServer = resourceEntry?.server ?? null;
+  // Determine if this is a known registry resource or MCP resource
+  const isKnownEntry = resourceEntry != null;
+  const isRegistryResource = isKnownEntry && resourceEntry.server === null;
+  const mcpServer =
+    isKnownEntry && resourceEntry.server != null ? resourceEntry.server : null;
 
   // Strip the prefix to get the original resource URI for the MCP server call
   // Only strip if we found a matching resource entry with an MCP server
   const originalResourceUri =
-    resourceEntry && mcpServer
+    isKnownEntry && mcpServer
       ? resourceUri?.replace(`${mcpServer.serverKey}:`, "")
       : resourceUri;
 
-  // Check if we can fetch this resource
-  const hasRegistrySource = isRegistryResource && resourceSource != null;
+  // Check if we can fetch this resource. Registry resources can always be
+  // fetched when a resourceSource exists, even if they haven't appeared in a
+  // previous listResources result.
+  const hasRegistrySource = resourceSource != null;
   const hasConnectedMcpServer =
-    !isRegistryResource && mcpServer != null && isConnectedMcpServer(mcpServer);
+    isKnownEntry && mcpServer != null && isConnectedMcpServer(mcpServer);
   const canFetchResource = Boolean(
     resourceUri && (hasRegistrySource || hasConnectedMcpServer),
   );
 
+  let locationKey: string | undefined;
+  if (isRegistryResource || (!isKnownEntry && hasRegistrySource)) {
+    locationKey = "registry";
+  } else if (mcpServer) {
+    locationKey = mcpServer.key;
+  }
+
   return useTamboQuery({
     // Include server identity or "registry" to prevent stale cache hits
-    queryKey: [
-      "resource",
-      resourceUri,
-      isRegistryResource ? "registry" : mcpServer?.key,
-    ],
+    queryKey: ["resource", resourceUri, locationKey],
     enabled: canFetchResource,
     queryFn: async (): Promise<ReadResourceResult | null> => {
       if (!originalResourceUri) {
@@ -339,7 +366,9 @@ export function useTamboMcpResource(resourceUri: string | undefined) {
       }
 
       // Registry resource: use resourceSource.getResource
-      if (isRegistryResource && resourceSource) {
+      // If this is not a known entry but we have a resourceSource, treat it as
+      // a registry resource by default.
+      if (resourceSource && (!isKnownEntry || isRegistryResource)) {
         const result = await resourceSource.getResource(originalResourceUri);
         return result ?? null;
       }
