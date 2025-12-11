@@ -16,7 +16,7 @@ export default function EditWithTamboButtonPage() {
         <p className="text-lg text-muted-foreground">
           An inline editing button that appears on interactable components.
           Opens a popover with a prompt input to edit the component using
-          natural language.
+          natural language. You can also choose to send the edit in a thread.
         </p>
       </header>
 
@@ -25,14 +25,6 @@ export default function EditWithTamboButtonPage() {
         <h2 className="text-2xl font-semibold">Examples</h2>
 
         <div className="space-y-6">
-          <p className="text-muted-foreground">
-            Click the AI button on any card below and type an edit instruction
-            like &quot;Make the title more exciting&quot; or &quot;Change the
-            description to be about cats&quot;. The AI will update the component
-            props in real-time. You can also choose &quot;Send in Thread&quot;
-            to open the collapsible chat panel.
-          </p>
-
           <ComponentCodePreview
             title="Basic Usage"
             component={

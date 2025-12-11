@@ -218,12 +218,12 @@ export const EditWithTamboInterface = () => {
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Interactive Demo</h3>
           <p className="text-sm text-muted-foreground">
-            Click the AI button on the form to edit it using natural language.
-            Try instructions like &quot;Make the form more professional&quot;,
-            &quot;Change the prefilled values&quot;, &quot;Change the dropdown
-            options&quot;, or &quot;Change to a support form&quot;. Use
-            &quot;Send in Thread&quot; to open the collapsible chat panel with
-            suggestions.
+            Click the AI/Bot button on the form to edit it using natural
+            language. Try instructions like &quot;Make the form more
+            professional&quot;, &quot;Change the prefilled values&quot;,
+            &quot;Change the dropdown options&quot;, or &quot;Change to a
+            support form&quot;. Use &quot;Send in Thread&quot; to open the
+            collapsible chat panel with suggestions.
           </p>
         </div>
 
