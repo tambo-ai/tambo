@@ -7,6 +7,7 @@
     "@radix-ui/react-popover",
     "@tambo-ai/react",
     "@tiptap/extension-document",
+    "@tiptap/extension-hard-break",
     "@tiptap/extension-mention",
     "@tiptap/extension-paragraph",
     "@tiptap/extension-placeholder",
@@ -14,7 +15,6 @@
     "@tiptap/react",
     "@tiptap/suggestion",
     "lucide-react",
-    "radix-ui",
     "react-dom",
     "framer-motion",
     "streamdown"
