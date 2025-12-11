@@ -1150,6 +1150,7 @@ export class ThreadsService {
       const toolCallRequest = responseMessage.toolCallRequest;
 
       // Check tool call limits if we have a tool call request
+      const toolLimits = deriveToolLimitsFromDto(advanceRequestDto);
       const toolLimitErrorMessage = await checkToolCallLimitViolation(
         this.getDb(),
         thread.id,
@@ -1160,6 +1161,8 @@ export class ThreadsService {
         toolCallRequest,
         project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
         mcpAccessToken,
+        undefined,
+        toolLimits,
       );
       if (toolLimitErrorMessage) {
         queue.push(toolLimitErrorMessage);
@@ -1856,6 +1859,7 @@ export class ThreadsService {
 
       // Check tool call limits if we have a tool call request
       if (currentThreadMessage) {
+        const toolLimits = deriveToolLimitsFromDto(originalRequest);
         const toolLimitErrorMessage = await checkToolCallLimitViolation(
           this.getDb(),
           threadId,
@@ -1866,6 +1870,8 @@ export class ThreadsService {
           toolCallRequest,
           maxToolCallLimit,
           mcpAccessToken,
+          undefined,
+          toolLimits,
         );
 
         if (toolLimitErrorMessage) {
@@ -2269,4 +2275,34 @@ async function syncThreadStatus(
       });
     },
   );
+}
+/**
+ * Extracts per-tool maxCalls limits from the advance request DTO.
+ * Returns a map of tool name → { maxCalls?: number }.
+ */
+function deriveToolLimitsFromDto(
+  advanceRequest: AdvanceThreadDto,
+): Record<string, { maxCalls?: number }> {
+  const limits: Record<string, { maxCalls?: number }> = {};
+
+  if (Array.isArray(advanceRequest.clientTools)) {
+    for (const tool of advanceRequest.clientTools) {
+      const name = tool.name;
+      if (!name) continue;
+      limits[name] = { maxCalls: tool.maxCalls };
+    }
+  }
+
+  if (Array.isArray(advanceRequest.availableComponents)) {
+    for (const component of advanceRequest.availableComponents) {
+      if (!Array.isArray(component.contextTools)) continue;
+      for (const tool of component.contextTools) {
+        const name = tool.name;
+        if (!name) continue;
+        limits[name] = { maxCalls: tool.maxCalls };
+      }
+    }
+  }
+
+  return limits;
 }
