@@ -9,8 +9,9 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
 
 /**
  * A React hook that acts like useState, but also automatically updates the thread message's componentState.
- * If used within an interactable component (wrapped with withTamboInteractable), it also updates the
- * interactable provider's global state (sent to Tambo on every request).
+ * If used within an interactable component (wrapped with withTamboInteractable), it updates the
+ * interactable provider's global state (sent to Tambo on every request) instead of the remote thread message state.
+ * For generated components, it updates both the local and remote thread message's componentState.
  *
  * Benefits: Passes user changes to AI, and when threads are returned, state is preserved.
  * Works in both generative and interactable component contexts.
@@ -109,9 +110,10 @@ export function useTamboComponentState<S>(
     (newState: S) => {
       setLocalState(newState);
       if (componentId) {
+        // For interactable components, update the interactable provider's state
         setInteractableState(componentId, keyName, newState);
-      }
-      if (message) {
+      } else if (message) {
+        // For generated components, update both local and remote thread message state
         void updateLocalThreadMessage(newState, message);
         void updateRemoteThreadMessage(newState, message);
       }
@@ -179,8 +181,12 @@ export function useTamboComponentState<S>(
     }
   }, [setFromProp, initializedFromThreadMessage]);
 
-  // Ensure pending changes are flushed on unmount
+  // Ensure pending changes are flushed on unmount (only for generated components)
   useEffect(() => {
+    // Only flush remote updates for generated components, not interactable components
+    if (componentId) {
+      return;
+    }
     return () => {
       async function flushUpdates() {
         try {
@@ -195,7 +201,7 @@ export function useTamboComponentState<S>(
       // Fire-and-forget cleanup (errors handled inside)
       void flushUpdates();
     };
-  }, [updateRemoteThreadMessage]);
+  }, [updateRemoteThreadMessage, componentId]);
 
   return [localState as S, setValue];
 }
