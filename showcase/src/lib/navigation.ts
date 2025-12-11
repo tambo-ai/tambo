@@ -38,6 +38,10 @@ export const navigation: NavigationItem[] = [
             title: "Control Bar",
             href: "/components/control-bar",
           },
+          {
+            title: "Edit with Tambo Button",
+            href: "/components/edit-with-tambo-button",
+          },
         ],
       },
       {

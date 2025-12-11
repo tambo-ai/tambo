@@ -27,7 +27,9 @@ import {
 import {
   type Suggestion,
   useTambo,
+  useTamboContextAttachment,
   useTamboCurrentComponent,
+  useTamboThreadInput,
 } from "@tambo-ai/react";
 import type { Editor } from "@tiptap/react";
 import { Bot, ChevronDown, X } from "lucide-react";
@@ -89,9 +91,13 @@ export function EditWithTamboButton({
   className,
   onOpenThread,
   editorRef,
+  suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle } = useTambo();
+  const { setCustomSuggestions, addContextAttachment } =
+    useTamboContextAttachment();
+  const { setValue: setThreadInputValue } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -150,6 +156,16 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
+    // Set custom suggestions if available
+    if (suggestions) {
+      setCustomSuggestions(suggestions);
+    }
+
+    // Add the component as a context attachment
+    addContextAttachment({
+      name: component.componentName ?? "Unknown Component",
+    });
+
     // Open the thread panel if callback provided
     if (onOpenThread) {
       onOpenThread();
@@ -165,8 +181,20 @@ export function EditWithTamboButton({
       // Set the content of the editor
       editor.commands.setContent(messageToInsert);
       editor.commands.focus("end");
+    } else {
+      // Fallback: use thread input value setter
+      setThreadInputValue(messageToInsert);
     }
-  }, [prompt, onOpenThread, editorRef]);
+  }, [
+    prompt,
+    suggestions,
+    component.componentName,
+    onOpenThread,
+    editorRef,
+    setCustomSuggestions,
+    addContextAttachment,
+    setThreadInputValue,
+  ]);
 
   const handleMainAction = useCallback(() => {
     if (sendMode === "thread") {
