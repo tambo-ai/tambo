@@ -188,7 +188,11 @@ export function AssistantMessage() {
                 </div>
               </Message>
             }
-            code={`import { Message, MessageContent, ReasoningInfo } from "@/components/tambo/message";
+            code={`import {
+  Message,
+  MessageContent,
+  ReasoningInfo,
+} from "@/components/tambo/message";
 
 export function MessageWithReasoning() {
   return (
@@ -315,7 +319,11 @@ export function LoadingMessage() {
                 </div>
               </Message>
             }
-            code={`import { Message, MessageContent, ReasoningInfo } from "@/components/tambo/message";
+            code={`import {
+  Message,
+  MessageContent,
+  ReasoningInfo,
+} from "@/components/tambo/message";
 
 export function ThinkingMessage() {
   return (
