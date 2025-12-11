@@ -6,7 +6,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { MessageGenerationStage } from "@/components/ui/tambo/message-generation-stage";
-import { hasExistingMention } from "@/components/ui/tambo/text-editor";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -154,15 +153,10 @@ export function EditWithTamboButton({
     const editor = editorRef.current;
     if (editor) {
       // Check if mention already exists to avoid duplicates
-      if (
-        hasExistingMention(
-          editor,
-          component.componentName ?? "Unknown Component",
-        )
-      ) {
+      if (editor.hasMention(component.componentName ?? "Unknown Component")) {
         // If mention exists, just append the user query
         editor.focus("end");
-        const currentText = editor.getText();
+        const currentText = editor.getTextWithResourceURIs().text;
         editor.setContent(currentText + " " + messageToInsert);
       } else {
         // Insert @mention (which adds a space after), then append the user query
@@ -171,7 +165,7 @@ export function EditWithTamboButton({
           component.interactableId ?? "",
           component.componentName ?? "Unknown Component",
         );
-        const currentText = editor.getText();
+        const currentText = editor.getTextWithResourceURIs().text;
         editor.setContent(currentText + messageToInsert);
       }
     }
