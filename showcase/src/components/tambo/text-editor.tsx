@@ -49,8 +49,8 @@ export interface TamboEditor {
     text: string;
     resourceNames: Record<string, string>;
   };
-  /** Check if a mention with the given label exists */
-  hasMention(label: string): boolean;
+  /** Check if a mention with the given id exists */
+  hasMention(id: string): boolean;
   /** Insert a mention node with a following space */
   insertMention(id: string, label: string): void;
   /** Set whether the editor is editable */
@@ -1039,13 +1039,13 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         getTextWithResourceURIs: () => {
           return getTextWithResourceURIs(editor);
         },
-        hasMention: (label: string) => {
+        hasMention: (id: string) => {
           if (!editor.state?.doc) return false;
           let exists = false;
           editor.state.doc.descendants((node) => {
             if (node.type.name === "mention") {
-              const mentionLabel = node.attrs.label as string;
-              if (mentionLabel === label) {
+              const mentionId = node.attrs.id as string;
+              if (mentionId === id) {
                 exists = true;
                 return false; // Stop traversing
               }

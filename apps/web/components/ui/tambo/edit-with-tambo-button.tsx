@@ -174,7 +174,7 @@ export function EditWithTamboButton({
     const editor = editorRef.current;
     if (editor) {
       // Check if mention already exists to avoid duplicates
-      if (editor.hasMention(componentName)) {
+      if (editor.hasMention(interactableId)) {
         // If mention exists, just append the user query
         editor.focus("end");
         const currentText = editor.getTextWithResourceURIs().text;
