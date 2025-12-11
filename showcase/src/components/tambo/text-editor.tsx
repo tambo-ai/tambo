@@ -44,6 +44,8 @@ export interface TamboEditor {
   focus(position?: "start" | "end"): void;
   /** Set the editor content */
   setContent(content: string): void;
+  /** Append text to the end of the editor content */
+  appendText(text: string): void;
   /** Get the text and resource names */
   getTextWithResourceURIs(): {
     text: string;
@@ -1018,6 +1020,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         return {
           focus: () => {},
           setContent: () => {},
+          appendText: () => {},
           getTextWithResourceURIs: () => ({ text: "", resourceNames: {} }),
           hasMention: () => false,
           insertMention: () => {},
@@ -1035,6 +1038,9 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         },
         setContent: (content: string) => {
           editor.commands.setContent(content);
+        },
+        appendText: (text: string) => {
+          editor.chain().focus("end").insertContent(text).run();
         },
         getTextWithResourceURIs: () => {
           return getTextWithResourceURIs(editor);

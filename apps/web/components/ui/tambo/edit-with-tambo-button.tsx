@@ -176,15 +176,11 @@ export function EditWithTamboButton({
       // Check if mention already exists to avoid duplicates
       if (editor.hasMention(interactableId)) {
         // If mention exists, just append the user query
-        editor.focus("end");
-        const currentText = editor.getTextWithResourceURIs().text;
-        editor.setContent(currentText + " " + messageToInsert);
+        editor.appendText(" " + messageToInsert);
       } else {
         // Insert @mention (which adds a space after), then append the user query
-        editor.focus();
         editor.insertMention(interactableId, componentName);
-        const currentText = editor.getTextWithResourceURIs().text;
-        editor.setContent(currentText + messageToInsert);
+        editor.appendText(messageToInsert);
       }
     }
   }, [
