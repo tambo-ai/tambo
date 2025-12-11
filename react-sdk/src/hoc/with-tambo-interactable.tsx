@@ -9,6 +9,7 @@ import React, {
 import { z } from "zod";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { TamboMessageProvider } from "../hooks/use-current-message";
+import { TamboThreadMessage } from "../model/generate-component-response";
 
 export const InteractableIdContext = createContext<string | null>(null);
 
