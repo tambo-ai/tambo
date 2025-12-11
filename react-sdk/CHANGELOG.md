@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.66.0](https://github.com/tambo-ai/tambo/compare/react-v0.65.3...react-v0.66.0) (2025-12-11)
+
+
+### Features
+
+* integrate EditWithTambo component for inline component editing ([#1477](https://github.com/tambo-ai/tambo/issues/1477)) ([390c204](https://github.com/tambo-ai/tambo/commit/390c2045148c63dfb85f1988861e1cf6ad7f021e))
+* **react-sdk:** add local resource registration to TamboRegistryProvider ([#1504](https://github.com/tambo-ai/tambo/issues/1504)) ([59c94a9](https://github.com/tambo-ai/tambo/commit/59c94a9214c165cbc6728d5a17f39697e4d4c370))
+* **react:** migrate to Standard Schema for schema conversion ([#1446](https://github.com/tambo-ai/tambo/issues/1446)) ([be5f2a0](https://github.com/tambo-ai/tambo/commit/be5f2a0052c0114ddf5ae2f2124e533c1cceaa7d))
+
+
+### Bug Fixes
+
+* **resources:** Make sure to show resource names in text editor and user messages ([#1497](https://github.com/tambo-ai/tambo/issues/1497)) ([b2d8013](https://github.com/tambo-ai/tambo/commit/b2d8013c0b4bf5fbf7801eca20e97fcf98b5ae55))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1483](https://github.com/tambo-ai/tambo/issues/1483)) ([892f7a4](https://github.com/tambo-ai/tambo/commit/892f7a4ed55beb99c5b540f2cb6139bb62dcd880))
+* **deps-dev:** bump ts-jest from 29.4.5 to 29.4.6 in the testing group ([#1484](https://github.com/tambo-ai/tambo/issues/1484)) ([07a1253](https://github.com/tambo-ai/tambo/commit/07a125380a847816424b4dae304075b3726e1816))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1487](https://github.com/tambo-ai/tambo/issues/1487)) ([2178c32](https://github.com/tambo-ai/tambo/commit/2178c32ed7c962a915aa80694cc8e3c4a7f434ba))
+
+
+### Code Refactoring
+
+* **sdk:** Clean up registry provider in anticipation of registering local resources ([#1503](https://github.com/tambo-ai/tambo/issues/1503)) ([8180272](https://github.com/tambo-ai/tambo/commit/8180272206a761eaa2d8d61980a9c0d51f356783))
+
 ## [0.65.3](https://github.com/tambo-ai/tambo/compare/react-v0.65.2...react-v0.65.3) (2025-12-08)
 
 
