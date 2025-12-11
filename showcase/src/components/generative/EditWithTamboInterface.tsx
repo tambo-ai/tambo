@@ -69,6 +69,11 @@ function ContactFormBase({
   onOpenThread,
   suggestions,
 }: ContactFormProps) {
+  // Ensure selectValue is one of the valid options, fallback to first option
+  const safeSelectValue = selectOptions.includes(selectValue)
+    ? selectValue
+    : (selectOptions[0] ?? "");
+
   return (
     <div className="w-full rounded-lg border border-border bg-background shadow-lg">
       <div className="p-4 md:p-6 space-y-4 md:space-y-6">
@@ -121,13 +126,13 @@ function ContactFormBase({
               {selectLabel}
               <span className="text-red-500 ml-1">*</span>
             </label>
-            <Select defaultValue={selectValue} required>
+            <Select defaultValue={safeSelectValue} required>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
-                {selectOptions.map((option, index) => (
-                  <SelectItem key={index} value={option}>
+                {selectOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>
                 ))}
@@ -200,11 +205,10 @@ export const EditWithTamboInterface = () => {
 
   // Handler to open the thread panel
   const handleOpenThread = useCallback(() => {
-    // Simulate Cmd/Ctrl+K to open the collapsible
+    // Simulate Cmd+K to open the collapsible (hook checks for metaKey OR ctrlKey)
     const event = new KeyboardEvent("keydown", {
       key: "k",
       metaKey: true,
-      ctrlKey: true,
       bubbles: true,
     });
     document.dispatchEvent(event);
@@ -255,7 +259,7 @@ export const EditWithTamboInterface = () => {
       <MessageThreadCollapsible
         contextKey={userContextKey}
         defaultOpen={isThreadOpen}
-        className="z-9999"
+        className="z-60"
       />
     </div>
   );
