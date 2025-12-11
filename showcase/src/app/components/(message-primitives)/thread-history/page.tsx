@@ -106,7 +106,7 @@ export default function ThreadHistoryPage() {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
-} from "@tambo-ai/react";
+} from "@/components/tambo/thread-history";
 
 export function ChatSidebar() {
   return (
@@ -165,7 +165,7 @@ export function ChatSidebar() {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
-} from "@tambo-ai/react";
+} from "@/components/tambo/thread-history";
 
 export function CollapsedSidebar() {
   return (
@@ -222,7 +222,7 @@ export function CollapsedSidebar() {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
-} from "@tambo-ai/react";
+} from "@/components/tambo/thread-history";
 
 export function RightSidebarLayout() {
   return (
@@ -285,7 +285,7 @@ export function RightSidebarLayout() {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryList,
-} from "@tambo-ai/react";
+} from "@/components/tambo/thread-history";
 
 export function MinimalSidebar() {
   return (

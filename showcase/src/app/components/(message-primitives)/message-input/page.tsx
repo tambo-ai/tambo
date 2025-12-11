@@ -48,7 +48,7 @@ export default function MessageInputPage() {
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputToolbar,
-} from "@tambo-ai/react";
+} from "@/components/tambo/message-input";
 
 export function ChatInput() {
   return (
@@ -84,7 +84,7 @@ export function ChatInput() {
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputToolbar,
-} from "@tambo-ai/react";
+} from "@/components/tambo/message-input";
 
 export function SolidChatInput() {
   return (
@@ -120,7 +120,7 @@ export function SolidChatInput() {
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputToolbar,
-} from "@tambo-ai/react";
+} from "@/components/tambo/message-input";
 
 export function BorderedChatInput() {
   return (
@@ -158,7 +158,7 @@ export function BorderedChatInput() {
   MessageInputSubmitButton,
   MessageInputError,
   MessageInputToolbar,
-} from "@tambo-ai/react";
+} from "@/components/tambo/message-input";
 
 export function FullFeaturedInput() {
   return (
@@ -188,7 +188,7 @@ export function FullFeaturedInput() {
   MessageInput,
   MessageInputTextarea,
   MessageInputError,
-} from "@tambo-ai/react";
+} from "@/components/tambo/message-input";
 
 export function MinimalInput() {
   return (
