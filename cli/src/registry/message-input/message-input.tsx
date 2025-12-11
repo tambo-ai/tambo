@@ -17,8 +17,6 @@ import {
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
-import type { Editor } from "@tiptap/react";
-import { TextEditor, type ResourceItem, type PromptItem } from "./text-editor";
 import {
   useTamboElicitationContext,
   useTamboMcpPrompt,
@@ -40,6 +38,12 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import * as React from "react";
+import {
+  TextEditor,
+  type PromptItem,
+  type ResourceItem,
+  type TamboEditor,
+} from "./text-editor";
 // eslint-disable-next-line @typescript-eslint/promise-function-async
 const DictationButton = dynamic(() => import("./dictation-button"), {
   ssr: false,
@@ -263,7 +267,7 @@ const messageInputVariants = cva("w-full", {
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
  * @property {string|undefined} contextKey - The thread context key
- * @property {Editor|null} editorRef - Reference to the TipTap editor instance
+ * @property {TamboEditor|null} editorRef - Reference to the TamboEditor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
  * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
@@ -275,12 +279,13 @@ interface MessageInputContextValue {
   submit: (options: {
     contextKey?: string;
     streamResponse?: boolean;
+    resourceNames: Record<string, string>;
   }) => Promise<void>;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   isPending: boolean;
   error: Error | null;
   contextKey?: string;
-  editorRef: React.RefObject<Editor | null>;
+  editorRef: React.RefObject<TamboEditor>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
   elicitation: TamboElicitationRequest | null;
@@ -320,8 +325,8 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
   contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
-  /** Optional ref to forward to the TipTap editor instance. */
-  inputRef?: React.RefObject<Editor | null>;
+  /** Optional ref to forward to the TamboEditor instance. */
+  inputRef?: React.RefObject<TamboEditor>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -378,7 +383,7 @@ const MessageInputInternal = React.forwardRef<
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  const editorRef = React.useRef<Editor | null>(null);
+  const editorRef = React.useRef<TamboEditor>(null!);
   const dragCounter = React.useRef(0);
 
   // Use elicitation context (optional)
@@ -387,7 +392,7 @@ const MessageInputInternal = React.forwardRef<
   React.useEffect(() => {
     setDisplayValue(value);
     if (value && editorRef.current) {
-      editorRef.current.commands.focus();
+      editorRef.current.focus();
     }
   }, [value]);
 
@@ -400,12 +405,21 @@ const MessageInputInternal = React.forwardRef<
       setDisplayValue("");
       setIsSubmitting(true);
 
+      // Extract resource names directly from editor at submit time to ensure we have the latest
+      let latestResourceNames: Record<string, string> = {};
+      const editor = editorRef.current;
+      if (editor) {
+        const extracted = editor.getTextWithResourceURIs();
+        latestResourceNames = extracted.resourceNames;
+      }
+
       const imageIdsAtSubmitTime = images.map((image) => image.id);
 
       try {
         await submit({
           contextKey,
           streamResponse: true,
+          resourceNames: latestResourceNames,
         });
         setValue("");
         // Clear only the images that were staged when submission started so
@@ -415,7 +429,7 @@ const MessageInputInternal = React.forwardRef<
         }
         // Refocus the editor after a successful submission
         setTimeout(() => {
-          editorRef.current?.commands.focus();
+          editorRef.current?.focus();
         }, 0);
       } catch (error) {
         console.error("Failed to submit message:", error);
@@ -443,6 +457,7 @@ const MessageInputInternal = React.forwardRef<
       isSubmitting,
       images,
       removeImage,
+      editorRef,
     ],
   );
 
@@ -657,6 +672,17 @@ const MessageInputTextarea = ({
   const { isIdle } = useTamboThread();
   const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
+  // Resource names are extracted from editor at submit time, no need to track in state
+  const setResourceNames = React.useCallback(
+    (
+      _resourceNames:
+        | Record<string, string>
+        | ((prev: Record<string, string>) => Record<string, string>),
+    ) => {
+      // No-op - we extract resource names directly from editor at submit time
+    },
+    [],
+  );
 
   // Combine MCP resources/prompts with external providers
   const combinedResourceProvider =
@@ -674,16 +700,12 @@ const MessageInputTextarea = ({
   // Handle MCP prompt insertion when data is fetched
   React.useEffect(() => {
     if (selectedMcpPromptData && selectedMcpPromptName) {
-      const promptMessages = (selectedMcpPromptData as { messages?: unknown[] })
-        ?.messages;
+      const promptMessages = selectedMcpPromptData?.messages;
       if (promptMessages) {
         const promptText = promptMessages
-          .map((msg: unknown) => {
-            const typedMsg = msg as {
-              content?: { type?: string; text?: string };
-            };
-            if (typedMsg.content?.type === "text") {
-              return typedMsg.content.text;
+          .map((msg) => {
+            if (msg.content?.type === "text") {
+              return msg.content.text;
             }
             return "";
           })
@@ -692,9 +714,9 @@ const MessageInputTextarea = ({
 
         const editor = editorRef.current;
         if (editor) {
-          editor.commands.setContent(promptText);
+          editor.setContent(promptText);
           setValue(promptText);
-          editor.commands.focus("end");
+          editor.focus("end");
         }
       }
       setSelectedMcpPromptName(null);
@@ -725,13 +747,14 @@ const MessageInputTextarea = ({
       {...props}
     >
       <TextEditor
+        ref={editorRef}
         value={value}
         onChange={setValue}
+        onResourceNamesChange={setResourceNames}
         onSubmit={handleSubmit}
         onAddImage={handleAddImage}
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
-        editorRef={editorRef}
         className="bg-background text-foreground"
         onSearchResources={combinedResourceProvider.search}
         onSearchPrompts={combinedPromptProvider.search}
@@ -1164,25 +1187,15 @@ const MessageInputMcpResourceButton = React.forwardRef<
   const { setValue, value, editorRef } = useMessageInputContext();
 
   const insertResourceReference = React.useCallback(
-    (resourceRef: string) => {
+    (id: string, label: string) => {
       const editor = editorRef.current;
       if (editor) {
-        editor
-          .chain()
-          .focus()
-          .insertContent([
-            {
-              type: "mention",
-              attrs: { id: resourceRef.slice(1), label: resourceRef.slice(1) },
-            },
-            { type: "text", text: " " },
-          ])
-          .run();
-        setValue(editor.getText());
+        editor.insertMention(id, label);
+        setValue(editor.getTextWithResourceURIs().text);
         return;
       }
       // Fallback: append to end of plain text value
-      const newValue = value ? `${value} ${resourceRef}` : resourceRef;
+      const newValue = value ? `${value} ${id}` : id;
       setValue(newValue);
     },
     [editorRef, setValue, value],
@@ -1193,7 +1206,7 @@ const MessageInputMcpResourceButton = React.forwardRef<
       ref={ref}
       {...props}
       value={value}
-      onInsertText={insertResourceReference}
+      onInsertResource={insertResourceReference}
     />
   );
 });
@@ -1434,13 +1447,13 @@ export {
   MessageInputMcpConfigButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
+  MessageInputPlainTextarea,
   MessageInputStagedImages,
   MessageInputSubmitButton,
-  MessageInputPlainTextarea,
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,
 };
 
 // Re-export types from text-editor for convenience
-export type { ResourceItem, PromptItem } from "./text-editor";
+export type { PromptItem, ResourceItem } from "./text-editor";

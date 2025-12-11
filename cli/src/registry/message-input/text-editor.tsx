@@ -22,6 +22,28 @@ import tippy, { type Instance as TippyInstance } from "tippy.js";
 import "tippy.js/dist/tippy.css";
 
 /**
+ * Minimal editor interface exposed to parent components.
+ * Hides TipTap implementation details and exposes only necessary operations.
+ */
+export interface TamboEditor {
+  /** Focus the editor at a specific position */
+  focus(position?: "start" | "end"): void;
+  /** Set the editor content */
+  setContent(content: string): void;
+  /** Get the text and resource names */
+  getTextWithResourceURIs(): {
+    text: string;
+    resourceNames: Record<string, string>;
+  };
+  /** Check if a mention with the given label exists */
+  hasMention(label: string): boolean;
+  /** Insert a mention node with a following space */
+  insertMention(id: string, label: string): void;
+  /** Set whether the editor is editable */
+  setEditable(editable: boolean): void;
+}
+
+/**
  * Represents a resource item that appears in the "@" mention dropdown.
  * Resources are referenced by ID/URI and appear as visual mention nodes in the editor.
  */
@@ -47,11 +69,15 @@ export interface PromptItem {
 export interface TextEditorProps {
   value: string;
   onChange: (text: string) => void;
-  onKeyDown?: (event: React.KeyboardEvent, editor: Editor) => void;
+  onResourceNamesChange?: (
+    resourceNames:
+      | Record<string, string>
+      | ((prev: Record<string, string>) => Record<string, string>),
+  ) => void;
+  onKeyDown?: (event: React.KeyboardEvent) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-  editorRef?: React.MutableRefObject<Editor | null>;
   /** Submit handler for Enter key behavior */
   onSubmit: (e: React.FormEvent) => Promise<void>;
   /** Called when an image is pasted into the editor */
@@ -125,14 +151,19 @@ const ResourceItemList = forwardRef<
           key={item.id}
           type="button"
           className={cn(
-            "flex items-center gap-2 px-3 py-2 text-sm rounded-md text-left",
+            "flex items-start gap-2 px-2 py-2 text-sm rounded-md text-left",
             "hover:bg-accent hover:text-accent-foreground transition-colors",
             index === selectedIndex && "bg-accent text-accent-foreground",
           )}
           onClick={() => command(item)}
         >
-          {item.icon ?? <Cuboid className="w-4 h-4 flex-shrink-0" />}
-          <span className="truncate">{item.name}</span>
+          {item.icon ?? <Cuboid className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+          <div className="flex-1 min-w-0">
+            <div className="font-medium truncate">{item.name}</div>
+            <div className="text-xs text-muted-foreground truncate font-mono">
+              {item.id}
+            </div>
+          </div>
         </button>
       ))}
     </div>
@@ -141,26 +172,37 @@ const ResourceItemList = forwardRef<
 ResourceItemList.displayName = "ResourceItemList";
 
 /**
- * Checks if a mention with the given label already exists in the editor.
- * Used to prevent duplicate mentions when inserting via @ command or EditableHint.
- *
- * @param editor - The TipTap editor instance
- * @param label - The mention label to check for
- * @returns true if a mention with the given label exists, false otherwise
+ * Internal helper to check if a mention exists in a raw TipTap Editor.
+ * Used within the suggestion plugin where we only have access to the Editor instance.
  */
-export function hasExistingMention(editor: Editor, label: string): boolean {
-  let hasMention = false;
+function checkMentionExists(editor: Editor, label: string): boolean {
+  let exists = false;
   editor.state.doc.descendants((node) => {
     if (node.type.name === "mention") {
       const mentionLabel = node.attrs.label as string;
       if (mentionLabel === label) {
-        hasMention = true;
+        exists = true;
         return false; // Stop traversing
       }
     }
     return true;
   });
-  return hasMention;
+  return exists;
+}
+
+/**
+ * Checks if a mention with the given label already exists in the editor.
+ * Used to prevent duplicate mentions when inserting via @ command or EditableHint.
+ *
+ * @param editor - The TamboEditor instance
+ * @param label - The mention label to check for
+ * @returns true if a mention with the given label exists, false otherwise
+ */
+export function hasExistingMention(
+  editor: TamboEditor,
+  label: string,
+): boolean {
+  return editor.hasMention(label);
 }
 
 /**
@@ -271,11 +313,13 @@ function createResourceMentionConfig(
       const popupHandlers = createResourceItemPopup();
 
       const createWrapCommand =
-        (editor: Editor) =>
-        (tiptapCommand: (attrs: { id: string; label: string }) => void) =>
+        (
+          editor: Editor,
+          tiptapCommand: (attrs: { id: string; label: string }) => void,
+        ) =>
         (item: ResourceItem) => {
           // Check if mention already exists in the editor
-          if (hasExistingMention(editor, item.name)) {
+          if (checkMentionExists(editor, item.name)) {
             return;
           }
 
@@ -296,7 +340,7 @@ function createResourceMentionConfig(
             items: props.items,
             editor: props.editor,
             clientRect: props.clientRect,
-            command: createWrapCommand(props.editor)(props.command),
+            command: createWrapCommand(props.editor, props.command),
           });
         },
         onUpdate: (props) => {
@@ -308,7 +352,7 @@ function createResourceMentionConfig(
           popupHandlers.onUpdate({
             items: props.items,
             clientRect: props.clientRect,
-            command: createWrapCommand(props.editor)(props.command),
+            command: createWrapCommand(props.editor, props.command),
           });
         },
         onKeyDown: popupHandlers.onKeyDown,
@@ -369,14 +413,19 @@ const PromptItemList = forwardRef<
           key={item.id}
           type="button"
           className={cn(
-            "flex items-center gap-2 px-3 py-2 text-sm rounded-md text-left",
+            "flex items-start gap-2 px-2 py-2 text-sm rounded-md text-left",
             "hover:bg-accent hover:text-accent-foreground transition-colors",
             index === selectedIndex && "bg-accent text-accent-foreground",
           )}
           onClick={() => command(item)}
         >
-          {item.icon ?? <FileText className="w-4 h-4 flex-shrink-0" />}
-          <span className="truncate">{item.name}</span>
+          {item.icon ?? <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+          <div className="flex-1 min-w-0">
+            <div className="font-medium truncate">{item.name}</div>
+            <div className="text-xs text-muted-foreground truncate">
+              {item.id}
+            </div>
+          </div>
         </button>
       ))}
     </div>
@@ -537,39 +586,51 @@ function createPromptCommandExtension(
 }
 
 /**
- * Custom text extraction that serializes mention nodes with their ID (resource URI)
- * instead of their label. This is needed for message submission.
+ * Custom text extraction that serializes mention nodes with their ID (resource URI).
+ * Returns both the text (with URIs only) and a map of URI -> name for lookups.
+ * This avoids string manipulation issues with names containing special characters.
  */
-function getTextWithResourceURIs(editor: Editor | null): string {
-  if (!editor) return "";
+function getTextWithResourceURIs(editor: Editor | null): {
+  text: string;
+  resourceNames: Record<string, string>;
+} {
+  if (!editor) return { text: "", resourceNames: {} };
 
   let text = "";
+  const resourceNames: Record<string, string> = {};
+
   editor.state.doc.descendants((node) => {
     if (node.type.name === "mention") {
-      // Use ID for mentions (full resource URI)
-      text += `@${node.attrs.id ?? node.attrs.label ?? ""}`;
+      const id = node.attrs.id ?? "";
+      const label = node.attrs.label ?? "";
+      // Only include URI in text (no name to avoid parsing issues)
+      text += `@${id}`;
+      // Store name separately for lookup
+      if (label && id) {
+        resourceNames[id] = label;
+      }
     } else if (node.isText) {
       text += node.text;
     }
     return true;
   });
 
-  return text;
+  return { text, resourceNames };
 }
 
 /**
  * Text editor component with resource ("@") and prompt ("/") support.
  */
-export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
+export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
   (
     {
       value,
       onChange,
+      onResourceNamesChange,
       onKeyDown,
       placeholder = "What do you want to do?",
       disabled = false,
       className,
-      editorRef,
       onSubmit,
       onAddImage,
       onSearchResources,
@@ -631,7 +692,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
 
     // Handle Enter key to submit message
     const handleKeyDown = React.useCallback(
-      (e: React.KeyboardEvent, editor: Editor) => {
+      (e: React.KeyboardEvent) => {
         // Handle Enter key behavior
         if (e.key === "Enter" && !e.shiftKey && value.trim()) {
           e.preventDefault();
@@ -641,7 +702,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
 
         // Delegate to provided onKeyDown handler
         if (onKeyDown) {
-          onKeyDown(e, editor);
+          onKeyDown(e);
         }
       },
       [onSubmit, value, onKeyDown],
@@ -677,7 +738,19 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       ],
       content: value,
       editable: !disabled,
-      onUpdate: ({ editor }) => onChange(getTextWithResourceURIs(editor)),
+      onUpdate: ({ editor }) => {
+        // Extract text and resource names, notify parent - editor is the source of truth for user input
+        const { text, resourceNames } = getTextWithResourceURIs(editor);
+        // Only update the value prop if it's different from what we're about to set
+        // This prevents unnecessary updates that could trigger syncing and replace mention nodes
+        if (text !== value) {
+          onChange(text);
+        }
+        if (onResourceNamesChange) {
+          // Merge with existing state to preserve resource names that might not be in current editor state
+          onResourceNamesChange((prev) => ({ ...prev, ...resourceNames }));
+        }
+      },
       editorProps: {
         attributes: {
           class: cn(
@@ -726,7 +799,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           // return false so TipTap can still process the text payload.
           return !hasText;
         },
-        handleKeyDown: (view, event) => {
+        handleKeyDown: (_view, event) => {
           // Check if any menu is open ("@" or "/")
           const anyMenuOpen =
             resourceMenuOpenRef.current || promptMenuOpenRef.current;
@@ -741,7 +814,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           // Delegate to handleKeyDown (which handles both Tambo-specific and custom handlers)
           if (editor) {
             const reactEvent = event as unknown as React.KeyboardEvent;
-            handleKeyDown(reactEvent, editor);
+            handleKeyDown(reactEvent);
             return reactEvent.defaultPrevented;
           }
           return false;
@@ -749,21 +822,97 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       },
     });
 
+    // Expose TamboEditor interface via ref
+    useImperativeHandle(ref, () => {
+      if (!editor) {
+        // Return a no-op implementation if editor isn't ready yet
+        return {
+          focus: () => {},
+          setContent: () => {},
+          getTextWithResourceURIs: () => ({ text: "", resourceNames: {} }),
+          hasMention: () => false,
+          insertMention: () => {},
+          setEditable: () => {},
+        };
+      }
+
+      return {
+        focus: (position?: "start" | "end") => {
+          if (position) {
+            editor.commands.focus(position);
+          } else {
+            editor.commands.focus();
+          }
+        },
+        setContent: (content: string) => {
+          editor.commands.setContent(content);
+        },
+        getTextWithResourceURIs: () => {
+          return getTextWithResourceURIs(editor);
+        },
+        hasMention: (label: string) => {
+          let exists = false;
+          editor.state.doc.descendants((node) => {
+            if (node.type.name === "mention") {
+              const mentionLabel = node.attrs.label as string;
+              if (mentionLabel === label) {
+                exists = true;
+                return false; // Stop traversing
+              }
+            }
+            return true;
+          });
+          return exists;
+        },
+        insertMention: (id: string, label: string) => {
+          editor
+            .chain()
+            .focus()
+            .insertContent([
+              { type: "mention", attrs: { id, label } },
+              { type: "text", text: " " },
+            ])
+            .run();
+        },
+        setEditable: (editable: boolean) => {
+          editor.setEditable(editable);
+        },
+      };
+    }, [editor]);
+
     // Sync external value changes and disabled state with editor
+    // Only sync when value changes externally (not from our own onUpdate)
+    // We track the last value we set to distinguish external vs internal changes
+    const lastSyncedValueRef = React.useRef<string>(value);
+
     React.useEffect(() => {
       if (!editor) return;
-      const currentText = getTextWithResourceURIs(editor);
-      if (value !== currentText) {
+
+      const { text: currentText } = getTextWithResourceURIs(editor);
+
+      // Only sync if:
+      // 1. Value is different from what's in the editor, AND
+      // 2. Value is different from what we last synced (meaning it's an external change)
+      // This prevents syncing when our own onUpdate updates the value prop
+      // IMPORTANT: If value === currentText, don't sync - this means the value prop
+      // is just the serialized form of what's already in the editor (with mention nodes),
+      // and syncing would replace the mention nodes with plain text
+      if (value !== currentText && value !== lastSyncedValueRef.current) {
+        // External value change - sync it to editor
         editor.commands.setContent(value);
+        lastSyncedValueRef.current = value;
+      } else if (value === currentText) {
+        // Value matches editor content - update our tracking but don't sync
+        // (editor already has the right content with mention nodes)
+        lastSyncedValueRef.current = value;
       }
+      // If value === currentText, we don't sync - editor already has the right content
+
       editor.setEditable(!disabled);
-      if (editorRef) {
-        editorRef.current = editor;
-      }
-    }, [editor, value, disabled, editorRef]);
+    }, [editor, value, disabled]);
 
     return (
-      <div ref={ref} className="w-full">
+      <div className="w-full">
         <EditorContent editor={editor} />
       </div>
     );

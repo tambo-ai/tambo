@@ -17,7 +17,7 @@ import { StagedImage } from "../hooks/use-message-images";
 const RESOURCE_REFERENCE_PATTERN = /@([a-zA-Z0-9-]+):(\S+)/g;
 
 /**
- * Parses MCP resource references from text and extracts them into separate content parts.
+ * Parses text with resource references and returns interleaved content parts.
  * Resource references have the format: \@serverKey:uri
  *
  * The serverKey prefix is stripped before sending to the backend because:
@@ -25,67 +25,91 @@ const RESOURCE_REFERENCE_PATTERN = /@([a-zA-Z0-9-]+):(\S+)/g;
  * - The backend only needs the actual resource URI (e.g., "tambo:test://static/resource/1")
  * - The backend routes resources based on the thread's MCP server configuration, not client-side keys
  * @param text - Text potentially containing resource references
- * @returns Object with parsed resources (URI only, prefix stripped) and remaining text, plus full reference for display
+ * @param resourceNames - Map of full resource IDs (serverKey:uri) to their display names
+ * @returns Array of content parts in order (text and resource parts interleaved)
  */
-function parseResourceReferences(text: string): {
-  resources: { uri: string; fullReference: string }[];
-  remainingText: string;
-} {
-  const resources: { uri: string; fullReference: string }[] = [];
-  let remainingText = text;
+function parseResourceReferences(
+  text: string,
+  resourceNames: Record<string, string>,
+): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
+  const parts: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
-  // Find all resource references
-  const matches = text.matchAll(RESOURCE_REFERENCE_PATTERN);
+  // Use matchAll to avoid global regex state issues
+  const matches = Array.from(text.matchAll(RESOURCE_REFERENCE_PATTERN));
+  let lastIndex = 0;
+
+  // Find all resource references and interleave with text
   for (const match of matches) {
     const [fullMatch, serverKey, uri] = match;
-    // Store the actual URI (without client-side prefix) to send to backend
-    // And the full reference for display purposes
-    resources.push({
-      uri, // Just the URI part for the API
-      fullReference: `${serverKey}:${uri}`, // Full prefixed version for display
-    });
-    // Remove the @ symbol and entire reference from text
-    remainingText = remainingText.replace(fullMatch, "").trim();
+    const fullId = `${serverKey}:${uri}`;
+
+    // Add text before this resource reference (preserve whitespace)
+    if (match.index !== undefined && match.index > lastIndex) {
+      const textBefore = text.slice(lastIndex, match.index);
+      if (textBefore.length > 0) {
+        parts.push({
+          type: "text",
+          text: textBefore,
+        });
+      }
+    }
+
+    const resource: TamboAI.Resource = { uri };
+    const name = resourceNames[fullId];
+    if (name) {
+      resource.name = name;
+    }
+    parts.push({ type: "resource", resource });
+
+    if (match.index !== undefined) {
+      lastIndex = match.index + fullMatch.length;
+    }
   }
 
-  return { resources, remainingText };
+  // Add remaining text after the last resource reference (preserve whitespace)
+  if (lastIndex < text.length) {
+    const textAfter = text.slice(lastIndex);
+    if (textAfter.length > 0) {
+      parts.push({
+        type: "text",
+        text: textAfter,
+      });
+    }
+  }
+
+  // If no resource references were found, return the whole text as a single text part
+  if (parts.length === 0 && text.trim()) {
+    parts.push({ type: "text", text });
+  }
+
+  return parts;
 }
 
 /**
  * Builds message content with text, MCP resource references, and images
  * @param text - The text content, may include \@serverKey:uri resource references
  * @param images - Array of staged images
+ * @param resourceNames - Map of resource IDs (serverKey:uri) to their display names
  * @returns Array of message content parts
  */
 export function buildMessageContent(
   text: string,
   images: StagedImage[],
+  resourceNames: Record<string, string> = {},
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
   const content: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
-  if (text.trim()) {
-    // Parse resource references from text
-    const { resources, remainingText } = parseResourceReferences(text.trim());
+  const hasNonWhitespaceText = text.trim().length > 0;
 
-    // Add remaining text if any
-    if (remainingText) {
-      content.push({
-        type: "text",
-        text: remainingText,
-      });
-    }
-
-    // Add resource content parts with just the URI (client-side prefix stripped)
-    for (const { uri } of resources) {
-      content.push({
-        type: "resource",
-        resource: {
-          uri,
-        },
-      });
-    }
+  if (hasNonWhitespaceText) {
+    // Parse resource references from the original text so that all
+    // user-visible whitespace (including leading/trailing spaces and
+    // internal spacing) is preserved in the resulting content parts.
+    const parts = parseResourceReferences(text, resourceNames);
+    content.push(...parts);
   }
 
+  // Add images at the end
   for (const image of images) {
     content.push({
       type: "image_url",

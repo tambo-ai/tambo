@@ -32,7 +32,7 @@ import {
   type Suggestion,
   type TamboThreadMessage,
 } from "@tambo-ai/react";
-import type { Editor } from "@tiptap/react";
+import type { TamboEditor } from "@/components/ui/tambo/text-editor";
 import type { VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -195,7 +195,7 @@ export const MessageThreadPanel = forwardRef<
   } = useMessageThreadPanel();
   const { customSuggestions, setCustomSuggestions } =
     useTamboContextAttachment();
-  const editorRef = useRef<Editor | null>(null);
+  const editorRef = useRef<TamboEditor | null>(null);
 
   // Sync local editorRef with provider's editorRef whenever it changes
   useEffect(() => {
@@ -214,7 +214,7 @@ export const MessageThreadPanel = forwardRef<
       // Small delay to ensure the panel has finished animating before focusing
       const timeoutId = setTimeout(() => {
         if (editorRef.current) {
-          editorRef.current.commands.focus();
+          editorRef.current.focus();
         }
       }, 320); // Slightly longer than the animation duration
 

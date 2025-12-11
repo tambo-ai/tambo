@@ -85,19 +85,20 @@ describe("messages utilities", () => {
 
       const result = await addMessage(mockDb, "thread1", message);
 
-      expect(operations.addMessage).toHaveBeenCalledWith(mockDb, {
-        threadId: "thread1",
+      expect(operations.addMessage).toHaveBeenCalledWith(mockDb, "thread1", {
         role: MessageRole.User,
         content: [{ type: "text" as ContentPartType.Text, text: "Hello" }],
-        componentDecision: undefined,
+        component: undefined,
         metadata: undefined,
         actionType: undefined,
         toolCallRequest: undefined,
-        toolCallId: undefined,
+        tool_call_id: undefined,
         componentState: {},
         additionalContext: {},
         error: undefined,
         isCancelled: false,
+        reasoning: undefined,
+        reasoningDurationMS: undefined,
       });
 
       expect(result).toEqual({

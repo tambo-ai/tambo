@@ -471,7 +471,7 @@ declare module "@/components/tambo/mcp-components" {
   }
 
   export interface McpResourceButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    onInsertText: (text: string) => void;
+    onInsertResource: (id: string, label: string) => void;
     value: string;
     className?: string;
   }
