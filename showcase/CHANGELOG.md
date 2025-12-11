@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.33.0...showcase-v0.33.1) (2025-12-11)
+
+
+### Code Refactoring
+
+* **cli:** migrate text-editor from tippy.js to Radix Popover ([#1506](https://github.com/tambo-ai/tambo/issues/1506)) ([554ce9e](https://github.com/tambo-ai/tambo/commit/554ce9eb1e2e4ee463af7a9a2157aa7ad4c4debb))
+
 ## [0.33.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.32.1...showcase-v0.33.0) (2025-12-10)
 
 
