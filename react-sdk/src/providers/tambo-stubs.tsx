@@ -124,12 +124,17 @@ const TamboStubRegistryProvider: React.FC<
         toolRegistry,
         componentToolAssociations,
         mcpServerInfos: [],
+        resources: [],
+        resourceSource: null,
         registerComponent,
         registerTool,
         registerTools,
         addToolAssociation,
         registerMcpServer: () => {},
         registerMcpServers: () => {},
+        registerResource: () => {},
+        registerResources: () => {},
+        registerResourceSource: () => {},
       }}
     >
       {children}

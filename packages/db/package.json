@@ -23,11 +23,11 @@
     "@tambo-ai/typescript-config": "*",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.15.6",
-    "drizzle-kit": "^0.31.6"
+    "drizzle-kit": "^0.31.8"
   },
   "dependencies": {
     "@tambo-ai-cloud/core": "*",
-    "drizzle-orm": "^0.44.7",
+    "drizzle-orm": "^0.45.0",
     "jsonwebtoken": "^9.0.2",
     "openai": "^6.4.0",
     "pg": "^8.16.3",

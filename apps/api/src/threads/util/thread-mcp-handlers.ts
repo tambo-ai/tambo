@@ -38,18 +38,22 @@ export function createMcpHandlers(
       }
 
       const messages = e.params.messages.map((m) => ({
-        // Have pretend this is "user" to let audio/image content through to
-        // ChatCompletionContentPart
-        role: m.role as "user",
+        // Keep original role for storage
+        role: m.role,
+        // Cast content to "user" to let audio/image content through to
+        // ChatCompletionContentPart type system
         content: mcpContentToContentParts(m.content),
       }));
       // add serially for now and collect the saved messages
       // TODO: add messages in a batch
       const savedMessages: ThreadMessage[] = [];
       for (const m of messages) {
-        const message = await operations.addMessage(db, {
-          threadId,
-          role: m.role as MessageRole,
+        // MCP sampling messages should only be "user" or "assistant" roles
+        // Construct the appropriate UnsavedThreadMessage based on role
+        const role =
+          m.role === "assistant" ? MessageRole.Assistant : MessageRole.User;
+        const message = await operations.addMessage(db, threadId, {
+          role,
           content: m.content,
           parentMessageId,
         });
@@ -91,9 +95,9 @@ export function createMcpHandlers(
         messages: messagesForLLM,
       });
 
-      const message = await operations.addMessage(db, {
-        threadId,
-        role: response.message.role as MessageRole,
+      // LLM response is always assistant role
+      const message = await operations.addMessage(db, threadId, {
+        role: MessageRole.Assistant,
         content: [
           {
             type: "text",

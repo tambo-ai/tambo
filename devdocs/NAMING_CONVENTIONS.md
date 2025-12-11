@@ -46,9 +46,15 @@ interface TamboMessageProps extends Readonly<{
 }> {}
 
 // Types - Clear hierarchy
-type TamboMessage = { /* ... */ }; // Core type
-type TamboMessageState = { /* ... */ }; // State type
-type TamboMessageConfig = { /* ... */ }; // Config type
+type TamboMessage = {
+  /* ... */
+}; // Core type
+type TamboMessageState = {
+  /* ... */
+}; // State type
+type TamboMessageConfig = {
+  /* ... */
+}; // Config type
 ```
 
 ## Event Handlers

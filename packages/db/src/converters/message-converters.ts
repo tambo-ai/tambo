@@ -1,5 +1,5 @@
 import { ThreadMessage, validateThreadMessage } from "@tambo-ai-cloud/core";
-import { DBMessage } from "../schema";
+import { type DBMessage } from "../schema";
 
 /**
  * Converts a database message (DBMessage) to a properly-typed ThreadMessage.
