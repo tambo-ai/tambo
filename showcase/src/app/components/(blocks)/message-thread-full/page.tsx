@@ -41,7 +41,7 @@ export default function MessageThreadFullPage() {
                 </TamboMcpProvider>
               </div>
             }
-            code={`import { MessageThreadFull } from "@tambo-ai/react";
+            code={`import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 
 export function ChatPage() {
   return (

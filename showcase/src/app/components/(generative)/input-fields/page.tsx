@@ -36,7 +36,7 @@ export default function InputFieldsComponentPage() {
                 <InputFieldsChatInterface />
               </TamboProvider>
             }
-            code={`import { InputFields } from "@tambo-ai/react";
+            code={`import { InputFields } from "@/components/tambo/input-fields";
 
 export function UserRegistrationFields() {
   return (

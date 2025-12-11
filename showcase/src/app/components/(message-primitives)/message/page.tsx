@@ -121,7 +121,7 @@ export default function MessagePage() {
                 </div>
               </Message>
             }
-            code={`import { Message, MessageContent } from "@tambo-ai/react";
+            code={`import { Message, MessageContent } from "@/components/tambo/message";
 
 export function UserMessage() {
   return (
@@ -154,7 +154,7 @@ export function UserMessage() {
                 </div>
               </Message>
             }
-            code={`import { Message, MessageContent } from "@tambo-ai/react";
+            code={`import { Message, MessageContent } from "@/components/tambo/message";
 
 export function AssistantMessage() {
   return (
@@ -188,7 +188,11 @@ export function AssistantMessage() {
                 </div>
               </Message>
             }
-            code={`import { Message, MessageContent, ReasoningInfo } from "@tambo-ai/react";
+            code={`import {
+  Message,
+  MessageContent,
+  ReasoningInfo,
+} from "@/components/tambo/message";
 
 export function MessageWithReasoning() {
   return (
@@ -222,7 +226,7 @@ export function MessageWithReasoning() {
   Message,
   MessageContent,
   MessageRenderedComponentArea,
-} from "@tambo-ai/react";
+} from "@/components/tambo/message";
 
 export function MessageWithComponent() {
   return (
@@ -251,7 +255,7 @@ export function MessageWithComponent() {
                 </div>
               </Message>
             }
-            code={`import { Message, MessageContent } from "@tambo-ai/react";
+            code={`import { Message, MessageContent } from "@/components/tambo/message";
 
 export function SolidMessage() {
   return (
@@ -280,7 +284,7 @@ export function SolidMessage() {
                 </div>
               </Message>
             }
-            code={`import { Message, MessageContent } from "@tambo-ai/react";
+            code={`import { Message, MessageContent } from "@/components/tambo/message";
 
 export function LoadingMessage() {
   return (
@@ -315,7 +319,11 @@ export function LoadingMessage() {
                 </div>
               </Message>
             }
-            code={`import { Message, MessageContent, ReasoningInfo } from "@tambo-ai/react";
+            code={`import {
+  Message,
+  MessageContent,
+  ReasoningInfo,
+} from "@/components/tambo/message";
 
 export function ThinkingMessage() {
   return (

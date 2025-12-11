@@ -35,7 +35,7 @@ export default function MapPage() {
                 <MapChatInterface />
               </TamboProvider>
             }
-            code={`import { Map } from "@tambo-ai/react";
+            code={`import { Map } from "@/components/tambo/map";
 
 export function SeattleCoffeeMap() {
   return (
