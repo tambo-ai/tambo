@@ -138,8 +138,10 @@ export function EditWithTamboButton({
     }
 
     // Add the component as a context attachment
+    const componentName = component?.componentName ?? "Unknown Component";
+    const interactableId = component?.interactableId ?? "";
     addContextAttachment({
-      name: component.componentName ?? "Unknown Component",
+      name: componentName,
     });
 
     // Open the thread panel first
@@ -153,7 +155,7 @@ export function EditWithTamboButton({
     const editor = editorRef.current;
     if (editor) {
       // Check if mention already exists to avoid duplicates
-      if (editor.hasMention(component.componentName ?? "Unknown Component")) {
+      if (editor.hasMention(componentName)) {
         // If mention exists, just append the user query
         editor.focus("end");
         const currentText = editor.getTextWithResourceURIs().text;
@@ -161,18 +163,14 @@ export function EditWithTamboButton({
       } else {
         // Insert @mention (which adds a space after), then append the user query
         editor.focus();
-        editor.insertMention(
-          component.interactableId ?? "",
-          component.componentName ?? "Unknown Component",
-        );
+        editor.insertMention(interactableId, componentName);
         const currentText = editor.getTextWithResourceURIs().text;
         editor.setContent(currentText + messageToInsert);
       }
     }
   }, [
     prompt,
-    component.interactableId,
-    component.componentName,
+    component,
     suggestions,
     setCustomSuggestions,
     addContextAttachment,

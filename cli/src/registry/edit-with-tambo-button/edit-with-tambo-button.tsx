@@ -152,8 +152,9 @@ export function EditWithTamboButton({
     }
 
     // Add the component as a context attachment
+    const componentName = component?.componentName ?? "Unknown Component";
     addContextAttachment({
-      name: component.componentName ?? "Unknown Component",
+      name: componentName,
     });
 
     // Open the thread panel if callback provided
@@ -178,7 +179,7 @@ export function EditWithTamboButton({
   }, [
     prompt,
     suggestions,
-    component.componentName,
+    component,
     onOpenThread,
     editorRef,
     setCustomSuggestions,
