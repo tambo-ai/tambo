@@ -304,6 +304,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       setInteractableComponents((prev) => {
         const component = prev.find((c) => c.id === componentId);
         if (!component) {
+          console.warn(
+            `Tried to update state for component ${componentId} but it was not found.`,
+          );
           return prev;
         }
 
