@@ -34,28 +34,23 @@ export const createInteractablesContextHelper = (
   components: any[],
 ): ContextHelperFn => {
   return () => {
-    try {
-      if (!Array.isArray(components) || components.length === 0) {
-        return null; // No interactable components on the page
-      }
-
-      return {
-        description:
-          "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, current state,and optional schema. You can use tools to update these components on behalf of the user. Don't tell the user the ID of the components, only the name, unless they ask for it.",
-        components: components.map((component) => ({
-          id: component.id,
-          componentName: component.name,
-          description: component.description,
-          props: component.props,
-          propsSchema: component.propsSchema
-            ? "Available - use component-specific update tools"
-            : "Not specified",
-          state: component.state,
-        })),
-      };
-    } catch (e) {
-      console.error("currentInteractablesContextHelper failed:", e);
-      return null;
+    if (!Array.isArray(components) || components.length === 0) {
+      return null; // No interactable components on the page
     }
+
+    return {
+      description:
+        "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, current state,and optional schema. You can use tools to update these components on behalf of the user. Don't tell the user the ID of the components, only the name, unless they ask for it.",
+      components: components.map((component) => ({
+        id: component.id,
+        componentName: component.name,
+        description: component.description,
+        props: component.props,
+        propsSchema: component.propsSchema
+          ? "Available - use component-specific update tools"
+          : "Not specified",
+        state: component.state,
+      })),
+    };
   };
 };
