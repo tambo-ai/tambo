@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { z } from "zodInternalAlias";
@@ -48,9 +49,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
   // Create a stable context helper function for interactable components
-  const interactablesContextHelper = useCallback(() => {
-    return createInteractablesContextHelper(interactableComponents)();
-  }, [interactableComponents]);
+  const interactablesContextHelper = useMemo(
+    () => createInteractablesContextHelper(interactableComponents),
+    [interactableComponents],
+  );
 
   // Register the interactables context helper
   useEffect(() => {
@@ -239,13 +241,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         tool: (componentId: string, newProps?: any) => {
           return updateInteractableComponentProps(componentId, newProps);
         },
-        inputSchema: z.tuple([
-          z.string().describe("The ID of the interactable component to update"),
-          schemaForArgs.describe(
-            "The props to update the component with. You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.",
-          ),
-        ]),
-        outputSchema: z.string(),
+        toolSchema: z
+          .function()
+          .input(z.string(), schemaForArgs)
+          .output(z.string()),
       });
     },
     [registerTool, updateInteractableComponentProps],
