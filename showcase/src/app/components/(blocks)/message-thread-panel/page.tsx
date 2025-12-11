@@ -48,7 +48,7 @@ export default function MessageThreadPanelPage() {
                 />
               </div>
             }
-            code={`import { MessageThreadPanel } from "@tambo-ai/react";
+            code={`import { MessageThreadPanel } from "@/components/tambo/message-thread-panel";
 
 export function DashboardWithChat() {
   return (

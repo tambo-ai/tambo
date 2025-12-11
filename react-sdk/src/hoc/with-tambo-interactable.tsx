@@ -6,17 +6,17 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { z } from "zod";
-import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { TamboMessageProvider } from "../hooks/use-current-message";
 import { TamboThreadMessage } from "../model/generate-component-response";
+import { useTamboInteractable } from "../providers/tambo-interactable-provider";
+import { SupportedSchema } from "../schema";
 
 export const InteractableIdContext = createContext<string | null>(null);
 
 export interface InteractableConfig {
   componentName: string;
   description: string;
-  propsSchema?: z.ZodTypeAny;
+  propsSchema?: SupportedSchema;
 }
 
 export interface WithTamboInteractableProps {

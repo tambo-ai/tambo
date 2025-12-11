@@ -79,7 +79,7 @@ import {
   useTamboThread,
   useTamboThreadInput,
 } from "@tambo-ai/react";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 // 1. Register your components
 const components = [
@@ -275,25 +275,24 @@ const mcpServers = [
 Sometimes you need functions that run in the browser. DOM manipulation, authenticated fetches, accessing React state. Define them as tools and the AI can call them.
 
 ```tsx
-import { type TamboTool } from "@tambo-ai/react";
+import { z } from "zod/v4";
+import { defineTool } from "@tambo-ai/react";
 
-const tools: TamboTool[] = [
-  {
+const tools = [
+  defineTool({
     name: "getWeather",
     description: "Fetches weather data for a location",
-    tool: async (location: string) =>
+    tool: async ({ location }) =>
       fetch(`/api/weather?q=${location}`).then((r) => r.json()),
-    toolSchema: z
-      .function()
-      .args(z.string())
-      .returns(
-        z.object({
-          temperature: z.number(),
-          condition: z.string(),
-          location: z.string(),
-        }),
-      ),
-  },
+    inputSchema: z.object({
+      location: z.string(),
+    }),
+    outputSchema: z.object({
+      temperature: z.number(),
+      condition: z.string(),
+      location: z.string(),
+    }),
+  }),
 ];
 
 <TamboProvider tools={tools} components={components}>
@@ -316,10 +315,10 @@ const tools: TamboTool[] = [
       const data = await fetchImageData(imageId);
       return { url: data.imageUrl, description: data.description };
     },
-    toolSchema: z
-      .function()
-      .args(z.string())
-      .returns(z.object({ url: z.string(), description: z.string() })),
+    toolSchema: z.function({
+      input: z.string(),
+      output: z.object({ url: z.string(), description: z.string() }),
+    }),
     transformToContent: (result) => [
       { type: "text", text: result.description },
       { type: "image_url", image_url: { url: result.url } },

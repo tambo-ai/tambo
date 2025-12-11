@@ -1,10 +1,10 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { parse } from "partial-json";
 import React from "react";
-import { z } from "zod/v3";
 import { wrapWithTamboMessageProvider } from "../hooks/use-current-message";
 import { ComponentRegistry } from "../model/component-metadata";
 import { TamboThreadMessage } from "../model/generate-component-response";
+import { isStandardSchema } from "../schema";
 import { getComponentFromRegistry } from "../util/registry";
 
 /**
@@ -27,10 +27,9 @@ export function renderComponentIntoMessage(
     componentList,
   );
 
-  const validatedProps =
-    registeredComponent.props instanceof z.ZodType
-      ? registeredComponent.props.parse(parsedProps)
-      : parsedProps;
+  const validatedProps = isStandardSchema(registeredComponent.props)
+    ? registeredComponent.props["~standard"].validate(parsedProps)
+    : parsedProps;
 
   const renderedComponent = React.createElement(
     registeredComponent.component,

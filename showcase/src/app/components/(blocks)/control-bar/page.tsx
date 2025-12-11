@@ -58,7 +58,7 @@ export default function ControlBarPage() {
                 <ControlBar contextKey={userContextKey} />
               </div>
             }
-            code={`import { ControlBar } from "@tambo-ai/react";
+            code={`import { ControlBar } from "@/components/tambo/control-bar";
 
 export function ChatInterface() {
   return (

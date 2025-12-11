@@ -14,6 +14,7 @@ export interface ComponentContextToolMetadata {
     enumValues?: string[];
     schema?: JSONSchema7;
   }[];
+  maxCalls?: number;
 }
 
 export interface AvailableComponent {
