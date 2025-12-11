@@ -144,6 +144,11 @@ export function usePositioning(
 /**
  * Converts message content into a safely renderable format.
  * Handles text, resource references, and other content types.
+ *
+ * @deprecated This function is deprecated. Message rendering now uses a private
+ * `convertContentToMarkdown()` function within the message component. This function
+ * is kept for backward compatibility since it's exposed in the SDK.
+ *
  * @param content - The message content (string, element, array, etc.)
  * @returns A renderable string or React element.
  */

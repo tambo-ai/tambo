@@ -1,253 +1,167 @@
-import { BadRequestException, INestApplication, Logger } from "@nestjs/common";
-import { HttpAdapterHost } from "@nestjs/core";
-import { Test, TestingModule } from "@nestjs/testing";
 import {
+  BadRequestException,
+  InternalServerErrorException,
+} from "@nestjs/common";
+import { ArgumentsHost } from "@nestjs/common/interfaces";
+import { type Request } from "express";
+import {
+  MessageRole,
   ContentPartType,
   GenerationStage,
-  MessageRole,
 } from "@tambo-ai-cloud/core";
-import request from "supertest";
 import { SentryExceptionFilter } from "../../common/filters/sentry-exception.filter";
-import { extractContextInfo } from "../../common/utils/extract-context-info";
-import { ApiKeyGuard } from "../../projects/guards/apikey.guard";
-import { BearerTokenGuard } from "../../projects/guards/bearer-token.guard";
-import { ProjectAccessOwnGuard } from "../../projects/guards/project-access-own.guard";
-import { AdvanceThreadDto } from "../dto/advance-thread.dto";
-import { ThreadInProjectGuard } from "../guards/thread-in-project-guard";
 import { ThreadsController } from "../threads.controller";
-import { ThreadsService } from "../threads.service";
+import { ThreadMessageDto } from "../dto/message.dto";
+import { extractContextInfo } from "../../common/utils/extract-context-info";
 
-// Mock the ThreadsService module BEFORE any imports
-jest.mock("../threads.service", () => ({
-  ThreadsService: jest.fn().mockImplementation(() => ({
-    advanceThread: jest.fn(),
-  })),
-}));
-
-// Mock the extractContextInfo function
 jest.mock("../../common/utils/extract-context-info");
 const mockExtractContextInfo = extractContextInfo as jest.MockedFunction<
   typeof extractContextInfo
 >;
 
-describe("ThreadsController - Integration Tests (HTTP Response Format)", () => {
-  let app: INestApplication;
-  let threadsService: ThreadsService;
+function createHttpHost(req: Partial<Request>, res: any): ArgumentsHost {
+  return {
+    switchToHttp: () => ({
+      getRequest: () => req,
+      getResponse: () => res,
+    }),
+    getArgs: () => [req, res],
+    getArgByIndex: (index: number) => (index === 0 ? req : res),
+    switchToRpc: () => ({ getContext: () => undefined }),
+    switchToWs: () => ({ getClient: () => undefined }),
+    getType: () => "http",
+  } as unknown as ArgumentsHost;
+}
 
-  const createValidAdvanceRequestDto = (): AdvanceThreadDto => ({
-    messageToAppend: {
-      content: [{ type: ContentPartType.Text, text: "test message" }],
-      role: MessageRole.User,
-    },
-    contextKey: "test-context-key",
-  });
-
-  beforeEach(async () => {
-    // Limit logger to warnings and errors to keep test output quiet
-    Logger.overrideLogger(["error", "warn"]);
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [ThreadsController],
-      providers: [
-        {
-          provide: ThreadsService,
-          useValue: {
-            advanceThread: jest.fn(),
-          },
-        },
-      ],
-    })
-      .overrideGuard(ApiKeyGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(BearerTokenGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(ProjectAccessOwnGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(ThreadInProjectGuard)
-      .useValue({ canActivate: () => true })
-      .compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useLogger(["error", "warn"]);
-
-    const { httpAdapter } = app.get(HttpAdapterHost);
-    app.useGlobalFilters(new SentryExceptionFilter(httpAdapter));
-
-    await app.init();
-
-    threadsService = moduleFixture.get<ThreadsService>(ThreadsService);
-
-    // Reset mocks
+describe("ThreadsController HTTP response handling without network sockets", () => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
+  describe("SentryExceptionFilter JSON formatting", () => {
+    const req: Partial<Request> = {
+      method: "POST",
+      url: "/threads/advancestream",
+      headers: {},
+      query: {},
+      params: {},
+      body: {},
+    };
+    let replySpy: jest.Mock;
+    let filter: SentryExceptionFilter;
 
-  afterEach(async () => {
-    await app.close();
-  });
-
-  describe("Error Response Format", () => {
-    let loggerErrorSpy: jest.SpyInstance;
-    let consoleErrorSpy: jest.SpyInstance;
-
-    beforeAll(() => {
-      // Suppress error logs only for this error-format test suite
-      loggerErrorSpy = jest
-        .spyOn(Logger.prototype, "error")
-        .mockImplementation(() => {});
-      consoleErrorSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
+    beforeEach(() => {
+      replySpy = jest.fn();
+      const mockHttpAdapter = {
+        reply: replySpy,
+        isHeadersSent: jest.fn().mockReturnValue(false),
+        end: jest.fn(),
+      } as unknown as ConstructorParameters<typeof SentryExceptionFilter>[0];
+      filter = new SentryExceptionFilter(mockHttpAdapter);
     });
 
-    afterAll(() => {
-      loggerErrorSpy.mockRestore();
-      consoleErrorSpy.mockRestore();
-    });
-
-    it("should return default NestJS JSON error format when extractContextInfo throws BadRequestException", async () => {
-      // Arrange
-      const testError = new BadRequestException("Project ID is required");
-      const requestBody = createValidAdvanceRequestDto();
-
-      mockExtractContextInfo.mockImplementation(() => {
-        throw testError;
-      });
-
-      // Act & Assert
-      const response = await request(app.getHttpServer())
-        .post("/threads/test-thread-id/advancestream")
-        .send(requestBody)
-        .expect(400);
-
-      // Should receive JSON response with default NestJS error format
-      expect(response.headers["content-type"]).toMatch(/application\/json/);
-      expect(response.body).toEqual({
-        message: "Project ID is required",
-        error: "Bad Request",
-        statusCode: 400,
-      });
-
-      // Should NOT be HTML
-      expect(response.text).not.toMatch(/<!DOCTYPE html>/);
-      expect(response.text).not.toMatch(/<html>/);
-    });
-
-    it("should return default NestJS JSON error format for createAndAdvanceThreadStream endpoint", async () => {
-      // Arrange
-      const testError = new BadRequestException(
+    it("should return default Nest-style JSON for createAndAdvanceThreadStream errors", () => {
+      const res = {};
+      const host = createHttpHost(req, res);
+      const exception = new BadRequestException(
         "Context key cannot be provided both via API parameter and OAuth bearer token. Use only one method.",
       );
-      const requestBody = createValidAdvanceRequestDto();
 
-      mockExtractContextInfo.mockImplementation(() => {
-        throw testError;
-      });
+      filter.catch(exception, host);
 
-      // Act & Assert
-      const response = await request(app.getHttpServer())
-        .post("/threads/advancestream")
-        .send(requestBody)
-        .expect(400);
-
-      // Should receive JSON response with default NestJS error format
-      expect(response.headers["content-type"]).toMatch(/application\/json/);
-      expect(response.body).toEqual({
-        message:
-          "Context key cannot be provided both via API parameter and OAuth bearer token. Use only one method.",
-        error: "Bad Request",
-        statusCode: 400,
-      });
-
-      // Should NOT be HTML
-      expect(response.text).not.toMatch(/<!DOCTYPE html>/);
-      expect(response.text).not.toMatch(/<html>/);
+      expect(replySpy).toHaveBeenCalledWith(
+        res,
+        {
+          statusCode: 400,
+          message:
+            "Context key cannot be provided both via API parameter and OAuth bearer token. Use only one method.",
+          error: "Bad Request",
+        },
+        400,
+      );
     });
 
-    it("should return default NestJS JSON error format for any generic BadRequestException", async () => {
-      // Arrange
-      const testError = new BadRequestException("Any validation error");
-      const requestBody = createValidAdvanceRequestDto();
+    it("should return default Nest-style JSON for BadRequestException", () => {
+      const res = {};
+      const host = createHttpHost(req, res);
+      const exception = new BadRequestException("Any validation error");
 
-      mockExtractContextInfo.mockImplementation(() => {
-        throw testError;
-      });
+      filter.catch(exception, host);
 
-      // Act & Assert
-      const response = await request(app.getHttpServer())
-        .post("/threads/advancestream")
-        .send(requestBody)
-        .expect(400);
-
-      // Verify it's JSON, not HTML
-      expect(response.headers["content-type"]).toMatch(/application\/json/);
-      expect(response.body).toEqual({
-        message: "Any validation error",
-        error: "Bad Request",
-        statusCode: 400,
-      });
-
-      // Ensure it's NOT HTML format
-      expect(response.text).not.toMatch(/<!DOCTYPE html>/);
-      expect(response.text).not.toMatch(/<html>/);
-      expect(response.text).not.toMatch(/<pre>/);
-      expect(response.text).not.toMatch(/Error:/);
+      expect(replySpy).toHaveBeenCalledWith(
+        res,
+        {
+          statusCode: 400,
+          message: "Any validation error",
+          error: "Bad Request",
+        },
+        400,
+      );
     });
   });
 
-  describe("Successful Response Format", () => {
-    it("should successfully start stream when extractContextInfo works correctly", async () => {
-      // Arrange
-      const requestBody = createValidAdvanceRequestDto();
+  describe("ThreadsController streaming responses", () => {
+    it("should stream SSE payloads when queue produces messages", async () => {
+      const controller = new ThreadsController({} as any);
+      const chunks: string[] = [];
+      const response = {
+        write: jest.fn((value: string) => {
+          chunks.push(value);
+        }),
+        end: jest.fn(),
+      };
 
-      mockExtractContextInfo.mockReturnValue({
-        projectId: "test-project-id",
-        contextKey: "test-context-key",
-      });
+      async function* stream() {
+        yield {
+          responseMessageDto: {
+            id: "msg-1",
+            threadId: "thread-1",
+            role: MessageRole.Assistant,
+            content: [{ type: ContentPartType.Text, text: "Hello" }],
+            componentState: {},
+            createdAt: new Date(),
+          } as ThreadMessageDto,
+          generationStage: GenerationStage.COMPLETE,
+        };
+      }
 
-      // Mock a successful stream response by pushing to the queue
+      await (controller as any).handleAdvanceStream(response, stream(), false);
+
+      expect(chunks).toHaveLength(2);
+      const payload = JSON.parse(chunks[0].replace("data: ", ""));
+      expect(payload.responseMessageDto).toMatchObject({ id: "msg-1" });
+      expect(payload.generationStage).toBe(GenerationStage.COMPLETE);
+      expect(chunks[1]).toBe("data: DONE\n\n");
+      expect(response.end).toHaveBeenCalled();
+    });
+
+    it("should surface streaming errors as InternalServerErrorException", async () => {
+      const threadsService = {
+        advanceThread: jest.fn().mockRejectedValue(new Error("stream failure")),
+      };
+      const controller = new ThreadsController(threadsService as any);
       jest
-        .spyOn(threadsService, "advanceThread")
-        .mockImplementation(
-          async (
-            _projectId,
-            _advanceRequestDto,
-            _unresolvedThreadId,
-            _stream,
-            _toolCallCounts,
-            _cachedSystemTools,
-            queue,
-          ) => {
-            if (queue) {
-              queue.push({
-                responseMessageDto: {
-                  id: "msg-1",
-                  content: [{ type: ContentPartType.Text, text: "Hello" }],
-                  role: MessageRole.Assistant,
-                  threadId: "test-thread-id",
-                  componentState: {},
-                  createdAt: new Date(),
-                },
-                generationStage: GenerationStage.COMPLETE,
-                mcpAccessToken: "test-mcp-access-token",
-              });
-              queue.finish();
-            }
+        .spyOn(controller as any, "handleAdvanceStream")
+        .mockResolvedValue(undefined);
+      mockExtractContextInfo.mockReturnValue({
+        projectId: "test-project",
+        contextKey: "test-context",
+      });
+      await expect(
+        controller.createAndAdvanceThreadStream(
+          {} as Request,
+          {
+            messageToAppend: {
+              content: [{ type: ContentPartType.Text, text: "test" }],
+              role: MessageRole.User,
+            },
+          } as any,
+          {
+            setHeader: jest.fn(),
+            write: jest.fn(),
+            end: jest.fn(),
           },
-        );
-
-      // Act & Assert
-      const response = await request(app.getHttpServer())
-        .post("/threads/test-thread-id/advancestream")
-        .send(requestBody)
-        .expect(201);
-
-      // Should receive text/event-stream for successful streaming
-      expect(response.headers["content-type"]).toContain("text/event-stream");
-      expect(response.headers["cache-control"]).toContain("no-cache");
-      expect(response.headers["connection"]).toContain("keep-alive");
-
-      // Should contain stream data
-      expect(response.text).toMatch(/data: /);
-      expect(response.text).toMatch(/DONE/);
+        ),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 });

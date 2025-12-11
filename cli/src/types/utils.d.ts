@@ -20,19 +20,6 @@ declare module "@/lib/utils" {
   export function cn(...inputs: ClassValue[]): string;
 }
 
-declare module "streamdown" {
-  import type * as React from "react";
-  interface StreamdownProps {
-    children: string;
-    className?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    components?: Record<string, React.ComponentType<any>>;
-  }
-  export const Streamdown: React.ComponentType<StreamdownProps>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  export type Components = Record<string, React.ComponentType<any>>;
-}
-
 declare module "highlight.js" {
   const hljs: {
     highlight: (

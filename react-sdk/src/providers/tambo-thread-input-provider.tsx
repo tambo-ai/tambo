@@ -10,7 +10,7 @@ import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
-import { useMessageImages, StagedImage } from "../hooks/use-message-images";
+import { StagedImage, useMessageImages } from "../hooks/use-message-images";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
@@ -58,6 +58,7 @@ export interface TamboThreadInputContextProps extends Omit<
     streamResponse?: boolean;
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
+    resourceNames?: Record<string, string>;
   }) => Promise<void>;
   /** Currently staged images */
   images: StagedImage[];
@@ -101,11 +102,13 @@ export const TamboThreadInputProvider: React.FC<
       streamResponse,
       forceToolChoice,
       additionalContext,
+      resourceNames = {},
     }: {
       contextKey?: string;
       streamResponse?: boolean;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
+      resourceNames?: Record<string, string>;
     } = {}) => {
       // Validate text input if present
       if (inputValue?.trim()) {
@@ -125,8 +128,12 @@ export const TamboThreadInputProvider: React.FC<
         });
       }
 
-      // Build message content with text and images
-      const messageContent = buildMessageContent(inputValue, imageState.images);
+      // Build message content with text, images, and resource names
+      const messageContent = buildMessageContent(
+        inputValue,
+        imageState.images,
+        resourceNames,
+      );
 
       try {
         await sendThreadMessage(inputValue || "Image message", {

@@ -1,13 +1,13 @@
 import { render, waitFor } from "@testing-library/react";
 import React from "react";
 import { z } from "zod/v3";
+import { withTamboInteractable } from "../hoc/with-tambo-interactable";
 import {
-  useTamboContextHelpers,
   TamboContextHelpersProvider,
+  useTamboContextHelpers,
 } from "./tambo-context-helpers-provider";
 import { TamboInteractableProvider } from "./tambo-interactable-provider";
 import { TamboStubProvider } from "./tambo-stubs";
-import { withTamboInteractable } from "./hoc/with-tambo-interactable";
 
 function wrapperWithProviders(children: React.ReactNode) {
   const thread = {
