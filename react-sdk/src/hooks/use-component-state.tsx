@@ -2,7 +2,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
-import { InteractableIdContext } from "../providers/hoc/with-tambo-interactable";
+import { InteractableIdContext } from "../hoc/with-tambo-interactable";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { TamboMessageContext } from "./use-current-message";
 

@@ -9,7 +9,7 @@ import {
   useTamboCurrentMessage,
   TamboMessageContext,
 } from "./use-current-message";
-import { InteractableIdContext } from "../providers/hoc/with-tambo-interactable";
+import { InteractableIdContext } from "../hoc/with-tambo-interactable";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 
 // Mock the required providers
@@ -26,7 +26,7 @@ jest.mock("./use-current-message", () => ({
   TamboMessageContext: React.createContext<TamboThreadMessage | null>(null),
 }));
 
-jest.mock("../providers/hoc/with-tambo-interactable", () => ({
+jest.mock("../hoc/with-tambo-interactable", () => ({
   InteractableIdContext: React.createContext<string | null>(null),
 }));
 
