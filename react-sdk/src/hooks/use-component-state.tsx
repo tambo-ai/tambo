@@ -2,7 +2,6 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
-import { InteractableIdContext } from "../hoc/with-tambo-interactable";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { TamboMessageContext } from "./use-current-message";
 
@@ -58,7 +57,7 @@ export function useTamboComponentState<S>(
   const message = useContext(TamboMessageContext);
   const { updateThreadMessage } = useTamboThread();
   const client = useTamboClient();
-  const componentId = useContext(InteractableIdContext);
+  const componentId = message?.interactableMetadata?.id ?? null;
   const { setInteractableState, getInteractableComponentState } =
     useTamboInteractable();
   const messageState = message?.componentState?.[keyName];

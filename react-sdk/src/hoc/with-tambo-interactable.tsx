@@ -1,17 +1,9 @@
 "use client";
-import React, {
-  createContext,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TamboMessageProvider } from "../hooks/use-current-message";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { SupportedSchema } from "../schema";
-
-export const InteractableIdContext = createContext<string | null>(null);
 
 export interface InteractableConfig {
   componentName: string;

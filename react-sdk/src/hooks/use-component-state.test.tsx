@@ -2,15 +2,14 @@ import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { useTamboClient } from "../providers/tambo-client-provider";
+import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { useTamboThread } from "../providers/tambo-thread-provider";
 import { PartialTamboAI } from "../testing/types";
 import { useTamboComponentState } from "./use-component-state";
 import {
-  useTamboCurrentMessage,
   TamboMessageContext,
+  useTamboCurrentMessage,
 } from "./use-current-message";
-import { InteractableIdContext } from "../hoc/with-tambo-interactable";
-import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 
 // Mock the required providers
 jest.mock("../providers/tambo-client-provider", () => ({
@@ -24,10 +23,6 @@ jest.mock("../providers/tambo-thread-provider", () => ({
 jest.mock("./use-current-message", () => ({
   useTamboCurrentMessage: jest.fn(),
   TamboMessageContext: React.createContext<TamboThreadMessage | null>(null),
-}));
-
-jest.mock("../hoc/with-tambo-interactable", () => ({
-  InteractableIdContext: React.createContext<string | null>(null),
 }));
 
 jest.mock("../providers/tambo-interactable-provider", () => ({
@@ -76,14 +71,12 @@ describe("useTamboComponentState", () => {
 
   // Track context values for mocking
   let mockMessage: TamboThreadMessage | null = null;
-  let mockComponentId: string | null = null;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Reset context values
     mockMessage = createMockMessage();
-    mockComponentId = null;
 
     // Mock useContext to return appropriate values based on context
     const originalUseContext = React.useContext;
@@ -100,9 +93,6 @@ describe("useTamboComponentState", () => {
           // Fallback to mockMessage
         }
         return mockMessage;
-      }
-      if (context === InteractableIdContext) {
-        return mockComponentId;
       }
       // For other contexts, use the original implementation
       return originalUseContext(context);
