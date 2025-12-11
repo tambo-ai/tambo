@@ -13,6 +13,7 @@
 import { cn } from "@/lib/utils";
 import * as Popover from "@radix-ui/react-popover";
 import Document from "@tiptap/extension-document";
+import HardBreak from "@tiptap/extension-hard-break";
 import Mention from "@tiptap/extension-mention";
 import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -729,6 +730,9 @@ function getTextWithResourceURIs(editor: Editor | null): {
       if (label && id) {
         resourceNames[id] = label;
       }
+    } else if (node.type.name === "hardBreak") {
+      // Convert hard breaks (Shift+Enter) to newlines
+      text += "\n";
     } else if (node.isText) {
       text += node.text;
     }
@@ -895,6 +899,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         Document,
         Paragraph,
         Text,
+        HardBreak,
         Placeholder.configure({ placeholder }),
         // Always register the "@" mention extension for resources
         // Visual display uses label, but getTextWithResourceURIs() will use ID

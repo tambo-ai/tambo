@@ -720,6 +720,9 @@ function getTextWithResourceURIs(editor: Editor | null): {
       if (label && id) {
         resourceNames[id] = label;
       }
+    } else if (node.type.name === "hardBreak") {
+      // Convert hard breaks (Shift+Enter) to newlines
+      text += "\n";
     } else if (node.isText) {
       text += node.text;
     }
