@@ -11,8 +11,12 @@ import React, {
 } from "react";
 import type {
   ComponentRegistry,
+  RegisterToolFn,
+  RegisterToolsFn,
   TamboComponent,
   TamboTool,
+  TamboToolRegistry,
+  TamboToolWithToolSchema,
 } from "../model/component-metadata";
 import type {
   McpServerInfo,
@@ -35,15 +39,18 @@ import {
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
-  toolRegistry: Record<string, TamboTool>;
+  toolRegistry: TamboToolRegistry;
   componentToolAssociations: Record<string, string[]>;
   mcpServerInfos: NormalizedMcpServerInfo[];
   resources: ListResourceItem[];
   resourceSource: ResourceSource | null;
   registerComponent: (options: TamboComponent) => void;
-  registerTool: (tool: TamboTool) => void;
-  registerTools: (tools: TamboTool[]) => void;
-  addToolAssociation: (componentName: string, tool: TamboTool) => void;
+  registerTool: RegisterToolFn;
+  registerTools: RegisterToolsFn;
+  addToolAssociation: (
+    componentName: string,
+    tool: TamboTool | TamboToolWithToolSchema,
+  ) => void;
   registerMcpServer: (info: McpServerInfo) => void;
   registerMcpServers: (infos: McpServerInfo[]) => void;
   registerResource: (resource: ListResourceItem) => void;
@@ -104,7 +111,7 @@ export interface TamboRegistryProviderProps {
   /** The components to register */
   components?: TamboComponent[];
   /** The tools to register */
-  tools?: TamboTool[];
+  tools?: (TamboTool | TamboToolWithToolSchema)[];
   /** The MCP servers to register */
   mcpServers?: (McpServerInfo | string)[];
   /** The static resources to register */
@@ -163,9 +170,7 @@ export const TamboRegistryProvider: React.FC<
   onCallUnregisteredTool,
 }) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
-  const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
-    {},
-  );
+  const [toolRegistry, setToolRegistry] = useState<TamboToolRegistry>({});
   const [componentToolAssociations, setComponentToolAssociations] = useState<
     Record<string, string[]>
   >({});
@@ -183,7 +188,7 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const registerTool = useCallback(
-    (tool: TamboTool, warnOnOverwrite = true) => {
+    (tool: TamboTool | TamboToolWithToolSchema, warnOnOverwrite = true) => {
       validateTool(tool);
 
       setToolRegistry((prev) => {
@@ -200,7 +205,10 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const registerTools = useCallback(
-    (tools: TamboTool[], warnOnOverwrite = true) => {
+    (
+      tools: (TamboTool | TamboToolWithToolSchema)[],
+      warnOnOverwrite = true,
+    ) => {
       tools.forEach((tool) => registerTool(tool, warnOnOverwrite));
     },
     [registerTool],
@@ -220,7 +228,7 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const addToolAssociation = useCallback(
-    (componentName: string, tool: TamboTool) => {
+    (componentName: string, tool: TamboTool | TamboToolWithToolSchema) => {
       validateToolAssociation(
         componentName,
         tool.name,
