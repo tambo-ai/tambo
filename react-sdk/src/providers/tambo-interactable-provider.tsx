@@ -318,9 +318,12 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
           },
         };
 
-        const updatedComponents = [...prev];
-        const idx = prev.findIndex((c) => c.id === componentId);
-        updatedComponents[idx] = updated;
+        const updatedComponents = prev.map((component) => {
+          if (component.id === componentId) {
+            return updated;
+          }
+          return component;
+        });
 
         return updatedComponents;
       });
