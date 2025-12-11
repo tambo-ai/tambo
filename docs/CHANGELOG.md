@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.21.0](https://github.com/tambo-ai/tambo/compare/docs-v1.20.0...docs-v1.21.0) (2025-12-11)
+
+
+### Features
+
+* integrate EditWithTambo component for inline component editing ([#1477](https://github.com/tambo-ai/tambo/issues/1477)) ([390c204](https://github.com/tambo-ai/tambo/commit/390c2045148c63dfb85f1988861e1cf6ad7f021e))
+* **react-sdk:** add local resource registration to TamboRegistryProvider ([#1504](https://github.com/tambo-ai/tambo/issues/1504)) ([59c94a9](https://github.com/tambo-ai/tambo/commit/59c94a9214c165cbc6728d5a17f39697e4d4c370))
+
+
+### Bug Fixes
+
+* **resources:** Make sure to show resource names in text editor and user messages ([#1497](https://github.com/tambo-ai/tambo/issues/1497)) ([b2d8013](https://github.com/tambo-ai/tambo/commit/b2d8013c0b4bf5fbf7801eca20e97fcf98b5ae55))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the small-safe-packages group with 3 updates ([#1487](https://github.com/tambo-ai/tambo/issues/1487)) ([2178c32](https://github.com/tambo-ai/tambo/commit/2178c32ed7c962a915aa80694cc8e3c4a7f434ba))
+
+
+### Documentation
+
+* **cli:** document useMergeRefs React 19 cleanup ([#1470](https://github.com/tambo-ai/tambo/issues/1470)) ([e215716](https://github.com/tambo-ai/tambo/commit/e21571673b4c92c6fedbb6e74dceb27b921d0a19))
+* **docs:** strengthen metadata for key docs pages (TAM-768) ([#1474](https://github.com/tambo-ai/tambo/issues/1474)) ([1343592](https://github.com/tambo-ai/tambo/commit/13435921864af1a9c8e608bfc552747738f59bd5))
+* **mcp:** add comprehensive resources and prompts documentation ([#1501](https://github.com/tambo-ai/tambo/issues/1501)) ([3973dcc](https://github.com/tambo-ai/tambo/commit/3973dccf62cfec63eae3a655be94acbfb55db314))
+
 ## [1.20.0](https://github.com/tambo-ai/tambo/compare/docs-v1.19.1...docs-v1.20.0) (2025-12-08)
 
 
