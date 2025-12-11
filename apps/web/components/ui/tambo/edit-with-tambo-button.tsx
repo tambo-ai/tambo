@@ -30,7 +30,16 @@ export interface EditWithTamboButtonProps {
   className?: string;
   /** Optional callback to open the thread panel/chat interface. Uses useMessageThreadPanel by default if not provided */
   onOpenThread?: () => void;
-  /** Optional suggestions to display when using "Send in Thread" */
+  /**
+   * Optional suggestions to display when using "Send in Thread"
+   *
+   * NOTE: Suggestions are set via `setCustomSuggestions()` and persist until:
+   * - A message is sent (if using MessageThreadPanel, which clears on send)
+   * - This component unmounts (cleanup fallback)
+   *
+   * For robust clearing behavior, ensure your component tree includes
+   * MessageThreadPanel or implements similar clearing logic.
+   */
   suggestions?: Suggestion[];
 }
 
@@ -101,6 +110,16 @@ export function EditWithTamboButton({
       setPrompt("");
     }
   }, [shouldCloseOnComplete, isGenerating]);
+
+  // Cleanup: Clear custom suggestions on unmount if suggestions prop is provided
+  // This ensures suggestions don't persist indefinitely if MessageThreadPanel
+  // or similar clearing logic isn't present in the consumer's component tree
+  useEffect(() => {
+    if (!suggestions) return;
+    return () => {
+      setCustomSuggestions(null);
+    };
+  }, [suggestions, setCustomSuggestions]);
 
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isGenerating) {

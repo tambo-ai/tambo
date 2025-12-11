@@ -46,7 +46,16 @@ export interface EditWithTamboButtonProps {
    * own wrapper or see apps/web/components/ui/tambo/edit-with-tambo-button.tsx for reference.
    */
   editorRef?: React.MutableRefObject<Editor | null>;
-  /** Optional suggestions to display when using "Send in Thread" */
+  /**
+   * Optional suggestions to display when using "Send in Thread"
+   *
+   * NOTE: Suggestions are set via `setCustomSuggestions()` and persist until:
+   * - A message is sent (if using MessageThreadCollapsible, which clears on send)
+   * - This component unmounts (cleanup fallback)
+   *
+   * For robust clearing behavior, ensure your component tree includes
+   * MessageThreadCollapsible or implements similar clearing logic.
+   */
   suggestions?: Suggestion[];
 }
 
@@ -115,6 +124,16 @@ export function EditWithTamboButton({
       setPrompt("");
     }
   }, [shouldCloseOnComplete, isGenerating]);
+
+  // Cleanup: Clear custom suggestions on unmount if suggestions prop is provided
+  // This ensures suggestions don't persist indefinitely if MessageThreadCollapsible
+  // or similar clearing logic isn't present in the consumer's component tree
+  useEffect(() => {
+    if (!suggestions) return;
+    return () => {
+      setCustomSuggestions(null);
+    };
+  }, [suggestions, setCustomSuggestions]);
 
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isGenerating) {
