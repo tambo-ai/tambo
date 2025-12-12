@@ -1,6 +1,7 @@
 import {
   ContentPartType,
   getToolName,
+  isUiToolName,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -59,7 +60,7 @@ export async function* runDecisionLoop(
   resourceFetchers: ResourceFetcherMap,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const componentTools = strictTools.filter((tool) =>
-    getToolName(tool).startsWith(UI_TOOLNAME_PREFIX),
+    isUiToolName(getToolName(tool)),
   );
   // Add standard parameters to all tools
   const toolsWithStandardParameters = addParametersToTools(

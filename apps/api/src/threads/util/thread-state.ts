@@ -9,6 +9,7 @@ import {
   ContentPartType,
   GenerationStage,
   getToolName,
+  isUiToolName,
   LegacyComponentDecision,
   MessageRole,
   ThreadAssistantMessage,
@@ -389,8 +390,7 @@ export function updateThreadMessageFromLegacyDecision(
     // - Non-UI tools: Only set fields when isToolCallFinished is true
     //   (so client SDK doesn't call them until complete)
     if (chunk.toolCallRequest && chunk.toolCallId) {
-      const isUITool =
-        chunk.toolCallRequest.toolName.startsWith(UI_TOOLNAME_PREFIX);
+      const isUITool = isUiToolName(chunk.toolCallRequest.toolName);
 
       if (isUITool || isToolCallFinished) {
         currentThreadMessage.toolCallRequest = chunk.toolCallRequest;

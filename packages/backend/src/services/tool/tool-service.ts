@@ -222,6 +222,7 @@ export function filterOutStandardToolParameters(
       parameterValue,
     }));
 }
+export { UI_TOOLNAME_PREFIX } from "@tambo-ai-cloud/core";
 
 export function getToolsFromSources(
   allTools: ToolRegistry,

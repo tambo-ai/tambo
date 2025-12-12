@@ -6,6 +6,7 @@ import {
   ChatCompletionContentPart,
   ContentPartType,
   GenerationStage,
+  UI_TOOLNAME_PREFIX,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,

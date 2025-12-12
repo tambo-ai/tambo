@@ -20,6 +20,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   GenerationStage,
   getToolName,
+  isUiToolName,
   LegacyComponentDecision,
   MCPClient,
   MessageRole,
@@ -1950,12 +1951,13 @@ export class ThreadsService {
       }
 
       // Check if this is a UI tool call - if so, auto-generate a tool response and continue the loop
-      const isUIToolCall =
-        toolCallRequest &&
-        finalThreadMessage.tool_call_id &&
-        toolCallRequest.toolName.startsWith(UI_TOOLNAME_PREFIX);
+      const isUIToolCall = isUiToolName(toolCallRequest?.toolName);
 
       if (isUIToolCall) {
+        if (!toolCallRequest) {
+          throw new Error("UI tool call missing toolCallRequest");
+        }
+
         // Yield the final response first
         // Strip toolCallRequest and tool_call_id for UI tools - the client should just render
         // the component, not try to call it as a tool. The tool call info is still in
@@ -1978,6 +1980,12 @@ export class ThreadsService {
           ...(mcpAccessToken && { mcpAccessToken }),
         });
 
+        const toolCallId = finalThreadMessage.tool_call_id;
+        if (!toolCallId) {
+          Sentry.captureMessage("Missing UI tool call ID in stream", "warning");
+          return;
+        }
+
         // Update tool call counts
         const updatedToolCallCounts = updateToolCallCounts(
           toolCallCounts,
@@ -1994,7 +2002,7 @@ export class ThreadsService {
                 text: "Component was rendered",
               },
             ],
-            tool_call_id: finalThreadMessage.tool_call_id,
+            tool_call_id: toolCallId,
             actionType: ActionType.ToolResponse,
             component: finalThreadMessage.component as ComponentDecisionV2Dto,
           },
