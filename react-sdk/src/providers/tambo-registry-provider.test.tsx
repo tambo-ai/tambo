@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { z } from "zodInternalAlias";
+import { z } from "zod/v4";
 import { TamboComponent, TamboTool } from "../model/component-metadata";
 import { defineTool } from "../util/registry";
 import {

@@ -1,4 +1,4 @@
-import { z } from "zodInternalAlias";
+import { z } from "zod/v4";
 import { assertNoRecordSchema } from "./validate";
 
 describe("assertNoRecordSchema", () => {

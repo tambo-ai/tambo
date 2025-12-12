@@ -8,7 +8,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { z } from "zodInternalAlias";
+import { z } from "zod/v3";
 import { createInteractablesContextHelper } from "../context-helpers/current-interactables-context-helper";
 import {
   TamboInteractableComponent,

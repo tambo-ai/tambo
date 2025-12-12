@@ -1,5 +1,5 @@
 import { JSONSchema7 } from "json-schema";
-import { z } from "zodInternalAlias";
+import { z } from "./alias";
 
 const jsonSchemaType = z.union([
   z.literal("object"),
