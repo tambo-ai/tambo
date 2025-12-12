@@ -1948,6 +1948,86 @@ export class ThreadsService {
         return;
       }
 
+      // Check if this is a UI tool call - if so, auto-generate a tool response and continue the loop
+      const isUIToolCall =
+        toolCallRequest &&
+        finalThreadMessage.tool_call_id &&
+        toolCallRequest.toolName.startsWith("show_component_");
+
+      if (isUIToolCall) {
+        // Yield the final response first
+        // Strip toolCallRequest and tool_call_id for UI tools - the client should just render
+        // the component, not try to call it as a tool. The tool call info is still in
+        // the component field for server-side tracking.
+        const {
+          toolCallRequest: _toolCallRequest,
+          tool_call_id: _tool_call_id,
+          ...messageWithoutToolCall
+        } = finalThreadMessage;
+        queue.push({
+          responseMessageDto: {
+            ...messageWithoutToolCall,
+            content: convertContentPartToDto(messageWithoutToolCall.content),
+            componentState: messageWithoutToolCall.componentState ?? {},
+            component:
+              messageWithoutToolCall.component as ComponentDecisionV2Dto,
+          },
+          generationStage: resultingGenerationStage,
+          statusMessage: resultingStatusMessage,
+          ...(mcpAccessToken && { mcpAccessToken }),
+        });
+
+        // Auto-generate an empty tool response for UI tools
+        // This allows the loop to continue so multiple components can be shown
+        await addMessage(db, threadId, {
+          role: MessageRole.Tool,
+          content: [
+            {
+              type: ContentPartType.Text,
+              text: "Component was rendered",
+            },
+          ],
+          tool_call_id: finalThreadMessage.tool_call_id,
+          component: finalThreadMessage.component as ComponentDecisionV2Dto,
+        });
+
+        // Update tool call counts
+        const updatedToolCallCounts = updateToolCallCounts(
+          toolCallCounts,
+          toolCallRequest,
+        );
+
+        // Continue the loop with the tool response
+        const toolResponseAdvanceDto: AdvanceThreadDto = {
+          messageToAppend: {
+            role: MessageRole.Tool,
+            content: [
+              {
+                type: ContentPartType.Text,
+                text: "Component was rendered",
+              },
+            ],
+            tool_call_id: finalThreadMessage.tool_call_id,
+            actionType: ActionType.ToolResponse,
+            component: finalThreadMessage.component as ComponentDecisionV2Dto,
+          },
+          availableComponents: originalRequest.availableComponents,
+          contextKey: originalRequest.contextKey,
+        };
+
+        await this.advanceThread(
+          projectId,
+          toolResponseAdvanceDto,
+          threadId,
+          true,
+          updatedToolCallCounts,
+          allTools,
+          queue,
+        );
+
+        return;
+      }
+
       // We only yield the final response with the tool call request and tool call id set if we did not call a system tool
       queue.push({
         responseMessageDto: {
