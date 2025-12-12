@@ -18,6 +18,7 @@ import {
   type Suggestion,
   useTambo,
   useTamboCurrentComponent,
+  useTamboCurrentMessage,
 } from "@tambo-ai/react";
 import type { Editor } from "@tiptap/react";
 import { Bot, ChevronDown, X } from "lucide-react";
@@ -83,6 +84,14 @@ export function EditWithTamboButton({
   const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle } = useTambo();
 
+  // Try to get the message, but don't throw if not in context
+  let message: ReturnType<typeof useTamboCurrentMessage> | null = null;
+  try {
+    message = useTamboCurrentMessage();
+  } catch {
+    // Not in a Tambo-generated message - that's fine
+  }
+
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
   // The useTambo() hook already manages generation state and error handling through sendThreadMessage,
@@ -96,6 +105,11 @@ export function EditWithTamboButton({
 
   // If no component, the current component is not an interactable - don't render.
   if (!component) {
+    return null;
+  }
+
+  // If in a Tambo thread (message with threadId), don't show the button
+  if (message?.threadId) {
     return null;
   }
 
