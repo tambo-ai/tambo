@@ -1950,23 +1950,7 @@ export class ThreadsService {
       }
 
       // Check if this is a UI tool call - if so, auto-generate a tool response and continue the loop
-      const isUIToolCall = isUiToolName(toolCallRequest?.toolName);
-
-      if (isUIToolCall) {
-        if (!toolCallRequest) {
-          Sentry.withScope((scope) => {
-            scope.setLevel("error");
-            scope.setContext("uiToolCall", {
-              threadId,
-              messageId: finalThreadMessage.id,
-            });
-            Sentry.captureMessage(
-              "UI tool call missing toolCallRequest in stream",
-            );
-          });
-          return;
-        }
-
+      if (toolCallRequest && isUiToolName(toolCallRequest.toolName)) {
         // Yield the final response first
         // Strip toolCallRequest and tool_call_id for UI tools - the client should just render
         // the component, not try to call it as a tool. The tool call info is still in
