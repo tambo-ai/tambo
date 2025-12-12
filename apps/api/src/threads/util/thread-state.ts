@@ -22,6 +22,7 @@ import {
 import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
+import { UI_TOOLNAME_PREFIX } from "../../../../../packages/backend/src/services/tool/tool-service";
 import { createResourceFetcherMap } from "../../common/systemTools";
 import { ThreadMcpClient } from "../../mcp-server/elicitations";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
@@ -389,7 +390,7 @@ export function updateThreadMessageFromLegacyDecision(
     //   (so client SDK doesn't call them until complete)
     if (chunk.toolCallRequest && chunk.toolCallId) {
       const isUITool =
-        chunk.toolCallRequest.toolName.startsWith("show_component_");
+        chunk.toolCallRequest.toolName.startsWith(UI_TOOLNAME_PREFIX);
 
       if (isUITool || isToolCallFinished) {
         currentThreadMessage.toolCallRequest = chunk.toolCallRequest;

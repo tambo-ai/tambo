@@ -36,6 +36,7 @@ import {
 } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
+import { UI_TOOLNAME_PREFIX } from "../../../../packages/backend/src/services/tool/tool-service";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
@@ -1952,7 +1953,7 @@ export class ThreadsService {
       const isUIToolCall =
         toolCallRequest &&
         finalThreadMessage.tool_call_id &&
-        toolCallRequest.toolName.startsWith("show_component_");
+        toolCallRequest.toolName.startsWith(UI_TOOLNAME_PREFIX);
 
       if (isUIToolCall) {
         // Yield the final response first

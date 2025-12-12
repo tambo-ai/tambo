@@ -13,6 +13,7 @@ import {
 import { HydraDb } from "@tambo-ai-cloud/db";
 import { SQL } from "drizzle-orm";
 import { PgTable, PgTransaction } from "drizzle-orm/pg-core";
+import { UI_TOOLNAME_PREFIX } from "../../../../../packages/backend/src/services/tool/tool-service";
 import {
   addUserMessage,
   finishInProgressMessage,
@@ -242,7 +243,7 @@ describe("Thread State", () => {
     it("should set outer tool call fields for UI tools during streaming, but not for non-UI tools", () => {
       // Test UI tool (show_component_ prefix)
       const uiToolCallRequest = {
-        toolName: "show_component_Graph",
+        toolName: UI_TOOLNAME_PREFIX + "Graph",
         parameters: [{ parameterName: "data", parameterValue: [1, 2, 3] }],
       };
 
