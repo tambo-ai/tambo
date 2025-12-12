@@ -18,7 +18,6 @@ import {
   ThreadToolMessage,
   ThreadUserMessage,
   ToolCallRequest,
-  UI_TOOLNAME_PREFIX,
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";

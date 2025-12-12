@@ -27,7 +27,6 @@ import {
   ThreadMessage,
   throttle,
   ToolCallRequest,
-  UI_TOOLNAME_PREFIX,
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
@@ -1955,7 +1954,17 @@ export class ThreadsService {
 
       if (isUIToolCall) {
         if (!toolCallRequest) {
-          throw new Error("UI tool call missing toolCallRequest");
+          Sentry.withScope((scope) => {
+            scope.setLevel("error");
+            scope.setContext("uiToolCall", {
+              threadId,
+              messageId: finalThreadMessage.id,
+            });
+            Sentry.captureMessage(
+              "UI tool call missing toolCallRequest in stream",
+            );
+          });
+          return;
         }
 
         // Yield the final response first
@@ -1982,7 +1991,15 @@ export class ThreadsService {
 
         const toolCallId = finalThreadMessage.tool_call_id;
         if (!toolCallId) {
-          Sentry.captureMessage("Missing UI tool call ID in stream", "warning");
+          Sentry.withScope((scope) => {
+            scope.setLevel("warning");
+            scope.setContext("uiToolCall", {
+              threadId,
+              messageId: finalThreadMessage.id,
+              toolName: toolCallRequest.toolName,
+            });
+            Sentry.captureMessage("Missing UI tool call ID in stream");
+          });
           return;
         }
 
