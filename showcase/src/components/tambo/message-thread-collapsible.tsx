@@ -10,35 +10,38 @@
 
 "use client";
 
+import type { messageVariants } from "@/components/tambo/message";
 import {
   MessageInput,
-  MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputSubmitButton,
   MessageInputError,
   MessageInputFileButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
-  // MessageInputMcpConfigButton,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
 } from "@/components/tambo/message-input";
 import {
   MessageSuggestions,
-  MessageSuggestionsStatus,
   MessageSuggestionsList,
+  MessageSuggestionsStatus,
 } from "@/components/tambo/message-suggestions";
-import type { messageVariants } from "@/components/tambo/message";
+import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/tambo/thread-content";
 import { ThreadDropdown } from "@/components/tambo/thread-dropdown";
-import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
 import { cn } from "@/lib/utils";
-import { Collapsible } from "radix-ui";
-import { XIcon } from "lucide-react";
-import * as React from "react";
+import {
+  type Suggestion,
+  useTambo,
+  useTamboContextAttachment,
+} from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
-import type { Suggestion } from "@tambo-ai/react";
+import { XIcon } from "lucide-react";
+import { Collapsible } from "radix-ui";
+import * as React from "react";
 
 /**
  * Props for the MessageThreadCollapsible component
@@ -225,6 +228,9 @@ export const MessageThreadCollapsible = React.forwardRef<
   ) => {
     const { isOpen, setIsOpen, shortcutText } =
       useCollapsibleState(defaultOpen);
+    const { customSuggestions, setCustomSuggestions } =
+      useTamboContextAttachment();
+    const { thread } = useTambo();
 
     // Backward compatibility: prefer height, fall back to maxHeight
     const effectiveHeight = height ?? maxHeight;
@@ -263,6 +269,16 @@ export const MessageThreadCollapsible = React.forwardRef<
         messageId: "examples-query",
       },
     ];
+
+    // Use custom suggestions if available, otherwise use defaults
+    const activeSuggestions = customSuggestions ?? defaultSuggestions;
+
+    // Clear custom suggestions when a new message is sent
+    React.useEffect(() => {
+      if (thread?.messages?.length && customSuggestions !== null) {
+        setCustomSuggestions(null);
+      }
+    }, [thread?.messages?.length, customSuggestions, setCustomSuggestions]);
 
     return (
       <CollapsibleContainer
@@ -314,7 +330,7 @@ export const MessageThreadCollapsible = React.forwardRef<
             </div>
 
             {/* Message suggestions */}
-            <MessageSuggestions initialSuggestions={defaultSuggestions}>
+            <MessageSuggestions initialSuggestions={activeSuggestions}>
               <MessageSuggestionsList />
             </MessageSuggestions>
           </div>
