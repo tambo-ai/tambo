@@ -128,7 +128,7 @@ export function handleZodSchemaToJson(schema: unknown) {
  * @returns True if the schema looks like a Zod 3 schema
  */
 export function isZod3Schema(schema: unknown): schema is ZodType {
-  return isZodSchema(schema) && "def" in schema;
+  return isZodSchema(schema) && "_def" in schema;
 }
 
 /**
@@ -155,5 +155,8 @@ export function isZodSchema(schema: unknown): schema is ZodType | $ZodType {
   if (!("vendor" in schema["~standard"])) return false;
   if (schema["~standard"].vendor !== "zod") return false;
 
-  return true;
+  // Require at least one internal marker to reduce false positives
+  const looksLikeV3 = "_def" in schema;
+  const looksLikeV4 = "_zod" in schema || "def" in schema;
+  return looksLikeV3 || looksLikeV4;
 }
