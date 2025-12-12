@@ -1973,6 +1973,9 @@ export class ThreadsService {
           ...(mcpAccessToken && { mcpAccessToken }),
         });
 
+        // `tool_call_id` can be missing in edge cases, but UI tools should never be client-invokable.
+        // Always strip tool call fields from the client-facing message above, and only auto-continue
+        // the decision loop if we have an id to attach to the synthetic tool response.
         const toolCallId = finalThreadMessage.tool_call_id;
         if (!toolCallId) {
           Sentry.withScope((scope) => {
