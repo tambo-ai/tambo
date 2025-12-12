@@ -178,9 +178,9 @@ export async function* runDecisionLoop(
         ) as Partial<TamboToolParameters>;
       }
 
-      // If this is a non-UI tool call, build tool call request (even if incomplete)
+      // Build tool call request for both UI and non-UI tools (even if incomplete)
       let clientToolRequest: ToolCallRequest | undefined;
-      if (!isUITool && toolCall) {
+      if (toolCall) {
         clientToolRequest = buildToolCallRequest(toolCall, strictTools);
       }
 
