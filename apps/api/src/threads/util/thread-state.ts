@@ -382,11 +382,20 @@ export function updateThreadMessageFromLegacyDecision(
       reasoningDurationMS: chunk.reasoningDurationMS,
     };
 
-    // Only set outer tool call fields if tool call is finished.
-    if (isToolCallFinished && chunk.toolCallRequest) {
-      currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
-      currentThreadMessage.tool_call_id = chunk.toolCallId;
-      currentThreadMessage.actionType = ActionType.ToolCall;
+    // Handle tool call fields differently for UI tools vs non-UI tools:
+    // - UI tools: Set fields as soon as we have valid toolCallRequest and toolCallId
+    //   (so they're tracked as tool calls during streaming)
+    // - Non-UI tools: Only set fields when isToolCallFinished is true
+    //   (so client SDK doesn't call them until complete)
+    if (chunk.toolCallRequest && chunk.toolCallId) {
+      const isUITool =
+        chunk.toolCallRequest.toolName.startsWith("show_component_");
+
+      if (isUITool || isToolCallFinished) {
+        currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
+        currentThreadMessage.tool_call_id = chunk.toolCallId;
+        currentThreadMessage.actionType = ActionType.ToolCall;
+      }
     }
 
     return currentThreadMessage;

@@ -2,6 +2,7 @@ import { operations } from "@tambo-ai-cloud/db";
 
 import { Logger } from "@nestjs/common";
 import {
+  ActionType,
   ChatCompletionContentPart,
   ContentPartType,
   GenerationStage,
@@ -238,23 +239,23 @@ describe("Thread State", () => {
       expect(threadMessage.component?.toolCallId).toBe("tool-123");
     });
 
-    it("should include tool call info in component field but not set outer fields when isToolCallFinished is false", () => {
-      const toolCallRequest = {
-        toolName: "myTool",
-        parameters: [{ parameterName: "param1", parameterValue: "value1" }],
+    it("should set outer tool call fields for UI tools during streaming, but not for non-UI tools", () => {
+      // Test UI tool (show_component_ prefix)
+      const uiToolCallRequest = {
+        toolName: "show_component_Graph",
+        parameters: [{ parameterName: "data", parameterValue: [1, 2, 3] }],
       };
 
-      // Simulate a streaming chunk with tool call info but not finished
-      const mockDecisionInProgress: LegacyComponentDecision = {
+      const mockUIDecisionInProgress: LegacyComponentDecision = {
         id: "dec-1",
-        message: "With tool in progress",
-        componentName: "test-component",
-        props: {},
+        message: "Showing graph",
+        componentName: "Graph",
+        props: { data: [1, 2, 3] },
         componentState: {},
         reasoning: ["test reasoning"],
-        toolCallRequest, // Tool call info is present
-        toolCallId: "tool-456",
-        isToolCallFinished: false, // But not finished yet
+        toolCallRequest: uiToolCallRequest,
+        toolCallId: "tool-ui-123",
+        isToolCallFinished: false, // Not finished yet, but should still set fields for UI tools
       };
 
       const mockInProgressMessage: ThreadMessage = {
@@ -271,20 +272,61 @@ describe("Thread State", () => {
         componentState: {},
       };
 
-      const threadMessage = updateThreadMessageFromLegacyDecision(
+      const uiThreadMessage = updateThreadMessageFromLegacyDecision(
         mockInProgressMessage,
-        mockDecisionInProgress,
+        mockUIDecisionInProgress,
       );
 
-      // Should include tool call info in component field
-      expect(threadMessage.component?.toolCallRequest).toEqual(toolCallRequest);
-      expect(threadMessage.component?.toolCallId).toBe("tool-456");
+      // UI tools should set outer fields immediately during streaming
+      expect(uiThreadMessage.toolCallRequest).toEqual(uiToolCallRequest);
+      expect(uiThreadMessage.tool_call_id).toBe("tool-ui-123");
+      expect(uiThreadMessage.actionType).toBe(ActionType.ToolCall);
 
-      // Should NOT set outer fields when isToolCallFinished is false
-      // (this indicates it's a streaming chunk, not a final chunk)
-      expect(threadMessage.toolCallRequest).toBeUndefined();
-      expect(threadMessage.tool_call_id).toBeUndefined();
-      expect(threadMessage.actionType).toBeUndefined();
+      // Test non-UI tool (no show_component_ prefix)
+      const nonUIToolCallRequest = {
+        toolName: "get_weather",
+        parameters: [{ parameterName: "city", parameterValue: "SF" }],
+      };
+
+      const mockNonUIDecisionInProgress: LegacyComponentDecision = {
+        id: "dec-2",
+        message: "Getting weather",
+        componentName: "",
+        props: null,
+        componentState: {},
+        reasoning: ["test reasoning"],
+        toolCallRequest: nonUIToolCallRequest,
+        toolCallId: "tool-nonui-456",
+        isToolCallFinished: false, // Not finished - should NOT set fields for non-UI tools
+      };
+
+      const nonUIThreadMessage = updateThreadMessageFromLegacyDecision(
+        mockInProgressMessage,
+        mockNonUIDecisionInProgress,
+      );
+
+      // Non-UI tools should NOT set outer fields until finished
+      expect(nonUIThreadMessage.toolCallRequest).toBeUndefined();
+      expect(nonUIThreadMessage.tool_call_id).toBeUndefined();
+      expect(nonUIThreadMessage.actionType).toBeUndefined();
+
+      // But should set them when finished
+      const mockNonUIDecisionFinished: LegacyComponentDecision = {
+        ...mockNonUIDecisionInProgress,
+        isToolCallFinished: true,
+      };
+
+      const nonUIThreadMessageFinished = updateThreadMessageFromLegacyDecision(
+        mockInProgressMessage,
+        mockNonUIDecisionFinished,
+      );
+
+      // Now should set fields when finished
+      expect(nonUIThreadMessageFinished.toolCallRequest).toEqual(
+        nonUIToolCallRequest,
+      );
+      expect(nonUIThreadMessageFinished.tool_call_id).toBe("tool-nonui-456");
+      expect(nonUIThreadMessageFinished.actionType).toBe(ActionType.ToolCall);
     });
   });
 
