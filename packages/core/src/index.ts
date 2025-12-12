@@ -17,6 +17,7 @@ export * from "./templates";
 export * from "./threads";
 export * from "./thread-message-validation";
 export * from "./tools";
+export * from "./ui-tools";
 export type * from "./typeutils";
 // Auth helpers
 export * from "./agent-registry";

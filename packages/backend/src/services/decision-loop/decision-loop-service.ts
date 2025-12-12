@@ -5,6 +5,7 @@ import {
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
+  UI_TOOLNAME_PREFIX,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { parse } from "partial-json";
@@ -24,7 +25,6 @@ import {
   filterOutStandardToolParameters,
   standardToolParameters,
   TamboToolParameters,
-  UI_TOOLNAME_PREFIX,
 } from "../tool/tool-service";
 
 /**

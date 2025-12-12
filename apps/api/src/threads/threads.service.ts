@@ -26,6 +26,7 @@ import {
   ThreadMessage,
   throttle,
   ToolCallRequest,
+  UI_TOOLNAME_PREFIX,
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
@@ -36,7 +37,6 @@ import {
 } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
-import { UI_TOOLNAME_PREFIX } from "../../../../packages/backend/src/services/tool/tool-service";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";

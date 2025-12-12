@@ -9,11 +9,11 @@ import {
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
+  UI_TOOLNAME_PREFIX,
 } from "@tambo-ai-cloud/core";
 import { HydraDb } from "@tambo-ai-cloud/db";
 import { SQL } from "drizzle-orm";
 import { PgTable, PgTransaction } from "drizzle-orm/pg-core";
-import { UI_TOOLNAME_PREFIX } from "../../../../../packages/backend/src/services/tool/tool-service";
 import {
   addUserMessage,
   finishInProgressMessage,

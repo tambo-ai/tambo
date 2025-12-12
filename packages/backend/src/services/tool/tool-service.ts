@@ -2,6 +2,7 @@ import {
   FunctionParameters,
   strictifyJSONSchemaProperties,
   strictifyJSONSchemaProperty,
+  UI_TOOLNAME_PREFIX,
 } from "@tambo-ai-cloud/core";
 import { JSONSchema7 } from "json-schema";
 import OpenAI from "openai";
@@ -221,8 +222,6 @@ export function filterOutStandardToolParameters(
       parameterValue,
     }));
 }
-
-export const UI_TOOLNAME_PREFIX = "show_component_";
 
 export function getToolsFromSources(
   allTools: ToolRegistry,

@@ -17,12 +17,12 @@ import {
   ThreadToolMessage,
   ThreadUserMessage,
   ToolCallRequest,
+  UI_TOOLNAME_PREFIX,
   unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import OpenAI from "openai";
-import { UI_TOOLNAME_PREFIX } from "../../../../../packages/backend/src/services/tool/tool-service";
 import { createResourceFetcherMap } from "../../common/systemTools";
 import { ThreadMcpClient } from "../../mcp-server/elicitations";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
