@@ -5,12 +5,8 @@ import {
   ZodType,
   ZodTypeAny,
 } from "zod/v3";
-import {
-  $ZodFunction,
-  $ZodType,
-  toJSONSchema as zod4ToJSONSchema,
-} from "zod/v4/core";
-import { z } from "zodInternalAlias";
+import { $ZodFunction, $ZodType } from "zod/v4/core";
+import { z, toJSONSchema as zod4ToJSONSchema } from "zodInternalAlias";
 
 /**
  * @returns True if the schema is a Zod 3 function schema
@@ -33,8 +29,21 @@ export function isZod4FunctionSchema(schema: unknown): schema is $ZodFunction {
     return false;
   }
 
-  // @ts-expect-error -- Error in Zod types for v3 vs v4
-  return "def" in schema && schema._zod.def.type === "function";
+  // $ZodFunctions in zod 4.0 most certainly do have .def.type === "function"
+  // but the type definitions do not reflect this because $ZodFunction does not
+  // extend $ZodType. This is corrected in zod 4.1, but zod 3 does not include
+  // the types for 4.1 yet (and might not ever).
+  // See: https://github.com/colinhacks/zod/blob/463f03eb8183dcdcdf735b180f2bf40883e66220/packages/zod/src/v4/core/function.ts#L48
+  if ("def" in schema && typeof schema.def !== "object" && schema.def) {
+    if ((schema.def as { type: string })?.type === "function") {
+      return true;
+    }
+  }
+
+  // We're casting as string here because zod 4.0 types don't include "function"
+  // literal in the union for `_zod.def.type`. The optional chaining is because
+  // _zod does not exist on zod 4 objects from zod 3.
+  return (schema._zod?.def?.type as string) === "function";
 }
 
 /**
@@ -47,9 +56,9 @@ export function isZodFunctionSchema(schema: unknown) {
 }
 
 /**
- * Extracts the args schema from a Zod 3 function schema.
- * @param schema - The Zod 3 function schema
- * @returns The args schema, or undefined if not a Zod 3 function schema
+ * Extracts the args schema from a Zod function schema.
+ * @param schema - The Zod function schema
+ * @returns The args schema, or undefined if not a Zod function schema
  */
 export function getZodFunctionArgs(schema: unknown) {
   if (isZod3FunctionSchema(schema)) {
@@ -57,8 +66,8 @@ export function getZodFunctionArgs(schema: unknown) {
   }
 
   if (isZod4FunctionSchema(schema)) {
-    // @ts-expect-error -- Error in Zod types for v3 vs v4
-    return schema._zod.def.input;
+    // @ts-expect-error -- Error in Zod types for v3 vs v4.0
+    return schema?.def?.input ?? schema._zod?.def?.input;
   }
 
   throw new Error("Unable to determine parameters from zod function schema");
@@ -89,7 +98,8 @@ export function getZodFunctionReturns(schema: unknown) {
  * @returns The JSON Schema representation
  */
 export function handleZodSchemaToJson(schema: unknown) {
-  // Detect Zod 4 by checking for def.type
+  // If Zod4 schema detected, use the toJSONSchema function from "zod/v4/core"
+  // @ts-expect-error -- using zod4ToJSONSchema from zodInternalAlias but types from zod/v4/core
   if (isZod4Schema(schema)) return zod4ToJSONSchema(schema);
 
   try {

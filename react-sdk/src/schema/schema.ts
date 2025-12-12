@@ -27,7 +27,7 @@ import {
   looksLikeJSONSchema,
 } from "./json-schema";
 import { isStandardSchema } from "./standard-schema";
-import { getZodFunctionArgs, handleZodSchemaToJson, isZodSchema } from "./zod";
+import { getZodFunctionArgs, handleZodSchemaToJson } from "./zod";
 
 // Register the Zod vendor converter with standard-json
 loadVendor("zod", handleZodSchemaToJson);
@@ -103,12 +103,8 @@ export function hasInputSchema(
  * @returns The input schema (Standard Schema or JSON Schema), or undefined if not toolSchema
  */
 function getArgsFromToolSchema(
-  tool: TamboTool | TamboToolWithToolSchema,
+  tool: TamboToolWithToolSchema,
 ): StandardSchemaV1 | JSONSchema7 | undefined {
-  if (!("toolSchema" in tool) || !tool.toolSchema) {
-    return undefined;
-  }
-
   if (looksLikeJSONSchema(tool.toolSchema)) {
     return tool.toolSchema;
   }
@@ -195,16 +191,14 @@ export const getParametersFromToolSchema = (
   }
 
   // Convert to JSON Schema if needed
-  // For toolSchema, the args are typically a Zod tuple from z.function().args(...)
-  // We use direct Zod conversion to ensure proper tuple handling
   let jsonSchema: JSONSchema7;
-  if (looksLikeJSONSchema(argsSchema)) {
-    jsonSchema = argsSchema;
-  } else if (isZodSchema(argsSchema)) {
-    // Use direct Zod conversion for more reliable tuple handling
-    jsonSchema = handleZodSchemaToJson(argsSchema) as JSONSchema7;
-  } else if (isStandardSchema(argsSchema)) {
+  // zod 3 and 4 are both compatible with StandardSchema
+  if (isStandardSchema(argsSchema)) {
+    // uses @standard-community/standard-json for conversion
     jsonSchema = schemaToJsonSchema(argsSchema);
+  } else if (looksLikeJSONSchema(argsSchema)) {
+    // already JSON Schema
+    jsonSchema = argsSchema;
   } else {
     console.warn("Unknown toolSchema args type, returning empty parameters");
     return [];
