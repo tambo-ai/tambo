@@ -5,8 +5,12 @@ import {
   ZodType,
   ZodTypeAny,
 } from "zod/v3";
-import { $ZodFunction, $ZodType } from "zod/v4/core";
-import { z, toJSONSchema as zod4ToJSONSchema } from "zodInternalAlias";
+import {
+  $ZodFunction,
+  $ZodType,
+  toJSONSchema as zod4ToJSONSchema,
+} from "zod/v4/core";
+import { z } from "zodInternalAlias";
 
 /**
  * @returns True if the schema is a Zod 3 function schema
@@ -99,7 +103,6 @@ export function getZodFunctionReturns(schema: unknown) {
  */
 export function handleZodSchemaToJson(schema: unknown) {
   // If Zod4 schema detected, use the toJSONSchema function from "zod/v4/core"
-  // @ts-expect-error -- using zod4ToJSONSchema from zodInternalAlias but types from zod/v4/core
   if (isZod4Schema(schema)) return zod4ToJSONSchema(schema);
 
   try {

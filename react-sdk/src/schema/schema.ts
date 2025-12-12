@@ -27,7 +27,7 @@ import {
   looksLikeJSONSchema,
 } from "./json-schema";
 import { isStandardSchema } from "./standard-schema";
-import { getZodFunctionArgs, handleZodSchemaToJson } from "./zod";
+import { getZodFunctionArgs, handleZodSchemaToJson, isZodSchema } from "./zod";
 
 // Register the Zod vendor converter with standard-json
 loadVendor("zod", handleZodSchemaToJson);
@@ -193,7 +193,9 @@ export const getParametersFromToolSchema = (
   // Convert to JSON Schema if needed
   let jsonSchema: JSONSchema7;
   // zod 3 and 4 are both compatible with StandardSchema
-  if (isStandardSchema(argsSchema)) {
+  if (isZodSchema(argsSchema)) {
+    jsonSchema = handleZodSchemaToJson(argsSchema);
+  } else if (isStandardSchema(argsSchema)) {
     // uses @standard-community/standard-json for conversion
     jsonSchema = schemaToJsonSchema(argsSchema);
   } else if (looksLikeJSONSchema(argsSchema)) {
