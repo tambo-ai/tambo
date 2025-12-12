@@ -128,47 +128,45 @@ export function useTamboComponentState<S>(
     ],
   );
 
+  const existingInteractableState = componentId
+    ? getInteractableComponentState(componentId)?.[keyName]
+    : undefined;
+  const shouldUpdateInteractableInitial =
+    !!componentId &&
+    existingInteractableState === undefined &&
+    initialValue !== undefined;
+
   // Set initial value in interactable state if we're in an interactable context and there's no existing state
   useEffect(() => {
-    if (!componentId) {
+    if (!shouldUpdateInteractableInitial) {
       return;
     }
-
-    if (messageState !== undefined) {
-      return;
-    }
-    const existingInteractableState =
-      getInteractableComponentState(componentId)?.[keyName];
-    if (existingInteractableState === undefined && initialValue !== undefined) {
-      setInteractableState(componentId, keyName, initialValue);
-    }
+    setInteractableState(componentId, keyName, initialValue!);
   }, [
+    shouldUpdateInteractableInitial,
     componentId,
     keyName,
     initialValue,
-    messageState,
-    getInteractableComponentState,
     setInteractableState,
   ]);
 
+  const shouldSyncFromMessage =
+    !!message && messageState !== undefined && messageState !== null;
+
   // Mirror the thread message's componentState value to the local state and interactable state
   useEffect(() => {
-    if (!message) {
-      return;
-    }
-    const messageState = message.componentState?.[keyName];
-    if (!messageState) {
+    if (!shouldSyncFromMessage) {
       return;
     }
     setInitializedFromThreadMessage(true);
-    const stateValue = message.componentState?.[keyName] as S;
+    const stateValue = messageState as S;
     setLocalState(stateValue);
     if (componentId) {
       setInteractableState(componentId, keyName, stateValue);
     }
   }, [
-    message?.componentState?.[keyName],
-    message,
+    shouldSyncFromMessage,
+    messageState,
     keyName,
     setInteractableState,
     componentId,
