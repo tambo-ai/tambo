@@ -138,14 +138,32 @@ function extractParamsFromJsonSchemaTuple(
  * @param schema - The input schema (JSON Schema)
  * @returns A single parameter specification
  */
-function createInputParameter(schema: JSONSchema7): ParameterSpec {
-  return {
-    name: "input",
-    type: typeof schema.type === "string" ? schema.type : "object",
-    description: schema.description ?? "",
-    isRequired: true,
-    schema,
-  };
+function createParametersFromSchema(schema: JSONSchema7): ParameterSpec[] {
+  const properties = schema.properties ?? {};
+
+  return Object.entries(properties).map(
+    ([key, propSchema]) =>
+      ({
+        name: key,
+        type:
+          propSchema && typeof propSchema === "object" && "type" in propSchema
+            ? (propSchema.type as string)
+            : "object",
+        description:
+          propSchema &&
+          typeof propSchema === "object" &&
+          "description" in propSchema
+            ? (propSchema.description ?? "")
+            : "",
+        isRequired: Array.isArray(schema.required)
+          ? schema.required.includes(key)
+          : false,
+        schema:
+          typeof propSchema === "object" && propSchema !== null
+            ? propSchema
+            : {},
+      }) satisfies ParameterSpec,
+  );
 }
 
 /**
@@ -179,7 +197,7 @@ export const getParametersFromToolSchema = (
       return [];
     }
 
-    return [createInputParameter(jsonSchema)];
+    return createParametersFromSchema(jsonSchema);
   }
 
   // Deprecated interface: toolSchema with positional tuple args
