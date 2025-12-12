@@ -1978,20 +1978,6 @@ export class ThreadsService {
           ...(mcpAccessToken && { mcpAccessToken }),
         });
 
-        // Auto-generate an empty tool response for UI tools
-        // This allows the loop to continue so multiple components can be shown
-        await addMessage(db, threadId, {
-          role: MessageRole.Tool,
-          content: [
-            {
-              type: ContentPartType.Text,
-              text: "Component was rendered",
-            },
-          ],
-          tool_call_id: finalThreadMessage.tool_call_id,
-          component: finalThreadMessage.component as ComponentDecisionV2Dto,
-        });
-
         // Update tool call counts
         const updatedToolCallCounts = updateToolCallCounts(
           toolCallCounts,
