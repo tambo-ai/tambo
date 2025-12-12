@@ -1,3 +1,4 @@
+import type { JSONSchema7 } from "json-schema";
 import type {
   TamboComponent,
   TamboTool,
@@ -14,6 +15,47 @@ import { isZodFunctionSchema } from "../schema/zod";
 import { assertValidName } from "./validate-component-name";
 
 /**
+ * Checks if a JSON Schema represents an object type.
+ * @param schema - The JSON Schema to check
+ * @returns True if the schema is an object type
+ */
+function isObjectSchema(schema: JSONSchema7): boolean {
+  return schema.type === "object" || schema.properties !== undefined;
+}
+
+/**
+ * Validates that a schema is an object type.
+ * Throws an error if it's not.
+ * @param schema - The schema to validate (Standard Schema or JSON Schema)
+ * @param context - Description of where the schema is used (for error messages)
+ */
+function assertObjectSchema(schema: unknown, context: string): void {
+  let jsonSchema: JSONSchema7;
+
+  if (isStandardSchema(schema)) {
+    try {
+      jsonSchema = schemaToJsonSchema(schema);
+    } catch {
+      // If conversion fails, we can't validate - let it fail later
+      return;
+    }
+  } else if (looksLikeJSONSchema(schema)) {
+    jsonSchema = schema;
+  } else {
+    // Unknown schema type, can't validate
+    return;
+  }
+
+  if (!isObjectSchema(jsonSchema)) {
+    throw new Error(
+      `${context} must be an object schema (e.g., z.object({...})). ` +
+        `Received type: "${jsonSchema.type ?? "unknown"}". ` +
+        `Tool parameters are passed as a single object argument.`,
+    );
+  }
+}
+
+/**
  * Validates a tool before registration.
  * Throws an error if the tool is invalid.
  * @param tool - The tool to validate
@@ -25,6 +67,8 @@ export function validateTool(tool: TamboTool | TamboToolWithToolSchema): void {
   // Validate tool schemas
   // 1. check inputSchema
   if ("inputSchema" in tool && tool.inputSchema) {
+    // inputSchema must be an object schema
+    assertObjectSchema(tool.inputSchema, `inputSchema of tool "${tool.name}"`);
     assertNoRecordSchema(
       tool.inputSchema,
       `inputSchema of tool "${tool.name}"`,

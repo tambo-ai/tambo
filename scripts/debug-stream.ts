@@ -73,9 +73,7 @@ function sortJson(value: unknown): JsonValue {
   }
   if (typeof value === "object") {
     const obj = value as Record<string, unknown>;
-    const sortedKeys = Object.keys(obj).sort((a, b) =>
-      a < b ? -1 : a > b ? 1 : 0,
-    );
+    const sortedKeys = Object.keys(obj).sort((a, b) => a.localeCompare(b));
     const result: JsonObject = {};
     for (const key of sortedKeys) {
       result[key] = sortJson(obj[key]);

@@ -3,7 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { DeepPartial } from "ts-essentials";
-import { z } from "zodInternalAlias";
+import { z } from "zod/v4";
 import { TamboComponent } from "../model/component-metadata";
 import {
   GenerationStage,
@@ -140,7 +140,9 @@ describe("TamboThreadProvider", () => {
           name: "test-tool",
           tool: jest.fn().mockResolvedValue("test-tool"),
           description: "test-tool",
-          inputSchema: z.tuple([z.string().describe("test-param-description")]),
+          inputSchema: z.object({
+            param: z.string().describe("test-param-description"),
+          }),
           outputSchema: z.string(),
         },
       ],
@@ -1292,7 +1294,7 @@ describe("TamboThreadProvider", () => {
               name: "custom-tool",
               tool: jest.fn().mockResolvedValue({ data: "tool result" }),
               description: "Tool with custom transform",
-              inputSchema: z.tuple([z.string()]),
+              inputSchema: z.object({ input: z.string() }),
               outputSchema: z.object({ data: z.string() }),
               transformToContent: mockTransformToContent,
             },
@@ -1425,7 +1427,7 @@ describe("TamboThreadProvider", () => {
               name: "async-tool",
               tool: jest.fn().mockResolvedValue({ data: "async tool result" }),
               description: "Tool with async transform",
-              inputSchema: z.tuple([z.string()]),
+              inputSchema: z.object({ input: z.string() }),
               outputSchema: z.object({ data: z.string() }),
               transformToContent: mockTransformToContent,
             },
@@ -1566,7 +1568,7 @@ describe("TamboThreadProvider", () => {
                 .fn()
                 .mockResolvedValue({ complex: "data", nested: { value: 42 } }),
               description: "Tool without custom transform",
-              inputSchema: z.tuple([z.string()]),
+              inputSchema: z.object({ input: z.string() }),
               outputSchema: z.object({
                 complex: z.string(),
                 nested: z.object({ value: z.number() }),
@@ -1698,7 +1700,7 @@ describe("TamboThreadProvider", () => {
                 .fn()
                 .mockRejectedValue(new Error("Tool execution failed")),
               description: "Tool that errors",
-              inputSchema: z.tuple([z.string()]),
+              inputSchema: z.object({ input: z.string() }),
               outputSchema: z.string(),
               transformToContent: mockTransformToContent,
             },

@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.66.1",
+  "version": "0.66.2",
   "description": "React client package for Tambo AI",
   "repository": {
     "type": "git",
@@ -119,7 +119,6 @@
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1",
-    "valibot": "^1.2.0",
     "zod": "^3.25.76 || ^4.1.0",
     "zod-to-json-schema": "^3.25.0"
   }

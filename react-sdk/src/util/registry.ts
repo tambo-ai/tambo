@@ -160,11 +160,7 @@ export const mapTamboToolToContextTool = (
  * import { z } from "zod/v4";
  *
  * const myTool = defineTamboTool({
- *   inputSchema: z.tuple([z.string()]),
- *   outputSchema: z.number(),
- *   tool: yourToolFunction,
- *   // ^-- (input: [string]) => number | Promise<number>
- *   // Types are inferred from and must match inputSchema/outputSchema definitions
+ *   // ...
  * });
  * ```
  * @param tool The tool definition to register

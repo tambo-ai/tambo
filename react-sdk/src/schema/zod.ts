@@ -10,7 +10,6 @@ import {
   $ZodType,
   toJSONSchema as zod4ToJSONSchema,
 } from "zod/v4/core";
-import { z } from "zodInternalAlias";
 
 /**
  * @returns True if the schema is a Zod 3 function schema
@@ -18,11 +17,13 @@ import { z } from "zodInternalAlias";
 export function isZod3FunctionSchema(
   schema: unknown,
 ): schema is ZodFunction<ZodTuple<ZodTupleItems, any>, ZodTypeAny> {
-  if (!isZod3Schema(schema)) {
-    return false;
-  }
+  if (!isZodSchema(schema)) return false;
 
-  return "typeName" in schema._def && schema._def.typeName === "ZodFunction";
+  return (
+    "_def" in schema &&
+    "typeName" in schema._def &&
+    schema._def.typeName === "ZodFunction"
+  );
 }
 
 /**
@@ -121,33 +122,14 @@ export function handleZodSchemaToJson(schema: unknown) {
   }
 }
 
-// Zod 3 schemas have _def with typeName and ~standard with vendor "zod"
-// Use looseObject to allow any _def shape (different for each type)
-const zod3SchemaType = z.object({
-  _def: z.looseObject({
-    typeName: z.string().optional(),
-  }),
-  "~standard": z.looseObject({
-    vendor: z.literal("zod"),
-  }),
-});
-
 /**
  * Checks if a schema is probably a Zod 3 schema.
  * @param schema - The schema to check
  * @returns True if the schema looks like a Zod 3 schema
  */
 export function isZod3Schema(schema: unknown): schema is ZodType {
-  return zod3SchemaType.safeParse(schema).success;
+  return isZodSchema(schema) && "_def" in schema;
 }
-
-const zod4SchemaType = z.object({
-  def: z.object(),
-  _zod: z.looseObject({
-    def: z.looseObject({}),
-  }),
-  "~standard": z.looseObject({}),
-});
 
 /**
  * Detects if a schema is Zod 4 by checking for def.type property.
@@ -155,7 +137,7 @@ const zod4SchemaType = z.object({
  * @returns True if the schema appears to be Zod 4 style
  */
 export function isZod4Schema(schema: unknown): schema is $ZodType {
-  return zod4SchemaType.safeParse(schema).success;
+  return isZodSchema(schema) && "_zod" in schema;
 }
 
 /**
@@ -163,8 +145,18 @@ export function isZod4Schema(schema: unknown): schema is $ZodType {
  * @param schema - The schema to check
  * @returns True if the schema is a Zod schema
  */
-export function isZodSchema(
-  schema: unknown,
-): ReturnType<typeof isZod3Schema> | ReturnType<typeof isZod4Schema> {
-  return isZod3Schema(schema) || isZod4Schema(schema);
+export function isZodSchema(schema: unknown): schema is ZodType | $ZodType {
+  // schema must be { ~standard: { vendor: "zod" } }
+  if (typeof schema !== "object") return false;
+  if (!schema) return false;
+  if (!("~standard" in schema)) return false;
+  if (!schema["~standard"]) return false;
+  if (typeof schema["~standard"] !== "object") return false;
+  if (!("vendor" in schema["~standard"])) return false;
+  if (schema["~standard"].vendor !== "zod") return false;
+
+  // Require at least one internal marker to reduce false positives
+  const looksLikeV3 = "_def" in schema;
+  const looksLikeV4 = "_zod" in schema || "def" in schema;
+  return looksLikeV3 || looksLikeV4;
 }

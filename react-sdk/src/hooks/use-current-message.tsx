@@ -96,6 +96,8 @@ export interface TamboCurrentComponent {
   interactableId?: string;
   /** Description (only present for components wrapped with withInteractable) */
   description?: string;
+  /** Thread ID from the message (only present when the component is part of a thread) */
+  threadId?: string;
 }
 
 /**
@@ -135,5 +137,6 @@ export const useTamboCurrentComponent = (): TamboCurrentComponent | null => {
     props: message.component?.props as Record<string, any> | undefined,
     interactableId: message.interactableMetadata?.id ?? undefined,
     description: message.interactableMetadata?.description ?? undefined,
+    threadId: message.threadId,
   };
 };

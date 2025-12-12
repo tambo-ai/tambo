@@ -384,8 +384,8 @@ Use when you need full message/thread context. For component metadata only, see 
 
 `const component = useTamboCurrentComponent()`
 
-Returns component metadata (`componentName`, `props`, `interactableId`, `description`) from the parent component context. Returns `null` if used outside a component. Works with both inline rendered and interactable components.
+Returns component metadata (`componentName`, `props`, `interactableId`, `description`, `threadId`) from the parent component context. Returns `null` if used outside a component. Works with both inline rendered and interactable components.
 
-Use when you only need component information. For full message context, see [`useTamboCurrentMessage`](#usetambocurrentmessage).
+Use when you need component information or thread ID without full message context. For complete message data, see [`useTamboCurrentMessage`](#usetambocurrentmessage).
 
 See [Interactable Components](/concepts/components/interactable-components#accessing-component-context-from-child-components) for detailed patterns and examples.
