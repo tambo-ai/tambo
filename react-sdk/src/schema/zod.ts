@@ -10,7 +10,7 @@ import {
   $ZodType,
   toJSONSchema as zod4ToJSONSchema,
 } from "zod/v4/core";
-import { z } from "zodInternalAlias";
+import { z } from "./alias";
 
 /**
  * @returns True if the schema is a Zod 3 function schema

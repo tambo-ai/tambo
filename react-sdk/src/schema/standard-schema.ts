@@ -1,5 +1,5 @@
 import { StandardSchemaV1 } from "@standard-schema/spec";
-import { z } from "zodInternalAlias";
+import { z } from "./alias";
 
 const standardSchemaProps = z.object({
   version: z.literal(1),
