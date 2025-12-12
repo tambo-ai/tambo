@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.66.1](https://github.com/tambo-ai/tambo/compare/react-v0.66.0...react-v0.66.1) (2025-12-12)
+
+
+### Bug Fixes
+
+* **react:** correct schema parsing logic ([#1513](https://github.com/tambo-ai/tambo/issues/1513)) ([bf7a54a](https://github.com/tambo-ai/tambo/commit/bf7a54ae5515fa6386950a65b6eb03ca891ad250))
+
 ## [0.66.0](https://github.com/tambo-ai/tambo/compare/react-v0.65.3...react-v0.66.0) (2025-12-11)
 
 
