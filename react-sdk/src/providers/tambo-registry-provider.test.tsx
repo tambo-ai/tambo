@@ -14,14 +14,18 @@ const createMockTools = (): TamboTool[] => [
     name: "test-tool-1",
     description: "First test tool",
     tool: jest.fn().mockResolvedValue("test-tool-1-result"),
-    inputSchema: z.tuple([z.string().describe("input parameter")]),
+    inputSchema: z.object({
+      input: z.string().describe("input parameter"),
+    }),
     outputSchema: z.string(),
   }),
   defineTool({
     name: "test-tool-2",
     description: "Second test tool",
     tool: jest.fn().mockResolvedValue("test-tool-2-result"),
-    inputSchema: z.tuple([z.number().describe("number parameter")]),
+    inputSchema: z.object({
+      value: z.number().describe("number parameter"),
+    }),
     outputSchema: z.string(),
   }),
 ];
@@ -145,7 +149,9 @@ describe("TamboRegistryProvider", () => {
         name: "new-tool",
         description: "New tool",
         tool: jest.fn().mockResolvedValue("new-tool-result"),
-        inputSchema: z.tuple([z.string().describe("input")]),
+        inputSchema: z.object({
+          input: z.string().describe("input"),
+        }),
         outputSchema: z.string(),
       };
 
@@ -175,7 +181,9 @@ describe("TamboRegistryProvider", () => {
         name: "new-tool",
         description: "New tool",
         tool: jest.fn().mockResolvedValue("new-tool-result"),
-        inputSchema: z.tuple([z.string().describe("input")]),
+        inputSchema: z.object({
+          input: z.string().describe("input"),
+        }),
         outputSchema: z.string(),
       };
 
@@ -293,7 +301,9 @@ describe("TamboRegistryProvider", () => {
         name: "invalid tool name", // Contains spaces
         description: "Tool with spaces in name",
         tool: jest.fn().mockResolvedValue("result"),
-        inputSchema: z.tuple([z.string()]),
+        inputSchema: z.object({
+          input: z.string(),
+        }),
         outputSchema: z.string(),
       };
 

@@ -461,10 +461,7 @@ export interface RegisterToolFn {
   ): void;
   (tool: TamboToolWithToolSchema, warnOnOverwrite?: boolean): void;
   <Args extends StandardSchemaV1, Returns extends StandardSchemaV1>(
-    tool: TamboTool<
-      StandardSchemaV1.InferOutput<Args>,
-      StandardSchemaV1.InferOutput<Returns>
-    >,
+    tool: TamboToolStandardSchema<Args, Returns>,
     warnOnOverwrite?: boolean,
   ): void;
   <Args extends any[], Returns = any>(
@@ -505,10 +502,7 @@ export interface DefineToolFn {
    */
   <Input extends StandardSchemaV1, Output extends StandardSchemaV1>(
     tool: TamboToolStandardSchema<Input, Output>,
-  ): TamboTool<
-    StandardSchemaV1.InferOutput<Input>,
-    StandardSchemaV1.InferOutput<Output>
-  >;
+  ): TamboToolStandardSchema<Input, Output>;
   /**
    * Provides type safety for defining a Tambo Tool.
    *
