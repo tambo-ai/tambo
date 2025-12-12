@@ -402,10 +402,8 @@ describe("Schema Compatibility", () => {
     });
 
     describe("Zod 4 object schemas for tools", () => {
-      // Note: Zod 4 uses a different function schema API than Zod 3
-      // Zod 4: z.function({ input: z.tuple([...]), output: ... })
-      // For tools, we recommend using object schemas instead of function schemas
-      // since they work consistently across both versions
+      // Note: inputSchema must always be an object schema
+      // The tool function receives a single object argument with all parameters
 
       it("should register tool with Zod 4 object schema", () => {
         const { result } = renderHook(() => useTamboRegistry(), { wrapper });
@@ -414,7 +412,9 @@ describe("Schema Compatibility", () => {
           name: "zod4-object-tool",
           description: "Tool with Zod 4 object schema",
           tool: jest.fn().mockResolvedValue("result"),
-          inputSchema: z4.tuple([z4.string().describe("input parameter")]),
+          inputSchema: z4.object({
+            input: z4.string().describe("input parameter"),
+          }),
           outputSchema: z4.string(),
         });
 
@@ -432,16 +432,11 @@ describe("Schema Compatibility", () => {
           name: "zod4-multi-field-tool",
           description: "Tool with multiple Zod 4 fields",
           tool: jest.fn().mockResolvedValue("result"),
-          inputSchema: z4.tuple([
-            z4.object({
-              first: z4.string().describe("first argument"),
-              second: z4.number().describe("second argument"),
-              third: z4
-                .boolean()
-                .optional()
-                .describe("optional third argument"),
-            }),
-          ]),
+          inputSchema: z4.object({
+            first: z4.string().describe("first argument"),
+            second: z4.number().describe("second argument"),
+            third: z4.boolean().optional().describe("optional third argument"),
+          }),
           outputSchema: z4.array(z4.string()),
         });
 
@@ -461,15 +456,13 @@ describe("Schema Compatibility", () => {
           name: "zod4-nested-object-tool",
           description: "Tool with Zod 4 nested object",
           tool: jest.fn().mockResolvedValue("result"),
-          inputSchema: z4.tuple([
-            z4
-              .object({
-                query: z4.string().describe("search query"),
-                limit: z4.number().optional().describe("max results"),
-                filters: z4.array(z4.string()).optional(),
-              })
-              .describe("search options"),
-          ]),
+          inputSchema: z4
+            .object({
+              query: z4.string().describe("search query"),
+              limit: z4.number().optional().describe("max results"),
+              filters: z4.array(z4.string()).optional(),
+            })
+            .describe("search options"),
           outputSchema: z4.array(z4.string()),
         });
 
@@ -613,7 +606,9 @@ describe("Schema Compatibility", () => {
         name: "invalid-zod3-record-tool",
         description: "Tool with invalid z.record() schema",
         tool: jest.fn().mockResolvedValue("result"),
-        inputSchema: z3.tuple([z3.record(z3.string())]),
+        inputSchema: z3.object({
+          metadata: z3.record(z3.string()),
+        }),
         outputSchema: z3.string(),
       });
 
@@ -633,7 +628,9 @@ describe("Schema Compatibility", () => {
         name: "invalid-zod4-record-tool",
         description: "Tool with invalid Zod 4 z.record() schema",
         tool: jest.fn().mockResolvedValue("result"),
-        inputSchema: z4.array(z4.record(z4.string(), z4.string())),
+        inputSchema: z4.object({
+          metadata: z4.record(z4.string(), z4.string()),
+        }),
         outputSchema: z4.string(),
       });
 
@@ -644,6 +641,42 @@ describe("Schema Compatibility", () => {
       }).toThrow(
         /Record types \(objects with dynamic keys\) are not supported/,
       );
+    });
+
+    it("should reject non-object inputSchema (tuple)", () => {
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const tool = defineTool({
+        name: "invalid-tuple-tool",
+        description: "Tool with tuple inputSchema",
+        tool: jest.fn().mockResolvedValue("result"),
+        inputSchema: z4.tuple([z4.string()]),
+        outputSchema: z4.string(),
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.registerTool(tool);
+        });
+      }).toThrow(/must be an object schema/);
+    });
+
+    it("should reject non-object inputSchema (string)", () => {
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const tool = defineTool({
+        name: "invalid-string-tool",
+        description: "Tool with string inputSchema",
+        tool: jest.fn().mockResolvedValue("result"),
+        inputSchema: z4.string(),
+        outputSchema: z4.string(),
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.registerTool(tool);
+        });
+      }).toThrow(/must be an object schema/);
     });
   });
 
@@ -687,12 +720,14 @@ describe("Schema Compatibility", () => {
         toolSchema: z3.function().args(z3.string()).returns(z3.string()),
       });
 
-      // Zod 4 tool (using Standard Schema)
+      // Zod 4 tool (using Standard Schema with object inputSchema)
       const zod4Tool = defineTool({
         name: "mixed-zod4-tool",
         description: "Zod 4 tool",
         tool: jest.fn().mockResolvedValue("result"),
-        inputSchema: z4.tuple([z4.string()]),
+        inputSchema: z4.object({
+          input: z4.string(),
+        }),
         outputSchema: z4.string(),
       });
 

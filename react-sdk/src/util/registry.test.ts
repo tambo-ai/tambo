@@ -5,7 +5,7 @@
  *
  * **New interface (inputSchema)**:
  * - inputSchema should be an object schema (Zod object, Valibot object, JSON Schema object)
- * - Returns a single "input" parameter representing the full object schema
+ * - Returns an array of parameters extracted from the object's properties
  * - Tool function receives single object argument: tool({ name: "...", age: 30 })
  *
  * **Deprecated interface (toolSchema)**:
@@ -14,7 +14,6 @@
  * - Tool function receives spread arguments: tool(value1, value2)
  */
 import type { JSONSchema7 } from "json-schema";
-import * as v from "valibot";
 import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
 import { createMockTool, createMockToolWithToolSchema } from "../testing/tools";
@@ -52,7 +51,7 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
 
   describe("New inputSchema interface (object schemas)", () => {
     describe("Zod 4 object schemas", () => {
-      it("should return single input param with object schema", () => {
+      it("should extract parameters from object schema properties", () => {
         const tool = createMockTool({
           inputSchema: z4.object({
             name: z4.string().describe("User name"),
@@ -61,9 +60,22 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
           outputSchema: z4.boolean(),
         });
         const result = mapTamboToolToContextTool(tool);
-        expect(result.parameters).toHaveLength(1);
-        expect(result.parameters[0].name).toBe("input");
-        expect(result.parameters[0].type).toBe("object");
+        expect(result.parameters).toHaveLength(2);
+
+        // Parameters should be extracted from object properties
+        const nameParam = result.parameters.find((p) => p.name === "name");
+        const ageParam = result.parameters.find((p) => p.name === "age");
+
+        expect(nameParam).toBeDefined();
+        expect(nameParam?.type).toBe("string");
+        expect(nameParam?.description).toBe("User name");
+        expect(nameParam?.isRequired).toBe(true);
+
+        expect(ageParam).toBeDefined();
+        expect(ageParam?.type).toBe("number");
+        expect(ageParam?.description).toBe("User age");
+        expect(ageParam?.isRequired).toBe(true);
+
         expect(result.parameters).toMatchSnapshot();
       });
 
@@ -77,86 +89,97 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
           outputSchema: z4.void(),
         });
         const result = mapTamboToolToContextTool(tool);
-        expect(result.parameters).toHaveLength(1);
-        expect(result.parameters[0].name).toBe("input");
+        expect(result.parameters).toHaveLength(3);
+
+        const pointParam = result.parameters.find((p) => p.name === "point");
+        const tagsParam = result.parameters.find((p) => p.name === "tags");
+        const colorParam = result.parameters.find((p) => p.name === "color");
+
+        expect(pointParam).toBeDefined();
+        expect(pointParam?.type).toBe("object");
+
+        expect(tagsParam).toBeDefined();
+        expect(tagsParam?.type).toBe("array");
+
+        expect(colorParam).toBeDefined();
+        expect(colorParam?.type).toBe("string");
+
         expect(result.parameters).toMatchSnapshot();
       });
     });
 
     describe("Zod 3 object schemas", () => {
-      it("should return single input param with object schema", () => {
+      it("should extract parameters from object schema properties", () => {
         const tool = createMockTool({
           inputSchema: z3.object({
-            name: z3.string(),
-            age: z3.number(),
+            name: z3.string().describe("User name"),
+            age: z3.number().describe("User age"),
           }),
           outputSchema: z3.boolean(),
         });
         const result = mapTamboToolToContextTool(tool);
-        expect(result.parameters).toHaveLength(1);
-        expect(result.parameters[0].name).toBe("input");
-        expect(result.parameters).toMatchSnapshot();
-      });
-    });
+        expect(result.parameters).toHaveLength(2);
 
-    describe("Valibot object schemas", () => {
-      it("should return single input param with object schema", () => {
-        const tool = createMockTool({
-          inputSchema: v.object({
-            name: v.string(),
-            age: v.number(),
-          }),
-          outputSchema: v.boolean(),
-        });
-        const result = mapTamboToolToContextTool(tool);
-        expect(result.parameters).toHaveLength(1);
-        expect(result.parameters[0].name).toBe("input");
-        expect(result.parameters).toMatchSnapshot();
-      });
+        const nameParam = result.parameters.find((p) => p.name === "name");
+        const ageParam = result.parameters.find((p) => p.name === "age");
 
-      it("should handle complex nested objects", () => {
-        const tool = createMockTool({
-          inputSchema: v.object({
-            point: v.pipe(
-              v.object({ x: v.number(), y: v.number() }),
-              v.description("Point"),
-            ),
-            tags: v.array(v.string()),
-            color: v.picklist(["red", "green", "blue"]),
-          }),
-          outputSchema: v.undefined(),
-        });
-        const result = mapTamboToolToContextTool(tool);
-        expect(result.parameters).toHaveLength(1);
-        expect(result.parameters[0].name).toBe("input");
+        expect(nameParam).toBeDefined();
+        expect(nameParam?.type).toBe("string");
+        expect(nameParam?.isRequired).toBe(true);
+
+        expect(ageParam).toBeDefined();
+        expect(ageParam?.type).toBe("number");
+        expect(ageParam?.isRequired).toBe(true);
+
         expect(result.parameters).toMatchSnapshot();
       });
     });
 
     describe("JSON Schema object schemas", () => {
-      it("should return single input param with object schema", () => {
+      it("should extract parameters from object schema properties", () => {
         const schema: JSONSchema7 = {
           type: "object",
           properties: {
-            name: { type: "string" },
-            age: { type: "number" },
+            name: { type: "string", description: "User name" },
+            age: { type: "number", description: "User age" },
           },
           required: ["name"],
           description: "User data",
         };
         const tool = createMockTool({ inputSchema: schema, outputSchema: {} });
         const result = mapTamboToolToContextTool(tool);
-        expect(result.parameters).toHaveLength(1);
-        expect(result.parameters[0].name).toBe("input");
-        expect(result.parameters[0].type).toBe("object");
-        expect(result.parameters[0].description).toBe("User data");
+        expect(result.parameters).toHaveLength(2);
+
+        const nameParam = result.parameters.find((p) => p.name === "name");
+        const ageParam = result.parameters.find((p) => p.name === "age");
+
+        expect(nameParam).toBeDefined();
+        expect(nameParam?.type).toBe("string");
+        expect(nameParam?.description).toBe("User name");
+        expect(nameParam?.isRequired).toBe(true);
+
+        expect(ageParam).toBeDefined();
+        expect(ageParam?.type).toBe("number");
+        expect(ageParam?.description).toBe("User age");
+        expect(ageParam?.isRequired).toBe(false);
+
         expect(result.parameters).toMatchSnapshot();
+      });
+
+      it("should handle empty object schema", () => {
+        const schema: JSONSchema7 = {
+          type: "object",
+          properties: {},
+        };
+        const tool = createMockTool({ inputSchema: schema, outputSchema: {} });
+        const result = mapTamboToolToContextTool(tool);
+        expect(result.parameters).toHaveLength(0);
       });
     });
   });
 
   describe("Direct schema (shorthand for inputSchema)", () => {
-    it("should accept Zod 4 object schema directly", () => {
+    it("should accept Zod 4 object schema directly and extract parameters", () => {
       const tool = createMockTool(
         z4.object({
           name: z4.string(),
@@ -164,12 +187,21 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
         }),
       );
       const result = mapTamboToolToContextTool(tool);
-      expect(result.parameters).toHaveLength(1);
-      expect(result.parameters[0].name).toBe("input");
+      expect(result.parameters).toHaveLength(2);
+
+      const nameParam = result.parameters.find((p) => p.name === "name");
+      const ageParam = result.parameters.find((p) => p.name === "age");
+
+      expect(nameParam).toBeDefined();
+      expect(nameParam?.type).toBe("string");
+
+      expect(ageParam).toBeDefined();
+      expect(ageParam?.type).toBe("number");
+
       expect(result.parameters).toMatchSnapshot();
     });
 
-    it("should accept Zod 3 object schema directly", () => {
+    it("should accept Zod 3 object schema directly and extract parameters", () => {
       const tool = createMockTool(
         z3.object({
           name: z3.string(),
@@ -177,25 +209,18 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
         }),
       );
       const result = mapTamboToolToContextTool(tool);
-      expect(result.parameters).toHaveLength(1);
-      expect(result.parameters[0].name).toBe("input");
+      expect(result.parameters).toHaveLength(2);
+
+      const nameParam = result.parameters.find((p) => p.name === "name");
+      const ageParam = result.parameters.find((p) => p.name === "age");
+
+      expect(nameParam).toBeDefined();
+      expect(ageParam).toBeDefined();
+
       expect(result.parameters).toMatchSnapshot();
     });
 
-    it("should accept Valibot object schema directly", () => {
-      const tool = createMockTool(
-        v.object({
-          name: v.string(),
-          age: v.number(),
-        }),
-      );
-      const result = mapTamboToolToContextTool(tool);
-      expect(result.parameters).toHaveLength(1);
-      expect(result.parameters[0].name).toBe("input");
-      expect(result.parameters).toMatchSnapshot();
-    });
-
-    it("should accept JSON Schema object directly", () => {
+    it("should accept JSON Schema object directly and extract parameters", () => {
       const schema: JSONSchema7 = {
         type: "object",
         properties: {
@@ -205,8 +230,17 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
       };
       const tool = createMockTool(schema);
       const result = mapTamboToolToContextTool(tool);
-      expect(result.parameters).toHaveLength(1);
-      expect(result.parameters[0].name).toBe("input");
+      expect(result.parameters).toHaveLength(2);
+
+      const nameParam = result.parameters.find((p) => p.name === "name");
+      const ageParam = result.parameters.find((p) => p.name === "age");
+
+      expect(nameParam).toBeDefined();
+      expect(nameParam?.type).toBe("string");
+
+      expect(ageParam).toBeDefined();
+      expect(ageParam?.type).toBe("number");
+
       expect(result.parameters).toMatchSnapshot();
     });
   });

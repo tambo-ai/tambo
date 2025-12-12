@@ -1,413 +1,145 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept JSON Schema object directly 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept JSON Schema object directly and extract parameters 1`] = `
 [
   {
     "description": "",
-    "isRequired": true,
-    "name": "input",
+    "isRequired": false,
+    "name": "name",
     "schema": {
-      "properties": {
-        "age": {
-          "type": "number",
-        },
-        "name": {
-          "type": "string",
-        },
-      },
-      "type": "object",
+      "type": "string",
     },
-    "type": "object",
+    "type": "string",
+  },
+  {
+    "description": "",
+    "isRequired": false,
+    "name": "age",
+    "schema": {
+      "type": "number",
+    },
+    "type": "number",
   },
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept Valibot object schema directly 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept Zod 3 object schema directly and extract parameters 1`] = `
 [
   {
     "description": "",
     "isRequired": true,
-    "name": "input",
+    "name": "name",
     "schema": {
-      "async": false,
-      "entries": {
-        "age": {
-          "async": false,
-          "expects": "number",
-          "kind": "schema",
-          "message": undefined,
-          "reference": [Function],
-          "type": "number",
-          "~run": [Function],
-          "~standard": {
-            "validate": [Function],
-            "vendor": "valibot",
-            "version": 1,
-          },
-        },
-        "name": {
-          "async": false,
-          "expects": "string",
-          "kind": "schema",
-          "message": undefined,
-          "reference": [Function],
-          "type": "string",
-          "~run": [Function],
-          "~standard": {
-            "validate": [Function],
-            "vendor": "valibot",
-            "version": 1,
-          },
-        },
-      },
-      "expects": "Object",
-      "kind": "schema",
-      "message": undefined,
-      "reference": [Function],
-      "type": "object",
-      "~run": [Function],
-      "~standard": {
-        "validate": [Function],
-        "vendor": "valibot",
-        "version": 1,
-      },
+      "type": "string",
     },
-    "type": "object",
+    "type": "string",
+  },
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "age",
+    "schema": {
+      "type": "number",
+    },
+    "type": "number",
   },
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept Zod 3 object schema directly 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept Zod 4 object schema directly and extract parameters 1`] = `
 [
   {
     "description": "",
     "isRequired": true,
-    "name": "input",
+    "name": "name",
     "schema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "additionalProperties": false,
-      "properties": {
-        "age": {
-          "type": "number",
-        },
-        "name": {
-          "type": "string",
-        },
-      },
-      "required": [
-        "name",
-        "age",
-      ],
-      "type": "object",
+      "type": "string",
     },
-    "type": "object",
+    "type": "string",
   },
-]
-`;
-
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept Zod 4 object schema directly 1`] = `
-[
   {
     "description": "",
     "isRequired": true,
-    "name": "input",
+    "name": "age",
     "schema": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "additionalProperties": false,
-      "properties": {
-        "age": {
-          "type": "number",
-        },
-        "name": {
-          "type": "string",
-        },
-      },
-      "required": [
-        "name",
-        "age",
-      ],
-      "type": "object",
+      "type": "number",
     },
-    "type": "object",
+    "type": "number",
   },
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) JSON Schema object schemas should return single input param with object schema 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) JSON Schema object schemas should extract parameters from object schema properties 1`] = `
 [
   {
-    "description": "User data",
+    "description": "User name",
     "isRequired": true,
-    "name": "input",
+    "name": "name",
     "schema": {
-      "description": "User data",
-      "properties": {
-        "age": {
-          "type": "number",
-        },
-        "name": {
-          "type": "string",
-        },
-      },
-      "required": [
-        "name",
-      ],
-      "type": "object",
+      "description": "User name",
+      "type": "string",
     },
-    "type": "object",
+    "type": "string",
+  },
+  {
+    "description": "User age",
+    "isRequired": false,
+    "name": "age",
+    "schema": {
+      "description": "User age",
+      "type": "number",
+    },
+    "type": "number",
   },
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Valibot object schemas should handle complex nested objects 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 3 object schemas should extract parameters from object schema properties 1`] = `
 [
   {
-    "description": "",
+    "description": "User name",
     "isRequired": true,
-    "name": "input",
+    "name": "name",
     "schema": {
-      "async": false,
-      "entries": {
-        "color": {
-          "async": false,
-          "expects": "("red" | "green" | "blue")",
-          "kind": "schema",
-          "message": undefined,
-          "options": [
-            "red",
-            "green",
-            "blue",
-          ],
-          "reference": [Function],
-          "type": "picklist",
-          "~run": [Function],
-          "~standard": {
-            "validate": [Function],
-            "vendor": "valibot",
-            "version": 1,
-          },
-        },
-        "point": {
-          "async": false,
-          "entries": {
-            "x": {
-              "async": false,
-              "expects": "number",
-              "kind": "schema",
-              "message": undefined,
-              "reference": [Function],
-              "type": "number",
-              "~run": [Function],
-              "~standard": {
-                "validate": [Function],
-                "vendor": "valibot",
-                "version": 1,
-              },
-            },
-            "y": {
-              "async": false,
-              "expects": "number",
-              "kind": "schema",
-              "message": undefined,
-              "reference": [Function],
-              "type": "number",
-              "~run": [Function],
-              "~standard": {
-                "validate": [Function],
-                "vendor": "valibot",
-                "version": 1,
-              },
-            },
-          },
-          "expects": "Object",
-          "kind": "schema",
-          "message": undefined,
-          "pipe": [
-            {
-              "async": false,
-              "entries": {
-                "x": {
-                  "async": false,
-                  "expects": "number",
-                  "kind": "schema",
-                  "message": undefined,
-                  "reference": [Function],
-                  "type": "number",
-                  "~run": [Function],
-                  "~standard": {
-                    "validate": [Function],
-                    "vendor": "valibot",
-                    "version": 1,
-                  },
-                },
-                "y": {
-                  "async": false,
-                  "expects": "number",
-                  "kind": "schema",
-                  "message": undefined,
-                  "reference": [Function],
-                  "type": "number",
-                  "~run": [Function],
-                  "~standard": {
-                    "validate": [Function],
-                    "vendor": "valibot",
-                    "version": 1,
-                  },
-                },
-              },
-              "expects": "Object",
-              "kind": "schema",
-              "message": undefined,
-              "reference": [Function],
-              "type": "object",
-              "~run": [Function],
-              "~standard": {
-                "validate": [Function],
-                "vendor": "valibot",
-                "version": 1,
-              },
-            },
-            {
-              "description": "Point",
-              "kind": "metadata",
-              "reference": [Function],
-              "type": "description",
-            },
-          ],
-          "reference": [Function],
-          "type": "object",
-          "~run": [Function],
-          "~standard": {
-            "validate": [Function],
-            "vendor": "valibot",
-            "version": 1,
-          },
-        },
-        "tags": {
-          "async": false,
-          "expects": "Array",
-          "item": {
-            "async": false,
-            "expects": "string",
-            "kind": "schema",
-            "message": undefined,
-            "reference": [Function],
-            "type": "string",
-            "~run": [Function],
-            "~standard": {
-              "validate": [Function],
-              "vendor": "valibot",
-              "version": 1,
-            },
-          },
-          "kind": "schema",
-          "message": undefined,
-          "reference": [Function],
-          "type": "array",
-          "~run": [Function],
-          "~standard": {
-            "validate": [Function],
-            "vendor": "valibot",
-            "version": 1,
-          },
-        },
-      },
-      "expects": "Object",
-      "kind": "schema",
-      "message": undefined,
-      "reference": [Function],
-      "type": "object",
-      "~run": [Function],
-      "~standard": {
-        "validate": [Function],
-        "vendor": "valibot",
-        "version": 1,
-      },
+      "description": "User name",
+      "type": "string",
     },
-    "type": "object",
+    "type": "string",
+  },
+  {
+    "description": "User age",
+    "isRequired": true,
+    "name": "age",
+    "schema": {
+      "description": "User age",
+      "type": "number",
+    },
+    "type": "number",
   },
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Valibot object schemas should return single input param with object schema 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 4 object schemas should extract parameters from object schema properties 1`] = `
 [
   {
-    "description": "",
+    "description": "User name",
     "isRequired": true,
-    "name": "input",
+    "name": "name",
     "schema": {
-      "async": false,
-      "entries": {
-        "age": {
-          "async": false,
-          "expects": "number",
-          "kind": "schema",
-          "message": undefined,
-          "reference": [Function],
-          "type": "number",
-          "~run": [Function],
-          "~standard": {
-            "validate": [Function],
-            "vendor": "valibot",
-            "version": 1,
-          },
-        },
-        "name": {
-          "async": false,
-          "expects": "string",
-          "kind": "schema",
-          "message": undefined,
-          "reference": [Function],
-          "type": "string",
-          "~run": [Function],
-          "~standard": {
-            "validate": [Function],
-            "vendor": "valibot",
-            "version": 1,
-          },
-        },
-      },
-      "expects": "Object",
-      "kind": "schema",
-      "message": undefined,
-      "reference": [Function],
-      "type": "object",
-      "~run": [Function],
-      "~standard": {
-        "validate": [Function],
-        "vendor": "valibot",
-        "version": 1,
-      },
+      "description": "User name",
+      "type": "string",
     },
-    "type": "object",
+    "type": "string",
   },
-]
-`;
-
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 3 object schemas should return single input param with object schema 1`] = `
-[
   {
-    "description": "",
+    "description": "User age",
     "isRequired": true,
-    "name": "input",
+    "name": "age",
     "schema": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "additionalProperties": false,
-      "properties": {
-        "age": {
-          "type": "number",
-        },
-        "name": {
-          "type": "string",
-        },
-      },
-      "required": [
-        "name",
-        "age",
-      ],
-      "type": "object",
+      "description": "User age",
+      "type": "number",
     },
-    "type": "object",
+    "type": "number",
   },
 ]
 `;
@@ -417,80 +149,50 @@ exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSc
   {
     "description": "",
     "isRequired": true,
-    "name": "input",
+    "name": "point",
     "schema": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "properties": {
-        "color": {
-          "enum": [
-            "red",
-            "green",
-            "blue",
-          ],
-          "type": "string",
+        "x": {
+          "type": "number",
         },
-        "point": {
-          "additionalProperties": false,
-          "properties": {
-            "x": {
-              "type": "number",
-            },
-            "y": {
-              "type": "number",
-            },
-          },
-          "required": [
-            "x",
-            "y",
-          ],
-          "type": "object",
-        },
-        "tags": {
-          "items": {
-            "type": "string",
-          },
-          "type": "array",
+        "y": {
+          "type": "number",
         },
       },
       "required": [
-        "point",
-        "tags",
-        "color",
+        "x",
+        "y",
       ],
       "type": "object",
     },
     "type": "object",
   },
-]
-`;
-
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 4 object schemas should return single input param with object schema 1`] = `
-[
   {
     "description": "",
     "isRequired": true,
-    "name": "input",
+    "name": "tags",
     "schema": {
-      "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "additionalProperties": false,
-      "properties": {
-        "age": {
-          "description": "User age",
-          "type": "number",
-        },
-        "name": {
-          "description": "User name",
-          "type": "string",
-        },
+      "items": {
+        "type": "string",
       },
-      "required": [
-        "name",
-        "age",
-      ],
-      "type": "object",
+      "type": "array",
     },
-    "type": "object",
+    "type": "array",
+  },
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "color",
+    "schema": {
+      "enum": [
+        "red",
+        "green",
+        "blue",
+      ],
+      "type": "string",
+    },
+    "type": "string",
   },
 ]
 `;
