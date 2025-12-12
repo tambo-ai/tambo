@@ -10,7 +10,6 @@ import {
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
-  UI_TOOLNAME_PREFIX,
 } from "@tambo-ai-cloud/core";
 import { HydraDb } from "@tambo-ai-cloud/db";
 import { SQL } from "drizzle-orm";
