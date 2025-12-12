@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.66.2](https://github.com/tambo-ai/tambo/compare/react-v0.66.1...react-v0.66.2) (2025-12-12)
+
+
+### Bug Fixes
+
+* **react:** correct inputSchema tool interface ([#1526](https://github.com/tambo-ai/tambo/issues/1526)) ([dcf3f81](https://github.com/tambo-ai/tambo/commit/dcf3f8141f1e613e851a651f63481581e7dc1ec6))
+* **react:** prefer peer dep and zod 3 over zod 4 from peer ([#1524](https://github.com/tambo-ai/tambo/issues/1524)) ([4fcc5a8](https://github.com/tambo-ai/tambo/commit/4fcc5a8969bcf1243d2572e947c5f1f8a35a58d6))
+
+
+### Miscellaneous Chores
+
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+
 ## [0.66.1](https://github.com/tambo-ai/tambo/compare/react-v0.66.0...react-v0.66.1) (2025-12-12)
 
 
