@@ -246,6 +246,7 @@ describe("useTamboCurrentComponent", () => {
       },
       interactableId: undefined,
       description: undefined,
+      threadId: "test-thread-id",
     });
   });
 
@@ -289,6 +290,7 @@ describe("useTamboCurrentComponent", () => {
       },
       interactableId: "interactable-456",
       description: "Shows current weather",
+      threadId: "test-thread-id",
     });
   });
 
@@ -351,6 +353,7 @@ describe("useTamboCurrentComponent", () => {
       props: undefined,
       interactableId: "interactable-only",
       description: "Interactable only",
+      threadId: "test-thread-id",
     });
   });
 
@@ -381,6 +384,7 @@ describe("useTamboCurrentComponent", () => {
       },
       interactableId: undefined,
       description: undefined,
+      threadId: "test-thread-id",
     });
   });
 
@@ -400,6 +404,7 @@ describe("useTamboCurrentComponent", () => {
       props: undefined,
       interactableId: undefined,
       description: undefined,
+      threadId: "test-thread-id",
     });
   });
 });

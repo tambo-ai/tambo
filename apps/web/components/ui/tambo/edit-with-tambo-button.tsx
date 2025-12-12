@@ -93,6 +93,11 @@ export function EditWithTamboButton({
     return null;
   }
 
+  // If in a Tambo thread (message with threadId), don't show the button
+  if (component.threadId) {
+    return null;
+  }
+
   // Close popover when generation completes
   useEffect(() => {
     if (shouldCloseOnComplete && !isGenerating) {
