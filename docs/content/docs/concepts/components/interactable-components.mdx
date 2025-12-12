@@ -444,10 +444,10 @@ When building child components inside an interactable (like inline editors, tool
 
 <Callout title="Related Hooks">
 
-- [`useTamboCurrentComponent`](/api-reference/react-hooks#usetambocurrentcomponent) - Access component metadata (this guide)
-- [`useTamboCurrentMessage`](/api-reference/react-hooks#usetambocurrentmessage) - Access full message object with component and thread data
+- [`useTamboCurrentComponent`](/api-reference/react-hooks#usetambocurrentcomponent) - Access component metadata including thread ID (this guide)
+- [`useTamboCurrentMessage`](/api-reference/react-hooks#usetambocurrentmessage) - Access full message object with timestamps and complete state
 
-Use `useTamboCurrentComponent` when you only need component information. Use `useTamboCurrentMessage` when you need the complete message context, including thread ID, timestamps, and component state.
+Use `useTamboCurrentComponent` when you need component information or thread ID. Use `useTamboCurrentMessage` when you need the complete message context with timestamps and additional metadata.
 
 </Callout>
 
