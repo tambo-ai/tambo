@@ -121,7 +121,7 @@ Wrap your app with `TamboProvider`.
 </TamboProvider>
 ```
 
-For apps with signed-in users, pass a per-user `userToken` to `TamboProvider` to enable per-user auth and connect Tambo to your app's end-user identity. See [User Authentication](https://docs.tambo.co/concepts/user-authentication) for details.
+For apps with signed-in users, pass a per-user `userToken` (OAuth access token) to `TamboProvider` to enable per-user auth and connect Tambo to your app's end-user identity. See [User Authentication](https://docs.tambo.co/concepts/user-authentication) for details.
 
 Docs: [provider options](https://docs.tambo.co/api-reference/tambo-provider)
 

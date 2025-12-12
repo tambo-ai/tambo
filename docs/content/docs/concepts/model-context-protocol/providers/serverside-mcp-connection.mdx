@@ -32,7 +32,7 @@ Only configure servers this way if that shared access level is acceptable for yo
 
 Tambo will support per-user MCP server authentication in the future, where each end user can have their own MCP OAuth credentials.
 
-**End-user identity:** Per-user authentication is supported today via the `userToken` prop on `TamboProvider` — see [User Authentication](/concepts/user-authentication). MCP server auth and end-user auth are independent layers.
+**End-user identity:** Per-user authentication is supported today via the `userToken` prop on `TamboProvider` (an OAuth access token from your auth/SSO provider) — see [User Authentication](/concepts/user-authentication). MCP server auth and end-user auth are independent layers.
 
 If your server does not support OAuth-based authentication, you can add a custom header to the MCP server configuration. (e.g. `X-Api-Key`)
 
