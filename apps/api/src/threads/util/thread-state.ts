@@ -354,6 +354,18 @@ export function updateThreadMessageFromLegacyDecision(
   // duplication, because they appear in the thread message
   const { reasoning, isToolCallFinished, ...simpleDecisionChunk } = chunk;
 
+  // For UI tools, strip tool call fields from the component field
+  // so the client never sees them as tool calls
+  let component = simpleDecisionChunk;
+  if (chunk.toolCallRequest && isUiToolName(chunk.toolCallRequest.toolName)) {
+    const {
+      toolCallRequest: _toolCallRequest,
+      toolCallId: _toolCallId,
+      ...componentWithoutToolCall
+    } = simpleDecisionChunk;
+    component = componentWithoutToolCall;
+  }
+
   const commonFields = {
     id: initialMessage.id,
     threadId: initialMessage.threadId,
@@ -371,7 +383,7 @@ export function updateThreadMessageFromLegacyDecision(
         text: chunk.message,
       },
     ],
-    component: simpleDecisionChunk,
+    component,
   };
 
   // Handle reasoning and tool calls based on role
