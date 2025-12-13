@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import DOMPurify from "dompurify";
 import hljs from "highlight.js";
-import "highlight.js/styles/github.css";
 import { Check, Copy } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
@@ -70,7 +69,7 @@ export const SyntaxHighlighter = ({
         className={cn(
           "overflow-x-auto rounded-b-md bg-background",
           "[&::-webkit-scrollbar]:w-[6px]",
-          "[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-md",
+          "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:rounded-md",
           "[&::-webkit-scrollbar:horizontal]:h-[4px]",
         )}
       >
