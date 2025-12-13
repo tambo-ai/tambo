@@ -1,10 +1,12 @@
 import {
   ContentPartType,
   getToolName,
+  isUiToolName,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
+  UI_TOOLNAME_PREFIX,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { parse } from "partial-json";
@@ -24,7 +26,6 @@ import {
   filterOutStandardToolParameters,
   standardToolParameters,
   TamboToolParameters,
-  UI_TOOLNAME_PREFIX,
 } from "../tool/tool-service";
 
 /**
@@ -59,7 +60,7 @@ export async function* runDecisionLoop(
   resourceFetchers: ResourceFetcherMap,
 ): AsyncIterableIterator<LegacyComponentDecision> {
   const componentTools = strictTools.filter((tool) =>
-    getToolName(tool).startsWith(UI_TOOLNAME_PREFIX),
+    isUiToolName(getToolName(tool)),
   );
   // Add standard parameters to all tools
   const toolsWithStandardParameters = addParametersToTools(
@@ -178,9 +179,9 @@ export async function* runDecisionLoop(
         ) as Partial<TamboToolParameters>;
       }
 
-      // If this is a non-UI tool call, build tool call request (even if incomplete)
+      // Build tool call request for both UI and non-UI tools (even if incomplete)
       let clientToolRequest: ToolCallRequest | undefined;
-      if (!isUITool && toolCall) {
+      if (toolCall) {
         clientToolRequest = buildToolCallRequest(toolCall, strictTools);
       }
 

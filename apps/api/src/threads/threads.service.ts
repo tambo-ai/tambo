@@ -20,6 +20,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   GenerationStage,
   getToolName,
+  isUiToolName,
   LegacyComponentDecision,
   MCPClient,
   MessageRole,
@@ -1942,6 +1943,84 @@ export class ThreadsService {
           threadId,
           true,
           toolCallCounts,
+          queue,
+        );
+
+        return;
+      }
+
+      // Check if this is a UI tool call - if so, auto-generate a tool response and continue the loop
+      if (toolCallRequest && isUiToolName(toolCallRequest.toolName)) {
+        // Yield the final response first
+        // Strip toolCallRequest and tool_call_id for UI tools - the client should just render
+        // the component, not try to call it as a tool. The tool call info is still in
+        // the component field for server-side tracking.
+        const {
+          toolCallRequest: _toolCallRequest,
+          tool_call_id: _tool_call_id,
+          ...messageWithoutToolCall
+        } = finalThreadMessage;
+        queue.push({
+          responseMessageDto: {
+            ...messageWithoutToolCall,
+            content: convertContentPartToDto(messageWithoutToolCall.content),
+            componentState: messageWithoutToolCall.componentState ?? {},
+            component:
+              messageWithoutToolCall.component as ComponentDecisionV2Dto,
+          },
+          generationStage: resultingGenerationStage,
+          statusMessage: resultingStatusMessage,
+          ...(mcpAccessToken && { mcpAccessToken }),
+        });
+
+        // `tool_call_id` can be missing in edge cases, but UI tools should never be client-invokable.
+        // Always strip tool call fields from the client-facing message above, and only auto-continue
+        // the decision loop if we have an id to attach to the synthetic tool response.
+        const toolCallId = finalThreadMessage.tool_call_id;
+        if (!toolCallId) {
+          Sentry.withScope((scope) => {
+            scope.setLevel("warning");
+            scope.setContext("uiToolCall", {
+              threadId,
+              messageId: finalThreadMessage.id,
+              toolName: toolCallRequest.toolName,
+            });
+            Sentry.captureMessage("Missing UI tool call ID in stream");
+          });
+          return;
+        }
+
+        // Update tool call counts
+        const updatedToolCallCounts = updateToolCallCounts(
+          toolCallCounts,
+          toolCallRequest,
+        );
+
+        // Continue the loop with the tool response
+        const toolResponseAdvanceDto: AdvanceThreadDto = {
+          messageToAppend: {
+            role: MessageRole.Tool,
+            content: [
+              {
+                type: ContentPartType.Text,
+                text: "Component was rendered",
+              },
+            ],
+            tool_call_id: toolCallId,
+            actionType: ActionType.ToolResponse,
+            component: finalThreadMessage.component as ComponentDecisionV2Dto,
+          },
+          availableComponents: originalRequest.availableComponents,
+          contextKey: originalRequest.contextKey,
+        };
+
+        await this.advanceThread(
+          projectId,
+          toolResponseAdvanceDto,
+          threadId,
+          true,
+          updatedToolCallCounts,
+          allTools,
           queue,
         );
 
