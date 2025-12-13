@@ -47,6 +47,8 @@ const streamdownRehypePlugins: PluggableList = [
         "https://",
         "mailto:",
       ],
+      // defaultOrigin is required when allowedLinkPrefixes is provided
+      defaultOrigin: "https://tambo.co",
       allowDataImages: true,
     },
   ],
@@ -519,7 +521,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             aria-controls={toolDetailsId}
             onClick={() => setIsExpanded(!isExpanded)}
             className={cn(
-              "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none w-fit",
+              "flex items-center gap-1 cursor-pointer hover:bg-muted rounded-md p-1 select-none w-fit",
             )}
           >
             <ToolcallStatusIcon

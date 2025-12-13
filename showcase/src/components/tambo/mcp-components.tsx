@@ -112,7 +112,7 @@ export const McpPromptButton = React.forwardRef<
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content
-              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
               side="top"
               align="start"
               sideOffset={5}
@@ -219,7 +219,7 @@ const ResourceCombobox: React.FC<ResourceComboboxProps> = ({
   return (
     <DropdownMenu.Portal>
       <DropdownMenu.Content
-        className="z-50 w-[400px] max-h-[400px] overflow-hidden rounded-md border border-gray-200 bg-popover text-popover-foreground shadow-md"
+        className="z-50 w-[400px] max-h-[400px] overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md"
         side="top"
         align="start"
         sideOffset={5}
