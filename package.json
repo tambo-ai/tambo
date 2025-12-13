@@ -49,5 +49,8 @@
   "volta": {
     "node": "22.21.0",
     "npm": "11.6.2"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0"
   }
 }
