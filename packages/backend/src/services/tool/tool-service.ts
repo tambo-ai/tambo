@@ -2,6 +2,7 @@ import {
   FunctionParameters,
   strictifyJSONSchemaProperties,
   strictifyJSONSchemaProperty,
+  UI_TOOLNAME_PREFIX,
 } from "@tambo-ai-cloud/core";
 import { JSONSchema7 } from "json-schema";
 import OpenAI from "openai";
@@ -48,7 +49,7 @@ export const standardToolParameters: FunctionParameters = {
 // Public functions
 export function convertMetadataToTools(
   toolsMetadata: ComponentContextToolMetadata[],
-): OpenAI.Chat.Completions.ChatCompletionTool[] {
+): (OpenAI.Chat.Completions.ChatCompletionTool & { maxCalls?: number })[] {
   return toolsMetadata.map((tool) => {
     const parameters = {
       type: "object",
@@ -101,6 +102,7 @@ export function convertMetadataToTools(
           additionalProperties: false,
         },
       },
+      ...(tool.maxCalls !== undefined && { maxCalls: tool.maxCalls }),
     };
     return fn;
   });
@@ -220,8 +222,6 @@ export function filterOutStandardToolParameters(
       parameterValue,
     }));
 }
-
-export const UI_TOOLNAME_PREFIX = "show_component_";
 
 export function getToolsFromSources(
   allTools: ToolRegistry,

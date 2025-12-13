@@ -35,7 +35,7 @@ export default function GraphPage() {
                 <GraphChatInterface />
               </TamboProvider>
             }
-            code={`import { Graph } from "@tambo-ai/react";
+            code={`import { Graph } from "@/components/tambo/graph";
 
 export function QuarterlySalesChart() {
   return (

@@ -1,0 +1,198 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept JSON Schema object directly and extract parameters 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": false,
+    "name": "name",
+    "schema": {
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "",
+    "isRequired": false,
+    "name": "age",
+    "schema": {
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept Zod 3 object schema directly and extract parameters 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "name",
+    "schema": {
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "age",
+    "schema": {
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct schema (shorthand for inputSchema) should accept Zod 4 object schema directly and extract parameters 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "name",
+    "schema": {
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "age",
+    "schema": {
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) JSON Schema object schemas should extract parameters from object schema properties 1`] = `
+[
+  {
+    "description": "User name",
+    "isRequired": true,
+    "name": "name",
+    "schema": {
+      "description": "User name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "User age",
+    "isRequired": false,
+    "name": "age",
+    "schema": {
+      "description": "User age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 3 object schemas should extract parameters from object schema properties 1`] = `
+[
+  {
+    "description": "User name",
+    "isRequired": true,
+    "name": "name",
+    "schema": {
+      "description": "User name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "User age",
+    "isRequired": true,
+    "name": "age",
+    "schema": {
+      "description": "User age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 4 object schemas should extract parameters from object schema properties 1`] = `
+[
+  {
+    "description": "User name",
+    "isRequired": true,
+    "name": "name",
+    "schema": {
+      "description": "User name",
+      "type": "string",
+    },
+    "type": "string",
+  },
+  {
+    "description": "User age",
+    "isRequired": true,
+    "name": "age",
+    "schema": {
+      "description": "User age",
+      "type": "number",
+    },
+    "type": "number",
+  },
+]
+`;
+
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 4 object schemas should handle complex nested objects 1`] = `
+[
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "point",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+        },
+        "y": {
+          "type": "number",
+        },
+      },
+      "required": [
+        "x",
+        "y",
+      ],
+      "type": "object",
+    },
+    "type": "object",
+  },
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "tags",
+    "schema": {
+      "items": {
+        "type": "string",
+      },
+      "type": "array",
+    },
+    "type": "array",
+  },
+  {
+    "description": "",
+    "isRequired": true,
+    "name": "color",
+    "schema": {
+      "enum": [
+        "red",
+        "green",
+        "blue",
+      ],
+      "type": "string",
+    },
+    "type": "string",
+  },
+]
+`;

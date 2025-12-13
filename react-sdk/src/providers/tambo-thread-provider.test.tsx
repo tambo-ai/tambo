@@ -3,7 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { DeepPartial } from "ts-essentials";
-import { z } from "zod/v3";
+import { z } from "zod/v4";
 import { TamboComponent } from "../model/component-metadata";
 import {
   GenerationStage,
@@ -140,10 +140,10 @@ describe("TamboThreadProvider", () => {
           name: "test-tool",
           tool: jest.fn().mockResolvedValue("test-tool"),
           description: "test-tool",
-          toolSchema: z
-            .function()
-            .args(z.string().describe("test-param-description"))
-            .returns(z.string()),
+          inputSchema: z.object({
+            param: z.string().describe("test-param-description"),
+          }),
+          outputSchema: z.string(),
         },
       ],
     },
@@ -429,9 +429,10 @@ describe("TamboThreadProvider", () => {
       });
     });
     expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
-    expect(mockRegistry[0]?.associatedTools?.[0]?.tool).toHaveBeenCalledWith(
-      "test",
-    );
+    // New inputSchema interface: tool receives single object arg
+    expect(mockRegistry[0]?.associatedTools?.[0]?.tool).toHaveBeenCalledWith({
+      test: "test",
+    });
   });
 
   it("should handle unregistered tool calls with onCallUnregisteredTool", async () => {
@@ -1293,10 +1294,8 @@ describe("TamboThreadProvider", () => {
               name: "custom-tool",
               tool: jest.fn().mockResolvedValue({ data: "tool result" }),
               description: "Tool with custom transform",
-              toolSchema: z
-                .function()
-                .args(z.string())
-                .returns(z.object({ data: z.string() })),
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
               transformToContent: mockTransformToContent,
             },
           ],
@@ -1381,10 +1380,10 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      // Verify the tool was called
+      // Verify the tool was called with single object arg (new inputSchema interface)
       expect(
         customToolRegistry[0]?.associatedTools?.[0]?.tool,
-      ).toHaveBeenCalledWith("test");
+      ).toHaveBeenCalledWith({ input: "test" });
 
       // Verify transformToContent was called with the tool result
       expect(mockTransformToContent).toHaveBeenCalledWith({
@@ -1428,10 +1427,8 @@ describe("TamboThreadProvider", () => {
               name: "async-tool",
               tool: jest.fn().mockResolvedValue({ data: "async tool result" }),
               description: "Tool with async transform",
-              toolSchema: z
-                .function()
-                .args(z.string())
-                .returns(z.object({ data: z.string() })),
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
               transformToContent: mockTransformToContent,
             },
           ],
@@ -1531,10 +1528,10 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      // Verify the tool was called
+      // Verify the tool was called with single object arg (new inputSchema interface)
       expect(
         customToolRegistry[0]?.associatedTools?.[0]?.tool,
-      ).toHaveBeenCalledWith("async-test");
+      ).toHaveBeenCalledWith({ input: "async-test" });
 
       // Verify transformToContent was called
       expect(mockTransformToContent).toHaveBeenCalledWith({
@@ -1571,15 +1568,11 @@ describe("TamboThreadProvider", () => {
                 .fn()
                 .mockResolvedValue({ complex: "data", nested: { value: 42 } }),
               description: "Tool without custom transform",
-              toolSchema: z
-                .function()
-                .args(z.string())
-                .returns(
-                  z.object({
-                    complex: z.string(),
-                    nested: z.object({ value: z.number() }),
-                  }),
-                ),
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({
+                complex: z.string(),
+                nested: z.object({ value: z.number() }),
+              }),
               // No transformToContent provided
             },
           ],
@@ -1664,10 +1657,10 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      // Verify the tool was called
+      // Verify the tool was called with single object arg (new inputSchema interface)
       expect(
         toolWithoutTransform[0]?.associatedTools?.[0]?.tool,
-      ).toHaveBeenCalledWith("test");
+      ).toHaveBeenCalledWith({ input: "test" });
 
       // Verify the second advance call used stringified content
       expect(mockThreadsApi.advanceByID).toHaveBeenLastCalledWith(
@@ -1707,7 +1700,8 @@ describe("TamboThreadProvider", () => {
                 .fn()
                 .mockRejectedValue(new Error("Tool execution failed")),
               description: "Tool that errors",
-              toolSchema: z.function().args(z.string()).returns(z.string()),
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.string(),
               transformToContent: mockTransformToContent,
             },
           ],
@@ -1792,10 +1786,10 @@ describe("TamboThreadProvider", () => {
         });
       });
 
-      // Verify the tool was called
+      // Verify the tool was called with single object arg (new inputSchema interface)
       expect(
         toolWithTransform[0]?.associatedTools?.[0]?.tool,
-      ).toHaveBeenCalledWith("test");
+      ).toHaveBeenCalledWith({ input: "test" });
 
       // Verify transformToContent was NOT called for error responses
       expect(mockTransformToContent).not.toHaveBeenCalled();

@@ -9,114 +9,53 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { ZodSchema } from "zod/v3";
-import zodToJsonSchema from "zod-to-json-schema";
-import {
+import type {
   ComponentRegistry,
+  RegisterToolFn,
+  RegisterToolsFn,
   TamboComponent,
   TamboTool,
+  TamboToolRegistry,
+  TamboToolWithToolSchema,
 } from "../model/component-metadata";
-import {
-  getMcpServerUniqueKey,
+import type {
   McpServerInfo,
-  MCPTransport,
-  type NormalizedMcpServerInfo,
+  NormalizedMcpServerInfo,
 } from "../model/mcp-server-info";
-import { assertValidName } from "../util/validate-component-name";
-import { assertNoZodRecord } from "../util/validate-zod-schema";
-
-/**
- * Derives a short, meaningful key from a server URL.
- * Strips TLDs and common prefixes to get a human-readable identifier.
- * For example, "https://mcp.linear.app/mcp" becomes "linear".
- * @returns A lowercased, human-readable key derived from the URL
- */
-function deriveServerKey(url: string): string {
-  try {
-    const parsed = new URL(url);
-    const hostname = parsed.hostname;
-
-    // Split hostname into parts
-    const parts = hostname.split(".");
-
-    // Remove common TLD patterns
-    // Handle cases like: .com, .org, .co.uk, .com.au, etc.
-    let relevantParts = [...parts];
-
-    // If we have 3+ parts and the last two are short (likely TLD like .co.uk)
-    if (
-      relevantParts.length >= 3 &&
-      relevantParts[relevantParts.length - 1].length <= 3 &&
-      relevantParts[relevantParts.length - 2].length <= 3
-    ) {
-      relevantParts = relevantParts.slice(0, -2);
-    }
-    // Otherwise just remove the last part (TLD like .com)
-    else if (relevantParts.length >= 2) {
-      relevantParts = relevantParts.slice(0, -1);
-    }
-
-    // From what's left, prefer the rightmost part that's not a common prefix
-    // Common prefixes: www, api, mcp, app, etc.
-    const commonPrefixes = new Set([
-      "www",
-      "api",
-      "mcp",
-      "app",
-      "staging",
-      "dev",
-      "prod",
-    ]);
-
-    // Work backwards through the parts to find a meaningful name
-    for (let i = relevantParts.length - 1; i >= 0; i--) {
-      const part = relevantParts[i];
-      if (part && !commonPrefixes.has(part.toLowerCase())) {
-        return part.toLowerCase();
-      }
-    }
-
-    // Fallback: use the last relevant part even if it's a common prefix
-    return relevantParts[relevantParts.length - 1]?.toLowerCase() || hostname;
-  } catch {
-    // If URL parsing fails, just return a sanitized version of the input
-    return url.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-  }
-}
-
-/**
- * Normalizes an MCP server info object, ensuring it has a serverKey.
- * If serverKey is not provided, derives it from the URL.
- * @returns The normalized MCP server info object
- */
-function normalizeServerInfo(
-  server: McpServerInfo | string,
-): NormalizedMcpServerInfo {
-  const base: McpServerInfo =
-    typeof server === "string"
-      ? {
-          url: server,
-          transport: MCPTransport.HTTP,
-        }
-      : server;
-
-  const serverKey = base.serverKey ?? deriveServerKey(base.url);
-  const transport = base.transport ?? MCPTransport.HTTP;
-
-  return { ...base, transport, serverKey };
-}
+import type { ListResourceItem, ResourceSource } from "../model/resource-info";
+import {
+  deduplicateMcpServers,
+  normalizeServerInfo,
+} from "../util/mcp-server-utils";
+import {
+  validateAndPrepareComponent,
+  validateTool,
+  validateToolAssociation,
+} from "../util/registry-validators";
+import {
+  validateResource,
+  validateResourceSource,
+} from "../util/resource-validators";
 
 export interface TamboRegistryContext {
   componentList: ComponentRegistry;
-  toolRegistry: Record<string, TamboTool>;
+  toolRegistry: TamboToolRegistry;
   componentToolAssociations: Record<string, string[]>;
   mcpServerInfos: NormalizedMcpServerInfo[];
+  resources: ListResourceItem[];
+  resourceSource: ResourceSource | null;
   registerComponent: (options: TamboComponent) => void;
-  registerTool: (tool: TamboTool) => void;
-  registerTools: (tools: TamboTool[]) => void;
-  addToolAssociation: (componentName: string, tool: TamboTool) => void;
+  registerTool: RegisterToolFn;
+  registerTools: RegisterToolsFn;
+  addToolAssociation: (
+    componentName: string,
+    tool: TamboTool | TamboToolWithToolSchema,
+  ) => void;
   registerMcpServer: (info: McpServerInfo) => void;
   registerMcpServers: (infos: McpServerInfo[]) => void;
+  registerResource: (resource: ListResourceItem) => void;
+  registerResources: (resources: ListResourceItem[]) => void;
+  registerResourceSource: (source: ResourceSource) => void;
   onCallUnregisteredTool?: (
     toolName: string,
     args: TamboAI.ToolCallParameter[],
@@ -128,6 +67,8 @@ export const TamboRegistryContext = createContext<TamboRegistryContext>({
   toolRegistry: {},
   componentToolAssociations: {},
   mcpServerInfos: [],
+  resources: [],
+  resourceSource: null,
   /**
    *
    */
@@ -152,15 +93,41 @@ export const TamboRegistryContext = createContext<TamboRegistryContext>({
    *
    */
   registerMcpServers: () => {},
+  /**
+   *
+   */
+  registerResource: () => {},
+  /**
+   *
+   */
+  registerResources: () => {},
+  /**
+   *
+   */
+  registerResourceSource: () => {},
 });
 
 export interface TamboRegistryProviderProps {
   /** The components to register */
   components?: TamboComponent[];
   /** The tools to register */
-  tools?: TamboTool[];
+  tools?: (TamboTool | TamboToolWithToolSchema)[];
   /** The MCP servers to register */
   mcpServers?: (McpServerInfo | string)[];
+  /** The static resources to register */
+  resources?: ListResourceItem[];
+
+  /**
+   * Dynamic resource search function. Must be paired with getResource.
+   * Called when useTamboMcpResourceList() is used to fetch resources.
+   */
+  listResources?: ResourceSource["listResources"];
+
+  /**
+   * Dynamic resource fetch function. Must be paired with listResources.
+   * Called when useTamboMcpResource() is used to fetch a specific resource.
+   */
+  getResource?: ResourceSource["getResource"];
 
   /**
    * A function to call when an unknown tool is called. If this function is not
@@ -184,6 +151,9 @@ export interface TamboRegistryProviderProps {
  * @param props.components - The components to register
  * @param props.tools - The tools to register
  * @param props.mcpServers - The MCP servers to register
+ * @param props.resources - The static resources to register
+ * @param props.listResources - The dynamic resource search function (must be paired with getResource)
+ * @param props.getResource - The dynamic resource fetch function (must be paired with listResources)
  * @param props.onCallUnregisteredTool - The function to call when an unknown tool is called (optional)
  * @returns The TamboRegistryProvider component
  */
@@ -194,12 +164,13 @@ export const TamboRegistryProvider: React.FC<
   components: userComponents,
   tools: userTools,
   mcpServers: userMcpServers,
+  resources: userResources,
+  listResources: userListResources,
+  getResource: userGetResource,
   onCallUnregisteredTool,
 }) => {
   const [componentList, setComponentList] = useState<ComponentRegistry>({});
-  const [toolRegistry, setToolRegistry] = useState<Record<string, TamboTool>>(
-    {},
-  );
+  const [toolRegistry, setToolRegistry] = useState<TamboToolRegistry>({});
   const [componentToolAssociations, setComponentToolAssociations] = useState<
     Record<string, string[]>
   >({});
@@ -209,16 +180,17 @@ export const TamboRegistryProvider: React.FC<
   const [dynamicMcpServerInfos, setDynamicMcpServerInfos] = useState<
     NormalizedMcpServerInfo[]
   >([]);
+  const [staticResources, setStaticResources] = useState<ListResourceItem[]>(
+    [],
+  );
+  const [resourceSource, setResourceSource] = useState<ResourceSource | null>(
+    null,
+  );
 
   const registerTool = useCallback(
-    (tool: TamboTool, warnOnOverwrite = true) => {
-      // Validate tool name
-      assertValidName(tool.name, "tool");
+    (tool: TamboTool | TamboToolWithToolSchema, warnOnOverwrite = true) => {
+      validateTool(tool);
 
-      // Validate tool schemas
-      if (tool.toolSchema && isZodSchema(tool.toolSchema)) {
-        assertNoZodRecord(tool.toolSchema, `toolSchema of tool "${tool.name}"`);
-      }
       setToolRegistry((prev) => {
         if (prev[tool.name] && warnOnOverwrite) {
           console.warn(`Overwriting tool ${tool.name}`);
@@ -233,7 +205,10 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const registerTools = useCallback(
-    (tools: TamboTool[], warnOnOverwrite = true) => {
+    (
+      tools: (TamboTool | TamboToolWithToolSchema)[],
+      warnOnOverwrite = true,
+    ) => {
       tools.forEach((tool) => registerTool(tool, warnOnOverwrite));
     },
     [registerTool],
@@ -253,17 +228,13 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const addToolAssociation = useCallback(
-    (componentName: string, tool: TamboTool) => {
-      // Validate component and tool names
-      assertValidName(componentName, "component");
-      assertValidName(tool.name, "tool");
-
-      if (!componentList[componentName]) {
-        throw new Error(`Component ${componentName} not found in registry`);
-      }
-      if (!toolRegistry[tool.name]) {
-        throw new Error(`Tool ${tool.name} not found in registry`);
-      }
+    (componentName: string, tool: TamboTool | TamboToolWithToolSchema) => {
+      validateToolAssociation(
+        componentName,
+        tool.name,
+        !!componentList[componentName],
+        !!toolRegistry[tool.name],
+      );
 
       setComponentToolAssociations((prev) => ({
         ...prev,
@@ -279,36 +250,11 @@ export const TamboRegistryProvider: React.FC<
         name,
         description,
         component,
-        propsSchema,
-        propsDefinition,
         loadingComponent,
         associatedTools,
       } = options;
 
-      // Validate component name
-      assertValidName(name, "component");
-
-      // Validate that at least one props definition is provided
-      if (!propsSchema && !propsDefinition) {
-        throw new Error(
-          `Component ${name} must have either propsSchema (recommended) or propsDefinition defined`,
-        );
-      }
-
-      // Validate that only one props definition is provided
-      if (propsSchema && propsDefinition) {
-        throw new Error(
-          `Component ${name} cannot have both propsSchema and propsDefinition defined. Use only one. We recommend using propsSchema.`,
-        );
-      }
-
-      // Validate that the propsSchema does not include z.record()
-      if (propsSchema && isZodSchema(propsSchema)) {
-        assertNoZodRecord(propsSchema, `propsSchema of component "${name}"`);
-      }
-
-      // Convert propsSchema to JSON Schema if it exists
-      const props = getSerializedProps(propsDefinition, propsSchema, name);
+      const { props } = validateAndPrepareComponent(options);
 
       setComponentList((prev) => {
         if (prev[name] && warnOnOverwrite) {
@@ -361,37 +307,47 @@ export const TamboRegistryProvider: React.FC<
     setStaticMcpServerInfos(normalized);
   }, [userMcpServers]);
 
+  useEffect(() => {
+    // Validate that listResources and getResource are both provided or both omitted
+    validateResourceSource(userListResources, userGetResource);
+
+    // Set static resources from props
+    if (userResources) {
+      userResources.forEach((resource) => validateResource(resource));
+      setStaticResources(userResources);
+    } else {
+      setStaticResources([]);
+    }
+
+    // Set resource source from props
+    if (userListResources && userGetResource) {
+      setResourceSource({
+        listResources: userListResources,
+        getResource: userGetResource,
+      });
+    } else {
+      setResourceSource(null);
+    }
+  }, [userResources, userListResources, userGetResource]);
+
+  const registerResource = useCallback((resource: ListResourceItem) => {
+    validateResource(resource);
+    setStaticResources((prev) => [...prev, resource]);
+  }, []);
+
+  const registerResources = useCallback((resources: ListResourceItem[]) => {
+    resources.forEach((resource) => validateResource(resource));
+    setStaticResources((prev) => [...prev, ...resources]);
+  }, []);
+
+  const registerResourceSource = useCallback((source: ResourceSource) => {
+    validateResourceSource(source.listResources, source.getResource);
+    setResourceSource(source);
+  }, []);
+
   const mcpServerInfos: NormalizedMcpServerInfo[] = useMemo(() => {
     const allServers = [...staticMcpServerInfos, ...dynamicMcpServerInfos];
-    if (allServers.length === 0) {
-      return allServers;
-    }
-
-    // 1. Deduplicate by connection identity using a stable key
-    const byKey = new Map<string, NormalizedMcpServerInfo>();
-    for (const server of allServers) {
-      const key = getMcpServerUniqueKey(server);
-      byKey.set(key, server);
-    }
-
-    const deduped = Array.from(byKey.values());
-
-    // 2. Ensure serverKey uniqueness for readable, unambiguous prefixes
-    const seen = new Map<string, number>();
-    return deduped.map((server) => {
-      const baseKey = server.serverKey;
-      const count = (seen.get(baseKey) ?? 0) + 1;
-      seen.set(baseKey, count);
-
-      if (count === 1) {
-        return server;
-      }
-
-      return {
-        ...server,
-        serverKey: `${baseKey}-${count}`,
-      };
-    });
+    return deduplicateMcpServers(allServers);
   }, [staticMcpServerInfos, dynamicMcpServerInfos]);
 
   const value = {
@@ -399,12 +355,17 @@ export const TamboRegistryProvider: React.FC<
     toolRegistry,
     componentToolAssociations,
     mcpServerInfos,
+    resources: staticResources,
+    resourceSource,
     registerComponent,
     registerTool,
     registerTools,
     addToolAssociation,
     registerMcpServer,
     registerMcpServers,
+    registerResource,
+    registerResources,
+    registerResourceSource,
     onCallUnregisteredTool,
   };
 
@@ -456,63 +417,3 @@ export const useTamboRegistry = () => {
 export const useTamboMcpServerInfos = (): NormalizedMcpServerInfo[] => {
   return useContext(TamboRegistryContext).mcpServerInfos;
 };
-function getSerializedProps(
-  propsDefinition: any,
-  propsSchema: any,
-  name: string,
-) {
-  if (propsDefinition) {
-    console.warn(`propsDefinition is deprecated. Use propsSchema instead.`);
-    return propsDefinition;
-  }
-
-  if (isZodSchema(propsSchema)) {
-    try {
-      return zodToJsonSchema(propsSchema);
-    } catch (error) {
-      console.error(
-        `Error converting ${name} props schema to JSON Schema:`,
-        error,
-      );
-    }
-  }
-  // try to roughly detect JSONSchema, should always be an object with a properties key
-  if (isJSONSchema(propsSchema)) {
-    return propsSchema;
-  }
-
-  throw new Error(`Invalid props schema for ${name}`);
-}
-
-/**
- * Checks if the propsSchema is a JSON Schema. This is a rough check, and the
- * server will provide the definitive check.
- * @param propsSchema - The props schema to check
- * @returns True if the props schema is a JSON Schema, false otherwise
- */
-function isJSONSchema(propsSchema: any) {
-  return (
-    propsSchema &&
-    typeof propsSchema === "object" &&
-    propsSchema.type === "object" &&
-    propsSchema.properties
-  );
-}
-
-/**
- * Since we require a certain zod version, we need to check if the object is a ZodSchema
- * @param obj - The object to check
- * @returns True if the object is a ZodSchema, false otherwise
- */
-function isZodSchema(obj: unknown): obj is ZodSchema {
-  if (obj instanceof ZodSchema) {
-    return true;
-  }
-  // try to detect if the object is a ZodSchema
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    typeof (obj as any).safeParse === "function" &&
-    typeof (obj as any)._def === "object"
-  );
-}

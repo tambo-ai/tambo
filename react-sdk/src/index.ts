@@ -3,7 +3,9 @@
 export { useTamboComponentState } from "./hooks/use-component-state";
 export {
   TamboMessageProvider,
+  useTamboCurrentComponent,
   useTamboCurrentMessage,
+  type TamboCurrentComponent,
 } from "./hooks/use-current-message";
 export { useMessageImages, type StagedImage } from "./hooks/use-message-images";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
@@ -40,6 +42,8 @@ export {
   type ContextAttachment,
   type ContextAttachmentState,
   type ContextHelperData,
+  type RegisterToolFn,
+  type RegisterToolsFn,
   type TamboComponent,
   type TamboContextAttachmentProviderProps,
   type TamboContextHelpersContextProps,
@@ -62,34 +66,41 @@ export type {
   SuggestionGenerateResponse,
   SuggestionListResponse,
 } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
+export {
+  withTamboInteractable as withInteractable,
+  type InteractableConfig,
+  type WithTamboInteractableProps,
+} from "./hoc/with-tambo-interactable";
 export { useTamboThreadList } from "./hooks/use-tambo-threads";
 export {
   type ComponentContextToolMetadata,
   type ComponentRegistry,
   type ParameterSpec,
   type RegisteredComponent,
-  type TamboTool,
+  /*
+   * NOTE(lachieh): TamboToolBase is used as a wrapper around current TamboTool
+   * and the deprecated TamboToolWithToolSchema to allow both to be used while
+   * supporting the migration to a single TamboTool type.
+   * TamboToolWithToolSchema should be removed in a future release.
+   */
+  type TamboToolBase as TamboTool,
 } from "./model/component-metadata";
 export {
   GenerationStage,
+  type InteractableMetadata,
   type TamboThreadMessage,
 } from "./model/generate-component-response";
-export { type TamboThread } from "./model/tambo-thread";
-export { type InitialTamboThreadMessage } from "./providers/tambo-thread-provider";
-
 export type {
   TamboInteractableComponent as InteractableComponent,
   TamboInteractableContext,
 } from "./model/tambo-interactable";
-export {
-  withTamboInteractable as withInteractable,
-  type InteractableConfig,
-  type WithTamboInteractableProps,
-} from "./providers/hoc/with-tambo-interactable";
+export { type TamboThread } from "./model/tambo-thread";
 export {
   useCurrentInteractablesSnapshot,
   useTamboInteractable,
 } from "./providers/tambo-interactable-provider";
+export { type InitialTamboThreadMessage } from "./providers/tambo-thread-provider";
+export { defineTool } from "./util/registry";
 
 // Context helpers exports
 export {
@@ -103,11 +114,18 @@ export type {
 } from "./context-helpers";
 
 // MCP server metadata types (used by TamboProvider / registry / MCP provider)
+export { MCPTransport } from "./model/mcp-server-info";
 export type {
   McpServerInfo,
   NormalizedMcpServerInfo,
 } from "./model/mcp-server-info";
-export { MCPTransport } from "./model/mcp-server-info";
+
+// Resource types for registry resource registration
+export type {
+  ListResourceItem,
+  ReadResourceResult,
+  ResourceSource,
+} from "./model/resource-info";
 
 // Note: Full MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package

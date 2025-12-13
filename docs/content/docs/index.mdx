@@ -1,6 +1,6 @@
 ---
 title: Tambo generative UI for React
-description: Build generative UI apps in React with Tambo components, hooks, and MCP-native tools.
+description: Build generative UI apps in React with Tambo's MCP-native React SDK, components, hooks, and tools.
 icon: GraduationCap
 ---
 
@@ -152,6 +152,8 @@ export function Home() {
   );
 }
 ```
+
+For apps with signed-in users, pass a per-user `userToken` (OAuth access token) to `TamboProvider` to enable per-user auth and connect Tambo to your app's end-user identity. See [User Authentication](/concepts/user-authentication) for details.
 
 <LearnMore
   title="Component registration"

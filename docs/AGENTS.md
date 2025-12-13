@@ -99,10 +99,11 @@ In general, try to fit changes into the following categories. If you can't find 
    - Integration: Adding Tambo to existing projects
    - Component basics: Understanding registration patterns
 
-2. **Concepts** - Core architectural understanding (components, threads, tools, streaming)
+2. **Concepts** - Core architectural understanding (components, threads, tools, resources, streaming)
    - Components: Registration, schemas, lifecycle, interactables
    - Message Threads: Sending messages, responses, history management, status tracking
    - Tools: Function calling, schemas, orchestration
+   - Resources: Local resource registration (static, dynamic, programmatic), content types, MCP integration
    - Model Context Protocol: Overview, providers overview (client-side and server-side comparison, rich content support), client-side connections, server-side connections, features overview (elicitations, tools, sampling, prompts)
    - Streaming: Real-time responses, component streaming, status monitoring
    - User Authentication: OAuth providers, session management, context keys

@@ -8,11 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EditableHint } from "@/components/ui/editable-hint";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
@@ -342,10 +342,9 @@ export function OAuthSettings({
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           OAuth Token Validation
-          <EditableHint
+          <EditWithTamboButton
             suggestions={oauthSettingsSuggestions}
-            description="Click to know more about how to manage token required for this project"
-            componentName={COMPONENT_NAME}
+            description="Manage OAuth token validation settings for this project."
           />
         </CardTitle>
         <p className="text-sm font-sans text-foreground">

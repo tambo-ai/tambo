@@ -12,6 +12,10 @@ concurrency:
 
 jobs:
   build:
+    env:
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+
     runs-on: ubuntu-latest
 
     steps:

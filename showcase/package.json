@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/showcase",
-  "version": "0.31.0",
+  "version": "0.33.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +8,8 @@
     "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/code-snippets.test.mjs",
+    "test": "node --test tests/code-snippets.test.mjs && jest",
+    "test:unit": "jest",
     "format:code": "node scripts/format-code-snippets.mjs",
     "clean": "rimraf .next",
     "check-types": "tsc --noEmit"
@@ -16,7 +17,9 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-tooltip": "^1.1.8",
     "@react-leaflet/core": "^2.1.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/typography": "^0.5.19",
@@ -50,7 +53,7 @@
     "react-leaflet": "^4.2.1",
     "react-markdown": "^10.1.0",
     "recharts": "^3.5.1",
-    "streamdown": "^1.5.1",
+    "streamdown": "^1.6.10",
     "tailwindcss": "^4.1.16",
     "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7"
@@ -60,6 +63,10 @@
     "@svgr/webpack": "^8.1.0",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
     "@types/leaflet": "^1.9.21",
     "@types/leaflet.heat": "^0.2.5",
     "@types/leaflet.markercluster": "^1.5.6",
@@ -69,10 +76,14 @@
     "@types/recharts": "^2.0.1",
     "clsx": "^2.1.1",
     "eslint": "^9",
-    "eslint-config-next": "16.0.5",
+    "eslint-config-next": "16.0.7",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "next-sitemap": "^4.2.3",
     "rimraf": "^6.1.2",
     "tailwind-merge": "^3.4.0",
+    "ts-jest": "^29.4.5",
     "typescript": "^5"
   },
   "engines": {

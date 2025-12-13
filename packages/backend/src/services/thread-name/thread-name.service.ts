@@ -1,7 +1,7 @@
 import { FunctionParameters, ThreadMessage } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
-import { z } from "zod/v3";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod/v3";
 import { LLMClient, LLMResponse } from "../llm/llm-client";
 
 const nameLengthLimit = 30;

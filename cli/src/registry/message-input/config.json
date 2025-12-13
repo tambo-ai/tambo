@@ -4,8 +4,10 @@
   "componentName": "MessageInput",
   "dependencies": [
     "class-variance-authority",
+    "@radix-ui/react-popover",
     "@tambo-ai/react",
     "@tiptap/extension-document",
+    "@tiptap/extension-hard-break",
     "@tiptap/extension-mention",
     "@tiptap/extension-paragraph",
     "@tiptap/extension-placeholder",
@@ -13,11 +15,9 @@
     "@tiptap/react",
     "@tiptap/suggestion",
     "lucide-react",
-    "radix-ui",
     "react-dom",
     "framer-motion",
-    "streamdown",
-    "tippy.js"
+    "streamdown"
   ],
   "devDependencies": [],
   "requires": ["elicitation-ui", "mcp-components"],
