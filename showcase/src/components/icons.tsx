@@ -1,4 +1,5 @@
 import TamboLogo from "@/public/logo/lockup/Tambo-Lockup.svg";
+import TamboLogoDark from "@/public/logo/lockup/Tambo-Lockup-Dark.svg";
 
 type IconProps = React.HTMLAttributes<SVGElement> & {
   width?: number | string;
@@ -6,15 +7,21 @@ type IconProps = React.HTMLAttributes<SVGElement> & {
 };
 
 export const Icons = {
-  logo: (props: IconProps) => (
-    <TamboLogo
-      width="auto"
-      height={10}
-      viewBox="0 0 2072 450"
-      preserveAspectRatio="xMinYMid meet"
-      style={{ maxWidth: "100%" }}
-      {...props}
-    />
+  logo: ({ className, ...props }: IconProps) => (
+    <>
+      <TamboLogo
+        viewBox="0 0 2072 450"
+        preserveAspectRatio="xMinYMid meet"
+        className={`dark:hidden ${className ?? ""}`}
+        {...props}
+      />
+      <TamboLogoDark
+        viewBox="0 0 2072 457"
+        preserveAspectRatio="xMinYMid meet"
+        className={`hidden dark:block ${className ?? ""}`}
+        {...props}
+      />
+    </>
   ),
   github: (props: IconProps) => (
     <svg viewBox="0 0 438.549 438.549" {...props}>

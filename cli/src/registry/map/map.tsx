@@ -177,9 +177,9 @@ export const mapVariants = cva("w-full transition-all duration-200", {
     },
     theme: {
       default: "bg-background border border-border rounded-lg",
-      dark: "bg-zinc-900 border border-zinc-800 rounded-lg",
-      light: "bg-white border border-zinc-200 rounded-lg",
-      satellite: "bg-black border border-zinc-900 rounded-lg",
+      dark: "bg-background border border-border rounded-lg",
+      light: "bg-background border border-border rounded-lg",
+      satellite: "bg-muted border border-border rounded-lg",
       bordered: "border-2 border-primary",
       shadow: "shadow-lg",
     },
