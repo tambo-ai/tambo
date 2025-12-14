@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.21.1](https://github.com/tambo-ai/tambo/compare/docs-v1.21.0...docs-v1.21.1) (2025-12-14)
+
+
+### Miscellaneous Chores
+
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+* remove tambo-cloud directory after migration ([#1521](https://github.com/tambo-ai/tambo/issues/1521)) ([686dde6](https://github.com/tambo-ai/tambo/commit/686dde6fcc1f612b092d750359ac1f1b56055d9b))
+
+
+### Documentation
+
+* clarify per-user auth and MCP server auth ([#1517](https://github.com/tambo-ai/tambo/issues/1517)) ([5030748](https://github.com/tambo-ai/tambo/commit/5030748fbf056768b6dcdf7b5536762a1d5f86f4))
+
 ## [1.21.0](https://github.com/tambo-ai/tambo/compare/docs-v1.20.0...docs-v1.21.0) (2025-12-11)
 
 
