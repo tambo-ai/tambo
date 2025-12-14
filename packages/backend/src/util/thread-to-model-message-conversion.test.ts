@@ -45,30 +45,18 @@ describe("convertAssistantMessage", () => {
     );
 
     expect(result).toHaveLength(1);
-    expect(result[0].role).toBe("assistant");
+    expect(result[0]).toMatchObject({ role: "assistant" });
 
-    const assistantMsg = result[0] as { role: string; content: unknown[] };
-    const content = assistantMsg.content as Array<{
-      type: string;
-      text?: string;
-      toolCallId?: string;
-      toolName?: string;
-    }>;
+    const content = (result[0] as any).content as any[];
+    const toolCalls = content.filter((p) => p.type === "tool-call");
+    expect(toolCalls).toHaveLength(1);
+    expect(toolCalls[0]).toMatchObject({
+      toolCallId: "tool-call-1",
+      toolName: "show_component_Graph",
+    });
 
-    // Should have component as text content
-    const textParts = content.filter((c) => c.type === "text");
-    expect(textParts.length).toBeGreaterThan(0);
-
-    // Should have the tool call
-    const toolCallParts = content.filter(
-      (c) => c.type === "tool-call",
-    ) as Array<{
-      type: string;
-      toolCallId: string;
-      toolName: string;
-    }>;
-    expect(toolCallParts).toHaveLength(1);
-    expect(toolCallParts[0]?.toolName).toBe("show_component_Graph");
-    expect(toolCallParts[0]?.toolCallId).toBe("tool-call-1");
+    const texts = content.filter((p) => p.type === "text");
+    expect(texts).toHaveLength(1);
+    expect(texts[0].text).toContain('"componentName":"Graph"');
   });
 });
