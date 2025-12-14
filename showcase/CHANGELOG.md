@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.34.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.33.1...showcase-v0.34.0) (2025-12-14)
+
+
+### Features
+
+* add EditWithTamboButton page to showcase site ([#1508](https://github.com/tambo-ai/tambo/issues/1508)) ([57e2594](https://github.com/tambo-ai/tambo/commit/57e2594214bcf0035531923fb2cc252b7e73e090))
+
+
+### Bug Fixes
+
+* import paths in showcase examples ([#1510](https://github.com/tambo-ai/tambo/issues/1510)) ([e164d5a](https://github.com/tambo-ai/tambo/commit/e164d5ad94c5f146201e2f9da13e61b5b97d677d))
+* **react:** correct schema parsing logic ([#1513](https://github.com/tambo-ai/tambo/issues/1513)) ([bf7a54a](https://github.com/tambo-ai/tambo/commit/bf7a54ae5515fa6386950a65b6eb03ca891ad250))
+
+
+### Miscellaneous Chores
+
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+
 ## [0.33.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.33.0...showcase-v0.33.1) (2025-12-11)
 
 
