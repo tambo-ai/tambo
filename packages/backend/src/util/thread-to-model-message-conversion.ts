@@ -189,7 +189,7 @@ function findToolNameById(
  * Convert assistant messages, handling tool calls and component decisions
  * This is the most complex conversion with multiple cases
  */
-function convertAssistantMessage(
+export function convertAssistantMessage(
   message: ThreadMessage,
   respondedToolIds: string[],
   _isSupportedMimeType: (mimeType: string) => boolean,
