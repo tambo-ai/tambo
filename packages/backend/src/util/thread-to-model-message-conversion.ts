@@ -5,7 +5,6 @@ import {
   MessageRole,
   Resource,
   ThreadMessage,
-  ToolCallRequest,
   tryParseJson,
   type ComponentDecisionV2,
 } from "@tambo-ai-cloud/core";
@@ -190,7 +189,7 @@ function findToolNameById(
  * Convert assistant messages, handling tool calls and component decisions
  * This is the most complex conversion with multiple cases
  */
-function convertAssistantMessage(
+export function convertAssistantMessage(
   message: ThreadMessage,
   respondedToolIds: string[],
   _isSupportedMimeType: (mimeType: string) => boolean,
@@ -223,86 +222,10 @@ function convertAssistantMessage(
     ];
   }
 
-  // Case 2: Component decision with tool call (fake the component decision)
-  // Port from thread-message-conversion.ts:125-175
-  if (
-    message.tool_call_id &&
-    message.component?.componentName &&
-    toolCallRequest
-  ) {
-    const fakeToolCallId = `${message.tool_call_id}-cc`;
-    const combinedComponentDecision = combineComponentWithState(
-      message.component,
-      message.componentState ?? {},
-    );
-
-    const fakeDecisionCall = makeFakeDecisionCall(combinedComponentDecision);
-    const decisionToolCalls = formatFunctionCall(
-      fakeDecisionCall,
-      fakeToolCallId,
-    );
-    const actualToolCalls = formatFunctionCall(
-      toolCallRequest,
-      message.tool_call_id,
-    );
-
-    // formatFunctionCall always returns function-type tool calls, so we can safely access .function
-    const decisionCall = decisionToolCalls[0];
-    const actualCall = actualToolCalls[0];
-    if (decisionCall.type !== "function" || actualCall.type !== "function") {
-      throw new Error("Unexpected tool call type");
-    }
-
-    // Return 3 messages: decision call, decision response, actual tool call
-    return [
-      // 1. Component decision tool call
-      {
-        role: "assistant",
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(combinedComponentDecision),
-          },
-          {
-            type: "tool-call",
-            toolCallId: fakeToolCallId,
-            toolName: decisionCall.function.name,
-            input: tryParseJson(decisionCall.function.arguments),
-          } satisfies ToolCallPart,
-        ],
-      } satisfies AssistantModelMessage,
-      // 2. Component decision response
-      {
-        role: "tool",
-        content: [
-          {
-            type: "tool-result",
-            output: { type: "text", value: "{}" },
-            toolCallId: fakeToolCallId,
-            toolName: decisionCall.function.name,
-          } satisfies ToolResultPart,
-        ],
-      } satisfies ModelMessage,
-      // 3. Actual tool call
-      {
-        role: "assistant",
-        content: [
-          {
-            type: "text",
-            text: "Now fetch some data",
-          },
-          {
-            type: "tool-call",
-            toolCallId: message.tool_call_id,
-            toolName: actualCall.function.name,
-            input: tryParseJson(actualCall.function.arguments),
-          } satisfies ToolCallPart,
-        ],
-      } satisfies AssistantModelMessage,
-    ];
-  }
-
-  // Case 3: Regular assistant message with optional tool calls
+  // Case 2: Regular assistant message with optional tool calls
+  // Note: Components are now decided by tool calls (UI tools like show_component_*),
+  // so a message with both component and toolCallRequest means the component decision
+  // came from the tool call itself. We handle this as a normal tool call.
   const content: (ToolCallPart | { type: "text"; text: string })[] = [];
 
   // Add text content if present
@@ -596,29 +519,5 @@ function combineComponentWithState(
       ...componentState,
     },
     props: component.props ?? {},
-  };
-}
-
-/**
- * Create fake component decision tool call
- * Port from thread-message-conversion.ts:262-279
- */
-function makeFakeDecisionCall(component: ComponentDecisionV2): ToolCallRequest {
-  return {
-    toolName: "decide_component",
-    parameters: [
-      {
-        parameterName: "reasoning",
-        parameterValue: component.message,
-      },
-      {
-        parameterName: "decision",
-        parameterValue: true,
-      },
-      {
-        parameterName: "component",
-        parameterValue: component.componentName,
-      },
-    ],
   };
 }
