@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.125.0](https://github.com/tambo-ai/tambo/compare/web-v0.124.0...web-v0.125.0) (2025-12-14)
+
+
+### Features
+
+* add EditWithTamboButton page to showcase site ([#1508](https://github.com/tambo-ai/tambo/issues/1508)) ([57e2594](https://github.com/tambo-ai/tambo/commit/57e2594214bcf0035531923fb2cc252b7e73e090))
+* integrate EditWithTambo component for inline component editing ([#1477](https://github.com/tambo-ai/tambo/issues/1477)) ([390c204](https://github.com/tambo-ai/tambo/commit/390c2045148c63dfb85f1988861e1cf6ad7f021e))
+* **react:** migrate to Standard Schema for schema conversion ([#1446](https://github.com/tambo-ai/tambo/issues/1446)) ([be5f2a0](https://github.com/tambo-ai/tambo/commit/be5f2a0052c0114ddf5ae2f2124e533c1cceaa7d))
+
+
+### Bug Fixes
+
+* **editor:** Clean up message-input and text-editor to only expose a limited set of capabilities in the editor ([#1502](https://github.com/tambo-ai/tambo/issues/1502)) ([2938064](https://github.com/tambo-ai/tambo/commit/2938064b2ff4b4504af1e13de24117192a6dc811))
+* **react:** correct schema parsing logic ([#1513](https://github.com/tambo-ai/tambo/issues/1513)) ([bf7a54a](https://github.com/tambo-ai/tambo/commit/bf7a54ae5515fa6386950a65b6eb03ca891ad250))
+* **resources:** Make sure to show resource names in text editor and user messages ([#1497](https://github.com/tambo-ai/tambo/issues/1497)) ([b2d8013](https://github.com/tambo-ai/tambo/commit/b2d8013c0b4bf5fbf7801eca20e97fcf98b5ae55))
+
+
+### Miscellaneous Chores
+
+* **ci:** update turbo caching ([#1505](https://github.com/tambo-ai/tambo/issues/1505)) ([a091dc6](https://github.com/tambo-ai/tambo/commit/a091dc68af625fdf5caa33e2d1efe65f480f9d47))
+* **deps-dev:** bump ts-jest from 29.4.5 to 29.4.6 in the testing group ([#1484](https://github.com/tambo-ai/tambo/issues/1484)) ([07a1253](https://github.com/tambo-ai/tambo/commit/07a125380a847816424b4dae304075b3726e1816))
+* **deps:** bump the drizzle group with 2 updates ([#1482](https://github.com/tambo-ai/tambo/issues/1482)) ([7f2670c](https://github.com/tambo-ai/tambo/commit/7f2670cdc6cada1c71bd27131b3c97f756908ad2))
+* **deps:** bump the nexstra group with 2 updates ([#1489](https://github.com/tambo-ai/tambo/issues/1489)) ([9710f6e](https://github.com/tambo-ai/tambo/commit/9710f6ee5228af6d4222ae2dbc9676dcbf6f6e7d))
+* **deps:** bump the sentry group with 3 updates ([#1488](https://github.com/tambo-ai/tambo/issues/1488)) ([86e6b0b](https://github.com/tambo-ai/tambo/commit/86e6b0b4d756d01d8689b79587b8f46746131d81))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1487](https://github.com/tambo-ai/tambo/issues/1487)) ([2178c32](https://github.com/tambo-ai/tambo/commit/2178c32ed7c962a915aa80694cc8e3c4a7f434ba))
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+
+
+### Code Refactoring
+
+* **cli:** migrate text-editor from tippy.js to Radix Popover ([#1506](https://github.com/tambo-ai/tambo/issues/1506)) ([554ce9e](https://github.com/tambo-ai/tambo/commit/554ce9eb1e2e4ee463af7a9a2157aa7ad4c4debb))
+
 ## [0.124.0](https://github.com/tambo-ai/tambo/compare/web-v0.123.4...web-v0.124.0) (2025-12-08)
 
 
