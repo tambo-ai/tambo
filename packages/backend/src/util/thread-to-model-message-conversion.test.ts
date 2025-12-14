@@ -37,13 +37,14 @@ describe("convertAssistantMessage", () => {
       },
     );
 
+    // Include tool_call_id in respondedToolIds to test Case 2 (not Case 1)
     const result = convertAssistantMessage(
       assistantMessage,
-      [],
+      ["tool-call-1"],
       isSupportedMimeType,
     );
 
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(1);
     expect(result[0].role).toBe("assistant");
 
     const assistantMsg = result[0] as { role: string; content: unknown[] };
