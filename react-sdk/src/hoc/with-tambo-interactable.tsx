@@ -1,4 +1,3 @@
-// react-sdk/src/providers/with-interactable.tsx
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TamboMessageProvider } from "../hooks/use-current-message";

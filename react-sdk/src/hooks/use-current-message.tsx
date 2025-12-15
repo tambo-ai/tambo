@@ -5,7 +5,9 @@ import {
   TamboThreadMessage,
 } from "../model/generate-component-response";
 
-const TamboMessageContext = createContext<TamboThreadMessage | null>(null);
+export const TamboMessageContext = createContext<TamboThreadMessage | null>(
+  null,
+);
 
 export interface TamboMessageProviderProps {
   children: React.ReactNode;

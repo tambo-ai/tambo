@@ -24,7 +24,7 @@
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/typography": "^0.5.19",
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.79.0",
+    "@tambo-ai/typescript-sdk": "^0.80.0",
     "@tiptap/extension-document": "^3.11.1",
     "@tiptap/extension-mention": "^3.11.1",
     "@tiptap/extension-paragraph": "^3.11.1",
