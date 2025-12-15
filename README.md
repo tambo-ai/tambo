@@ -364,6 +364,13 @@ Built something? [Open a PR](https://github.com/tambo-ai/tambo/pulls) or [share 
 
 ---
 
+## License
+
+MIT for most of the repo (the root `LICENSE` applies unless otherwise noted).
+See [LICENSE](LICENSE). `apps/api`, `apps/web`, `apps/test-mcp-server`, and
+`packages/backend` are licensed under Apache-2.0 (see their `LICENSE` and
+`NOTICE` files).
+
 ---
 
 <p align="center">
