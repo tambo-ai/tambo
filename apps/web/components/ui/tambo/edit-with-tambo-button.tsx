@@ -150,16 +150,18 @@ export function EditWithTamboButton({
       });
     }
 
-    await sendThreadMessage(prompt.trim(), {
-      streamResponse: true,
-      contextKey,
-    });
+    try {
+      await sendThreadMessage(prompt.trim(), {
+        streamResponse: true,
+        contextKey,
+      });
 
-    // Clear the attachment after sending (one-time edit)
-    clearContextAttachments();
-
-    // Clear the prompt after successful send
-    setPrompt("");
+      // Clear the prompt after successful send
+      setPrompt("");
+    } finally {
+      // Clear attachments regardless of success/failure (one-time edit)
+      clearContextAttachments();
+    }
   }, [
     prompt,
     isGenerating,
@@ -200,9 +202,9 @@ export function EditWithTamboButton({
     setPrompt("");
     setIsOpen(false);
 
-    // Insert @mention + user query into the editor
+    // Insert @mention + user query into the editor (only if we have valid component data)
     const editor = editorRef.current;
-    if (editor) {
+    if (editor && interactableId && componentName) {
       // Check if mention already exists to avoid duplicates
       if (editor.hasMention(interactableId)) {
         // If mention exists, just append the user query
@@ -212,6 +214,9 @@ export function EditWithTamboButton({
         editor.insertMention(interactableId, componentName);
         editor.appendText(messageToInsert);
       }
+    } else if (editor) {
+      // No component context, just insert the message
+      editor.appendText(messageToInsert);
     }
   }, [
     prompt,

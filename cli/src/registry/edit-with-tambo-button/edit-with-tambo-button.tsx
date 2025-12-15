@@ -166,16 +166,18 @@ export function EditWithTamboButton({
       });
     }
 
-    await sendThreadMessage(prompt.trim(), {
-      streamResponse: true,
-      contextKey,
-    });
+    try {
+      await sendThreadMessage(prompt.trim(), {
+        streamResponse: true,
+        contextKey,
+      });
 
-    // Clear the attachment after sending (one-time edit)
-    clearContextAttachments();
-
-    // Clear the prompt after successful send
-    setPrompt("");
+      // Clear the prompt after successful send
+      setPrompt("");
+    } finally {
+      // Clear attachments regardless of success/failure (one-time edit)
+      clearContextAttachments();
+    }
   }, [
     prompt,
     isGenerating,
