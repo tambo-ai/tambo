@@ -366,7 +366,8 @@ Built something? [Open a PR](https://github.com/tambo-ai/tambo/pulls) or [share 
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT for most of the repo. See [LICENSE](LICENSE). `apps/api` and `apps/web` are
+licensed under Apache-2.0 (see their `LICENSE` files).
 
 ---
 
