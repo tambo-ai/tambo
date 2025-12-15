@@ -32,7 +32,7 @@
     "turbo": "^2.6.1",
     "typescript": "^5.9.3"
   },
-  "packageManager": "npm@10.9.2",
+  "packageManager": "npm@11.7.0",
   "workspaces": [
     "react-sdk",
     "showcase",
@@ -48,6 +48,6 @@
   },
   "volta": {
     "node": "22.21.0",
-    "npm": "11.6.2"
+    "npm": "11.7.0"
   }
 }
