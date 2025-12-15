@@ -33,6 +33,37 @@ function hasKeyDeep(value: unknown, key: string): boolean {
   return visit(value);
 }
 
+function resolveJsonPointer(doc: unknown, pointer: string): unknown {
+  if (!pointer.startsWith("#")) return undefined;
+  if (pointer === "#") return doc;
+  if (!pointer.startsWith("#/")) return undefined;
+
+  return pointer
+    .slice(2)
+    .split("/")
+    .map((segment) => decodeURIComponent(segment))
+    .map((segment) => segment.replaceAll("~1", "/").replaceAll("~0", "~"))
+    .reduce<unknown>((current, segment) => {
+      if (!current || typeof current !== "object") return undefined;
+
+      if (Array.isArray(current)) {
+        const index = Number(segment);
+        if (!Number.isInteger(index)) return undefined;
+        return current[index];
+      }
+
+      return (current as Record<string, unknown>)[segment];
+    }, doc);
+}
+
+function createRecursiveZod4NodeSchema(): z4.ZodTypeAny {
+  // Placeholder schema so we can self-reference via `z4.lazy` without
+  // fighting ESLint `prefer-const`.
+  let nodeSchema: z4.ZodTypeAny = z4.any();
+  nodeSchema = z4.object({ next: z4.lazy(() => nodeSchema).optional() });
+  return nodeSchema;
+}
+
 describe("zod schema utilities", () => {
   describe("isZod3Schema", () => {
     it("returns true for Zod 3 schemas", () => {
@@ -302,11 +333,7 @@ describe("zod schema utilities", () => {
 
     describe("recursive schemas", () => {
       it("represents Zod 4 recursive schemas using $ref", () => {
-        // Placeholder schema so we can self-reference via `z4.lazy` without
-        // fighting ESLint `prefer-const`.
-        let nodeSchema: z4.ZodTypeAny = z4.any();
-        nodeSchema = z4.object({ next: z4.lazy(() => nodeSchema).optional() });
-
+        const nodeSchema = createRecursiveZod4NodeSchema();
         const result = handleZodSchemaToJson(nodeSchema);
         const schema = result as Record<string, unknown>;
         const properties = schema.properties as
@@ -314,31 +341,6 @@ describe("zod schema utilities", () => {
           | undefined;
         const next = properties?.next as Record<string, unknown> | undefined;
         const ref = next?.$ref;
-
-        function resolveJsonPointer(doc: unknown, pointer: string): unknown {
-          if (!pointer.startsWith("#")) return undefined;
-          if (pointer === "#") return doc;
-          if (!pointer.startsWith("#/")) return undefined;
-
-          return pointer
-            .slice(2)
-            .split("/")
-            .map((segment) => decodeURIComponent(segment))
-            .map((segment) =>
-              segment.replaceAll("~1", "/").replaceAll("~0", "~"),
-            )
-            .reduce<unknown>((current, segment) => {
-              if (!current || typeof current !== "object") return undefined;
-
-              if (Array.isArray(current)) {
-                const index = Number(segment);
-                if (!Number.isInteger(index)) return undefined;
-                return current[index];
-              }
-
-              return (current as Record<string, unknown>)[segment];
-            }, doc);
-        }
 
         expect(hasKeyDeep(result, "$ref")).toBe(true);
         expect(result).toMatchObject({
