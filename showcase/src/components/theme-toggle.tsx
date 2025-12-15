@@ -1,11 +1,11 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Avoid hydration mismatch by only rendering theme-dependent UI after mount
@@ -13,8 +13,23 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  const selectedTheme = theme ?? "system";
+  const isLight = selectedTheme === "light";
+  const isDark = selectedTheme === "dark";
+  const isSystem = selectedTheme === "system";
+
+  const cycleTheme = () => {
+    if (selectedTheme === "light") {
+      setTheme("dark");
+      return;
+    }
+
+    if (selectedTheme === "dark") {
+      setTheme("system");
+      return;
+    }
+
+    setTheme("light");
   };
 
   // Render a placeholder with the same dimensions during SSR
@@ -33,23 +48,24 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      onClick={toggleTheme}
+      onClick={cycleTheme}
       className="p-2 hover:bg-muted rounded-full transition-colors relative w-9 h-9 border border-border"
       aria-label="Toggle theme"
     >
       <div className="relative w-5 h-5">
         <Sun
           className={`absolute h-5 w-5 transition-all ${
-            resolvedTheme === "light"
-              ? "rotate-0 scale-100"
-              : "-rotate-90 scale-0"
+            isLight ? "rotate-0 scale-100" : "-rotate-90 scale-0"
           }`}
         />
         <Moon
           className={`absolute h-5 w-5 transition-all ${
-            resolvedTheme === "dark"
-              ? "rotate-0 scale-100"
-              : "rotate-90 scale-0"
+            isDark ? "rotate-0 scale-100" : "rotate-90 scale-0"
+          }`}
+        />
+        <Monitor
+          className={`absolute h-5 w-5 transition-all ${
+            isSystem ? "rotate-0 scale-100" : "rotate-90 scale-0"
           }`}
         />
       </div>
