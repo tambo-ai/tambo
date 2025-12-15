@@ -140,13 +140,15 @@ export function EditWithTamboButton({
 
     setShouldCloseOnComplete(true);
 
-    // Add the component as a context attachment for inline editing
-    const componentName = component?.componentName ?? "Unknown Component";
-    const interactableId = component?.interactableId ?? "";
-    addContextAttachment({
-      name: componentName,
-      metadata: { componentId: interactableId },
-    });
+    // Add the component as a context attachment for inline editing (only if valid)
+    const interactableId = component?.interactableId;
+    const componentName = component?.componentName;
+    if (interactableId && componentName) {
+      addContextAttachment({
+        name: componentName,
+        metadata: { componentId: interactableId },
+      });
+    }
 
     await sendThreadMessage(prompt.trim(), {
       streamResponse: true,
@@ -181,13 +183,15 @@ export function EditWithTamboButton({
       setCustomSuggestions(suggestions);
     }
 
-    // Add the component as a context attachment
-    const componentName = component?.componentName ?? "Unknown Component";
-    const interactableId = component?.interactableId ?? "";
-    addContextAttachment({
-      name: componentName,
-      metadata: { componentId: interactableId },
-    });
+    // Add the component as a context attachment (only if valid)
+    const interactableId = component?.interactableId;
+    const componentName = component?.componentName;
+    if (interactableId && componentName) {
+      addContextAttachment({
+        name: componentName,
+        metadata: { componentId: interactableId },
+      });
+    }
 
     // Open the thread panel first
     onOpenThread();
