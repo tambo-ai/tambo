@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { z } from "zod/v3";
@@ -45,15 +46,23 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   >([]);
   const { registerTool } = useTamboComponent();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
-  const { attachments } = useTamboContextAttachment();
+  const { getCurrentAttachments } = useTamboContextAttachment();
 
-  // Create a stable context helper function that includes selection state
+  // Ref for latest value in callbacks (avoids stale closures)
+  const interactableComponentsRef = useRef<TamboInteractableComponent[]>([]);
+  interactableComponentsRef.current = interactableComponents;
+
+  // Context helper reads from refs to always get latest data
   const contextHelper = useCallback(() => {
+    const currentAttachments = getCurrentAttachments();
+    const currentComponents = interactableComponentsRef.current;
+
     // Match attachments to interactable components by:
     // 1. metadata.componentId (when component is selected via @ mention)
     // 2. name (fallback for backward compatibility)
     const selectedIds = new Set<string>();
-    for (const attachment of attachments) {
+
+    for (const attachment of currentAttachments) {
       // Try to match by componentId in metadata first
       const componentId = attachment.metadata?.componentId as
         | string
@@ -62,7 +71,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         selectedIds.add(componentId);
       } else {
         // Fallback: match by name
-        const matchingComponent = interactableComponents.find(
+        const matchingComponent = currentComponents.find(
           (c) => c.name === attachment.name,
         );
         if (matchingComponent) {
@@ -72,10 +81,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     }
 
     return createInteractablesContextHelper(
-      () => interactableComponents,
+      () => currentComponents,
       () => selectedIds,
     )();
-  }, [interactableComponents, attachments]);
+  }, [getCurrentAttachments]);
 
   // Register the default interactables context helper
   useEffect(() => {

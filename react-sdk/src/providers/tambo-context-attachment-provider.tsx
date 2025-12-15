@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -39,10 +40,11 @@ export type ContextHelperData = Record<string, unknown>;
 
 /**
  * Context state interface for managing context attachments and custom suggestions.
- * @property {ContextAttachment[]} attachments - Array of active context attachments (badges above message input)
+ * @property {ContextAttachment[]} attachments - Current attachments for rendering UI (React state)
+ * @property {() => ContextAttachment[]} getCurrentAttachments - Get latest attachments in callbacks (reads from ref, avoids stale closures)
  * @property {(context: Omit<ContextAttachment, "id">) => void} addContextAttachment - Add a new context attachment
  * @property {(id: string) => void} removeContextAttachment - Remove a context attachment by ID
- * @property {() => void} clearContextAttachments - Remove all context attachments - This is used to clear the context when the user submits a message
+ * @property {() => void} clearContextAttachments - Clear all context attachments
  * @property {Suggestion[] | null} customSuggestions - Custom suggestions to display instead of auto-generated ones
  * @property {(suggestions: Suggestion[] | null) => void} setCustomSuggestions - Set or clear custom suggestions
  */
@@ -53,6 +55,7 @@ export interface ContextAttachmentState {
   clearContextAttachments: () => void;
   customSuggestions: Suggestion[] | null;
   setCustomSuggestions: (suggestions: Suggestion[] | null) => void;
+  getCurrentAttachments: () => ContextAttachment[];
 }
 
 const ContextAttachmentContext = createContext<ContextAttachmentState | null>(
@@ -106,6 +109,10 @@ export function TamboContextAttachmentProvider({
     Suggestion[] | null
   >(null);
 
+  // Ref to track attachments synchronously - used by context helpers to read
+  // the latest value without waiting for React's render cycle
+  const attachmentsRef = useRef<ContextAttachment[]>([]);
+
   // Note: We no longer create separate context helpers for each attachment.
   // Instead, the TamboInteractableProvider will mark attached components
   // with isSelectedForInteraction: true in the unified interactables context.
@@ -123,7 +130,10 @@ export function TamboContextAttachmentProvider({
 
         const newId = crypto.randomUUID();
         const newContext = { ...context, id: newId };
-        return [...prev, newContext];
+        const newAttachments = [...prev, newContext];
+        // Update ref synchronously so context helpers can read it immediately
+        attachmentsRef.current = newAttachments;
+        return newAttachments;
       });
     },
     [],
@@ -131,13 +141,21 @@ export function TamboContextAttachmentProvider({
 
   // This is used to remove a context when the user clicks the remove button
   const removeContextAttachment = useCallback((id: string) => {
-    setAttachments((prev) => prev.filter((c) => c.id !== id));
+    setAttachments((prev) => {
+      const newAttachments = prev.filter((c) => c.id !== id);
+      attachmentsRef.current = newAttachments;
+      return newAttachments;
+    });
   }, []);
 
   // This is used to clear the context when the user submits a message
   const clearContextAttachments = useCallback(() => {
+    attachmentsRef.current = [];
     setAttachments([]);
   }, []);
+
+  // Get the current attachments from ref - for use in context helpers
+  const getCurrentAttachments = useCallback(() => attachmentsRef.current, []);
 
   const value = useMemo(
     () => ({
@@ -147,6 +165,7 @@ export function TamboContextAttachmentProvider({
       clearContextAttachments,
       customSuggestions,
       setCustomSuggestions,
+      getCurrentAttachments,
     }),
     [
       attachments,
@@ -154,6 +173,7 @@ export function TamboContextAttachmentProvider({
       removeContextAttachment,
       clearContextAttachments,
       customSuggestions,
+      getCurrentAttachments,
     ],
   );
 
