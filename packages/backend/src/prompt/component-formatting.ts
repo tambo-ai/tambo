@@ -67,7 +67,7 @@ const formatComponentProps = (
   }
 
   if (props instanceof z.ZodType) {
-    const jsonSchema = zodToJsonSchema(props);
+    const jsonSchema = zodToJsonSchema(props, { $refStrategy: "none" });
     const indentedJsonSchema = JSON.stringify(jsonSchema, null, 2).replace(
       /\n/g,
       `\n${indentStr}`,
