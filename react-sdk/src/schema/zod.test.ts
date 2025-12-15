@@ -2,6 +2,26 @@ import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
 import { handleZodSchemaToJson, isZod3Schema, isZod4Schema } from "./zod";
 
+function hasKeyDeep(value: unknown, key: string): boolean {
+  const seen = new Set<object>();
+
+  function visit(node: unknown): boolean {
+    if (!node || typeof node !== "object") return false;
+    if (seen.has(node)) return false;
+    seen.add(node);
+
+    if (Array.isArray(node)) {
+      return node.some(visit);
+    }
+
+    const record = node as Record<string, unknown>;
+    if (Object.prototype.hasOwnProperty.call(record, key)) return true;
+    return Object.values(record).some(visit);
+  }
+
+  return visit(value);
+}
+
 describe("zod schema utilities", () => {
   describe("isZod3Schema", () => {
     it("returns true for Zod 3 schemas", () => {
@@ -93,10 +113,8 @@ describe("zod schema utilities", () => {
         });
 
         const result = handleZodSchemaToJson(props);
-        const resultStr = JSON.stringify(result);
 
-        // Should NOT contain any $ref references
-        expect(resultStr).not.toContain("$ref");
+        expect(hasKeyDeep(result, "$ref")).toBe(false);
 
         // Both arrays should have the full schema inline
         expect(result).toMatchObject({
@@ -140,10 +158,8 @@ describe("zod schema utilities", () => {
         });
 
         const result = handleZodSchemaToJson(props);
-        const resultStr = JSON.stringify(result);
 
-        // Should NOT contain any $ref references
-        expect(resultStr).not.toContain("$ref");
+        expect(hasKeyDeep(result, "$ref")).toBe(false);
 
         // Both arrays should have the full schema inline
         expect(result).toMatchObject({
@@ -186,9 +202,8 @@ describe("zod schema utilities", () => {
         });
 
         const result = handleZodSchemaToJson(personSchema);
-        const resultStr = JSON.stringify(result);
 
-        expect(resultStr).not.toContain("$ref");
+        expect(hasKeyDeep(result, "$ref")).toBe(false);
         expect(result).toMatchObject({
           type: "object",
           properties: {
@@ -224,9 +239,8 @@ describe("zod schema utilities", () => {
         });
 
         const result = handleZodSchemaToJson(personSchema);
-        const resultStr = JSON.stringify(result);
 
-        expect(resultStr).not.toContain("$ref");
+        expect(hasKeyDeep(result, "$ref")).toBe(false);
         expect(result).toMatchObject({
           type: "object",
           properties: {
@@ -269,10 +283,27 @@ describe("zod schema utilities", () => {
         });
 
         const result = handleZodSchemaToJson(shapeSchema);
-        const resultStr = JSON.stringify(result);
 
-        // The key assertion: no $ref anywhere
-        expect(resultStr).not.toContain("$ref");
+        expect(hasKeyDeep(result, "$ref")).toBe(false);
+      });
+    });
+
+    describe("recursive schemas", () => {
+      it("represents Zod 4 recursive schemas using $ref", () => {
+        let nodeSchema: z4.ZodTypeAny = z4.any();
+        nodeSchema = z4.object({ next: z4.lazy(() => nodeSchema).optional() });
+
+        const result = handleZodSchemaToJson(nodeSchema);
+
+        expect(hasKeyDeep(result, "$ref")).toBe(true);
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            next: {
+              $ref: "#",
+            },
+          },
+        });
       });
     });
 
