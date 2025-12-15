@@ -46,7 +46,9 @@ export const createInteractablesContextHelper = (
       const selectedIds = getSelectedIds?.() ?? new Set<string>();
 
       return {
-        interactableComponents: components.map((component) => ({
+        description:
+          "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, and optional schema. You can use tools to update these components on behalf of the user.",
+        components: components.map((component) => ({
           id: component.id,
           componentName: component.name,
           description: component.description,

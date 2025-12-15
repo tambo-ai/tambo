@@ -79,8 +79,8 @@ describe("Interactables AdditionalContext (provider-based)", () => {
         (c: any) => c.name === "interactables",
       );
       expect(entry).toBeDefined();
-      expect(Array.isArray(entry?.context?.interactableComponents)).toBe(true);
-      const comp = entry!.context.interactableComponents[0];
+      expect(Array.isArray(entry?.context?.components)).toBe(true);
+      const comp = entry!.context.components[0];
       expect(comp.componentName).toBe("Note");
       expect(comp.props).toEqual({ title: "hello" });
       expect(comp.isSelectedForInteraction).toBe(false); // Not selected
@@ -167,8 +167,9 @@ describe("Interactables AdditionalContext (provider-based)", () => {
         (c: any) => c.name === "interactables",
       );
       expect(entry).toBeDefined();
-      expect(Array.isArray(entry?.context?.interactableComponents)).toBe(true);
-      expect(entry?.context?.interactableComponents).toHaveLength(1);
+      expect(entry?.context?.description).toContain("interactable components");
+      expect(Array.isArray(entry?.context?.components)).toBe(true);
+      expect(entry?.context?.components).toHaveLength(1);
     });
   });
 
@@ -220,7 +221,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
       const entry = capturedContexts.find(
         (c: any) => c.name === "interactables",
       );
-      const component = entry!.context.interactableComponents[0];
+      const component = entry!.context.components[0];
 
       expect(component).toMatchObject({
         id: expect.any(String),
@@ -341,9 +342,9 @@ describe("Interactables AdditionalContext (provider-based)", () => {
       const entry = capturedContexts.find(
         (c: any) => c.name === "interactables",
       );
-      expect(entry?.context?.interactableComponents).toHaveLength(2);
+      expect(entry?.context?.components).toHaveLength(2);
 
-      const components = entry!.context.interactableComponents;
+      const components = entry!.context.components;
       expect(components[0].componentName).toBe("Note");
       expect(components[0].props).toEqual({ title: "first" });
       expect(components[0].isSelectedForInteraction).toBe(false);

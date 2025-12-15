@@ -366,6 +366,12 @@ Current custom suggestions that override auto-generated suggestions. Returns `nu
 
 Function to set custom suggestions or clear them by passing `null`.
 
+### getCurrentAttachments
+
+`const { getCurrentAttachments } = useTamboContextAttachment()`
+
+Function that returns the current attachments synchronously from a ref. Useful in callbacks where you need the latest attachment values without waiting for React's render cycle.
+
 ## useCurrentInteractablesSnapshot
 
 `const snapshot = useCurrentInteractablesSnapshot()`
