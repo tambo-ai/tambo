@@ -129,7 +129,7 @@ export function handleZodSchemaToJson(schema: unknown) {
  * @returns True if the schema looks like a Zod 3 schema
  */
 export function isZod3Schema(schema: unknown): schema is ZodType {
-  return isZodSchema(schema) && "_def" in schema;
+  return isZodSchema(schema) && "_def" in schema && !("def" in schema);
 }
 
 /**

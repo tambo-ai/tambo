@@ -68,13 +68,15 @@ describe("zod schema utilities", () => {
     it("returns true for Zod 3 schemas", () => {
       const schema = z3.object({ name: z3.string() });
       expect(isZod3Schema(schema)).toBe(true);
+      expect(isZod4Schema(schema)).toBe(false);
     });
 
     it("returns true for Zod 4 schemas (they also have _def)", () => {
       // Note: Zod 4 schemas have both _def and _zod, so isZod3Schema returns true.
       // This is fine because handleZodSchemaToJson checks isZod4Schema first.
       const schema = z4.object({ name: z4.string() });
-      expect(isZod3Schema(schema)).toBe(true);
+      expect(isZod4Schema(schema)).toBe(true);
+      expect(isZod3Schema(schema)).toBe(false);
     });
 
     it("returns false for non-Zod values", () => {
@@ -326,6 +328,106 @@ describe("zod schema utilities", () => {
 
         const result = handleZodSchemaToJson(shapeSchema);
 
+        expect(result).toMatchInlineSnapshot(`
+          {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "boundingBox": {
+                "additionalProperties": false,
+                "properties": {
+                  "bottomRight": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "x": {
+                        "type": "number",
+                      },
+                      "y": {
+                        "type": "number",
+                      },
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                    ],
+                    "type": "object",
+                  },
+                  "topLeft": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "x": {
+                        "type": "number",
+                      },
+                      "y": {
+                        "type": "number",
+                      },
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                    ],
+                    "type": "object",
+                  },
+                },
+                "required": [
+                  "topLeft",
+                  "bottomRight",
+                ],
+                "type": "object",
+              },
+              "outline": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "end": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                        },
+                        "y": {
+                          "type": "number",
+                        },
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                      ],
+                      "type": "object",
+                    },
+                    "start": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": {
+                          "type": "number",
+                        },
+                        "y": {
+                          "type": "number",
+                        },
+                      },
+                      "required": [
+                        "x",
+                        "y",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "start",
+                    "end",
+                  ],
+                  "type": "object",
+                },
+                "type": "array",
+              },
+            },
+            "required": [
+              "outline",
+              "boundingBox",
+            ],
+            "type": "object",
+          }
+        `);
         expect(hasKeyDeep(result, "$ref")).toBe(false);
       });
     });
