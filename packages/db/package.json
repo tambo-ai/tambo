@@ -22,7 +22,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/pg": "^8.15.6",
+    "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8"
   },
   "dependencies": {
