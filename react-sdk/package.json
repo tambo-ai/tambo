@@ -26,7 +26,8 @@
   },
   "files": [
     "dist",
-    "esm"
+    "esm",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=22",

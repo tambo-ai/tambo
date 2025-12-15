@@ -2,6 +2,7 @@
   "name": "@tambo-ai-cloud/testing",
   "version": "0.0.0",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "description": "Shared testing utilities for the Tambo AI monorepo",
   "exports": {

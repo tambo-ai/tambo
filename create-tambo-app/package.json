@@ -23,7 +23,8 @@
   },
   "files": [
     "src",
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "sideEffects": false,
   "scripts": {
