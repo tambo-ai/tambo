@@ -130,3 +130,6 @@ updates:
           - "tailwindcss"
           - "tailwind-*"
           - "@tailwindcss/*"
+      tiptap:
+        patterns:
+          - "@tiptap/*"
