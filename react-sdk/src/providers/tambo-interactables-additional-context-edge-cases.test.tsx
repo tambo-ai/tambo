@@ -78,8 +78,9 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
         (c: any) => c.name === "interactables",
       );
       expect(entry).toBeDefined();
-      const component = entry!.context.components[0];
+      const component = entry!.context.interactableComponents[0];
       expect(component.propsSchema).toBe("Not specified");
+      expect(component.isSelectedForInteraction).toBe(false);
     });
   });
 
@@ -149,7 +150,7 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
         const entry = capturedContexts.find(
           (c: any) => c.name === "interactables",
         );
-        expect(entry?.context?.components).toHaveLength(1);
+        expect(entry?.context?.interactableComponents).toHaveLength(1);
       },
       { timeout: 1000 },
     );
@@ -229,8 +230,8 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
         const entry = capturedContexts.find(
           (c: any) => c.name === "interactables",
         );
-        if (entry?.context?.components?.[0]) {
-          const props = entry.context.components[0].props;
+        if (entry?.context?.interactableComponents?.[0]) {
+          const props = entry.context.interactableComponents[0].props;
           expect(props.count).toBe(5);
           expect(props.label).toBe("Updated Items");
         }
@@ -315,8 +316,8 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
       const outerEntry = outerContexts.find(
         (c: any) => c.name === "interactables",
       );
-      expect(outerEntry?.context?.components).toHaveLength(1);
-      expect(outerEntry?.context?.components[0]?.props?.title).toBe(
+      expect(outerEntry?.context?.interactableComponents).toHaveLength(1);
+      expect(outerEntry?.context?.interactableComponents[0]?.props?.title).toBe(
         "outer note",
       );
 
@@ -324,8 +325,8 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
       const innerEntry = innerContexts.find(
         (c: any) => c.name === "interactables",
       );
-      expect(innerEntry?.context?.components).toHaveLength(1);
-      expect(innerEntry?.context?.components[0]?.props?.title).toBe(
+      expect(innerEntry?.context?.interactableComponents).toHaveLength(1);
+      expect(innerEntry?.context?.interactableComponents[0]?.props?.title).toBe(
         "inner note",
       );
 

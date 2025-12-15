@@ -79,11 +79,11 @@ describe("Interactables AdditionalContext (provider-based)", () => {
         (c: any) => c.name === "interactables",
       );
       expect(entry).toBeDefined();
-      expect(entry?.context?.description).toMatch(/interactable components/i);
-      expect(Array.isArray(entry?.context?.components)).toBe(true);
-      const comp = entry!.context.components[0];
+      expect(Array.isArray(entry?.context?.interactableComponents)).toBe(true);
+      const comp = entry!.context.interactableComponents[0];
       expect(comp.componentName).toBe("Note");
       expect(comp.props).toEqual({ title: "hello" });
+      expect(comp.isSelectedForInteraction).toBe(false); // Not selected
     });
   });
 
@@ -125,7 +125,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
     });
   });
 
-  test("context includes proper AI prompt with clear instructions", async () => {
+  test("context includes interactable components in expected format", async () => {
     const Note: React.FC<{ title: string }> = ({ title }) => <div>{title}</div>;
     const InteractableNote = withTamboInteractable(Note, {
       componentName: "Note",
@@ -166,10 +166,9 @@ describe("Interactables AdditionalContext (provider-based)", () => {
       const entry = capturedContexts.find(
         (c: any) => c.name === "interactables",
       );
-      expect(entry?.context?.description).toContain("interactable components");
-      expect(entry?.context?.description).toContain("visible on the page");
-      expect(entry?.context?.description).toContain("you can read and modify");
-      expect(entry?.context?.description).toContain("tools to update");
+      expect(entry).toBeDefined();
+      expect(Array.isArray(entry?.context?.interactableComponents)).toBe(true);
+      expect(entry?.context?.interactableComponents).toHaveLength(1);
     });
   });
 
@@ -221,7 +220,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
       const entry = capturedContexts.find(
         (c: any) => c.name === "interactables",
       );
-      const component = entry!.context.components[0];
+      const component = entry!.context.interactableComponents[0];
 
       expect(component).toMatchObject({
         id: expect.any(String),
@@ -229,6 +228,7 @@ describe("Interactables AdditionalContext (provider-based)", () => {
         description: "A colorful note component",
         props: { title: "test note", color: "blue" },
         propsSchema: "Available - use component-specific update tools",
+        isSelectedForInteraction: false,
       });
     });
   });
@@ -341,13 +341,15 @@ describe("Interactables AdditionalContext (provider-based)", () => {
       const entry = capturedContexts.find(
         (c: any) => c.name === "interactables",
       );
-      expect(entry?.context?.components).toHaveLength(2);
+      expect(entry?.context?.interactableComponents).toHaveLength(2);
 
-      const components = entry!.context.components;
+      const components = entry!.context.interactableComponents;
       expect(components[0].componentName).toBe("Note");
       expect(components[0].props).toEqual({ title: "first" });
+      expect(components[0].isSelectedForInteraction).toBe(false);
       expect(components[1].componentName).toBe("Counter");
       expect(components[1].props).toEqual({ count: 42 });
+      expect(components[1].isSelectedForInteraction).toBe(false);
     });
   });
 

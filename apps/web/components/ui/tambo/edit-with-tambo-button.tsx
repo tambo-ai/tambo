@@ -77,8 +77,11 @@ export function EditWithTamboButton({
   const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
-  const { addContextAttachment, setCustomSuggestions } =
-    useTamboContextAttachment();
+  const {
+    addContextAttachment,
+    clearContextAttachments,
+    setCustomSuggestions,
+  } = useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -133,20 +136,31 @@ export function EditWithTamboButton({
 
     setShouldCloseOnComplete(true);
 
+    // Add the component as a context attachment for inline editing
+    const componentName = component?.componentName ?? "Unknown Component";
+    const interactableId = component?.interactableId ?? "";
+    addContextAttachment({
+      name: componentName,
+      metadata: { componentId: interactableId },
+    });
+
     await sendThreadMessage(prompt.trim(), {
       streamResponse: true,
-      additionalContext: {
-        inlineEdit: {
-          componentId: component.interactableId,
-          instruction:
-            "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
-        },
-      },
     });
+
+    // Clear the attachment after sending (one-time edit)
+    clearContextAttachments();
 
     // Clear the prompt after successful send
     setPrompt("");
-  }, [prompt, isGenerating, component, sendThreadMessage]);
+  }, [
+    prompt,
+    isGenerating,
+    component,
+    sendThreadMessage,
+    addContextAttachment,
+    clearContextAttachments,
+  ]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {
@@ -166,6 +180,7 @@ export function EditWithTamboButton({
     const interactableId = component?.interactableId ?? "";
     addContextAttachment({
       name: componentName,
+      metadata: { componentId: interactableId },
     });
 
     // Open the thread panel first

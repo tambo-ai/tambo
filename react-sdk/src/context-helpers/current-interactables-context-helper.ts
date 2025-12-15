@@ -28,10 +28,12 @@ export const currentInteractablesContextHelper: ContextHelperFn = () => {
  * Creates an interactables context helper with access to the current components.
  * This is used internally by TamboInteractableProvider.
  * @param getComponents Function to get current interactable components
+ * @param getSelectedIds Function to get IDs of components that are currently selected for interaction
  * @returns Context helper function
  */
 export const createInteractablesContextHelper = (
   getComponents: () => any[],
+  getSelectedIds?: () => Set<string>,
 ): ContextHelperFn => {
   return () => {
     try {
@@ -41,10 +43,10 @@ export const createInteractablesContextHelper = (
         return null; // No interactable components on the page
       }
 
+      const selectedIds = getSelectedIds?.() ?? new Set<string>();
+
       return {
-        description:
-          "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, and optional schema. You can use tools to update these components on behalf of the user.",
-        components: components.map((component) => ({
+        interactableComponents: components.map((component) => ({
           id: component.id,
           componentName: component.name,
           description: component.description,
@@ -52,6 +54,7 @@ export const createInteractablesContextHelper = (
           propsSchema: component.propsSchema
             ? "Available - use component-specific update tools"
             : "Not specified",
+          isSelectedForInteraction: selectedIds.has(component.id),
         })),
       };
     } catch (e) {

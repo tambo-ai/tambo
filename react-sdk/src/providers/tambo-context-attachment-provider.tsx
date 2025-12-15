@@ -5,12 +5,9 @@ import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 
 /**
  * Represents a context attachment that can be displayed in MessageInputContexts.
@@ -64,24 +61,14 @@ const ContextAttachmentContext = createContext<ContextAttachmentState | null>(
 
 /**
  * Props for the TamboContextAttachmentProvider.
- * @property {(context: ContextAttachment) => Promise<ContextHelperData> | ContextHelperData} [getContextHelperData] - Optional function to customize the data sent to the AI for each context. If not provided, uses a default structure with the context name and instruction.
- * @example
- * ```tsx
- * <TamboContextAttachmentProvider
- *   getContextHelperData={(context) => ({
- *     selectedFile: {
- *       name: context.name,
- *       path: context.metadata?.filePath,
- *       instruction: "Focus on this file"
- *     }
- *   })}
- * >
- *   {children}
- * </TamboContextAttachmentProvider>
- * ```
+ * @property {(context: ContextAttachment) => Promise<ContextHelperData> | ContextHelperData} [getContextHelperData] - **DEPRECATED**: This prop is no longer used. Context attachments are now indicated via the `isSelectedForInteraction` field in the unified interactables context.
+ * @deprecated getContextHelperData is deprecated and will be removed in a future version. Use the unified interactables context instead.
  */
 export interface TamboContextAttachmentProviderProps {
   children?: React.ReactNode;
+  /**
+   * @deprecated This prop is no longer used. Context attachments are now indicated via the `isSelectedForInteraction` field in the unified interactables context.
+   */
   getContextHelperData?: (
     context: ContextAttachment,
   ) => Promise<ContextHelperData> | ContextHelperData;
@@ -94,13 +81,13 @@ export interface TamboContextAttachmentProviderProps {
  * - Use `useTamboContextAttachment()` hook to manage context attachments
  * **What it does:**
  * - Manages context items that appear as badges above MessageInput
- * - Syncs context data with Tambo's AI for better responses
+ * - Marks attached components as selected for interaction in the unified interactables context
  * - Manages custom suggestions that replace auto-generated suggestions
  * - Allows components to add/remove contexts via `useTamboContextAttachment()`
  * - Allows components to set custom suggestions via `setCustomSuggestions()`
  * @param props - The props for the TamboContextAttachmentProvider
  * @param props.children - The children to wrap
- * @param props.getContextHelperData - The function to get the context helper data
+ * @param props.getContextHelperData - **DEPRECATED**: No longer used
  * @returns The TamboContextAttachmentProvider component
  * @example
  * Basic usage - already included in TamboProvider
@@ -109,91 +96,19 @@ export interface TamboContextAttachmentProviderProps {
  *   <App />
  * </TamboProvider>
  * ```
- * @example
- * Using TamboProvider with custom context data
- * ```tsx
- * <TamboProvider
- *   apiKey="..."
- *   getContextHelperData={(context) => ({
- *     selectedComponent: {
- *       name: context.name,
- *       filePath: context.metadata?.path,
- *       instruction: "Edit this component"
- *     }
- *   })}
- * >
- *   <App />
- * </TamboProvider>
- * ```
  */
 export function TamboContextAttachmentProvider({
   children,
-  getContextHelperData,
+  getContextHelperData: _getContextHelperData,
 }: TamboContextAttachmentProviderProps) {
   const [attachments, setAttachments] = useState<ContextAttachment[]>([]);
   const [customSuggestions, setCustomSuggestions] = useState<
     Suggestion[] | null
   >(null);
-  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
-  // Track which context helpers have been registered to avoid duplicates
-  const registeredIdsRef = useRef<Set<string>>(new Set());
-  const prevGetContextHelperDataRef = useRef<typeof getContextHelperData>();
-
-  // Sync context helpers with attachments using useEffect
-  useEffect(() => {
-    const currentIds = attachments.map((a) => a.id);
-    const registeredIds = registeredIdsRef.current;
-
-    // Remove context helpers that are no longer in attachments
-    registeredIds.forEach((id) => {
-      if (!currentIds.includes(id)) {
-        removeContextHelper(id);
-        registeredIds.delete(id);
-      }
-    });
-
-    const getDataChanged =
-      prevGetContextHelperDataRef.current !== getContextHelperData;
-
-    // Add or replace context helpers for attachments
-    attachments.forEach((context) => {
-      if (getDataChanged || !registeredIds.has(context.id)) {
-        addContextHelper(context.id, async (): Promise<ContextHelperData> => {
-          if (getContextHelperData) {
-            return await getContextHelperData(context);
-          }
-          return {
-            selectedComponent: {
-              name: context.name,
-              instruction:
-                "This is a Tambo interactable component that is currently selected and visible on the dashboard. You can read its current props and state, and update it by modifying its props. If multiple components are attached, you can interact with and modify any of them. Use the auto-registered interactable component tools (like get_interactable_component_by_id and update_interactable_component_<id>) to view and update the component's state.",
-              ...(context.metadata ?? {}),
-            },
-          };
-        });
-        registeredIds.add(context.id);
-      }
-    });
-
-    prevGetContextHelperDataRef.current = getContextHelperData;
-  }, [
-    attachments,
-    addContextHelper,
-    removeContextHelper,
-    getContextHelperData,
-  ]);
-
-  // Cleanup: remove all context helpers on unmount
-  useEffect(() => {
-    const registeredIds = registeredIdsRef.current;
-    return () => {
-      registeredIds.forEach((id) => {
-        removeContextHelper(id);
-      });
-      registeredIds.clear();
-    };
-  }, [removeContextHelper]);
+  // Note: We no longer create separate context helpers for each attachment.
+  // Instead, the TamboInteractableProvider will mark attached components
+  // with isSelectedForInteraction: true in the unified interactables context.
 
   const addContextAttachment = useCallback(
     (context: Omit<ContextAttachment, "id">) => {

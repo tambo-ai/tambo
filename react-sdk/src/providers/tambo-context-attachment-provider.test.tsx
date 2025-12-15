@@ -17,9 +17,12 @@ import {
  *
  * Tests the context attachment feature which allows:
  * - Visual context badges above message input
- * - Automatic context helper registration/unregistration
+ * - Tracking which components are selected for interaction
  * - Custom suggestions that override auto-generated ones
- * - Dynamic context data customization via getContextHelperData
+ *
+ * Note: Context attachments no longer create separate context helpers.
+ * Instead, they mark components as selected (isSelectedForInteraction: true)
+ * in the unified interactables context managed by TamboInteractableProvider.
  */
 describe("TamboContextAttachmentProvider", () => {
   beforeEach(() => {
@@ -280,11 +283,13 @@ describe("TamboContextAttachmentProvider", () => {
     });
   });
 
-  describe("Context Helpers Integration", () => {
+  describe("Context Attachments State Management", () => {
     /**
-     * Should automatically register context helpers when attachments are added
+     * Context attachments no longer create separate context helpers.
+     * They are now tracked as state and consumed by TamboInteractableProvider
+     * to mark components as selected in the unified interactables context.
      */
-    it("should register context helpers for attachments", async () => {
+    it("should track attachments without creating separate context helpers", async () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider>
           <TamboContextAttachmentProvider>
@@ -309,25 +314,22 @@ describe("TamboContextAttachmentProvider", () => {
         });
       });
 
-      // Wait for effect to run
-      await waitFor(async () => {
-        const contexts = await result.current.helpers.getAdditionalContext();
-        expect(contexts.length).toBeGreaterThan(0);
-      });
+      // Verify attachment is tracked
+      expect(result.current.attachment.attachments).toHaveLength(1);
+      expect(result.current.attachment.attachments[0].name).toBe("Button.tsx");
 
+      // Verify no separate context helper was created for the attachment
       const contexts = await result.current.helpers.getAdditionalContext();
       const attachmentContext = contexts.find((c) =>
         c.name.includes(result.current.attachment.attachments[0].id),
       );
-
-      expect(attachmentContext).toBeDefined();
-      expect(attachmentContext?.context).toHaveProperty("selectedComponent");
+      expect(attachmentContext).toBeUndefined();
     });
 
     /**
-     * Should unregister context helpers when attachments are removed
+     * Should remove attachments from state when removed
      */
-    it("should unregister context helpers when attachments are removed", async () => {
+    it("should remove attachments from state without affecting context helpers", async () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider>
           <TamboContextAttachmentProvider>
@@ -351,15 +353,7 @@ describe("TamboContextAttachmentProvider", () => {
         });
       });
 
-      // Wait for context helper to be registered
-      await waitFor(async () => {
-        const contexts = await result.current.helpers.getAdditionalContext();
-        expect(contexts.length).toBeGreaterThan(0);
-      });
-
-      const initialContexts =
-        await result.current.helpers.getAdditionalContext();
-      const initialCount = initialContexts.length;
+      expect(result.current.attachment.attachments).toHaveLength(1);
       const attachmentId = result.current.attachment.attachments[0].id;
 
       // Remove attachment
@@ -367,17 +361,14 @@ describe("TamboContextAttachmentProvider", () => {
         result.current.attachment.removeContextAttachment(attachmentId);
       });
 
-      // Wait for context helper to be unregistered
-      await waitFor(async () => {
-        const contexts = await result.current.helpers.getAdditionalContext();
-        expect(contexts.length).toBeLessThan(initialCount);
-      });
+      // Verify attachment was removed from state
+      expect(result.current.attachment.attachments).toHaveLength(0);
     });
 
     /**
-     * Should use default context data structure when no custom function provided
+     * Should preserve attachment metadata for use by other providers
      */
-    it("should use default context data structure", async () => {
+    it("should preserve attachment metadata", async () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboContextHelpersProvider>
           <TamboContextAttachmentProvider>
@@ -389,7 +380,6 @@ describe("TamboContextAttachmentProvider", () => {
       const { result } = renderHook(
         () => ({
           attachment: useTamboContextAttachment(),
-          helpers: useTamboContextHelpers(),
         }),
         { wrapper },
       );
@@ -401,30 +391,17 @@ describe("TamboContextAttachmentProvider", () => {
         });
       });
 
-      await waitFor(async () => {
-        const contexts = await result.current.helpers.getAdditionalContext();
-        expect(contexts.length).toBeGreaterThan(0);
-      });
-
-      const contexts = await result.current.helpers.getAdditionalContext();
-      const attachmentContext = contexts.find((c) =>
-        c.name.includes(result.current.attachment.attachments[0].id),
-      );
-
-      expect(attachmentContext?.context).toMatchObject({
-        selectedComponent: {
-          name: "Button.tsx",
-          instruction: expect.stringContaining("Tambo interactable component"),
-          filePath: "/src/Button.tsx",
-          type: "component",
-        },
+      // Verify attachment metadata is preserved for consumption by other providers
+      expect(result.current.attachment.attachments[0]).toMatchObject({
+        name: "Button.tsx",
+        metadata: { filePath: "/src/Button.tsx", type: "component" },
       });
     });
 
     /**
-     * Should use custom getContextHelperData function when provided
+     * getContextHelperData prop is deprecated and no longer used
      */
-    it("should use custom getContextHelperData function", async () => {
+    it("should accept getContextHelperData prop for backward compatibility but not use it", async () => {
       const customGetContextHelperData = jest.fn(
         async (context: ContextAttachment) => ({
           selectedFile: {
@@ -448,7 +425,6 @@ describe("TamboContextAttachmentProvider", () => {
       const { result } = renderHook(
         () => ({
           attachment: useTamboContextAttachment(),
-          helpers: useTamboContextHelpers(),
         }),
         { wrapper },
       );
@@ -460,36 +436,17 @@ describe("TamboContextAttachmentProvider", () => {
         });
       });
 
-      // Wait for context helper to be registered and called
-      await waitFor(
-        async () => {
-          const contexts = await result.current.helpers.getAdditionalContext();
-          expect(contexts.length).toBeGreaterThan(0);
-        },
-        { timeout: 2000 },
-      );
+      // Verify the function is not called since it's deprecated
+      expect(customGetContextHelperData).not.toHaveBeenCalled();
 
-      expect(customGetContextHelperData).toHaveBeenCalled();
-
-      const contexts = await result.current.helpers.getAdditionalContext();
-      const attachmentContext = contexts.find((c) =>
-        c.name.includes(result.current.attachment.attachments[0].id),
-      );
-
-      expect(attachmentContext?.context).toEqual({
-        selectedFile: {
-          name: "Button.tsx",
-          path: "/src/Button.tsx",
-          customField: "custom value",
-        },
-      });
+      // Verify attachment still works
+      expect(result.current.attachment.attachments).toHaveLength(1);
     });
 
     /**
-     * Should update context helpers when getContextHelperData function changes
-     * This tests the bug fix for stale closure issue
+     * getContextHelperData prop changes have no effect since it's deprecated
      */
-    it("should update existing context helpers when getContextHelperData changes", async () => {
+    it("should handle getContextHelperData prop changes gracefully", async () => {
       // Create a wrapper component with state to manage the function
       const TestWrapper = ({ children }: { children: React.ReactNode }) => {
         const [version, setVersion] = React.useState("v1");
@@ -519,7 +476,6 @@ describe("TamboContextAttachmentProvider", () => {
       const { result } = renderHook(
         () => ({
           attachment: useTamboContextAttachment(),
-          helpers: useTamboContextHelpers(),
         }),
         { wrapper: TestWrapper },
       );
@@ -531,55 +487,24 @@ describe("TamboContextAttachmentProvider", () => {
         });
       });
 
-      // Wait for context helper to be registered
-      await waitFor(
-        async () => {
-          const contexts = await result.current.helpers.getAdditionalContext();
-          expect(contexts.length).toBeGreaterThan(0);
-        },
-        { timeout: 2000 },
-      );
-
-      // Verify v1 context
-      let contexts = await result.current.helpers.getAdditionalContext();
-      let attachmentContext = contexts.find((c) =>
-        c.name.includes(result.current.attachment.attachments[0].id),
-      );
-      expect(attachmentContext?.context).toMatchObject({ version: "v1" });
+      // Verify attachment was added
+      expect(result.current.attachment.attachments).toHaveLength(1);
 
       // Change the version which will trigger a new getContextHelperData function
+      // but since it's deprecated, it should have no effect
       act(() => {
         (TestWrapper as any).setVersion("v2");
       });
 
-      // Wait for context to update to v2
-      await waitFor(
-        async () => {
-          const contexts = await result.current.helpers.getAdditionalContext();
-          const context = contexts.find((c) =>
-            c.name.includes(result.current.attachment.attachments[0].id),
-          );
-          return context?.context.version === "v2";
-        },
-        { timeout: 2000 },
-      );
-
-      // Verify v2 context - should be updated, not stale
-      contexts = await result.current.helpers.getAdditionalContext();
-      attachmentContext = contexts.find((c) =>
-        c.name.includes(result.current.attachment.attachments[0].id),
-      );
-      expect(attachmentContext?.context).toMatchObject({ version: "v2" });
+      // Verify attachment state is still intact
+      expect(result.current.attachment.attachments).toHaveLength(1);
+      expect(result.current.attachment.attachments[0].name).toBe("Button.tsx");
     });
 
     /**
-     * Should handle errors in getContextHelperData gracefully
+     * getContextHelperData errors have no effect since it's deprecated
      */
-    it("should handle errors in getContextHelperData gracefully", async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
+    it("should handle getContextHelperData prop gracefully even with errors", async () => {
       const errorGetData = jest.fn(async () => {
         throw new Error("Custom data error");
       });
@@ -595,7 +520,6 @@ describe("TamboContextAttachmentProvider", () => {
       const { result } = renderHook(
         () => ({
           attachment: useTamboContextAttachment(),
-          helpers: useTamboContextHelpers(),
         }),
         { wrapper },
       );
@@ -606,23 +530,11 @@ describe("TamboContextAttachmentProvider", () => {
         });
       });
 
-      // Wait for effect to run and try to call the function
-      await waitFor(
-        () => {
-          expect(result.current.attachment.attachments.length).toBeGreaterThan(
-            0,
-          );
-        },
-        { timeout: 2000 },
-      );
+      // Verify attachment was added successfully despite the error function
+      expect(result.current.attachment.attachments).toHaveLength(1);
 
-      // Try to get contexts, which will trigger the error
-      await result.current.helpers.getAdditionalContext();
-
-      expect(errorGetData).toHaveBeenCalled();
-      expect(consoleErrorSpy).toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
+      // Verify the error function was not called since it's deprecated
+      expect(errorGetData).not.toHaveBeenCalled();
     });
   });
 

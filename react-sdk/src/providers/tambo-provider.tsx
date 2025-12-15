@@ -64,7 +64,7 @@ import {
  * @param props.contextKey - Optional context key passed to thread input provider for scoping threads
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
  * @param props.initialMessages - Initial messages to be included in new threads
- * @param props.getContextHelperData - Optional function to customize the data sent to the AI for each context attachment
+ * @param props.getContextHelperData - **DEPRECATED**: Optional function to customize the data sent to the AI for each context attachment. No longer used - context attachments are now indicated via isSelectedForInteraction in the unified interactables context.
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<

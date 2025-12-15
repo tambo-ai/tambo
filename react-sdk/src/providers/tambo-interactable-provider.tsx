@@ -16,6 +16,7 @@ import {
 } from "../model/tambo-interactable";
 import { assertValidName } from "../util/validate-component-name";
 import { useTamboComponent } from "./tambo-component-provider";
+import { useTamboContextAttachment } from "./tambo-context-attachment-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
@@ -44,11 +45,37 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   >([]);
   const { registerTool } = useTamboComponent();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const { attachments } = useTamboContextAttachment();
 
-  // Create a stable context helper function
+  // Create a stable context helper function that includes selection state
   const contextHelper = useCallback(() => {
-    return createInteractablesContextHelper(() => interactableComponents)();
-  }, [interactableComponents]);
+    // Match attachments to interactable components by:
+    // 1. metadata.componentId (when component is selected via @ mention)
+    // 2. name (fallback for backward compatibility)
+    const selectedIds = new Set<string>();
+    for (const attachment of attachments) {
+      // Try to match by componentId in metadata first
+      const componentId = attachment.metadata?.componentId as
+        | string
+        | undefined;
+      if (componentId) {
+        selectedIds.add(componentId);
+      } else {
+        // Fallback: match by name
+        const matchingComponent = interactableComponents.find(
+          (c) => c.name === attachment.name,
+        );
+        if (matchingComponent) {
+          selectedIds.add(matchingComponent.id);
+        }
+      }
+    }
+
+    return createInteractablesContextHelper(
+      () => interactableComponents,
+      () => selectedIds,
+    )();
+  }, [interactableComponents, attachments]);
 
   // Register the default interactables context helper
   useEffect(() => {
