@@ -61,7 +61,7 @@
     "openai": "^6.4.0",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
-    "resend": "^6.5.0",
+    "resend": "^6.6.0",
     "rxjs": "7.8.1",
     "superjson": "^2.2.2",
     "uuid": "^13.0.0"
