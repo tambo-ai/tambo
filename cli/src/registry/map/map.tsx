@@ -167,35 +167,29 @@ if (typeof window !== "undefined") {
  * Variants for the map component
  * Defines different size, theme, and rounded corner options for the map
  */
-export const mapVariants = cva("w-full transition-all duration-200", {
-  variants: {
-    size: {
-      sm: "h-[200px]",
-      md: "h-[300px]",
-      lg: "h-[500px]",
-      full: "h-full w-full",
+export const mapVariants = cva(
+  "w-full transition-all duration-200 bg-background border border-border",
+  {
+    variants: {
+      size: {
+        sm: "h-[200px]",
+        md: "h-[300px]",
+        lg: "h-[500px]",
+        full: "h-full w-full",
+      },
+      rounded: {
+        none: "rounded-none",
+        sm: "rounded-md",
+        md: "rounded-lg",
+        full: "rounded-full",
+      },
     },
-    theme: {
-      default: "bg-background border border-border rounded-lg",
-      dark: "bg-background border border-border rounded-lg",
-      light: "bg-background border border-border rounded-lg",
-      satellite: "bg-muted border border-border rounded-lg",
-      bordered: "border-2 border-primary",
-      shadow: "shadow-lg",
-    },
-    rounded: {
-      none: "rounded-none",
-      sm: "rounded-md",
-      md: "rounded-lg",
-      full: "rounded-full",
+    defaultVariants: {
+      size: "md",
+      rounded: "md",
     },
   },
-  defaultVariants: {
-    size: "md",
-    theme: "default",
-    rounded: "md",
-  },
-});
+);
 
 /**
  * Zod schema for validating marker data
@@ -247,10 +241,8 @@ export const mapSchema = z.object({
     .describe("Optional tailwind className for the map container"),
   /** Size variant for the map */
   size: z.enum(["sm", "md", "lg", "full"]).optional(),
-  /** Theme variant for the map styling */
-  theme: z
-    .enum(["default", "dark", "light", "satellite", "bordered", "shadow"])
-    .optional(),
+  /** Map tile theme (affects the actual map tiles, not container styling) */
+  tileTheme: z.enum(["default", "dark", "light", "satellite"]).optional(),
   /** Border radius variant */
   rounded: z.enum(["none", "sm", "md", "full"]).optional(),
 });
@@ -261,7 +253,10 @@ export type MarkerData = z.infer<typeof markerSchema>;
 export type HeatData = z.infer<typeof heatDataSchema>;
 /** Type definition for map props combining schema and variant props */
 export type MapProps = z.infer<typeof mapSchema> &
-  VariantProps<typeof mapVariants>;
+  VariantProps<typeof mapVariants> & {
+    /** @deprecated Use tileTheme instead */
+    theme?: "default" | "dark" | "light" | "satellite";
+  };
 
 /**
  * Hook to filter and validate marker data
@@ -386,12 +381,15 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
       zoomControl = true,
       className,
       size = "md",
-      theme = "default",
+      tileTheme,
+      theme,
       rounded = "md",
       ...props
     },
     ref,
   ) => {
+    // Support deprecated theme prop, prefer tileTheme
+    const effectiveTileTheme = tileTheme ?? theme ?? "default";
     const { thread } = useTambo();
     const currentMessage = useTamboCurrentMessage();
 
@@ -413,7 +411,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
       return (
         <div
           ref={ref}
-          className={cn(mapVariants({ size, theme, rounded }), className)}
+          className={cn(mapVariants({ size, rounded }), className)}
           {...props}
         >
           <LoadingSpinner />
@@ -426,7 +424,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
       return (
         <div
           ref={ref}
-          className={cn(mapVariants({ size, theme, rounded }), className)}
+          className={cn(mapVariants({ size, rounded }), className)}
           {...props}
         >
           <div className="h-full flex items-center justify-center">
@@ -445,7 +443,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
       <div
         ref={ref}
         className={cn(
-          mapVariants({ size, theme, rounded }),
+          mapVariants({ size, rounded }),
           "overflow-hidden",
           className,
         )}
@@ -458,7 +456,7 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
           scrollWheelZoom
           zoomControl={zoomControl}
         >
-          <TileLayer url={getTileLayerUrl(theme)} />
+          <TileLayer url={getTileLayerUrl(effectiveTileTheme)} />
 
           {validHeatData.length > 0 && (
             <HeatLayer
@@ -532,18 +530,18 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
 Map.displayName = "Map";
 
 /**
- * Internal function to get tile layer URL based on theme
+ * Internal function to get tile layer URL based on tile theme
  */
 function getTileLayerUrl(
-  theme: "default" | "dark" | "light" | "satellite" | "bordered" | "shadow",
+  tileTheme: "default" | "dark" | "light" | "satellite",
 ): string {
-  if (theme === "dark") {
+  if (tileTheme === "dark") {
     return "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
   }
-  if (theme === "light") {
+  if (tileTheme === "light") {
     return "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
   }
-  if (theme === "satellite") {
+  if (tileTheme === "satellite") {
     return "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
   }
   return "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
