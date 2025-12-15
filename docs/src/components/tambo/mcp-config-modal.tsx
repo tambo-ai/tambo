@@ -401,7 +401,7 @@ function MyApp() {
             <p className="text-foreground text-sm leading-relaxed">
               The{" "}
               <a
-                href="https://docs.tambo.co/concepts/model-context-protocol"
+                href="/concepts/model-context-protocol"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium underline underline-offset-2 hover:text-foreground"
@@ -418,7 +418,7 @@ function MyApp() {
             <p className="text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">Learn more:</span>{" "}
               <a
-                href="https://docs.tambo.co/concepts/model-context-protocol/clientside-mcp-connection"
+                href="/concepts/model-context-protocol/providers/clientside-mcp-connection"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground underline underline-offset-2"
@@ -427,7 +427,7 @@ function MyApp() {
               </a>{" "}
               |{" "}
               <a
-                href="https://docs.tambo.co/concepts/model-context-protocol/serverside-mcp-connection"
+                href="/concepts/model-context-protocol/providers/serverside-mcp-connection"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground underline underline-offset-2"
