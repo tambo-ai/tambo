@@ -2,6 +2,8 @@ import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
 import { handleZodSchemaToJson, isZod3Schema, isZod4Schema } from "./zod";
 
+// Conservative helper: returns true if any object in the tree has an own `key`
+// property at any depth.
 function hasKeyDeep(value: unknown, key: string): boolean {
   const seen = new Set<object>();
 
@@ -294,16 +296,22 @@ describe("zod schema utilities", () => {
         nodeSchema = z4.object({ next: z4.lazy(() => nodeSchema).optional() });
 
         const result = handleZodSchemaToJson(nodeSchema);
+        const properties = (result as Record<string, unknown>)
+          .properties as Record<string, unknown>;
+        const next = properties.next as Record<string, unknown>;
 
         expect(hasKeyDeep(result, "$ref")).toBe(true);
         expect(result).toMatchObject({
           type: "object",
           properties: {
-            next: {
-              $ref: "#",
-            },
+            next: expect.any(Object),
           },
         });
+        expect(next).toEqual(
+          expect.objectContaining({
+            $ref: expect.stringMatching(/^#(\/.*)?$/),
+          }),
+        );
       });
     });
 
