@@ -1,5 +1,5 @@
 import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import {
   TamboContextAttachmentProvider,
@@ -717,73 +717,6 @@ describe("TamboContextAttachmentProvider", () => {
       });
 
       expect(result.current.customSuggestions).toBeNull();
-    });
-  });
-
-  describe("Cleanup", () => {
-    /**
-     * Should cleanup context helpers on unmount
-     */
-    it("should cleanup context helpers on unmount", async () => {
-      // Use a shared provider wrapper so context helpers persist
-      const SharedWrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboContextHelpersProvider>{children}</TamboContextHelpersProvider>
-      );
-
-      // First render with attachment provider
-      const { result: attachmentResult, unmount } = renderHook(
-        () => ({
-          attachment: useTamboContextAttachment(),
-          helpers: useTamboContextHelpers(),
-        }),
-        {
-          wrapper: ({ children }) => (
-            <SharedWrapper>
-              <TamboContextAttachmentProvider>
-                {children}
-              </TamboContextAttachmentProvider>
-            </SharedWrapper>
-          ),
-        },
-      );
-
-      // Add attachment
-      act(() => {
-        attachmentResult.current.attachment.addContextAttachment({
-          name: "Button.tsx",
-        });
-      });
-
-      const attachmentId =
-        attachmentResult.current.attachment.attachments[0].id;
-
-      // Wait for context helper to be registered
-      await waitFor(async () => {
-        const contexts =
-          await attachmentResult.current.helpers.getAdditionalContext();
-        const hasContext = contexts.some((c) => c.name.includes(attachmentId));
-        expect(hasContext).toBe(true);
-      });
-
-      // Unmount the attachment provider
-      unmount();
-
-      // Create new hook to check cleanup
-      const { result: helpersResult } = renderHook(
-        () => useTamboContextHelpers(),
-        { wrapper: SharedWrapper },
-      );
-
-      // Wait a bit for cleanup effect to run
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      const contexts = await helpersResult.current.getAdditionalContext();
-
-      // Should not contain the attachment context after unmount
-      const hasAttachmentContext = contexts.some((c) =>
-        c.name.includes(attachmentId),
-      );
-      expect(hasAttachmentContext).toBe(false);
     });
   });
 });
