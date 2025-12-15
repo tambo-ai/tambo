@@ -57,7 +57,9 @@ const streamdownRehypePlugins: PluggableList = [
         "https://",
         "mailto:",
       ],
-      // defaultOrigin is required when allowedLinkPrefixes is provided
+      // defaultOrigin is required when allowedLinkPrefixes is provided.
+      // This is only used to resolve relative URLs for prefix matching.
+      // Since we only allow absolute URL prefixes, the actual value doesn't matter.
       defaultOrigin: "https://tambo.co",
       allowDataImages: true,
     },
