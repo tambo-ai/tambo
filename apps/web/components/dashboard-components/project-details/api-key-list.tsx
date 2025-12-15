@@ -9,7 +9,7 @@ import { withInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import {
   DeleteConfirmationDialog,
   type AlertState,

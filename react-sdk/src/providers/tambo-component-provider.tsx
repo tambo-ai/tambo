@@ -1,14 +1,23 @@
 "use client";
 import React, { createContext, PropsWithChildren, useContext } from "react";
-import { TamboComponent, TamboTool } from "../model/component-metadata";
+import {
+  RegisterToolFn,
+  RegisterToolsFn,
+  TamboComponent,
+  TamboTool,
+  TamboToolWithToolSchema,
+} from "../model/component-metadata";
 import { useTamboClient } from "./tambo-client-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 
 export interface TamboComponentContextProps {
   registerComponent: (options: TamboComponent) => void;
-  registerTool: (tool: TamboTool) => void;
-  registerTools: (tools: TamboTool[]) => void;
-  addToolAssociation: (componentName: string, tool: TamboTool) => void;
+  registerTool: RegisterToolFn;
+  registerTools: RegisterToolsFn;
+  addToolAssociation: (
+    componentName: string,
+    tool: TamboTool | TamboToolWithToolSchema,
+  ) => void;
 }
 
 const TamboComponentContext = createContext<TamboComponentContextProps>({

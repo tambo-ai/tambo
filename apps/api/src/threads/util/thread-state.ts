@@ -9,6 +9,7 @@ import {
   ContentPartType,
   GenerationStage,
   getToolName,
+  isUiToolName,
   LegacyComponentDecision,
   MessageRole,
   ThreadAssistantMessage,
@@ -353,6 +354,18 @@ export function updateThreadMessageFromLegacyDecision(
   // duplication, because they appear in the thread message
   const { reasoning, isToolCallFinished, ...simpleDecisionChunk } = chunk;
 
+  // For UI tools, strip tool call fields from the component field
+  // so the client never sees them as tool calls
+  let component = simpleDecisionChunk;
+  if (chunk.toolCallRequest && isUiToolName(chunk.toolCallRequest.toolName)) {
+    const {
+      toolCallRequest: _toolCallRequest,
+      toolCallId: _toolCallId,
+      ...componentWithoutToolCall
+    } = simpleDecisionChunk;
+    component = componentWithoutToolCall;
+  }
+
   const commonFields = {
     id: initialMessage.id,
     threadId: initialMessage.threadId,
@@ -370,7 +383,7 @@ export function updateThreadMessageFromLegacyDecision(
         text: chunk.message,
       },
     ],
-    component: simpleDecisionChunk,
+    component,
   };
 
   // Handle reasoning and tool calls based on role
@@ -382,11 +395,19 @@ export function updateThreadMessageFromLegacyDecision(
       reasoningDurationMS: chunk.reasoningDurationMS,
     };
 
-    // Only set outer tool call fields if tool call is finished.
-    if (isToolCallFinished && chunk.toolCallRequest) {
-      currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
-      currentThreadMessage.tool_call_id = chunk.toolCallId;
-      currentThreadMessage.actionType = ActionType.ToolCall;
+    // Handle tool call fields differently for UI tools vs non-UI tools:
+    // - UI tools: Set fields as soon as we have valid toolCallRequest and toolCallId
+    //   (so they're tracked as tool calls during streaming)
+    // - Non-UI tools: Only set fields when isToolCallFinished is true
+    //   (so client SDK doesn't call them until complete)
+    if (chunk.toolCallRequest && chunk.toolCallId) {
+      const isUITool = isUiToolName(chunk.toolCallRequest.toolName);
+
+      if (isUITool || isToolCallFinished) {
+        currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
+        currentThreadMessage.tool_call_id = chunk.toolCallId;
+        currentThreadMessage.actionType = ActionType.ToolCall;
+      }
     }
 
     return currentThreadMessage;

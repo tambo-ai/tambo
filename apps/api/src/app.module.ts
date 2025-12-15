@@ -19,7 +19,6 @@ import { RequestLoggerMiddleware } from "./common/middleware/request-logger.midd
 import { AuthService } from "./common/services/auth.service";
 import { EmailService } from "./common/services/email.service";
 import { ConfigServiceSingleton } from "./config.service";
-import { ExtractorModule } from "./extractor/extractor.module";
 import { OAuthModule } from "./oauth/oauth.module";
 import { ProjectsModule } from "./projects/projects.module";
 import { RegistryModule } from "./registry/registry.module";
@@ -41,7 +40,6 @@ export class GlobalModule {}
     OAuthModule,
     ProjectsModule,
     RegistryModule,
-    ExtractorModule,
     ThreadsModule,
     AudioModule,
     GlobalModule,

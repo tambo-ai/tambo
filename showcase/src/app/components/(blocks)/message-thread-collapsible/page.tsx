@@ -52,7 +52,7 @@ export default function MessageThreadCollapsiblePage() {
                 />
               </div>
             }
-            code={`import { MessageThreadCollapsible } from "@tambo-ai/react";
+            code={`import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
 
 export function PageWithChat() {
   return (

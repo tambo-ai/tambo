@@ -137,6 +137,13 @@ const config = {
       use: ["@svgr/webpack"],
     });
 
+    // don't resolve optional peers from '@standard-community/standard-json'
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      effect: false,
+      sury: false,
+    };
+
     return config;
   },
 };

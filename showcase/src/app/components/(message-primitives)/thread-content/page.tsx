@@ -113,7 +113,10 @@ export default function ThreadContentPage() {
                 </ThreadContent>
               </TamboStubProvider>
             }
-            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
+            code={`import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/tambo/thread-content";
 
 export function ChatDemo() {
   return (
@@ -134,7 +137,10 @@ export function ChatDemo() {
                 </ThreadContent>
               </TamboStubProvider>
             }
-            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
+            code={`import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/tambo/thread-content";
 
 export function ChatDemo() {
   return (
@@ -155,7 +161,10 @@ export function ChatDemo() {
                 </ThreadContent>
               </TamboStubProvider>
             }
-            code={`import { ThreadContent, ThreadContentMessages } from "@tambo-ai/react";
+            code={`import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@/components/tambo/thread-content";
 
 export function EmptyThread() {
   return (

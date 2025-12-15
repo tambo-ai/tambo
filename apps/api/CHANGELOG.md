@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.127.0](https://github.com/tambo-ai/tambo/compare/api-v0.126.0...api-v0.127.0) (2025-12-13)
+
+
+### Features
+
+* allow multiple components returned in one response loop ([#1525](https://github.com/tambo-ai/tambo/issues/1525)) ([3886f59](https://github.com/tambo-ai/tambo/commit/3886f59765846c6466766c0c3dd6ae0c32f2eb2d))
+* **api:** support per-tool maxCalls override for tool-call limits ([#1360](https://github.com/tambo-ai/tambo/issues/1360)) ([f96c882](https://github.com/tambo-ai/tambo/commit/f96c882fa9ac4db425baa133174c48feba649435))
+
+
+### Bug Fixes
+
+* **core:** enforce unsaved thread message path ([#1462](https://github.com/tambo-ai/tambo/issues/1462)) ([a226fcc](https://github.com/tambo-ai/tambo/commit/a226fcc1150c56b4963b135f6a462b8c86c10f5b))
+
+
+### Miscellaneous Chores
+
+* **ci:** update turbo caching ([#1505](https://github.com/tambo-ai/tambo/issues/1505)) ([a091dc6](https://github.com/tambo-ai/tambo/commit/a091dc68af625fdf5caa33e2d1efe65f480f9d47))
+* **deps-dev:** bump ts-jest from 29.4.5 to 29.4.6 in the testing group ([#1484](https://github.com/tambo-ai/tambo/issues/1484)) ([07a1253](https://github.com/tambo-ai/tambo/commit/07a125380a847816424b4dae304075b3726e1816))
+* **deps:** bump the drizzle group with 2 updates ([#1482](https://github.com/tambo-ai/tambo/issues/1482)) ([7f2670c](https://github.com/tambo-ai/tambo/commit/7f2670cdc6cada1c71bd27131b3c97f756908ad2))
+* **deps:** bump the sentry group with 3 updates ([#1488](https://github.com/tambo-ai/tambo/issues/1488)) ([86e6b0b](https://github.com/tambo-ai/tambo/commit/86e6b0b4d756d01d8689b79587b8f46746131d81))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1487](https://github.com/tambo-ai/tambo/issues/1487)) ([2178c32](https://github.com/tambo-ai/tambo/commit/2178c32ed7c962a915aa80694cc8e3c4a7f434ba))
+* remove "Extractor" and associated services/etc (not used) ([#1515](https://github.com/tambo-ai/tambo/issues/1515)) ([18a7f69](https://github.com/tambo-ai/tambo/commit/18a7f694cbeb3f9b144822c9e3aa7975096b8bac))
+
 ## [0.126.0](https://github.com/tambo-ai/tambo/compare/api-v0.125.0...api-v0.126.0) (2025-12-08)
 
 

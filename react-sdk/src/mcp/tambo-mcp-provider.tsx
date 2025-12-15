@@ -7,7 +7,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { TamboTool } from "../model/component-metadata";
 import {
   getMcpServerUniqueKey,
   type NormalizedMcpServerInfo,
@@ -364,7 +363,8 @@ export const TamboMcpProvider: FC<{
                     }
                     return result.content;
                   },
-                  toolSchema: tool.inputSchema as TamboTool["toolSchema"],
+                  inputSchema: tool.inputSchema ?? {},
+                  outputSchema: {},
                   transformToContent: (content: unknown) => {
                     if (isContentPartArray(content)) {
                       return content;
