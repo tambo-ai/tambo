@@ -7,7 +7,9 @@
     "import": "./src/index.ts"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc",
@@ -20,7 +22,7 @@
     "clean": "rm -rf dist coverage"
   },
   "author": "",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "@ag-ui/client": "0.0.40",
     "@ag-ui/core": "^0.0.39",
