@@ -27,7 +27,7 @@
     "@tambo-ai/typescript-sdk": "^0.80.0",
     "@tiptap/extension-document": "^3.11.1",
     "@tiptap/extension-mention": "^3.11.1",
-    "@tiptap/extension-paragraph": "^3.11.1",
+    "@tiptap/extension-paragraph": "^3.13.0",
     "@tiptap/extension-placeholder": "^3.11.1",
     "@tiptap/extension-text": "^3.11.1",
     "@tiptap/react": "^3.11.1",
