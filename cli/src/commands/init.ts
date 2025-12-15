@@ -165,8 +165,12 @@ function displaySelfHostInstructions(): void {
   console.log(
     chalk.gray("  1. Create .env files (see repo .env.example files)"),
   );
-  console.log(chalk.gray("  2. Start Postgres via ./scripts/cloud/tambo-start.sh"));
-  console.log(chalk.gray("  3. Initialize DB via ./scripts/cloud/init-database.sh"));
+  console.log(
+    chalk.gray("  2. Start Postgres via ./scripts/cloud/tambo-start.sh"),
+  );
+  console.log(
+    chalk.gray("  3. Initialize DB via ./scripts/cloud/init-database.sh"),
+  );
   console.log(chalk.gray("  4. npm run dev (web + api)\n"));
 }
 
