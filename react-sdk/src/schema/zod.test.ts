@@ -9,18 +9,25 @@ import { handleZodSchemaToJson, isZod3Schema, isZod4Schema } from "./zod";
 function hasKeyDeep(value: unknown, key: string): boolean {
   const seen = new Set<object>();
 
-  function visit(node: unknown): boolean {
-    if (!node || typeof node !== "object") return false;
-    if (seen.has(node)) return false;
-    seen.add(node);
+  function isPlainObject(v: unknown): v is Record<string, unknown> {
+    if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+    const proto = Object.getPrototypeOf(v);
+    return proto === Object.prototype || proto === null;
+  }
 
+  function visit(node: unknown): boolean {
     if (Array.isArray(node)) {
+      if (seen.has(node)) return false;
+      seen.add(node);
       return node.some(visit);
     }
 
-    const record = node as Record<string, unknown>;
-    if (Object.prototype.hasOwnProperty.call(record, key)) return true;
-    return Object.values(record).some(visit);
+    if (!isPlainObject(node)) return false;
+    if (seen.has(node)) return false;
+    seen.add(node);
+
+    if (Object.prototype.hasOwnProperty.call(node, key)) return true;
+    return Object.values(node).some(visit);
   }
 
   return visit(value);
@@ -103,7 +110,7 @@ describe("zod schema utilities", () => {
     });
 
     describe("reused schemas - no $ref references", () => {
-      it("inlines reused Zod 3 schemas instead of using $ref", () => {
+      it("inlines reused Zod 3 schemas without any $ref in output", () => {
         // Define a shared schema that will be reused
         const dataSchema = z3.object({
           name: z3.string(),
@@ -149,7 +156,7 @@ describe("zod schema utilities", () => {
         });
       });
 
-      it("inlines reused Zod 4 schemas instead of using $ref", () => {
+      it("inlines reused Zod 4 schemas without any $ref in output", () => {
         // Define a shared schema that will be reused
         const dataSchema = z4.object({
           name: z4.string(),
@@ -194,7 +201,7 @@ describe("zod schema utilities", () => {
         });
       });
 
-      it("handles deeply nested reused Zod 3 schemas", () => {
+      it("handles deeply nested reused Zod 3 schemas without any $ref", () => {
         const addressSchema = z3.object({
           street: z3.string(),
           city: z3.string(),
@@ -231,7 +238,7 @@ describe("zod schema utilities", () => {
         });
       });
 
-      it("handles deeply nested reused Zod 4 schemas", () => {
+      it("handles deeply nested reused Zod 4 schemas without any $ref", () => {
         const addressSchema = z4.object({
           street: z4.string(),
           city: z4.string(),
@@ -268,7 +275,7 @@ describe("zod schema utilities", () => {
         });
       });
 
-      it("handles triple-nested reused Zod 4 schemas", () => {
+      it("handles triple-nested reused Zod 4 schemas without any $ref", () => {
         const pointSchema = z4.object({
           x: z4.number(),
           y: z4.number(),
@@ -301,6 +308,37 @@ describe("zod schema utilities", () => {
         nodeSchema = z4.object({ next: z4.lazy(() => nodeSchema).optional() });
 
         const result = handleZodSchemaToJson(nodeSchema);
+        const schema = result as Record<string, unknown>;
+        const properties = schema.properties as
+          | Record<string, unknown>
+          | undefined;
+        const next = properties?.next as Record<string, unknown> | undefined;
+        const ref = next?.$ref;
+
+        function resolveJsonPointer(doc: unknown, pointer: string): unknown {
+          if (!pointer.startsWith("#")) return undefined;
+          if (pointer === "#") return doc;
+          if (!pointer.startsWith("#/")) return undefined;
+
+          return pointer
+            .slice(2)
+            .split("/")
+            .map((segment) => decodeURIComponent(segment))
+            .map((segment) =>
+              segment.replaceAll("~1", "/").replaceAll("~0", "~"),
+            )
+            .reduce<unknown>((current, segment) => {
+              if (!current || typeof current !== "object") return undefined;
+
+              if (Array.isArray(current)) {
+                const index = Number(segment);
+                if (!Number.isInteger(index)) return undefined;
+                return current[index];
+              }
+
+              return (current as Record<string, unknown>)[segment];
+            }, doc);
+        }
 
         expect(hasKeyDeep(result, "$ref")).toBe(true);
         expect(result).toMatchObject({
@@ -310,6 +348,13 @@ describe("zod schema utilities", () => {
               $ref: expect.stringMatching(/^#(\/.*)?$/),
             },
           },
+        });
+        expect(ref).toEqual(expect.stringMatching(/^#(\/.*)?$/));
+
+        const resolved =
+          typeof ref === "string" ? resolveJsonPointer(result, ref) : undefined;
+        expect(resolved).toMatchObject({
+          type: "object",
         });
       });
     });
