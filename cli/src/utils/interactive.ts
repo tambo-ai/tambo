@@ -5,6 +5,12 @@ import {
 } from "child_process";
 import type { ExecFileSyncOptions, ExecSyncOptions } from "child_process";
 import inquirer from "inquirer";
+import type { Answers, DistinctQuestion, PromptSession } from "inquirer";
+
+type InquirerPromptQuestions = PromptSession<
+  Answers,
+  DistinctQuestion<Answers>
+>;
 
 /**
  * Checks if the current environment is interactive.
@@ -50,7 +56,7 @@ export class NonInteractiveError extends Error {
  * @throws NonInteractiveError if not in an interactive environment
  */
 export async function interactivePrompt<T>(
-  questions: Parameters<typeof inquirer.prompt>[0],
+  questions: InquirerPromptQuestions,
   helpMessage?: string,
 ): Promise<T> {
   if (!isInteractive()) {

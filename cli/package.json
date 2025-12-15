@@ -67,7 +67,7 @@
     "diff": "^8.0.2",
     "dotenv": "^17.2.3",
     "fast-equals": "^5.3.3",
-    "inquirer": "^12.9.4",
+    "inquirer": "^13.0.2",
     "meow": "^14.0.0",
     "open": "^11.0.0",
     "ora": "^9.0.0",
@@ -80,7 +80,6 @@
   },
   "devDependencies": {
     "@types/chalk": "^2.2.4",
-    "@types/inquirer": "^9.0.7",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.15.32",
     "@types/node-fetch": "^2.6.13",
