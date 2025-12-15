@@ -22,6 +22,5 @@
   },
   "volta": {
     "extends": "../../package.json"
-  },
-  "license": "MIT"
+  }
 }
