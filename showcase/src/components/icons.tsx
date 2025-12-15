@@ -1,28 +1,58 @@
+"use client";
+
 import TamboLogo from "@/public/logo/lockup/Tambo-Lockup.svg";
 import TamboLogoDark from "@/public/logo/lockup/Tambo-Lockup-Dark.svg";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 type IconProps = React.HTMLAttributes<SVGElement> & {
   width?: number | string;
   height?: number | string;
 };
 
-export const Icons = {
-  logo: ({ className, ...props }: IconProps) => (
-    <>
+function TamboLogoIcon({ className, ...props }: IconProps) {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // During SSR/hydration, render light logo as default
+  if (!mounted) {
+    return (
       <TamboLogo
         viewBox="0 0 2072 450"
         preserveAspectRatio="xMinYMid meet"
-        className={`dark:hidden ${className ?? ""}`}
+        className={className}
         {...props}
       />
+    );
+  }
+
+  if (resolvedTheme === "dark") {
+    return (
       <TamboLogoDark
         viewBox="0 0 2072 457"
         preserveAspectRatio="xMinYMid meet"
-        className={`hidden dark:block ${className ?? ""}`}
+        className={className}
         {...props}
       />
-    </>
-  ),
+    );
+  }
+
+  return (
+    <TamboLogo
+      viewBox="0 0 2072 450"
+      preserveAspectRatio="xMinYMid meet"
+      className={className}
+      {...props}
+    />
+  );
+}
+
+export const Icons = {
+  logo: TamboLogoIcon,
   github: (props: IconProps) => (
     <svg viewBox="0 0 438.549 438.549" {...props}>
       <path
