@@ -21,6 +21,7 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <button
+        type="button"
         className="p-2 hover:bg-muted rounded-full transition-colors relative w-9 h-9 border border-border"
         aria-label="Toggle theme"
       >
@@ -31,6 +32,7 @@ export function ThemeToggle() {
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
       className="p-2 hover:bg-muted rounded-full transition-colors relative w-9 h-9 border border-border"
       aria-label="Toggle theme"
