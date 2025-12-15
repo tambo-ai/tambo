@@ -63,7 +63,7 @@
     "reflect-metadata": "^0.2.0",
     "resend": "^6.5.0",
     "rxjs": "7.8.1",
-    "superjson": "^2.2.2",
+    "superjson": "^2.2.6",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
