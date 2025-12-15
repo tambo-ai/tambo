@@ -35,7 +35,7 @@
     "@vercel/og": "^0.8.5",
     "autoprefixer": "^10.4.22",
     "class-variance-authority": "^0.7.1",
-    "dompurify": "^3.3.0",
+    "dompurify": "^3.3.1",
     "framer-motion": "^12.23.24",
     "geist": "^1.5.1",
     "highlight.js": "^11.11.1",
