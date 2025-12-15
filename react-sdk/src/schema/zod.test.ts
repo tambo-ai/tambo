@@ -296,22 +296,16 @@ describe("zod schema utilities", () => {
         nodeSchema = z4.object({ next: z4.lazy(() => nodeSchema).optional() });
 
         const result = handleZodSchemaToJson(nodeSchema);
-        const properties = (result as Record<string, unknown>)
-          .properties as Record<string, unknown>;
-        const next = properties.next as Record<string, unknown>;
 
         expect(hasKeyDeep(result, "$ref")).toBe(true);
         expect(result).toMatchObject({
           type: "object",
           properties: {
-            next: expect.any(Object),
+            next: {
+              $ref: expect.stringMatching(/^#(\/.*)?$/),
+            },
           },
         });
-        expect(next).toEqual(
-          expect.objectContaining({
-            $ref: expect.stringMatching(/^#(\/.*)?$/),
-          }),
-        );
       });
     });
 
