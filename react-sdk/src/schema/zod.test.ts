@@ -16,15 +16,15 @@ function hasKeyDeep(value: unknown, key: string): boolean {
   }
 
   function visit(node: unknown): boolean {
+    if (!node || typeof node !== "object") return false;
+    if (seen.has(node)) return false;
+    seen.add(node);
+
     if (Array.isArray(node)) {
-      if (seen.has(node)) return false;
-      seen.add(node);
       return node.some(visit);
     }
 
     if (!isPlainObject(node)) return false;
-    if (seen.has(node)) return false;
-    seen.add(node);
 
     if (Object.prototype.hasOwnProperty.call(node, key)) return true;
     return Object.values(node).some(visit);
@@ -41,7 +41,6 @@ function resolveJsonPointer(doc: unknown, pointer: string): unknown {
   return pointer
     .slice(2)
     .split("/")
-    .map((segment) => decodeURIComponent(segment))
     .map((segment) => segment.replaceAll("~1", "/").replaceAll("~0", "~"))
     .reduce<unknown>((current, segment) => {
       if (!current || typeof current !== "object") return undefined;
@@ -355,6 +354,7 @@ describe("zod schema utilities", () => {
 
         const resolved =
           typeof ref === "string" ? resolveJsonPointer(result, ref) : undefined;
+        expect(resolved).toBe(result);
         expect(resolved).toMatchObject({
           type: "object",
         });
