@@ -99,7 +99,7 @@
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
     "resend": "^6.4.1",
-    "shiki": "^3.15.0",
+    "shiki": "^3.19.0",
     "streamdown": "^1.6.10",
     "superjson": "^2.2.2",
     "tailwind-merge": "^3.4.0",
