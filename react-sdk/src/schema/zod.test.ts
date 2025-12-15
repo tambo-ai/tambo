@@ -2,8 +2,10 @@ import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
 import { handleZodSchemaToJson, isZod3Schema, isZod4Schema } from "./zod";
 
+// Test helper: assumes `value` is JSON-serializable (plain objects/arrays/primitives).
 // Conservative helper: returns true if any object in the tree has an own `key`
-// property at any depth.
+// property at any depth. This lets us assert against JSON Schema `$ref` keys
+// structurally (not via incidental substrings in string values).
 function hasKeyDeep(value: unknown, key: string): boolean {
   const seen = new Set<object>();
 
@@ -116,6 +118,7 @@ describe("zod schema utilities", () => {
 
         const result = handleZodSchemaToJson(props);
 
+        // Ensure there are no JSON Schema `$ref` keys anywhere in the produced schema.
         expect(hasKeyDeep(result, "$ref")).toBe(false);
 
         // Both arrays should have the full schema inline
@@ -292,6 +295,8 @@ describe("zod schema utilities", () => {
 
     describe("recursive schemas", () => {
       it("represents Zod 4 recursive schemas using $ref", () => {
+        // Placeholder schema so we can self-reference via `z4.lazy` without
+        // fighting ESLint `prefer-const`.
         let nodeSchema: z4.ZodTypeAny = z4.any();
         nodeSchema = z4.object({ next: z4.lazy(() => nodeSchema).optional() });
 
