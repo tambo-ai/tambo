@@ -192,6 +192,7 @@ export const MessageThreadPanel = forwardRef<
     isOpen,
     setIsOpen,
     editorRef: providerEditorRef,
+    contextKey,
   } = useMessageThreadPanel();
   const { customSuggestions, setCustomSuggestions } =
     useTamboContextAttachment();
@@ -238,23 +239,6 @@ export const MessageThreadPanel = forwardRef<
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [setIsOpen, isOpen]);
-
-  // Generate or retrieve contextKey only once on mount
-  const [contextKey] = useState<string>(() => {
-    // Check if we're in the browser before accessing localStorage
-    if (typeof window === "undefined") {
-      return `session-${crypto.randomUUID()}`;
-    }
-
-    let key = localStorage.getItem("tambo-context-key");
-
-    if (!key) {
-      key = `session-${crypto.randomUUID()}`;
-      localStorage.setItem("tambo-context-key", key);
-    }
-
-    return key;
-  });
 
   /**
    * Configuration for the MessageThreadPanel component

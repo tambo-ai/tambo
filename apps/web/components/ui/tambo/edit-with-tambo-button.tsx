@@ -76,7 +76,11 @@ export function EditWithTamboButton({
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle } = useTambo();
-  const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
+  const {
+    setIsOpen: setThreadPanelOpen,
+    editorRef,
+    contextKey,
+  } = useMessageThreadPanel();
   const {
     addContextAttachment,
     clearContextAttachments,
@@ -146,6 +150,7 @@ export function EditWithTamboButton({
 
     await sendThreadMessage(prompt.trim(), {
       streamResponse: true,
+      contextKey,
     });
 
     // Clear the attachment after sending (one-time edit)
@@ -160,6 +165,7 @@ export function EditWithTamboButton({
     sendThreadMessage,
     addContextAttachment,
     clearContextAttachments,
+    contextKey,
   ]);
 
   const handleSendInThread = useCallback(() => {

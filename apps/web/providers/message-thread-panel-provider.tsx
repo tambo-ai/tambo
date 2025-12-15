@@ -8,6 +8,8 @@ interface MessageThreadPanelContextType {
   setIsOpen: (open: boolean) => void;
   togglePanel: () => void;
   editorRef: React.MutableRefObject<TamboEditor | null>;
+  /** Context key for thread caching - consistent across panel and inline edits */
+  contextKey: string;
 }
 
 const MessageThreadPanelContext =
@@ -21,6 +23,19 @@ export function MessageThreadPanelProvider({
   const [isOpen, setIsOpen] = React.useState(false);
   const editorRef = React.useRef<TamboEditor | null>(null);
 
+  // Generate or retrieve contextKey only once on mount
+  const [contextKey] = React.useState<string>(() => {
+    // Check if we're in the browser before accessing localStorage
+    if (typeof window === "undefined") {
+      return `session-${crypto.randomUUID()}`;
+    }
+    const stored = localStorage.getItem("tambo-context-key");
+    if (stored) return stored;
+    const newKey = `session-${crypto.randomUUID()}`;
+    localStorage.setItem("tambo-context-key", newKey);
+    return newKey;
+  });
+
   const togglePanel = React.useCallback(() => {
     setIsOpen((prev) => !prev);
   }, []);
@@ -31,8 +46,9 @@ export function MessageThreadPanelProvider({
       setIsOpen,
       togglePanel,
       editorRef,
+      contextKey,
     }),
-    [isOpen, togglePanel],
+    [isOpen, togglePanel, contextKey],
   );
 
   return (
