@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@tambo-ai/react": "*",
-    "@tambo-ai/typescript-sdk": "^0.79.0",
+    "@tambo-ai/typescript-sdk": "^0.80.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.0",
     "framer-motion": "^12.23.24",
