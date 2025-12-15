@@ -2,6 +2,7 @@
   "name": "create-tambo-app",
   "version": "0.2.0",
   "description": "Create a new Tambo application",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/tambo-ai/tambo.git",

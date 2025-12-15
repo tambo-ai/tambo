@@ -40,5 +40,5 @@
     "openai": "^6.4.0",
     "resend": "^6.5.0"
   },
-  "license": "Apache-2.0"
+  "license": "MIT"
 }

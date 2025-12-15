@@ -36,5 +36,5 @@
   "volta": {
     "extends": "../../package.json"
   },
-  "license": "Apache-2.0"
+  "license": "MIT"
 }

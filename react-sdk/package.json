@@ -2,6 +2,7 @@
   "name": "@tambo-ai/react",
   "version": "0.66.2",
   "description": "React client package for Tambo AI",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/tambo-ai/tambo.git",

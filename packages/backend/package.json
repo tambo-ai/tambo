@@ -20,7 +20,7 @@
     "clean": "rm -rf dist coverage"
   },
   "author": "",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "dependencies": {
     "@ag-ui/client": "0.0.40",
     "@ag-ui/core": "^0.0.39",
