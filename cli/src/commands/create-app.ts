@@ -153,7 +153,7 @@ export async function handleCreateApp(
       // Interactive template selection
       const { templateKey } = await interactivePrompt<{ templateKey: string }>(
         {
-          type: "list",
+          type: "select",
           name: "templateKey",
           message: "Select a template for your new app:",
           choices: Object.entries(templates).map(([key, template]) => ({
