@@ -1,0 +1,389 @@
+import * as z3 from "zod/v3";
+import * as z4 from "zod/v4";
+import { handleZodSchemaToJson, isZod3Schema, isZod4Schema } from "./zod";
+
+describe("zod schema utilities", () => {
+  describe("isZod3Schema", () => {
+    it("returns true for Zod 3 schemas", () => {
+      const schema = z3.object({ name: z3.string() });
+      expect(isZod3Schema(schema)).toBe(true);
+    });
+
+    it("returns true for Zod 4 schemas (they also have _def)", () => {
+      // Note: Zod 4 schemas have both _def and _zod, so isZod3Schema returns true.
+      // This is fine because handleZodSchemaToJson checks isZod4Schema first.
+      const schema = z4.object({ name: z4.string() });
+      expect(isZod3Schema(schema)).toBe(true);
+    });
+
+    it("returns false for non-Zod values", () => {
+      expect(isZod3Schema({})).toBe(false);
+      expect(isZod3Schema(null)).toBe(false);
+      expect(isZod3Schema("string")).toBe(false);
+    });
+  });
+
+  describe("isZod4Schema", () => {
+    it("returns true for Zod 4 schemas", () => {
+      const schema = z4.object({ name: z4.string() });
+      expect(isZod4Schema(schema)).toBe(true);
+    });
+
+    it("returns false for Zod 3 schemas", () => {
+      const schema = z3.object({ name: z3.string() });
+      expect(isZod4Schema(schema)).toBe(false);
+    });
+
+    it("returns false for non-Zod values", () => {
+      expect(isZod4Schema({})).toBe(false);
+      expect(isZod4Schema(null)).toBe(false);
+      expect(isZod4Schema("string")).toBe(false);
+    });
+  });
+
+  describe("handleZodSchemaToJson", () => {
+    describe("basic conversion", () => {
+      it("converts Zod 3 schema to JSON Schema", () => {
+        const schema = z3.object({
+          name: z3.string(),
+          age: z3.number(),
+        });
+
+        const result = handleZodSchemaToJson(schema);
+
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            age: { type: "number" },
+          },
+        });
+      });
+
+      it("converts Zod 4 schema to JSON Schema", () => {
+        const schema = z4.object({
+          name: z4.string(),
+          age: z4.number(),
+        });
+
+        const result = handleZodSchemaToJson(schema);
+
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            age: { type: "number" },
+          },
+        });
+      });
+    });
+
+    describe("reused schemas - no $ref references", () => {
+      it("inlines reused Zod 3 schemas instead of using $ref", () => {
+        // Define a shared schema that will be reused
+        const dataSchema = z3.object({
+          name: z3.string(),
+          value: z3.number(),
+        });
+
+        // Use the same schema in multiple places
+        const props = z3.object({
+          data: z3.array(dataSchema),
+          historicalData: z3.array(dataSchema),
+        });
+
+        const result = handleZodSchemaToJson(props);
+        const resultStr = JSON.stringify(result);
+
+        // Should NOT contain any $ref references
+        expect(resultStr).not.toContain("$ref");
+
+        // Both arrays should have the full schema inline
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            data: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  value: { type: "number" },
+                },
+              },
+            },
+            historicalData: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  value: { type: "number" },
+                },
+              },
+            },
+          },
+        });
+      });
+
+      it("inlines reused Zod 4 schemas instead of using $ref", () => {
+        // Define a shared schema that will be reused
+        const dataSchema = z4.object({
+          name: z4.string(),
+          value: z4.number(),
+        });
+
+        // Use the same schema in multiple places
+        const props = z4.object({
+          data: z4.array(dataSchema),
+          historicalData: z4.array(dataSchema),
+        });
+
+        const result = handleZodSchemaToJson(props);
+        const resultStr = JSON.stringify(result);
+
+        // Should NOT contain any $ref references
+        expect(resultStr).not.toContain("$ref");
+
+        // Both arrays should have the full schema inline
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            data: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  value: { type: "number" },
+                },
+              },
+            },
+            historicalData: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  value: { type: "number" },
+                },
+              },
+            },
+          },
+        });
+      });
+
+      it("handles deeply nested reused Zod 3 schemas", () => {
+        const addressSchema = z3.object({
+          street: z3.string(),
+          city: z3.string(),
+        });
+
+        const personSchema = z3.object({
+          name: z3.string(),
+          homeAddress: addressSchema,
+          workAddress: addressSchema,
+        });
+
+        const result = handleZodSchemaToJson(personSchema);
+        const resultStr = JSON.stringify(result);
+
+        expect(resultStr).not.toContain("$ref");
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            homeAddress: {
+              type: "object",
+              properties: {
+                street: { type: "string" },
+                city: { type: "string" },
+              },
+            },
+            workAddress: {
+              type: "object",
+              properties: {
+                street: { type: "string" },
+                city: { type: "string" },
+              },
+            },
+          },
+        });
+      });
+
+      it("handles deeply nested reused Zod 4 schemas", () => {
+        const addressSchema = z4.object({
+          street: z4.string(),
+          city: z4.string(),
+        });
+
+        const personSchema = z4.object({
+          name: z4.string(),
+          homeAddress: addressSchema,
+          workAddress: addressSchema,
+        });
+
+        const result = handleZodSchemaToJson(personSchema);
+        const resultStr = JSON.stringify(result);
+
+        expect(resultStr).not.toContain("$ref");
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            homeAddress: {
+              type: "object",
+              properties: {
+                street: { type: "string" },
+                city: { type: "string" },
+              },
+            },
+            workAddress: {
+              type: "object",
+              properties: {
+                street: { type: "string" },
+                city: { type: "string" },
+              },
+            },
+          },
+        });
+      });
+
+      it("handles triple-nested reused Zod 4 schemas", () => {
+        const pointSchema = z4.object({
+          x: z4.number(),
+          y: z4.number(),
+        });
+
+        const lineSchema = z4.object({
+          start: pointSchema,
+          end: pointSchema,
+        });
+
+        const shapeSchema = z4.object({
+          outline: z4.array(lineSchema),
+          boundingBox: z4.object({
+            topLeft: pointSchema,
+            bottomRight: pointSchema,
+          }),
+        });
+
+        const result = handleZodSchemaToJson(shapeSchema);
+        const resultStr = JSON.stringify(result);
+
+        // The key assertion: no $ref anywhere
+        expect(resultStr).not.toContain("$ref");
+      });
+    });
+
+    describe("complex schemas", () => {
+      it("handles optional fields in Zod 3", () => {
+        const schema = z3.object({
+          required: z3.string(),
+          optional: z3.string().optional(),
+        });
+
+        const result = handleZodSchemaToJson(schema);
+
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            required: { type: "string" },
+            optional: { type: "string" },
+          },
+          required: ["required"],
+        });
+      });
+
+      it("handles optional fields in Zod 4", () => {
+        const schema = z4.object({
+          required: z4.string(),
+          optional: z4.string().optional(),
+        });
+
+        const result = handleZodSchemaToJson(schema);
+
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            required: { type: "string" },
+            optional: { type: "string" },
+          },
+          required: ["required"],
+        });
+      });
+
+      it("handles enums in Zod 3", () => {
+        const schema = z3.object({
+          status: z3.enum(["active", "inactive", "pending"]),
+        });
+
+        const result = handleZodSchemaToJson(schema);
+
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            status: {
+              type: "string",
+              enum: ["active", "inactive", "pending"],
+            },
+          },
+        });
+      });
+
+      it("handles enums in Zod 4", () => {
+        const schema = z4.object({
+          status: z4.enum(["active", "inactive", "pending"]),
+        });
+
+        const result = handleZodSchemaToJson(schema);
+
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            status: {
+              type: "string",
+              enum: ["active", "inactive", "pending"],
+            },
+          },
+        });
+      });
+
+      it("handles descriptions in Zod 3", () => {
+        const schema = z3.object({
+          name: z3.string().describe("The user name"),
+        });
+
+        const result = handleZodSchemaToJson(schema);
+
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: "The user name",
+            },
+          },
+        });
+      });
+
+      it("handles descriptions in Zod 4", () => {
+        const schema = z4.object({
+          name: z4.string().describe("The user name"),
+        });
+
+        const result = handleZodSchemaToJson(schema);
+
+        expect(result).toMatchObject({
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: "The user name",
+            },
+          },
+        });
+      });
+    });
+  });
+});
