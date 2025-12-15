@@ -32,7 +32,7 @@
     "@tiptap/extension-text": "^3.13.0",
     "@tiptap/react": "^3.13.0",
     "@tiptap/suggestion": "^3.11.1",
-    "@vercel/og": "^0.8.5",
+    "@vercel/og": "^1.0.0",
     "autoprefixer": "^10.4.22",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.1",
