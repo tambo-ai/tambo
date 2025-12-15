@@ -8,6 +8,11 @@
     "import": "./src/index.ts"
   },
   "main": "./src/index.ts",
+  "files": [
+    "src",
+    "LICENSE",
+    "NOTICE"
+  ],
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
