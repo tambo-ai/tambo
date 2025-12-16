@@ -14,11 +14,18 @@ interface MockConnectedMcpServer {
   key: string;
   serverKey: string;
   url: string;
+  name: string;
   status: "connected";
   client: {
     client: {
       readResource: jest.Mock;
+      listResources: jest.Mock;
+      listTools: jest.Mock;
+      listPrompts: jest.Mock;
+      getPrompt: jest.Mock;
+      callTool: jest.Mock;
     };
+    close: () => Promise<void>;
   };
 }
 
@@ -78,11 +85,18 @@ describe("resolveResourceContents", () => {
     key: `mcp-${serverKey}`,
     serverKey,
     url: `https://${serverKey}.example.com`,
+    name: `MCP Server ${serverKey}`,
     status: "connected",
     client: {
       client: {
         readResource,
+        listResources: jest.fn().mockResolvedValue({ resources: [] }),
+        listTools: jest.fn().mockResolvedValue({ tools: [] }),
+        listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+        getPrompt: jest.fn().mockResolvedValue(null),
+        callTool: jest.fn().mockResolvedValue(null),
       },
+      close: jest.fn().mockResolvedValue(undefined),
     },
   });
 

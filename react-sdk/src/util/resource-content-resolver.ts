@@ -65,9 +65,9 @@ export async function resolveResourceContents(
         (s) => isConnectedMcpServer(s) && s.serverKey === serverKey,
       );
       if (mcpServer && isConnectedMcpServer(mcpServer)) {
-        const content = await mcpServer.client.client.readResource({
+        const content = (await mcpServer.client.client.readResource({
           uri: originalUri,
-        });
+        })) as ReadResourceResult | null;
         if (content) {
           results.set(prefixedUri, content);
         }
