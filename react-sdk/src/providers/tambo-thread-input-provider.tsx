@@ -11,7 +11,7 @@ import {
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
 import { StagedImage, useMessageImages } from "../hooks/use-message-images";
-import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
+import { useTamboMcpServers } from "../mcp/mcp-server-context";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";

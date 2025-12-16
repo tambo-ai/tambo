@@ -1,11 +1,18 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import {
   INTERNAL_SERVER_PREFIX,
-  isConnectedMcpServer,
   REGISTRY_SERVER_KEY,
-} from "../mcp/mcp-hooks";
-import type { McpServer } from "../mcp/tambo-mcp-provider";
+} from "../mcp/mcp-constants";
+import type { McpServer, ConnectedMcpServer } from "../mcp/mcp-server-context";
 import type { ResourceSource } from "../model/resource-info";
+
+/**
+ * Type guard for narrowing McpServer to a connected server.
+ * A connected server has a non-null client.
+ */
+function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
+  return "client" in server && server.client != null;
+}
 
 /**
  * Resolves content for client-side resources (MCP and registry).

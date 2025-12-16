@@ -1,20 +1,6 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import type { ResourceSource } from "../model/resource-info";
 
-// Mock the mcp-hooks module to avoid pulling in heavy dependencies
-jest.mock("../mcp/mcp-hooks", () => ({
-  INTERNAL_SERVER_PREFIX: "tambo-",
-  REGISTRY_SERVER_KEY: "registry",
-  isConnectedMcpServer: (server: unknown): boolean => {
-    return (
-      server !== null &&
-      typeof server === "object" &&
-      "client" in server &&
-      (server as { client: unknown }).client !== null
-    );
-  },
-}));
-
 // Mock tambo-mcp-provider to avoid pulling in its dependencies
 jest.mock("../mcp/tambo-mcp-provider", () => ({}));
 

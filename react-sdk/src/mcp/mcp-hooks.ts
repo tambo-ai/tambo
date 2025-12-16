@@ -7,23 +7,12 @@ import {
 import { UseQueryResult } from "@tanstack/react-query";
 import { useTamboQueries, useTamboQuery } from "../hooks";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import { REGISTRY_SERVER_KEY } from "./mcp-constants";
 import {
   type ConnectedMcpServer,
   type McpServer,
   useTamboMcpServers,
 } from "./tambo-mcp-provider";
-
-/**
- * Prefix used by the internal Tambo MCP server.
- * Resources with this prefix can be resolved by the backend.
- */
-export const INTERNAL_SERVER_PREFIX = "tambo-";
-
-/**
- * Synthetic server key for local registry resources.
- * Used to give registry resources the same @serverKey:uri format as MCP resources.
- */
-export const REGISTRY_SERVER_KEY = "registry";
 
 export type ListPromptItem = ListPromptsResult["prompts"][number];
 export interface ListPromptEntry {
@@ -337,10 +326,9 @@ export function useTamboMcpResourceList() {
 
 /**
  * Hook to get the resource for the specified URI.
- * @param resourceUri - The URI of the resource to get. Can be:
- *   - Prefixed with serverKey (e.g., "linear:file://foo" for MCP resources)
- *   - Prefixed with "registry:" for registry resources (e.g., "registry:file://bar")
- *   - Unprefixed for backwards compatibility with registry resources
+ * @param resourceUri - The URI of the resource to get. Must be prefixed:
+ *   - MCP resources: prefixed with serverKey (e.g., "linear:file://foo")
+ *   - Registry resources: prefixed with "registry:" (e.g., "registry:file://bar")
  * @returns The resource for the specified URI.
  */
 export function useTamboMcpResource(resourceUri: string | undefined) {

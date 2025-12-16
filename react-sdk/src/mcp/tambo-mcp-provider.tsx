@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { McpServerContext } from "./mcp-server-context";
 import {
   getMcpServerUniqueKey,
   type NormalizedMcpServerInfo,
@@ -496,10 +497,41 @@ export const TamboMcpProvider: FC<{
     [connectedMcpServers, elicitation, resolveElicitation],
   );
 
+  // Map servers to lightweight format for McpServerContext
+  // This allows components that don't need full MCP client to access servers
+  // without pulling in heavy MCP dependencies
+  const serverContextValue = useMemo(
+    () => ({
+      servers: connectedMcpServers.map((server) => {
+        let status: "connecting" | "connected" | "error";
+        if ("connectionError" in server) {
+          status = "error";
+        } else if (server.client) {
+          status = "connected";
+        } else {
+          status = "connecting";
+        }
+        return {
+          key: server.key,
+          serverKey: server.serverKey,
+          url: server.url,
+          name: server.name ?? server.url,
+          status,
+          error:
+            "connectionError" in server ? server.connectionError : undefined,
+          client: server.client ?? null,
+        };
+      }),
+    }),
+    [connectedMcpServers],
+  );
+
   return (
-    <McpProviderContext.Provider value={contextValue}>
-      {children}
-    </McpProviderContext.Provider>
+    <McpServerContext.Provider value={serverContextValue}>
+      <McpProviderContext.Provider value={contextValue}>
+        {children}
+      </McpProviderContext.Provider>
+    </McpServerContext.Provider>
   );
 };
 
