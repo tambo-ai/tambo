@@ -34,7 +34,7 @@ fi
 
 # Get database credentials from the running container
 info "📋 Getting database credentials from running container..."
-POSTGRES_PASSWORD=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_PASSWORD 2>/dev/null || echo "your-super-secret-and-long-postgres-password")
+POSTGRES_PASSWORD=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_PASSWORD 2>/dev/null || echo "postgres")
 POSTGRES_USER=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_USER 2>/dev/null || echo "postgres")
 POSTGRES_DB=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_DB 2>/dev/null || echo "tambo")
 

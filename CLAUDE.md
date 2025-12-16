@@ -7,7 +7,32 @@ Guidelines for Claude Code (claude.ai/code) when touching this repo.
 ## Three Things to Remember
 
 1. Follow that doc for everything: repo layout, commands, coding standards, doc rules, Charlie workflow, MCP guidance, etc.
-2. Use the workspace scripts it lists (`npm run dev`, `npm run lint`, `npm run check-types`, `npm test`, `npm run db:*`, Docker helpers in `scripts/cloud/`, …).
-3. Defer to it whenever instructions collide; if something’s still unclear, ask the user.
+2. Use the workspace scripts it lists (see below for key commands).
+3. Defer to it whenever instructions collide; if something's still unclear, ask the user.
 
-That’s it—keep this doc minimal so every agent gets one authoritative direction.
+## Key Commands
+
+```bash
+# Development (two different apps)
+npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 3000/3001
+npm run dev              # Start React SDK (showcase + docs)
+
+# Quality checks (run before commits)
+npm run lint
+npm run check-types
+npm test
+
+# Database (requires -w flag)
+npm run db:generate -w packages/db
+npm run db:migrate -w packages/db
+npm run db:studio -w packages/db
+
+# Docker (for PostgreSQL in local dev)
+docker compose --env-file docker.env up postgres -d
+```
+
+## Documentation Structure
+
+- **CONTRIBUTING.md** - Dev setup and PR workflow for contributors
+- **OPERATORS.md** - Self-hosting/deployment guide
+- **AGENTS.md** - Coding standards, architecture (this is the source of truth)

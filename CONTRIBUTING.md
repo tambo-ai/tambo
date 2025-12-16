@@ -1,65 +1,252 @@
-# Contributing to tambo
+# Contributing to Tambo
 
-Thanks for helping! This guide covers workflow expectations only—**all coding standards, architecture rules, and naming conventions live in @AGENTS.md.**
+> **Using an AI coding assistant?** Read [@AGENTS.md](./AGENTS.md) for agent-specific instructions.
 
-## Quick Links
+Thanks for helping! This guide covers development setup and workflow expectations.
 
-- That guide – canonical reference for architecture, naming, coding rules, doc expectations, AI usage, Charlie workflow, etc.
-- `docs/` + `devdocs/` – public docs + internal references (update them with code changes).
-- [RELEASING.md](./RELEASING.md) – API/SDK/Cloud release process.
+> **Looking to self-host Tambo?** See [OPERATORS.md](./OPERATORS.md) for deployment instructions.
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js >= 22
+- npm >= 11
+- Docker (for either database option below)
+
+### 1. Clone and Install
+
+```bash
+git clone https://github.com/tambo-ai/tambo.git
+cd tambo
+npm install
+```
+
+### 2. Set Up Environment Files
+
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
+cp packages/db/.env.example packages/db/.env
+```
+
+### 3. Start Database
+
+Choose **one** of these options:
+
+#### Option A: Supabase (Recommended)
+
+Supabase provides PostgreSQL with additional features. The `.env.example` files are pre-configured for this option.
+
+```bash
+# Install Supabase CLI if you haven't
+npm install -g supabase
+
+# Start Supabase (includes PostgreSQL on port 54322)
+supabase start
+```
+
+The default `DATABASE_URL` in `.env.example` files already points to Supabase:
+
+```
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+```
+
+#### Option B: Docker PostgreSQL
+
+If you prefer plain PostgreSQL without Supabase:
+
+```bash
+# One-time setup (creates docker.env)
+./scripts/cloud/tambo-setup.sh
+
+# Start PostgreSQL container
+docker compose --env-file docker.env up postgres -d
+```
+
+Then update `DATABASE_URL` in all three env files:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/tambo
+```
+
+Use the password from your `docker.env` file.
+
+> **Note**: Don't use `tambo-start.sh` for local development - it starts all services in Docker, which conflicts with running apps locally via `npm run dev:cloud`.
+
+### 4. Initialize Database
+
+```bash
+npm run db:migrate -w packages/db
+```
+
+### 5. Start Development Servers
+
+For Tambo Cloud (web dashboard + API):
+
+```bash
+npm run dev:cloud
+```
+
+- **Web App**: http://localhost:3000
+- **API**: http://localhost:3001
+
+For the React SDK framework (showcase + docs):
+
+```bash
+npm run dev
+```
+
+### 6. Get a Local API Key
+
+1. Start the dev servers: `npm run dev:cloud`
+2. Visit http://localhost:3000/dashboard and sign in
+3. Create a project and generate an API key
+4. Add to `apps/web/.env.local`: `NEXT_PUBLIC_TAMBO_API_KEY=your_key`
+5. Verify with http://localhost:3000/internal/smoketest
+
+## Common Commands
+
+```bash
+# Development
+npm run dev:cloud        # Start web + API for Tambo Cloud
+npm run dev              # Start showcase + docs for React SDK
+
+# Quality (required before PRs)
+npm run lint
+npm run check-types
+npm test
+
+# Database
+npm run db:generate -w packages/db  # Generate migrations
+npm run db:migrate -w packages/db   # Apply migrations
+npm run db:studio -w packages/db    # Open Drizzle Studio
+```
+
+## Environment Variables
+
+### Required
+
+| Variable              | Location                                                   | Description                  |
+| --------------------- | ---------------------------------------------------------- | ---------------------------- |
+| `DATABASE_URL`        | `packages/db/.env`, `apps/api/.env`, `apps/web/.env.local` | PostgreSQL connection string |
+| `API_KEY_SECRET`      | `apps/api/.env`, `apps/web/.env.local`                     | API key encryption secret    |
+| `PROVIDER_KEY_SECRET` | `apps/api/.env`, `apps/web/.env.local`                     | Provider key encryption      |
+| `NEXTAUTH_SECRET`     | `apps/web/.env.local`                                      | NextAuth.js session secret   |
+| `NEXTAUTH_URL`        | `apps/web/.env.local`                                      | http://localhost:3000        |
+
+### Optional
+
+| Variable                  | Location              | Description                                                                   |
+| ------------------------- | --------------------- | ----------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`          | `apps/api/.env`       | To allow Tambo Cloud to use AI features                                       |
+| `FALLBACK_OPENAI_API_KEY` | `apps/api/.env`       | Used as a fallback API key for OpenAI if others are not set                   |
+| `GOOGLE_CLIENT_ID`        | `apps/web/.env.local` | Google App Client ID for OAuth login (https://console.cloud.google.com/)      |
+| `GOOGLE_CLIENT_SECRET`    | `apps/web/.env.local` | As above                                                                      |
+| `GITHUB_CLIENT_ID`        | `apps/web/.env.local` | GitHub App Client ID for OAuth login (https://github.com/settings/developers) |
+| `GITHUB_CLIENT_SECRET`    | `apps/web/.env.local` | As above                                                                      |
+
+## Repository Structure
+
+| Directory          | Description                     |
+| ------------------ | ------------------------------- |
+| `apps/web`         | Next.js web application         |
+| `apps/api`         | NestJS API server               |
+| `packages/db`      | Drizzle schema + migrations     |
+| `packages/core`    | Shared utilities (no DB access) |
+| `packages/backend` | LLM/agent helpers               |
+| `react-sdk/`       | React SDK (`@tambo-ai/react`)   |
+| `cli/`             | CLI tools                       |
+| `showcase/`        | Demo application                |
+| `docs/`            | Documentation site              |
+
+## Troubleshooting
+
+### Database Connection Issues
+
+**For Supabase:**
+
+1. Verify Supabase is running: `supabase status`
+2. Check `DATABASE_URL` uses port `54322`
+3. Restart if needed: `supabase stop && supabase start`
+
+**For Docker PostgreSQL:**
+
+1. Verify container is running: `docker compose --env-file docker.env ps postgres`
+2. Check `DATABASE_URL` uses port `5433` (not `5432`)
+3. Ensure password in `DATABASE_URL` matches `docker.env`
+
+### Port Conflicts
+
+Stop conflicting services or modify ports in `docker.env` / `docker-compose.yml`.
+
+### Clean Install
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+---
 
 ## Workflow Overview
 
 1. Pick or file an issue.
-2. Branch from `main` (`alecf/<descriptive-name>` when using Conductor).
+2. Branch from `main`.
 3. Build the feature/fix with tests + docs alongside the code.
 4. Run lint, types, and tests locally.
-5. Open a PR with a Conventional Commit title and include the checklist below.
-6. Iterate with reviewers (and Charlie, the AI code reviewer) until CI is green and approvals are in.
+5. Open a PR with a Conventional Commit title.
+6. Iterate with reviewers until CI is green.
 
-## PR Titles and Semantic Versioning
+## PR Titles (Conventional Commits)
 
-We infer release impact from PR titles using [Conventional Commits](https://www.conventionalcommits.org/) syntax:
+We infer release impact from PR titles:
 
 - `feat(scope): ...` → Minor bump
-- `fix(scope): ...`, `perf(scope): ...`, `refactor(scope): ...`, `docs(scope): ...`, `chore(scope): ...` → Patch bump or none
-- Breaking change → `feat(scope)!: ...` or include a `BREAKING CHANGE:` footer
+- `fix(scope): ...`, `perf(scope): ...`, `refactor(scope): ...` → Patch bump
+- Breaking change → `feat(scope)!: ...` or include `BREAKING CHANGE:` footer
 
-Scopes reference areas like `api`, `web`, `core`, `cli`, `docs`, `sdk`. Keep titles imperative and concise. Examples: `feat(api): add transcript export endpoint`, `fix(web): prevent duplicate project creation`.
+Scopes: `api`, `web`, `core`, `cli`, `docs`, `sdk`, `react-sdk`
 
-## Documentation & Visual Changes
+Examples:
 
-- Every functional change must update the relevant docs (`docs/`, root `.md`, or `devdocs/`).
-- Component work must keep Showcase + CLI registry in sync.
-- UI/DX changes require a ≤90s video demo attached to the PR.
-- Link the doc change (or follow-up issue) in your PR description.
+- `feat(api): add transcript export endpoint`
+- `fix(web): prevent duplicate project creation`
+
+## Documentation Requirements
+
+Every functional change must update relevant docs:
+
+- Public docs: `docs/` (Fumadocs)
+- Developer docs: root `.md` files or `devdocs/`
+
+If you touch components:
+
+- Update Showcase examples (`showcase/`)
+- Update CLI registry (`cli/src/registry/`)
+- Mirror CLI component changes into `docs/` if they originated there
+
+## Visual Changes
+
+UI or DX-affecting PRs must include a ≤90s screen recording showing before/after.
 
 ## API + SDK Source of Truth
 
-- API lives in `apps/api`.
-- The TypeScript SDK (`@tambo-ai/typescript-sdk`) is generated by Stainless after API deploys. Do **not** edit it manually—let Stainless open the release PR.
-- React SDK updates follow the workflow in [RELEASING.md](./RELEASING.md).
+- API lives in `apps/api`
+- TypeScript SDK (`@tambo-ai/typescript-sdk`) is generated by Stainless - don't edit manually
+- See [RELEASING.md](./RELEASING.md) for release workflow
 
-## Required Checks
+## Charlie (AI Code Reviewer)
 
-```bash
-npm run lint
-npm run check-types
-npm test
-```
+Reply to every comment:
 
-Add targeted tests for new behavior and keep migrations in sync with DB changes. When in doubt about placement, follow the guidance in that doc.
+- `@CharlieHelps yes please` to apply a suggestion
+- `fixed` when you handled it yourself
+- Explain if declining
 
-## Charlie (AI Review Agent)
+## Security
 
-- Reply to every comment.
-- Use `@CharlieHelps yes please` to apply a suggestion, `fixed` when you handled it yourself, or explain why you’re declining.
-- Batch the `yes please` comments in a single review when applying multiple fixes.
-
-## Security & Secrets
-
-- Never commit credentials. Use the documented env files (`apps/api/.env`, `apps/web/.env.local`, `packages/db/.env`, `docker.env`).
-- Rotate anything leaked immediately.
+Never commit credentials. Use the documented env files. Rotate anything leaked immediately.
 
 ## PR Checklist
 
@@ -68,98 +255,16 @@ Add targeted tests for new behavior and keep migrations in sync with DB changes.
 - [ ] Docs updated (or follow-up issue linked)
 - [ ] Showcase/CLI updated if components changed
 - [ ] Visual change video attached (if applicable)
-- [ ] Tests added/updated; `npm run lint`, `npm run check-types`, `npm test` all pass
-- [ ] SDK workflow respected (no manual edits to generated clients)
-
-## Need More Guidance?
-
-If you’re looking for coding standards, naming rules, CLI/showcase sync details, AI policy, or MCP instructions, that single source of truth has you covered.
-
-## Code of Conduct
-
-Participate respectfully and keep collaboration constructive.
-
-## API and SDK Source of Truth
-
-- API changes live in `apps/api`.
-- The TypeScript SDK (`@tambo-ai/typescript-sdk`) is generated by Stainless from the deployed API spec. Never edit the SDK by hand or publish it manually.
-- Deploy API changes, let Stainless open the SDK release PR, review that PR, then land dependency bumps here as needed.
-
-## Visual Changes Need a Short Video
-
-UI or DX-affecting PRs (components, dashboard tweaks, CLI UX) must ship with a ≤90s screen recording showing before/after and key flows. Loom links are fine.
-
-## Documentation Requirements
-
-Every functional change must update docs in the right place:
-
-- Public docs: `docs/` (Fumadocs) or the relevant MDX page.
-- Developer docs: root `.md` files or `devdocs/`.
-- Link the doc change (or follow-up issue) in your PR.
-
-If you touch components:
-
-- Update Showcase examples (`showcase/`) so reviewers can interact with the change.
-- Update the CLI registry (`cli/src/registry/`) so scaffolding stays in sync.
-- Mirror any CLI component changes into `docs/` components if they originated there.
-
-## Lint, Types, and Tests (Required)
-
-Before requesting review, all of these must pass:
-
-```bash
-npm run lint
-npm run check-types
-npm test
-```
-
-Fix lint warnings, keep TypeScript strict, and add focused tests for new logic. Database changes must include matching Drizzle migrations (`npm run db:generate`).
+- [ ] Tests added/updated
+- [ ] `npm run lint`, `npm run check-types`, `npm test` all pass
 
 ## Coding Standards
 
-- Favor small, functional modules with explicit error handling.
-- Early-return instead of deep nesting; avoid mutation.
-- Keep business logic outside UI components; use `lib/`, `services/`, or `utils/` helpers.
-- Follow React naming conventions (see `devdocs/NAMING_CONVENTIONS.md`) and loading-state rules (`devdocs/LOADING_STATES.md`).
-- Use tRPC inside `apps/web` instead of ad-hoc `/api` routes.
-- Never edit generated SDK files; wrap them if you need helpers.
-
-## AI-Generated Code Policy
-
-AI output must be reviewed and cleaned up by you. Follow the internal AI policies described there and never paste secrets or private data into prompts.
-
-## Working with Charlie (AI Code Reviewer)
-
-Charlie may leave inline suggestions on your PR. Reply to every comment:
-
-- Use `@CharlieHelps yes please` if you want it to apply a fix.
-- Reply with `fixed` (plus context) after resolving manually.
-- Explain if the suggestion is being declined.
-
-Batch multiple `@CharlieHelps yes please` replies in a single review if you want Charlie to apply several fixes together.
-
-## Security and Secrets
-
-Do not commit API keys or credentials. Use the documented env files (`apps/api/.env`, `apps/web/.env.local`, `packages/db/.env`, `docker.env`). Rotate anything leaked immediately.
-
-## PR Checklist (Copy into Description)
-
-Copy the checklist from the **PR Checklist** section above into your PR description.
-
-## Branching, Commits, and Reviews
-
-- Keep branches small and focused; rebase on `main` when needed.
-- Use clear, scoped commits (Conventional Commits encouraged).
-- At least one maintainer approval required. Pull in subject-matter experts for API, DB, or design-heavy changes.
-
-## Releases
-
-- Release-please manages tagging and changelog generation for each package. Maintainers may edit PR titles to ensure correct SemVer impact.
-- See [RELEASING.md](./RELEASING.md) for the full workflow across API, SDKs, and apps.
+All coding standards, architecture rules, and naming conventions live in [@AGENTS.md](./AGENTS.md).
 
 ## Links
 
 - Discord: https://discord.gg/dJNvPEHth6
 - Docs: https://docs.tambo.co
 
-Thanks for helping improve tambo!
+Thanks for helping improve Tambo!

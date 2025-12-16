@@ -1,15 +1,32 @@
 import * as Sentry from "@sentry/nestjs";
-import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 const environment =
   process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development";
 
-// Only initialize if DSN is provided
-if (!process.env.SENTRY_DSN) {
-  console.log(
-    "Sentry DSN not provided, skipping Sentry initialization, if you want to use Sentry, please contact us at support@tambo.co",
-  );
-} else {
+async function initSentry() {
+  // Only initialize if DSN is provided
+  if (!process.env.SENTRY_DSN) {
+    console.log(
+      "Sentry DSN not provided, skipping Sentry initialization, if you want to use Sentry, please contact us at support@tambo.co",
+    );
+    return;
+  }
+
+  // Try to load profiling integration, but gracefully handle failures
+  // (e.g., incompatible Node.js version, missing native module)
+  let profilingIntegration:
+    | (() => ReturnType<typeof Sentry.captureConsoleIntegration>)
+    | undefined;
+  try {
+    const { nodeProfilingIntegration } = await import("@sentry/profiling-node");
+    profilingIntegration = nodeProfilingIntegration;
+  } catch (error) {
+    console.warn(
+      "Could not load Sentry profiling integration (native module issue). Profiling will be disabled.",
+      error instanceof Error ? error.message : error,
+    );
+  }
+
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment,
@@ -18,7 +35,7 @@ if (!process.env.SENTRY_DSN) {
     tracesSampleRate: 1,
 
     // Profiling (requires tracing to be enabled)
-    profilesSampleRate: 1,
+    profilesSampleRate: profilingIntegration ? 1 : 0,
 
     // Integrations
     integrations: (defaults) => [
@@ -27,14 +44,14 @@ if (!process.env.SENTRY_DSN) {
       // only Http integration applied (avoids duplicate spans/breadcrumbs and
       // ensures our maxIncomingRequestBodySize setting takes effect).
       ...defaults.filter((integration) => integration.name !== "Http"),
-      // Profiling
-      nodeProfilingIntegration(),
       // NestJS integrations are auto-configured by @sentry/nestjs
       // Capture larger incoming request bodies on server routes
       // even with "always" setting, sentry never captures bodies exceeding 1 MB for performance and security reasons.
       Sentry.httpIntegration({
         maxIncomingRequestBodySize: "always",
       }),
+      // Add profiling integration if available
+      ...(profilingIntegration ? [profilingIntegration()] : []),
     ],
 
     // Configure error filtering
@@ -66,3 +83,5 @@ if (!process.env.SENTRY_DSN) {
 
   console.log(`Sentry initialized for ${environment} environment`);
 }
+
+void initSentry();

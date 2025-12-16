@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-tambo}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - tambo_postgres_data:/var/lib/postgresql/data
@@ -49,7 +49,7 @@ services:
       - NEXT_PUBLIC_TAMBO_API_KEY=${NEXT_PUBLIC_TAMBO_API_KEY:-}
       - NEXT_PUBLIC_POSTHOG_HOST=${NEXT_PUBLIC_POSTHOG_HOST:-}
       - NEXT_PUBLIC_POSTHOG_KEY=${NEXT_PUBLIC_POSTHOG_KEY:-}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@postgres:5432/${POSTGRES_DB:-tambo}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-tambo}
       - API_KEY_SECRET=${API_KEY_SECRET}
       - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
       - RESEND_API_KEY=${RESEND_API_KEY:-}
@@ -92,7 +92,7 @@ services:
     environment:
       - PORT=3000
       - NODE_ENV=${NODE_ENV:-production}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@postgres:5432/${POSTGRES_DB:-tambo}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-tambo}
       - API_KEY_SECRET=${API_KEY_SECRET}
       - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
