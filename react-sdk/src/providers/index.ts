@@ -19,6 +19,7 @@ export {
   type ContextAttachment,
   type ContextAttachmentState,
   type ContextHelperData,
+  type InteractableComponentMetadata,
   type TamboContextAttachmentProviderProps,
 } from "./tambo-context-attachment-provider";
 export {

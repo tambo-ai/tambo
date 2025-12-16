@@ -39,6 +39,22 @@ export interface ContextAttachment {
 export type ContextHelperData = Record<string, unknown>;
 
 /**
+ * Metadata shape for interactable component context attachments.
+ * Used when attaching an interactable component via `@mention` or EditWithTamboButton.
+ * @property {string} componentId - The unique ID of the interactable component
+ * @example
+ * ```tsx
+ * addContextAttachment({
+ *   name: componentName,
+ *   metadata: { componentId: interactableId } satisfies InteractableComponentMetadata,
+ * });
+ * ```
+ */
+export interface InteractableComponentMetadata {
+  componentId: string;
+}
+
+/**
  * Context state interface for managing context attachments and custom suggestions.
  * @property {ContextAttachment[]} attachments - Current attachments for rendering UI (React state)
  * @property {() => ContextAttachment[]} getCurrentAttachments - Get latest attachments in callbacks (reads from ref, avoids stale closures)

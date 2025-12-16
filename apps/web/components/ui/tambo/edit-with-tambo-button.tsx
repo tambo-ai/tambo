@@ -11,6 +11,7 @@ import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import {
+  type InteractableComponentMetadata,
   type Suggestion,
   useTambo,
   useTamboContextAttachment,
@@ -146,7 +147,9 @@ export function EditWithTamboButton({
     if (interactableId && componentName) {
       addContextAttachment({
         name: componentName,
-        metadata: { componentId: interactableId },
+        metadata: {
+          componentId: interactableId,
+        } satisfies InteractableComponentMetadata,
       });
     }
 
@@ -191,7 +194,9 @@ export function EditWithTamboButton({
     if (interactableId && componentName) {
       addContextAttachment({
         name: componentName,
-        metadata: { componentId: interactableId },
+        metadata: {
+          componentId: interactableId,
+        } satisfies InteractableComponentMetadata,
       });
     }
 

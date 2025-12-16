@@ -15,6 +15,7 @@ import {
   Trigger as TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import {
+  type InteractableComponentMetadata,
   type Suggestion,
   useTambo,
   useTamboContextAttachment,
@@ -162,7 +163,9 @@ export function EditWithTamboButton({
     if (interactableId && componentName) {
       addContextAttachment({
         name: componentName,
-        metadata: { componentId: interactableId },
+        metadata: {
+          componentId: interactableId,
+        } satisfies InteractableComponentMetadata,
       });
     }
 
@@ -207,7 +210,9 @@ export function EditWithTamboButton({
     if (interactableId && componentName) {
       addContextAttachment({
         name: componentName,
-        metadata: { componentId: interactableId },
+        metadata: {
+          componentId: interactableId,
+        } satisfies InteractableComponentMetadata,
       });
     }
 
