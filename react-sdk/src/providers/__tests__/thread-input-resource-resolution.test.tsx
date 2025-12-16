@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { REGISTRY_SERVER_KEY, ServerType } from "../../mcp/mcp-constants";
-import type { McpServer } from "../../mcp/mcp-server-context";
+import type { ActiveMcpServer } from "../../mcp/mcp-server-context";
 import type { ResourceSource } from "../../model/resource-info";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import {
@@ -21,7 +21,7 @@ jest.mock("../tambo-thread-provider", () => ({
 }));
 
 // Mock servers array - will be updated per test
-let mockServers: McpServer[] = [];
+let mockServers: ActiveMcpServer[] = [];
 
 // Mock the MCP server context
 jest.mock("../../mcp/mcp-server-context", () => ({
@@ -29,7 +29,7 @@ jest.mock("../../mcp/mcp-server-context", () => ({
 }));
 
 // Helper to create virtual registry server
-const createMockRegistryServer = (): McpServer => ({
+const createMockRegistryServer = (): ActiveMcpServer => ({
   key: REGISTRY_SERVER_KEY,
   serverKey: REGISTRY_SERVER_KEY,
   url: "",
@@ -40,7 +40,7 @@ const createMockRegistryServer = (): McpServer => ({
 });
 
 // Helper to create internal server
-const createMockInternalServer = (serverKey: string): McpServer => ({
+const createMockInternalServer = (serverKey: string): ActiveMcpServer => ({
   key: serverKey,
   serverKey,
   url: "https://api.tambo.ai/mcp",

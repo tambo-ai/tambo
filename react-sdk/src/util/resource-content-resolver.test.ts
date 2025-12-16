@@ -1,6 +1,6 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import { REGISTRY_SERVER_KEY, ServerType } from "../mcp/mcp-constants";
-import type { McpServer } from "../mcp/mcp-server-context";
+import type { ActiveMcpServer } from "../mcp/mcp-server-context";
 import type { ResourceSource } from "../model/resource-info";
 
 // Mock tambo-mcp-provider to avoid pulling in its dependencies
@@ -64,7 +64,7 @@ describe("resolveResourceContents", () => {
     serverKey: string,
     readResource: jest.Mock,
     serverType: ServerType = ServerType.BROWSER_SIDE,
-  ): McpServer => ({
+  ): ActiveMcpServer => ({
     key: `mcp-${serverKey}`,
     serverKey,
     url: `https://${serverKey}.example.com`,
@@ -84,7 +84,7 @@ describe("resolveResourceContents", () => {
     },
   });
 
-  const createMockRegistryServer = (): McpServer => ({
+  const createMockRegistryServer = (): ActiveMcpServer => ({
     key: REGISTRY_SERVER_KEY,
     serverKey: REGISTRY_SERVER_KEY,
     url: "",
@@ -94,7 +94,7 @@ describe("resolveResourceContents", () => {
     client: null,
   });
 
-  const createMockInternalServer = (serverKey: string): McpServer => ({
+  const createMockInternalServer = (serverKey: string): ActiveMcpServer => ({
     key: serverKey,
     serverKey,
     url: "https://api.tambo.ai/mcp",

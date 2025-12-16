@@ -1,13 +1,18 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import { ServerType } from "../mcp/mcp-constants";
-import type { McpServer, ConnectedMcpServer } from "../mcp/mcp-server-context";
+import type {
+  ActiveMcpServer,
+  ConnectedActiveMcpServer,
+} from "../mcp/mcp-server-context";
 import type { ResourceSource } from "../model/resource-info";
 
 /**
- * Type guard for narrowing McpServer to a connected server.
+ * Type guard for narrowing ActiveMcpServer to a connected server.
  * A connected server has a non-null client.
  */
-function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
+function isConnectedMcpServer(
+  server: ActiveMcpServer,
+): server is ConnectedActiveMcpServer {
   return "client" in server && server.client != null;
 }
 
@@ -15,14 +20,14 @@ function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
  * Resolves content for client-side resources (MCP and registry).
  * Server-side (internal Tambo) resources are skipped - the backend can resolve them.
  * @param resourceUris - Prefixed URIs (e.g., "linear:file://foo", "registry:file://bar", "tambo-abc:test://resource")
- * @param mcpServers - MCP servers including virtual registry server
+ * @param mcpServers - Active MCP servers including virtual registry server
  * @param resourceSource - Registry resource source (listResources/getResource)
  * @returns Map of prefixedUri -> ReadResourceResult for resolved resources.
  *          Resources that failed to fetch or are internal server resources won't be in the map.
  */
 export async function resolveResourceContents(
   resourceUris: string[],
-  mcpServers: McpServer[],
+  mcpServers: ActiveMcpServer[],
   resourceSource: ResourceSource | undefined,
 ): Promise<Map<string, ReadResourceResult>> {
   const results = new Map<string, ReadResourceResult>();

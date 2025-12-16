@@ -8,10 +8,7 @@ import React, {
   useState,
 } from "react";
 import { REGISTRY_SERVER_KEY, ServerType } from "./mcp-constants";
-import {
-  McpServerContext,
-  type McpServer as LightweightMcpServer,
-} from "./mcp-server-context";
+import { McpServerContext, type ActiveMcpServer } from "./mcp-server-context";
 import {
   getMcpServerUniqueKey,
   type NormalizedMcpServerInfo,
@@ -507,7 +504,7 @@ export const TamboMcpProvider: FC<{
   // This allows components that don't need full MCP client to access servers
   // without pulling in heavy MCP dependencies
   const serverContextValue = useMemo(() => {
-    const mcpServerEntries: LightweightMcpServer[] = connectedMcpServers.map(
+    const mcpServerEntries: ActiveMcpServer[] = connectedMcpServers.map(
       (server) => {
         let status: "connecting" | "connected" | "error";
         if ("connectionError" in server) {

@@ -34,10 +34,12 @@ export interface McpServerConfig {
 }
 
 /**
- * Represents an MCP server that is currently connecting or connected.
- * The client field is null while the server is connecting.
+ * Represents an active MCP server being tracked by TamboMcpProvider.
+ * This unified type covers all server origins: user-passed MCP servers,
+ * virtual servers (like registry), and internal Tambo servers.
+ * The client field is null while the server is connecting, errored, or virtual.
  */
-export interface McpServer {
+export interface ActiveMcpServer {
   /**
    * Stable key for the server, based on the server config hash.
    * Used for React keys and cache invalidation.
@@ -64,9 +66,11 @@ export interface McpServer {
 }
 
 /**
- * A connected MCP server with a non-null client.
+ * An active MCP server with a non-null client (fully connected).
  */
-export type ConnectedMcpServer = McpServer & { client: MCPClientLike };
+export type ConnectedActiveMcpServer = ActiveMcpServer & {
+  client: MCPClientLike;
+};
 
 /**
  * Context value for MCP server list (without elicitation).
@@ -75,7 +79,7 @@ export type ConnectedMcpServer = McpServer & { client: MCPClientLike };
  * MCP client implementation.
  */
 interface McpServerContextValue {
-  servers: McpServer[];
+  servers: ActiveMcpServer[];
 }
 
 /**
@@ -89,13 +93,13 @@ export const McpServerContext = createContext<McpServerContextValue>({
 });
 
 /**
- * Hook to get the list of MCP servers from the nearest TamboMcpProvider.
+ * Hook to get the list of active MCP servers from the nearest TamboMcpProvider.
  * Returns an empty array if not wrapped in a TamboMcpProvider.
  *
  * This hook provides lightweight access to MCP servers without pulling
  * in the full MCP client implementation.
- * @returns The array of MCP servers (connected and connecting)
+ * @returns The array of active MCP servers (connected, connecting, and virtual)
  */
-export const useTamboMcpServers = (): McpServer[] => {
+export const useTamboMcpServers = (): ActiveMcpServer[] => {
   return useContext(McpServerContext).servers;
 };
