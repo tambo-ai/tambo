@@ -11,7 +11,6 @@ concurrency:
   group: release-please-${{ github.ref }}
 
 permissions:
-  id-token: write # Required for OIDC publishing to NPM
   contents: write
   pull-requests: write
 
@@ -40,6 +39,9 @@ jobs:
     needs: release-please
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC publishing to NPM
     steps:
       - uses: actions/checkout@v5
         with:
@@ -70,6 +72,9 @@ jobs:
     needs: release-please
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.cli--release_created == 'true' }}
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC publishing to NPM
     steps:
       - uses: actions/checkout@v5
         with:
@@ -100,6 +105,9 @@ jobs:
     needs: release-please
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC publishing to NPM
     steps:
       - uses: actions/checkout@v5
         with:
