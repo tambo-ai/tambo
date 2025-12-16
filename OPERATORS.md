@@ -93,11 +93,13 @@ See [Environment Variables Reference](#environment-variables-reference) for all 
 
 ### Authentication (OAuth or Email)
 
-To sign in to the dashboard, you must configure **either** OAuth (Google and/or GitHub) **or** email login (Resend).
+To sign in to the dashboard, you must configure **either** at least one OAuth provider (Google or GitHub) **or** email login (Resend). If you configure neither, users will not be able to sign in.
 
 Note: If any OAuth provider is configured, the deployment uses OAuth login only (even if email settings are present). Email login is only enabled when no OAuth providers are configured.
 
 #### OAuth (Optional)
+
+Configure at least one of the following providers to enable OAuth login.
 
 | Variable               | Description                |
 | ---------------------- | -------------------------- |

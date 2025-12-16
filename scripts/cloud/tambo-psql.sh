@@ -41,7 +41,7 @@ POSTGRES_DB=$(docker compose --env-file docker.env exec -T postgres printenv POS
 if [ -z "$POSTGRES_PASSWORD" ]; then
     fail \
       "❌ Could not read POSTGRES_PASSWORD from the running container." \
-      "📝 Please set POSTGRES_PASSWORD in docker.env and restart the stack: ./scripts/cloud/tambo-start.sh"
+      "📝 Ensure POSTGRES_PASSWORD is set for the postgres service (e.g., in docker.env or your compose environment) and restart the stack: ./scripts/cloud/tambo-start.sh"
 fi
 
 info "✅ Connecting to PostgreSQL..."
