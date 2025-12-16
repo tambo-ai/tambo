@@ -3,7 +3,6 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
-import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 export default function MessageThreadFullPage() {
   return (
