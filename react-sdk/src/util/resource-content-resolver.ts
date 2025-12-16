@@ -1,5 +1,5 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
-import { ServerType } from "../mcp/mcp-constants";
+import { REGISTRY_SERVER_KEY, ServerType } from "../mcp/mcp-constants";
 import type {
   ActiveMcpServer,
   ConnectedActiveMcpServer,
@@ -41,33 +41,38 @@ export async function resolveResourceContents(
     const serverKey = prefixedUri.slice(0, colonIndex);
     const originalUri = prefixedUri.slice(colonIndex + 1);
 
-    // Find the server by serverKey
-    const server = mcpServers.find((s) => s.serverKey === serverKey);
-    if (!server) {
-      console.warn(`No server found for resource: ${prefixedUri}`);
-      return;
-    }
-
     try {
+      // Handle registry resources directly - no server lookup needed
+      // Registry resources are local to the browser and resolved via resourceSource
+      if (serverKey === REGISTRY_SERVER_KEY) {
+        if (!resourceSource) {
+          console.warn(
+            `No resource source available to resolve registry resource: ${prefixedUri}`,
+          );
+          return;
+        }
+        const registryContent = await resourceSource.getResource(originalUri);
+        if (registryContent) {
+          results.set(prefixedUri, registryContent);
+        }
+        return;
+      }
+
+      // For non-registry resources, find the server by serverKey
+      const server = mcpServers.find((s) => s.serverKey === serverKey);
+      if (!server) {
+        console.warn(`No server found for resource: ${prefixedUri}`);
+        return;
+      }
+
       switch (server.serverType) {
         case ServerType.TAMBO_INTERNAL:
           // Skip internal server resources - backend can resolve these
           return;
 
-        case ServerType.TAMBO_REGISTRY: {
-          // Registry resource - use resourceSource
-          if (!resourceSource) {
-            console.warn(
-              `No resource source available to resolve registry resource: ${prefixedUri}`,
-            );
-            return;
-          }
-          const registryContent = await resourceSource.getResource(originalUri);
-          if (registryContent) {
-            results.set(prefixedUri, registryContent);
-          }
+        case ServerType.TAMBO_REGISTRY:
+          // Should not reach here since we handle registry above, but keep for safety
           return;
-        }
 
         case ServerType.BROWSER_SIDE: {
           // Client-side MCP resource
