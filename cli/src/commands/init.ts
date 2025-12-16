@@ -333,7 +333,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
     hostingChoice: string;
   }>(
     {
-      type: "list",
+      type: "select",
       name: "hostingChoice",
       message: "Choose where to connect your app:",
       choices: [
@@ -387,7 +387,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   console.log(chalk.cyan("\nStep 2: Provide your API key\n"));
   const { apiKeyOrCloud } = await interactivePrompt<{ apiKeyOrCloud: string }>(
     {
-      type: "list",
+      type: "select",
       name: "apiKeyOrCloud",
       message: "How would you like to proceed?",
       choices: [

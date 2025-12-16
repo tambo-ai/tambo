@@ -104,13 +104,14 @@ export function getZodFunctionReturns(schema: unknown) {
  */
 export function handleZodSchemaToJson(schema: unknown) {
   // If Zod4 schema detected, use the toJSONSchema function from "zod/v4/core"
-  if (isZod4Schema(schema)) return zod4ToJSONSchema(schema);
+  if (isZod4Schema(schema))
+    return zod4ToJSONSchema(schema, { reused: "inline" });
 
   try {
     // Dynamic require for optional peer dependency
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- need require because zod-to-json-schema may be missing
     const { zodToJsonSchema } = require("zod-to-json-schema");
-    return zodToJsonSchema(schema);
+    return zodToJsonSchema(schema, { $refStrategy: "none" });
   } catch (error) {
     throw new Error(
       "Zod 3 requires 'zod-to-json-schema' package for JSON Schema conversion. " +
@@ -128,7 +129,7 @@ export function handleZodSchemaToJson(schema: unknown) {
  * @returns True if the schema looks like a Zod 3 schema
  */
 export function isZod3Schema(schema: unknown): schema is ZodType {
-  return isZodSchema(schema) && "_def" in schema;
+  return isZodSchema(schema) && "_def" in schema && !("def" in schema);
 }
 
 /**

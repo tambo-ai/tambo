@@ -93,6 +93,9 @@ export const TamboProvider: React.FC<
   initialMessages,
   onCallUnregisteredTool,
   getContextHelperData,
+  getResource,
+  listResources,
+  resources,
 }) => {
   return (
     <TamboClientProvider
@@ -106,6 +109,9 @@ export const TamboProvider: React.FC<
         tools={tools}
         mcpServers={mcpServers}
         onCallUnregisteredTool={onCallUnregisteredTool}
+        getResource={getResource}
+        listResources={listResources}
+        resources={resources}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider

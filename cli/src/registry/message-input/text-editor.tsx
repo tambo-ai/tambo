@@ -983,11 +983,11 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
             resourceSuggestionRef.current.state.isOpen ||
             promptSuggestionRef.current.state.isOpen;
 
-          // Prevent Enter from submitting form when selecting from any menu
-          if (event.key === "Enter" && !event.shiftKey && anyMenuOpen) {
-            event.preventDefault();
-            event.stopPropagation();
-            return true;
+          // When menu is open, let the suggestion plugin handle keyboard events
+          // (ArrowUp, ArrowDown, Enter, Escape). Returning false allows the
+          // event to propagate to the suggestion plugin's onKeyDown handler.
+          if (anyMenuOpen) {
+            return false;
           }
 
           // Only handle Enter key for form submission - let TipTap handle everything else
