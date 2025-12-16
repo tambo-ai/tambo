@@ -49,6 +49,8 @@ NEXTAUTH_SECRET=your-nextauth-secret
 FALLBACK_OPENAI_API_KEY=your-openai-api-key
 ```
 
+`docker.env.example` includes placeholder values; replace them with strong secrets before starting the stack.
+
 See [Environment Variables Reference](#environment-variables-reference) for all options.
 
 ### 4. Start Services
@@ -93,7 +95,7 @@ See [Environment Variables Reference](#environment-variables-reference) for all 
 
 To sign in to the dashboard, you must configure **either** OAuth (Google and/or GitHub) **or** email login (Resend).
 
-Note: If any OAuth provider is configured, the deployment uses OAuth login only. Email login is only enabled when no OAuth providers are configured.
+Note: If any OAuth provider is configured, the deployment uses OAuth login only (even if email settings are present). Email login is only enabled when no OAuth providers are configured.
 
 #### OAuth (Optional)
 
