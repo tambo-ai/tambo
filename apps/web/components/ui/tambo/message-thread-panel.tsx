@@ -48,6 +48,7 @@ export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivEle
    * Optional key to identify the context of the thread
    * Used to maintain separate thread histories for different contexts
    */
+  contextKey?: string;
   /** Optional content to render in the left panel of the grid */
   children?: React.ReactNode;
   /**
@@ -171,7 +172,7 @@ ResizablePanel.displayName = "ResizablePanel";
 export const MessageThreadPanel = forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
->(({ className, variant, ...props }, ref) => {
+>(({ className, variant, contextKey, ...props }, ref) => {
   const { registerTool } = useTambo();
   const trpcClient = useTRPCClient();
   const utils = api.useUtils();
@@ -192,7 +193,6 @@ export const MessageThreadPanel = forwardRef<
     isOpen,
     setIsOpen,
     editorRef: providerEditorRef,
-    contextKey,
   } = useMessageThreadPanel();
   const { customSuggestions, setCustomSuggestions } =
     useTamboContextAttachment();
