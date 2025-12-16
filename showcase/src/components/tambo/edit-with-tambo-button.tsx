@@ -68,11 +68,6 @@ export interface EditWithTamboButtonProps {
    * MessageThreadCollapsible or implements similar clearing logic.
    */
   suggestions?: Suggestion[];
-  /**
-   * Optional context key for thread caching. When provided, threads created via
-   * inline edit will be cached and appear in thread lists for this context key.
-   */
-  contextKey?: string;
 }
 
 /**
@@ -107,7 +102,6 @@ export function EditWithTamboButton({
   onOpenThread,
   editorRef,
   suggestions,
-  contextKey,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle } = useTambo();
@@ -182,7 +176,6 @@ export function EditWithTamboButton({
     try {
       await sendThreadMessage(prompt.trim(), {
         streamResponse: true,
-        contextKey,
       });
 
       // Clear the prompt after successful send
@@ -198,7 +191,6 @@ export function EditWithTamboButton({
     sendThreadMessage,
     addContextAttachment,
     clearContextAttachments,
-    contextKey,
   ]);
 
   const handleSendInThread = useCallback(() => {
