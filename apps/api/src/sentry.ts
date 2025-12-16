@@ -15,7 +15,7 @@ async function initSentry() {
   // Try to load profiling integration, but gracefully handle failures
   // (e.g., incompatible Node.js version, missing native module)
   let profilingIntegration:
-    | (() => ReturnType<typeof Sentry.captureConsoleIntegration>)
+    | (typeof import("@sentry/profiling-node"))["nodeProfilingIntegration"]
     | undefined;
   try {
     const { nodeProfilingIntegration } = await import("@sentry/profiling-node");

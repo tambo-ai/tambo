@@ -89,7 +89,13 @@ See [Environment Variables Reference](#environment-variables-reference) for all 
 | `OPENAI_API_KEY`          | No       | Primary OpenAI key for generation                       |
 | `FALLBACK_OPENAI_API_KEY` | Yes      | Default OpenAI key when projects don't have custom keys |
 
-### OAuth (At Least One Required for Login)
+### Authentication (OAuth or Email)
+
+To sign in to the dashboard, you must configure **either** OAuth (Google and/or GitHub) **or** email login (Resend).
+
+Note: If any OAuth provider is configured, the deployment uses OAuth login only. Email login is only enabled when no OAuth providers are configured.
+
+#### OAuth (Optional)
 
 | Variable               | Description                |
 | ---------------------- | -------------------------- |
@@ -98,9 +104,9 @@ See [Environment Variables Reference](#environment-variables-reference) for all 
 | `GITHUB_CLIENT_ID`     | GitHub OAuth client ID     |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret |
 
-If no OAuth provider is configured, email-based login is used (requires email configuration).
+#### Email Login (Optional)
 
-### Email Configuration
+Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 
 | Variable                 | Description                       |
 | ------------------------ | --------------------------------- |
