@@ -10,11 +10,6 @@ interface UseTamboThreadListConfig {
    * will be used.
    */
   projectId?: string;
-  /**
-   * The context key to get the threads for. If not provided, all threads for
-   * the project will be returned.
-   */
-  contextKey?: string;
 }
 
 /**
@@ -29,13 +24,13 @@ interface UseTamboThreadListConfig {
  * @returns The threads for the specified project and optional context key
  */
 export function useTamboThreadList(
-  { projectId, contextKey }: UseTamboThreadListConfig = {},
+  { projectId }: UseTamboThreadListConfig = {},
   options: Partial<
     UseQueryOptions<TamboAI.Beta.Threads.ThreadsOffsetAndLimit | null>
   > = {},
 ) {
   const client = useTamboClient();
-  const { contextKey: threadContextKey } = useTamboThread();
+  const { contextKey } = useTamboThread();
   const { data: queriedProjectId, ...projectIdState } = useTamboQuery({
     ...(options as unknown as UseQueryOptions<string>),
     queryKey: ["projectId"],
@@ -48,13 +43,13 @@ export function useTamboThreadList(
   const threadState = useTamboQuery({
     ...options,
     enabled: !!currentProjectId,
-    queryKey: ["threads", currentProjectId, contextKey ?? threadContextKey],
+    queryKey: ["threads", currentProjectId, contextKey],
     queryFn: async () => {
       if (!currentProjectId) {
         return null;
       }
       const threadIter = await client.beta.threads.list(currentProjectId, {
-        contextKey: contextKey ?? threadContextKey,
+        contextKey: contextKey,
       });
       return threadIter;
     },
