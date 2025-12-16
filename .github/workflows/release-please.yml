@@ -11,6 +11,7 @@ concurrency:
   group: release-please-${{ github.ref }}
 
 permissions:
+  id-token: write # Required for OIDC publishing to NPM
   contents: write
   pull-requests: write
 
@@ -62,8 +63,6 @@ jobs:
 
       - name: Publish @tambo-ai/react to npm
         working-directory: ./react-sdk
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
   # NPM Package Publishing - CLI
@@ -94,8 +93,6 @@ jobs:
 
       - name: Publish tambo to npm
         working-directory: ./cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
   # NPM Package Publishing - Create Tambo App
@@ -126,8 +123,6 @@ jobs:
 
       - name: Publish create-tambo-app to npm
         working-directory: ./create-tambo-app
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
   # Web App Deployment
