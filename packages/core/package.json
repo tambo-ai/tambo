@@ -2,11 +2,17 @@
   "name": "@tambo-ai-cloud/core",
   "version": "0.0.0",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "exports": {
     "import": "./src/index.ts"
   },
   "main": "./src/index.ts",
+  "files": [
+    "src",
+    "LICENSE",
+    "NOTICE"
+  ],
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -39,6 +45,5 @@
     "jose": "^5.10.0",
     "openai": "^6.4.0",
     "resend": "^6.6.0"
-  },
-  "license": "Apache-2.0"
+  }
 }

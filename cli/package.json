@@ -2,6 +2,7 @@
   "name": "tambo",
   "version": "0.44.0",
   "description": "Tambo command-line tool",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/tambo-ai/tambo.git",
@@ -23,6 +24,7 @@
   "files": [
     "src",
     "dist",
+    "LICENSE",
     "!**/*.test.*",
     "!**/__tests__/**"
   ],

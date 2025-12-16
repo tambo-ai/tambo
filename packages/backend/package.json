@@ -7,7 +7,9 @@
     "import": "./src/index.ts"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc",

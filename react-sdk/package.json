@@ -2,6 +2,7 @@
   "name": "@tambo-ai/react",
   "version": "0.67.0",
   "description": "React client package for Tambo AI",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/tambo-ai/tambo.git",
@@ -25,7 +26,8 @@
   },
   "files": [
     "dist",
-    "esm"
+    "esm",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=22",

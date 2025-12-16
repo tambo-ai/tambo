@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
+  "license": "MIT",
   "exports": {
     "./base": "./base.mjs",
     "./next-js": "./next.mjs",
@@ -22,6 +23,5 @@
   },
   "volta": {
     "extends": "../../package.json"
-  },
-  "license": "MIT"
+  }
 }
