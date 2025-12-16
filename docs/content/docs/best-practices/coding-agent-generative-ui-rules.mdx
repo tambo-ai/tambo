@@ -7,7 +7,7 @@ We highly recommend adding these rules to your Coding agent `CLAUDE.md` or `AGEN
 
 Adding these will often avoid common issues and improve the assistants integration.
 
-````markdown
+```markdown
 ## Tambo Generative UI
 
 - Props are `undefined` during streaming—always use `?.` and `??`
@@ -19,4 +19,4 @@ Adding these will often avoid common issues and improve the assistants integrati
 - If the item IDs are used to fetch data, use `useTamboStreamStatus` to wait until the array is complete before rendering
 - Fetch server data or derive from app state; don't have AI generate what already exists
 - Use `.describe()` to guide prop generation
-````
+```
