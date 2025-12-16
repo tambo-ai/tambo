@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
+import { REGISTRY_SERVER_KEY, ServerType } from "../../mcp/mcp-constants";
+import type { McpServer } from "../../mcp/mcp-server-context";
 import type { ResourceSource } from "../../model/resource-info";
 import { TamboRegistryProvider } from "../tambo-registry-provider";
 import {
@@ -18,10 +20,35 @@ jest.mock("../tambo-thread-provider", () => ({
   }),
 }));
 
-// Mock the MCP provider - return empty array for servers
-jest.mock("../../mcp/tambo-mcp-provider", () => ({
-  useTamboMcpServers: () => [],
+// Mock servers array - will be updated per test
+let mockServers: McpServer[] = [];
+
+// Mock the MCP server context
+jest.mock("../../mcp/mcp-server-context", () => ({
+  useTamboMcpServers: () => mockServers,
 }));
+
+// Helper to create virtual registry server
+const createMockRegistryServer = (): McpServer => ({
+  key: REGISTRY_SERVER_KEY,
+  serverKey: REGISTRY_SERVER_KEY,
+  url: "",
+  name: "Registry",
+  status: "connected",
+  serverType: ServerType.TAMBO_REGISTRY,
+  client: null,
+});
+
+// Helper to create internal server
+const createMockInternalServer = (serverKey: string): McpServer => ({
+  key: serverKey,
+  serverKey,
+  url: "https://api.tambo.ai/mcp",
+  name: "__tambo_internal_mcp_server__",
+  status: "connected",
+  serverType: ServerType.TAMBO_INTERNAL,
+  client: null,
+});
 
 // Mock the message images hook
 jest.mock("../../hooks/use-message-images", () => ({
@@ -53,6 +80,8 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
   beforeEach(() => {
     jest.clearAllMocks();
     mockSendThreadMessage.mockResolvedValue(undefined);
+    // Default: include registry server
+    mockServers = [createMockRegistryServer()];
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -63,6 +92,7 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
 
   afterEach(() => {
     queryClient.clear();
+    mockServers = [];
   });
 
   const createWrapper = (
@@ -296,7 +326,13 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
     consoleSpy.mockRestore();
   });
 
-  it("should NOT resolve internal server resources (tambo-* prefix)", async () => {
+  it("should NOT resolve internal server resources (serverType: TAMBO_INTERNAL)", async () => {
+    // Add internal server to mock servers
+    mockServers = [
+      createMockRegistryServer(),
+      createMockInternalServer("tambo-abc123"),
+    ];
+
     const mockGetResource = jest.fn().mockResolvedValue({
       contents: [{ uri: "tambo:test://resource/1", text: "Should not fetch" }],
     });
@@ -336,6 +372,12 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
   });
 
   it("should handle mixed registry and internal server resources", async () => {
+    // Add both registry and internal server
+    mockServers = [
+      createMockRegistryServer(),
+      createMockInternalServer("tambo-xyz"),
+    ];
+
     const mockGetResource = jest.fn().mockResolvedValue({
       contents: [{ uri: "file:///registry-doc.txt", text: "Registry content" }],
     });

@@ -7,7 +7,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { McpServerContext } from "./mcp-server-context";
+import { REGISTRY_SERVER_KEY, ServerType } from "./mcp-constants";
+import {
+  McpServerContext,
+  type McpServer as LightweightMcpServer,
+} from "./mcp-server-context";
 import {
   getMcpServerUniqueKey,
   type NormalizedMcpServerInfo,
@@ -497,12 +501,14 @@ export const TamboMcpProvider: FC<{
     [connectedMcpServers, elicitation, resolveElicitation],
   );
 
+  const { resourceSource } = useTamboRegistry();
+
   // Map servers to lightweight format for McpServerContext
   // This allows components that don't need full MCP client to access servers
   // without pulling in heavy MCP dependencies
-  const serverContextValue = useMemo(
-    () => ({
-      servers: connectedMcpServers.map((server) => {
+  const serverContextValue = useMemo(() => {
+    const mcpServerEntries: LightweightMcpServer[] = connectedMcpServers.map(
+      (server) => {
         let status: "connecting" | "connected" | "error";
         if ("connectionError" in server) {
           status = "error";
@@ -511,20 +517,42 @@ export const TamboMcpProvider: FC<{
         } else {
           status = "connecting";
         }
+        // Determine server type based on server name
+        const serverType =
+          server.name === TAMBO_INTERNAL_MCP_SERVER_NAME
+            ? ServerType.TAMBO_INTERNAL
+            : ServerType.BROWSER_SIDE;
         return {
           key: server.key,
           serverKey: server.serverKey,
           url: server.url,
           name: server.name ?? server.url,
           status,
+          serverType,
           error:
             "connectionError" in server ? server.connectionError : undefined,
           client: server.client ?? null,
         };
-      }),
-    }),
-    [connectedMcpServers],
-  );
+      },
+    );
+
+    // Add virtual registry server if resourceSource exists
+    // This allows unified handling of registry resources via serverType
+    if (resourceSource) {
+      mcpServerEntries.push({
+        key: REGISTRY_SERVER_KEY,
+        serverKey: REGISTRY_SERVER_KEY,
+        url: "",
+        name: "Registry",
+        status: "connected",
+        serverType: ServerType.TAMBO_REGISTRY,
+        error: undefined,
+        client: null,
+      });
+    }
+
+    return { servers: mcpServerEntries };
+  }, [connectedMcpServers, resourceSource]);
 
   return (
     <McpServerContext.Provider value={serverContextValue}>

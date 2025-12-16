@@ -1,8 +1,9 @@
 import { createContext, useContext } from "react";
+import type { ServerType } from "./mcp-constants";
 
 /**
  * Type for MCP client. We use a structural type here to avoid importing
- * the heavy mcp-client module which pulls in @modelcontextprotocol/sdk.
+ * the heavy mcp-client module which pulls in `@modelcontextprotocol/sdk`.
  */
 interface MCPClientLike {
   client: {
@@ -52,8 +53,12 @@ export interface McpServer {
   status: "connecting" | "connected" | "error";
   error?: Error;
   /**
+   * The type of server - determines how resources are resolved.
+   */
+  serverType: ServerType;
+  /**
    * The MCP client for this server.
-   * May be null if the server is still connecting or errored.
+   * May be null if the server is still connecting, errored, or a virtual server (registry).
    */
   client: MCPClientLike | null;
 }

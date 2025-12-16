@@ -1,8 +1,5 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
-import {
-  INTERNAL_SERVER_PREFIX,
-  REGISTRY_SERVER_KEY,
-} from "../mcp/mcp-constants";
+import { ServerType } from "../mcp/mcp-constants";
 import type { McpServer, ConnectedMcpServer } from "../mcp/mcp-server-context";
 import type { ResourceSource } from "../model/resource-info";
 
@@ -18,7 +15,7 @@ function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
  * Resolves content for client-side resources (MCP and registry).
  * Server-side (internal Tambo) resources are skipped - the backend can resolve them.
  * @param resourceUris - Prefixed URIs (e.g., "linear:file://foo", "registry:file://bar", "tambo-abc:test://resource")
- * @param mcpServers - Connected MCP servers
+ * @param mcpServers - MCP servers including virtual registry server
  * @param resourceSource - Registry resource source (listResources/getResource)
  * @returns Map of prefixedUri -> ReadResourceResult for resolved resources.
  *          Resources that failed to fetch or are internal server resources won't be in the map.
@@ -39,42 +36,50 @@ export async function resolveResourceContents(
     const serverKey = prefixedUri.slice(0, colonIndex);
     const originalUri = prefixedUri.slice(colonIndex + 1);
 
-    // Skip internal server resources - backend can resolve these
-    if (serverKey.startsWith(INTERNAL_SERVER_PREFIX)) {
+    // Find the server by serverKey
+    const server = mcpServers.find((s) => s.serverKey === serverKey);
+    if (!server) {
+      console.warn(`No server found for resource: ${prefixedUri}`);
       return;
     }
 
     try {
-      // Registry resource
-      if (serverKey === REGISTRY_SERVER_KEY) {
-        if (!resourceSource) {
-          console.warn(
-            `No resource source available to resolve registry resource: ${prefixedUri}`,
-          );
+      switch (server.serverType) {
+        case ServerType.TAMBO_INTERNAL:
+          // Skip internal server resources - backend can resolve these
+          return;
+
+        case ServerType.TAMBO_REGISTRY: {
+          // Registry resource - use resourceSource
+          if (!resourceSource) {
+            console.warn(
+              `No resource source available to resolve registry resource: ${prefixedUri}`,
+            );
+            return;
+          }
+          const registryContent = await resourceSource.getResource(originalUri);
+          if (registryContent) {
+            results.set(prefixedUri, registryContent);
+          }
           return;
         }
-        const content = await resourceSource.getResource(originalUri);
-        if (content) {
-          results.set(prefixedUri, content);
-        }
-        return;
-      }
 
-      // Client-side MCP resource
-      const mcpServer = mcpServers.find(
-        (s) => isConnectedMcpServer(s) && s.serverKey === serverKey,
-      );
-      if (mcpServer && isConnectedMcpServer(mcpServer)) {
-        const content = (await mcpServer.client.client.readResource({
-          uri: originalUri,
-        })) as ReadResourceResult | null;
-        if (content) {
-          results.set(prefixedUri, content);
+        case ServerType.BROWSER_SIDE: {
+          // Client-side MCP resource
+          if (!isConnectedMcpServer(server)) {
+            console.warn(
+              `MCP server not connected for resource: ${prefixedUri}`,
+            );
+            return;
+          }
+          const mcpContent = (await server.client.client.readResource({
+            uri: originalUri,
+          })) as ReadResourceResult | null;
+          if (mcpContent) {
+            results.set(prefixedUri, mcpContent);
+          }
+          return;
         }
-      } else {
-        console.warn(
-          `No connected MCP server found for resource: ${prefixedUri}`,
-        );
       }
     } catch (error) {
       // Graceful fallback - log warning and continue without content
