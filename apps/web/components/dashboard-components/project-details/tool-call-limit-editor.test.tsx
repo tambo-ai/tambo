@@ -46,6 +46,11 @@ jest.mock("@tambo-ai/react", () => ({
     sendThreadMessage: jest.fn(),
     isIdle: true,
   }),
+  useTamboThreadInput: () => ({
+    setValue: jest.fn(),
+    submit: jest.fn(),
+    value: "",
+  }),
 }));
 
 function renderEditor(
