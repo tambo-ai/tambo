@@ -16,6 +16,7 @@ import {
   useTambo,
   useTamboContextAttachment,
   useTamboCurrentComponent,
+  useTamboThreadInput,
 } from "@tambo-ai/react";
 import { Bot, ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -76,17 +77,14 @@ export function EditWithTamboButton({
   suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle } = useTambo();
-  const {
-    setIsOpen: setThreadPanelOpen,
-    editorRef,
-    contextKey,
-  } = useMessageThreadPanel();
+  const { isIdle } = useTambo();
+  const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
   const {
     addContextAttachment,
     clearContextAttachments,
     setCustomSuggestions,
   } = useTamboContextAttachment();
+  const { setValue: setThreadInputValue, submit } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -139,8 +137,6 @@ export function EditWithTamboButton({
       return;
     }
 
-    setShouldCloseOnComplete(true);
-
     // Add the component as a context attachment for inline editing (only if valid)
     const interactableId = component?.interactableId;
     const componentName = component?.componentName;
@@ -154,10 +150,9 @@ export function EditWithTamboButton({
     }
 
     try {
-      await sendThreadMessage(prompt.trim(), {
-        streamResponse: true,
-        contextKey,
-      });
+      // Set the thread input value and submit
+      setThreadInputValue(prompt.trim());
+      await submit({ streamResponse: true });
 
       // Clear the prompt after successful send
       setPrompt("");
@@ -169,10 +164,10 @@ export function EditWithTamboButton({
     prompt,
     isGenerating,
     component,
-    sendThreadMessage,
+    setThreadInputValue,
+    submit,
     addContextAttachment,
     clearContextAttachments,
-    contextKey,
   ]);
 
   const handleSendInThread = useCallback(() => {

@@ -104,13 +104,13 @@ export function EditWithTamboButton({
   suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle } = useTambo();
+  const { isIdle } = useTambo();
   const {
     setCustomSuggestions,
     addContextAttachment,
     clearContextAttachments,
   } = useTamboContextAttachment();
-  const { setValue: setThreadInputValue } = useTamboThreadInput();
+  const { setValue: setThreadInputValue, submit } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -159,8 +159,6 @@ export function EditWithTamboButton({
       return;
     }
 
-    setShouldCloseOnComplete(true);
-
     // Add the component as a context attachment for inline editing (only if valid)
     const interactableId = component?.interactableId;
     const componentName = component?.componentName;
@@ -174,9 +172,9 @@ export function EditWithTamboButton({
     }
 
     try {
-      await sendThreadMessage(prompt.trim(), {
-        streamResponse: true,
-      });
+      // Set the thread input value and submit (uses contextKey from TamboProvider)
+      setThreadInputValue(prompt.trim());
+      await submit({ streamResponse: true });
 
       // Clear the prompt after successful send
       setPrompt("");
@@ -188,7 +186,8 @@ export function EditWithTamboButton({
     prompt,
     isGenerating,
     component,
-    sendThreadMessage,
+    setThreadInputValue,
+    submit,
     addContextAttachment,
     clearContextAttachments,
   ]);
