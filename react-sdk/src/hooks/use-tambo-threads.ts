@@ -1,5 +1,6 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { UseQueryOptions } from "@tanstack/react-query";
+import { useTamboThread } from "../providers";
 import { useTamboClient } from "../providers/tambo-client-provider";
 import { useTamboQuery } from "./react-query-hooks";
 
@@ -34,6 +35,7 @@ export function useTamboThreadList(
   > = {},
 ) {
   const client = useTamboClient();
+  const { contextKey: threadContextKey } = useTamboThread();
   const { data: queriedProjectId, ...projectIdState } = useTamboQuery({
     ...(options as unknown as UseQueryOptions<string>),
     queryKey: ["projectId"],
@@ -46,13 +48,13 @@ export function useTamboThreadList(
   const threadState = useTamboQuery({
     ...options,
     enabled: !!currentProjectId,
-    queryKey: ["threads", currentProjectId, contextKey],
+    queryKey: ["threads", currentProjectId, contextKey ?? threadContextKey],
     queryFn: async () => {
       if (!currentProjectId) {
         return null;
       }
       const threadIter = await client.beta.threads.list(currentProjectId, {
-        contextKey,
+        contextKey: contextKey ?? threadContextKey,
       });
       return threadIter;
     },

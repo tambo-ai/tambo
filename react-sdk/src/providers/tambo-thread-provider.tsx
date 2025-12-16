@@ -131,6 +131,8 @@ export interface TamboThreadContextProps {
       content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
     },
   ) => Promise<TamboThreadMessage>;
+  /** The context key to use for the thread */
+  contextKey?: string;
 }
 
 // Combined context interface that includes generation stage fields
@@ -235,6 +237,8 @@ export interface TamboThreadProviderProps {
   autoGenerateThreadName?: boolean;
   /** The message count threshold at which the thread name will be auto-generated. Defaults to 3. */
   autoGenerateNameThreshold?: number;
+  /** The context key to use for the thread */
+  contextKey?: string;
 }
 
 /**
@@ -256,6 +260,7 @@ export const TamboThreadProvider: React.FC<
   initialMessages = [],
   autoGenerateThreadName = true,
   autoGenerateNameThreshold = 3,
+  contextKey,
 }) => {
   // Create placeholder thread with initial messages
   const placeholderThread: TamboThread = useMemo(
@@ -272,8 +277,9 @@ export const TamboThreadProvider: React.FC<
       projectId: "",
       updatedAt: "",
       metadata: {},
+      contextKey,
     }),
-    [initialMessages],
+    [contextKey, initialMessages],
   );
 
   const [threadMap, setThreadMap] = useState<Record<string, TamboThread>>({
@@ -1290,6 +1296,7 @@ export const TamboThreadProvider: React.FC<
         streaming,
         cancel,
         sendThreadMessage,
+        contextKey,
       }}
     >
       <TamboGenerationStageProvider
