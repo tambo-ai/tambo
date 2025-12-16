@@ -1,6 +1,5 @@
 "use client";
 import React, { PropsWithChildren, createContext, useContext } from "react";
-import { TamboMcpProvider } from "../mcp/tambo-mcp-provider";
 import { TamboInteractableContext } from "../model/tambo-interactable";
 import {
   TamboClientContext,
@@ -119,21 +118,19 @@ export const TamboProvider: React.FC<
             initialMessages={initialMessages}
           >
             <TamboMcpTokenProvider>
-              <TamboMcpProvider contextKey={contextKey}>
-                <TamboThreadInputProvider>
-                  <TamboContextAttachmentProvider
-                    getContextHelperData={getContextHelperData}
-                  >
-                    <TamboComponentProvider>
-                      <TamboInteractableProvider>
-                        <TamboCompositeProvider>
-                          {children}
-                        </TamboCompositeProvider>
-                      </TamboInteractableProvider>
-                    </TamboComponentProvider>
-                  </TamboContextAttachmentProvider>
-                </TamboThreadInputProvider>
-              </TamboMcpProvider>
+              <TamboThreadInputProvider>
+                <TamboContextAttachmentProvider
+                  getContextHelperData={getContextHelperData}
+                >
+                  <TamboComponentProvider>
+                    <TamboInteractableProvider>
+                      <TamboCompositeProvider>
+                        {children}
+                      </TamboCompositeProvider>
+                    </TamboInteractableProvider>
+                  </TamboComponentProvider>
+                </TamboContextAttachmentProvider>
+              </TamboThreadInputProvider>
             </TamboMcpTokenProvider>
           </TamboThreadProvider>
         </TamboContextHelpersProvider>
