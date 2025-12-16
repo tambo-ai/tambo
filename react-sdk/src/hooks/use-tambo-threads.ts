@@ -43,7 +43,7 @@ export function useTamboThreadList(
   const threadState = useTamboQuery({
     ...options,
     enabled: !!currentProjectId,
-    queryKey: ["threads", currentProjectId, contextKey],
+    queryKey: ["threads", currentProjectId, contextKey ?? threadContextKey],
     queryFn: async () => {
       if (!currentProjectId) {
         return null;
