@@ -27,36 +27,30 @@ export const currentInteractablesContextHelper: ContextHelperFn = () => {
 /**
  * Creates an interactables context helper with access to the current components.
  * This is used internally by TamboInteractableProvider.
- * @param getComponents Function to get current interactable components
+ * @param components Array of interactable components
  * @returns Context helper function
  */
 export const createInteractablesContextHelper = (
-  getComponents: () => any[],
+  components: any[],
 ): ContextHelperFn => {
   return () => {
-    try {
-      const components = getComponents();
-
-      if (!Array.isArray(components) || components.length === 0) {
-        return null; // No interactable components on the page
-      }
-
-      return {
-        description:
-          "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, and optional schema. You can use tools to update these components on behalf of the user.",
-        components: components.map((component) => ({
-          id: component.id,
-          componentName: component.name,
-          description: component.description,
-          props: component.props,
-          propsSchema: component.propsSchema
-            ? "Available - use component-specific update tools"
-            : "Not specified",
-        })),
-      };
-    } catch (e) {
-      console.error("currentInteractablesContextHelper failed:", e);
-      return null;
+    if (!Array.isArray(components) || components.length === 0) {
+      return null; // No interactable components on the page
     }
+
+    return {
+      description:
+        "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, current state,and optional schema. You can use tools to update these components on behalf of the user. Don't tell the user the ID of the components, only the name, unless they ask for it.",
+      components: components.map((component) => ({
+        id: component.id,
+        componentName: component.name,
+        description: component.description,
+        props: component.props,
+        propsSchema: component.propsSchema
+          ? "Available - use component-specific update tools"
+          : "Not specified",
+        state: component.state,
+      })),
+    };
   };
 };

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.67.0](https://github.com/tambo-ai/tambo/compare/react-v0.66.2...react-v0.67.0) (2025-12-15)
+
+
+### Features
+
+* send interactables internal state to tambo ([#1495](https://github.com/tambo-ai/tambo/issues/1495)) ([b5ff541](https://github.com/tambo-ai/tambo/commit/b5ff54181a1dbca84e318b59b828e66b1b4586d6))
+
+
+### Bug Fixes
+
+* **react-sdk:** inline reused Zod schemas in JSON Schema conversion ([#1536](https://github.com/tambo-ai/tambo/issues/1536)) ([eab83dc](https://github.com/tambo-ai/tambo/commit/eab83dcb2bec9191a3a69d39e3948f0390700115))
+
+
+### Miscellaneous Chores
+
+* **deps:** Bump @tambo-ai/typescript-sdk to get tool maxCalls ([#1533](https://github.com/tambo-ai/tambo/issues/1533)) ([97e85ba](https://github.com/tambo-ai/tambo/commit/97e85ba0eb334a8b3b482a0cff368d2528b91d74))
+
 ## [0.66.2](https://github.com/tambo-ai/tambo/compare/react-v0.66.1...react-v0.66.2) (2025-12-12)
 
 

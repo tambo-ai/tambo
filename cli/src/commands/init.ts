@@ -152,9 +152,9 @@ function displaySelfHostInstructions(): void {
   console.log(chalk.bold("\nQuick start with Docker:"));
   console.log(chalk.gray("  1. Clone the repo"));
   console.log(chalk.gray("  2. Run:"));
-  console.log(chalk.gray("     ./scripts/tambo-setup.sh"));
-  console.log(chalk.gray("     ./scripts/tambo-start.sh"));
-  console.log(chalk.gray("     ./scripts/init-database.sh"));
+  console.log(chalk.gray("     ./scripts/cloud/tambo-setup.sh"));
+  console.log(chalk.gray("     ./scripts/cloud/tambo-start.sh"));
+  console.log(chalk.gray("     ./scripts/cloud/init-database.sh"));
   console.log(
     chalk.gray(
       "  3. Open http://localhost:3000, create a project, then generate an API key",
@@ -165,8 +165,12 @@ function displaySelfHostInstructions(): void {
   console.log(
     chalk.gray("  1. Create .env files (see repo .env.example files)"),
   );
-  console.log(chalk.gray("  2. Start Postgres via ./scripts/tambo-start.sh"));
-  console.log(chalk.gray("  3. Initialize DB via ./scripts/init-database.sh"));
+  console.log(
+    chalk.gray("  2. Start Postgres via ./scripts/cloud/tambo-start.sh"),
+  );
+  console.log(
+    chalk.gray("  3. Initialize DB via ./scripts/cloud/init-database.sh"),
+  );
   console.log(chalk.gray("  4. npm run dev (web + api)\n"));
 }
 
@@ -329,7 +333,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
     hostingChoice: string;
   }>(
     {
-      type: "list",
+      type: "select",
       name: "hostingChoice",
       message: "Choose where to connect your app:",
       choices: [
@@ -383,7 +387,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
   console.log(chalk.cyan("\nStep 2: Provide your API key\n"));
   const { apiKeyOrCloud } = await interactivePrompt<{ apiKeyOrCloud: string }>(
     {
-      type: "list",
+      type: "select",
       name: "apiKeyOrCloud",
       message: "How would you like to proceed?",
       choices: [
