@@ -1,11 +1,9 @@
 import { Graph, graphSchema } from "@/components/tambo/graph";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
-import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
 export const GraphChatInterface = () => {
-  const userContextKey = useUserContextKey("graph-thread");
   const { registerComponent, thread } = useTambo();
 
   useEffect(() => {
@@ -47,7 +45,7 @@ export const GraphChatInterface = () => {
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>
-      <MessageThreadFull contextKey={userContextKey} className="rounded-lg" />
+      <MessageThreadFull className="rounded-lg" />
     </div>
   );
 };

@@ -3,12 +3,10 @@ import {
   inputFieldsSchema,
 } from "@/components/tambo/input-fields";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
-import { useUserContextKey } from "@/lib/useUserContextKey";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
 export const InputFieldsChatInterface = () => {
-  const userContextKey = useUserContextKey("input-fields-thread");
   const { registerComponent, thread } = useTambo();
 
   useEffect(() => {
@@ -45,7 +43,7 @@ export const InputFieldsChatInterface = () => {
 
   return (
     <div className="flex flex-col" style={{ height: "700px" }}>
-      <MessageThreadFull contextKey={userContextKey} className="rounded-lg" />
+      <MessageThreadFull className="rounded-lg" />
     </div>
   );
 };
