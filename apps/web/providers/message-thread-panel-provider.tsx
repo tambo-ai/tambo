@@ -25,19 +25,13 @@ export function MessageThreadPanelProvider({
 
   // Generate or retrieve contextKey only once on mount
   const [contextKey] = React.useState<string>(() => {
-    // Defensive UUID generation for environments where crypto.randomUUID may not be available
-    const generateUUID = () =>
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
     // Check if we're in the browser before accessing localStorage
     if (typeof window === "undefined") {
-      return `session-${generateUUID()}`;
+      return `session-${crypto.randomUUID()}`;
     }
     const stored = localStorage.getItem("tambo-context-key");
     if (stored) return stored;
-    const newKey = `session-${generateUUID()}`;
+    const newKey = `session-${crypto.randomUUID()}`;
     localStorage.setItem("tambo-context-key", newKey);
     return newKey;
   });
