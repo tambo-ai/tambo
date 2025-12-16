@@ -11,12 +11,14 @@ concurrency:
   group: release-please-${{ github.ref }}
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       react-sdk--release_created: ${{ steps.release.outputs.react-sdk--release_created }}
       cli--release_created: ${{ steps.release.outputs.cli--release_created }}
