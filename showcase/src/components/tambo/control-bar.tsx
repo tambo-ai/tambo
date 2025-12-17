@@ -39,8 +39,6 @@ import { ScrollableMessageContainer } from "@/components/tambo/scrollable-messag
  * @extends React.HTMLAttributes<HTMLDivElement>
  */
 export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Optional context key for the thread */
-  contextKey?: string;
   /** Keyboard shortcut for toggling the control bar (default: "mod+k") */
   hotkey?: string;
   /**
@@ -58,14 +56,13 @@ export interface ControlBarProps extends React.HTMLAttributes<HTMLDivElement> {
  * @example
  * ```tsx
  * <ControlBar
- *   contextKey="my-thread"
  *   hotkey="mod+k"
  *   className="custom-styles"
  * />
  * ```
  */
 export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
-  ({ className, contextKey, hotkey = "mod+k", variant, ...props }, ref) => {
+  ({ className, hotkey = "mod+k", variant, ...props }, ref) => {
     const [open, setOpen] = React.useState(false);
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
@@ -110,7 +107,7 @@ export const ControlBar = React.forwardRef<HTMLDivElement, ControlBarProps>(
             <div className="flex flex-col gap-3">
               <div className="bg-background border rounded-lg p-3 flex items-center justify-between gap-4">
                 <div className="flex-1">
-                  <MessageInput contextKey={contextKey}>
+                  <MessageInput>
                     <MessageInputTextarea />
                     <MessageInputToolbar>
                       <MessageInputFileButton />

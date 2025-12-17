@@ -13,8 +13,6 @@ import { useCallback } from "react";
  * @extends React.HTMLAttributes<HTMLDivElement>
  */
 export interface ThreadDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Optional context key for filtering threads */
-  contextKey?: string;
   /** Optional callback function called when the current thread changes */
   onThreadChange?: () => void;
   /** Optional className for the trigger button specifically */
@@ -31,7 +29,6 @@ export interface ThreadDropdownProps extends React.HTMLAttributes<HTMLDivElement
  * @example
  * ```tsx
  * <ThreadDropdown
- *   contextKey="my-thread"
  *   onThreadChange={() => console.log('Thread changed')}
  *   className="custom-container-styles"
  *   triggerClassName="custom-trigger-styles"
@@ -47,7 +44,6 @@ export const ThreadDropdown = React.forwardRef<
   (
     {
       className,
-      contextKey,
       onThreadChange,
       triggerClassName,
       contentClassName,
@@ -56,12 +52,7 @@ export const ThreadDropdown = React.forwardRef<
     },
     ref,
   ) => {
-    const {
-      data: threads,
-      isLoading,
-      error,
-      refetch,
-    } = useTamboThreadList({ contextKey });
+    const { data: threads, isLoading, error, refetch } = useTamboThreadList();
     const { switchCurrentThread, startNewThread } = useTamboThread();
     const isMac =
       typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");

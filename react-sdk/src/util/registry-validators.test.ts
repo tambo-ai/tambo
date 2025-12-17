@@ -1,5 +1,9 @@
 import { z } from "zod/v3";
-import type { TamboComponent, TamboTool } from "../model/component-metadata";
+import type {
+  TamboComponent,
+  TamboTool,
+  TamboToolWithToolSchema,
+} from "../model/component-metadata";
 import {
   validateAndPrepareComponent,
   validateTool,
@@ -8,7 +12,7 @@ import {
 
 describe("validateTool", () => {
   it("should validate tool with valid name", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "valid-tool-name",
       description: "A valid tool",
       tool: () => "result",
@@ -19,7 +23,7 @@ describe("validateTool", () => {
   });
 
   it("should throw when tool name contains invalid characters", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "invalid tool name",
       description: "A tool",
       tool: () => "result",
@@ -32,7 +36,7 @@ describe("validateTool", () => {
   });
 
   it("should throw when tool name contains special characters", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "tool@name",
       description: "A tool",
       tool: () => "result",
@@ -45,7 +49,7 @@ describe("validateTool", () => {
   });
 
   it("should validate tool with valid Zod schema", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "valid-tool",
       description: "A tool",
       tool: () => "result",
@@ -56,7 +60,7 @@ describe("validateTool", () => {
   });
 
   it("should throw when tool schema contains z.record()", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "invalid-tool",
       description: "A tool",
       tool: () => "result",
@@ -71,12 +75,12 @@ describe("validateTool", () => {
     };
 
     expect(() => validateTool(tool)).toThrow(
-      'z.record() is not supported in toolSchema of tool "invalid-tool". Found at path "args.0.metadata". Replace it with z.object({ ... }) using explicit keys.',
+      'Record types (objects with dynamic keys) are not supported in toolSchema of tool "invalid-tool".',
     );
   });
 
   it("should allow tool with JSON Schema (non-Zod)", () => {
-    const tool: TamboTool = {
+    const tool: TamboToolWithToolSchema = {
       name: "tool-with-json-schema",
       description: "A tool",
       tool: () => "result",
@@ -86,6 +90,109 @@ describe("validateTool", () => {
           query: { type: "string" },
         },
       },
+    };
+
+    expect(() => validateTool(tool)).not.toThrow();
+  });
+
+  it("should validate tool with inputSchema (new interface)", () => {
+    const tool: TamboTool = {
+      name: "tool-with-input-schema",
+      description: "A tool with input schema",
+      tool: (input: { query: string }) => input.query,
+      inputSchema: z.object({
+        query: z.string(),
+      }),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).not.toThrow();
+  });
+
+  it("should throw when inputSchema is not an object schema (string)", () => {
+    const tool: TamboTool = {
+      name: "tool-with-string-schema",
+      description: "A tool with invalid schema",
+      tool: () => "result",
+      inputSchema: z.string(),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      'inputSchema of tool "tool-with-string-schema" must be an object schema',
+    );
+  });
+
+  it("should throw when inputSchema is not an object schema (number)", () => {
+    const tool: TamboTool = {
+      name: "tool-with-number-schema",
+      description: "A tool with invalid schema",
+      tool: () => "result",
+      inputSchema: z.number(),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      'inputSchema of tool "tool-with-number-schema" must be an object schema',
+    );
+  });
+
+  it("should throw when inputSchema is not an object schema (array)", () => {
+    const tool: TamboTool = {
+      name: "tool-with-array-schema",
+      description: "A tool with invalid schema",
+      tool: () => "result",
+      inputSchema: z.array(z.string()),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      'inputSchema of tool "tool-with-array-schema" must be an object schema',
+    );
+  });
+
+  it("should throw when inputSchema JSON Schema is not an object type", () => {
+    const tool: TamboTool = {
+      name: "tool-with-json-string-schema",
+      description: "A tool with invalid JSON schema",
+      tool: () => "result",
+      inputSchema: { type: "string" },
+      outputSchema: { type: "string" },
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      'inputSchema of tool "tool-with-json-string-schema" must be an object schema',
+    );
+  });
+
+  it("should accept JSON Schema with object type", () => {
+    const tool: TamboTool = {
+      name: "tool-with-json-object-schema",
+      description: "A tool with valid JSON schema",
+      tool: () => "result",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+        },
+      },
+      outputSchema: { type: "string" },
+    };
+
+    expect(() => validateTool(tool)).not.toThrow();
+  });
+
+  it("should accept JSON Schema with properties but no explicit type", () => {
+    const tool: TamboTool = {
+      name: "tool-with-implicit-object-schema",
+      description: "A tool with implicit object schema",
+      tool: () => "result",
+      inputSchema: {
+        properties: {
+          query: { type: "string" },
+        },
+      },
+      outputSchema: { type: "string" },
     };
 
     expect(() => validateTool(tool)).not.toThrow();
@@ -182,7 +289,7 @@ describe("validateAndPrepareComponent", () => {
     };
 
     expect(() => validateAndPrepareComponent(component)).toThrow(
-      'z.record() is not supported in propsSchema of component "component-with-record". Found at path "metadata". Replace it with z.object({ ... }) using explicit keys.',
+      'Record types (objects with dynamic keys) are not supported in propsSchema of component "component-with-record".',
     );
   });
 

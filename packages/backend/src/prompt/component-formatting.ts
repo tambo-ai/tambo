@@ -1,7 +1,7 @@
 import { createPromptTemplate } from "@tambo-ai-cloud/core";
 import Ajv from "ajv";
-import { z } from "zod/v3";
 import zodToJsonSchema from "zod-to-json-schema";
+import { z } from "zod/v3";
 import {
   AvailableComponent,
   AvailableComponents,
@@ -67,7 +67,7 @@ const formatComponentProps = (
   }
 
   if (props instanceof z.ZodType) {
-    const jsonSchema = zodToJsonSchema(props);
+    const jsonSchema = zodToJsonSchema(props, { $refStrategy: "none" });
     const indentedJsonSchema = JSON.stringify(jsonSchema, null, 2).replace(
       /\n/g,
       `\n${indentStr}`,

@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.44.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.43.1...tambo-v0.44.0) (2025-12-15)
+
+
+### Features
+
+* add EditWithTamboButton page to showcase site ([#1508](https://github.com/tambo-ai/tambo/issues/1508)) ([57e2594](https://github.com/tambo-ai/tambo/commit/57e2594214bcf0035531923fb2cc252b7e73e090))
+* integrate EditWithTambo component for inline component editing ([#1477](https://github.com/tambo-ai/tambo/issues/1477)) ([390c204](https://github.com/tambo-ai/tambo/commit/390c2045148c63dfb85f1988861e1cf6ad7f021e))
+* **react-sdk:** add local resource registration to TamboRegistryProvider ([#1504](https://github.com/tambo-ai/tambo/issues/1504)) ([59c94a9](https://github.com/tambo-ai/tambo/commit/59c94a9214c165cbc6728d5a17f39697e4d4c370))
+
+
+### Bug Fixes
+
+* **cli:** Fixed cli logs typos on self-hosted flow ([#1528](https://github.com/tambo-ai/tambo/issues/1528)) ([783af2d](https://github.com/tambo-ai/tambo/commit/783af2d927a5b81e9b799eb9dcb1ce4204f8eb32))
+* **editor:** Clean up message-input and text-editor to only expose a limited set of capabilities in the editor ([#1502](https://github.com/tambo-ai/tambo/issues/1502)) ([2938064](https://github.com/tambo-ai/tambo/commit/2938064b2ff4b4504af1e13de24117192a6dc811))
+* **resources:** Make sure to show resource names in text editor and user messages ([#1497](https://github.com/tambo-ai/tambo/issues/1497)) ([b2d8013](https://github.com/tambo-ai/tambo/commit/b2d8013c0b4bf5fbf7801eca20e97fcf98b5ae55))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump ts-jest from 29.4.5 to 29.4.6 in the testing group ([#1484](https://github.com/tambo-ai/tambo/issues/1484)) ([07a1253](https://github.com/tambo-ai/tambo/commit/07a125380a847816424b4dae304075b3726e1816))
+* **deps:** Bump @tambo-ai/typescript-sdk to get tool maxCalls ([#1533](https://github.com/tambo-ai/tambo/issues/1533)) ([97e85ba](https://github.com/tambo-ai/tambo/commit/97e85ba0eb334a8b3b482a0cff368d2528b91d74))
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+
+
+### Documentation
+
+* **cli:** document useMergeRefs React 19 cleanup ([#1470](https://github.com/tambo-ai/tambo/issues/1470)) ([e215716](https://github.com/tambo-ai/tambo/commit/e21571673b4c92c6fedbb6e74dceb27b921d0a19))
+* **web:** document color handling in graph component ([#1469](https://github.com/tambo-ai/tambo/issues/1469)) ([d60e788](https://github.com/tambo-ai/tambo/commit/d60e788582df22f5f2bc47c59bbdae9ead37afee))
+
+
+### Code Refactoring
+
+* **cli:** migrate text-editor from tippy.js to Radix Popover ([#1506](https://github.com/tambo-ai/tambo/issues/1506)) ([554ce9e](https://github.com/tambo-ai/tambo/commit/554ce9eb1e2e4ee463af7a9a2157aa7ad4c4debb))
+
 ## [0.43.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.43.0...tambo-v0.43.1) (2025-12-04)
 
 

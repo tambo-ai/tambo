@@ -82,7 +82,6 @@ export default function ThreadHistoryPage() {
                   contextKey="demo-left"
                 >
                   <ThreadHistory
-                    contextKey="demo-left"
                     position="left"
                     defaultCollapsed={false}
                     className="relative bg-card border-r"
@@ -106,11 +105,11 @@ export default function ThreadHistoryPage() {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
-} from "@tambo-ai/react";
+} from "@/components/tambo/thread-history";
 
 export function ChatSidebar() {
   return (
-    <ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>
+    <ThreadHistory position="left" defaultCollapsed={false}>
       <ThreadHistoryHeader />
       <ThreadHistoryNewButton />
       <ThreadHistorySearch />
@@ -138,7 +137,6 @@ export function ChatSidebar() {
                   contextKey="demo-collapsed"
                 >
                   <ThreadHistory
-                    contextKey="demo-collapsed"
                     position="left"
                     defaultCollapsed={true}
                     className="relative bg-card border-r"
@@ -165,11 +163,11 @@ export function ChatSidebar() {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
-} from "@tambo-ai/react";
+} from "@/components/tambo/thread-history";
 
 export function CollapsedSidebar() {
   return (
-    <ThreadHistory contextKey="my-app" position="left" defaultCollapsed={true}>
+    <ThreadHistory position="left" defaultCollapsed={true}>
       <ThreadHistoryHeader />
       <ThreadHistoryNewButton />
       <ThreadHistorySearch />
@@ -202,7 +200,6 @@ export function CollapsedSidebar() {
                   contextKey="demo-right"
                 >
                   <ThreadHistory
-                    contextKey="demo-right"
                     position="right"
                     defaultCollapsed={false}
                     className="bg-card border-l"
@@ -222,7 +219,7 @@ export function CollapsedSidebar() {
   ThreadHistoryNewButton,
   ThreadHistorySearch,
   ThreadHistoryList,
-} from "@tambo-ai/react";
+} from "@/components/tambo/thread-history";
 
 export function RightSidebarLayout() {
   return (
@@ -231,7 +228,6 @@ export function RightSidebarLayout() {
         <p>Main content area with right sidebar</p>
       </div>
       <ThreadHistory
-        contextKey="my-app"
         position="right"
         defaultCollapsed={false}
         style={{ position: "static" }}
@@ -264,7 +260,6 @@ export function RightSidebarLayout() {
                   contextKey="demo-minimal"
                 >
                   <ThreadHistory
-                    contextKey="demo-minimal"
                     position="left"
                     defaultCollapsed={false}
                     className="bg-card border-r h-full"
@@ -285,11 +280,11 @@ export function RightSidebarLayout() {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryList,
-} from "@tambo-ai/react";
+} from "@/components/tambo/thread-history";
 
 export function MinimalSidebar() {
   return (
-    <ThreadHistory contextKey="my-app" position="left" defaultCollapsed={false}>
+    <ThreadHistory position="left" defaultCollapsed={false}>
       <ThreadHistoryHeader />
       <ThreadHistoryList />
     </ThreadHistory>
@@ -323,12 +318,6 @@ export function MinimalSidebar() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>contextKey</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>Optional context key to scope thread history</td>
-                </tr>
                 <tr>
                   <td>position</td>
                   <td>&quot;left&quot; | &quot;right&quot;</td>

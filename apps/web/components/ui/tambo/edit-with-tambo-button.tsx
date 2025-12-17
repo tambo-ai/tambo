@@ -30,7 +30,16 @@ export interface EditWithTamboButtonProps {
   className?: string;
   /** Optional callback to open the thread panel/chat interface. Uses useMessageThreadPanel by default if not provided */
   onOpenThread?: () => void;
-  /** Optional suggestions to display when using "Send in Thread" */
+  /**
+   * Optional suggestions to display when using "Send in Thread"
+   *
+   * NOTE: Suggestions are set via `setCustomSuggestions()` and persist until:
+   * - A message is sent (if using MessageThreadPanel, which clears on send)
+   * - This component unmounts (cleanup fallback)
+   *
+   * For robust clearing behavior, ensure your component tree includes
+   * MessageThreadPanel or implements similar clearing logic.
+   */
   suggestions?: Suggestion[];
 }
 
@@ -93,6 +102,11 @@ export function EditWithTamboButton({
     return null;
   }
 
+  // If in a Tambo thread (message with threadId), don't show the button
+  if (component.threadId) {
+    return null;
+  }
+
   // Close popover when generation completes
   useEffect(() => {
     if (shouldCloseOnComplete && !isGenerating) {
@@ -101,6 +115,16 @@ export function EditWithTamboButton({
       setPrompt("");
     }
   }, [shouldCloseOnComplete, isGenerating]);
+
+  // Cleanup: Clear custom suggestions on unmount if suggestions prop is provided
+  // This ensures suggestions don't persist indefinitely if MessageThreadPanel
+  // or similar clearing logic isn't present in the consumer's component tree
+  useEffect(() => {
+    if (!suggestions) return;
+    return () => {
+      setCustomSuggestions(null);
+    };
+  }, [suggestions, setCustomSuggestions]);
 
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isGenerating) {
@@ -138,8 +162,10 @@ export function EditWithTamboButton({
     }
 
     // Add the component as a context attachment
+    const componentName = component?.componentName ?? "Unknown Component";
+    const interactableId = component?.interactableId ?? "";
     addContextAttachment({
-      name: component.componentName ?? "Unknown Component",
+      name: componentName,
     });
 
     // Open the thread panel first
@@ -153,26 +179,18 @@ export function EditWithTamboButton({
     const editor = editorRef.current;
     if (editor) {
       // Check if mention already exists to avoid duplicates
-      if (editor.hasMention(component.componentName ?? "Unknown Component")) {
+      if (editor.hasMention(interactableId)) {
         // If mention exists, just append the user query
-        editor.focus("end");
-        const currentText = editor.getTextWithResourceURIs().text;
-        editor.setContent(currentText + " " + messageToInsert);
+        editor.appendText(" " + messageToInsert);
       } else {
         // Insert @mention (which adds a space after), then append the user query
-        editor.focus();
-        editor.insertMention(
-          component.interactableId ?? "",
-          component.componentName ?? "Unknown Component",
-        );
-        const currentText = editor.getTextWithResourceURIs().text;
-        editor.setContent(currentText + messageToInsert);
+        editor.insertMention(interactableId, componentName);
+        editor.appendText(messageToInsert);
       }
     }
   }, [
     prompt,
-    component.interactableId,
-    component.componentName,
+    component,
     suggestions,
     setCustomSuggestions,
     addContextAttachment,

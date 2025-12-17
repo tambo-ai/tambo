@@ -54,7 +54,6 @@ export interface TamboThreadInputContextProps extends Omit<
    * @param options - Submission options
    */
   submit: (options?: {
-    contextKey?: string;
     streamResponse?: boolean;
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
@@ -76,35 +75,28 @@ export const TamboThreadInputContext = createContext<
   TamboThreadInputContextProps | undefined
 >(undefined);
 
-export interface TamboThreadInputProviderProps {
-  contextKey?: string;
-}
-
 /**
  * Provider that manages shared thread input state across all components
  * This ensures that useTamboThreadInput, useTamboSuggestions, and components
  * all share the same input state
  * @param props - The props for the TamboThreadInputProvider
- * @param props.contextKey - Optional context key.
  * @param props.children - The children to render.
  * @returns The thread input context
  */
-export const TamboThreadInputProvider: React.FC<
-  PropsWithChildren<TamboThreadInputProviderProps>
-> = ({ children, contextKey }) => {
-  const { thread, sendThreadMessage } = useTamboThread();
+export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
+  children,
+}) => {
+  const { thread, sendThreadMessage, contextKey } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
   const imageState = useMessageImages();
 
   const submit = useCallback(
     async ({
-      contextKey: submitContextKey,
       streamResponse,
       forceToolChoice,
       additionalContext,
       resourceNames = {},
     }: {
-      contextKey?: string;
       streamResponse?: boolean;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
@@ -138,7 +130,7 @@ export const TamboThreadInputProvider: React.FC<
       try {
         await sendThreadMessage(inputValue || "Image message", {
           threadId: thread.id,
-          contextKey: submitContextKey ?? contextKey ?? undefined,
+          contextKey,
           streamResponse: streamResponse,
           forceToolChoice: forceToolChoice,
           additionalContext: additionalContext,

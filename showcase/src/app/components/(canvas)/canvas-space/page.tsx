@@ -24,7 +24,7 @@ export default function CanvasSpacePage() {
         <div className="space-y-6">
           <ComponentCodePreview
             component={<CanvasChatInterface />}
-            code={`import { CanvasSpace } from "@tambo-ai/react";
+            code={`import { CanvasSpace } from "@/components/tambo/canvas-space";
 
 export function CanvasDemo() {
   return <CanvasSpace contextKey="my-thread" />;

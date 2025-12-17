@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { z } from "zod/v3";
@@ -26,6 +27,8 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   getInteractableComponent: () => undefined,
   getInteractableComponentsByName: () => [],
   clearAllInteractableComponents: () => {},
+  setInteractableState: () => {},
+  getInteractableComponentState: () => undefined,
 });
 
 /**
@@ -45,19 +48,20 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const { registerTool } = useTamboComponent();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 
-  // Create a stable context helper function
-  const contextHelper = useCallback(() => {
-    return createInteractablesContextHelper(() => interactableComponents)();
-  }, [interactableComponents]);
+  // Create a stable context helper function for interactable components
+  const interactablesContextHelper = useMemo(
+    () => createInteractablesContextHelper(interactableComponents),
+    [interactableComponents],
+  );
 
-  // Register the default interactables context helper
+  // Register the interactables context helper
   useEffect(() => {
-    addContextHelper("interactables", contextHelper);
+    addContextHelper("interactables", interactablesContextHelper);
 
     return () => {
       removeContextHelper("interactables");
     };
-  }, [contextHelper, addContextHelper, removeContextHelper]);
+  }, [interactablesContextHelper, addContextHelper, removeContextHelper]);
 
   useEffect(() => {
     if (interactableComponents.length > 0) {
@@ -70,24 +74,23 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
             components: interactableComponents,
           };
         },
-        toolSchema: z.function().returns(
-          z.object({
-            components: z.array(
-              z.object({
-                id: z.string(),
-                componentName: z.string(),
-                props: z.record(z.any()),
-                propsSchema: z.object({}).optional(),
-              }),
-            ),
-          }),
-        ),
+        inputSchema: z.object({}),
+        outputSchema: z.object({
+          components: z.array(
+            z.object({
+              id: z.string(),
+              name: z.string(),
+              props: z.record(z.string(), z.any()),
+              propsSchema: z.record(z.string(), z.any()).optional(),
+            }),
+          ),
+        }),
       });
 
       registerTool({
         name: "get_interactable_component_by_id",
         description: "Get a specific interactable component by its ID",
-        tool: (componentId: string) => {
+        tool: ({ componentId }) => {
           const component = interactableComponents.find(
             (c) => c.id === componentId,
           );
@@ -96,7 +99,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
             return {
               success: false,
               error: `Component with ID ${componentId} not found`,
-            };
+            } as const;
           }
 
           return {
@@ -106,30 +109,33 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
               componentName: component.name,
               props: component.props,
             },
-          };
+          } as const;
         },
-        toolSchema: z
-          .function()
-          .args(z.string())
-          .returns(
-            z.object({
-              success: z.boolean(),
-              component: z
-                .object({
-                  id: z.string(),
-                  componentName: z.string(),
-                  props: z.record(z.any()),
-                })
-                .optional(),
-              error: z.string().optional(),
-            }),
-          ),
+        inputSchema: z.object({
+          componentId: z.string().describe("The ID of the component"),
+        }),
+        outputSchema: z.discriminatedUnion("success", [
+          z.object({
+            success: z.literal(true),
+            component: z
+              .object({
+                id: z.string(),
+                componentName: z.string(),
+                props: z.record(z.string(), z.any()),
+              })
+              .optional(),
+          }),
+          z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        ]),
       });
 
       registerTool({
         name: "remove_interactable_component",
         description: "Remove an interactable component from the system",
-        tool: (componentId: string) => {
+        tool: ({ componentId }) => {
           const component = interactableComponents.find(
             (c) => c.id === componentId,
           );
@@ -138,7 +144,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
             return {
               success: false,
               error: `Component with ID ${componentId} not found`,
-            };
+            } as const;
           }
 
           setInteractableComponents((prev) =>
@@ -153,23 +159,26 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
               componentName: component.name,
               props: component.props,
             },
-          };
+          } as const;
         },
-        toolSchema: z
-          .function()
-          .args(z.string())
-          .returns(
-            z.object({
-              success: z.boolean(),
-              componentId: z.string(),
-              removedComponent: z.object({
-                id: z.string(),
-                componentName: z.string(),
-                props: z.record(z.any()),
-              }),
-              error: z.string().optional(),
+        inputSchema: z.object({
+          componentId: z.string().describe("The ID of the component"),
+        }),
+        outputSchema: z.discriminatedUnion("success", [
+          z.object({
+            success: z.literal(true),
+            componentId: z.string(),
+            removedComponent: z.object({
+              id: z.string(),
+              componentName: z.string(),
+              props: z.record(z.string(), z.any()),
             }),
-          ),
+          }),
+          z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        ]),
       });
     }
   }, [interactableComponents, registerTool]);
@@ -233,20 +242,18 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       registerTool({
         name: `${tamboToolNamePart}${component.id}`,
         description: `Update the props of interactable component ${component.id} (${component.name}). You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.`,
-        tool: (componentId: string, newProps: any) => {
+        tool: ({ componentId, newProps }) => {
           return updateInteractableComponentProps(componentId, newProps);
         },
-        toolSchema: z
-          .function()
-          .args(
-            z
-              .string()
-              .describe("The ID of the interactable component to update"),
-            schemaForArgs.describe(
-              "The props to update the component with. You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.",
-            ),
-          )
-          .returns(z.string()),
+        inputSchema: z.object({
+          componentId: z
+            .string()
+            .describe("The ID of the interactable component to update"),
+          newProps: schemaForArgs.describe(
+            "The props to update the component with. You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.",
+          ),
+        }),
+        outputSchema: z.string(),
       });
     },
     [registerTool, updateInteractableComponentProps],
@@ -265,6 +272,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       const newComponent: TamboInteractableComponent = {
         ...component,
         id,
+        state: component.state ?? {},
       };
 
       registerInteractableComponentUpdateTool(newComponent);
@@ -300,6 +308,48 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     setInteractableComponents([]);
   }, []);
 
+  const setInteractableStateValue = useCallback(
+    (componentId: string, key: string, value: unknown) => {
+      setInteractableComponents((prev) => {
+        const component = prev.find((c) => c.id === componentId);
+        if (!component) {
+          console.warn(
+            `Tried to update state for component ${componentId} but it was not found.`,
+          );
+          return prev;
+        }
+
+        const updated = {
+          ...component,
+          state: {
+            ...(component.state ?? {}),
+            [key]: value,
+          },
+        };
+
+        const updatedComponents = prev.map((component) => {
+          if (component.id === componentId) {
+            return updated;
+          }
+          return component;
+        });
+
+        return updatedComponents;
+      });
+    },
+    [],
+  );
+
+  const getInteractableComponentState = useCallback(
+    (componentId: string) => {
+      const component = interactableComponents.find(
+        (c) => c.id === componentId,
+      );
+      return component?.state;
+    },
+    [interactableComponents],
+  );
+
   const value: TamboInteractableContext = {
     interactableComponents,
     addInteractableComponent,
@@ -308,6 +358,8 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     getInteractableComponent,
     getInteractableComponentsByName,
     clearAllInteractableComponents,
+    setInteractableState: setInteractableStateValue,
+    getInteractableComponentState,
   };
 
   return (

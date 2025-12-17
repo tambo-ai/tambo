@@ -11,7 +11,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { TamboTool } from "../model/component-metadata";
+import {
+  TamboTool,
+  TamboToolWithToolSchema,
+} from "../model/component-metadata";
 import {
   GenerationStage,
   isIdleStage,
@@ -128,6 +131,8 @@ export interface TamboThreadContextProps {
       content?: TamboAI.Beta.Threads.ChatCompletionContentPart[];
     },
   ) => Promise<TamboThreadMessage>;
+  /** The context key to use for the thread */
+  contextKey?: string;
 }
 
 // Combined context interface that includes generation stage fields
@@ -232,6 +237,8 @@ export interface TamboThreadProviderProps {
   autoGenerateThreadName?: boolean;
   /** The message count threshold at which the thread name will be auto-generated. Defaults to 3. */
   autoGenerateNameThreshold?: number;
+  /** The context key to use for the thread */
+  contextKey?: string;
 }
 
 /**
@@ -243,6 +250,7 @@ export interface TamboThreadProviderProps {
  * @param props.initialMessages - Initial messages to be included in new threads
  * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
  * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
+ * @param props.contextKey - The context key to use for thread isolation
  * @returns The TamboThreadProvider component
  */
 export const TamboThreadProvider: React.FC<
@@ -253,6 +261,7 @@ export const TamboThreadProvider: React.FC<
   initialMessages = [],
   autoGenerateThreadName = true,
   autoGenerateNameThreshold = 3,
+  contextKey,
 }) => {
   // Create placeholder thread with initial messages
   const placeholderThread: TamboThread = useMemo(
@@ -269,8 +278,9 @@ export const TamboThreadProvider: React.FC<
       projectId: "",
       updatedAt: "",
       metadata: {},
+      contextKey,
     }),
-    [initialMessages],
+    [contextKey, initialMessages],
   );
 
   const [threadMap, setThreadMap] = useState<Record<string, TamboThread>>({
@@ -1287,6 +1297,7 @@ export const TamboThreadProvider: React.FC<
         streaming,
         cancel,
         sendThreadMessage,
+        contextKey,
       }}
     >
       <TamboGenerationStageProvider
@@ -1342,7 +1353,7 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
 async function convertToolResponse(toolCallResponse: {
   result: unknown;
   error?: string;
-  tamboTool?: TamboTool;
+  tamboTool?: TamboTool | TamboToolWithToolSchema;
 }): Promise<TamboAI.Beta.Threads.ChatCompletionContentPart[]> {
   // If the tool call errored, surface that as text so the model reliably sees the error
   if (toolCallResponse.error) {

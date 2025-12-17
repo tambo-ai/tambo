@@ -39,8 +39,6 @@ import * as React from "react";
  * @extends React.HTMLAttributes<HTMLDivElement>
  */
 export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Optional context key for the thread */
-  contextKey?: string;
   /** Whether the collapsible should be open by default (default: false) */
   defaultOpen?: boolean;
   /** Initial query to pre-fill the message input */
@@ -60,7 +58,6 @@ export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTML
  * @example
  * ```tsx
  * <MessageThreadCollapsible
- *   contextKey="my-thread"
  *   defaultOpen={false}
  *   className="left-4" // Position on the left instead of right
  *   variant="default"
@@ -116,7 +113,6 @@ CollapsibleContainer.displayName = "CollapsibleContainer";
 interface CollapsibleTriggerProps {
   isOpen: boolean;
   onClose: () => void;
-  contextKey?: string;
   onThreadChange: () => void;
   config: {
     labels: {
@@ -188,14 +184,7 @@ export const MessageThreadCollapsible = React.forwardRef<
   MessageThreadCollapsibleProps
 >(
   (
-    {
-      className,
-      contextKey,
-      defaultOpen = false,
-      initialQuery,
-      variant,
-      ...props
-    },
+    { className, defaultOpen = false, initialQuery, variant, ...props },
     ref,
   ) => {
     const searchParams = useSearchParams();
@@ -271,7 +260,6 @@ export const MessageThreadCollapsible = React.forwardRef<
         <CollapsibleTrigger
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
-          contextKey={contextKey}
           onThreadChange={handleThreadChange}
           config={THREAD_CONFIG}
         />
@@ -298,10 +286,7 @@ export const MessageThreadCollapsible = React.forwardRef<
 
             {/* Message input */}
             <div className="p-2 sm:p-3 md:p-4">
-              <MessageInput
-                contextKey={contextKey}
-                initialQuery={finalInitialQuery}
-              >
+              <MessageInput initialQuery={finalInitialQuery}>
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />

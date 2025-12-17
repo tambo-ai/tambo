@@ -51,6 +51,9 @@ jobs:
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
 
+      - name: Pin NPM version
+        run: npm install -g npm@11.7.0
+
       - name: Install dependencies
         run: npm install
 
@@ -80,6 +83,9 @@ jobs:
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
 
+      - name: Pin NPM version
+        run: npm install -g npm@11.7.0
+
       - name: Install dependencies
         run: npm install
 
@@ -108,6 +114,9 @@ jobs:
           node-version: "22"
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
+
+      - name: Pin NPM version
+        run: npm install -g npm@11.7.0
 
       - name: Install dependencies
         run: npm install

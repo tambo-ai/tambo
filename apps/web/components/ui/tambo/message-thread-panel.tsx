@@ -239,23 +239,6 @@ export const MessageThreadPanel = forwardRef<
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [setIsOpen, isOpen]);
 
-  // Generate or retrieve contextKey only once on mount
-  const [contextKey] = useState<string>(() => {
-    // Check if we're in the browser before accessing localStorage
-    if (typeof window === "undefined") {
-      return `session-${crypto.randomUUID()}`;
-    }
-
-    let key = localStorage.getItem("tambo-context-key");
-
-    if (!key) {
-      key = `session-${crypto.randomUUID()}`;
-      localStorage.setItem("tambo-context-key", key);
-    }
-
-    return key;
-  });
-
   /**
    * Configuration for the MessageThreadPanel component
    */
@@ -320,7 +303,6 @@ export const MessageThreadPanel = forwardRef<
         </div>
         <div className="flex items-center gap-2">
           <ThreadDropdown
-            contextKey={contextKey}
             triggerClassName="components-theme"
             contentClassName="components-theme"
             itemClassName="components-theme"
@@ -358,7 +340,7 @@ export const MessageThreadPanel = forwardRef<
 
         {/* Message input */}
         <div className="p-4 flex-shrink-0">
-          <MessageInput contextKey={contextKey} inputRef={editorRef}>
+          <MessageInput inputRef={editorRef}>
             <MessageInputContexts />
             <MessageInputTextareaWithInteractables placeholder="Type your message or paste images..." />
             <MessageInputToolbar>

@@ -34,13 +34,15 @@ export interface TamboEditor {
   focus(position?: "start" | "end"): void;
   /** Set the editor content */
   setContent(content: string): void;
+  /** Append text to the end of the editor content */
+  appendText(text: string): void;
   /** Get the text and resource names */
   getTextWithResourceURIs(): {
     text: string;
     resourceNames: Record<string, string>;
   };
-  /** Check if a mention with the given label exists */
-  hasMention(label: string): boolean;
+  /** Check if a mention with the given id exists */
+  hasMention(id: string): boolean;
   /** Insert a mention node with a following space */
   insertMention(id: string, label: string): void;
   /** Set whether the editor is editable */
@@ -981,11 +983,11 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
             resourceSuggestionRef.current.state.isOpen ||
             promptSuggestionRef.current.state.isOpen;
 
-          // Prevent Enter from submitting form when selecting from any menu
-          if (event.key === "Enter" && !event.shiftKey && anyMenuOpen) {
-            event.preventDefault();
-            event.stopPropagation();
-            return true;
+          // When menu is open, let the suggestion plugin handle keyboard events
+          // (ArrowUp, ArrowDown, Enter, Escape). Returning false allows the
+          // event to propagate to the suggestion plugin's onKeyDown handler.
+          if (anyMenuOpen) {
+            return false;
           }
 
           // Only handle Enter key for form submission - let TipTap handle everything else
@@ -1008,6 +1010,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         return {
           focus: () => {},
           setContent: () => {},
+          appendText: () => {},
           getTextWithResourceURIs: () => ({ text: "", resourceNames: {} }),
           hasMention: () => false,
           insertMention: () => {},
@@ -1026,16 +1029,19 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         setContent: (content: string) => {
           editor.commands.setContent(content);
         },
+        appendText: (text: string) => {
+          editor.chain().focus("end").insertContent(text).run();
+        },
         getTextWithResourceURIs: () => {
           return getTextWithResourceURIs(editor);
         },
-        hasMention: (label: string) => {
+        hasMention: (id: string) => {
           if (!editor.state?.doc) return false;
           let exists = false;
           editor.state.doc.descendants((node) => {
             if (node.type.name === "mention") {
-              const mentionLabel = node.attrs.label as string;
-              if (mentionLabel === label) {
+              const mentionId = node.attrs.id as string;
+              if (mentionId === id) {
                 exists = true;
                 return false; // Stop traversing
               }

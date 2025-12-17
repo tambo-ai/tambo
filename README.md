@@ -121,6 +121,8 @@ Wrap your app with `TamboProvider`.
 </TamboProvider>
 ```
 
+For apps with signed-in users, pass a per-user `userToken` (OAuth access token) to `TamboProvider` to enable per-user auth and connect Tambo to your app's end-user identity. See [User Authentication](https://docs.tambo.co/concepts/user-authentication) for details.
+
 Docs: [provider options](https://docs.tambo.co/api-reference/tambo-provider)
 
 ### Hooks
@@ -364,7 +366,11 @@ Built something? [Open a PR](https://github.com/tambo-ai/tambo/pulls) or [share 
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Unless otherwise noted in a workspace (app or package), code in this repo is
+licensed under MIT (see the root [LICENSE](LICENSE)).
+
+Some workspaces are licensed under Apache-2.0; see the accompanying `LICENSE`
+and `NOTICE` files in those workspaces.
 
 ---
 

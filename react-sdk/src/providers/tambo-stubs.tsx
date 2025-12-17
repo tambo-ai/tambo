@@ -2,7 +2,12 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import React, { PropsWithChildren, useEffect } from "react";
-import { TamboComponent, TamboTool } from "../model/component-metadata";
+import {
+  TamboComponent,
+  TamboTool,
+  TamboToolRegistry,
+  TamboToolWithToolSchema,
+} from "../model/component-metadata";
 import { GenerationStage } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
 import { TamboClientContext } from "./tambo-client-provider";
@@ -36,7 +41,7 @@ export interface TamboStubProviderProps extends Partial<TamboContextProps> {
   /** Optional: Components registry - defaults to empty */
   components?: TamboComponent[];
   /** Optional: Tools registry - defaults to empty */
-  tools?: TamboTool[];
+  tools?: (TamboTool | TamboToolWithToolSchema)[];
   /** Optional: Threads data to populate thread list - overrides useTamboThreadList() */
   threads?: Partial<TamboAI.Beta.Threads.ThreadsOffsetAndLimit>;
   /** Optional: Project ID to use for query cache - defaults to thread.projectId */
@@ -98,15 +103,18 @@ const TamboStubClientProvider: React.FC<
  * @returns The TamboStubRegistryProvider component
  */
 const TamboStubRegistryProvider: React.FC<
-  PropsWithChildren<{
-    componentList: Record<string, any>;
-    toolRegistry: Record<string, TamboTool>;
-    componentToolAssociations: Record<string, string[]>;
-    registerComponent: (options: TamboComponent) => void;
-    registerTool: (tool: TamboTool) => void;
-    registerTools: (tools: TamboTool[]) => void;
-    addToolAssociation: (componentName: string, tool: TamboTool) => void;
-  }>
+  PropsWithChildren<
+    Pick<
+      TamboRegistryContext,
+      | "componentList"
+      | "toolRegistry"
+      | "componentToolAssociations"
+      | "registerComponent"
+      | "registerTool"
+      | "registerTools"
+      | "addToolAssociation"
+    >
+  >
 > = ({
   children,
   componentList,
@@ -314,13 +322,10 @@ export const TamboStubProvider: React.FC<
   );
 
   // Build tool registry from tools prop
-  const toolRegistry = tools.reduce(
-    (acc, tool) => {
-      acc[tool.name] = tool;
-      return acc;
-    },
-    {} as Record<string, TamboTool>,
-  );
+  const toolRegistry = tools.reduce((acc, tool) => {
+    acc[tool.name] = tool;
+    return acc;
+  }, {} as TamboToolRegistry);
 
   // Build tool associations from components
   const componentToolAssociations = components.reduce(
@@ -355,6 +360,7 @@ export const TamboStubProvider: React.FC<
     sendThreadMessage:
       overrides.sendThreadMessage ?? defaults.sendThreadMessage,
     cancel: overrides.cancel ?? defaults.cancel,
+    contextKey,
   };
 
   const componentContextProps: TamboComponentContextProps = {

@@ -5,6 +5,8 @@ export interface TamboInteractableComponent extends TamboComponent {
   id: string;
   /** Current props for the component */
   props: Record<string, any>;
+  /** Current state for the component */
+  state?: Record<string, unknown>;
 }
 
 export interface TamboInteractableContext {
@@ -31,4 +33,14 @@ export interface TamboInteractableContext {
   ) => TamboInteractableComponent[];
   /** Clear all interactable components */
   clearAllInteractableComponents: () => void;
+  /** Set state for a specific interactable component */
+  setInteractableState: (
+    componentId: string,
+    key: string,
+    value: unknown,
+  ) => void;
+  /** Get state for a specific interactable component */
+  getInteractableComponentState: (
+    componentId: string,
+  ) => Record<string, unknown> | undefined;
 }

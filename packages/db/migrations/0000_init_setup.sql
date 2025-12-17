@@ -137,51 +137,63 @@ BEGIN
     END IF;
 END $$;
 
--- supabase functions
-CREATE OR REPLACE FUNCTION auth.email()
- RETURNS text
- LANGUAGE sql
- STABLE
-AS $function$
-  select 
-  coalesce(
-    nullif(current_setting('request.jwt.claim.email', true), ''),
-    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'email')
-  )::text
-$function$;
+-- Supabase compatibility functions
+-- Only create these if we're NOT running on Supabase (detected by supabase_admin role)
+-- Supabase already provides auth.email(), auth.jwt(), auth.role(), and auth.uid() natively
+DO $$
+BEGIN
+    -- Check if supabase_admin role exists (indicates Supabase environment)
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_admin') THEN
+        -- Create auth.email() function
+        CREATE OR REPLACE FUNCTION auth.email()
+         RETURNS text
+         LANGUAGE sql
+         STABLE
+        AS $func$
+          select
+          coalesce(
+            nullif(current_setting('request.jwt.claim.email', true), ''),
+            (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'email')
+          )::text
+        $func$;
 
-CREATE OR REPLACE FUNCTION auth.jwt()
- RETURNS jsonb
- LANGUAGE sql
- STABLE
-AS $function$
-  select 
-    coalesce(
-        nullif(current_setting('request.jwt.claim', true), ''),
-        nullif(current_setting('request.jwt.claims', true), '')
-    )::jsonb
-$function$;
+        -- Create auth.jwt() function
+        CREATE OR REPLACE FUNCTION auth.jwt()
+         RETURNS jsonb
+         LANGUAGE sql
+         STABLE
+        AS $func$
+          select
+            coalesce(
+                nullif(current_setting('request.jwt.claim', true), ''),
+                nullif(current_setting('request.jwt.claims', true), '')
+            )::jsonb
+        $func$;
 
-CREATE OR REPLACE FUNCTION auth.role()
- RETURNS text
- LANGUAGE sql
- STABLE
-AS $function$
-  select 
-  coalesce(
-    nullif(current_setting('request.jwt.claim.role', true), ''),
-    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role')
-  )::text
-$function$;
+        -- Create auth.role() function
+        CREATE OR REPLACE FUNCTION auth.role()
+         RETURNS text
+         LANGUAGE sql
+         STABLE
+        AS $func$
+          select
+          coalesce(
+            nullif(current_setting('request.jwt.claim.role', true), ''),
+            (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role')
+          )::text
+        $func$;
 
-CREATE OR REPLACE FUNCTION auth.uid()
- RETURNS uuid
- LANGUAGE sql
- STABLE
-AS $function$
-  select 
-  coalesce(
-    nullif(current_setting('request.jwt.claim.sub', true), ''),
-    (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')
-  )::uuid
-$function$;
+        -- Create auth.uid() function
+        CREATE OR REPLACE FUNCTION auth.uid()
+         RETURNS uuid
+         LANGUAGE sql
+         STABLE
+        AS $func$
+          select
+          coalesce(
+            nullif(current_setting('request.jwt.claim.sub', true), ''),
+            (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')
+          )::uuid
+        $func$;
+    END IF;
+END $$;

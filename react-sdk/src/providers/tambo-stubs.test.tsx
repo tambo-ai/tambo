@@ -66,10 +66,7 @@ describe("TamboStubProvider threads functionality", () => {
       </TamboStubProvider>
     );
 
-    const { result } = renderHook(
-      () => useTamboThreadList({ contextKey: "test-context" }),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useTamboThreadList(), { wrapper });
     // Wait for the effect to run
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));

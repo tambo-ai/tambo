@@ -2,11 +2,17 @@
   "name": "@tambo-ai-cloud/core",
   "version": "0.0.0",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "exports": {
     "import": "./src/index.ts"
   },
   "main": "./src/index.ts",
+  "files": [
+    "src",
+    "LICENSE",
+    "NOTICE"
+  ],
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -25,7 +31,7 @@
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.24.6"
+    "zod-to-json-schema": "^3.25.0"
   },
   "engines": {
     "node": ">=22",
@@ -38,7 +44,6 @@
     "@modelcontextprotocol/sdk": "^1.24.0",
     "jose": "^5.10.0",
     "openai": "^6.4.0",
-    "resend": "^6.5.0"
-  },
-  "license": "Apache-2.0"
+    "resend": "^6.6.0"
+  }
 }

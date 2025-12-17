@@ -34,7 +34,6 @@ interface ThreadHistoryContextValue {
   isCollapsed: boolean;
   setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   onThreadChange?: () => void;
-  contextKey?: string;
   position?: "left" | "right";
   updateThreadName: (newName: string, threadId?: string) => Promise<void>;
   generateThreadName: (threadId: string) => Promise<TamboThread>;
@@ -57,7 +56,6 @@ const useThreadHistoryContext = () => {
  * Root component that provides context for thread history
  */
 interface ThreadHistoryProps extends React.HTMLAttributes<HTMLDivElement> {
-  contextKey?: string;
   onThreadChange?: () => void;
   children?: React.ReactNode;
   defaultCollapsed?: boolean;
@@ -68,7 +66,6 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
   (
     {
       className,
-      contextKey,
       onThreadChange,
       defaultCollapsed = true,
       position = "left",
@@ -81,12 +78,7 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
     const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
     const [shouldFocusSearch, setShouldFocusSearch] = React.useState(false);
 
-    const {
-      data: threads,
-      isLoading,
-      error,
-      refetch,
-    } = useTamboThreadList({ contextKey });
+    const { data: threads, isLoading, error, refetch } = useTamboThreadList();
 
     const {
       switchCurrentThread,
@@ -126,7 +118,6 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
         isCollapsed,
         setIsCollapsed,
         onThreadChange,
-        contextKey,
         position,
         updateThreadName,
         generateThreadName,
@@ -142,7 +133,6 @@ const ThreadHistory = React.forwardRef<HTMLDivElement, ThreadHistoryProps>(
         searchQuery,
         isCollapsed,
         onThreadChange,
-        contextKey,
         position,
         updateThreadName,
         generateThreadName,
