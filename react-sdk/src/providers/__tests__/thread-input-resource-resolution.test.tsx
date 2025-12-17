@@ -8,7 +8,7 @@ import { TamboProvider } from "../tambo-provider";
 import { useTamboThreadInput } from "../tambo-thread-input-provider";
 
 // Mock the Tambo client provider to avoid needing real API credentials
- 
+
 jest.mock("../tambo-client-provider", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const ReactModule = require("react");
@@ -146,21 +146,23 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     mockServers = [];
   });
 
-  const createWrapper = (
+  const createWrapper = (options?: {
     listResources?: (
       search?: string,
-    ) => Promise<{ uri: string; name: string; mimeType?: string }[]>,
-    getResource?: (uri: string) => Promise<unknown>,
-  ) => {
+    ) => Promise<{ uri: string; name: string; mimeType?: string }[]>;
+    getResource?: (uri: string) => Promise<unknown>;
+    resources?: { uri: string; name: string; mimeType?: string }[];
+  }) => {
     function Wrapper({ children }: { children: React.ReactNode }) {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboProvider
             apiKey="test-api-key"
             tamboUrl="https://api.tambo.ai"
-            listResources={listResources}
+            listResources={options?.listResources}
             // Cast to any because test mocks return simplified types
-            getResource={getResource as any}
+            getResource={options?.getResource as any}
+            resources={options?.resources}
             contextKey={mockContextKey}
           >
             {children}
@@ -191,7 +193,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     ]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     // Set the input value with a registry resource reference
@@ -216,23 +221,26 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
     // Should have: text "Show me the contents of ", resource with resolved content, text " in a table"
-    expect(content).toHaveLength(3);
-    expect(content[0]).toEqual({
-      type: "text",
-      text: "Show me the contents of ",
-    });
-    expect(content[1]).toEqual({
-      type: "resource",
-      resource: {
-        uri: "file:///my-document.txt",
-        text: "This is the document content from the registry",
-        mimeType: "text/plain",
-      },
-    });
-    expect(content[2]).toEqual({
-      type: "text",
-      text: " in a table",
-    });
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Show me the contents of ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "mimeType": "text/plain",
+            "text": "This is the document content from the registry",
+            "uri": "file:///my-document.txt",
+          },
+          "type": "resource",
+        },
+        {
+          "text": " in a table",
+          "type": "text",
+        },
+      ]
+    `);
   });
 
   it("should resolve multiple registry resources in a single message", async () => {
@@ -251,7 +259,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     act(() => {
@@ -272,18 +283,32 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const content =
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
-    // Should have: text "Compare ", resource1, text " with ", resource2
-    expect(content).toHaveLength(4);
-    expect(content[0]).toEqual({ type: "text", text: "Compare " });
-    expect(content[1]).toEqual({
-      type: "resource",
-      resource: { uri: "file:///doc1.txt", text: "Content of doc1" },
-    });
-    expect(content[2]).toEqual({ type: "text", text: " with " });
-    expect(content[3]).toEqual({
-      type: "resource",
-      resource: { uri: "file:///doc2.txt", text: "Content of doc2" },
-    });
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Compare ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "text": "Content of doc1",
+            "uri": "file:///doc1.txt",
+          },
+          "type": "resource",
+        },
+        {
+          "text": " with ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "text": "Content of doc2",
+            "uri": "file:///doc2.txt",
+          },
+          "type": "resource",
+        },
+      ]
+    `);
   });
 
   it("should resolve registry resource with blob content", async () => {
@@ -300,7 +325,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     act(() => {
@@ -315,14 +343,22 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const content =
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
-    expect(content[1]).toEqual({
-      type: "resource",
-      resource: {
-        uri: "file:///image.png",
-        blob: "base64encodedimagedata",
-        mimeType: "image/png",
-      },
-    });
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Analyze ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "blob": "base64encodedimagedata",
+            "mimeType": "image/png",
+            "uri": "file:///image.png",
+          },
+          "type": "resource",
+        },
+      ]
+    `);
   });
 
   it("should continue with submission even if resource fetch fails (graceful fallback)", async () => {
@@ -334,7 +370,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     act(() => {
@@ -362,10 +401,20 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
     // Resource should be present but without text/blob content
-    expect(content[1]).toEqual({
-      type: "resource",
-      resource: { uri: "file:///missing.txt" },
-    });
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Check ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "uri": "file:///missing.txt",
+          },
+          "type": "resource",
+        },
+      ]
+    `);
 
     consoleSpy.mockRestore();
   });
@@ -381,7 +430,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     act(() => {
@@ -403,10 +455,20 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const content =
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
-    expect(content[1]).toEqual({
-      type: "resource",
-      resource: { uri: "tambo:test://internal/resource/1" },
-    });
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Check ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "uri": "tambo:test://internal/resource/1",
+          },
+          "type": "resource",
+        },
+      ]
+    `);
   });
 
   it("should handle mixed registry and internal server resources", async () => {
@@ -420,7 +482,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     act(() => {
@@ -441,17 +506,27 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const content =
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
-    // Registry resource should have resolved content
-    expect(content[0]).toEqual({
-      type: "resource",
-      resource: { uri: "file:///registry-doc.txt", text: "Registry content" },
-    });
-
-    // Internal server resource should NOT have resolved content
-    expect(content[2]).toEqual({
-      type: "resource",
-      resource: { uri: "tambo:test://internal" },
-    });
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "resource": {
+            "text": "Registry content",
+            "uri": "file:///registry-doc.txt",
+          },
+          "type": "resource",
+        },
+        {
+          "text": " and ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "uri": "tambo:test://internal",
+          },
+          "type": "resource",
+        },
+      ]
+    `);
   });
 
   it("should include resource names when provided in submit options", async () => {
@@ -467,7 +542,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     act(() => {
@@ -486,14 +564,22 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const content =
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
-    expect(content[1]).toEqual({
-      type: "resource",
-      resource: {
-        uri: "file:///doc.txt",
-        name: "Important Document.txt",
-        text: "Document content",
-      },
-    });
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Check ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "name": "Important Document.txt",
+            "text": "Document content",
+            "uri": "file:///doc.txt",
+          },
+          "type": "resource",
+        },
+      ]
+    `);
   });
 
   it("should handle message without any resource references", async () => {
@@ -501,7 +587,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     act(() => {
@@ -520,12 +609,14 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const content =
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
-    expect(content).toEqual([
-      {
-        type: "text",
-        text: "Just a regular message without resources",
-      },
-    ]);
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Just a regular message without resources",
+          "type": "text",
+        },
+      ]
+    `);
   });
 
   it("should handle null returned from getResource", async () => {
@@ -533,7 +624,10 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(mockListResources, mockGetResource),
+      wrapper: createWrapper({
+        listResources: mockListResources,
+        getResource: mockGetResource,
+      }),
     });
 
     act(() => {
@@ -551,10 +645,20 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
       options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
 
     // Resource should be present but without content
-    expect(content[1]).toEqual({
-      type: "resource",
-      resource: { uri: "file:///unknown.txt" },
-    });
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Check ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "uri": "file:///unknown.txt",
+          },
+          "type": "resource",
+        },
+      ]
+    `);
   });
 
   it("should warn when no resourceSource is available for registry resource", async () => {
@@ -562,7 +666,7 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
 
     // No listResources/getResource provided
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(undefined, undefined),
+      wrapper: createWrapper(),
     });
 
     act(() => {
@@ -578,5 +682,72 @@ describe("TamboProvider - Resource Content Resolution Integration", () => {
     );
 
     consoleSpy.mockRestore();
+  });
+
+  it("should resolve static resources passed via resources prop", async () => {
+    // When using static resources, we need both listResources and getResource
+    // to form the resourceSource, even though the resources are static
+    const mockGetResource = jest.fn().mockResolvedValue({
+      contents: [
+        {
+          uri: "static://my-static-resource",
+          text: "Static resource content",
+          mimeType: "text/plain",
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useTamboThreadInput(), {
+      wrapper: createWrapper({
+        resources: [
+          {
+            uri: "static://my-static-resource",
+            name: "My Static Resource",
+            mimeType: "text/plain",
+          },
+        ],
+        // Need getResource to actually fetch the content
+        getResource: mockGetResource,
+        listResources: async () => [],
+      }),
+    });
+
+    act(() => {
+      result.current.setValue(
+        "Show me @registry:static://my-static-resource please",
+      );
+    });
+
+    await act(async () => {
+      await result.current.submit();
+    });
+
+    // getResource should be called to fetch the content
+    expect(mockGetResource).toHaveBeenCalledWith("static://my-static-resource");
+
+    const [, options] = mockSendThreadMessage.mock.calls[0];
+    const content =
+      options.content as TamboAI.Beta.Threads.ChatCompletionContentPart[];
+
+    expect(content).toMatchInlineSnapshot(`
+      [
+        {
+          "text": "Show me ",
+          "type": "text",
+        },
+        {
+          "resource": {
+            "mimeType": "text/plain",
+            "text": "Static resource content",
+            "uri": "static://my-static-resource",
+          },
+          "type": "resource",
+        },
+        {
+          "text": " please",
+          "type": "text",
+        },
+      ]
+    `);
   });
 });
