@@ -1,18 +1,13 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import { REGISTRY_SERVER_KEY, ServerType } from "../mcp/mcp-constants";
-import type {
-  ActiveMcpServer,
-  ConnectedActiveMcpServer,
-} from "../mcp/mcp-server-context";
+import type { ConnectedMcpServer, McpServer } from "../mcp/tambo-mcp-provider";
 import type { ResourceSource } from "../model/resource-info";
 
 /**
- * Type guard for narrowing ActiveMcpServer to a connected server.
+ * Type guard for narrowing McpServer to a connected server.
  * A connected server has a non-null client.
  */
-function isConnectedMcpServer(
-  server: ActiveMcpServer,
-): server is ConnectedActiveMcpServer {
+function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
   return "client" in server && server.client != null;
 }
 
@@ -27,7 +22,7 @@ function isConnectedMcpServer(
  */
 export async function resolveResourceContents(
   resourceUris: string[],
-  mcpServers: ActiveMcpServer[],
+  mcpServers: McpServer[],
   resourceSource: ResourceSource | undefined,
 ): Promise<Map<string, ReadResourceResult>> {
   const results = new Map<string, ReadResourceResult>();

@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { ServerType } from "../../mcp/mcp-constants";
-import type { ActiveMcpServer } from "../../mcp/mcp-server-context";
+import type { McpServer } from "../../mcp/tambo-mcp-provider";
 import { TamboProvider } from "../tambo-provider";
 import { useTamboThreadInput } from "../tambo-thread-input-provider";
 
@@ -55,28 +55,11 @@ jest.mock("../tambo-thread-provider", () => ({
 }));
 
 // Mock servers array - will be updated per test
-let mockServers: ActiveMcpServer[] = [];
+let mockServers: McpServer[] = [];
 
 // Mock the MCP provider to avoid real MCP connections
 jest.mock("../../mcp/tambo-mcp-provider", () => ({
   TamboMcpProvider: ({ children }: { children: React.ReactNode }) => children,
-  useTamboMcpServers: () => mockServers,
-}));
-
-// Mock the MCP server context
-jest.mock("../../mcp/mcp-server-context", () => ({
-  McpServerContext: {
-    Provider: ({
-      children,
-      value,
-    }: {
-      children: React.ReactNode;
-      value: { servers: ActiveMcpServer[] };
-    }) => {
-      mockServers = value.servers;
-      return children;
-    },
-  },
   useTamboMcpServers: () => mockServers,
 }));
 
@@ -91,15 +74,16 @@ jest.mock("../tambo-mcp-token-provider", () => ({
 }));
 
 // Helper to create internal server
-const createMockInternalServer = (serverKey: string): ActiveMcpServer => ({
-  key: serverKey,
-  serverKey,
-  url: "https://api.tambo.ai/mcp",
-  name: "__tambo_internal_mcp_server__",
-  status: "connected",
-  serverType: ServerType.TAMBO_INTERNAL,
-  client: null,
-});
+const createMockInternalServer = (serverKey: string): McpServer =>
+  ({
+    key: serverKey,
+    serverKey,
+    url: "https://api.tambo.ai/mcp",
+    name: "__tambo_internal_mcp_server__",
+    transport: "http",
+    serverType: ServerType.TAMBO_INTERNAL,
+    connectionError: undefined, // Internal servers resolved by backend
+  }) as unknown as McpServer;
 
 // Mock the message images hook
 jest.mock("../../hooks/use-message-images", () => ({

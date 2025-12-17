@@ -1,10 +1,8 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
-import { REGISTRY_SERVER_KEY, ServerType } from "../mcp/mcp-constants";
-import type { ActiveMcpServer } from "../mcp/mcp-server-context";
+import { ServerType } from "../mcp/mcp-constants";
+import type { McpServer } from "../mcp/tambo-mcp-provider";
 import type { ResourceSource } from "../model/resource-info";
-
-// Mock tambo-mcp-provider to avoid pulling in its dependencies
-jest.mock("../mcp/tambo-mcp-provider", () => ({}));
+import { MCPTransport } from "../mcp/mcp-client";
 
 import {
   resolveResourceContents,
@@ -64,45 +62,37 @@ describe("resolveResourceContents", () => {
     serverKey: string,
     readResource: jest.Mock,
     serverType: ServerType = ServerType.BROWSER_SIDE,
-  ): ActiveMcpServer => ({
-    key: `mcp-${serverKey}`,
-    serverKey,
-    url: `https://${serverKey}.example.com`,
-    name: `MCP Server ${serverKey}`,
-    status: "connected",
-    serverType,
-    client: {
+  ): McpServer =>
+    ({
+      key: `mcp-${serverKey}`,
+      serverKey,
+      url: `https://${serverKey}.example.com`,
+      name: `MCP Server ${serverKey}`,
+      transport: MCPTransport.HTTP,
+      serverType,
       client: {
-        readResource,
-        listResources: jest.fn().mockResolvedValue({ resources: [] }),
-        listTools: jest.fn().mockResolvedValue({ tools: [] }),
-        listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
-        getPrompt: jest.fn().mockResolvedValue(null),
-        callTool: jest.fn().mockResolvedValue(null),
-      },
-      close: jest.fn().mockResolvedValue(undefined),
-    },
-  });
+        client: {
+          readResource,
+          listResources: jest.fn().mockResolvedValue({ resources: [] }),
+          listTools: jest.fn().mockResolvedValue({ tools: [] }),
+          listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+          getPrompt: jest.fn().mockResolvedValue(null),
+          callTool: jest.fn().mockResolvedValue(null),
+        },
+        close: jest.fn().mockResolvedValue(undefined),
+      } as unknown as McpServer["client"],
+    }) as McpServer;
 
-  const createMockRegistryServer = (): ActiveMcpServer => ({
-    key: REGISTRY_SERVER_KEY,
-    serverKey: REGISTRY_SERVER_KEY,
-    url: "",
-    name: "Registry",
-    status: "connected",
-    serverType: ServerType.TAMBO_REGISTRY,
-    client: null,
-  });
-
-  const createMockInternalServer = (serverKey: string): ActiveMcpServer => ({
-    key: serverKey,
-    serverKey,
-    url: "https://api.tambo.ai/mcp",
-    name: "__tambo_internal_mcp_server__",
-    status: "connected",
-    serverType: ServerType.TAMBO_INTERNAL,
-    client: null, // Internal server resources are resolved by backend
-  });
+  const createMockInternalServer = (serverKey: string): McpServer =>
+    ({
+      key: serverKey,
+      serverKey,
+      url: "https://api.tambo.ai/mcp",
+      name: "__tambo_internal_mcp_server__",
+      transport: MCPTransport.HTTP,
+      serverType: ServerType.TAMBO_INTERNAL,
+      connectionError: undefined, // No client for internal servers
+    }) as unknown as McpServer;
 
   const createMockResourceSource = (
     getResource: jest.Mock,
@@ -123,11 +113,10 @@ describe("resolveResourceContents", () => {
     } satisfies ReadResourceResult);
 
     const resourceSource = createMockResourceSource(mockGetResource);
-    const registryServer = createMockRegistryServer();
 
     const result = await resolveResourceContents(
       ["registry:file:///local/doc.txt"],
-      [registryServer],
+      [], // Registry resources don't need a server - they're handled directly
       resourceSource,
     );
 
@@ -204,12 +193,11 @@ describe("resolveResourceContents", () => {
     });
 
     const resourceSource = createMockResourceSource(mockGetResource);
-    const registryServer = createMockRegistryServer();
     const mcpServer = createMockConnectedServer("mcp-server", mockReadResource);
 
     const result = await resolveResourceContents(
       ["registry:file:///doc.txt", "mcp-server:file:///mcp.txt"],
-      [registryServer, mcpServer],
+      [mcpServer], // Only MCP server needed - registry handled directly
       resourceSource,
     );
 
@@ -223,7 +211,6 @@ describe("resolveResourceContents", () => {
       contents: [{ uri: "file:///doc.txt", text: "registry content" }],
     });
     const resourceSource = createMockResourceSource(mockGetResource);
-    const registryServer = createMockRegistryServer();
     const internalServer = createMockInternalServer("tambo-abc123");
 
     const result = await resolveResourceContents(
@@ -231,7 +218,7 @@ describe("resolveResourceContents", () => {
         "registry:file:///doc.txt", // client-side registry
         "tambo-abc123:tambo:test://resource/1", // internal - should skip
       ],
-      [registryServer, internalServer],
+      [internalServer], // Only internal server needed - registry handled directly
       resourceSource,
     );
 
@@ -248,11 +235,10 @@ describe("resolveResourceContents", () => {
       .fn()
       .mockRejectedValue(new Error("Resource not found"));
     const resourceSource = createMockResourceSource(mockGetResource);
-    const registryServer = createMockRegistryServer();
 
     const result = await resolveResourceContents(
       ["registry:file:///missing.txt"],
-      [registryServer],
+      [], // Registry resources don't need a server
       resourceSource,
     );
 
@@ -289,11 +275,10 @@ describe("resolveResourceContents", () => {
 
   it("should warn when no resourceSource available for registry resource", async () => {
     const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
-    const registryServer = createMockRegistryServer();
 
     const result = await resolveResourceContents(
       ["registry:file:///doc.txt"],
-      [registryServer],
+      [], // Registry resources don't need a server
       undefined, // no resourceSource
     );
 
@@ -334,11 +319,10 @@ describe("resolveResourceContents", () => {
     } satisfies ReadResourceResult);
 
     const resourceSource = createMockResourceSource(mockGetResource);
-    const registryServer = createMockRegistryServer();
 
     const result = await resolveResourceContents(
       ["registry:file:///image.png"],
-      [registryServer],
+      [], // Registry resources don't need a server
       resourceSource,
     );
 
@@ -366,11 +350,10 @@ describe("resolveResourceContents", () => {
   it("should handle null content from getResource", async () => {
     const mockGetResource = jest.fn().mockResolvedValue(null);
     const resourceSource = createMockResourceSource(mockGetResource);
-    const registryServer = createMockRegistryServer();
 
     const result = await resolveResourceContents(
       ["registry:file:///doc.txt"],
-      [registryServer],
+      [], // Registry resources don't need a server
       resourceSource,
     );
 
