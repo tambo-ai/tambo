@@ -243,6 +243,17 @@ function convertResourceToContentParts(
   resourceContents: ResourceFetchResult | undefined,
 ): ChatCompletionContentPart[] {
   if (!resourceContents) {
+    if (resource.text || resource.blob) {
+      return [
+        {
+          type: ContentPartType.Resource,
+          resource: {
+            ...resource,
+          },
+        },
+      ];
+    }
+    console.warn("no resource contents and no text or blob for ", resource);
     return [];
   }
 
