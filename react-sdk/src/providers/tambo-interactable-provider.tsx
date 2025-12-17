@@ -29,6 +29,7 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   clearAllInteractableComponents: () => {},
   setInteractableState: () => {},
   getInteractableComponentState: () => undefined,
+  setInteractableSelectedForInteraction: () => {},
 });
 
 /**
@@ -350,6 +351,28 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     [interactableComponents],
   );
 
+  const setInteractableSelectedForInteraction = useCallback(
+    (componentId: string, isSelected: boolean) => {
+      setInteractableComponents((prev) => {
+        const component = prev.find((c) => c.id === componentId);
+        if (!component) {
+          console.warn(
+            `Tried to set selection for component ${componentId} but it was not found.`,
+          );
+          return prev;
+        }
+
+        const updated = {
+          ...component,
+          isSelectedForInteraction: isSelected,
+        };
+
+        return prev.map((c) => (c.id === componentId ? updated : c));
+      });
+    },
+    [],
+  );
+
   const value: TamboInteractableContext = {
     interactableComponents,
     addInteractableComponent,
@@ -360,6 +383,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     clearAllInteractableComponents,
     setInteractableState: setInteractableStateValue,
     getInteractableComponentState,
+    setInteractableSelectedForInteraction,
   };
 
   return (

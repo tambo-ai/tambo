@@ -7,6 +7,8 @@ export interface TamboInteractableComponent extends TamboComponent {
   props: Record<string, any>;
   /** Current state for the component */
   state?: Record<string, unknown>;
+  /** Whether the component is currently selected for interaction, meaning Tambo should interact with it when responding to the next message*/
+  isSelectedForInteraction?: boolean;
 }
 
 export interface TamboInteractableContext {
@@ -43,4 +45,9 @@ export interface TamboInteractableContext {
   getInteractableComponentState: (
     componentId: string,
   ) => Record<string, unknown> | undefined;
+  /** Set whether an interactable component is selected for interaction */
+  setInteractableSelectedForInteraction: (
+    componentId: string,
+    isSelected: boolean,
+  ) => void;
 }
