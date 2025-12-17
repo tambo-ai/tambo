@@ -247,9 +247,7 @@ function convertResourceToContentParts(
       return [
         {
           type: ContentPartType.Resource,
-          resource: {
-            ...resource,
-          },
+          resource,
         },
       ];
     }
