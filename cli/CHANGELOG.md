@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.44.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.44.0...tambo-v0.44.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+* **web:** allow Enter key to select items from TipTap suggestion popover ([#1571](https://github.com/tambo-ai/tambo/issues/1571)) ([dcb153c](https://github.com/tambo-ai/tambo/commit/dcb153c675a1f0689b2b048fd48970d160c82a94))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps:** bump inquirer from 12.9.4 to 13.0.2 ([#1549](https://github.com/tambo-ai/tambo/issues/1549)) ([90a68ea](https://github.com/tambo-ai/tambo/commit/90a68eaf81ea81b1e51462e19917253e58a87125))
+
 ## [0.44.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.43.1...tambo-v0.44.0) (2025-12-15)
 
 
