@@ -334,13 +334,3 @@ Function to set custom suggestions or clear them by passing `null`.
 ```typescript
 setCustomSuggestions: (suggestions: Suggestion[] | null) => void;
 ```
-
-## ContextHelperData
-
-Data structure returned by a context helper function.
-
-```typescript
-type ContextHelperData = Record<string, unknown>;
-```
-
-This type represents the data sent to the AI when a context attachment is active. You can customize this structure using the `getContextHelperData` prop on `TamboProvider`.
