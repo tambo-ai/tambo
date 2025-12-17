@@ -2,42 +2,93 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { REGISTRY_SERVER_KEY, ServerType } from "../../mcp/mcp-constants";
+import { ServerType } from "../../mcp/mcp-constants";
 import type { ActiveMcpServer } from "../../mcp/mcp-server-context";
-import type { ResourceSource } from "../../model/resource-info";
-import { TamboRegistryProvider } from "../tambo-registry-provider";
-import {
-  TamboThreadInputProvider,
-  useTamboThreadInput,
-} from "../tambo-thread-input-provider";
+import { TamboProvider } from "../tambo-provider";
+import { useTamboThreadInput } from "../tambo-thread-input-provider";
 
-// Mock the thread provider
+// Mock the Tambo client provider to avoid needing real API credentials
+ 
+jest.mock("../tambo-client-provider", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ReactModule = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { QueryClient: QC } = require("@tanstack/react-query");
+  const mockQueryClient = new QC();
+  const MockContext = ReactModule.createContext({
+    client: {},
+    queryClient: mockQueryClient,
+    isUpdatingToken: false,
+  });
+  return {
+    TamboClientProvider: ({ children }: { children: React.ReactNode }) => (
+      <MockContext.Provider
+        value={{
+          client: {},
+          queryClient: mockQueryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        {children}
+      </MockContext.Provider>
+    ),
+    TamboClientContext: MockContext,
+    useTamboClient: () => ({
+      client: {},
+      queryClient: mockQueryClient,
+      isUpdatingToken: false,
+    }),
+  };
+});
+
+// Mock the thread provider to capture sendThreadMessage calls
 const mockSendThreadMessage = jest.fn();
+const mockContextKey = "test-context-key";
 jest.mock("../tambo-thread-provider", () => ({
+  TamboThreadProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
   useTamboThread: () => ({
     thread: { id: "test-thread-id" },
     sendThreadMessage: mockSendThreadMessage,
+    contextKey: mockContextKey,
   }),
 }));
 
 // Mock servers array - will be updated per test
 let mockServers: ActiveMcpServer[] = [];
 
-// Mock the MCP server context
-jest.mock("../../mcp/mcp-server-context", () => ({
+// Mock the MCP provider to avoid real MCP connections
+jest.mock("../../mcp/tambo-mcp-provider", () => ({
+  TamboMcpProvider: ({ children }: { children: React.ReactNode }) => children,
   useTamboMcpServers: () => mockServers,
 }));
 
-// Helper to create virtual registry server
-const createMockRegistryServer = (): ActiveMcpServer => ({
-  key: REGISTRY_SERVER_KEY,
-  serverKey: REGISTRY_SERVER_KEY,
-  url: "",
-  name: "Registry",
-  status: "connected",
-  serverType: ServerType.TAMBO_REGISTRY,
-  client: null,
-});
+// Mock the MCP server context
+jest.mock("../../mcp/mcp-server-context", () => ({
+  McpServerContext: {
+    Provider: ({
+      children,
+      value,
+    }: {
+      children: React.ReactNode;
+      value: { servers: ActiveMcpServer[] };
+    }) => {
+      mockServers = value.servers;
+      return children;
+    },
+  },
+  useTamboMcpServers: () => mockServers,
+}));
+
+// Mock the MCP token provider
+jest.mock("../tambo-mcp-token-provider", () => ({
+  TamboMcpTokenProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  useTamboMcpToken: () => ({
+    mcpAccessToken: null,
+    tamboBaseUrl: null,
+  }),
+}));
 
 // Helper to create internal server
 const createMockInternalServer = (serverKey: string): ActiveMcpServer => ({
@@ -74,14 +125,14 @@ jest.mock("../../hooks/react-query-hooks", () => ({
   }),
 }));
 
-describe("TamboThreadInputProvider - Resource Content Resolution Integration", () => {
+describe("TamboProvider - Resource Content Resolution Integration", () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSendThreadMessage.mockResolvedValue(undefined);
-    // Default: include registry server
-    mockServers = [createMockRegistryServer()];
+    // Default: no MCP servers (registry resources don't need a server entry)
+    mockServers = [];
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -96,19 +147,24 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
   });
 
   const createWrapper = (
-    resourceSource?: ResourceSource,
-    resources?: { uri: string; name: string; mimeType?: string }[],
+    listResources?: (
+      search?: string,
+    ) => Promise<{ uri: string; name: string; mimeType?: string }[]>,
+    getResource?: (uri: string) => Promise<unknown>,
   ) => {
     function Wrapper({ children }: { children: React.ReactNode }) {
       return (
         <QueryClientProvider client={queryClient}>
-          <TamboRegistryProvider
-            listResources={resourceSource?.listResources}
-            getResource={resourceSource?.getResource}
-            resources={resources}
+          <TamboProvider
+            apiKey="test-api-key"
+            tamboUrl="https://api.tambo.ai"
+            listResources={listResources}
+            // Cast to any because test mocks return simplified types
+            getResource={getResource as any}
+            contextKey={mockContextKey}
           >
-            <TamboThreadInputProvider>{children}</TamboThreadInputProvider>
-          </TamboRegistryProvider>
+            {children}
+          </TamboProvider>
         </QueryClientProvider>
       );
     }
@@ -126,19 +182,16 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
       ],
     });
 
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([
-        {
-          uri: "file:///my-document.txt",
-          name: "My Document",
-          mimeType: "text/plain",
-        },
-      ]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([
+      {
+        uri: "file:///my-document.txt",
+        name: "My Document",
+        mimeType: "text/plain",
+      },
+    ]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     // Set the input value with a registry resource reference
@@ -195,13 +248,10 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
         return null;
       });
 
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     act(() => {
@@ -247,13 +297,10 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
       ],
     });
 
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     act(() => {
@@ -284,13 +331,10 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
       .fn()
       .mockRejectedValue(new Error("Resource fetch failed"));
 
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     act(() => {
@@ -328,22 +372,16 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
 
   it("should NOT resolve internal server resources (serverType: TAMBO_INTERNAL)", async () => {
     // Add internal server to mock servers
-    mockServers = [
-      createMockRegistryServer(),
-      createMockInternalServer("tambo-abc123"),
-    ];
+    mockServers = [createMockInternalServer("tambo-abc123")];
 
     const mockGetResource = jest.fn().mockResolvedValue({
       contents: [{ uri: "tambo:test://resource/1", text: "Should not fetch" }],
     });
 
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     act(() => {
@@ -372,23 +410,17 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
   });
 
   it("should handle mixed registry and internal server resources", async () => {
-    // Add both registry and internal server
-    mockServers = [
-      createMockRegistryServer(),
-      createMockInternalServer("tambo-xyz"),
-    ];
+    // Add internal server
+    mockServers = [createMockInternalServer("tambo-xyz")];
 
     const mockGetResource = jest.fn().mockResolvedValue({
       contents: [{ uri: "file:///registry-doc.txt", text: "Registry content" }],
     });
 
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     act(() => {
@@ -432,13 +464,10 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
       ],
     });
 
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     act(() => {
@@ -469,14 +498,10 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
 
   it("should handle message without any resource references", async () => {
     const mockGetResource = jest.fn();
-
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     act(() => {
@@ -505,14 +530,10 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
 
   it("should handle null returned from getResource", async () => {
     const mockGetResource = jest.fn().mockResolvedValue(null);
-
-    const resourceSource: ResourceSource = {
-      listResources: jest.fn().mockResolvedValue([]),
-      getResource: mockGetResource,
-    };
+    const mockListResources = jest.fn().mockResolvedValue([]);
 
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(resourceSource),
+      wrapper: createWrapper(mockListResources, mockGetResource),
     });
 
     act(() => {
@@ -539,9 +560,9 @@ describe("TamboThreadInputProvider - Resource Content Resolution Integration", (
   it("should warn when no resourceSource is available for registry resource", async () => {
     const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
 
-    // No resourceSource provided
+    // No listResources/getResource provided
     const { result } = renderHook(() => useTamboThreadInput(), {
-      wrapper: createWrapper(undefined),
+      wrapper: createWrapper(undefined, undefined),
     });
 
     act(() => {
