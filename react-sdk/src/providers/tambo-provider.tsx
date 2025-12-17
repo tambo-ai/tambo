@@ -33,10 +33,7 @@ import {
   TamboRegistryProvider,
   TamboRegistryProviderProps,
 } from "./tambo-registry-provider";
-import {
-  TamboThreadInputProvider,
-  TamboThreadInputProviderProps,
-} from "./tambo-thread-input-provider";
+import { TamboThreadInputProvider } from "./tambo-thread-input-provider";
 import {
   TamboGenerationStageContextProps,
   TamboThreadContextProps,
@@ -73,7 +70,6 @@ export const TamboProvider: React.FC<
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
       TamboContextHelpersProviderProps &
-      TamboThreadInputProviderProps &
       Partial<Pick<TamboContextAttachmentProviderProps, "getContextHelperData">>
   >
 > = ({
@@ -93,6 +89,9 @@ export const TamboProvider: React.FC<
   initialMessages,
   onCallUnregisteredTool,
   getContextHelperData,
+  getResource,
+  listResources,
+  resources,
 }) => {
   return (
     <TamboClientProvider
@@ -106,16 +105,20 @@ export const TamboProvider: React.FC<
         tools={tools}
         mcpServers={mcpServers}
         onCallUnregisteredTool={onCallUnregisteredTool}
+        getResource={getResource}
+        listResources={listResources}
+        resources={resources}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider
+            contextKey={contextKey}
             streaming={streaming}
             autoGenerateThreadName={autoGenerateThreadName}
             autoGenerateNameThreshold={autoGenerateNameThreshold}
             initialMessages={initialMessages}
           >
             <TamboMcpTokenProvider>
-              <TamboThreadInputProvider contextKey={contextKey}>
+              <TamboThreadInputProvider>
                 <TamboContextAttachmentProvider
                   getContextHelperData={getContextHelperData}
                 >

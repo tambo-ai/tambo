@@ -27,7 +27,7 @@ jobs:
           node-version: "22"
 
       - name: Pin NPM version
-        run: npm install -g npm@11.5.2
+        run: npm install -g npm@11.7.0
 
       - name: Install dependencies
         # This (`npm install) is a workaround for the fact that release-please

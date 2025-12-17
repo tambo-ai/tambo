@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUserContextKey } from "@/lib/useUserContextKey";
 import { withInteractable, type Suggestion } from "@tambo-ai/react";
 import { useCallback, useState } from "react";
 import { z } from "zod";
@@ -175,7 +174,6 @@ const ContactForm = withInteractable(ContactFormBase, {
 });
 
 export const EditWithTamboInterface = () => {
-  const userContextKey = useUserContextKey("edit-with-tambo");
   const [isThreadOpen, setIsThreadOpen] = useState(false);
 
   // Define suggestions for the form
@@ -256,11 +254,7 @@ export const EditWithTamboInterface = () => {
       </div>
 
       {/* Collapsible message thread */}
-      <MessageThreadCollapsible
-        contextKey={userContextKey}
-        defaultOpen={isThreadOpen}
-        className="z-60"
-      />
+      <MessageThreadCollapsible defaultOpen={isThreadOpen} className="z-60" />
     </div>
   );
 };

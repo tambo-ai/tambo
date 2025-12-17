@@ -3,12 +3,9 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
-import { useUserContextKey } from "@/lib/useUserContextKey";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 export default function MessageThreadFullPage() {
-  const userContextKey = useUserContextKey("message-thread-full");
-
   return (
     <div className="prose max-w-8xl space-y-12">
       {/* Title & Description */}
@@ -33,11 +30,8 @@ export default function MessageThreadFullPage() {
             title="Basic Usage"
             component={
               <div className="w-full h-full relative flex flex-col rounded-lg overflow-hidden">
-                <TamboMcpProvider contextKey={userContextKey}>
-                  <MessageThreadFull
-                    contextKey={userContextKey}
-                    className="w-full h-full rounded-lg"
-                  />
+                <TamboMcpProvider>
+                  <MessageThreadFull className="w-full h-full rounded-lg" />
                 </TamboMcpProvider>
               </div>
             }

@@ -45,10 +45,9 @@ import { useRef } from "react";
 export const MessageThreadPanelWithMcp = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    contextKey?: string;
     variant?: VariantProps<typeof messageVariants>["variant"];
   }
->(({ className, variant, contextKey, ...props }, forwardedRef) => {
+>(({ className, variant, ...props }, forwardedRef) => {
   useTamboThreadInput(); // Keep for dependency tracking
   const editorRef = useRef(null);
 
@@ -169,7 +168,7 @@ export const MessageThreadPanelWithMcp = React.forwardRef<
       </MessageSuggestions>
 
       <div className="p-4">
-        <MessageInput contextKey={contextKey} inputRef={editorRef}>
+        <MessageInput inputRef={editorRef}>
           <MessageInputTextarea placeholder="Type your message or paste images..." />
           <MessageInputToolbar>
             <MessageInputFileButton />

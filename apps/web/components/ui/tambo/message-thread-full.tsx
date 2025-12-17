@@ -31,8 +31,6 @@ import * as React from "react";
  * Props for the MessageThreadFull component
  */
 export interface MessageThreadFullProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Optional context key for the thread */
-  contextKey?: string;
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -48,7 +46,7 @@ export interface MessageThreadFullProps extends React.HTMLAttributes<HTMLDivElem
 export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
->(({ className, contextKey, variant, ...props }, ref) => {
+>(({ className, variant, ...props }, ref) => {
   const { containerRef } = useThreadContainerContext();
   const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
 
@@ -89,7 +87,7 @@ export const MessageThreadFull = React.forwardRef<
 
         {/* Message input */}
         <div className="p-4">
-          <MessageInput contextKey={contextKey}>
+          <MessageInput>
             <MessageInputTextareaWithInteractables />
             <MessageInputToolbar>
               <MessageInputSubmitButton />

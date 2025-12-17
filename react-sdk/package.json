@@ -2,6 +2,7 @@
   "name": "@tambo-ai/react",
   "version": "0.67.0",
   "description": "React client package for Tambo AI",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/tambo-ai/tambo.git",
@@ -25,7 +26,8 @@
   },
   "files": [
     "dist",
-    "esm"
+    "esm",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=22",
@@ -92,7 +94,7 @@
     "zodInternalAlias": "npm:zod@^4.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^9.39.2",
     "@modelcontextprotocol/sdk": "^1.24.0",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
@@ -105,8 +107,8 @@
     "@types/react-dom": "^18.3.7",
     "@valibot/to-json-schema": "^1.4.0",
     "concurrently": "^9.2.1",
-    "eslint": "^9.39.1",
-    "eslint-plugin-jsdoc": "^61.4.2",
+    "eslint": "^9.39.2",
+    "eslint-plugin-jsdoc": "^61.5.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.1.1",
     "jest": "^30.2.0",
@@ -118,7 +120,7 @@
     "react-dom": "^18.3.1",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.1",
+    "typescript-eslint": "^8.49.0",
     "zod": "^3.25.76 || ^4.1.0",
     "zod-to-json-schema": "^3.25.0"
   }

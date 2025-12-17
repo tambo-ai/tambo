@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.21.1](https://github.com/tambo-ai/tambo/compare/docs-v1.21.0...docs-v1.21.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps:** Bump @tambo-ai/typescript-sdk to get tool maxCalls ([#1533](https://github.com/tambo-ai/tambo/issues/1533)) ([97e85ba](https://github.com/tambo-ai/tambo/commit/97e85ba0eb334a8b3b482a0cff368d2528b91d74))
+* **deps:** bump dompurify from 3.3.0 to 3.3.1 ([#1555](https://github.com/tambo-ai/tambo/issues/1555)) ([cbc3328](https://github.com/tambo-ai/tambo/commit/cbc332845171e87d4f04c11429af8acbf1e4b0d3))
+* **deps:** bump the next group with 2 updates ([#1543](https://github.com/tambo-ai/tambo/issues/1543)) ([86e399f](https://github.com/tambo-ai/tambo/commit/86e399fbb3b10aacfb626af96bfd0e5880e1d78a))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1546](https://github.com/tambo-ai/tambo/issues/1546)) ([462d2c8](https://github.com/tambo-ai/tambo/commit/462d2c8f23f11512ccd3de6caa89c6d9cbb5bf69))
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+* remove tambo-cloud directory after migration ([#1521](https://github.com/tambo-ai/tambo/issues/1521)) ([686dde6](https://github.com/tambo-ai/tambo/commit/686dde6fcc1f612b092d750359ac1f1b56055d9b))
+
+
+### Documentation
+
+* clarify per-user auth and MCP server auth ([#1517](https://github.com/tambo-ai/tambo/issues/1517)) ([5030748](https://github.com/tambo-ai/tambo/commit/5030748fbf056768b6dcdf7b5536762a1d5f86f4))
+* use relative internal docs links ([#1523](https://github.com/tambo-ai/tambo/issues/1523)) ([c3e4b1a](https://github.com/tambo-ai/tambo/commit/c3e4b1a47ebb01d6710165fdc932119ca693aed9))
+
 ## [1.21.0](https://github.com/tambo-ai/tambo/compare/docs-v1.20.0...docs-v1.21.0) (2025-12-11)
 
 

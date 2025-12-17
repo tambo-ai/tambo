@@ -1,13 +1,10 @@
 "use client";
 
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
-import { useUserContextKey } from "@/lib/useUserContextKey";
 import Link from "next/link";
 import { DemoWrapper } from "./components/demo-wrapper";
 
 export default function DocsPage() {
-  const userContextKey = useUserContextKey("message-thread-full-showcase");
-
   return (
     <div className="max-w-8xl">
       {/* Hero Section */}
@@ -47,7 +44,7 @@ export default function DocsPage() {
         </h2>
         <DemoWrapper title="Message Thread" height={600} hidePreviewHeading>
           <div className="h-full relative flex flex-col rounded-lg overflow-hidden">
-            <MessageThreadFull contextKey={userContextKey} />
+            <MessageThreadFull />
           </div>
         </DemoWrapper>
       </section>
