@@ -32,7 +32,7 @@ export default function MessageInputPage() {
           <ComponentCodePreview
             title="Default Message Input with Image Attachments"
             component={
-              <MessageInput contextKey="demo-default" variant="default">
+              <MessageInput variant="default">
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
@@ -52,7 +52,7 @@ export default function MessageInputPage() {
 
 export function ChatInput() {
   return (
-    <MessageInput contextKey="my-thread" variant="default">
+    <MessageInput variant="default">
       <MessageInputTextarea placeholder="Type your message or paste images..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
@@ -68,7 +68,7 @@ export function ChatInput() {
           <ComponentCodePreview
             title="Solid Variant"
             component={
-              <MessageInput contextKey="demo-solid" variant="solid">
+              <MessageInput variant="solid">
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
@@ -88,7 +88,7 @@ export function ChatInput() {
 
 export function SolidChatInput() {
   return (
-    <MessageInput contextKey="my-thread" variant="solid">
+    <MessageInput variant="solid">
       <MessageInputTextarea placeholder="Type your message or paste images..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
@@ -104,7 +104,7 @@ export function SolidChatInput() {
           <ComponentCodePreview
             title="Bordered Variant"
             component={
-              <MessageInput contextKey="demo-bordered" variant="bordered">
+              <MessageInput variant="bordered">
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
@@ -124,7 +124,7 @@ export function SolidChatInput() {
 
 export function BorderedChatInput() {
   return (
-    <MessageInput contextKey="my-thread" variant="bordered">
+    <MessageInput variant="bordered">
       <MessageInputTextarea placeholder="Type your message or paste images..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
@@ -140,7 +140,7 @@ export function BorderedChatInput() {
           <ComponentCodePreview
             title="Full-featured: MCP Config + Image Attachments"
             component={
-              <MessageInput contextKey="demo-mcp" variant="default">
+              <MessageInput variant="default">
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
@@ -162,7 +162,7 @@ export function BorderedChatInput() {
 
 export function FullFeaturedInput() {
   return (
-    <MessageInput contextKey="my-thread" variant="default">
+    <MessageInput variant="default">
       <MessageInputTextarea placeholder="Type your message or paste images..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
@@ -179,7 +179,7 @@ export function FullFeaturedInput() {
           <ComponentCodePreview
             title="Minimal Input (No Toolbar)"
             component={
-              <MessageInput contextKey="demo-minimal">
+              <MessageInput>
                 <MessageInputTextarea placeholder="Simple message input..." />
                 <MessageInputError />
               </MessageInput>
@@ -192,7 +192,7 @@ export function FullFeaturedInput() {
 
 export function MinimalInput() {
   return (
-    <MessageInput contextKey="my-thread">
+    <MessageInput>
       <MessageInputTextarea placeholder="Simple message input..." />
       <MessageInputError />
     </MessageInput>
@@ -223,14 +223,6 @@ export function MinimalInput() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>contextKey</td>
-                  <td>string</td>
-                  <td>-</td>
-                  <td>
-                    The context key identifying which thread to send messages to
-                  </td>
-                </tr>
                 <tr>
                   <td>variant</td>
                   <td>

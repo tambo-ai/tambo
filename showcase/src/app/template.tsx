@@ -2,6 +2,7 @@
 
 import { Navbar } from "@/components/navbar";
 import { Sidebar } from "@/components/sidebar";
+import { useUserContextKey } from "@/lib/useUserContextKey";
 import { MobileProvider } from "@/providers/mobile-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TamboProvider } from "@tambo-ai/react";
@@ -18,7 +19,7 @@ export default function Template({
 }>) {
   const pathname = usePathname();
   const isNotFoundPage = pathname === "/_not-found";
-
+  const userContextKey = useUserContextKey(pathname || "default-page");
   return (
     <ThemeProvider
       attribute="class"

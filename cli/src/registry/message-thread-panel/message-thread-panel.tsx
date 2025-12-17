@@ -45,11 +45,6 @@ import type { Suggestion } from "@tambo-ai/react";
  * @interface
  */
 export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivElement> {
-  /**
-   * Optional key to identify the context of the thread
-   * Used to maintain separate thread histories for different contexts
-   */
-  contextKey?: string;
   /** Optional content to render in the left panel of the grid */
   children?: React.ReactNode;
   /**
@@ -177,21 +172,16 @@ ResizablePanel.displayName = "ResizablePanel";
  * @example
  * ```tsx
  * // Default left positioning
- * <MessageThreadPanel
- *   contextKey="my-thread"
- * />
+ * <MessageThreadPanel />
  *
  * // Explicit right positioning
- * <MessageThreadPanel
- *   contextKey="my-thread"
- *   className="right"
- * />
+ * <MessageThreadPanel className="right" />
  * ```
  */
 export const MessageThreadPanel = React.forwardRef<
   HTMLDivElement,
   MessageThreadPanelProps
->(({ className, contextKey, variant, ...props }, ref) => {
+>(({ className, variant, ...props }, ref) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const { hasCanvasSpace, canvasIsOnLeft } = useCanvasDetection(panelRef);
   const { isLeftPanel, historyPosition } = usePositioning(
@@ -236,7 +226,6 @@ export const MessageThreadPanel = React.forwardRef<
             style={{ width: "var(--sidebar-width, 16rem)" }}
           >
             <ThreadHistory
-              contextKey={contextKey}
               defaultCollapsed={true}
               position="left"
               className="h-full border-0 border-r border-flat"
@@ -264,7 +253,7 @@ export const MessageThreadPanel = React.forwardRef<
 
           {/* Message input */}
           <div className="p-4">
-            <MessageInput contextKey={contextKey}>
+            <MessageInput>
               <MessageInputTextarea placeholder="Type your message or paste images..." />
               <MessageInputToolbar>
                 <MessageInputFileButton />
@@ -290,7 +279,6 @@ export const MessageThreadPanel = React.forwardRef<
             style={{ width: "var(--sidebar-width, 16rem)" }}
           >
             <ThreadHistory
-              contextKey={contextKey}
               defaultCollapsed={true}
               position="right"
               className="h-full border-0 border-l border-flat"

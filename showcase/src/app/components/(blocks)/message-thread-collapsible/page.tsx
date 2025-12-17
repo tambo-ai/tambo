@@ -3,11 +3,8 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
-import { useUserContextKey } from "@/lib/useUserContextKey";
 
 export default function MessageThreadCollapsiblePage() {
-  const userContextKey = useUserContextKey("message-thread-collapsible");
-
   return (
     <div className="prose max-w-8xl space-y-12">
       {/* Title & Description */}
@@ -47,7 +44,6 @@ export default function MessageThreadCollapsiblePage() {
                 <div className="h-4 w-[200px] bg-muted/80 rounded-md" />
                 <MessageThreadCollapsible
                   defaultOpen={false}
-                  contextKey={userContextKey}
                   className="absolute bottom-6 right-4"
                 />
               </div>
