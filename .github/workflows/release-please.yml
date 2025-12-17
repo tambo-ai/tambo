@@ -11,12 +11,14 @@ concurrency:
   group: release-please-${{ github.ref }}
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       react-sdk--release_created: ${{ steps.release.outputs.react-sdk--release_created }}
       cli--release_created: ${{ steps.release.outputs.cli--release_created }}
@@ -39,11 +41,13 @@ jobs:
     needs: release-please
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.react-sdk--release_created == 'true' }}
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC publishing to NPM
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - uses: actions/setup-node@v6
         with:
@@ -62,8 +66,6 @@ jobs:
 
       - name: Publish @tambo-ai/react to npm
         working-directory: ./react-sdk
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
   # NPM Package Publishing - CLI
@@ -71,11 +73,13 @@ jobs:
     needs: release-please
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.cli--release_created == 'true' }}
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC publishing to NPM
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - uses: actions/setup-node@v6
         with:
@@ -94,8 +98,6 @@ jobs:
 
       - name: Publish tambo to npm
         working-directory: ./cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
   # NPM Package Publishing - Create Tambo App
@@ -103,11 +105,13 @@ jobs:
     needs: release-please
     runs-on: ubuntu-latest
     if: ${{ needs.release-please.outputs.create-tambo-app--release_created == 'true' }}
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC publishing to NPM
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - uses: actions/setup-node@v6
         with:
@@ -126,8 +130,6 @@ jobs:
 
       - name: Publish create-tambo-app to npm
         working-directory: ./create-tambo-app
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
 
   # Web App Deployment
