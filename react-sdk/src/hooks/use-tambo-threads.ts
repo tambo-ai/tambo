@@ -17,10 +17,10 @@ interface UseTamboThreadListConfig {
  *
  * If contextKey is empty, then all threads for the project will be returned.
  * If contextKey is not empty, then only the threads for the specified context
- * key will be returned.
+ * key will be returned. The contextKey is obtained from the TamboThreadProvider
+ * via useTamboThread().
  * @param config - The config for the useTamboThreadList hook
  * @param config.projectId - The projectId to get the threads for
- * @param config.contextKey - The context key to get the threads for
  * @returns The threads for the specified project and optional context key
  */
 export function useTamboThreadList(

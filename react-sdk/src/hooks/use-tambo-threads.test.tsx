@@ -2,6 +2,7 @@ import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import { DeepPartial } from "ts-essentials";
+import { useTamboThread } from "../providers";
 import {
   useTamboClient,
   useTamboQueryClient,
@@ -12,6 +13,10 @@ import { useTamboThreadList } from "./use-tambo-threads";
 jest.mock("../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
   useTamboQueryClient: jest.fn(),
+}));
+
+jest.mock("../providers", () => ({
+  useTamboThread: jest.fn(),
 }));
 
 describe("useTamboThreadList", () => {
@@ -61,6 +66,9 @@ describe("useTamboThreadList", () => {
 
   beforeEach(() => {
     jest.mocked(useTamboQueryClient).mockReturnValue(new QueryClient());
+    jest
+      .mocked(useTamboThread)
+      .mockReturnValue({ contextKey: undefined } as any);
   });
 
   it("should fetch threads for current project when no projectId is provided", async () => {
@@ -112,7 +120,10 @@ describe("useTamboThreadList", () => {
     expect(mockList).toHaveBeenCalledWith("custom-project", {});
   });
 
-  it("should fetch threads with contextKey when provided", async () => {
+  it("should fetch threads with contextKey when provided via TamboThreadProvider", async () => {
+    jest
+      .mocked(useTamboThread)
+      .mockReturnValue({ contextKey: "test-context" } as any);
     const mockList = jest.fn().mockResolvedValue(mockThreads);
     const mockClient = jest.mocked(useTamboClient);
     mockClient.mockReturnValue({
@@ -130,9 +141,7 @@ describe("useTamboThreadList", () => {
       },
     } satisfies PartialTamboAI as any);
 
-    const { result } = renderHook(() =>
-      useTamboThreadList({ contextKey: "test-context" }),
-    );
+    const { result } = renderHook(() => useTamboThreadList());
 
     await waitFor(() => {
       expect(result.current.data).toEqual(mockThreads);

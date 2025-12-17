@@ -33,10 +33,7 @@ import {
   TamboRegistryProvider,
   TamboRegistryProviderProps,
 } from "./tambo-registry-provider";
-import {
-  TamboThreadInputProvider,
-  TamboThreadInputProviderProps,
-} from "./tambo-thread-input-provider";
+import { TamboThreadInputProvider } from "./tambo-thread-input-provider";
 import {
   TamboGenerationStageContextProps,
   TamboThreadContextProps,
@@ -73,7 +70,6 @@ export const TamboProvider: React.FC<
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
       TamboContextHelpersProviderProps &
-      TamboThreadInputProviderProps &
       Partial<Pick<TamboContextAttachmentProviderProps, "getContextHelperData">>
   >
 > = ({

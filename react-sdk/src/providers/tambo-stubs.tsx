@@ -360,6 +360,7 @@ export const TamboStubProvider: React.FC<
     sendThreadMessage:
       overrides.sendThreadMessage ?? defaults.sendThreadMessage,
     cancel: overrides.cancel ?? defaults.cancel,
+    contextKey,
   };
 
   const componentContextProps: TamboComponentContextProps = {

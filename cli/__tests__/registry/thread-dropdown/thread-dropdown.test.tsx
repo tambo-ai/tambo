@@ -39,9 +39,8 @@ describe("ThreadDropdown", () => {
     expect(dropdown).toHaveClass("custom-class");
   });
 
-  it("passes contextKey to useTamboThreadList", () => {
-    const contextKey = "test-context";
-    render(<ThreadDropdown contextKey={contextKey} />);
-    expect(mockUseTamboThreadList).toHaveBeenCalledWith({ contextKey });
+  it("calls useTamboThreadList without arguments (contextKey comes from provider)", () => {
+    render(<ThreadDropdown />);
+    expect(mockUseTamboThreadList).toHaveBeenCalledWith();
   });
 });

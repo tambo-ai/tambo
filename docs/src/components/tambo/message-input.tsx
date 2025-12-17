@@ -225,7 +225,6 @@ const MessageInputInternal = React.forwardRef<
 
         try {
           await submit({
-            contextKey,
             streamResponse: true,
           });
           setValue("");
@@ -251,7 +250,6 @@ const MessageInputInternal = React.forwardRef<
       [
         value,
         submit,
-        contextKey,
         setValue,
         setDisplayValue,
         setSubmitError,

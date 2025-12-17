@@ -80,7 +80,6 @@ export const TamboThreadInputContext = createContext<
  * This ensures that useTamboThreadInput, useTamboSuggestions, and components
  * all share the same input state
  * @param props - The props for the TamboThreadInputProvider
- * @param props.contextKey - Optional context key.
  * @param props.children - The children to render.
  * @returns The thread input context
  */

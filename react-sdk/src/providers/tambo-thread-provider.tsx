@@ -250,6 +250,7 @@ export interface TamboThreadProviderProps {
  * @param props.initialMessages - Initial messages to be included in new threads
  * @param props.autoGenerateThreadName - Whether to automatically generate thread names. Defaults to true.
  * @param props.autoGenerateNameThreshold - The message count threshold at which the thread name will be auto-generated. Defaults to 3.
+ * @param props.contextKey - The context key to use for thread isolation
  * @returns The TamboThreadProvider component
  */
 export const TamboThreadProvider: React.FC<
