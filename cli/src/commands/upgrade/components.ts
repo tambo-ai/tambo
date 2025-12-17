@@ -1,13 +1,18 @@
 import chalk from "chalk";
 import fs from "fs";
 import ora from "ora";
-import { interactivePrompt } from "../../utils/interactive.js";
 import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
 } from "../../constants/paths.js";
+import {
+  displayDependencyInfo,
+  expandComponentsWithDependencies,
+  resolveDependenciesForComponents,
+} from "../../utils/dependency-resolution.js";
+import { interactivePrompt } from "../../utils/interactive.js";
 import { installComponents } from "../add/component.js";
-import { setupTailwindandGlobals } from "../add/tailwind-setup.js";
+import { setupTailwindAndGlobals } from "../add/tailwind-setup.js";
 import type { InstallComponentOptions } from "../add/types.js";
 import { getInstalledComponents } from "../add/utils.js";
 import { getInstallationPath } from "../init.js";
@@ -23,11 +28,6 @@ import {
 } from "../shared/path-utils.js";
 import type { UpgradeOptions } from "./index.js";
 import { confirmAction, migrateComponentsDuringUpgrade } from "./utils.js";
-import {
-  resolveDependenciesForComponents,
-  displayDependencyInfo,
-  expandComponentsWithDependencies,
-} from "../../utils/dependency-resolution.js";
 
 /**
  * Represents a component that will be upgraded
@@ -344,7 +344,7 @@ export async function upgradeComponents(
 
     if (successCount > 0) {
       console.log(chalk.blue("\nChecking CSS configuration..."));
-      await setupTailwindandGlobals(projectRoot);
+      await setupTailwindAndGlobals(projectRoot);
     }
 
     // Show post-upgrade guidance

@@ -67,7 +67,7 @@ jest.unstable_mockModule("../init.js", () => ({
 
 // Mock tailwind setup
 jest.unstable_mockModule("./tailwind-setup.js", () => ({
-  setupTailwindandGlobals: jest.fn(async () => {
+  setupTailwindAndGlobals: jest.fn(async () => {
     // No-op for tests
   }),
 }));

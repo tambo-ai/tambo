@@ -146,7 +146,7 @@ export const projects = pgTable(
       .notNull(),
     creatorId: uuid("creator_id")
       .references(() => authUsers.id)
-      // Need to write raw `auth.uid()` becuse ${authUid} includes a select statement
+      // Need to write raw `auth.uid()` because ${authUid} includes a select statement
       .default(sql`auth.uid()`),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
     /** @deprecated - everyone has mcp now */

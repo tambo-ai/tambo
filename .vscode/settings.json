@@ -7,5 +7,6 @@
   },
   "[mdx]": {
     "editor.defaultFormatter": "unifiedjs.vscode-mdx"
-  }
+  },
+  "cSpell.enabled": true,
 }
