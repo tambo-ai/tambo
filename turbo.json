@@ -100,6 +100,6 @@
     },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["^build", "^test"] }
+    "test": { "dependsOn": ["^test"] }
   }
 }
