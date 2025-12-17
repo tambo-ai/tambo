@@ -37,3 +37,54 @@ const latestComponent = thread.messages
 ```
 
 This approach is useful for building interactive canvases, dashboards, or any UI where you want to show the most up-to-date component state without displaying the full conversation history.
+
+### Disabling older components after follow-ups
+
+If you render component messages inline with the full chat history, you may want only the latest component to remain interactive. One approach is to compare the current component's message ID to the latest message in the thread that contains a component.
+
+This also works when a single user message results in multiple component messages (still one component per message): only the last component message stays active.
+
+```tsx
+import {
+  GenerationStage,
+  useTamboCurrentMessage,
+  useTamboThread,
+  type TamboThread,
+} from "@tambo-ai/react";
+
+export function isActiveThreadComponent(
+  thread: TamboThread | null | undefined,
+  generationStage: GenerationStage,
+  currentMessageId: string,
+): boolean {
+  if (!thread?.messages?.length) return false;
+
+  const canAcceptInput =
+    generationStage === GenerationStage.IDLE ||
+    generationStage === GenerationStage.COMPLETE;
+
+  if (!canAcceptInput) return false;
+
+  const lastComponentMessage = thread.messages
+    .slice()
+    .reverse()
+    .find((message) => message.component?.componentName);
+
+  return lastComponentMessage?.id === currentMessageId;
+}
+
+export function MyThreadComponent() {
+  const { thread, generationStage } = useTamboThread();
+  const message = useTamboCurrentMessage();
+
+  const isActive = isActiveThreadComponent(thread, generationStage, message.id);
+
+  return (
+    <form onSubmit={(event) => event.preventDefault()}>
+      <button type="submit" disabled={!isActive}>
+        Save
+      </button>
+    </form>
+  );
+}
+```
