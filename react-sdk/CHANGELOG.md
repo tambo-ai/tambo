@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.67.1](https://github.com/tambo-ai/tambo/compare/react-v0.67.0...react-v0.67.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** propagate resources stuff from TamboProvider -&gt; registry ([#1568](https://github.com/tambo-ai/tambo/issues/1568)) ([03ed3c2](https://github.com/tambo-ai/tambo/commit/03ed3c281070ed91a7e44415f4924b0bb497b295))
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps-dev:** bump the eslint group with 5 updates ([#1541](https://github.com/tambo-ai/tambo/issues/1541)) ([6329a46](https://github.com/tambo-ai/tambo/commit/6329a461e8b9f036e111e24890c27a98925f4d15))
+
 ## [0.67.0](https://github.com/tambo-ai/tambo/compare/react-v0.66.2...react-v0.67.0) (2025-12-15)
 
 
