@@ -38,6 +38,13 @@ export interface TamboGenerationStageContextProps {
   generationStage: GenerationStage;
   generationStatusMessage: string;
   isIdle: boolean;
+  /**
+   * The ID of the message currently being streamed.
+   * Used by components to determine if their message is still actively streaming.
+   * In multi-component turns, this allows previous components to detect completion
+   * when streaming moves to a new message.
+   */
+  activeStreamingMessageId: string | null;
 }
 
 const TamboGenerationStageContext = createContext<
@@ -47,6 +54,7 @@ const TamboGenerationStageContext = createContext<
 interface TamboGenerationStageProviderProps {
   generationStage: GenerationStage;
   statusMessage: string;
+  activeStreamingMessageId: string | null;
 }
 
 /**
@@ -56,11 +64,17 @@ interface TamboGenerationStageProviderProps {
  * @param props.children - The children to wrap
  * @param props.generationStage - The generation stage to provide
  * @param props.statusMessage - The status message to provide
+ * @param props.activeStreamingMessageId - The ID of the message currently being streamed
  * @returns The GenerationStageProvider component
  */
 export const TamboGenerationStageProvider: React.FC<
   PropsWithChildren<TamboGenerationStageProviderProps>
-> = ({ children, generationStage, statusMessage }) => {
+> = ({
+  children,
+  generationStage,
+  statusMessage,
+  activeStreamingMessageId,
+}) => {
   const isIdle = isIdleStage(generationStage);
 
   const contextValue = useMemo(() => {
@@ -68,8 +82,9 @@ export const TamboGenerationStageProvider: React.FC<
       generationStage,
       generationStatusMessage: statusMessage,
       isIdle,
+      activeStreamingMessageId,
     };
-  }, [generationStage, statusMessage, isIdle]);
+  }, [generationStage, statusMessage, isIdle, activeStreamingMessageId]);
 
   return (
     <TamboGenerationStageContext.Provider value={contextValue}>
@@ -299,6 +314,10 @@ export const TamboThreadProvider: React.FC<
   const currentGenerationStage =
     (currentThread?.generationStage as GenerationStage) ?? GenerationStage.IDLE;
   const currentStatusMessage = currentThread?.statusMessage ?? "";
+  // Track which message is currently being streamed (for multi-component turns)
+  const [activeStreamingMessageId, setActiveStreamingMessageId] = useState<
+    string | null
+  >(null);
 
   // Use existing messages from the current thread to avoid re-generating any components
   const currentMessageCache = useMemo(() => {
@@ -704,6 +723,10 @@ export const TamboThreadProvider: React.FC<
         };
         return updatedThreadMap;
       });
+      // Clear activeStreamingMessageId when generation enters an idle state
+      if (isIdleStage(stage)) {
+        setActiveStreamingMessageId(null);
+      }
     },
     [],
   );
@@ -932,6 +955,8 @@ export const TamboThreadProvider: React.FC<
                   componentList,
                 )
               : chunk.responseMessageDto;
+            // Set the active streaming message ID for the first message
+            setActiveStreamingMessageId(finalMessage.id);
             await addThreadMessage(finalMessage, false);
           } else {
             // if we start getting a new message mid-stream, put the previous one on screen
@@ -946,6 +971,9 @@ export const TamboThreadProvider: React.FC<
               : chunk.responseMessageDto;
 
             if (isNewMessage) {
+              // Update active streaming message ID for multi-component turns
+              // This allows previous components to detect they're complete
+              setActiveStreamingMessageId(finalMessage.id);
               await addThreadMessage(finalMessage, false);
             } else {
               await updateThreadMessage(finalMessage.id, finalMessage, false);
@@ -1295,6 +1323,7 @@ export const TamboThreadProvider: React.FC<
       <TamboGenerationStageProvider
         generationStage={currentGenerationStage}
         statusMessage={currentStatusMessage}
+        activeStreamingMessageId={activeStreamingMessageId}
       >
         {children}
       </TamboGenerationStageProvider>

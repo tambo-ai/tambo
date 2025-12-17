@@ -168,6 +168,7 @@ const TamboStubThreadProvider: React.FC<
       <TamboGenerationStageProvider
         generationStage={generationStage}
         statusMessage={statusMessage}
+        activeStreamingMessageId={null}
       >
         {children}
       </TamboGenerationStageProvider>

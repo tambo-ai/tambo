@@ -82,6 +82,7 @@ const createMockThreadContext = (
     generationStage: GenerationStage.IDLE,
     generationStatusMessage: "",
     isIdle: true,
+    activeStreamingMessageId: null,
     ...overrides,
   };
 };
@@ -113,6 +114,7 @@ describe("TamboPropStreamProvider", () => {
       generationStage: GenerationStage.IDLE,
       generationStatusMessage: "",
       isIdle: true,
+      activeStreamingMessageId: null,
     });
 
     jest.mocked(useTamboCurrentMessage).mockReturnValue({
@@ -145,7 +147,41 @@ describe("TamboPropStreamProvider", () => {
 
   describe("Compound Components", () => {
     describe("Streaming Component", () => {
-      it("should render streaming when isPending is true", () => {
+      it("should render streaming when isPending is true (generation active, no content yet)", () => {
+        // isPending is true when generation is active but prop hasn't received content
+        jest.mocked(useTamboThread).mockReturnValue(
+          createMockThreadContext({
+            generationStage: GenerationStage.STREAMING_RESPONSE,
+          }),
+        );
+
+        jest.mocked(useTamboGenerationStage).mockReturnValue({
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          generationStatusMessage: "",
+          isIdle: false,
+          activeStreamingMessageId: "test-message",
+        });
+
+        jest.mocked(useTamboCurrentMessage).mockReturnValue(
+          createMockMessage({
+            component: createMockComponent({ title: "" }), // No content yet
+          }),
+        );
+
+        render(
+          <TamboPropStreamProvider>
+            <TamboPropStreamProvider.Streaming>
+              <div data-testid="loading">Loading...</div>
+            </TamboPropStreamProvider.Streaming>
+          </TamboPropStreamProvider>,
+        );
+
+        expect(screen.getByTestId("loading")).toBeInTheDocument();
+      });
+
+      it("should NOT render streaming when isMissing (generation idle, no content)", () => {
+        // When generation is idle and no content, prop is isMissing, not isPending
+        // Streaming component should NOT render for missing props
         jest.mocked(useTamboThread).mockReturnValue(
           createMockThreadContext({
             generationStage: GenerationStage.IDLE,
@@ -156,6 +192,7 @@ describe("TamboPropStreamProvider", () => {
           generationStage: GenerationStage.IDLE,
           generationStatusMessage: "",
           isIdle: true,
+          activeStreamingMessageId: null,
         });
 
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -172,7 +209,7 @@ describe("TamboPropStreamProvider", () => {
           </TamboPropStreamProvider>,
         );
 
-        expect(screen.getByTestId("loading")).toBeInTheDocument();
+        expect(screen.queryByTestId("loading")).not.toBeInTheDocument();
       });
 
       it("should render streaming when isStreaming is true", () => {
@@ -186,6 +223,7 @@ describe("TamboPropStreamProvider", () => {
           generationStage: GenerationStage.STREAMING_RESPONSE,
           generationStatusMessage: "",
           isIdle: false,
+          activeStreamingMessageId: "test-message",
         });
 
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -218,6 +256,7 @@ describe("TamboPropStreamProvider", () => {
           generationStage: GenerationStage.IDLE,
           generationStatusMessage: "",
           isIdle: true,
+          activeStreamingMessageId: null,
         });
 
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -250,6 +289,7 @@ describe("TamboPropStreamProvider", () => {
           generationStage: GenerationStage.IDLE,
           generationStatusMessage: "",
           isIdle: true,
+          activeStreamingMessageId: null,
         });
 
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -280,6 +320,7 @@ describe("TamboPropStreamProvider", () => {
           generationStage: GenerationStage.STREAMING_RESPONSE,
           generationStatusMessage: "",
           isIdle: false,
+          activeStreamingMessageId: "test-message",
         });
 
         jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -313,6 +354,7 @@ describe("TamboPropStreamProvider", () => {
         generationStage: GenerationStage.COMPLETE,
         generationStatusMessage: "",
         isIdle: false,
+        activeStreamingMessageId: null,
       });
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -346,6 +388,7 @@ describe("TamboPropStreamProvider", () => {
         generationStage: GenerationStage.STREAMING_RESPONSE,
         generationStatusMessage: "",
         isIdle: false,
+        activeStreamingMessageId: "test-message",
       });
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(
@@ -390,6 +433,7 @@ describe("TamboPropStreamProvider", () => {
         generationStage: GenerationStage.STREAMING_RESPONSE,
         generationStatusMessage: "",
         isIdle: false,
+        activeStreamingMessageId: "test-message",
       });
 
       jest.mocked(useTamboCurrentMessage).mockReturnValue(

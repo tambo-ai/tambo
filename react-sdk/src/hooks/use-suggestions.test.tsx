@@ -109,6 +109,7 @@ describe("useTamboSuggestions", () => {
       generationStage: GenerationStage.IDLE,
       generationStatusMessage: "",
       isIdle: true,
+      activeStreamingMessageId: null,
       ...overrides,
     };
   };

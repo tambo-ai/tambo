@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { GenerationStage } from "../model/generate-component-response";
+import {
+  GenerationStage,
+  isIdleStage,
+} from "../model/generate-component-response";
 import { useTamboGenerationStage } from "../providers/tambo-thread-provider";
 import { useTamboCurrentMessage } from "./use-current-message";
 
@@ -65,6 +68,13 @@ export interface PropStatus {
   isSuccess: boolean;
 
   /**
+   * Indicates this prop was never generated - the component finished generating
+   * (either via completion or streaming moved to another component) but this prop
+   * never received any content. Useful for showing fallback UI for optional props.
+   */
+  isMissing: boolean;
+
+  /**
    * The error that occurred during streaming (if any).
    * Will be undefined if no error occurred for this prop.
    */
@@ -94,12 +104,14 @@ function assertClientSide() {
  * @param props - The current component props object
  * @param generationStage - The current generation stage from the LLM
  * @param messageId - The ID of the current message to track component-specific state
+ * @param activeStreamingMessageId - The ID of the message currently being streamed (for multi-component turn detection)
  * @returns A record mapping each prop key to its PropStatus
  */
 function usePropsStreamingStatus<Props extends Record<string, any>>(
   props: Props | undefined,
   generationStage: GenerationStage,
-  messageId: string,
+  messageId: string | null,
+  activeStreamingMessageId: string | null,
 ): Record<keyof Props, PropStatus> {
   const [propTracking, setPropTracking] = useState<
     Record<
@@ -113,8 +125,19 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
     >
   >({});
 
+  /**
+   * In multi-component turns, streaming moves to a different message.
+   * When this happens, the previous component's props should be marked complete.
+   * Computed once and used in both the tracking effect and the status derivation.
+   */
+  const hasStreamingMovedOn =
+    activeStreamingMessageId !== null &&
+    messageId !== null &&
+    activeStreamingMessageId !== messageId;
+
   /** Reset tracking only when the message changes */
   useEffect(() => {
+    if (!messageId) return;
     setPropTracking((prev) => {
       // If we have tracking data for a different message, reset
       const hasOldMessageData = Object.values(prev).some(
@@ -126,7 +149,7 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
 
   /** Track when props start streaming (receive first token) and when they complete */
   useEffect(() => {
-    if (!props) return;
+    if (!props || !messageId) return;
 
     setPropTracking((prev) => {
       const updated = { ...prev };
@@ -165,16 +188,17 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
         /**
          * A prop is complete when it has started and either:
          * 1. A following prop has started, OR
-         * 2. Generation is complete (for the final prop)
+         * 2. Generation is in an idle state (IDLE, COMPLETE, ERROR, CANCELLED), OR
+         * 3. Streaming has moved to a different message (multi-component turn)
          */
         const hasFollowingPropStarted = propsStartingNow.some(
           (startingKey) => startingKey !== key,
         );
-        const isGenerationComplete =
-          generationStage === GenerationStage.COMPLETE;
         const isComplete =
           current.hasStarted &&
-          (hasFollowingPropStarted || isGenerationComplete) &&
+          (hasFollowingPropStarted ||
+            isIdleStage(generationStage) ||
+            hasStreamingMovedOn) &&
           !current.isComplete;
 
         // Once a prop is complete for this message, it stays complete
@@ -196,13 +220,16 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
 
       return hasChanges ? updated : prev;
     });
-  }, [props, generationStage, messageId]);
+  }, [props, generationStage, messageId, hasStreamingMovedOn]);
 
   /** Convert tracking state to PropStatus objects */
   return useMemo(() => {
     if (!props) return {} as Record<keyof Props, PropStatus>;
 
     const result = {} as Record<keyof Props, PropStatus>;
+
+    // Component is done generating when streaming moved on OR generation is idle
+    const isComponentDone = hasStreamingMovedOn || isIdleStage(generationStage);
 
     Object.keys(props).forEach((key) => {
       const tracking = propTracking[key] || {
@@ -213,26 +240,41 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
 
       // If this prop is complete for this message, it stays complete
       const isCompleteForThisMessage =
-        tracking.isComplete && tracking.messageId === messageId;
+        messageId !== null &&
+        tracking.isComplete &&
+        tracking.messageId === messageId;
 
-      // Only consider generation stage if this prop isn't already complete for this message
+      // A prop is streaming only if:
+      // 1. It's not complete AND
+      // 2. Generation stage is STREAMING_RESPONSE AND
+      // 3. Streaming hasn't moved to a different message
       const isGenerationStreaming =
         !isCompleteForThisMessage &&
+        !hasStreamingMovedOn &&
         generationStage === GenerationStage.STREAMING_RESPONSE;
 
+      // If streaming moved on, mark the prop as complete (for the final prop in multi-component turns)
+      const isEffectivelyComplete =
+        isCompleteForThisMessage ||
+        (tracking.hasStarted && hasStreamingMovedOn);
+
+      // A prop is missing when it never received content and the component is done generating
+      const isMissing = !tracking.hasStarted && isComponentDone;
+
       result[key as keyof Props] = {
-        isPending: !tracking.hasStarted && !isCompleteForThisMessage,
+        isPending: !tracking.hasStarted && !isMissing,
         isStreaming:
           tracking.hasStarted &&
-          !isCompleteForThisMessage &&
+          !isEffectivelyComplete &&
           isGenerationStreaming,
-        isSuccess: isCompleteForThisMessage,
+        isSuccess: isEffectivelyComplete,
+        isMissing,
         error: tracking.error,
       };
     });
 
     return result;
-  }, [props, propTracking, generationStage, messageId]);
+  }, [props, propTracking, generationStage, messageId, hasStreamingMovedOn]);
 }
 
 /**
@@ -257,10 +299,9 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
   const allPropsSuccessful =
     propStatuses.length > 0 && propStatuses.every((p) => p.isSuccess);
 
-  // Only consider generation stage if not all props are complete
-  const isGenerationStreaming =
-    !allPropsSuccessful &&
-    generationStage === GenerationStage.STREAMING_RESPONSE;
+  // Check if any props are missing (generation done, prop never received content)
+  const anyPropsMissing = propStatuses.some((p) => p.isMissing);
+
   const isGenerationError = generationStage === GenerationStage.ERROR;
 
   /** Find first error from generation or any prop */
@@ -268,11 +309,14 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
     generationError ?? propStatuses.find((p) => p.error)?.error;
 
   return {
-    /** isPending: no component yet OR (has component but no props have started) */
+    /**
+     * isPending: no component yet OR (has component but props are waiting for content)
+     * NOT pending if all props are successful or if any props are missing (won't come)
+     */
     isPending:
       !hasComponent ||
-      (!isGenerationStreaming &&
-        !allPropsSuccessful &&
+      (!allPropsSuccessful &&
+        !anyPropsMissing &&
         propStatuses.every((p) => p.isPending)),
 
     /** isStreaming: any prop is streaming (generation stage doesn't matter if props are complete) */
@@ -327,7 +371,8 @@ export function useTamboStreamStatus<
   /** SSR Guard - ensure client-side only execution */
   assertClientSide();
 
-  const { generationStage } = useTamboGenerationStage();
+  const { generationStage, activeStreamingMessageId } =
+    useTamboGenerationStage();
   const message = useTamboCurrentMessage();
 
   /** Get the current component props from the message */
@@ -337,7 +382,8 @@ export function useTamboStreamStatus<
   const propStatus = usePropsStreamingStatus(
     componentProps,
     generationStage,
-    message?.id ?? "",
+    message?.id ?? null,
+    activeStreamingMessageId,
   );
 
   /** Derive global stream status from prop statuses and generation stage */
