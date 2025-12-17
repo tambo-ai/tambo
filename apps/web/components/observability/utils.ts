@@ -1,6 +1,5 @@
 import { getSafeContent } from "@/lib/thread-hooks";
 import { type RouterOutputs } from "@/trpc/react";
-import type { ContextHelperData } from "@tambo-ai/react";
 import { SortDirection, SortField } from "./hooks/useThreadList";
 import { MessageItem, ThreadStats } from "./messages/stats-header";
 
@@ -440,7 +439,7 @@ export function getMessageContexts(
 
   for (const [key, value] of Object.entries(additionalContext)) {
     if (value && typeof value === "object") {
-      const contextData = value as ContextHelperData;
+      const contextData = value as Record<string, unknown>;
       const selectedComponent = contextData.selectedComponent as
         | { name?: string; [key: string]: unknown }
         | undefined;
