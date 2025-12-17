@@ -27,10 +27,7 @@ export default async function Page(props: {
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <Suspense fallback={<div>Loading...</div>}>
-        <MessageThreadCollapsible
-          className="tambo-theme"
-          contextKey="tambo-docs"
-        />
+        <MessageThreadCollapsible className="tambo-theme" />
       </Suspense>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
