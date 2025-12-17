@@ -17,8 +17,8 @@ function getPageDescription(page: DocsPage) {
 }
 
 function getPageSection(page: DocsPage) {
-  // Pages without a top-level slug (e.g. "/") are grouped under "overview".
-  return page.slugs[0] ?? "overview";
+  // Pages without a top-level slug (e.g. "/") are grouped under "tambo-docs".
+  return page.slugs[0] ?? "tambo-docs";
 }
 
 export async function GET() {
