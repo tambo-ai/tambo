@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   description: docsDescription,
   alternates: {
     canonical: "/",
+    languages: {
+      en: "/",
+      "x-default": "/",
+    },
   },
   openGraph: {
     title: "Tambo AI Documentation",
