@@ -200,7 +200,7 @@ import { MessageCircleMore } from "lucide-react";
 Connect pre-built integrations (Linear, Slack, databases) or your own custom MCP servers:
 
 ```tsx
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
@@ -211,9 +211,7 @@ const mcpServers = [
 ];
 
 <TamboProvider components={components} mcpServers={mcpServers}>
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>;
 ```
 
