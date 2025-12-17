@@ -65,6 +65,7 @@ export function isActiveThreadComponent(
 
   if (!canAcceptInput) return false;
 
+  // Extend this predicate with additional message/component constraints as needed.
   const lastComponentMessage = thread.messages
     .slice()
     .reverse()
@@ -75,6 +76,8 @@ export function isActiveThreadComponent(
 
 export function MyThreadComponent() {
   const { thread, generationStage } = useTamboThread();
+
+  // `useTamboCurrentMessage` throws if this component isn't rendered inside a thread message.
   const message = useTamboCurrentMessage();
 
   const isActive = isActiveThreadComponent(thread, generationStage, message.id);
