@@ -96,13 +96,6 @@ export function TamboContextAttachmentProvider({
     (context: Omit<ContextAttachment, "id">) => {
       setAttachments((prev) => {
         if (prev.some((c) => c.name === context.name)) return prev;
-
-        if (typeof crypto === "undefined" || !("randomUUID" in crypto)) {
-          throw new Error(
-            "crypto.randomUUID() is not available. This usually happens when using an IP address instead of 'localhost' in development. Use 'localhost' or a secure context (HTTPS) to enable crypto APIs.",
-          );
-        }
-
         const newId = crypto.randomUUID();
         const newContext = { ...context, id: newId };
         return [...prev, newContext];
