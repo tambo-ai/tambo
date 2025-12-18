@@ -47,13 +47,13 @@ Tracks the overall state of the component:
 
 Tracks individual prop streaming states. Access via `propStatus.propName`:
 
-| Field         | Type      | Description                                                    |
-| ------------- | --------- | -------------------------------------------------------------- |
-| `isPending`   | `boolean` | No tokens received for this prop                               |
-| `isStreaming` | `boolean` | Prop is actively streaming                                     |
-| `isSuccess`   | `boolean` | Prop finished successfully                                     |
-| `isMissing`   | `boolean` | Prop never received content (useful for optional props)        |
-| `error?`      | `Error`   | Error for this specific prop                                   |
+| Field         | Type      | Description                                             |
+| ------------- | --------- | ------------------------------------------------------- |
+| `isPending`   | `boolean` | No tokens received for this prop                        |
+| `isStreaming` | `boolean` | Prop is actively streaming                              |
+| `isSuccess`   | `boolean` | Prop finished successfully                              |
+| `isMissing`   | `boolean` | Prop never received content (useful for optional props) |
+| `error?`      | `Error`   | Error for this specific prop                            |
 
 ## Type Safety
 
@@ -131,7 +131,9 @@ return (
   <div>
     <h1>{title}</h1>
     <p>{content}</p>
-    {propStatus.subtitle?.isMissing && <span className="text-muted">No subtitle</span>}
+    {propStatus.subtitle?.isMissing && (
+      <span className="text-muted">No subtitle</span>
+    )}
     {propStatus.subtitle?.isSuccess && <h2>{subtitle}</h2>}
   </div>
 );
