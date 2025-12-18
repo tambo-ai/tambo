@@ -8,12 +8,8 @@ import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 // @tambo-ai/react is mocked via moduleNameMapper in jest.config.react.ts
 
 describe("ThreadDropdown", () => {
-  const mockUseTamboThread = useTamboThread as jest.MockedFunction<
-    typeof useTamboThread
-  >;
-  const mockUseTamboThreadList = useTamboThreadList as jest.MockedFunction<
-    typeof useTamboThreadList
-  >;
+  const mockUseTamboThread = jest.mocked(useTamboThread);
+  const mockUseTamboThreadList = jest.mocked(useTamboThreadList);
 
   beforeEach(() => {
     mockUseTamboThread.mockReturnValue({

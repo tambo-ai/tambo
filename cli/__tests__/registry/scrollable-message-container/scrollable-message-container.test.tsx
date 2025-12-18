@@ -8,7 +8,7 @@ import { useTambo } from "@tambo-ai/react";
 // @tambo-ai/react is mocked via moduleNameMapper in jest.config.react.ts
 
 describe("ScrollableMessageContainer", () => {
-  const mockUseTambo = useTambo as jest.MockedFunction<typeof useTambo>;
+  const mockUseTambo = jest.mocked(useTambo);
 
   beforeEach(() => {
     mockUseTambo.mockReturnValue({

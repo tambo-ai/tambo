@@ -1,5 +1,5 @@
 /// <reference types="@testing-library/jest-dom" />
-import { describe, it, expect, beforeEach } from "@jest/globals";
+import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import React from "react";
 import { render } from "@testing-library/react";
 import { Message, MessageContent } from "../../../src/registry/message/message";
@@ -24,7 +24,7 @@ function createMessage(
 }
 
 describe("MessageContent rendering", () => {
-  const mockUseTambo = useTambo as jest.MockedFunction<typeof useTambo>;
+  const mockUseTambo = jest.mocked(useTambo);
 
   beforeEach(() => {
     mockUseTambo.mockReturnValue({
