@@ -286,4 +286,132 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     const interactable = result.current.getInteractableComponent(componentId);
     expect(interactable?.stateSchema).toBe(stateSchema);
   });
+
+  it("should convert stateSchema to partial JSON Schema (no required fields)", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const stateSchema = z.object({
+      count: z.number(),
+      name: z.string(),
+    });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: {},
+      stateSchema,
+    };
+
+    act(() => {
+      result.current.addInteractableComponent(component);
+    });
+
+    // Find the state update tool
+    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
+      call[0].name.startsWith("update_component_state_"),
+    );
+
+    expect(stateToolCall).toBeDefined();
+    const inputSchema = stateToolCall[0].inputSchema;
+
+    // The newState property should not have required fields (partial schema)
+    expect(inputSchema.properties.newState).toBeDefined();
+    expect(inputSchema.properties.newState.required).toBeUndefined();
+    // But it should have the properties from the schema
+    expect(inputSchema.properties.newState.properties).toBeDefined();
+  });
+
+  it("should use additionalProperties when no stateSchema provided", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: {},
+      // No stateSchema
+    };
+
+    act(() => {
+      result.current.addInteractableComponent(component);
+    });
+
+    // Find the state update tool
+    const stateToolCall = mockRegisterTool.mock.calls.find((call) =>
+      call[0].name.startsWith("update_component_state_"),
+    );
+
+    expect(stateToolCall).toBeDefined();
+    const inputSchema = stateToolCall[0].inputSchema;
+
+    // The newState property should allow additional properties
+    expect(inputSchema.properties.newState.additionalProperties).toBe(true);
+  });
+
+  it("should convert propsSchema to partial JSON Schema for props update tool", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const propsSchema = z.object({
+      title: z.string(),
+      count: z.number(),
+    });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: { title: "test", count: 0 },
+      propsSchema,
+    };
+
+    act(() => {
+      result.current.addInteractableComponent(component);
+    });
+
+    // Find the props update tool (not the state one)
+    const propsToolCall = mockRegisterTool.mock.calls.find(
+      (call) =>
+        call[0].name.startsWith("update_component_") &&
+        !call[0].name.includes("state"),
+    );
+
+    expect(propsToolCall).toBeDefined();
+    const inputSchema = propsToolCall[0].inputSchema;
+
+    // The newProps property should not have required fields (partial schema)
+    expect(inputSchema.properties.newProps).toBeDefined();
+    expect(inputSchema.properties.newProps.required).toBeUndefined();
+    // But it should have the properties from the schema
+    expect(inputSchema.properties.newProps.properties).toBeDefined();
+  });
+
+  it("should use additionalProperties when no propsSchema provided", () => {
+    const { result } = renderHook(() => useTamboInteractable(), { wrapper });
+
+    const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      name: "TestComponent",
+      description: "A test component",
+      component: () => <div>Test</div>,
+      props: { title: "test" },
+      // No propsSchema
+    };
+
+    act(() => {
+      result.current.addInteractableComponent(component);
+    });
+
+    // Find the props update tool
+    const propsToolCall = mockRegisterTool.mock.calls.find(
+      (call) =>
+        call[0].name.startsWith("update_component_") &&
+        !call[0].name.includes("state"),
+    );
+
+    expect(propsToolCall).toBeDefined();
+    const inputSchema = propsToolCall[0].inputSchema;
+
+    // The newProps property should allow additional properties
+    expect(inputSchema.properties.newProps.additionalProperties).toBe(true);
+  });
 });

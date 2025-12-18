@@ -1,4 +1,5 @@
 "use client";
+import { deepEqual } from "fast-equals";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
@@ -170,7 +171,10 @@ export function useTamboComponentState<S>(
   // Sync from interactable provider to local state when state changes externally (e.g., from Tambo tool call)
   useEffect(() => {
     if (!componentId) return;
-    setLocalState(interactableState as S);
+    // only update if different
+    setLocalState((prev) =>
+      deepEqual(prev, interactableState) ? prev : (interactableState as S),
+    );
   }, [componentId, interactableState]);
 
   // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
