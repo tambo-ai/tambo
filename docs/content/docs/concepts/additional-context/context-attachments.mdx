@@ -1,18 +1,18 @@
 ---
 title: Context Attachments
-description: Add visual context badges that automatically provide AI with focused information about what users are working on.
+description: Add visual context badges above the message input for user feedback
 ---
 
-Context attachments enable you to display visual badges above the message input that automatically provide the AI with additional context. This helps the AI understand what the user is focused on and provide more relevant responses.
+Context attachments enable you to display visual badges above the message input.
 
 ## How context attachments work
 
-Context attachments appear as removable badges above the message input. When present, they automatically send contextual information to the AI, helping it:
+Context attachments appear as removable badges above the message input. They provide visual feedback showing what the user is focused on:
 
-- Focus on specific files, components, or pages the user is viewing
-- Understand which part of your application the user is working on
-- Provide more targeted and relevant responses
-- Enable visual feedback showing what context is active
+- Display selected files, components, or pages
+- Show which part of your application is active
+- Provide visual indicators for user context
+- Enable users to see and manage active selections
 
 The feature also supports custom suggestions, allowing you to override Tambo's auto-generated suggestions with your own contextual suggestions.
 
@@ -51,8 +51,7 @@ interface ContextAttachment {
   id: string; // Auto-generated unique identifier
   name: string; // Display name shown in the badge
   icon?: React.ReactNode; // Optional icon to display
-  metadata?: Record<string, unknown>; // Additional data for the AI
-}
+  metadata?: Record<string, unknown>; // Optional metadata for application use
 ```
 
 ## Hook API
@@ -133,50 +132,6 @@ return (
     ))}
   </div>
 );
-```
-
-## Customizing Context Data
-
-By default, context attachments send a standard structure to the AI. You can customize this by providing a `getContextHelperData` function to `TamboProvider`:
-
-```tsx
-import { TamboProvider } from "@tambo-ai/react";
-
-<TamboProvider
-  apiKey="your-api-key"
-  getContextHelperData={(context) => ({
-    selectedFile: {
-      name: context.name,
-      path: context.metadata?.filePath,
-      instruction: "Focus on this file when responding",
-      // Add any custom fields
-      language: context.metadata?.language,
-      lastModified: context.metadata?.lastModified,
-    },
-  })}
->
-  <App />
-</TamboProvider>;
-```
-
-The function can be async to fetch additional data:
-
-```tsx
-<TamboProvider
-  apiKey="your-api-key"
-  getContextHelperData={async (context) => {
-    const fileContent = await fetchFileContent(context.metadata?.filePath);
-    return {
-      selectedFile: {
-        name: context.name,
-        content: fileContent,
-        instruction: "Use this file content to help the user",
-      },
-    };
-  }}
->
-  <App />
-</TamboProvider>
 ```
 
 ## Custom Suggestions
@@ -294,26 +249,6 @@ function FileBrowser({ files }) {
   );
 }
 ```
-
-## How It Works
-
-When you add a context attachment:
-
-1. The attachment is added to the `attachments` array and displayed as a badge
-2. A context helper is automatically registered with `TamboContextHelpersProvider`
-3. The context data is sent along with every message until the attachment is removed
-4. When removed, the context helper is automatically unregistered
-
-This automatic synchronization means you don't need to manually manage context helpers—just add and remove attachments as needed.
-
-## Integration with Existing Context
-
-Context attachments work alongside other context helpers:
-
-- **Prebuilt helpers** like `currentTimeContextHelper` continue to work
-- **Custom helpers** from `contextHelpers` prop are still sent
-- **Manual context** via `additionalContext` is merged with attachment context
-- All context sources are combined when sending messages
 
 ## Use Cases
 
