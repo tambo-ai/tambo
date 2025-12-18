@@ -75,7 +75,8 @@ export function EditWithTamboButton({
   suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle } = useTambo();
+  const { sendThreadMessage, isIdle, setInteractableSelectedForInteraction } =
+    useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
   const { addContextAttachment, setCustomSuggestions } =
     useTamboContextAttachment();
@@ -161,12 +162,15 @@ export function EditWithTamboButton({
       setCustomSuggestions(suggestions);
     }
 
-    // Add the component as a context attachment
+    // Add the component as a badge and mark it as selected for interaction
     const componentName = component?.componentName ?? "Unknown Component";
     const interactableId = component?.interactableId ?? "";
     addContextAttachment({
       name: componentName,
     });
+    if (interactableId) {
+      setInteractableSelectedForInteraction(interactableId, true);
+    }
 
     // Open the thread panel first
     onOpenThread();
@@ -194,6 +198,7 @@ export function EditWithTamboButton({
     suggestions,
     setCustomSuggestions,
     addContextAttachment,
+    setInteractableSelectedForInteraction,
     onOpenThread,
     editorRef,
   ]);
