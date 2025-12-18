@@ -179,9 +179,9 @@ describe("TamboPropStreamProvider", () => {
         expect(screen.getByTestId("loading")).toBeInTheDocument();
       });
 
-      it("should NOT render streaming when isMissing (generation idle, no content)", () => {
-        // When generation is idle and no content, prop is isMissing, not isPending
-        // Streaming component should NOT render for missing props
+      it("should render streaming when isPending (generation idle, no content)", () => {
+        // When generation is idle and no content, the component hasn't moved on,
+        // so the prop remains pending and the Streaming component should render.
         jest.mocked(useTamboThread).mockReturnValue(
           createMockThreadContext({
             generationStage: GenerationStage.IDLE,
@@ -209,7 +209,7 @@ describe("TamboPropStreamProvider", () => {
           </TamboPropStreamProvider>,
         );
 
-        expect(screen.queryByTestId("loading")).not.toBeInTheDocument();
+        expect(screen.getByTestId("loading")).toBeInTheDocument();
       });
 
       it("should render streaming when isStreaming is true", () => {

@@ -73,9 +73,9 @@ describe("useTamboStreamStatus", () => {
   });
 
   describe("Initial State", () => {
-    it("should start with all flags as missing when idle and no props have content", () => {
+    it("should start with all flags as pending when idle and no props have content", () => {
       // When generation is IDLE (not active) and props have no content,
-      // they are considered "missing" - generation finished without providing them
+      // the component has not moved on yet, so props remain pending (not missing)
       mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.IDLE,
         generationStatusMessage: "",
@@ -94,7 +94,7 @@ describe("useTamboStreamStatus", () => {
       );
 
       expect(result.current.streamStatus).toEqual({
-        isPending: false,
+        isPending: true,
         isStreaming: false,
         isSuccess: false,
         isError: false,
@@ -102,18 +102,18 @@ describe("useTamboStreamStatus", () => {
       });
 
       expect(result.current.propStatus.title).toEqual({
-        isPending: false,
+        isPending: true,
         isStreaming: false,
         isSuccess: false,
-        isMissing: true,
+        isMissing: false,
         error: undefined,
       });
 
       expect(result.current.propStatus.body).toEqual({
-        isPending: false,
+        isPending: true,
         isStreaming: false,
         isSuccess: false,
-        isMissing: true,
+        isMissing: false,
         error: undefined,
       });
     });
@@ -279,7 +279,7 @@ describe("useTamboStreamStatus", () => {
     });
 
     it("should handle error state correctly with missing props", () => {
-      // When error occurs and props never received content, they are missing
+      // When error occurs before the component moved on, props are incomplete (not missing)
       mockUseTamboGenerationStage.mockReturnValue({
         generationStage: GenerationStage.ERROR,
         generationStatusMessage: "",
@@ -299,13 +299,15 @@ describe("useTamboStreamStatus", () => {
         useTamboStreamStatus<{ title: string; body: string }>(),
       );
 
-      // Props that never received content are marked as missing
-      expect(result.current.propStatus.title.isMissing).toBe(true);
+      // Props that never received content are not marked as missing until the component moves on
+      expect(result.current.propStatus.title.isMissing).toBe(false);
       expect(result.current.propStatus.title.isPending).toBe(false);
-      expect(result.current.propStatus.body.isMissing).toBe(true);
+      expect(result.current.propStatus.body.isMissing).toBe(false);
+      expect(result.current.propStatus.body.isPending).toBe(false);
       expect(result.current.streamStatus.isStreaming).toBe(false);
       expect(result.current.streamStatus.isSuccess).toBe(false);
       expect(result.current.streamStatus.isError).toBe(true);
+      expect(result.current.streamStatus.isPending).toBe(false);
       expect(result.current.streamStatus.streamError?.message).toBe(
         errorMessage,
       );
