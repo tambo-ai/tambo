@@ -95,16 +95,17 @@ export const deviceAuthRouter = createTRPCRouter({
     const normalizedUserCode = normalizeUserCode(userCode);
     const createdAt = new Date();
 
-    // Insert using raw SQL to avoid any Drizzle conversion issues
-    // and to get better error messages
     try {
       await ctx.db.execute(
         sql`INSERT INTO device_auth_sessions (id, device_code, user_code, user_id, is_used, expires_at, created_at)
             VALUES (${id}, ${deviceCode}, ${normalizedUserCode}, NULL, false, ${expiresAt}, ${createdAt})`,
       );
-    } catch (error) {
-      console.error("Device auth insert error:", error);
-      throw error;
+    } catch (cause) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to initiate device authentication",
+        cause,
+      });
     }
 
     // Construct verification URI
