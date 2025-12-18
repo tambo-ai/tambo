@@ -80,6 +80,7 @@
   },
   "devDependencies": {
     "@types/chalk": "^2.2.4",
+    "@types/diffable-html": "^5.0.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.15.32",
     "@types/node-fetch": "^2.6.13",
