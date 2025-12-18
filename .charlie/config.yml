@@ -1,0 +1,5 @@
+beta:
+  proactive:
+    - playbook: ".charlie/playbooks/external-release-update.md"
+    - playbook: ".charlie/playbooks/team-update.md"
+    - playbook: ".charlie/playbooks/dead-code-cleanup.md"
