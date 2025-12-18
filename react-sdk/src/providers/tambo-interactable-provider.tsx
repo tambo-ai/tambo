@@ -375,12 +375,14 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   );
 
   const clearInteractableSelections = useCallback(() => {
-    setInteractableComponents((prev) =>
-      prev.map((c) => ({
-        ...c,
-        isSelectedForInteraction: false,
-      })),
-    );
+    setInteractableComponents((prev) => {
+      if (!prev.some((c) => c.isSelectedForInteraction)) return prev;
+      return prev.map((c) =>
+        c.isSelectedForInteraction
+          ? { ...c, isSelectedForInteraction: false }
+          : c,
+      );
+    });
   }, []);
 
   const value: TamboInteractableContext = {
