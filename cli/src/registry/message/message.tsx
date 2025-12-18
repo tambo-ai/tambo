@@ -47,6 +47,10 @@ const streamdownRehypePlugins: PluggableList = [
         "https://",
         "mailto:",
       ],
+      // defaultOrigin is required when allowedLinkPrefixes is provided.
+      // This is only used to resolve relative URLs for prefix matching.
+      // Since we only allow absolute URL prefixes, the actual value doesn't matter.
+      defaultOrigin: "https://tambo.co",
       allowDataImages: true,
     },
   ],
@@ -519,7 +523,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             aria-controls={toolDetailsId}
             onClick={() => setIsExpanded(!isExpanded)}
             className={cn(
-              "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none w-fit",
+              "flex items-center gap-1 cursor-pointer hover:bg-muted rounded-md p-1 select-none w-fit",
             )}
           >
             <ToolcallStatusIcon
