@@ -126,6 +126,9 @@ export function DeviceAuthPage() {
   }
 
   if (!session) {
+    const returnUrl = `/device?${new URLSearchParams({ user_code: userCode })}`;
+    const loginHref = `/login?${new URLSearchParams({ returnUrl })}`;
+
     return (
       <div className="flex min-h-[70vh] items-center justify-center">
         <Card className="max-w-md text-center">
@@ -137,9 +140,7 @@ export function DeviceAuthPage() {
           </CardHeader>
           <CardContent>
             <Button asChild>
-              <Link href={`/login?returnUrl=/device?user_code=${userCode}`}>
-                Sign in
-              </Link>
+              <Link href={loginHref}>Sign in</Link>
             </Button>
           </CardContent>
         </Card>
