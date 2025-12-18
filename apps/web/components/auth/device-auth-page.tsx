@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
+import { TRPCClientError } from "@trpc/client";
 import { CheckCircle2, Loader2, Terminal, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -17,6 +18,19 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type AuthState = "idle" | "submitting" | "success" | "error";
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof TRPCClientError) {
+    const code = error.data?.code;
+    if (code === "NOT_FOUND") {
+      return "Invalid or expired code. Please check your CLI and try again.";
+    }
+    if (code === "BAD_REQUEST") {
+      return "This code has already been used.";
+    }
+  }
+  return "Something went wrong. Please try again.";
+}
 
 export function DeviceAuthPage() {
   const searchParams = useSearchParams();
@@ -65,19 +79,7 @@ export function DeviceAuthPage() {
         setAuthState("success");
       } catch (error) {
         setAuthState("error");
-        if (error instanceof Error) {
-          if (error.message.includes("NOT_FOUND")) {
-            setErrorMessage(
-              "Invalid or expired code. Please check your CLI and try again.",
-            );
-          } else if (error.message.includes("BAD_REQUEST")) {
-            setErrorMessage("This code has already been used.");
-          } else {
-            setErrorMessage("Something went wrong. Please try again.");
-          }
-        } else {
-          setErrorMessage("Something went wrong. Please try again.");
-        }
+        setErrorMessage(getErrorMessage(error));
       }
     },
     [userCode, verifyMutation],
@@ -101,24 +103,13 @@ export function DeviceAuthPage() {
         // Give a small delay to show the UI before auto-submitting
         const timer = setTimeout(() => {
           void verifyMutation
-            .mutateAsync({ userCode: initialCode })
+            .mutateAsync({ userCode: normalizedCode })
             .then(() => {
               setAuthState("success");
             })
-            .catch((error: Error) => {
+            .catch((error: unknown) => {
               setAuthState("error");
-              if (error.message.includes("NOT_FOUND")) {
-                setErrorMessage(
-                  "Invalid or expired code. Please check your CLI and try again.",
-                );
-              } else if (
-                error.message.includes("BAD_REQUEST") ||
-                error.message.includes("already been used")
-              ) {
-                setErrorMessage("This code has already been used.");
-              } else {
-                setErrorMessage("Something went wrong. Please try again.");
-              }
+              setErrorMessage(getErrorMessage(error));
             });
         }, 500);
         return () => clearTimeout(timer);
