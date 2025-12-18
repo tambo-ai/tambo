@@ -15,6 +15,8 @@ CREATE TABLE "device_auth_sessions" (
 	"device_code" text NOT NULL,
 	"user_code" text NOT NULL,
 	"user_id" uuid,
+	"user_email" text,
+	"user_name" text,
 	"is_used" boolean DEFAULT false NOT NULL,
 	"expires_at" timestamp with time zone NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,

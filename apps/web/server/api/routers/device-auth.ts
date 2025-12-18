@@ -180,26 +180,16 @@ export const deviceAuthRouter = createTRPCRouter({
       const accessToken = `tambo_cli_${tokenBytes.toString("hex")}`;
       const hashedToken = hashKey(accessToken);
 
-      // Get user info - temporarily elevate privileges to read from auth.users
-      // This is safe because we've already verified the session exists and has a userId
-      await ctx.db.execute(sql`RESET ROLE`);
-      const userResult = await ctx.db.execute(
-        sql`SELECT id, email, raw_user_meta_data FROM auth.users WHERE id = ${session.userId} LIMIT 1`,
-      );
-      await ctx.db.execute(sql`SET LOCAL ROLE anon`);
+      // Re-fetch session to get the user info that was stored during verify()
+      // This avoids dangerous role switching to read from auth.users
+      const verifiedSession = await ctx.db.query.deviceAuthSessions.findFirst({
+        where: eq(schema.deviceAuthSessions.id, session.id),
+      });
 
-      const user = userResult.rows[0] as
-        | {
-            id: string;
-            email: string | null;
-            raw_user_meta_data: Record<string, unknown> | null;
-          }
-        | undefined;
-
-      if (!user) {
+      if (!verifiedSession?.userId) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "User not found",
+          message: "Session verification failed",
         });
       }
 
@@ -208,7 +198,7 @@ export const deviceAuthRouter = createTRPCRouter({
       const tokenId = `bt_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
       await ctx.db.insert(schema.bearerTokens).values({
         id: tokenId,
-        userId: session.userId,
+        userId: verifiedSession.userId,
         hashedToken,
         deviceSessionId: session.id,
         expiresAt,
@@ -221,9 +211,9 @@ export const deviceAuthRouter = createTRPCRouter({
         status: "complete" as const,
         accessToken,
         user: {
-          id: user.id,
-          email: user.email ?? undefined,
-          name: user.raw_user_meta_data?.name as string | undefined,
+          id: verifiedSession.userId,
+          email: verifiedSession.userEmail ?? undefined,
+          name: verifiedSession.userName ?? undefined,
         },
       };
     }),
@@ -269,10 +259,15 @@ export const deviceAuthRouter = createTRPCRouter({
         });
       }
 
-      // Update session with user ID
+      // Update session with user ID and user info
+      // Storing user info here avoids reading from auth.users in poll()
       await ctx.db
         .update(schema.deviceAuthSessions)
-        .set({ userId: ctx.user.id })
+        .set({
+          userId: ctx.user.id,
+          userEmail: ctx.user.email,
+          userName: ctx.user.name,
+        })
         .where(eq(schema.deviceAuthSessions.id, session.id));
 
       return { success: true };

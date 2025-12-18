@@ -924,6 +924,8 @@ export const deviceAuthSessions = pgTable(
     deviceCode: text("device_code").notNull().unique(),
     userCode: text("user_code").notNull().unique(),
     userId: uuid("user_id").references(() => authUsers.id),
+    userEmail: text("user_email"),
+    userName: text("user_name"),
     isUsed: boolean("is_used").notNull().default(false),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
