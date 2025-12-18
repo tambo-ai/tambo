@@ -158,7 +158,24 @@ export const deviceAuthRouter = createTRPCRouter({
         return { status: "expired" as const };
       }
 
-      // Session is verified and not used - generate bearer token
+      // Atomically mark session as used to prevent race conditions
+      // Only one concurrent request will succeed in updating the row
+      const updated = await ctx.db.execute(sql`
+        UPDATE device_auth_sessions
+        SET is_used = true
+        WHERE id = ${session.id}
+          AND is_used = false
+          AND expires_at > now()
+          AND user_id IS NOT NULL
+        RETURNING id
+      `);
+
+      // If no rows updated, another request won the race
+      if (updated.rows.length === 0) {
+        return { status: "expired" as const };
+      }
+
+      // Session is verified and claimed - generate bearer token
       const tokenBytes = crypto.randomBytes(32);
       const accessToken = `tambo_cli_${tokenBytes.toString("hex")}`;
       const hashedToken = hashKey(accessToken);
@@ -199,12 +216,6 @@ export const deviceAuthRouter = createTRPCRouter({
         lastUsedAt: null,
         revokedAt: null,
       });
-
-      // Mark session as used
-      await ctx.db
-        .update(schema.deviceAuthSessions)
-        .set({ isUsed: true })
-        .where(eq(schema.deviceAuthSessions.id, session.id));
 
       return {
         status: "complete" as const,
