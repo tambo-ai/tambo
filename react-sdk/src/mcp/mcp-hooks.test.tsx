@@ -1210,14 +1210,15 @@ describe("useTamboMcpResource - read individual resource", () => {
     });
   });
 
-  it("should read registry resources via resourceSource even when not listed", async () => {
-    const registryUri = "file:///local/registry-doc.txt";
+  it("should read registry resources via resourceSource with registry prefix", async () => {
+    const originalUri = "file:///local/registry-doc.txt";
+    const prefixedUri = `registry:${originalUri}`;
 
     const listResources = jest.fn().mockResolvedValue([]);
     const getResource = jest.fn().mockResolvedValue({
       contents: [
         {
-          uri: registryUri,
+          uri: originalUri,
           mimeType: "text/plain",
           text: "Registry content",
         },
@@ -1226,7 +1227,8 @@ describe("useTamboMcpResource - read individual resource", () => {
 
     let capturedResourceData: any = null;
     const Capture: React.FC = () => {
-      const { data: resourceData } = useTamboMcpResource(registryUri);
+      // Request with registry: prefix
+      const { data: resourceData } = useTamboMcpResource(prefixedUri);
       useEffect(() => {
         if (resourceData) {
           capturedResourceData = resourceData;
@@ -1260,7 +1262,8 @@ describe("useTamboMcpResource - read individual resource", () => {
       expect(capturedResourceData).not.toBeNull();
     });
 
-    expect(getResource).toHaveBeenCalledWith(registryUri);
+    // getResource should be called with the original URI (prefix stripped)
+    expect(getResource).toHaveBeenCalledWith(originalUri);
     expect(capturedResourceData.contents[0].text).toBe("Registry content");
   });
 });

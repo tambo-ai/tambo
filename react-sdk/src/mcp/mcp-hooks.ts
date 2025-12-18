@@ -7,6 +7,7 @@ import {
 import { UseQueryResult } from "@tanstack/react-query";
 import { useTamboQueries, useTamboQuery } from "../hooks";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import { REGISTRY_SERVER_KEY } from "./mcp-constants";
 import {
   type ConnectedMcpServer,
   type McpServer,
@@ -159,8 +160,13 @@ function combineArrayResults<T>(results: UseQueryResult<T[]>[]): {
   };
 }
 
-// Type guard for narrowing to connected servers
-function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
+/**
+ * Type guard for narrowing McpServer to ConnectedMcpServer.
+ * A connected server has a non-null client.
+ */
+export function isConnectedMcpServer(
+  server: McpServer,
+): server is ConnectedMcpServer {
   return "client" in server && server.client != null;
 }
 
@@ -285,12 +291,18 @@ export function useTamboMcpResourceList() {
       // Merge static resources with query results (registry resources first)
       const allData = [...staticEntries, ...combined.data];
 
-      // Apply serverKey prefix to ALL MCP resources (breaking change)
-      // Registry resources (server: null) are never prefixed
+      // Apply serverKey prefix to ALL resources for unified @serverKey:uri format
+      // Registry resources get REGISTRY_SERVER_KEY prefix, MCP resources get their serverKey
       const prefixedData = allData.map((entry) => {
         if (entry.server === null) {
-          // Registry resource - no prefix
-          return entry;
+          // Registry resource - prefix with REGISTRY_SERVER_KEY
+          return {
+            ...entry,
+            resource: {
+              ...entry.resource,
+              uri: `${REGISTRY_SERVER_KEY}:${entry.resource.uri}`,
+            },
+          };
         }
         // MCP resource - always prefix with serverKey
         return {
@@ -314,7 +326,9 @@ export function useTamboMcpResourceList() {
 
 /**
  * Hook to get the resource for the specified URI.
- * @param resourceUri - The URI of the resource to get. Can be prefixed with serverKey (e.g., "linear:file://foo") for MCP resources, or unprefixed for registry resources.
+ * @param resourceUri - The URI of the resource to get. Must be prefixed:
+ *   - MCP resources: prefixed with serverKey (e.g., "linear:file://foo")
+ *   - Registry resources: prefixed with "registry:" (e.g., "registry:file://bar")
  * @returns The resource for the specified URI.
  */
 export function useTamboMcpResource(resourceUri: string | undefined) {
@@ -326,38 +340,41 @@ export function useTamboMcpResource(resourceUri: string | undefined) {
     (entry) => entry.resource.uri === resourceUri,
   );
 
-  // Determine if this is a known registry resource or MCP resource
-  const isKnownEntry = resourceEntry != null;
-  const isRegistryResource = isKnownEntry && resourceEntry.server === null;
-  const mcpServer =
-    isKnownEntry && resourceEntry.server != null ? resourceEntry.server : null;
+  // Determine if this is a registry resource or MCP resource
+  const isRegistryResource = resourceEntry?.server === null;
+  const mcpServer = resourceEntry?.server ?? null;
 
-  // Strip the prefix to get the original resource URI for the MCP server call
-  // Only strip if we found a matching resource entry with an MCP server
-  const originalResourceUri =
-    isKnownEntry && mcpServer
-      ? resourceUri?.replace(`${mcpServer.serverKey}:`, "")
-      : resourceUri;
-
-  // Check if we can fetch this resource. Registry resources can always be
-  // fetched when a resourceSource exists, even if they haven't appeared in a
-  // previous listResources result.
-  const hasRegistrySource = resourceSource != null;
-  const hasConnectedMcpServer =
-    isKnownEntry && mcpServer != null && isConnectedMcpServer(mcpServer);
-  const canFetchResource = Boolean(
-    resourceUri && (hasRegistrySource || hasConnectedMcpServer),
+  // Check if the URI has the registry prefix
+  const hasRegistryPrefix = Boolean(
+    resourceUri?.startsWith(`${REGISTRY_SERVER_KEY}:`),
   );
 
-  let locationKey: string | undefined;
-  if (isRegistryResource || (!isKnownEntry && hasRegistrySource)) {
-    locationKey = "registry";
+  // Strip the prefix to get the original resource URI for fetching
+  let originalResourceUri: string | undefined;
+  if (isRegistryResource || hasRegistryPrefix) {
+    const prefixLen = REGISTRY_SERVER_KEY.length + 1; // +1 for the colon
+    originalResourceUri = resourceUri?.slice(prefixLen);
   } else if (mcpServer) {
-    locationKey = mcpServer.key;
+    const prefixLen = mcpServer.serverKey.length + 1; // +1 for the colon
+    originalResourceUri = resourceUri?.slice(prefixLen);
   }
 
+  // Check if we can fetch this resource
+  const hasRegistrySource = resourceSource != null;
+  const hasConnectedMcpServer =
+    mcpServer != null && isConnectedMcpServer(mcpServer);
+  const canFetchFromRegistry =
+    hasRegistrySource && (isRegistryResource || hasRegistryPrefix);
+  const canFetchResource = Boolean(
+    resourceUri && (canFetchFromRegistry || hasConnectedMcpServer),
+  );
+
+  const locationKey =
+    isRegistryResource || hasRegistryPrefix
+      ? REGISTRY_SERVER_KEY
+      : mcpServer?.key;
+
   return useTamboQuery({
-    // Include server identity or "registry" to prevent stale cache hits
     queryKey: ["resource", resourceUri, locationKey],
     enabled: canFetchResource,
     queryFn: async (): Promise<ReadResourceResult | null> => {
@@ -366,9 +383,7 @@ export function useTamboMcpResource(resourceUri: string | undefined) {
       }
 
       // Registry resource: use resourceSource.getResource
-      // If this is not a known entry but we have a resourceSource, treat it as
-      // a registry resource by default.
-      if (resourceSource && (!isKnownEntry || isRegistryResource)) {
+      if (resourceSource && (isRegistryResource || hasRegistryPrefix)) {
         const result = await resourceSource.getResource(originalResourceUri);
         return result ?? null;
       }

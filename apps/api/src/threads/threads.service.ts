@@ -214,7 +214,7 @@ export class ThreadsService {
 
     const thread = await operations.createThread(this.getDb(), {
       projectId: createThreadDto.projectId,
-      contextKey: contextKey,
+      contextKey,
       metadata: createThreadDto.metadata,
       name: createThreadDto.name,
     });

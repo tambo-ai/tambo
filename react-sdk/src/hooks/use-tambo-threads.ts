@@ -49,7 +49,7 @@ export function useTamboThreadList(
         return null;
       }
       const threadIter = await client.beta.threads.list(currentProjectId, {
-        contextKey: contextKey,
+        contextKey,
       });
       return threadIter;
     },
