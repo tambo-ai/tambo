@@ -1,9 +1,11 @@
+/// <reference types="@testing-library/jest-dom" />
+import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import React from "react";
 import { render } from "@testing-library/react";
 import { ScrollableMessageContainer } from "../../../src/registry/scrollable-message-container/scrollable-message-container";
 import { useTambo } from "@tambo-ai/react";
 
-jest.mock("@tambo-ai/react");
+// @tambo-ai/react is mocked via moduleNameMapper in jest.config.react.ts
 
 describe("ScrollableMessageContainer", () => {
   const mockUseTambo = useTambo as jest.MockedFunction<typeof useTambo>;

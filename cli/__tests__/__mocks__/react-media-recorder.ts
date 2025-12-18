@@ -1,7 +1,10 @@
+// Mock for react-media-recorder - not needed for message content tests
 export const useReactMediaRecorder = () => ({
-  status: "idle" as const,
-  startRecording: jest.fn(),
-  stopRecording: jest.fn(),
+  status: "idle",
+  startRecording: () => {},
+  stopRecording: () => {},
   mediaBlobUrl: null,
-  error: null,
+  clearBlobUrl: () => {},
 });
+
+export const ReactMediaRecorder = () => null;
