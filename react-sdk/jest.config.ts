@@ -7,6 +7,13 @@ const config: Config = {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   testMatch: ["<rootDir>/src/**/*.test.ts?(x)"],
+  collectCoverageFrom: [
+    "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
+    "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
+    "!<rootDir>/src/**/__tests__/**",
+    "!<rootDir>/src/**/__mocks__/**",
+    "!<rootDir>/src/setupTests.ts",
+  ],
   transform: {
     "^.+\\.tsx?$": "ts-jest",
   },

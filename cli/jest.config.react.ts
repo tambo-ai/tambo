@@ -15,6 +15,12 @@ const config: Config = {
     "^.+\\.tsx?$": "ts-jest",
   },
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
+  collectCoverageFrom: [
+    "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
+    "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
+    "!<rootDir>/src/**/__tests__/**",
+    "!<rootDir>/src/**/__mocks__/**",
+  ],
   setupFilesAfterEnv: ["<rootDir>/__tests__/setup.ts"],
   clearMocks: true,
   resetMocks: true,
