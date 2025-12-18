@@ -51,27 +51,8 @@ Each component has an id, componentName, description of what the component is fo
 Additionally, each has an isSelectedForInteraction boolean field which specifies whether the user has explicitly selected the component for you to interact with when responding to the next message.
 If any interactable components are selected for interaction, you should focus on interacting with them during your response.
 
-Here is an example of how you will receive interactable components:
-"interactables": {
-    "components": [
-        {
-            "id": "Note-twn",
-            "componentName": "Note",
-            "description": "A groceries list.",
-            "props": {
-                "title": "Note",
-                "initialContent": "This is a note"
-            },
-            "propsSchema": "Available - use component-specific update tools",
-            "state": {
-                "count": 0,
-                "other": 0
-            },
-            "isSelectedForInteraction": false
-        },
-        // ... more components ...
-    ]
-}
+Here is an example of how you will receive interactable components (the props and state are specifically for the example component, not all components will have the same props and state):
+{interactables_example}
 
 ### User Message Format Structure
 
@@ -95,6 +76,35 @@ You MUST parse and understand these tags to provide contextually appropriate res
 ${customInstructions}
 `
         : "",
+      interactables_example: `"interactables": {
+            "components": [
+                {
+                    "id": "GroceriesList-13b",
+                    "componentName": "GroceriesList",
+                    "description": "A groceries list.",
+                    "props": {
+                        "title": "My groceries list",
+                        "description": "Things to buy this weekend"
+                    },
+                    "propsSchema": "Available - use component-specific update tools",
+                    "state": {
+                        "items": [
+                            {
+                                "name": "Milk",
+                                "quantity": 1,
+                                "isPurchased": false
+                            },
+                            {
+                                "name": "Bread",
+                                "quantity": 2,
+                                "isPurchased": false
+                            }
+                        ]
+                    },
+                    "isSelectedForInteraction": false
+                }
+            ]
+        }`,
     },
   );
 }
