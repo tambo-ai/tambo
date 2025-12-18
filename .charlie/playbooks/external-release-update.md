@@ -23,6 +23,8 @@ All proactive behaviors currently run daily. To make this effectively weekly, tr
 
 Compute the reporting window (previous Monday–Sunday, America/Los_Angeles):
 
+These commands assume GNU `date` (Linux/Devbox). On macOS, use `gdate` from `coreutils`.
+
 ```bash
 export TZ=America/Los_Angeles
 end_date=$(date -d 'yesterday' +%F)
