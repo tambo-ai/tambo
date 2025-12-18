@@ -15,8 +15,9 @@ import { ZodError } from "zod/v3";
 import { authOptions } from "@/lib/auth";
 import { env } from "@/lib/env";
 import * as Sentry from "@sentry/nextjs";
-import { getDb, HydraDb } from "@tambo-ai-cloud/db";
-import { sql } from "drizzle-orm";
+import { hashKey } from "@tambo-ai-cloud/core";
+import { getDb, HydraDb, schema } from "@tambo-ai-cloud/db";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { getServerSession, User } from "next-auth";
 import { headers } from "next/headers";
 
@@ -46,8 +47,62 @@ export type Context = {
  */
 export const createTRPCContext = async (): Promise<Context> => {
   const requestHeaders = await headers();
-  const session = await getServerSession(authOptions);
   const db = getDb(env.DATABASE_URL);
+
+  // Check for bearer token authentication first (CLI)
+  const authHeader = requestHeaders.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    if (token.startsWith("tambo_cli_")) {
+      const hashedToken = hashKey(token);
+
+      // Look up the bearer token
+      const bearerToken = await db.query.bearerTokens.findFirst({
+        where: and(
+          eq(schema.bearerTokens.hashedToken, hashedToken),
+          isNull(schema.bearerTokens.revokedAt),
+          gt(schema.bearerTokens.expiresAt, new Date()),
+        ),
+      });
+
+      if (bearerToken) {
+        // Update lastUsedAt (fire and forget)
+        void db
+          .update(schema.bearerTokens)
+          .set({ lastUsedAt: new Date() })
+          .where(eq(schema.bearerTokens.id, bearerToken.id));
+
+        // Get user info
+        const userResult = await db.execute(
+          sql`SELECT id, email, raw_user_meta_data FROM auth.users WHERE id = ${bearerToken.userId} LIMIT 1`,
+        );
+        const authUser = userResult.rows[0] as
+          | {
+              id: string;
+              email: string | null;
+              raw_user_meta_data: Record<string, unknown> | null;
+            }
+          | undefined;
+
+        if (authUser) {
+          return {
+            db,
+            session: null,
+            user: {
+              id: authUser.id,
+              email: authUser.email,
+              name: authUser.raw_user_meta_data?.name as string | null,
+              image: null,
+            },
+            headers: requestHeaders,
+          };
+        }
+      }
+    }
+  }
+
+  // Fall back to NextAuth session authentication (browser)
+  const session = await getServerSession(authOptions);
 
   // Map NextAuth session to the expected user format
   const user = session?.user
@@ -173,13 +228,19 @@ const transactionMiddleware = t.middleware<Context>(async ({ next, ctx }) => {
       console.error("error setting config: ", error);
       throw error;
     } finally {
-      await tx.execute(
-        sql`select set_config('request.jwt.claims', NULL, TRUE)`,
-      );
-      await tx.execute(
-        sql`select set_config('request.jwt.claim.sub', NULL, TRUE)`,
-      );
-      await tx.execute(sql`reset role`);
+      // Best-effort cleanup - don't throw if this fails
+      // Connection pool will reset the session anyway
+      try {
+        await tx.execute(
+          sql`select set_config('request.jwt.claims', NULL, TRUE)`,
+        );
+        await tx.execute(
+          sql`select set_config('request.jwt.claim.sub', NULL, TRUE)`,
+        );
+        await tx.execute(sql`reset role`);
+      } catch {
+        // Ignore cleanup errors - session will be reset when connection returns to pool
+      }
     }
   });
 });

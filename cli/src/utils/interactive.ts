@@ -79,7 +79,8 @@ Run ${chalk.cyan("tambo --help")} or ${chalk.cyan("tambo <command> --help")} for
     throw new NonInteractiveError(fullMessage);
   }
 
-  const result = await inquirer.prompt(questions);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await inquirer.prompt(questions as any);
   return result as T;
 }
 

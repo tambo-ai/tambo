@@ -2,6 +2,12 @@ import chalk from "chalk";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
+import { openInEditor } from "../utils/editor-utils.js";
+import {
+  initializeGit,
+  isGitAvailable,
+  hasGitRepo,
+} from "../utils/git-utils.js";
 import { execSync, interactivePrompt } from "../utils/interactive.js";
 
 // Define available templates
@@ -241,23 +247,29 @@ export async function handleCreateApp(
     // Change to target directory before git init and npm install
     process.chdir(targetDir);
 
-    // Initialize new git repository if requested
+    // Track if git was initialized for next steps display
+    let gitInitialized = false;
+
+    // Initialize new git repository (interactive prompt if not specified via flag)
     if (options.initGit) {
+      // If explicitly requested via flag, do it without prompting
       const gitInitSpinner = ora({
         text: "Initializing git repository...",
         spinner: "dots",
       }).start();
 
       try {
-        execSync("git init", { stdio: "ignore" });
-        execSync("git add .", { stdio: "ignore" });
+        execSync("git init", { stdio: "ignore", allowNonInteractive: true });
+        execSync("git add .", { stdio: "ignore", allowNonInteractive: true });
         execSync(
           `git commit -m "Initial commit from Tambo ${selectedTemplate.name} template"`,
           {
             stdio: "ignore",
+            allowNonInteractive: true,
           },
         );
         gitInitSpinner.succeed("Git repository initialized successfully");
+        gitInitialized = true;
       } catch (_error) {
         gitInitSpinner.fail("Failed to initialize git repository");
         console.warn(
@@ -265,6 +277,12 @@ export async function handleCreateApp(
             "\nWarning: Git initialization failed. You can initialize it manually later with 'git init'.",
           ),
         );
+      }
+    } else if (isGitAvailable() && !hasGitRepo(targetDir)) {
+      // Prompt user interactively if git is available and no repo exists
+      gitInitialized = await initializeGit(targetDir, selectedTemplate.name);
+      if (gitInitialized) {
+        console.log(chalk.green("✔ Git repository initialized"));
       }
     }
 
@@ -293,6 +311,10 @@ export async function handleCreateApp(
         `Template: ${selectedTemplate.name} - ${selectedTemplate.description}`,
       ),
     );
+
+    // Prompt to open in editor
+    await openInEditor(targetDir);
+
     console.log("\nNext steps:");
     let step = 1;
     if (appName !== ".") {
@@ -301,7 +323,7 @@ export async function handleCreateApp(
       );
       step++;
     }
-    if (!options.initGit) {
+    if (!gitInitialized) {
       console.log(`  ${step}. ${chalk.cyan("git init")}`);
       step++;
     }
@@ -315,7 +337,6 @@ export async function handleCreateApp(
     console.log(
       `  • Visit our UI showcase at ${chalk.cyan("https://ui.tambo.co")} to explore and learn about the components included in your template\n`,
     );
-    step++;
   } catch (error) {
     console.error(
       chalk.red("\nError creating app:"),

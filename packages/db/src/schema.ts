@@ -109,6 +109,8 @@ export const userSchemaUserRelations = relations(authUsers, ({ many }) => ({
   identities: many(identities),
   sessions: many(sessions),
   projects: many(projectMembers),
+  deviceAuthSessions: many(deviceAuthSessions),
+  bearerTokens: many(bearerTokens),
 }));
 
 export const userSchemaIdentityRelations = relations(identities, ({ one }) => ({
@@ -909,3 +911,86 @@ export const mcpUsage = pgTable(
 );
 
 export type DBMcpUsage = typeof mcpUsage.$inferSelect;
+
+// Device auth sessions for CLI authentication flow
+export const deviceAuthSessions = pgTable(
+  "device_auth_sessions",
+  ({ text, timestamp, uuid, boolean }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('das_')`),
+    deviceCode: text("device_code").notNull().unique(),
+    userCode: text("user_code").notNull().unique(),
+    userId: uuid("user_id").references(() => authUsers.id),
+    isUsed: boolean("is_used").notNull().default(false),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    index("device_auth_sessions_device_code_idx").on(table.deviceCode),
+    index("device_auth_sessions_user_code_idx").on(table.userCode),
+    index("device_auth_sessions_user_id_idx").on(table.userId),
+    index("device_auth_sessions_expires_at_idx").on(table.expiresAt),
+  ],
+);
+
+export type DBDeviceAuthSession = typeof deviceAuthSessions.$inferSelect;
+
+export const deviceAuthSessionRelations = relations(
+  deviceAuthSessions,
+  ({ one, many }) => ({
+    user: one(authUsers, {
+      fields: [deviceAuthSessions.userId],
+      references: [authUsers.id],
+    }),
+    bearerTokens: many(bearerTokens),
+  }),
+);
+
+// Bearer tokens for CLI authentication
+export const bearerTokens = pgTable(
+  "bearer_tokens",
+  ({ text, timestamp, uuid }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('bt_')`),
+    userId: uuid("user_id")
+      .references(() => authUsers.id)
+      .notNull(),
+    hashedToken: text("hashed_token").notNull(),
+    deviceSessionId: text("device_session_id").references(
+      () => deviceAuthSessions.id,
+    ),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  }),
+  (table) => [
+    index("bearer_tokens_user_id_idx").on(table.userId),
+    index("bearer_tokens_hashed_token_idx").on(table.hashedToken),
+    index("bearer_tokens_device_session_id_idx").on(table.deviceSessionId),
+    index("bearer_tokens_expires_at_idx").on(table.expiresAt),
+  ],
+);
+
+export type DBBearerToken = typeof bearerTokens.$inferSelect;
+
+export const bearerTokenRelations = relations(bearerTokens, ({ one }) => ({
+  user: one(authUsers, {
+    fields: [bearerTokens.userId],
+    references: [authUsers.id],
+  }),
+  deviceSession: one(deviceAuthSessions, {
+    fields: [bearerTokens.deviceSessionId],
+    references: [deviceAuthSessions.id],
+  }),
+}));

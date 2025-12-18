@@ -10,6 +10,12 @@ import { fileURLToPath } from "url";
 import { NonInteractiveError } from "./utils/interactive.js";
 import { handleAddComponents } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
+import {
+  handleLogout,
+  handleAuthStatus,
+  handleAuthSessions,
+  handleAuthRevoke,
+} from "./commands/auth.js";
 import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
 import { handleListComponents } from "./commands/list/index.js";
@@ -185,6 +191,33 @@ ${chalk.bold("Templates")}
     examples: [
       `$ ${chalk.cyan("tambo migrate")}               # Interactive migration`,
       `$ ${chalk.cyan("tambo migrate --dry-run")}     # Preview changes only`,
+    ],
+  },
+  logout: {
+    command: "logout",
+    syntax: "logout",
+    description: "Log out from tambo Cloud",
+    usage: [`$ ${chalk.cyan("tambo logout")} [options]`],
+    options: ["yes"],
+    examples: [
+      `$ ${chalk.cyan("tambo logout")}           # Interactive logout`,
+      `$ ${chalk.cyan("tambo logout --yes")}     # Skip confirmation`,
+    ],
+  },
+  auth: {
+    command: "auth",
+    syntax: "auth <subcommand>",
+    description: "Manage authentication and sessions",
+    usage: [
+      `$ ${chalk.cyan("tambo auth status")}              # Show auth status`,
+      `$ ${chalk.cyan("tambo auth sessions")}            # List active sessions`,
+      `$ ${chalk.cyan("tambo auth revoke")} <session-id> # Revoke a session`,
+    ],
+    options: ["yes"],
+    examples: [
+      `$ ${chalk.cyan("tambo auth status")}              # Check if logged in`,
+      `$ ${chalk.cyan("tambo auth sessions")}            # List all CLI sessions`,
+      `$ ${chalk.cyan("tambo auth revoke bt_abc123")}    # Revoke specific session`,
     ],
   },
 };
@@ -457,6 +490,54 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     return;
   }
 
+  if (cmd === "logout") {
+    if (flags.help) {
+      showLogoutHelp();
+      return;
+    }
+    await handleLogout({
+      yes: Boolean(flags.yes),
+    });
+    return;
+  }
+
+  if (cmd === "auth") {
+    if (flags.help) {
+      showAuthHelp();
+      return;
+    }
+    const subcommand = cli.input[1];
+
+    if (!subcommand || subcommand === "status") {
+      await handleAuthStatus();
+      return;
+    }
+
+    if (subcommand === "sessions") {
+      await handleAuthSessions();
+      return;
+    }
+
+    if (subcommand === "revoke") {
+      const sessionId = cli.input[2];
+      if (!sessionId) {
+        console.error(chalk.red("Session ID is required."));
+        console.log(
+          chalk.gray("Run 'tambo auth sessions' to see all sessions."),
+        );
+        return;
+      }
+      await handleAuthRevoke(sessionId, {
+        yes: Boolean(flags.yes),
+      });
+      return;
+    }
+
+    console.log(chalk.red(`Unknown auth subcommand: ${subcommand}`));
+    showAuthHelp();
+    return;
+  }
+
   // If no command is provided, show help
   console.log(`Unrecognized command: ${chalk.red(cmd)}`);
   console.log(cli.help);
@@ -563,6 +644,14 @@ function showUpgradeHelp() {
 
 function showMigrateHelp() {
   showCommandHelp(COMMAND_HELP_CONFIGS.migrate);
+}
+
+function showLogoutHelp() {
+  showCommandHelp(COMMAND_HELP_CONFIGS.logout);
+}
+
+function showAuthHelp() {
+  showCommandHelp(COMMAND_HELP_CONFIGS.auth);
 }
 
 // Main execution

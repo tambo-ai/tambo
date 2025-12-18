@@ -5,7 +5,11 @@ import open from "open";
 import ora from "ora";
 import path from "path";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
+import { loadToken, isTokenExpired } from "../lib/auth.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
+import { initiateDeviceAuth } from "../utils/device-auth.js";
+import { writeEnvVar } from "../utils/env-writer.js";
+import { detectFramework } from "../utils/framework-detection.js";
 import {
   interactivePrompt,
   NonInteractiveError,
@@ -53,80 +57,45 @@ interface InitOptions {
 }
 
 /**
- * Writes the provided API key to .env.local, creating the file if necessary
- * Handles overwrite confirmation when a key already exists
+ * Writes the provided API key to .env file with the correct framework prefix
+ * Uses framework detection to determine the appropriate env var prefix
  */
 async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
   try {
-    // use `.env.local` by default or fall back to .env if it exists and .env.local does not
-    let targetEnvFile = ".env.local";
-    if (fs.existsSync(".env") && !fs.existsSync(".env.local")) {
-      targetEnvFile = ".env";
+    const projectRoot = process.cwd();
+    const { framework, envPrefix } = detectFramework(projectRoot);
+
+    if (framework !== "unknown") {
+      console.log(chalk.gray(`\nDetected framework: ${chalk.cyan(framework)}`));
     }
 
-    const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
-
-    if (!fs.existsSync(targetEnvFile)) {
-      fs.writeFileSync(targetEnvFile, "# Environment Variables\n");
-      console.log(chalk.green(`\n✔ Created new ${targetEnvFile} file`));
-      fs.appendFileSync(targetEnvFile, envContent);
-      console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
-      console.log(
-        chalk.gray(
-          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-        ),
-      );
-      return true;
-    }
-
-    const existingContent = fs.readFileSync(targetEnvFile, "utf8");
-    const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/gm;
-
-    if (keyRegex.test(existingContent)) {
-      const { confirmReplace } = await interactivePrompt<{
-        confirmReplace: boolean;
-      }>(
-        {
-          type: "confirm",
-          name: "confirmReplace",
-          message: chalk.yellow(
-            `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in ${targetEnvFile}, are you sure?`,
-          ),
-          default: false,
-        },
-        chalk.yellow(
-          "Cannot prompt for API key confirmation in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY manually.",
-        ),
-      );
-
-      if (!confirmReplace) {
-        console.log(chalk.gray("\nKeeping existing API key."));
-        return true;
-      }
-
-      const updatedContent = existingContent.replace(
-        keyRegex,
-        `NEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}`,
-      );
-      fs.writeFileSync(targetEnvFile, updatedContent);
-      console.log(
-        chalk.green(`\n✔ Updated existing API key in ${targetEnvFile}`),
-      );
-      console.log(
-        chalk.gray(
-          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-        ),
-      );
-      return true;
-    }
-
-    fs.appendFileSync(targetEnvFile, envContent);
-    console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
-    console.log(
-      chalk.gray(
-        "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-      ),
+    const result = await writeEnvVar(
+      projectRoot,
+      "TAMBO_API_KEY",
+      apiKey.trim(),
+      envPrefix,
+      { promptOverwrite: true },
     );
+
+    if (result.success) {
+      const fullKey = `${envPrefix}TAMBO_API_KEY`;
+      if (result.overwrote) {
+        console.log(
+          chalk.green(
+            `\n✔ Updated ${fullKey} in ${path.basename(result.filePath)}`,
+          ),
+        );
+      } else {
+        console.log(
+          chalk.green(
+            `\n✔ Saved ${fullKey} to ${path.basename(result.filePath)}`,
+          ),
+        );
+      }
+      return true;
+    }
+
+    console.log(chalk.gray("\nKeeping existing API key."));
     return true;
   } catch (error) {
     console.error(chalk.red(`\nFailed to save API key: ${error}`));
@@ -175,16 +144,23 @@ function displaySelfHostInstructions(): void {
 }
 
 /**
- * Checks for existing API key in .env files
- * @returns string | null Returns existing API key if found, null otherwise
+ * Checks for existing API key in .env files using framework-specific prefix
+ * @returns string | null Returns existing API key if found and user wants to keep it, null otherwise
  */
 async function checkExistingApiKey(): Promise<string | null> {
+  const projectRoot = process.cwd();
+  const { envPrefix } = detectFramework(projectRoot);
+  const fullKey = `${envPrefix}TAMBO_API_KEY`;
   const envFiles = [".env.local", ".env"];
 
   for (const file of envFiles) {
-    if (fs.existsSync(file)) {
-      const content = fs.readFileSync(file, "utf8");
-      const match = /^NEXT_PUBLIC_TAMBO_API_KEY=(.+)$/m.exec(content);
+    const filePath = path.join(projectRoot, file);
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, "utf8");
+      // Escape special regex characters in the key
+      const escapedKey = fullKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const keyRegex = new RegExp(`^${escapedKey}=(.+)$`, "m");
+      const match = keyRegex.exec(content);
       if (match?.[1]) {
         const { overwriteExisting } = await interactivePrompt<{
           overwriteExisting: boolean;
@@ -193,12 +169,12 @@ async function checkExistingApiKey(): Promise<string | null> {
             type: "confirm",
             name: "overwriteExisting",
             message: chalk.yellow(
-              `⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?`,
+              `⚠️  Would you like to overwrite the value of ${fullKey} in your ${file}?`,
             ),
             default: true,
           },
           chalk.yellow(
-            "Cannot prompt for API key overwrite in non-interactive mode. Keeping existing key.",
+            `Cannot prompt for API key overwrite in non-interactive mode. Keeping existing ${fullKey}.`,
           ),
         );
 
@@ -209,6 +185,15 @@ async function checkExistingApiKey(): Promise<string | null> {
     }
   }
   return null;
+}
+
+/**
+ * Checks if user is already authenticated with a valid token
+ * @returns true if user has a valid cached auth token
+ */
+async function hasValidCachedAuth(): Promise<boolean> {
+  const tokenData = await loadToken();
+  return tokenData !== null && !isTokenExpired(tokenData);
 }
 
 /**
@@ -266,61 +251,111 @@ export async function getInstallationPath(yes = false): Promise<string> {
 }
 
 /**
- * Handles the authentication flow with Tambo
+ * Handles the authentication flow with Tambo using device auth
  * @returns Promise<boolean> Returns true if authentication was successful
  * @throws AuthenticationError
  */
 async function handleAuthentication(): Promise<boolean> {
   try {
-    // 1. Browser-based auth flow
     console.log(chalk.cyan("\nStep 1: Authentication"));
 
-    // Check for existing API key first
+    // Check for existing API key in env file first
     const existingKey = await checkExistingApiKey();
     if (existingKey) {
       console.log(chalk.green("\n✔ Using existing API key"));
       return true;
     }
 
-    // Continue with browser-based auth flow
-    const authUrl = `https://tambo.co/login?returnUrl=%2Fcli-auth`;
-    console.log(chalk.gray("\nOpening browser for authentication..."));
-
-    try {
-      await open(authUrl);
-    } catch (error) {
-      throw new AuthenticationError(
-        "Failed to open browser for authentication. Please visit https://tambo.co/cli-auth manually. Error: " +
-          error,
+    // Check if user already has a valid cached token
+    if (await hasValidCachedAuth()) {
+      const tokenData = await loadToken();
+      console.log(
+        chalk.green(`\n✔ Already authenticated as ${tokenData?.user.email}`),
       );
+      // Create new API key for this project
+      return await createAndSaveProjectApiKey();
     }
 
-    // 2. Get API key from user
-    const { apiKey } = await interactivePrompt<{ apiKey: string }>(
-      {
-        type: "password",
-        name: "apiKey",
-        mask: "*",
-        message: "Please paste your API key from the browser:",
-        validate: (input: string) => {
-          if (!input?.trim()) return "API key is required";
-          return true;
-        },
-      },
-      chalk.yellow(
-        "Cannot prompt for API key in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
-      ),
-    );
+    // Initiate device auth flow
+    const result = await initiateDeviceAuth();
+    console.log(chalk.green(`\n✔ Authenticated as ${result.user.email}`));
 
-    // 3. Save API key to .env file
-    const saved = await writeApiKeyToEnv(apiKey);
-    return saved;
+    // Create new API key for this project
+    return await createAndSaveProjectApiKey();
   } catch (error) {
     if (error instanceof AuthenticationError) {
       console.error(chalk.red(`Authentication error: ${error.message}`));
     } else {
-      console.error(chalk.red(`Failed to save API key: ${error}`));
+      console.error(
+        chalk.red(
+          `Authentication failed: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
     }
+    return false;
+  }
+}
+
+/**
+ * Creates a new API key for the current project and saves it to .env
+ * Uses the authenticated user's session to create the key
+ */
+async function createAndSaveProjectApiKey(): Promise<boolean> {
+  const { createApiClient } = await import("../lib/api-client.js");
+  const { getValidToken } = await import("../lib/auth.js");
+
+  try {
+    const token = await getValidToken();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const apiClient = createApiClient({ token }) as any;
+
+    // Get user's projects
+    const projects = (await apiClient.project.getUserProjects.query({})) as {
+      name: string;
+      id: string;
+    }[];
+
+    if (projects.length === 0) {
+      console.log(
+        chalk.yellow(
+          "\nNo projects found. Please create a project at https://tambo.co first.",
+        ),
+      );
+      return false;
+    }
+
+    // Let user select a project
+    const { selectedProjectId } = await interactivePrompt<{
+      selectedProjectId: string;
+    }>(
+      {
+        type: "select",
+        name: "selectedProjectId",
+        message: "Select a project:",
+        choices: projects.map((p) => ({
+          name: p.name,
+          value: p.id,
+        })),
+      },
+      chalk.yellow(
+        "Cannot prompt for project selection in non-interactive mode.",
+      ),
+    );
+
+    // Create a new API key for the selected project
+    const apiKey = (await apiClient.project.generateApiKey.mutate({
+      projectId: selectedProjectId,
+      name: "CLI generated key",
+    })) as { apiKey: string };
+
+    // Save the API key to .env file
+    return await writeApiKeyToEnv(apiKey.apiKey);
+  } catch (error) {
+    console.error(
+      chalk.red(
+        `Failed to create API key: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    );
     return false;
   }
 }
