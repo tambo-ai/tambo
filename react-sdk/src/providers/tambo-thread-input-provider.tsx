@@ -19,6 +19,7 @@ import {
   extractResourceUris,
   resolveResourceContents,
 } from "../util/resource-content-resolver";
+import { useTamboInteractable } from "./tambo-interactable-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 import { useTamboThread } from "./tambo-thread-provider";
 
@@ -97,7 +98,7 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
   const imageState = useMessageImages();
   const mcpServers = useTamboMcpServers();
   const { resourceSource } = useTamboRegistry();
-
+  const { clearInteractableSelections } = useTamboInteractable();
   const submit = useCallback(
     async ({
       streamResponse,
@@ -155,6 +156,7 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
           additionalContext: additionalContext,
           content: messageContent,
         });
+        clearInteractableSelections();
       } catch (error: any) {
         // Handle image-related errors with friendly messages
         if (imageState.images.length > 0) {
@@ -222,6 +224,7 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
       imageState,
       mcpServers,
       resourceSource,
+      clearInteractableSelections,
     ],
   );
 

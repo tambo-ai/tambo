@@ -116,17 +116,17 @@ export const TamboProvider: React.FC<
           >
             <TamboMcpTokenProvider>
               <TamboMcpProvider contextKey={contextKey}>
-                <TamboThreadInputProvider>
-                  <TamboContextAttachmentProvider>
-                    <TamboComponentProvider>
-                      <TamboInteractableProvider>
+                <TamboContextAttachmentProvider>
+                  <TamboComponentProvider>
+                    <TamboInteractableProvider>
+                      <TamboThreadInputProvider>
                         <TamboCompositeProvider>
                           {children}
                         </TamboCompositeProvider>
-                      </TamboInteractableProvider>
-                    </TamboComponentProvider>
-                  </TamboContextAttachmentProvider>
-                </TamboThreadInputProvider>
+                      </TamboThreadInputProvider>
+                    </TamboInteractableProvider>
+                  </TamboComponentProvider>
+                </TamboContextAttachmentProvider>
               </TamboMcpProvider>
             </TamboMcpTokenProvider>
           </TamboThreadProvider>
