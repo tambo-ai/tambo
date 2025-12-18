@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.45.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.44.1...tambo-v0.45.0) (2025-12-18)
+
+
+### Features
+
+* **showcase:** add dark mode to showcase and fix css ([#1527](https://github.com/tambo-ai/tambo/issues/1527)) ([6fa757d](https://github.com/tambo-ai/tambo/commit/6fa757ddbadbbaa5fb243207c0ae12ef5520d4a6))
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+* **resources:** Use default streamdown configuration, drop explicit `rehype-harden` configuration ([#1593](https://github.com/tambo-ai/tambo/issues/1593)) ([55801f8](https://github.com/tambo-ai/tambo/commit/55801f87a93d9fa8e96b451bff2ed3347516f8e5))
+* thread stuck in loading state after tool call failures/refresh ([#1579](https://github.com/tambo-ai/tambo/issues/1579)) ([e138b40](https://github.com/tambo-ai/tambo/commit/e138b40dcffc5e6b87f5aa1d31bfcec29e40878f))
+
 ## [0.44.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.44.0...tambo-v0.44.1) (2025-12-17)
 
 
