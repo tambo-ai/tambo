@@ -109,6 +109,7 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
   generationStage: GenerationStage,
   messageId: string | null,
   hasMovedOn: boolean,
+  generationErrorMessage: string | undefined,
 ): Record<keyof Props, PropStatus> {
   const [propTracking, setPropTracking] = useState<
     Record<
@@ -217,6 +218,15 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
       (generationStage === GenerationStage.ERROR ||
         generationStage === GenerationStage.CANCELLED);
 
+    const componentError = isComponentFailed
+      ? new Error(
+          generationErrorMessage ??
+            (generationStage === GenerationStage.CANCELLED
+              ? "Generation cancelled"
+              : "Generation error"),
+        )
+      : undefined;
+
     Object.keys(props).forEach((key) => {
       const tracking = propTracking[key] || {
         hasStarted: false,
@@ -254,12 +264,19 @@ function usePropsStreamingStatus<Props extends Record<string, any>>(
           isGenerationStreaming,
         isSuccess: isEffectivelyComplete,
         isMissing,
-        error: tracking.error,
+        error: tracking.error ?? componentError,
       };
     });
 
     return result;
-  }, [props, propTracking, generationStage, messageId, hasMovedOn]);
+  }, [
+    props,
+    propTracking,
+    generationStage,
+    messageId,
+    hasMovedOn,
+    generationErrorMessage,
+  ]);
 }
 
 /**
@@ -293,9 +310,18 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
     generationStage === GenerationStage.ERROR ||
     generationStage === GenerationStage.CANCELLED;
 
+  const stageError =
+    !hasMovedOn && isGenerationErrorStage && !generationError
+      ? new Error(
+          generationStage === GenerationStage.CANCELLED
+            ? "Generation cancelled"
+            : "Generation error",
+        )
+      : undefined;
+
   /** Find first error from generation or any prop */
   const firstError =
-    generationError ?? propStatuses.find((p) => p.error)?.error;
+    generationError ?? stageError ?? propStatuses.find((p) => p.error)?.error;
 
   return {
     /**
@@ -391,6 +417,7 @@ export function useTamboStreamStatus<
     generationStage,
     messageId,
     hasMovedOn,
+    message?.error,
   );
 
   /** Derive global stream status from prop statuses and generation stage */

@@ -311,6 +311,9 @@ describe("useTamboStreamStatus", () => {
       expect(result.current.streamStatus.streamError?.message).toBe(
         errorMessage,
       );
+
+      expect(result.current.propStatus.title.error?.message).toBe(errorMessage);
+      expect(result.current.propStatus.body.error?.message).toBe(errorMessage);
     });
   });
 
