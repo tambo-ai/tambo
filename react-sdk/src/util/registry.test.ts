@@ -17,19 +17,25 @@ import type { JSONSchema7 } from "json-schema";
 import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
 import { createMockTool, createMockToolWithToolSchema } from "../testing/tools";
-import { mapTamboToolToContextTool } from "./registry";
+import {
+  adaptToolFromFnSchema,
+  getUnassociatedTools,
+  mapTamboToolToContextTool,
+} from "./registry";
 
 describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
   describe("Deprecated toolSchema interface (Zod function schemas)", () => {
     it("should handle tool with toolSchema", () => {
       const tool = createMockToolWithToolSchema(
         z3.function().args(z3.string().describe("The name")).returns(z3.void()),
+        3,
       );
       const result = mapTamboToolToContextTool(tool);
       // Should have at least one parameter (either extracted or wrapped)
       expect(result.parameters.length).toBeGreaterThanOrEqual(1);
       expect(result.name).toBe("testTool");
       expect(result.description).toBe("A test tool");
+      expect(result.maxCalls).toBe(3);
     });
 
     it("should handle toolSchema with multiple args", () => {
@@ -58,8 +64,10 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
             age: z4.number().describe("User age"),
           }),
           outputSchema: z4.boolean(),
+          maxCalls: 10,
         });
         const result = mapTamboToolToContextTool(tool);
+        expect(result.maxCalls).toBe(10);
         expect(result.parameters).toHaveLength(2);
 
         // Parameters should be extracted from object properties
@@ -242,6 +250,39 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
       expect(ageParam?.type).toBe("number");
 
       expect(result.parameters).toMatchSnapshot();
+    });
+  });
+
+  describe("registry util: maxCalls", () => {
+    it("adaptToolFromFnSchema preserves maxCalls for legacy toolSchema", () => {
+      const legacy = createMockToolWithToolSchema(
+        z3.function().args(z3.string()).returns(z3.string()),
+      ) as any;
+      legacy.maxCalls = 2;
+      const adapted = adaptToolFromFnSchema(legacy);
+      expect((adapted as any).maxCalls).toBe(2);
+    });
+
+    it("mapTamboToolToContextTool includes maxCalls when present", () => {
+      const tool = createMockTool(z3.object({ q: z3.string() })) as any;
+      tool.maxCalls = 5;
+      const meta = mapTamboToolToContextTool(tool);
+      expect(meta.maxCalls).toBe(5);
+    });
+
+    it("getUnassociatedTools does not drop unassociated tools and preserves maxCalls", () => {
+      const t1 = {
+        name: "a",
+        description: "a",
+        tool: () => {},
+        inputSchema: {},
+        outputSchema: {},
+        maxCalls: 3,
+      } as any;
+      const registry = { a: t1 } as any;
+      const associations = { SomeComponent: [] as string[] } as any;
+      const out = getUnassociatedTools(registry, associations);
+      expect(out.find((t) => t.name === "a")?.maxCalls).toBe(3);
     });
   });
 });

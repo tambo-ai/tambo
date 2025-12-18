@@ -371,6 +371,10 @@ export const TamboMcpProvider: FC<{
                     }
                     return [{ type: "text", text: toText(content) }];
                   },
+                  // Preserve per-tool maxCalls metadata from MCP when present
+                  ...("maxCalls" in tool && (tool as any).maxCalls !== undefined
+                    ? { maxCalls: (tool as any).maxCalls }
+                    : {}),
                 });
               });
             } catch (error) {

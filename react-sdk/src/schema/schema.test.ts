@@ -350,6 +350,33 @@ describe("schema utilities", () => {
         expect(params.length).toBeGreaterThanOrEqual(1);
         expect(params[0].name).toBe("param1");
       });
+      it("unwraps optional positional parameters logic (root cause fix)", () => {
+        const tool = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          toolSchema: z3
+            .function()
+            .args(
+              z3
+                .object({
+                  q: z3.string(),
+                })
+                .optional(),
+            )
+            .returns(z3.void()),
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        expect(params).toHaveLength(1);
+        expect(params[0].name).toBe("param1");
+        expect(params[0].type).toBe("object");
+        expect(params[0].isRequired).toBe(false);
+        // The unwrapped schema should NOT be a union with anyOf at the root
+        expect(params[0].schema).not.toHaveProperty("anyOf");
+        expect(params[0].schema).toHaveProperty("type", "object");
+      });
     });
   });
 });
