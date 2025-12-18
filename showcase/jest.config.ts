@@ -16,6 +16,8 @@ const config: Config = {
     "!<rootDir>/src/**/__tests__/**",
     "!<rootDir>/src/**/__mocks__/**",
     "!<rootDir>/src/setupTests.ts",
+    "!<rootDir>/.next/**",
+    "!<rootDir>/dist/**",
   ],
   transform: {
     "^.+\\.tsx?$": [

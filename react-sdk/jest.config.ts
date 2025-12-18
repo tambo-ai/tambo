@@ -13,6 +13,8 @@ const config: Config = {
     "!<rootDir>/src/**/__tests__/**",
     "!<rootDir>/src/**/__mocks__/**",
     "!<rootDir>/src/setupTests.ts",
+    "!<rootDir>/dist/**",
+    "!<rootDir>/esm/**",
   ],
   transform: {
     "^.+\\.tsx?$": "ts-jest",
