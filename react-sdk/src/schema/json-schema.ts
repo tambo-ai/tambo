@@ -124,3 +124,14 @@ export function getJsonSchemaTupleItems(
 
   return undefined;
 }
+
+/**
+ * Creates a partial version of a JSON Schema by removing required constraints.
+ * This allows LLM to provide only the properties it wants to update.
+ * @param schema - The JSON Schema to make partial
+ * @returns A new JSON Schema with the required constraint removed
+ */
+export function makeJsonSchemaPartial(schema: JSONSchema7): JSONSchema7 {
+  const { required: _required, ...rest } = schema;
+  return rest;
+}

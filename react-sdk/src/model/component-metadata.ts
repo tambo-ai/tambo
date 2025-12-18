@@ -24,7 +24,9 @@ import {
  * allowing us to accept any compliant validator without depending on a specific library.
  * @see https://standardschema.dev/
  */
-export type SupportedSchema = StandardSchemaV1 | JSONSchema7;
+export type SupportedSchema<Shape = unknown> =
+  | StandardSchemaV1<Shape, Shape>
+  | JSONSchema7;
 
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {

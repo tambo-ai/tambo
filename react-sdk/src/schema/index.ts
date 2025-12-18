@@ -1,4 +1,4 @@
-export { looksLikeJSONSchema } from "./json-schema";
+export { looksLikeJSONSchema, makeJsonSchemaPartial } from "./json-schema";
 export {
   getParametersFromToolSchema,
   hasInputSchema,
