@@ -98,8 +98,10 @@ export interface TextEditorProps {
   onSubmit: (e: React.FormEvent) => Promise<void>;
   /** Called when an image is pasted into the editor */
   onAddImage: (file: File) => Promise<void>;
-  /** Search for resources matching the query (for "@" mentions) */
-  onSearchResources: (query: string) => Promise<ResourceItem[]>;
+  /** Called when resource search query changes (for "@" mentions) - parent should update `resources` prop */
+  onSearchResources: (query: string) => void;
+  /** Current list of resources to show in the "@" suggestion menu (controlled) */
+  resources: ResourceItem[];
   /** Search for prompts matching the query (for "/" commands) */
   onSearchPrompts: (query: string) => Promise<PromptItem[]>;
   /** Called when a resource is selected from the "@" menu */
@@ -414,7 +416,8 @@ function checkMentionExists(editor: Editor, label: string): boolean {
  * Used for "@" mentions that insert visual mention nodes in the editor.
  */
 function createResourceMentionConfig(
-  searchResources: (query: string) => Promise<ResourceItem[]>,
+  onSearchChange: (query: string) => void,
+  getResources: () => ResourceItem[],
   onSelect: (item: ResourceItem) => void,
   contextRef: React.MutableRefObject<
     SuggestionContextValue<ResourceSuggestionState>
@@ -422,13 +425,11 @@ function createResourceMentionConfig(
 ): Omit<SuggestionOptions, "editor"> {
   return {
     char: "@",
-    items: async ({ query }) => {
-      try {
-        return await searchResources(query);
-      } catch (error) {
-        console.error("Failed to fetch resources", error);
-        return [];
-      }
+    items: ({ query }) => {
+      // Notify parent of search change (they'll update resources prop)
+      onSearchChange(query);
+      // Return current resources immediately - will update on next render
+      return getResources();
     },
 
     render: () => {
@@ -760,6 +761,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       onSubmit,
       onAddImage,
       onSearchResources,
+      resources,
       onSearchPrompts,
       onResourceSelect,
       onPromptSelect,
@@ -779,6 +781,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
             onSubmit={onSubmit}
             onAddImage={onAddImage}
             onSearchResources={onSearchResources}
+            resources={resources}
             onSearchPrompts={onSearchPrompts}
             onResourceSelect={onResourceSelect}
             onPromptSelect={onPromptSelect}
@@ -808,6 +811,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       onSubmit,
       onAddImage,
       onSearchResources,
+      resources,
       onSearchPrompts,
       onResourceSelect,
       onPromptSelect,
@@ -819,8 +823,9 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
     const resourceSuggestion = useResourceSuggestion();
     const promptSuggestion = usePromptSuggestion();
 
-    // Store each callback in its own ref so TipTap always calls the latest version
+    // Store each callback/value in its own ref so TipTap always uses the latest version
     const onSearchResourcesRef = React.useRef(onSearchResources);
+    const resourcesRef = React.useRef(resources);
     const onSearchPromptsRef = React.useRef(onSearchPrompts);
     const onResourceSelectRef = React.useRef(onResourceSelect);
     const onPromptSelectRef = React.useRef(onPromptSelect);
@@ -829,10 +834,14 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
     const resourceSuggestionRef = React.useRef(resourceSuggestion);
     const promptSuggestionRef = React.useRef(promptSuggestion);
 
-    // Update refs whenever callbacks or context changes
+    // Update refs whenever callbacks/values or context changes
     React.useEffect(() => {
       onSearchResourcesRef.current = onSearchResources;
     }, [onSearchResources]);
+
+    React.useEffect(() => {
+      resourcesRef.current = resources;
+    }, [resources]);
 
     React.useEffect(() => {
       onSearchPromptsRef.current = onSearchPrompts;
@@ -854,11 +863,23 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       promptSuggestionRef.current = promptSuggestion;
     }, [promptSuggestion]);
 
-    // Create stable callbacks that forward to refs
+    // Update suggestion state when resources prop changes (for controlled behavior)
+    React.useEffect(() => {
+      const { state, setState } = resourceSuggestionRef.current;
+      // Only update if the suggestion menu is open
+      if (state.isOpen) {
+        setState({ items: resources });
+      }
+    }, [resources]);
+
+    // Stable callback to notify parent of search change
     const stableSearchResources = React.useCallback(
-      async (query: string) => await onSearchResourcesRef.current(query),
+      (query: string) => onSearchResourcesRef.current(query),
       [],
     );
+
+    // Stable getter for current resources
+    const getResources = React.useCallback(() => resourcesRef.current, []);
 
     const stableSearchPrompts = React.useCallback(
       async (query: string) => await onSearchPromptsRef.current(query),
@@ -912,6 +933,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
           },
           suggestion: createResourceMentionConfig(
             stableSearchResources,
+            getResources,
             handleResourceSelect,
             resourceSuggestionRef,
           ),

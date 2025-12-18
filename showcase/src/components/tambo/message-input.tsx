@@ -124,51 +124,77 @@ const filterPromptItems = (
 };
 
 /**
- * Hook to create a combined resource provider that merges MCP resources with an external provider.
- * Returns a stable ResourceProvider that searches both sources.
+ * Hook to get a combined resource list that merges MCP resources with an external provider.
+ * Returns the combined, filtered resource items.
+ *
+ * @param externalProvider - Optional external resource provider
+ * @param search - Search string to filter resources. For MCP servers, results are filtered locally.
+ *                 For registry dynamic sources, the search is passed to listResources(search).
  */
-function useCombinedResourceProvider(
+function useCombinedResourceList(
   externalProvider: ResourceProvider | undefined,
-): ResourceProvider {
-  const { data: mcpResources } = useTamboMcpResourceList();
+  search: string,
+): ResourceItem[] {
+  const { data: mcpResources } = useTamboMcpResourceList(search);
 
-  return React.useMemo<ResourceProvider>(
-    () => ({
-      search: async (query: string): Promise<ResourceItem[]> => {
-        try {
-          // Get MCP resources
-          const mcpItems: ResourceItem[] = mcpResources
-            ? (
-                mcpResources as {
-                  resource: { uri: string; name?: string };
-                }[]
-              ).map((entry) => ({
-                // Use the full URI (already includes serverKey prefix from MCP hook)
-                // When inserted as @{id}, parseResourceReferences will strip serverKey before sending to backend
-                id: entry.resource.uri,
-                name: entry.resource.name ?? entry.resource.uri,
-                icon: React.createElement(AtSign, { className: "w-4 h-4" }),
-                componentData: { type: "mcp-resource", data: entry },
-              }))
-            : [];
-
-          // Get external resources
-          const externalItems = externalProvider
-            ? await externalProvider.search(query)
-            : [];
-
-          // Combine and dedupe
-          const combined = [...mcpItems, ...externalItems];
-          const filtered = filterResourceItems(combined, query);
-          return dedupeResourceItems(filtered);
-        } catch (error) {
-          console.error("Failed to fetch resources", error);
-          return [];
-        }
-      },
-    }),
-    [mcpResources, externalProvider],
+  // Convert MCP resources to ResourceItems
+  const mcpItems: ResourceItem[] = React.useMemo(
+    () =>
+      mcpResources
+        ? (
+            mcpResources as {
+              resource: { uri: string; name?: string };
+            }[]
+          ).map((entry) => ({
+            // Use the full URI (already includes serverKey prefix from MCP hook)
+            // When inserted as @{id}, parseResourceReferences will strip serverKey before sending to backend
+            id: entry.resource.uri,
+            name: entry.resource.name ?? entry.resource.uri,
+            icon: React.createElement(AtSign, { className: "w-4 h-4" }),
+            componentData: { type: "mcp-resource", data: entry },
+          }))
+        : [],
+    [mcpResources],
   );
+
+  // Track external provider results with state
+  const [externalItems, setExternalItems] = React.useState<ResourceItem[]>([]);
+
+  // Fetch external resources when search changes
+  React.useEffect(() => {
+    if (!externalProvider) {
+      setExternalItems([]);
+      return;
+    }
+
+    let cancelled = false;
+    externalProvider
+      .search(search)
+      .then((items) => {
+        if (!cancelled) {
+          setExternalItems(items);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch external resources", error);
+        if (!cancelled) {
+          setExternalItems([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [externalProvider, search]);
+
+  // Combine and dedupe - MCP resources are already filtered by the hook
+  // External items need to be filtered locally
+  const combined = React.useMemo(() => {
+    const filteredExternal = filterResourceItems(externalItems, search);
+    return dedupeResourceItems([...mcpItems, ...filteredExternal]);
+  }, [mcpItems, externalItems, search]);
+
+  return combined;
 }
 
 /**
@@ -684,9 +710,16 @@ const MessageInputTextarea = ({
     [],
   );
 
-  // Combine MCP resources/prompts with external providers
-  const combinedResourceProvider =
-    useCombinedResourceProvider(resourceProvider);
+  // Track search state for resources (controlled by TextEditor)
+  const [resourceSearch, setResourceSearch] = React.useState("");
+
+  // Get combined resource list (MCP + external provider), filtered by search
+  const resourceItems = useCombinedResourceList(
+    resourceProvider,
+    resourceSearch,
+  );
+
+  // Combine MCP prompts with external provider
   const combinedPromptProvider = useCombinedPromptProvider(promptProvider);
 
   // State for MCP prompt fetching (since we can't call hooks inside get())
@@ -756,7 +789,8 @@ const MessageInputTextarea = ({
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
         className="bg-background text-foreground"
-        onSearchResources={combinedResourceProvider.search}
+        onSearchResources={setResourceSearch}
+        resources={resourceItems}
         onSearchPrompts={combinedPromptProvider.search}
         onResourceSelect={onResourceSelect ?? (() => {})}
         onPromptSelect={handlePromptSelect}

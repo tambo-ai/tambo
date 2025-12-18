@@ -5,6 +5,7 @@ import {
   type ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { UseQueryResult } from "@tanstack/react-query";
+import * as React from "react";
 import { useTamboQueries, useTamboQuery } from "../hooks";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { REGISTRY_SERVER_KEY } from "./mcp-constants";
@@ -224,15 +225,17 @@ export function useTamboMcpPrompt(
 
 /**
  * Hook to get the resources for all the registered MCP servers and registry.
+ * @param search - Optional search string. For MCP servers, results are filtered locally after fetching.
+ *                 For registry dynamic sources, the search is passed to listResources(search) for dynamic generation.
  * @returns The resources from MCP servers and the local registry, including the server that the resource was found on (null for registry resources).
  */
-export function useTamboMcpResourceList() {
+export function useTamboMcpResourceList(search?: string) {
   const mcpServers = useTamboMcpServers();
   const { resources: staticResources, resourceSource } = useTamboRegistry();
 
   // Build list of queries: MCP servers + optional dynamic resource source
   const queriesToRun = [
-    // MCP server queries
+    // MCP server queries - search is NOT in queryKey so queries don't re-run on search change
     ...mcpServers.map((mcpServer) => ({
       queryKey: ["mcp-resources", mcpServer.key],
       // Only run for connected servers that have a client
@@ -253,15 +256,15 @@ export function useTamboMcpResourceList() {
         return resourceEntries;
       },
     })),
-    // Dynamic resource source query (if exists)
+    // Dynamic resource source query (if exists) - search IS in queryKey to allow dynamic generation
     ...(resourceSource
       ? [
           {
-            queryKey: ["registry-resources", "dynamic"],
+            queryKey: ["registry-resources", "dynamic", search],
             enabled: true,
             queryFn: async (): Promise<RegistryResourceEntry[]> => {
               if (!resourceSource) return [];
-              const resources = await resourceSource.listResources();
+              const resources = await resourceSource.listResources(search);
               return resources.map((resource) => ({
                 server: null,
                 resource,
@@ -321,7 +324,26 @@ export function useTamboMcpResourceList() {
     },
   });
 
-  return queries;
+  // Filter results by search string - runs on every search change (not just query completion)
+  // MCP resources are filtered locally, registry dynamic resources are already filtered by listResources(search)
+  const filteredData = React.useMemo(() => {
+    if (!search) return queries.data;
+
+    const normalizedSearch = search.toLowerCase();
+    return queries.data.filter((entry) => {
+      // Dynamic registry resources (from resourceSource) are already filtered by listResources(search)
+      // We can identify them by checking if they came from the registry query
+      // For simplicity, we filter all entries - registry resources that match will pass through
+      const name = entry.resource.name?.toLowerCase() ?? "";
+      const uri = entry.resource.uri.toLowerCase();
+      return name.includes(normalizedSearch) || uri.includes(normalizedSearch);
+    });
+  }, [queries.data, search]);
+
+  return {
+    ...queries,
+    data: filteredData,
+  };
 }
 
 /**
