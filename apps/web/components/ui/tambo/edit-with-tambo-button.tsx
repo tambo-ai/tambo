@@ -11,10 +11,12 @@ import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import {
+  type InteractableComponentMetadata,
   type Suggestion,
   useTambo,
   useTamboContextAttachment,
   useTamboCurrentComponent,
+  useTamboThreadInput,
 } from "@tambo-ai/react";
 import { Bot, ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -75,10 +77,14 @@ export function EditWithTamboButton({
   suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle } = useTambo();
+  const { isIdle } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
-  const { addContextAttachment, setCustomSuggestions } =
-    useTamboContextAttachment();
+  const {
+    addContextAttachment,
+    clearContextAttachments,
+    setCustomSuggestions,
+  } = useTamboContextAttachment();
+  const { setValue: setThreadInputValue, submit } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -131,22 +137,38 @@ export function EditWithTamboButton({
       return;
     }
 
-    setShouldCloseOnComplete(true);
+    // Add the component as a context attachment for inline editing (only if valid)
+    const interactableId = component?.interactableId;
+    const componentName = component?.componentName;
+    if (interactableId && componentName) {
+      addContextAttachment({
+        name: componentName,
+        metadata: {
+          componentId: interactableId,
+        } satisfies InteractableComponentMetadata,
+      });
+    }
 
-    await sendThreadMessage(prompt.trim(), {
-      streamResponse: true,
-      additionalContext: {
-        inlineEdit: {
-          componentId: component.interactableId,
-          instruction:
-            "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
-        },
-      },
-    });
+    try {
+      // Set the thread input value and submit
+      setThreadInputValue(prompt.trim());
+      await submit({ streamResponse: true });
 
-    // Clear the prompt after successful send
-    setPrompt("");
-  }, [prompt, isGenerating, component, sendThreadMessage]);
+      // Clear the prompt after successful send
+      setPrompt("");
+    } finally {
+      // Clear attachments regardless of success/failure (one-time edit)
+      clearContextAttachments();
+    }
+  }, [
+    prompt,
+    isGenerating,
+    component,
+    setThreadInputValue,
+    submit,
+    addContextAttachment,
+    clearContextAttachments,
+  ]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {
@@ -161,12 +183,17 @@ export function EditWithTamboButton({
       setCustomSuggestions(suggestions);
     }
 
-    // Add the component as a context attachment
-    const componentName = component?.componentName ?? "Unknown Component";
-    const interactableId = component?.interactableId ?? "";
-    addContextAttachment({
-      name: componentName,
-    });
+    // Add the component as a context attachment (only if valid)
+    const interactableId = component?.interactableId;
+    const componentName = component?.componentName;
+    if (interactableId && componentName) {
+      addContextAttachment({
+        name: componentName,
+        metadata: {
+          componentId: interactableId,
+        } satisfies InteractableComponentMetadata,
+      });
+    }
 
     // Open the thread panel first
     onOpenThread();
@@ -175,9 +202,9 @@ export function EditWithTamboButton({
     setPrompt("");
     setIsOpen(false);
 
-    // Insert @mention + user query into the editor
+    // Insert @mention + user query into the editor (only if we have valid component data)
     const editor = editorRef.current;
-    if (editor) {
+    if (editor && interactableId && componentName) {
       // Check if mention already exists to avoid duplicates
       if (editor.hasMention(interactableId)) {
         // If mention exists, just append the user query
@@ -187,6 +214,9 @@ export function EditWithTamboButton({
         editor.insertMention(interactableId, componentName);
         editor.appendText(messageToInsert);
       }
+    } else if (editor) {
+      // No component context, just insert the message
+      editor.appendText(messageToInsert);
     }
   }, [
     prompt,

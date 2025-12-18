@@ -42,6 +42,7 @@ export {
   type ContextAttachment,
   type ContextAttachmentState,
   type ContextHelperData,
+  type InteractableComponentMetadata,
   type RegisterToolFn,
   type RegisterToolsFn,
   type TamboComponent,

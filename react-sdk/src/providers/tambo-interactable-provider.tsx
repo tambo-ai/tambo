@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
+  useRef,
   useState,
 } from "react";
 import { z } from "zod/v3";
@@ -17,6 +17,7 @@ import {
 } from "../model/tambo-interactable";
 import { assertValidName } from "../util/validate-component-name";
 import { useTamboComponent } from "./tambo-component-provider";
+import { useTamboContextAttachment } from "./tambo-context-attachment-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 
 const TamboInteractableContext = createContext<TamboInteractableContext>({
@@ -47,21 +48,54 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   >([]);
   const { registerTool } = useTamboComponent();
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const { getCurrentAttachments } = useTamboContextAttachment();
 
-  // Create a stable context helper function for interactable components
-  const interactablesContextHelper = useMemo(
-    () => createInteractablesContextHelper(interactableComponents),
-    [interactableComponents],
-  );
+  // Ref for latest value in callbacks (avoids stale closures)
+  const interactableComponentsRef = useRef<TamboInteractableComponent[]>([]);
+  interactableComponentsRef.current = interactableComponents;
+
+  // Context helper reads from refs to always get latest data
+  const contextHelper = useCallback(() => {
+    const currentAttachments = getCurrentAttachments();
+    const currentComponents = interactableComponentsRef.current;
+
+    // Match attachments to interactable components by:
+    // 1. metadata.componentId (when component is selected via @ mention)
+    // 2. name (fallback for backward compatibility)
+    const selectedIds = new Set<string>();
+
+    for (const attachment of currentAttachments) {
+      // Try to match by componentId in metadata first
+      const componentId = attachment.metadata?.componentId as
+        | string
+        | undefined;
+      if (componentId) {
+        selectedIds.add(componentId);
+      } else {
+        // Fallback: match by name
+        const matchingComponent = currentComponents.find(
+          (c) => c.name === attachment.name,
+        );
+        if (matchingComponent) {
+          selectedIds.add(matchingComponent.id);
+        }
+      }
+    }
+
+    return createInteractablesContextHelper(
+      () => currentComponents,
+      () => selectedIds,
+    )();
+  }, [getCurrentAttachments]);
 
   // Register the interactables context helper
   useEffect(() => {
-    addContextHelper("interactables", interactablesContextHelper);
+    addContextHelper("interactables", contextHelper);
 
     return () => {
       removeContextHelper("interactables");
     };
-  }, [interactablesContextHelper, addContextHelper, removeContextHelper]);
+  }, [contextHelper, addContextHelper, removeContextHelper]);
 
   useEffect(() => {
     if (interactableComponents.length > 0) {

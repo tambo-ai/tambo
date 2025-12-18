@@ -80,6 +80,7 @@ describe("Interactables AdditionalContext - Edge Cases & Advanced Scenarios", ()
       expect(entry).toBeDefined();
       const component = entry!.context.components[0];
       expect(component.propsSchema).toBe("Not specified");
+      expect(component.isSelectedForInteraction).toBe(false);
     });
   });
 

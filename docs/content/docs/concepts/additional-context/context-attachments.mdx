@@ -61,7 +61,8 @@ The `useTamboContextAttachment` hook returns:
 
 ```tsx
 const {
-  attachments, // Array of active context attachments
+  attachments, // Array of active context attachments (React state)
+  getCurrentAttachments, // Get latest attachments synchronously (for callbacks)
   addContextAttachment, // Add a new context attachment
   removeContextAttachment, // Remove by ID
   clearContextAttachments, // Remove all attachments
@@ -133,50 +134,6 @@ return (
     ))}
   </div>
 );
-```
-
-## Customizing Context Data
-
-By default, context attachments send a standard structure to the AI. You can customize this by providing a `getContextHelperData` function to `TamboProvider`:
-
-```tsx
-import { TamboProvider } from "@tambo-ai/react";
-
-<TamboProvider
-  apiKey="your-api-key"
-  getContextHelperData={(context) => ({
-    selectedFile: {
-      name: context.name,
-      path: context.metadata?.filePath,
-      instruction: "Focus on this file when responding",
-      // Add any custom fields
-      language: context.metadata?.language,
-      lastModified: context.metadata?.lastModified,
-    },
-  })}
->
-  <App />
-</TamboProvider>;
-```
-
-The function can be async to fetch additional data:
-
-```tsx
-<TamboProvider
-  apiKey="your-api-key"
-  getContextHelperData={async (context) => {
-    const fileContent = await fetchFileContent(context.metadata?.filePath);
-    return {
-      selectedFile: {
-        name: context.name,
-        content: fileContent,
-        instruction: "Use this file content to help the user",
-      },
-    };
-  }}
->
-  <App />
-</TamboProvider>
 ```
 
 ## Custom Suggestions
@@ -300,11 +257,11 @@ function FileBrowser({ files }) {
 When you add a context attachment:
 
 1. The attachment is added to the `attachments` array and displayed as a badge
-2. A context helper is automatically registered with `TamboContextHelpersProvider`
-3. The context data is sent along with every message until the attachment is removed
-4. When removed, the context helper is automatically unregistered
+2. Any interactable components matching the attachment are marked with `isSelectedForInteraction: true` in the unified interactables context
+3. The AI receives this context and focuses on the selected components when responding
+4. When removed, the selection is cleared
 
-This automatic synchronization means you don't need to manually manage context helpers—just add and remove attachments as needed.
+This works seamlessly with interactable components—when you attach a component by name, the AI knows to focus on it.
 
 ## Integration with Existing Context
 
@@ -312,7 +269,7 @@ Context attachments work alongside other context helpers:
 
 - **Prebuilt helpers** like `currentTimeContextHelper` continue to work
 - **Custom helpers** from `contextHelpers` prop are still sent
-- **Manual context** via `additionalContext` is merged with attachment context
+- **Interactables context** automatically includes attachment selection state
 - All context sources are combined when sending messages
 
 ## Use Cases

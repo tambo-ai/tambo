@@ -1,5 +1,5 @@
-import type { ResourceItem } from "@/components/ui/tambo/text-editor";
 import type { ResourceProvider } from "@/components/ui/tambo/message-input";
+import type { ResourceItem } from "@/components/ui/tambo/text-editor";
 import {
   useCurrentInteractablesSnapshot,
   useTamboContextAttachment,
@@ -60,7 +60,10 @@ export const useInteractablesResourceProvider = (
   // Handle resource selection - add as context attachment
   const handleResourceSelect = React.useCallback(
     (item: ResourceItem) => {
-      addContextAttachment({ name: item.name });
+      addContextAttachment({
+        name: item.name,
+        metadata: { componentId: item.id },
+      });
     },
     [addContextAttachment],
   );

@@ -1,3 +1,4 @@
+import { TamboInteractableComponent } from "../model/tambo-interactable";
 import { ContextHelperFn } from "./types";
 
 /**
@@ -27,20 +28,26 @@ export const currentInteractablesContextHelper: ContextHelperFn = () => {
 /**
  * Creates an interactables context helper with access to the current components.
  * This is used internally by TamboInteractableProvider.
- * @param components Array of interactable components
+ * @param getComponents Function to get current interactable components
+ * @param getSelectedIds Function to get IDs of components that are currently selected for interaction
  * @returns Context helper function
  */
 export const createInteractablesContextHelper = (
-  components: any[],
+  getComponents: () => TamboInteractableComponent[],
+  getSelectedIds?: () => Set<string>,
 ): ContextHelperFn => {
   return () => {
-    if (!Array.isArray(components) || components.length === 0) {
+    const components = getComponents();
+
+    if (components.length === 0) {
       return null; // No interactable components on the page
     }
 
+    const selectedIds = getSelectedIds?.() ?? new Set<string>();
+
     return {
       description:
-        "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, current state,and optional schema. You can use tools to update these components on behalf of the user. Don't tell the user the ID of the components, only the name, unless they ask for it.",
+        "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, current state, and optional schema. You can use tools to update these components on behalf of the user. Don't tell the user the ID of the components, only the name, unless they ask for it.",
       components: components.map((component) => ({
         id: component.id,
         componentName: component.name,
@@ -50,6 +57,7 @@ export const createInteractablesContextHelper = (
           ? "Available - use component-specific update tools"
           : "Not specified",
         state: component.state,
+        isSelectedForInteraction: selectedIds.has(component.id),
       })),
     };
   };

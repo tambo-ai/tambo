@@ -71,27 +71,27 @@ export default async function RootLayout({
       <head>
         <PreloadResources />
       </head>
-      <TamboProviderWrapper>
-        <Suspense>
-          <PostHogPageview />
-        </Suspense>
-        <Suspense>
-          <WebVitalsReporter />
-        </Suspense>
-        <TRPCReactProvider>
-          <PHProvider>
-            <body
-              className={cn(
-                "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
-              )}
+      <Suspense>
+        <PostHogPageview />
+      </Suspense>
+      <Suspense>
+        <WebVitalsReporter />
+      </Suspense>
+      <TRPCReactProvider>
+        <PHProvider>
+          <body
+            className={cn(
+              "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
+            )}
+          >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              forcedTheme="light"
             >
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="light"
-                enableSystem={false}
-                forcedTheme="light"
-              >
-                <NextAuthProvider session={session}>
+              <NextAuthProvider session={session}>
+                <TamboProviderWrapper>
                   <MessageThreadPanelProvider>
                     <div className="flex h-screen overflow-hidden w-full">
                       <main className="flex-1 min-w-0 overflow-auto snap-y snap-proximity">
@@ -103,15 +103,15 @@ export default async function RootLayout({
                     </div>
                     <TailwindIndicator />
                   </MessageThreadPanelProvider>
-                </NextAuthProvider>
-              </ThemeProvider>
-              <Toaster />
-              <Analytics />
-              <Schema jsonLd={[websiteSchema, organizationSchema]} />
-            </body>
-          </PHProvider>
-        </TRPCReactProvider>
-      </TamboProviderWrapper>
+                </TamboProviderWrapper>
+              </NextAuthProvider>
+            </ThemeProvider>
+            <Toaster />
+            <Analytics />
+            <Schema jsonLd={[websiteSchema, organizationSchema]} />
+          </body>
+        </PHProvider>
+      </TRPCReactProvider>
     </html>
   );
 }

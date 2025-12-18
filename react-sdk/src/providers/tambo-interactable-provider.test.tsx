@@ -32,6 +32,14 @@ jest.mock("./tambo-component-provider", () => ({
   }),
 }));
 
+// Mock the context attachment provider
+jest.mock("./tambo-context-attachment-provider", () => ({
+  useTamboContextAttachment: () => ({
+    attachments: [],
+    getCurrentAttachments: () => [],
+  }),
+}));
+
 // Mock the context helper creation
 jest.mock("../context-helpers/current-interactables-context-helper", () => ({
   createInteractablesContextHelper: () =>

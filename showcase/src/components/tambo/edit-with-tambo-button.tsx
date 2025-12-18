@@ -25,6 +25,7 @@ import {
   Trigger as TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import {
+  type InteractableComponentMetadata,
   type Suggestion,
   useTambo,
   useTamboContextAttachment,
@@ -103,10 +104,13 @@ export function EditWithTamboButton({
   suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle } = useTambo();
-  const { setCustomSuggestions, addContextAttachment } =
-    useTamboContextAttachment();
-  const { setValue: setThreadInputValue } = useTamboThreadInput();
+  const { isIdle } = useTambo();
+  const {
+    setCustomSuggestions,
+    addContextAttachment,
+    clearContextAttachments,
+  } = useTamboContextAttachment();
+  const { setValue: setThreadInputValue, submit } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -155,22 +159,38 @@ export function EditWithTamboButton({
       return;
     }
 
-    setShouldCloseOnComplete(true);
+    // Add the component as a context attachment for inline editing (only if valid)
+    const interactableId = component?.interactableId;
+    const componentName = component?.componentName;
+    if (interactableId && componentName) {
+      addContextAttachment({
+        name: componentName,
+        metadata: {
+          componentId: interactableId,
+        } satisfies InteractableComponentMetadata,
+      });
+    }
 
-    await sendThreadMessage(prompt.trim(), {
-      streamResponse: true,
-      additionalContext: {
-        inlineEdit: {
-          componentId: component.interactableId,
-          instruction:
-            "The user wants to edit this specific component inline. Please update the component's props to fulfill the user's request.",
-        },
-      },
-    });
+    try {
+      // Set the thread input value and submit (uses contextKey from TamboProvider)
+      setThreadInputValue(prompt.trim());
+      await submit({ streamResponse: true });
 
-    // Clear the prompt after successful send
-    setPrompt("");
-  }, [prompt, isGenerating, component, sendThreadMessage]);
+      // Clear the prompt after successful send
+      setPrompt("");
+    } finally {
+      // Clear attachments regardless of success/failure (one-time edit)
+      clearContextAttachments();
+    }
+  }, [
+    prompt,
+    isGenerating,
+    component,
+    setThreadInputValue,
+    submit,
+    addContextAttachment,
+    clearContextAttachments,
+  ]);
 
   const handleSendInThread = useCallback(() => {
     if (!prompt.trim()) {
@@ -185,11 +205,17 @@ export function EditWithTamboButton({
       setCustomSuggestions(suggestions);
     }
 
-    // Add the component as a context attachment
-    const componentName = component?.componentName ?? "Unknown Component";
-    addContextAttachment({
-      name: componentName,
-    });
+    // Add the component as a context attachment (only if valid)
+    const interactableId = component?.interactableId;
+    const componentName = component?.componentName;
+    if (interactableId && componentName) {
+      addContextAttachment({
+        name: componentName,
+        metadata: {
+          componentId: interactableId,
+        } satisfies InteractableComponentMetadata,
+      });
+    }
 
     // Open the thread panel if callback provided
     if (onOpenThread) {
