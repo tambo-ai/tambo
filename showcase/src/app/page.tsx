@@ -18,13 +18,13 @@ export default function DocsPage() {
         <div className="flex gap-4">
           <Link
             href="/get-started"
-            className="bg-black text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors"
+            className="bg-foreground text-background px-6 py-3 rounded-full font-medium hover:bg-foreground/90 transition-colors"
           >
             Get Started
           </Link>
           <Link
             href="https://tambo.co"
-            className="border border-black text-black px-6 py-3 rounded-full font-medium hover:bg-gray-100 transition-colors"
+            className="border border-border text-foreground px-6 py-3 rounded-full font-medium hover:bg-muted transition-colors"
           >
             What is tambo-ai?
           </Link>

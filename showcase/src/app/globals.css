@@ -11,3 +11,6 @@
 
 /* Site-specific styles for showcase */
 @import "./site.css";
+
+/* Syntax highlighting theme (highlight.js) */
+@import "./highlight.css";

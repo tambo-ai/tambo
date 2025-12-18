@@ -23,8 +23,8 @@ export default function Template({
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
+      defaultTheme="system"
+      enableSystem
       disableTransitionOnChange
     >
       <MobileProvider>
@@ -44,6 +44,30 @@ export default function Template({
                   mcpServers={[
                     { url: MCP_DEMO_URL, transport: MCPTransport.HTTP },
                   ]}
+                  contextKey={userContextKey}
+                  listResources={async (search = "X") => {
+                    console.log("listResources", search);
+                    return [
+                      {
+                        uri: `generic-registry-resource/${search}`,
+                        name: `Generic Registry Resource ${search}`,
+                        description: `This is a generic registry resource ${search}`,
+                        mimeType: "text/plain",
+                      },
+                    ];
+                  }}
+                  getResource={async (uri) => {
+                    console.log("getResource", uri);
+                    return {
+                      contents: [
+                        {
+                          uri,
+                          text: `This is a generic registry resource for ${uri}`,
+                          mimeType: "text/plain",
+                        },
+                      ],
+                    };
+                  }}
                 >
                   <div className="container mx-auto px-4 md:px-6 pt-6">
                     {children}

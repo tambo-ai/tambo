@@ -9,6 +9,9 @@ const config: Config = {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@/components/tambo/(.*)$": "<rootDir>/src/registry/$1",
     "^@/lib/(.*)$": "<rootDir>/src/lib/$1",
+    // pkce-challenge's browser build is ESM-only; force the CJS Node.js version
+    "^pkce-challenge$":
+      "<rootDir>/../node_modules/pkce-challenge/dist/index.node.cjs",
   },
   testMatch: ["<rootDir>/__tests__/**/*.test.tsx"],
   transform: {
