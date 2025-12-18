@@ -1,9 +1,7 @@
 import type { Config } from "jest";
 
-const config: Config = {
+const sharedConfig: Config = {
   preset: "ts-jest/presets/default-esm",
-  testEnvironment: "jsdom",
-  extensionsToTreatAsEsm: [".ts", ".tsx"],
   moduleNameMapper: {
     // Mock @tambo-ai/react for testing
     "^@tambo-ai/react$": "<rootDir>/__tests__/__mocks__/@tambo-ai-react.ts",
@@ -25,11 +23,6 @@ const config: Config = {
     // ESM import mapping
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
-  // Match both CLI tests in src/ and React component tests in __tests__/
-  testMatch: [
-    "<rootDir>/src/**/*.test.ts",
-    "<rootDir>/__tests__/**/*.test.tsx",
-  ],
   transform: {
     "^.+\\.[tj]sx?$": [
       "ts-jest",
@@ -43,7 +36,6 @@ const config: Config = {
   transformIgnorePatterns: [
     "/node_modules/(?!(json-stringify-pretty-compact|streamdown|unified|bail|devlop|is-plain-obj|trough|vfile|vfile-message|micromark|micromark-util-.*|mdast-util-.*|hast-util-.*|estree-util-.*|unist-util-.*|comma-separated-tokens|property-information|space-separated-tokens|ccount|escape-string-regexp|markdown-table|zwitch|longest-streak|rxjs)/)",
   ],
-  setupFilesAfterEnv: ["<rootDir>/__tests__/setup.ts"],
   collectCoverageFrom: [
     "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
     "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
@@ -60,6 +52,26 @@ const config: Config = {
       lines: 16,
     },
   },
+};
+
+const config: Config = {
+  projects: [
+    {
+      ...sharedConfig,
+      displayName: "node",
+      testEnvironment: "node",
+      extensionsToTreatAsEsm: [".ts"],
+      testMatch: ["<rootDir>/src/**/*.test.ts"],
+    },
+    {
+      ...sharedConfig,
+      displayName: "react",
+      testEnvironment: "jsdom",
+      extensionsToTreatAsEsm: [".ts", ".tsx"],
+      testMatch: ["<rootDir>/__tests__/**/*.test.tsx"],
+      setupFilesAfterEnv: ["<rootDir>/__tests__/setup.ts"],
+    },
+  ],
 };
 
 export default config;

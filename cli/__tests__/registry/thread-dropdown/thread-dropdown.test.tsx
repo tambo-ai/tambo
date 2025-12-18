@@ -5,7 +5,7 @@ import { render, screen } from "@testing-library/react";
 import { ThreadDropdown } from "../../../src/registry/thread-dropdown/thread-dropdown";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 
-// @tambo-ai/react is mocked via moduleNameMapper in jest.config.react.ts
+// @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 
 describe("ThreadDropdown", () => {
   const mockUseTamboThread = jest.mocked(useTamboThread);

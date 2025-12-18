@@ -6,7 +6,7 @@ import { Message, MessageContent } from "../../../src/registry/message/message";
 import { useTambo } from "@tambo-ai/react";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 
-// @tambo-ai/react is mocked via moduleNameMapper in jest.config.react.ts
+// @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 
 /**
  * Creates a minimal TamboThreadMessage for testing.
