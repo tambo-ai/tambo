@@ -23,6 +23,20 @@ function createMessage(
   } as TamboThreadMessage;
 }
 
+function getMessageContentTextSlot(container: HTMLElement): HTMLElement {
+  const contentElement = container.querySelector(
+    '[data-slot="message-content-text"]',
+  );
+
+  if (!contentElement) {
+    throw new Error(
+      'Expected to find message content slot: [data-slot="message-content-text"]',
+    );
+  }
+
+  return contentElement as HTMLElement;
+}
+
 describe("MessageContent rendering", () => {
   const mockUseTambo = jest.mocked(useTambo);
 
@@ -47,10 +61,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             Hello, world!
@@ -73,10 +85,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             First part. Second part.
@@ -98,10 +108,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             This is
@@ -142,10 +150,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             <span
@@ -178,10 +184,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             <span
@@ -215,10 +219,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             <span
@@ -255,10 +257,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             Check out this file:
@@ -294,10 +294,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             <span
@@ -342,10 +340,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             Compare
@@ -385,10 +381,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
         </div>
       `);
@@ -405,10 +399,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
         </div>
       `);
@@ -434,11 +426,9 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
+      const contentElement = getMessageContentTextSlot(container);
       // Resource without URI should be skipped, text parts joined with space
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             Before After
@@ -460,10 +450,8 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      const contentElement = getMessageContentTextSlot(container);
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             Plain string content
@@ -487,12 +475,10 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
+      const contentElement = getMessageContentTextSlot(container);
       // Regular links should render as <a> tags with external link icon
       // Note: lucide-react includes aria-hidden="true" on SVGs
-      expect(contentElement?.innerHTML).toMatchInlineSnapshot(`
+      expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
             Check out
@@ -551,16 +537,14 @@ describe("MessageContent rendering", () => {
         </Message>,
       );
 
-      const contentElement = container.querySelector(
-        '[data-slot="message-content-text"]',
-      );
+      const contentElement = getMessageContentTextSlot(container);
       // Should have both regular link and resource mention
       // Note: URLs are normalized with trailing slashes by the markdown parser
-      expect(contentElement?.innerHTML).toContain('href="https://example.com/');
-      expect(contentElement?.innerHTML).toContain(
+      expect(contentElement.innerHTML).toContain('href="https://example.com/');
+      expect(contentElement.innerHTML).toContain(
         'data-resource-uri="file:///local.txt"',
       );
-      expect(contentElement?.innerHTML).toContain("@local.txt");
+      expect(contentElement.innerHTML).toContain("@local.txt");
     });
   });
 });

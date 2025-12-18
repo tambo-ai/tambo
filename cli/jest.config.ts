@@ -3,8 +3,6 @@ import type { Config } from "jest";
 const sharedConfig: Config = {
   preset: "ts-jest/presets/default-esm",
   moduleNameMapper: {
-    // Mock @tambo-ai/react for testing
-    "^@tambo-ai/react$": "<rootDir>/__tests__/__mocks__/@tambo-ai-react.ts",
     // Path mappings for registry components
     "^@/components/tambo/markdown-components$":
       "<rootDir>/src/registry/message/markdown-components",
@@ -69,6 +67,10 @@ const config: Config = {
       testEnvironment: "jsdom",
       extensionsToTreatAsEsm: [".ts", ".tsx"],
       testMatch: ["<rootDir>/__tests__/**/*.test.tsx"],
+      moduleNameMapper: {
+        ...sharedConfig.moduleNameMapper,
+        "^@tambo-ai/react$": "<rootDir>/__tests__/__mocks__/@tambo-ai-react.ts",
+      },
       setupFilesAfterEnv: ["<rootDir>/__tests__/setup.ts"],
     },
   ],
