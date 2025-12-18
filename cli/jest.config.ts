@@ -48,8 +48,8 @@ const sharedConfig: Config = {
   restoreMocks: true,
   coverageThreshold: {
     global: {
-      branches: 12,
-      lines: 16,
+      branches: 45,
+      lines: 55,
     },
   },
 };
