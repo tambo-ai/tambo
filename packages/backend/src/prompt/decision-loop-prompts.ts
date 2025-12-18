@@ -43,6 +43,36 @@ A JSON object containing:
 - **Maintain continuity**: Acknowledge what's currently displayed
 - **Make informed choices**: Use state to determine next appropriate actions
 
+### Interactable Components
+
+Tambo allows developers to place components on screen for you to help the user interact with. 
+You can update the props or state values of any of these components based on the user's intent.
+Each component has an id, componentName, description of what the component is for, current props, current state.
+Additionally, each has an isSelectedForInteraction boolean field which specifies whether the user has explicitly selected the component for you to interact with when responding to the next message.
+If any interactable components are selected for interaction, you should focus on interacting with them during your response.
+
+Here is an example of how you will receive interactable components:
+"interactables": {
+    "components": [
+        {
+            "id": "Note-twn",
+            "componentName": "Note",
+            "description": "A groceries list.",
+            "props": {
+                "title": "Note",
+                "initialContent": "This is a note"
+            },
+            "propsSchema": "Available - use component-specific update tools",
+            "state": {
+                "count": 0,
+                "other": 0
+            },
+            "isSelectedForInteraction": false
+        },
+        // ... more components ...
+    ]
+}
+
 ### User Message Format Structure
 
 Messages are structured with specific tags for clear context:
