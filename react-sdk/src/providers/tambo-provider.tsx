@@ -16,7 +16,6 @@ import {
 import {
   ContextAttachmentState,
   TamboContextAttachmentProvider,
-  TamboContextAttachmentProviderProps,
   useTamboContextAttachment,
 } from "./tambo-context-attachment-provider";
 import {
@@ -62,7 +61,6 @@ import {
  * @param props.contextKey - Optional context key passed to thread input provider for scoping threads
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
  * @param props.initialMessages - Initial messages to be included in new threads
- * @param props.getContextHelperData - Optional function to customize the data sent to the AI for each context attachment
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
@@ -70,8 +68,7 @@ export const TamboProvider: React.FC<
     TamboClientProviderProps &
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
-      TamboContextHelpersProviderProps &
-      Partial<Pick<TamboContextAttachmentProviderProps, "getContextHelperData">>
+      TamboContextHelpersProviderProps
   >
 > = ({
   children,
@@ -89,7 +86,6 @@ export const TamboProvider: React.FC<
   contextKey,
   initialMessages,
   onCallUnregisteredTool,
-  getContextHelperData,
   getResource,
   listResources,
   resources,
@@ -120,19 +116,17 @@ export const TamboProvider: React.FC<
           >
             <TamboMcpTokenProvider>
               <TamboMcpProvider contextKey={contextKey}>
-                <TamboThreadInputProvider>
-                  <TamboContextAttachmentProvider
-                    getContextHelperData={getContextHelperData}
-                  >
-                    <TamboComponentProvider>
-                      <TamboInteractableProvider>
+                <TamboContextAttachmentProvider>
+                  <TamboComponentProvider>
+                    <TamboInteractableProvider>
+                      <TamboThreadInputProvider>
                         <TamboCompositeProvider>
                           {children}
                         </TamboCompositeProvider>
-                      </TamboInteractableProvider>
-                    </TamboComponentProvider>
-                  </TamboContextAttachmentProvider>
-                </TamboThreadInputProvider>
+                      </TamboThreadInputProvider>
+                    </TamboInteractableProvider>
+                  </TamboComponentProvider>
+                </TamboContextAttachmentProvider>
               </TamboMcpProvider>
             </TamboMcpTokenProvider>
           </TamboThreadProvider>

@@ -159,10 +159,7 @@ export function ToolCallLimitEditor({
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           Tool Call Limit
-          <EditWithTamboButton
-            suggestions={toolCallLimitEditorSuggestions}
-            description="Manage the tool call limit for this project."
-          />
+          <EditWithTamboButton description="Manage the tool call limit for this project." />
         </CardTitle>
         <CardDescription className="text-sm font-sans text-foreground">
           Set the maximum number of tool calls allowed per response. This helps

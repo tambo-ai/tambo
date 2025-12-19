@@ -32,6 +32,8 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   clearAllInteractableComponents: () => {},
   setInteractableState: () => {},
   getInteractableComponentState: () => undefined,
+  setInteractableSelected: () => {},
+  clearInteractableSelections: () => {},
 });
 
 /**
@@ -453,6 +455,30 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     [interactableComponents],
   );
 
+  const setInteractableSelected = useCallback(
+    (componentId: string, isSelected: boolean) => {
+      setInteractableComponents((prev) => {
+        let found = false;
+        const next = prev.map((component) => {
+          if (component.id !== componentId) return component;
+          found = true;
+          return component.isSelected === isSelected
+            ? component
+            : { ...component, isSelected: isSelected };
+        });
+        return found ? next : prev;
+      });
+    },
+    [],
+  );
+
+  const clearInteractableSelections = useCallback(() => {
+    setInteractableComponents((prev) => {
+      if (!prev.some((c) => c.isSelected)) return prev;
+      return prev.map((c) => (c.isSelected ? { ...c, isSelected: false } : c));
+    });
+  }, []);
+
   const value: TamboInteractableContext = {
     interactableComponents,
     addInteractableComponent,
@@ -463,6 +489,8 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     clearAllInteractableComponents,
     setInteractableState: setInteractableStateValue,
     getInteractableComponentState,
+    setInteractableSelected,
+    clearInteractableSelections,
   };
 
   return (

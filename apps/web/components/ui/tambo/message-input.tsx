@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/tambo/suggestions-tooltip";
 import {
   TextEditor,
-  type TamboEditor,
   type PromptItem,
   type ResourceItem,
+  type TamboEditor,
 } from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import {

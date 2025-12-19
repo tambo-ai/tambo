@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { withInteractable, type Suggestion } from "@tambo-ai/react";
+import { withInteractable } from "@tambo-ai/react";
 import { useCallback, useState } from "react";
 import { z } from "zod";
 
@@ -48,7 +48,6 @@ interface ContactFormProps {
   messageValue: string;
   submitText: string;
   onOpenThread?: () => void;
-  suggestions?: Suggestion[];
 }
 
 // Base form component
@@ -66,7 +65,6 @@ function ContactFormBase({
   messageValue,
   submitText,
   onOpenThread,
-  suggestions,
 }: ContactFormProps) {
   // Ensure selectValue is one of the valid options, fallback to first option
   const safeSelectValue = selectOptions.includes(selectValue)
@@ -86,7 +84,6 @@ function ContactFormBase({
               tooltip="Edit form"
               description="Edit the form labels and content"
               onOpenThread={onOpenThread}
-              suggestions={suggestions}
             />
           </div>
         </div>
@@ -176,31 +173,6 @@ const ContactForm = withInteractable(ContactFormBase, {
 export const EditWithTamboInterface = () => {
   const [isThreadOpen, setIsThreadOpen] = useState(false);
 
-  // Define suggestions for the form
-  const formSuggestions: Suggestion[] = [
-    {
-      id: "suggestion-1",
-      title: "Change prefilled data",
-      detailedSuggestion:
-        "Change the prefilled form values to be for John Doe from New York",
-      messageId: "form-1",
-    },
-    {
-      id: "suggestion-2",
-      title: "Change dropdown options",
-      detailedSuggestion:
-        "Change the dropdown to ask about preferred contact method instead",
-      messageId: "form-2",
-    },
-    {
-      id: "suggestion-3",
-      title: "Support form",
-      detailedSuggestion:
-        "Change this to a customer support form with appropriate labels and prefilled data",
-      messageId: "form-3",
-    },
-  ];
-
   // Handler to open the thread panel
   const handleOpenThread = useCallback(() => {
     // Simulate Cmd+K to open the collapsible (hook checks for metaKey OR ctrlKey)
@@ -249,7 +221,6 @@ export const EditWithTamboInterface = () => {
           messageValue="I'm interested in learning more about your services."
           submitText="Send Message"
           onOpenThread={handleOpenThread}
-          suggestions={formSuggestions}
         />
       </div>
 
