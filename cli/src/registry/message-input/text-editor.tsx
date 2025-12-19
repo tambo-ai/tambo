@@ -90,8 +90,10 @@ export interface TextEditorProps {
   onSearchResources: (query: string) => void;
   /** Current list of resources to show in the "@" suggestion menu (controlled) */
   resources: ResourceItem[];
-  /** Search for prompts matching the query (for "/" commands) */
-  onSearchPrompts: (query: string) => Promise<PromptItem[]>;
+  /** Called when prompt search query changes (for "/" commands) - parent should update `prompts` prop */
+  onSearchPrompts: (query: string) => void;
+  /** Current list of prompts to show in the "/" suggestion menu (controlled) */
+  prompts: PromptItem[];
   /** Called when a resource is selected from the "@" menu */
   onResourceSelect: (item: ResourceItem) => void;
   /** Called when a prompt is selected from the "/" menu */
@@ -340,9 +342,10 @@ function createResourceMentionConfig(
 
 /**
  * Creates a custom TipTap extension for prompt commands using the Suggestion plugin.
+ * The items() function triggers the search - actual items come from props via stateRef.
  */
 function createPromptCommandExtension(
-  searchPrompts: (query: string) => Promise<PromptItem[]>,
+  onSearchChange: (query: string) => void,
   onSelect: (item: PromptItem) => void,
   stateRef: React.MutableRefObject<SuggestionRef<PromptItem>>,
 ) {
@@ -354,99 +357,99 @@ function createPromptCommandExtension(
         Suggestion({
           editor: this.editor,
           char: "/",
-          items: async ({ query, editor }) => {
-            try {
-              const editorValue = editor.getText().replace("/", "").trim();
-              if (editorValue.length > 0) return [];
-              return await searchPrompts(query);
-            } catch (error) {
-              console.error("Failed to fetch prompts", error);
+          items: ({ query, editor }) => {
+            // Only show prompts when editor is empty (except for the "/" and query)
+            const editorValue = editor.getText().replace("/", "").trim();
+            if (editorValue.length > 0) {
+              stateRef.current.setState({ isOpen: false });
               return [];
             }
+            // Trigger search - actual items come from props via stateRef
+            onSearchChange(query);
+            return [];
           },
-          render: () => ({
-            onStart: (props) => {
-              if (props.items.length === 0) {
-                stateRef.current.setState({ isOpen: false });
-                return;
-              }
-              stateRef.current.setState({
-                isOpen: true,
-                items: props.items,
-                selectedIndex: 0,
-                position: getPositionFromClientRect(props.clientRect),
-                command: (item: PromptItem) => {
-                  props.editor.commands.deleteRange({
-                    from: props.range.from,
-                    to: props.range.to,
-                  });
-                  onSelect(item);
-                },
-              });
-            },
-            onUpdate: (props) => {
-              if (props.items.length === 0) {
-                stateRef.current.setState({ isOpen: false });
-                return;
-              }
-              stateRef.current.setState({
-                items: props.items,
-                position: getPositionFromClientRect(props.clientRect),
-                selectedIndex: 0,
-                command: (item: PromptItem) => {
-                  props.editor.commands.deleteRange({
-                    from: props.range.from,
-                    to: props.range.to,
-                  });
-                  onSelect(item);
-                },
-              });
-            },
-            onKeyDown: ({ event }) => {
-              const { state, setState } = stateRef.current;
-              if (!state.isOpen) return false;
+          render: () => {
+            // Store command creator that captures editor context
+            let createCommand: ((item: PromptItem) => void) | null = null;
 
-              const handlers: Record<string, () => boolean> = {
-                ArrowUp: () => {
-                  setState({
-                    selectedIndex:
-                      (state.selectedIndex - 1 + state.items.length) %
-                      state.items.length,
+            return {
+              onStart: (props) => {
+                createCommand = (item: PromptItem) => {
+                  props.editor.commands.deleteRange({
+                    from: props.range.from,
+                    to: props.range.to,
                   });
-                  return true;
-                },
-                ArrowDown: () => {
-                  setState({
-                    selectedIndex:
-                      (state.selectedIndex + 1) % state.items.length,
+                  onSelect(item);
+                };
+                stateRef.current.setState({
+                  isOpen: true,
+                  selectedIndex: 0,
+                  position: getPositionFromClientRect(props.clientRect),
+                  command: createCommand,
+                });
+              },
+              onUpdate: (props) => {
+                createCommand = (item: PromptItem) => {
+                  props.editor.commands.deleteRange({
+                    from: props.range.from,
+                    to: props.range.to,
                   });
-                  return true;
-                },
-                Enter: () => {
-                  const item = state.items[state.selectedIndex];
-                  if (item && state.command) {
-                    state.command(item);
+                  onSelect(item);
+                };
+                stateRef.current.setState({
+                  position: getPositionFromClientRect(props.clientRect),
+                  command: createCommand,
+                  selectedIndex: 0,
+                });
+              },
+              onKeyDown: ({ event }) => {
+                const { state, setState } = stateRef.current;
+                if (!state.isOpen) return false;
+
+                const handlers: Record<string, () => boolean> = {
+                  ArrowUp: () => {
+                    if (state.items.length === 0) return false;
+                    setState({
+                      selectedIndex:
+                        (state.selectedIndex - 1 + state.items.length) %
+                        state.items.length,
+                    });
                     return true;
-                  }
-                  return false;
-                },
-                Escape: () => {
-                  setState({ isOpen: false });
-                  return true;
-                },
-              };
+                  },
+                  ArrowDown: () => {
+                    if (state.items.length === 0) return false;
+                    setState({
+                      selectedIndex:
+                        (state.selectedIndex + 1) % state.items.length,
+                    });
+                    return true;
+                  },
+                  Enter: () => {
+                    const item = state.items[state.selectedIndex];
+                    if (item && state.command) {
+                      state.command(item);
+                      return true;
+                    }
+                    return false;
+                  },
+                  Escape: () => {
+                    setState({ isOpen: false });
+                    return true;
+                  },
+                };
 
-              const handler = handlers[event.key];
-              if (handler) {
-                event.preventDefault();
-                return handler();
-              }
-              return false;
-            },
-            onExit: () => {
-              stateRef.current.setState({ isOpen: false });
-            },
-          }),
+                const handler = handlers[event.key];
+                if (handler) {
+                  event.preventDefault();
+                  return handler();
+                }
+                return false;
+              },
+              onExit: () => {
+                stateRef.current.setState({ isOpen: false });
+              },
+            };
+          },
         }),
       ];
     },
@@ -537,6 +540,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       onSearchResources,
       resources,
       onSearchPrompts,
+      prompts,
       onResourceSelect,
       onPromptSelect,
     },
@@ -545,7 +549,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
     // Suggestion states with refs for TipTap access
     const [resourceState, resourceRef] =
       useSuggestionState<ResourceItem>(resources);
-    const [promptState, promptRef] = useSuggestionState<PromptItem>();
+    const [promptState, promptRef] = useSuggestionState<PromptItem>(prompts);
 
     // Consolidated ref for callbacks that TipTap needs to access
     const callbacksRef = React.useRef({
@@ -571,8 +575,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
     );
 
     const stableSearchPrompts = React.useCallback(
-      async (query: string) =>
-        await callbacksRef.current.onSearchPrompts(query),
+      (query: string) => callbacksRef.current.onSearchPrompts(query),
       [],
     );
 
