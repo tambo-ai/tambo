@@ -41,7 +41,10 @@ This snippet assumes you're running from the repo root, using `bash`, and have `
 ```bash
 #!/usr/bin/env bash
 
-command -v jq >/dev/null 2>&1 || { echo "jq is required" >&2; exit 1; }
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq is required for workspace detection; skipping workspace scan." >&2
+  exit 0
+fi
 [ -f package.json ] || { echo "Run this from the repo root (package.json not found)" >&2; exit 1; }
 
 workspaces=$(jq -r '
@@ -63,7 +66,8 @@ build_workspace_report() {
   local patterns="$1"
   while IFS= read -r pattern; do
     [ -n "$pattern" ] || continue
-    for p in $pattern; do
+    set -- $pattern
+    for p in "$@"; do
       [ -d "$p" ] || continue
       if [ -f "$p/package.json" ]; then
         is_private=$(jq -r '.private == true' "$p/package.json")

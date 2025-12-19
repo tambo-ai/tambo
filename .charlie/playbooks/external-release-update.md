@@ -33,9 +33,15 @@ else
 fi
 
 # Verify GNU-compatible `date` support for -d and @epoch.
-if ! "$DATE_BIN" -d '1970-01-01 00:00' +%s >/dev/null 2>&1; then
-  echo "$DATE_BIN does not support GNU -d semantics; install GNU coreutils and ensure its date is first on PATH." >&2
-  exit 3
+if ! "$DATE_BIN" -d @0 +%s >/dev/null 2>&1; then
+  cat >&2 <<'EOF'
+This script requires GNU date (supports `-d` and @epoch).
+
+On macOS:   brew install coreutils   # then ensure `gdate` is on PATH
+On Debian:  apt-get install coreutils
+On Alpine:  apk add coreutils
+EOF
+  exit 1
 fi
 
 export TZ=America/Los_Angeles
@@ -74,6 +80,7 @@ if [ "$count" -eq 0 ]; then
 fi
 if [ "$count" -ge "$RELEASE_LIMIT" ]; then
   echo "Warning: fetched $count releases (limit=$RELEASE_LIMIT); there may be additional releases in the window. Consider increasing RELEASE_LIMIT." >&2
+  echo "Hint: re-run with a higher limit, e.g. 'RELEASE_LIMIT=2000 ...'" >&2
 fi
 
 earliest=$(jq -r 'map(.publishedAt) | min // empty' "$releases_file")
@@ -81,6 +88,7 @@ earliest_epoch=$($DATE_BIN -d "$earliest" +%s 2>/dev/null || echo "")
 start_epoch_check=$($DATE_BIN -d "$start_ts" +%s 2>/dev/null || echo "")
 if [ -n "$earliest_epoch" ] && [ -n "$start_epoch_check" ] && [ "$earliest_epoch" -gt "$start_epoch_check" ]; then
   echo "Warning: earliest fetched release ($earliest) is after start_ts ($start_ts); older releases in the window may be missing. Consider increasing RELEASE_LIMIT." >&2
+  echo "Hint: increase RELEASE_LIMIT and re-run the fetch step." >&2
 fi
 
 # Note: `$start_ts` and `$next_ts` are UTC timestamps derived from LA-local day
