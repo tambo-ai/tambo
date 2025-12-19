@@ -178,6 +178,14 @@ export const deviceAuthRouter = createTRPCRouter({
         ? await getBrowserSessionId(ctx.db, ctx.user.id)
         : null;
 
+      // Create CLI session first (required by FK constraint on device_auth_codes)
+      await ctx.db.insert(schema.cliSessions).values({
+        id: cliSessionToken,
+        userId: ctx.user.id,
+        browserSessionId,
+        notAfter: sessionExpiresAt,
+      });
+
       // Atomically claim the device code with conditional update
       // This prevents race conditions - only one request can successfully claim a code
       const updateResult = await ctx.db
@@ -197,20 +205,18 @@ export const deviceAuthRouter = createTRPCRouter({
         )
         .returning({ id: schema.deviceAuthCodes.id });
 
-      // If update succeeded (exactly 1 row), create the CLI session
+      // If update succeeded (exactly 1 row), we're done
       if (updateResult.length === 1) {
-        await ctx.db.insert(schema.cliSessions).values({
-          id: cliSessionToken,
-          userId: ctx.user.id,
-          browserSessionId,
-          notAfter: sessionExpiresAt,
-        });
-
         return {
           success: true,
           message: "Device authorized successfully",
         };
       }
+
+      // Update failed - delete the orphaned CLI session we just created
+      await ctx.db
+        .delete(schema.cliSessions)
+        .where(eq(schema.cliSessions.id, cliSessionToken));
 
       // Update failed - determine why for a helpful error message
       const [existingCode] = await ctx.db

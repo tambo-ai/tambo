@@ -304,7 +304,6 @@ async function handleAuthentication(): Promise<boolean> {
     }
 
     // Run device auth flow
-    console.log(chalk.gray("\nInitiating device authentication..."));
     const authResult = await runDeviceAuthFlow();
 
     console.log(
