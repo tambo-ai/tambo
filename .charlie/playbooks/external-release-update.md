@@ -23,11 +23,17 @@ All proactive behaviors currently run daily. To make this effectively weekly, tr
 
 Compute the reporting window (previous Monday–Sunday, America/Los_Angeles):
 
-These commands assume GNU `date` (Linux/Devbox). On macOS, use `gdate` from `coreutils`.
-
-On macOS, replace `date` with `gdate` for all commands below (including epoch conversions).
+These commands assume GNU `date` (Linux/Devbox). On macOS, `gdate` (from `coreutils`) is required.
 
 ```bash
+if [ "$(uname)" = "Darwin" ]; then
+  if ! command -v gdate >/dev/null 2>&1; then
+    echo "gdate (coreutils) is required on macOS. Install via 'brew install coreutils'." >&2
+    exit 1
+  fi
+  date() { gdate "$@"; }
+fi
+
 export TZ=America/Los_Angeles
 end_date=$(date -d 'yesterday' +%F)
 start_date=$(date -d "$end_date -6 days" +%F)
@@ -49,6 +55,8 @@ echo "next_ts (UTC): $next_ts"
 Collect GitHub releases in that window:
 
 Filter releases whose `publishedAt` (UTC) falls between the UTC timestamps corresponding to the LA-local start and end days.
+
+Note: don’t compare only the `YYYY-MM-DD` portion of `publishedAt`; always compare the full UTC timestamps to correctly handle time zones and DST.
 
 ```bash
 gh release list --limit 100 --json tagName,name,publishedAt,url > /tmp/releases.json

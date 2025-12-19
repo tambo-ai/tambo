@@ -53,13 +53,19 @@ if [ -z "$workspaces" ]; then
 fi
 
 ( shopt -s nullglob globstar
-  while IFS= read -r glob; do
-    for p in $glob; do
-      if [ -f "$p/package.json" ]; then
-        priv=$(jq -r '.private // false' "$p/package.json")
-        name=$(jq -r '.name' "$p/package.json")
-        printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
-      fi
+  while IFS= read -r entry; do
+    patterns=("$entry")
+    if [ -d "$entry" ]; then
+      patterns+=("$entry/*")
+    fi
+    for pattern in "${patterns[@]}"; do
+      for p in $pattern; do
+        if [ -f "$p/package.json" ]; then
+          priv=$(jq -r '.private // false' "$p/package.json")
+          name=$(jq -r '.name' "$p/package.json")
+          printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
+        fi
+      done
     done
   done <<< "$workspaces" | sort
 )
