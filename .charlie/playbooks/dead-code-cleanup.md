@@ -45,6 +45,11 @@ workspaces=$(jq -r '
   end
   ' package.json)
 
+if [ -z "$workspaces" ]; then
+  echo "No workspaces found in package.json. Confirm that this repo is configured as a workspace monorepo before running this playbook." >&2
+  exit 1
+fi
+
 shopt -s nullglob globstar
 while IFS= read -r glob; do
   for p in $glob; do
@@ -58,6 +63,7 @@ done <<< "$workspaces" | sort
 ```
 
 Note: `package.json.private` must be explicitly set to `true`; any other value (including missing) is treated as public.
+Only rows with `private=true` are eligible for dead code candidates.
 
 Only collect candidates from workspaces where `package.json.private === true` (for example in this repo: `apps/api`, `apps/web`, `packages/core`, `packages/db`, `packages/testing`, `showcase`).
 

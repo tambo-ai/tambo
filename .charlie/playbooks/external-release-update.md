@@ -39,9 +39,13 @@ start_ts="$(date -u -d "@$start_epoch" +%FT%T)Z"
 next_ts="$(date -u -d "@$next_epoch" +%FT%T)Z"
 
 echo "window: $start_date..$end_date"
+echo "start_ts (UTC): $start_ts"
+echo "next_ts (UTC): $next_ts"
 ```
 
 Collect GitHub releases in that window:
+
+Filter releases whose `publishedAt` (UTC) falls between the UTC timestamps corresponding to the LA-local start and end days.
 
 ```bash
 gh release list --limit 100 --json tagName,name,publishedAt,url > /tmp/releases.json
