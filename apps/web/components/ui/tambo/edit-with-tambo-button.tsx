@@ -10,11 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
-import {
-  useTambo,
-  useTamboContextAttachment,
-  useTamboCurrentComponent,
-} from "@tambo-ai/react";
+import { useTambo, useTamboCurrentComponent } from "@tambo-ai/react";
 import { Bot, ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -65,7 +61,6 @@ export function EditWithTamboButton({
   const { sendThreadMessage, isIdle, setInteractableSelectedForInteraction } =
     useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
-  const { addContextAttachment } = useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -133,10 +128,8 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // Add the component as a context attachment for the next message
     const componentName = component?.componentName ?? "Unknown Component";
     const interactableId = component?.interactableId ?? "";
-    addContextAttachment(componentName, componentName, "component");
     if (interactableId) {
       setInteractableSelectedForInteraction(interactableId, true);
     }
@@ -164,7 +157,6 @@ export function EditWithTamboButton({
   }, [
     prompt,
     component,
-    addContextAttachment,
     setInteractableSelectedForInteraction,
     onOpenThread,
     editorRef,

@@ -16,7 +16,6 @@ import {
 } from "@radix-ui/react-tooltip";
 import {
   useTambo,
-  useTamboContextAttachment,
   useTamboCurrentComponent,
   useTamboThreadInput,
 } from "@tambo-ai/react";
@@ -82,7 +81,6 @@ export function EditWithTamboButton({
   const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle, setInteractableSelectedForInteraction } =
     useTambo();
-  const { addContextAttachment } = useTamboContextAttachment();
   const { setValue: setThreadInputValue } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
@@ -147,10 +145,7 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // Add the component as a context attachment for the next message
-    const componentName = component?.componentName ?? "Unknown Component";
     const interactableId = component?.interactableId ?? "";
-    addContextAttachment(componentName, componentName, "component");
     if (interactableId) {
       setInteractableSelectedForInteraction(interactableId, true);
     }
@@ -179,7 +174,6 @@ export function EditWithTamboButton({
     component,
     onOpenThread,
     editorRef,
-    addContextAttachment,
     setInteractableSelectedForInteraction,
     setThreadInputValue,
   ]);
