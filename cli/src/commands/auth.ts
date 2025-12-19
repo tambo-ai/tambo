@@ -337,24 +337,18 @@ async function revokeAllSessions(): Promise<void> {
     return;
   }
 
-  const spinner = ora("Fetching sessions...").start();
+  const spinner = ora("Revoking all sessions...").start();
 
   try {
-    const sessions = await api.deviceAuth.listSessions.query();
+    const result = await api.deviceAuth.revokeAllSessions.mutate();
 
-    if (!sessions || sessions.length === 0) {
+    if (result.revokedCount === 0) {
       spinner.info("No sessions to revoke");
       console.log();
       return;
     }
 
-    spinner.text = `Revoking ${sessions.length} session(s)...`;
-
-    for (const session of sessions) {
-      await api.deviceAuth.revokeSession.mutate({ sessionId: session.id });
-    }
-
-    spinner.succeed(`Revoked ${sessions.length} session(s)`);
+    spinner.succeed(`Revoked ${result.revokedCount} session(s)`);
 
     // Clear local token since we revoked our own session
     clearToken();

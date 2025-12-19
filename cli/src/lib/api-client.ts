@@ -294,6 +294,21 @@ const sessionsApi = {
   },
 
   /**
+   * Revoke all CLI sessions for the current user
+   * More efficient than revoking one by one
+   */
+  async revokeAllSessions(): Promise<{
+    success: boolean;
+    revokedCount: number;
+  }> {
+    return await trpcRequest<{ success: boolean; revokedCount: number }>(
+      "deviceAuth.revokeAllSessions",
+      "mutation",
+      undefined,
+    );
+  },
+
+  /**
    * Verify current session is valid with the server
    * Returns true if session is valid, false otherwise
    * Automatically clears local token if session is invalid
@@ -354,6 +369,11 @@ export const api = {
         sessionId: string;
       }): Promise<{ success: boolean }> {
         return await sessionsApi.revokeSession(input.sessionId);
+      },
+    },
+    revokeAllSessions: {
+      async mutate(): Promise<{ success: boolean; revokedCount: number }> {
+        return await sessionsApi.revokeAllSessions();
       },
     },
     verifySession: {

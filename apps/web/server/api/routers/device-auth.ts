@@ -416,4 +416,23 @@ export const deviceAuthRouter = createTRPCRouter({
         message: "Session revoked",
       };
     }),
+
+  /**
+   * Revoke all CLI sessions for the authenticated user
+   *
+   * Atomically deletes all CLI sessions in a single operation.
+   * More efficient than revoking sessions one by one.
+   */
+  revokeAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
+    const result = await ctx.db
+      .delete(schema.cliSessions)
+      .where(eq(schema.cliSessions.userId, ctx.user.id))
+      .returning({ id: schema.cliSessions.id });
+
+    return {
+      success: true,
+      revokedCount: result.length,
+      message: `Revoked ${result.length} session(s)`,
+    };
+  }),
 });
