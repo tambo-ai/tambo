@@ -89,10 +89,21 @@ export const deviceAuthRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const now = new Date();
 
-      // Find the device auth code
-      const [deviceAuthCode] = await ctx.db
-        .select()
-        .from(schema.deviceAuthCodes)
+      // Generate session ID upfront
+      const sessionId = crypto.randomUUID();
+      const sessionExpiresAt = new Date(
+        Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+      );
+
+      // Atomically claim the device code with conditional update
+      // This prevents race conditions - only one request can successfully claim a code
+      const updateResult = await ctx.db
+        .update(schema.deviceAuthCodes)
+        .set({
+          userId: ctx.user.id,
+          sessionId,
+          isUsed: true,
+        })
         .where(
           and(
             eq(schema.deviceAuthCodes.userCode, input.userCode),
@@ -101,64 +112,49 @@ export const deviceAuthRouter = createTRPCRouter({
             isNull(schema.deviceAuthCodes.userId),
           ),
         )
-        .limit(1);
+        .returning({ id: schema.deviceAuthCodes.id });
 
-      if (!deviceAuthCode) {
-        // Check if code exists but is used or expired
-        const [existingCode] = await ctx.db
-          .select()
-          .from(schema.deviceAuthCodes)
-          .where(eq(schema.deviceAuthCodes.userCode, input.userCode))
-          .limit(1);
-
-        if (existingCode) {
-          if (existingCode.isUsed) {
-            throw new TRPCError({
-              code: "CONFLICT",
-              message: "CODE_ALREADY_USED",
-            });
-          }
-          if (existingCode.expiresAt <= now) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "CODE_EXPIRED",
-            });
-          }
-        }
-
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "INVALID_CODE",
+      // If update succeeded (exactly 1 row), create the session
+      if (updateResult.length === 1) {
+        await ctx.db.insert(schema.sessions).values({
+          id: sessionId,
+          userId: ctx.user.id,
+          notAfter: sessionExpiresAt,
+          source: "cli",
         });
+
+        return {
+          success: true,
+          message: "Device authorized successfully",
+        };
       }
 
-      // Create a new CLI session
-      const sessionId = crypto.randomUUID();
-      const sessionExpiresAt = new Date(
-        Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
-      );
+      // Update failed - determine why for a helpful error message
+      const [existingCode] = await ctx.db
+        .select()
+        .from(schema.deviceAuthCodes)
+        .where(eq(schema.deviceAuthCodes.userCode, input.userCode))
+        .limit(1);
 
-      await ctx.db.insert(schema.sessions).values({
-        id: sessionId,
-        userId: ctx.user.id,
-        notAfter: sessionExpiresAt,
-        source: "cli",
+      if (existingCode) {
+        if (existingCode.isUsed) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "CODE_ALREADY_USED",
+          });
+        }
+        if (existingCode.expiresAt <= now) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "CODE_EXPIRED",
+          });
+        }
+      }
+
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "INVALID_CODE",
       });
-
-      // Update the device auth code with user and session info
-      await ctx.db
-        .update(schema.deviceAuthCodes)
-        .set({
-          userId: ctx.user.id,
-          sessionId,
-          isUsed: true,
-        })
-        .where(eq(schema.deviceAuthCodes.id, deviceAuthCode.id));
-
-      return {
-        success: true,
-        message: "Device authorized successfully",
-      };
     }),
 
   /**
