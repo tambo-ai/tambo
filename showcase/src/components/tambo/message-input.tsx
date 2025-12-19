@@ -451,7 +451,7 @@ const MessageInputInternal = React.forwardRef<
       } catch (error) {
         console.error("Failed to submit message:", error);
         setDisplayValue(value);
-        // On submit failure, clear error
+        // On submit failure, also clear image error
         setImageError(null);
         setSubmitError(
           error instanceof Error
@@ -530,6 +530,11 @@ const MessageInputInternal = React.forwardRef<
           await addImages(files);
         } catch (error) {
           console.error("Failed to add dropped images:", error);
+          setImageError(
+            error instanceof Error
+              ? error.message
+              : "Failed to add images. Please try again.",
+          );
         }
       }
     },
@@ -579,6 +584,7 @@ const MessageInputInternal = React.forwardRef<
       editorRef,
       submitError,
       imageError,
+      setImageError,
       elicitation,
       resolveElicitation,
     ],
@@ -764,15 +770,22 @@ const MessageInputTextarea = ({
   }, []);
 
   // Handle image paste - mark as pasted and add to thread
+  const pendingImagesRef = React.useRef(0);
+
   const handleAddImage = React.useCallback(
     async (file: File) => {
-      if (images.length >= MAX_IMAGES) {
+      if (images.length + pendingImagesRef.current >= MAX_IMAGES) {
         setImageError(`Max ${MAX_IMAGES} uploads at a time`);
         return;
       }
       setImageError(null);
-      file[IS_PASTED_IMAGE] = true;
-      await addImage(file);
+      pendingImagesRef.current += 1;
+      try {
+        file[IS_PASTED_IMAGE] = true;
+        await addImage(file);
+      } finally {
+        pendingImagesRef.current -= 1;
+      }
     },
     [addImage, images, setImageError],
   );
