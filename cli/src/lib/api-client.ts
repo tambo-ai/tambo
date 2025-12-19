@@ -166,6 +166,8 @@ export interface InitiateResponse {
 export interface PollResponse {
   status: "pending" | "expired" | "complete";
   sessionToken?: string;
+  /** Session expiry timestamp (ISO string) - only present when status is "complete" */
+  expiresAt?: string | null;
   user?: {
     id: string;
     email: string | null;

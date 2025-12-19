@@ -150,11 +150,14 @@ export async function runDeviceAuthFlow(
         }
 
         // Step 4: Save token to disk
+        // Use server-provided expiry, fallback to 90 days if not provided
+        const expiresAt =
+          pollResponse.expiresAt ??
+          new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+
         const tokenData: StoredToken = {
           sessionToken: pollResponse.sessionToken,
-          expiresAt: new Date(
-            Date.now() + 90 * 24 * 60 * 60 * 1000,
-          ).toISOString(), // 90 days
+          expiresAt,
           user: {
             id: pollResponse.user.id,
             email: pollResponse.user.email,

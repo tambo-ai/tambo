@@ -303,26 +303,33 @@ export const deviceAuthRouter = createTRPCRouter({
 
       // Check if verified
       if (deviceAuthCode.isUsed && deviceAuthCode.cliSessionId) {
-        // Get user info for the response
-        const [user] = await ctx.db
+        // Get user info and session expiry for the response
+        const [result] = await ctx.db
           .select({
-            id: schema.authUsers.id,
-            email: schema.authUsers.email,
-            name: schema.authUsers.rawUserMetaData,
+            userId: schema.authUsers.id,
+            userEmail: schema.authUsers.email,
+            userName: schema.authUsers.rawUserMetaData,
+            sessionExpiresAt: schema.cliSessions.notAfter,
           })
-          .from(schema.authUsers)
-          .where(eq(schema.authUsers.id, deviceAuthCode.userId!))
+          .from(schema.cliSessions)
+          .innerJoin(
+            schema.authUsers,
+            eq(schema.cliSessions.userId, schema.authUsers.id),
+          )
+          .where(eq(schema.cliSessions.id, deviceAuthCode.cliSessionId))
           .limit(1);
 
         return {
           status: "complete" as const,
           sessionToken: deviceAuthCode.cliSessionId,
-          user: user
+          expiresAt: result?.sessionExpiresAt?.toISOString() ?? null,
+          user: result
             ? {
-                id: user.id,
-                email: user.email,
+                id: result.userId,
+                email: result.userEmail,
                 name:
-                  (user.name as Record<string, unknown> | null)?.name ?? null,
+                  (result.userName as Record<string, unknown> | null)?.name ??
+                  null,
               }
             : null,
         };
