@@ -58,7 +58,8 @@ if [ -z "$workspaces" ]; then
   workspaces=$(printf '%s\n' 'apps/*' 'packages/*' 'cli' 'create-tambo-app' 'docs' 'react-sdk' 'showcase')
 fi
 
-workspace_report=$(
+build_workspace_report() {
+  local patterns="$1"
   shopt -s nullglob
   while IFS= read -r pattern; do
     for p in $pattern; do
@@ -69,8 +70,18 @@ workspace_report=$(
         printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
       fi
     done
-  done <<< "$workspaces" | sort
-)
+  done <<< "$patterns" | sort
+}
+
+printf 'Scanning workspace patterns:\n%s\n' "$workspaces" >&2
+workspace_report=$(build_workspace_report "$workspaces")
+
+if [ -z "$workspace_report" ]; then
+  echo "No workspaces matched patterns from package.json; falling back to a basic scan of common monorepo directories." >&2
+  workspaces=$(printf '%s\n' 'apps/*' 'packages/*' 'cli' 'create-tambo-app' 'docs' 'react-sdk' 'showcase')
+  printf 'Scanning workspace patterns:\n%s\n' "$workspaces" >&2
+  workspace_report=$(build_workspace_report "$workspaces")
+fi
 
 printf '%s\n' "$workspace_report"
 
@@ -84,6 +95,8 @@ fi
 ```
 
 When searching for dead code, only analyze paths listed under `Eligible workspaces (private=true)` above.
+
+> Note: if you expect a workspace to be scanned but it does not show up under `Eligible workspaces (private=true)`, check its `package.json` and set `"private": true` for internal-only packages.
 
 Signals you can use (require at least two per candidate):
 
