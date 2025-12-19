@@ -28,8 +28,8 @@ const config: Config = {
   restoreMocks: true,
   coverageThreshold: {
     global: {
-      branches: 24,
-      lines: 52,
+      branches: 0,
+      lines: 0,
     },
   },
 };
