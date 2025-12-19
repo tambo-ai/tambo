@@ -21,7 +21,8 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.51.0"
   },
-  "volta": {
-    "extends": "../../package.json"
+  "engines": {
+    "node": ">=22",
+    "npm": ">=11"
   }
 }
