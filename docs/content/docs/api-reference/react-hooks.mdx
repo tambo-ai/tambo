@@ -21,10 +21,10 @@ This function is used to register components with Tambo, allowing them to be pot
 
 `const { registerTool } = useTamboRegistry()`
 
-This function is used to register tools with Tambo. When defining a tool (via 
-`defineTool` or by passing a `TamboTool` to `registerTool`), you may include an 
+This function is used to register tools with Tambo. When defining a tool (via
+`defineTool` or by passing a `TamboTool` to `registerTool`), you may include an
 optional `maxCalls` property (a non-negative integer). If provided, `maxCalls`
-sets a per-tool limit on how many times the tool may be invoked while generating a 
+sets a per-tool limit on how many times the tool may be invoked while generating a
 single response. A per-tool `maxCalls` value overrides the project's global
 Max tool-call limit.Invalid values will be rejected.
 
