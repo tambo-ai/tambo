@@ -40,6 +40,14 @@ export type ParameterSpec = TamboAI.ToolParameters & {
 export interface ComponentContextToolMetadata
   extends TamboAI.ComponentContextToolMetadata {
   parameters: ParameterSpec[];
+  /**
+   * Optional per-tool call limit. When set, this overrides the project's
+   * global tool call limit for this specific tool.
+   *
+   * This is useful for tools that should only be called once or twice
+   * regardless of the project's global limit.
+   */
+  maxCalls?: number;
 }
 
 export interface ComponentContextTool {
@@ -134,8 +142,14 @@ export interface TamboTool<
    */
   title?: string;
   /**
-   * Optional properties describing tool behavior
+   * Optional limit for how many times this tool may be called while
+   * generating a single response. If present, this value overrides the
+   * project's global `maxToolCallLimit` for this tool.
+   * @example 1
    */
+  maxCalls?: number;
+  //  * Optional properties describing tool behavior
+  //  */
   annotations?: {
     /**
      * An array indicating the intended audience(s) for this resource. Valid
