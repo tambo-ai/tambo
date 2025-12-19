@@ -34,8 +34,6 @@ export class DeviceAuthError extends Error {
  * Options for the device auth flow
  */
 interface DeviceAuthOptions {
-  /** Base URL for the verification page (default: https://tambo.co) */
-  baseUrl?: string;
   /** Whether to automatically open the browser */
   openBrowser?: boolean;
   /** Whether to copy the code to clipboard */
@@ -63,11 +61,7 @@ async function sleep(ms: number): Promise<void> {
 export async function runDeviceAuthFlow(
   options: DeviceAuthOptions = {},
 ): Promise<DeviceAuthResult> {
-  const {
-    baseUrl = process.env.TAMBO_API_URL ?? "https://tambo.co",
-    openBrowser = true,
-    copyToClipboard = true,
-  } = options;
+  const { openBrowser = true, copyToClipboard = true } = options;
 
   // Step 1: Initiate the device auth flow
   console.log(chalk.gray("\nInitiating device authentication..."));
@@ -85,14 +79,17 @@ export async function runDeviceAuthFlow(
     throw error;
   }
 
-  const { deviceCode, userCode, verificationUri, interval } = initResponse;
-  const fullVerificationUrl = `${baseUrl}${verificationUri}?user_code=${userCode.replace("-", "")}`;
+  const {
+    deviceCode,
+    userCode,
+    verificationUri,
+    verificationUriComplete,
+    interval,
+  } = initResponse;
 
   // Step 2: Display instructions to user
   console.log(chalk.cyan("\n📱 Please authorize this device:\n"));
-  console.log(
-    chalk.white(`   Visit: ${chalk.bold(baseUrl + verificationUri)}`),
-  );
+  console.log(chalk.white(`   Visit: ${chalk.bold(verificationUri)}`));
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
 
   // Copy code to clipboard
@@ -105,10 +102,10 @@ export async function runDeviceAuthFlow(
     }
   }
 
-  // Open browser
+  // Open browser with pre-filled code URL
   if (openBrowser) {
     try {
-      await open(fullVerificationUrl);
+      await open(verificationUriComplete);
       console.log(chalk.gray("   Browser opened for authentication\n"));
     } catch {
       console.log(

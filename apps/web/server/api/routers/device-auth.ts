@@ -1,3 +1,4 @@
+import { env } from "@/lib/env";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -13,6 +14,33 @@ const CODE_EXPIRY_MINUTES = 15;
 const SESSION_EXPIRY_DAYS = 90;
 const POLL_INTERVAL_SECONDS = 5;
 const CLI_SESSION_TOKEN_BYTES = 32;
+const DEVICE_VERIFICATION_PATH = "/device";
+
+/**
+ * Get the base URL for constructing absolute verification URLs
+ * Uses NEXT_PUBLIC_APP_URL or falls back to request headers
+ */
+function getVerificationBaseUrl(headers: Headers): string {
+  // Prefer explicit env var
+  if (env.NEXT_PUBLIC_APP_URL) {
+    return env.NEXT_PUBLIC_APP_URL;
+  }
+
+  // Fall back to request headers
+  const forwardedHost = headers.get("x-forwarded-host");
+  const host = headers.get("host");
+  const proto = headers.get("x-forwarded-proto") ?? "https";
+
+  if (forwardedHost) {
+    return `${proto}://${forwardedHost}`;
+  }
+  if (host) {
+    return `${proto}://${host}`;
+  }
+
+  // Last resort fallback
+  return "https://tambo.co";
+}
 
 /**
  * Try to get the most recent browser session ID for a user
@@ -82,7 +110,7 @@ export const deviceAuthRouter = createTRPCRouter({
    * Initiate device auth flow (called by CLI)
    *
    * Generates a device code (UUID) and user code (8-char alphanumeric).
-   * Returns verification URL and polling interval.
+   * Returns absolute verification URLs per RFC 8628.
    */
   initiate: publicProcedure.mutation(async ({ ctx }) => {
     const deviceCode = crypto.randomUUID();
@@ -100,10 +128,16 @@ export const deviceAuthRouter = createTRPCRouter({
     // Format user code with dash for display (XXXX-XXXX)
     const formattedUserCode = `${userCode.slice(0, 4)}-${userCode.slice(4)}`;
 
+    // Construct absolute URLs per RFC 8628
+    const baseUrl = getVerificationBaseUrl(ctx.headers);
+    const verificationUri = `${baseUrl}${DEVICE_VERIFICATION_PATH}`;
+    const verificationUriComplete = `${verificationUri}?user_code=${userCode}`;
+
     return {
       deviceCode,
       userCode: formattedUserCode,
-      verificationUri: "/device",
+      verificationUri,
+      verificationUriComplete,
       expiresIn: CODE_EXPIRY_MINUTES * 60,
       interval: POLL_INTERVAL_SECONDS,
     };

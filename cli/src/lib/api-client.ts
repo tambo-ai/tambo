@@ -155,7 +155,10 @@ async function trpcRequest<TOutput>(
 export interface InitiateResponse {
   deviceCode: string;
   userCode: string;
+  /** Absolute URL for verification page */
   verificationUri: string;
+  /** Absolute URL with user_code pre-filled (RFC 8628) */
+  verificationUriComplete: string;
   expiresIn: number;
   interval: number;
 }
