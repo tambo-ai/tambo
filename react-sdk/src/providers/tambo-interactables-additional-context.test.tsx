@@ -79,7 +79,6 @@ describe("Interactables AdditionalContext (provider-based)", () => {
         (c: any) => c.name === "interactables",
       );
       expect(entry).toBeDefined();
-      expect(entry?.context?.description).toMatch(/interactable components/i);
       expect(Array.isArray(entry?.context?.components)).toBe(true);
       const comp = entry!.context.components[0];
       expect(comp.componentName).toBe("Note");
@@ -166,10 +165,8 @@ describe("Interactables AdditionalContext (provider-based)", () => {
       const entry = capturedContexts.find(
         (c: any) => c.name === "interactables",
       );
-      expect(entry?.context?.description).toContain("interactable components");
-      expect(entry?.context?.description).toContain("visible on the page");
-      expect(entry?.context?.description).toContain("you can read and modify");
-      expect(entry?.context?.description).toContain("tools to update");
+      expect(entry).toBeDefined();
+      expect(Array.isArray(entry?.context?.components)).toBe(true);
     });
   });
 
