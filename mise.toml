@@ -1,0 +1,34 @@
+[tools]
+# General repo tools
+cspell = "latest"
+shellcheck = "latest"
+
+# Because of `idiomatic_version_file_enable_tools` setting below, we do not need
+# to specify the node tool here. It will be read from the .node-version file.
+# node = "22.21.1"
+
+# Use corepack to manage packageManager versions
+[tools."npm:corepack"]
+version = "latest"
+postinstall = """
+# Remove globally installed npm and corepack to avoid conflicts
+npm r -g corepack npm
+# then, ensure corepack shims for npm are enabled
+corepack enable npm
+"""
+
+[settings]
+# Enable reading .node-version files for node version management
+idiomatic_version_file_enable_tools = ["node"]
+# Disable package managers that might've been installed by mise; corepack will
+# handle installing the correct version
+disable_tools = ["npm", "pnpm", "yarn"]
+
+[env]
+# Add node_modules/.bin to PATH for local package binaries
+_.path = ["{{config_root}}/node_modules/.bin"]
+
+# Disable telemetry for various tools
+TURBO_TELEMETRY_DISABLED = 1
+NEXT_TELEMETRY_DISABLED = 1
+DO_NOT_TRACK = 1

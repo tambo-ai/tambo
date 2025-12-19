@@ -90,8 +90,5 @@
   "engines": {
     "node": ">=22",
     "npm": ">=11"
-  },
-  "volta": {
-    "extends": "../package.json"
   }
 }

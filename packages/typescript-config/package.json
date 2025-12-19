@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
-  "volta": {
-    "extends": "../../package.json"
+  "engines": {
+    "node": ">=22",
+    "npm": ">=11"
   }
 }

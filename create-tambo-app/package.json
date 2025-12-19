@@ -39,9 +39,6 @@
     "node": ">=22",
     "npm": ">=11"
   },
-  "volta": {
-    "extends": "../package.json"
-  },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "eslint": "^9.39.2",
