@@ -113,22 +113,20 @@ describe("TamboContextAttachmentProvider", () => {
         );
       });
 
-      // Verify the helper function returns the merged attachments object
+      // Verify the helper function returns the merged attachments array
       const helperFn = mockAddContextHelper.mock.calls.find(
         (call) => call[0] === CONTEXT_ATTACHMENTS_HELPER_KEY,
       )?.[1];
       expect(helperFn).toBeDefined();
       const helperResult = helperFn!();
-      expect(helperResult).toEqual({
-        [CONTEXT_ATTACHMENTS_HELPER_KEY]: [
-          {
-            id: attachment!.id,
-            displayName: "Button.tsx",
-            context: "selectedFile",
-            type: "file",
-          },
-        ],
-      });
+      expect(helperResult).toEqual([
+        {
+          id: attachment!.id,
+          displayName: "Button.tsx",
+          context: "selectedFile",
+          type: "file",
+        },
+      ]);
     });
 
     /**
@@ -184,14 +182,9 @@ describe("TamboContextAttachmentProvider", () => {
         .pop()?.[1];
       expect(helperFn).toBeDefined();
       const helperResult = helperFn!();
-      expect(helperResult).toHaveProperty(CONTEXT_ATTACHMENTS_HELPER_KEY);
-      expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY]).toHaveLength(2);
-      expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY][0].displayName).toBe(
-        "Button.tsx",
-      );
-      expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY][1].displayName).toBe(
-        "Card.tsx",
-      );
+      expect(helperResult).toHaveLength(2);
+      expect(helperResult[0].displayName).toBe("Button.tsx");
+      expect(helperResult[1].displayName).toBe("Card.tsx");
     });
 
     /**
@@ -227,8 +220,7 @@ describe("TamboContextAttachmentProvider", () => {
         .pop()?.[1];
       expect(helperFn).toBeDefined();
       const helperResult = helperFn!();
-      expect(helperResult).toHaveProperty(CONTEXT_ATTACHMENTS_HELPER_KEY);
-      expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY]).toHaveLength(2);
+      expect(helperResult).toHaveLength(2);
     });
 
     /**
@@ -335,11 +327,8 @@ describe("TamboContextAttachmentProvider", () => {
         if (lastCall) {
           const helperFn = lastCall[1];
           const helperResult = helperFn();
-          expect(helperResult).toHaveProperty(CONTEXT_ATTACHMENTS_HELPER_KEY);
-          expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY]).toHaveLength(1);
-          expect(
-            helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY][0].displayName,
-          ).toBe("Second.tsx");
+          expect(helperResult).toHaveLength(1);
+          expect(helperResult[0].displayName).toBe("Second.tsx");
         }
       });
     });

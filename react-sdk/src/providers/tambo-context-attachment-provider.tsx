@@ -86,14 +86,12 @@ export function TamboContextAttachmentProvider({
         return null;
       }
 
-      return {
-        [CONTEXT_ATTACHMENTS_HELPER_KEY]: attachments.map((attachment) => ({
-          id: attachment.id,
-          displayName: attachment.displayName,
-          context: attachment.context,
-          type: attachment.type,
-        })),
-      };
+      return attachments.map((attachment) => ({
+        id: attachment.id,
+        displayName: attachment.displayName,
+        context: attachment.context,
+        type: attachment.type,
+      }));
     });
 
     return () => {
@@ -101,6 +99,22 @@ export function TamboContextAttachmentProvider({
     };
   }, [attachments, addContextHelper, removeContextHelper]);
 
+  /**
+   * Adds a new context attachment that will be included with the next user message.
+   * The attachment is automatically registered as part of the merged context helper.
+   * @param contextValue - The context value to attach (e.g., file content, selected text)
+   * @param displayName - Optional display name for UI rendering (e.g., "Button.tsx")
+   * @param type - Optional type identifier for grouping/rendering (e.g., "file", "selection")
+   * @returns The created ContextAttachment object with a unique ID
+   * @example
+   * ```tsx
+   * const attachment = addContextAttachment(
+   *   "const x = 1;",
+   *   "Button.tsx",
+   *   "file"
+   * );
+   * ```
+   */
   const addContextAttachment = useCallback(
     (
       contextValue: string,
@@ -121,10 +135,16 @@ export function TamboContextAttachmentProvider({
     [],
   );
 
+  /**
+   * Removes a context attachment by its ID.
+   */
   const removeContextAttachment = useCallback((id: string) => {
     setAttachments((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
+  /**
+   * Removes all context attachments at once.
+   */
   const clearContextAttachments = useCallback(() => {
     setAttachments([]);
   }, []);
