@@ -123,8 +123,11 @@ export async function runDeviceAuthFlow(
   }).start();
 
   let pollIntervalMs = (interval || 5) * 1000;
+  const basePollInterval = pollIntervalMs;
   const maxAttempts = 180; // 15 minutes at 5 second intervals
+  const maxConsecutiveErrors = 5;
   let attempts = 0;
+  let consecutiveErrors = 0;
 
   while (attempts < maxAttempts) {
     await sleep(pollIntervalMs);
@@ -132,6 +135,10 @@ export async function runDeviceAuthFlow(
 
     try {
       const pollResponse = await deviceAuth.poll(deviceCode);
+
+      // Reset error count and interval on successful poll
+      consecutiveErrors = 0;
+      pollIntervalMs = basePollInterval;
 
       if (pollResponse.status === "complete") {
         spinner.succeed(chalk.green("Authentication successful!"));
@@ -173,33 +180,89 @@ export async function runDeviceAuthFlow(
       }
 
       // Status is "pending", continue polling
-      spinner.text = `Waiting for authorization... (${Math.floor((maxAttempts - attempts) * (pollIntervalMs / 1000 / 60))} min remaining)`;
+      spinner.text = `Waiting for authorization... (${Math.floor((maxAttempts - attempts) * (basePollInterval / 1000 / 60))} min remaining)`;
     } catch (error) {
       if (error instanceof DeviceAuthError) {
         throw error;
       }
 
       if (error instanceof ApiError) {
-        // Check for specific error codes
-        if (error.code === "INVALID_DEVICE_CODE") {
-          spinner.fail(chalk.red("Invalid device code"));
-          throw new DeviceAuthError("Invalid device code", error.code);
-        }
-
-        // Server asked us to slow down - increase poll interval
+        // Non-retryable client errors (4xx) - fail fast
         if (
-          error.code === "TOO_MANY_REQUESTS" ||
-          error.message === "SLOW_DOWN"
+          error.statusCode !== undefined &&
+          error.statusCode >= 400 &&
+          error.statusCode < 500
         ) {
-          pollIntervalMs = Math.min(pollIntervalMs * 1.5, 30000); // Cap at 30s
-          spinner.text = `Waiting for authorization... (slowing down)`;
-          continue;
+          // Specific error handling
+          if (
+            error.code === "INVALID_DEVICE_CODE" ||
+            error.statusCode === 404
+          ) {
+            spinner.fail(chalk.red("Invalid device code"));
+            throw new DeviceAuthError("Invalid device code", error.code);
+          }
+
+          if (error.statusCode === 401 || error.statusCode === 403) {
+            spinner.fail(chalk.red("Authentication error"));
+            throw new DeviceAuthError(
+              "Authentication failed. Please check your configuration.",
+              "AUTH_ERROR",
+            );
+          }
+
+          // Rate limiting - slow down but continue
+          if (
+            error.statusCode === 429 ||
+            error.code === "TOO_MANY_REQUESTS" ||
+            error.message === "SLOW_DOWN"
+          ) {
+            pollIntervalMs = Math.min(pollIntervalMs * 1.5, 30000); // Cap at 30s
+            spinner.text = `Waiting for authorization... (slowing down)`;
+            continue;
+          }
+
+          // Other 4xx errors - fail fast
+          spinner.fail(chalk.red(`Server error: ${error.message}`));
+          throw new DeviceAuthError(
+            `Server rejected request: ${error.message}`,
+            error.code,
+          );
         }
 
-        // For other API errors, log but continue polling
-        // (might be a temporary network issue)
-        spinner.text = `Waiting for authorization... (retrying after error)`;
+        // Retryable errors (5xx, network) - backoff and retry
+        consecutiveErrors++;
+
+        if (consecutiveErrors >= maxConsecutiveErrors) {
+          spinner.fail(chalk.red("Too many consecutive errors"));
+          throw new DeviceAuthError(
+            "Failed to connect to server after multiple attempts. Please check your network and try again.",
+            "CONNECTION_ERROR",
+          );
+        }
+
+        // Exponential backoff for retryable errors
+        pollIntervalMs = Math.min(
+          basePollInterval * Math.pow(1.5, consecutiveErrors),
+          30000,
+        );
+        spinner.text = `Waiting for authorization... (retrying after error, attempt ${consecutiveErrors}/${maxConsecutiveErrors})`;
+        continue;
       }
+
+      // Unknown error type - treat as retryable network error
+      consecutiveErrors++;
+      if (consecutiveErrors >= maxConsecutiveErrors) {
+        spinner.fail(chalk.red("Connection lost"));
+        throw new DeviceAuthError(
+          "Lost connection to server. Please check your network and try again.",
+          "CONNECTION_ERROR",
+        );
+      }
+      pollIntervalMs = Math.min(
+        basePollInterval * Math.pow(1.5, consecutiveErrors),
+        30000,
+      );
+      spinner.text = `Waiting for authorization... (connection issue, retrying)`;
     }
   }
 
