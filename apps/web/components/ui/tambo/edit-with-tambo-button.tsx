@@ -58,11 +58,7 @@ export function EditWithTamboButton({
   onOpenThread: onOpenThreadProp,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const {
-    sendThreadMessage,
-    isIdle,
-    setInteractableSelected: setInteractableSelectedForInteraction,
-  } = useTambo();
+  const { sendThreadMessage, isIdle, setInteractableSelected } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
 
   const [prompt, setPrompt] = useState("");
@@ -134,7 +130,7 @@ export function EditWithTamboButton({
     const componentName = component?.componentName ?? "Unknown Component";
     const interactableId = component?.interactableId ?? "";
     if (interactableId) {
-      setInteractableSelectedForInteraction(interactableId, true);
+      setInteractableSelected(interactableId, true);
     }
 
     // Open the thread panel first
@@ -157,13 +153,7 @@ export function EditWithTamboButton({
         editor.appendText(messageToInsert);
       }
     }
-  }, [
-    prompt,
-    component,
-    setInteractableSelectedForInteraction,
-    onOpenThread,
-    editorRef,
-  ]);
+  }, [prompt, component, setInteractableSelected, onOpenThread, editorRef]);
 
   const handleMainAction = useCallback(() => {
     if (sendMode === "thread") {

@@ -89,8 +89,7 @@ export function EditWithTamboButton({
   editorRef,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle, setInteractableSelectedForInteraction } =
-    useTambo();
+  const { sendThreadMessage, isIdle, setInteractableSelected } = useTambo();
   const { setValue: setThreadInputValue } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
@@ -155,10 +154,9 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // Add the component as a context attachment for the next message
     const interactableId = component?.interactableId ?? "";
     if (interactableId) {
-      setInteractableSelectedForInteraction(interactableId, true);
+      setInteractableSelected(interactableId, true);
     }
 
     // Open the thread panel if callback provided
@@ -185,7 +183,7 @@ export function EditWithTamboButton({
     component,
     onOpenThread,
     editorRef,
-    setInteractableSelectedForInteraction,
+    setInteractableSelected,
     setThreadInputValue,
   ]);
 
