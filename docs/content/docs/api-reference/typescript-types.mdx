@@ -299,7 +299,7 @@ attachments: ContextAttachment[];
 
 #### addContextAttachment
 
-Function to add a new context attachment. The `id` is automatically generated. The attachment is automatically registered as a context helper.
+Function to add a new context attachment. The `id` is automatically generated. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments.
 
 ```typescript
 addContextAttachment: (
@@ -311,7 +311,7 @@ addContextAttachment: (
 
 #### removeContextAttachment
 
-Function to remove a specific context attachment by its ID. Also deregisters the associated context helper.
+Function to remove a specific context attachment by its ID. The context helper automatically updates to reflect the change.
 
 ```typescript
 removeContextAttachment: (id: string) => void;
@@ -319,7 +319,7 @@ removeContextAttachment: (id: string) => void;
 
 #### clearContextAttachments
 
-Function to remove all active context attachments. Also deregisters all associated context helpers. Typically called after message submission.
+Function to remove all active context attachments. The context helper automatically updates to reflect the change. Context attachments are automatically cleared after message submission (one-time use), so you typically don't need to call this manually.
 
 ```typescript
 clearContextAttachments: () => void;

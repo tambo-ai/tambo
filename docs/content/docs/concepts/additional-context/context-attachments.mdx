@@ -7,7 +7,37 @@ Context attachments allow you to stage context pieces that will be automatically
 
 ## How context attachments work
 
-Context attachments are automatically registered as context helpers when added. They will be included in the `additionalContext` when the next user message is sent, and are cleared after submission.
+Context attachments are automatically registered as a single merged context helper (with the key `contextAttachments`) that returns an array of all active attachments. When you add or remove attachments, the context helper automatically updates to reflect the current state. The attachments will be included in the `additionalContext` when the next user message is sent, and are automatically cleared after submission (one-time use).
+
+### Context Helper Behavior
+
+The `TamboContextAttachmentProvider` automatically registers a context helper with the key `contextAttachments`. This helper:
+
+- Returns an array of all active attachments when there are any
+- Returns `null` when there are no attachments
+- Automatically updates when attachments are added or removed
+- Is included in `additionalContext` when the next message is sent
+
+The context helper structure looks like this:
+
+```json
+{
+  "contextAttachments": [
+    {
+      "id": "uuid-1",
+      "displayName": "File.txt",
+      "context": "The contents of File.txt",
+      "type": "file"
+    },
+    {
+      "id": "uuid-2",
+      "displayName": "Selection",
+      "context": "Selected text content",
+      "type": "selection"
+    }
+  ]
+}
+```
 
 ## Basic Usage
 
@@ -66,20 +96,24 @@ Add a context attachment by calling `addContextAttachment` with a context value,
 const { addContextAttachment } = useTamboContextAttachment();
 
 // Simple context attachment without displayName
-const attachment = addContextAttachment("selectedFile");
+const attachment = addContextAttachment("The contents of File.txt");
 
 // With displayName
-const attachment = addContextAttachment("selectedFile", "Button.tsx");
+const attachment = addContextAttachment("The contents of File.txt", "File.txt");
 
 // With displayName and type for grouping
-const attachment = addContextAttachment("selectedFile", "Button.tsx", "file");
+const attachment = addContextAttachment(
+  "The contents of File.txt",
+  "File.txt",
+  "file",
+);
 ```
 
-The function returns the `ContextAttachment` object with an auto-generated `id`. Each attachment is automatically registered as a context helper and will be included in `additionalContext` when the next message is sent.
+The function returns the `ContextAttachment` object with an auto-generated `id`. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments. This array will be included in `additionalContext` when the next message is sent.
 
 ### Removing Context Attachments
 
-Remove a specific context attachment by its ID:
+Remove a specific context attachment by its ID. The context helper will automatically update to reflect the change:
 
 ```tsx
 const { removeContextAttachment } = useTamboContextAttachment();
@@ -94,6 +128,8 @@ const { clearContextAttachments } = useTamboContextAttachment();
 
 clearContextAttachments();
 ```
+
+**Note:** Context attachments are automatically cleared after message submission (one-time use). You typically don't need to manually clear them unless you want to remove them before sending a message.
 
 ### Accessing Active Attachments
 

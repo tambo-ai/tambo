@@ -340,30 +340,34 @@ Array of active context attachments that will be included in `additionalContext`
 
 `const { addContextAttachment } = useTamboContextAttachment()`
 
-Function to add a new context attachment. Accepts `contextValue` (string), optional `displayName` (string), and optional `type` (string). Returns the `ContextAttachment` object with an auto-generated `id`. The attachment is automatically registered as a context helper.
+Function to add a new context attachment. Accepts `contextValue` (string), optional `displayName` (string), and optional `type` (string). Returns the `ContextAttachment` object with an auto-generated `id`. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments.
 
 ```tsx
 // Without displayName
-const attachment = addContextAttachment("selectedFile");
+const attachment = addContextAttachment("The contents of File.txt");
 
 // With displayName
-const attachment = addContextAttachment("selectedFile", "Button.tsx");
+const attachment = addContextAttachment("The contents of File.txt", "File.txt");
 
 // With displayName and type
-const attachment = addContextAttachment("selectedFile", "Button.tsx", "file");
+const attachment = addContextAttachment(
+  "The contents of File.txt",
+  "File.txt",
+  "file",
+);
 ```
 
 ### removeContextAttachment
 
 `const { removeContextAttachment } = useTamboContextAttachment()`
 
-Function to remove a specific context attachment by its ID. Also deregisters the associated context helper.
+Function to remove a specific context attachment by its ID. The context helper automatically updates to reflect the change.
 
 ### clearContextAttachments
 
 `const { clearContextAttachments } = useTamboContextAttachment()`
 
-Function to remove all active context attachments at once. Also deregisters all associated context helpers. Typically called after message submission.
+Function to remove all active context attachments at once. The context helper automatically updates to reflect the change. Context attachments are automatically cleared after message submission (one-time use), so you typically don't need to call this manually.
 
 ## useCurrentInteractablesSnapshot
 

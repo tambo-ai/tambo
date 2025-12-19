@@ -52,9 +52,10 @@ export interface TamboContextAttachmentProviderProps {
   children?: React.ReactNode;
 }
 
+const CONTEXT_ATTACHMENTS_HELPER_KEY = "contextAttachments";
+
 /**
  * Provider that manages context attachments for the next user message.
- * **When to use:**
  * - **Included by default** in TamboProvider - no need to wrap separately
  * - Use `useTamboContextAttachment()` hook to manage context attachments
  * **What it does:**
@@ -68,11 +69,6 @@ export interface TamboContextAttachmentProviderProps {
  * @param props - The props for the TamboContextAttachmentProvider
  * @param props.children - The children to wrap
  * @returns The TamboContextAttachmentProvider component
- */
-const CONTEXT_ATTACHMENTS_HELPER_KEY = "contextAttachments";
-
-/**
- *
  */
 export function TamboContextAttachmentProvider({
   children,
@@ -103,14 +99,14 @@ export function TamboContextAttachmentProvider({
    * Adds a new context attachment that will be included with the next user message.
    * The attachment is automatically registered as part of the merged context helper.
    * @param contextValue - The context value to attach (e.g., file content, selected text)
-   * @param displayName - Optional display name for UI rendering (e.g., "Button.tsx")
+   * @param displayName - Optional display name for UI rendering (e.g., "File.txt")
    * @param type - Optional type identifier for grouping/rendering (e.g., "file", "selection")
    * @returns The created ContextAttachment object with a unique ID
    * @example
    * ```tsx
    * const attachment = addContextAttachment(
-   *   "const x = 1;",
-   *   "Button.tsx",
+   *   "The contents of File.txt",
+   *   "File.txt",
    *   "file"
    * );
    * ```
@@ -182,8 +178,8 @@ export function TamboContextAttachmentProvider({
  *
  * // Add a context attachment for the next message
  * const attachment = addContextAttachment(
- *   "selectedFile",
- *   "Button.tsx", // optional displayName
+ *   "The contents of File.txt",
+ *   "File.txt", // optional displayName
  *   "file" // optional type
  * );
  *
