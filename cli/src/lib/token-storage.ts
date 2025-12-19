@@ -186,10 +186,10 @@ export function getTokenStoragePath(): string {
 
 /**
  * Environment variable override for CI/testing
- * If TAMBO_SESSION_TOKEN is set, it takes precedence over stored token
+ * If TAMBO_TOKEN is set, it takes precedence over stored token
  */
 export function getEffectiveSessionToken(): string | null {
-  const envToken = process.env.TAMBO_SESSION_TOKEN;
+  const envToken = process.env.TAMBO_TOKEN;
   if (envToken) {
     return envToken;
   }
