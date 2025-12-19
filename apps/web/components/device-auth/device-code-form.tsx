@@ -32,6 +32,23 @@ const deviceCodeSchema = z.object({
 
 type DeviceCodeFormValues = z.infer<typeof deviceCodeSchema>;
 
+/**
+ * Map tRPC error codes to user-friendly messages
+ * Uses stable error codes instead of message strings
+ */
+function getErrorMessage(code: string | undefined): string {
+  switch (code) {
+    case "NOT_FOUND":
+      return "Invalid or expired code. Please check the code and try again.";
+    case "CONFLICT":
+      return "This code has already been used. Please request a new code from your CLI.";
+    case "BAD_REQUEST":
+      return "This code has expired. Please request a new code from your CLI.";
+    default:
+      return "Failed to verify device code. Please try again.";
+  }
+}
+
 interface DeviceCodeFormProps {
   initialCode?: string;
 }
@@ -124,11 +141,7 @@ export function DeviceCodeForm({ initialCode }: DeviceCodeFormProps) {
           {verifyMutation.isError && (
             <div className="rounded-md border border-red-200 bg-red-50 p-4">
               <p className="text-sm text-red-600">
-                {verifyMutation.error.message === "INVALID_CODE"
-                  ? "Invalid or expired code. Please check the code and try again."
-                  : verifyMutation.error.message === "CODE_ALREADY_USED"
-                    ? "This code has already been used. Please request a new code from your CLI."
-                    : "Failed to verify device code. Please try again."}
+                {getErrorMessage(verifyMutation.error.data?.code)}
               </p>
             </div>
           )}
