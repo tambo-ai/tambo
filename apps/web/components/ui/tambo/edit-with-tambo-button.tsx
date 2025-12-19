@@ -58,8 +58,11 @@ export function EditWithTamboButton({
   onOpenThread: onOpenThreadProp,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle, setInteractableSelectedForInteraction } =
-    useTambo();
+  const {
+    sendThreadMessage,
+    isIdle,
+    setInteractableSelected: setInteractableSelectedForInteraction,
+  } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
 
   const [prompt, setPrompt] = useState("");

@@ -32,7 +32,7 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   clearAllInteractableComponents: () => {},
   setInteractableState: () => {},
   getInteractableComponentState: () => undefined,
-  setInteractableSelectedForInteraction: () => {},
+  setInteractableSelected: () => {},
   clearInteractableSelections: () => {},
 });
 
@@ -455,16 +455,16 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     [interactableComponents],
   );
 
-  const setInteractableSelectedForInteraction = useCallback(
+  const setInteractableSelected = useCallback(
     (componentId: string, isSelected: boolean) => {
       setInteractableComponents((prev) => {
         let found = false;
         const next = prev.map((component) => {
           if (component.id !== componentId) return component;
           found = true;
-          return component.isSelectedForInteraction === isSelected
+          return component.isSelected === isSelected
             ? component
-            : { ...component, isSelectedForInteraction: isSelected };
+            : { ...component, isSelected: isSelected };
         });
         return found ? next : prev;
       });
@@ -474,12 +474,8 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
   const clearInteractableSelections = useCallback(() => {
     setInteractableComponents((prev) => {
-      if (!prev.some((c) => c.isSelectedForInteraction)) return prev;
-      return prev.map((c) =>
-        c.isSelectedForInteraction
-          ? { ...c, isSelectedForInteraction: false }
-          : c,
-      );
+      if (!prev.some((c) => c.isSelected)) return prev;
+      return prev.map((c) => (c.isSelected ? { ...c, isSelected: false } : c));
     });
   }, []);
 
@@ -493,7 +489,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     clearAllInteractableComponents,
     setInteractableState: setInteractableStateValue,
     getInteractableComponentState,
-    setInteractableSelectedForInteraction,
+    setInteractableSelected,
     clearInteractableSelections,
   };
 
