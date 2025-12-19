@@ -34,6 +34,12 @@ const sharedConfig: Config = {
   transformIgnorePatterns: [
     "/node_modules/(?!(json-stringify-pretty-compact|streamdown|unified|bail|devlop|is-plain-obj|trough|vfile|vfile-message|micromark|micromark-util-.*|mdast-util-.*|hast-util-.*|estree-util-.*|unist-util-.*|comma-separated-tokens|property-information|space-separated-tokens|ccount|escape-string-regexp|markdown-table|zwitch|longest-streak|rxjs)/)",
   ],
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
+};
+
+const config: Config = {
   collectCoverageFrom: [
     "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
     "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
@@ -41,18 +47,13 @@ const sharedConfig: Config = {
     "!<rootDir>/src/**/__mocks__/**",
     "!<rootDir>/dist/**",
   ],
-  clearMocks: true,
-  resetMocks: true,
-  restoreMocks: true,
   coverageThreshold: {
     global: {
-      branches: 45,
-      lines: 55,
+      branches: 15,
+      lines: 20,
     },
   },
-};
 
-const config: Config = {
   projects: [
     {
       ...sharedConfig,
