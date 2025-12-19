@@ -1,20 +1,13 @@
 ---
 title: Context Attachments
-description: Add visual context badges above the message input for user feedback
+description: Stage context pieces that will be sent with the next user message
 ---
 
-Context attachments enable you to display visual badges above the message input.
+Context attachments allow you to stage context pieces that will be automatically included in the `additionalContext` when the next message is sent.
 
 ## How context attachments work
 
-Context attachments appear as removable badges above the message input. They provide visual feedback showing what the user is focused on:
-
-- Display selected files, components, or pages
-- Show which part of your application is active
-- Provide visual indicators for user context
-- Enable users to see and manage active selections
-
-The feature also supports custom suggestions, allowing you to override Tambo's auto-generated suggestions with your own contextual suggestions.
+Context attachments are automatically registered as context helpers when added. They will be included in the `additionalContext` when the next user message is sent, and are cleared after submission.
 
 ## Basic Usage
 
@@ -28,14 +21,11 @@ function FileViewer({ file }) {
     useTamboContextAttachment();
 
   const handleSelectFile = () => {
-    addContextAttachment({
-      name: file.name,
-      icon: <FileIcon />,
-      metadata: {
-        filePath: file.path,
-        type: file.type,
-      },
-    });
+    addContextAttachment(
+      file.content, // context value (string)
+      file.name, // display name
+      "file", // optional type
+    );
   };
 
   return <button onClick={handleSelectFile}>Focus on {file.name}</button>;
@@ -49,9 +39,10 @@ Each context attachment has the following structure:
 ```tsx
 interface ContextAttachment {
   id: string; // Auto-generated unique identifier
-  name: string; // Display name shown in the badge
-  icon?: React.ReactNode; // Optional icon to display
-  metadata?: Record<string, unknown>; // Optional metadata for application use
+  displayName: string; // Display name for UI rendering
+  context: string; // The context value that will be used in additionalContext
+  type?: string; // Optional type identifier for grouping/rendering
+}
 ```
 
 ## Hook API
@@ -64,35 +55,24 @@ const {
   addContextAttachment, // Add a new context attachment
   removeContextAttachment, // Remove by ID
   clearContextAttachments, // Remove all attachments
-  customSuggestions, // Current custom suggestions
-  setCustomSuggestions, // Set custom suggestions
 } = useTamboContextAttachment();
 ```
 
 ### Adding Context Attachments
 
-Add a context attachment by calling `addContextAttachment` with a name and optional metadata:
+Add a context attachment by calling `addContextAttachment` with a context value, display name, and optional type:
 
 ```tsx
 const { addContextAttachment } = useTamboContextAttachment();
 
-// Simple text context
-addContextAttachment({
-  name: "Dashboard Page",
-});
+// Simple context attachment
+const attachment = addContextAttachment("selectedFile", "Button.tsx");
 
-// With icon and metadata
-addContextAttachment({
-  name: "Button.tsx",
-  icon: <FileIcon />,
-  metadata: {
-    filePath: "/src/components/Button.tsx",
-    lineNumber: 42,
-  },
-});
+// With type for grouping
+const attachment = addContextAttachment("selectedFile", "Button.tsx", "file");
 ```
 
-The `id` field is automatically generated. If you add a context with the same `name` as an existing one, it will be ignored to prevent duplicates.
+The function returns the `ContextAttachment` object with an auto-generated `id`. Each attachment is automatically registered as a context helper and will be included in `additionalContext` when the next message is sent.
 
 ### Removing Context Attachments
 
@@ -101,7 +81,7 @@ Remove a specific context attachment by its ID:
 ```tsx
 const { removeContextAttachment } = useTamboContextAttachment();
 
-removeContextAttachment(contextId);
+removeContextAttachment(attachment.id);
 ```
 
 Or clear all attachments at once:
@@ -112,69 +92,17 @@ const { clearContextAttachments } = useTamboContextAttachment();
 clearContextAttachments();
 ```
 
-### Displaying Active Attachments
+### Accessing Active Attachments
 
-Display the current attachments as badges:
-
-```tsx
-const { attachments, removeContextAttachment } = useTamboContextAttachment();
-
-return (
-  <div>
-    {attachments.map((attachment) => (
-      <div key={attachment.id}>
-        {attachment.icon}
-        <span>{attachment.name}</span>
-        <button onClick={() => removeContextAttachment(attachment.id)}>
-          ×
-        </button>
-      </div>
-    ))}
-  </div>
-);
-```
-
-## Custom Suggestions
-
-Context attachments can be combined with custom suggestions to override Tambo's auto-generated suggestions:
+Access the current attachments array:
 
 ```tsx
-import { useTamboContextAttachment } from "@tambo-ai/react";
+const { attachments } = useTamboContextAttachment();
 
-function ComponentSelector({ component }) {
-  const { addContextAttachment, setCustomSuggestions } =
-    useTamboContextAttachment();
-
-  const handleSelectComponent = () => {
-    addContextAttachment({
-      name: component.name,
-      metadata: { componentId: component.id },
-    });
-
-    setCustomSuggestions([
-      {
-        id: "1",
-        title: "Edit this component",
-        detailedSuggestion: `Modify the ${component.name} component`,
-        messageId: "",
-      },
-      {
-        id: "2",
-        title: "Add a feature",
-        detailedSuggestion: `Add a new feature to ${component.name}`,
-        messageId: "",
-      },
-    ]);
-  };
-
-  return <button onClick={handleSelectComponent}>Select Component</button>;
-}
-```
-
-To clear custom suggestions and return to auto-generated ones:
-
-```tsx
-setCustomSuggestions(null);
+// Use attachments for UI rendering or other purposes
+attachments.forEach((attachment) => {
+  console.log(attachment.displayName, attachment.context, attachment.type);
+});
 ```
 
 ## Complete Example
@@ -183,53 +111,31 @@ Here's a complete example showing context attachments in a file browser:
 
 ```tsx
 import { useTamboContextAttachment } from "@tambo-ai/react";
-import { FileIcon, XIcon } from "lucide-react";
 
 function FileBrowser({ files }) {
   const {
     attachments,
     addContextAttachment,
     removeContextAttachment,
-    setCustomSuggestions,
+    clearContextAttachments,
   } = useTamboContextAttachment();
 
   const handleFileClick = (file) => {
-    addContextAttachment({
-      name: file.name,
-      icon: <FileIcon className="w-4 h-4" />,
-      metadata: {
-        filePath: file.path,
-        language: file.language,
-      },
-    });
-
-    setCustomSuggestions([
-      {
-        id: "1",
-        title: "Explain this file",
-        detailedSuggestion: `Explain what ${file.name} does`,
-        messageId: "",
-      },
-      {
-        id: "2",
-        title: "Suggest improvements",
-        detailedSuggestion: `Suggest improvements to ${file.name}`,
-        messageId: "",
-      },
-    ]);
+    // Stage the file content for the next message
+    addContextAttachment(file.content, file.name, "file");
   };
 
   return (
     <div>
-      {/* Active Context Badges */}
+      {/* Display active attachments */}
       {attachments.length > 0 && (
         <div>
+          <h3>Staged Context:</h3>
           {attachments.map((attachment) => (
             <div key={attachment.id}>
-              {attachment.icon}
-              <span>{attachment.name}</span>
+              <span>{attachment.displayName}</span>
               <button onClick={() => removeContextAttachment(attachment.id)}>
-                <XIcon className="w-3 h-3" />
+                Remove
               </button>
             </div>
           ))}
@@ -240,7 +146,6 @@ function FileBrowser({ files }) {
       <div>
         {files.map((file) => (
           <button key={file.id} onClick={() => handleFileClick(file)}>
-            <FileIcon />
             {file.name}
           </button>
         ))}
@@ -249,13 +154,3 @@ function FileBrowser({ files }) {
   );
 }
 ```
-
-## Use Cases
-
-Context attachments are particularly useful for:
-
-- **Code editors**: Focus on specific files or functions
-- **Dashboards**: Indicate which widget or section is active
-- **Forms**: Show which field or step is being worked on
-- **Multi-page apps**: Display the current page or route
-- **Component libraries**: Highlight selected components

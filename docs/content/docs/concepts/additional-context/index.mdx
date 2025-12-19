@@ -172,10 +172,10 @@ See [Interactable Components](/concepts/components/interactable-components) for 
 - Helpers are plain functions. Return a value to include it, or null/undefined to skip.
 - The helper key becomes the context name in messages.
 
-## UI Features
+## Staging Context for Next Message
 
-### Context Attachments (Badges)
+### Context Attachments
 
-Context attachments are visual badges that appear above the message input. They provide UI feedback but do not send context to the AI. To send context, use context helpers separately.
+Context attachments allow you to stage context pieces that will be automatically included in the next user message. They are automatically registered as context helpers and cleared after submission (one-time use).
 
 Learn more in [Context Attachments](/concepts/additional-context/context-attachments).

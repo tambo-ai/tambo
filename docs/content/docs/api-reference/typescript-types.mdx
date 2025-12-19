@@ -225,14 +225,14 @@ enum GenerationStage {
 
 ## ContextAttachment
 
-Represents a context attachment that appears as a badge above the message input.
+Represents a context attachment that will be sent with the next user message.
 
 ```typescript
 interface ContextAttachment {
-  id: string;
-  name: string;
-  icon?: React.ReactNode;
-  metadata?: Record<string, unknown>;
+  id: string; // Auto-generated unique identifier
+  displayName: string; // Display name for UI rendering
+  context: string; // The context value that will be used in additionalContext
+  type?: string; // Optional type identifier for grouping/rendering
 }
 ```
 
@@ -246,28 +246,28 @@ Unique identifier for the attachment. Auto-generated when adding a context attac
 id: string;
 ```
 
-#### name
+#### displayName
 
-Display name shown in the badge.
+Display name for UI rendering.
 
 ```typescript
-name: string;
+displayName: string;
 ```
 
-#### icon
+#### context
 
-Optional icon to display in the badge.
+The context value that will be used in `additionalContext` when the next message is sent.
 
 ```typescript
-icon?: React.ReactNode;
+context: string;
 ```
 
-#### metadata
+#### type
 
-Optional metadata for application use.
+Optional type identifier for grouping/rendering multiple contexts of the same type.
 
 ```typescript
-metadata?: Record<string, unknown>;
+type?: string;
 ```
 
 ## ContextAttachmentState
@@ -277,11 +277,13 @@ The state interface returned by the `useTamboContextAttachment` hook.
 ```typescript
 interface ContextAttachmentState {
   attachments: ContextAttachment[];
-  addContextAttachment: (context: Omit<ContextAttachment, "id">) => void;
+  addContextAttachment: (
+    contextValue: string,
+    displayName: string,
+    type?: string,
+  ) => ContextAttachment;
   removeContextAttachment: (id: string) => void;
   clearContextAttachments: () => void;
-  customSuggestions: Suggestion[] | null;
-  setCustomSuggestions: (suggestions: Suggestion[] | null) => void;
 }
 ```
 
@@ -289,7 +291,7 @@ interface ContextAttachmentState {
 
 #### attachments
 
-Array of active context attachments.
+Array of active context attachments that will be included in `additionalContext` when the next message is sent.
 
 ```typescript
 attachments: ContextAttachment[];
@@ -297,15 +299,19 @@ attachments: ContextAttachment[];
 
 #### addContextAttachment
 
-Function to add a new context attachment. The `id` is automatically generated.
+Function to add a new context attachment. The `id` is automatically generated. The attachment is automatically registered as a context helper.
 
 ```typescript
-addContextAttachment: (context: Omit<ContextAttachment, "id">) => void;
+addContextAttachment: (
+  contextValue: string,
+  displayName: string,
+  type?: string,
+) => ContextAttachment;
 ```
 
 #### removeContextAttachment
 
-Function to remove a specific context attachment by its ID.
+Function to remove a specific context attachment by its ID. Also deregisters the associated context helper.
 
 ```typescript
 removeContextAttachment: (id: string) => void;
@@ -313,24 +319,8 @@ removeContextAttachment: (id: string) => void;
 
 #### clearContextAttachments
 
-Function to remove all active context attachments.
+Function to remove all active context attachments. Also deregisters all associated context helpers. Typically called after message submission.
 
 ```typescript
 clearContextAttachments: () => void;
-```
-
-#### customSuggestions
-
-Current custom suggestions that override auto-generated ones. Returns `null` if using auto-generated suggestions.
-
-```typescript
-customSuggestions: Suggestion[] | null;
-```
-
-#### setCustomSuggestions
-
-Function to set custom suggestions or clear them by passing `null`.
-
-```typescript
-setCustomSuggestions: (suggestions: Suggestion[] | null) => void;
 ```

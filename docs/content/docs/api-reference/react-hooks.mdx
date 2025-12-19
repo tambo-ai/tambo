@@ -328,43 +328,39 @@ Removes a helper by key so it is no longer included in outgoing messages.
 
 ## useTamboContextAttachment
 
-This hook provides utilities for managing context attachments and custom suggestions.
+This hook provides utilities for managing context attachments that will be sent with the next user message.
 
 ### attachments
 
 `const { attachments } = useTamboContextAttachment()`
 
-Array of active context attachments currently displayed as badges above the message input.
+Array of active context attachments that will be included in `additionalContext` when the next message is sent.
 
 ### addContextAttachment
 
 `const { addContextAttachment } = useTamboContextAttachment()`
 
-Function to add a new context attachment. Accepts an object with `name`, optional `icon`, and optional `metadata`. The `id` is automatically generated.
+Function to add a new context attachment. Accepts `contextValue` (string), `displayName` (string), and optional `type` (string). Returns the `ContextAttachment` object with an auto-generated `id`. The attachment is automatically registered as a context helper.
+
+```tsx
+const attachment = addContextAttachment(
+  "selectedFile", // context value
+  "Button.tsx", // display name
+  "file", // optional type
+);
+```
 
 ### removeContextAttachment
 
 `const { removeContextAttachment } = useTamboContextAttachment()`
 
-Function to remove a specific context attachment by its ID.
+Function to remove a specific context attachment by its ID. Also deregisters the associated context helper.
 
 ### clearContextAttachments
 
 `const { clearContextAttachments } = useTamboContextAttachment()`
 
-Function to remove all active context attachments at once.
-
-### customSuggestions
-
-`const { customSuggestions } = useTamboContextAttachment()`
-
-Current custom suggestions that override auto-generated suggestions. Returns `null` if using auto-generated suggestions.
-
-### setCustomSuggestions
-
-`const { setCustomSuggestions } = useTamboContextAttachment()`
-
-Function to set custom suggestions or clear them by passing `null`.
+Function to remove all active context attachments at once. Also deregisters all associated context helpers. Typically called after message submission.
 
 ## useCurrentInteractablesSnapshot
 
