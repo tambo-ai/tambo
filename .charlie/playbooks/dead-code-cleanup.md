@@ -66,8 +66,7 @@ build_workspace_report() {
   local patterns="$1"
   while IFS= read -r pattern; do
     [ -n "$pattern" ] || continue
-    set -- $pattern
-    for p in "$@"; do
+    for p in $pattern; do
       [ -d "$p" ] || continue
       if [ -f "$p/package.json" ]; then
         is_private=$(jq -r '.private == true' "$p/package.json")
