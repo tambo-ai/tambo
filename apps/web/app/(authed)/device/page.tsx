@@ -1,17 +1,17 @@
 import { DeviceCodeForm } from "@/components/device-auth/device-code-form";
+import { use } from "react";
 
 export const metadata = {
   title: "Authorize CLI",
   description: "Authorize Tambo CLI access to your account",
 };
 
-interface DevicePageProps {
+export default function DevicePage({
+  searchParams,
+}: {
   searchParams: Promise<{ user_code?: string }>;
-}
-
-export default async function DevicePage({ searchParams }: DevicePageProps) {
-  const params = await searchParams;
-  const initialCode = params.user_code ?? "";
+}) {
+  const initialCode = use(searchParams).user_code ?? "";
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">

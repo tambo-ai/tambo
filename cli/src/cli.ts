@@ -41,8 +41,8 @@ interface CLIFlags extends Record<string, any> {
   skipAgentDocs?: Flag<"boolean", boolean>;
   quiet?: Flag<"boolean", boolean>;
   force?: Flag<"boolean", boolean>;
-  revoke?: Flag<"string", string>;
-  revokeAll?: Flag<"boolean", boolean>;
+  id?: Flag<"string", string>;
+  all?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -69,8 +69,6 @@ const OPTION_DOCS: Record<string, string> = {
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
   quiet: `${chalk.yellow("--quiet, -q")}          Exit code 0 if authenticated, 1 otherwise`,
   force: `${chalk.yellow("--force, -f")}          Skip confirmation prompts`,
-  revoke: `${chalk.yellow("--revoke <id>")}        Revoke a specific session`,
-  "revoke-all": `${chalk.yellow("--revoke-all")}         Revoke all CLI sessions`,
 };
 
 const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
@@ -202,20 +200,74 @@ ${chalk.bold("Templates")}
     description: "Manage authentication (status, login, logout, sessions)",
     usage: [
       `$ ${chalk.cyan("tambo auth")} [subcommand] [options]`,
-      `$ ${chalk.cyan("tambo auth status")}   ${chalk.dim("Show authentication status")}`,
-      `$ ${chalk.cyan("tambo auth login")}    ${chalk.dim("Authenticate via browser")}`,
-      `$ ${chalk.cyan("tambo auth logout")}   ${chalk.dim("Clear stored credentials")}`,
-      `$ ${chalk.cyan("tambo auth sessions")} ${chalk.dim("List/manage CLI sessions")}`,
+      `$ ${chalk.cyan("tambo auth status")}         ${chalk.dim("Show authentication status")}`,
+      `$ ${chalk.cyan("tambo auth login")}          ${chalk.dim("Authenticate via browser")}`,
+      `$ ${chalk.cyan("tambo auth logout")}         ${chalk.dim("Clear stored credentials")}`,
+      `$ ${chalk.cyan("tambo auth sessions")}       ${chalk.dim("List CLI sessions")}`,
+      `$ ${chalk.cyan("tambo auth revoke-session")} ${chalk.dim("Revoke CLI session(s)")}`,
     ],
-    options: ["quiet", "force", "revoke", "revoke-all"],
+    options: ["quiet"],
     examples: [
-      `$ ${chalk.cyan("tambo auth")}                       # Show auth status`,
-      `$ ${chalk.cyan("tambo auth login")}                 # Authenticate`,
-      `$ ${chalk.cyan("tambo auth logout --force")}        # Logout without prompt`,
-      `$ ${chalk.cyan("tambo auth sessions")}              # List sessions`,
-      `$ ${chalk.cyan("tambo auth sessions --revoke-all")} # Revoke all sessions`,
+      `$ ${chalk.cyan("tambo auth")}                # Show auth status`,
+      `$ ${chalk.cyan("tambo auth status --quiet")} # Check auth in scripts (exit code)`,
     ],
     exampleTitle: "Authentication",
+  },
+  "auth-status": {
+    command: "auth-status",
+    syntax: "auth status",
+    description: "Show current authentication status",
+    usage: [`$ ${chalk.cyan("tambo auth status")} [options]`],
+    options: ["quiet"],
+    examples: [
+      `$ ${chalk.cyan("tambo auth status")}         # Show auth status`,
+      `$ ${chalk.cyan("tambo auth status --quiet")} # Exit 0 if authenticated, 1 otherwise`,
+    ],
+  },
+  "auth-login": {
+    command: "auth-login",
+    syntax: "auth login",
+    description: "Authenticate via browser",
+    usage: [`$ ${chalk.cyan("tambo auth login")}`],
+    options: [],
+    examples: [
+      `$ ${chalk.cyan("tambo auth login")} # Opens browser to authenticate`,
+    ],
+  },
+  "auth-logout": {
+    command: "auth-logout",
+    syntax: "auth logout",
+    description: "Clear stored credentials",
+    usage: [`$ ${chalk.cyan("tambo auth logout")} [options]`],
+    options: ["force"],
+    examples: [
+      `$ ${chalk.cyan("tambo auth logout")}         # Logout with confirmation`,
+      `$ ${chalk.cyan("tambo auth logout --force")} # Logout without prompt`,
+    ],
+  },
+  "auth-sessions": {
+    command: "auth-sessions",
+    syntax: "auth sessions",
+    description: "List active CLI sessions",
+    usage: [`$ ${chalk.cyan("tambo auth sessions")}`],
+    options: [],
+    examples: [
+      `$ ${chalk.cyan("tambo auth sessions")} # List all CLI sessions`,
+    ],
+  },
+  "auth-revoke-session": {
+    command: "auth-revoke-session",
+    syntax: "auth revoke-session [options]",
+    description: "Revoke CLI session(s)",
+    usage: [
+      `$ ${chalk.cyan("tambo auth revoke-session")} --id <session-id>`,
+      `$ ${chalk.cyan("tambo auth revoke-session")} --all`,
+    ],
+    options: [],
+    examples: [
+      `$ ${chalk.cyan("tambo auth revoke-session --id abc123")} # Revoke specific session`,
+      `$ ${chalk.cyan("tambo auth revoke-session --all")}       # Revoke all sessions`,
+    ],
   },
 };
 
@@ -335,11 +387,11 @@ const cli = meow(generateGlobalHelp(), {
       description: "Force action without confirmation",
       shortFlag: "f",
     },
-    revoke: {
+    id: {
       type: "string",
       description: "Session ID to revoke",
     },
-    revokeAll: {
+    all: {
       type: "boolean",
       description: "Revoke all CLI sessions",
     },
@@ -514,8 +566,8 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     await handleAuth(subcommand, {
       quiet: Boolean(flags.quiet ?? flags.q),
       force: Boolean(flags.force ?? flags.f),
-      revoke: flags.revoke as string | undefined,
-      revokeAll: Boolean(flags.revokeAll),
+      id: flags.id as string | undefined,
+      all: Boolean(flags.all),
     });
     return;
   }

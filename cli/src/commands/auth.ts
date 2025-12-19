@@ -27,9 +27,9 @@ export interface AuthLogoutOptions {
   force?: boolean;
 }
 
-export interface AuthSessionsOptions {
-  revoke?: string;
-  revokeAll?: boolean;
+export interface AuthRevokeSessionOptions {
+  id?: string;
+  all?: boolean;
 }
 
 /**
@@ -186,11 +186,30 @@ export async function handleAuthLogout(
 }
 
 /**
- * List and manage CLI sessions
+ * List CLI sessions
  * @returns Exit code: 0 on success, 1 on failure
  */
-export async function handleAuthSessions(
-  options: AuthSessionsOptions,
+export async function handleAuthSessions(): Promise<number> {
+  // Check authentication first
+  if (!hasStoredToken() || !isTokenValid()) {
+    console.log(chalk.yellow("\nNot authenticated."));
+    console.log(
+      chalk.gray(
+        `Run ${chalk.cyan("tambo auth login")} to authenticate first.\n`,
+      ),
+    );
+    return 1;
+  }
+
+  return await listSessions();
+}
+
+/**
+ * Revoke CLI session(s)
+ * @returns Exit code: 0 on success, 1 on failure
+ */
+export async function handleAuthRevokeSession(
+  options: AuthRevokeSessionOptions,
 ): Promise<number> {
   // Check authentication first
   if (!hasStoredToken() || !isTokenValid()) {
@@ -203,18 +222,22 @@ export async function handleAuthSessions(
     return 1;
   }
 
-  // Handle revoke by session ID
-  if (options.revoke) {
-    return await revokeSessionById(options.revoke);
-  }
-
-  // Handle revoke all
-  if (options.revokeAll) {
+  if (options.all) {
     return await revokeAllSessions();
   }
 
-  // List sessions
-  return await listSessions();
+  if (options.id) {
+    return await revokeSessionById(options.id);
+  }
+
+  // No option specified - show help
+  console.log(chalk.yellow("\nPlease specify a session to revoke."));
+  console.log(
+    chalk.gray(
+      `\nUsage:\n  ${chalk.cyan("tambo auth revoke-session --id <session-id>")}  Revoke specific session\n  ${chalk.cyan("tambo auth revoke-session --all")}               Revoke all sessions\n`,
+    ),
+  );
+  return 1;
 }
 
 async function listSessions(): Promise<number> {
@@ -283,12 +306,12 @@ async function listSessions(): Promise<number> {
     console.log(chalk.gray(`\nTotal: ${sessions.length} session(s)\n`));
     console.log(
       chalk.gray(
-        `To revoke a session: ${chalk.cyan("tambo auth sessions --revoke <session-id>")}`,
+        `To revoke a session: ${chalk.cyan("tambo auth revoke-session --id <session-id>")}`,
       ),
     );
     console.log(
       chalk.gray(
-        `To revoke all sessions: ${chalk.cyan("tambo auth sessions --revoke-all")}\n`,
+        `To revoke all sessions: ${chalk.cyan("tambo auth revoke-session --all")}\n`,
       ),
     );
     return 0;
@@ -383,8 +406,8 @@ export async function handleAuth(
   flags: {
     quiet?: boolean;
     force?: boolean;
-    revoke?: string;
-    revokeAll?: boolean;
+    id?: string;
+    all?: boolean;
     help?: boolean;
   },
 ): Promise<void> {
@@ -398,9 +421,11 @@ export async function handleAuth(
   } else if (subcommand === "logout") {
     exitCode = await handleAuthLogout({ force: flags.force });
   } else if (subcommand === "sessions") {
-    exitCode = await handleAuthSessions({
-      revoke: flags.revoke,
-      revokeAll: flags.revokeAll,
+    exitCode = await handleAuthSessions();
+  } else if (subcommand === "revoke-session") {
+    exitCode = await handleAuthRevokeSession({
+      id: flags.id,
+      all: flags.all,
     });
   } else {
     // Unknown subcommand
@@ -425,23 +450,25 @@ ${chalk.bold("Usage")}
   $ ${chalk.cyan("tambo auth")} [subcommand] [options]
 
 ${chalk.bold("Subcommands")}
-  ${chalk.yellow("status")}     Show current authentication status (default)
-  ${chalk.yellow("login")}      Authenticate via browser
-  ${chalk.yellow("logout")}     Clear stored credentials
-  ${chalk.yellow("sessions")}   List and manage CLI sessions
+  ${chalk.yellow("status")}          Show current authentication status (default)
+  ${chalk.yellow("login")}           Authenticate via browser
+  ${chalk.yellow("logout")}          Clear stored credentials
+  ${chalk.yellow("sessions")}        List active CLI sessions
+  ${chalk.yellow("revoke-session")}  Revoke CLI session(s)
 
 ${chalk.bold("Options")}
-  ${chalk.yellow("--quiet, -q")}          Exit with code 0 if authenticated, 1 otherwise (status only)
-  ${chalk.yellow("--force, -f")}          Skip confirmation prompts (logout only)
-  ${chalk.yellow("--revoke <id>")}        Revoke a specific session (sessions only)
-  ${chalk.yellow("--revoke-all")}         Revoke all CLI sessions (sessions only)
+  ${chalk.yellow("--quiet, -q")}     Exit with code 0 if authenticated, 1 otherwise (status only)
+  ${chalk.yellow("--force, -f")}     Skip confirmation prompts (logout only)
+  ${chalk.yellow("--id <id>")}       Session ID to revoke (revoke-session only)
+  ${chalk.yellow("--all")}           Revoke all sessions (revoke-session only)
 
 ${chalk.bold("Examples")}
-  $ ${chalk.cyan("tambo auth")}                       # Show auth status
-  $ ${chalk.cyan("tambo auth status --quiet")}        # Check auth in scripts
-  $ ${chalk.cyan("tambo auth login")}                 # Authenticate
-  $ ${chalk.cyan("tambo auth logout")}                # Clear credentials
-  $ ${chalk.cyan("tambo auth sessions")}              # List all CLI sessions
-  $ ${chalk.cyan("tambo auth sessions --revoke-all")} # Revoke all sessions
+  $ ${chalk.cyan("tambo auth")}                            # Show auth status
+  $ ${chalk.cyan("tambo auth status --quiet")}             # Check auth in scripts
+  $ ${chalk.cyan("tambo auth login")}                      # Authenticate
+  $ ${chalk.cyan("tambo auth logout")}                     # Clear credentials
+  $ ${chalk.cyan("tambo auth sessions")}                   # List all CLI sessions
+  $ ${chalk.cyan("tambo auth revoke-session --id <id>")}   # Revoke specific session
+  $ ${chalk.cyan("tambo auth revoke-session --all")}       # Revoke all sessions
 `);
 }
