@@ -16,7 +16,7 @@ import { authOptions } from "@/lib/auth";
 import { env } from "@/lib/env";
 import * as Sentry from "@sentry/nextjs";
 import { getDb, HydraDb, schema } from "@tambo-ai-cloud/db";
-import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { getServerSession, User } from "next-auth";
 import { cookies, headers } from "next/headers";
 
@@ -35,6 +35,9 @@ export type Context = {
 /**
  * Validate a CLI session token against the database
  * Returns user info if valid, null otherwise
+ *
+ * CLI sessions must have a non-null notAfter expiry date.
+ * This is enforced here and when creating sessions in device-auth.ts
  */
 async function validateCliSession(
   db: HydraDb,
@@ -43,6 +46,7 @@ async function validateCliSession(
   const now = new Date();
 
   // Query the session and join with user
+  // CLI sessions must have notAfter set and not be expired
   const result = await db
     .select({
       sessionId: schema.sessions.id,
@@ -61,7 +65,7 @@ async function validateCliSession(
       and(
         eq(schema.sessions.id, sessionToken),
         eq(schema.sessions.source, "cli"),
-        or(isNull(schema.sessions.notAfter), gt(schema.sessions.notAfter, now)),
+        gt(schema.sessions.notAfter, now),
       ),
     )
     .limit(1);
