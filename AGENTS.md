@@ -53,7 +53,21 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - Node.js >=22
 - npm >=11
-- Uses Volta for version management consistency
+
+**Recommended:** Install [mise](https://mise.jdx.dev) for automatic version management:
+
+```sh
+# zsh
+curl https://mise.run/zsh | sh
+# bash
+curl https://mise.run/bash | sh
+# fish
+curl https://mise.run/fish | source
+```
+
+> If you have Windows, see here to start using mise: https://mise.jdx.dev/getting-started.html
+
+Alternatively, use fnm, nvm, or any tool that reads `.node-version` or `.nvmrc`.
 
 ## 2. Core Development Principles
 
