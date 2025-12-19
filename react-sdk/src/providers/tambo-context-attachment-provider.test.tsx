@@ -1,23 +1,33 @@
-import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import {
   TamboContextAttachmentProvider,
   useTamboContextAttachment,
 } from "./tambo-context-attachment-provider";
+import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
+
+// Mock the context helpers provider
+jest.mock("./tambo-context-helpers-provider");
+
+const mockAddContextHelper = jest.fn();
+const mockRemoveContextHelper = jest.fn();
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  (useTamboContextHelpers as jest.Mock).mockReturnValue({
+    addContextHelper: mockAddContextHelper,
+    removeContextHelper: mockRemoveContextHelper,
+  });
+});
 
 /**
  * Test suite for TamboContextAttachmentProvider
  *
  * Tests the context attachment feature which allows:
- * - Visual context badges above message input
- * - Custom suggestions that override auto-generated ones
+ * - Adding context attachments that will be sent with the next message
+ * - Automatic registration/deregistration of context helpers
  */
 describe("TamboContextAttachmentProvider", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   /**
    * Base wrapper with TamboContextAttachmentProvider
    * @returns A React component that wraps children with the provider
@@ -45,8 +55,6 @@ describe("TamboContextAttachmentProvider", () => {
       expect(result.current).toHaveProperty("addContextAttachment");
       expect(result.current).toHaveProperty("removeContextAttachment");
       expect(result.current).toHaveProperty("clearContextAttachments");
-      expect(result.current).toHaveProperty("customSuggestions");
-      expect(result.current).toHaveProperty("setCustomSuggestions");
     });
 
     /**
@@ -70,30 +78,43 @@ describe("TamboContextAttachmentProvider", () => {
 
   describe("Adding Context Attachments", () => {
     /**
-     * Should add a context attachment with auto-generated ID
+     * Should add a context attachment and register a context helper
      */
     it("should add a context attachment", () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
+      let attachment: ReturnType<typeof result.current.addContextAttachment>;
       act(() => {
-        result.current.addContextAttachment({
-          name: "Button.tsx",
-          metadata: { filePath: "/src/Button.tsx" },
-        });
+        attachment = result.current.addContextAttachment(
+          "selectedFile",
+          "Button.tsx",
+          "file",
+        );
       });
 
       expect(result.current.attachments).toHaveLength(1);
       expect(result.current.attachments[0]).toMatchObject({
-        name: "Button.tsx",
-        metadata: { filePath: "/src/Button.tsx" },
+        displayName: "Button.tsx",
+        context: "selectedFile",
+        type: "file",
       });
       expect(result.current.attachments[0].id).toBeDefined();
+      expect(attachment!.id).toBe(result.current.attachments[0].id);
+
+      // Should register context helper
+      expect(mockAddContextHelper).toHaveBeenCalledWith(
+        attachment!.id,
+        expect.any(Function),
+      );
+      // Verify the helper function returns the context value
+      const helperFn = mockAddContextHelper.mock.calls[0][1];
+      expect(helperFn()).toBe("selectedFile");
     });
 
     /**
-     * Should add multiple different attachments
+     * Should add multiple different context attachments
      */
     it("should add multiple context attachments", () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
@@ -101,83 +122,81 @@ describe("TamboContextAttachmentProvider", () => {
       });
 
       act(() => {
-        result.current.addContextAttachment({
-          name: "Button.tsx",
-        });
-        result.current.addContextAttachment({
-          name: "Card.tsx",
-        });
+        result.current.addContextAttachment("file1", "Button.tsx", "file");
+        result.current.addContextAttachment("file2", "Card.tsx", "file");
       });
 
       expect(result.current.attachments).toHaveLength(2);
-      expect(result.current.attachments[0].name).toBe("Button.tsx");
-      expect(result.current.attachments[1].name).toBe("Card.tsx");
+      expect(result.current.attachments[0].displayName).toBe("Button.tsx");
+      expect(result.current.attachments[1].displayName).toBe("Card.tsx");
+      expect(mockAddContextHelper).toHaveBeenCalledTimes(2);
     });
 
     /**
-     * Should prevent duplicates with the same name
+     * Should allow multiple attachments with the same context value
      */
-    it("should prevent duplicate attachments with same name", () => {
+    it("should allow multiple attachments with same context value", () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
       act(() => {
-        result.current.addContextAttachment({
-          name: "Button.tsx",
-        });
-        result.current.addContextAttachment({
-          name: "Button.tsx",
-        });
+        result.current.addContextAttachment(
+          "selectedFile",
+          "Button.tsx",
+          "file",
+        );
+        result.current.addContextAttachment("selectedFile", "Card.tsx", "file");
       });
 
-      expect(result.current.attachments).toHaveLength(1);
+      expect(result.current.attachments).toHaveLength(2);
+      expect(mockAddContextHelper).toHaveBeenCalledTimes(2);
     });
 
     /**
-     * Should support optional icon property
+     * Should support optional type property
      */
-    it("should support icon property", () => {
+    it("should support optional type property", () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
-      const icon = <span>📄</span>;
-
       act(() => {
-        result.current.addContextAttachment({
-          name: "File.txt",
-          icon,
-        });
+        result.current.addContextAttachment("file1", "Button.tsx", "file");
+        result.current.addContextAttachment("page1", "Dashboard", "page");
       });
 
-      expect(result.current.attachments[0].icon).toBe(icon);
+      expect(result.current.attachments[0].type).toBe("file");
+      expect(result.current.attachments[1].type).toBe("page");
     });
   });
 
   describe("Removing Context Attachments", () => {
     /**
-     * Should remove a specific attachment by ID
+     * Should remove a specific context attachment by ID and deregister helper
      */
     it("should remove context attachment by ID", () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
+      let attachmentId = "";
       act(() => {
-        result.current.addContextAttachment({
-          name: "Button.tsx",
-        });
+        const attachment = result.current.addContextAttachment(
+          "selectedFile",
+          "Button.tsx",
+        );
+        attachmentId = attachment.id;
       });
 
       expect(result.current.attachments).toHaveLength(1);
-      const attachmentId = result.current.attachments[0].id;
 
       act(() => {
         result.current.removeContextAttachment(attachmentId);
       });
 
       expect(result.current.attachments).toHaveLength(0);
+      expect(mockRemoveContextHelper).toHaveBeenCalledWith(attachmentId);
     });
 
     /**
@@ -188,20 +207,22 @@ describe("TamboContextAttachmentProvider", () => {
         wrapper: createWrapper(),
       });
 
+      let firstId = "";
       act(() => {
-        result.current.addContextAttachment({ name: "First.tsx" });
-        result.current.addContextAttachment({ name: "Second.tsx" });
+        const first = result.current.addContextAttachment("file1", "First.tsx");
+        result.current.addContextAttachment("file2", "Second.tsx");
+        firstId = first.id;
       });
 
       expect(result.current.attachments).toHaveLength(2);
-      const firstId = result.current.attachments[0].id;
 
       act(() => {
         result.current.removeContextAttachment(firstId);
       });
 
       expect(result.current.attachments).toHaveLength(1);
-      expect(result.current.attachments[0].name).toBe("Second.tsx");
+      expect(result.current.attachments[0].displayName).toBe("Second.tsx");
+      expect(mockRemoveContextHelper).toHaveBeenCalledWith(firstId);
     });
 
     /**
@@ -217,22 +238,29 @@ describe("TamboContextAttachmentProvider", () => {
           result.current.removeContextAttachment("non-existent-id");
         });
       }).not.toThrow();
+
+      expect(mockRemoveContextHelper).toHaveBeenCalledWith("non-existent-id");
     });
   });
 
-  describe("Clearing All Attachments", () => {
+  describe("Clearing All Context Attachments", () => {
     /**
-     * Should clear all attachments at once
+     * Should clear all context attachments and deregister all helpers
      */
     it("should clear all context attachments", () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
+      let ids: string[] = [];
       act(() => {
-        result.current.addContextAttachment({ name: "First.tsx" });
-        result.current.addContextAttachment({ name: "Second.tsx" });
-        result.current.addContextAttachment({ name: "Third.tsx" });
+        const first = result.current.addContextAttachment("file1", "First.tsx");
+        const second = result.current.addContextAttachment(
+          "file2",
+          "Second.tsx",
+        );
+        const third = result.current.addContextAttachment("file3", "Third.tsx");
+        ids = [first.id, second.id, third.id];
       });
 
       expect(result.current.attachments).toHaveLength(3);
@@ -242,6 +270,11 @@ describe("TamboContextAttachmentProvider", () => {
       });
 
       expect(result.current.attachments).toHaveLength(0);
+      // Should remove all helpers
+      expect(mockRemoveContextHelper).toHaveBeenCalledTimes(3);
+      for (const id of ids) {
+        expect(mockRemoveContextHelper).toHaveBeenCalledWith(id);
+      }
     });
 
     /**
@@ -259,188 +292,7 @@ describe("TamboContextAttachmentProvider", () => {
       }).not.toThrow();
 
       expect(result.current.attachments).toHaveLength(0);
-    });
-  });
-
-  describe("Custom Suggestions", () => {
-    /**
-     * Should start with null custom suggestions
-     */
-    it("should initialize with null custom suggestions", () => {
-      const { result } = renderHook(() => useTamboContextAttachment(), {
-        wrapper: createWrapper(),
-      });
-
-      expect(result.current.customSuggestions).toBeNull();
-    });
-
-    /**
-     * Should set custom suggestions
-     */
-    it("should set custom suggestions", () => {
-      const { result } = renderHook(() => useTamboContextAttachment(), {
-        wrapper: createWrapper(),
-      });
-
-      const suggestions: Suggestion[] = [
-        {
-          id: "1",
-          title: "Edit component",
-          detailedSuggestion: "Modify the Button component",
-          messageId: "",
-        },
-        {
-          id: "2",
-          title: "Add feature",
-          detailedSuggestion: "Add a new feature",
-          messageId: "",
-        },
-      ];
-
-      act(() => {
-        result.current.setCustomSuggestions(suggestions);
-      });
-
-      expect(result.current.customSuggestions).toEqual(suggestions);
-    });
-
-    /**
-     * Should clear custom suggestions by setting to null
-     */
-    it("should clear custom suggestions", () => {
-      const { result } = renderHook(() => useTamboContextAttachment(), {
-        wrapper: createWrapper(),
-      });
-
-      const suggestions: Suggestion[] = [
-        {
-          id: "1",
-          title: "Test",
-          detailedSuggestion: "Test suggestion",
-          messageId: "",
-        },
-      ];
-
-      act(() => {
-        result.current.setCustomSuggestions(suggestions);
-      });
-
-      expect(result.current.customSuggestions).toEqual(suggestions);
-
-      act(() => {
-        result.current.setCustomSuggestions(null);
-      });
-
-      expect(result.current.customSuggestions).toBeNull();
-    });
-
-    /**
-     * Should update custom suggestions when changed
-     */
-    it("should update custom suggestions", () => {
-      const { result } = renderHook(() => useTamboContextAttachment(), {
-        wrapper: createWrapper(),
-      });
-
-      const firstSuggestions: Suggestion[] = [
-        {
-          id: "1",
-          title: "First",
-          detailedSuggestion: "First suggestion",
-          messageId: "",
-        },
-      ];
-
-      const secondSuggestions: Suggestion[] = [
-        {
-          id: "2",
-          title: "Second",
-          detailedSuggestion: "Second suggestion",
-          messageId: "",
-        },
-      ];
-
-      act(() => {
-        result.current.setCustomSuggestions(firstSuggestions);
-      });
-
-      expect(result.current.customSuggestions).toEqual(firstSuggestions);
-
-      act(() => {
-        result.current.setCustomSuggestions(secondSuggestions);
-      });
-
-      expect(result.current.customSuggestions).toEqual(secondSuggestions);
-    });
-  });
-
-  describe("Combined Workflows", () => {
-    /**
-     * Should handle adding attachment and setting custom suggestions together
-     */
-    it("should handle attachment and custom suggestions together", () => {
-      const { result } = renderHook(() => useTamboContextAttachment(), {
-        wrapper: createWrapper(),
-      });
-
-      const suggestions: Suggestion[] = [
-        {
-          id: "1",
-          title: "Edit file",
-          detailedSuggestion: "Edit this file",
-          messageId: "",
-        },
-      ];
-
-      act(() => {
-        result.current.addContextAttachment({
-          name: "Button.tsx",
-          metadata: { filePath: "/src/Button.tsx" },
-        });
-        result.current.setCustomSuggestions(suggestions);
-      });
-
-      expect(result.current.attachments).toHaveLength(1);
-      expect(result.current.customSuggestions).toEqual(suggestions);
-    });
-
-    /**
-     * Should clear suggestions when clearing attachments
-     */
-    it("should independently manage attachments and suggestions", () => {
-      const { result } = renderHook(() => useTamboContextAttachment(), {
-        wrapper: createWrapper(),
-      });
-
-      const suggestions: Suggestion[] = [
-        {
-          id: "1",
-          title: "Test",
-          detailedSuggestion: "Test suggestion",
-          messageId: "",
-        },
-      ];
-
-      act(() => {
-        result.current.addContextAttachment({ name: "File.tsx" });
-        result.current.setCustomSuggestions(suggestions);
-      });
-
-      // Clear attachments
-      act(() => {
-        result.current.clearContextAttachments();
-      });
-
-      // Suggestions should remain
-      expect(result.current.attachments).toHaveLength(0);
-      expect(result.current.customSuggestions).toEqual(suggestions);
-
-      // Can clear suggestions separately
-      act(() => {
-        result.current.setCustomSuggestions(null);
-      });
-
-      expect(result.current.customSuggestions).toBeNull();
+      expect(mockRemoveContextHelper).not.toHaveBeenCalled();
     });
   });
 });

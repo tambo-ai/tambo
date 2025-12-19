@@ -10,15 +10,15 @@ import React, {
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
 
 /**
- * Represents a staged context piece that will be sent with the next user message.
+ * Represents a context attachment that will be sent with the next user message.
  * These are automatically registered as context helpers and will be included in
  * the additionalContext when the next message is sent.
- * @property {string} id - Unique identifier for this staged context
+ * @property {string} id - Unique identifier for this context attachment
  * @property {string} displayName - Display name for UI rendering
- * @property {string} context - The context key name that will be used in additionalContext
+ * @property {string} context - The context value that will be used in additionalContext
  * @property {string} [type] - Optional type identifier for grouping/rendering multiple contexts of the same type
  */
-export interface StagedContext {
+export interface ContextAttachment {
   id: string;
   displayName: string;
   context: string;
@@ -26,21 +26,21 @@ export interface StagedContext {
 }
 
 /**
- * Context state interface for managing staged context pieces.
- * @property {StagedContext[]} stagedContexts - Array of active staged contexts
- * @property {(contextKey: string, contextValue: unknown, displayName: string, type?: string) => string} addStagedContext - Add a new staged context piece, returns the ID
- * @property {(id: string) => void} removeStagedContext - Remove a staged context piece by ID
- * @property {() => void} clearStagedContexts - Remove all staged context pieces
+ * Context state interface for managing context attachments.
+ * @property {ContextAttachment[]} attachments - Array of active context attachments
+ * @property {(contextValue: string, displayName: string, type?: string) => ContextAttachment} addContextAttachment - Add a new context attachment, returns the attachment
+ * @property {(id: string) => void} removeContextAttachment - Remove a context attachment by ID
+ * @property {() => void} clearContextAttachments - Remove all context attachments
  */
 export interface ContextAttachmentState {
-  stagedContexts: StagedContext[];
-  addStagedContext: (
+  attachments: ContextAttachment[];
+  addContextAttachment: (
     contextValue: string,
     displayName: string,
     type?: string,
-  ) => StagedContext;
-  removeStagedContext: (id: string) => void;
-  clearStagedContexts: () => void;
+  ) => ContextAttachment;
+  removeContextAttachment: (id: string) => void;
+  clearContextAttachments: () => void;
 }
 
 const ContextAttachmentContext = createContext<ContextAttachmentState | null>(
@@ -52,17 +52,17 @@ export interface TamboContextAttachmentProviderProps {
 }
 
 /**
- * Provider that manages staged context pieces for the next user message.
+ * Provider that manages context attachments for the next user message.
  * **When to use:**
  * - **Included by default** in TamboProvider - no need to wrap separately
- * - Use `useTamboContextAttachment()` hook to stage context pieces
+ * - Use `useTamboContextAttachment()` hook to manage context attachments
  * **What it does:**
- * - Stores staged context pieces that will be sent with the next message
- * - Automatically registers/deregisters context helpers for each staged context
+ * - Stores context attachments that will be sent with the next message
+ * - Automatically registers/deregisters context helpers for each attachment
  * - Context helpers are automatically collected during message submission
- * - Staged contexts are cleared after message submission (one-time use)
+ * - Context attachments are cleared after message submission (one-time use)
  *
- * **Note:** Staged contexts are automatically included in additionalContext when
+ * **Note:** Context attachments are automatically included in additionalContext when
  * the next message is sent. They are cleared after submission.
  * @param props - The props for the TamboContextAttachmentProvider
  * @param props.children - The children to wrap
@@ -72,57 +72,57 @@ export function TamboContextAttachmentProvider({
   children,
 }: TamboContextAttachmentProviderProps) {
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
-  const [stagedContexts, setStagedContexts] = useState<StagedContext[]>([]);
+  const [attachments, setAttachments] = useState<ContextAttachment[]>([]);
 
-  const addStagedContext = useCallback(
+  const addContextAttachment = useCallback(
     (
       contextValue: string,
       displayName: string,
       type?: string,
-    ): StagedContext => {
+    ): ContextAttachment => {
       const id = crypto.randomUUID();
-      const stagedContext: StagedContext = {
+      const attachment: ContextAttachment = {
         id,
         displayName,
         context: contextValue,
         type,
       };
-      setStagedContexts((prev) => [...prev, stagedContext]);
+      setAttachments((prev) => [...prev, attachment]);
       addContextHelper(id, () => contextValue);
 
-      return stagedContext;
+      return attachment;
     },
     [addContextHelper],
   );
 
-  const removeStagedContext = useCallback(
+  const removeContextAttachment = useCallback(
     (id: string) => {
-      setStagedContexts((prev) => prev.filter((c) => c.id !== id));
+      setAttachments((prev) => prev.filter((c) => c.id !== id));
       removeContextHelper(id);
     },
     [removeContextHelper],
   );
 
-  const clearStagedContexts = useCallback(() => {
+  const clearContextAttachments = useCallback(() => {
     // Remove all registered helpers before clearing
-    for (const stagedContext of stagedContexts) {
-      removeContextHelper(stagedContext.id);
+    for (const attachment of attachments) {
+      removeContextHelper(attachment.id);
     }
-    setStagedContexts([]);
-  }, [stagedContexts, removeContextHelper]);
+    setAttachments([]);
+  }, [attachments, removeContextHelper]);
 
   const value = useMemo(
     () => ({
-      stagedContexts,
-      addStagedContext,
-      removeStagedContext,
-      clearStagedContexts,
+      attachments,
+      addContextAttachment,
+      removeContextAttachment,
+      clearContextAttachments,
     }),
     [
-      stagedContexts,
-      addStagedContext,
-      removeStagedContext,
-      clearStagedContexts,
+      attachments,
+      addContextAttachment,
+      removeContextAttachment,
+      clearContextAttachments,
     ],
   );
 
@@ -134,26 +134,26 @@ export function TamboContextAttachmentProvider({
 }
 
 /**
- * Hook to access staged context state and methods.
+ * Hook to access context attachment state and methods.
  * **Must be used within a `TamboProvider`** - throws an error otherwise.
  * @throws {Error} If used outside of TamboProvider
- * @returns The staged context state and methods
+ * @returns The context attachment state and methods
  * @example
  * ```tsx
- * const { addStagedContext, stagedContexts, clearStagedContexts } = useTamboContextAttachment();
+ * const { addContextAttachment, attachments, clearContextAttachments } = useTamboContextAttachment();
  *
- * // Stage a context piece for the next message
- * const stagedContext = addStagedContext(
+ * // Add a context attachment for the next message
+ * const attachment = addContextAttachment(
  *   "selectedFile",
  *   "Button.tsx",
  *   "file"
  * );
  *
- * // Remove a staged context
- * removeStagedContext(stagedContext.id);
+ * // Remove a context attachment
+ * removeContextAttachment(attachment.id);
  *
- * // Clear all staged contexts
- * clearStagedContexts();
+ * // Clear all context attachments
+ * clearContextAttachments();
  * ```
  */
 export function useTamboContextAttachment() {

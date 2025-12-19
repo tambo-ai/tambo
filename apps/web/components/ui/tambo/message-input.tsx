@@ -364,7 +364,7 @@ const MessageInputInternal = React.forwardRef<
     clearImages,
   } = useTamboThreadInput();
   const { cancel } = useTamboThread();
-  const { stagedContexts, clearStagedContexts } = useTamboContextAttachment();
+  const { attachments, clearContextAttachments } = useTamboContextAttachment();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -389,8 +389,8 @@ const MessageInputInternal = React.forwardRef<
       if (images.length > 0) {
         setTimeout(() => clearImages(), 0);
       }
-      if (stagedContexts.length > 0) {
-        setTimeout(() => clearStagedContexts(), 0);
+      if (attachments.length > 0) {
+        setTimeout(() => clearContextAttachments(), 0);
       }
 
       try {
@@ -423,8 +423,8 @@ const MessageInputInternal = React.forwardRef<
       isSubmitting,
       images,
       clearImages,
-      stagedContexts,
-      clearStagedContexts,
+      attachments,
+      clearContextAttachments,
     ],
   );
 

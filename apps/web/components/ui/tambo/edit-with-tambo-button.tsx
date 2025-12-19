@@ -11,7 +11,6 @@ import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import {
-  type Suggestion,
   useTambo,
   useTamboContextAttachment,
   useTamboCurrentComponent,
@@ -30,17 +29,6 @@ export interface EditWithTamboButtonProps {
   className?: string;
   /** Optional callback to open the thread panel/chat interface. Uses useMessageThreadPanel by default if not provided */
   onOpenThread?: () => void;
-  /**
-   * Optional suggestions to display when using "Send in Thread"
-   *
-   * NOTE: Suggestions are set via `setCustomSuggestions()` and persist until:
-   * - A message is sent (if using MessageThreadPanel, which clears on send)
-   * - This component unmounts (cleanup fallback)
-   *
-   * For robust clearing behavior, ensure your component tree includes
-   * MessageThreadPanel or implements similar clearing logic.
-   */
-  suggestions?: Suggestion[];
 }
 
 /**
@@ -72,13 +60,12 @@ export function EditWithTamboButton({
   description,
   className,
   onOpenThread: onOpenThreadProp,
-  suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
   const { sendThreadMessage, isIdle, setInteractableSelectedForInteraction } =
     useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
-  const { addStagedContext } = useTamboContextAttachment();
+  const { addContextAttachment } = useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -146,10 +133,10 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // Stage the component context for the next message
+    // Add the component as a context attachment for the next message
     const componentName = component?.componentName ?? "Unknown Component";
     const interactableId = component?.interactableId ?? "";
-    addStagedContext(componentName, componentName, "component");
+    addContextAttachment(componentName, componentName, "component");
     if (interactableId) {
       setInteractableSelectedForInteraction(interactableId, true);
     }
@@ -177,7 +164,7 @@ export function EditWithTamboButton({
   }, [
     prompt,
     component,
-    addStagedContext,
+    addContextAttachment,
     setInteractableSelectedForInteraction,
     onOpenThread,
     editorRef,
