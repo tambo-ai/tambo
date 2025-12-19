@@ -1,5 +1,5 @@
 {
-  "id": "e7be5da9-5bf5-44b7-a176-11225fdf194e",
+  "id": "d8b73954-85c0-4105-a124-37f1e9e0cfe4",
   "prevId": "d6a5e618-091f-4951-b0d9-c2a9f4000cd4",
   "version": "7",
   "dialect": "postgresql",
@@ -199,6 +199,109 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.cli_sessions": {
+      "name": "cli_sessions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "browser_session_id": {
+          "name": "browser_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "not_after": {
+          "name": "not_after",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cli_sessions_user_id_idx": {
+          "name": "cli_sessions_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cli_sessions_not_after_idx": {
+          "name": "cli_sessions_not_after_idx",
+          "columns": [
+            {
+              "expression": "not_after",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "cli_sessions_user_id_users_id_fk": {
+          "name": "cli_sessions_user_id_users_id_fk",
+          "tableFrom": "cli_sessions",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "cli_sessions_browser_session_id_sessions_id_fk": {
+          "name": "cli_sessions_browser_session_id_sessions_id_fk",
+          "tableFrom": "cli_sessions",
+          "tableTo": "sessions",
+          "schemaTo": "auth",
+          "columnsFrom": ["browser_session_id"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.contacts": {
       "name": "contacts",
       "schema": "",
@@ -292,8 +395,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "session_id": {
-          "name": "session_id",
+        "cli_session_id": {
+          "name": "cli_session_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -310,6 +413,12 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
+        },
+        "last_polled_at": {
+          "name": "last_polled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -377,12 +486,11 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "device_auth_codes_session_id_sessions_id_fk": {
-          "name": "device_auth_codes_session_id_sessions_id_fk",
+        "device_auth_codes_cli_session_id_cli_sessions_id_fk": {
+          "name": "device_auth_codes_cli_session_id_cli_sessions_id_fk",
           "tableFrom": "device_auth_codes",
-          "tableTo": "sessions",
-          "schemaTo": "auth",
-          "columnsFrom": ["session_id"],
+          "tableTo": "cli_sessions",
+          "columnsFrom": ["cli_session_id"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -1685,13 +1793,6 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
-        },
-        "source": {
-          "name": "source",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'browser'"
         }
       },
       "indexes": {

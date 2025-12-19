@@ -579,22 +579,8 @@
     {
       "idx": 82,
       "version": "7",
-      "when": 1766104691150,
-      "tag": "0082_graceful_tomas",
-      "breakpoints": true
-    },
-    {
-      "idx": 83,
-      "version": "7",
-      "when": 1766163353319,
-      "tag": "0083_silky_pyro",
-      "breakpoints": true
-    },
-    {
-      "idx": 84,
-      "version": "7",
-      "when": 1766171478266,
-      "tag": "0084_brave_warpath",
+      "when": 1766171687883,
+      "tag": "0082_mature_kang",
       "breakpoints": true
     }
   ]
