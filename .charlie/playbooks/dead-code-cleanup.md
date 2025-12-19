@@ -39,7 +39,8 @@ Identify “public” workspaces (skip these entirely):
 This snippet assumes you're running from the repo root, using `bash`, and have `jq` installed.
 
 ```bash
-# Requires bash.
+#!/usr/bin/env bash
+
 command -v jq >/dev/null 2>&1 || { echo "jq is required" >&2; exit 1; }
 [ -f package.json ] || { echo "Run this from the repo root (package.json not found)" >&2; exit 1; }
 
@@ -60,9 +61,6 @@ fi
 
 build_workspace_report() {
   local patterns="$1"
-  local old_nullglob
-  old_nullglob=$(shopt -p nullglob || true)
-  shopt -s nullglob
   while IFS= read -r pattern; do
     [ -n "$pattern" ] || continue
     for p in $pattern; do
@@ -75,18 +73,12 @@ build_workspace_report() {
       fi
     done
   done <<< "$patterns"
-
-  eval "$old_nullglob"
 }
 
 printf 'Scanning workspace patterns:\n%s\n' "$workspaces" >&2
 workspace_report=$(build_workspace_report "$workspaces" | sort)
-
 if [ -z "$workspace_report" ]; then
-  echo "No workspaces matched patterns from package.json; falling back to a basic scan of common monorepo directories." >&2
-  workspaces=$(printf '%s\n' 'apps/*' 'packages/*' 'cli' 'create-tambo-app' 'docs' 'react-sdk' 'showcase')
-  printf 'Scanning workspace patterns:\n%s\n' "$workspaces" >&2
-  workspace_report=$(build_workspace_report "$workspaces" | sort)
+  echo "Warning: no workspaces matched patterns (check package.json workspaces)." >&2
 fi
 
 printf '%s\n' "$workspace_report"

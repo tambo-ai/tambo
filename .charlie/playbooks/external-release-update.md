@@ -65,14 +65,18 @@ Note: don’t compare only the `YYYY-MM-DD` portion of `publishedAt`; always com
 : "${next_ts:?next_ts must be set (see snippet above)}"
 
 RELEASE_LIMIT="${RELEASE_LIMIT:-500}"
-gh release list --limit "$RELEASE_LIMIT" --json tagName,name,publishedAt,url > /tmp/releases.json
+releases_file=$(mktemp)
+gh release list --limit "$RELEASE_LIMIT" --json tagName,name,publishedAt,url > "$releases_file"
 
-count=$(jq 'length' /tmp/releases.json)
+count=$(jq 'length' "$releases_file")
+if [ "$count" -eq 0 ]; then
+  echo "No releases returned by gh for this window; nothing to process." >&2
+fi
 if [ "$count" -ge "$RELEASE_LIMIT" ]; then
   echo "Warning: fetched $count releases (limit=$RELEASE_LIMIT); there may be additional releases in the window. Consider increasing RELEASE_LIMIT." >&2
 fi
 
-earliest=$(jq -r 'map(.publishedAt) | min // empty' /tmp/releases.json)
+earliest=$(jq -r 'map(.publishedAt) | min // empty' "$releases_file")
 earliest_epoch=$($DATE_BIN -d "$earliest" +%s 2>/dev/null || echo "")
 start_epoch_check=$($DATE_BIN -d "$start_ts" +%s 2>/dev/null || echo "")
 if [ -n "$earliest_epoch" ] && [ -n "$start_epoch_check" ] && [ "$earliest_epoch" -gt "$start_epoch_check" ]; then
@@ -87,7 +91,9 @@ jq -r --arg start_ts "$start_ts" --arg next_ts "$next_ts" '
   | .[]
   | {tagName,name,publishedAt,url}
   | @json
-' /tmp/releases.json
+' "$releases_file"
+
+rm -f "$releases_file"
 ```
 
 For each release, fetch full notes:
