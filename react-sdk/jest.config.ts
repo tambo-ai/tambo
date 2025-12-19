@@ -10,6 +10,15 @@ const config: Config = {
       "<rootDir>/../node_modules/pkce-challenge/dist/index.node.cjs",
   },
   testMatch: ["<rootDir>/src/**/*.test.ts?(x)"],
+  collectCoverageFrom: [
+    "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
+    "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
+    "!<rootDir>/src/**/__tests__/**",
+    "!<rootDir>/src/**/__mocks__/**",
+    "!<rootDir>/src/setupTests.ts",
+    "!<rootDir>/dist/**",
+    "!<rootDir>/esm/**",
+  ],
   transform: {
     "^.+\\.tsx?$": "ts-jest",
   },
@@ -20,8 +29,8 @@ const config: Config = {
   resetMocks: true,
   coverageThreshold: {
     global: {
-      branches: 61,
-      lines: 76,
+      branches: 65,
+      lines: 77,
     },
   },
 };
