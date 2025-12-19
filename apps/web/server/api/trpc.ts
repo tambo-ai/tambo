@@ -37,7 +37,7 @@ export type Context = {
  * Returns user info if valid, null otherwise
  *
  * CLI session tokens are high-entropy (256 bits, base64url encoded).
- * They are stored directly as the session ID in auth.sessions.
+ * They are stored in the cli_sessions table, separate from NextAuth's auth.sessions.
  *
  * SECURITY:
  * - CLI sessions must have a non-null notAfter expiry date
@@ -50,27 +50,25 @@ async function validateCliSession(
 ): Promise<Context["user"]> {
   const now = new Date();
 
-  // Query the session and join with user
+  // Query the CLI session and join with user
   // CLI sessions must have notAfter set and not be expired
   const result = await db
     .select({
-      sessionId: schema.sessions.id,
-      userId: schema.sessions.userId,
-      notAfter: schema.sessions.notAfter,
-      source: schema.sessions.source,
+      sessionId: schema.cliSessions.id,
+      userId: schema.cliSessions.userId,
+      notAfter: schema.cliSessions.notAfter,
       userEmail: schema.authUsers.email,
       userMeta: schema.authUsers.rawUserMetaData,
     })
-    .from(schema.sessions)
+    .from(schema.cliSessions)
     .innerJoin(
       schema.authUsers,
-      eq(schema.sessions.userId, schema.authUsers.id),
+      eq(schema.cliSessions.userId, schema.authUsers.id),
     )
     .where(
       and(
-        eq(schema.sessions.id, sessionToken),
-        eq(schema.sessions.source, "cli"),
-        gt(schema.sessions.notAfter, now),
+        eq(schema.cliSessions.id, sessionToken),
+        gt(schema.cliSessions.notAfter, now),
       ),
     )
     .limit(1);

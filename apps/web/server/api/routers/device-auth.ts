@@ -3,9 +3,9 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { schema } from "@tambo-ai-cloud/db";
+import { type HydraDb, schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { z } from "zod";
 
 // Constants
@@ -13,6 +13,24 @@ const CODE_EXPIRY_MINUTES = 15;
 const SESSION_EXPIRY_DAYS = 90;
 const POLL_INTERVAL_SECONDS = 5;
 const CLI_SESSION_TOKEN_BYTES = 32;
+
+/**
+ * Try to get the most recent browser session ID for a user
+ * Used to link CLI sessions to the browser session that authorized them
+ */
+async function getBrowserSessionId(
+  db: HydraDb,
+  userId: string,
+): Promise<string | null> {
+  const [session] = await db
+    .select({ id: schema.sessions.id })
+    .from(schema.sessions)
+    .where(eq(schema.sessions.userId, userId))
+    .orderBy(desc(schema.sessions.createdAt))
+    .limit(1);
+
+  return session?.id ?? null;
+}
 
 /**
  * Generate a random alphanumeric string for user codes
@@ -111,10 +129,16 @@ export const deviceAuthRouter = createTRPCRouter({
 
       // Generate high-entropy session token (256 bits)
       // SECURITY: This token is a credential - never log it
-      const sessionToken = generateCliSessionToken();
+      const cliSessionToken = generateCliSessionToken();
       const sessionExpiresAt = new Date(
         Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
       );
+
+      // Try to get browser session ID for reference (optional)
+      // This links the CLI session to the browser session that authorized it
+      const browserSessionId = ctx.session?.user
+        ? await getBrowserSessionId(ctx.db, ctx.user.id)
+        : null;
 
       // Atomically claim the device code with conditional update
       // This prevents race conditions - only one request can successfully claim a code
@@ -122,7 +146,7 @@ export const deviceAuthRouter = createTRPCRouter({
         .update(schema.deviceAuthCodes)
         .set({
           userId: ctx.user.id,
-          sessionId: sessionToken,
+          cliSessionId: cliSessionToken,
           isUsed: true,
         })
         .where(
@@ -135,13 +159,13 @@ export const deviceAuthRouter = createTRPCRouter({
         )
         .returning({ id: schema.deviceAuthCodes.id });
 
-      // If update succeeded (exactly 1 row), create the session
+      // If update succeeded (exactly 1 row), create the CLI session
       if (updateResult.length === 1) {
-        await ctx.db.insert(schema.sessions).values({
-          id: sessionToken,
+        await ctx.db.insert(schema.cliSessions).values({
+          id: cliSessionToken,
           userId: ctx.user.id,
+          browserSessionId,
           notAfter: sessionExpiresAt,
-          source: "cli",
         });
 
         return {
@@ -240,7 +264,7 @@ export const deviceAuthRouter = createTRPCRouter({
       }
 
       // Check if verified
-      if (deviceAuthCode.isUsed && deviceAuthCode.sessionId) {
+      if (deviceAuthCode.isUsed && deviceAuthCode.cliSessionId) {
         // Get user info for the response
         const [user] = await ctx.db
           .select({
@@ -254,7 +278,7 @@ export const deviceAuthRouter = createTRPCRouter({
 
         return {
           status: "complete" as const,
-          sessionToken: deviceAuthCode.sessionId,
+          sessionToken: deviceAuthCode.cliSessionId,
           user: user
             ? {
                 id: user.id,
@@ -287,24 +311,23 @@ export const deviceAuthRouter = createTRPCRouter({
   listSessions: protectedProcedure.query(async ({ ctx }) => {
     const now = new Date();
 
-    const cliSessions = await ctx.db
+    const sessions = await ctx.db
       .select({
-        id: schema.sessions.id,
-        createdAt: schema.sessions.createdAt,
-        updatedAt: schema.sessions.updatedAt,
-        notAfter: schema.sessions.notAfter,
+        id: schema.cliSessions.id,
+        createdAt: schema.cliSessions.createdAt,
+        updatedAt: schema.cliSessions.updatedAt,
+        notAfter: schema.cliSessions.notAfter,
       })
-      .from(schema.sessions)
+      .from(schema.cliSessions)
       .where(
         and(
-          eq(schema.sessions.userId, ctx.user.id),
-          eq(schema.sessions.source, "cli"),
-          gt(schema.sessions.notAfter, now),
+          eq(schema.cliSessions.userId, ctx.user.id),
+          gt(schema.cliSessions.notAfter, now),
         ),
       )
-      .orderBy(schema.sessions.createdAt);
+      .orderBy(schema.cliSessions.createdAt);
 
-    return cliSessions;
+    return sessions;
   }),
 
   /**
@@ -319,15 +342,14 @@ export const deviceAuthRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Verify the session belongs to the user and is a CLI session
+      // Verify the session belongs to the user
       const [session] = await ctx.db
         .select()
-        .from(schema.sessions)
+        .from(schema.cliSessions)
         .where(
           and(
-            eq(schema.sessions.id, input.sessionId),
-            eq(schema.sessions.userId, ctx.user.id),
-            eq(schema.sessions.source, "cli"),
+            eq(schema.cliSessions.id, input.sessionId),
+            eq(schema.cliSessions.userId, ctx.user.id),
           ),
         )
         .limit(1);
@@ -341,8 +363,8 @@ export const deviceAuthRouter = createTRPCRouter({
 
       // Delete the session
       await ctx.db
-        .delete(schema.sessions)
-        .where(eq(schema.sessions.id, input.sessionId));
+        .delete(schema.cliSessions)
+        .where(eq(schema.cliSessions.id, input.sessionId));
 
       return {
         success: true,

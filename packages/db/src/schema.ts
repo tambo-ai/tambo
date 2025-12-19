@@ -97,8 +97,6 @@ export const sessions = authSchema.table(
       .defaultNow()
       .notNull(),
     notAfter: timestamp("not_after", { withTimezone: true }),
-    // Source of the session: 'browser' for web sessions, 'cli' for CLI device auth
-    source: text("source").default("browser"),
   }),
   (table) => [
     index("session_user_id_idx").on(table.userId),
@@ -107,9 +105,49 @@ export const sessions = authSchema.table(
 );
 
 /**
+ * CLI sessions for device authentication
+ *
+ * Separate from auth.sessions (managed by NextAuth) to maintain clean separation.
+ * References the browser session that authorized it, but independent lifecycle.
+ *
+ * Token stored as `id` is a 256-bit high-entropy credential - NEVER log it.
+ */
+export const cliSessions = pgTable(
+  "cli_sessions",
+  ({ text, timestamp, uuid }) => ({
+    // High-entropy session token (256 bits, base64url encoded)
+    // This IS the credential - treat as secret
+    id: text("id").primaryKey().notNull(),
+    // The user who owns this CLI session
+    userId: uuid("user_id")
+      .references(() => authUsers.id, { onDelete: "cascade" })
+      .notNull(),
+    // The browser session that authorized this CLI session (for audit/reference)
+    // Set to null if browser session is deleted - CLI session survives
+    browserSessionId: text("browser_session_id").references(() => sessions.id, {
+      onDelete: "set null",
+    }),
+    // When this CLI session expires (required, typically 90 days)
+    notAfter: timestamp("not_after", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    index("cli_sessions_user_id_idx").on(table.userId),
+    index("cli_sessions_not_after_idx").on(table.notAfter),
+  ],
+);
+
+export type DBCliSession = typeof cliSessions.$inferSelect;
+
+/**
  * Device auth codes for CLI authentication (OAuth 2.0 Device Authorization Grant)
  * These are temporary codes that expire after 15 minutes.
- * Once a code is verified, a session is created in auth.sessions with source='cli'
+ * Once a code is verified, a CLI session is created in cli_sessions.
  */
 export const deviceAuthCodes = pgTable(
   "device_auth_codes",
@@ -127,8 +165,8 @@ export const deviceAuthCodes = pgTable(
     userId: uuid("user_id").references(() => authUsers.id, {
       onDelete: "cascade",
     }),
-    // The session ID created when verification completes
-    sessionId: text("session_id").references(() => sessions.id, {
+    // The CLI session ID created when verification completes
+    cliSessionId: text("cli_session_id").references(() => cliSessions.id, {
       onDelete: "cascade",
     }),
     // Prevent reuse of codes
@@ -150,6 +188,17 @@ export const deviceAuthCodes = pgTable(
 
 export type DBDeviceAuthCode = typeof deviceAuthCodes.$inferSelect;
 
+export const cliSessionRelations = relations(cliSessions, ({ one }) => ({
+  user: one(authUsers, {
+    fields: [cliSessions.userId],
+    references: [authUsers.id],
+  }),
+  browserSession: one(sessions, {
+    fields: [cliSessions.browserSessionId],
+    references: [sessions.id],
+  }),
+}));
+
 export const deviceAuthCodeRelations = relations(
   deviceAuthCodes,
   ({ one }) => ({
@@ -157,9 +206,9 @@ export const deviceAuthCodeRelations = relations(
       fields: [deviceAuthCodes.userId],
       references: [authUsers.id],
     }),
-    session: one(sessions, {
-      fields: [deviceAuthCodes.sessionId],
-      references: [sessions.id],
+    cliSession: one(cliSessions, {
+      fields: [deviceAuthCodes.cliSessionId],
+      references: [cliSessions.id],
     }),
   }),
 );
