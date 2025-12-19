@@ -31,6 +31,8 @@ end_date=$(date -d 'yesterday' +%F)
 start_date=$(date -d "$end_date -6 days" +%F)
 next_date=$(date -d "$end_date +1 day" +%F)
 
+# Define the LA-local window, then convert to UTC ISO timestamps for comparison
+# with GitHub's `publishedAt` values.
 start_epoch=$(date -d "$start_date 00:00" +%s)
 next_epoch=$(date -d "$next_date 00:00" +%s)
 start_ts="$(date -u -d "@$start_epoch" +%FT%T)Z"

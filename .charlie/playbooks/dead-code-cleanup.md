@@ -35,7 +35,15 @@ echo "window: $start_date..$end_date"
 Identify “public” workspaces (skip these entirely):
 
 ```bash
-workspaces=$(cat package.json | jq -r '.workspaces[]?')
+workspaces=$(cat package.json | jq -r '
+  if (.workspaces | type == "array") then
+    .workspaces[]?
+  elif (.workspaces | type == "object") then
+    .workspaces.packages[]?
+  else
+    empty
+  end
+')
 
 shopt -s nullglob
 for glob in $workspaces; do
@@ -49,7 +57,9 @@ for glob in $workspaces; do
 done | sort
 ```
 
-Only collect candidates from workspaces where `package.json.private === true` (for example: `apps/api`, `apps/web`, `packages/core`, `packages/db`, `packages/testing`, `showcase`).
+Note: `package.json.private` must be explicitly set to `true`; any other value (including missing) is treated as public.
+
+Only collect candidates from workspaces where `package.json.private === true` (for example in this repo: `apps/api`, `apps/web`, `packages/core`, `packages/db`, `packages/testing`, `showcase`).
 
 Signals you can use (require at least two per candidate):
 
