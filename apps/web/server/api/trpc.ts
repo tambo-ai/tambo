@@ -18,7 +18,7 @@ import * as Sentry from "@sentry/nextjs";
 import { getDb, HydraDb, schema } from "@tambo-ai-cloud/db";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { getServerSession, User } from "next-auth";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 
 export type Context = {
   db: HydraDb;
@@ -115,12 +115,11 @@ export const createTRPCContext = async (): Promise<Context> => {
       }
     : null;
 
-  // If no NextAuth session, check for CLI session token
+  // If no NextAuth session, check for CLI session token via Authorization header
   if (!user) {
-    const cookieStore = await cookies();
-    const cliSessionToken = cookieStore.get("tambo-cli-session")?.value;
-
-    if (cliSessionToken) {
+    const authHeader = requestHeaders.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const cliSessionToken = authHeader.slice(7);
       user = await validateCliSession(db, cliSessionToken);
     }
   }

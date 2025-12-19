@@ -72,11 +72,9 @@ async function trpcRequest<TOutput>(
     "Content-Type": "application/json",
   };
 
-  // Add session token as cookie for NextAuth compatibility
-  // The web app uses cookies for session management
+  // Use Authorization header for CLI
   if (sessionToken) {
-    // For CLI, we pass the session token as a cookie
-    headers.Cookie = `tambo-cli-session=${sessionToken}`;
+    headers.Authorization = `Bearer ${sessionToken}`;
   }
 
   const url = new URL(`/trpc/${procedure}`, baseUrl);
