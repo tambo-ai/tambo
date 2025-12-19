@@ -254,9 +254,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     [],
   );
 
-  const registerInteractableComponentUpdateTool = useCallback(
+  const registerInteractableComponentPropsUpdateTool = useCallback(
     (component: TamboInteractableComponent, maxNameLength = 60) => {
-      const tamboToolNamePart = `update_component_`;
+      const tamboToolNamePart = `update_component_props_`;
       const availableLength = maxNameLength - tamboToolNamePart.length;
       if (component.id.length > availableLength) {
         throw new Error(
@@ -372,7 +372,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         state: component.state ?? {},
       };
 
-      registerInteractableComponentUpdateTool(newComponent);
+      registerInteractableComponentPropsUpdateTool(newComponent);
       registerInteractableComponentStateUpdateTool(newComponent);
 
       setInteractableComponents((prev) => {
@@ -382,7 +382,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       return id;
     },
     [
-      registerInteractableComponentUpdateTool,
+      registerInteractableComponentPropsUpdateTool,
       registerInteractableComponentStateUpdateTool,
     ],
   );
@@ -392,7 +392,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   }, []);
 
   const getInteractableComponent = useCallback(
-    <P, S>(id: string) => {
+    <P, S>(id: string): TamboInteractableComponent<P, S> | undefined => {
       return interactableComponents.find((c) => c.id === id) as
         | TamboInteractableComponent<P, S>
         | undefined;

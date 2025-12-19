@@ -107,7 +107,9 @@ describe("TamboInteractableProvider - State Update Tool Registration", () => {
     const registeredToolNames = mockRegisterTool.mock.calls.map(
       (call) => call[0].name,
     );
-    expect(registeredToolNames).toContain(`update_component_${componentId}`);
+    expect(registeredToolNames).toContain(
+      `update_component_props_${componentId}`,
+    );
     expect(registeredToolNames).toContain(
       `update_component_state_${componentId}`,
     );
