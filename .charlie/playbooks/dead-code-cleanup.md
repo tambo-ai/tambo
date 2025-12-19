@@ -16,7 +16,7 @@ Create a Linear issue listing candidates for dead code cleanup (unused files, ex
 - Max candidates listed: 25
 - Guardrails:
   - Require at least two independent signals before listing a candidate.
-  - Exclude public API surfaces. In this repo, treat any workspace with `private=false` (or missing `private`) as public.
+  - Exclude public API surfaces. In this repo, treat any workspace where `package.json.private` is missing or not `true` as public.
   - Do not propose removing generated code, migrations, build output, or vendored code.
 
 ## Data collection
@@ -35,16 +35,21 @@ echo "window: $start_date..$end_date"
 Identify “public” workspaces (skip these entirely):
 
 ```bash
-for p in apps/* cli create-tambo-app docs packages/* react-sdk showcase; do
-  if [ -f "$p/package.json" ]; then
-    priv=$(cat "$p/package.json" | jq -r '.private // false')
-    name=$(cat "$p/package.json" | jq -r '.name')
-    echo "$p\t$name\tprivate=$priv"
-  fi
+workspaces=$(cat package.json | jq -r '.workspaces[]?')
+
+shopt -s nullglob
+for glob in $workspaces; do
+  for p in $glob; do
+    if [ -f "$p/package.json" ]; then
+      priv=$(cat "$p/package.json" | jq -r '.private // false')
+      name=$(cat "$p/package.json" | jq -r '.name')
+      echo "$p\t$name\tprivate=$priv"
+    fi
+  done
 done | sort
 ```
 
-Only collect candidates from private workspaces (for example: `apps/api`, `apps/web`, `packages/core`, `packages/db`, `packages/testing`, `showcase`).
+Only collect candidates from workspaces where `package.json.private === true` (for example: `apps/api`, `apps/web`, `packages/core`, `packages/db`, `packages/testing`, `showcase`).
 
 Signals you can use (require at least two per candidate):
 
@@ -102,7 +107,7 @@ Signals you can use (require at least two per candidate):
 
 ## Verify
 
-- No candidates are from public workspaces (`private=false`).
+- No candidates are from public workspaces (`package.json.private` missing or not `true`).
 - Each candidate has at least two independent signals recorded.
 - The list avoids generated/build/migrations paths.
 

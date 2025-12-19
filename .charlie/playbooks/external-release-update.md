@@ -30,6 +30,12 @@ export TZ=America/Los_Angeles
 end_date=$(date -d 'yesterday' +%F)
 start_date=$(date -d "$end_date -6 days" +%F)
 next_date=$(date -d "$end_date +1 day" +%F)
+
+start_epoch=$(date -d "$start_date 00:00" +%s)
+next_epoch=$(date -d "$next_date 00:00" +%s)
+start_ts="$(date -u -d "@$start_epoch" +%FT%T)Z"
+next_ts="$(date -u -d "@$next_epoch" +%FT%T)Z"
+
 echo "window: $start_date..$end_date"
 ```
 
@@ -38,7 +44,7 @@ Collect GitHub releases in that window:
 ```bash
 gh release list --limit 100 --json tagName,name,publishedAt,url > /tmp/releases.json
 
-jq -r --arg start "$start_date" --arg next "$next_date" '
+jq -r --arg start "$start_ts" --arg next "$next_ts" '
   map(select(.publishedAt >= $start and .publishedAt < $next))
   | sort_by(.publishedAt)
   | .[]
