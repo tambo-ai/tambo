@@ -37,6 +37,12 @@ else
   DATE_BIN=date
 fi
 
+# Verify GNU-compatible `date` support for -d and @epoch.
+if ! "$DATE_BIN" -d '1970-01-01 00:00' +%s >/dev/null 2>&1; then
+  echo "$DATE_BIN does not support GNU -d semantics; please install GNU coreutils 'date' and ensure it is first on PATH." >&2
+  exit 3
+fi
+
 export TZ=America/Los_Angeles
 end_date=$($DATE_BIN -d 'yesterday' +%F)
 start_date=$($DATE_BIN -d "$end_date -6 days" +%F)
@@ -64,6 +70,11 @@ Note: don’t compare only the `YYYY-MM-DD` portion of `publishedAt`; always com
 : "${next_ts:?next_ts must be set (see snippet above)}"
 
 gh release list --limit 500 --json tagName,name,publishedAt,url > /tmp/releases.json
+
+earliest=$(jq -r 'map(.publishedAt) | min // empty' /tmp/releases.json)
+if [ -n "$earliest" ] && [ "$earliest" \> "$start_ts" ]; then
+  echo "Warning: earliest fetched release ($earliest) is after start_ts ($start_ts); consider increasing --limit." >&2
+fi
 
 # Note: `$start_ts` and `$next_ts` are UTC timestamps derived from LA-local day
 # bounds, and can be compared to GitHub's `publishedAt` (UTC).

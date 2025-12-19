@@ -39,7 +39,7 @@ Identify “public” workspaces (skip these entirely):
 This snippet assumes you're running from the repo root, using `bash`, and have `jq` installed.
 
 ```bash
-# Requires bash (uses arrays + `shopt`).
+# Requires bash.
 command -v jq >/dev/null 2>&1 || { echo "jq is required" >&2; exit 1; }
 [ -f package.json ] || { echo "Run this from the repo root (package.json not found)" >&2; exit 1; }
 
@@ -58,34 +58,32 @@ if [ -z "$workspaces" ]; then
   workspaces=$(printf '%s\n' 'apps/*' 'packages/*' 'cli' 'create-tambo-app' 'docs' 'react-sdk' 'showcase')
 fi
 
-workspace_report=$( (
-  shopt -s nullglob globstar
-  while IFS= read -r entry; do
-    patterns=("$entry")
-    if [ -d "$entry" ]; then
-      patterns+=("$entry/*")
-    fi
-    for pattern in "${patterns[@]}"; do
-      for p in $pattern; do
-        if [ -f "$p/package.json" ]; then
-          priv=$(jq -r 'if has("private") then (.private | tostring) else "missing" end' "$p/package.json")
-          name=$(jq -r 'if has("name") and (.name != null and .name != "") then .name else "<no-name>" end' "$p/package.json")
-          printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
-        fi
-      done
+workspace_report=$(
+  shopt -s nullglob
+  while IFS= read -r pattern; do
+    for p in $pattern; do
+      [ -d "$p" ] || continue
+      if [ -f "$p/package.json" ]; then
+        priv=$(jq -r 'if has("private") then (.private | tostring) else "missing" end' "$p/package.json")
+        name=$(jq -r 'if has("name") and (.name != null and .name != "") then .name else "<no-name>" end' "$p/package.json")
+        printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
+      fi
     done
   done <<< "$workspaces" | sort
-) )
+)
 
 printf '%s\n' "$workspace_report"
 
 printf '\nEligible workspaces (private=true):\n'
-printf '%s\n' "$workspace_report" | grep -F 'private=true' || true
+eligible_workspaces=$(printf '%s\n' "$workspace_report" | awk -F '\t' '$3 == "private=true" { print $1 }')
+if [ -z "$eligible_workspaces" ]; then
+  echo "(none)" >&2
+else
+  printf '%s\n' "$eligible_workspaces"
+fi
 ```
 
-Only rows with `private=true` are eligible for dead code candidates.
-
-Only collect candidates from workspaces where `package.json.private === true`.
+When searching for dead code, only analyze paths listed under `Eligible workspaces (private=true)` above.
 
 Signals you can use (require at least two per candidate):
 
