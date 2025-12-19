@@ -33,7 +33,7 @@ import {
 } from "@/components/tambo/thread-content";
 import { ThreadDropdown } from "@/components/tambo/thread-dropdown";
 import { cn } from "@/lib/utils";
-import { type Suggestion, useTambo } from "@tambo-ai/react";
+import { type Suggestion } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { Collapsible } from "radix-ui";
@@ -208,7 +208,6 @@ export const MessageThreadCollapsible = React.forwardRef<
   ) => {
     const { isOpen, setIsOpen, shortcutText } =
       useCollapsibleState(defaultOpen);
-    const { thread } = useTambo();
 
     // Backward compatibility: prefer height, fall back to maxHeight
     const effectiveHeight = height ?? maxHeight;
