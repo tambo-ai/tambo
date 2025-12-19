@@ -1,0 +1,11 @@
+{
+  "extends": "@tambo-ai/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  },
+  "include": ["src/**/*.ts", "jest.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}
