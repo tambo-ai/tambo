@@ -14,6 +14,7 @@ jest.mock("@/components/ui/tambo/markdown-components", () => ({
 jest.mock("../utils", () => ({
   formatTime: (_date: Date) => "12:00 PM",
   getMessageContexts: () => [],
+  extractSelectedInteractablesFromAdditionalContext: () => [],
 }));
 
 // Mock the highlight components
