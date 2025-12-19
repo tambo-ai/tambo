@@ -602,6 +602,194 @@ describe("useTamboMcpPromptList - individual server caching", () => {
   });
 });
 
+describe("useTamboMcpPromptList - search filtering", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    createImpl = jest.fn();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+  });
+
+  it("should filter MCP prompts locally by search string", async () => {
+    const serverAPrompts = {
+      prompts: [
+        { name: "create-issue", description: "Create a new issue" },
+        { name: "list-tasks", description: "List all tasks" },
+        { name: "search-docs", description: "Search documentation" },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue(serverAPrompts),
+      listResources: jest.fn().mockResolvedValue({ resources: [] }),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async () => clientA);
+
+    let capturedPrompts: ListPromptEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: prompts } = useTamboMcpPromptList(search);
+      useEffect(() => {
+        if (prompts) {
+          capturedPrompts = prompts;
+        }
+      }, [prompts]);
+      return null;
+    };
+
+    const { rerender } = render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for all prompts to be loaded (no search)
+    await waitFor(() => {
+      expect(capturedPrompts.length).toBe(3);
+    });
+
+    // Now search for "issue"
+    rerender(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="issue" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Should only have the create-issue prompt
+    await waitFor(() => {
+      expect(capturedPrompts.length).toBe(1);
+    });
+
+    expect(capturedPrompts[0].prompt.name).toBe("server-a:create-issue");
+
+    // MCP listPrompts should only be called once (not re-fetched on search change)
+    expect(mockClientA.listPrompts).toHaveBeenCalledTimes(1);
+  });
+
+  it("should filter prompts case-insensitively", async () => {
+    const serverAPrompts = {
+      prompts: [
+        { name: "Create-Issue", description: "Create a new issue" },
+        { name: "list-tasks", description: "List all tasks" },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue(serverAPrompts),
+      listResources: jest.fn().mockResolvedValue({ resources: [] }),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async () => clientA);
+
+    let capturedPrompts: ListPromptEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: prompts } = useTamboMcpPromptList(search);
+      useEffect(() => {
+        if (prompts) {
+          capturedPrompts = prompts;
+        }
+      }, [prompts]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="CREATE" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Should find "Create-Issue" even though search is uppercase
+    await waitFor(() => {
+      expect(capturedPrompts.length).toBe(1);
+    });
+
+    expect(capturedPrompts[0].prompt.name).toBe("server-a:Create-Issue");
+  });
+});
+
 describe("useTamboMcpResourceList - resource management", () => {
   let queryClient: QueryClient;
 

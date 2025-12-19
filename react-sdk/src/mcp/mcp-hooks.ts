@@ -67,13 +67,15 @@ export function isMcpResourceEntry(
 
 /**
  * Hook to get the prompts for all the registered MCP servers.
+ * @param search - Optional search string to filter prompts by name (case-insensitive).
  * @returns The prompts for the MCP servers, including the server that the prompt was found on.
  */
-export function useTamboMcpPromptList() {
+export function useTamboMcpPromptList(search?: string) {
   const mcpServers = useTamboMcpServers();
 
   const queries = useTamboQueries({
     queries: mcpServers.map((mcpServer) => ({
+      // search is NOT in queryKey - we filter locally after fetching
       queryKey: ["mcp-prompts", mcpServer.key],
       // Only run for connected servers that have a client
       enabled: isConnectedMcpServer(mcpServer),
@@ -109,7 +111,21 @@ export function useTamboMcpPromptList() {
     },
   });
 
-  return queries;
+  // Filter results by search string - runs on every search change (not just query completion)
+  const filteredData = React.useMemo(() => {
+    if (!search) return queries.data;
+
+    const normalizedSearch = search.toLowerCase();
+    return queries.data.filter((entry) => {
+      const name = entry.prompt.name?.toLowerCase() ?? "";
+      return name.includes(normalizedSearch);
+    });
+  }, [queries.data, search]);
+
+  return {
+    ...queries,
+    data: filteredData,
+  };
 }
 // TODO: find a more general place for this
 function combineArrayResults<T>(results: UseQueryResult<T[]>[]): {
