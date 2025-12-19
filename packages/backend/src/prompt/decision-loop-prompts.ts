@@ -113,7 +113,7 @@ ${customInstructions}
             ]
         }`,
       context_attachments_example: `
-        "context_attachments": [
+        "contextAttachments": [
             {
                 "id": "File-13b",
                 "displayName": "SomeFile",
