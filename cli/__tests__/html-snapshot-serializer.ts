@@ -1,7 +1,7 @@
 /**
-* Custom Jest snapshot serializer that formats HTML strings for readable diffs.
-* Uses diffable-html which is actively maintained and purpose-built for this.
-*/
+ * Custom Jest snapshot serializer that formats HTML strings for readable diffs.
+ * Uses diffable-html which is actively maintained and purpose-built for this.
+ */
 
 import toDiffableHtml from "diffable-html";
 
