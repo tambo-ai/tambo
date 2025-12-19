@@ -28,15 +28,28 @@ export interface StoredToken {
 }
 
 /**
- * Get OS-specific paths for tambo data storage
+ * Name of directory to store state/config/cache
+ */
+const DIR_PREFIX = "tambo";
+
+/**
+ * Get OS-specific paths for tambo state storage
  * Uses XDG Base Directory Specification on Linux
  *
  * Data paths (for auth tokens and persistent data):
- * - macOS: ~/Library/Application Support/tambo/
- * - Linux: ~/.local/share/tambo/ (or XDG_DATA_HOME)
+ * - macOS: ~/Library/Application Support/tambo/ (or $XDG_DATA_HOME/tambo/)
+ * - Linux: ~/.local/share/tambo/ (or $XDG_DATA_HOME/tambo/)
  * - Windows: %LOCALAPPDATA%/tambo/
  */
-const paths = envPaths("tambo", { suffix: "" });
+function getDir(type: "cache" | "config" | "data"): string {
+  const paths = envPaths(DIR_PREFIX, { suffix: "" });
+  const envKey = `XDG_${type.toUpperCase()}_HOME`;
+  const xdgDir = process.env[envKey];
+  if (xdgDir) {
+    return join(xdgDir, DIR_PREFIX);
+  }
+  return paths[type];
+}
 
 /**
  * Path to the auth token file
@@ -44,14 +57,14 @@ const paths = envPaths("tambo", { suffix: "" });
 const AUTH_FILE_NAME = "auth.json";
 
 function getAuthFilePath(): string {
-  return join(paths.data, AUTH_FILE_NAME);
+  return join(getDir("data"), AUTH_FILE_NAME);
 }
 
 /**
  * Ensure the data directory exists with appropriate permissions
  */
 function ensureDataDir(): void {
-  const dataDir = paths.data;
+  const dataDir = getDir("data");
   if (!existsSync(dataDir)) {
     mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   }
