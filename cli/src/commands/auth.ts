@@ -34,10 +34,11 @@ export interface AuthSessionsOptions {
 
 /**
  * Show current authentication status
+ * @returns Exit code: 0 if authenticated, 1 otherwise
  */
 export async function handleAuthStatus(
   options: AuthStatusOptions,
-): Promise<void> {
+): Promise<number> {
   const hasToken = hasStoredToken();
   const tokenData = loadToken();
   const user = getCurrentUser();
@@ -45,8 +46,7 @@ export async function handleAuthStatus(
   // Quick local check first
   if (!hasToken || !isTokenValid()) {
     if (options.quiet) {
-      process.exit(1);
-      return;
+      return 1;
     }
 
     console.log(chalk.bold("\n🔐 Authentication Status\n"));
@@ -60,7 +60,7 @@ export async function handleAuthStatus(
     console.log(
       chalk.gray(`\nRun ${chalk.cyan("tambo auth login")} to authenticate.\n`),
     );
-    return;
+    return 1;
   }
 
   // Verify with server to ensure sync
@@ -69,8 +69,7 @@ export async function handleAuthStatus(
   spinner?.stop();
 
   if (options.quiet) {
-    process.exit(isValid ? 0 : 1);
-    return;
+    return isValid ? 0 : 1;
   }
 
   console.log(chalk.bold("\n🔐 Authentication Status\n"));
@@ -82,7 +81,7 @@ export async function handleAuthStatus(
         `\nRun ${chalk.cyan("tambo auth login")} to re-authenticate.\n`,
       ),
     );
-    return;
+    return 1;
   }
 
   console.log(chalk.green("✓ Authenticated"));
@@ -108,12 +107,14 @@ export async function handleAuthStatus(
   );
   console.log(chalk.gray(`  API endpoint: ${chalk.dim(getApiBaseUrl())}`));
   console.log();
+  return 0;
 }
 
 /**
  * Login via device auth flow
+ * @returns Exit code: 0 on success, 1 on failure
  */
-export async function handleAuthLogin(): Promise<void> {
+export async function handleAuthLogin(): Promise<number> {
   console.log(chalk.bold("\n🔐 Login to tambo\n"));
 
   // Check if already authenticated
@@ -132,34 +133,36 @@ export async function handleAuthLogin(): Promise<void> {
 
     if (!shouldReauth) {
       console.log(chalk.gray("\nKeeping existing session.\n"));
-      return;
+      return 0;
     }
   }
 
   try {
     await runDeviceAuthFlow();
     console.log(chalk.green("\n✓ Successfully authenticated!\n"));
+    return 0;
   } catch (error) {
     console.log(chalk.red("\n✗ Authentication failed.\n"));
     if (error instanceof Error) {
       console.log(chalk.gray(`  ${error.message}\n`));
     }
-    process.exit(1);
+    return 1;
   }
 }
 
 /**
  * Logout and clear stored credentials
+ * @returns Exit code: 0 on success
  */
 export async function handleAuthLogout(
   options: AuthLogoutOptions,
-): Promise<void> {
+): Promise<number> {
   console.log(chalk.bold("\n🔐 Logout from tambo\n"));
 
   if (!hasStoredToken()) {
     console.log(chalk.yellow("Not currently authenticated."));
     console.log();
-    return;
+    return 0;
   }
 
   const user = getCurrentUser();
@@ -173,20 +176,22 @@ export async function handleAuthLogout(
 
     if (!shouldLogout) {
       console.log(chalk.gray("\nCancelled.\n"));
-      return;
+      return 0;
     }
   }
 
   clearToken();
   console.log(chalk.green("\n✓ Successfully logged out.\n"));
+  return 0;
 }
 
 /**
  * List and manage CLI sessions
+ * @returns Exit code: 0 on success, 1 on failure
  */
 export async function handleAuthSessions(
   options: AuthSessionsOptions,
-): Promise<void> {
+): Promise<number> {
   // Check authentication first
   if (!hasStoredToken() || !isTokenValid()) {
     console.log(chalk.yellow("\nNot authenticated."));
@@ -195,27 +200,24 @@ export async function handleAuthSessions(
         `Run ${chalk.cyan("tambo auth login")} to authenticate first.\n`,
       ),
     );
-    process.exit(1);
-    return;
+    return 1;
   }
 
   // Handle revoke by session ID
   if (options.revoke) {
-    await revokeSessionById(options.revoke);
-    return;
+    return await revokeSessionById(options.revoke);
   }
 
   // Handle revoke all
   if (options.revokeAll) {
-    await revokeAllSessions();
-    return;
+    return await revokeAllSessions();
   }
 
   // List sessions
-  await listSessions();
+  return await listSessions();
 }
 
-async function listSessions(): Promise<void> {
+async function listSessions(): Promise<number> {
   console.log(chalk.bold("\n📱 CLI Sessions\n"));
 
   const spinner = ora("Fetching sessions...").start();
@@ -232,7 +234,7 @@ async function listSessions(): Promise<void> {
           `\nSessions are created when you run ${chalk.cyan("tambo auth login")}.\n`,
         ),
       );
-      return;
+      return 0;
     }
 
     const table = new Table({
@@ -289,6 +291,7 @@ async function listSessions(): Promise<void> {
         `To revoke all sessions: ${chalk.cyan("tambo auth sessions --revoke-all")}\n`,
       ),
     );
+    return 0;
   } catch (error) {
     spinner.fail("Failed to fetch sessions");
 
@@ -297,11 +300,11 @@ async function listSessions(): Promise<void> {
     } else {
       console.log(chalk.red(`\nError: ${String(error)}`));
     }
-    process.exit(1);
+    return 1;
   }
 }
 
-async function revokeSessionById(sessionId: string): Promise<void> {
+async function revokeSessionById(sessionId: string): Promise<number> {
   console.log(chalk.bold("\n🗑️  Revoke Session\n"));
 
   const spinner = ora("Revoking session...").start();
@@ -310,6 +313,7 @@ async function revokeSessionById(sessionId: string): Promise<void> {
     await api.deviceAuth.revokeSession.mutate({ sessionId });
     spinner.succeed("Session revoked successfully");
     console.log();
+    return 0;
   } catch (error) {
     spinner.fail("Failed to revoke session");
 
@@ -318,11 +322,11 @@ async function revokeSessionById(sessionId: string): Promise<void> {
     } else {
       console.log(chalk.red(`\nError: ${String(error)}`));
     }
-    process.exit(1);
+    return 1;
   }
 }
 
-async function revokeAllSessions(): Promise<void> {
+async function revokeAllSessions(): Promise<number> {
   console.log(chalk.bold("\n🗑️  Revoke All Sessions\n"));
 
   // Confirm before revoking all
@@ -334,7 +338,7 @@ async function revokeAllSessions(): Promise<void> {
 
   if (!shouldRevoke) {
     console.log(chalk.gray("\nCancelled.\n"));
-    return;
+    return 0;
   }
 
   const spinner = ora("Revoking all sessions...").start();
@@ -345,7 +349,7 @@ async function revokeAllSessions(): Promise<void> {
     if (result.revokedCount === 0) {
       spinner.info("No sessions to revoke");
       console.log();
-      return;
+      return 0;
     }
 
     spinner.succeed(`Revoked ${result.revokedCount} session(s)`);
@@ -357,6 +361,7 @@ async function revokeAllSessions(): Promise<void> {
         `\nLocal credentials cleared. Run ${chalk.cyan("tambo auth login")} to re-authenticate.\n`,
       ),
     );
+    return 0;
   } catch (error) {
     spinner.fail("Failed to revoke sessions");
 
@@ -365,12 +370,13 @@ async function revokeAllSessions(): Promise<void> {
     } else {
       console.log(chalk.red(`\nError: ${String(error)}`));
     }
-    process.exit(1);
+    return 1;
   }
 }
 
 /**
  * Main auth command handler - routes to subcommands
+ * Handles process.exit at this level based on subcommand exit codes
  */
 export async function handleAuth(
   subcommand: string | undefined,
@@ -382,34 +388,30 @@ export async function handleAuth(
     help?: boolean;
   },
 ): Promise<void> {
+  let exitCode = 0;
+
   // No subcommand or 'status' - show status
   if (!subcommand || subcommand === "status") {
-    await handleAuthStatus({ quiet: flags.quiet });
-    return;
-  }
-
-  if (subcommand === "login") {
-    await handleAuthLogin();
-    return;
-  }
-
-  if (subcommand === "logout") {
-    await handleAuthLogout({ force: flags.force });
-    return;
-  }
-
-  if (subcommand === "sessions") {
-    await handleAuthSessions({
+    exitCode = await handleAuthStatus({ quiet: flags.quiet });
+  } else if (subcommand === "login") {
+    exitCode = await handleAuthLogin();
+  } else if (subcommand === "logout") {
+    exitCode = await handleAuthLogout({ force: flags.force });
+  } else if (subcommand === "sessions") {
+    exitCode = await handleAuthSessions({
       revoke: flags.revoke,
       revokeAll: flags.revokeAll,
     });
-    return;
+  } else {
+    // Unknown subcommand
+    console.log(chalk.red(`Unknown auth subcommand: ${subcommand}`));
+    showAuthHelp();
+    exitCode = 1;
   }
 
-  // Unknown subcommand
-  console.log(chalk.red(`Unknown auth subcommand: ${subcommand}`));
-  showAuthHelp();
-  process.exit(1);
+  if (exitCode !== 0) {
+    process.exit(exitCode);
+  }
 }
 
 /**
