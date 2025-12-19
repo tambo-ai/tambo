@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import {
   TamboContextAttachmentProvider,
@@ -11,6 +11,8 @@ jest.mock("./tambo-context-helpers-provider");
 
 const mockAddContextHelper = jest.fn();
 const mockRemoveContextHelper = jest.fn();
+
+const CONTEXT_ATTACHMENTS_HELPER_KEY = "contextAttachments";
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -78,9 +80,9 @@ describe("TamboContextAttachmentProvider", () => {
 
   describe("Adding Context Attachments", () => {
     /**
-     * Should add a context attachment and register a context helper
+     * Should add a context attachment and register/update the merged context helper
      */
-    it("should add a context attachment", () => {
+    it("should add a context attachment", async () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
@@ -103,14 +105,30 @@ describe("TamboContextAttachmentProvider", () => {
       expect(result.current.attachments[0].id).toBeDefined();
       expect(attachment!.id).toBe(result.current.attachments[0].id);
 
-      // Should register context helper
-      expect(mockAddContextHelper).toHaveBeenCalledWith(
-        attachment!.id,
-        expect.any(Function),
-      );
-      // Verify the helper function returns the context value
-      const helperFn = mockAddContextHelper.mock.calls[0][1];
-      expect(helperFn()).toBe("selectedFile");
+      // Wait for useEffect to run and register the merged helper
+      await waitFor(() => {
+        expect(mockAddContextHelper).toHaveBeenCalledWith(
+          CONTEXT_ATTACHMENTS_HELPER_KEY,
+          expect.any(Function),
+        );
+      });
+
+      // Verify the helper function returns the merged attachments object
+      const helperFn = mockAddContextHelper.mock.calls.find(
+        (call) => call[0] === CONTEXT_ATTACHMENTS_HELPER_KEY,
+      )?.[1];
+      expect(helperFn).toBeDefined();
+      const helperResult = helperFn!();
+      expect(helperResult).toEqual({
+        [CONTEXT_ATTACHMENTS_HELPER_KEY]: [
+          {
+            id: attachment!.id,
+            displayName: "Button.tsx",
+            context: "selectedFile",
+            type: "file",
+          },
+        ],
+      });
     });
 
     /**
@@ -135,9 +153,9 @@ describe("TamboContextAttachmentProvider", () => {
     });
 
     /**
-     * Should add multiple different context attachments
+     * Should add multiple different context attachments and update the merged helper
      */
-    it("should add multiple context attachments", () => {
+    it("should add multiple context attachments", async () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
@@ -150,13 +168,36 @@ describe("TamboContextAttachmentProvider", () => {
       expect(result.current.attachments).toHaveLength(2);
       expect(result.current.attachments[0].displayName).toBe("Button.tsx");
       expect(result.current.attachments[1].displayName).toBe("Card.tsx");
-      expect(mockAddContextHelper).toHaveBeenCalledTimes(2);
+
+      // Wait for useEffect to run and update the merged helper
+      await waitFor(() => {
+        // The helper should be called/updated for each attachment change
+        expect(mockAddContextHelper).toHaveBeenCalledWith(
+          CONTEXT_ATTACHMENTS_HELPER_KEY,
+          expect.any(Function),
+        );
+      });
+
+      // Verify the helper function returns all attachments
+      const helperFn = mockAddContextHelper.mock.calls
+        .filter((call) => call[0] === CONTEXT_ATTACHMENTS_HELPER_KEY)
+        .pop()?.[1];
+      expect(helperFn).toBeDefined();
+      const helperResult = helperFn!();
+      expect(helperResult).toHaveProperty(CONTEXT_ATTACHMENTS_HELPER_KEY);
+      expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY]).toHaveLength(2);
+      expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY][0].displayName).toBe(
+        "Button.tsx",
+      );
+      expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY][1].displayName).toBe(
+        "Card.tsx",
+      );
     });
 
     /**
      * Should allow multiple attachments with the same context value
      */
-    it("should allow multiple attachments with same context value", () => {
+    it("should allow multiple attachments with same context value", async () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
@@ -171,7 +212,23 @@ describe("TamboContextAttachmentProvider", () => {
       });
 
       expect(result.current.attachments).toHaveLength(2);
-      expect(mockAddContextHelper).toHaveBeenCalledTimes(2);
+
+      // Wait for useEffect to update the merged helper
+      await waitFor(() => {
+        expect(mockAddContextHelper).toHaveBeenCalledWith(
+          CONTEXT_ATTACHMENTS_HELPER_KEY,
+          expect.any(Function),
+        );
+      });
+
+      // Verify both attachments are included in the merged result
+      const helperFn = mockAddContextHelper.mock.calls
+        .filter((call) => call[0] === CONTEXT_ATTACHMENTS_HELPER_KEY)
+        .pop()?.[1];
+      expect(helperFn).toBeDefined();
+      const helperResult = helperFn!();
+      expect(helperResult).toHaveProperty(CONTEXT_ATTACHMENTS_HELPER_KEY);
+      expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY]).toHaveLength(2);
     });
 
     /**
@@ -194,9 +251,9 @@ describe("TamboContextAttachmentProvider", () => {
 
   describe("Removing Context Attachments", () => {
     /**
-     * Should remove a specific context attachment by ID and deregister helper
+     * Should remove a specific context attachment by ID and update the merged helper
      */
-    it("should remove context attachment by ID", () => {
+    it("should remove context attachment by ID", async () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
@@ -212,18 +269,36 @@ describe("TamboContextAttachmentProvider", () => {
 
       expect(result.current.attachments).toHaveLength(1);
 
+      // Wait for initial helper registration
+      await waitFor(() => {
+        expect(mockAddContextHelper).toHaveBeenCalledWith(
+          CONTEXT_ATTACHMENTS_HELPER_KEY,
+          expect.any(Function),
+        );
+      });
+
       act(() => {
         result.current.removeContextAttachment(attachmentId);
       });
 
       expect(result.current.attachments).toHaveLength(0);
-      expect(mockRemoveContextHelper).toHaveBeenCalledWith(attachmentId);
+
+      // Wait for useEffect to update the helper (should return null when empty)
+      await waitFor(() => {
+        const lastCall = mockAddContextHelper.mock.calls
+          .filter((call) => call[0] === CONTEXT_ATTACHMENTS_HELPER_KEY)
+          .pop();
+        if (lastCall) {
+          const helperFn = lastCall[1];
+          expect(helperFn()).toBeNull();
+        }
+      });
     });
 
     /**
      * Should only remove the specified attachment when multiple exist
      */
-    it("should only remove specified attachment", () => {
+    it("should only remove specified attachment", async () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
@@ -237,13 +312,36 @@ describe("TamboContextAttachmentProvider", () => {
 
       expect(result.current.attachments).toHaveLength(2);
 
+      // Wait for initial helper registration
+      await waitFor(() => {
+        expect(mockAddContextHelper).toHaveBeenCalledWith(
+          CONTEXT_ATTACHMENTS_HELPER_KEY,
+          expect.any(Function),
+        );
+      });
+
       act(() => {
         result.current.removeContextAttachment(firstId);
       });
 
       expect(result.current.attachments).toHaveLength(1);
       expect(result.current.attachments[0].displayName).toBe("Second.tsx");
-      expect(mockRemoveContextHelper).toHaveBeenCalledWith(firstId);
+
+      // Wait for useEffect to update the helper with remaining attachment
+      await waitFor(() => {
+        const lastCall = mockAddContextHelper.mock.calls
+          .filter((call) => call[0] === CONTEXT_ATTACHMENTS_HELPER_KEY)
+          .pop();
+        if (lastCall) {
+          const helperFn = lastCall[1];
+          const helperResult = helperFn();
+          expect(helperResult).toHaveProperty(CONTEXT_ATTACHMENTS_HELPER_KEY);
+          expect(helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY]).toHaveLength(1);
+          expect(
+            helperResult[CONTEXT_ATTACHMENTS_HELPER_KEY][0].displayName,
+          ).toBe("Second.tsx");
+        }
+      });
     });
 
     /**
@@ -260,48 +358,59 @@ describe("TamboContextAttachmentProvider", () => {
         });
       }).not.toThrow();
 
-      expect(mockRemoveContextHelper).toHaveBeenCalledWith("non-existent-id");
+      // Should not call removeContextHelper for non-existent attachments
+      // The merged helper is only updated when attachments actually change
+      expect(mockRemoveContextHelper).not.toHaveBeenCalled();
     });
   });
 
   describe("Clearing All Context Attachments", () => {
     /**
-     * Should clear all context attachments and deregister all helpers
+     * Should clear all context attachments and update the merged helper to return null
      */
-    it("should clear all context attachments", () => {
+    it("should clear all context attachments", async () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
 
-      let ids: string[] = [];
       act(() => {
-        const first = result.current.addContextAttachment("file1", "First.tsx");
-        const second = result.current.addContextAttachment(
-          "file2",
-          "Second.tsx",
-        );
-        const third = result.current.addContextAttachment("file3", "Third.tsx");
-        ids = [first.id, second.id, third.id];
+        result.current.addContextAttachment("file1", "First.tsx");
+        result.current.addContextAttachment("file2", "Second.tsx");
+        result.current.addContextAttachment("file3", "Third.tsx");
       });
 
       expect(result.current.attachments).toHaveLength(3);
+
+      // Wait for initial helper registration
+      await waitFor(() => {
+        expect(mockAddContextHelper).toHaveBeenCalledWith(
+          CONTEXT_ATTACHMENTS_HELPER_KEY,
+          expect.any(Function),
+        );
+      });
 
       act(() => {
         result.current.clearContextAttachments();
       });
 
       expect(result.current.attachments).toHaveLength(0);
-      // Should remove all helpers
-      expect(mockRemoveContextHelper).toHaveBeenCalledTimes(3);
-      for (const id of ids) {
-        expect(mockRemoveContextHelper).toHaveBeenCalledWith(id);
-      }
+
+      // Wait for useEffect to update the helper (should return null when empty)
+      await waitFor(() => {
+        const lastCall = mockAddContextHelper.mock.calls
+          .filter((call) => call[0] === CONTEXT_ATTACHMENTS_HELPER_KEY)
+          .pop();
+        if (lastCall) {
+          const helperFn = lastCall[1];
+          expect(helperFn()).toBeNull();
+        }
+      });
     });
 
     /**
      * Should handle clearing when no attachments exist
      */
-    it("should handle clearing when no attachments exist", () => {
+    it("should handle clearing when no attachments exist", async () => {
       const { result } = renderHook(() => useTamboContextAttachment(), {
         wrapper: createWrapper(),
       });
@@ -313,7 +422,20 @@ describe("TamboContextAttachmentProvider", () => {
       }).not.toThrow();
 
       expect(result.current.attachments).toHaveLength(0);
-      expect(mockRemoveContextHelper).not.toHaveBeenCalled();
+
+      // Wait for useEffect to run - helper should be registered and return null
+      await waitFor(() => {
+        expect(mockAddContextHelper).toHaveBeenCalledWith(
+          CONTEXT_ATTACHMENTS_HELPER_KEY,
+          expect.any(Function),
+        );
+      });
+
+      const helperFn = mockAddContextHelper.mock.calls.find(
+        (call) => call[0] === CONTEXT_ATTACHMENTS_HELPER_KEY,
+      )?.[1];
+      expect(helperFn).toBeDefined();
+      expect(helperFn!()).toBeNull();
     });
   });
 });

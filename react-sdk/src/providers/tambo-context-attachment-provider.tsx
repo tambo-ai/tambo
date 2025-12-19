@@ -4,6 +4,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -68,11 +69,37 @@ export interface TamboContextAttachmentProviderProps {
  * @param props.children - The children to wrap
  * @returns The TamboContextAttachmentProvider component
  */
+const CONTEXT_ATTACHMENTS_HELPER_KEY = "contextAttachments";
+
+/**
+ *
+ */
 export function TamboContextAttachmentProvider({
   children,
 }: TamboContextAttachmentProviderProps) {
   const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
   const [attachments, setAttachments] = useState<ContextAttachment[]>([]);
+
+  useEffect(() => {
+    addContextHelper(CONTEXT_ATTACHMENTS_HELPER_KEY, () => {
+      if (attachments.length === 0) {
+        return null;
+      }
+
+      return {
+        [CONTEXT_ATTACHMENTS_HELPER_KEY]: attachments.map((attachment) => ({
+          id: attachment.id,
+          displayName: attachment.displayName,
+          context: attachment.context,
+          type: attachment.type,
+        })),
+      };
+    });
+
+    return () => {
+      removeContextHelper(CONTEXT_ATTACHMENTS_HELPER_KEY);
+    };
+  }, [attachments, addContextHelper, removeContextHelper]);
 
   const addContextAttachment = useCallback(
     (
@@ -88,28 +115,19 @@ export function TamboContextAttachmentProvider({
         type,
       };
       setAttachments((prev) => [...prev, attachment]);
-      addContextHelper(id, () => contextValue);
 
       return attachment;
     },
-    [addContextHelper],
+    [],
   );
 
-  const removeContextAttachment = useCallback(
-    (id: string) => {
-      setAttachments((prev) => prev.filter((c) => c.id !== id));
-      removeContextHelper(id);
-    },
-    [removeContextHelper],
-  );
+  const removeContextAttachment = useCallback((id: string) => {
+    setAttachments((prev) => prev.filter((c) => c.id !== id));
+  }, []);
 
   const clearContextAttachments = useCallback(() => {
-    // Remove all registered helpers before clearing
-    for (const attachment of attachments) {
-      removeContextHelper(attachment.id);
-    }
     setAttachments([]);
-  }, [attachments, removeContextHelper]);
+  }, []);
 
   const value = useMemo(
     () => ({
