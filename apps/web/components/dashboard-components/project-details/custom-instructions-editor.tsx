@@ -238,10 +238,7 @@ export function CustomInstructionsEditor({
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           Custom Instructions
-          <EditWithTamboButton
-            description="Edit custom instructions and system prompt override settings"
-            suggestions={customInstructionsEditorSuggestions}
-          />
+          <EditWithTamboButton description="Edit custom instructions and system prompt override settings" />
         </CardTitle>
       </CardHeader>
       <CardContent>

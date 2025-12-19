@@ -60,7 +60,7 @@ export const useInteractablesResourceProvider = (
   // Handle resource selection - add as context attachment
   const handleResourceSelect = React.useCallback(
     (item: ResourceItem) => {
-      addContextAttachment({ name: item.name });
+      addContextAttachment(item.id, item.name, "component");
     },
     [addContextAttachment],
   );

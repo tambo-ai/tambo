@@ -17,6 +17,7 @@ import {
   MessageSuggestionsStatus,
 } from "@/components/ui/tambo/message-suggestions";
 import { ScrollableMessageContainer } from "@/components/ui/tambo/scrollable-message-container";
+import type { TamboEditor } from "@/components/ui/tambo/text-editor";
 import {
   ThreadContent,
   ThreadContentMessages,
@@ -28,11 +29,9 @@ import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider
 import { api, useTRPCClient } from "@/trpc/react";
 import {
   useTambo,
-  useTamboContextAttachment,
   type Suggestion,
   type TamboThreadMessage,
 } from "@tambo-ai/react";
-import type { TamboEditor } from "@/components/ui/tambo/text-editor";
 import type { VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -193,8 +192,6 @@ export const MessageThreadPanel = forwardRef<
     setIsOpen,
     editorRef: providerEditorRef,
   } = useMessageThreadPanel();
-  const { customSuggestions, setCustomSuggestions } =
-    useTamboContextAttachment();
   const editorRef = useRef<TamboEditor | null>(null);
 
   // Sync local editorRef with provider's editorRef whenever it changes
@@ -284,16 +281,6 @@ export const MessageThreadPanel = forwardRef<
     },
   ];
 
-  // Use custom suggestions if available, otherwise use defaults
-  const activeSuggestions = customSuggestions ?? defaultSuggestions;
-
-  // Clear custom suggestions when a new message is sent
-  useEffect(() => {
-    if (thread?.messages?.length && customSuggestions !== null) {
-      setCustomSuggestions(null);
-    }
-  }, [thread?.messages?.length, customSuggestions, setCustomSuggestions]);
-
   return (
     <ResizablePanel ref={ref} className={className} isOpen={isOpen} {...props}>
       {/* Header */}
@@ -354,7 +341,7 @@ export const MessageThreadPanel = forwardRef<
         </div>
 
         {/* Message suggestions */}
-        <MessageSuggestions initialSuggestions={activeSuggestions}>
+        <MessageSuggestions initialSuggestions={defaultSuggestions}>
           <MessageSuggestionsList className="flex-shrink-0" />
         </MessageSuggestions>
       </div>

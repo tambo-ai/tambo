@@ -192,10 +192,7 @@ export function AvailableMcpServers({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">
             MCP Servers
-            <EditWithTamboButton
-              suggestions={availableMcpServersSuggestions}
-              description="Manage MCP servers for this project. Add, edit, and delete MCP servers."
-            />
+            <EditWithTamboButton description="Manage MCP servers for this project. Add, edit, and delete MCP servers." />
           </CardTitle>
           {!isAddingNew && (
             <Button

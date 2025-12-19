@@ -342,10 +342,7 @@ export function OAuthSettings({
       <CardHeader>
         <CardTitle className="text-lg font-semibold">
           OAuth Token Validation
-          <EditWithTamboButton
-            suggestions={oauthSettingsSuggestions}
-            description="Manage OAuth token validation settings for this project."
-          />
+          <EditWithTamboButton description="Manage OAuth token validation settings for this project." />
         </CardTitle>
         <p className="text-sm font-sans text-foreground">
           Configure how OAuth bearer tokens are validated for your
