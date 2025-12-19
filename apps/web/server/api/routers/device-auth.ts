@@ -131,7 +131,11 @@ export const deviceAuthRouter = createTRPCRouter({
     // Construct absolute URLs per RFC 8628
     const baseUrl = getVerificationBaseUrl(ctx.headers);
     const verificationUri = `${baseUrl}${DEVICE_VERIFICATION_PATH}`;
-    const verificationUriComplete = `${verificationUri}?user_code=${userCode}`;
+
+    // Use URL API for proper encoding
+    const completeUrl = new URL(verificationUri);
+    completeUrl.searchParams.set("user_code", userCode);
+    const verificationUriComplete = completeUrl.toString();
 
     return {
       deviceCode,
