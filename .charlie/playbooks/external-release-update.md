@@ -46,6 +46,8 @@ Collect GitHub releases in that window:
 ```bash
 gh release list --limit 100 --json tagName,name,publishedAt,url > /tmp/releases.json
 
+# Note: `$start_ts` and `$next_ts` are LA-local day bounds converted to UTC so
+# they can be compared to GitHub's `publishedAt` (UTC).
 jq -r --arg start "$start_ts" --arg next "$next_ts" '
   map(select(.publishedAt >= $start and .publishedAt < $next))
   | sort_by(.publishedAt)

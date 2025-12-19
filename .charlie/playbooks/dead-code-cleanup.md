@@ -35,7 +35,7 @@ echo "window: $start_date..$end_date"
 Identify “public” workspaces (skip these entirely):
 
 ```bash
-workspaces=$(cat package.json | jq -r '
+workspaces=$(jq -r '
   if (.workspaces | type == "array") then
     .workspaces[]?
   elif (.workspaces | type == "object") then
@@ -43,18 +43,18 @@ workspaces=$(cat package.json | jq -r '
   else
     empty
   end
-')
+  ' package.json)
 
-shopt -s nullglob
-for glob in $workspaces; do
+shopt -s nullglob globstar
+while IFS= read -r glob; do
   for p in $glob; do
     if [ -f "$p/package.json" ]; then
-      priv=$(cat "$p/package.json" | jq -r '.private // false')
-      name=$(cat "$p/package.json" | jq -r '.name')
-      echo "$p\t$name\tprivate=$priv"
+      priv=$(jq -r '.private // false' "$p/package.json")
+      name=$(jq -r '.name' "$p/package.json")
+      printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
     fi
   done
-done | sort
+done <<< "$workspaces" | sort
 ```
 
 Note: `package.json.private` must be explicitly set to `true`; any other value (including missing) is treated as public.
@@ -117,7 +117,7 @@ Signals you can use (require at least two per candidate):
 
 ## Verify
 
-- No candidates are from public workspaces (`package.json.private` missing or not `true`).
+- No candidates are from workspaces whose `package.json` does not have `"private": true` (only workspaces with `package.json.private === true` are eligible).
 - Each candidate has at least two independent signals recorded.
 - The list avoids generated/build/migrations paths.
 
