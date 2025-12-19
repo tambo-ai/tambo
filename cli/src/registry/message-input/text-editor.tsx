@@ -126,55 +126,11 @@ interface ResourceSuggestionRef {
 }
 
 /**
- * Context value for prompt suggestion management.
+ * Ref value for accessing prompt suggestion state from TipTap callbacks.
  */
-interface PromptSuggestionContextValue {
+interface PromptSuggestionRef {
   state: PromptSuggestionState;
   setState: (update: Partial<PromptSuggestionState>) => void;
-}
-
-const PromptSuggestionContext =
-  React.createContext<PromptSuggestionContextValue | null>(null);
-
-/**
- * Hook to access prompt suggestion context.
- */
-function usePromptSuggestion() {
-  const context = React.useContext(PromptSuggestionContext);
-  if (!context) {
-    throw new Error(
-      "usePromptSuggestion must be used within PromptSuggestionProvider",
-    );
-  }
-  return context;
-}
-
-/**
- * Provider for prompt suggestion state.
- */
-function PromptSuggestionProvider({ children }: { children: React.ReactNode }) {
-  const [state, setStateInternal] = useState<PromptSuggestionState>({
-    isOpen: false,
-    items: [],
-    selectedIndex: 0,
-    position: null,
-    command: null,
-  });
-
-  const setState = React.useCallback(
-    (update: Partial<PromptSuggestionState>) => {
-      setStateInternal((prev) => ({ ...prev, ...update }));
-    },
-    [],
-  );
-
-  const value = React.useMemo(() => ({ state, setState }), [state, setState]);
-
-  return (
-    <PromptSuggestionContext.Provider value={value}>
-      {children}
-    </PromptSuggestionContext.Provider>
-  );
 }
 
 /**
@@ -257,12 +213,21 @@ function ResourceSuggestionPopover({
 }
 
 /**
+ * Props for the prompt suggestion popover.
+ */
+interface PromptSuggestionPopoverProps {
+  state: PromptSuggestionState;
+  setState: (update: Partial<PromptSuggestionState>) => void;
+}
+
+/**
  * Popover component for prompt (/) suggestions.
  * Renders a positioned popover at the cursor location with the prompt item list.
  */
-function PromptSuggestionPopover() {
-  const { state, setState } = usePromptSuggestion();
-
+function PromptSuggestionPopover({
+  state,
+  setState,
+}: PromptSuggestionPopoverProps) {
   if (!state.isOpen || !state.position) return null;
 
   // Use line height + small padding for vertical offset
@@ -300,7 +265,11 @@ function PromptSuggestionPopover() {
           setState({ isOpen: false });
         }}
       >
-        <PromptItemList />
+        <PromptItemList
+          items={state.items}
+          selectedIndex={state.selectedIndex}
+          command={state.command}
+        />
       </Popover.Content>
     </Popover.Root>
   );
@@ -493,13 +462,22 @@ function createResourceMentionConfig(
 }
 
 /**
- * Dropdown component for displaying prompt items.
- * State is managed via PromptSuggestionContext.
+ * Props for the prompt item list.
  */
-function PromptItemList() {
-  const { state } = usePromptSuggestion();
-  const { items, selectedIndex, command } = state;
+interface PromptItemListProps {
+  items: PromptItem[];
+  selectedIndex: number;
+  command: ((item: PromptItem) => void) | null;
+}
 
+/**
+ * Dropdown component for displaying prompt items.
+ */
+function PromptItemList({
+  items,
+  selectedIndex,
+  command,
+}: PromptItemListProps) {
   if (items.length === 0) {
     return (
       <div className="px-3 py-2 text-sm text-muted-foreground">
@@ -541,7 +519,7 @@ function PromptItemList() {
 function createPromptCommandExtension(
   searchPrompts: (query: string) => Promise<PromptItem[]>,
   onSelect: (item: PromptItem) => void,
-  contextRef: React.MutableRefObject<PromptSuggestionContextValue>,
+  stateRef: React.MutableRefObject<PromptSuggestionRef>,
 ) {
   return Extension.create({
     name: "promptCommand",
@@ -567,7 +545,7 @@ function createPromptCommandExtension(
           render: () => {
             return {
               onStart: (props) => {
-                const { setState } = contextRef.current;
+                const { setState } = stateRef.current;
 
                 if (props.items.length === 0) {
                   setState({ isOpen: false });
@@ -591,7 +569,7 @@ function createPromptCommandExtension(
                 });
               },
               onUpdate: (props) => {
-                const { setState } = contextRef.current;
+                const { setState } = stateRef.current;
 
                 if (props.items.length === 0) {
                   setState({ isOpen: false });
@@ -612,7 +590,7 @@ function createPromptCommandExtension(
                 });
               },
               onKeyDown: ({ event }) => {
-                const { state, setState } = contextRef.current;
+                const { state, setState } = stateRef.current;
 
                 if (!state.isOpen) return false;
 
@@ -655,7 +633,7 @@ function createPromptCommandExtension(
                 return false;
               },
               onExit: () => {
-                const { setState } = contextRef.current;
+                const { setState } = stateRef.current;
                 setState({ isOpen: false });
               },
             };
@@ -725,27 +703,25 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
     },
     ref,
   ) => {
-    // Only PromptSuggestionProvider needed - resource state is managed directly in TextEditorInner
+    // No providers needed - all state is managed directly in TextEditorInner
     return (
-      <PromptSuggestionProvider>
-        <TextEditorInner
-          value={value}
-          onChange={onChange}
-          onKeyDown={onKeyDown}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={className}
-          onSubmit={onSubmit}
-          onAddImage={onAddImage}
-          onSearchResources={onSearchResources}
-          resources={resources}
-          onSearchPrompts={onSearchPrompts}
-          onResourceSelect={onResourceSelect}
-          onPromptSelect={onPromptSelect}
-          onResourceNamesChange={onResourceNamesChange}
-          ref={ref}
-        />
-      </PromptSuggestionProvider>
+      <TextEditorInner
+        value={value}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={className}
+        onSubmit={onSubmit}
+        onAddImage={onAddImage}
+        onSearchResources={onSearchResources}
+        resources={resources}
+        onSearchPrompts={onSearchPrompts}
+        onResourceSelect={onResourceSelect}
+        onPromptSelect={onPromptSelect}
+        onResourceNamesChange={onResourceNamesChange}
+        ref={ref}
+      />
     );
   },
 );
@@ -791,8 +767,22 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       [],
     );
 
-    // Access prompt context (still using context for prompts)
-    const promptSuggestion = usePromptSuggestion();
+    // Prompt suggestion state - managed directly here, not via context
+    const [promptSuggestionState, setPromptSuggestionStateInternal] =
+      useState<PromptSuggestionState>({
+        isOpen: false,
+        items: [],
+        selectedIndex: 0,
+        position: null,
+        command: null,
+      });
+
+    const setPromptSuggestionState = React.useCallback(
+      (update: Partial<PromptSuggestionState>) => {
+        setPromptSuggestionStateInternal((prev) => ({ ...prev, ...update }));
+      },
+      [],
+    );
 
     // Consolidated ref for callbacks that TipTap needs to access
     const callbacksRef = React.useRef({
@@ -828,12 +818,19 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       };
     }, [resourceSuggestionState, setResourceSuggestionState, resources]);
 
-    // Prompt context ref for TipTap integration
-    const promptSuggestionRef = React.useRef(promptSuggestion);
+    // Ref for TipTap to access current prompt suggestion state
+    const promptSuggestionRef = React.useRef<PromptSuggestionRef>({
+      state: promptSuggestionState,
+      setState: setPromptSuggestionState,
+    });
 
+    // Update prompt suggestion ref when state changes
     React.useEffect(() => {
-      promptSuggestionRef.current = promptSuggestion;
-    }, [promptSuggestion]);
+      promptSuggestionRef.current = {
+        state: promptSuggestionState,
+        setState: setPromptSuggestionState,
+      };
+    }, [promptSuggestionState, setPromptSuggestionState]);
 
     // Stable callbacks for TipTap
     const stableSearchResources = React.useCallback(
@@ -970,8 +967,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         handleKeyDown: (_view, event) => {
           // Check if any menu is open ("@" or "/")
           const anyMenuOpen =
-            resourceSuggestionState.isOpen ||
-            promptSuggestionRef.current.state.isOpen;
+            resourceSuggestionState.isOpen || promptSuggestionState.isOpen;
 
           // When menu is open, let the suggestion plugin handle keyboard events
           // (ArrowUp, ArrowDown, Enter, Escape). Returning false allows the
@@ -1094,7 +1090,10 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
           setState={setResourceSuggestionState}
           resources={resources}
         />
-        <PromptSuggestionPopover />
+        <PromptSuggestionPopover
+          state={promptSuggestionState}
+          setState={setPromptSuggestionState}
+        />
         <EditorContent editor={editor} />
       </div>
     );
