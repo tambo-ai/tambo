@@ -51,11 +51,11 @@ function FileViewer({ file }) {
     useTamboContextAttachment();
 
   const handleSelectFile = () => {
-    addContextAttachment(
-      file.content, // context value (string)
-      file.name, // display name
-      "file", // optional type
-    );
+    addContextAttachment({
+      context: file.content,
+      displayName: file.name,
+      type: "file",
+    });
   };
 
   return <button onClick={handleSelectFile}>Focus on {file.name}</button>;
@@ -90,23 +90,28 @@ const {
 
 ### Adding Context Attachments
 
-Add a context attachment by calling `addContextAttachment` with a context value, optional display name, and optional type:
+Add a context attachment by calling `addContextAttachment` with an object containing the context value, optional display name, and optional type:
 
 ```tsx
 const { addContextAttachment } = useTamboContextAttachment();
 
 // Simple context attachment without displayName
-const attachment = addContextAttachment("The contents of File.txt");
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
+});
 
 // With displayName
-const attachment = addContextAttachment("The contents of File.txt", "File.txt");
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
+  displayName: "File.txt",
+});
 
 // With displayName and type for grouping
-const attachment = addContextAttachment(
-  "The contents of File.txt",
-  "File.txt",
-  "file",
-);
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
+  displayName: "File.txt",
+  type: "file",
+});
 ```
 
 The function returns the `ContextAttachment` object with an auto-generated `id`. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments. This array will be included in `additionalContext` when the next message is sent.
@@ -161,7 +166,11 @@ function FileBrowser({ files }) {
 
   const handleFileClick = (file) => {
     // Stage the file content for the next message
-    addContextAttachment(file.content, file.name, "file");
+    addContextAttachment({
+      context: file.content,
+      displayName: file.name,
+      type: "file",
+    });
   };
 
   return (

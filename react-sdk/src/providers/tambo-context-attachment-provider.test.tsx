@@ -89,11 +89,11 @@ describe("TamboContextAttachmentProvider", () => {
 
       let attachment: ReturnType<typeof result.current.addContextAttachment>;
       act(() => {
-        attachment = result.current.addContextAttachment(
-          "selectedFile",
-          "Button.tsx",
-          "file",
-        );
+        attachment = result.current.addContextAttachment({
+          context: "selectedFile",
+          displayName: "Button.tsx",
+          type: "file",
+        });
       });
 
       expect(result.current.attachments).toHaveLength(1);
@@ -146,7 +146,9 @@ describe("TamboContextAttachmentProvider", () => {
 
       let attachment: ReturnType<typeof result.current.addContextAttachment>;
       act(() => {
-        attachment = result.current.addContextAttachment("selectedFile");
+        attachment = result.current.addContextAttachment({
+          context: "selectedFile",
+        });
       });
 
       expect(result.current.attachments).toHaveLength(1);
@@ -166,8 +168,16 @@ describe("TamboContextAttachmentProvider", () => {
       });
 
       act(() => {
-        result.current.addContextAttachment("file1", "Button.tsx", "file");
-        result.current.addContextAttachment("file2", "Card.tsx", "file");
+        result.current.addContextAttachment({
+          context: "file1",
+          displayName: "Button.tsx",
+          type: "file",
+        });
+        result.current.addContextAttachment({
+          context: "file2",
+          displayName: "Card.tsx",
+          type: "file",
+        });
       });
 
       expect(result.current.attachments).toHaveLength(2);
@@ -203,12 +213,16 @@ describe("TamboContextAttachmentProvider", () => {
       });
 
       act(() => {
-        result.current.addContextAttachment(
-          "selectedFile",
-          "Button.tsx",
-          "file",
-        );
-        result.current.addContextAttachment("selectedFile", "Card.tsx", "file");
+        result.current.addContextAttachment({
+          context: "selectedFile",
+          displayName: "Button.tsx",
+          type: "file",
+        });
+        result.current.addContextAttachment({
+          context: "selectedFile",
+          displayName: "Card.tsx",
+          type: "file",
+        });
       });
 
       expect(result.current.attachments).toHaveLength(2);
@@ -239,8 +253,16 @@ describe("TamboContextAttachmentProvider", () => {
       });
 
       act(() => {
-        result.current.addContextAttachment("file1", "Button.tsx", "file");
-        result.current.addContextAttachment("page1", "Dashboard", "page");
+        result.current.addContextAttachment({
+          context: "file1",
+          displayName: "Button.tsx",
+          type: "file",
+        });
+        result.current.addContextAttachment({
+          context: "page1",
+          displayName: "Dashboard",
+          type: "page",
+        });
       });
 
       expect(result.current.attachments[0].type).toBe("file");
@@ -259,10 +281,10 @@ describe("TamboContextAttachmentProvider", () => {
 
       let attachmentId = "";
       act(() => {
-        const attachment = result.current.addContextAttachment(
-          "selectedFile",
-          "Button.tsx",
-        );
+        const attachment = result.current.addContextAttachment({
+          context: "selectedFile",
+          displayName: "Button.tsx",
+        });
         attachmentId = attachment.id;
       });
 
@@ -304,8 +326,14 @@ describe("TamboContextAttachmentProvider", () => {
 
       let firstId = "";
       act(() => {
-        const first = result.current.addContextAttachment("file1", "First.tsx");
-        result.current.addContextAttachment("file2", "Second.tsx");
+        const first = result.current.addContextAttachment({
+          context: "file1",
+          displayName: "First.tsx",
+        });
+        result.current.addContextAttachment({
+          context: "file2",
+          displayName: "Second.tsx",
+        });
         firstId = first.id;
       });
 
@@ -381,9 +409,18 @@ describe("TamboContextAttachmentProvider", () => {
       });
 
       act(() => {
-        result.current.addContextAttachment("file1", "First.tsx");
-        result.current.addContextAttachment("file2", "Second.tsx");
-        result.current.addContextAttachment("file3", "Third.tsx");
+        result.current.addContextAttachment({
+          context: "file1",
+          displayName: "First.tsx",
+        });
+        result.current.addContextAttachment({
+          context: "file2",
+          displayName: "Second.tsx",
+        });
+        result.current.addContextAttachment({
+          context: "file3",
+          displayName: "Third.tsx",
+        });
       });
 
       expect(result.current.attachments).toHaveLength(3);

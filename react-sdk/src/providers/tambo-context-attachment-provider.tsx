@@ -29,16 +29,14 @@ export interface ContextAttachment {
 /**
  * Context state interface for managing context attachments.
  * @property {ContextAttachment[]} attachments - Array of active context attachments
- * @property {(contextValue: string, displayName?: string, type?: string) => ContextAttachment} addContextAttachment - Add a new context attachment, returns the attachment
+ * @property {(contextAttachment: Omit<ContextAttachment, "id">) => ContextAttachment} addContextAttachment - Add a new context attachment, returns the attachment
  * @property {(id: string) => void} removeContextAttachment - Remove a context attachment by ID
  * @property {() => void} clearContextAttachments - Remove all context attachments
  */
 export interface ContextAttachmentState {
   attachments: ContextAttachment[];
   addContextAttachment: (
-    contextValue: string,
-    displayName?: string,
-    type?: string,
+    contextAttachment: Omit<ContextAttachment, "id">,
   ) => ContextAttachment;
   removeContextAttachment: (id: string) => void;
   clearContextAttachments: () => void;
@@ -98,31 +96,25 @@ export function TamboContextAttachmentProvider({
   /**
    * Adds a new context attachment that will be included with the next user message.
    * The attachment is automatically registered as part of the merged context helper.
-   * @param contextValue - The context value to attach (e.g., file content, selected text)
-   * @param displayName - Optional display name for UI rendering (e.g., "File.txt")
-   * @param type - Optional type identifier for grouping/rendering (e.g., "file", "selection")
+   * @param contextAttachment - The context attachment input (context, optional displayName, optional type)
    * @returns The created ContextAttachment object with a unique ID
    * @example
    * ```tsx
-   * const attachment = addContextAttachment(
-   *   "The contents of File.txt",
-   *   "File.txt",
-   *   "file"
-   * );
+   * const attachment = addContextAttachment({
+   *   context: "The contents of File.txt",
+   *   displayName: "File.txt",
+   *   type: "file"
+   * });
    * ```
    */
   const addContextAttachment = useCallback(
-    (
-      contextValue: string,
-      displayName?: string,
-      type?: string,
-    ): ContextAttachment => {
+    (contextAttachment: Omit<ContextAttachment, "id">): ContextAttachment => {
       const id = crypto.randomUUID();
       const attachment: ContextAttachment = {
         id,
-        displayName,
-        context: contextValue,
-        type,
+        displayName: contextAttachment.displayName,
+        context: contextAttachment.context,
+        type: contextAttachment.type,
       };
       setAttachments((prev) => [...prev, attachment]);
 
@@ -177,11 +169,11 @@ export function TamboContextAttachmentProvider({
  * const { addContextAttachment, attachments, clearContextAttachments } = useTamboContextAttachment();
  *
  * // Add a context attachment for the next message
- * const attachment = addContextAttachment(
- *   "The contents of File.txt",
- *   "File.txt", // optional displayName
- *   "file" // optional type
- * );
+ * const attachment = addContextAttachment({
+ *   context: "The contents of File.txt",
+ *   displayName: "File.txt", // optional
+ *   type: "file" // optional
+ * });
  *
  * // Remove a context attachment
  * removeContextAttachment(attachment.id);

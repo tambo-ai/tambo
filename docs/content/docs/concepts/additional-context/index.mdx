@@ -115,7 +115,11 @@ function FileViewer({ file }) {
 
   const handleSelectFile = () => {
     // Stage file content for the next message
-    addContextAttachment(file.content, file.name, "file");
+    addContextAttachment({
+      context: file.content,
+      displayName: file.name,
+      type: "file",
+    });
   };
 
   return <button onClick={handleSelectFile}>Focus on {file.name}</button>;

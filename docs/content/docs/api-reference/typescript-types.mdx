@@ -278,9 +278,7 @@ The state interface returned by the `useTamboContextAttachment` hook.
 interface ContextAttachmentState {
   attachments: ContextAttachment[];
   addContextAttachment: (
-    contextValue: string,
-    displayName?: string,
-    type?: string,
+    contextAttachment: Omit<ContextAttachment, "id">,
   ) => ContextAttachment;
   removeContextAttachment: (id: string) => void;
   clearContextAttachments: () => void;
@@ -302,11 +300,8 @@ attachments: ContextAttachment[];
 Function to add a new context attachment. The `id` is automatically generated. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments.
 
 ```typescript
-addContextAttachment: (
-  contextValue: string,
-  displayName?: string,
-  type?: string,
-) => ContextAttachment;
+addContextAttachment: (contextAttachment: Omit<ContextAttachment, "id">) =>
+  ContextAttachment;
 ```
 
 #### removeContextAttachment
