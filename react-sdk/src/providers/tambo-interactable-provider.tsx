@@ -458,20 +458,15 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   const setInteractableSelectedForInteraction = useCallback(
     (componentId: string, isSelected: boolean) => {
       setInteractableComponents((prev) => {
-        const component = prev.find((c) => c.id === componentId);
-        if (!component) {
-          console.warn(
-            `Tried to set selection for component ${componentId} but it was not found.`,
-          );
-          return prev;
-        }
-
-        const updated = {
-          ...component,
-          isSelectedForInteraction: isSelected,
-        };
-
-        return prev.map((c) => (c.id === componentId ? updated : c));
+        let found = false;
+        const next = prev.map((component) => {
+          if (component.id !== componentId) return component;
+          found = true;
+          return component.isSelectedForInteraction === isSelected
+            ? component
+            : { ...component, isSelectedForInteraction: isSelected };
+        });
+        return found ? next : prev;
       });
     },
     [],
