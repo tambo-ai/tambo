@@ -45,13 +45,19 @@ export interface TamboEditor {
 }
 
 /**
- * Represents a resource item that appears in the "@" mention dropdown.
- * Resources are referenced by ID/URI and appear as visual mention nodes in the editor.
+ * Base interface for suggestion items (resources and prompts).
  */
-export interface ResourceItem {
+interface SuggestionItem {
   id: string;
   name: string;
   icon?: React.ReactNode;
+}
+
+/**
+ * Represents a resource item that appears in the "@" mention dropdown.
+ * Resources are referenced by ID/URI and appear as visual mention nodes in the editor.
+ */
+export interface ResourceItem extends SuggestionItem {
   componentData?: unknown;
 }
 
@@ -59,10 +65,7 @@ export interface ResourceItem {
  * Represents a prompt item that appears in the "/" command dropdown.
  * Prompts contain text that gets inserted into the editor.
  */
-export interface PromptItem {
-  id: string;
-  name: string;
-  icon?: React.ReactNode;
+export interface PromptItem extends SuggestionItem {
   /** The actual prompt text to insert into the editor */
   text: string;
 }
@@ -96,41 +99,22 @@ export interface TextEditorProps {
 }
 
 /**
- * State for resource suggestion popover (without items - those come from props).
+ * State for a suggestion popover.
  */
-interface ResourceSuggestionState {
+interface SuggestionState<T extends SuggestionItem> {
   isOpen: boolean;
+  items: T[];
   selectedIndex: number;
   position: { top: number; left: number; lineHeight: number } | null;
-  command: ((item: ResourceItem) => void) | null;
-}
-
-/**
- * State for prompt suggestion popover.
- */
-interface PromptSuggestionState {
-  isOpen: boolean;
-  items: PromptItem[];
-  selectedIndex: number;
-  position: { top: number; left: number; lineHeight: number } | null;
-  command: ((item: PromptItem) => void) | null;
+  command: ((item: T) => void) | null;
 }
 
 /**
  * Ref value for accessing suggestion state from TipTap callbacks.
  */
-interface ResourceSuggestionRef {
-  state: ResourceSuggestionState;
-  setState: (update: Partial<ResourceSuggestionState>) => void;
-  resources: ResourceItem[];
-}
-
-/**
- * Ref value for accessing prompt suggestion state from TipTap callbacks.
- */
-interface PromptSuggestionRef {
-  state: PromptSuggestionState;
-  setState: (update: Partial<PromptSuggestionState>) => void;
+interface SuggestionRef<T extends SuggestionItem> {
+  state: SuggestionState<T>;
+  setState: (update: Partial<SuggestionState<T>>) => void;
 }
 
 /**
@@ -148,35 +132,35 @@ function getPositionFromClientRect(
 }
 
 /**
- * Props for the resource suggestion popover.
+ * Props for the generic suggestion popover.
  */
-interface ResourceSuggestionPopoverProps {
-  state: ResourceSuggestionState;
-  setState: (update: Partial<ResourceSuggestionState>) => void;
-  resources: ResourceItem[];
+interface SuggestionPopoverProps<T extends SuggestionItem> {
+  state: SuggestionState<T>;
+  onClose: () => void;
+  defaultIcon: React.ReactNode;
+  emptyMessage: string;
+  /** Whether to use monospace font for the secondary text (id) */
+  monoSecondary?: boolean;
 }
 
 /**
- * Popover component for resource (@) suggestions.
- * Renders a positioned popover at the cursor location with the resource item list.
+ * Generic popover component for suggestions (@resources and /prompts).
  */
-function ResourceSuggestionPopover({
+function SuggestionPopover<T extends SuggestionItem>({
   state,
-  setState,
-  resources,
-}: ResourceSuggestionPopoverProps) {
+  onClose,
+  defaultIcon,
+  emptyMessage,
+  monoSecondary = false,
+}: SuggestionPopoverProps<T>) {
   if (!state.isOpen || !state.position) return null;
 
-  // Use line height + small padding for vertical offset
-  // When popup appears above cursor, this ensures text stays visible
   const sideOffset = state.position.lineHeight + 4;
 
   return (
     <Popover.Root
       open={state.isOpen}
-      onOpenChange={(open) => {
-        if (!open) setState({ isOpen: false });
-      }}
+      onOpenChange={(open) => !open && onClose()}
     >
       <Popover.Anchor asChild>
         <div
@@ -199,139 +183,50 @@ function ResourceSuggestionPopover({
         onCloseAutoFocus={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => {
           e.preventDefault();
-          setState({ isOpen: false });
+          onClose();
         }}
       >
-        <ResourceItemList
-          resources={resources}
-          selectedIndex={state.selectedIndex}
-          command={state.command}
-        />
-      </Popover.Content>
-    </Popover.Root>
-  );
-}
-
-/**
- * Props for the prompt suggestion popover.
- */
-interface PromptSuggestionPopoverProps {
-  state: PromptSuggestionState;
-  setState: (update: Partial<PromptSuggestionState>) => void;
-}
-
-/**
- * Popover component for prompt (/) suggestions.
- * Renders a positioned popover at the cursor location with the prompt item list.
- */
-function PromptSuggestionPopover({
-  state,
-  setState,
-}: PromptSuggestionPopoverProps) {
-  if (!state.isOpen || !state.position) return null;
-
-  // Use line height + small padding for vertical offset
-  // When popup appears above cursor, this ensures text stays visible
-  const sideOffset = state.position.lineHeight + 4;
-
-  return (
-    <Popover.Root
-      open={state.isOpen}
-      onOpenChange={(open) => {
-        if (!open) setState({ isOpen: false });
-      }}
-    >
-      <Popover.Anchor asChild>
-        <div
-          style={{
-            position: "fixed",
-            top: `${state.position.top}px`,
-            left: `${state.position.left}px`,
-            width: 0,
-            height: 0,
-            pointerEvents: "none",
-          }}
-        />
-      </Popover.Anchor>
-      <Popover.Content
-        side="bottom"
-        align="start"
-        sideOffset={sideOffset}
-        className="z-50 w-96 rounded-md border bg-popover p-0 shadow-md animate-in fade-in-0 zoom-in-95"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => {
-          e.preventDefault();
-          setState({ isOpen: false });
-        }}
-      >
-        <PromptItemList
-          items={state.items}
-          selectedIndex={state.selectedIndex}
-          command={state.command}
-        />
-      </Popover.Content>
-    </Popover.Root>
-  );
-}
-
-/**
- * Props for the resource item list.
- */
-interface ResourceItemListProps {
-  resources: ResourceItem[];
-  selectedIndex: number;
-  command: ((item: ResourceItem) => void) | null;
-}
-
-/**
- * Dropdown component that displays resource items.
- *
- * When the user types "@" in the editor, this component renders a list
- * of resource items.
- */
-function ResourceItemList({
-  resources,
-  selectedIndex,
-  command,
-}: ResourceItemListProps) {
-  if (resources.length === 0) {
-    return (
-      <div className="px-3 py-2 text-sm text-muted-foreground">
-        No results found
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-0.5 p-1">
-      {resources.map((item, index) => (
-        <button
-          key={item.id}
-          type="button"
-          className={cn(
-            "flex items-start gap-2 px-2 py-2 text-sm rounded-md text-left",
-            "hover:bg-accent hover:text-accent-foreground transition-colors",
-            index === selectedIndex && "bg-accent text-accent-foreground",
-          )}
-          onClick={() => command?.(item)}
-        >
-          {item.icon ?? <Cuboid className="w-4 h-4 flex-shrink-0 mt-0.5" />}
-          <div className="flex-1 min-w-0">
-            <div className="font-medium truncate">{item.name}</div>
-            <div className="text-xs text-muted-foreground truncate font-mono">
-              {item.id}
-            </div>
+        {state.items.length === 0 ? (
+          <div className="px-3 py-2 text-sm text-muted-foreground">
+            {emptyMessage}
           </div>
-        </button>
-      ))}
-    </div>
+        ) : (
+          <div className="flex flex-col gap-0.5 p-1">
+            {state.items.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                className={cn(
+                  "flex items-start gap-2 px-2 py-2 text-sm rounded-md text-left",
+                  "hover:bg-accent hover:text-accent-foreground transition-colors",
+                  index === state.selectedIndex &&
+                    "bg-accent text-accent-foreground",
+                )}
+                onClick={() => state.command?.(item)}
+              >
+                {item.icon ?? defaultIcon}
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{item.name}</div>
+                  <div
+                    className={cn(
+                      "text-xs text-muted-foreground truncate",
+                      monoSecondary && "font-mono",
+                    )}
+                  >
+                    {item.id}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </Popover.Content>
+    </Popover.Root>
   );
 }
 
 /**
  * Internal helper to check if a mention exists in a raw TipTap Editor.
- * Used within the suggestion plugin where we only have access to the Editor instance.
  */
 function checkMentionExists(editor: Editor, label: string): boolean {
   if (!editor.state?.doc) return false;
@@ -341,7 +236,7 @@ function checkMentionExists(editor: Editor, label: string): boolean {
       const mentionLabel = node.attrs.label as string;
       if (mentionLabel === label) {
         exists = true;
-        return false; // Stop traversing
+        return false;
       }
     }
     return true;
@@ -351,23 +246,17 @@ function checkMentionExists(editor: Editor, label: string): boolean {
 
 /**
  * Creates the resource mention configuration for TipTap Mention extension.
- * Used for "@" mentions that insert visual mention nodes in the editor.
- *
- * The items() function only triggers the search - actual items come from the
- * resources prop which is accessed via the stateRef.
+ * The items() function triggers the search - actual items come from props via stateRef.
  */
 function createResourceMentionConfig(
   onSearchChange: (query: string) => void,
   onSelect: (item: ResourceItem) => void,
-  stateRef: React.MutableRefObject<ResourceSuggestionRef>,
+  stateRef: React.MutableRefObject<SuggestionRef<ResourceItem>>,
 ): Omit<SuggestionOptions, "editor"> {
   return {
     char: "@",
     items: ({ query }) => {
-      // Notify parent of search change (they'll update resources prop)
       onSearchChange(query);
-      // Return empty array - actual items come from resources prop via stateRef
-      // TipTap calls onStart/onUpdate with props.items but we ignore it
       return [];
     },
 
@@ -378,22 +267,14 @@ function createResourceMentionConfig(
           tiptapCommand: (attrs: { id: string; label: string }) => void,
         ) =>
         (item: ResourceItem) => {
-          // Check if mention already exists in the editor
-          if (checkMentionExists(editor, item.name)) {
-            return;
-          }
-
-          // Insert the mention node
+          if (checkMentionExists(editor, item.name)) return;
           tiptapCommand({ id: item.id, label: item.name });
-          // Call selection handler
           onSelect(item);
         };
 
       return {
         onStart: (props) => {
-          const { setState } = stateRef.current;
-          // Always open - resources come from prop, not props.items
-          setState({
+          stateRef.current.setState({
             isOpen: true,
             selectedIndex: 0,
             position: getPositionFromClientRect(props.clientRect),
@@ -401,37 +282,35 @@ function createResourceMentionConfig(
           });
         },
         onUpdate: (props) => {
-          const { setState } = stateRef.current;
-          setState({
+          stateRef.current.setState({
             position: getPositionFromClientRect(props.clientRect),
             command: createWrapCommand(props.editor, props.command),
-            selectedIndex: 0, // Reset selection when query changes
+            selectedIndex: 0,
           });
         },
         onKeyDown: ({ event }) => {
-          const { state, setState, resources } = stateRef.current;
-
+          const { state, setState } = stateRef.current;
           if (!state.isOpen) return false;
 
           const handlers: Record<string, () => boolean> = {
             ArrowUp: () => {
-              if (resources.length === 0) return false;
+              if (state.items.length === 0) return false;
               setState({
                 selectedIndex:
-                  (state.selectedIndex - 1 + resources.length) %
-                  resources.length,
+                  (state.selectedIndex - 1 + state.items.length) %
+                  state.items.length,
               });
               return true;
             },
             ArrowDown: () => {
-              if (resources.length === 0) return false;
+              if (state.items.length === 0) return false;
               setState({
-                selectedIndex: (state.selectedIndex + 1) % resources.length,
+                selectedIndex: (state.selectedIndex + 1) % state.items.length,
               });
               return true;
             },
             Enter: () => {
-              const item = resources[state.selectedIndex];
+              const item = state.items[state.selectedIndex];
               if (item && state.command) {
                 state.command(item);
                 return true;
@@ -449,12 +328,10 @@ function createResourceMentionConfig(
             event.preventDefault();
             return handler();
           }
-
           return false;
         },
         onExit: () => {
-          const { setState } = stateRef.current;
-          setState({ isOpen: false });
+          stateRef.current.setState({ isOpen: false });
         },
       };
     },
@@ -462,64 +339,12 @@ function createResourceMentionConfig(
 }
 
 /**
- * Props for the prompt item list.
- */
-interface PromptItemListProps {
-  items: PromptItem[];
-  selectedIndex: number;
-  command: ((item: PromptItem) => void) | null;
-}
-
-/**
- * Dropdown component for displaying prompt items.
- */
-function PromptItemList({
-  items,
-  selectedIndex,
-  command,
-}: PromptItemListProps) {
-  if (items.length === 0) {
-    return (
-      <div className="px-3 py-2 text-sm text-muted-foreground">
-        No prompts found
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-0.5 p-1">
-      {items.map((item, index) => (
-        <button
-          key={item.id}
-          type="button"
-          className={cn(
-            "flex items-start gap-2 px-2 py-2 text-sm rounded-md text-left",
-            "hover:bg-accent hover:text-accent-foreground transition-colors",
-            index === selectedIndex && "bg-accent text-accent-foreground",
-          )}
-          onClick={() => command?.(item)}
-        >
-          {item.icon ?? <FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />}
-          <div className="flex-1 min-w-0">
-            <div className="font-medium truncate">{item.name}</div>
-            <div className="text-xs text-muted-foreground truncate">
-              {item.id}
-            </div>
-          </div>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/**
  * Creates a custom TipTap extension for prompt commands using the Suggestion plugin.
- * Unlike Mention, this doesn't create special nodes - it just triggers text insertion.
  */
 function createPromptCommandExtension(
   searchPrompts: (query: string) => Promise<PromptItem[]>,
   onSelect: (item: PromptItem) => void,
-  stateRef: React.MutableRefObject<PromptSuggestionRef>,
+  stateRef: React.MutableRefObject<SuggestionRef<PromptItem>>,
 ) {
   return Extension.create({
     name: "promptCommand",
@@ -531,113 +356,97 @@ function createPromptCommandExtension(
           char: "/",
           items: async ({ query, editor }) => {
             try {
-              // Only show prompts when editor is empty (except for the "/" char)
               const editorValue = editor.getText().replace("/", "").trim();
-              if (editorValue.length > 0) {
-                return [];
-              }
+              if (editorValue.length > 0) return [];
               return await searchPrompts(query);
             } catch (error) {
               console.error("Failed to fetch prompts", error);
               return [];
             }
           },
-          render: () => {
-            return {
-              onStart: (props) => {
-                const { setState } = stateRef.current;
+          render: () => ({
+            onStart: (props) => {
+              if (props.items.length === 0) {
+                stateRef.current.setState({ isOpen: false });
+                return;
+              }
+              stateRef.current.setState({
+                isOpen: true,
+                items: props.items,
+                selectedIndex: 0,
+                position: getPositionFromClientRect(props.clientRect),
+                command: (item: PromptItem) => {
+                  props.editor.commands.deleteRange({
+                    from: props.range.from,
+                    to: props.range.to,
+                  });
+                  onSelect(item);
+                },
+              });
+            },
+            onUpdate: (props) => {
+              if (props.items.length === 0) {
+                stateRef.current.setState({ isOpen: false });
+                return;
+              }
+              stateRef.current.setState({
+                items: props.items,
+                position: getPositionFromClientRect(props.clientRect),
+                selectedIndex: 0,
+                command: (item: PromptItem) => {
+                  props.editor.commands.deleteRange({
+                    from: props.range.from,
+                    to: props.range.to,
+                  });
+                  onSelect(item);
+                },
+              });
+            },
+            onKeyDown: ({ event }) => {
+              const { state, setState } = stateRef.current;
+              if (!state.isOpen) return false;
 
-                if (props.items.length === 0) {
+              const handlers: Record<string, () => boolean> = {
+                ArrowUp: () => {
+                  setState({
+                    selectedIndex:
+                      (state.selectedIndex - 1 + state.items.length) %
+                      state.items.length,
+                  });
+                  return true;
+                },
+                ArrowDown: () => {
+                  setState({
+                    selectedIndex:
+                      (state.selectedIndex + 1) % state.items.length,
+                  });
+                  return true;
+                },
+                Enter: () => {
+                  const item = state.items[state.selectedIndex];
+                  if (item && state.command) {
+                    state.command(item);
+                    return true;
+                  }
+                  return false;
+                },
+                Escape: () => {
                   setState({ isOpen: false });
-                  return;
-                }
+                  return true;
+                },
+              };
 
-                setState({
-                  isOpen: true,
-                  items: props.items,
-                  selectedIndex: 0,
-                  position: getPositionFromClientRect(props.clientRect),
-                  command: (item: PromptItem) => {
-                    // Delete the "/" trigger character and any typed text
-                    props.editor.commands.deleteRange({
-                      from: props.range.from,
-                      to: props.range.to,
-                    });
-                    // Call selection handler which will insert the prompt text
-                    onSelect(item);
-                  },
-                });
-              },
-              onUpdate: (props) => {
-                const { setState } = stateRef.current;
-
-                if (props.items.length === 0) {
-                  setState({ isOpen: false });
-                  return;
-                }
-
-                setState({
-                  items: props.items,
-                  position: getPositionFromClientRect(props.clientRect),
-                  selectedIndex: 0, // Reset selection when items change
-                  command: (item: PromptItem) => {
-                    props.editor.commands.deleteRange({
-                      from: props.range.from,
-                      to: props.range.to,
-                    });
-                    onSelect(item);
-                  },
-                });
-              },
-              onKeyDown: ({ event }) => {
-                const { state, setState } = stateRef.current;
-
-                if (!state.isOpen) return false;
-
-                const handlers: Record<string, () => boolean> = {
-                  ArrowUp: () => {
-                    setState({
-                      selectedIndex:
-                        (state.selectedIndex - 1 + state.items.length) %
-                        state.items.length,
-                    });
-                    return true;
-                  },
-                  ArrowDown: () => {
-                    setState({
-                      selectedIndex:
-                        (state.selectedIndex + 1) % state.items.length,
-                    });
-                    return true;
-                  },
-                  Enter: () => {
-                    const item = state.items[state.selectedIndex];
-                    if (item && state.command) {
-                      state.command(item);
-                      return true;
-                    }
-                    return false;
-                  },
-                  Escape: () => {
-                    setState({ isOpen: false });
-                    return true;
-                  },
-                };
-
-                const handler = handlers[event.key];
-                if (handler) {
-                  event.preventDefault();
-                  return handler();
-                }
-
-                return false;
-              },
-              onExit: () => {
-                const { setState } = stateRef.current;
-                setState({ isOpen: false });
-              },
-            };
-          },
+              const handler = handlers[event.key];
+              if (handler) {
+                event.preventDefault();
+                return handler();
+              }
+              return false;
+            },
+            onExit: () => {
+              stateRef.current.setState({ isOpen: false });
+            },
+          }),
         }),
       ];
     },
@@ -646,8 +455,6 @@ function createPromptCommandExtension(
 
 /**
  * Custom text extraction that serializes mention nodes with their ID (resource URI).
- * Returns both the text (with URIs only) and a map of URI -> name for lookups.
- * This avoids string manipulation issues with names containing special characters.
  */
 function getTextWithResourceURIs(editor: Editor | null): {
   text: string;
@@ -662,14 +469,11 @@ function getTextWithResourceURIs(editor: Editor | null): {
     if (node.type.name === "mention") {
       const id = node.attrs.id ?? "";
       const label = node.attrs.label ?? "";
-      // Only include URI in text (no name to avoid parsing issues)
       text += `@${id}`;
-      // Store name separately for lookup
       if (label && id) {
         resourceNames[id] = label;
       }
     } else if (node.type.name === "hardBreak") {
-      // Convert hard breaks (Shift+Enter) to newlines
       text += "\n";
     } else if (node.isText) {
       text += node.text;
@@ -678,6 +482,41 @@ function getTextWithResourceURIs(editor: Editor | null): {
   });
 
   return { text, resourceNames };
+}
+
+/**
+ * Hook to create suggestion state with a ref for TipTap access.
+ */
+function useSuggestionState<T extends SuggestionItem>(
+  externalItems?: T[],
+): [SuggestionState<T>, React.MutableRefObject<SuggestionRef<T>>] {
+  const [state, setStateInternal] = useState<SuggestionState<T>>({
+    isOpen: false,
+    items: externalItems ?? [],
+    selectedIndex: 0,
+    position: null,
+    command: null,
+  });
+
+  const setState = React.useCallback((update: Partial<SuggestionState<T>>) => {
+    setStateInternal((prev) => ({ ...prev, ...update }));
+  }, []);
+
+  const stateRef = React.useRef<SuggestionRef<T>>({ state, setState });
+
+  // Keep ref in sync
+  React.useEffect(() => {
+    stateRef.current = { state, setState };
+  }, [state, setState]);
+
+  // Sync external items when provided
+  React.useEffect(() => {
+    if (externalItems !== undefined) {
+      setStateInternal((prev) => ({ ...prev, items: externalItems }));
+    }
+  }, [externalItems]);
+
+  return [state, stateRef];
 }
 
 /**
@@ -703,86 +542,10 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
     },
     ref,
   ) => {
-    // No providers needed - all state is managed directly in TextEditorInner
-    return (
-      <TextEditorInner
-        value={value}
-        onChange={onChange}
-        onKeyDown={onKeyDown}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={className}
-        onSubmit={onSubmit}
-        onAddImage={onAddImage}
-        onSearchResources={onSearchResources}
-        resources={resources}
-        onSearchPrompts={onSearchPrompts}
-        onResourceSelect={onResourceSelect}
-        onPromptSelect={onPromptSelect}
-        onResourceNamesChange={onResourceNamesChange}
-        ref={ref}
-      />
-    );
-  },
-);
-
-TextEditor.displayName = "TextEditor";
-
-/**
- * Inner text editor component that manages suggestion state directly.
- */
-const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
-  (
-    {
-      value,
-      onChange,
-      onKeyDown,
-      placeholder = "What do you want to do?",
-      disabled = false,
-      className,
-      onSubmit,
-      onAddImage,
-      onSearchResources,
-      resources,
-      onSearchPrompts,
-      onResourceSelect,
-      onPromptSelect,
-      onResourceNamesChange,
-    },
-    ref,
-  ) => {
-    // Resource suggestion state - managed directly here, not via context
-    const [resourceSuggestionState, setResourceSuggestionStateInternal] =
-      useState<ResourceSuggestionState>({
-        isOpen: false,
-        selectedIndex: 0,
-        position: null,
-        command: null,
-      });
-
-    const setResourceSuggestionState = React.useCallback(
-      (update: Partial<ResourceSuggestionState>) => {
-        setResourceSuggestionStateInternal((prev) => ({ ...prev, ...update }));
-      },
-      [],
-    );
-
-    // Prompt suggestion state - managed directly here, not via context
-    const [promptSuggestionState, setPromptSuggestionStateInternal] =
-      useState<PromptSuggestionState>({
-        isOpen: false,
-        items: [],
-        selectedIndex: 0,
-        position: null,
-        command: null,
-      });
-
-    const setPromptSuggestionState = React.useCallback(
-      (update: Partial<PromptSuggestionState>) => {
-        setPromptSuggestionStateInternal((prev) => ({ ...prev, ...update }));
-      },
-      [],
-    );
+    // Suggestion states with refs for TipTap access
+    const [resourceState, resourceRef] =
+      useSuggestionState<ResourceItem>(resources);
+    const [promptState, promptRef] = useSuggestionState<PromptItem>();
 
     // Consolidated ref for callbacks that TipTap needs to access
     const callbacksRef = React.useRef({
@@ -792,7 +555,6 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       onPromptSelect,
     });
 
-    // Update callbacks ref when they change
     React.useEffect(() => {
       callbacksRef.current = {
         onSearchResources,
@@ -801,36 +563,6 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         onPromptSelect,
       };
     }, [onSearchResources, onResourceSelect, onSearchPrompts, onPromptSelect]);
-
-    // Ref for TipTap to access current resource suggestion state and resources
-    const resourceSuggestionRef = React.useRef<ResourceSuggestionRef>({
-      state: resourceSuggestionState,
-      setState: setResourceSuggestionState,
-      resources,
-    });
-
-    // Update resource suggestion ref when state or resources change
-    React.useEffect(() => {
-      resourceSuggestionRef.current = {
-        state: resourceSuggestionState,
-        setState: setResourceSuggestionState,
-        resources,
-      };
-    }, [resourceSuggestionState, setResourceSuggestionState, resources]);
-
-    // Ref for TipTap to access current prompt suggestion state
-    const promptSuggestionRef = React.useRef<PromptSuggestionRef>({
-      state: promptSuggestionState,
-      setState: setPromptSuggestionState,
-    });
-
-    // Update prompt suggestion ref when state changes
-    React.useEffect(() => {
-      promptSuggestionRef.current = {
-        state: promptSuggestionState,
-        setState: setPromptSuggestionState,
-      };
-    }, [promptSuggestionState, setPromptSuggestionState]);
 
     // Stable callbacks for TipTap
     const stableSearchResources = React.useCallback(
@@ -854,20 +586,14 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       [],
     );
 
-    // Handle Enter key to submit message
     const handleKeyDown = React.useCallback(
       (e: React.KeyboardEvent) => {
-        // Handle Enter key behavior
         if (e.key === "Enter" && !e.shiftKey && value.trim()) {
           e.preventDefault();
           void onSubmit(e as React.FormEvent);
           return;
         }
-
-        // Delegate to provided onKeyDown handler
-        if (onKeyDown) {
-          onKeyDown(e);
-        }
+        onKeyDown?.(e);
       },
       [onSubmit, value, onKeyDown],
     );
@@ -880,8 +606,6 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         Text,
         HardBreak,
         Placeholder.configure({ placeholder }),
-        // Always register the "@" mention extension for resources
-        // Visual display uses label, but getTextWithResourceURIs() will use ID
         Mention.configure({
           HTMLAttributes: {
             class:
@@ -890,29 +614,24 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
           suggestion: createResourceMentionConfig(
             stableSearchResources,
             handleResourceSelect,
-            resourceSuggestionRef,
+            resourceRef,
           ),
           renderLabel: ({ node }) => `@${(node.attrs.label as string) ?? ""}`,
         }),
-        // Always register the "/" command extension for prompts
         createPromptCommandExtension(
           stableSearchPrompts,
           handlePromptSelect,
-          promptSuggestionRef,
+          promptRef,
         ),
       ],
       content: value,
       editable: !disabled,
       onUpdate: ({ editor }) => {
-        // Extract text and resource names, notify parent - editor is the source of truth for user input
         const { text, resourceNames } = getTextWithResourceURIs(editor);
-        // Only update the value prop if it's different from what we're about to set
-        // This prevents unnecessary updates that could trigger syncing and replace mention nodes
         if (text !== value) {
           onChange(text);
         }
         if (onResourceNamesChange) {
-          // Merge with existing state to preserve resource names that might not be in current editor state
           onResourceNamesChange((prev) => ({ ...prev, ...resourceNames }));
         }
       },
@@ -933,16 +652,11 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
             item.type.startsWith("image/"),
           );
 
-          // If there are no images, let TipTap handle the paste normally
-          if (imageItems.length === 0) {
-            return false;
-          }
+          if (imageItems.length === 0) return false;
 
           const text = event.clipboardData?.getData("text/plain") ?? "";
           const hasText = text.length > 0;
 
-          // Only prevent default when it's an image-only paste so users can still
-          // paste mixed text + images and keep the text in the editor
           if (!hasText) {
             event.preventDefault();
           }
@@ -959,40 +673,26 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
             }
           })();
 
-          // For pure image pastes we've already prevented the default and
-          // signal that the event was handled. For mixed text+image pastes,
-          // return false so TipTap can still process the text payload.
           return !hasText;
         },
         handleKeyDown: (_view, event) => {
-          // Check if any menu is open ("@" or "/")
-          const anyMenuOpen =
-            resourceSuggestionState.isOpen || promptSuggestionState.isOpen;
+          const anyMenuOpen = resourceState.isOpen || promptState.isOpen;
 
-          // When menu is open, let the suggestion plugin handle keyboard events
-          // (ArrowUp, ArrowDown, Enter, Escape). Returning false allows the
-          // event to propagate to the suggestion plugin's onKeyDown handler.
-          if (anyMenuOpen) {
-            return false;
-          }
+          if (anyMenuOpen) return false;
 
-          // Only handle Enter key for form submission - let TipTap handle everything else
           if (event.key === "Enter" && !event.shiftKey && editor) {
             const reactEvent = event as unknown as React.KeyboardEvent;
             handleKeyDown(reactEvent);
             return reactEvent.defaultPrevented;
           }
 
-          // For all other keys (including Shift+Enter), let TipTap handle them
           return false;
         },
       },
     });
 
-    // Expose TamboEditor interface via ref
     useImperativeHandle(ref, () => {
       if (!editor) {
-        // Return a no-op implementation if editor isn't ready yet
         return {
           focus: () => {},
           setContent: () => {},
@@ -1018,9 +718,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         appendText: (text: string) => {
           editor.chain().focus("end").insertContent(text).run();
         },
-        getTextWithResourceURIs: () => {
-          return getTextWithResourceURIs(editor);
-        },
+        getTextWithResourceURIs: () => getTextWithResourceURIs(editor),
         hasMention: (id: string) => {
           if (!editor.state?.doc) return false;
           let exists = false;
@@ -1029,7 +727,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
               const mentionId = node.attrs.id as string;
               if (mentionId === id) {
                 exists = true;
-                return false; // Stop traversing
+                return false;
               }
             }
             return true;
@@ -1052,9 +750,6 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
       };
     }, [editor]);
 
-    // Sync external value changes and disabled state with editor
-    // Only sync when value changes externally (not from our own onUpdate)
-    // We track the last value we set to distinguish external vs internal changes
     const lastSyncedValueRef = React.useRef<string>(value);
 
     React.useEffect(() => {
@@ -1062,37 +757,30 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
 
       const { text: currentText } = getTextWithResourceURIs(editor);
 
-      // Only sync if:
-      // 1. Value is different from what's in the editor, AND
-      // 2. Value is different from what we last synced (meaning it's an external change)
-      // This prevents syncing when our own onUpdate updates the value prop
-      // IMPORTANT: If value === currentText, don't sync - this means the value prop
-      // is just the serialized form of what's already in the editor (with mention nodes),
-      // and syncing would replace the mention nodes with plain text
       if (value !== currentText && value !== lastSyncedValueRef.current) {
-        // External value change - sync it to editor
         editor.commands.setContent(value);
         lastSyncedValueRef.current = value;
       } else if (value === currentText) {
-        // Value matches editor content - update our tracking but don't sync
-        // (editor already has the right content with mention nodes)
         lastSyncedValueRef.current = value;
       }
-      // If value === currentText, we don't sync - editor already has the right content
 
       editor.setEditable(!disabled);
     }, [editor, value, disabled]);
 
     return (
       <div className="w-full">
-        <ResourceSuggestionPopover
-          state={resourceSuggestionState}
-          setState={setResourceSuggestionState}
-          resources={resources}
+        <SuggestionPopover
+          state={resourceState}
+          onClose={() => resourceRef.current.setState({ isOpen: false })}
+          defaultIcon={<Cuboid className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+          emptyMessage="No results found"
+          monoSecondary
         />
-        <PromptSuggestionPopover
-          state={promptSuggestionState}
-          setState={setPromptSuggestionState}
+        <SuggestionPopover
+          state={promptState}
+          onClose={() => promptRef.current.setState({ isOpen: false })}
+          defaultIcon={<FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+          emptyMessage="No prompts found"
         />
         <EditorContent editor={editor} />
       </div>
@@ -1100,4 +788,4 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
   },
 );
 
-TextEditorInner.displayName = "TextEditorInner";
+TextEditor.displayName = "TextEditor";
