@@ -45,13 +45,13 @@ A JSON object containing:
 
 ### Interactable Components
 
-Tambo allows developers to place components on screen for you to help the user interact with. 
-You can update the props or state values of any of these components based on the user's intent.
-Each component has an id, componentName, description of what the component is for, current props, current state.
-Additionally, each has an isSelectedForInteraction boolean field which specifies whether the user has explicitly selected the component for you to interact with when responding to the next message.
-If any interactable components are selected for interaction, you should focus on interacting with them during your response.
+Tambo allows developers to place a special type of component on screen for you to help the user interact with. These are called "Interactable Components" within the Tambo SDK.
+You can update the props or state values of any of these Interactable Components based on the user's intent.
+Each component has an id, componentName, description of what the Interactable Component is for, current props, current state.
+Additionally, each has an isSelectedForInteraction boolean field which specifies whether the user has explicitly selected the Interactable Component for you to interact with when responding to the next message.
+If any Interactable Components are selected for interaction, you should focus on interacting with them during your response.
 
-Here is an example of how you will receive interactable components (the props and state are specifically for the example component, not all components will have the same props and state):
+Here is an example of how you will receive Interactable Components (the props and state are specifically for the example component, not all components will have the same props and state):
 {interactables_example}
 
 ### User Message Format Structure
