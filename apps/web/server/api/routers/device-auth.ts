@@ -185,6 +185,8 @@ export const deviceAuthRouter = createTRPCRouter({
    *
    * SECURITY: The sessionToken returned is a high-entropy credential (256 bits).
    * It grants full account access and must NEVER be logged server-side.
+   *
+   * Rate limiting: Enforces server-side poll interval to prevent abuse.
    */
   poll: publicProcedure
     .input(
@@ -194,6 +196,8 @@ export const deviceAuthRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const now = new Date();
+      // Allow 1 second buffer for network latency
+      const minPollIntervalMs = (POLL_INTERVAL_SECONDS - 1) * 1000;
 
       // Find the device auth code
       const [deviceAuthCode] = await ctx.db
@@ -208,6 +212,25 @@ export const deviceAuthRouter = createTRPCRouter({
           message: "INVALID_DEVICE_CODE",
         });
       }
+
+      // Server-side rate limiting: check if polled too recently
+      if (deviceAuthCode.lastPolledAt) {
+        const timeSinceLastPoll =
+          now.getTime() - deviceAuthCode.lastPolledAt.getTime();
+        if (timeSinceLastPoll < minPollIntervalMs) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "SLOW_DOWN",
+          });
+        }
+      }
+
+      // Update last poll timestamp (fire-and-forget, don't block response)
+      void ctx.db
+        .update(schema.deviceAuthCodes)
+        .set({ lastPolledAt: now })
+        .where(eq(schema.deviceAuthCodes.deviceCode, input.deviceCode))
+        .execute();
 
       // Check if expired
       if (deviceAuthCode.expiresAt <= now) {

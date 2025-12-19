@@ -125,7 +125,7 @@ export async function runDeviceAuthFlow(
     color: "cyan",
   }).start();
 
-  const pollIntervalMs = (interval || 5) * 1000;
+  let pollIntervalMs = (interval || 5) * 1000;
   const maxAttempts = 180; // 15 minutes at 5 second intervals
   let attempts = 0;
 
@@ -187,6 +187,16 @@ export async function runDeviceAuthFlow(
         if (error.code === "INVALID_DEVICE_CODE") {
           spinner.fail(chalk.red("Invalid device code"));
           throw new DeviceAuthError("Invalid device code", error.code);
+        }
+
+        // Server asked us to slow down - increase poll interval
+        if (
+          error.code === "TOO_MANY_REQUESTS" ||
+          error.message === "SLOW_DOWN"
+        ) {
+          pollIntervalMs = Math.min(pollIntervalMs * 1.5, 30000); // Cap at 30s
+          spinner.text = `Waiting for authorization... (slowing down)`;
+          continue;
         }
 
         // For other API errors, log but continue polling

@@ -1,0 +1,1 @@
+ALTER TABLE "device_auth_codes" ADD COLUMN "last_polled_at" timestamp with time zone;
