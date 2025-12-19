@@ -42,8 +42,8 @@ This snippet assumes you're running from the repo root, using `bash`, and have `
 #!/usr/bin/env bash
 
 if ! command -v jq >/dev/null 2>&1; then
-  echo "jq is required for workspace detection; skipping workspace scan." >&2
-  exit 0
+  echo "Error: jq is required for workspace detection; please install jq and re-run." >&2
+  exit 1
 fi
 [ -f package.json ] || { echo "Run this from the repo root (package.json not found)" >&2; exit 1; }
 

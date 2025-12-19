@@ -73,8 +73,18 @@ Note: don’t compare only the `YYYY-MM-DD` portion of `publishedAt`; always com
 : "${next_ts:?next_ts must be set (see snippet above)}"
 
 RELEASE_LIMIT="${RELEASE_LIMIT:-500}"
-releases_file=$(mktemp)
-gh release list --limit "$RELEASE_LIMIT" --json tagName,name,publishedAt,url > "$releases_file"
+releases_file=$(mktemp 2>/dev/null) || {
+  echo "Error: failed to create temporary file for releases." >&2
+  exit 1
+}
+trap 'rm -f "$releases_file"' EXIT
+
+# Note: this assumes you've already computed `start_ts`/`next_ts` in the snippet
+# above.
+if ! gh release list --limit "$RELEASE_LIMIT" --json tagName,name,publishedAt,url > "$releases_file"; then
+  echo "Error: failed to fetch releases via gh CLI." >&2
+  exit 1
+fi
 
 count=$(jq 'length' "$releases_file")
 if [ "$count" -eq 0 ]; then
@@ -101,8 +111,6 @@ jq -r --arg start_ts "$start_ts" --arg next_ts "$next_ts" '
   | {tagName,name,publishedAt,url}
   | @json
 ' "$releases_file"
-
-rm -f "$releases_file"
 ```
 
 For each release, fetch full notes:
