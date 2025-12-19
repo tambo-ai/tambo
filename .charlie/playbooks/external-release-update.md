@@ -25,6 +25,8 @@ Compute the reporting window (previous Monday–Sunday, America/Los_Angeles):
 
 These commands assume GNU `date` (Linux/Devbox). On macOS, use `gdate` from `coreutils`.
 
+On macOS, replace `date` with `gdate` for all commands below (including epoch conversions).
+
 ```bash
 export TZ=America/Los_Angeles
 end_date=$(date -d 'yesterday' +%F)
@@ -32,7 +34,8 @@ start_date=$(date -d "$end_date -6 days" +%F)
 next_date=$(date -d "$end_date +1 day" +%F)
 
 # Define the LA-local window, then convert to UTC ISO timestamps for comparison
-# with GitHub's `publishedAt` values.
+# with GitHub's `publishedAt` values. `start_ts` is inclusive; `next_ts` is the
+# exclusive upper bound.
 start_epoch=$(date -d "$start_date 00:00" +%s)
 next_epoch=$(date -d "$next_date 00:00" +%s)
 start_ts="$(date -u -d "@$start_epoch" +%FT%T)Z"
@@ -50,10 +53,10 @@ Filter releases whose `publishedAt` (UTC) falls between the UTC timestamps corre
 ```bash
 gh release list --limit 100 --json tagName,name,publishedAt,url > /tmp/releases.json
 
-# Note: `$start_ts` and `$next_ts` are LA-local day bounds converted to UTC so
-# they can be compared to GitHub's `publishedAt` (UTC).
-jq -r --arg start "$start_ts" --arg next "$next_ts" '
-  map(select(.publishedAt >= $start and .publishedAt < $next))
+# Note: `$start_ts` and `$next_ts` are UTC timestamps derived from LA-local day
+# bounds, and can be compared to GitHub's `publishedAt` (UTC).
+jq -r --arg start_ts "$start_ts" --arg next_ts "$next_ts" '
+  map(select(.publishedAt >= $start_ts and .publishedAt < $next_ts))
   | sort_by(.publishedAt)
   | .[]
   | {tagName,name,publishedAt,url}

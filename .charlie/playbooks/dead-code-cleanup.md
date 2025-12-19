@@ -16,7 +16,7 @@ Create a Linear issue listing candidates for dead code cleanup (unused files, ex
 - Max candidates listed: 25
 - Guardrails:
   - Require at least two independent signals before listing a candidate.
-  - Exclude public API surfaces. In this repo, treat any workspace where `package.json.private` is missing or not `true` as public.
+  - Exclude public API surfaces (only workspaces with `package.json.private === true` are eligible).
   - Do not propose removing generated code, migrations, build output, or vendored code.
 
 ## Data collection
@@ -24,6 +24,8 @@ Create a Linear issue listing candidates for dead code cleanup (unused files, ex
 Compute the reporting window (previous Monday–Sunday, America/Los_Angeles):
 
 These commands assume GNU `date` (Linux/Devbox). On macOS, use `gdate` from `coreutils`.
+
+Rule: only workspaces with `package.json.private === true` are eligible; all others are treated as public.
 
 ```bash
 export TZ=America/Los_Angeles
@@ -46,23 +48,23 @@ workspaces=$(jq -r '
   ' package.json)
 
 if [ -z "$workspaces" ]; then
-  echo "No workspaces found in package.json. Confirm that this repo is configured as a workspace monorepo before running this playbook." >&2
-  exit 1
+  echo "No workspaces found in package.json; falling back to a basic scan of common monorepo directories." >&2
+  workspaces=$(printf '%s\n' 'apps/*' 'packages/*' 'cli' 'create-tambo-app' 'docs' 'react-sdk' 'showcase')
 fi
 
-shopt -s nullglob globstar
-while IFS= read -r glob; do
-  for p in $glob; do
-    if [ -f "$p/package.json" ]; then
-      priv=$(jq -r '.private // false' "$p/package.json")
-      name=$(jq -r '.name' "$p/package.json")
-      printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
-    fi
-  done
-done <<< "$workspaces" | sort
+( shopt -s nullglob globstar
+  while IFS= read -r glob; do
+    for p in $glob; do
+      if [ -f "$p/package.json" ]; then
+        priv=$(jq -r '.private // false' "$p/package.json")
+        name=$(jq -r '.name' "$p/package.json")
+        printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
+      fi
+    done
+  done <<< "$workspaces" | sort
+)
 ```
 
-Note: `package.json.private` must be explicitly set to `true`; any other value (including missing) is treated as public.
 Only rows with `private=true` are eligible for dead code candidates.
 
 Only collect candidates from workspaces where `package.json.private === true` (for example in this repo: `apps/api`, `apps/web`, `packages/core`, `packages/db`, `packages/testing`, `showcase`).
@@ -123,7 +125,7 @@ Signals you can use (require at least two per candidate):
 
 ## Verify
 
-- No candidates are from workspaces whose `package.json` does not have `"private": true` (only workspaces with `package.json.private === true` are eligible).
+- No candidates are from public workspaces (per the `private=true` rule above).
 - Each candidate has at least two independent signals recorded.
 - The list avoids generated/build/migrations paths.
 
