@@ -1,5 +1,7 @@
 // react-sdk/src/providers/tambo-interactable-provider.tsx
 "use client";
+import { deepEqual } from "fast-equals";
+import { JSONSchema7 } from "json-schema";
 import React, {
   createContext,
   PropsWithChildren,
@@ -15,6 +17,7 @@ import {
   TamboInteractableComponent,
   type TamboInteractableContext,
 } from "../model/tambo-interactable";
+import { makeJsonSchemaPartial, schemaToJsonSchema } from "../schema";
 import { assertValidName } from "../util/validate-component-name";
 import { useTamboComponent } from "./tambo-component-provider";
 import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
@@ -224,6 +227,35 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     [],
   );
 
+  const updateInteractableComponentState = useCallback(
+    (componentId: string, newState: Record<string, unknown>): string => {
+      if (!newState || Object.keys(newState).length === 0) {
+        return `Warning: No state values provided for component with ID ${componentId}.`;
+      }
+
+      setInteractableComponents((components = []) => {
+        const component = components.find((c) => c.id === componentId);
+        if (!component) return components;
+
+        const prevState = component.state ?? {};
+        const updatedState = { ...prevState, ...newState };
+        if (deepEqual(prevState, updatedState)) return components;
+
+        // TODO(lachieh): validate state against schema?
+
+        const updated = {
+          ...component,
+          state: updatedState,
+        };
+
+        return components.map((c) => (c.id === componentId ? updated : c));
+      });
+
+      return "Updated successfully";
+    },
+    [],
+  );
+
   const registerInteractableComponentUpdateTool = useCallback(
     (component: TamboInteractableComponent, maxNameLength = 60) => {
       const tamboToolNamePart = `update_component_`;
@@ -234,31 +266,96 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         );
       }
 
-      const schemaForArgs =
-        typeof component.propsSchema === "object" &&
-        "describe" in component.propsSchema &&
-        "partial" in component.propsSchema
-          ? (component.propsSchema as any).partial()
-          : z.object({});
+      // Build newProps schema as JSON Schema
+      let newPropsSchema: JSONSchema7;
+      if (component.propsSchema) {
+        // Convert any supported schema to JSON Schema, then make partial
+        const fullSchema = schemaToJsonSchema(component.propsSchema);
+        newPropsSchema = makeJsonSchemaPartial(fullSchema);
+      } else {
+        // No schema - allow any properties
+        newPropsSchema = { type: "object", additionalProperties: true };
+      }
+
+      // Build the full input schema as JSON Schema
+      const inputSchema: JSONSchema7 = {
+        type: "object",
+        properties: {
+          componentId: {
+            type: "string",
+            description: "The ID of the interactable component to update",
+          },
+          newProps: {
+            ...newPropsSchema,
+            description:
+              "The props to update. Provide only the props you want to change.",
+          },
+        },
+        required: ["componentId", "newProps"],
+      };
 
       registerTool({
         name: `${tamboToolNamePart}${component.id}`,
-        description: `Update the props of interactable component ${component.id} (${component.name}). You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.`,
+        description: `Update the props of interactable component ${component.id} (${component.name}). Provide partial props (only props to change).`,
         tool: ({ componentId, newProps }) => {
           return updateInteractableComponentProps(componentId, newProps);
         },
-        inputSchema: z.object({
-          componentId: z
-            .string()
-            .describe("The ID of the interactable component to update"),
-          newProps: schemaForArgs.describe(
-            "The props to update the component with. You can provide partial props (only the props you want to change) or complete props (all props). Only the props you specify will be updated.",
-          ),
-        }),
+        inputSchema,
         outputSchema: z.string(),
       });
     },
     [registerTool, updateInteractableComponentProps],
+  );
+
+  const registerInteractableComponentStateUpdateTool = useCallback(
+    (component: TamboInteractableComponent, maxNameLength = 60) => {
+      const tamboToolNamePart = `update_component_state_`;
+      const availableLength = maxNameLength - tamboToolNamePart.length;
+      if (component.id.length > availableLength) {
+        throw new Error(
+          `Interactable component id ${component.id} is too long. It must be less than ${availableLength} characters.`,
+        );
+      }
+
+      // Build newState schema as JSON Schema
+      let newStateSchema: JSONSchema7 = {
+        type: "object",
+        additionalProperties: true,
+      };
+      if (component.stateSchema) {
+        // Convert any supported schema to JSON Schema, then make partial
+        const fullSchema = schemaToJsonSchema(component.stateSchema);
+        newStateSchema = makeJsonSchemaPartial(fullSchema);
+      }
+
+      // Build the full input schema as JSON Schema
+      const inputSchema: JSONSchema7 = {
+        type: "object",
+        properties: {
+          componentId: {
+            type: "string",
+            description: "The ID of the interactable component to update",
+          },
+          newState: {
+            ...newStateSchema,
+            description:
+              "The state values to update. Provide only the keys you want to change.",
+          },
+        },
+        required: ["componentId", "newState"],
+      };
+
+      registerTool({
+        name: `${tamboToolNamePart}${component.id}`,
+        description: `Update the state of interactable component ${component.id} (${component.name}). You may provide partial state (only keys to change).`,
+        tool: ({ componentId, newState }) => {
+          return updateInteractableComponentState(componentId, newState);
+        },
+        inputSchema,
+        outputSchema: z.string(),
+      });
+    },
+    [registerTool, updateInteractableComponentState],
   );
 
   const addInteractableComponent = useCallback(
@@ -278,6 +375,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       };
 
       registerInteractableComponentUpdateTool(newComponent);
+      registerInteractableComponentStateUpdateTool(newComponent);
 
       setInteractableComponents((prev) => {
         return [...prev, newComponent];
@@ -285,7 +383,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
 
       return id;
     },
-    [registerInteractableComponentUpdateTool],
+    [
+      registerInteractableComponentUpdateTool,
+      registerInteractableComponentStateUpdateTool,
+    ],
   );
 
   const removeInteractableComponent = useCallback((id: string) => {
@@ -293,8 +394,10 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   }, []);
 
   const getInteractableComponent = useCallback(
-    (id: string) => {
-      return interactableComponents.find((c) => c.id === id);
+    <P, S>(id: string) => {
+      return interactableComponents.find((c) => c.id === id) as
+        | TamboInteractableComponent<P, S>
+        | undefined;
     },
     [interactableComponents],
   );
@@ -324,7 +427,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         const updated = {
           ...component,
           state: {
-            ...(component.state ?? {}),
+            ...component.state,
             [key]: value,
           },
         };

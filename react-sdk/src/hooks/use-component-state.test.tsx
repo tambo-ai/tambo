@@ -471,6 +471,58 @@ describe("useTamboComponentState", () => {
     });
   });
 
+  describe("Interactable State Sync", () => {
+    it("should sync local state when interactable state changes externally", () => {
+      // Setup: Component is in interactable context with an ID
+      const message = createMockMessage({
+        componentState: {},
+        interactableMetadata: {
+          id: "test-interactable-id",
+          componentName: "TestComponent",
+          description: "Test",
+        },
+      });
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(message);
+
+      // Start with initial state
+      mockGetInteractableComponentState.mockReturnValue({ testKey: "initial" });
+
+      const { result, rerender } = renderHook(() =>
+        useTamboComponentState("testKey", "initial"),
+      );
+
+      expect(result.current[0]).toBe("initial");
+
+      // Simulate external state update (e.g., from Tambo tool call)
+      mockGetInteractableComponentState.mockReturnValue({
+        testKey: "updated-by-tambo",
+      });
+
+      // Trigger rerender to pick up new interactable state
+      rerender();
+
+      // Local state should sync with the external update
+      expect(result.current[0]).toBe("updated-by-tambo");
+    });
+
+    it("should not sync when not in interactable context", () => {
+      // Setup: Component is NOT in interactable context (no interactableMetadata.id)
+      const message = createMockMessage({
+        componentState: { testKey: "initial" },
+      });
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(message);
+
+      mockGetInteractableComponentState.mockReturnValue({ testKey: "ignored" });
+
+      const { result } = renderHook(() =>
+        useTamboComponentState("testKey", "initial"),
+      );
+
+      // Should use message state, not interactable state
+      expect(result.current[0]).toBe("initial");
+    });
+  });
+
   describe("Message State Sync", () => {
     it("should sync with message.componentState changes", () => {
       const { result, rerender } = renderHook(

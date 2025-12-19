@@ -40,7 +40,7 @@ export const createInteractablesContextHelper = (
 
     return {
       description:
-        "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, current state, and optional schema. You can use tools to update these components on behalf of the user. Don't tell the user the ID of the components, only the name, unless they ask for it. Some components may be selected for interaction, meaning Tambo should interact with them when responding to the next message.",
+        "These are the interactable components currently visible on the page that you can read and modify. Each component has an id, componentName, current props, current state, and optional schemas. You can use tools to update these components' props and state on behalf of the user. Don't tell the user the ID of the components, only the name, unless they ask for it. Some components may be selected for interaction, meaning Tambo should interact with them when responding to the next message.",
       components: components.map((component) => ({
         id: component.id,
         componentName: component.name,
@@ -51,6 +51,9 @@ export const createInteractablesContextHelper = (
           : "Not specified",
         state: component.state,
         isSelectedForInteraction: component.isSelectedForInteraction ?? false,
+        stateSchema: component.stateSchema
+          ? "Available - use component-specific update tools"
+          : "Not specified",
       })),
     };
   };
