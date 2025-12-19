@@ -60,33 +60,39 @@ fi
 
 build_workspace_report() {
   local patterns="$1"
+  local old_nullglob
+  old_nullglob=$(shopt -p nullglob || true)
   shopt -s nullglob
   while IFS= read -r pattern; do
+    [ -n "$pattern" ] || continue
     for p in $pattern; do
       [ -d "$p" ] || continue
       if [ -f "$p/package.json" ]; then
+        is_private=$(jq -r '.private == true' "$p/package.json")
         priv=$(jq -r 'if has("private") then (.private | tostring) else "missing" end' "$p/package.json")
         name=$(jq -r 'if has("name") and (.name != null and .name != "") then .name else "<no-name>" end' "$p/package.json")
-        printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
+        printf '%s\t%s\teligible=%s\tprivate=%s\n' "$p" "$name" "$is_private" "$priv"
       fi
     done
-  done <<< "$patterns" | sort
+  done <<< "$patterns"
+
+  eval "$old_nullglob"
 }
 
 printf 'Scanning workspace patterns:\n%s\n' "$workspaces" >&2
-workspace_report=$(build_workspace_report "$workspaces")
+workspace_report=$(build_workspace_report "$workspaces" | sort)
 
 if [ -z "$workspace_report" ]; then
   echo "No workspaces matched patterns from package.json; falling back to a basic scan of common monorepo directories." >&2
   workspaces=$(printf '%s\n' 'apps/*' 'packages/*' 'cli' 'create-tambo-app' 'docs' 'react-sdk' 'showcase')
   printf 'Scanning workspace patterns:\n%s\n' "$workspaces" >&2
-  workspace_report=$(build_workspace_report "$workspaces")
+  workspace_report=$(build_workspace_report "$workspaces" | sort)
 fi
 
 printf '%s\n' "$workspace_report"
 
-printf '\nEligible workspaces (private=true):\n'
-eligible_workspaces=$(printf '%s\n' "$workspace_report" | awk -F '\t' '$3 == "private=true" { print $1 }')
+printf '\nEligible workspaces (private is boolean true):\n'
+eligible_workspaces=$(printf '%s\n' "$workspace_report" | awk -F '\t' '$3 == "eligible=true" { print $1 }')
 if [ -z "$eligible_workspaces" ]; then
   echo "(none)" >&2
 else
@@ -94,9 +100,9 @@ else
 fi
 ```
 
-When searching for dead code, only analyze paths listed under `Eligible workspaces (private=true)` above.
+When searching for dead code, only analyze paths listed under `Eligible workspaces (private is boolean true)` above.
 
-> Note: if you expect a workspace to be scanned but it does not show up under `Eligible workspaces (private=true)`, check its `package.json` and set `"private": true` for internal-only packages.
+> Note: if you expect a workspace to be scanned but it does not show up under `Eligible workspaces (private is boolean true)`, check its `package.json` and set `"private": true` for internal-only packages.
 
 Signals you can use (require at least two per candidate):
 

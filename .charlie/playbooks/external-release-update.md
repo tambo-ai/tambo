@@ -64,13 +64,19 @@ Note: don’t compare only the `YYYY-MM-DD` portion of `publishedAt`; always com
 : "${start_ts:?start_ts must be set (see snippet above)}"
 : "${next_ts:?next_ts must be set (see snippet above)}"
 
-gh release list --limit 500 --json tagName,name,publishedAt,url > /tmp/releases.json
+RELEASE_LIMIT="${RELEASE_LIMIT:-500}"
+gh release list --limit "$RELEASE_LIMIT" --json tagName,name,publishedAt,url > /tmp/releases.json
+
+count=$(jq 'length' /tmp/releases.json)
+if [ "$count" -ge "$RELEASE_LIMIT" ]; then
+  echo "Warning: fetched $count releases (limit=$RELEASE_LIMIT); there may be additional releases in the window. Consider increasing RELEASE_LIMIT." >&2
+fi
 
 earliest=$(jq -r 'map(.publishedAt) | min // empty' /tmp/releases.json)
 earliest_epoch=$($DATE_BIN -d "$earliest" +%s 2>/dev/null || echo "")
 start_epoch_check=$($DATE_BIN -d "$start_ts" +%s 2>/dev/null || echo "")
 if [ -n "$earliest_epoch" ] && [ -n "$start_epoch_check" ] && [ "$earliest_epoch" -gt "$start_epoch_check" ]; then
-  echo "Warning: earliest fetched release ($earliest) is after start_ts ($start_ts); older releases in the window may be missing. Consider increasing --limit." >&2
+  echo "Warning: earliest fetched release ($earliest) is after start_ts ($start_ts); older releases in the window may be missing. Consider increasing RELEASE_LIMIT." >&2
 fi
 
 # Note: `$start_ts` and `$next_ts` are UTC timestamps derived from LA-local day
