@@ -15,10 +15,10 @@ import { ZodError } from "zod/v3";
 import { authOptions } from "@/lib/auth";
 import { env } from "@/lib/env";
 import * as Sentry from "@sentry/nextjs";
-import { getDb, HydraDb } from "@tambo-ai-cloud/db";
-import { sql } from "drizzle-orm";
+import { getDb, HydraDb, schema } from "@tambo-ai-cloud/db";
+import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
 import { getServerSession, User } from "next-auth";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 export type Context = {
   db: HydraDb;
@@ -31,6 +31,55 @@ export type Context = {
   } | null;
   headers: Headers;
 };
+
+/**
+ * Validate a CLI session token against the database
+ * Returns user info if valid, null otherwise
+ */
+async function validateCliSession(
+  db: HydraDb,
+  sessionToken: string,
+): Promise<Context["user"]> {
+  const now = new Date();
+
+  // Query the session and join with user
+  const result = await db
+    .select({
+      sessionId: schema.sessions.id,
+      userId: schema.sessions.userId,
+      notAfter: schema.sessions.notAfter,
+      source: schema.sessions.source,
+      userEmail: schema.authUsers.email,
+      userMeta: schema.authUsers.rawUserMetaData,
+    })
+    .from(schema.sessions)
+    .innerJoin(
+      schema.authUsers,
+      eq(schema.sessions.userId, schema.authUsers.id),
+    )
+    .where(
+      and(
+        eq(schema.sessions.id, sessionToken),
+        eq(schema.sessions.source, "cli"),
+        or(isNull(schema.sessions.notAfter), gt(schema.sessions.notAfter, now)),
+      ),
+    )
+    .limit(1);
+
+  if (result.length === 0) {
+    return null;
+  }
+
+  const session = result[0];
+  const meta = session.userMeta as Record<string, unknown> | null;
+
+  return {
+    id: session.userId,
+    email: session.userEmail,
+    name: (meta?.name as string) ?? null,
+    image: (meta?.avatar_url as string) ?? null,
+  };
+}
 
 /**
  * 1. CONTEXT
@@ -49,8 +98,8 @@ export const createTRPCContext = async (): Promise<Context> => {
   const session = await getServerSession(authOptions);
   const db = getDb(env.DATABASE_URL);
 
-  // Map NextAuth session to the expected user format
-  const user = session?.user
+  // First, try NextAuth session (browser users)
+  let user: Context["user"] = session?.user
     ? {
         id: (session.user as User).id,
         email: session.user.email,
@@ -58,6 +107,16 @@ export const createTRPCContext = async (): Promise<Context> => {
         image: session.user.image,
       }
     : null;
+
+  // If no NextAuth session, check for CLI session token
+  if (!user) {
+    const cookieStore = await cookies();
+    const cliSessionToken = cookieStore.get("tambo-cli-session")?.value;
+
+    if (cliSessionToken) {
+      user = await validateCliSession(db, cliSessionToken);
+    }
+  }
 
   return {
     db,

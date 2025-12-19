@@ -97,11 +97,69 @@ export const sessions = authSchema.table(
       .defaultNow()
       .notNull(),
     notAfter: timestamp("not_after", { withTimezone: true }),
+    // Source of the session: 'browser' for web sessions, 'cli' for CLI device auth
+    source: text("source").default("browser"),
   }),
   (table) => [
     index("session_user_id_idx").on(table.userId),
     index("session_not_after_idx").on(table.notAfter),
   ],
+);
+
+/**
+ * Device auth codes for CLI authentication (OAuth 2.0 Device Authorization Grant)
+ * These are temporary codes that expire after 15 minutes.
+ * Once a code is verified, a session is created in auth.sessions with source='cli'
+ */
+export const deviceAuthCodes = pgTable(
+  "device_auth_codes",
+  ({ text, timestamp, uuid, boolean }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('dac_')`),
+    // Server-generated UUID used by CLI to poll for completion
+    deviceCode: text("device_code").notNull().unique(),
+    // Human-friendly 8-character code shown to user (e.g., "WDJB-MJHT" stored as "WDJBMJHT")
+    userCode: text("user_code").notNull().unique(),
+    // Set when user verifies the code in browser
+    userId: uuid("user_id").references(() => authUsers.id, {
+      onDelete: "cascade",
+    }),
+    // The session ID created when verification completes
+    sessionId: text("session_id").references(() => sessions.id, {
+      onDelete: "cascade",
+    }),
+    // Prevent reuse of codes
+    isUsed: boolean("is_used").default(false).notNull(),
+    // Codes expire after 15 minutes
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    index("device_auth_codes_device_code_idx").on(table.deviceCode),
+    index("device_auth_codes_user_code_idx").on(table.userCode),
+    index("device_auth_codes_expires_at_idx").on(table.expiresAt),
+  ],
+);
+
+export type DBDeviceAuthCode = typeof deviceAuthCodes.$inferSelect;
+
+export const deviceAuthCodeRelations = relations(
+  deviceAuthCodes,
+  ({ one }) => ({
+    user: one(authUsers, {
+      fields: [deviceAuthCodes.userId],
+      references: [authUsers.id],
+    }),
+    session: one(sessions, {
+      fields: [deviceAuthCodes.sessionId],
+      references: [sessions.id],
+    }),
+  }),
 );
 
 // Relations for user schema tables
