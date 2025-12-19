@@ -1,17 +1,15 @@
+/// <reference types="@testing-library/jest-dom" />
+import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { ThreadDropdown } from "../../../src/registry/thread-dropdown/thread-dropdown";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 
-jest.mock("@tambo-ai/react");
+// @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 
 describe("ThreadDropdown", () => {
-  const mockUseTamboThread = useTamboThread as jest.MockedFunction<
-    typeof useTamboThread
-  >;
-  const mockUseTamboThreadList = useTamboThreadList as jest.MockedFunction<
-    typeof useTamboThreadList
-  >;
+  const mockUseTamboThread = jest.mocked(useTamboThread);
+  const mockUseTamboThreadList = jest.mocked(useTamboThreadList);
 
   beforeEach(() => {
     mockUseTamboThread.mockReturnValue({

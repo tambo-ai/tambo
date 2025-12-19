@@ -1,15 +1,28 @@
 import type { Config } from "jest";
 
-const config: Config = {
+const sharedConfig: Config = {
   preset: "ts-jest/presets/default-esm",
-  testEnvironment: "node",
-  extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
+    // Path mappings for registry components
+    "^@/components/tambo/markdown-components$":
+      "<rootDir>/src/registry/message/markdown-components",
+    "^@/components/tambo/(.*)$": "<rootDir>/src/registry/$1",
+    "^@/lib/utils$": "<rootDir>/src/lib/utils",
+    "^@/lib/thread-hooks$": "<rootDir>/src/registry/lib/thread-hooks",
+    "^@/(.*)$": "<rootDir>/src/$1",
+    // Mock CSS imports
+    "\\.(css|less|scss|sass)$": "<rootDir>/__tests__/__mocks__/styleMock.js",
+    // Mock react-media-recorder - uses browser APIs not available in jsdom
+    "^react-media-recorder$":
+      "<rootDir>/__tests__/__mocks__/react-media-recorder.ts",
+    // pkce-challenge's browser build is ESM-only; force the CJS Node.js version
+    "^pkce-challenge$":
+      "<rootDir>/../node_modules/pkce-challenge/dist/index.node.cjs",
+    // ESM import mapping
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
-  testMatch: ["<rootDir>/src/**/*.test.ts"],
   transform: {
-    "^.+\\.ts$": [
+    "^.+\\.[tj]sx?$": [
       "ts-jest",
       {
         useESM: true,
@@ -17,6 +30,16 @@ const config: Config = {
     ],
   },
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
+  // Transform ESM packages - many packages are ESM-only now
+  transformIgnorePatterns: [
+    "/node_modules/(?!(json-stringify-pretty-compact|streamdown|unified|bail|devlop|is-plain-obj|trough|vfile|vfile-message|micromark|micromark-util-.*|mdast-util-.*|hast-util-.*|estree-util-.*|unist-util-.*|comma-separated-tokens|property-information|space-separated-tokens|ccount|escape-string-regexp|markdown-table|zwitch|longest-streak|rxjs)/)",
+  ],
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
+};
+
+const config: Config = {
   collectCoverageFrom: [
     "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
     "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
@@ -24,15 +47,34 @@ const config: Config = {
     "!<rootDir>/src/**/__mocks__/**",
     "!<rootDir>/dist/**",
   ],
-  clearMocks: true,
-  resetMocks: true,
-  restoreMocks: true,
   coverageThreshold: {
     global: {
-      branches: 12,
-      lines: 16,
+      branches: 15,
+      lines: 20,
     },
   },
+
+  projects: [
+    {
+      ...sharedConfig,
+      displayName: "node",
+      testEnvironment: "node",
+      extensionsToTreatAsEsm: [".ts"],
+      testMatch: ["<rootDir>/src/**/*.test.ts"],
+    },
+    {
+      ...sharedConfig,
+      displayName: "react",
+      testEnvironment: "jsdom",
+      extensionsToTreatAsEsm: [".ts", ".tsx"],
+      testMatch: ["<rootDir>/__tests__/**/*.test.tsx"],
+      moduleNameMapper: {
+        ...sharedConfig.moduleNameMapper,
+        "^@tambo-ai/react$": "<rootDir>/__tests__/__mocks__/@tambo-ai-react.ts",
+      },
+      setupFilesAfterEnv: ["<rootDir>/__tests__/setup.ts"],
+    },
+  ],
 };
 
 export default config;
