@@ -38,7 +38,7 @@ export interface ContextAttachmentState {
     contextValue: string,
     displayName: string,
     type?: string,
-  ) => Omit<StagedContext, "id">;
+  ) => StagedContext;
   removeStagedContext: (id: string) => void;
   clearStagedContexts: () => void;
 }
@@ -79,7 +79,7 @@ export function TamboContextAttachmentProvider({
       contextValue: string,
       displayName: string,
       type?: string,
-    ): Omit<StagedContext, "id"> => {
+    ): StagedContext => {
       const id = crypto.randomUUID();
       const stagedContext: StagedContext = {
         id,
@@ -143,12 +143,14 @@ export function TamboContextAttachmentProvider({
  * const { addStagedContext, stagedContexts, clearStagedContexts } = useTamboContextAttachment();
  *
  * // Stage a context piece for the next message
- * const id = addStagedContext(
+ * const stagedContext = addStagedContext(
  *   "selectedFile",
+ *   "Button.tsx",
+ *   "file"
  * );
  *
  * // Remove a staged context
- * removeStagedContext(id);
+ * removeStagedContext(stagedContext.id);
  *
  * // Clear all staged contexts
  * clearStagedContexts();

@@ -78,8 +78,7 @@ export function EditWithTamboButton({
   const { sendThreadMessage, isIdle, setInteractableSelectedForInteraction } =
     useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
-  const { addContextAttachment, setCustomSuggestions } =
-    useTamboContextAttachment();
+  const { addStagedContext } = useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -117,16 +116,6 @@ export function EditWithTamboButton({
     }
   }, [shouldCloseOnComplete, isGenerating]);
 
-  // Cleanup: Clear custom suggestions on unmount if suggestions prop is provided
-  // This ensures suggestions don't persist indefinitely if MessageThreadPanel
-  // or similar clearing logic isn't present in the consumer's component tree
-  useEffect(() => {
-    if (!suggestions) return;
-    return () => {
-      setCustomSuggestions(null);
-    };
-  }, [suggestions, setCustomSuggestions]);
-
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isGenerating) {
       return;
@@ -157,17 +146,10 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // Set custom suggestions if available
-    if (suggestions) {
-      setCustomSuggestions(suggestions);
-    }
-
-    // Add the component as a badge and mark it as selected for interaction
+    // Stage the component context for the next message
     const componentName = component?.componentName ?? "Unknown Component";
     const interactableId = component?.interactableId ?? "";
-    addContextAttachment({
-      name: componentName,
-    });
+    addStagedContext(componentName, componentName, "component");
     if (interactableId) {
       setInteractableSelectedForInteraction(interactableId, true);
     }
@@ -195,9 +177,7 @@ export function EditWithTamboButton({
   }, [
     prompt,
     component,
-    suggestions,
-    setCustomSuggestions,
-    addContextAttachment,
+    addStagedContext,
     setInteractableSelectedForInteraction,
     onOpenThread,
     editorRef,
