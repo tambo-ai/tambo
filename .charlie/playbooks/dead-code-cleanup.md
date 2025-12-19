@@ -36,10 +36,13 @@ echo "window: $start_date..$end_date"
 
 Identify “public” workspaces (skip these entirely):
 
-This snippet assumes `bash`.
+This snippet assumes you're running from the repo root, using `bash`, and have `jq` installed.
 
 ```bash
 # Requires bash (uses arrays + `shopt`).
+command -v jq >/dev/null 2>&1 || { echo "jq is required" >&2; exit 1; }
+[ -f package.json ] || { echo "Run this from the repo root (package.json not found)" >&2; exit 1; }
+
 workspaces=$(jq -r '
   if (.workspaces | type == "array") then
     .workspaces[]?
@@ -76,7 +79,7 @@ fi
 
 Only rows with `private=true` are eligible for dead code candidates.
 
-Only collect candidates from workspaces where `package.json.private === true` (for example in this repo: `apps/api`, `apps/web`, `packages/core`, `packages/db`, `packages/testing`, `showcase`).
+Only collect candidates from workspaces where `package.json.private === true`.
 
 Signals you can use (require at least two per candidate):
 

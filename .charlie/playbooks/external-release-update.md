@@ -23,7 +23,7 @@ All proactive behaviors currently run daily. To make this effectively weekly, tr
 
 Compute the reporting window (previous Monday–Sunday, America/Los_Angeles), then derive corresponding UTC timestamps for accurate comparison with GitHub's `publishedAt`:
 
-These commands assume GNU `date` (Linux/Devbox). On macOS, `gdate` (from `coreutils`) is required.
+These commands assume GNU `date` (Linux/Devbox). On macOS, `gdate` (from `coreutils`) is required (`brew install coreutils`) and this snippet will exit early if `gdate` is not found.
 
 ```bash
 if [ "$(uname)" = "Darwin" ]; then
@@ -59,6 +59,9 @@ Using the `start_ts` and `next_ts` variables computed above, filter releases who
 Note: don’t compare only the `YYYY-MM-DD` portion of `publishedAt`; always compare the full UTC timestamps to correctly handle time zones and DST.
 
 ```bash
+: "${start_ts:?start_ts must be set (see snippet above)}"
+: "${next_ts:?next_ts must be set (see snippet above)}"
+
 gh release list --limit 100 --json tagName,name,publishedAt,url > /tmp/releases.json
 
 # Note: `$start_ts` and `$next_ts` are UTC timestamps derived from LA-local day
