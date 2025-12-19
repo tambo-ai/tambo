@@ -30,6 +30,8 @@ today=$(TZ=America/Los_Angeles date +%F)
 echo "$today"
 ```
 
+Use this `today` value when constructing the PR title.
+
 List Jest configs with thresholds in this repo:
 
 ```bash
@@ -85,6 +87,8 @@ npm -w cli run test:react -- \
   --coverageDirectory=/tmp/tambo-coverage/cli-react
 ```
 
+If a new workspace adds Jest coverage thresholds (or test scripts are renamed), update the command list above so every Jest project stays covered.
+
 For each coverage directory, the total percentages are available in `coverage-summary.json`:
 
 ```bash
@@ -98,6 +102,18 @@ jq '.total | {branches: .branches.pct, lines: .lines.pct, statements: .statement
 
   ```bash
   test "$(TZ=America/Los_Angeles date +%u)" = "1"
+  ```
+
+- The current branch is not `main`:
+
+  ```bash
+  test "$(git rev-parse --abbrev-ref HEAD)" = "main"
+  ```
+
+- The git remote is not the canonical repo (`tambo-ai/tambo`):
+
+  ```bash
+  git remote get-url origin | rg -n 'tambo-ai/tambo'
   ```
 
 - No `coverageThreshold.global` value can be increased.
