@@ -54,6 +54,13 @@ If any Interactable Components are selected for interaction, you should focus on
 Here is an example of how you will receive Interactable Components (the props and state are specifically for the example component, not all components will have the same props and state):
 {interactables_example}
 
+### Context Attachments
+
+Context Attachments are pieces of context that the application has added to the message on behalf of the user to help you respond with more relevant information.
+
+Here is an example of how you will receive Context Attachments:
+{context_attachments_example}
+
 ### User Message Format Structure
 
 Messages are structured with specific tags for clear context:
@@ -105,6 +112,16 @@ ${customInstructions}
                 }
             ]
         }`,
+      context_attachments_example: `
+        "context_attachments": [
+            {
+                "id": "File-13b",
+                "displayName": "SomeFile",
+                "context": "These are the contents of SomeFile.",
+                "type": "file"
+            },
+            ...more context attachments...
+        ]`,
     },
   );
 }
