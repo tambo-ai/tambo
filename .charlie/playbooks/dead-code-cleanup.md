@@ -58,7 +58,8 @@ if [ -z "$workspaces" ]; then
   workspaces=$(printf '%s\n' 'apps/*' 'packages/*' 'cli' 'create-tambo-app' 'docs' 'react-sdk' 'showcase')
 fi
 
-( shopt -s nullglob globstar
+workspace_report=$( (
+  shopt -s nullglob globstar
   while IFS= read -r entry; do
     patterns=("$entry")
     if [ -d "$entry" ]; then
@@ -68,13 +69,18 @@ fi
       for p in $pattern; do
         if [ -f "$p/package.json" ]; then
           priv=$(jq -r 'if has("private") then (.private | tostring) else "missing" end' "$p/package.json")
-          name=$(jq -r '.name' "$p/package.json")
+          name=$(jq -r 'if has("name") and (.name != null and .name != "") then .name else "<no-name>" end' "$p/package.json")
           printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
         fi
       done
     done
   done <<< "$workspaces" | sort
-)
+) )
+
+printf '%s\n' "$workspace_report"
+
+printf '\nEligible workspaces (private=true):\n'
+printf '%s\n' "$workspace_report" | grep -F 'private=true' || true
 ```
 
 Only rows with `private=true` are eligible for dead code candidates.

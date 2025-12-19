@@ -23,13 +23,14 @@ All proactive behaviors currently run daily. To make this effectively weekly, tr
 
 Compute the reporting window (previous Monday–Sunday, America/Los_Angeles), then derive corresponding UTC timestamps for accurate comparison with GitHub's `publishedAt`:
 
-These commands assume GNU `date` (Linux/Devbox). On macOS, `gdate` (from `coreutils`) is required (`brew install coreutils`) and this snippet will exit early if `gdate` is not found.
+These commands assume GNU `date` (Linux/Devbox). On macOS, `gdate` (from `coreutils`) is required and this snippet will exit early if `gdate` is not found.
 
 ```bash
 if [ "$(uname)" = "Darwin" ]; then
   if ! command -v gdate >/dev/null 2>&1; then
-    echo "gdate (coreutils) is required on macOS. Install via 'brew install coreutils'." >&2
-    exit 1
+    echo "gdate (from GNU coreutils) is required on macOS but was not found on PATH." >&2
+    echo "Install via 'brew install coreutils' or your system package manager, then re-run this snippet." >&2
+    exit 2
   fi
   DATE_BIN=gdate
 else
@@ -62,7 +63,7 @@ Note: don’t compare only the `YYYY-MM-DD` portion of `publishedAt`; always com
 : "${start_ts:?start_ts must be set (see snippet above)}"
 : "${next_ts:?next_ts must be set (see snippet above)}"
 
-gh release list --limit 100 --json tagName,name,publishedAt,url > /tmp/releases.json
+gh release list --limit 500 --json tagName,name,publishedAt,url > /tmp/releases.json
 
 # Note: `$start_ts` and `$next_ts` are UTC timestamps derived from LA-local day
 # bounds, and can be compared to GitHub's `publishedAt` (UTC).
