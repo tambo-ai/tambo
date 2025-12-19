@@ -340,14 +340,17 @@ Array of active context attachments that will be included in `additionalContext`
 
 `const { addContextAttachment } = useTamboContextAttachment()`
 
-Function to add a new context attachment. Accepts `contextValue` (string), `displayName` (string), and optional `type` (string). Returns the `ContextAttachment` object with an auto-generated `id`. The attachment is automatically registered as a context helper.
+Function to add a new context attachment. Accepts `contextValue` (string), optional `displayName` (string), and optional `type` (string). Returns the `ContextAttachment` object with an auto-generated `id`. The attachment is automatically registered as a context helper.
 
 ```tsx
-const attachment = addContextAttachment(
-  "selectedFile", // context value
-  "Button.tsx", // display name
-  "file", // optional type
-);
+// Without displayName
+const attachment = addContextAttachment("selectedFile");
+
+// With displayName
+const attachment = addContextAttachment("selectedFile", "Button.tsx");
+
+// With displayName and type
+const attachment = addContextAttachment("selectedFile", "Button.tsx", "file");
 ```
 
 ### removeContextAttachment

@@ -39,7 +39,7 @@ Each context attachment has the following structure:
 ```tsx
 interface ContextAttachment {
   id: string; // Auto-generated unique identifier
-  displayName: string; // Display name for UI rendering
+  displayName?: string; // Optional display name for UI rendering
   context: string; // The context value that will be used in additionalContext
   type?: string; // Optional type identifier for grouping/rendering
 }
@@ -60,15 +60,18 @@ const {
 
 ### Adding Context Attachments
 
-Add a context attachment by calling `addContextAttachment` with a context value, display name, and optional type:
+Add a context attachment by calling `addContextAttachment` with a context value, optional display name, and optional type:
 
 ```tsx
 const { addContextAttachment } = useTamboContextAttachment();
 
-// Simple context attachment
+// Simple context attachment without displayName
+const attachment = addContextAttachment("selectedFile");
+
+// With displayName
 const attachment = addContextAttachment("selectedFile", "Button.tsx");
 
-// With type for grouping
+// With displayName and type for grouping
 const attachment = addContextAttachment("selectedFile", "Button.tsx", "file");
 ```
 

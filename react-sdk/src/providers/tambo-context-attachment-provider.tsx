@@ -14,13 +14,13 @@ import { useTamboContextHelpers } from "./tambo-context-helpers-provider";
  * These are automatically registered as context helpers and will be included in
  * the additionalContext when the next message is sent.
  * @property {string} id - Unique identifier for this context attachment
- * @property {string} displayName - Display name for UI rendering
+ * @property {string} [displayName] - Optional display name for UI rendering
  * @property {string} context - The context value that will be used in additionalContext
  * @property {string} [type] - Optional type identifier for grouping/rendering multiple contexts of the same type
  */
 export interface ContextAttachment {
   id: string;
-  displayName: string;
+  displayName?: string;
   context: string;
   type?: string;
 }
@@ -28,7 +28,7 @@ export interface ContextAttachment {
 /**
  * Context state interface for managing context attachments.
  * @property {ContextAttachment[]} attachments - Array of active context attachments
- * @property {(contextValue: string, displayName: string, type?: string) => ContextAttachment} addContextAttachment - Add a new context attachment, returns the attachment
+ * @property {(contextValue: string, displayName?: string, type?: string) => ContextAttachment} addContextAttachment - Add a new context attachment, returns the attachment
  * @property {(id: string) => void} removeContextAttachment - Remove a context attachment by ID
  * @property {() => void} clearContextAttachments - Remove all context attachments
  */
@@ -36,7 +36,7 @@ export interface ContextAttachmentState {
   attachments: ContextAttachment[];
   addContextAttachment: (
     contextValue: string,
-    displayName: string,
+    displayName?: string,
     type?: string,
   ) => ContextAttachment;
   removeContextAttachment: (id: string) => void;
@@ -77,7 +77,7 @@ export function TamboContextAttachmentProvider({
   const addContextAttachment = useCallback(
     (
       contextValue: string,
-      displayName: string,
+      displayName?: string,
       type?: string,
     ): ContextAttachment => {
       const id = crypto.randomUUID();
@@ -145,8 +145,8 @@ export function TamboContextAttachmentProvider({
  * // Add a context attachment for the next message
  * const attachment = addContextAttachment(
  *   "selectedFile",
- *   "Button.tsx",
- *   "file"
+ *   "Button.tsx", // optional displayName
+ *   "file" // optional type
  * );
  *
  * // Remove a context attachment

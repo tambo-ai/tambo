@@ -230,7 +230,7 @@ Represents a context attachment that will be sent with the next user message.
 ```typescript
 interface ContextAttachment {
   id: string; // Auto-generated unique identifier
-  displayName: string; // Display name for UI rendering
+  displayName?: string; // Optional display name for UI rendering
   context: string; // The context value that will be used in additionalContext
   type?: string; // Optional type identifier for grouping/rendering
 }
@@ -279,7 +279,7 @@ interface ContextAttachmentState {
   attachments: ContextAttachment[];
   addContextAttachment: (
     contextValue: string,
-    displayName: string,
+    displayName?: string,
     type?: string,
   ) => ContextAttachment;
   removeContextAttachment: (id: string) => void;
@@ -304,7 +304,7 @@ Function to add a new context attachment. The `id` is automatically generated. T
 ```typescript
 addContextAttachment: (
   contextValue: string,
-  displayName: string,
+  displayName?: string,
   type?: string,
 ) => ContextAttachment;
 ```

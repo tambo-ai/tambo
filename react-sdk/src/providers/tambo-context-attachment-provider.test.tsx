@@ -114,6 +114,27 @@ describe("TamboContextAttachmentProvider", () => {
     });
 
     /**
+     * Should add a context attachment without displayName
+     */
+    it("should add a context attachment without displayName", () => {
+      const { result } = renderHook(() => useTamboContextAttachment(), {
+        wrapper: createWrapper(),
+      });
+
+      let attachment: ReturnType<typeof result.current.addContextAttachment>;
+      act(() => {
+        attachment = result.current.addContextAttachment("selectedFile");
+      });
+
+      expect(result.current.attachments).toHaveLength(1);
+      expect(result.current.attachments[0]).toMatchObject({
+        context: "selectedFile",
+      });
+      expect(result.current.attachments[0].displayName).toBeUndefined();
+      expect(attachment!.id).toBe(result.current.attachments[0].id);
+    });
+
+    /**
      * Should add multiple different context attachments
      */
     it("should add multiple context attachments", () => {
