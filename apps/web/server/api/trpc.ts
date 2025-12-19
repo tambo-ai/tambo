@@ -36,8 +36,13 @@ export type Context = {
  * Validate a CLI session token against the database
  * Returns user info if valid, null otherwise
  *
- * CLI sessions must have a non-null notAfter expiry date.
- * This is enforced here and when creating sessions in device-auth.ts
+ * CLI session tokens are high-entropy (256 bits, base64url encoded).
+ * They are stored directly as the session ID in auth.sessions.
+ *
+ * SECURITY:
+ * - CLI sessions must have a non-null notAfter expiry date
+ * - Tokens should NEVER be logged - they grant full account access
+ * - This is enforced here and when creating sessions in device-auth.ts
  */
 async function validateCliSession(
   db: HydraDb,

@@ -12,6 +12,7 @@ import { z } from "zod";
 const CODE_EXPIRY_MINUTES = 15;
 const SESSION_EXPIRY_DAYS = 90;
 const POLL_INTERVAL_SECONDS = 5;
+const CLI_SESSION_TOKEN_BYTES = 32;
 
 /**
  * Generate a random alphanumeric string for user codes
@@ -26,6 +27,25 @@ function generateUserCode(length: number = 8): string {
     result += chars[randomValues[i] % chars.length];
   }
   return result;
+}
+
+/**
+ * Generate a cryptographically secure session token for CLI sessions
+ *
+ * Uses 32 bytes (256 bits) of entropy encoded as base64url.
+ * This is significantly more secure than UUIDs (which have ~122 bits of entropy)
+ * and should be treated as a secret credential.
+ *
+ * SECURITY: Never log or display this token. It grants account access.
+ */
+function generateCliSessionToken(): string {
+  const bytes = new Uint8Array(CLI_SESSION_TOKEN_BYTES);
+  crypto.getRandomValues(bytes);
+  // Base64url encoding (URL-safe, no padding)
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 /**
@@ -89,8 +109,9 @@ export const deviceAuthRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const now = new Date();
 
-      // Generate session ID upfront
-      const sessionId = crypto.randomUUID();
+      // Generate high-entropy session token (256 bits)
+      // SECURITY: This token is a credential - never log it
+      const sessionToken = generateCliSessionToken();
       const sessionExpiresAt = new Date(
         Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
       );
@@ -101,7 +122,7 @@ export const deviceAuthRouter = createTRPCRouter({
         .update(schema.deviceAuthCodes)
         .set({
           userId: ctx.user.id,
-          sessionId,
+          sessionId: sessionToken,
           isUsed: true,
         })
         .where(
@@ -117,7 +138,7 @@ export const deviceAuthRouter = createTRPCRouter({
       // If update succeeded (exactly 1 row), create the session
       if (updateResult.length === 1) {
         await ctx.db.insert(schema.sessions).values({
-          id: sessionId,
+          id: sessionToken,
           userId: ctx.user.id,
           notAfter: sessionExpiresAt,
           source: "cli",
@@ -161,6 +182,9 @@ export const deviceAuthRouter = createTRPCRouter({
    * Poll for verification completion (called by CLI)
    *
    * Returns the session token once the user has verified the code.
+   *
+   * SECURITY: The sessionToken returned is a high-entropy credential (256 bits).
+   * It grants full account access and must NEVER be logged server-side.
    */
   poll: publicProcedure
     .input(
@@ -229,6 +253,13 @@ export const deviceAuthRouter = createTRPCRouter({
    * List active CLI sessions (called by browser)
    *
    * Returns all non-expired CLI sessions for the authenticated user.
+   *
+   * SECURITY NOTE: Session IDs are returned here for revocation purposes.
+   * This is acceptable because:
+   * - User can only see their own sessions (authenticated)
+   * - Transmitted over HTTPS
+   * - Required for revoke functionality
+   * However, these IDs should NEVER be logged server-side.
    */
   listSessions: protectedProcedure.query(async ({ ctx }) => {
     const now = new Date();
