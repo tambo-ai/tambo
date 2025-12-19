@@ -18,12 +18,7 @@ import type { SuggestionOptions } from "@tiptap/suggestion";
 import Suggestion from "@tiptap/suggestion";
 import { Cuboid, FileText } from "lucide-react";
 import * as React from "react";
-import {
-  createContext,
-  useContext,
-  useImperativeHandle,
-  useState,
-} from "react";
+import { useImperativeHandle, useState } from "react";
 
 /**
  * Minimal editor interface exposed to parent components.
@@ -101,11 +96,10 @@ export interface TextEditorProps {
 }
 
 /**
- * State for resource suggestion popover.
+ * State for resource suggestion popover (without items - those come from props).
  */
 interface ResourceSuggestionState {
   isOpen: boolean;
-  items: ResourceItem[];
   selectedIndex: number;
   position: { top: number; left: number; lineHeight: number } | null;
   command: ((item: ResourceItem) => void) | null;
@@ -123,75 +117,36 @@ interface PromptSuggestionState {
 }
 
 /**
- * Context value for suggestion management.
+ * Ref value for accessing suggestion state from TipTap callbacks.
  */
-interface SuggestionContextValue<T> {
-  state: T;
-  setState: (update: Partial<T>) => void;
+interface ResourceSuggestionRef {
+  state: ResourceSuggestionState;
+  setState: (update: Partial<ResourceSuggestionState>) => void;
+  resources: ResourceItem[];
 }
-
-const ResourceSuggestionContext =
-  createContext<SuggestionContextValue<ResourceSuggestionState> | null>(null);
-
-const PromptSuggestionContext =
-  createContext<SuggestionContextValue<PromptSuggestionState> | null>(null);
 
 /**
- * Hook to access resource suggestion context.
+ * Context value for prompt suggestion management.
  */
-function useResourceSuggestion() {
-  const context = useContext(ResourceSuggestionContext);
-  if (!context) {
-    throw new Error(
-      "useResourceSuggestion must be used within ResourceSuggestionProvider",
-    );
-  }
-  return context;
+interface PromptSuggestionContextValue {
+  state: PromptSuggestionState;
+  setState: (update: Partial<PromptSuggestionState>) => void;
 }
+
+const PromptSuggestionContext =
+  React.createContext<PromptSuggestionContextValue | null>(null);
 
 /**
  * Hook to access prompt suggestion context.
  */
 function usePromptSuggestion() {
-  const context = useContext(PromptSuggestionContext);
+  const context = React.useContext(PromptSuggestionContext);
   if (!context) {
     throw new Error(
       "usePromptSuggestion must be used within PromptSuggestionProvider",
     );
   }
   return context;
-}
-
-/**
- * Provider for resource suggestion state.
- */
-function ResourceSuggestionProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [state, setStateInternal] = useState<ResourceSuggestionState>({
-    isOpen: false,
-    items: [],
-    selectedIndex: 0,
-    position: null,
-    command: null,
-  });
-
-  const setState = React.useCallback(
-    (update: Partial<ResourceSuggestionState>) => {
-      setStateInternal((prev) => ({ ...prev, ...update }));
-    },
-    [],
-  );
-
-  const value = React.useMemo(() => ({ state, setState }), [state, setState]);
-
-  return (
-    <ResourceSuggestionContext.Provider value={value}>
-      {children}
-    </ResourceSuggestionContext.Provider>
-  );
 }
 
 /**
@@ -237,12 +192,23 @@ function getPositionFromClientRect(
 }
 
 /**
+ * Props for the resource suggestion popover.
+ */
+interface ResourceSuggestionPopoverProps {
+  state: ResourceSuggestionState;
+  setState: (update: Partial<ResourceSuggestionState>) => void;
+  resources: ResourceItem[];
+}
+
+/**
  * Popover component for resource (@) suggestions.
  * Renders a positioned popover at the cursor location with the resource item list.
  */
-function ResourceSuggestionPopover() {
-  const { state, setState } = useResourceSuggestion();
-
+function ResourceSuggestionPopover({
+  state,
+  setState,
+  resources,
+}: ResourceSuggestionPopoverProps) {
   if (!state.isOpen || !state.position) return null;
 
   // Use line height + small padding for vertical offset
@@ -280,7 +246,11 @@ function ResourceSuggestionPopover() {
           setState({ isOpen: false });
         }}
       >
-        <ResourceItemList />
+        <ResourceItemList
+          resources={resources}
+          selectedIndex={state.selectedIndex}
+          command={state.command}
+        />
       </Popover.Content>
     </Popover.Root>
   );
@@ -337,17 +307,26 @@ function PromptSuggestionPopover() {
 }
 
 /**
+ * Props for the resource item list.
+ */
+interface ResourceItemListProps {
+  resources: ResourceItem[];
+  selectedIndex: number;
+  command: ((item: ResourceItem) => void) | null;
+}
+
+/**
  * Dropdown component that displays resource items.
  *
  * When the user types "@" in the editor, this component renders a list
- * of resource items. State is managed via ResourceSuggestionContext.
- *
+ * of resource items.
  */
-function ResourceItemList() {
-  const { state } = useResourceSuggestion();
-  const { items, selectedIndex, command } = state;
-
-  if (items.length === 0) {
+function ResourceItemList({
+  resources,
+  selectedIndex,
+  command,
+}: ResourceItemListProps) {
+  if (resources.length === 0) {
     return (
       <div className="px-3 py-2 text-sm text-muted-foreground">
         No results found
@@ -357,7 +336,7 @@ function ResourceItemList() {
 
   return (
     <div className="flex flex-col gap-0.5 p-1">
-      {items.map((item, index) => (
+      {resources.map((item, index) => (
         <button
           key={item.id}
           type="button"
@@ -404,22 +383,23 @@ function checkMentionExists(editor: Editor, label: string): boolean {
 /**
  * Creates the resource mention configuration for TipTap Mention extension.
  * Used for "@" mentions that insert visual mention nodes in the editor.
+ *
+ * The items() function only triggers the search - actual items come from the
+ * resources prop which is accessed via the stateRef.
  */
 function createResourceMentionConfig(
   onSearchChange: (query: string) => void,
-  getResources: () => ResourceItem[],
   onSelect: (item: ResourceItem) => void,
-  contextRef: React.MutableRefObject<
-    SuggestionContextValue<ResourceSuggestionState>
-  >,
+  stateRef: React.MutableRefObject<ResourceSuggestionRef>,
 ): Omit<SuggestionOptions, "editor"> {
   return {
     char: "@",
     items: ({ query }) => {
       // Notify parent of search change (they'll update resources prop)
       onSearchChange(query);
-      // Return current resources immediately - will update on next render
-      return getResources();
+      // Return empty array - actual items come from resources prop via stateRef
+      // TipTap calls onStart/onUpdate with props.items but we ignore it
+      return [];
     },
 
     render: () => {
@@ -442,58 +422,47 @@ function createResourceMentionConfig(
 
       return {
         onStart: (props) => {
-          const { setState } = contextRef.current;
-
-          if (props.items.length === 0) {
-            setState({ isOpen: false });
-            return;
-          }
-
+          const { setState } = stateRef.current;
+          // Always open - resources come from prop, not props.items
           setState({
             isOpen: true,
-            items: props.items,
             selectedIndex: 0,
             position: getPositionFromClientRect(props.clientRect),
             command: createWrapCommand(props.editor, props.command),
           });
         },
         onUpdate: (props) => {
-          const { setState } = contextRef.current;
-
-          if (props.items.length === 0) {
-            setState({ isOpen: false });
-            return;
-          }
-
+          const { setState } = stateRef.current;
           setState({
-            items: props.items,
             position: getPositionFromClientRect(props.clientRect),
             command: createWrapCommand(props.editor, props.command),
-            selectedIndex: 0, // Reset selection when items change
+            selectedIndex: 0, // Reset selection when query changes
           });
         },
         onKeyDown: ({ event }) => {
-          const { state, setState } = contextRef.current;
+          const { state, setState, resources } = stateRef.current;
 
           if (!state.isOpen) return false;
 
           const handlers: Record<string, () => boolean> = {
             ArrowUp: () => {
+              if (resources.length === 0) return false;
               setState({
                 selectedIndex:
-                  (state.selectedIndex - 1 + state.items.length) %
-                  state.items.length,
+                  (state.selectedIndex - 1 + resources.length) %
+                  resources.length,
               });
               return true;
             },
             ArrowDown: () => {
+              if (resources.length === 0) return false;
               setState({
-                selectedIndex: (state.selectedIndex + 1) % state.items.length,
+                selectedIndex: (state.selectedIndex + 1) % resources.length,
               });
               return true;
             },
             Enter: () => {
-              const item = state.items[state.selectedIndex];
+              const item = resources[state.selectedIndex];
               if (item && state.command) {
                 state.command(item);
                 return true;
@@ -515,7 +484,7 @@ function createResourceMentionConfig(
           return false;
         },
         onExit: () => {
-          const { setState } = contextRef.current;
+          const { setState } = stateRef.current;
           setState({ isOpen: false });
         },
       };
@@ -572,9 +541,7 @@ function PromptItemList() {
 function createPromptCommandExtension(
   searchPrompts: (query: string) => Promise<PromptItem[]>,
   onSelect: (item: PromptItem) => void,
-  contextRef: React.MutableRefObject<
-    SuggestionContextValue<PromptSuggestionState>
-  >,
+  contextRef: React.MutableRefObject<PromptSuggestionContextValue>,
 ) {
   return Extension.create({
     name: "promptCommand",
@@ -758,28 +725,27 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
     },
     ref,
   ) => {
+    // Only PromptSuggestionProvider needed - resource state is managed directly in TextEditorInner
     return (
-      <ResourceSuggestionProvider>
-        <PromptSuggestionProvider>
-          <TextEditorInner
-            value={value}
-            onChange={onChange}
-            onKeyDown={onKeyDown}
-            placeholder={placeholder}
-            disabled={disabled}
-            className={className}
-            onSubmit={onSubmit}
-            onAddImage={onAddImage}
-            onSearchResources={onSearchResources}
-            resources={resources}
-            onSearchPrompts={onSearchPrompts}
-            onResourceSelect={onResourceSelect}
-            onPromptSelect={onPromptSelect}
-            onResourceNamesChange={onResourceNamesChange}
-            ref={ref}
-          />
-        </PromptSuggestionProvider>
-      </ResourceSuggestionProvider>
+      <PromptSuggestionProvider>
+        <TextEditorInner
+          value={value}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={className}
+          onSubmit={onSubmit}
+          onAddImage={onAddImage}
+          onSearchResources={onSearchResources}
+          resources={resources}
+          onSearchPrompts={onSearchPrompts}
+          onResourceSelect={onResourceSelect}
+          onPromptSelect={onPromptSelect}
+          onResourceNamesChange={onResourceNamesChange}
+          ref={ref}
+        />
+      </PromptSuggestionProvider>
     );
   },
 );
@@ -787,7 +753,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
 TextEditor.displayName = "TextEditor";
 
 /**
- * Inner text editor component that uses the suggestion contexts.
+ * Inner text editor component that manages suggestion state directly.
  */
 const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
   (
@@ -809,82 +775,85 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
     },
     ref,
   ) => {
-    // Access contexts
-    const resourceSuggestion = useResourceSuggestion();
+    // Resource suggestion state - managed directly here, not via context
+    const [resourceSuggestionState, setResourceSuggestionStateInternal] =
+      useState<ResourceSuggestionState>({
+        isOpen: false,
+        selectedIndex: 0,
+        position: null,
+        command: null,
+      });
+
+    const setResourceSuggestionState = React.useCallback(
+      (update: Partial<ResourceSuggestionState>) => {
+        setResourceSuggestionStateInternal((prev) => ({ ...prev, ...update }));
+      },
+      [],
+    );
+
+    // Access prompt context (still using context for prompts)
     const promptSuggestion = usePromptSuggestion();
 
-    // Store each callback/value in its own ref so TipTap always uses the latest version
-    const onSearchResourcesRef = React.useRef(onSearchResources);
-    const resourcesRef = React.useRef(resources);
-    const onSearchPromptsRef = React.useRef(onSearchPrompts);
-    const onResourceSelectRef = React.useRef(onResourceSelect);
-    const onPromptSelectRef = React.useRef(onPromptSelect);
+    // Consolidated ref for callbacks that TipTap needs to access
+    const callbacksRef = React.useRef({
+      onSearchResources,
+      onResourceSelect,
+      onSearchPrompts,
+      onPromptSelect,
+    });
 
-    // Store context refs for TipTap integration
-    const resourceSuggestionRef = React.useRef(resourceSuggestion);
+    // Update callbacks ref when they change
+    React.useEffect(() => {
+      callbacksRef.current = {
+        onSearchResources,
+        onResourceSelect,
+        onSearchPrompts,
+        onPromptSelect,
+      };
+    }, [onSearchResources, onResourceSelect, onSearchPrompts, onPromptSelect]);
+
+    // Ref for TipTap to access current resource suggestion state and resources
+    const resourceSuggestionRef = React.useRef<ResourceSuggestionRef>({
+      state: resourceSuggestionState,
+      setState: setResourceSuggestionState,
+      resources,
+    });
+
+    // Update resource suggestion ref when state or resources change
+    React.useEffect(() => {
+      resourceSuggestionRef.current = {
+        state: resourceSuggestionState,
+        setState: setResourceSuggestionState,
+        resources,
+      };
+    }, [resourceSuggestionState, setResourceSuggestionState, resources]);
+
+    // Prompt context ref for TipTap integration
     const promptSuggestionRef = React.useRef(promptSuggestion);
-
-    // Update refs whenever callbacks/values or context changes
-    React.useEffect(() => {
-      onSearchResourcesRef.current = onSearchResources;
-    }, [onSearchResources]);
-
-    React.useEffect(() => {
-      resourcesRef.current = resources;
-    }, [resources]);
-
-    React.useEffect(() => {
-      onSearchPromptsRef.current = onSearchPrompts;
-    }, [onSearchPrompts]);
-
-    React.useEffect(() => {
-      onResourceSelectRef.current = onResourceSelect;
-    }, [onResourceSelect]);
-
-    React.useEffect(() => {
-      onPromptSelectRef.current = onPromptSelect;
-    }, [onPromptSelect]);
-
-    React.useEffect(() => {
-      resourceSuggestionRef.current = resourceSuggestion;
-    }, [resourceSuggestion]);
 
     React.useEffect(() => {
       promptSuggestionRef.current = promptSuggestion;
     }, [promptSuggestion]);
 
-    // Update suggestion state when resources prop changes (for controlled behavior)
-    React.useEffect(() => {
-      const { state, setState } = resourceSuggestionRef.current;
-      // Only update if the suggestion menu is open
-      if (state.isOpen) {
-        setState({ items: resources });
-      }
-    }, [resources]);
-
-    // Stable callback to notify parent of search change
+    // Stable callbacks for TipTap
     const stableSearchResources = React.useCallback(
-      (query: string) => onSearchResourcesRef.current(query),
+      (query: string) => callbacksRef.current.onSearchResources(query),
       [],
     );
-
-    // Stable getter for current resources
-    const getResources = React.useCallback(() => resourcesRef.current, []);
 
     const stableSearchPrompts = React.useCallback(
-      async (query: string) => await onSearchPromptsRef.current(query),
+      async (query: string) =>
+        await callbacksRef.current.onSearchPrompts(query),
       [],
     );
 
-    // Handle resource selection
     const handleResourceSelect = React.useCallback(
-      (item: ResourceItem) => onResourceSelectRef.current(item),
+      (item: ResourceItem) => callbacksRef.current.onResourceSelect(item),
       [],
     );
 
-    // Handle prompt selection
     const handlePromptSelect = React.useCallback(
-      (item: PromptItem) => onPromptSelectRef.current(item),
+      (item: PromptItem) => callbacksRef.current.onPromptSelect(item),
       [],
     );
 
@@ -923,7 +892,6 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
           },
           suggestion: createResourceMentionConfig(
             stableSearchResources,
-            getResources,
             handleResourceSelect,
             resourceSuggestionRef,
           ),
@@ -1002,7 +970,7 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
         handleKeyDown: (_view, event) => {
           // Check if any menu is open ("@" or "/")
           const anyMenuOpen =
-            resourceSuggestionRef.current.state.isOpen ||
+            resourceSuggestionState.isOpen ||
             promptSuggestionRef.current.state.isOpen;
 
           // When menu is open, let the suggestion plugin handle keyboard events
@@ -1121,7 +1089,11 @@ const TextEditorInner = React.forwardRef<TamboEditor, TextEditorProps>(
 
     return (
       <div className="w-full">
-        <ResourceSuggestionPopover />
+        <ResourceSuggestionPopover
+          state={resourceSuggestionState}
+          setState={setResourceSuggestionState}
+          resources={resources}
+        />
         <PromptSuggestionPopover />
         <EditorContent editor={editor} />
       </div>
