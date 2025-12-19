@@ -25,7 +25,7 @@ Compute the reporting window (previous Monday–Sunday, America/Los_Angeles):
 
 These commands assume GNU `date` (Linux/Devbox). On macOS, use `gdate` from `coreutils`.
 
-Rule: only workspaces with `package.json.private === true` are eligible; all others are treated as public.
+Rule: only workspaces with `package.json.private === true` are eligible; `private=false` and `private` missing are treated as public (set `private: true` explicitly if the workspace is internal-only).
 
 ```bash
 export TZ=America/Los_Angeles
@@ -36,7 +36,10 @@ echo "window: $start_date..$end_date"
 
 Identify “public” workspaces (skip these entirely):
 
+This snippet assumes `bash`.
+
 ```bash
+# Requires bash (uses arrays + `shopt`).
 workspaces=$(jq -r '
   if (.workspaces | type == "array") then
     .workspaces[]?
@@ -61,7 +64,7 @@ fi
     for pattern in "${patterns[@]}"; do
       for p in $pattern; do
         if [ -f "$p/package.json" ]; then
-          priv=$(jq -r '.private // false' "$p/package.json")
+          priv=$(jq -r 'if has("private") then (.private | tostring) else "missing" end' "$p/package.json")
           name=$(jq -r '.name' "$p/package.json")
           printf '%s\t%s\tprivate=%s\n' "$p" "$name" "$priv"
         fi

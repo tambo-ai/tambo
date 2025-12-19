@@ -21,7 +21,7 @@ Create a Linear issue that summarizes last week’s externally relevant releases
 
 All proactive behaviors currently run daily. To make this effectively weekly, treat Monday 00:00 America/Los_Angeles as the run.
 
-Compute the reporting window (previous Monday–Sunday, America/Los_Angeles):
+Compute the reporting window (previous Monday–Sunday, America/Los_Angeles), then derive corresponding UTC timestamps for accurate comparison with GitHub's `publishedAt`:
 
 These commands assume GNU `date` (Linux/Devbox). On macOS, `gdate` (from `coreutils`) is required.
 
@@ -31,30 +31,30 @@ if [ "$(uname)" = "Darwin" ]; then
     echo "gdate (coreutils) is required on macOS. Install via 'brew install coreutils'." >&2
     exit 1
   fi
-  date() { gdate "$@"; }
+  DATE_BIN=gdate
+else
+  DATE_BIN=date
 fi
 
 export TZ=America/Los_Angeles
-end_date=$(date -d 'yesterday' +%F)
-start_date=$(date -d "$end_date -6 days" +%F)
-next_date=$(date -d "$end_date +1 day" +%F)
+end_date=$($DATE_BIN -d 'yesterday' +%F)
+start_date=$($DATE_BIN -d "$end_date -6 days" +%F)
+next_date=$($DATE_BIN -d "$end_date +1 day" +%F)
 
 # Define the LA-local window, then convert to UTC ISO timestamps for comparison
 # with GitHub's `publishedAt` values. `start_ts` is inclusive; `next_ts` is the
 # exclusive upper bound.
-start_epoch=$(date -d "$start_date 00:00" +%s)
-next_epoch=$(date -d "$next_date 00:00" +%s)
-start_ts="$(date -u -d "@$start_epoch" +%FT%T)Z"
-next_ts="$(date -u -d "@$next_epoch" +%FT%T)Z"
+start_epoch=$($DATE_BIN -d "$start_date 00:00" +%s)
+next_epoch=$($DATE_BIN -d "$next_date 00:00" +%s)
+start_ts="$($DATE_BIN -u -d "@$start_epoch" +%FT%T)Z"
+next_ts="$($DATE_BIN -u -d "@$next_epoch" +%FT%T)Z"
 
 echo "window: $start_date..$end_date"
 echo "start_ts (UTC): $start_ts"
 echo "next_ts (UTC): $next_ts"
 ```
 
-Collect GitHub releases in that window:
-
-Filter releases whose `publishedAt` (UTC) falls between the UTC timestamps corresponding to the LA-local start and end days.
+Using the `start_ts` and `next_ts` variables computed above, filter releases whose `publishedAt` (UTC) falls between the UTC timestamps corresponding to the LA-local start and end days.
 
 Note: don’t compare only the `YYYY-MM-DD` portion of `publishedAt`; always compare the full UTC timestamps to correctly handle time zones and DST.
 
