@@ -11,7 +11,7 @@ export interface TamboInteractableComponent<
   /** Whether the component is currently selected for interaction, meaning Tambo should interact with it when responding to the next message*/
   isSelectedForInteraction?: boolean;
   /** Current state for the component */
-  state: State;
+  state?: State;
   /** Optional schema for validating state updates */
   stateSchema?: SupportedSchema<State>;
 }
