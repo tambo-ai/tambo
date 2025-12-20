@@ -269,6 +269,8 @@ const messageInputVariants = cva("w-full", {
  * @property {TamboEditor|null} editorRef - Reference to the TamboEditor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
+ * @property {string | null} imageError - Error related to image uploads
+ * @property {function} setImageError - Function to set the image upload error
  * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
  * @property {function} resolveElicitation - Function to resolve the elicitation promise (automatically clears state)
  */
@@ -285,6 +287,8 @@ interface MessageInputContextValue {
   editorRef: React.RefObject<TamboEditor>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
+  imageError: string | null;
+  setImageError: React.Dispatch<React.SetStateAction<string | null>>;
   elicitation: TamboElicitationRequest | null;
   resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
 }
@@ -375,6 +379,7 @@ const MessageInputInternal = React.forwardRef<
   const { cancel } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [imageError, setImageError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
   const editorRef = React.useRef<TamboEditor>(null!);
@@ -395,7 +400,9 @@ const MessageInputInternal = React.forwardRef<
       e.preventDefault();
       if ((!value.trim() && images.length === 0) || isSubmitting) return;
 
+      // Clear any previous errors
       setSubmitError(null);
+      setImageError(null);
       setDisplayValue("");
       setIsSubmitting(true);
 
@@ -427,6 +434,8 @@ const MessageInputInternal = React.forwardRef<
       } catch (error) {
         console.error("Failed to submit message:", error);
         setDisplayValue(value);
+        // On submit failure, also clear image error
+        setImageError(null);
         setSubmitError(
           error instanceof Error
             ? error.message
@@ -493,14 +502,25 @@ const MessageInputInternal = React.forwardRef<
       );
 
       if (files.length > 0) {
+        const totalImages = images.length + files.length;
+        if (totalImages > MAX_IMAGES) {
+          setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+          return;
+        }
+        setImageError(null); // Clear previous error
         try {
           await addImages(files);
         } catch (error) {
           console.error("Failed to add dropped images:", error);
+          setImageError(
+            error instanceof Error
+              ? error.message
+              : "Failed to add images. Please try again.",
+          );
         }
       }
     },
-    [addImages],
+    [addImages, images, setImageError],
   );
 
   const handleElicitationResponse = React.useCallback(
@@ -527,6 +547,8 @@ const MessageInputInternal = React.forwardRef<
       editorRef: inputRef ?? editorRef,
       submitError,
       setSubmitError,
+      imageError,
+      setImageError,
       elicitation,
       resolveElicitation,
     }),
@@ -541,6 +563,8 @@ const MessageInputInternal = React.forwardRef<
       inputRef,
       editorRef,
       submitError,
+      imageError,
+      setImageError,
       elicitation,
       resolveElicitation,
     ],
@@ -598,6 +622,9 @@ MessageInput.displayName = "MessageInput";
  * Symbol for marking pasted images
  */
 const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
+
+/** Maximum number of images that can be staged at once */
+const MAX_IMAGES = 10;
 
 /**
  * Extend the File interface to include IS_PASTED_IMAGE symbol
@@ -658,9 +685,10 @@ const MessageInputTextarea = ({
   onResourceSelect,
   ...props
 }: MessageInputTextareaProps) => {
-  const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
+  const { value, setValue, handleSubmit, editorRef, setImageError } =
+    useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage } = useTamboThreadInput();
+  const { addImage, images } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   // Resource names are extracted from editor at submit time, no need to track in state
   const setResourceNames = React.useCallback(
@@ -722,12 +750,24 @@ const MessageInputTextarea = ({
   }, []);
 
   // Handle image paste - mark as pasted and add to thread
+  const pendingImagesRef = React.useRef(0);
+
   const handleAddImage = React.useCallback(
     async (file: File) => {
-      file[IS_PASTED_IMAGE] = true;
-      await addImage(file);
+      if (images.length + pendingImagesRef.current >= MAX_IMAGES) {
+        setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+        return;
+      }
+      setImageError(null);
+      pendingImagesRef.current += 1;
+      try {
+        file[IS_PASTED_IMAGE] = true;
+        await addImage(file);
+      } finally {
+        pendingImagesRef.current -= 1;
+      }
     },
-    [addImage],
+    [addImage, images, setImageError],
   );
 
   return (
@@ -777,9 +817,10 @@ const MessageInputPlainTextarea = ({
   placeholder = "What do you want to do?",
   ...props
 }: MessageInputPlainTextareaProps) => {
-  const { value, setValue, handleSubmit } = useMessageInputContext();
+  const { value, setValue, handleSubmit, setImageError } =
+    useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage } = useTamboThreadInput();
+  const { addImage, images } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
@@ -811,6 +852,13 @@ const MessageInputPlainTextarea = ({
     if (!hasText) {
       e.preventDefault(); // Only prevent when image-only paste
     }
+
+    const totalImages = images.length + imageItems.length;
+    if (totalImages > MAX_IMAGES) {
+      setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+      return;
+    }
+    setImageError(null);
 
     for (const item of imageItems) {
       const file = item.getAsFile();
@@ -1019,9 +1067,9 @@ const MessageInputError = React.forwardRef<
   HTMLParagraphElement,
   MessageInputErrorProps
 >(({ className, ...props }, ref) => {
-  const { error, submitError } = useMessageInputContext();
+  const { error, submitError, imageError } = useMessageInputContext();
 
-  if (!error && !submitError) {
+  if (!error && !submitError && !imageError) {
     return null;
   }
 
@@ -1032,7 +1080,7 @@ const MessageInputError = React.forwardRef<
       data-slot="message-input-error"
       {...props}
     >
-      {error?.message ?? submitError}
+      {error?.message ?? submitError ?? imageError}
     </p>
   );
 });
@@ -1066,7 +1114,8 @@ const MessageInputFileButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputFileButtonProps
 >(({ className, accept = "image/*", multiple = true, ...props }, ref) => {
-  const { addImages } = useTamboThreadInput();
+  const { addImages, images } = useTamboThreadInput();
+  const { setImageError } = useMessageInputContext();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -1075,7 +1124,17 @@ const MessageInputFileButton = React.forwardRef<
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
+
     try {
+      const totalImages = images.length + files.length;
+
+      if (totalImages > MAX_IMAGES) {
+        setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+        e.target.value = "";
+        return;
+      }
+
+      setImageError(null);
       await addImages(files);
     } catch (error) {
       console.error("Failed to add selected files:", error);
