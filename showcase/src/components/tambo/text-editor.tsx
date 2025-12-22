@@ -525,7 +525,32 @@ function useSuggestionState<T extends SuggestionItem>(
   // Sync external items when provided
   React.useEffect(() => {
     if (externalItems !== undefined) {
-      setStateInternal((prev) => ({ ...prev, items: externalItems }));
+      setStateInternal((prev) => {
+        if (prev.items === externalItems) {
+          return prev;
+        }
+
+        const previousMaxIndex = Math.max(prev.items.length - 1, 0);
+        const safePrevIndex = Math.min(
+          Math.max(prev.selectedIndex, 0),
+          previousMaxIndex,
+        );
+
+        const selectedItem = prev.items[safePrevIndex];
+        const matchedIndex = selectedItem
+          ? externalItems.findIndex((item) => item.id === selectedItem.id)
+          : -1;
+
+        const maxIndex = Math.max(externalItems.length - 1, 0);
+        const nextSelectedIndex =
+          matchedIndex >= 0 ? matchedIndex : Math.min(safePrevIndex, maxIndex);
+
+        return {
+          ...prev,
+          items: externalItems,
+          selectedIndex: nextSelectedIndex,
+        };
+      });
     }
   }, [externalItems]);
 
