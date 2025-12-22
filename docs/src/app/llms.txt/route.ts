@@ -4,16 +4,28 @@ export const revalidate = 3600;
 
 type DocsPage = ReturnType<(typeof source)["getPages"]>[number];
 
+const MAX_DESCRIPTION_LENGTH = 240;
+
 function normalizeDescription(description: string) {
   return description.trim().replace(/\s+/g, " ");
 }
 
+function truncateDescription(
+  description: string,
+  max = MAX_DESCRIPTION_LENGTH,
+) {
+  const normalized = normalizeDescription(description);
+  return normalized.length > max
+    ? `${normalized.slice(0, max - 1)}…`
+    : normalized;
+}
+
 function getPageDescription(page: DocsPage) {
   if (page.data.description != null && page.data.description.trim() !== "") {
-    return normalizeDescription(page.data.description);
+    return truncateDescription(page.data.description);
   }
 
-  return `Documentation for ${page.data.title}.`;
+  return truncateDescription(`Documentation for ${page.data.title}.`);
 }
 
 function getPageSection(page: DocsPage) {
