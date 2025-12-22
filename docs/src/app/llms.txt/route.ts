@@ -42,6 +42,7 @@ export async function GET() {
     map.set(section, list);
   }
 
+  // Section order follows the order sections are first encountered in source.getPages().
   for (const [key, value] of map) {
     scanned.push(`## ${key}`);
     scanned.push(value.join("\n"));
