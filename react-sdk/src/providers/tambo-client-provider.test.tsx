@@ -15,16 +15,17 @@ jest.mock("./hooks/use-tambo-session-token", () => ({
 import { useTamboSessionToken } from "./hooks/use-tambo-session-token";
 
 // Add fetch polyfill for jsdom environment (TamboAI SDK requires it)
-const originalFetch = global.fetch;
 const mockFetch = jest.fn();
+let previousFetch: typeof fetch;
 
 beforeEach(() => {
   mockFetch.mockReset();
+  previousFetch = global.fetch;
   global.fetch = mockFetch as unknown as typeof fetch;
 });
 
 afterEach(() => {
-  global.fetch = originalFetch;
+  global.fetch = previousFetch;
 });
 
 describe("TamboClientProvider", () => {

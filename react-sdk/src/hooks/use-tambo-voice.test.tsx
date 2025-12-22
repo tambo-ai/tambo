@@ -20,10 +20,10 @@ jest.mock("../providers/tambo-client-provider", () => ({
 import { useTamboClient } from "../providers/tambo-client-provider";
 
 // Mock fetch globally
-const originalFetch = global.fetch;
 const mockFetch = jest.fn();
 
 describe("useTamboVoice", () => {
+  let previousFetch: typeof fetch;
   let mockStartRecording: jest.Mock;
   let mockStopRecording: jest.Mock;
   let mockTranscribe: jest.Mock;
@@ -75,6 +75,7 @@ describe("useTamboVoice", () => {
 
     mockFetch.mockReset();
 
+    previousFetch = global.fetch;
     global.fetch = mockFetch as unknown as typeof fetch;
 
     mockStartRecording = jest.fn();
@@ -110,7 +111,7 @@ describe("useTamboVoice", () => {
   });
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    global.fetch = previousFetch;
   });
 
   describe("Initial State", () => {
