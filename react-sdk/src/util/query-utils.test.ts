@@ -1,21 +1,27 @@
 import { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import { combineMutationResults, combineQueryResults } from "./query-utils";
 
-// Helper to create mock mutation results - uses type assertions because
-// React Query's discriminated union types are complex and test mocks don't
-// need to satisfy all constraints
-function createMockMutationResult(
-  overrides: Record<string, unknown> = {},
+type MutationStatus = "idle" | "pending" | "success" | "error";
+type QueryStatus = "pending" | "success" | "error";
+
+type MutationOverrides = Omit<
+  Partial<UseMutationResult>,
+  "error" | "status" | "isError" | "isIdle" | "isPending" | "isSuccess"
+>;
+
+function createMutationResult(
+  status: MutationStatus,
+  overrides: MutationOverrides = {},
 ): UseMutationResult {
-  return {
+  const base: UseMutationResult = {
     data: undefined,
     error: null,
-    isError: false,
-    isIdle: true,
-    isPending: false,
-    isSuccess: false,
+    isError: status === "error",
+    isIdle: status === "idle",
+    isPending: status === "pending",
+    isSuccess: status === "success",
     isPaused: false,
-    status: "idle",
+    status,
     variables: undefined,
     context: undefined,
     failureCount: 0,
@@ -24,20 +30,36 @@ function createMockMutationResult(
     mutate: jest.fn(),
     mutateAsync: jest.fn(),
     reset: jest.fn(),
-    ...overrides,
   } as UseMutationResult;
+
+  return { ...base, ...overrides };
 }
 
-// Helper to create mock query results - uses type assertions because
-// React Query's discriminated union types are complex and test mocks don't
-// need to satisfy all constraints
-function createMockQueryResult(
-  overrides: Record<string, unknown> = {},
+const idleMutation = (overrides: MutationOverrides = {}) =>
+  createMutationResult("idle", overrides);
+
+const pendingMutation = (overrides: MutationOverrides = {}) =>
+  createMutationResult("pending", overrides);
+
+const successMutation = (overrides: MutationOverrides = {}) =>
+  createMutationResult("success", overrides);
+
+const errorMutation = (error: Error, overrides: MutationOverrides = {}) =>
+  createMutationResult("error", { ...overrides, error });
+
+type QueryOverrides = Omit<
+  Partial<UseQueryResult>,
+  "error" | "status" | "isError" | "isPending" | "isSuccess"
+>;
+
+function createQueryResult(
+  status: QueryStatus,
+  overrides: QueryOverrides = {},
 ): UseQueryResult {
-  return {
+  const base: UseQueryResult = {
     data: undefined,
     error: null,
-    isError: false,
+    isError: status === "error",
     isFetched: false,
     isFetchedAfterMount: false,
     isFetching: false,
@@ -45,13 +67,13 @@ function createMockQueryResult(
     isLoading: false,
     isLoadingError: false,
     isPaused: false,
-    isPending: true,
+    isPending: status === "pending",
     isPlaceholderData: false,
     isRefetchError: false,
     isRefetching: false,
     isStale: false,
-    isSuccess: false,
-    status: "pending",
+    isSuccess: status === "success",
+    status,
     dataUpdatedAt: 0,
     errorUpdatedAt: 0,
     errorUpdateCount: 0,
@@ -61,21 +83,25 @@ function createMockQueryResult(
     refetch: jest.fn(),
     promise: Promise.resolve(undefined),
     isEnabled: true,
-    ...overrides,
   } as UseQueryResult;
+
+  return { ...base, ...overrides };
 }
+
+const pendingQuery = (overrides: QueryOverrides = {}) =>
+  createQueryResult("pending", overrides);
+
+const successQuery = (overrides: QueryOverrides = {}) =>
+  createQueryResult("success", overrides);
+
+const errorQuery = (error: Error, overrides: QueryOverrides = {}) =>
+  createQueryResult("error", { ...overrides, error });
 
 describe("combineMutationResults", () => {
   describe("status determination", () => {
     it("returns pending when first mutation is pending", () => {
-      const resultA = createMockMutationResult({
-        isPending: true,
-        status: "pending",
-      });
-      const resultB = createMockMutationResult({
-        isIdle: true,
-        status: "idle",
-      });
+      const resultA = pendingMutation();
+      const resultB = idleMutation();
 
       const combined = combineMutationResults(resultA, resultB);
 
@@ -84,14 +110,8 @@ describe("combineMutationResults", () => {
     });
 
     it("returns pending when second mutation is pending", () => {
-      const resultA = createMockMutationResult({
-        isSuccess: true,
-        status: "success",
-      });
-      const resultB = createMockMutationResult({
-        isPending: true,
-        status: "pending",
-      });
+      const resultA = successMutation();
+      const resultB = pendingMutation();
 
       const combined = combineMutationResults(resultA, resultB);
 
@@ -100,50 +120,32 @@ describe("combineMutationResults", () => {
     });
 
     it("returns error when first mutation has error (and neither pending)", () => {
-      const resultA = createMockMutationResult({
-        isError: true,
-        status: "error",
-        error: new Error("First error"),
-      });
-      const resultB = createMockMutationResult({
-        isSuccess: true,
-        status: "success",
-      });
+      const errorA = new Error("First error");
+      const resultA = errorMutation(errorA);
+      const resultB = successMutation();
 
       const combined = combineMutationResults(resultA, resultB);
 
       expect(combined.status).toBe("error");
       expect(combined.isError).toBe(true);
-      expect(combined.error).toEqual(new Error("First error"));
+      expect(combined.error).toBe(errorA);
     });
 
     it("returns error when second mutation has error (and neither pending)", () => {
-      const resultA = createMockMutationResult({
-        isSuccess: true,
-        status: "success",
-      });
-      const resultB = createMockMutationResult({
-        isError: true,
-        status: "error",
-        error: new Error("Second error"),
-      });
+      const errorB = new Error("Second error");
+      const resultA = successMutation();
+      const resultB = errorMutation(errorB);
 
       const combined = combineMutationResults(resultA, resultB);
 
       expect(combined.status).toBe("error");
       expect(combined.isError).toBe(true);
-      expect(combined.error).toEqual(new Error("Second error"));
+      expect(combined.error).toBe(errorB);
     });
 
     it("returns success when both mutations are successful", () => {
-      const resultA = createMockMutationResult({
-        isSuccess: true,
-        status: "success",
-      });
-      const resultB = createMockMutationResult({
-        isSuccess: true,
-        status: "success",
-      });
+      const resultA = successMutation();
+      const resultB = successMutation();
 
       const combined = combineMutationResults(resultA, resultB);
 
@@ -152,14 +154,8 @@ describe("combineMutationResults", () => {
     });
 
     it("returns idle when both mutations are idle", () => {
-      const resultA = createMockMutationResult({
-        isIdle: true,
-        status: "idle",
-      });
-      const resultB = createMockMutationResult({
-        isIdle: true,
-        status: "idle",
-      });
+      const resultA = idleMutation();
+      const resultB = idleMutation();
 
       const combined = combineMutationResults(resultA, resultB);
 
@@ -168,15 +164,8 @@ describe("combineMutationResults", () => {
     });
 
     it("returns idle when one is idle and one is success (not both success)", () => {
-      const resultA = createMockMutationResult({
-        isIdle: true,
-        status: "idle",
-      });
-      const resultB = createMockMutationResult({
-        isSuccess: true,
-        isIdle: false,
-        status: "success",
-      });
+      const resultA = idleMutation();
+      const resultB = successMutation();
 
       const combined = combineMutationResults(resultA, resultB);
 
@@ -188,16 +177,16 @@ describe("combineMutationResults", () => {
 
   describe("boolean flags", () => {
     it("isPending is true if either is pending", () => {
-      const resultA = createMockMutationResult({ isPending: true });
-      const resultB = createMockMutationResult({ isPending: false });
+      const resultA = pendingMutation();
+      const resultB = idleMutation();
 
       expect(combineMutationResults(resultA, resultB).isPending).toBe(true);
       expect(combineMutationResults(resultB, resultA).isPending).toBe(true);
     });
 
     it("isSuccess is true only if both are successful", () => {
-      const success = createMockMutationResult({ isSuccess: true });
-      const notSuccess = createMockMutationResult({ isSuccess: false });
+      const success = successMutation();
+      const notSuccess = idleMutation();
 
       expect(combineMutationResults(success, success).isSuccess).toBe(true);
       expect(combineMutationResults(success, notSuccess).isSuccess).toBe(false);
@@ -205,8 +194,8 @@ describe("combineMutationResults", () => {
     });
 
     it("isError is true if either has error", () => {
-      const error = createMockMutationResult({ isError: true });
-      const noError = createMockMutationResult({ isError: false });
+      const error = errorMutation(new Error("Error A"));
+      const noError = idleMutation();
 
       expect(combineMutationResults(error, noError).isError).toBe(true);
       expect(combineMutationResults(noError, error).isError).toBe(true);
@@ -214,8 +203,8 @@ describe("combineMutationResults", () => {
     });
 
     it("isIdle is true only if both are idle", () => {
-      const idle = createMockMutationResult({ isIdle: true });
-      const notIdle = createMockMutationResult({ isIdle: false });
+      const idle = idleMutation();
+      const notIdle = pendingMutation();
 
       expect(combineMutationResults(idle, idle).isIdle).toBe(true);
       expect(combineMutationResults(idle, notIdle).isIdle).toBe(false);
@@ -223,8 +212,8 @@ describe("combineMutationResults", () => {
     });
 
     it("isPaused is true if either is paused", () => {
-      const paused = createMockMutationResult({ isPaused: true });
-      const notPaused = createMockMutationResult({ isPaused: false });
+      const paused = idleMutation({ isPaused: true });
+      const notPaused = idleMutation();
 
       expect(combineMutationResults(paused, notPaused).isPaused).toBe(true);
       expect(combineMutationResults(notPaused, paused).isPaused).toBe(true);
@@ -233,22 +222,22 @@ describe("combineMutationResults", () => {
 
   describe("numeric aggregation", () => {
     it("sums failureCount from both mutations", () => {
-      const resultA = createMockMutationResult({ failureCount: 2 });
-      const resultB = createMockMutationResult({ failureCount: 3 });
+      const resultA = idleMutation({ failureCount: 2 });
+      const resultB = idleMutation({ failureCount: 3 });
 
       expect(combineMutationResults(resultA, resultB).failureCount).toBe(5);
     });
 
     it("uses first non-null submittedAt", () => {
-      const resultA = createMockMutationResult({ submittedAt: 1000 });
-      const resultB = createMockMutationResult({ submittedAt: 2000 });
+      const resultA = idleMutation({ submittedAt: 1000 });
+      const resultB = idleMutation({ submittedAt: 2000 });
 
       expect(combineMutationResults(resultA, resultB).submittedAt).toBe(1000);
     });
 
     it("uses second submittedAt if first is falsy", () => {
-      const resultA = createMockMutationResult({ submittedAt: 0 });
-      const resultB = createMockMutationResult({ submittedAt: 2000 });
+      const resultA = idleMutation({ submittedAt: 0 });
+      const resultB = idleMutation({ submittedAt: 2000 });
 
       expect(combineMutationResults(resultA, resultB).submittedAt).toBe(2000);
     });
@@ -258,23 +247,23 @@ describe("combineMutationResults", () => {
     it("uses first error if present", () => {
       const errorA = new Error("Error A");
       const errorB = new Error("Error B");
-      const resultA = createMockMutationResult({ error: errorA });
-      const resultB = createMockMutationResult({ error: errorB });
+      const resultA = errorMutation(errorA);
+      const resultB = errorMutation(errorB);
 
       expect(combineMutationResults(resultA, resultB).error).toBe(errorA);
     });
 
     it("uses second error if first is null", () => {
       const errorB = new Error("Error B");
-      const resultA = createMockMutationResult({ error: null });
-      const resultB = createMockMutationResult({ error: errorB });
+      const resultA = idleMutation();
+      const resultB = errorMutation(errorB);
 
       expect(combineMutationResults(resultA, resultB).error).toBe(errorB);
     });
 
     it("uses first failureReason if present", () => {
-      const resultA = createMockMutationResult({ failureReason: "Reason A" });
-      const resultB = createMockMutationResult({ failureReason: "Reason B" });
+      const resultA = idleMutation({ failureReason: "Reason A" });
+      const resultB = idleMutation({ failureReason: "Reason B" });
 
       expect(combineMutationResults(resultA, resultB).failureReason).toBe(
         "Reason A",
@@ -286,15 +275,8 @@ describe("combineMutationResults", () => {
 describe("combineQueryResults", () => {
   describe("status determination", () => {
     it("returns pending when first query is pending", () => {
-      const resultA = createMockQueryResult({
-        isPending: true,
-        status: "pending",
-      });
-      const resultB = createMockQueryResult({
-        isSuccess: true,
-        status: "success",
-        isPending: false,
-      });
+      const resultA = pendingQuery();
+      const resultB = successQuery();
 
       const combined = combineQueryResults(resultA, resultB);
 
@@ -303,15 +285,8 @@ describe("combineQueryResults", () => {
     });
 
     it("returns pending when second query is pending", () => {
-      const resultA = createMockQueryResult({
-        isSuccess: true,
-        status: "success",
-        isPending: false,
-      });
-      const resultB = createMockQueryResult({
-        isPending: true,
-        status: "pending",
-      });
+      const resultA = successQuery();
+      const resultB = pendingQuery();
 
       const combined = combineQueryResults(resultA, resultB);
 
@@ -319,17 +294,9 @@ describe("combineQueryResults", () => {
     });
 
     it("returns error when first query has error (and neither pending)", () => {
-      const resultA = createMockQueryResult({
-        isError: true,
-        status: "error",
-        isPending: false,
-        error: new Error("Query error"),
-      });
-      const resultB = createMockQueryResult({
-        isSuccess: true,
-        status: "success",
-        isPending: false,
-      });
+      const errorA = new Error("Query error");
+      const resultA = errorQuery(errorA);
+      const resultB = successQuery();
 
       const combined = combineQueryResults(resultA, resultB);
 
@@ -338,16 +305,8 @@ describe("combineQueryResults", () => {
     });
 
     it("returns success when both queries are successful", () => {
-      const resultA = createMockQueryResult({
-        isSuccess: true,
-        status: "success",
-        isPending: false,
-      });
-      const resultB = createMockQueryResult({
-        isSuccess: true,
-        status: "success",
-        isPending: false,
-      });
+      const resultA = successQuery();
+      const resultB = successQuery();
 
       const combined = combineQueryResults(resultA, resultB);
 
@@ -357,17 +316,13 @@ describe("combineQueryResults", () => {
 
     it("returns pending as fallback when neither pending, error, nor both success", () => {
       // This is an edge case - one success, one not (but not error or pending)
-      const resultA = createMockQueryResult({
-        isSuccess: true,
-        status: "success",
+      const resultA = successQuery();
+      const resultB = {
+        ...pendingQuery(),
         isPending: false,
-      });
-      const resultB = createMockQueryResult({
         isSuccess: false,
-        isPending: false,
         isError: false,
-        status: "pending", // e.g. initial state
-      });
+      } as unknown as UseQueryResult;
 
       const combined = combineQueryResults(resultA, resultB);
 
@@ -377,11 +332,11 @@ describe("combineQueryResults", () => {
 
   describe("fetchStatus determination", () => {
     it("returns fetching when either is fetching", () => {
-      const resultA = createMockQueryResult({
+      const resultA = pendingQuery({
         isFetching: true,
         fetchStatus: "fetching",
       });
-      const resultB = createMockQueryResult({
+      const resultB = pendingQuery({
         isFetching: false,
         fetchStatus: "idle",
       });
@@ -395,12 +350,12 @@ describe("combineQueryResults", () => {
     });
 
     it("returns paused when either is paused (and neither fetching)", () => {
-      const resultA = createMockQueryResult({
+      const resultA = pendingQuery({
         isPaused: true,
         isFetching: false,
         fetchStatus: "paused",
       });
-      const resultB = createMockQueryResult({
+      const resultB = pendingQuery({
         isPaused: false,
         isFetching: false,
         fetchStatus: "idle",
@@ -410,12 +365,12 @@ describe("combineQueryResults", () => {
     });
 
     it("returns idle when neither fetching nor paused", () => {
-      const resultA = createMockQueryResult({
+      const resultA = pendingQuery({
         isFetching: false,
         isPaused: false,
         fetchStatus: "idle",
       });
-      const resultB = createMockQueryResult({
+      const resultB = pendingQuery({
         isFetching: false,
         isPaused: false,
         fetchStatus: "idle",
@@ -427,24 +382,24 @@ describe("combineQueryResults", () => {
 
   describe("boolean flags", () => {
     it("isLoading is true if either is loading", () => {
-      const loading = createMockQueryResult({ isLoading: true });
-      const notLoading = createMockQueryResult({ isLoading: false });
+      const loading = pendingQuery({ isLoading: true });
+      const notLoading = pendingQuery({ isLoading: false });
 
       expect(combineQueryResults(loading, notLoading).isLoading).toBe(true);
       expect(combineQueryResults(notLoading, notLoading).isLoading).toBe(false);
     });
 
     it("isFetched is true only if both are fetched", () => {
-      const fetched = createMockQueryResult({ isFetched: true });
-      const notFetched = createMockQueryResult({ isFetched: false });
+      const fetched = pendingQuery({ isFetched: true });
+      const notFetched = pendingQuery({ isFetched: false });
 
       expect(combineQueryResults(fetched, fetched).isFetched).toBe(true);
       expect(combineQueryResults(fetched, notFetched).isFetched).toBe(false);
     });
 
     it("isFetchedAfterMount is true only if both are fetched after mount", () => {
-      const fetched = createMockQueryResult({ isFetchedAfterMount: true });
-      const notFetched = createMockQueryResult({ isFetchedAfterMount: false });
+      const fetched = pendingQuery({ isFetchedAfterMount: true });
+      const notFetched = pendingQuery({ isFetchedAfterMount: false });
 
       expect(combineQueryResults(fetched, fetched).isFetchedAfterMount).toBe(
         true,
@@ -455,8 +410,8 @@ describe("combineQueryResults", () => {
     });
 
     it("isInitialLoading is true if either is initial loading", () => {
-      const loading = createMockQueryResult({ isInitialLoading: true });
-      const notLoading = createMockQueryResult({ isInitialLoading: false });
+      const loading = pendingQuery({ isInitialLoading: true });
+      const notLoading = pendingQuery({ isInitialLoading: false });
 
       expect(combineQueryResults(loading, notLoading).isInitialLoading).toBe(
         true,
@@ -464,22 +419,22 @@ describe("combineQueryResults", () => {
     });
 
     it("isLoadingError is true if either has loading error", () => {
-      const error = createMockQueryResult({ isLoadingError: true });
-      const noError = createMockQueryResult({ isLoadingError: false });
+      const error = pendingQuery({ isLoadingError: true });
+      const noError = pendingQuery({ isLoadingError: false });
 
       expect(combineQueryResults(error, noError).isLoadingError).toBe(true);
     });
 
     it("isRefetchError is true if either has refetch error", () => {
-      const error = createMockQueryResult({ isRefetchError: true });
-      const noError = createMockQueryResult({ isRefetchError: false });
+      const error = pendingQuery({ isRefetchError: true });
+      const noError = pendingQuery({ isRefetchError: false });
 
       expect(combineQueryResults(error, noError).isRefetchError).toBe(true);
     });
 
     it("isPlaceholderData is true if either has placeholder data", () => {
-      const placeholder = createMockQueryResult({ isPlaceholderData: true });
-      const noPlaceholder = createMockQueryResult({ isPlaceholderData: false });
+      const placeholder = pendingQuery({ isPlaceholderData: true });
+      const noPlaceholder = pendingQuery({ isPlaceholderData: false });
 
       expect(
         combineQueryResults(placeholder, noPlaceholder).isPlaceholderData,
@@ -487,15 +442,15 @@ describe("combineQueryResults", () => {
     });
 
     it("isStale is true if either is stale", () => {
-      const stale = createMockQueryResult({ isStale: true });
-      const notStale = createMockQueryResult({ isStale: false });
+      const stale = pendingQuery({ isStale: true });
+      const notStale = pendingQuery({ isStale: false });
 
       expect(combineQueryResults(stale, notStale).isStale).toBe(true);
     });
 
     it("isRefetching is true if either is refetching", () => {
-      const refetching = createMockQueryResult({ isRefetching: true });
-      const notRefetching = createMockQueryResult({ isRefetching: false });
+      const refetching = pendingQuery({ isRefetching: true });
+      const notRefetching = pendingQuery({ isRefetching: false });
 
       expect(combineQueryResults(refetching, notRefetching).isRefetching).toBe(
         true,
@@ -503,8 +458,8 @@ describe("combineQueryResults", () => {
     });
 
     it("isEnabled is true only if both are enabled", () => {
-      const enabled = createMockQueryResult({ isEnabled: true });
-      const disabled = createMockQueryResult({ isEnabled: false });
+      const enabled = pendingQuery({ isEnabled: true });
+      const disabled = pendingQuery({ isEnabled: false });
 
       expect(combineQueryResults(enabled, enabled).isEnabled).toBe(true);
       expect(combineQueryResults(enabled, disabled).isEnabled).toBe(false);
@@ -513,30 +468,30 @@ describe("combineQueryResults", () => {
 
   describe("numeric aggregation", () => {
     it("sums failureCount from both queries", () => {
-      const resultA = createMockQueryResult({ failureCount: 1 });
-      const resultB = createMockQueryResult({ failureCount: 4 });
+      const resultA = pendingQuery({ failureCount: 1 });
+      const resultB = pendingQuery({ failureCount: 4 });
 
       expect(combineQueryResults(resultA, resultB).failureCount).toBe(5);
     });
 
     it("sums errorUpdateCount from both queries", () => {
-      const resultA = createMockQueryResult({ errorUpdateCount: 2 });
-      const resultB = createMockQueryResult({ errorUpdateCount: 3 });
+      const resultA = pendingQuery({ errorUpdateCount: 2 });
+      const resultB = pendingQuery({ errorUpdateCount: 3 });
 
       expect(combineQueryResults(resultA, resultB).errorUpdateCount).toBe(5);
     });
 
     it("uses max dataUpdatedAt", () => {
-      const resultA = createMockQueryResult({ dataUpdatedAt: 1000 });
-      const resultB = createMockQueryResult({ dataUpdatedAt: 2000 });
+      const resultA = pendingQuery({ dataUpdatedAt: 1000 });
+      const resultB = pendingQuery({ dataUpdatedAt: 2000 });
 
       expect(combineQueryResults(resultA, resultB).dataUpdatedAt).toBe(2000);
       expect(combineQueryResults(resultB, resultA).dataUpdatedAt).toBe(2000);
     });
 
     it("uses max errorUpdatedAt", () => {
-      const resultA = createMockQueryResult({ errorUpdatedAt: 500 });
-      const resultB = createMockQueryResult({ errorUpdatedAt: 1500 });
+      const resultA = pendingQuery({ errorUpdatedAt: 500 });
+      const resultB = pendingQuery({ errorUpdatedAt: 1500 });
 
       expect(combineQueryResults(resultA, resultB).errorUpdatedAt).toBe(1500);
     });
@@ -546,23 +501,23 @@ describe("combineQueryResults", () => {
     it("uses first error if present", () => {
       const errorA = new Error("Error A");
       const errorB = new Error("Error B");
-      const resultA = createMockQueryResult({ error: errorA });
-      const resultB = createMockQueryResult({ error: errorB });
+      const resultA = errorQuery(errorA);
+      const resultB = errorQuery(errorB);
 
       expect(combineQueryResults(resultA, resultB).error).toBe(errorA);
     });
 
     it("uses second error if first is null", () => {
       const errorB = new Error("Error B");
-      const resultA = createMockQueryResult({ error: null });
-      const resultB = createMockQueryResult({ error: errorB });
+      const resultA = pendingQuery();
+      const resultB = errorQuery(errorB);
 
       expect(combineQueryResults(resultA, resultB).error).toBe(errorB);
     });
 
     it("uses first failureReason if present", () => {
-      const resultA = createMockQueryResult({ failureReason: "Reason A" });
-      const resultB = createMockQueryResult({ failureReason: "Reason B" });
+      const resultA = pendingQuery({ failureReason: "Reason A" });
+      const resultB = pendingQuery({ failureReason: "Reason B" });
 
       expect(combineQueryResults(resultA, resultB).failureReason).toBe(
         "Reason A",

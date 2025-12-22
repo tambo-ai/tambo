@@ -29,6 +29,11 @@ describe("useTamboVoice", () => {
   let mockTranscribe: jest.Mock;
   let queryClient: QueryClient;
 
+  type MediaRecorderMockValue = Pick<
+    ReturnType<typeof useReactMediaRecorder>,
+    "status" | "startRecording" | "stopRecording" | "mediaBlobUrl" | "error"
+  >;
+
   const createWrapper = () => {
     const mockClient = {
       beta: {
@@ -56,18 +61,22 @@ describe("useTamboVoice", () => {
   };
 
   const setupMediaRecorderMock = (
-    overrides: Partial<ReturnType<typeof useReactMediaRecorder>> = {},
+    overrides: Partial<MediaRecorderMockValue> = {},
   ) => {
-    const defaultMock = {
-      status: "idle" as const,
+    const value: MediaRecorderMockValue = {
+      status: "idle",
       startRecording: mockStartRecording,
       stopRecording: mockStopRecording,
       mediaBlobUrl: null,
       error: null,
       ...overrides,
     };
-    jest.mocked(useReactMediaRecorder).mockReturnValue(defaultMock as any);
-    return defaultMock;
+    jest
+      .mocked(useReactMediaRecorder)
+      .mockReturnValue(
+        value as unknown as ReturnType<typeof useReactMediaRecorder>,
+      );
+    return value;
   };
 
   beforeEach(() => {
