@@ -24,45 +24,53 @@ export interface ListPromptEntry {
 
 export type ListResourceItem = ListResourcesResult["resources"][number];
 
+export type ResourceEntryOrigin =
+  | "mcp"
+  | "registry-static"
+  | "registry-dynamic";
+
 /**
  * Registry resource entry - resources from the local registry (not MCP servers).
  *
- * These entries always have `server === null` and represent resources that
- * are registered locally via `TamboRegistryProvider` (static `resources`
- * props or dynamic `ResourceSource` functions).
+ * These entries always have `server === null`.
+ *
+ * - `origin: "registry-static"` for registry resources passed via the `resources` prop.
+ * - `origin: "registry-dynamic"` for registry resources returned by `resourceSource.listResources(search)`.
  */
 export interface RegistryResourceEntry {
   server: null;
   resource: ListResourceItem;
+  origin: "registry-static" | "registry-dynamic";
 }
 
 /**
  * MCP server resource entry - resources from connected MCP servers.
- *
- * These entries always have a non-null `server` with connection metadata and
- * are produced by the active MCP clients managed by `TamboMcpProvider`.
  */
 export interface McpResourceEntry {
   server: ConnectedMcpServer;
   resource: ListResourceItem;
+  origin: "mcp";
 }
 
 /**
  * Union type for all resource entries returned by `useTamboMcpResourceList`.
- *
- * - Registry resources have `server === null`.
- * - MCP-backed resources have a non-null `server` with connection metadata.
  */
 export type ListResourceEntry = RegistryResourceEntry | McpResourceEntry;
 
 /**
- * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource
- * (entries where `server` is non-null).
+ * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource.
+ *
+ * Uses `origin === "mcp"` as the primary discriminator and also validates
+ * that `server` is a connected MCP server.
  */
 export function isMcpResourceEntry(
   entry: ListResourceEntry,
 ): entry is McpResourceEntry {
-  return entry.server !== null && isConnectedMcpServer(entry.server);
+  return (
+    entry.origin === "mcp" &&
+    entry.server !== null &&
+    isConnectedMcpServer(entry.server)
+  );
 }
 
 /**
@@ -266,6 +274,7 @@ export function useTamboMcpResourceList(search?: string) {
         const resourceEntries: McpResourceEntry[] = resources.map(
           (resource) => ({
             server: mcpServer,
+            origin: "mcp",
             resource,
           }),
         );
@@ -283,6 +292,7 @@ export function useTamboMcpResourceList(search?: string) {
               const resources = await resourceSource.listResources(search);
               return resources.map((resource) => ({
                 server: null,
+                origin: "registry-dynamic",
                 resource,
               }));
             },
@@ -303,6 +313,7 @@ export function useTamboMcpResourceList(search?: string) {
       const staticEntries: RegistryResourceEntry[] = staticResources.map(
         (resource) => ({
           server: null,
+          origin: "registry-static",
           resource,
         }),
       );
@@ -341,15 +352,18 @@ export function useTamboMcpResourceList(search?: string) {
   });
 
   // Filter results by search string - runs on every search change (not just query completion)
-  // MCP resources are filtered locally, registry dynamic resources are already filtered by listResources(search)
+  // - MCP resources are filtered locally
+  // - Static registry resources are filtered locally
+  // - Dynamic registry resources are already filtered by listResources(search)
   const filteredData = React.useMemo(() => {
     if (!search) return queries.data;
 
     const normalizedSearch = search.toLowerCase();
     return queries.data.filter((entry) => {
-      // Dynamic registry resources (from resourceSource) are already filtered by listResources(search)
-      // We can identify them by checking if they came from the registry query
-      // For simplicity, we filter all entries - registry resources that match will pass through
+      if (entry.origin === "registry-dynamic") {
+        return true;
+      }
+
       const name = entry.resource.name?.toLowerCase() ?? "";
       const uri = entry.resource.uri.toLowerCase();
       return name.includes(normalizedSearch) || uri.includes(normalizedSearch);

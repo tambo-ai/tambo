@@ -29,6 +29,7 @@ export {
 export type {
   ListPromptEntry,
   ListPromptItem,
+  ResourceEntryOrigin,
   ListResourceEntry,
   ListResourceItem,
 } from "./mcp-hooks";

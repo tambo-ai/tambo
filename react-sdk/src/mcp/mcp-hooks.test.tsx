@@ -811,6 +811,7 @@ describe("useTamboMcpResourceList - resource management", () => {
   it("should identify MCP-backed entries with isMcpResourceEntry", () => {
     const registryEntry: ListResourceEntry = {
       server: null,
+      origin: "registry-static",
       // Resource shape is not important for this helper, so cast to keep the
       // test focused on the discriminant field.
       resource: {
@@ -822,6 +823,7 @@ describe("useTamboMcpResourceList - resource management", () => {
 
     const mcpEntry: ListResourceEntry = {
       server: { key: "server-a", client: {} } as any,
+      origin: "mcp",
       resource: {
         uri: "server-a:file:///home/user/doc.txt",
         name: "Document",
@@ -1401,6 +1403,68 @@ describe("useTamboMcpResourceList - search filtering", () => {
     // listResources should be called again with new search
     expect(listResources).toHaveBeenCalledWith("bar");
     expect(capturedResources[0].resource.name).toBe("Dynamic Resource for bar");
+  });
+
+  it("should not locally substring-filter dynamic registry resources", async () => {
+    const listResources = jest
+      .fn()
+      .mockImplementation(async (search?: string) => {
+        if (!search) return [];
+        // Simulate a provider that matches resources using non-substring logic.
+        return [
+          {
+            uri: "dynamic://matched-by-provider",
+            name: "Smart Match",
+            mimeType: "text/plain",
+          },
+        ];
+      });
+    const getResource = jest.fn().mockResolvedValue({
+      contents: [{ uri: "test", text: "test content", mimeType: "text/plain" }],
+    });
+
+    let capturedResources: ListResourceEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: resources } = useTamboMcpResourceList(search);
+      useEffect(() => {
+        if (resources) {
+          capturedResources = resources;
+        }
+      }, [resources]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          listResources={listResources}
+          getResource={getResource}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="foo" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(1);
+    });
+
+    expect(listResources).toHaveBeenCalledWith("foo");
+    expect(capturedResources[0].origin).toBe("registry-dynamic");
+    expect(capturedResources[0].resource.name).toBe("Smart Match");
+    expect(capturedResources[0].resource.uri).toBe(
+      "registry:dynamic://matched-by-provider",
+    );
   });
 
   it("should combine MCP filtered resources with dynamically generated registry resources", async () => {
