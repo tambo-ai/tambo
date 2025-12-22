@@ -13,15 +13,10 @@ function createMutationResult(
   status: MutationStatus,
   overrides: MutationOverrides = {},
 ): UseMutationResult {
-  const base: UseMutationResult = {
+  const base = {
     data: undefined,
     error: null,
-    isError: status === "error",
-    isIdle: status === "idle",
-    isPending: status === "pending",
-    isSuccess: status === "success",
     isPaused: false,
-    status,
     variables: undefined,
     context: undefined,
     failureCount: 0,
@@ -30,9 +25,15 @@ function createMutationResult(
     mutate: jest.fn(),
     mutateAsync: jest.fn(),
     reset: jest.fn(),
+    ...overrides,
+    isError: status === "error",
+    isIdle: status === "idle",
+    isPending: status === "pending",
+    isSuccess: status === "success",
+    status,
   } as UseMutationResult;
 
-  return { ...base, ...overrides } as UseMutationResult;
+  return base;
 }
 
 const idleMutation = (overrides: MutationOverrides = {}) =>
@@ -56,10 +57,9 @@ function createQueryResult(
   status: QueryStatus,
   overrides: QueryOverrides = {},
 ): UseQueryResult {
-  const base: UseQueryResult = {
+  const base = {
     data: undefined,
     error: null,
-    isError: status === "error",
     isFetched: false,
     isFetchedAfterMount: false,
     isFetching: false,
@@ -67,13 +67,10 @@ function createQueryResult(
     isLoading: false,
     isLoadingError: false,
     isPaused: false,
-    isPending: status === "pending",
     isPlaceholderData: false,
     isRefetchError: false,
     isRefetching: false,
     isStale: false,
-    isSuccess: status === "success",
-    status,
     dataUpdatedAt: 0,
     errorUpdatedAt: 0,
     errorUpdateCount: 0,
@@ -83,9 +80,14 @@ function createQueryResult(
     refetch: jest.fn(),
     promise: Promise.resolve(undefined),
     isEnabled: true,
+    ...overrides,
+    isError: status === "error",
+    isPending: status === "pending",
+    isSuccess: status === "success",
+    status,
   } as UseQueryResult;
 
-  return { ...base, ...overrides } as UseQueryResult;
+  return base;
 }
 
 const pendingQuery = (overrides: QueryOverrides = {}) =>

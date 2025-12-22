@@ -1,7 +1,11 @@
 /**
  *
  */
-export function isPromise<T>(value: unknown): value is Promise<T> {
+/**
+ * Checks whether a value is a Promise/thenable.
+ * @returns True if the value has a callable `then()` function.
+ */
+export function isPromise(value: unknown): value is Promise<unknown> {
   if (value === null) {
     return false;
   }
