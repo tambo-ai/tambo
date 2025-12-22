@@ -51,8 +51,8 @@ const config: Config = {
   testPathIgnorePatterns: ["/node_modules/", "/.next/", "/dist/"],
   coverageThreshold: {
     global: {
-      branches: 6,
-      lines: 11,
+      branches: 7,
+      lines: 12,
     },
   },
 };
