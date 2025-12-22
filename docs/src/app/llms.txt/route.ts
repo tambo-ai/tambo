@@ -4,6 +4,7 @@ export const revalidate = 3600;
 
 type DocsPage = ReturnType<(typeof source)["getPages"]>[number];
 
+// Maximum total description length, including ellipsis when truncated.
 const MAX_DESCRIPTION_LENGTH = 240;
 
 function normalizeDescription(description: string) {
@@ -21,6 +22,7 @@ function truncateDescription(
 }
 
 function getPageDescription(page: DocsPage) {
+  // Both author-provided and fallback descriptions are normalized and truncated.
   if (page.data.description != null && page.data.description.trim() !== "") {
     return truncateDescription(page.data.description);
   }
