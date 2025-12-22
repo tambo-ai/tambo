@@ -33,48 +33,51 @@ export type Context = {
 };
 
 /**
- * Validate a CLI session token against the database
+ * Validate a session token against the database
  * Returns user info if valid, null otherwise
  *
  * CLI session tokens are high-entropy (256 bits, base64url encoded).
- * They are stored in the cli_sessions table, separate from NextAuth's auth.sessions.
+ * They are stored in the unified sessions table with source='cli'.
  *
  * SECURITY:
- * - CLI sessions must have a non-null notAfter expiry date
+ * - Sessions must have a non-null expiresAt and not be expired
  * - Tokens should NEVER be logged - they grant full account access
  * - This is enforced here and when creating sessions in device-auth.ts
  */
-async function validateCliSession(
+async function validateSession(
   db: HydraDb,
   sessionToken: string,
-): Promise<Context["user"]> {
-  const now = new Date();
-
-  // Query the CLI session and join with user
-  // CLI sessions must have notAfter set and not be expired
+): Promise<NonNullable<Context["user"]>> {
+  // Query the session and join with user
+  // Sessions must have expiresAt set and not be expired
   const result = await db
     .select({
-      sessionId: schema.cliSessions.id,
-      userId: schema.cliSessions.userId,
-      notAfter: schema.cliSessions.notAfter,
+      sessionId: schema.sessions.id,
+      userId: schema.sessions.userId,
+      expiresAt: schema.sessions.expiresAt,
+      source: schema.sessions.source,
       userEmail: schema.authUsers.email,
       userMeta: schema.authUsers.rawUserMetaData,
     })
-    .from(schema.cliSessions)
+    .from(schema.sessions)
     .innerJoin(
       schema.authUsers,
-      eq(schema.cliSessions.userId, schema.authUsers.id),
+      eq(schema.sessions.userId, schema.authUsers.id),
     )
     .where(
       and(
-        eq(schema.cliSessions.id, sessionToken),
-        gt(schema.cliSessions.notAfter, now),
+        eq(schema.sessions.id, sessionToken),
+        gt(schema.sessions.expiresAt, sql`now()`),
       ),
     )
     .limit(1);
 
   if (result.length === 0) {
-    return null;
+    // Token was provided but is invalid/expired - this is an auth error, not anonymous access
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Invalid or expired session token",
+    });
   }
 
   const session = result[0];
@@ -115,12 +118,13 @@ export const createTRPCContext = async (): Promise<Context> => {
       }
     : null;
 
-  // If no NextAuth session, check for CLI session token via Authorization header
+  // If no NextAuth session, check for session token via Authorization header
+  // This is used by CLI sessions (source='cli') authenticated via device auth flow
   if (!user) {
     const authHeader = requestHeaders.get("authorization");
     if (authHeader?.startsWith("Bearer ")) {
-      const cliSessionToken = authHeader.slice(7);
-      user = await validateCliSession(db, cliSessionToken);
+      const sessionToken = authHeader.slice(7);
+      user = await validateSession(db, sessionToken);
     }
   }
 

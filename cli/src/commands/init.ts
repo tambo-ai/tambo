@@ -381,7 +381,7 @@ async function handleProjectAndApiKey(): Promise<boolean> {
     } else {
       // Let user select existing project or create new
       const choices = [
-        ...projects.map((p) => ({
+        ...projects.map((p: { id: string; name: string }) => ({
           name: p.name,
           value: p.id,
         })),
@@ -432,7 +432,9 @@ async function handleProjectAndApiKey(): Promise<boolean> {
           throw error;
         }
       } else {
-        const selected = projects.find((p) => p.id === projectChoice);
+        const selected = projects.find(
+          (p: { id: string; name: string }) => p.id === projectChoice,
+        );
         selectedProjectId = projectChoice;
         selectedProjectName = selected?.name ?? projectChoice;
         console.log(
