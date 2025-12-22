@@ -7,7 +7,7 @@
     "declarationMap": false,
     "incremental": true,
     "paths": {
-      "@/.source": ["./.source/index.ts"],
+      "@/.source": ["./.source/server.ts"],
       "@/*": ["./src/*"],
       "@tambo-ai/react": ["../react-sdk/src"],
       "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"]

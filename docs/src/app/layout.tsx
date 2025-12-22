@@ -5,7 +5,7 @@ import {
   PostHogRootProvider,
 } from "@/providers/posthog-provider";
 import { TamboRootProvider } from "@/providers/tambo-provider";
-import { RootProvider } from "fumadocs-ui/provider";
+import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Inter } from "next/font/google";

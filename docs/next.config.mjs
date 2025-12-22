@@ -6,6 +6,7 @@ const withMDX = createMDX();
 const config = {
   reactStrictMode: true,
   trailingSlash: false,
+  transpilePackages: ["fumadocs-ui"],
   async redirects() {
     return [
       // Handle the trailing-slash variant explicitly to avoid a double redirect
