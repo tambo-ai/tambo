@@ -387,10 +387,6 @@ const cli = meow(generateGlobalHelp(), {
       description: "Force action without confirmation",
       shortFlag: "f",
     },
-    id: {
-      type: "string",
-      description: "Session ID to revoke",
-    },
     all: {
       type: "boolean",
       description: "Revoke all CLI sessions",
@@ -566,7 +562,6 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     await handleAuth(subcommand, {
       quiet: Boolean(flags.quiet ?? flags.q),
       force: Boolean(flags.force ?? flags.f),
-      id: flags.id as string | undefined,
       all: Boolean(flags.all),
     });
     return;

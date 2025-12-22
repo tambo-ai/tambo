@@ -1,12 +1,14 @@
-import { confirm } from "@inquirer/prompts";
+import { confirm, select } from "@inquirer/prompts";
 import chalk from "chalk";
 import Table from "cli-table3";
 import { formatDistanceToNow } from "date-fns";
 import ora from "ora";
+import type { Session } from "../lib/api-client.js";
 import {
   api,
   ApiError,
   getApiBaseUrl,
+  isAuthError,
   verifySession,
 } from "../lib/api-client.js";
 import { runDeviceAuthFlow } from "../lib/device-auth.js";
@@ -28,7 +30,6 @@ export interface AuthLogoutOptions {
 }
 
 export interface AuthRevokeSessionOptions {
-  id?: string;
   all?: boolean;
 }
 
@@ -226,18 +227,70 @@ export async function handleAuthRevokeSession(
     return await revokeAllSessions();
   }
 
-  if (options.id) {
-    return await revokeSessionById(options.id);
-  }
+  // Show interactive picker
+  return await interactiveRevokeSession();
+}
 
-  // No option specified - show help
-  console.log(chalk.yellow("\nPlease specify a session to revoke."));
-  console.log(
-    chalk.gray(
-      `\nUsage:\n  ${chalk.cyan("tambo auth revoke-session --id <session-id>")}  Revoke specific session\n  ${chalk.cyan("tambo auth revoke-session --all")}               Revoke all sessions\n`,
-    ),
-  );
-  return 1;
+async function interactiveRevokeSession(): Promise<number> {
+  const spinner = ora("Fetching sessions...").start();
+
+  try {
+    const sessions = await api.deviceAuth.listSessions.query();
+
+    if (sessions.length === 0) {
+      spinner.info("No active sessions found");
+      console.log();
+      return 0;
+    }
+
+    spinner.stop();
+
+    const choices: { name: string; value: string }[] = sessions.map(
+      (session: Session) => {
+        const createdAt = new Date(session.createdAt);
+        const label = `${session.id.slice(0, 16)}...  (created ${formatDistanceToNow(createdAt, { addSuffix: true })})`;
+        return {
+          name: label,
+          value: session.id,
+        };
+      },
+    );
+
+    choices.push({
+      name: chalk.gray("Cancel"),
+      value: "__cancel__",
+    });
+
+    const selectedId = await select<string>({
+      message: "Select a session to revoke:",
+      choices,
+    });
+
+    if (selectedId === "__cancel__") {
+      console.log(chalk.gray("\nCancelled.\n"));
+      return 0;
+    }
+
+    return await revokeSessionById(selectedId);
+  } catch (error) {
+    spinner.fail("Failed to fetch sessions");
+
+    if (isAuthError(error)) {
+      // Session was revoked or expired on server
+      clearToken();
+      console.log(chalk.yellow("\nSession expired or revoked.\n"));
+      console.log(
+        chalk.gray(
+          `Run ${chalk.cyan("tambo auth login")} to authenticate again.\n`,
+        ),
+      );
+    } else if (error instanceof ApiError) {
+      console.log(chalk.red(`\nError: ${error.message}`));
+    } else {
+      console.log(chalk.red(`\nError: ${String(error)}`));
+    }
+    return 1;
+  }
 }
 
 async function listSessions(): Promise<number> {
@@ -306,7 +359,7 @@ async function listSessions(): Promise<number> {
     console.log(chalk.gray(`\nTotal: ${sessions.length} session(s)\n`));
     console.log(
       chalk.gray(
-        `To revoke a session: ${chalk.cyan("tambo auth revoke-session --id <session-id>")}`,
+        `To revoke a session: ${chalk.cyan("tambo auth revoke-session")}`,
       ),
     );
     console.log(
@@ -318,7 +371,16 @@ async function listSessions(): Promise<number> {
   } catch (error) {
     spinner.fail("Failed to fetch sessions");
 
-    if (error instanceof ApiError) {
+    if (isAuthError(error)) {
+      // Session was revoked or expired on server
+      clearToken();
+      console.log(chalk.yellow("\nSession expired or revoked."));
+      console.log(
+        chalk.gray(
+          `Run ${chalk.cyan("tambo auth login")} to authenticate again.\n`,
+        ),
+      );
+    } else if (error instanceof ApiError) {
       console.log(chalk.red(`\nError: ${error.message}`));
     } else {
       console.log(chalk.red(`\nError: ${String(error)}`));
@@ -406,7 +468,6 @@ export async function handleAuth(
   flags: {
     quiet?: boolean;
     force?: boolean;
-    id?: string;
     all?: boolean;
     help?: boolean;
   },
@@ -424,7 +485,6 @@ export async function handleAuth(
     exitCode = await handleAuthSessions();
   } else if (subcommand === "revoke-session") {
     exitCode = await handleAuthRevokeSession({
-      id: flags.id,
       all: flags.all,
     });
   } else {
@@ -459,7 +519,6 @@ ${chalk.bold("Subcommands")}
 ${chalk.bold("Options")}
   ${chalk.yellow("--quiet, -q")}     Exit with code 0 if authenticated, 1 otherwise (status only)
   ${chalk.yellow("--force, -f")}     Skip confirmation prompts (logout only)
-  ${chalk.yellow("--id <id>")}       Session ID to revoke (revoke-session only)
   ${chalk.yellow("--all")}           Revoke all sessions (revoke-session only)
 
 ${chalk.bold("Examples")}
@@ -468,7 +527,7 @@ ${chalk.bold("Examples")}
   $ ${chalk.cyan("tambo auth login")}                      # Authenticate
   $ ${chalk.cyan("tambo auth logout")}                     # Clear credentials
   $ ${chalk.cyan("tambo auth sessions")}                   # List all CLI sessions
-  $ ${chalk.cyan("tambo auth revoke-session --id <id>")}   # Revoke specific session
+  $ ${chalk.cyan("tambo auth revoke-session")}             # Select session to revoke
   $ ${chalk.cyan("tambo auth revoke-session --all")}       # Revoke all sessions
 `);
 }
