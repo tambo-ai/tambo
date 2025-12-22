@@ -73,6 +73,8 @@ describe("useTamboVoice", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockFetch.mockReset();
+
     global.fetch = mockFetch as unknown as typeof fetch;
 
     mockStartRecording = jest.fn();

@@ -22,6 +22,8 @@ describe("TamboClientProvider", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockFetch.mockReset();
+
     global.fetch = mockFetch as unknown as typeof fetch;
 
     // Default mock: not fetching
@@ -126,6 +128,8 @@ describe("TamboClientProvider", () => {
 describe("Hook Contracts", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockFetch.mockReset();
 
     global.fetch = mockFetch as unknown as typeof fetch;
 
