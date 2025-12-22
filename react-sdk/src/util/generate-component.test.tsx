@@ -228,11 +228,57 @@ describe("renderComponentIntoMessage", () => {
       );
 
       expect(mockValidate).toHaveBeenCalled();
-      // Note: Standard Schema validate returns { value: T }, which is used directly
-      // This tests current behavior - the props contain the validation result wrapper
+      // Standard Schema validate returns { value: T }, we extract the value
       expect(result.component?.props).toEqual({
-        value: { title: "Hello", validated: true },
+        title: "Hello",
+        validated: true,
       });
+    });
+
+    it("throws error when validation returns issues", () => {
+      const registryWithFailingSchema: ComponentRegistry = {
+        TestComponent: {
+          name: "TestComponent",
+          description: "A test component",
+          component: TestComponent,
+          props: {
+            "~standard": {
+              version: 1,
+              vendor: "test",
+              validate: () => ({
+                issues: [{ message: "title is required", path: ["title"] }],
+              }),
+            },
+          },
+          contextTools: [],
+        },
+      };
+
+      expect(() =>
+        renderComponentIntoMessage(baseMessage, registryWithFailingSchema),
+      ).toThrow("Component props validation failed: title is required");
+    });
+
+    it("throws error when validation returns async promise", () => {
+      const registryWithAsyncSchema: ComponentRegistry = {
+        TestComponent: {
+          name: "TestComponent",
+          description: "A test component",
+          component: TestComponent,
+          props: {
+            "~standard": {
+              version: 1,
+              vendor: "test",
+              validate: async () => await Promise.resolve({ value: {} }),
+            },
+          },
+          contextTools: [],
+        },
+      };
+
+      expect(() =>
+        renderComponentIntoMessage(baseMessage, registryWithAsyncSchema),
+      ).toThrow("Async schema validation is not supported for component props");
     });
 
     it("uses raw props when props is JSON Schema (not Standard Schema)", () => {
