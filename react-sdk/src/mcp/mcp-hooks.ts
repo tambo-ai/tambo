@@ -24,23 +24,14 @@ export interface ListPromptEntry {
 
 export type ListResourceItem = ListResourcesResult["resources"][number];
 
-export type ResourceEntryOrigin =
-  | "mcp"
-  | "registry-static"
-  | "registry-dynamic";
-
 /**
  * Registry resource entry - resources from the local registry (not MCP servers).
  *
  * These entries always have `server === null`.
- *
- * - `origin: "registry-static"` for registry resources passed via the `resources` prop.
- * - `origin: "registry-dynamic"` for registry resources returned by `resourceSource.listResources(search)`.
  */
 export interface RegistryResourceEntry {
   server: null;
   resource: ListResourceItem;
-  origin: "registry-static" | "registry-dynamic";
 }
 
 /**
@@ -49,7 +40,6 @@ export interface RegistryResourceEntry {
 export interface McpResourceEntry {
   server: ConnectedMcpServer;
   resource: ListResourceItem;
-  origin: "mcp";
 }
 
 /**
@@ -59,18 +49,11 @@ export type ListResourceEntry = RegistryResourceEntry | McpResourceEntry;
 
 /**
  * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource.
- *
- * Uses `origin === "mcp"` as the primary discriminator and also validates
- * that `server` is a connected MCP server.
  */
 export function isMcpResourceEntry(
   entry: ListResourceEntry,
 ): entry is McpResourceEntry {
-  return (
-    entry.origin === "mcp" &&
-    entry.server !== null &&
-    isConnectedMcpServer(entry.server)
-  );
+  return entry.server !== null && isConnectedMcpServer(entry.server);
 }
 
 /**
@@ -274,7 +257,6 @@ export function useTamboMcpResourceList(search?: string) {
         const resourceEntries: McpResourceEntry[] = resources.map(
           (resource) => ({
             server: mcpServer,
-            origin: "mcp",
             resource,
           }),
         );
@@ -292,7 +274,6 @@ export function useTamboMcpResourceList(search?: string) {
               const resources = await resourceSource.listResources(search);
               return resources.map((resource) => ({
                 server: null,
-                origin: "registry-dynamic",
                 resource,
               }));
             },
@@ -313,7 +294,6 @@ export function useTamboMcpResourceList(search?: string) {
       const staticEntries: RegistryResourceEntry[] = staticResources.map(
         (resource) => ({
           server: null,
-          origin: "registry-static",
           resource,
         }),
       );
@@ -360,7 +340,10 @@ export function useTamboMcpResourceList(search?: string) {
 
     const normalizedSearch = search.toLowerCase();
     return queries.data.filter((entry) => {
-      if (entry.origin === "registry-dynamic") {
+      if (
+        entry.server === null &&
+        entry.resource.uri.startsWith(`${REGISTRY_SERVER_KEY}:dynamic://`)
+      ) {
         return true;
       }
 

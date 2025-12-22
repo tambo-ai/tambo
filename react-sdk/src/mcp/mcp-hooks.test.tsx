@@ -811,7 +811,6 @@ describe("useTamboMcpResourceList - resource management", () => {
   it("should identify MCP-backed entries with isMcpResourceEntry", () => {
     const registryEntry: ListResourceEntry = {
       server: null,
-      origin: "registry-static",
       // Resource shape is not important for this helper, so cast to keep the
       // test focused on the discriminant field.
       resource: {
@@ -823,7 +822,6 @@ describe("useTamboMcpResourceList - resource management", () => {
 
     const mcpEntry: ListResourceEntry = {
       server: { key: "server-a", client: {} } as any,
-      origin: "mcp",
       resource: {
         uri: "server-a:file:///home/user/doc.txt",
         name: "Document",
@@ -1460,7 +1458,7 @@ describe("useTamboMcpResourceList - search filtering", () => {
     });
 
     expect(listResources).toHaveBeenCalledWith("foo");
-    expect(capturedResources[0].origin).toBe("registry-dynamic");
+    expect(capturedResources[0].server).toBeNull();
     expect(capturedResources[0].resource.name).toBe("Smart Match");
     expect(capturedResources[0].resource.uri).toBe(
       "registry:dynamic://matched-by-provider",
