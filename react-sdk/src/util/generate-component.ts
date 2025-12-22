@@ -5,6 +5,7 @@ import { wrapWithTamboMessageProvider } from "../hooks/use-current-message";
 import { ComponentRegistry } from "../model/component-metadata";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { isStandardSchema } from "../schema";
+import { isPromise } from "../util/is-promise";
 import { getComponentFromRegistry } from "../util/registry";
 
 /**
@@ -35,7 +36,7 @@ export function renderComponentIntoMessage(
     const result = registeredComponent.props["~standard"].validate(parsedProps);
     // Standard Schema validate() returns { value: T } on success or { issues: [...] } on failure
     // Async validation is not supported for component rendering
-    if (result instanceof Promise) {
+    if (isPromise(result)) {
       throw new Error(
         "Async schema validation is not supported for component props",
       );
