@@ -6,7 +6,7 @@ type QueryStatus = "pending" | "success" | "error";
 
 type MutationOverrides = Omit<
   Partial<UseMutationResult>,
-  "error" | "status" | "isError" | "isIdle" | "isPending" | "isSuccess"
+  "status" | "isError" | "isIdle" | "isPending" | "isSuccess"
 >;
 
 function createMutationResult(
@@ -32,7 +32,7 @@ function createMutationResult(
     reset: jest.fn(),
   } as UseMutationResult;
 
-  return { ...base, ...overrides };
+  return { ...base, ...overrides } as UseMutationResult;
 }
 
 const idleMutation = (overrides: MutationOverrides = {}) =>
@@ -49,7 +49,7 @@ const errorMutation = (error: Error, overrides: MutationOverrides = {}) =>
 
 type QueryOverrides = Omit<
   Partial<UseQueryResult>,
-  "error" | "status" | "isError" | "isPending" | "isSuccess"
+  "status" | "isError" | "isPending" | "isSuccess"
 >;
 
 function createQueryResult(
@@ -85,7 +85,7 @@ function createQueryResult(
     isEnabled: true,
   } as UseQueryResult;
 
-  return { ...base, ...overrides };
+  return { ...base, ...overrides } as UseQueryResult;
 }
 
 const pendingQuery = (overrides: QueryOverrides = {}) =>
@@ -262,11 +262,13 @@ describe("combineMutationResults", () => {
     });
 
     it("uses first failureReason if present", () => {
-      const resultA = idleMutation({ failureReason: "Reason A" });
-      const resultB = idleMutation({ failureReason: "Reason B" });
+      const reasonA = new Error("Reason A");
+      const reasonB = new Error("Reason B");
+      const resultA = idleMutation({ failureReason: reasonA });
+      const resultB = idleMutation({ failureReason: reasonB });
 
       expect(combineMutationResults(resultA, resultB).failureReason).toBe(
-        "Reason A",
+        reasonA,
       );
     });
   });
@@ -516,12 +518,12 @@ describe("combineQueryResults", () => {
     });
 
     it("uses first failureReason if present", () => {
-      const resultA = pendingQuery({ failureReason: "Reason A" });
-      const resultB = pendingQuery({ failureReason: "Reason B" });
+      const reasonA = new Error("Reason A");
+      const reasonB = new Error("Reason B");
+      const resultA = pendingQuery({ failureReason: reasonA });
+      const resultB = pendingQuery({ failureReason: reasonB });
 
-      expect(combineQueryResults(resultA, resultB).failureReason).toBe(
-        "Reason A",
-      );
+      expect(combineQueryResults(resultA, resultB).failureReason).toBe(reasonA);
     });
   });
 });

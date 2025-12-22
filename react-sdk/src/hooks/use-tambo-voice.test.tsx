@@ -67,8 +67,8 @@ describe("useTamboVoice", () => {
       status: "idle",
       startRecording: mockStartRecording,
       stopRecording: mockStopRecording,
-      mediaBlobUrl: null,
-      error: null,
+      mediaBlobUrl: undefined,
+      error: "",
       ...overrides,
     };
     jest

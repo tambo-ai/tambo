@@ -6,13 +6,9 @@ export function isPromise<T>(value: unknown): value is Promise<T> {
     return false;
   }
 
-  const valueType = typeof value;
-  if (valueType !== "object" && valueType !== "function") {
+  if (typeof value !== "object" && typeof value !== "function") {
     return false;
   }
 
-  return (
-    "then" in value &&
-    typeof (value as { readonly then?: unknown }).then === "function"
-  );
+  return typeof (value as { readonly then?: unknown }).then === "function";
 }
