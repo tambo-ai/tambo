@@ -12,7 +12,7 @@ interface CliSession {
   id: string;
   createdAt: Date;
   updatedAt: Date;
-  notAfter: Date | null;
+  expiresAt: Date | null;
 }
 
 function SessionSkeleton() {
@@ -40,7 +40,7 @@ function SessionItem({
   isRevoking: boolean;
 }) {
   const createdAt = new Date(session.createdAt);
-  const expiresAt = session.notAfter ? new Date(session.notAfter) : null;
+  const expiresAt = session.expiresAt ? new Date(session.expiresAt) : null;
 
   return (
     <div className="flex items-center justify-between p-4 rounded-lg border bg-card">

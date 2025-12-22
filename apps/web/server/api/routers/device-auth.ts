@@ -343,7 +343,7 @@ export const deviceAuthRouter = createTRPCRouter({
         id: schema.sessions.id,
         createdAt: schema.sessions.createdAt,
         updatedAt: schema.sessions.updatedAt,
-        notAfter: schema.sessions.expiresAt,
+        expiresAt: schema.sessions.expiresAt,
       })
       .from(schema.sessions)
       .where(

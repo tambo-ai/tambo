@@ -352,7 +352,7 @@ async function listSessions(): Promise<number> {
 
     for (const session of sessions) {
       const createdAt = new Date(session.createdAt);
-      const expiresAt = session.notAfter ? new Date(session.notAfter) : null;
+      const expiresAt = session.expiresAt ? new Date(session.expiresAt) : null;
 
       table.push([
         session.id.slice(0, 16) + "...",

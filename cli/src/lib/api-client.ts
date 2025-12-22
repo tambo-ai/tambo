@@ -30,7 +30,7 @@ export interface Session {
   id: string;
   createdAt: Date;
   updatedAt: Date;
-  notAfter: Date | null;
+  expiresAt: Date | null;
 }
 
 export interface Project {
