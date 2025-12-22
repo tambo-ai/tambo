@@ -17,7 +17,8 @@
     "lucide-react",
     "react-dom",
     "framer-motion",
-    "streamdown"
+    "streamdown",
+    "use-debounce"
   ],
   "devDependencies": [],
   "requires": ["elicitation-ui", "mcp-components"],
