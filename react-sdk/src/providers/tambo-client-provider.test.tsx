@@ -15,16 +15,21 @@ jest.mock("./hooks/use-tambo-session-token", () => ({
 import { useTamboSessionToken } from "./hooks/use-tambo-session-token";
 
 // Add fetch polyfill for jsdom environment (TamboAI SDK requires it)
-const mockFetch = jest.fn();
 const originalFetch = global.fetch;
+const mockFetch = jest.fn();
+
+beforeEach(() => {
+  mockFetch.mockReset();
+  global.fetch = mockFetch as unknown as typeof fetch;
+});
+
+afterEach(() => {
+  global.fetch = originalFetch;
+});
 
 describe("TamboClientProvider", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockFetch.mockReset();
-
-    global.fetch = mockFetch as unknown as typeof fetch;
 
     // Default mock: not fetching
     jest.mocked(useTamboSessionToken).mockReturnValue({
@@ -37,10 +42,6 @@ describe("TamboClientProvider", () => {
       status: "pending",
       fetchStatus: "idle",
     } as any);
-  });
-
-  afterEach(() => {
-    global.fetch = originalFetch;
   });
 
   const createWrapper = (props: {
@@ -129,17 +130,9 @@ describe("Hook Contracts", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockFetch.mockReset();
-
-    global.fetch = mockFetch as unknown as typeof fetch;
-
     jest.mocked(useTamboSessionToken).mockReturnValue({
       isFetching: false,
     } as any);
-  });
-
-  afterEach(() => {
-    global.fetch = originalFetch;
   });
 
   const createWrapper = (props: { apiKey: string }) => {

@@ -20,8 +20,8 @@ jest.mock("../providers/tambo-client-provider", () => ({
 import { useTamboClient } from "../providers/tambo-client-provider";
 
 // Mock fetch globally
-const mockFetch = jest.fn();
 const originalFetch = global.fetch;
+const mockFetch = jest.fn();
 
 describe("useTamboVoice", () => {
   let mockStartRecording: jest.Mock;
