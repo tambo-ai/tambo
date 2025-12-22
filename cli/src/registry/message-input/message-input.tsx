@@ -38,6 +38,7 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import * as React from "react";
+import { useDebounce } from "use-debounce";
 import {
   TextEditor,
   type PromptItem,
@@ -113,6 +114,8 @@ const filterPromptItems = (
   );
 };
 
+const EXTERNAL_SEARCH_DEBOUNCE_MS = 200;
+
 /**
  * Hook to get a combined resource list that merges MCP resources with an external provider.
  * Returns the combined, filtered resource items.
@@ -126,6 +129,7 @@ function useCombinedResourceList(
   search: string,
 ): ResourceItem[] {
   const { data: mcpResources } = useTamboMcpResourceList(search);
+  const [debouncedSearch] = useDebounce(search, EXTERNAL_SEARCH_DEBOUNCE_MS);
 
   // Convert MCP resources to ResourceItems
   const mcpItems: ResourceItem[] = React.useMemo(
@@ -159,7 +163,7 @@ function useCombinedResourceList(
 
     let cancelled = false;
     externalProvider
-      .search(search)
+      .search(debouncedSearch)
       .then((items) => {
         if (!cancelled) {
           setExternalItems(items);
@@ -175,7 +179,7 @@ function useCombinedResourceList(
     return () => {
       cancelled = true;
     };
-  }, [externalProvider, search]);
+  }, [externalProvider, debouncedSearch]);
 
   // Combine and dedupe - MCP resources are already filtered by the hook
   // External items need to be filtered locally
@@ -200,6 +204,7 @@ function useCombinedPromptList(
 ): PromptItem[] {
   // Pass search to MCP hook for filtering
   const { data: mcpPrompts } = useTamboMcpPromptList(search);
+  const [debouncedSearch] = useDebounce(search, EXTERNAL_SEARCH_DEBOUNCE_MS);
 
   // Convert MCP prompts to PromptItems (mark with mcp-prompt: prefix for special handling)
   const mcpItems: PromptItem[] = React.useMemo(
@@ -227,7 +232,7 @@ function useCombinedPromptList(
 
     let cancelled = false;
     externalProvider
-      .search(search)
+      .search(debouncedSearch)
       .then((items) => {
         if (!cancelled) {
           setExternalItems(items);
@@ -243,7 +248,7 @@ function useCombinedPromptList(
     return () => {
       cancelled = true;
     };
-  }, [externalProvider, search]);
+  }, [externalProvider, debouncedSearch]);
 
   // Combine - MCP prompts are already filtered by the hook
   // External items need to be filtered locally
