@@ -2,7 +2,7 @@
 
 import { useNextAuthSession } from "@/hooks/nextauth";
 import { api } from "@/trpc/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect } from "react";
 
 interface NextAuthLayoutWrapperProps {
@@ -17,6 +17,7 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
   const { data: session, status } = useNextAuthSession();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Check legal acceptance status
   const { data: legalStatus } = api.user.hasAcceptedLegal.useQuery(undefined, {
@@ -28,7 +29,9 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
 
     // No session, redirect to login
     if (!session) {
-      const returnUrl = encodeURIComponent(pathname || "/dashboard");
+      const search = searchParams.toString();
+      const fullPath = search ? `${pathname}?${search}` : pathname;
+      const returnUrl = encodeURIComponent(fullPath || "/dashboard");
       router.replace(`/login?returnUrl=${returnUrl}`);
     } else if (
       // Check if user has accepted legal
@@ -39,7 +42,7 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
       // Redirect to legal acceptance if not accepted
       router.push("/legal-acceptance");
     }
-  }, [session, status, router, legalStatus, pathname]);
+  }, [session, status, router, legalStatus, pathname, searchParams]);
 
   // Show loading state while checking session
   if (status === "loading" || (session && !legalStatus)) {
