@@ -47,6 +47,24 @@ export interface McpResourceEntry {
  */
 export type ListResourceEntry = RegistryResourceEntry | McpResourceEntry;
 
+type InternalRegistryResourceEntry = RegistryResourceEntry & {
+  isDynamic: boolean;
+};
+
+type InternalListResourceEntry =
+  | McpResourceEntry
+  | InternalRegistryResourceEntry;
+
+function toPublicResourceEntry(
+  entry: InternalListResourceEntry,
+): ListResourceEntry {
+  if (entry.server === null) {
+    const { isDynamic: _isDynamic, ...publicEntry } = entry;
+    return publicEntry;
+  }
+  return entry;
+}
+
 /**
  * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource.
  */
@@ -269,12 +287,13 @@ export function useTamboMcpResourceList(search?: string) {
           {
             queryKey: ["registry-resources", "dynamic", search],
             enabled: true,
-            queryFn: async (): Promise<RegistryResourceEntry[]> => {
+            queryFn: async (): Promise<InternalRegistryResourceEntry[]> => {
               if (!resourceSource) return [];
               const resources = await resourceSource.listResources(search);
               return resources.map((resource) => ({
                 server: null,
                 resource,
+                isDynamic: true,
               }));
             },
           },
@@ -287,16 +306,16 @@ export function useTamboMcpResourceList(search?: string) {
     combine: (results) => {
       // Type assertion needed because queries can return different entry types
       const combined = combineArrayResults(
-        results as UseQueryResult<ListResourceEntry[]>[],
+        results as UseQueryResult<InternalListResourceEntry[]>[],
       );
 
       // Add static registry resources (no query needed)
-      const staticEntries: RegistryResourceEntry[] = staticResources.map(
-        (resource) => ({
+      const staticEntries: InternalRegistryResourceEntry[] =
+        staticResources.map((resource) => ({
           server: null,
           resource,
-        }),
-      );
+          isDynamic: false,
+        }));
 
       // Merge static resources with query results (registry resources first)
       const allData = [...staticEntries, ...combined.data];
@@ -335,15 +354,12 @@ export function useTamboMcpResourceList(search?: string) {
   // - MCP resources are filtered locally
   // - Static registry resources are filtered locally
   // - Dynamic registry resources are already filtered by listResources(search)
-  const filteredData = React.useMemo(() => {
+  const filteredData = React.useMemo((): InternalListResourceEntry[] => {
     if (!search) return queries.data;
 
     const normalizedSearch = search.toLowerCase();
     return queries.data.filter((entry) => {
-      if (
-        entry.server === null &&
-        entry.resource.uri.startsWith(`${REGISTRY_SERVER_KEY}:dynamic://`)
-      ) {
+      if (entry.server === null && entry.isDynamic) {
         return true;
       }
 
@@ -353,9 +369,14 @@ export function useTamboMcpResourceList(search?: string) {
     });
   }, [queries.data, search]);
 
+  const publicData = React.useMemo(
+    () => filteredData.map(toPublicResourceEntry),
+    [filteredData],
+  );
+
   return {
     ...queries,
-    data: filteredData,
+    data: publicData,
   };
 }
 
