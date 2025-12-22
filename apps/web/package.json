@@ -55,7 +55,7 @@
     "@tiptap/suggestion": "^3.10.2",
     "@trpc/client": "^11.7.2",
     "@trpc/react-query": "^11.7.1",
-    "@trpc/server": "^11.0.2",
+    "@trpc/server": "^11.8.0",
     "@types/react-speech-recognition": "^3.9.6",
     "@vercel/analytics": "^1.5.0",
     "@vercel/og": "^1.0.0",
