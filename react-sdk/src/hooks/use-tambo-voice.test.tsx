@@ -21,7 +21,7 @@ import { useTamboClient } from "../providers/tambo-client-provider";
 
 // Mock fetch globally
 const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const originalFetch = global.fetch;
 
 describe("useTamboVoice", () => {
   let mockStartRecording: jest.Mock;
@@ -72,6 +72,9 @@ describe("useTamboVoice", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    global.fetch = mockFetch as unknown as typeof fetch;
+
     mockStartRecording = jest.fn();
     mockStopRecording = jest.fn();
     mockTranscribe = jest.fn();
@@ -102,6 +105,10 @@ describe("useTamboVoice", () => {
       blob: async () =>
         await Promise.resolve(new Blob(["audio data"], { type: "audio/webm" })),
     });
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
   describe("Initial State", () => {
