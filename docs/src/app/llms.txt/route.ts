@@ -42,17 +42,7 @@ export async function GET() {
     map.set(section, list);
   }
 
-  const pinnedSectionOrder = ["getting-started", "api-reference", "concepts"];
-  const remainingSections = [...map.keys()]
-    .filter((key) => !pinnedSectionOrder.includes(key))
-    .toSorted();
-
-  for (const key of [...pinnedSectionOrder, ...remainingSections]) {
-    const value = map.get(key);
-    if (!value) {
-      continue;
-    }
-
+  for (const [key, value] of map) {
     scanned.push(`## ${key}`);
     scanned.push(value.join("\n"));
   }
