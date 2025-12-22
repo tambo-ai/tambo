@@ -33,6 +33,31 @@ export interface AuthRevokeSessionOptions {
   all?: boolean;
 }
 
+// ============================================================================
+// Common auth message helpers
+// ============================================================================
+
+function showNotAuthenticated(): void {
+  console.log(chalk.yellow("\nNot authenticated."));
+  console.log(
+    chalk.gray(`\nRun ${chalk.cyan("tambo auth login")} to authenticate.\n`),
+  );
+}
+
+function showSessionExpired(): void {
+  clearToken();
+  console.log(chalk.yellow("\nSession expired or revoked."));
+  console.log(
+    chalk.gray(
+      `\nRun ${chalk.cyan("tambo auth login")} to authenticate again.\n`,
+    ),
+  );
+}
+
+// ============================================================================
+// Auth command handlers
+// ============================================================================
+
 /**
  * Show current authentication status
  * @returns Exit code: 0 if authenticated, 1 otherwise
@@ -193,12 +218,7 @@ export async function handleAuthLogout(
 export async function handleAuthSessions(): Promise<number> {
   // Check authentication first
   if (!hasStoredToken() || !isTokenValid()) {
-    console.log(chalk.yellow("\nNot authenticated."));
-    console.log(
-      chalk.gray(
-        `Run ${chalk.cyan("tambo auth login")} to authenticate first.\n`,
-      ),
-    );
+    showNotAuthenticated();
     return 1;
   }
 
@@ -214,12 +234,7 @@ export async function handleAuthRevokeSession(
 ): Promise<number> {
   // Check authentication first
   if (!hasStoredToken() || !isTokenValid()) {
-    console.log(chalk.yellow("\nNot authenticated."));
-    console.log(
-      chalk.gray(
-        `Run ${chalk.cyan("tambo auth login")} to authenticate first.\n`,
-      ),
-    );
+    showNotAuthenticated();
     return 1;
   }
 
@@ -276,14 +291,7 @@ async function interactiveRevokeSession(): Promise<number> {
     spinner.fail("Failed to fetch sessions");
 
     if (isAuthError(error)) {
-      // Session was revoked or expired on server
-      clearToken();
-      console.log(chalk.yellow("\nSession expired or revoked.\n"));
-      console.log(
-        chalk.gray(
-          `Run ${chalk.cyan("tambo auth login")} to authenticate again.\n`,
-        ),
-      );
+      showSessionExpired();
     } else if (error instanceof ApiError) {
       console.log(chalk.red(`\nError: ${error.message}`));
     } else {
@@ -372,14 +380,7 @@ async function listSessions(): Promise<number> {
     spinner.fail("Failed to fetch sessions");
 
     if (isAuthError(error)) {
-      // Session was revoked or expired on server
-      clearToken();
-      console.log(chalk.yellow("\nSession expired or revoked."));
-      console.log(
-        chalk.gray(
-          `Run ${chalk.cyan("tambo auth login")} to authenticate again.\n`,
-        ),
-      );
+      showSessionExpired();
     } else if (error instanceof ApiError) {
       console.log(chalk.red(`\nError: ${error.message}`));
     } else {
