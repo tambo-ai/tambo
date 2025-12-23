@@ -15,7 +15,12 @@
     "strict": true,
     "skipLibCheck": true,
     "baseUrl": ".",
-    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "../node_modules/@types",
+      "./src/types"
+    ],
+    "types": ["node", "jest"],
     "paths": {
       "@/*": ["src/*"],
       "@/components/tambo/*": ["src/registry/*"],
@@ -32,5 +37,5 @@
     "__tests__/**/*.ts",
     "__tests__/**/*.tsx"
   ],
-  "exclude": ["node_modules", "./dist", "tests"]
+  "exclude": ["node_modules", "./dist"]
 }

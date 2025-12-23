@@ -16,41 +16,7 @@ import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import { useState } from "react";
-import { harden } from "rehype-harden";
-import { Streamdown, defaultRehypePlugins } from "streamdown";
-import type { PluggableList } from "unified";
-/**
- * Rehype plugins configuration for Streamdown to allow custom tambo-resource:// protocol
- * This allows our custom protocol for resource links to pass through security checks
- * and be rendered as Mention components.
- *
- * Note: defaultRehypePlugins already includes a harden plugin with permissive defaults.
- * We replace it with our own configured version to allow the tambo-resource:// protocol.
- */
-const streamdownRehypePlugins: PluggableList = [
-  defaultRehypePlugins.raw,
-  defaultRehypePlugins.katex,
-  // Configure harden to allow our custom tambo-resource:// protocol
-  // We explicitly configure harden here (replacing any default) to ensure
-  // tambo-resource:// links are allowed and reach our custom component
-  [
-    harden,
-    {
-      // Allow standard protocols plus our custom tambo-resource protocol
-      // Protocol names should match exactly (without ://)
-      allowedProtocols: ["http", "https", "mailto", "tambo-resource"],
-      // Explicitly allow our protocol prefix to ensure it passes through,
-      // without re-opening arbitrary custom protocols.
-      allowedLinkPrefixes: [
-        "tambo-resource://",
-        "http://",
-        "https://",
-        "mailto:",
-      ],
-      allowDataImages: true,
-    },
-  ],
-];
+import { Streamdown } from "streamdown";
 
 /**
  * Converts message content to markdown format for rendering with streamdown.
@@ -276,12 +242,7 @@ function MessageContentRenderer({
   }
   if (markdown) {
     return (
-      <Streamdown
-        components={markdownComponents}
-        rehypePlugins={streamdownRehypePlugins}
-      >
-        {markdownContent}
-      </Streamdown>
+      <Streamdown components={markdownComponents}>{markdownContent}</Streamdown>
     );
   }
   return markdownContent;
@@ -519,7 +480,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             aria-controls={toolDetailsId}
             onClick={() => setIsExpanded(!isExpanded)}
             className={cn(
-              "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none w-fit",
+              "flex items-center gap-1 cursor-pointer hover:bg-muted rounded-md p-1 select-none w-fit",
             )}
           >
             <ToolcallStatusIcon
@@ -756,10 +717,7 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
                 {reasoningStep ? (
                   <div className="bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full">
                     <div className="whitespace-pre-wrap break-words">
-                      <Streamdown
-                        components={markdownComponents}
-                        rehypePlugins={streamdownRehypePlugins}
-                      >
+                      <Streamdown components={markdownComponents}>
                         {reasoningStep}
                       </Streamdown>
                     </div>
@@ -875,12 +833,7 @@ function formatToolResult(
       // JSON parsing failed, render as markdown or plain text
       if (!enableMarkdown) return contentString;
       return (
-        <Streamdown
-          components={markdownComponents}
-          rehypePlugins={streamdownRehypePlugins}
-        >
-          {contentString}
-        </Streamdown>
+        <Streamdown components={markdownComponents}>{contentString}</Streamdown>
       );
     }
   }
@@ -981,7 +934,7 @@ export {
   MessageContent,
   MessageImages,
   MessageRenderedComponentArea,
+  messageVariants,
   ReasoningInfo,
   ToolcallInfo,
-  messageVariants,
 };

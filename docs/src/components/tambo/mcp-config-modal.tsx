@@ -142,14 +142,13 @@ export const McpConfigModal = ({
 
 After configuring your MCP servers below, integrate them into your application.
 
-#### 1. Import the required components
+#### 1. Import the required hook
 
 \`\`\`tsx
 import { useMcpServers } from "@/components/tambo/mcp-config-modal";
-import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 \`\`\`
 
-#### 2. Load MCP servers and wrap your components:
+#### 2. Load MCP servers and pass to TamboProvider:
 
 \`\`\`tsx
 const mcpServers = useMcpServers();
@@ -162,10 +161,13 @@ function MyApp() {
   const mcpServers = useMcpServers(); // Reactive - updates when servers change
 
   return (
-    <TamboProvider apiKey={apiKey} components={components} tools={tools}>
-      <TamboMcpProvider mcpServers={mcpServers}>
-        {/* Your app components */}
-      </TamboMcpProvider>
+    <TamboProvider
+      apiKey={apiKey}
+      components={components}
+      tools={tools}
+      mcpServers={mcpServers}
+    >
+      {/* Your app components */}
     </TamboProvider>
   );
 }
@@ -401,7 +403,7 @@ function MyApp() {
             <p className="text-foreground text-sm leading-relaxed">
               The{" "}
               <a
-                href="https://docs.tambo.co/concepts/model-context-protocol"
+                href="/concepts/model-context-protocol"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium underline underline-offset-2 hover:text-foreground"
@@ -418,7 +420,7 @@ function MyApp() {
             <p className="text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">Learn more:</span>{" "}
               <a
-                href="https://docs.tambo.co/concepts/model-context-protocol/clientside-mcp-connection"
+                href="/concepts/model-context-protocol/providers/clientside-mcp-connection"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground underline underline-offset-2"
@@ -427,7 +429,7 @@ function MyApp() {
               </a>{" "}
               |{" "}
               <a
-                href="https://docs.tambo.co/concepts/model-context-protocol/serverside-mcp-connection"
+                href="/concepts/model-context-protocol/providers/serverside-mcp-connection"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground underline underline-offset-2"
@@ -469,9 +471,9 @@ export type McpServer = string | { url: string };
  *   // Returns: [{ url: "https://api.example.com" }, "https://api2.example.com"]
  *
  *   return (
- *     <TamboMcpProvider mcpServers={mcpServers}>
+ *     <TamboProvider mcpServers={mcpServers}>
  *       {children}
- *     </TamboMcpProvider>
+ *     </TamboProvider>
  *   );
  * }
  * ```

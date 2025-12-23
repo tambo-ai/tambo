@@ -231,13 +231,13 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
 
-Database commands:
+Database commands (require `-w packages/db` flag from root):
 
 ```bash
-npm run db:generate  # Generate migrations from schema changes
-npm run db:migrate   # Apply migrations
-npm run db:check     # Check status
-npm run db:studio    # Open Drizzle Studio
+npm run db:generate -w packages/db  # Generate migrations from schema changes
+npm run db:migrate -w packages/db   # Apply migrations
+npm run db:check -w packages/db     # Check status
+npm run db:studio -w packages/db    # Open Drizzle Studio
 ```
 
 ## 7. Shared Packages & Utilities
@@ -250,27 +250,33 @@ npm run db:studio    # Open Drizzle Studio
 
 ### Commands
 
-#### Framework Development
+#### Development Commands
 
 ```bash
-# Development
-npm run dev              # Start showcase + docs development servers
+# Development (two different apps!)
+npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 3000/3001
+npm run dev              # Start React SDK (showcase + docs)
+
+# Quality checks
+npm run lint             # Lint all packages
+npm run lint:fix         # Auto-fix linting issues
+npm run check-types      # TypeScript type checking
+npm test                 # Run all tests
+npm run format           # Format code with Prettier
+
+# Individual package development (from package directory or with -w flag)
+npm run dev -w cli       # Start specific workspace
+npm run build -w react-sdk  # Build specific package
+```
+
+#### Turbo Commands (alternative)
+
+```bash
 turbo dev               # Start all packages in development mode
 turbo build             # Build all packages
 turbo lint              # Lint all packages
 turbo test              # Run tests across all packages
 turbo check-types       # Type-check all packages
-
-# Individual package development (from package directory)
-npm run dev             # Package-specific development
-npm run build           # Build single package
-npm run test            # Test single package
-npm run lint            # Lint single package
-npm run check-types     # Type-check single package
-
-# Utility commands
-npm run format          # Format code with Prettier
-npm run lint:fix        # Auto-fix linting issues
 ```
 
 ### Build System
@@ -394,3 +400,4 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 - Do not compliment them or try to gain favor from them.
 - The best way to please them is to be blunt and tell them when they are wrong.
 - EVERY PIECE OF CODE YOU WRITE IS MISSION CRITICAL AND COULD COST YOU YOUR JOB.
+- When adding/editing JSDoc comments, make sure to add @returns to provide a description of the function return (the type should not be specified since TS will infer the return from the code, not the comment.)

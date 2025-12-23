@@ -1,5 +1,6 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { UseQueryOptions } from "@tanstack/react-query";
+import { useTamboThread } from "../providers";
 import { useTamboClient } from "../providers/tambo-client-provider";
 import { useTamboQuery } from "./react-query-hooks";
 
@@ -9,11 +10,6 @@ interface UseTamboThreadListConfig {
    * will be used.
    */
   projectId?: string;
-  /**
-   * The context key to get the threads for. If not provided, all threads for
-   * the project will be returned.
-   */
-  contextKey?: string;
 }
 
 /**
@@ -21,19 +17,20 @@ interface UseTamboThreadListConfig {
  *
  * If contextKey is empty, then all threads for the project will be returned.
  * If contextKey is not empty, then only the threads for the specified context
- * key will be returned.
+ * key will be returned. The contextKey is obtained from the TamboThreadProvider
+ * via useTamboThread().
  * @param config - The config for the useTamboThreadList hook
  * @param config.projectId - The projectId to get the threads for
- * @param config.contextKey - The context key to get the threads for
  * @returns The threads for the specified project and optional context key
  */
 export function useTamboThreadList(
-  { projectId, contextKey }: UseTamboThreadListConfig = {},
+  { projectId }: UseTamboThreadListConfig = {},
   options: Partial<
     UseQueryOptions<TamboAI.Beta.Threads.ThreadsOffsetAndLimit | null>
   > = {},
 ) {
   const client = useTamboClient();
+  const { contextKey } = useTamboThread();
   const { data: queriedProjectId, ...projectIdState } = useTamboQuery({
     ...(options as unknown as UseQueryOptions<string>),
     queryKey: ["projectId"],

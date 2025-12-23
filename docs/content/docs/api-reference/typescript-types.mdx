@@ -225,14 +225,14 @@ enum GenerationStage {
 
 ## ContextAttachment
 
-Represents a context attachment that appears as a badge above the message input.
+Represents a context attachment that will be sent with the next user message.
 
 ```typescript
 interface ContextAttachment {
-  id: string;
-  name: string;
-  icon?: React.ReactNode;
-  metadata?: Record<string, unknown>;
+  id: string; // Auto-generated unique identifier
+  displayName?: string; // Optional display name for UI rendering
+  context: string; // The context value that will be used in additionalContext
+  type?: string; // Optional type identifier for grouping/rendering
 }
 ```
 
@@ -246,28 +246,28 @@ Unique identifier for the attachment. Auto-generated when adding a context attac
 id: string;
 ```
 
-#### name
+#### displayName
 
-Display name shown in the badge.
+Display name for UI rendering.
 
 ```typescript
-name: string;
+displayName: string;
 ```
 
-#### icon
+#### context
 
-Optional icon to display in the badge.
+The context value that will be used in `additionalContext` when the next message is sent.
 
 ```typescript
-icon?: React.ReactNode;
+context: string;
 ```
 
-#### metadata
+#### type
 
-Additional data passed to the AI as context.
+Optional type identifier for grouping/rendering multiple contexts of the same type.
 
 ```typescript
-metadata?: Record<string, unknown>;
+type?: string;
 ```
 
 ## ContextAttachmentState
@@ -277,11 +277,11 @@ The state interface returned by the `useTamboContextAttachment` hook.
 ```typescript
 interface ContextAttachmentState {
   attachments: ContextAttachment[];
-  addContextAttachment: (context: Omit<ContextAttachment, "id">) => void;
+  addContextAttachment: (
+    contextAttachment: Omit<ContextAttachment, "id">,
+  ) => ContextAttachment;
   removeContextAttachment: (id: string) => void;
   clearContextAttachments: () => void;
-  customSuggestions: Suggestion[] | null;
-  setCustomSuggestions: (suggestions: Suggestion[] | null) => void;
 }
 ```
 
@@ -289,7 +289,7 @@ interface ContextAttachmentState {
 
 #### attachments
 
-Array of active context attachments currently displayed as badges.
+Array of active context attachments that will be included in `additionalContext` when the next message is sent.
 
 ```typescript
 attachments: ContextAttachment[];
@@ -297,15 +297,16 @@ attachments: ContextAttachment[];
 
 #### addContextAttachment
 
-Function to add a new context attachment. The `id` is automatically generated.
+Function to add a new context attachment. The `id` is automatically generated. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments.
 
 ```typescript
-addContextAttachment: (context: Omit<ContextAttachment, "id">) => void;
+addContextAttachment: (contextAttachment: Omit<ContextAttachment, "id">) =>
+  ContextAttachment;
 ```
 
 #### removeContextAttachment
 
-Function to remove a specific context attachment by its ID.
+Function to remove a specific context attachment by its ID. The context helper automatically updates to reflect the change.
 
 ```typescript
 removeContextAttachment: (id: string) => void;
@@ -313,34 +314,8 @@ removeContextAttachment: (id: string) => void;
 
 #### clearContextAttachments
 
-Function to remove all active context attachments.
+Function to remove all active context attachments. The context helper automatically updates to reflect the change. Context attachments are automatically cleared after message submission (one-time use), so you typically don't need to call this manually.
 
 ```typescript
 clearContextAttachments: () => void;
 ```
-
-#### customSuggestions
-
-Current custom suggestions that override auto-generated ones. Returns `null` if using auto-generated suggestions.
-
-```typescript
-customSuggestions: Suggestion[] | null;
-```
-
-#### setCustomSuggestions
-
-Function to set custom suggestions or clear them by passing `null`.
-
-```typescript
-setCustomSuggestions: (suggestions: Suggestion[] | null) => void;
-```
-
-## ContextHelperData
-
-Data structure returned by a context helper function.
-
-```typescript
-type ContextHelperData = Record<string, unknown>;
-```
-
-This type represents the data sent to the AI when a context attachment is active. You can customize this structure using the `getContextHelperData` prop on `TamboProvider`.

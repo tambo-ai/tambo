@@ -64,7 +64,6 @@ const messageInputVariants = cva("w-full", {
  * @property {function} handleSubmit - Function to handle form submission
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
- * @property {string|undefined} contextKey - The thread context key
  * @property {HTMLTextAreaElement|null} textareaRef - Reference to the textarea element
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
@@ -72,14 +71,10 @@ const messageInputVariants = cva("w-full", {
 interface MessageInputContextValue {
   value: string;
   setValue: (value: string) => void;
-  submit: (options: {
-    contextKey?: string;
-    streamResponse?: boolean;
-  }) => Promise<void>;
+  submit: (options: { streamResponse?: boolean }) => Promise<void>;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   isPending: boolean;
   error: Error | null;
-  contextKey?: string;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -114,8 +109,6 @@ const useMessageInputContext = () => {
  * Extends standard HTMLFormElement attributes.
  */
 export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement> {
-  /** The context key identifying which thread to send messages to. */
-  contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
   /** Optional ref to forward to the textarea element. */
@@ -132,7 +125,7 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
  * @component MessageInput
  * @example
  * ```tsx
- * <MessageInput contextKey="my-thread" variant="solid">
+ * <MessageInput variant="solid">
  *   <MessageInput.Textarea />
  *   <MessageInput.SubmitButton />
  *   <MessageInput.Error />
@@ -140,12 +133,11 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
  * ```
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
-  ({ children, className, contextKey, variant, ...props }, ref) => {
+  ({ children, className, variant, ...props }, ref) => {
     return (
       <MessageInputInternal
         ref={ref}
         className={className}
-        contextKey={contextKey}
         variant={variant}
         {...props}
       >
@@ -162,224 +154,207 @@ MessageInput.displayName = "MessageInput";
 const MessageInputInternal = React.forwardRef<
   HTMLFormElement,
   MessageInputProps
->(
-  (
-    {
-      children,
-      className,
-      contextKey,
-      variant,
-      inputRef,
-      initialQuery,
-      ...props
+>(({ children, className, variant, inputRef, initialQuery, ...props }, ref) => {
+  const {
+    value,
+    setValue,
+    submit,
+    isPending,
+    error,
+    images,
+    addImages,
+    clearImages,
+  } = useTamboThreadInput();
+  const { cancel } = useTamboThread();
+  const [displayValue, setDisplayValue] = React.useState("");
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [hasSetInitialQuery, setHasSetInitialQuery] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const dragCounter = React.useRef(0);
+
+  React.useEffect(() => {
+    setDisplayValue(value);
+    if (value && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [value]);
+
+  // Pre-fill input with initialQuery only once when component mounts
+  React.useEffect(() => {
+    if (initialQuery && !hasSetInitialQuery && !value) {
+      setValue(initialQuery);
+      setHasSetInitialQuery(true);
+    }
+  }, [initialQuery, setValue, value, hasSetInitialQuery]);
+
+  const handleSubmit = React.useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if ((!value.trim() && images.length === 0) || isSubmitting) return;
+
+      setSubmitError(null);
+      setDisplayValue("");
+      setIsSubmitting(true);
+
+      // Clear images in next tick for immediate UI feedback
+      if (images.length > 0) {
+        setTimeout(() => clearImages(), 0);
+      }
+
+      try {
+        await submit({
+          streamResponse: true,
+        });
+        setValue("");
+        // Images are cleared automatically by the TamboThreadInputProvider
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 0);
+      } catch (error) {
+        console.error("Failed to submit message:", error);
+        setDisplayValue(value);
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "Failed to send message. Please try again.",
+        );
+
+        // Cancel the thread to reset loading state
+        await cancel();
+      } finally {
+        setIsSubmitting(false);
+      }
     },
-    ref,
-  ) => {
-    const {
+    [
       value,
+      submit,
+      setValue,
+      setDisplayValue,
+      setSubmitError,
+      cancel,
+      isSubmitting,
+      images,
+      clearImages,
+    ],
+  );
+
+  const handleDragEnter = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      const hasImages = Array.from(e.dataTransfer.items).some((item) =>
+        item.type.startsWith("image/"),
+      );
+      if (hasImages) {
+        setIsDragging(true);
+      }
+    }
+  }, []);
+
+  const handleDragLeave = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = React.useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = React.useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      dragCounter.current = 0;
+
+      const files = Array.from(e.dataTransfer.files).filter((file) =>
+        file.type.startsWith("image/"),
+      );
+
+      if (files.length > 0) {
+        try {
+          await addImages(files);
+        } catch (error) {
+          console.error("Failed to add dropped images:", error);
+        }
+      }
+    },
+    [addImages],
+  );
+
+  const contextValue = React.useMemo(
+    () => ({
+      value: displayValue,
+      setValue: (newValue: string) => {
+        setValue(newValue);
+        setDisplayValue(newValue);
+      },
+      submit,
+      handleSubmit,
+      isPending: isPending ?? isSubmitting,
+      error,
+      textareaRef: inputRef ?? textareaRef,
+      submitError,
+      setSubmitError,
+    }),
+    [
+      displayValue,
       setValue,
       submit,
+      handleSubmit,
       isPending,
+      isSubmitting,
       error,
-      images,
-      addImages,
-      clearImages,
-    } = useTamboThreadInput();
-    const { cancel } = useTamboThread();
-    const [displayValue, setDisplayValue] = React.useState("");
-    const [submitError, setSubmitError] = React.useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const [hasSetInitialQuery, setHasSetInitialQuery] = React.useState(false);
-    const [isDragging, setIsDragging] = React.useState(false);
-    const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-    const dragCounter = React.useRef(0);
-
-    React.useEffect(() => {
-      setDisplayValue(value);
-      if (value && textareaRef.current) {
-        textareaRef.current.focus();
-      }
-    }, [value]);
-
-    // Pre-fill input with initialQuery only once when component mounts
-    React.useEffect(() => {
-      if (initialQuery && !hasSetInitialQuery && !value) {
-        setValue(initialQuery);
-        setHasSetInitialQuery(true);
-      }
-    }, [initialQuery, setValue, value, hasSetInitialQuery]);
-
-    const handleSubmit = React.useCallback(
-      async (e: React.FormEvent) => {
-        e.preventDefault();
-        if ((!value.trim() && images.length === 0) || isSubmitting) return;
-
-        setSubmitError(null);
-        setDisplayValue("");
-        setIsSubmitting(true);
-
-        // Clear images in next tick for immediate UI feedback
-        if (images.length > 0) {
-          setTimeout(() => clearImages(), 0);
-        }
-
-        try {
-          await submit({
-            contextKey,
-            streamResponse: true,
-          });
-          setValue("");
-          // Images are cleared automatically by the TamboThreadInputProvider
-          setTimeout(() => {
-            textareaRef.current?.focus();
-          }, 0);
-        } catch (error) {
-          console.error("Failed to submit message:", error);
-          setDisplayValue(value);
-          setSubmitError(
-            error instanceof Error
-              ? error.message
-              : "Failed to send message. Please try again.",
-          );
-
-          // Cancel the thread to reset loading state
-          await cancel();
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-      [
-        value,
-        submit,
-        contextKey,
-        setValue,
-        setDisplayValue,
-        setSubmitError,
-        cancel,
-        isSubmitting,
-        images,
-        clearImages,
-      ],
-    );
-
-    const handleDragEnter = React.useCallback((e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dragCounter.current++;
-      if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-        const hasImages = Array.from(e.dataTransfer.items).some((item) =>
-          item.type.startsWith("image/"),
-        );
-        if (hasImages) {
-          setIsDragging(true);
-        }
-      }
-    }, []);
-
-    const handleDragLeave = React.useCallback((e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dragCounter.current--;
-      if (dragCounter.current === 0) {
-        setIsDragging(false);
-      }
-    }, []);
-
-    const handleDragOver = React.useCallback((e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }, []);
-
-    const handleDrop = React.useCallback(
-      async (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-        dragCounter.current = 0;
-
-        const files = Array.from(e.dataTransfer.files).filter((file) =>
-          file.type.startsWith("image/"),
-        );
-
-        if (files.length > 0) {
-          try {
-            await addImages(files);
-          } catch (error) {
-            console.error("Failed to add dropped images:", error);
-          }
-        }
-      },
-      [addImages],
-    );
-
-    const contextValue = React.useMemo(
-      () => ({
-        value: displayValue,
-        setValue: (newValue: string) => {
-          setValue(newValue);
-          setDisplayValue(newValue);
-        },
-        submit,
-        handleSubmit,
-        isPending: isPending ?? isSubmitting,
-        error,
-        contextKey,
-        textareaRef: inputRef ?? textareaRef,
-        submitError,
-        setSubmitError,
-      }),
-      [
-        displayValue,
-        setValue,
-        submit,
-        handleSubmit,
-        isPending,
-        isSubmitting,
-        error,
-        contextKey,
-        inputRef,
-        textareaRef,
-        submitError,
-      ],
-    );
-    return (
-      <MessageInputContext.Provider
-        value={contextValue as MessageInputContextValue}
+      inputRef,
+      textareaRef,
+      submitError,
+    ],
+  );
+  return (
+    <MessageInputContext.Provider
+      value={contextValue as MessageInputContextValue}
+    >
+      <form
+        ref={ref}
+        onSubmit={handleSubmit}
+        className={cn(messageInputVariants({ variant }), className)}
+        data-slot="message-input-form"
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        {...props}
       >
-        <form
-          ref={ref}
-          onSubmit={handleSubmit}
-          className={cn(messageInputVariants({ variant }), className)}
-          data-slot="message-input-form"
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          {...props}
+        <div
+          className={cn(
+            "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
+            isDragging
+              ? "border border-dashed border-emerald-400"
+              : "border border-border",
+          )}
         >
-          <div
-            className={cn(
-              "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
-              isDragging
-                ? "border border-dashed border-emerald-400"
-                : "border border-border",
-            )}
-          >
-            {isDragging && (
-              <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 flex items-center justify-center pointer-events-none z-20">
-                <p className="text-emerald-700 dark:text-emerald-300 font-medium">
-                  Drop files here to add to conversation
-                </p>
-              </div>
-            )}
-            <MessageInputStagedImages />
-            {children}
-          </div>
-        </form>
-      </MessageInputContext.Provider>
-    );
-  },
-);
+          {isDragging && (
+            <div className="absolute inset-0 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 flex items-center justify-center pointer-events-none z-20">
+              <p className="text-emerald-700 dark:text-emerald-300 font-medium">
+                Drop files here to add to conversation
+              </p>
+            </div>
+          )}
+          <MessageInputStagedImages />
+          {children}
+        </div>
+      </form>
+    </MessageInputContext.Provider>
+  );
+});
 MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
 
@@ -520,8 +495,13 @@ const MessageInputSubmitButton = React.forwardRef<
   MessageInputSubmitButtonProps
 >(({ className, children, ...props }, ref) => {
   const { isPending } = useMessageInputContext();
-  const { cancel } = useTamboThread();
+  const { cancel, isIdle } = useTamboThread();
   const isUpdatingToken = useIsTamboTokenUpdating();
+
+  // Show cancel button if either:
+  // 1. A mutation is in progress (isPending), OR
+  // 2. Thread is stuck in a processing state (e.g., after browser refresh during tool execution)
+  const showCancelButton = isPending || !isIdle;
 
   const handleCancel = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -537,16 +517,18 @@ const MessageInputSubmitButton = React.forwardRef<
   return (
     <button
       ref={ref}
-      type={isPending ? "button" : "submit"}
+      type={showCancelButton ? "button" : "submit"}
       disabled={isUpdatingToken}
-      onClick={isPending ? handleCancel : undefined}
+      onClick={showCancelButton ? handleCancel : undefined}
       className={buttonClasses}
-      aria-label={isPending ? "Cancel message" : "Send message"}
-      data-slot={isPending ? "message-input-cancel" : "message-input-submit"}
+      aria-label={showCancelButton ? "Cancel message" : "Send message"}
+      data-slot={
+        showCancelButton ? "message-input-cancel" : "message-input-submit"
+      }
       {...props}
     >
       {children ??
-        (isPending ? (
+        (showCancelButton ? (
           <Square className="w-4 h-4" fill="currentColor" />
         ) : (
           <ArrowUp className="w-5 h-5" />

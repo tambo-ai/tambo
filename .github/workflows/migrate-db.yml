@@ -131,9 +131,13 @@ jobs:
 
       - name: Set up Node.js
         if: steps.check-changes.outputs.changed == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
+
+      - name: Pin NPM version
+        if: steps.check-changes.outputs.changed == 'true'
+        run: npm install -g npm@11.7.0
 
       - name: Install dependencies
         if: steps.check-changes.outputs.changed == 'true'

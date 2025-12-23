@@ -162,7 +162,7 @@ The SDK supports real-time streaming of AI responses:
 
 Model Context Protocol support enables extending AI capabilities:
 
-- Client-side MCP connections via `TamboMcpProvider`
+- Client-side MCP connections via the `mcpServers` prop on `TamboProvider`
 - Tool discovery and execution
 - Resource access and management
 - Custom protocol implementations

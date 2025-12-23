@@ -3,11 +3,8 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { MessageThreadPanelWithMcp } from "@/components/tambo/message-thread-panel-with-mcp";
-import { useUserContextKey } from "@/lib/useUserContextKey";
 
 export default function MessageThreadPanelPage() {
-  const userContextKey = useUserContextKey("message-thread-panel");
-
   return (
     <div className="prose max-w-8xl space-y-12">
       {/* Title & Description */}
@@ -42,7 +39,6 @@ export default function MessageThreadPanelPage() {
                   </div>
                 </div>
                 <MessageThreadPanelWithMcp
-                  contextKey={userContextKey}
                   className="right rounded-r-lg"
                   style={{ height: "100%", width: "60%" }}
                 />

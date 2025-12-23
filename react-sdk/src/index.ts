@@ -41,7 +41,6 @@ export {
   useTamboThreadInput,
   type ContextAttachment,
   type ContextAttachmentState,
-  type ContextHelperData,
   type RegisterToolFn,
   type RegisterToolsFn,
   type TamboComponent,

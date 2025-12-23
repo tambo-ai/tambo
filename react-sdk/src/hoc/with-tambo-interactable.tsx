@@ -1,4 +1,3 @@
-// react-sdk/src/providers/with-interactable.tsx
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TamboMessageProvider } from "../hooks/use-current-message";
@@ -6,16 +5,52 @@ import { TamboThreadMessage } from "../model/generate-component-response";
 import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { SupportedSchema } from "../schema";
 
-export interface InteractableConfig {
+export interface InteractableConfig<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> {
+  /**
+   * The name of the component, used for identification in Tambo.
+   */
   componentName: string;
+  /**
+   * A brief description of the component's purpose and functionality. LLM will
+   * use this to understand how to interact with it.
+   */
   description: string;
-  propsSchema?: SupportedSchema;
+  /**
+   * Optional schema for component props. If provided, prop updates will be
+   * validated against this schema.
+   */
+  propsSchema?: SupportedSchema<Props>;
+  /**
+   * Optional schema for component state. If provided, state updates will be
+   * validated against this schema.
+   */
+  stateSchema?: SupportedSchema<State>;
 }
 
+/**
+ * Props injected by withTamboInteractable HOC. These can be passed to the wrapped
+ * component to customize interactable behavior.
+ */
 export interface WithTamboInteractableProps {
+  /**
+   * Optional ID to use for this interactable component instance.
+   * If not provided, a unique ID will be generated automatically.
+   */
   interactableId?: string;
+  /**
+   * Callback fired when the component has been registered as interactable.
+   * @param id - The assigned interactable component ID
+   */
   onInteractableReady?: (id: string) => void;
-  onPropsUpdate?: (newProps: Record<string, any>) => void;
+  /**
+   * Callback fired when the component's serializable props are updated by Tambo
+   * through a tool call. Note: Only serializable props are tracked.
+   * @param newProps - The updated serializable props
+   */
+  onPropsUpdate?: (newProps: Record<string, unknown>) => void;
 }
 
 /**
@@ -25,6 +60,16 @@ export interface WithTamboInteractableProps {
  * @returns A new component that is automatically registered as interactable
  * @example
  * ```tsx
+ * const MyNote: React.FC<{ title: string; content: string }> = ({ title, content }) => {
+ *   const [isPinned, setIsPinned] = useTamboComponentState("isPinned", false);
+ *   return (
+ *     <div style={{ border: isPinned ? "2px solid gold" : "1px solid gray", order: isPinned ? -1 : 0 }}>
+ *       <h2>{title}</h2>
+ *       <p>{content}</p>
+ *     </div>
+ *   );
+ * };
+ *
  * const MyInteractableNote = withTamboInteractable(MyNote, {
  *   componentName: "MyNote",
  *   description: "A note component",
@@ -32,22 +77,25 @@ export interface WithTamboInteractableProps {
  *     title: z.string(),
  *     content: z.string(),
  *   }),
+ *  stateSchema: z.object({
+ *    isPinned: z.boolean(),
+ *  }),
  * });
  *
  * // Usage
  * <MyInteractableNote title="My Note" content="This is my note" />
  * ```
  */
-export function withTamboInteractable<P extends object>(
-  WrappedComponent: React.ComponentType<P>,
+export function withTamboInteractable<ComponentProps extends object>(
+  WrappedComponent: React.ComponentType<ComponentProps>,
   config: InteractableConfig,
 ) {
   const displayName =
     WrappedComponent.displayName ?? WrappedComponent.name ?? "Component";
 
-  const TamboInteractableWrapper: React.FC<P & WithTamboInteractableProps> = (
-    props,
-  ) => {
+  const TamboInteractableWrapper: React.FC<
+    ComponentProps & WithTamboInteractableProps
+  > = (props) => {
     const {
       addInteractableComponent,
       updateInteractableComponentProps,
@@ -56,10 +104,15 @@ export function withTamboInteractable<P extends object>(
 
     const [interactableId, setInteractableId] = useState<string | null>(null);
     const isInitialized = useRef(false);
-    const lastParentProps = useRef<Record<string, any>>({});
+    const lastSerializedProps = useRef<Record<string, unknown>>({});
 
-    // Extract interactable-specific props
-    const { onInteractableReady, onPropsUpdate, ...componentProps } = props;
+    // Extract interactable-specific props from component props
+    const {
+      interactableId: _providedId, // Reserved for future use
+      onInteractableReady,
+      onPropsUpdate,
+      ...componentProps
+    } = props;
 
     // Get the current interactable component to track prop updates
     const currentInteractable = interactableId
@@ -79,6 +132,7 @@ export function withTamboInteractable<P extends object>(
           component: WrappedComponent,
           props: componentProps,
           propsSchema: config.propsSchema,
+          stateSchema: config.stateSchema,
         });
 
         setInteractableId(id);
@@ -96,13 +150,13 @@ export function withTamboInteractable<P extends object>(
     useEffect(() => {
       if (interactableId && isInitialized.current) {
         // Only update if the props are different from what we last sent
-        const lastPropsString = JSON.stringify(lastParentProps.current);
+        const lastPropsString = JSON.stringify(lastSerializedProps.current);
         const currentPropsString = JSON.stringify(componentProps);
 
         if (lastPropsString !== currentPropsString) {
           updateInteractableComponentProps(interactableId, componentProps);
           onPropsUpdate?.(componentProps);
-          lastParentProps.current = componentProps;
+          lastSerializedProps.current = componentProps;
         }
       }
     }, [
@@ -114,7 +168,7 @@ export function withTamboInteractable<P extends object>(
 
     // If the interactable ID is not yet set, render the component without provider
     if (!interactableId) {
-      return <WrappedComponent {...(effectiveProps as P)} />;
+      return <WrappedComponent {...(effectiveProps as ComponentProps)} />;
     }
 
     // Create a minimal message with interactable metadata
@@ -144,7 +198,7 @@ export function withTamboInteractable<P extends object>(
           description: config.description,
         }}
       >
-        <WrappedComponent {...(effectiveProps as P)} />
+        <WrappedComponent {...(effectiveProps as ComponentProps)} />
       </TamboMessageProvider>
     );
   };

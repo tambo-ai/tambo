@@ -27,11 +27,11 @@ This is useful for:
 >
 > `zod` can also be `^3.25` if you prefer Zod 3; both `^3.25` and `^4.0` satisfy the SDK's `zod/v3` subpath constraints. This keeps MCP support opt-in while avoiding runtime errors when you start using the MCP hooks and providers.
 
-To implement client-side MCP support, pass `mcpServers` to `TamboProvider` and wrap your app with `TamboMcpProvider`:
+To implement client-side MCP support, pass `mcpServers` to `TamboProvider`:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 function MyApp() {
   return (
@@ -51,17 +51,13 @@ function MyApp() {
         },
       ]}
     >
-      <TamboMcpProvider>
-        {/* Your application components */}
-      </TamboMcpProvider>
+      {/* Your application components */}
     </TamboProvider>
   );
 }
 ```
 
-> **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
-
-The `TamboMcpProvider` establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
+`TamboProvider` automatically establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
 
 > Note
 >
@@ -149,7 +145,7 @@ import { MessageInput } from "@/components/ui/message-input";
 
 function ChatInterface() {
   return (
-    <MessageInput contextKey="my-thread">
+    <MessageInput>
       <MessageInput.Textarea />
       <MessageInput.Toolbar>
         <MessageInput.FileButton />
@@ -223,7 +219,7 @@ import { MessageInput } from "@/components/ui/message-input";
 
 function ChatInterface() {
   return (
-    <MessageInput contextKey="my-thread">
+    <MessageInput>
       <MessageInput.Textarea />
       <MessageInput.Toolbar>
         <MessageInput.McpPromptButton />
@@ -261,6 +257,6 @@ The `serverKey` is automatically derived from the server URL (e.g., "linear" fro
     },
   ]}
 >
-  <TamboMcpProvider>{/* Your app */}</TamboMcpProvider>
+  {/* Your app */}
 </TamboProvider>
 ```

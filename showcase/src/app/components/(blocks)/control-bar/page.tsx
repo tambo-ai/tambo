@@ -3,11 +3,8 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { ControlBar } from "@/components/tambo/control-bar";
-import { useUserContextKey } from "@/lib/useUserContextKey";
 
 export default function ControlBarPage() {
-  const userContextKey = useUserContextKey("control-bar");
-
   return (
     <div className="prose max-w-8xl space-y-12">
       {/* Title & Description */}
@@ -55,7 +52,7 @@ export default function ControlBarPage() {
                   </p>
                 </div>
 
-                <ControlBar contextKey={userContextKey} />
+                <ControlBar />
               </div>
             }
             code={`import { ControlBar } from "@/components/tambo/control-bar";

@@ -2,6 +2,7 @@
   "name": "docs-mcp",
   "version": "0.1.0",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "dev": "next dev --port 3002",
@@ -13,9 +14,9 @@
     "clean": "rm -rf .next dist coverage"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.29.0",
+    "@sentry/nextjs": "^10.32.0",
     "mcp-handler": "^1.0.4",
-    "next": "^15.5.7",
+    "next": "^15.5.9",
     "openai": "^6.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -30,6 +31,5 @@
   "engines": {
     "node": ">=22",
     "npm": ">=10"
-  },
-  "license": "Apache-2.0"
+  }
 }

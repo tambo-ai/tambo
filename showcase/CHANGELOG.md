@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.34.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.34.0...showcase-v0.34.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+* **web:** allow Enter key to select items from TipTap suggestion popover ([#1571](https://github.com/tambo-ai/tambo/issues/1571)) ([dcb153c](https://github.com/tambo-ai/tambo/commit/dcb153c675a1f0689b2b048fd48970d160c82a94))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps-dev:** bump the eslint group with 5 updates ([#1541](https://github.com/tambo-ai/tambo/issues/1541)) ([6329a46](https://github.com/tambo-ai/tambo/commit/6329a461e8b9f036e111e24890c27a98925f4d15))
+* **deps:** bump @tiptap/extension-paragraph from 3.11.1 to 3.13.0 ([#1554](https://github.com/tambo-ai/tambo/issues/1554)) ([bec8c0e](https://github.com/tambo-ai/tambo/commit/bec8c0e155c35be63923e8b072a46b7d5d67df16))
+* **deps:** bump @vercel/og from 0.8.5 to 1.0.0 ([#1562](https://github.com/tambo-ai/tambo/issues/1562)) ([03ca0f4](https://github.com/tambo-ai/tambo/commit/03ca0f494bca97deac07d44bafa665bf5eb2583d))
+* **deps:** bump dompurify from 3.3.0 to 3.3.1 ([#1555](https://github.com/tambo-ai/tambo/issues/1555)) ([cbc3328](https://github.com/tambo-ai/tambo/commit/cbc332845171e87d4f04c11429af8acbf1e4b0d3))
+* **deps:** bump the next group with 2 updates ([#1543](https://github.com/tambo-ai/tambo/issues/1543)) ([86e399f](https://github.com/tambo-ai/tambo/commit/86e399fbb3b10aacfb626af96bfd0e5880e1d78a))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1546](https://github.com/tambo-ai/tambo/issues/1546)) ([462d2c8](https://github.com/tambo-ai/tambo/commit/462d2c8f23f11512ccd3de6caa89c6d9cbb5bf69))
+* **deps:** bump the tiptap group with 7 updates ([#1558](https://github.com/tambo-ai/tambo/issues/1558)) ([664709a](https://github.com/tambo-ai/tambo/commit/664709a5ef24464dccb1078b0ddacb9ea1f5f989))
+
+## [0.34.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.33.1...showcase-v0.34.0) (2025-12-15)
+
+
+### Features
+
+* add EditWithTamboButton page to showcase site ([#1508](https://github.com/tambo-ai/tambo/issues/1508)) ([57e2594](https://github.com/tambo-ai/tambo/commit/57e2594214bcf0035531923fb2cc252b7e73e090))
+
+
+### Bug Fixes
+
+* import paths in showcase examples ([#1510](https://github.com/tambo-ai/tambo/issues/1510)) ([e164d5a](https://github.com/tambo-ai/tambo/commit/e164d5ad94c5f146201e2f9da13e61b5b97d677d))
+* **react:** correct schema parsing logic ([#1513](https://github.com/tambo-ai/tambo/issues/1513)) ([bf7a54a](https://github.com/tambo-ai/tambo/commit/bf7a54ae5515fa6386950a65b6eb03ca891ad250))
+
+
+### Miscellaneous Chores
+
+* **deps:** Bump @tambo-ai/typescript-sdk to get tool maxCalls ([#1533](https://github.com/tambo-ai/tambo/issues/1533)) ([97e85ba](https://github.com/tambo-ai/tambo/commit/97e85ba0eb334a8b3b482a0cff368d2528b91d74))
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+
 ## [0.33.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.33.0...showcase-v0.33.1) (2025-12-11)
 
 

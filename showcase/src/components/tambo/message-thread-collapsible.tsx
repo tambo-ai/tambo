@@ -33,11 +33,7 @@ import {
 } from "@/components/tambo/thread-content";
 import { ThreadDropdown } from "@/components/tambo/thread-dropdown";
 import { cn } from "@/lib/utils";
-import {
-  type Suggestion,
-  useTambo,
-  useTamboContextAttachment,
-} from "@tambo-ai/react";
+import { type Suggestion } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { Collapsible } from "radix-ui";
@@ -49,8 +45,6 @@ import * as React from "react";
  * @extends React.HTMLAttributes<HTMLDivElement>
  */
 export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Optional context key for the thread */
-  contextKey?: string;
   /** Whether the collapsible should be open by default (default: false) */
   defaultOpen?: boolean;
   /**
@@ -72,7 +66,6 @@ export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTML
  * @example
  * ```tsx
  * <MessageThreadCollapsible
- *   contextKey="my-thread"
  *   defaultOpen={false}
  *   className="left-4" // Position on the left instead of right
  *   variant="default"
@@ -125,7 +118,7 @@ const CollapsibleContainer = React.forwardRef<
     open={isOpen}
     onOpenChange={onOpenChange}
     className={cn(
-      "fixed bottom-4 right-4 w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg bg-background border border-gray-200",
+      "fixed bottom-4 right-4 w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg bg-background border border-border",
       "transition-all duration-300 ease-in-out",
       className,
     )}
@@ -143,7 +136,6 @@ interface CollapsibleTriggerProps {
   isOpen: boolean;
   shortcutText: string;
   onClose: () => void;
-  contextKey?: string;
   onThreadChange: () => void;
   config: {
     labels: {
@@ -160,7 +152,6 @@ const CollapsibleTrigger = ({
   isOpen,
   shortcutText,
   onClose,
-  contextKey,
   onThreadChange,
   config,
 }: CollapsibleTriggerProps) => (
@@ -189,10 +180,7 @@ const CollapsibleTrigger = ({
       <div className="flex items-center justify-between w-full p-4">
         <div className="flex items-center gap-2">
           <span>{config.labels.openState}</span>
-          <ThreadDropdown
-            contextKey={contextKey}
-            onThreadChange={onThreadChange}
-          />
+          <ThreadDropdown onThreadChange={onThreadChange} />
         </div>
         <button
           className="p-1 rounded-full hover:bg-muted/70 transition-colors cursor-pointer"
@@ -215,22 +203,11 @@ export const MessageThreadCollapsible = React.forwardRef<
   MessageThreadCollapsibleProps
 >(
   (
-    {
-      className,
-      contextKey,
-      defaultOpen = false,
-      variant,
-      height,
-      maxHeight,
-      ...props
-    },
+    { className, defaultOpen = false, variant, height, maxHeight, ...props },
     ref,
   ) => {
     const { isOpen, setIsOpen, shortcutText } =
       useCollapsibleState(defaultOpen);
-    const { customSuggestions, setCustomSuggestions } =
-      useTamboContextAttachment();
-    const { thread } = useTambo();
 
     // Backward compatibility: prefer height, fall back to maxHeight
     const effectiveHeight = height ?? maxHeight;
@@ -270,16 +247,6 @@ export const MessageThreadCollapsible = React.forwardRef<
       },
     ];
 
-    // Use custom suggestions if available, otherwise use defaults
-    const activeSuggestions = customSuggestions ?? defaultSuggestions;
-
-    // Clear custom suggestions when a new message is sent
-    React.useEffect(() => {
-      if (thread?.messages?.length && customSuggestions !== null) {
-        setCustomSuggestions(null);
-      }
-    }, [thread?.messages?.length, customSuggestions, setCustomSuggestions]);
-
     return (
       <CollapsibleContainer
         ref={ref}
@@ -292,7 +259,6 @@ export const MessageThreadCollapsible = React.forwardRef<
           isOpen={isOpen}
           shortcutText={shortcutText}
           onClose={() => setIsOpen(false)}
-          contextKey={contextKey}
           onThreadChange={handleThreadChange}
           config={THREAD_CONFIG}
         />
@@ -315,7 +281,7 @@ export const MessageThreadCollapsible = React.forwardRef<
 
             {/* Message input */}
             <div className="p-4">
-              <MessageInput contextKey={contextKey}>
+              <MessageInput>
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
@@ -330,7 +296,7 @@ export const MessageThreadCollapsible = React.forwardRef<
             </div>
 
             {/* Message suggestions */}
-            <MessageSuggestions initialSuggestions={activeSuggestions}>
+            <MessageSuggestions initialSuggestions={defaultSuggestions}>
               <MessageSuggestionsList />
             </MessageSuggestions>
           </div>

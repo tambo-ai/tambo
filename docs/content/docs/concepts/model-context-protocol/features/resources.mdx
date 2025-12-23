@@ -59,7 +59,7 @@ The `message-input` component automatically supports resource selection and inse
 import { MessageInput } from "@/components/ui/message-input";
 
 // Resources are automatically supported - no additional setup needed
-<MessageInput contextKey="my-thread">
+<MessageInput>
   <MessageInput.Textarea />
   <MessageInput.McpResourceButton />
   <MessageInput.SubmitButton />
@@ -120,9 +120,7 @@ Configure the `serverKey` when setting up the MCP server:
     },
   ]}
 >
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>
 ```
 

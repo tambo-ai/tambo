@@ -31,13 +31,9 @@ Tambo supports two ways to connect to MCP servers:
     },
   ]}
 >
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>
 ```
-
-> **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
 
 Tambo **always prefixes** prompts, resources, and tools with the `serverKey` to identify which MCP server they come from:
 
