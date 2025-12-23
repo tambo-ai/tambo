@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.127.1](https://github.com/tambo-ai/tambo/compare/api-v0.127.0...api-v0.127.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps:** bump resend from 6.5.2 to 6.6.0 ([#1560](https://github.com/tambo-ai/tambo/issues/1560)) ([b21227c](https://github.com/tambo-ai/tambo/commit/b21227c9548dcae8c41b1f4195e3d4f2fee7085e))
+* **deps:** bump superjson from 2.2.5 to 2.2.6 ([#1567](https://github.com/tambo-ai/tambo/issues/1567)) ([ef27dc8](https://github.com/tambo-ai/tambo/commit/ef27dc8b63739d1b96b86230a719506d8183c592))
+* **deps:** bump the sentry group with 3 updates ([#1615](https://github.com/tambo-ai/tambo/issues/1615)) ([8ebc981](https://github.com/tambo-ai/tambo/commit/8ebc981dd424fe7fa94a1897890d2f0bc59a3dab))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+* **repo:** add settings for vscode-jest extension ([#1591](https://github.com/tambo-ai/tambo/issues/1591)) ([a714303](https://github.com/tambo-ai/tambo/commit/a7143037ccf05ada73a5a7a6fc9a0227ba653a48))
+
+
+### Documentation
+
+* consolidate and update development/deployment documentation ([#1569](https://github.com/tambo-ai/tambo/issues/1569)) ([1e7474b](https://github.com/tambo-ai/tambo/commit/1e7474ba4d919d2452f2792f2cb5c12046eff373))
+
 ## [0.127.0](https://github.com/tambo-ai/tambo/compare/api-v0.126.0...api-v0.127.0) (2025-12-13)
 
 
