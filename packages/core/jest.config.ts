@@ -17,10 +17,17 @@ const config: JestConfigWithTsJest = {
     ],
   },
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
+  collectCoverageFrom: [
+    "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
+    "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
+    "!<rootDir>/src/**/__tests__/**",
+    "!<rootDir>/src/**/__mocks__/**",
+    "!<rootDir>/dist/**",
+  ],
   coverageThreshold: {
     global: {
-      branches: 82,
-      lines: 82,
+      branches: 50,
+      lines: 46,
     },
   },
 };

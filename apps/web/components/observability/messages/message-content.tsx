@@ -7,13 +7,15 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import { getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import { type RouterOutputs } from "@/trpc/react";
-import { useCurrentInteractablesSnapshot } from "@tambo-ai/react";
 import { motion } from "framer-motion";
 import { Check, ChevronDown, Copy, Info } from "lucide-react";
 import { FC, isValidElement, memo, ReactNode, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
-import { formatTime, getMessageContexts } from "../utils";
+import {
+  extractSelectedInteractablesFromAdditionalContext,
+  formatTime,
+} from "../utils";
 import { HighlightedJson, HighlightText } from "./highlight";
 import { MessageIdCopyButton } from "./message-id-copy-button";
 
@@ -219,16 +221,13 @@ export const MessageContent = memo(
     searchQuery,
   }: MessageContentComponentProps) => {
     const [showAdditionalContext, setShowAdditionalContext] = useState(false);
-    const interactables = useCurrentInteractablesSnapshot();
 
-    // In observability, interactables are not available, so extract component names
-    // from the message's additionalContext to validate mentions
+    // Extract component names from the message's additionalContext to validate mentions
     const interactableNames = useMemo(() => {
-      const fromInteractables = interactables.map((i) => i.name);
-      const fromMessage = getMessageContexts(message).map((ctx) => ctx.name);
-      // Combine and deduplicate - this ensures mentions work even without interactables
-      return Array.from(new Set([...fromInteractables, ...fromMessage]));
-    }, [interactables, message]);
+      return extractSelectedInteractablesFromAdditionalContext(message).map(
+        (ctx) => ctx.name,
+      );
+    }, [message]);
 
     const safeContent = getSafeContent(
       message.content as ReactNode,

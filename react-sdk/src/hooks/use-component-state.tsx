@@ -1,4 +1,5 @@
 "use client";
+import { deepEqual } from "fast-equals";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { TamboThreadMessage, useTamboClient, useTamboThread } from "..";
@@ -19,11 +20,11 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
  * @param initialValue - Optional initial value for the state, used if no componentState value exists in the Tambo message containing this hook usage.
  * @param setFromProp - Optional value used to set the state value, only while no componentState value exists in the Tambo message containing this hook usage. Use this to allow streaming updates from a prop to the state value.
  * @param debounceTime - Optional debounce time in milliseconds (default: 500ms) to limit API calls.
- * @returns A tuple containing:
- *   - The current state value
- *   - A setter function to update the state (updates UI immediately, debounces server sync)
+ * @returns A tuple of [currentState, setState] similar to React's useState
  * @example
+ * ```tsx
  * const [count, setCount] = useTamboComponentState("counter", 0);
+ * ```
  *
  * Use `setFromProp` to seed state from streamed props. During streaming,
  * state updates as new prop values arrive. Once streaming completes,
@@ -31,11 +32,6 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
  *
  * Pair with `useTamboStreamStatus` to disable inputs while streaming.
  * @see {@link https://docs.tambo.co/concepts/streaming/streaming-best-practices}
- * @param keyName - Unique key within the message's componentState
- * @param initialValue - Default value if no componentState exists
- * @param setFromProp - Seeds state from props (updates during streaming, then user edits take over)
- * @param debounceTime - Server sync debounce in ms (default: 500)
- * @returns A tuple of [currentState, setState] similar to React's useState
  */
 export function useTamboComponentState<S = undefined>(
   keyName: string,
@@ -171,6 +167,15 @@ export function useTamboComponentState<S>(
     setInteractableState,
     componentId,
   ]);
+
+  // Sync from interactable provider to local state when state changes externally (e.g., from Tambo tool call)
+  useEffect(() => {
+    if (!componentId) return;
+    // only update if different
+    setLocalState((prev) =>
+      deepEqual(prev, interactableState) ? prev : (interactableState as S),
+    );
+  }, [componentId, interactableState]);
 
   // For editable fields that are set from a prop to allow streaming updates, don't overwrite a fetched state value set from the thread message with prop value on initial load.
   useEffect(() => {

@@ -3,5 +3,6 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "streetsidesoftware.code-spell-checker",
+    "Orta.vscode-jest",
   ]
 }

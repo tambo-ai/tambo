@@ -5,8 +5,10 @@ import {
   type ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { UseQueryResult } from "@tanstack/react-query";
+import * as React from "react";
 import { useTamboQueries, useTamboQuery } from "../hooks";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
+import { REGISTRY_SERVER_KEY } from "./mcp-constants";
 import {
   type ConnectedMcpServer,
   type McpServer,
@@ -25,9 +27,7 @@ export type ListResourceItem = ListResourcesResult["resources"][number];
 /**
  * Registry resource entry - resources from the local registry (not MCP servers).
  *
- * These entries always have `server === null` and represent resources that
- * are registered locally via `TamboRegistryProvider` (static `resources`
- * props or dynamic `ResourceSource` functions).
+ * These entries always have `server === null`.
  */
 export interface RegistryResourceEntry {
   server: null;
@@ -36,9 +36,6 @@ export interface RegistryResourceEntry {
 
 /**
  * MCP server resource entry - resources from connected MCP servers.
- *
- * These entries always have a non-null `server` with connection metadata and
- * are produced by the active MCP clients managed by `TamboMcpProvider`.
  */
 export interface McpResourceEntry {
   server: ConnectedMcpServer;
@@ -47,15 +44,29 @@ export interface McpResourceEntry {
 
 /**
  * Union type for all resource entries returned by `useTamboMcpResourceList`.
- *
- * - Registry resources have `server === null`.
- * - MCP-backed resources have a non-null `server` with connection metadata.
  */
 export type ListResourceEntry = RegistryResourceEntry | McpResourceEntry;
 
+type InternalRegistryResourceEntry = RegistryResourceEntry & {
+  isDynamic: boolean;
+};
+
+type InternalListResourceEntry =
+  | McpResourceEntry
+  | InternalRegistryResourceEntry;
+
+function toPublicResourceEntry(
+  entry: InternalListResourceEntry,
+): ListResourceEntry {
+  if (entry.server === null) {
+    const { isDynamic: _isDynamic, ...publicEntry } = entry;
+    return publicEntry;
+  }
+  return entry;
+}
+
 /**
- * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource
- * (entries where `server` is non-null).
+ * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource.
  */
 export function isMcpResourceEntry(
   entry: ListResourceEntry,
@@ -65,13 +76,15 @@ export function isMcpResourceEntry(
 
 /**
  * Hook to get the prompts for all the registered MCP servers.
+ * @param search - Optional search string to filter prompts by name (case-insensitive).
  * @returns The prompts for the MCP servers, including the server that the prompt was found on.
  */
-export function useTamboMcpPromptList() {
+export function useTamboMcpPromptList(search?: string) {
   const mcpServers = useTamboMcpServers();
 
   const queries = useTamboQueries({
     queries: mcpServers.map((mcpServer) => ({
+      // search is NOT in queryKey - we filter locally after fetching
       queryKey: ["mcp-prompts", mcpServer.key],
       // Only run for connected servers that have a client
       enabled: isConnectedMcpServer(mcpServer),
@@ -107,7 +120,21 @@ export function useTamboMcpPromptList() {
     },
   });
 
-  return queries;
+  // Filter results by search string - runs on every search change (not just query completion)
+  const filteredData = React.useMemo(() => {
+    if (!search) return queries.data;
+
+    const normalizedSearch = search.toLowerCase();
+    return queries.data.filter((entry) => {
+      const name = entry.prompt.name?.toLowerCase() ?? "";
+      return name.includes(normalizedSearch);
+    });
+  }, [queries.data, search]);
+
+  return {
+    ...queries,
+    data: filteredData,
+  };
 }
 // TODO: find a more general place for this
 function combineArrayResults<T>(results: UseQueryResult<T[]>[]): {
@@ -159,8 +186,13 @@ function combineArrayResults<T>(results: UseQueryResult<T[]>[]): {
   };
 }
 
-// Type guard for narrowing to connected servers
-function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
+/**
+ * Type guard for narrowing McpServer to ConnectedMcpServer.
+ * A connected server has a non-null client.
+ */
+export function isConnectedMcpServer(
+  server: McpServer,
+): server is ConnectedMcpServer {
   return "client" in server && server.client != null;
 }
 
@@ -218,15 +250,17 @@ export function useTamboMcpPrompt(
 
 /**
  * Hook to get the resources for all the registered MCP servers and registry.
+ * @param search - Optional search string. For MCP servers, results are filtered locally after fetching.
+ *                 For registry dynamic sources, the search is passed to listResources(search) for dynamic generation.
  * @returns The resources from MCP servers and the local registry, including the server that the resource was found on (null for registry resources).
  */
-export function useTamboMcpResourceList() {
+export function useTamboMcpResourceList(search?: string) {
   const mcpServers = useTamboMcpServers();
   const { resources: staticResources, resourceSource } = useTamboRegistry();
 
   // Build list of queries: MCP servers + optional dynamic resource source
   const queriesToRun = [
-    // MCP server queries
+    // MCP server queries - search is NOT in queryKey so queries don't re-run on search change
     ...mcpServers.map((mcpServer) => ({
       queryKey: ["mcp-resources", mcpServer.key],
       // Only run for connected servers that have a client
@@ -247,18 +281,19 @@ export function useTamboMcpResourceList() {
         return resourceEntries;
       },
     })),
-    // Dynamic resource source query (if exists)
+    // Dynamic resource source query (if exists) - search IS in queryKey to allow dynamic generation
     ...(resourceSource
       ? [
           {
-            queryKey: ["registry-resources", "dynamic"],
+            queryKey: ["registry-resources", "dynamic", search],
             enabled: true,
-            queryFn: async (): Promise<RegistryResourceEntry[]> => {
+            queryFn: async (): Promise<InternalRegistryResourceEntry[]> => {
               if (!resourceSource) return [];
-              const resources = await resourceSource.listResources();
+              const resources = await resourceSource.listResources(search);
               return resources.map((resource) => ({
                 server: null,
                 resource,
+                isDynamic: true,
               }));
             },
           },
@@ -271,26 +306,32 @@ export function useTamboMcpResourceList() {
     combine: (results) => {
       // Type assertion needed because queries can return different entry types
       const combined = combineArrayResults(
-        results as UseQueryResult<ListResourceEntry[]>[],
+        results as UseQueryResult<InternalListResourceEntry[]>[],
       );
 
       // Add static registry resources (no query needed)
-      const staticEntries: RegistryResourceEntry[] = staticResources.map(
-        (resource) => ({
+      const staticEntries: InternalRegistryResourceEntry[] =
+        staticResources.map((resource) => ({
           server: null,
           resource,
-        }),
-      );
+          isDynamic: false,
+        }));
 
       // Merge static resources with query results (registry resources first)
       const allData = [...staticEntries, ...combined.data];
 
-      // Apply serverKey prefix to ALL MCP resources (breaking change)
-      // Registry resources (server: null) are never prefixed
+      // Apply serverKey prefix to ALL resources for unified @serverKey:uri format
+      // Registry resources get REGISTRY_SERVER_KEY prefix, MCP resources get their serverKey
       const prefixedData = allData.map((entry) => {
         if (entry.server === null) {
-          // Registry resource - no prefix
-          return entry;
+          // Registry resource - prefix with REGISTRY_SERVER_KEY
+          return {
+            ...entry,
+            resource: {
+              ...entry.resource,
+              uri: `${REGISTRY_SERVER_KEY}:${entry.resource.uri}`,
+            },
+          };
         }
         // MCP resource - always prefix with serverKey
         return {
@@ -309,12 +350,41 @@ export function useTamboMcpResourceList() {
     },
   });
 
-  return queries;
+  // Filter results by search string - runs on every search change (not just query completion)
+  // - MCP resources are filtered locally
+  // - Static registry resources are filtered locally
+  // - Dynamic registry resources are already filtered by listResources(search)
+  const filteredData = React.useMemo((): InternalListResourceEntry[] => {
+    if (!search) return queries.data;
+
+    const normalizedSearch = search.toLowerCase();
+    return queries.data.filter((entry) => {
+      if (entry.server === null && entry.isDynamic) {
+        return true;
+      }
+
+      const name = entry.resource.name?.toLowerCase() ?? "";
+      const uri = entry.resource.uri.toLowerCase();
+      return name.includes(normalizedSearch) || uri.includes(normalizedSearch);
+    });
+  }, [queries.data, search]);
+
+  const publicData = React.useMemo(
+    () => filteredData.map(toPublicResourceEntry),
+    [filteredData],
+  );
+
+  return {
+    ...queries,
+    data: publicData,
+  };
 }
 
 /**
  * Hook to get the resource for the specified URI.
- * @param resourceUri - The URI of the resource to get. Can be prefixed with serverKey (e.g., "linear:file://foo") for MCP resources, or unprefixed for registry resources.
+ * @param resourceUri - The URI of the resource to get. Must be prefixed:
+ *   - MCP resources: prefixed with serverKey (e.g., "linear:file://foo")
+ *   - Registry resources: prefixed with "registry:" (e.g., "registry:file://bar")
  * @returns The resource for the specified URI.
  */
 export function useTamboMcpResource(resourceUri: string | undefined) {
@@ -326,38 +396,41 @@ export function useTamboMcpResource(resourceUri: string | undefined) {
     (entry) => entry.resource.uri === resourceUri,
   );
 
-  // Determine if this is a known registry resource or MCP resource
-  const isKnownEntry = resourceEntry != null;
-  const isRegistryResource = isKnownEntry && resourceEntry.server === null;
-  const mcpServer =
-    isKnownEntry && resourceEntry.server != null ? resourceEntry.server : null;
+  // Determine if this is a registry resource or MCP resource
+  const isRegistryResource = resourceEntry?.server === null;
+  const mcpServer = resourceEntry?.server ?? null;
 
-  // Strip the prefix to get the original resource URI for the MCP server call
-  // Only strip if we found a matching resource entry with an MCP server
-  const originalResourceUri =
-    isKnownEntry && mcpServer
-      ? resourceUri?.replace(`${mcpServer.serverKey}:`, "")
-      : resourceUri;
-
-  // Check if we can fetch this resource. Registry resources can always be
-  // fetched when a resourceSource exists, even if they haven't appeared in a
-  // previous listResources result.
-  const hasRegistrySource = resourceSource != null;
-  const hasConnectedMcpServer =
-    isKnownEntry && mcpServer != null && isConnectedMcpServer(mcpServer);
-  const canFetchResource = Boolean(
-    resourceUri && (hasRegistrySource || hasConnectedMcpServer),
+  // Check if the URI has the registry prefix
+  const hasRegistryPrefix = Boolean(
+    resourceUri?.startsWith(`${REGISTRY_SERVER_KEY}:`),
   );
 
-  let locationKey: string | undefined;
-  if (isRegistryResource || (!isKnownEntry && hasRegistrySource)) {
-    locationKey = "registry";
+  // Strip the prefix to get the original resource URI for fetching
+  let originalResourceUri: string | undefined;
+  if (isRegistryResource || hasRegistryPrefix) {
+    const prefixLen = REGISTRY_SERVER_KEY.length + 1; // +1 for the colon
+    originalResourceUri = resourceUri?.slice(prefixLen);
   } else if (mcpServer) {
-    locationKey = mcpServer.key;
+    const prefixLen = mcpServer.serverKey.length + 1; // +1 for the colon
+    originalResourceUri = resourceUri?.slice(prefixLen);
   }
 
+  // Check if we can fetch this resource
+  const hasRegistrySource = resourceSource != null;
+  const hasConnectedMcpServer =
+    mcpServer != null && isConnectedMcpServer(mcpServer);
+  const canFetchFromRegistry =
+    hasRegistrySource && (isRegistryResource || hasRegistryPrefix);
+  const canFetchResource = Boolean(
+    resourceUri && (canFetchFromRegistry || hasConnectedMcpServer),
+  );
+
+  const locationKey =
+    isRegistryResource || hasRegistryPrefix
+      ? REGISTRY_SERVER_KEY
+      : mcpServer?.key;
+
   return useTamboQuery({
-    // Include server identity or "registry" to prevent stale cache hits
     queryKey: ["resource", resourceUri, locationKey],
     enabled: canFetchResource,
     queryFn: async (): Promise<ReadResourceResult | null> => {
@@ -366,9 +439,7 @@ export function useTamboMcpResource(resourceUri: string | undefined) {
       }
 
       // Registry resource: use resourceSource.getResource
-      // If this is not a known entry but we have a resourceSource, treat it as
-      // a registry resource by default.
-      if (resourceSource && (!isKnownEntry || isRegistryResource)) {
+      if (resourceSource && (isRegistryResource || hasRegistryPrefix)) {
         const result = await resourceSource.getResource(originalResourceUri);
         return result ?? null;
       }

@@ -309,10 +309,7 @@ export function APIKeyList({
           <div className="flex items-center gap-2">
             <h4 className="text-lg font-semibold">
               API Keys
-              <EditWithTamboButton
-                suggestions={apiKeyListSuggestions}
-                description="Manage API keys for this project. You can add, delete, and generate new API keys."
-              />
+              <EditWithTamboButton description="Manage API keys for this project. You can add, delete, and generate new API keys." />
             </h4>
           </div>
 

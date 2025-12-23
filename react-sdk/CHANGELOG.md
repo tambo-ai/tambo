@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.68.0](https://github.com/tambo-ai/tambo/compare/react-v0.67.1...react-v0.68.0) (2025-12-18)
+
+
+### Features
+
+* **react-sdk:** add tools to update interactable component state ([#1580](https://github.com/tambo-ai/tambo/issues/1580)) ([d29c79e](https://github.com/tambo-ai/tambo/commit/d29c79e4a08683a42549985eed1363d8c981e767))
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+
 ## [0.67.1](https://github.com/tambo-ai/tambo/compare/react-v0.67.0...react-v0.67.1) (2025-12-17)
 
 

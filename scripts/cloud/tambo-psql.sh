@@ -34,9 +34,15 @@ fi
 
 # Get database credentials from the running container
 info "📋 Getting database credentials from running container..."
-POSTGRES_PASSWORD=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_PASSWORD 2>/dev/null || echo "your-super-secret-and-long-postgres-password")
+POSTGRES_PASSWORD=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_PASSWORD 2>/dev/null || true)
 POSTGRES_USER=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_USER 2>/dev/null || echo "postgres")
 POSTGRES_DB=$(docker compose --env-file docker.env exec -T postgres printenv POSTGRES_DB 2>/dev/null || echo "tambo")
+
+if [ -z "$POSTGRES_PASSWORD" ]; then
+    fail \
+      "❌ Could not read POSTGRES_PASSWORD from the running container." \
+      "📝 Ensure POSTGRES_PASSWORD is set for the postgres service (e.g., in docker.env or your compose environment) and restart the stack: ./scripts/cloud/tambo-start.sh"
+fi
 
 info "✅ Connecting to PostgreSQL..."
 info "📋 Database: $POSTGRES_DB"
