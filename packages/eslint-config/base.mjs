@@ -20,7 +20,7 @@ export default defineConfig([
     },
   },
   {
-    ignores: ["dist/**"],
+    ignores: ["dist/**", "coverage/**"],
   },
   {
     rules: {

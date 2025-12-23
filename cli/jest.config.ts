@@ -41,11 +41,8 @@ const sharedConfig: Config = {
 
 const config: Config = {
   collectCoverageFrom: [
-    "<rootDir>/src/**/*.{js,jsx,ts,tsx}",
-    "!<rootDir>/src/**/*.test.{js,jsx,ts,tsx}",
-    "!<rootDir>/src/**/__tests__/**",
-    "!<rootDir>/src/**/__mocks__/**",
-    "!<rootDir>/dist/**",
+    "<rootDir>/src/**/*.(ts|tsx)",
+    "!<rootDir>/src/**/*.test.(ts|tsx)",
   ],
   coverageThreshold: {
     global: {
