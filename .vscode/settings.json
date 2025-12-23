@@ -8,6 +8,7 @@
   "[mdx]": {
     "editor.defaultFormatter": "unifiedjs.vscode-mdx"
   },
+  "cSpell.enabled": true,
   "jest.runMode": "deferred",
   "jest.jestCommandLine": "npx turbo test --",
   "jest.coverageFormatter": "GutterFormatter",

@@ -155,7 +155,7 @@ jest.unstable_mockModule("./add/utils.js", () => ({
 
 // Mock tailwind setup (same as add.test.ts)
 jest.unstable_mockModule("./add/tailwind-setup.js", () => ({
-  setupTailwindandGlobals: jest.fn(async () => {
+  setupTailwindAndGlobals: jest.fn(async () => {
     // No-op for tests
   }),
 }));
@@ -462,9 +462,9 @@ describe("handleInit", () => {
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full", "control-bar"],
-        proceedWithCss: true, // For setupTailwindandGlobals
-        showDetailedDiff: false, // For setupTailwindandGlobals
-        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
+        proceedWithCss: true, // For setupTailwindAndGlobals
+        showDetailedDiff: false, // For setupTailwindAndGlobals
+        proceedWithWrite: true, // For setupTailwindAndGlobals when globals.css exists
       };
 
       // Execute
@@ -532,9 +532,9 @@ describe("handleInit", () => {
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"], // Valid selection
-        proceedWithCss: true, // For setupTailwindandGlobals
-        showDetailedDiff: false, // For setupTailwindandGlobals
-        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
+        proceedWithCss: true, // For setupTailwindAndGlobals
+        showDetailedDiff: false, // For setupTailwindAndGlobals
+        proceedWithWrite: true, // For setupTailwindAndGlobals when globals.css exists
       };
 
       // Execute - should work with valid selection
@@ -565,9 +565,9 @@ describe("handleInit", () => {
         apiKey: "test-api-key",
         confirmReplace: true,
         selectedComponents: ["message-thread-full"],
-        proceedWithCss: true, // For setupTailwindandGlobals
-        showDetailedDiff: false, // For setupTailwindandGlobals
-        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
+        proceedWithCss: true, // For setupTailwindAndGlobals
+        showDetailedDiff: false, // For setupTailwindAndGlobals
+        proceedWithWrite: true, // For setupTailwindAndGlobals when globals.css exists
       };
 
       // Execute with --yes
@@ -1018,9 +1018,9 @@ describe("handleInit", () => {
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full", "control-bar"],
-        proceedWithCss: true, // For setupTailwindandGlobals
-        showDetailedDiff: false, // For setupTailwindandGlobals
-        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
+        proceedWithCss: true, // For setupTailwindAndGlobals
+        showDetailedDiff: false, // For setupTailwindAndGlobals
+        proceedWithWrite: true, // For setupTailwindAndGlobals when globals.css exists
       };
 
       // Execute
@@ -1052,9 +1052,9 @@ describe("handleInit", () => {
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"],
-        proceedWithCss: true, // For setupTailwindandGlobals
-        showDetailedDiff: false, // For setupTailwindandGlobals
-        proceedWithWrite: true, // For setupTailwindandGlobals when globals.css exists
+        proceedWithCss: true, // For setupTailwindAndGlobals
+        showDetailedDiff: false, // For setupTailwindAndGlobals
+        proceedWithWrite: true, // For setupTailwindAndGlobals when globals.css exists
       };
 
       // Execute
