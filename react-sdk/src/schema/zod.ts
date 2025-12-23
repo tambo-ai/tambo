@@ -150,7 +150,7 @@ export function isZod4Schema(schema: unknown): schema is $ZodType {
   if ("_zod" in schema) return true;
 
   // v4.0.x regular schemas: has def directly but NOT _def (v3 has _def)
-  // Also check def.type is a lowercase string (v4 convention)
+  // Also check def.type is a string (v4 uses string literals like "string")
   if ("def" in schema && !("_def" in schema)) {
     const def = (schema as { def: unknown }).def;
     if (def && typeof def === "object" && "type" in def) {
