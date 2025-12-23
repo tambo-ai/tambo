@@ -412,7 +412,7 @@ describe("schema utilities", () => {
         );
       });
 
-      it("returns empty params and warns when toolSchema args are not recognized", () => {
+      it("throws when toolSchema args are not recognized", () => {
         // Create a tool with toolSchema that is not a function schema or JSON schema
         // This causes getArgsFromToolSchema to attempt extraction but fail
         const tool: TamboToolWithToolSchema = {
