@@ -1,3 +1,4 @@
+import { JSONSchema7 } from "json-schema";
 import {
   ZodFunction,
   ZodTuple,
@@ -39,7 +40,7 @@ export function isZod4FunctionSchema(schema: unknown): schema is $ZodFunction {
   // extend $ZodType. This is corrected in zod 4.1, but zod 3 does not include
   // the types for 4.1 yet (and might not ever).
   // See: https://github.com/colinhacks/zod/blob/463f03eb8183dcdcdf735b180f2bf40883e66220/packages/zod/src/v4/core/function.ts#L48
-  if ("def" in schema && typeof schema.def !== "object" && schema.def) {
+  if ("def" in schema && typeof schema.def === "object" && schema.def) {
     if ((schema.def as { type: string })?.type === "function") {
       return true;
     }
@@ -89,8 +90,10 @@ export function getZodFunctionReturns(schema: unknown) {
   }
 
   if (isZod4FunctionSchema(schema)) {
-    // @ts-expect-error -- Error in Zod types for v3 vs v4
-    return schema._zod.def.output;
+    // v4.0.x: output on .def directly
+    // v4.1.x: output on ._zod.def
+    // @ts-expect-error -- Type differences between v4.0.x and v4.1.x
+    return schema.def?.output ?? schema._zod?.def?.output;
   }
 
   throw new Error("Unable to determine return type from zod function schema");
@@ -104,14 +107,15 @@ export function getZodFunctionReturns(schema: unknown) {
  */
 export function handleZodSchemaToJson(schema: unknown) {
   // If Zod4 schema detected, use the toJSONSchema function from "zod/v4/core"
-  if (isZod4Schema(schema))
-    return zod4ToJSONSchema(schema, { reused: "inline" });
+  if (isZod4Schema(schema)) {
+    return zod4ToJSONSchema(schema, { reused: "inline" }) as JSONSchema7;
+  }
 
   try {
     // Dynamic require for optional peer dependency
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- need require because zod-to-json-schema may be missing
     const { zodToJsonSchema } = require("zod-to-json-schema");
-    return zodToJsonSchema(schema, { $refStrategy: "none" });
+    return zodToJsonSchema(schema, { $refStrategy: "none" }) as JSONSchema7;
   } catch (error) {
     throw new Error(
       "Zod 3 requires 'zod-to-json-schema' package for JSON Schema conversion. " +
@@ -133,12 +137,38 @@ export function isZod3Schema(schema: unknown): schema is ZodType {
 }
 
 /**
- * Detects if a schema is Zod 4 by checking for def.type property.
- * Zod 4 uses `def.type` with lowercase type names like "object", "string".
+ * Detects if a schema is Zod 4 by checking for Zod 4 markers.
+ * - v4.1.x has `_zod` property
+ * - v4.0.x (bundled in zod@3.25) has `def` directly but no `_def` for regular schemas
+ * - v4.0.x function schemas have both `_def` and `def` (special case)
  * @returns True if the schema appears to be Zod 4 style
  */
 export function isZod4Schema(schema: unknown): schema is $ZodType {
-  return isZodSchema(schema) && "_zod" in schema;
+  if (!isZodSchema(schema)) return false;
+
+  // v4.1.x: has _zod property
+  if ("_zod" in schema) return true;
+
+  // v4.0.x regular schemas: has def directly but NOT _def (v3 has _def)
+  // Also check def.type is a string; in Zod v4 this is typically a string
+  // literal like "string"
+  if ("def" in schema && !("_def" in schema)) {
+    const def = (schema as { def: unknown }).def;
+    if (def && typeof def === "object" && "type" in def) {
+      return typeof def.type === "string";
+    }
+  }
+
+  // v4.0.x function schemas: have both _def and def with type "function"
+  // This is a special case where _def exists but it's still a v4 schema
+  if ("_def" in schema && "def" in schema) {
+    const def = (schema as { def: unknown }).def;
+    if (def && typeof def === "object" && "type" in def) {
+      return def.type === "function";
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -147,17 +177,45 @@ export function isZod4Schema(schema: unknown): schema is $ZodType {
  * @returns True if the schema is a Zod schema
  */
 export function isZodSchema(schema: unknown): schema is ZodType | $ZodType {
-  // schema must be { ~standard: { vendor: "zod" } }
   if (typeof schema !== "object") return false;
   if (!schema) return false;
-  if (!("~standard" in schema)) return false;
-  if (!schema["~standard"]) return false;
-  if (typeof schema["~standard"] !== "object") return false;
-  if (!("vendor" in schema["~standard"])) return false;
-  if (schema["~standard"].vendor !== "zod") return false;
 
-  // Require at least one internal marker to reduce false positives
-  const looksLikeV3 = "_def" in schema;
-  const looksLikeV4 = "_zod" in schema || "def" in schema;
-  return looksLikeV3 || looksLikeV4;
+  // Standard detection: schema has { ~standard: { vendor: "zod" } }
+  if ("~standard" in schema && schema["~standard"]) {
+    const std = schema["~standard"];
+    if (typeof std === "object" && "vendor" in std && std.vendor === "zod") {
+      // Require at least one internal marker to reduce false positives
+      const looksLikeV3 = "_def" in schema;
+      const looksLikeV4 = "_zod" in schema || "def" in schema;
+      return looksLikeV3 || looksLikeV4;
+    }
+  }
+
+  // v4.0.x function schemas: have _def and def with type "function"
+  // but don't have ~standard at the top level (only on nested schemas)
+  if ("_def" in schema && "def" in schema) {
+    const def = (schema as { def: unknown }).def;
+    if (
+      def &&
+      typeof def === "object" &&
+      "type" in def &&
+      def.type === "function"
+    ) {
+      // Check if nested input/output have zod markers
+      const inputIsZod =
+        "input" in def &&
+        typeof def.input === "object" &&
+        def.input !== null &&
+        "~standard" in def.input;
+
+      const outputIsZod =
+        "output" in def &&
+        typeof def.output === "object" &&
+        def.output !== null &&
+        "~standard" in def.output;
+      return inputIsZod || outputIsZod;
+    }
+  }
+
+  return false;
 }
