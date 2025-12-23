@@ -1,6 +1,5 @@
 import { getSafeContent } from "@/lib/thread-hooks";
 import { type RouterOutputs } from "@/trpc/react";
-import type { ContextHelperData } from "@tambo-ai/react";
 import { SortDirection, SortField } from "./hooks/useThreadList";
 import { MessageItem, ThreadStats } from "./messages/stats-header";
 
@@ -416,12 +415,12 @@ export interface MessageWithContext {
 }
 
 /**
- * Checks if a message was sent with component context.
- * Context helpers store data in additionalContext.selectedComponent.
+ * Extracts selected interactables from the message's additionalContext.
+ * Looks for interactables in additionalContext.interactables.components where isSelectedForInteraction is true.
  * @param message - The thread message or minimal message data
  * @returns Array of component contexts (empty if none)
  */
-export function getMessageContexts(
+export function extractSelectedInteractablesFromAdditionalContext(
   message: MessageType | MessageWithContext | undefined | null,
 ): MessageComponentContext[] {
   if (!message) return [];
@@ -434,24 +433,37 @@ export function getMessageContexts(
 
   if (!additionalContext) return [];
 
-  // Look through all additionalContext values for selectedComponent
-  // Context helpers can store data under any key (e.g., context ID)
+  // Interactables are stored under the key "interactables" with a components array
+  const interactablesContext = additionalContext.interactables;
+
+  if (
+    !interactablesContext ||
+    typeof interactablesContext !== "object" ||
+    !("components" in interactablesContext)
+  ) {
+    return [];
+  }
+
+  const components = interactablesContext.components;
+  if (!Array.isArray(components)) {
+    return [];
+  }
+
   const contexts: MessageComponentContext[] = [];
 
-  for (const [key, value] of Object.entries(additionalContext)) {
-    if (value && typeof value === "object") {
-      const contextData = value as ContextHelperData;
-      const selectedComponent = contextData.selectedComponent as
-        | { name?: string; [key: string]: unknown }
-        | undefined;
-
-      if (selectedComponent?.name) {
-        contexts.push({
-          id: key,
-          name: selectedComponent.name,
-          metadata: selectedComponent,
-        });
-      }
+  for (const component of components) {
+    if (
+      component &&
+      typeof component === "object" &&
+      component.isSelectedForInteraction === true &&
+      component.componentName &&
+      typeof component.componentName === "string"
+    ) {
+      contexts.push({
+        id: component.id || "",
+        name: component.componentName,
+        metadata: component,
+      });
     }
   }
 

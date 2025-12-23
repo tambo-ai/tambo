@@ -1,6 +1,16 @@
 import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
-import { handleZodSchemaToJson, isZod3Schema, isZod4Schema } from "./zod";
+import {
+  getZodFunctionArgs,
+  getZodFunctionReturns,
+  handleZodSchemaToJson,
+  isZod3FunctionSchema,
+  isZod3Schema,
+  isZod4FunctionSchema,
+  isZod4Schema,
+  isZodFunctionSchema,
+  isZodSchema,
+} from "./zod";
 
 // Test helper: assumes `value` is JSON-serializable (plain objects/arrays/primitives).
 // Conservative helper: returns true if any object in the tree has an own `key`
@@ -571,6 +581,160 @@ describe("zod schema utilities", () => {
           },
         });
       });
+    });
+  });
+
+  describe("isZodSchema", () => {
+    it("returns true for Zod 3 schemas", () => {
+      expect(isZodSchema(z3.string())).toBe(true);
+      expect(isZodSchema(z3.object({ a: z3.string() }))).toBe(true);
+    });
+
+    it("returns true for Zod 4 schemas", () => {
+      expect(isZodSchema(z4.string())).toBe(true);
+      expect(isZodSchema(z4.object({ a: z4.string() }))).toBe(true);
+    });
+
+    it("returns false for non-objects", () => {
+      expect(isZodSchema(null)).toBe(false);
+      expect(isZodSchema(undefined)).toBe(false);
+      expect(isZodSchema("string")).toBe(false);
+      expect(isZodSchema(123)).toBe(false);
+    });
+
+    it("returns false for objects without ~standard", () => {
+      expect(isZodSchema({})).toBe(false);
+      expect(isZodSchema({ foo: "bar" })).toBe(false);
+    });
+
+    it("returns false for objects with invalid ~standard", () => {
+      expect(isZodSchema({ "~standard": null })).toBe(false);
+      expect(isZodSchema({ "~standard": "not-object" })).toBe(false);
+      expect(isZodSchema({ "~standard": {} })).toBe(false);
+      expect(isZodSchema({ "~standard": { vendor: "not-zod" } })).toBe(false);
+    });
+  });
+
+  describe("isZodFunctionSchema", () => {
+    it("returns true for Zod 3 function schemas", () => {
+      const schema = z3.function().args(z3.string()).returns(z3.void());
+      expect(isZodFunctionSchema(schema)).toBe(true);
+      expect(isZod3FunctionSchema(schema)).toBe(true);
+      expect(isZod4FunctionSchema(schema)).toBe(false);
+    });
+
+    // Note: Zod 4 function schemas don't have ~standard property at the top level,
+    // so isZodSchema returns false for them. This is a known limitation -
+    // Zod 4 functions are not Standard Schema compliant.
+    it("returns false for Zod 4 function schemas (not Standard Schema compliant)", () => {
+      const schema = z4.function({
+        input: z4.tuple([z4.string()]),
+        output: z4.void(),
+      });
+      // Zod 4 functions lack ~standard property, so detection fails
+      expect(isZodFunctionSchema(schema)).toBe(false);
+      expect(isZod4FunctionSchema(schema)).toBe(false);
+    });
+
+    it("returns false for non-function Zod schemas", () => {
+      expect(isZodFunctionSchema(z3.string())).toBe(false);
+      expect(isZodFunctionSchema(z3.object({ a: z3.string() }))).toBe(false);
+      expect(isZodFunctionSchema(z4.string())).toBe(false);
+      expect(isZodFunctionSchema(z4.object({ a: z4.string() }))).toBe(false);
+    });
+
+    it("returns false for non-Zod values", () => {
+      expect(isZodFunctionSchema(null)).toBe(false);
+      expect(isZodFunctionSchema({})).toBe(false);
+      expect(isZodFunctionSchema("function")).toBe(false);
+    });
+  });
+
+  describe("getZodFunctionArgs", () => {
+    it("extracts args from Zod 3 function schema", () => {
+      const schema = z3
+        .function()
+        .args(z3.string(), z3.number())
+        .returns(z3.boolean());
+
+      const args = getZodFunctionArgs(schema);
+
+      expect(args).toBeDefined();
+      // Zod 3 args is a ZodTuple - check the _def property exists
+      expect(
+        (args as z3.ZodTuple<[z3.ZodString, z3.ZodNumber]>)._def.typeName,
+      ).toBe("ZodTuple");
+    });
+
+    // Note: Zod 4 function schemas don't have ~standard property, so detection fails
+    it("throws for Zod 4 function schemas (not Standard Schema compliant)", () => {
+      const schema = z4.function({
+        input: z4.tuple([z4.string(), z4.number()]),
+        output: z4.boolean(),
+      });
+
+      expect(() => getZodFunctionArgs(schema)).toThrow(
+        "Unable to determine parameters from zod function schema",
+      );
+    });
+
+    it("throws for non-function schemas", () => {
+      expect(() => getZodFunctionArgs(z3.string())).toThrow(
+        "Unable to determine parameters from zod function schema",
+      );
+      expect(() => getZodFunctionArgs(z4.string())).toThrow(
+        "Unable to determine parameters from zod function schema",
+      );
+    });
+
+    it("throws for non-Zod values", () => {
+      expect(() => getZodFunctionArgs({})).toThrow(
+        "Unable to determine parameters from zod function schema",
+      );
+    });
+  });
+
+  describe("getZodFunctionReturns", () => {
+    it("extracts returns from Zod 3 function schema", () => {
+      const schema = z3
+        .function()
+        .args(z3.string())
+        .returns(z3.object({ result: z3.boolean() }));
+
+      const returns = getZodFunctionReturns(schema);
+
+      expect(returns).toBeDefined();
+      // Cast to access _def property on Zod 3 schema
+      expect(
+        (returns as z3.ZodObject<{ result: z3.ZodBoolean }>)._def.typeName,
+      ).toBe("ZodObject");
+    });
+
+    // Note: Zod 4 function schemas don't have ~standard property, so detection fails
+    it("throws for Zod 4 function schemas (not Standard Schema compliant)", () => {
+      const schema = z4.function({
+        input: z4.tuple([z4.string()]),
+        output: z4.object({ result: z4.boolean() }),
+      });
+
+      expect(() => getZodFunctionReturns(schema)).toThrow(
+        "Unable to determine return type from zod function schema",
+      );
+    });
+
+    it("throws for non-function schemas", () => {
+      expect(() => getZodFunctionReturns(z3.string())).toThrow(
+        "Unable to determine return type from zod function schema",
+      );
+      expect(() => getZodFunctionReturns(z4.string())).toThrow(
+        "Unable to determine return type from zod function schema",
+      );
+    });
+
+    it("throws for non-Zod values", () => {
+      expect(() => getZodFunctionReturns({})).toThrow(
+        "Unable to determine return type from zod function schema",
+      );
     });
   });
 });

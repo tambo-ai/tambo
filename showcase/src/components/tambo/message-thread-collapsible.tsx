@@ -33,11 +33,7 @@ import {
 } from "@/components/tambo/thread-content";
 import { ThreadDropdown } from "@/components/tambo/thread-dropdown";
 import { cn } from "@/lib/utils";
-import {
-  type Suggestion,
-  useTambo,
-  useTamboContextAttachment,
-} from "@tambo-ai/react";
+import { type Suggestion } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { Collapsible } from "radix-ui";
@@ -212,9 +208,6 @@ export const MessageThreadCollapsible = React.forwardRef<
   ) => {
     const { isOpen, setIsOpen, shortcutText } =
       useCollapsibleState(defaultOpen);
-    const { customSuggestions, setCustomSuggestions } =
-      useTamboContextAttachment();
-    const { thread } = useTambo();
 
     // Backward compatibility: prefer height, fall back to maxHeight
     const effectiveHeight = height ?? maxHeight;
@@ -253,16 +246,6 @@ export const MessageThreadCollapsible = React.forwardRef<
         messageId: "examples-query",
       },
     ];
-
-    // Use custom suggestions if available, otherwise use defaults
-    const activeSuggestions = customSuggestions ?? defaultSuggestions;
-
-    // Clear custom suggestions when a new message is sent
-    React.useEffect(() => {
-      if (thread?.messages?.length && customSuggestions !== null) {
-        setCustomSuggestions(null);
-      }
-    }, [thread?.messages?.length, customSuggestions, setCustomSuggestions]);
 
     return (
       <CollapsibleContainer
@@ -313,7 +296,7 @@ export const MessageThreadCollapsible = React.forwardRef<
             </div>
 
             {/* Message suggestions */}
-            <MessageSuggestions initialSuggestions={activeSuggestions}>
+            <MessageSuggestions initialSuggestions={defaultSuggestions}>
               <MessageSuggestionsList />
             </MessageSuggestions>
           </div>

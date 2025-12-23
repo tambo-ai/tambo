@@ -7,5 +7,19 @@
   },
   "[mdx]": {
     "editor.defaultFormatter": "unifiedjs.vscode-mdx"
-  }
+  },
+  "jest.runMode": "deferred",
+  "jest.jestCommandLine": "npx turbo test --",
+  "jest.coverageFormatter": "GutterFormatter",
+  "jest.virtualFolders": [
+    {"name": "@tambo-ai-cloud/web", "rootPath": "apps/web", "jestCommandLine": "npx turbo -F @tambo-ai-cloud/web test --"},
+    {"name": "@tambo-ai-cloud/api", "rootPath": "apps/api", "jestCommandLine": "npx turbo -F @tambo-ai-cloud/api test --"},
+    {"name": "@tambo-ai-cloud/core", "rootPath": "packages/core", "jestCommandLine": "npx turbo -F @tambo-ai-cloud/core test --"},
+    {"name": "@tambo-ai-cloud/backend", "rootPath": "packages/backend", "jestCommandLine": "npx turbo -F @tambo-ai-cloud/backend test --"},
+    {"name": "@tambo-ai/react", "rootPath": "react-sdk", "jestCommandLine": "npx turbo -F @tambo-ai/react test --"},
+    {"name": "@tambo-ai/showcase", "rootPath": "showcase", "jestCommandLine": "npx turbo -F @tambo-ai/showcase test --"},
+    {"name": "tambo-cli", "rootPath": "cli", "jestCommandLine": "npm run test:esm --"},
+    {"name": "tambo-cli/react", "rootPath": "cli", "jestCommandLine": "npm run test:react --"},
+  ],
+  "testing.automaticallyOpenTestResults": "neverOpen"
 }

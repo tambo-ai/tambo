@@ -99,7 +99,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
+    "@testing-library/react": "^16.3.1",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
     "@types/node": "^22.15.32",
@@ -120,7 +120,7 @@
     "react-dom": "^18.3.1",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.49.0",
+    "typescript-eslint": "^8.50.0",
     "zod": "^3.25.76 || ^4.1.0",
     "zod-to-json-schema": "^3.25.0"
   }

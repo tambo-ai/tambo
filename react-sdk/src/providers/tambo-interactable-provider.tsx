@@ -32,6 +32,8 @@ const TamboInteractableContext = createContext<TamboInteractableContext>({
   clearAllInteractableComponents: () => {},
   setInteractableState: () => {},
   getInteractableComponentState: () => undefined,
+  setInteractableSelected: () => {},
+  clearInteractableSelections: () => {},
 });
 
 /**
@@ -254,9 +256,9 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     [],
   );
 
-  const registerInteractableComponentUpdateTool = useCallback(
+  const registerInteractableComponentPropsUpdateTool = useCallback(
     (component: TamboInteractableComponent, maxNameLength = 60) => {
-      const tamboToolNamePart = `update_component_`;
+      const tamboToolNamePart = `update_component_props_`;
       const availableLength = maxNameLength - tamboToolNamePart.length;
       if (component.id.length > availableLength) {
         throw new Error(
@@ -372,7 +374,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
         state: component.state ?? {},
       };
 
-      registerInteractableComponentUpdateTool(newComponent);
+      registerInteractableComponentPropsUpdateTool(newComponent);
       registerInteractableComponentStateUpdateTool(newComponent);
 
       setInteractableComponents((prev) => {
@@ -382,7 +384,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
       return id;
     },
     [
-      registerInteractableComponentUpdateTool,
+      registerInteractableComponentPropsUpdateTool,
       registerInteractableComponentStateUpdateTool,
     ],
   );
@@ -392,7 +394,7 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
   }, []);
 
   const getInteractableComponent = useCallback(
-    <P, S>(id: string) => {
+    <P, S>(id: string): TamboInteractableComponent<P, S> | undefined => {
       return interactableComponents.find((c) => c.id === id) as
         | TamboInteractableComponent<P, S>
         | undefined;
@@ -453,6 +455,30 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     [interactableComponents],
   );
 
+  const setInteractableSelected = useCallback(
+    (componentId: string, isSelected: boolean) => {
+      setInteractableComponents((prev) => {
+        let found = false;
+        const next = prev.map((component) => {
+          if (component.id !== componentId) return component;
+          found = true;
+          return component.isSelected === isSelected
+            ? component
+            : { ...component, isSelected: isSelected };
+        });
+        return found ? next : prev;
+      });
+    },
+    [],
+  );
+
+  const clearInteractableSelections = useCallback(() => {
+    setInteractableComponents((prev) => {
+      if (!prev.some((c) => c.isSelected)) return prev;
+      return prev.map((c) => (c.isSelected ? { ...c, isSelected: false } : c));
+    });
+  }, []);
+
   const value: TamboInteractableContext = {
     interactableComponents,
     addInteractableComponent,
@@ -463,6 +489,8 @@ export const TamboInteractableProvider: React.FC<PropsWithChildren> = ({
     clearAllInteractableComponents,
     setInteractableState: setInteractableStateValue,
     getInteractableComponentState,
+    setInteractableSelected,
+    clearInteractableSelections,
   };
 
   return (

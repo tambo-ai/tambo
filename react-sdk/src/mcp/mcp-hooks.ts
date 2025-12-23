@@ -5,6 +5,7 @@ import {
   type ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { UseQueryResult } from "@tanstack/react-query";
+import * as React from "react";
 import { useTamboQueries, useTamboQuery } from "../hooks";
 import { useTamboRegistry } from "../providers/tambo-registry-provider";
 import { REGISTRY_SERVER_KEY } from "./mcp-constants";
@@ -26,9 +27,7 @@ export type ListResourceItem = ListResourcesResult["resources"][number];
 /**
  * Registry resource entry - resources from the local registry (not MCP servers).
  *
- * These entries always have `server === null` and represent resources that
- * are registered locally via `TamboRegistryProvider` (static `resources`
- * props or dynamic `ResourceSource` functions).
+ * These entries always have `server === null`.
  */
 export interface RegistryResourceEntry {
   server: null;
@@ -37,9 +36,6 @@ export interface RegistryResourceEntry {
 
 /**
  * MCP server resource entry - resources from connected MCP servers.
- *
- * These entries always have a non-null `server` with connection metadata and
- * are produced by the active MCP clients managed by `TamboMcpProvider`.
  */
 export interface McpResourceEntry {
   server: ConnectedMcpServer;
@@ -48,15 +44,29 @@ export interface McpResourceEntry {
 
 /**
  * Union type for all resource entries returned by `useTamboMcpResourceList`.
- *
- * - Registry resources have `server === null`.
- * - MCP-backed resources have a non-null `server` with connection metadata.
  */
 export type ListResourceEntry = RegistryResourceEntry | McpResourceEntry;
 
+type InternalRegistryResourceEntry = RegistryResourceEntry & {
+  isDynamic: boolean;
+};
+
+type InternalListResourceEntry =
+  | McpResourceEntry
+  | InternalRegistryResourceEntry;
+
+function toPublicResourceEntry(
+  entry: InternalListResourceEntry,
+): ListResourceEntry {
+  if (entry.server === null) {
+    const { isDynamic: _isDynamic, ...publicEntry } = entry;
+    return publicEntry;
+  }
+  return entry;
+}
+
 /**
- * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource
- * (entries where `server` is non-null).
+ * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource.
  */
 export function isMcpResourceEntry(
   entry: ListResourceEntry,
@@ -66,13 +76,15 @@ export function isMcpResourceEntry(
 
 /**
  * Hook to get the prompts for all the registered MCP servers.
+ * @param search - Optional search string to filter prompts by name (case-insensitive).
  * @returns The prompts for the MCP servers, including the server that the prompt was found on.
  */
-export function useTamboMcpPromptList() {
+export function useTamboMcpPromptList(search?: string) {
   const mcpServers = useTamboMcpServers();
 
   const queries = useTamboQueries({
     queries: mcpServers.map((mcpServer) => ({
+      // search is NOT in queryKey - we filter locally after fetching
       queryKey: ["mcp-prompts", mcpServer.key],
       // Only run for connected servers that have a client
       enabled: isConnectedMcpServer(mcpServer),
@@ -108,7 +120,21 @@ export function useTamboMcpPromptList() {
     },
   });
 
-  return queries;
+  // Filter results by search string - runs on every search change (not just query completion)
+  const filteredData = React.useMemo(() => {
+    if (!search) return queries.data;
+
+    const normalizedSearch = search.toLowerCase();
+    return queries.data.filter((entry) => {
+      const name = entry.prompt.name?.toLowerCase() ?? "";
+      return name.includes(normalizedSearch);
+    });
+  }, [queries.data, search]);
+
+  return {
+    ...queries,
+    data: filteredData,
+  };
 }
 // TODO: find a more general place for this
 function combineArrayResults<T>(results: UseQueryResult<T[]>[]): {
@@ -224,15 +250,17 @@ export function useTamboMcpPrompt(
 
 /**
  * Hook to get the resources for all the registered MCP servers and registry.
+ * @param search - Optional search string. For MCP servers, results are filtered locally after fetching.
+ *                 For registry dynamic sources, the search is passed to listResources(search) for dynamic generation.
  * @returns The resources from MCP servers and the local registry, including the server that the resource was found on (null for registry resources).
  */
-export function useTamboMcpResourceList() {
+export function useTamboMcpResourceList(search?: string) {
   const mcpServers = useTamboMcpServers();
   const { resources: staticResources, resourceSource } = useTamboRegistry();
 
   // Build list of queries: MCP servers + optional dynamic resource source
   const queriesToRun = [
-    // MCP server queries
+    // MCP server queries - search is NOT in queryKey so queries don't re-run on search change
     ...mcpServers.map((mcpServer) => ({
       queryKey: ["mcp-resources", mcpServer.key],
       // Only run for connected servers that have a client
@@ -253,18 +281,19 @@ export function useTamboMcpResourceList() {
         return resourceEntries;
       },
     })),
-    // Dynamic resource source query (if exists)
+    // Dynamic resource source query (if exists) - search IS in queryKey to allow dynamic generation
     ...(resourceSource
       ? [
           {
-            queryKey: ["registry-resources", "dynamic"],
+            queryKey: ["registry-resources", "dynamic", search],
             enabled: true,
-            queryFn: async (): Promise<RegistryResourceEntry[]> => {
+            queryFn: async (): Promise<InternalRegistryResourceEntry[]> => {
               if (!resourceSource) return [];
-              const resources = await resourceSource.listResources();
+              const resources = await resourceSource.listResources(search);
               return resources.map((resource) => ({
                 server: null,
                 resource,
+                isDynamic: true,
               }));
             },
           },
@@ -277,16 +306,16 @@ export function useTamboMcpResourceList() {
     combine: (results) => {
       // Type assertion needed because queries can return different entry types
       const combined = combineArrayResults(
-        results as UseQueryResult<ListResourceEntry[]>[],
+        results as UseQueryResult<InternalListResourceEntry[]>[],
       );
 
       // Add static registry resources (no query needed)
-      const staticEntries: RegistryResourceEntry[] = staticResources.map(
-        (resource) => ({
+      const staticEntries: InternalRegistryResourceEntry[] =
+        staticResources.map((resource) => ({
           server: null,
           resource,
-        }),
-      );
+          isDynamic: false,
+        }));
 
       // Merge static resources with query results (registry resources first)
       const allData = [...staticEntries, ...combined.data];
@@ -321,7 +350,34 @@ export function useTamboMcpResourceList() {
     },
   });
 
-  return queries;
+  // Filter results by search string - runs on every search change (not just query completion)
+  // - MCP resources are filtered locally
+  // - Static registry resources are filtered locally
+  // - Dynamic registry resources are already filtered by listResources(search)
+  const filteredData = React.useMemo((): InternalListResourceEntry[] => {
+    if (!search) return queries.data;
+
+    const normalizedSearch = search.toLowerCase();
+    return queries.data.filter((entry) => {
+      if (entry.server === null && entry.isDynamic) {
+        return true;
+      }
+
+      const name = entry.resource.name?.toLowerCase() ?? "";
+      const uri = entry.resource.uri.toLowerCase();
+      return name.includes(normalizedSearch) || uri.includes(normalizedSearch);
+    });
+  }, [queries.data, search]);
+
+  const publicData = React.useMemo(
+    () => filteredData.map(toPublicResourceEntry),
+    [filteredData],
+  );
+
+  return {
+    ...queries,
+    data: publicData,
+  };
 }
 
 /**

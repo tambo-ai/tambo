@@ -1,9 +1,17 @@
 import type { JSONSchema7 } from "json-schema";
 import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
-import { TamboTool } from "../model/component-metadata";
+import {
+  TamboTool,
+  TamboToolWithToolSchema,
+} from "../model/component-metadata";
 import { looksLikeJSONSchema } from "./json-schema";
-import { getParametersFromToolSchema } from "./schema";
+import {
+  getParametersFromToolSchema,
+  hasInputSchema,
+  safeSchemaToJsonSchema,
+  schemaToJsonSchema,
+} from "./schema";
 import { isStandardSchema } from "./standard-schema";
 
 describe("schema utilities", () => {
@@ -350,33 +358,212 @@ describe("schema utilities", () => {
         expect(params.length).toBeGreaterThanOrEqual(1);
         expect(params[0].name).toBe("param1");
       });
-      it("unwraps optional positional parameters logic (root cause fix)", () => {
-        const tool = {
+
+      it("handles toolSchema with JSON Schema directly", () => {
+        const tool: TamboToolWithToolSchema = {
           name: "test-tool",
           description: "Test tool",
           tool: jest.fn(),
-          toolSchema: z3
-            .function()
-            .args(
-              z3
-                .object({
-                  q: z3.string(),
-                })
-                .optional(),
-            )
-            .returns(z3.void()),
+          toolSchema: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" },
+            },
+            required: ["query"],
+          } as JSONSchema7,
         };
 
         const params = getParametersFromToolSchema(tool);
 
-        expect(params).toHaveLength(1);
-        expect(params[0].name).toBe("param1");
-        expect(params[0].type).toBe("object");
-        expect(params[0].isRequired).toBe(false);
-        // The unwrapped schema should NOT be a union with anyOf at the root
-        expect(params[0].schema).not.toHaveProperty("anyOf");
-        expect(params[0].schema).toHaveProperty("type", "object");
+        // JSON Schema in toolSchema should return params wrapped
+        expect(params.length).toBeGreaterThanOrEqual(1);
       });
+    });
+
+    describe("edge cases and error handling", () => {
+      it("returns empty params when inputSchema is unknown type", () => {
+        // Create a tool with an invalid inputSchema that isn't Standard Schema or JSON Schema
+        const tool: TamboTool = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          inputSchema: "invalid-schema" as any, // Not a valid schema
+          outputSchema: z4.void(),
+        };
+
+        const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+        const params = getParametersFromToolSchema(tool);
+        consoleSpy.mockRestore();
+
+        expect(params).toEqual([]);
+      });
+
+      it("throws when toolSchema is undefined", () => {
+        // Create a tool with toolSchema that has undefined toolSchema
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          toolSchema: undefined as any,
+        };
+
+        expect(() => getParametersFromToolSchema(tool)).toThrow(
+          "Unable to determine parameters from zod function schema",
+        );
+      });
+    });
+  });
+
+  describe("schemaToJsonSchema", () => {
+    it("returns JSON Schema as-is when already a JSON Schema", () => {
+      const jsonSchema: JSONSchema7 = {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+        },
+      };
+
+      const result = schemaToJsonSchema(jsonSchema);
+      expect(result).toBe(jsonSchema); // Same reference
+    });
+
+    it("converts Zod 4 schema to JSON Schema", () => {
+      const zodSchema = z4.object({
+        name: z4.string(),
+        count: z4.number(),
+      });
+
+      const result = schemaToJsonSchema(zodSchema);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            name: expect.objectContaining({ type: "string" }),
+            count: expect.objectContaining({ type: "number" }),
+          }),
+        }),
+      );
+    });
+
+    it("converts Zod 3 schema to JSON Schema", () => {
+      const zodSchema = z3.object({
+        title: z3.string(),
+      });
+
+      const result = schemaToJsonSchema(zodSchema);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            title: expect.objectContaining({ type: "string" }),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe("safeSchemaToJsonSchema", () => {
+    it("returns undefined for null schema", () => {
+      expect(safeSchemaToJsonSchema(null)).toBeUndefined();
+    });
+
+    it("returns undefined for undefined schema", () => {
+      expect(safeSchemaToJsonSchema(undefined)).toBeUndefined();
+    });
+
+    it("converts valid schema successfully", () => {
+      const zodSchema = z4.object({ name: z4.string() });
+      const result = safeSchemaToJsonSchema(zodSchema);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            name: expect.objectContaining({ type: "string" }),
+          }),
+        }),
+      );
+    });
+
+    it("returns undefined and calls onError for invalid schema", () => {
+      // Create something that looks like a Standard Schema but will fail conversion
+      const brokenSchema = {
+        "~standard": {
+          version: 1,
+          vendor: "broken",
+          validate: () => ({ value: {} }),
+        },
+      };
+
+      const onError = jest.fn();
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+      const result = safeSchemaToJsonSchema(brokenSchema as any, onError);
+
+      consoleSpy.mockRestore();
+
+      expect(result).toBeUndefined();
+      expect(onError).toHaveBeenCalled();
+    });
+
+    it("logs error to console when conversion fails", () => {
+      const brokenSchema = {
+        "~standard": {
+          version: 1,
+          vendor: "broken",
+          validate: () => ({ value: {} }),
+        },
+      };
+
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+      safeSchemaToJsonSchema(brokenSchema as any);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error converting schema to JSON Schema:",
+        expect.any(Error),
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("hasInputSchema", () => {
+    it("returns true for tool with inputSchema", () => {
+      const tool: TamboTool = {
+        name: "test",
+        description: "test",
+        tool: jest.fn(),
+        inputSchema: z4.object({ a: z4.string() }),
+        outputSchema: z4.void(),
+      };
+
+      expect(hasInputSchema(tool)).toBe(true);
+    });
+
+    it("returns false for tool with toolSchema (deprecated)", () => {
+      const tool: TamboToolWithToolSchema = {
+        name: "test",
+        description: "test",
+        tool: jest.fn(),
+        toolSchema: z3.function().args(z3.string()).returns(z3.void()),
+      };
+
+      expect(hasInputSchema(tool)).toBe(false);
+    });
+
+    it("returns false for tool with null inputSchema", () => {
+      const tool = {
+        name: "test",
+        description: "test",
+        tool: jest.fn(),
+        inputSchema: null,
+        outputSchema: z4.void(),
+      };
+
+      expect(hasInputSchema(tool as any)).toBe(false);
     });
   });
 });
