@@ -1,0 +1,66 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "enabledManagers": ["nvm", "nodenv", "mise", "npm", "custom.jsonata"],
+  "customManagers": [
+    {
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": ["/package.json$/"],
+      "matchStrings": [
+        "devEngines.runtime.{ \"depName\": \"node\", \"currentValue\": version, \"depType\": \"devEngines\" }"
+      ],
+      "datasourceTemplate": "node-version"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Group all Node.js version updates into a single PR",
+      "matchDatasources": ["node-version"],
+      "groupName": "node version",
+      "groupSlug": "node",
+      "allowedVersions": "/^(?:18|20|22|24|26|28)(?:\\.|$)/",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps",
+      "commitMessageTopic": "Node.js"
+    },
+    {
+      "description": "Auto-merge Node.js patch updates",
+      "matchDatasources": ["node-version"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Require review for Node.js minor/major updates",
+      "matchDatasources": ["node-version"],
+      "matchUpdateTypes": ["minor", "major"],
+      "automerge": false
+    },
+    {
+      "description": "Disable all npm dependency updates (only enable volta node/npm)",
+      "matchManagers": ["npm"],
+      "matchDepTypes": [
+        "dependencies",
+        "devDependencies",
+        "peerDependencies",
+        "optionalDependencies",
+        "engines"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Enable volta node/npm updates",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["volta"],
+      "enabled": true,
+      "groupName": "node version",
+      "groupSlug": "node"
+    }
+  ],
+  "schedule": ["before 9am on monday"],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2
+}

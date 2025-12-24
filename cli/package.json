@@ -45,9 +45,6 @@
     "node": ">=22",
     "npm": ">=11"
   },
-  "volta": {
-    "extends": "../package.json"
-  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",
