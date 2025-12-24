@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.127.2](https://github.com/tambo-ai/tambo/compare/api-v0.127.1...api-v0.127.2) (2025-12-24)
+
+
+### Miscellaneous Chores
+
+* add cspell settings and correct a few spleling mistaeks ([#1586](https://github.com/tambo-ai/tambo/issues/1586)) ([f5cef2b](https://github.com/tambo-ai/tambo/commit/f5cef2b36d33076f2188f4a663bcebddd9679a9f))
+* **repo:** update testing and linting config ([#1619](https://github.com/tambo-ai/tambo/issues/1619)) ([ccc5c05](https://github.com/tambo-ai/tambo/commit/ccc5c05a0f62e4672068f4fbdd7316a7db306e7c))
+
 ## [0.127.1](https://github.com/tambo-ai/tambo/compare/api-v0.127.0...api-v0.127.1) (2025-12-23)
 
 
