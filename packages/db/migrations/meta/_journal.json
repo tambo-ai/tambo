@@ -575,6 +575,13 @@
       "when": 1762823873822,
       "tag": "0081_sloppy_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1766425499549,
+      "tag": "0082_short_vision",
+      "breakpoints": true
     }
   ]
 }
