@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.21.2](https://github.com/tambo-ai/tambo/compare/docs-v1.21.1...docs-v1.21.2) (2025-12-24)
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+* refactor ContextAttachmentProvider and allow Interactable selection ([#1588](https://github.com/tambo-ai/tambo/issues/1588)) ([40a6af4](https://github.com/tambo-ai/tambo/commit/40a6af45323e73f1cc400df0665f45793d98de5b))
+* thread stuck in loading state after tool call failures/refresh ([#1579](https://github.com/tambo-ai/tambo/issues/1579)) ([e138b40](https://github.com/tambo-ai/tambo/commit/e138b40dcffc5e6b87f5aa1d31bfcec29e40878f))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+* **deps:** bump the tailwind group with 2 updates ([#1557](https://github.com/tambo-ai/tambo/issues/1557)) ([89a3b63](https://github.com/tambo-ai/tambo/commit/89a3b63f9eaa66e5295588bb3f277052f889b514))
+
+
+### Documentation
+
+* add generative UI rules best practices guide ([#1564](https://github.com/tambo-ai/tambo/issues/1564)) ([72980a7](https://github.com/tambo-ai/tambo/commit/72980a7c85f76b61f33a5e5f11069f71670158c4))
+* **docs:** make /llms.txt spec-compliant ([#1578](https://github.com/tambo-ai/tambo/issues/1578)) ([203b673](https://github.com/tambo-ai/tambo/commit/203b6739202748436405ec5ef431ef7ec08f919c))
+
 ## [1.21.1](https://github.com/tambo-ai/tambo/compare/docs-v1.21.0...docs-v1.21.1) (2025-12-17)
 
 
