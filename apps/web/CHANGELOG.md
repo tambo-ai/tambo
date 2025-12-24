@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.124.1](https://github.com/tambo-ai/tambo/compare/web-v0.124.0...web-v0.124.1) (2025-12-24)
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+* refactor ContextAttachmentProvider and allow Interactable selection ([#1588](https://github.com/tambo-ai/tambo/issues/1588)) ([40a6af4](https://github.com/tambo-ai/tambo/commit/40a6af45323e73f1cc400df0665f45793d98de5b))
+* thread stuck in loading state after tool call failures/refresh ([#1579](https://github.com/tambo-ai/tambo/issues/1579)) ([e138b40](https://github.com/tambo-ai/tambo/commit/e138b40dcffc5e6b87f5aa1d31bfcec29e40878f))
+* **web:** allow Enter key to select items from TipTap suggestion popover ([#1571](https://github.com/tambo-ai/tambo/issues/1571)) ([dcb153c](https://github.com/tambo-ai/tambo/commit/dcb153c675a1f0689b2b048fd48970d160c82a94))
+
+
+### Miscellaneous Chores
+
+* add cspell settings and correct a few spleling mistaeks ([#1586](https://github.com/tambo-ai/tambo/issues/1586)) ([f5cef2b](https://github.com/tambo-ai/tambo/commit/f5cef2b36d33076f2188f4a663bcebddd9679a9f))
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps-dev:** bump @testing-library/react from 16.3.0 to 16.3.1 in the testing group ([#1610](https://github.com/tambo-ai/tambo/issues/1610)) ([f8d30aa](https://github.com/tambo-ai/tambo/commit/f8d30aaf912649b4f49a8431e51b6a67b3f58fe7))
+* **deps:** bump @t3-oss/env-nextjs from 0.13.8 to 0.13.10 in the t3-oss group ([#1613](https://github.com/tambo-ai/tambo/issues/1613)) ([341cba4](https://github.com/tambo-ai/tambo/commit/341cba4649fd43f41b83791ebc6599c35e0eb143))
+* **deps:** bump @trpc/server from 11.7.2 to 11.8.0 ([#1617](https://github.com/tambo-ai/tambo/issues/1617)) ([98aee7c](https://github.com/tambo-ai/tambo/commit/98aee7c74cf13cc1d42ab53c9d4a7e6cb5bde978))
+* **deps:** bump @vercel/og from 0.8.5 to 1.0.0 ([#1562](https://github.com/tambo-ai/tambo/issues/1562)) ([03ca0f4](https://github.com/tambo-ai/tambo/commit/03ca0f494bca97deac07d44bafa665bf5eb2583d))
+* **deps:** bump superjson from 2.2.5 to 2.2.6 ([#1567](https://github.com/tambo-ai/tambo/issues/1567)) ([ef27dc8](https://github.com/tambo-ai/tambo/commit/ef27dc8b63739d1b96b86230a719506d8183c592))
+* **deps:** bump the sentry group with 3 updates ([#1615](https://github.com/tambo-ai/tambo/issues/1615)) ([8ebc981](https://github.com/tambo-ai/tambo/commit/8ebc981dd424fe7fa94a1897890d2f0bc59a3dab))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+* **deps:** bump the tailwind group with 2 updates ([#1557](https://github.com/tambo-ai/tambo/issues/1557)) ([89a3b63](https://github.com/tambo-ai/tambo/commit/89a3b63f9eaa66e5295588bb3f277052f889b514))
+* **repo:** add settings for vscode-jest extension ([#1591](https://github.com/tambo-ai/tambo/issues/1591)) ([a714303](https://github.com/tambo-ai/tambo/commit/a7143037ccf05ada73a5a7a6fc9a0227ba653a48))
+* **test:** bump coverage thresholds (2025-12-22) ([#1605](https://github.com/tambo-ai/tambo/issues/1605)) ([37639b3](https://github.com/tambo-ai/tambo/commit/37639b31a43e0027474a9b61f902c0e0fdb1f388))
+
+
+### Tests
+
+* **react-sdk:** improve test coverage with behavioral tests ([#1607](https://github.com/tambo-ai/tambo/issues/1607)) ([9ec425a](https://github.com/tambo-ai/tambo/commit/9ec425a07bfcc4da7d7ef258ca5aeeb6aa8ba06f))
+
 ## [0.124.0](https://github.com/tambo-ai/tambo/compare/web-v0.123.4...web-v0.124.0) (2025-12-08)
 
 
