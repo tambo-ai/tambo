@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.35.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.34.1...showcase-v0.35.0) (2025-12-24)
+
+
+### Features
+
+* **mcp:** Refactor text editor to speed up prompt/resource searching ([#1597](https://github.com/tambo-ai/tambo/issues/1597)) ([8f002c3](https://github.com/tambo-ai/tambo/commit/8f002c3991330e4ad6496ce9291ec99dc49c5464))
+* **showcase:** add dark mode to showcase and fix css ([#1527](https://github.com/tambo-ai/tambo/issues/1527)) ([6fa757d](https://github.com/tambo-ai/tambo/commit/6fa757ddbadbbaa5fb243207c0ae12ef5520d4a6))
+
+
+### Bug Fixes
+
+* add max image uploads and show image error ([#1512](https://github.com/tambo-ai/tambo/issues/1512)) ([5af9a32](https://github.com/tambo-ai/tambo/commit/5af9a329b8518ffb8ba706ccf0ac1823ee1cb2d8))
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+* refactor ContextAttachmentProvider and allow Interactable selection ([#1588](https://github.com/tambo-ai/tambo/issues/1588)) ([40a6af4](https://github.com/tambo-ai/tambo/commit/40a6af45323e73f1cc400df0665f45793d98de5b))
+* **resources:** Use default streamdown configuration, drop explicit `rehype-harden` configuration ([#1593](https://github.com/tambo-ai/tambo/issues/1593)) ([55801f8](https://github.com/tambo-ai/tambo/commit/55801f87a93d9fa8e96b451bff2ed3347516f8e5))
+* thread stuck in loading state after tool call failures/refresh ([#1579](https://github.com/tambo-ai/tambo/issues/1579)) ([e138b40](https://github.com/tambo-ai/tambo/commit/e138b40dcffc5e6b87f5aa1d31bfcec29e40878f))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @testing-library/react from 16.3.0 to 16.3.1 in the testing group ([#1610](https://github.com/tambo-ai/tambo/issues/1610)) ([f8d30aa](https://github.com/tambo-ai/tambo/commit/f8d30aaf912649b4f49a8431e51b6a67b3f58fe7))
+* **deps-dev:** bump the eslint group with 2 updates ([#1609](https://github.com/tambo-ai/tambo/issues/1609)) ([38959be](https://github.com/tambo-ai/tambo/commit/38959be0ec2e53946a36c120073d644c010466ed))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+* **deps:** bump the tailwind group with 2 updates ([#1557](https://github.com/tambo-ai/tambo/issues/1557)) ([89a3b63](https://github.com/tambo-ai/tambo/commit/89a3b63f9eaa66e5295588bb3f277052f889b514))
+* **repo:** add settings for vscode-jest extension ([#1591](https://github.com/tambo-ai/tambo/issues/1591)) ([a714303](https://github.com/tambo-ai/tambo/commit/a7143037ccf05ada73a5a7a6fc9a0227ba653a48))
+* **test:** bump coverage thresholds (2025-12-22) ([#1605](https://github.com/tambo-ai/tambo/issues/1605)) ([37639b3](https://github.com/tambo-ai/tambo/commit/37639b31a43e0027474a9b61f902c0e0fdb1f388))
+
 ## [0.34.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.34.0...showcase-v0.34.1) (2025-12-17)
 
 
