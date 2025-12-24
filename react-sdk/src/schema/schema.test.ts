@@ -411,6 +411,97 @@ describe("schema utilities", () => {
           "Unable to determine parameters from zod function schema",
         );
       });
+
+      it("throws when toolSchema args are not recognized", () => {
+        // Create a tool with toolSchema that is not a function schema or JSON schema
+        // This causes getArgsFromToolSchema to attempt extraction but fail
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          toolSchema: { notASchema: true } as any,
+        };
+
+        // This throws because it's not a Zod function schema
+        expect(() => getParametersFromToolSchema(tool)).toThrow(
+          "Unable to determine parameters from zod function schema",
+        );
+      });
+    });
+
+    describe("toolSchema with JSON Schema tuple", () => {
+      it("handles toolSchema with JSON Schema array/tuple directly", () => {
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          // JSON Schema tuple format
+          toolSchema: {
+            type: "array",
+            items: [
+              { type: "string", description: "First param" },
+              { type: "number", description: "Second param" },
+            ],
+          } as JSONSchema7,
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        // JSON Schema tuples should be extracted as positional params
+        expect(params).toHaveLength(2);
+        expect(params[0].name).toBe("param1");
+        expect(params[0].type).toBe("string");
+        expect(params[0].description).toBe("First param");
+        expect(params[1].name).toBe("param2");
+        expect(params[1].type).toBe("number");
+      });
+
+      it("handles toolSchema with JSON Schema prefixItems (2020-12 format)", () => {
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          // JSON Schema 2020-12 tuple format
+          toolSchema: {
+            type: "array",
+            prefixItems: [
+              { type: "boolean", description: "Flag" },
+              { type: "string" },
+            ],
+          } as JSONSchema7,
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        expect(params).toHaveLength(2);
+        expect(params[0].name).toBe("param1");
+        expect(params[0].type).toBe("boolean");
+        expect(params[0].description).toBe("Flag");
+        expect(params[1].name).toBe("param2");
+        expect(params[1].type).toBe("string");
+      });
+
+      it("handles toolSchema with non-tuple JSON Schema (fallback)", () => {
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          // Non-tuple JSON Schema - should be wrapped as single param
+          toolSchema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+            },
+          } as JSONSchema7,
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        // Non-tuple schemas should be wrapped as a single param
+        expect(params).toHaveLength(1);
+        expect(params[0].name).toBe("param1");
+        expect(params[0].type).toBe("object");
+      });
     });
   });
 

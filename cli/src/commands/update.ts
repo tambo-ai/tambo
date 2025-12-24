@@ -1,10 +1,6 @@
 import chalk from "chalk";
 import ora from "ora";
 import {
-  interactivePrompt,
-  NonInteractiveError,
-} from "../utils/interactive.js";
-import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
 } from "../constants/paths.js";
@@ -13,8 +9,12 @@ import {
   expandComponentsWithDependencies,
   resolveDependenciesForComponents,
 } from "../utils/dependency-resolution.js";
+import {
+  interactivePrompt,
+  NonInteractiveError,
+} from "../utils/interactive.js";
 import { installComponents } from "./add/component.js";
-import { setupTailwindandGlobals } from "./add/tailwind-setup.js";
+import { setupTailwindAndGlobals } from "./add/tailwind-setup.js";
 import type { InstallComponentOptions } from "./add/types.js";
 import { componentExists, getInstalledComponents } from "./add/utils.js";
 import { getInstallationPath } from "./init.js";
@@ -328,7 +328,7 @@ export async function handleUpdateComponents(
 
     if (successCount > 0 && !options.silent) {
       console.log(chalk.blue("\nChecking CSS configuration..."));
-      await setupTailwindandGlobals(projectRoot);
+      await setupTailwindAndGlobals(projectRoot);
     }
 
     if (!options.silent) {

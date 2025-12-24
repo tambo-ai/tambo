@@ -2,14 +2,14 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import {
-  interactivePrompt,
-  NonInteractiveError,
-} from "../../utils/interactive.js";
-import {
   COMPONENT_SUBDIR,
   LEGACY_COMPONENT_SUBDIR,
 } from "../../constants/paths.js";
 import { resolveComponentDependencies } from "../../utils/dependency-resolution.js";
+import {
+  interactivePrompt,
+  NonInteractiveError,
+} from "../../utils/interactive.js";
 import { getInstallationPath } from "../init.js";
 import {
   getComponentDirectoryPath,
@@ -17,7 +17,7 @@ import {
   resolveComponentPaths,
 } from "../shared/path-utils.js";
 import { installComponents } from "./component.js";
-import { setupTailwindandGlobals } from "./tailwind-setup.js";
+import { setupTailwindAndGlobals } from "./tailwind-setup.js";
 import type { InstallComponentOptions } from "./types.js";
 import { getKnownComponentNames } from "./utils.js";
 
@@ -234,7 +234,7 @@ export async function handleAddComponents(
     });
 
     // 7. Setup Tailwind and globals.css after all components are installed
-    await setupTailwindandGlobals(process.cwd());
+    await setupTailwindAndGlobals(process.cwd());
 
     if (!options.silent) {
       console.log(chalk.green("\n✨ Installation complete!"));
