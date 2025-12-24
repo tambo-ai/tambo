@@ -1,7 +1,7 @@
 [tools]
 # General repo tools
-cspell = "latest"
-shellcheck = "latest"
+cspell = "9.4.0"
+shellcheck = "0.11.0"
 
 # Because of `idiomatic_version_file_enable_tools` setting below, we do not need
 # to specify the node tool here. It will be read from the .node-version file.
@@ -9,7 +9,7 @@ shellcheck = "latest"
 
 # Use corepack to manage packageManager versions
 [tools."npm:corepack"]
-version = "latest"
+version = "0.34.5"
 postinstall = """
 # Remove globally installed npm and corepack to avoid conflicts
 npm r -g corepack npm
