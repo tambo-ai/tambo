@@ -134,6 +134,28 @@ describe("TamboRegistryProvider", () => {
       expect(result.current.toolRegistry).toHaveProperty("test-tool-2");
       expect(Object.keys(result.current.toolRegistry)).toHaveLength(2);
     });
+    it("should preserve maxCalls when registering a tool", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const maxTool: TamboTool = {
+        name: "max-tool",
+        description: "Tool with maxCalls",
+        tool: jest.fn().mockResolvedValue("ok"),
+        inputSchema: z.object({}),
+        outputSchema: z.object(),
+        maxCalls: 4 as any,
+      } as unknown as TamboTool;
+
+      act(() => {
+        result.current.registerTool(maxTool);
+      });
+
+      expect((result.current.toolRegistry["max-tool"] as any).maxCalls).toBe(4);
+    });
 
     it("should handle tool association with components", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
