@@ -1,7 +1,7 @@
 import config from "@tambo-ai/eslint-config/base";
-import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
 
-export default tseslint.config(...config, {
+export default defineConfig(...config, {
   rules: {
     // Temporarily turning this off to reduce noise
     "@typescript-eslint/no-explicit-any": "off",
