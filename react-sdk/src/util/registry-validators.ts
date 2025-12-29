@@ -83,6 +83,16 @@ export function validateTool(tool: TamboTool | TamboToolWithToolSchema): void {
     }
     assertNoRecordSchema(inputSchema, `toolSchema of tool "${tool.name}"`);
   }
+
+  // Validate maxCalls if provided - must be a non-negative integer
+  if ("maxCalls" in tool && tool.maxCalls !== undefined) {
+    const maxCalls = tool.maxCalls;
+    if (!Number.isInteger(maxCalls) || maxCalls < 0) {
+      throw new Error(
+        `maxCalls for tool "${tool.name}" must be a non-negative integer`,
+      );
+    }
+  }
 }
 
 /**

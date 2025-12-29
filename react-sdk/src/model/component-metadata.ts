@@ -148,8 +148,9 @@ export interface TamboTool<
    * @example 1
    */
   maxCalls?: number;
-  //  * Optional properties describing tool behavior
-  //  */
+  /**
+   * Optional properties describing tool behavior.
+   */
   annotations?: {
     /**
      * An array indicating the intended audience(s) for this resource. Valid

@@ -356,7 +356,7 @@ describe("Schema Compatibility", () => {
             .args(
               z3.string().describe("first argument"),
               z3.number().describe("second argument"),
-              z3.boolean().optional().describe("optional third argument"),
+              z3.boolean().describe("optional third argument"),
             )
             .returns(z3.object({ success: z3.boolean() })),
         });
@@ -383,7 +383,7 @@ describe("Schema Compatibility", () => {
               z3
                 .object({
                   query: z3.string().describe("search query"),
-                  limit: z3.number().optional().describe("max results"),
+                  limit: z3.number().describe("max results"),
                   filters: z3.array(z3.string()).optional(),
                 })
                 .describe("search options"),

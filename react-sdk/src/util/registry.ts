@@ -152,7 +152,7 @@ export const mapTamboToolToContextTool = (
     parameters,
     // Include per-tool maxCalls if provided by the tool definition
     ...("maxCalls" in tool && tool.maxCalls !== undefined
-      ? { maxCalls: (tool as any).maxCalls }
+      ? { maxCalls: tool.maxCalls }
       : {}),
   };
 };

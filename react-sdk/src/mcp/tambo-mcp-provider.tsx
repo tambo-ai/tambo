@@ -329,8 +329,8 @@ async function registerServerTools(
           }
           return [{ type: "text", text: toText(content) }];
         },
-        ...("maxCalls" in tool && (tool as any).maxCalls !== undefined
-          ? { maxCalls: (tool as any).maxCalls }
+        ...("maxCalls" in tool && tool.maxCalls !== undefined
+          ? { maxCalls: tool.maxCalls }
           : {}),
       });
     });
