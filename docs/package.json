@@ -50,9 +50,5 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
   }
 }

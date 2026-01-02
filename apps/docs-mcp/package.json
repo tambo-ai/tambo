@@ -27,9 +27,5 @@
     "@tambo-ai/typescript-config": "*",
     "@types/node": "^22.15.32",
     "typescript": "^5.9.3"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
   }
 }

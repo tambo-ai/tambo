@@ -34,9 +34,5 @@
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
     "openai": "^6.4.0"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
   }
 }
