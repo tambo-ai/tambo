@@ -2,9 +2,5 @@
   "name": "@tambo-ai/typescript-config",
   "version": "0.0.0",
   "private": true,
-  "license": "MIT",
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
-  }
+  "license": "MIT"
 }

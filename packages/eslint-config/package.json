@@ -20,9 +20,5 @@
     "globals": "^16.5.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.51.0"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
   }
 }

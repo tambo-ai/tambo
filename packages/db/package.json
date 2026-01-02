@@ -39,9 +39,5 @@
     "pg": "^8.16.3",
     "superjson": "^2.2.6",
     "ts-essentials": "^10.1.1"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
   }
 }

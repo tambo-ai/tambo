@@ -135,9 +135,5 @@
     "ts-jest": "^29.4.6",
     "typescript": "5.9.3"
   },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
-  },
   "license": "Apache-2.0"
 }

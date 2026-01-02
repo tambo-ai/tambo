@@ -42,10 +42,6 @@
     "packages/*",
     "apps/*"
   ],
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
-  },
   "devEngines": {
     "runtime": {
       "name": "node",
