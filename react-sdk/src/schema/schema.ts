@@ -122,18 +122,13 @@ function getArgsFromToolSchema(
 function extractParamsFromJsonSchemaTuple(
   tupleItems: JSONSchema7[],
 ): ParameterSpec[] {
-  return tupleItems.map((item, index) => {
-    const schema = item;
-    const isRequired = true;
-
-    return {
-      name: `param${index + 1}`,
-      type: typeof schema.type === "string" ? schema.type : "object",
-      description: schema.description ?? "",
-      isRequired,
-      schema,
-    };
-  });
+  return tupleItems.map((item, index) => ({
+    name: `param${index + 1}`,
+    type: typeof item.type === "string" ? item.type : "object",
+    description: item.description ?? "",
+    isRequired: true, // tuple items are positional
+    schema: item,
+  }));
 }
 
 /**

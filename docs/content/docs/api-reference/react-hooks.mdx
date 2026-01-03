@@ -337,31 +337,50 @@ Removes a helper by key so it is no longer included in outgoing messages.
 
 ## useTamboContextAttachment
 
-This hook provides utilities for managing context attachments and custom suggestions.
+This hook provides utilities for managing context attachments that will be sent with the next user message.
 
 ### attachments
 
 `const { attachments } = useTamboContextAttachment()`
 
-Array of active context attachments currently displayed as badges above the message input.
+Array of active context attachments that will be included in `additionalContext` when the next message is sent.
 
 ### addContextAttachment
 
 `const { addContextAttachment } = useTamboContextAttachment()`
 
-Function to add a new context attachment. Accepts an object with `name`, optional `icon`, and optional `metadata`. The `id` is automatically generated.
+Function to add a new context attachment. Accepts an object with `context` (string), optional `displayName` (string), and optional `type` (string). Returns the `ContextAttachment` object with an auto-generated `id`. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments.
 
+```tsx
+// Without displayName
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
+});
+
+// With displayName
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
+  displayName: "File.txt",
+});
+
+// With displayName and type
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
+  displayName: "File.txt",
+  type: "file",
+});
+```
 ### removeContextAttachment
 
 `const { removeContextAttachment } = useTamboContextAttachment()`
 
-Function to remove a specific context attachment by its ID.
+Function to remove a specific context attachment by its ID. The context helper automatically updates to reflect the change.
 
 ### clearContextAttachments
 
 `const { clearContextAttachments } = useTamboContextAttachment()`
 
-Function to remove all active context attachments at once.
+Function to remove all active context attachments at once. The context helper automatically updates to reflect the change. Context attachments are automatically cleared after message submission (one-time use), so you typically don't need to call this manually.
 
 ### customSuggestions
 

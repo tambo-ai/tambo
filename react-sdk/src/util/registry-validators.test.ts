@@ -197,6 +197,66 @@ describe("validateTool", () => {
 
     expect(() => validateTool(tool)).not.toThrow();
   });
+
+  describe("maxCalls validation", () => {
+    it("should throw when maxCalls is a negative integer", () => {
+      const tool: TamboTool = {
+        name: "tool-with-negative-maxcalls",
+        description: "A tool with negative maxCalls",
+        tool: () => "result",
+        inputSchema: z.object({ query: z.string() }),
+        outputSchema: z.string(),
+        maxCalls: -1,
+      };
+
+      expect(() => validateTool(tool)).toThrow(
+        'maxCalls for tool "tool-with-negative-maxcalls" must be a positive integer',
+      );
+    });
+
+    it("should throw when maxCalls is a decimal number", () => {
+      const tool: TamboTool = {
+        name: "tool-with-decimal-maxcalls",
+        description: "A tool with decimal maxCalls",
+        tool: () => "result",
+        inputSchema: z.object({ query: z.string() }),
+        outputSchema: z.string(),
+        maxCalls: 1.5,
+      };
+
+      expect(() => validateTool(tool)).toThrow(
+        'maxCalls for tool "tool-with-decimal-maxcalls" must be a positive integer',
+      );
+    });
+
+    it("should throw when maxCalls is NaN", () => {
+      const tool: TamboTool = {
+        name: "tool-with-nan-maxcalls",
+        description: "A tool with NaN maxCalls",
+        tool: () => "result",
+        inputSchema: z.object({ query: z.string() }),
+        outputSchema: z.string(),
+        maxCalls: NaN,
+      };
+
+      expect(() => validateTool(tool)).toThrow(
+        'maxCalls for tool "tool-with-nan-maxcalls" must be a positive integer',
+      );
+    });
+
+    it("should accept tool with explicitly undefined maxCalls", () => {
+      const tool: TamboTool = {
+        name: "tool-with-undefined-maxcalls",
+        description: "A tool with undefined maxCalls",
+        tool: () => "result",
+        inputSchema: z.object({ query: z.string() }),
+        outputSchema: z.string(),
+        maxCalls: undefined,
+      };
+
+      expect(() => validateTool(tool)).not.toThrow();
+    });
+  });
 });
 
 describe("validateAndPrepareComponent", () => {

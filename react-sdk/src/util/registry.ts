@@ -108,10 +108,9 @@ export function adaptToolFromFnSchema(
     tool: tool.tool,
     inputSchema: getZodFunctionArgs(tool.toolSchema),
     outputSchema: getZodFunctionReturns(tool.toolSchema),
-    ...("maxCalls" in tool &&
-      tool.maxCalls !== undefined && {
-        maxCalls: tool.maxCalls,
-      }),
+    ...("maxCalls" in tool && tool.maxCalls !== undefined
+      ? { maxCalls: tool.maxCalls }
+      : {}),
   };
 }
 
