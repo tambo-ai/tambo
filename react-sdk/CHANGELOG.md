@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.69.0](https://github.com/tambo-ai/tambo/compare/react-v0.68.0...react-v0.69.0) (2025-12-24)
+
+
+### Features
+
+* **mcp:** Refactor text editor to speed up prompt/resource searching ([#1597](https://github.com/tambo-ai/tambo/issues/1597)) ([8f002c3](https://github.com/tambo-ai/tambo/commit/8f002c3991330e4ad6496ce9291ec99dc49c5464))
+
+
+### Bug Fixes
+
+* **react-sdk:** improve Zod compatibility and schema test coverage ([#1620](https://github.com/tambo-ai/tambo/issues/1620)) ([10c1f43](https://github.com/tambo-ai/tambo/commit/10c1f4382a9446a64dc7e2ed93b366c488ceece3))
+* **react:** follow up with changes missed in [#1580](https://github.com/tambo-ai/tambo/issues/1580) ([#1602](https://github.com/tambo-ai/tambo/issues/1602)) ([c73c8f8](https://github.com/tambo-ai/tambo/commit/c73c8f8a39caf6e68fbee3efab4b0f19ef0e5c15))
+* refactor ContextAttachmentProvider and allow Interactable selection ([#1588](https://github.com/tambo-ai/tambo/issues/1588)) ([40a6af4](https://github.com/tambo-ai/tambo/commit/40a6af45323e73f1cc400df0665f45793d98de5b))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @testing-library/react from 16.3.0 to 16.3.1 in the testing group ([#1610](https://github.com/tambo-ai/tambo/issues/1610)) ([f8d30aa](https://github.com/tambo-ai/tambo/commit/f8d30aaf912649b4f49a8431e51b6a67b3f58fe7))
+* **deps-dev:** bump the eslint group with 2 updates ([#1609](https://github.com/tambo-ai/tambo/issues/1609)) ([38959be](https://github.com/tambo-ai/tambo/commit/38959be0ec2e53946a36c120073d644c010466ed))
+* **repo:** add settings for vscode-jest extension ([#1591](https://github.com/tambo-ai/tambo/issues/1591)) ([a714303](https://github.com/tambo-ai/tambo/commit/a7143037ccf05ada73a5a7a6fc9a0227ba653a48))
+* **test:** bump coverage thresholds (2025-12-22) ([#1605](https://github.com/tambo-ai/tambo/issues/1605)) ([37639b3](https://github.com/tambo-ai/tambo/commit/37639b31a43e0027474a9b61f902c0e0fdb1f388))
+
+
+### Tests
+
+* **react-sdk:** improve test coverage with behavioral tests ([#1607](https://github.com/tambo-ai/tambo/issues/1607)) ([9ec425a](https://github.com/tambo-ai/tambo/commit/9ec425a07bfcc4da7d7ef258ca5aeeb6aa8ba06f))
+
 ## [0.68.0](https://github.com/tambo-ai/tambo/compare/react-v0.67.1...react-v0.68.0) (2025-12-18)
 
 
