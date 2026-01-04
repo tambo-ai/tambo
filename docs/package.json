@@ -5,7 +5,7 @@
   "scripts": {
     "build": "next build",
     "check-types": "tsc --noEmit",
-    "dev": "next dev --turbo",
+    "dev": "next dev --turbo -p 3003",
     "lint": "eslint .",
     "start": "next start",
     "postinstall": "fumadocs-mdx",
