@@ -32,7 +32,7 @@
     "turbo": "^2.6.1",
     "typescript": "^5.9.3"
   },
-  "packageManager": "npm@11.7.0",
+  "packageManager": "npm@11.7.0+sha512.c22099a6fff8d5b2286c2a09df5352b4858a7c0c716320f58989d60ad8b29ecf2ce6fdfe97ccb41c23ffb1272e1fa079f868487dd6b81d02a2a9e199c095a117",
   "workspaces": [
     "react-sdk",
     "showcase",
@@ -42,12 +42,20 @@
     "packages/*",
     "apps/*"
   ],
-  "engines": {
-    "node": ">=22",
-    "npm": ">=11"
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=22",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11",
+      "onFail": "error"
+    }
   },
   "volta": {
-    "node": "22.21.0",
+    "node": "22.21.1",
     "npm": "11.7.0"
   }
 }

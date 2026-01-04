@@ -33,13 +33,6 @@
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.0"
   },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10"
-  },
-  "volta": {
-    "extends": "../../package.json"
-  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.24.0",
     "jose": "^5.10.0",

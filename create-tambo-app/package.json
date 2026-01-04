@@ -36,11 +36,7 @@
     "clean": "rimraf dist"
   },
   "engines": {
-    "node": ">=22",
-    "npm": ">=11"
-  },
-  "volta": {
-    "extends": "../package.json"
+    "node": ">=22"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
