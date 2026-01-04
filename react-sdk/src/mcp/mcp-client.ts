@@ -361,4 +361,5 @@ export interface MCPToolSpec {
   name: string;
   description?: string;
   inputSchema?: JSONSchema7;
+  maxCalls?: number;
 }

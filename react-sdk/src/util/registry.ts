@@ -108,6 +108,9 @@ export function adaptToolFromFnSchema(
     tool: tool.tool,
     inputSchema: getZodFunctionArgs(tool.toolSchema),
     outputSchema: getZodFunctionReturns(tool.toolSchema),
+    ...("maxCalls" in tool && tool.maxCalls !== undefined
+      ? { maxCalls: tool.maxCalls }
+      : {}),
   };
 }
 
@@ -146,6 +149,10 @@ export const mapTamboToolToContextTool = (
     name: tool.name,
     description: tool.description,
     parameters,
+    // Include per-tool maxCalls if provided by the tool definition
+    ...("maxCalls" in tool && tool.maxCalls !== undefined
+      ? { maxCalls: tool.maxCalls }
+      : {}),
   };
 };
 

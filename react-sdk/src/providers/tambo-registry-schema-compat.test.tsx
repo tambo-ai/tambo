@@ -356,7 +356,7 @@ describe("Schema Compatibility", () => {
             .args(
               z3.string().describe("first argument"),
               z3.number().describe("second argument"),
-              z3.boolean().optional().describe("optional third argument"),
+              z3.boolean().optional().describe("third argument"),
             )
             .returns(z3.object({ success: z3.boolean() })),
         });
@@ -774,6 +774,48 @@ describe("Schema Compatibility", () => {
         properties: { value: { type: "string" } },
       };
       expect("~standard" in schema).toBe(false);
+    });
+  });
+  describe("registerTool preserves maxCalls", () => {
+    it("should preserve maxCalls for legacy toolSchema tools", () => {
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const tool = defineTool({
+        name: "legacy-max-tool",
+        description: "Legacy tool with maxCalls",
+        tool: jest.fn().mockResolvedValue("ok"),
+        toolSchema: z3.function().args(z3.string()).returns(z3.string()),
+        // test-only field
+        // test-only field maxCalls is attached by MCP metadata
+        maxCalls: 2,
+      });
+
+      act(() => {
+        result.current.registerTool(tool);
+      });
+
+      expect(result.current.toolRegistry["legacy-max-tool"].maxCalls).toBe(2);
+    });
+
+    it("should preserve maxCalls for inputSchema tools", () => {
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+      const tool = defineTool({
+        name: "input-max-tool",
+        description: "Input-schema tool with maxCalls",
+        tool: jest.fn().mockResolvedValue("ok"),
+        inputSchema: z4.object({ q: z4.string() }),
+        outputSchema: z4.string(),
+        // test-only field
+        // test-only field maxCalls is attached by MCP metadata
+        maxCalls: 3,
+      });
+
+      act(() => {
+        result.current.registerTool(tool);
+      });
+
+      expect(result.current.toolRegistry["input-max-tool"].maxCalls).toBe(3);
     });
   });
 });
