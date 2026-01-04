@@ -13,6 +13,7 @@ import * as z4 from "zod/v4";
 import {
   ComponentRegistry,
   RegisteredComponent,
+  TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
 } from "../model/component-metadata";
@@ -254,38 +255,41 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
 
       expect(result.parameters).toMatchSnapshot();
     });
-    describe("registry util: maxCalls", () => {
-      it("adaptToolFromFnSchema preserves maxCalls for legacy toolSchema", () => {
-        const legacy = createMockToolWithToolSchema(
-          z3.function().args(z3.string()).returns(z3.string()),
-        ) as any;
-        legacy.maxCalls = 2;
-        const adapted = adaptToolFromFnSchema(legacy);
-        expect((adapted as any).maxCalls).toBe(2);
-      });
+  });
+});
 
-      it("mapTamboToolToContextTool includes maxCalls when present", () => {
-        const tool = createMockTool(z3.object({ q: z3.string() })) as any;
-        tool.maxCalls = 5;
-        const meta = mapTamboToolToContextTool(tool);
-        expect(meta.maxCalls).toBe(5);
-      });
+describe("registry util: maxCalls", () => {
+  it("adaptToolFromFnSchema preserves maxCalls for legacy toolSchema", () => {
+    const legacy = createMockToolWithToolSchema(
+      z3.function().args(z3.string()).returns(z3.string()),
+      2,
+    );
+    const adapted = adaptToolFromFnSchema(legacy);
+    expect(adapted.maxCalls).toBe(2);
+  });
 
-      it("getUnassociatedTools does not drop unassociated tools and preserves maxCalls", () => {
-        const t1 = {
-          name: "a",
-          description: "a",
-          tool: () => {},
-          inputSchema: {},
-          outputSchema: {},
-          maxCalls: 3,
-        } as any;
-        const registry = { a: t1 } as any;
-        const associations = { SomeComponent: [] as string[] } as any;
-        const out = getUnassociatedTools(registry, associations);
-        expect(out.find((t) => t.name === "a")?.maxCalls).toBe(3);
-      });
+  it("mapTamboToolToContextTool includes maxCalls when present", () => {
+    const tool = createMockTool({
+      inputSchema: z3.object({ q: z3.string() }),
+      maxCalls: 5,
     });
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.maxCalls).toBe(5);
+  });
+
+  it("getUnassociatedTools does not drop unassociated tools and preserves maxCalls", () => {
+    const t1: TamboTool = {
+      name: "a",
+      description: "a",
+      tool: () => {},
+      inputSchema: {},
+      outputSchema: {},
+      maxCalls: 3,
+    };
+    const registry = { a: t1 };
+    const associations = { SomeComponent: [] as string[] };
+    const out = getUnassociatedTools(registry, associations);
+    expect(out.find((t) => t.name === "a")?.maxCalls).toBe(3);
   });
 });
 

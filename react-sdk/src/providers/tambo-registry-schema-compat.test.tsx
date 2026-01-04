@@ -356,7 +356,7 @@ describe("Schema Compatibility", () => {
             .args(
               z3.string().describe("first argument"),
               z3.number().describe("second argument"),
-              z3.boolean().describe("third argument"),
+              z3.boolean().optional().describe("third argument"),
             )
             .returns(z3.object({ success: z3.boolean() })),
         });
@@ -383,7 +383,7 @@ describe("Schema Compatibility", () => {
               z3
                 .object({
                   query: z3.string().describe("search query"),
-                  limit: z3.number().describe("max results"),
+                  limit: z3.number().optional().describe("max results"),
                   filters: z3.array(z3.string()).optional(),
                 })
                 .describe("search options"),
@@ -787,16 +787,14 @@ describe("Schema Compatibility", () => {
         toolSchema: z3.function().args(z3.string()).returns(z3.string()),
         // test-only field
         // test-only field maxCalls is attached by MCP metadata
-        maxCalls: 2 as any,
-      } as any);
+        maxCalls: 2,
+      });
 
       act(() => {
         result.current.registerTool(tool);
       });
 
-      expect(
-        (result.current.toolRegistry["legacy-max-tool"] as any).maxCalls,
-      ).toBe(2);
+      expect(result.current.toolRegistry["legacy-max-tool"].maxCalls).toBe(2);
     });
 
     it("should preserve maxCalls for inputSchema tools", () => {
@@ -810,16 +808,14 @@ describe("Schema Compatibility", () => {
         outputSchema: z4.string(),
         // test-only field
         // test-only field maxCalls is attached by MCP metadata
-        maxCalls: 3 as any,
-      } as any);
+        maxCalls: 3,
+      });
 
       act(() => {
         result.current.registerTool(tool);
       });
 
-      expect(
-        (result.current.toolRegistry["input-max-tool"] as any).maxCalls,
-      ).toBe(3);
+      expect(result.current.toolRegistry["input-max-tool"].maxCalls).toBe(3);
     });
   });
 });

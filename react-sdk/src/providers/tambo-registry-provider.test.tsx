@@ -147,14 +147,14 @@ describe("TamboRegistryProvider", () => {
         tool: jest.fn().mockResolvedValue("ok"),
         inputSchema: z.object({}),
         outputSchema: z.object(),
-        maxCalls: 4 as any,
-      } as unknown as TamboTool;
+        maxCalls: 4,
+      };
 
       act(() => {
         result.current.registerTool(maxTool);
       });
 
-      expect((result.current.toolRegistry["max-tool"] as any).maxCalls).toBe(4);
+      expect(result.current.toolRegistry["max-tool"].maxCalls).toBe(4);
     });
 
     it("should handle tool association with components", () => {
