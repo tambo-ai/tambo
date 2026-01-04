@@ -2,30 +2,18 @@
 cspell = "9.4.0"
 shellcheck = "0.11.0"
 
-[tools.node]
-# Some versions of Node come with bundled binaries for corepack and all come with npm. These 
-# binaries are not guaranteed to be the versions we want, so we are the postinstall script to
-# install corepack and then enable it for npm. See: https://github.com/jdx/mise/discussions/7083
-postinstall = "${MISE_TOOL_INSTALL_PATH}/bin/npm install -g corepack && corepack enable npm"
-# The only issue is that we have two conflicting facts:
-# 1. The Node version should be managed via the idiomatic_version_file_enable_tools setting.
-# 2. The postinstall script is defined in the tool definition which requires a "version" field
-#    to be present.
-# Because of this, we are mimicking the behavior of the idiomatic_version_file_enable_tools setting
-# to read the version from the `.node-version` file sand _also_ specify the postinstall script.
-version = "{{ read_file(path='./.node-version') | replace(from='v', to='') | trim() }}"
+[tools."npm:corepack"]
+# Use Corepack to manage package managers like npm, yarn, and pnpm
+version = "0.34.5"
+# Enable corepack for all package managers (npm doesn't enable by default)
+postinstall = "corepack enable && corepack enable npm"
 
 [settings]
-# Disable package managers that might've been installed by mise at a higher level; corepack will
-# handle installing the correct version
+# Enable reading .node-version files for node version management
+idiomatic_version_file_enable_tools = ["node"]
+# Disable package managers that might've been installed by mise at a higher
+# level; corepack will handle installing the correct version
 disable_tools = ["npm", "pnpm", "yarn"]
-
-# This setting should be enabled to allow mise to read the .node-version file for node version
-# management, however, since we have a postinstall script defined in the tool definition above, we
-# cannot enable it here without causing a conflict. If the issue linked above is resolved in the
-# future, we can remove the version field from the node tool definition and enable this setting.
-# # Enable reading .node-version files for node version management
-# # idiomatic_version_file_enable_tools = ["node"]
 
 [env]
 # Add node_modules/.bin to PATH for local package binaries
