@@ -374,18 +374,6 @@ Function to remove a specific context attachment by its ID. The context helper a
 
 Function to remove all active context attachments at once. The context helper automatically updates to reflect the change. Context attachments are automatically cleared after message submission (one-time use), so you typically don't need to call this manually.
 
-### customSuggestions
-
-`const { customSuggestions } = useTamboContextAttachment()`
-
-Current custom suggestions that override auto-generated suggestions. Returns `null` if using auto-generated suggestions.
-
-### setCustomSuggestions
-
-`const { setCustomSuggestions } = useTamboContextAttachment()`
-
-Function to set custom suggestions or clear them by passing `null`.
-
 ## useCurrentInteractablesSnapshot
 
 `const snapshot = useCurrentInteractablesSnapshot()`
