@@ -17,7 +17,7 @@
     "@tambo-ai/typescript-sdk": "^0.80.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.1",
-    "framer-motion": "^12.23.24",
+    "framer-motion": "^12.23.26",
     "fumadocs-core": "15.8.5",
     "fumadocs-mdx": "^13.0.4",
     "fumadocs-ui": "15.8.5",

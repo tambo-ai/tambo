@@ -37,7 +37,7 @@
     "autoprefixer": "^10.4.22",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.1",
-    "framer-motion": "^12.23.24",
+    "framer-motion": "^12.23.26",
     "geist": "^1.5.1",
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
