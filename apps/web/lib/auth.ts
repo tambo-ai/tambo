@@ -1,6 +1,10 @@
 import { env } from "@/lib/env";
 import { SupabaseAdapter } from "@/lib/nextauth-supabase-adapter";
-import { isEmailAllowed, refreshOidcToken } from "@tambo-ai-cloud/core";
+import {
+  isEmailAllowed,
+  refreshOidcToken,
+  SessionSource,
+} from "@tambo-ai-cloud/core";
 import { getDb, schema } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
 import { decodeJwt } from "jose";
@@ -137,7 +141,7 @@ export const authOptions: NextAuthOptions = {
         const db = getDb(env.DATABASE_URL);
         await db.insert(schema.sessions).values({
           userId: user.id,
-          source: "browser",
+          source: SessionSource.Browser,
           expiresAt: sql`now() + interval '30 days'`,
         });
       } catch (error) {

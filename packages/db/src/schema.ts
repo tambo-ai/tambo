@@ -13,6 +13,7 @@ import {
   OAuthTokens,
   OAuthValidationMode,
   SessionClientInformation,
+  SessionSource,
   ToolCallRequest,
   ToolProviderType,
   type CustomLlmParameters,
@@ -23,7 +24,6 @@ import {
   foreignKey,
   index,
   integer,
-  pgEnum,
   pgPolicy,
   pgRole,
   pgSchema,
@@ -110,13 +110,6 @@ export const authSessions = authSchema.table(
 );
 
 /**
- * Session source enum - identifies where a session originated
- * - browser: Created via NextAuth signIn (audit entry only, not revocable - JWT controls auth)
- * - cli: Created via device auth flow (revocable, stored credential)
- */
-export const sessionSourceEnum = pgEnum("session_source", ["browser", "cli"]);
-
-/**
  * Unified sessions table for tracking ALL authentication sessions
  *
  * - Browser sessions: Audit entries created on NextAuth signIn (JWT controls actual auth)
@@ -144,7 +137,9 @@ export const sessions = pgTable(
       .references(() => authUsers.id, { onDelete: "cascade" })
       .notNull(),
     // Session origin: 'browser' or 'cli'
-    source: sessionSourceEnum("source").notNull(),
+    source: text("source", {
+      enum: Object.values(SessionSource) as [SessionSource],
+    }).notNull(),
     // When this session expires
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })

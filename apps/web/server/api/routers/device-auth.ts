@@ -4,6 +4,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
+import { SessionSource } from "@tambo-ai-cloud/core";
 import { schema } from "@tambo-ai-cloud/db";
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
@@ -159,7 +160,7 @@ export const deviceAuthRouter = createTRPCRouter({
       await ctx.db.insert(schema.sessions).values({
         id: sessionToken,
         userId: ctx.user.id,
-        source: "cli",
+        source: SessionSource.CLI,
         expiresAt: sessionExpiresAt,
       });
 
@@ -349,7 +350,7 @@ export const deviceAuthRouter = createTRPCRouter({
       .where(
         and(
           eq(schema.sessions.userId, ctx.user.id),
-          eq(schema.sessions.source, "cli"),
+          eq(schema.sessions.source, SessionSource.CLI),
           gt(schema.sessions.expiresAt, sql`now()`),
         ),
       )
@@ -379,7 +380,7 @@ export const deviceAuthRouter = createTRPCRouter({
           and(
             eq(schema.sessions.id, input.sessionId),
             eq(schema.sessions.userId, ctx.user.id),
-            eq(schema.sessions.source, "cli"),
+            eq(schema.sessions.source, SessionSource.CLI),
           ),
         )
         .limit(1);
@@ -415,7 +416,7 @@ export const deviceAuthRouter = createTRPCRouter({
       .where(
         and(
           eq(schema.sessions.userId, ctx.user.id),
-          eq(schema.sessions.source, "cli"),
+          eq(schema.sessions.source, SessionSource.CLI),
         ),
       )
       .returning({ id: schema.sessions.id });
