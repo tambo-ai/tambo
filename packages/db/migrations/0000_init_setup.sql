@@ -1,5 +1,14 @@
 CREATE EXTENSION if not exists pgcrypto;
 
+-- Create anon role for unauthenticated requests (device auth initiation, public endpoints)
+-- Table access is controlled via RLS policies defined in schema.ts
+DO $$ 
+BEGIN
+IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    CREATE ROLE "anon" NOLOGIN NOINHERIT;
+END IF;
+END $$;
+
 DO $$ 
 BEGIN
 IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
@@ -51,10 +60,20 @@ DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') THEN
         CREATE SCHEMA "auth";
-        -- Grant all privileges on the auth schema to the authenticated role
-        GRANT ALL PRIVILEGES ON SCHEMA "auth" TO "authenticated";
     END IF;
 END $$;
+
+-- Grant roles to postgres (needed for SET LOCAL ROLE)
+GRANT anon TO postgres;
+GRANT authenticated TO postgres;
+
+-- Grant schema usage to roles
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT USAGE ON SCHEMA auth TO anon, authenticated;
+
+-- Grant auth schema access (read-only for user data)
+GRANT SELECT ON ALL TABLES IN SCHEMA auth TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT SELECT ON TABLES TO anon, authenticated;
 
 -- Create extensions schema if it doesn't exist (for Supabase compatibility)
 DO $$ 

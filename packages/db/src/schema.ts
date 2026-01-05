@@ -42,6 +42,11 @@ export const projectApiKeyRole = pgRole("project_api_key", {
   inherit: true,
 });
 
+/** Anon role for unauthenticated requests (e.g., device auth initiation/polling) */
+export const anonRole = pgRole("anon", {
+  createRole: false,
+});
+
 // User schema for NextAuth adapter tables
 export const authSchema = pgSchema("auth");
 
@@ -204,8 +209,29 @@ export const deviceAuthCodes = pgTable(
     index("device_auth_codes_device_code_idx").on(table.deviceCode),
     index("device_auth_codes_user_code_idx").on(table.userCode),
     index("device_auth_codes_expires_at_idx").on(table.expiresAt),
+    // Anon role policies for device auth flow (CLI initiation + polling)
+    pgPolicy("device_auth_anon_insert", {
+      to: anonRole,
+      for: "insert",
+      withCheck: sql`true`,
+    }),
+    pgPolicy("device_auth_anon_select", {
+      to: anonRole,
+      for: "select",
+      using: sql`true`,
+    }),
+    pgPolicy("device_auth_anon_update", {
+      to: anonRole,
+      for: "update",
+      using: sql`true`,
+    }),
+    // Authenticated role can also manage device auth codes (for verify flow)
+    pgPolicy("device_auth_authenticated_all", {
+      to: authenticatedRole,
+      using: sql`true`,
+    }),
   ],
-);
+).enableRLS();
 
 export type DBDeviceAuthCode = typeof deviceAuthCodes.$inferSelect;
 
