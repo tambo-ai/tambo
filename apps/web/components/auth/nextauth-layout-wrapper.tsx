@@ -20,6 +20,10 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
   const searchParams = useSearchParams();
   const search = searchParams.toString();
 
+  // Compute return URL once for redirects
+  const fullPath = search ? `${pathname}?${search}` : pathname;
+  const returnUrl = encodeURIComponent(fullPath || "/dashboard");
+
   // Check legal acceptance status
   const { data: legalStatus } = api.user.hasAcceptedLegal.useQuery(undefined, {
     enabled: !!session && pathname !== "/legal-acceptance",
@@ -30,8 +34,6 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
 
     // No session, redirect to login
     if (!session) {
-      const fullPath = search ? `${pathname}?${search}` : pathname;
-      const returnUrl = encodeURIComponent(fullPath || "/dashboard");
       router.replace(`/login?returnUrl=${returnUrl}`);
     } else if (
       // Check if user has accepted legal
@@ -39,10 +41,10 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
       !legalStatus.accepted &&
       pathname !== "/legal-acceptance"
     ) {
-      // Redirect to legal acceptance if not accepted
-      router.push("/legal-acceptance");
+      // Redirect to legal acceptance if not accepted, preserving the return URL
+      router.push(`/legal-acceptance?returnUrl=${returnUrl}`);
     }
-  }, [session, status, router, legalStatus, pathname, search]);
+  }, [session, status, router, legalStatus, pathname, returnUrl]);
 
   // Show loading state while checking session
   if (status === "loading" || (session && !legalStatus)) {
