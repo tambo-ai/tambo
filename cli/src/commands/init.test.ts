@@ -155,15 +155,24 @@ let mockProjects: { id: string; name: string }[] = [];
 let mockGeneratedApiKey = "test-api-key-123";
 
 jest.unstable_mockModule("../lib/api-client.js", () => ({
-  projectApi: {
-    getUserProjects: async () => mockProjects,
-    createProject: async (name: string) => ({
-      id: "new-project-id",
-      name,
-    }),
-    generateApiKey: async () => ({
-      apiKey: mockGeneratedApiKey,
-    }),
+  api: {
+    project: {
+      getUserProjects: {
+        query: async () => mockProjects,
+      },
+      createProject2: {
+        mutate: async ({ name }: { name: string }) => ({
+          id: "new-project-id",
+          name,
+        }),
+      },
+      generateApiKey: {
+        mutate: async () => ({
+          id: "new-api-key-id",
+          apiKey: mockGeneratedApiKey,
+        }),
+      },
+    },
   },
   getApiBaseUrl: () => "https://tambo.co",
 }));
