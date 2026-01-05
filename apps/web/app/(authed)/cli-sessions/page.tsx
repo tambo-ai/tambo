@@ -1,5 +1,3 @@
-"use client";
-
 import { CliSessionsList } from "@/components/cli-sessions/cli-sessions-list";
 
 export default function CliSessionsPage() {
