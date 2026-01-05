@@ -191,7 +191,9 @@ export const deviceAuthCodes = pgTable(
     // Prevent reuse of codes
     isUsed: boolean("is_used").default(false).notNull(),
     // Codes expire after 15 minutes
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true })
+      .default(sql`now() + interval '15 minutes'`)
+      .notNull(),
     // Track last poll time for server-side rate limiting
     lastPolledAt: timestamp("last_polled_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })

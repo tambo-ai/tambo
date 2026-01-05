@@ -5,7 +5,7 @@ CREATE TABLE "device_auth_codes" (
 	"user_id" uuid,
 	"session_id" text,
 	"is_used" boolean DEFAULT false NOT NULL,
-	"expires_at" timestamp with time zone NOT NULL,
+	"expires_at" timestamp with time zone DEFAULT now() + interval '15 minutes' NOT NULL,
 	"last_polled_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "device_auth_codes_id_unique" UNIQUE("id"),

@@ -1,5 +1,5 @@
 {
-  "id": "76a665ae-238b-448a-9638-15358f1f0277",
+  "id": "d016c901-291a-46e6-9301-c6912f15d867",
   "prevId": "d6a5e618-091f-4951-b0d9-c2a9f4000cd4",
   "version": "7",
   "dialect": "postgresql",
@@ -397,7 +397,8 @@
           "name": "expires_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now() + interval '15 minutes'"
         },
         "last_polled_at": {
           "name": "last_polled_at",
