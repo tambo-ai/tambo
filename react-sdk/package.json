@@ -56,7 +56,7 @@
     ]
   },
   "peerDependencies": {
-    "@modelcontextprotocol/sdk": "^1.24.0",
+    "@modelcontextprotocol/sdk": "^1.25.1",
     "@types/react": "^18.0.0 || ^19.0.0",
     "@types/react-dom": "^18.0.0 || ^19.0.0",
     "react": "^18.0.0 || ^19.0.0",
@@ -87,7 +87,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@modelcontextprotocol/sdk": "^1.24.0",
+    "@modelcontextprotocol/sdk": "^1.25.1",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@testing-library/jest-dom": "^6.9.1",
