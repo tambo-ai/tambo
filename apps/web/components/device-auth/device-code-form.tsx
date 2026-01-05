@@ -21,13 +21,11 @@ const deviceCodeSchema = z.object({
   userCode: z
     .string()
     .min(1, "Please enter a device code")
-    .transform((val) => val.replace(/-/g, "").trim())
-    .pipe(
-      z
-        .string()
-        .length(8, "Device code must be 8 characters")
-        .regex(/^[A-Z0-9]+$/i, "Device code must be alphanumeric"),
-    ),
+    .regex(
+      /^[A-Z0-9]{4}-?[A-Z0-9]{4}$/i,
+      "Device code must be in format XXXX-XXXX",
+    )
+    .transform((val) => val.replace(/-/g, "").trim()),
 });
 
 type DeviceCodeFormValues = z.infer<typeof deviceCodeSchema>;
