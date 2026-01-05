@@ -13,13 +13,12 @@ import {
   ThreadUserMessage,
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
-import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
+import { HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
 import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
 import { MessageRequest } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
 import {
-  addAssistantMessageToThread,
   addMessage,
   updateMessage,
   verifyLatestMessageConsistency,
@@ -97,71 +96,6 @@ function isThreadProcessing(generationStage: GenerationStage) {
     GenerationStage.HYDRATING_COMPONENT,
     GenerationStage.CHOOSING_COMPONENT,
   ].includes(generationStage);
-}
-
-/**
- * Add an assistant response to a thread, making sure that the thread is not already in the middle of processing.
- */
-export async function addAssistantResponse(
-  db: HydraDatabase,
-  threadId: string,
-  newestMessageId: string,
-  responseMessage: LegacyComponentDecision,
-  logger?: Logger,
-): Promise<{
-  responseMessageDto: ThreadMessage;
-  resultingGenerationStage: GenerationStage;
-  resultingStatusMessage: string;
-}> {
-  try {
-    const result = await db.transaction(
-      async (tx) => {
-        await verifyLatestMessageConsistency(
-          tx,
-          threadId,
-          newestMessageId,
-          false,
-        );
-
-        const responseMessageDto = await addAssistantMessageToThread(
-          tx,
-          responseMessage,
-          threadId,
-        );
-
-        const resultingGenerationStage = responseMessage.toolCallRequest
-          ? GenerationStage.FETCHING_CONTEXT
-          : GenerationStage.COMPLETE;
-        const resultingStatusMessage = responseMessage.toolCallRequest
-          ? `Fetching context...`
-          : `Complete`;
-
-        await updateGenerationStage(
-          tx,
-          threadId,
-          resultingGenerationStage,
-          resultingStatusMessage,
-        );
-
-        return {
-          responseMessageDto,
-          resultingGenerationStage,
-          resultingStatusMessage,
-        };
-      },
-      {
-        isolationLevel: "read committed",
-      },
-    );
-
-    return result;
-  } catch (error) {
-    logger?.error(
-      "Transaction failed: Adding assistant response.",
-      (error as Error).stack,
-    );
-    throw error;
-  }
 }
 
 /**
