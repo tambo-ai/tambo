@@ -33,6 +33,17 @@ export interface StoredToken {
 const DIR_PREFIX = "tambo";
 
 /**
+ * Explicit mapping of directory types to XDG environment variables.
+ * Using explicit strings rather than dynamic construction for security
+ * and to make these searchable in the codebase.
+ */
+const XDG_ENV_VARS = {
+  cache: "XDG_CACHE_HOME",
+  config: "XDG_CONFIG_HOME",
+  data: "XDG_DATA_HOME",
+} as const;
+
+/**
  * Get OS-specific paths for tambo state storage
  * Uses XDG Base Directory Specification on Linux
  *
@@ -41,13 +52,13 @@ const DIR_PREFIX = "tambo";
  * - Linux: ~/.local/share/tambo/ (or $XDG_DATA_HOME/tambo/)
  * - Windows: %LOCALAPPDATA%/tambo/
  */
-function getDir(type: "cache" | "config" | "data"): string {
-  const paths = envPaths(DIR_PREFIX, { suffix: "" });
-  const envKey = `XDG_${type.toUpperCase()}_HOME`;
+function getDir(type: keyof typeof XDG_ENV_VARS): string {
+  const envKey = XDG_ENV_VARS[type];
   const xdgDir = process.env[envKey];
   if (xdgDir) {
     return join(xdgDir, DIR_PREFIX);
   }
+  const paths = envPaths(DIR_PREFIX, { suffix: "" });
   return paths[type];
 }
 
