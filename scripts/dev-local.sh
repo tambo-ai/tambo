@@ -7,21 +7,33 @@ set -e
 echo "Starting local dev environment..."
 
 echo "Checking that ports 8260-8263 are free (web/api/showcase/docs)..."
+if ! command -v node >/dev/null 2>&1; then
+  echo "Node.js is required to run this script. Please install Node and try again."
+  exit 1
+fi
+
 for port in 8260 8261 8262 8263; do
-  if ! python3 - "$port" <<'PY'
-import socket
-import sys
+  if ! node - "$port" <<'NODE'
+const net = require("node:net");
 
-port = int(sys.argv[1])
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+const port = Number(process.argv[2]);
+if (!Number.isFinite(port)) {
+  process.exit(1);
+}
 
-try:
-  sock.bind(("127.0.0.1", port))
-except OSError:
-  sys.exit(1)
-finally:
-  sock.close()
-PY
+const server = net.createServer();
+server.unref();
+
+server.on("error", () => {
+  process.exit(1);
+});
+
+server.listen({ host: "127.0.0.1", port }, () => {
+  server.close(() => {
+    process.exit(0);
+  });
+});
+NODE
   then
     echo "Port ${port} is already in use. Stop the process using it, then re-run this script."
     exit 1
