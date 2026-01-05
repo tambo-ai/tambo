@@ -1,4 +1,3 @@
-CREATE TYPE "public"."session_source" AS ENUM('browser', 'cli');--> statement-breakpoint
 CREATE TABLE "device_auth_codes" (
 	"id" text PRIMARY KEY DEFAULT generate_custom_id('dac_') NOT NULL,
 	"device_code" uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -17,8 +16,8 @@ CREATE TABLE "device_auth_codes" (
 CREATE TABLE "sessions" (
 	"id" text PRIMARY KEY DEFAULT gen_random_uuid()::text NOT NULL,
 	"user_id" uuid NOT NULL,
-	"source" "session_source" NOT NULL,
-	"expires_at" timestamp with time zone NOT NULL,
+	"source" text NOT NULL,
+	"expires_at" timestamp with time zone DEFAULT now() + interval '90 days' NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );

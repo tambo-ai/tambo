@@ -1,5 +1,5 @@
 {
-  "id": "bbe3a82a-bbd4-4c77-a633-c040657af724",
+  "id": "76a665ae-238b-448a-9638-15358f1f0277",
   "prevId": "d6a5e618-091f-4951-b0d9-c2a9f4000cd4",
   "version": "7",
   "dialect": "postgresql",
@@ -1762,8 +1762,7 @@
         },
         "source": {
           "name": "source",
-          "type": "session_source",
-          "typeSchema": "public",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -1771,7 +1770,8 @@
           "name": "expires_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now() + interval '90 days'"
         },
         "created_at": {
           "name": "created_at",
@@ -2543,13 +2543,7 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {
-    "public.session_source": {
-      "name": "session_source",
-      "schema": "public",
-      "values": ["browser", "cli"]
-    }
-  },
+  "enums": {},
   "schemas": {
     "auth": "auth"
   },
