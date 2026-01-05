@@ -105,8 +105,76 @@ jest.unstable_mockModule("ora", () => ({
     start: () => ({
       succeed: () => {},
       fail: () => {},
+      stop: () => {},
+      text: "",
     }),
+    stop: () => {},
+    succeed: () => {},
+    fail: () => {},
+    text: "",
   }),
+}));
+
+// Mock device-auth module for new auth flow
+let mockIsTokenValid = false;
+let mockVerifySession = true;
+let mockRunDeviceAuthFlowResult = {
+  sessionToken: "mock-session-token",
+  user: {
+    id: "mock-user-id",
+    email: "test@example.com",
+    name: "Test User",
+  },
+};
+let mockDeviceAuthShouldFail = false;
+
+// Create a mock DeviceAuthError class that will be used by both the mock module and tests
+class MockDeviceAuthError extends Error {
+  code?: string;
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = "DeviceAuthError";
+    this.code = code;
+  }
+}
+
+jest.unstable_mockModule("../lib/device-auth.js", () => ({
+  isTokenValid: () => mockIsTokenValid,
+  verifySession: async () => mockVerifySession,
+  runDeviceAuthFlow: async () => {
+    if (mockDeviceAuthShouldFail) {
+      throw new MockDeviceAuthError("Device auth failed", "AUTH_FAILED");
+    }
+    return mockRunDeviceAuthFlowResult;
+  },
+  DeviceAuthError: MockDeviceAuthError,
+}));
+
+// Mock api-client module for project and API key operations
+let mockProjects: { id: string; name: string }[] = [];
+let mockGeneratedApiKey = "test-api-key-123";
+
+jest.unstable_mockModule("../lib/api-client.js", () => ({
+  api: {
+    project: {
+      getUserProjects: {
+        query: async () => mockProjects,
+      },
+      createProject2: {
+        mutate: async ({ name }: { name: string }) => ({
+          id: "new-project-id",
+          name,
+        }),
+      },
+      generateApiKey: {
+        mutate: async () => ({
+          id: "new-api-key-id",
+          apiKey: mockGeneratedApiKey,
+        }),
+      },
+    },
+  },
+  getApiBaseUrl: () => "https://tambo.co",
 }));
 
 // Mock the registry utilities to use memfs paths (same as add.test.ts)
@@ -215,6 +283,21 @@ describe("handleInit", () => {
     // Reset clipboard
     clipboardContent = null;
 
+    // Reset device auth mocks
+    mockIsTokenValid = false;
+    mockVerifySession = true;
+    mockDeviceAuthShouldFail = false;
+    mockProjects = [];
+    mockGeneratedApiKey = "test-api-key-123";
+    mockRunDeviceAuthFlowResult = {
+      sessionToken: "mock-session-token",
+      user: {
+        id: "mock-user-id",
+        email: "test@example.com",
+        name: "Test User",
+      },
+    };
+
     // Mock process.cwd
     originalCwd = process.cwd;
     process.cwd = () => "/mock-project";
@@ -253,6 +336,12 @@ describe("handleInit", () => {
     openCalls = [];
     shouldOpenFail = false;
     clipboardContent = null;
+    // Reset device auth mocks
+    mockIsTokenValid = false;
+    mockVerifySession = true;
+    mockDeviceAuthShouldFail = false;
+    mockProjects = [];
+    mockGeneratedApiKey = "test-api-key-123";
   });
 
   describe("error cases", () => {
@@ -289,17 +378,20 @@ describe("handleInit", () => {
     });
 
     it("should complete basic init with cloud choice", async () => {
-      // Set inquirer responses
+      // Set up device auth mock to succeed
+      mockGeneratedApiKey = "test-api-key-123";
+
+      // Set inquirer responses for cloud auth flow
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key-123",
+        projectName: "test-project", // For project creation
         confirmReplace: true,
       };
 
       // Execute
       await handleInit({});
 
-      // Verify .env.local was created with API key
+      // Verify .env.local was created with API key from server
       expect(vol.existsSync("/mock-project/.env.local")).toBe(true);
       const envContent = vol.readFileSync(
         "/mock-project/.env.local",
@@ -308,10 +400,6 @@ describe("handleInit", () => {
       expect(envContent).toContain(
         "NEXT_PUBLIC_TAMBO_API_KEY=test-api-key-123",
       );
-
-      // Verify browser was opened
-      expect(openCalls.length).toBeGreaterThan(0);
-      expect(openCalls.some((url) => url.includes("tambo.co"))).toBe(true);
 
       // Verify success message
       const output = logs.join("\n");
@@ -377,18 +465,21 @@ describe("handleInit", () => {
       // Setup: Project with existing API key
       vol.fromJSON(createProjectWithEnv("old-key-123"));
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "new-key-456";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
         overwriteExisting: true,
-        apiKey: "new-key-456",
+        projectName: "test-project",
         confirmReplace: true,
       };
 
       // Execute
       await handleInit({});
 
-      // Verify key was replaced
+      // Verify key was replaced with server-generated key
       const envContent = vol.readFileSync(
         "/mock-project/.env.local",
         "utf-8",
@@ -397,31 +488,21 @@ describe("handleInit", () => {
       expect(envContent).not.toContain("old-key-123");
     });
 
-    it("should handle browser open failure gracefully", async () => {
-      // Set browser to fail
-      shouldOpenFail = true;
+    it("should handle device auth failure gracefully", async () => {
+      // Set device auth to fail
+      mockDeviceAuthShouldFail = true;
 
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-key-after-fail",
-        confirmReplace: true,
       };
 
-      // Execute - should handle error and still work with manual paste
-      // The error is logged but execution continues
-      try {
-        await handleInit({});
-      } catch (error) {
-        // process.exit throws an error, which is expected
-        expect(String(error)).toContain("process.exit");
-      }
+      // Execute - should handle error gracefully
+      await handleInit({});
 
-      // Verify API key was still saved (error handling allows continuation)
-      // Actually, the error causes early return, so we need to check error handling differently
-      // The test should verify that the error is logged but doesn't crash the process
+      // Verify error was logged
       const output = errorLogs.join("\n");
-      expect(output).toContain("Authentication error");
+      expect(output).toContain("Authentication failed");
     });
 
     it("should prefer .env.local over .env when both exist", async () => {
@@ -455,10 +536,13 @@ describe("handleInit", () => {
     });
 
     it("should complete full-send init with component selection", async () => {
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full", "control-bar"],
@@ -504,11 +588,14 @@ describe("handleInit", () => {
     });
 
     it("should handle component installation failures gracefully", async () => {
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Use a non-existent component to trigger failure
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["nonexistent-component"],
@@ -523,12 +610,15 @@ describe("handleInit", () => {
     });
 
     it("should validate that at least one component is selected", async () => {
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses (empty selection should trigger validation)
       // The inquirer validation will catch empty array and prompt again
       // We'll simulate this by providing a valid selection after validation
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"], // Valid selection
@@ -559,10 +649,13 @@ describe("handleInit", () => {
         ...createRegistryFiles(["message-thread-full"]),
       });
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses (fewer prompts with --yes)
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         selectedComponents: ["message-thread-full"],
         proceedWithCss: true, // For setupTailwindAndGlobals
@@ -598,10 +691,13 @@ describe("handleInit", () => {
     });
 
     it("should respect --legacyPeerDeps flag in full-send mode", async () => {
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"],
@@ -689,10 +785,13 @@ describe("handleInit", () => {
     });
 
     it("should create tambo.ts when it doesn't exist", async () => {
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
       };
@@ -725,10 +824,13 @@ describe("handleInit", () => {
         ...createRegistryFiles(["message-thread-full"]),
       });
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"],
@@ -757,10 +859,13 @@ describe("handleInit", () => {
         ...createRegistryFiles(["message-thread-full"]),
       });
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses (user chooses not to use src)
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: false,
         selectedComponents: ["message-thread-full"],
@@ -787,17 +892,20 @@ describe("handleInit", () => {
     });
 
     it("should create .env.local when neither exists", async () => {
+      // Set up device auth mock
+      mockGeneratedApiKey = "new-key-123";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "new-key-123",
+        projectName: "test-project",
         confirmReplace: true,
       };
 
       // Execute
       await handleInit({});
 
-      // Verify .env.local was created
+      // Verify .env.local was created with server-generated key
       expect(vol.existsSync("/mock-project/.env.local")).toBe(true);
       const content = vol.readFileSync(
         "/mock-project/.env.local",
@@ -819,18 +927,21 @@ describe("handleInit", () => {
         "/mock-project/.env.local": "NEXT_PUBLIC_TAMBO_API_KEY=existing\n",
       });
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "new-key";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
         overwriteExisting: true,
-        apiKey: "new-key",
+        projectName: "test-project",
         confirmReplace: true,
       };
 
       // Execute
       await handleInit({});
 
-      // Verify .env.local was updated (not .env)
+      // Verify .env.local was updated (not .env) with server-generated key
       const envLocalContent = vol.readFileSync(
         "/mock-project/.env.local",
         "utf-8",
@@ -852,17 +963,20 @@ describe("handleInit", () => {
         "/mock-project/.env": "SOME_VAR=value\n",
       });
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "new-key-456";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "new-key-456",
+        projectName: "test-project",
         confirmReplace: true,
       };
 
       // Execute
       await handleInit({});
 
-      // Verify key was appended to .env
+      // Verify key was appended to .env with server-generated key
       const content = vol.readFileSync("/mock-project/.env", "utf-8") as string;
       expect(content).toContain("SOME_VAR=value");
       expect(content).toContain("NEXT_PUBLIC_TAMBO_API_KEY=new-key-456");
@@ -876,18 +990,21 @@ describe("handleInit", () => {
           "NEXT_PUBLIC_TAMBO_API_KEY=old-key\nOTHER_VAR=value\n",
       });
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "new-key-789";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
         overwriteExisting: true,
-        apiKey: "new-key-789",
+        projectName: "test-project",
         confirmReplace: true,
       };
 
       // Execute
       await handleInit({});
 
-      // Verify key was replaced
+      // Verify key was replaced with server-generated key
       const content = vol.readFileSync(
         "/mock-project/.env.local",
         "utf-8",
@@ -955,19 +1072,22 @@ describe("handleInit", () => {
     });
 
     it("should handle self-host path with switch to cloud", async () => {
+      // Set up device auth mock for when user switches to cloud
+      mockGeneratedApiKey = "cloud-key";
+
       // Set inquirer responses (switch to cloud)
       inquirerResponses = {
         hostingChoice: "self",
         openRepo: false,
         apiKeyOrCloud: "cloud",
-        apiKey: "cloud-key",
+        projectName: "test-project",
         confirmReplace: true,
       };
 
       // Execute
       await handleInit({});
 
-      // Verify API key was saved
+      // Verify API key was saved with server-generated key
       expect(vol.existsSync("/mock-project/.env.local")).toBe(true);
       const content = vol.readFileSync(
         "/mock-project/.env.local",
@@ -1011,10 +1131,13 @@ describe("handleInit", () => {
     });
 
     it("should copy provider snippet to clipboard", async () => {
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full", "control-bar"],
@@ -1045,10 +1168,13 @@ describe("handleInit", () => {
         throw new Error("Clipboard error");
       });
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-api-key";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-api-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"],
@@ -1076,10 +1202,13 @@ describe("handleInit", () => {
     });
 
     it("should respect --yes flag", async () => {
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-key";
+
       // Set minimal inquirer responses (fewer prompts with --yes)
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-key",
+        projectName: "test-project",
         confirmReplace: true,
       };
 
@@ -1101,10 +1230,13 @@ describe("handleInit", () => {
       // Setup: Switch to React project
       vol.fromJSON(createProjectWithReactAndRegistry(["message-thread-full"]));
 
+      // Set up device auth mock
+      mockGeneratedApiKey = "test-key";
+
       // Set inquirer responses
       inquirerResponses = {
         hostingChoice: "cloud",
-        apiKey: "test-key",
+        projectName: "test-project",
         confirmReplace: true,
         useSrcDir: true,
         selectedComponents: ["message-thread-full"],

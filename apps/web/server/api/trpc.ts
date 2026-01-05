@@ -15,7 +15,7 @@ import { ZodError } from "zod/v3";
 import { authOptions } from "@/lib/auth";
 import { env } from "@/lib/env";
 import * as Sentry from "@sentry/nextjs";
-import { getDb, HydraDb } from "@tambo-ai-cloud/db";
+import { getDb, HydraDb, operations } from "@tambo-ai-cloud/db";
 import { sql } from "drizzle-orm";
 import { getServerSession, User } from "next-auth";
 import { headers } from "next/headers";
@@ -49,8 +49,8 @@ export const createTRPCContext = async (): Promise<Context> => {
   const session = await getServerSession(authOptions);
   const db = getDb(env.DATABASE_URL);
 
-  // Map NextAuth session to the expected user format
-  const user = session?.user
+  // First, try NextAuth session (browser users)
+  let user: Context["user"] = session?.user
     ? {
         id: (session.user as User).id,
         email: session.user.email,
@@ -58,6 +58,24 @@ export const createTRPCContext = async (): Promise<Context> => {
         image: session.user.image,
       }
     : null;
+
+  // If no NextAuth session, check for session token via Authorization header
+  // This is used by CLI sessions (source='cli') authenticated via device auth flow
+  if (!user) {
+    const authHeader = requestHeaders.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const sessionToken = authHeader.slice(7);
+      const sessionUser = await operations.validateSession(db, sessionToken);
+      if (!sessionUser) {
+        // Token was provided but is invalid/expired - this is an auth error
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Invalid or expired session token",
+        });
+      }
+      user = sessionUser;
+    }
+  }
 
   return {
     db,

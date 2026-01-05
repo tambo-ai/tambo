@@ -1,6 +1,7 @@
 export * from "./messages";
 export * from "./project";
 export * from "./usage";
+export * from "./sessions";
 export * from "./suggestions";
 export * from "./thread";
 export * from "./logs";

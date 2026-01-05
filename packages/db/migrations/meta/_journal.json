@@ -575,6 +575,13 @@
       "when": 1762823873822,
       "tag": "0081_sloppy_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1767647475171,
+      "tag": "0082_lowly_valkyrie",
+      "breakpoints": true
     }
   ]
 }
