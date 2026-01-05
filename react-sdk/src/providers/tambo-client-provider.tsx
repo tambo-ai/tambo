@@ -1,12 +1,7 @@
 "use client";
 import TamboAI, { ClientOptions } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
-import React, {
-  createContext,
-  PropsWithChildren,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, PropsWithChildren, useMemo } from "react";
 import packageJson from "../../package.json";
 import { useTamboSessionToken } from "./hooks/use-tambo-session-token";
 
@@ -77,31 +72,22 @@ export const TamboClientProvider: React.FC<
   userToken,
   additionalHeaders,
 }) => {
-  // Create merged headers with useMemo so it updates when additionalHeaders change
-  const mergedHeaders = useMemo(() => {
-    const headers = {
-      "X-Tambo-React-Version": packageJson.version,
-      ...additionalHeaders, // Merge custom headers
-    };
-    return headers;
-  }, [additionalHeaders]);
+  const tamboConfig = useMemo(
+    () =>
+      ({
+        apiKey,
+        defaultHeaders: {
+          "X-Tambo-React-Version": packageJson.version,
+          ...additionalHeaders,
+        },
+        baseURL: tamboUrl ?? undefined,
+        environment: environment ?? undefined,
+      }) satisfies ClientOptions,
+    [additionalHeaders, apiKey, tamboUrl, environment],
+  );
 
-  // Create client with useMemo so it updates when mergedHeaders change
-  const client = useMemo(() => {
-    const tamboConfig: ClientOptions = {
-      apiKey,
-      defaultHeaders: mergedHeaders,
-    };
-    if (tamboUrl) {
-      tamboConfig.baseURL = tamboUrl;
-    }
-    if (environment) {
-      tamboConfig.environment = environment;
-    }
-    return new TamboAI(tamboConfig);
-  }, [apiKey, tamboUrl, environment, mergedHeaders]);
-
-  const [queryClient] = useState(() => new QueryClient());
+  const client = useMemo(() => new TamboAI(tamboConfig), [tamboConfig]);
+  const queryClient = useMemo(() => new QueryClient(), []);
 
   // Keep the session token updated and get the updating state
   const { isFetching: isUpdatingToken } = useTamboSessionToken(
@@ -116,7 +102,7 @@ export const TamboClientProvider: React.FC<
         client,
         queryClient,
         isUpdatingToken,
-        additionalHeaders: mergedHeaders,
+        additionalHeaders: tamboConfig.defaultHeaders,
       }}
     >
       {children}
