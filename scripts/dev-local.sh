@@ -16,8 +16,10 @@ for port in 8260 8261 8262 8263; do
   if ! node - "$port" <<'NODE'
 const net = require("node:net");
 
-const port = Number(process.argv[2]);
-if (!Number.isFinite(port)) {
+// Exit 0 if the port on 127.0.0.1 is available, 1 otherwise.
+const portArg = process.argv[2];
+const port = Number.parseInt(portArg, 10);
+if (!Number.isInteger(port) || port <= 0 || port > 65535) {
   process.exit(1);
 }
 
