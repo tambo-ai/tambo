@@ -2,7 +2,7 @@ import chalk from "chalk";
 import clipboard from "clipboardy";
 import open from "open";
 import ora from "ora";
-import { ApiError, deviceAuth } from "./api-client.js";
+import { api, ApiError } from "./api-client.js";
 import { saveToken, type StoredToken } from "./token-storage.js";
 
 /**
@@ -31,16 +31,6 @@ export class DeviceAuthError extends Error {
 }
 
 /**
- * Options for the device auth flow
- */
-interface DeviceAuthOptions {
-  /** Whether to automatically open the browser */
-  openBrowser?: boolean;
-  /** Whether to copy the code to clipboard */
-  copyToClipboard?: boolean;
-}
-
-/**
  * Sleep for a given number of milliseconds
  */
 async function sleep(ms: number): Promise<void> {
@@ -50,25 +40,21 @@ async function sleep(ms: number): Promise<void> {
 /**
  * Run the device authentication flow
  *
- * 1. Calls deviceAuth.initiate to get device code and user code
+ * 1. Calls api.deviceAuth.initiate to get device code and user code
  * 2. Displays the user code and opens browser to verification page
- * 3. Polls deviceAuth.poll until user verifies or code expires
+ * 3. Polls api.deviceAuth.poll until user verifies or code expires
  * 4. Saves the session token to disk
  *
  * @returns The auth result with session token and user info
  * @throws DeviceAuthError if auth fails
  */
-export async function runDeviceAuthFlow(
-  options: DeviceAuthOptions = {},
-): Promise<DeviceAuthResult> {
-  const { openBrowser = true, copyToClipboard = true } = options;
-
+export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   // Step 1: Initiate the device auth flow
   console.log(chalk.gray("\nInitiating device authentication..."));
 
   let initResponse;
   try {
-    initResponse = await deviceAuth.initiate();
+    initResponse = await api.deviceAuth.initiate.mutate();
   } catch (error) {
     if (error instanceof ApiError) {
       throw new DeviceAuthError(
@@ -93,27 +79,23 @@ export async function runDeviceAuthFlow(
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
 
   // Copy code to clipboard
-  if (copyToClipboard) {
-    try {
-      await clipboard.write(userCode);
-      console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
-    } catch {
-      // Clipboard might not be available in all environments
-    }
+  try {
+    await clipboard.write(userCode);
+    console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
+  } catch {
+    // Clipboard might not be available in all environments
   }
 
   // Open browser with pre-filled code URL
-  if (openBrowser) {
-    try {
-      await open(verificationUriComplete);
-      console.log(chalk.gray("   Browser opened for authentication\n"));
-    } catch {
-      console.log(
-        chalk.yellow(
-          `   Could not open browser automatically. Please visit the URL above.\n`,
-        ),
-      );
-    }
+  try {
+    await open(verificationUriComplete);
+    console.log(chalk.gray("   Browser opened for authentication\n"));
+  } catch {
+    console.log(
+      chalk.yellow(
+        `   Could not open browser automatically. Please visit the URL above.\n`,
+      ),
+    );
   }
 
   // Step 3: Poll for completion
@@ -134,7 +116,7 @@ export async function runDeviceAuthFlow(
     attempts++;
 
     try {
-      const pollResponse = await deviceAuth.poll(deviceCode);
+      const pollResponse = await api.deviceAuth.poll.query({ deviceCode });
 
       // Reset error count and interval on successful poll
       consecutiveErrors = 0;

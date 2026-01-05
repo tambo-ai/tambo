@@ -5,7 +5,7 @@ import open from "open";
 import ora from "ora";
 import path from "path";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
-import { projectApi } from "../lib/api-client.js";
+import { api } from "../lib/api-client.js";
 import {
   DeviceAuthError,
   isTokenValid,
@@ -338,7 +338,7 @@ async function handleProjectAndApiKey(): Promise<boolean> {
     const spinner = ora("Loading your projects...").start();
     let projects;
     try {
-      projects = await projectApi.getUserProjects();
+      projects = await api.project.getUserProjects.query({});
       spinner.stop();
     } catch (error) {
       spinner.fail("Failed to load projects");
@@ -370,7 +370,9 @@ async function handleProjectAndApiKey(): Promise<boolean> {
 
       const createSpinner = ora("Creating project...").start();
       try {
-        const project = await projectApi.createProject(projectName.trim());
+        const project = await api.project.createProject2.mutate({
+          name: projectName.trim(),
+        });
         createSpinner.succeed(`Created project: ${project.name}`);
         selectedProjectId = project.id;
         selectedProjectName = project.name;
@@ -423,7 +425,9 @@ async function handleProjectAndApiKey(): Promise<boolean> {
 
         const createSpinner = ora("Creating project...").start();
         try {
-          const project = await projectApi.createProject(projectName.trim());
+          const project = await api.project.createProject2.mutate({
+            name: projectName.trim(),
+          });
           createSpinner.succeed(`Created project: ${project.name}`);
           selectedProjectId = project.id;
           selectedProjectName = project.name;
@@ -454,10 +458,10 @@ async function handleProjectAndApiKey(): Promise<boolean> {
         hour: "2-digit",
         minute: "2-digit",
       });
-      const result = await projectApi.generateApiKey(
-        selectedProjectId,
-        `CLI Key (${timestamp})`,
-      );
+      const result = await api.project.generateApiKey.mutate({
+        projectId: selectedProjectId,
+        name: `CLI Key (${timestamp})`,
+      });
       keySpinner.succeed("API key generated");
 
       // Save to .env file

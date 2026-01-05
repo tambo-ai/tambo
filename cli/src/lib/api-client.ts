@@ -1,5 +1,5 @@
 /**
- * CLI API Client - tRPC vanilla client with typed wrappers
+ * CLI API Client - tRPC vanilla client with stub router typing
  */
 import { createTRPCClient, httpLink, TRPCClientError } from "@trpc/client";
 import superjson from "superjson";
@@ -7,7 +7,7 @@ import superjson from "superjson";
 import { clearToken, getEffectiveSessionToken } from "./token-storage.js";
 
 // ============================================================================
-// Types
+// Types - Response shapes from the API
 // ============================================================================
 
 export interface InitiateResponse {
@@ -45,6 +45,37 @@ export interface GeneratedApiKey {
 }
 
 // ============================================================================
+// Stub Router Type - Mirrors the server's AppRouter shape for CLI routes
+//
+// This provides type safety for the tRPC client without importing the actual
+// AppRouter from the web app (which would create a circular dependency).
+// ============================================================================
+
+interface StubRouter {
+  deviceAuth: {
+    initiate: { mutate: () => Promise<InitiateResponse> };
+    poll: { query: (input: { deviceCode: string }) => Promise<PollResponse> };
+    listSessions: { query: () => Promise<Session[]> };
+    revokeSession: {
+      mutate: (input: { sessionId: string }) => Promise<{ success: boolean }>;
+    };
+    revokeAllSessions: {
+      mutate: () => Promise<{ success: boolean; revokedCount: number }>;
+    };
+  };
+  project: {
+    getUserProjects: { query: (input: object) => Promise<Project[]> };
+    createProject2: { mutate: (input: { name: string }) => Promise<Project> };
+    generateApiKey: {
+      mutate: (input: {
+        projectId: string;
+        name: string;
+      }) => Promise<GeneratedApiKey>;
+    };
+  };
+}
+
+// ============================================================================
 // Client Setup
 // ============================================================================
 
@@ -75,9 +106,8 @@ export function isAuthError(error: unknown): boolean {
   return false;
 }
 
-// Raw tRPC client (typed as any since we can't import AppRouter)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const client: any = createTRPCClient({
+// Create raw tRPC client
+const rawClient = createTRPCClient({
   links: [
     httpLink({
       url: `${getApiBaseUrl()}/trpc`,
@@ -97,53 +127,18 @@ const client: any = createTRPCClient({
   ],
 });
 
+// Export typed client - cast to StubRouter for type safety and autocomplete
+export const api = rawClient as unknown as StubRouter;
+
 // ============================================================================
-// Typed Wrappers
+// Convenience Exports
 // ============================================================================
-
-export const deviceAuth = {
-  initiate: async (): Promise<InitiateResponse> =>
-    client.deviceAuth.initiate.mutate(),
-
-  poll: async (deviceCode: string): Promise<PollResponse> =>
-    client.deviceAuth.poll.query({ deviceCode }),
-
-  listSessions: async (): Promise<Session[]> =>
-    client.deviceAuth.listSessions.query(),
-
-  revokeSession: async (sessionId: string): Promise<{ success: boolean }> =>
-    client.deviceAuth.revokeSession.mutate({ sessionId }),
-
-  revokeAllSessions: async (): Promise<{
-    success: boolean;
-    revokedCount: number;
-  }> => client.deviceAuth.revokeAllSessions.mutate(),
-};
-
-export const projectApi = {
-  getUserProjects: async (): Promise<Project[]> =>
-    client.project.getUserProjects.query({}),
-
-  createProject: async (name: string): Promise<Project> =>
-    client.project.createProject2.mutate({ name }),
-
-  generateApiKey: async (
-    projectId: string,
-    name: string,
-  ): Promise<GeneratedApiKey> =>
-    client.project.generateApiKey.mutate({ projectId, name }),
-};
 
 export async function verifySession(): Promise<boolean> {
   try {
-    await deviceAuth.listSessions();
+    await api.deviceAuth.listSessions.query();
     return true;
   } catch {
     return false;
   }
 }
-
-// Also export raw client for direct tRPC access if needed
-export const api = client;
-
-export { TRPCClientError };
