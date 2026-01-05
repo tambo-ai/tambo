@@ -6,7 +6,27 @@ set -e
 
 echo "Starting local dev environment..."
 
-echo "Make sure ports 8260-8263 are free (web/api/showcase/docs)."
+echo "Checking that ports 8260-8263 are free (web/api/showcase/docs)..."
+for port in 8260 8261 8262 8263; do
+  if ! python3 - "$port" <<'PY'
+import socket
+import sys
+
+port = int(sys.argv[1])
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+try:
+  sock.bind(("127.0.0.1", port))
+except OSError:
+  sys.exit(1)
+finally:
+  sock.close()
+PY
+  then
+    echo "Port ${port} is already in use. Stop the process using it, then re-run this script."
+    exit 1
+  fi
+done
 
 # 1. Start Postgres (if not running)
 if ! docker ps | grep -q tambo_postgres; then

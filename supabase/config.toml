@@ -97,6 +97,7 @@ file_size_limit = "50MiB"
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
+# Keep this in sync with the local `apps/web` dev server port and your OAuth provider redirect URIs.
 # site_url = "http://127.0.0.1:8260"
 site_url = "http://localhost:8260"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
