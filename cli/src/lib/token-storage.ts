@@ -125,12 +125,18 @@ export function loadToken(): StoredToken | null {
 
     // Validate required fields
     if (!token.sessionToken || !token.expiresAt || !token.user) {
+      console.warn(
+        `Warning: Auth token file has invalid format. Run 'tambo auth login' to re-authenticate.`,
+      );
       return null;
     }
 
     return token;
   } catch {
     // Invalid JSON or read error
+    console.warn(
+      `Warning: Could not read auth token file. Run 'tambo auth login' to re-authenticate.`,
+    );
     return null;
   }
 }
