@@ -79,7 +79,7 @@
     "next-themes": "^0.4.5",
     "nextra": "^4.6.1",
     "nextra-theme-blog": "^4.6.0",
-    "posthog-js": "^1.310.1",
+    "posthog-js": "^1.311.0",
     "radix-ui": "^1.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
