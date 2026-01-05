@@ -6,7 +6,6 @@ import {
   SessionSource,
 } from "@tambo-ai-cloud/core";
 import { getDb, schema } from "@tambo-ai-cloud/db";
-import { sql } from "drizzle-orm";
 import { decodeJwt } from "jose";
 import { Account, AuthOptions as NextAuthOptions } from "next-auth";
 import { JWT } from "next-auth/jwt";
@@ -142,7 +141,6 @@ export const authOptions: NextAuthOptions = {
         await db.insert(schema.sessions).values({
           userId: user.id,
           source: SessionSource.Browser,
-          expiresAt: sql`now() + interval '30 days'`,
         });
       } catch (error) {
         // Don't fail the login if audit entry fails - log and continue.

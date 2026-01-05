@@ -12,7 +12,6 @@ import { z } from "zod";
 
 // Constants
 const CODE_EXPIRY_MINUTES = 15;
-const SESSION_EXPIRY_DAYS = 90;
 const POLL_INTERVAL_SECONDS = 5;
 const SESSION_TOKEN_BYTES = 32;
 const DEVICE_VERIFICATION_PATH = "/device";
@@ -152,16 +151,13 @@ export const deviceAuthRouter = createTRPCRouter({
       // Generate high-entropy session token (256 bits)
       // SECURITY: This token is a credential - never log it
       const sessionToken = generateSessionToken();
-      const sessionExpiresAt = new Date(
-        Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
-      );
 
       // Create session first (required by FK constraint on device_auth_codes)
+      // expiresAt defaults to 90 days from now (set in schema)
       await ctx.db.insert(schema.sessions).values({
         id: sessionToken,
         userId: ctx.user.id,
         source: SessionSource.CLI,
-        expiresAt: sessionExpiresAt,
       });
 
       // Atomically claim the device code with conditional update

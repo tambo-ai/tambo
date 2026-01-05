@@ -140,8 +140,10 @@ export const sessions = pgTable(
     source: text("source", {
       enum: Object.values(SessionSource) as [SessionSource],
     }).notNull(),
-    // When this session expires
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    // When this session expires (default: 90 days from creation)
+    expiresAt: timestamp("expires_at", { withTimezone: true })
+      .default(sql`now() + interval '90 days'`)
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
