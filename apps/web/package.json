@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 8260",
     "build": "SKIP_ENV_VALIDATION=true next build --no-lint",
     "start": "next start",
     "lint": "eslint",

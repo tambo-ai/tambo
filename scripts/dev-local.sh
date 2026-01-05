@@ -6,12 +6,7 @@ set -e
 
 echo "Starting local dev environment..."
 
-# 0. Kill any existing processes on our ports
-echo "Clearing ports 3000, 3001, 3002, 3003..."
-for port in 3000 3001 3002 3003; do
-  lsof -ti:$port 2>/dev/null | xargs kill -9 2>/dev/null || true
-done
-sleep 1
+echo "Make sure ports 8260-8263 are free (web/api/showcase/docs)."
 
 # 1. Start Postgres (if not running)
 if ! docker ps | grep -q tambo_postgres; then
@@ -33,10 +28,10 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5433/tambo" npm run db:mi
 # 4. Start all dev servers
 echo ""
 echo "Starting dev servers..."
-echo "  Web:      http://localhost:3000"
-echo "  API:      http://localhost:3001"
-echo "  Showcase: http://localhost:3002"
-echo "  Docs:     http://localhost:3003"
+echo "  Web:      http://localhost:8260"
+echo "  API:      http://localhost:8261"
+echo "  Showcase: http://localhost:8262"
+echo "  Docs:     http://localhost:8263"
 echo "  Supabase: http://127.0.0.1:54423"
 echo ""
 
