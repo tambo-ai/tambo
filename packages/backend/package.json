@@ -62,12 +62,5 @@
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10"
-  },
-  "volta": {
-    "extends": "../../package.json"
   }
 }
