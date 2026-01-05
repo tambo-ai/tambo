@@ -356,7 +356,7 @@ describe("Schema Compatibility", () => {
             .args(
               z3.string().describe("first argument"),
               z3.number().describe("second argument"),
-              z3.boolean().optional().describe("third argument"),
+              z3.boolean().optional().describe("optional third argument"),
             )
             .returns(z3.object({ success: z3.boolean() })),
         });
@@ -785,8 +785,6 @@ describe("Schema Compatibility", () => {
         description: "Legacy tool with maxCalls",
         tool: jest.fn().mockResolvedValue("ok"),
         toolSchema: z3.function().args(z3.string()).returns(z3.string()),
-        // test-only field
-        // test-only field maxCalls is attached by MCP metadata
         maxCalls: 2,
       });
 
@@ -806,8 +804,6 @@ describe("Schema Compatibility", () => {
         tool: jest.fn().mockResolvedValue("ok"),
         inputSchema: z4.object({ q: z4.string() }),
         outputSchema: z4.string(),
-        // test-only field
-        // test-only field maxCalls is attached by MCP metadata
         maxCalls: 3,
       });
 

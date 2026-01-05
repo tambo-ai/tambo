@@ -13,7 +13,6 @@ import * as z4 from "zod/v4";
 import {
   ComponentRegistry,
   RegisteredComponent,
-  TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
 } from "../model/component-metadata";
@@ -21,6 +20,7 @@ import { createMockTool, createMockToolWithToolSchema } from "../testing/tools";
 import {
   adaptToolFromFnSchema,
   convertPropsToJsonSchema,
+  defineTool,
   getAvailableComponents,
   getComponentFromRegistry,
   getUnassociatedTools,
@@ -278,14 +278,14 @@ describe("registry util: maxCalls", () => {
   });
 
   it("getUnassociatedTools does not drop unassociated tools and preserves maxCalls", () => {
-    const t1: TamboTool = {
+    const t1 = defineTool({
       name: "a",
       description: "a",
       tool: () => {},
       inputSchema: {},
       outputSchema: {},
       maxCalls: 3,
-    };
+    });
     const registry = { a: t1 };
     const associations = { SomeComponent: [] as string[] };
     const out = getUnassociatedTools(registry, associations);

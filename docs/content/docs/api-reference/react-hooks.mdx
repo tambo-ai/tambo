@@ -21,16 +21,7 @@ This function is used to register components with Tambo, allowing them to be pot
 
 `const { registerTool } = useTamboRegistry()`
 
-This function is used to register tools with Tambo. When defining a tool (via
-`defineTool` or by passing a `TamboTool` to `registerTool`), you may include an
-optional `maxCalls` property (a non-negative integer). If provided, `maxCalls`
-sets a per-tool limit on how many times the tool may be invoked while generating a
-single response. A per-tool `maxCalls` value overrides the project's global
-Max tool-call limit.Invalid values will be rejected.
-
-Example:
-
-`defineTool({ name: "myTool", description: "...", maxCalls: 3, tool: async (...) => {...}, inputSchema: ..., outputSchema: ... })`
+This function is used to register tools with Tambo.
 
 ### registerTools
 
@@ -382,18 +373,6 @@ Function to remove a specific context attachment by its ID. The context helper a
 `const { clearContextAttachments } = useTamboContextAttachment()`
 
 Function to remove all active context attachments at once. The context helper automatically updates to reflect the change. Context attachments are automatically cleared after message submission (one-time use), so you typically don't need to call this manually.
-
-### customSuggestions
-
-`const { customSuggestions } = useTamboContextAttachment()`
-
-Current custom suggestions that override auto-generated suggestions. Returns `null` if using auto-generated suggestions.
-
-### setCustomSuggestions
-
-`const { setCustomSuggestions } = useTamboContextAttachment()`
-
-Function to set custom suggestions or clear them by passing `null`.
 
 ## useCurrentInteractablesSnapshot
 

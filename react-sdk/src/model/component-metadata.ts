@@ -145,11 +145,10 @@ export interface TamboTool<
    * Optional limit for how many times this tool may be called while
    * generating a single response. If present, this value overrides the
    * project's global `maxToolCallLimit` for this tool.
-   * @example 1
    */
   maxCalls?: number;
   /**
-   * Optional properties describing tool behavior.
+   * Optional properties describing tool behavior
    */
   annotations?: {
     /**

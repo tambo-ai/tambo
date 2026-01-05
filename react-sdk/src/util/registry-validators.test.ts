@@ -244,6 +244,19 @@ describe("validateTool", () => {
       );
     });
 
+    it("should throw when maxCalls is zero", () => {
+      const tool: TamboTool = {
+        name: "tool-with-zero-maxcalls",
+        description: "A tool with zero maxCalls",
+        tool: () => "result",
+        inputSchema: z.object({ query: z.string() }),
+        outputSchema: z.string(),
+        maxCalls: 0,
+      };
+
+      expect(() => validateTool(tool)).not.toThrow();
+    });
+
     it("should accept tool with explicitly undefined maxCalls", () => {
       const tool: TamboTool = {
         name: "tool-with-undefined-maxcalls",
