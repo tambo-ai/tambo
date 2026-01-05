@@ -53,7 +53,7 @@
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
     "react-markdown": "^10.1.0",
-    "recharts": "^3.5.1",
+    "recharts": "^3.6.0",
     "streamdown": "^1.6.10",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
