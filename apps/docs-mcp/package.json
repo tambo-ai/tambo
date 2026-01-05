@@ -17,7 +17,7 @@
     "@sentry/nextjs": "^10.32.1",
     "mcp-handler": "^1.0.4",
     "next": "^15.5.9",
-    "openai": "^6.4.0",
+    "openai": "^6.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.25.76"
