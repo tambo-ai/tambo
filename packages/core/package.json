@@ -36,7 +36,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.24.0",
     "jose": "^5.10.0",
-    "openai": "^6.4.0",
+    "openai": "^6.15.0",
     "resend": "^6.6.0"
   }
 }
