@@ -15,8 +15,8 @@ import { ZodError } from "zod/v3";
 import { authOptions } from "@/lib/auth";
 import { env } from "@/lib/env";
 import * as Sentry from "@sentry/nextjs";
-import { getDb, HydraDb, schema } from "@tambo-ai-cloud/db";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { getDb, HydraDb, operations } from "@tambo-ai-cloud/db";
+import { sql } from "drizzle-orm";
 import { getServerSession, User } from "next-auth";
 import { headers } from "next/headers";
 
@@ -31,65 +31,6 @@ export type Context = {
   } | null;
   headers: Headers;
 };
-
-/**
- * Validate a session token against the database
- * Returns user info if valid, null otherwise
- *
- * CLI session tokens are high-entropy (256 bits, base64url encoded).
- * They are stored in the unified sessions table with source='cli'.
- *
- * SECURITY:
- * - Sessions must have a non-null expiresAt and not be expired
- * - Tokens should NEVER be logged - they grant full account access
- * - This is enforced here and when creating sessions in device-auth.ts
- */
-async function validateSession(
-  db: HydraDb,
-  sessionToken: string,
-): Promise<NonNullable<Context["user"]>> {
-  // Query the session and join with user
-  // Sessions must have expiresAt set and not be expired
-  const result = await db
-    .select({
-      sessionId: schema.sessions.id,
-      userId: schema.sessions.userId,
-      expiresAt: schema.sessions.expiresAt,
-      source: schema.sessions.source,
-      userEmail: schema.authUsers.email,
-      userMeta: schema.authUsers.rawUserMetaData,
-    })
-    .from(schema.sessions)
-    .innerJoin(
-      schema.authUsers,
-      eq(schema.sessions.userId, schema.authUsers.id),
-    )
-    .where(
-      and(
-        eq(schema.sessions.id, sessionToken),
-        gt(schema.sessions.expiresAt, sql`now()`),
-      ),
-    )
-    .limit(1);
-
-  if (result.length === 0) {
-    // Token was provided but is invalid/expired - this is an auth error, not anonymous access
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Invalid or expired session token",
-    });
-  }
-
-  const session = result[0];
-  const meta = session.userMeta as Record<string, unknown> | null;
-
-  return {
-    id: session.userId,
-    email: session.userEmail,
-    name: (meta?.name as string) ?? null,
-    image: (meta?.avatar_url as string) ?? null,
-  };
-}
 
 /**
  * 1. CONTEXT
@@ -124,7 +65,15 @@ export const createTRPCContext = async (): Promise<Context> => {
     const authHeader = requestHeaders.get("authorization");
     if (authHeader?.startsWith("Bearer ")) {
       const sessionToken = authHeader.slice(7);
-      user = await validateSession(db, sessionToken);
+      const sessionUser = await operations.validateSession(db, sessionToken);
+      if (!sessionUser) {
+        // Token was provided but is invalid/expired - this is an auth error
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Invalid or expired session token",
+        });
+      }
+      user = sessionUser;
     }
   }
 
