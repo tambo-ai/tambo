@@ -2,9 +2,10 @@ import { renderHook } from "@testing-library/react";
 import React from "react";
 import {
   TamboClientProvider,
+  TamboClientProviderProps,
+  useIsTamboTokenUpdating,
   useTamboClient,
   useTamboQueryClient,
-  useIsTamboTokenUpdating,
 } from "./tambo-client-provider";
 
 // Mock the session token hook to control token fetching state
@@ -45,12 +46,7 @@ describe("TamboClientProvider", () => {
     } as any);
   });
 
-  const createWrapper = (props: {
-    apiKey: string;
-    tamboUrl?: string;
-    environment?: "production" | "staging";
-    userToken?: string;
-  }) => {
+  const createWrapper = (props: TamboClientProviderProps) => {
     const Wrapper = ({ children }: { children: React.ReactNode }) => (
       <TamboClientProvider {...props}>{children}</TamboClientProvider>
     );
@@ -79,6 +75,73 @@ describe("TamboClientProvider", () => {
       const secondClient = result.current;
 
       expect(firstClient).toBe(secondClient);
+    });
+
+    it("should configure client with provided tamboUrl", () => {
+      const { result } = renderHook(() => useTamboClient(), {
+        wrapper: createWrapper({
+          apiKey: "test-api-key",
+          tamboUrl: "https://custom.tambo.api",
+        }),
+      });
+
+      expect(result.current.baseURL).toBe("https://custom.tambo.api");
+    });
+
+    it("should configure client with provided environment", async () => {
+      const { result } = renderHook(() => useTamboClient(), {
+        wrapper: createWrapper({
+          apiKey: "test-api-key",
+          environment: "staging",
+        }),
+      });
+
+      const { url } = await result.current.buildRequest({
+        method: "get",
+        path: "/test-endpoint",
+      });
+
+      expect(url).toBe("https://hydra-api-dev.up.railway.app/test-endpoint");
+    });
+
+    it("should throw if both tamboUrl and environment are provided", () => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+      expect(() => {
+        renderHook(() => useTamboClient(), {
+          wrapper: createWrapper({
+            apiKey: "test-api-key",
+            tamboUrl: "https://custom.tambo.api",
+            environment: "staging",
+          }),
+        });
+      }).toThrow(
+        "Ambiguous URL; The `baseURL` option (or TAMBO_AI_BASE_URL env var) and the `environment` option are given. If you want to use the environment you must pass baseURL: null",
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should include additional headers in client configuration", async () => {
+      const { result } = renderHook(() => useTamboClient(), {
+        wrapper: createWrapper({
+          apiKey: "test-api-key",
+          additionalHeaders: {
+            "X-Custom-Header": "custom-value",
+            "X-Another-Header": "another-value",
+          },
+        }),
+      });
+
+      const { req } = await result.current.buildRequest({
+        method: "get",
+        path: "/test-endpoint",
+      });
+
+      expect(req.headers.get("X-Tambo-React-Version")).toBeDefined();
+      expect(req.headers.get("X-Tambo-React-Version")).toMatch(/\d+\.\d+\.\d+/); // version format
+      expect(req.headers.get("X-Custom-Header")).toBe("custom-value");
+      expect(req.headers.get("X-Another-Header")).toBe("another-value");
     });
   });
 
