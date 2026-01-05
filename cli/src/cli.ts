@@ -41,7 +41,6 @@ interface CLIFlags extends Record<string, any> {
   skipAgentDocs?: Flag<"boolean", boolean>;
   quiet?: Flag<"boolean", boolean>;
   force?: Flag<"boolean", boolean>;
-  id?: Flag<"string", string>;
   all?: Flag<"boolean", boolean>;
 }
 
@@ -260,13 +259,13 @@ ${chalk.bold("Templates")}
     syntax: "auth revoke-session [options]",
     description: "Revoke CLI session(s)",
     usage: [
-      `$ ${chalk.cyan("tambo auth revoke-session")} --id <session-id>`,
-      `$ ${chalk.cyan("tambo auth revoke-session")} --all`,
+      `$ ${chalk.cyan("tambo auth revoke-session")}       ${chalk.dim("Interactive session picker")}`,
+      `$ ${chalk.cyan("tambo auth revoke-session --all")} ${chalk.dim("Revoke all sessions")}`,
     ],
     options: [],
     examples: [
-      `$ ${chalk.cyan("tambo auth revoke-session --id abc123")} # Revoke specific session`,
-      `$ ${chalk.cyan("tambo auth revoke-session --all")}       # Revoke all sessions`,
+      `$ ${chalk.cyan("tambo auth revoke-session")}       # Interactive session picker`,
+      `$ ${chalk.cyan("tambo auth revoke-session --all")} # Revoke all sessions`,
     ],
   },
 };
