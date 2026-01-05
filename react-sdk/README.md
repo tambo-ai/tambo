@@ -280,8 +280,6 @@ const tools = [
   defineTool({
     name: "getWeather",
     description: "Fetches weather data for a location",
-    // Optional per-tool call limit; overrides project setting when present
-    maxCalls: 3,
     tool: async ({ location }) =>
       fetch(`/api/weather?q=${location}`).then((r) => r.json()),
     inputSchema: z.object({

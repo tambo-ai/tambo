@@ -149,7 +149,7 @@ export interface TamboTool<
    */
   maxCalls?: number;
   /**
-   * Optional properties describing tool behavior.
+   * Optional properties describing tool behavior
    */
   annotations?: {
     /**

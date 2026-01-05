@@ -356,7 +356,7 @@ describe("Schema Compatibility", () => {
             .args(
               z3.string().describe("first argument"),
               z3.number().describe("second argument"),
-              z3.boolean().optional().describe("third argument"),
+              z3.boolean().optional().describe("optional third argument"),
             )
             .returns(z3.object({ success: z3.boolean() })),
         });
