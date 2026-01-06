@@ -166,7 +166,7 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
 
       // Assert - Error should be written to stream response
       expect(mockResponse.write).toHaveBeenCalledWith(
-        `error: ${internalError.message}\n\n`,
+        "error: Error in streaming response\n\n",
       );
       expect(mockResponse.end).toHaveBeenCalled();
       expect(threadsService.advanceThread).toHaveBeenCalled();
@@ -235,7 +235,7 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
 
       // Assert - Error should be written to stream response
       expect(mockResponse.write).toHaveBeenCalledWith(
-        `error: ${internalError.message}\n\n`,
+        "error: Error in streaming response\n\n",
       );
       expect(mockResponse.end).toHaveBeenCalled();
       expect(threadsService.advanceThread).toHaveBeenCalled();

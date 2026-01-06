@@ -447,7 +447,7 @@ export class ThreadsController {
       await p;
     } catch (error: unknown) {
       this.logger.error(
-        "Error in streaming response",
+        `Error in streaming response (projectId=${projectId}, threadId=${threadId})`,
         error instanceof Error ? error.stack : undefined,
       );
       Sentry.captureException(error);
@@ -518,7 +518,7 @@ export class ThreadsController {
       await p;
     } catch (error: unknown) {
       this.logger.error(
-        "Error in streaming response",
+        `Error in streaming response (projectId=${projectId})`,
         error instanceof Error ? error.stack : undefined,
       );
       Sentry.captureException(error);
@@ -595,8 +595,7 @@ export class ThreadsController {
         error instanceof Error ? error.stack : undefined,
       );
       Sentry.captureException(error);
-      const message = error instanceof Error ? error.message : "Unknown error";
-      response.write(`error: ${message}\n\n`);
+      response.write("error: Error in streaming response\n\n");
     } finally {
       response.write("data: DONE\n\n");
       response.end();
