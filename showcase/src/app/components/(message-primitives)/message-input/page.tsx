@@ -22,7 +22,8 @@ export default function MessageInputPage() {
         <p className="text-lg text-muted-foreground">
           A primitive component for handling message input with textarea,
           toolbar, submit button, and error display. Provides form submission
-          and state management for chat interfaces.
+          and state management for chat interfaces. Supports file attachments
+          including images, PDFs, and text files.
         </p>
       </header>
 
@@ -30,10 +31,10 @@ export default function MessageInputPage() {
         <h2 className="text-2xl font-semibold">Examples</h2>
         <div className="space-y-6">
           <ComponentCodePreview
-            title="Default Message Input with Image Attachments"
+            title="Default Message Input with File Attachments"
             component={
               <MessageInput variant="default">
-                <MessageInputTextarea placeholder="Type your message or paste images..." />
+                <MessageInputTextarea placeholder="Type your message or attach files..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
@@ -51,11 +52,92 @@ export default function MessageInputPage() {
 } from "@/components/tambo/message-input";
 
 export function ChatInput() {
+  // Default: accepts images, PDFs, and text files
+  return (
+    <MessageInput variant="default">
+      <MessageInputTextarea placeholder="Type your message or paste images or attach files..." />
+      <MessageInputToolbar>
+        <MessageInputFileButton />
+        <MessageInputSubmitButton />
+      </MessageInputToolbar>
+      <MessageInputError />
+    </MessageInput>
+  );
+}`}
+            previewClassName="flex flex-col justify-end gap-4 p-4"
+          />
+
+          <ComponentCodePreview
+            title="Images Only (File Type Filtering)"
+            component={
+              <MessageInput variant="default">
+                <MessageInputTextarea placeholder="Type your message or paste images..." />
+                <MessageInputToolbar>
+                  <MessageInputFileButton
+                    accept="image/*"
+                    tooltip="Attach Images"
+                  />
+                  <MessageInputSubmitButton />
+                </MessageInputToolbar>
+                <MessageInputError />
+              </MessageInput>
+            }
+            code={`import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputFileButton,
+  MessageInputSubmitButton,
+  MessageInputError,
+  MessageInputToolbar,
+} from "@/components/tambo/message-input";
+
+export function ImagesOnlyInput() {
+  // Filter to only allow image uploads
   return (
     <MessageInput variant="default">
       <MessageInputTextarea placeholder="Type your message or paste images..." />
       <MessageInputToolbar>
-        <MessageInputFileButton />
+        <MessageInputFileButton accept="image/*" tooltip="Attach Images" />
+        <MessageInputSubmitButton />
+      </MessageInputToolbar>
+      <MessageInputError />
+    </MessageInput>
+  );
+}`}
+            previewClassName="flex flex-col justify-end gap-4 p-4"
+          />
+
+          <ComponentCodePreview
+            title="PDFs Only"
+            component={
+              <MessageInput variant="default">
+                <MessageInputTextarea placeholder="Type your message or attach a PDF..." />
+                <MessageInputToolbar>
+                  <MessageInputFileButton
+                    accept="application/pdf"
+                    tooltip="Attach PDF"
+                  />
+                  <MessageInputSubmitButton />
+                </MessageInputToolbar>
+                <MessageInputError />
+              </MessageInput>
+            }
+            code={`import {
+  MessageInput,
+  MessageInputTextarea,
+  MessageInputFileButton,
+  MessageInputSubmitButton,
+  MessageInputError,
+  MessageInputToolbar,
+} from "@/components/tambo/message-input";
+
+export function PdfOnlyInput() {
+  // Filter to only allow PDF uploads
+  return (
+    <MessageInput variant="default">
+      <MessageInputTextarea placeholder="Type your message or attach a PDF..." />
+      <MessageInputToolbar>
+        <MessageInputFileButton accept="application/pdf" tooltip="Attach PDF" />
         <MessageInputSubmitButton />
       </MessageInputToolbar>
       <MessageInputError />
@@ -69,7 +151,7 @@ export function ChatInput() {
             title="Solid Variant"
             component={
               <MessageInput variant="solid">
-                <MessageInputTextarea placeholder="Type your message or paste images..." />
+                <MessageInputTextarea placeholder="Type your message or attach files..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
@@ -89,7 +171,7 @@ export function ChatInput() {
 export function SolidChatInput() {
   return (
     <MessageInput variant="solid">
-      <MessageInputTextarea placeholder="Type your message or paste images..." />
+      <MessageInputTextarea placeholder="Type your message or attach files..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
         <MessageInputSubmitButton />
@@ -105,7 +187,7 @@ export function SolidChatInput() {
             title="Bordered Variant"
             component={
               <MessageInput variant="bordered">
-                <MessageInputTextarea placeholder="Type your message or paste images..." />
+                <MessageInputTextarea placeholder="Type your message or attach files..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputSubmitButton />
@@ -125,7 +207,7 @@ export function SolidChatInput() {
 export function BorderedChatInput() {
   return (
     <MessageInput variant="bordered">
-      <MessageInputTextarea placeholder="Type your message or paste images..." />
+      <MessageInputTextarea placeholder="Type your message or attach files..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
         <MessageInputSubmitButton />
@@ -138,10 +220,10 @@ export function BorderedChatInput() {
           />
 
           <ComponentCodePreview
-            title="Full-featured: MCP Config + Image Attachments"
+            title="Full-featured: MCP Config + File Attachments"
             component={
               <MessageInput variant="default">
-                <MessageInputTextarea placeholder="Type your message or paste images..." />
+                <MessageInputTextarea placeholder="Type your message or attach files..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />
                   <MessageInputMcpConfigButton />
@@ -163,7 +245,7 @@ export function BorderedChatInput() {
 export function FullFeaturedInput() {
   return (
     <MessageInput variant="default">
-      <MessageInputTextarea placeholder="Type your message or paste images..." />
+      <MessageInputTextarea placeholder="Type your message or attach files..." />
       <MessageInputToolbar>
         <MessageInputFileButton />
         <MessageInputMcpConfigButton />
@@ -245,19 +327,61 @@ export function MinimalInput() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Sub-components</h3>
+            <h3 className="text-xl font-semibold">MessageInputFileButton</h3>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Prop</th>
+                  <th>Type</th>
+                  <th>Default</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>accept</td>
+                  <td>string</td>
+                  <td>All supported types</td>
+                  <td>
+                    MIME types or file extensions to accept. Use{" "}
+                    <code>&quot;image/*&quot;</code> for images only,{" "}
+                    <code>&quot;application/pdf&quot;</code> for PDFs only.
+                  </td>
+                </tr>
+                <tr>
+                  <td>multiple</td>
+                  <td>boolean</td>
+                  <td>true</td>
+                  <td>Allow multiple file selection</td>
+                </tr>
+                <tr>
+                  <td>tooltip</td>
+                  <td>string</td>
+                  <td>Based on accept</td>
+                  <td>
+                    Custom tooltip text. Defaults to &quot;Attach Files&quot; or
+                    &quot;Attach Images&quot; based on accept type.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Other Sub-components</h3>
 
             <ul>
               <li>
                 <strong>MessageInputTextarea</strong> - The main text input area
                 where users type their messages. Automatically resizes based on
                 content and handles keyboard shortcuts for submission. Supports
-                image pasting from clipboard.
+                file pasting from clipboard.
               </li>
               <li>
-                <strong>MessageInputFileButton</strong> - Button to open file
-                picker for selecting images to attach to messages. Supports
-                multiple image selection and validates file types and sizes.
+                <strong>MessageInputStagedFiles</strong> - Displays currently
+                staged files with preview (for images) and remove functionality.
+                Automatically shows when files are attached.
               </li>
               <li>
                 <strong>MessageInputMcpConfigButton</strong> - Button to open
@@ -276,6 +400,25 @@ export function MinimalInput() {
                 on submission state.
               </li>
             </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Supported File Types</h3>
+            <ul>
+              <li>
+                <strong>Images</strong>: JPEG, PNG, GIF, WebP
+              </li>
+              <li>
+                <strong>Documents</strong>: PDF
+              </li>
+              <li>
+                <strong>Text</strong>: TXT, MD, CSV, HTML, JS, TS, JSON, XML
+              </li>
+            </ul>
+            <p className="text-muted-foreground">
+              Maximum file size: 50MB per file, 100MB total. Up to 10 files at
+              once.
+            </p>
           </div>
         </div>
       </section>

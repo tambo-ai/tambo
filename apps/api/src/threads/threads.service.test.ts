@@ -22,6 +22,7 @@ import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
+import { StorageService } from "../common/services/storage.service";
 import { ProjectsService } from "../projects/projects.service";
 import {
   AdvanceThreadDto,
@@ -387,6 +388,13 @@ describe("ThreadsService.advanceThread initialization", () => {
               customInstructions: undefined,
               getProviderKeys: () => [],
             }),
+          },
+        },
+        {
+          provide: StorageService,
+          useValue: {
+            isConfigured: jest.fn().mockReturnValue(true),
+            getSignedUrl: jest.fn(),
           },
         },
       ],

@@ -1,17 +1,18 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { StagedImage } from "../hooks/use-message-images";
+import { StagedAttachment } from "../hooks/use-message-attachments";
 import { buildMessageContent } from "./message-builder";
 
 describe("buildMessageContent", () => {
-  const createMockStagedImage = (
-    overrides: Partial<StagedImage> = {},
-  ): StagedImage => ({
+  const createMockStagedAttachment = (
+    overrides: Partial<StagedAttachment> = {},
+  ): StagedAttachment => ({
     id: "test-id",
     name: "test-image.png",
-    dataUrl: "data:image/png;base64,mock-data",
     file: new File([""], "test-image.png", { type: "image/png" }),
     size: 1024,
-    type: "image/png",
+    mimeType: "image/png",
+    status: "uploaded",
+    storagePath: "project123/1699999999-test-image.png",
     ...overrides,
   });
 
@@ -26,52 +27,65 @@ describe("buildMessageContent", () => {
     ]);
   });
 
-  it("should build content with images only", () => {
-    const image = createMockStagedImage({
-      dataUrl: "data:image/png;base64,abc123",
+  it("should build content with attachments only", () => {
+    const attachment = createMockStagedAttachment({
+      storagePath: "project123/abc123-image.png",
     });
 
-    const result = buildMessageContent("", [image], {});
+    const result = buildMessageContent("", [attachment], {});
 
     expect(result).toEqual([
       {
-        type: "image_url",
-        image_url: {
-          url: "data:image/png;base64,abc123",
+        type: "resource",
+        resource: {
+          uri: "attachment://project123/abc123-image.png",
+          name: "test-image.png",
+          mimeType: "image/png",
         },
       },
     ]);
   });
 
-  it("should build content with both text and images", () => {
-    const images = [
-      createMockStagedImage({
+  it("should build content with both text and attachments", () => {
+    const attachments = [
+      createMockStagedAttachment({
         id: "img1",
-        dataUrl: "data:image/png;base64,abc123",
+        name: "photo1.png",
+        storagePath: "project123/abc123-photo1.png",
       }),
-      createMockStagedImage({
+      createMockStagedAttachment({
         id: "img2",
-        dataUrl: "data:image/jpeg;base64,def456",
+        name: "photo2.jpeg",
+        mimeType: "image/jpeg",
+        storagePath: "project123/def456-photo2.jpeg",
       }),
     ];
 
-    const result = buildMessageContent("Check these images:", images, {});
+    const result = buildMessageContent(
+      "Check these attachments:",
+      attachments,
+      {},
+    );
 
     expect(result).toEqual([
       {
         type: "text",
-        text: "Check these images:",
+        text: "Check these attachments:",
       },
       {
-        type: "image_url",
-        image_url: {
-          url: "data:image/png;base64,abc123",
+        type: "resource",
+        resource: {
+          uri: "attachment://project123/abc123-photo1.png",
+          name: "photo1.png",
+          mimeType: "image/png",
         },
       },
       {
-        type: "image_url",
-        image_url: {
-          url: "data:image/jpeg;base64,def456",
+        type: "resource",
+        resource: {
+          uri: "attachment://project123/def456-photo2.jpeg",
+          name: "photo2.jpeg",
+          mimeType: "image/jpeg",
         },
       },
     ]);
@@ -88,62 +102,77 @@ describe("buildMessageContent", () => {
     ]);
   });
 
-  it("should skip empty text but keep images", () => {
-    const image = createMockStagedImage();
-    const result = buildMessageContent("   ", [image], {});
+  it("should skip empty text but keep attachments", () => {
+    const attachment = createMockStagedAttachment();
+    const result = buildMessageContent("   ", [attachment], {});
 
     expect(result).toEqual([
       {
-        type: "image_url",
-        image_url: {
-          url: "data:image/png;base64,mock-data",
+        type: "resource",
+        resource: {
+          uri: "attachment://project123/1699999999-test-image.png",
+          name: "test-image.png",
+          mimeType: "image/png",
         },
       },
     ]);
   });
 
-  it("should handle multiple images correctly", () => {
-    const images = [
-      createMockStagedImage({
+  it("should handle multiple attachments correctly", () => {
+    const attachments = [
+      createMockStagedAttachment({
         id: "img1",
         name: "photo1.jpg",
-        dataUrl: "data:image/jpeg;base64,photo1data",
+        mimeType: "image/jpeg",
+        storagePath: "project123/photo1.jpg",
       }),
-      createMockStagedImage({
+      createMockStagedAttachment({
         id: "img2",
         name: "photo2.png",
-        dataUrl: "data:image/png;base64,photo2data",
+        mimeType: "image/png",
+        storagePath: "project123/photo2.png",
       }),
-      createMockStagedImage({
+      createMockStagedAttachment({
         id: "img3",
         name: "photo3.gif",
-        dataUrl: "data:image/gif;base64,photo3data",
+        mimeType: "image/gif",
+        storagePath: "project123/photo3.gif",
       }),
     ];
 
-    const result = buildMessageContent("Multiple images:", images, {});
+    const result = buildMessageContent(
+      "Multiple attachments:",
+      attachments,
+      {},
+    );
 
-    expect(result).toHaveLength(4); // 1 text + 3 images
+    expect(result).toHaveLength(4); // 1 text + 3 attachments
     expect(result[0]).toEqual({
       type: "text",
-      text: "Multiple images:",
+      text: "Multiple attachments:",
     });
     expect(result[1]).toEqual({
-      type: "image_url",
-      image_url: {
-        url: "data:image/jpeg;base64,photo1data",
+      type: "resource",
+      resource: {
+        uri: "attachment://project123/photo1.jpg",
+        name: "photo1.jpg",
+        mimeType: "image/jpeg",
       },
     });
     expect(result[2]).toEqual({
-      type: "image_url",
-      image_url: {
-        url: "data:image/png;base64,photo2data",
+      type: "resource",
+      resource: {
+        uri: "attachment://project123/photo2.png",
+        name: "photo2.png",
+        mimeType: "image/png",
       },
     });
     expect(result[3]).toEqual({
-      type: "image_url",
-      image_url: {
-        url: "data:image/gif;base64,photo3data",
+      type: "resource",
+      resource: {
+        uri: "attachment://project123/photo3.gif",
+        name: "photo3.gif",
+        mimeType: "image/gif",
       },
     });
   });
@@ -151,33 +180,35 @@ describe("buildMessageContent", () => {
   it("should throw error when no content provided", () => {
     expect(() => {
       buildMessageContent("", [], {});
-    }).toThrow("Message must contain text or images");
+    }).toThrow("Message must contain text or attachments");
   });
 
   it("should throw error when only whitespace provided", () => {
     expect(() => {
       buildMessageContent("   \n\t  ", [], {});
-    }).toThrow("Message must contain text or images");
+    }).toThrow("Message must contain text or attachments");
   });
 
   it("should return correct content type structure", () => {
-    const image = createMockStagedImage();
-    const result = buildMessageContent("Test", [image], {});
+    const attachment = createMockStagedAttachment();
+    const result = buildMessageContent("Test", [attachment], {});
 
     // Verify the structure matches ChatCompletionContentPart interface
     result.forEach((part: TamboAI.Beta.Threads.ChatCompletionContentPart) => {
       expect(part).toHaveProperty("type");
-      expect(["text", "image_url", "input_audio"]).toContain(part.type);
+      expect(["text", "resource", "image_url", "input_audio"]).toContain(
+        part.type,
+      );
 
       if (part.type === "text") {
         expect(part).toHaveProperty("text");
         expect(typeof part.text).toBe("string");
       }
 
-      if (part.type === "image_url") {
-        expect(part).toHaveProperty("image_url");
-        expect(part.image_url).toHaveProperty("url");
-        expect(typeof part.image_url?.url).toBe("string");
+      if (part.type === "resource") {
+        expect(part).toHaveProperty("resource");
+        expect(part.resource).toHaveProperty("uri");
+        expect(typeof part.resource?.uri).toBe("string");
       }
     });
   });
@@ -192,30 +223,312 @@ describe("buildMessageContent", () => {
     });
   });
 
-  it("should maintain order of text first then images", () => {
-    const images = [
-      createMockStagedImage({
+  it("should maintain order of text first then attachments", () => {
+    const attachments = [
+      createMockStagedAttachment({
         id: "first",
-        dataUrl: "data:image/png;base64,first",
+        name: "first.png",
+        storagePath: "project123/first.png",
       }),
-      createMockStagedImage({
+      createMockStagedAttachment({
         id: "second",
-        dataUrl: "data:image/png;base64,second",
+        name: "second.png",
+        storagePath: "project123/second.png",
       }),
     ];
 
-    const result = buildMessageContent("Text content", images, {});
+    const result = buildMessageContent("Text content", attachments, {});
 
     expect(result[0].type).toBe("text");
-    expect(result[1].type).toBe("image_url");
-    expect(result[2].type).toBe("image_url");
+    expect(result[1].type).toBe("resource");
+    expect(result[2].type).toBe("resource");
 
-    if (result[1].type === "image_url") {
-      expect(result[1].image_url?.url).toBe("data:image/png;base64,first");
+    if (result[1].type === "resource") {
+      expect(result[1].resource?.uri).toBe("attachment://project123/first.png");
     }
-    if (result[2].type === "image_url") {
-      expect(result[2].image_url?.url).toBe("data:image/png;base64,second");
+    if (result[2].type === "resource") {
+      expect(result[2].resource?.uri).toBe(
+        "attachment://project123/second.png",
+      );
     }
+  });
+
+  it("should only include uploaded attachments, not pending or error attachments", () => {
+    const attachments = [
+      createMockStagedAttachment({
+        id: "uploaded",
+        name: "uploaded.png",
+        status: "uploaded",
+        storagePath: "project123/uploaded.png",
+      }),
+      createMockStagedAttachment({
+        id: "pending",
+        name: "pending.png",
+        status: "pending",
+        storagePath: undefined,
+      }),
+      createMockStagedAttachment({
+        id: "error",
+        name: "error.png",
+        status: "error",
+        error: "Upload failed",
+      }),
+    ];
+
+    const result = buildMessageContent("Text content", attachments, {});
+
+    expect(result).toHaveLength(2); // 1 text + 1 uploaded attachment
+    expect(result[1]).toEqual({
+      type: "resource",
+      resource: {
+        uri: "attachment://project123/uploaded.png",
+        name: "uploaded.png",
+        mimeType: "image/png",
+      },
+    });
+  });
+
+  describe("dataUrl fallback (local mode)", () => {
+    it("should include attachments with dataUrl when storagePath is not available", () => {
+      const attachment = createMockStagedAttachment({
+        id: "local-img-123",
+        name: "local-image.png",
+        storagePath: undefined,
+        dataUrl:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
+      });
+
+      const result = buildMessageContent("Check this image:", [attachment], {});
+
+      expect(result).toHaveLength(2); // 1 text + 1 attachment
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "local://local-img-123",
+          name: "local-image.png",
+          mimeType: "image/png",
+          blob: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
+        },
+      });
+    });
+
+    it("should prefer storagePath over dataUrl when both are present", () => {
+      const attachment = createMockStagedAttachment({
+        id: "img-123",
+        name: "image.png",
+        storagePath: "project123/abc123-image.png",
+        dataUrl: "data:image/png;base64,somebase64data",
+      });
+
+      const result = buildMessageContent("", [attachment], {});
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "attachment://project123/abc123-image.png",
+          name: "image.png",
+          mimeType: "image/png",
+        },
+      });
+    });
+
+    it("should handle mix of storagePath and dataUrl attachments", () => {
+      const attachments = [
+        createMockStagedAttachment({
+          id: "cloud-img",
+          name: "cloud.png",
+          storagePath: "project123/cloud.png",
+        }),
+        createMockStagedAttachment({
+          id: "local-img",
+          name: "local.png",
+          storagePath: undefined,
+          dataUrl: "data:image/png;base64,localdata123",
+        }),
+      ];
+
+      const result = buildMessageContent("Attachments:", attachments, {});
+
+      expect(result).toHaveLength(3); // 1 text + 2 attachments
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "attachment://project123/cloud.png",
+          name: "cloud.png",
+          mimeType: "image/png",
+        },
+      });
+      expect(result[2]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "local://local-img",
+          name: "local.png",
+          mimeType: "image/png",
+          blob: "localdata123",
+        },
+      });
+    });
+
+    it("should exclude attachments with neither storagePath nor dataUrl", () => {
+      const attachments = [
+        createMockStagedAttachment({
+          id: "complete",
+          name: "complete.png",
+          storagePath: undefined,
+          dataUrl: "data:image/png;base64,completedata",
+        }),
+        createMockStagedAttachment({
+          id: "incomplete",
+          name: "incomplete.png",
+          storagePath: undefined,
+          dataUrl: undefined,
+        }),
+      ];
+
+      const result = buildMessageContent("Check:", attachments, {});
+
+      expect(result).toHaveLength(2); // 1 text + 1 attachment (incomplete excluded)
+      expect(result[1]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "local://complete",
+          name: "complete.png",
+          mimeType: "image/png",
+          blob: "completedata",
+        },
+      });
+    });
+
+    it("should handle JPEG dataUrl correctly", () => {
+      const attachment = createMockStagedAttachment({
+        id: "jpeg-img",
+        name: "photo.jpg",
+        mimeType: "image/jpeg",
+        storagePath: undefined,
+        dataUrl: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD",
+      });
+
+      const result = buildMessageContent("", [attachment], {});
+
+      expect(result[0]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "local://jpeg-img",
+          name: "photo.jpg",
+          mimeType: "image/jpeg",
+          blob: "/9j/4AAQSkZJRgABAQEASABIAAD",
+        },
+      });
+    });
+
+    it("should handle dataUrl with charset parameter (text attachments)", () => {
+      const attachment = createMockStagedAttachment({
+        id: "text-file",
+        name: "document.txt",
+        mimeType: "text/plain",
+        storagePath: undefined,
+        dataUrl: "data:text/plain;charset=utf-8;base64,SGVsbG8gV29ybGQh",
+      });
+
+      const result = buildMessageContent("", [attachment], {});
+
+      expect(result[0]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "local://text-file",
+          name: "document.txt",
+          mimeType: "text/plain",
+          blob: "SGVsbG8gV29ybGQh",
+        },
+      });
+    });
+
+    it("should handle dataUrl with multiple parameters before base64", () => {
+      const attachment = createMockStagedAttachment({
+        id: "json-file",
+        name: "data.json",
+        mimeType: "application/json",
+        storagePath: undefined,
+        dataUrl:
+          "data:application/json;charset=utf-8;base64,eyJrZXkiOiJ2YWx1ZSJ9",
+      });
+
+      const result = buildMessageContent("", [attachment], {});
+
+      expect(result[0]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "local://json-file",
+          name: "data.json",
+          mimeType: "application/json",
+          blob: "eyJrZXkiOiJ2YWx1ZSJ9",
+        },
+      });
+    });
+
+    it("should skip attachments with invalid dataUrl format", () => {
+      // Spy on console.warn to verify warning is logged
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+      const attachment = createMockStagedAttachment({
+        id: "invalid-img",
+        name: "invalid.png",
+        storagePath: undefined,
+        dataUrl: "not-a-valid-dataurl",
+      });
+
+      // Should throw because no valid content is present
+      expect(() => buildMessageContent("", [attachment], {})).toThrow(
+        "Message must contain text or attachments",
+      );
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Unable to parse dataUrl for attachment "invalid.png", skipping from message',
+      );
+
+      warnSpy.mockRestore();
+    });
+
+    it("should include valid attachments but skip invalid ones in mixed array", () => {
+      // Spy on console.warn to verify warning is logged
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+      const attachments = [
+        createMockStagedAttachment({
+          id: "valid-img",
+          name: "valid.png",
+          storagePath: undefined,
+          dataUrl: "data:image/png;base64,validbase64data",
+        }),
+        createMockStagedAttachment({
+          id: "invalid-img",
+          name: "invalid.png",
+          storagePath: undefined,
+          dataUrl: "not-a-valid-dataurl",
+        }),
+      ];
+
+      const result = buildMessageContent("", attachments, {});
+
+      // Only valid attachment should be included
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        type: "resource",
+        resource: {
+          uri: "local://valid-img",
+          name: "valid.png",
+          mimeType: "image/png",
+          blob: "validbase64data",
+        },
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Unable to parse dataUrl for attachment "invalid.png", skipping from message',
+      );
+
+      warnSpy.mockRestore();
+    });
   });
 
   describe("resource parsing", () => {
@@ -653,17 +966,18 @@ describe("buildMessageContent", () => {
       ]);
     });
 
-    it("should parse resources mixed with images", () => {
-      const images = [
-        createMockStagedImage({
+    it("should parse MCP resources mixed with attachment resources", () => {
+      const attachments = [
+        createMockStagedAttachment({
           id: "img1",
-          dataUrl: "data:image/png;base64,abc123",
+          name: "image.png",
+          storagePath: "project123/abc123-image.png",
         }),
       ];
 
       const result = buildMessageContent(
         "Check @tambo-1hfs429:tambo:test://static/resource/1",
-        images,
+        attachments,
         {},
       );
 
@@ -679,29 +993,34 @@ describe("buildMessageContent", () => {
           },
         },
         {
-          type: "image_url",
-          image_url: {
-            url: "data:image/png;base64,abc123",
+          type: "resource",
+          resource: {
+            uri: "attachment://project123/abc123-image.png",
+            name: "image.png",
+            mimeType: "image/png",
           },
         },
       ]);
     });
 
-    it("should parse resources and images with proper ordering", () => {
-      const images = [
-        createMockStagedImage({
+    it("should parse MCP resources and attachment resources with proper ordering", () => {
+      const attachments = [
+        createMockStagedAttachment({
           id: "img1",
-          dataUrl: "data:image/png;base64,img1",
+          name: "image1.png",
+          storagePath: "project123/img1.png",
         }),
-        createMockStagedImage({
+        createMockStagedAttachment({
           id: "img2",
-          dataUrl: "data:image/jpeg;base64,img2",
+          name: "image2.jpeg",
+          mimeType: "image/jpeg",
+          storagePath: "project123/img2.jpeg",
         }),
       ];
 
       const result = buildMessageContent(
         "Text @tambo-1hfs429:tambo:test://static/resource/1 more text",
-        images,
+        attachments,
         {},
       );
 
@@ -721,15 +1040,19 @@ describe("buildMessageContent", () => {
           text: " more text",
         },
         {
-          type: "image_url",
-          image_url: {
-            url: "data:image/png;base64,img1",
+          type: "resource",
+          resource: {
+            uri: "attachment://project123/img1.png",
+            name: "image1.png",
+            mimeType: "image/png",
           },
         },
         {
-          type: "image_url",
-          image_url: {
-            url: "data:image/jpeg;base64,img2",
+          type: "resource",
+          resource: {
+            uri: "attachment://project123/img2.jpeg",
+            name: "image2.jpeg",
+            mimeType: "image/jpeg",
           },
         },
       ]);
@@ -1165,7 +1488,7 @@ describe("buildMessageContent", () => {
       ]);
     });
 
-    it("should combine resolved content with images", () => {
+    it("should combine resolved content with attachment resources", () => {
       const resourceContent = new Map([
         [
           "registry:file:///doc.txt",
@@ -1180,15 +1503,16 @@ describe("buildMessageContent", () => {
         ],
       ]);
 
-      const images = [
-        createMockStagedImage({
-          dataUrl: "data:image/png;base64,imagedata",
+      const attachments = [
+        createMockStagedAttachment({
+          name: "image.png",
+          storagePath: "project123/imagedata.png",
         }),
       ];
 
       const result = buildMessageContent(
         "Check @registry:file:///doc.txt",
-        images,
+        attachments,
         {},
         resourceContent,
       );
@@ -1206,9 +1530,11 @@ describe("buildMessageContent", () => {
           },
         },
         {
-          type: "image_url",
-          image_url: {
-            url: "data:image/png;base64,imagedata",
+          type: "resource",
+          resource: {
+            uri: "attachment://project123/imagedata.png",
+            name: "image.png",
+            mimeType: "image/png",
           },
         },
       ]);

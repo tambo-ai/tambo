@@ -7,7 +7,14 @@ export {
   useTamboCurrentMessage,
   type TamboCurrentComponent,
 } from "./hooks/use-current-message";
-export { useMessageImages, type StagedImage } from "./hooks/use-message-images";
+export {
+  useMessageAttachments,
+  type AttachmentPreview,
+  type StagedAttachment,
+  // Backwards compatibility - deprecated
+  useMessageImages,
+  type StagedImage,
+} from "./hooks/use-message-attachments";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
 export * from "./hooks/use-suggestions";
 export {

@@ -792,7 +792,7 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
         isExpanded ? "w-40 h-28 p-0" : "w-32 h-9 pl-3 pr-8 gap-2",
       )}
     >
-      {isExpanded && (
+      {isExpanded && image.dataUrl && (
         <div
           className={cn(
             "absolute inset-0 transition-opacity duration-150",

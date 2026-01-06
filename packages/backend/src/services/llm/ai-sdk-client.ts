@@ -585,8 +585,11 @@ export async function getSupportedMimeTypePredicate(
 ): Promise<(mimeType: string) => boolean> {
   const supportedUrls = await model.supportedUrls;
   const mimeTypePatterns = Object.keys(supportedUrls);
+  console.log(
+    `[AI SDK] Model supportedUrls patterns: ${JSON.stringify(mimeTypePatterns)}`,
+  );
   return (mimeType: string) => {
-    return mimeTypePatterns.some((pattern) => {
+    const isSupported = mimeTypePatterns.some((pattern) => {
       // Handle '*' wildcard
       if (pattern === "*") {
         return true;
@@ -598,5 +601,11 @@ export async function getSupportedMimeTypePredicate(
       // Handle exact match
       return mimeType === pattern;
     });
+    if (!isSupported) {
+      console.log(
+        `[AI SDK] MIME type "${mimeType}" not in supportedUrls: ${JSON.stringify(mimeTypePatterns)}`,
+      );
+    }
+    return isSupported;
   };
 }

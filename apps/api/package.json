@@ -42,6 +42,8 @@
     "@opentelemetry/instrumentation-nestjs-core": "^0.55.0",
     "@opentelemetry/sdk-node": "^0.208.0",
     "@opentelemetry/semantic-conventions": "^1.37.0",
+    "@aws-sdk/client-s3": "^3.700.0",
+    "@aws-sdk/s3-request-presigner": "^3.700.0",
     "@sentry/nestjs": "^10.32.1",
     "@sentry/profiling-node": "^10.32.1",
     "@tambo-ai-cloud/backend": "*",

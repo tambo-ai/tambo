@@ -81,6 +81,60 @@ describe("content utilities", () => {
         "Unknown content part type: unknown",
       );
     });
+
+    it("should convert MCP resource_link type to resource type with description", () => {
+      const input = [
+        {
+          type: "resource_link",
+          uri: "test://static/resource/1",
+          name: "Resource 1",
+          description: "Resource 1: plaintext resource",
+          mimeType: "text/plain",
+        },
+      ];
+      const result = convertContentDtoToContentPart(
+        input as unknown as Parameters<
+          typeof convertContentDtoToContentPart
+        >[0],
+      );
+      expect(result).toEqual([
+        {
+          type: ContentPartType.Resource,
+          resource: {
+            uri: "test://static/resource/1",
+            name: "Resource 1",
+            mimeType: "text/plain",
+            description: "Resource 1: plaintext resource",
+          },
+        },
+      ]);
+    });
+
+    it("should convert MCP resource_link type without description", () => {
+      const input = [
+        {
+          type: "resource_link",
+          uri: "test://static/resource/2",
+          name: "Resource 2",
+          mimeType: "application/json",
+        },
+      ];
+      const result = convertContentDtoToContentPart(
+        input as unknown as Parameters<
+          typeof convertContentDtoToContentPart
+        >[0],
+      );
+      expect(result).toEqual([
+        {
+          type: ContentPartType.Resource,
+          resource: {
+            uri: "test://static/resource/2",
+            name: "Resource 2",
+            mimeType: "application/json",
+          },
+        },
+      ]);
+    });
   });
 
   describe("convertContentPartToDto", () => {

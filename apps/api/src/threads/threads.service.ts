@@ -41,6 +41,7 @@ import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
+import { StorageService } from "../common/services/storage.service";
 import {
   createResourceFetcherMap,
   getSystemTools,
@@ -67,6 +68,10 @@ import { convertContentPartToDto } from "./util/content";
 import { addMessage, threadMessageToDto, updateMessage } from "./util/messages";
 import { mapSuggestionToDto } from "./util/suggestions";
 import { createMcpHandlers } from "./util/thread-mcp-handlers";
+import {
+  hasAttachmentUrls,
+  processAttachmentUrlsInMessages,
+} from "./util/storage-url-processor";
 import {
   addUserMessage,
   appendNewMessageToThread,
@@ -99,6 +104,7 @@ export class ThreadsService {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
+    private readonly storageService: StorageService,
   ) {}
 
   getDb() {
@@ -609,6 +615,25 @@ export class ThreadsService {
     return messages.map((m) => dbMessageToThreadMessage(m));
   }
 
+  private async resolveAttachmentUrlsInMessages(
+    messages: ThreadMessage[],
+  ): Promise<ThreadMessage[]> {
+    const hasAttachmentUrlsInMessages = messages.some((message) =>
+      hasAttachmentUrls(message.content),
+    );
+    if (!hasAttachmentUrlsInMessages) {
+      return messages;
+    }
+
+    if (!this.storageService.isConfigured()) {
+      throw new Error(
+        "Storage service not configured. Please configure S3_ENDPOINT, S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY.",
+      );
+    }
+
+    return await processAttachmentUrlsInMessages(messages, this.storageService);
+  }
+
   async deleteMessage(messageId: string) {
     await operations.deleteMessage(this.getDb(), messageId);
   }
@@ -705,13 +730,15 @@ export class ThreadsService {
       const threadMessages = await this.getMessages({
         threadId: message.threadId,
       });
+      const resolvedMessages =
+        await this.resolveAttachmentUrlsInMessages(threadMessages);
       const tamboBackend = await this.createTamboBackendForThread(
         message.threadId,
         contextKey,
       );
 
       const suggestions = await tamboBackend.generateSuggestions(
-        threadMessages,
+        resolvedMessages,
         generateSuggestionsDto.maxSuggestions ?? 3,
         generateSuggestionsDto.availableComponents ?? [],
         message.threadId,
@@ -818,6 +845,8 @@ export class ThreadsService {
     const messages = await this.getMessages({
       threadId,
     });
+    const resolvedMessages =
+      await this.resolveAttachmentUrlsInMessages(messages);
     if (messages.length === 0) {
       throw new NotFoundException("No messages found for thread");
     }
@@ -826,7 +855,8 @@ export class ThreadsService {
       threadId,
       `${projectId}-${contextKey ?? TAMBO_ANON_CONTEXT_KEY}`,
     );
-    const generatedName = await tamboBackend.generateThreadName(messages);
+    const generatedName =
+      await tamboBackend.generateThreadName(resolvedMessages);
 
     const updatedThread = await operations.updateThread(
       this.getDb(),
@@ -1025,6 +1055,8 @@ export class ThreadsService {
         threadId: thread.id,
         includeSystem: true,
       });
+      const resolvedMessages =
+        await this.resolveAttachmentUrlsInMessages(messages);
       const project = await operations.getProject(db, projectId);
 
       if (messages.length === 0) {
@@ -1077,7 +1109,7 @@ export class ThreadsService {
         db,
         tamboBackend,
         queue,
-        messages,
+        resolvedMessages,
         userMessage,
         advanceRequestDto,
         toolCallCounts,

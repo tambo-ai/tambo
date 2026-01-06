@@ -381,6 +381,9 @@ function convertContentPartToUserContent(
       return null;
 
     case ContentPartType.Resource: {
+      if (!part.resource) {
+        throw new Error("Resource content part is missing resource data");
+      }
       const resourceData = part.resource;
 
       // Handle binary resource content (blob)
@@ -389,6 +392,16 @@ function convertContentPartToUserContent(
           resourceData.mimeType ??
           (mimeTypes.lookup(resourceData.uri ?? "") ||
             "application/octet-stream");
+
+        // Images: send as image part with base64 data URL
+        if (mimeType.startsWith("image/")) {
+          return {
+            type: "image",
+            image: `data:${mimeType};base64,${resourceData.blob}`,
+          };
+        }
+
+        // Other files: send as file part if supported
         if (isSupportedMimeType(mimeType)) {
           return {
             type: "file",
@@ -417,7 +430,44 @@ function convertContentPartToUserContent(
 
         return makeTextContentFromResource(resourceData);
       }
-      throw new Error("Resource has no text or blob content");
+
+      // Handle URI-based resource (e.g., signed URLs from storage)
+      // Pass files natively to AI SDK - it handles provider-specific conversion
+      if (resourceData.uri) {
+        const mimeType =
+          resourceData.mimeType ??
+          (mimeTypes.lookup(resourceData.uri) || "application/octet-stream");
+
+        // Images: pass URL directly (widely supported by all providers)
+        if (mimeType.startsWith("image/")) {
+          return {
+            type: "image",
+            image: resourceData.uri,
+          };
+        }
+
+        // Other files: pass as native file part if model supports the type
+        // AI SDK handles fetching the URL and converting for the provider
+        if (isSupportedMimeType(mimeType)) {
+          return {
+            type: "file",
+            data: new URL(resourceData.uri),
+            mediaType: mimeType,
+            filename: resourceData.name,
+          };
+        }
+
+        // Unsupported type: log warning and show placeholder to user
+        console.warn(
+          `Model does not support file type: ${mimeType} (file: ${resourceData.name ?? "unknown"})`,
+        );
+        return {
+          type: "text",
+          text: `[Unsupported file type: ${resourceData.name ?? "unknown"} (${mimeType}). This model cannot process this file format.]`,
+        };
+      }
+
+      throw new Error("Resource has no text, blob, or URI content");
     }
 
     case "file": {
@@ -451,6 +501,19 @@ function convertContentPartToUserContent(
 }
 
 /**
+ * Check if a MIME type represents text content that can be decoded from base64
+ */
+function isTextBasedMimeType(mimeType: string | undefined): boolean {
+  if (!mimeType) return false;
+  return (
+    mimeType.startsWith("text/") ||
+    mimeType === "application/json" ||
+    mimeType === "application/xml" ||
+    mimeType === "application/javascript"
+  );
+}
+
+/**
  * Create text representation of resource with XML-style tags
  * Port from ai-sdk-client.ts:881-922
  */
@@ -476,7 +539,19 @@ function makeTextContentFromResource(resourceData: Resource): TextPart {
     .filter((prop) => prop !== null)
     .join(" ");
 
-  const text = resourceData.text || "";
+  // Try to get text content: use text property first, or decode blob for text-based files
+  let text = resourceData.text || "";
+  if (
+    !text &&
+    resourceData.blob &&
+    isTextBasedMimeType(resourceData.mimeType)
+  ) {
+    try {
+      text = Buffer.from(resourceData.blob, "base64").toString("utf-8");
+    } catch {
+      // If decoding fails, leave text empty
+    }
+  }
 
   // Match original format exactly: newline after opening tag and before closing tag
   return {

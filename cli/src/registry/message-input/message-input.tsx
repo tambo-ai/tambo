@@ -15,7 +15,10 @@ import {
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
-  type StagedImage,
+  type AttachmentPreview,
+  type StagedAttachment,
+  // TODO(1.0.0): Remove _StagedImage - deprecated alias kept for backwards compatibility
+  type StagedImage as _StagedImage,
 } from "@tambo-ai/react";
 import {
   useTamboElicitationContext,
@@ -304,8 +307,8 @@ const messageInputVariants = cva("w-full", {
  * @property {TamboEditor|null} editorRef - Reference to the TamboEditor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
- * @property {string | null} imageError - Error related to image uploads
- * @property {function} setImageError - Function to set the image upload error
+ * @property {string | null} attachmentError - Error related to attachment uploads
+ * @property {function} setAttachmentError - Function to set the attachment upload error
  * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
  * @property {function} resolveElicitation - Function to resolve the elicitation promise (automatically clears state)
  */
@@ -322,8 +325,8 @@ interface MessageInputContextValue {
   editorRef: React.RefObject<TamboEditor>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
-  imageError: string | null;
-  setImageError: React.Dispatch<React.SetStateAction<string | null>>;
+  attachmentError: string | null;
+  setAttachmentError: React.Dispatch<React.SetStateAction<string | null>>;
   elicitation: TamboElicitationRequest | null;
   resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
 }
@@ -407,14 +410,20 @@ const MessageInputInternal = React.forwardRef<
     submit,
     isPending,
     error,
-    images,
-    addImages,
-    removeImage,
+    stagedAttachments,
+    addAttachments,
+    removeAttachment,
+    // Backwards compatibility aliases (prefixed to avoid unused-vars lint warnings)
+    images: _images,
+    addImages: _addImages,
+    removeImage: _removeImage,
   } = useTamboThreadInput();
   const { cancel } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
-  const [imageError, setImageError] = React.useState<string | null>(null);
+  const [attachmentError, setAttachmentError] = React.useState<string | null>(
+    null,
+  );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
   const editorRef = React.useRef<TamboEditor>(null!);
@@ -433,11 +442,12 @@ const MessageInputInternal = React.forwardRef<
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if ((!value.trim() && images.length === 0) || isSubmitting) return;
+      if ((!value.trim() && stagedAttachments.length === 0) || isSubmitting)
+        return;
 
       // Clear any previous errors
       setSubmitError(null);
-      setImageError(null);
+      setAttachmentError(null);
       setDisplayValue("");
       setIsSubmitting(true);
 
@@ -449,7 +459,7 @@ const MessageInputInternal = React.forwardRef<
         latestResourceNames = extracted.resourceNames;
       }
 
-      const imageIdsAtSubmitTime = images.map((image) => image.id);
+      const attachmentIdsAtSubmitTime = stagedAttachments.map((a) => a.id);
 
       try {
         await submit({
@@ -457,10 +467,10 @@ const MessageInputInternal = React.forwardRef<
           resourceNames: latestResourceNames,
         });
         setValue("");
-        // Clear only the images that were staged when submission started so
-        // any images added while the request was in-flight are preserved.
-        if (imageIdsAtSubmitTime.length > 0) {
-          imageIdsAtSubmitTime.forEach((id) => removeImage(id));
+        // Clear only the attachments that were staged when submission started so
+        // any attachments added while the request was in-flight are preserved.
+        if (attachmentIdsAtSubmitTime.length > 0) {
+          attachmentIdsAtSubmitTime.forEach((id) => removeAttachment(id));
         }
         // Refocus the editor after a successful submission
         setTimeout(() => {
@@ -469,8 +479,8 @@ const MessageInputInternal = React.forwardRef<
       } catch (error) {
         console.error("Failed to submit message:", error);
         setDisplayValue(value);
-        // On submit failure, also clear image error
-        setImageError(null);
+        // On submit failure, also clear attachment error
+        setAttachmentError(null);
         setSubmitError(
           error instanceof Error
             ? error.message
@@ -491,21 +501,33 @@ const MessageInputInternal = React.forwardRef<
       setSubmitError,
       cancel,
       isSubmitting,
-      images,
-      removeImage,
+      stagedAttachments,
+      removeAttachment,
       editorRef,
     ],
   );
+
+  // Track pending attachment operations to prevent race conditions in attachment count validation
+  const pendingAttachmentsRef = React.useRef(0);
 
   const handleDragEnter = React.useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     dragCounter.current++;
     if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      const hasImages = Array.from(e.dataTransfer.items).some((item) =>
-        item.type.startsWith("image/"),
+      const hasSupportedFiles = Array.from(e.dataTransfer.items).some(
+        (item) => {
+          const type = item.type;
+          return (
+            type.startsWith("image/") ||
+            type === "application/pdf" ||
+            type.startsWith("text/") ||
+            type === "application/json" ||
+            type === "application/xml"
+          );
+        },
       );
-      if (hasImages) {
+      if (hasSupportedFiles) {
         setIsDragging(true);
       }
     }
@@ -532,30 +554,58 @@ const MessageInputInternal = React.forwardRef<
       setIsDragging(false);
       dragCounter.current = 0;
 
-      const files = Array.from(e.dataTransfer.files).filter((file) =>
-        file.type.startsWith("image/"),
-      );
+      // Filter to supported file types
+      const files = Array.from(e.dataTransfer.files).filter((file) => {
+        const type = file.type;
+        return (
+          type.startsWith("image/") ||
+          type === "application/pdf" ||
+          type.startsWith("text/") ||
+          type === "application/json" ||
+          type === "application/xml"
+        );
+      });
 
       if (files.length > 0) {
-        const totalImages = images.length + files.length;
-        if (totalImages > MAX_IMAGES) {
-          setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+        const totalAttachments =
+          stagedAttachments.length +
+          pendingAttachmentsRef.current +
+          files.length;
+        if (totalAttachments > MAX_FILES) {
+          setAttachmentError(`Max ${MAX_FILES} attachments at a time`);
           return;
         }
-        setImageError(null); // Clear previous error
+        setAttachmentError(null); // Clear previous error
+        pendingAttachmentsRef.current += files.length;
         try {
-          await addImages(files);
+          const newAttachments = await addAttachments(files);
+
+          // Insert @filename mentions for cloud-uploaded attachments only
+          // Local mode attachments (dataUrl only) are inlined as blobs, no mention needed
+          const editor = editorRef.current;
+          if (editor && newAttachments.length > 0) {
+            for (const attachment of newAttachments) {
+              if (attachment.storagePath) {
+                editor.insertMention(
+                  `attachment://${attachment.storagePath}`,
+                  attachment.name,
+                );
+              }
+            }
+          }
         } catch (error) {
-          console.error("Failed to add dropped images:", error);
-          setImageError(
+          console.error("Failed to add dropped attachments:", error);
+          setAttachmentError(
             error instanceof Error
               ? error.message
-              : "Failed to add images. Please try again.",
+              : "Failed to add attachments. Please try again.",
           );
+        } finally {
+          pendingAttachmentsRef.current -= files.length;
         }
       }
     },
-    [addImages, images, setImageError],
+    [addAttachments, stagedAttachments, setAttachmentError, editorRef],
   );
 
   const handleElicitationResponse = React.useCallback(
@@ -582,8 +632,8 @@ const MessageInputInternal = React.forwardRef<
       editorRef: inputRef ?? editorRef,
       submitError,
       setSubmitError,
-      imageError,
-      setImageError,
+      attachmentError,
+      setAttachmentError,
       elicitation,
       resolveElicitation,
     }),
@@ -598,8 +648,8 @@ const MessageInputInternal = React.forwardRef<
       inputRef,
       editorRef,
       submitError,
-      imageError,
-      setImageError,
+      attachmentError,
+      setAttachmentError,
       elicitation,
       resolveElicitation,
     ],
@@ -641,7 +691,7 @@ const MessageInputInternal = React.forwardRef<
             />
           ) : (
             <>
-              <MessageInputStagedImages />
+              <MessageInputStagedAttachments />
               {children}
             </>
           )}
@@ -654,19 +704,19 @@ MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
 
 /**
- * Symbol for marking pasted images
+ * Symbol for marking pasted files
  */
-const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
+const IS_PASTED_FILE = Symbol.for("tambo-is-pasted-file");
 
-/** Maximum number of images that can be staged at once */
-const MAX_IMAGES = 10;
+/** Maximum number of files that can be staged at once */
+const MAX_FILES = 10;
 
 /**
- * Extend the File interface to include IS_PASTED_IMAGE symbol
+ * Extend the File interface to include IS_PASTED_FILE symbol
  */
 declare global {
   interface File {
-    [IS_PASTED_IMAGE]?: boolean;
+    [IS_PASTED_FILE]?: boolean;
   }
 }
 
@@ -720,10 +770,11 @@ const MessageInputTextarea = ({
   onResourceSelect,
   ...props
 }: MessageInputTextareaProps) => {
-  const { value, setValue, handleSubmit, editorRef, setImageError } =
+  const { value, setValue, handleSubmit, editorRef, setAttachmentError } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage, images } = useTamboThreadInput();
+  const { addAttachments, stagedAttachments, removeAttachment } =
+    useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   // Resource names are extracted from editor at submit time, no need to track in state
   const setResourceNames = React.useCallback(
@@ -794,25 +845,61 @@ const MessageInputTextarea = ({
     }
   }, []);
 
-  // Handle image paste - mark as pasted and add to thread
-  const pendingImagesRef = React.useRef(0);
+  // Track pending attachment operations to prevent race conditions in attachment count validation (paste)
+  const pendingAttachmentsRef = React.useRef(0);
 
-  const handleAddImage = React.useCallback(
-    async (file: File) => {
-      if (images.length + pendingImagesRef.current >= MAX_IMAGES) {
-        setImageError(`Max ${MAX_IMAGES} uploads at a time`);
-        return;
-      }
-      setImageError(null);
-      pendingImagesRef.current += 1;
-      try {
-        file[IS_PASTED_IMAGE] = true;
-        await addImage(file);
-      } finally {
-        pendingImagesRef.current -= 1;
+  // Handle attachment mention removal - remove corresponding staged attachments
+  const handleAttachmentMentionsRemoved = React.useCallback(
+    (uris: string[]) => {
+      for (const uri of uris) {
+        if (!uri.startsWith("attachment://")) continue;
+
+        // Extract storage path from attachment:// URI
+        const path = uri.slice("attachment://".length);
+        const attachment = stagedAttachments.find(
+          (a) => a.storagePath === path,
+        );
+        if (attachment) {
+          removeAttachment(attachment.id);
+        }
       }
     },
-    [addImage, images, setImageError],
+    [stagedAttachments, removeAttachment],
+  );
+
+  // Handle attachment paste - mark as pasted and add to thread
+  const handleAddAttachment = React.useCallback(
+    async (file: File) => {
+      if (
+        stagedAttachments.length + pendingAttachmentsRef.current >=
+        MAX_FILES
+      ) {
+        setAttachmentError(`Max ${MAX_FILES} attachments at a time`);
+        return;
+      }
+      setAttachmentError(null);
+      pendingAttachmentsRef.current += 1;
+      try {
+        file[IS_PASTED_FILE] = true;
+        const newAttachments = await addAttachments([file]);
+
+        // Insert @filename mention for cloud-uploaded attachments only
+        // Local mode attachments (dataUrl only) are inlined as blobs, no mention needed
+        const editor = editorRef.current;
+        if (editor && newAttachments.length > 0) {
+          const addedAttachment = newAttachments[0];
+          if (addedAttachment.storagePath) {
+            editor.insertMention(
+              `attachment://${addedAttachment.storagePath}`,
+              addedAttachment.name,
+            );
+          }
+        }
+      } finally {
+        pendingAttachmentsRef.current -= 1;
+      }
+    },
+    [addAttachments, stagedAttachments, setAttachmentError, editorRef],
   );
 
   return (
@@ -827,7 +914,7 @@ const MessageInputTextarea = ({
         onChange={setValue}
         onResourceNamesChange={setResourceNames}
         onSubmit={handleSubmit}
-        onAddImage={handleAddImage}
+        onAddImage={handleAddAttachment}
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
         className="bg-background text-foreground"
@@ -837,6 +924,7 @@ const MessageInputTextarea = ({
         prompts={promptItems}
         onResourceSelect={onResourceSelect ?? (() => {})}
         onPromptSelect={handlePromptSelect}
+        onAttachmentMentionsRemoved={handleAttachmentMentionsRemoved}
       />
     </div>
   );
@@ -864,10 +952,10 @@ const MessageInputPlainTextarea = ({
   placeholder = "What do you want to do?",
   ...props
 }: MessageInputPlainTextareaProps) => {
-  const { value, setValue, handleSubmit, setImageError } =
+  const { value, setValue, handleSubmit, setAttachmentError } =
     useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage, images } = useTamboThreadInput();
+  const { addAttachments, stagedAttachments } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
@@ -900,22 +988,22 @@ const MessageInputPlainTextarea = ({
       e.preventDefault(); // Only prevent when image-only paste
     }
 
-    const totalImages = images.length + imageItems.length;
-    if (totalImages > MAX_IMAGES) {
-      setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+    const totalAttachments = stagedAttachments.length + imageItems.length;
+    if (totalAttachments > MAX_FILES) {
+      setAttachmentError(`Max ${MAX_FILES} attachments at a time`);
       return;
     }
-    setImageError(null);
+    setAttachmentError(null);
 
     for (const item of imageItems) {
       const file = item.getAsFile();
       if (file) {
         try {
-          // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
-          file[IS_PASTED_IMAGE] = true;
-          await addImage(file);
+          // Mark this attachment as pasted so we can show "File 1", "File 2", etc.
+          file[IS_PASTED_FILE] = true;
+          await addAttachments([file]);
         } catch (error) {
-          console.error("Failed to add pasted image:", error);
+          console.error("Failed to add pasted attachment:", error);
         }
       }
     }
@@ -1114,9 +1202,9 @@ const MessageInputError = React.forwardRef<
   HTMLParagraphElement,
   MessageInputErrorProps
 >(({ className, ...props }, ref) => {
-  const { error, submitError, imageError } = useMessageInputContext();
+  const { error, submitError, attachmentError } = useMessageInputContext();
 
-  if (!error && !submitError && !imageError) {
+  if (!error && !submitError && !attachmentError) {
     return null;
   }
 
@@ -1127,99 +1215,144 @@ const MessageInputError = React.forwardRef<
       data-slot="message-input-error"
       {...props}
     >
-      {error?.message ?? submitError ?? imageError}
+      {error?.message ?? submitError ?? attachmentError}
     </p>
   );
 });
 MessageInputError.displayName = "MessageInput.Error";
 
+/** All supported file types for upload */
+const SUPPORTED_FILE_ACCEPT =
+  "image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,text/markdown,text/csv,text/html,text/javascript,application/json,application/xml,.txt,.md,.csv,.html,.js,.ts,.json,.xml";
+
 /**
  * Props for the MessageInputFileButton component.
  */
 export interface MessageInputFileButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Accept attribute for file input - defaults to image types */
+  /** Accept attribute for file input - defaults to all supported types (images, PDFs, text files) */
   accept?: string;
   /** Allow multiple file selection */
   multiple?: boolean;
+  /** Custom tooltip text - defaults based on accept type */
+  tooltip?: string;
 }
 
 /**
- * File attachment button component for selecting images from file system.
+ * File attachment button component for selecting files from the file system.
+ * Supports images (JPEG, PNG, GIF, WebP), documents (PDF), and text files.
+ * When files are added, @filename mentions are inserted into the text editor.
  * @component MessageInput.FileButton
  * @example
  * ```tsx
- * <MessageInput>
- *   <MessageInput.Textarea />
- *   <MessageInput.Toolbar>
- *     <MessageInput.FileButton />
- *     <MessageInput.SubmitButton />
- *   </MessageInput.Toolbar>
- * </MessageInput>
+ * // All file types (default)
+ * <MessageInput.FileButton />
+ *
+ * // Images only
+ * <MessageInput.FileButton accept="image/*" tooltip="Attach Images" />
+ *
+ * // PDFs only
+ * <MessageInput.FileButton accept="application/pdf" tooltip="Attach PDF" />
  * ```
  */
 const MessageInputFileButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputFileButtonProps
->(({ className, accept = "image/*", multiple = true, ...props }, ref) => {
-  const { addImages, images } = useTamboThreadInput();
-  const { setImageError } = useMessageInputContext();
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+>(
+  (
+    {
+      className,
+      accept = SUPPORTED_FILE_ACCEPT,
+      multiple = true,
+      tooltip,
+      ...props
+    },
+    ref,
+  ) => {
+    const { addAttachments, stagedAttachments } = useTamboThreadInput();
+    const { setAttachmentError, editorRef } = useMessageInputContext();
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
+    // Determine tooltip text based on accept prop
+    const tooltipText =
+      tooltip ?? (accept === "image/*" ? "Attach Images" : "Attach Files");
+    const ariaLabel =
+      tooltip ?? (accept === "image/*" ? "Attach Images" : "Attach Files");
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
+    const handleClick = () => {
+      fileInputRef.current?.click();
+    };
 
-    try {
-      const totalImages = images.length + files.length;
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files ?? []);
 
-      if (totalImages > MAX_IMAGES) {
-        setImageError(`Max ${MAX_IMAGES} uploads at a time`);
-        e.target.value = "";
-        return;
+      try {
+        const totalAttachments = stagedAttachments.length + files.length;
+
+        if (totalAttachments > MAX_FILES) {
+          setAttachmentError(`Max ${MAX_FILES} attachments at a time`);
+          e.target.value = "";
+          return;
+        }
+
+        setAttachmentError(null);
+        const newAttachments = await addAttachments(files);
+
+        // Insert @filename mentions for each added attachment
+        const editor = editorRef.current;
+        if (editor && newAttachments.length > 0) {
+          for (const attachment of newAttachments) {
+            // Use attachment:// URI as mention ID for unified resource handling
+            if (attachment.storagePath) {
+              editor.insertMention(
+                `attachment://${attachment.storagePath}`,
+                attachment.name,
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to add selected attachments:", error);
+        setAttachmentError(
+          error instanceof Error
+            ? error.message
+            : "Failed to add attachments. Please try again.",
+        );
       }
+      // Reset the input so the same file can be selected again
+      e.target.value = "";
+    };
 
-      setImageError(null);
-      await addImages(files);
-    } catch (error) {
-      console.error("Failed to add selected files:", error);
-    }
-    // Reset the input so the same file can be selected again
-    e.target.value = "";
-  };
+    const buttonClasses = cn(
+      "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+      className,
+    );
 
-  const buttonClasses = cn(
-    "w-10 h-10 rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-    className,
-  );
-
-  return (
-    <Tooltip content="Attach Images" side="top">
-      <button
-        ref={ref}
-        type="button"
-        onClick={handleClick}
-        className={buttonClasses}
-        aria-label="Attach Images"
-        data-slot="message-input-file-button"
-        {...props}
-      >
-        <Paperclip className="w-4 h-4" />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={accept}
-          multiple={multiple}
-          onChange={handleFileChange}
-          className="hidden"
-          aria-hidden="true"
-        />
-      </button>
-    </Tooltip>
-  );
-});
+    return (
+      <Tooltip content={tooltipText} side="top">
+        <button
+          ref={ref}
+          type="button"
+          onClick={handleClick}
+          className={buttonClasses}
+          aria-label={ariaLabel}
+          data-slot="message-input-file-button"
+          {...props}
+        >
+          <Paperclip className="w-4 h-4" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept}
+            multiple={multiple}
+            onChange={handleFileChange}
+            className="hidden"
+            aria-hidden="true"
+          />
+        </button>
+      </Tooltip>
+    );
+  },
+);
 MessageInputFileButton.displayName = "MessageInput.FileButton";
 
 /**
@@ -1316,10 +1449,10 @@ const MessageInputMcpResourceButton = React.forwardRef<
 MessageInputMcpResourceButton.displayName = "MessageInput.McpResourceButton";
 
 /**
- * Props for the ImageContextBadge component.
+ * Props for the AttachmentContextBadge component.
  */
-interface ImageContextBadgeProps {
-  image: StagedImage;
+interface AttachmentContextBadgeProps {
+  attachment: StagedAttachment;
   displayName: string;
   isExpanded: boolean;
   onToggle: () => void;
@@ -1327,113 +1460,192 @@ interface ImageContextBadgeProps {
 }
 
 /**
- * ContextBadge component that displays a staged image with expandable preview.
- * Shows a compact badge with icon and name by default, expands to show image preview on click.
+ * Returns the appropriate icon component based on attachment MIME type.
+ */
+function getAttachmentIcon(mimeType: string): React.ReactNode {
+  if (mimeType.startsWith("image/")) {
+    return <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />;
+  }
+  if (mimeType === "application/pdf") {
+    return <FileText className="w-3.5 h-3.5 flex-shrink-0 text-red-500" />;
+  }
+  // Text files and other documents
+  return <FileText className="w-3.5 h-3.5 flex-shrink-0" />;
+}
+
+/**
+ * Get a formatted preview text for an attachment based on its preview data.
+ */
+function getPreviewText(preview: AttachmentPreview | undefined): string | null {
+  if (!preview) return null;
+
+  switch (preview.type) {
+    case "text":
+      return preview.textPreview ?? null;
+    case "csv":
+      if (preview.dimensions) {
+        return `${preview.dimensions.rows} rows × ${preview.dimensions.columns} cols`;
+      }
+      return null;
+    default:
+      return null;
+  }
+}
+
+/**
+ * ContextBadge component that displays a staged attachment with expandable preview (for images).
+ * Shows a compact badge with icon and name by default. Images can expand to show preview.
+ * Text files and CSVs show a preview snippet.
  *
  * @component
  * @example
  * ```tsx
- * <ImageContextBadge
- *   image={stagedImage}
- *   displayName="Image"
+ * <AttachmentContextBadge
+ *   attachment={stagedAttachment}
+ *   displayName="document.pdf"
  *   isExpanded={false}
  *   onToggle={() => setExpanded(!expanded)}
- *   onRemove={() => removeImage(image.id)}
+ *   onRemove={() => removeAttachment(attachment.id)}
  * />
  * ```
  */
-const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
-  image,
+const AttachmentContextBadge: React.FC<AttachmentContextBadgeProps> = ({
+  attachment,
   displayName,
   isExpanded,
   onToggle,
   onRemove,
-}) => (
-  <div className="relative group flex-shrink-0">
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-expanded={isExpanded}
-      className={cn(
-        "relative flex items-center rounded-lg border overflow-hidden",
-        "border-border bg-background hover:bg-muted cursor-pointer",
-        "transition-[width,height,padding] duration-200 ease-in-out",
-        isExpanded ? "w-40 h-28 p-0" : "w-32 h-9 pl-3 pr-8 gap-2",
-      )}
-    >
-      {isExpanded && (
-        <div
-          className={cn(
-            "absolute inset-0 transition-opacity duration-150",
-            "opacity-100 delay-100",
-          )}
-        >
-          <div className="relative w-full h-full">
-            <Image
-              src={image.dataUrl}
-              alt={displayName}
-              fill
-              unoptimized
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
-              {displayName}
-            </div>
-          </div>
-        </div>
-      )}
-      <span
+}) => {
+  const isImage = attachment.mimeType.startsWith("image/");
+  // Only images can be expanded for preview
+  const canExpand = isImage && attachment.dataUrl;
+  const actuallyExpanded = canExpand && isExpanded;
+  const previewText = getPreviewText(attachment.preview);
+  const hasTextPreview = previewText !== null;
+
+  return (
+    <div className="relative group flex-shrink-0">
+      <button
+        type="button"
+        onClick={canExpand ? onToggle : undefined}
+        aria-expanded={canExpand ? isExpanded : undefined}
         className={cn(
-          "flex items-center gap-1.5 text-sm text-foreground truncate leading-none transition-opacity duration-150",
-          isExpanded ? "opacity-0" : "opacity-100 delay-100",
+          "relative flex rounded-lg border overflow-hidden",
+          "border-border bg-background hover:bg-muted",
+          canExpand ? "cursor-pointer" : "cursor-default",
+          "transition-[width,height,padding] duration-200 ease-in-out",
+          actuallyExpanded && "w-40 h-28 p-0 items-center",
+          !actuallyExpanded &&
+            hasTextPreview &&
+            "flex-col items-start w-40 py-2 pl-3 pr-8 gap-1",
+          !actuallyExpanded &&
+            !hasTextPreview &&
+            "items-center w-32 h-9 pl-3 pr-8 gap-2",
         )}
       >
-        <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
-        <span className="truncate">{displayName}</span>
-      </span>
-    </button>
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onRemove();
-      }}
-      className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
-      aria-label={`Remove ${displayName}`}
-    >
-      <X className="w-3 h-3" />
-    </button>
-  </div>
-);
+        {actuallyExpanded && attachment.dataUrl && (
+          <div
+            className={cn(
+              "absolute inset-0 transition-opacity duration-150",
+              "opacity-100 delay-100",
+            )}
+          >
+            <div className="relative w-full h-full">
+              <Image
+                src={attachment.dataUrl}
+                alt={displayName}
+                fill
+                unoptimized
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
+                {displayName}
+              </div>
+            </div>
+          </div>
+        )}
+        <span
+          className={cn(
+            "flex items-center gap-1.5 text-sm text-foreground truncate leading-none transition-opacity duration-150",
+            actuallyExpanded ? "opacity-0" : "opacity-100 delay-100",
+          )}
+        >
+          {getAttachmentIcon(attachment.mimeType)}
+          <span className="truncate">{displayName}</span>
+        </span>
+        {hasTextPreview && !actuallyExpanded && (
+          <span className="text-xs text-muted-foreground truncate w-full leading-tight">
+            {previewText}
+          </span>
+        )}
+      </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="absolute -top-1 -right-1 w-5 h-5 bg-background border border-border text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted hover:text-foreground transition-colors shadow-sm z-10"
+        aria-label={`Remove ${displayName}`}
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  );
+};
+
+/** @deprecated Use AttachmentContextBadge instead */
+const _ImageContextBadge = AttachmentContextBadge;
+/** @deprecated Use AttachmentContextBadgeProps instead */
+type _ImageContextBadgeProps = AttachmentContextBadgeProps;
 
 /**
- * Props for the MessageInputStagedImages component.
+ * Props for the MessageInputStagedAttachments component.
  */
-export type MessageInputStagedImagesProps =
+export type MessageInputStagedAttachmentsProps =
   React.HTMLAttributes<HTMLDivElement>;
 
+/** @deprecated Use MessageInputStagedAttachmentsProps instead */
+export type MessageInputStagedImagesProps = MessageInputStagedAttachmentsProps;
+
 /**
- * Component that displays currently staged images with preview and remove functionality.
- * @component MessageInput.StagedImages
+ * Component that displays currently staged attachments with preview and remove functionality.
+ * Supports images (with preview), PDFs, and text files.
+ * @component MessageInput.StagedAttachments
  * @example
  * ```tsx
  * <MessageInput>
- *   <MessageInput.StagedImages />
+ *   <MessageInput.StagedAttachments />
  *   <MessageInput.Textarea />
  * </MessageInput>
  * ```
  */
-const MessageInputStagedImages = React.forwardRef<
+const MessageInputStagedAttachments = React.forwardRef<
   HTMLDivElement,
-  MessageInputStagedImagesProps
+  MessageInputStagedAttachmentsProps
 >(({ className, ...props }, ref) => {
-  const { images, removeImage } = useTamboThreadInput();
-  const [expandedImageId, setExpandedImageId] = React.useState<string | null>(
-    null,
+  const { stagedAttachments, removeAttachment } = useTamboThreadInput();
+  const { editorRef } = useMessageInputContext();
+  const [expandedAttachmentId, setExpandedAttachmentId] = React.useState<
+    string | null
+  >(null);
+
+  // Handler to remove attachment and its mention from the editor
+  const handleRemove = React.useCallback(
+    (attachment: StagedAttachment) => {
+      // Remove the mention from the editor if it has a storage path
+      if (attachment.storagePath) {
+        const mentionId = `attachment://${attachment.storagePath}`;
+        editorRef.current?.removeMention(mentionId);
+      }
+      // Remove from staged attachments
+      removeAttachment(attachment.id);
+    },
+    [editorRef, removeAttachment],
   );
 
-  if (images.length === 0) {
+  if (stagedAttachments.length === 0) {
     return null;
   }
 
@@ -1444,26 +1656,34 @@ const MessageInputStagedImages = React.forwardRef<
         "flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border",
         className,
       )}
-      data-slot="message-input-staged-images"
+      data-slot="message-input-staged-attachments"
       {...props}
     >
-      {images.map((image, index) => (
-        <ImageContextBadge
-          key={image.id}
-          image={image}
+      {stagedAttachments.map((attachment, index) => (
+        <AttachmentContextBadge
+          key={attachment.id}
+          attachment={attachment}
           displayName={
-            image.file?.[IS_PASTED_IMAGE] ? `Image ${index + 1}` : image.name
+            attachment.file?.[IS_PASTED_FILE]
+              ? `File ${index + 1}`
+              : attachment.name
           }
-          isExpanded={expandedImageId === image.id}
+          isExpanded={expandedAttachmentId === attachment.id}
           onToggle={() =>
-            setExpandedImageId(expandedImageId === image.id ? null : image.id)
+            setExpandedAttachmentId(
+              expandedAttachmentId === attachment.id ? null : attachment.id,
+            )
           }
-          onRemove={() => removeImage(image.id)}
+          onRemove={() => handleRemove(attachment)}
         />
       ))}
     </div>
   );
 });
+MessageInputStagedAttachments.displayName = "MessageInput.StagedAttachments";
+
+/** @deprecated Use MessageInputStagedAttachments instead */
+const MessageInputStagedImages = MessageInputStagedAttachments;
 MessageInputStagedImages.displayName = "MessageInput.StagedImages";
 
 /**
@@ -1551,11 +1771,13 @@ export {
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
   MessageInputPlainTextarea,
-  MessageInputStagedImages,
+  MessageInputStagedAttachments,
+  MessageInputStagedImages, // @deprecated Use MessageInputStagedAttachments
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,
+  SUPPORTED_FILE_ACCEPT,
 };
 
 // Re-export types from text-editor for convenience

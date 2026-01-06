@@ -50,6 +50,8 @@ export interface TamboEditor {
   hasMention(id: string): boolean;
   /** Insert a mention node with a following space */
   insertMention(id: string, label: string): void;
+  /** Remove a mention node by its id */
+  removeMention(id: string): void;
   /** Set whether the editor is editable */
   setEditable(editable: boolean): void;
 }
@@ -108,6 +110,8 @@ export interface TextEditorProps {
   onResourceSelect: (item: ResourceItem) => void;
   /** Called when a prompt is selected from the "/" menu */
   onPromptSelect: (item: PromptItem) => void;
+  /** Called when attachment:// mentions are removed from the editor (for syncing staged files) */
+  onAttachmentMentionsRemoved?: (attachmentUris: string[]) => void;
 }
 
 /**
@@ -468,6 +472,8 @@ function createPromptCommandExtension(
 
 /**
  * Custom text extraction that serializes mention nodes with their ID (resource URI).
+ * attachment:// mentions (file uploads) are treated as resources and included in resourceNames.
+ * The backend resolves attachment:// URIs to inline content.
  */
 function getTextWithResourceURIs(editor: Editor | null): {
   text: string;
@@ -482,6 +488,8 @@ function getTextWithResourceURIs(editor: Editor | null): {
     if (node.type.name === "mention") {
       const id = node.attrs.id ?? "";
       const label = node.attrs.label ?? "";
+
+      // All mentions (including attachment:// file uploads) are treated as resources
       text += `@${id}`;
       if (label && id) {
         resourceNames[id] = label;
@@ -495,6 +503,25 @@ function getTextWithResourceURIs(editor: Editor | null): {
   });
 
   return { text, resourceNames };
+}
+
+/**
+ * Extract all mention IDs from the editor.
+ */
+function extractMentionIds(editor: Editor | null): string[] {
+  if (!editor?.state?.doc) return [];
+
+  const ids: string[] = [];
+  editor.state.doc.descendants((node) => {
+    if (node.type.name === "mention") {
+      const id = node.attrs.id ?? "";
+      if (id) {
+        ids.push(id);
+      }
+    }
+    return true;
+  });
+  return ids;
 }
 
 /**
@@ -578,6 +605,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       prompts,
       onResourceSelect,
       onPromptSelect,
+      onAttachmentMentionsRemoved,
     },
     ref,
   ) => {
@@ -592,6 +620,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       onResourceSelect,
       onSearchPrompts,
       onPromptSelect,
+      onAttachmentMentionsRemoved,
     });
 
     React.useEffect(() => {
@@ -600,8 +629,18 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
         onResourceSelect,
         onSearchPrompts,
         onPromptSelect,
+        onAttachmentMentionsRemoved,
       };
-    }, [onSearchResources, onResourceSelect, onSearchPrompts, onPromptSelect]);
+    }, [
+      onSearchResources,
+      onResourceSelect,
+      onSearchPrompts,
+      onPromptSelect,
+      onAttachmentMentionsRemoved,
+    ]);
+
+    // Track previous mentions to detect deletions
+    const previousMentionsRef = React.useRef<string[]>([]);
 
     // Stable callbacks for TipTap
     const stableSearchResources = React.useCallback(
@@ -672,6 +711,23 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
         if (onResourceNamesChange) {
           onResourceNamesChange((prev) => ({ ...prev, ...resourceNames }));
         }
+
+        // Detect removed attachment:// mentions and notify parent
+        const currentMentions = extractMentionIds(editor);
+        const removedAttachmentMentions = previousMentionsRef.current
+          .filter((id) => id.startsWith("attachment://"))
+          .filter((id) => !currentMentions.includes(id));
+
+        if (
+          removedAttachmentMentions.length > 0 &&
+          callbacksRef.current.onAttachmentMentionsRemoved
+        ) {
+          callbacksRef.current.onAttachmentMentionsRemoved(
+            removedAttachmentMentions,
+          );
+        }
+
+        previousMentionsRef.current = currentMentions;
       },
       editorProps: {
         attributes: {
@@ -692,12 +748,9 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
 
           if (imageItems.length === 0) return false;
 
-          const text = event.clipboardData?.getData("text/plain") ?? "";
-          const hasText = text.length > 0;
-
-          if (!hasText) {
-            event.preventDefault();
-          }
+          // Always prevent default when images are pasted to avoid
+          // duplicate content (e.g., filename text from Finder)
+          event.preventDefault();
 
           void (async () => {
             for (const item of imageItems) {
@@ -711,7 +764,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
             }
           })();
 
-          return !hasText;
+          return true;
         },
         handleKeyDown: (_view, event) => {
           const anyMenuOpen = resourceState.isOpen || promptState.isOpen;
@@ -738,6 +791,7 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
           getTextWithResourceURIs: () => ({ text: "", resourceNames: {} }),
           hasMention: () => false,
           insertMention: () => {},
+          removeMention: () => {},
           setEditable: () => {},
         };
       }
@@ -781,6 +835,30 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
               { type: "text", text: " " },
             ])
             .run();
+        },
+        removeMention: (id: string) => {
+          if (!editor.state?.doc) return;
+
+          // Find and remove the mention node with the matching id
+          const { tr } = editor.state;
+          let deleted = false;
+
+          editor.state.doc.descendants((node, pos) => {
+            if (deleted) return false;
+            if (node.type.name === "mention") {
+              const mentionId = node.attrs.id as string;
+              if (mentionId === id) {
+                tr.delete(pos, pos + node.nodeSize);
+                deleted = true;
+                return false;
+              }
+            }
+            return true;
+          });
+
+          if (deleted) {
+            editor.view.dispatch(tr);
+          }
         },
         setEditable: (editable: boolean) => {
           editor.setEditable(editable);

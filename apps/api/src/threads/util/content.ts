@@ -68,9 +68,32 @@ export function convertContentDtoToContentPart(
             resource: part.resource,
           };
         }
-        default:
+        default: {
+          // Handle MCP resource_link type - convert to our Resource type
+          // We check at runtime because the type isn't in our ContentPartType enum
+          const partType = (part as { type: string }).type;
+          if (partType === "resource_link") {
+            const resourceLinkPart = part as unknown as {
+              type: "resource_link";
+              uri?: string;
+              name?: string;
+              description?: string;
+              mimeType?: string;
+            };
+            return {
+              type: ContentPartType.Resource,
+              resource: {
+                uri: resourceLinkPart.uri,
+                name: resourceLinkPart.name,
+                mimeType: resourceLinkPart.mimeType,
+                description: resourceLinkPart.description,
+              },
+            };
+          }
+          // Unknown type
           console.log("Unknown content part type:", part);
           throw new Error(`Unknown content part type: ${part.type}`);
+        }
       }
     })
     .filter((part): part is ChatCompletionContentPart => !!part);

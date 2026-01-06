@@ -15,7 +15,7 @@ export interface ContextAttachmentBadgeProps {
   id: string;
   displayName: string;
   icon?: React.ReactNode;
-  image?: { dataUrl: string };
+  image?: { dataUrl?: string };
   isExpanded: boolean;
   onToggle: () => void;
   onRemove?: () => void;
@@ -38,9 +38,9 @@ export const ContextAttachmentBadge: React.FC<ContextAttachmentBadgeProps> = ({
   <div className="relative group flex-shrink-0 max-w-[200px]">
     <button
       type="button"
-      onClick={image ? onToggle : undefined}
-      aria-expanded={image ? isExpanded : undefined}
-      disabled={!image}
+      onClick={image?.dataUrl ? onToggle : undefined}
+      aria-expanded={image?.dataUrl ? isExpanded : undefined}
+      disabled={!image?.dataUrl}
       className={cn(
         "relative flex items-center rounded-lg border overflow-hidden",
         "border-border bg-background hover:bg-muted cursor-pointer",
@@ -48,11 +48,11 @@ export const ContextAttachmentBadge: React.FC<ContextAttachmentBadgeProps> = ({
         isExpanded ? "w-40 h-28 p-0" : "w-40 h-9 pl-3 pr-8 gap-2",
       )}
     >
-      {isExpanded && image && (
+      {isExpanded && image?.dataUrl && (
         <div
           className={cn(
             "absolute inset-0 transition-opacity duration-150",
-            image ? "opacity-100 delay-100" : "opacity-0",
+            image?.dataUrl ? "opacity-100 delay-100" : "opacity-0",
           )}
         >
           <div className="relative w-full h-full">
@@ -72,7 +72,7 @@ export const ContextAttachmentBadge: React.FC<ContextAttachmentBadgeProps> = ({
       <span
         className={cn(
           "flex items-center gap-1.5 text-sm text-foreground truncate leading-none transition-opacity duration-150",
-          isExpanded && image ? "opacity-0" : "opacity-100 delay-100",
+          isExpanded && image?.dataUrl ? "opacity-0" : "opacity-100 delay-100",
         )}
         title={displayName}
       >

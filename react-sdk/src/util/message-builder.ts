@@ -1,6 +1,11 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { StagedImage } from "../hooks/use-message-images";
+import { StagedAttachment } from "../hooks/use-message-attachments";
+
+/**
+ * @deprecated Use StagedAttachment instead
+ */
+export type StagedImage = StagedAttachment;
 
 /**
  * Regular expression to match MCP resource references in the format: \@serverKey:uri
@@ -105,16 +110,89 @@ function parseResourceReferences(
 }
 
 /**
- * Builds message content with text, MCP resource references, and images
+ * Parse a data URL to extract the base64 content.
+ * Handles data URLs with optional parameters like charset.
+ * @param dataUrl - Data URL in format "data:mime/type;base64,<data>" or "data:mime/type;charset=utf-8;base64,<data>"
+ * @returns The base64 content portion, or undefined if invalid
+ */
+function parseDataUrlToBase64(dataUrl: string): string | undefined {
+  // Match data URLs with optional parameters before ;base64,
+  // Examples:
+  //   data:image/png;base64,... -> matches
+  //   data:text/plain;charset=utf-8;base64,... -> matches
+  //   data:application/json;charset=utf-8;base64,... -> matches
+  const match = /^data:[^;]+(?:;[^;]+)*;base64,(.+)$/.exec(dataUrl);
+  return match?.[1];
+}
+
+/**
+ * Build Resource content parts from staged files.
+ * All attachments (images, documents, text) use the unified Resource type.
+ * Supports both cloud storage (storagePath) and local mode (dataUrl).
+ * @param attachments - Array of staged attachments with storage paths or data URLs
+ * @returns Array of Resource content parts
+ */
+function buildAttachmentResourceParts(
+  attachments: StagedAttachment[],
+): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
+  return attachments
+    .filter((a) => a.status === "uploaded")
+    .map((a): TamboAI.Beta.Threads.ChatCompletionContentPart | null => {
+      // Prefer storage path when available (cloud mode)
+      if (a.storagePath) {
+        return {
+          type: "resource" as const,
+          resource: {
+            uri: `attachment://${a.storagePath}`,
+            name: a.name,
+            mimeType: a.mimeType,
+          },
+        };
+      }
+
+      // Fall back to dataUrl for local mode - only include if we can extract the blob
+      if (a.dataUrl) {
+        const blob = parseDataUrlToBase64(a.dataUrl);
+        if (blob) {
+          return {
+            type: "resource" as const,
+            resource: {
+              uri: `local://${a.id}`,
+              name: a.name,
+              mimeType: a.mimeType,
+              blob,
+            },
+          };
+        }
+        // dataUrl is invalid, log warning and skip this attachment
+        console.warn(
+          `Unable to parse dataUrl for attachment "${a.name}", skipping from message`,
+        );
+      }
+
+      // No valid storagePath or dataUrl - skip this attachment
+      return null;
+    })
+    .filter(
+      (part): part is TamboAI.Beta.Threads.ChatCompletionContentPart =>
+        part !== null,
+    );
+}
+
+/**
+ * Builds message content with text, MCP resource references, and attachments.
+ * All attachments (images, documents, text files) are converted to Resource content parts
+ * with attachment:// URIs. The backend resolves these to inline content before sending
+ * to LLM providers.
  * @param text - The text content, may include \@serverKey:uri resource references
- * @param images - Array of staged images
+ * @param attachments - Array of staged attachments (uploaded to storage)
  * @param resourceNames - Map of resource IDs (serverKey:uri) to their display names
  * @param resourceContent - Optional map of prefixed URIs to resolved content (for client-side resources)
  * @returns Array of message content parts
  */
 export function buildMessageContent(
   text: string,
-  images: StagedImage[],
+  attachments: StagedAttachment[],
   resourceNames: Record<string, string> = {},
   resourceContent?: Map<string, ReadResourceResult>,
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
@@ -130,18 +208,12 @@ export function buildMessageContent(
     content.push(...parts);
   }
 
-  // Add images at the end
-  for (const image of images) {
-    content.push({
-      type: "image_url",
-      image_url: {
-        url: image.dataUrl,
-      },
-    });
-  }
+  // Add attachment resources at the end
+  const attachmentResources = buildAttachmentResourceParts(attachments);
+  content.push(...attachmentResources);
 
   if (content.length === 0) {
-    throw new Error("Message must contain text or images");
+    throw new Error("Message must contain text or attachments");
   }
 
   return content;

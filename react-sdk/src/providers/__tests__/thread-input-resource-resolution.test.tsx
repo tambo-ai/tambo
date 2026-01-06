@@ -85,14 +85,15 @@ const createMockInternalServer = (serverKey: string): McpServer =>
     connectionError: undefined, // Internal servers resolved by backend
   }) as unknown as McpServer;
 
-// Mock the message images hook
-jest.mock("../../hooks/use-message-images", () => ({
-  useMessageImages: () => ({
-    images: [],
-    addImage: jest.fn(),
-    addImages: jest.fn(),
-    removeImage: jest.fn(),
-    clearImages: jest.fn(),
+// Mock the message attachments hook
+jest.mock("../../hooks/use-message-attachments", () => ({
+  useMessageAttachments: () => ({
+    stagedAttachments: [],
+    addAttachments: jest.fn(),
+    removeAttachment: jest.fn(),
+    clearAttachments: jest.fn(),
+    isUploading: false,
+    hasErrors: false,
   }),
 }));
 

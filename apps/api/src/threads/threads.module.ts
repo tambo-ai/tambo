@@ -4,11 +4,12 @@ import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { ProjectsModule } from "../projects/projects.module";
+import { StorageModule } from "../storage/storage.module";
 import { ThreadsController } from "./threads.controller";
 import { ThreadsService } from "./threads.service";
 
 @Module({
-  imports: [ConfigModule, ProjectsModule],
+  imports: [ConfigModule, ProjectsModule, StorageModule],
   controllers: [ThreadsController],
   providers: [
     ThreadsService,
