@@ -67,14 +67,11 @@ curl https://mise.run/fish | source
 
 > If you have Windows, see here to start using mise: https://mise.jdx.dev/getting-started.html
 
-Alternatively, if you must use fnm, nvm, or another tool that reads `.node-version` or `.nvmrc`, treat mise (and the
-versions defined in `.mise.toml`) as the source of truth for tool versions. Keep those tools in sync with the versions
-defined there.
+Alternatively, if you must use fnm, nvm, or another tool that reads `.node-version` or `.nvmrc`, treat mise (and the versions defined in `.mise.toml`) as the source of truth for tool versions. Keep those tools in sync with the versions defined there.
 
 ### Tool Versions
 
-Versions of tools (i.e. not a package dependency) are managed via mise. There are other tool version files like `.nvmrc`
-and `.node-version`, but these are just for compatibility with other tools - the source of truth is always mise.
+Versions of tools (i.e. not a package dependency) are managed via mise. There are other tool version files like `.nvmrc` and `.node-version`, but these are just for compatibility with other tools - the source of truth is always mise.
 
 If a tool is missing or the wrong version, run:
 
@@ -95,21 +92,15 @@ eval "$(mise activate)"
 # eval "$(mise activate fish)"
 ```
 
-If the version is not available in the shell session, you should load the mise config into your shell environment.
-In non-interactive contexts (like scripts or CI), or if this doesn't work or isn't possible, you can make mise run a
-specific command with the correct versions using:
+If the version is not available in the shell session, you should load the mise config into your shell environment. In non-interactive contexts (like scripts or CI), or if this doesn't work or isn't possible, you can make mise run a specific command with the correct versions using:
 
 ```sh
 mise exec -- <command>
 ```
 
-`mise exec` will ensure the required tools are installed and run the given command using the versions defined in
-`.mise.toml`, without needing to modify the surrounding shell environment.
+`mise exec` will ensure the required tools are installed and run the given command using the versions defined in `.mise.toml`, without needing to modify the surrounding shell environment.
 
-If there is a need to add an additional tool or change a tool version, you can run the following commands.
-This should only be done if absolutely necessary and with caution, as it will affect all developers working on the
-project. Avoid committing temporary or experimental version changes. Check `.mise.toml` for the current project
-versions.
+If there is a need to add an additional tool or change a tool version, you can run the following commands. This should only be done if absolutely necessary and with caution, as it will affect all developers working on the project. Avoid committing temporary or experimental version changes. Check `.mise.toml` for the current project versions.
 
 ```bash
 # Example: replace 22 with the version defined for node in `.mise.toml`
@@ -117,9 +108,7 @@ mise install node@22
 mise use node@22
 ```
 
-Alternatively, you can create a `.mise.local.toml` file to override the tool versions for your local environment only.
-This file is for local overrides only, is ignored by git, should not be committed to version control, and it does not
-replace `.mise.toml` as the source of truth.
+Alternatively, you can create a `.mise.local.toml` file to override the tool versions for your local environment only. This file is for local overrides only, is ignored by git, should not be committed to version control, and it does not replace `.mise.toml` as the source of truth.
 
 ## 2. Core Development Principles
 
