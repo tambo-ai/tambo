@@ -481,32 +481,6 @@ interface TamboAwaitingInputEvent extends TamboCustomEvent {
 }
 
 /**
- * Emitted when a run finishes with full message data.
- * Extends RUN_FINISHED with Tambo-specific message format.
- */
-interface TamboRunFinishedEvent extends TamboCustomEvent {
-  name: "tambo.run.finished";
-  value: {
-    threadId: string;
-    runId: string;
-    messages: Message[]; // All messages produced in this run
-  };
-}
-
-/**
- * Emitted when tool execution completes (server-side tools).
- * AG-UI doesn't have a standard TOOL_CALL_RESULT event.
- */
-interface TamboToolResultEvent extends TamboCustomEvent {
-  name: "tambo.tool.result";
-  value: {
-    toolCallId: string;
-    result: Content[];
-    isError?: boolean;
-  };
-}
-
-/**
  * Emitted when component streaming begins.
  */
 interface TamboComponentStartEvent extends TamboCustomEvent {
@@ -568,8 +542,6 @@ interface JsonPatchOperation {
  */
 type TamboExtensionEvent =
   | TamboAwaitingInputEvent
-  | TamboRunFinishedEvent
-  | TamboToolResultEvent
   | TamboComponentStartEvent
   | TamboComponentPropsDeltaEvent
   | TamboComponentStateDeltaEvent
@@ -621,7 +593,7 @@ interface CreateRunRequest {
 - Tools submitted in the `tools` array are client-side tools, executed by the frontend
 - When a client-side tool is called, `tambo.run.awaiting_input` is emitted and the stream pauses
 - Server-side tools (MCP tools) are pre-registered at the project level, not per-request
-- When a server-side tool is called, it executes inline and `tambo.tool.result` is emitted
+- When a server-side tool is called, it executes inline and `TOOL_CALL_RESULT` is emitted
 
 #### Response Headers
 
@@ -1013,11 +985,9 @@ data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":" Paris.","ti
 data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001","timestamp":1704067200400}
 
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200450}
-
-data: {"type":"CUSTOM","name":"tambo.run.finished","value":{"threadId":"thr_abc123","runId":"run_xyz789","messages":[{"id":"msg_001","role":"assistant","content":[{"type":"text","text":"The capital of France is Paris."}],"createdAt":"2024-01-01T00:00:00.400Z"}]},"timestamp":1704067200455}
 ```
 
-_Note: `RUN_FINISHED` is the standard AG-UI event. `tambo.run.finished` (CUSTOM) provides the full message objects._
+_Note: Clients should accumulate deltas during streaming to build the final message state. After `RUN_FINISHED`, clients can optionally call `GET /v1/threads/{threadId}/messages` to sync and verify the accumulated state._
 
 ### 5.2 Text Interaction with Single Component
 
@@ -1068,8 +1038,6 @@ data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentI
 data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}},"timestamp":1704067200400}
 
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200450}
-
-data: {"type":"CUSTOM","name":"tambo.run.finished","value":{"threadId":"thr_abc123","runId":"run_xyz789","messages":[{"id":"msg_001","role":"assistant","content":[{"type":"text","text":"Here's the stock chart for Apple (AAPL):"},{"type":"component","id":"comp_001","name":"StockChart","props":{"ticker":"AAPL","timeRange":"1M"}}],"createdAt":"2024-01-01T00:00:00.400Z"}]},"timestamp":1704067200455}
 ```
 
 ### 5.3 Multiple Components in One Response
@@ -1123,8 +1091,6 @@ data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentI
 data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_002","props":{"ticker":"MSFT","timeRange":"1M"}},"timestamp":1704067200450}
 
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200500}
-
-data: {"type":"CUSTOM","name":"tambo.run.finished","value":{"threadId":"thr_abc123","runId":"run_xyz789","messages":[{"id":"msg_001","role":"assistant","content":[{"type":"text","text":"Here's a side-by-side comparison of Apple and Microsoft:"},{"type":"component","id":"comp_001","name":"StockChart","props":{"ticker":"AAPL","timeRange":"1M"}},{"type":"component","id":"comp_002","name":"StockChart","props":{"ticker":"MSFT","timeRange":"1M"}}],"createdAt":"2024-01-01T00:00:00.450Z"}]},"timestamp":1704067200505}
 ```
 
 ### 5.4 Server-Side Tool Calls (MCP Tools)
@@ -1161,9 +1127,9 @@ data: {"type":"TOOL_CALL_ARGS","toolCallId":"tc_002","delta":"{\"city\":\"San Fr
 
 data: {"type":"TOOL_CALL_END","toolCallId":"tc_002","timestamp":1704067200300}
 
-data: {"type":"CUSTOM","name":"tambo.tool.result","value":{"toolCallId":"tc_001","result":[{"type":"text","text":"72°F, Sunny"}]},"timestamp":1704067200350}
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"tc_001","result":"72°F, Sunny","timestamp":1704067200350}
 
-data: {"type":"CUSTOM","name":"tambo.tool.result","value":{"toolCallId":"tc_002","result":[{"type":"text","text":"65°F, Foggy"}]},"timestamp":1704067200400}
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"tc_002","result":"65°F, Foggy","timestamp":1704067200400}
 
 data: {"type":"TEXT_MESSAGE_START","messageId":"msg_002","role":"assistant","timestamp":1704067200450}
 
@@ -1172,8 +1138,6 @@ data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_002","delta":"The weather 
 data: {"type":"TEXT_MESSAGE_END","messageId":"msg_002","timestamp":1704067200550}
 
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200600}
-
-data: {"type":"CUSTOM","name":"tambo.run.finished","value":{"threadId":"thr_abc123","runId":"run_xyz789","messages":[...]},"timestamp":1704067200605}
 ```
 
 ### 5.5 Client-Side Tool Calls (Browser Tools)
@@ -1245,8 +1209,6 @@ data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_002","delta":"Done! I've a
 data: {"type":"TEXT_MESSAGE_END","messageId":"msg_002","timestamp":1704067201150}
 
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_abc456","timestamp":1704067201200}
-
-data: {"type":"CUSTOM","name":"tambo.run.finished","value":{"threadId":"thr_abc123","runId":"run_abc456","messages":[...]},"timestamp":1704067201205}
 ```
 
 ### 5.6 Component with Streaming State Updates
@@ -1275,8 +1237,6 @@ data: {"type":"STATE_DELTA","delta":[{"op":"replace","path":"/components/comp_00
 data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"title":"User Analytics"},"state":{"loading":false,"rows":[{"id":1,"name":"Alice","visits":42},{"id":2,"name":"Bob","visits":38}],"totalCount":150}},"timestamp":1704067200400}
 
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200450}
-
-data: {"type":"CUSTOM","name":"tambo.run.finished","value":{"threadId":"thr_abc123","runId":"run_xyz789","messages":[{"id":"msg_001","role":"assistant","content":[{"type":"component","id":"comp_001","name":"DataTable","props":{"title":"User Analytics"},"state":{"loading":false,"rows":[{"id":1,"name":"Alice","visits":42},{"id":2,"name":"Bob","visits":38}],"totalCount":150}}],"createdAt":"2024-01-01T00:00:00.400Z"}]},"timestamp":1704067200455}
 ```
 
 _Note: This example shows using the standard AG-UI `STATE_SNAPSHOT` and `STATE_DELTA` events for component state,
@@ -1296,7 +1256,7 @@ data: {"type":"TOOL_CALL_ARGS","toolCallId":"tc_001","delta":"{\"city\":\"Invali
 
 data: {"type":"TOOL_CALL_END","toolCallId":"tc_001","timestamp":1704067200150}
 
-data: {"type":"CUSTOM","name":"tambo.tool.result","value":{"toolCallId":"tc_001","result":[{"type":"text","text":"City not found"}],"isError":true},"timestamp":1704067200200}
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"tc_001","result":"City not found","isError":true,"timestamp":1704067200200}
 
 data: {"type":"TEXT_MESSAGE_START","messageId":"msg_002","role":"assistant","timestamp":1704067200250}
 
@@ -1305,8 +1265,6 @@ data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_002","delta":"I couldn't f
 data: {"type":"TEXT_MESSAGE_END","messageId":"msg_002","timestamp":1704067200350}
 
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200400}
-
-data: {"type":"CUSTOM","name":"tambo.run.finished","value":{"threadId":"thr_abc123","runId":"run_xyz789","messages":[{"id":"msg_002","role":"assistant","content":[{"type":"text","text":"I couldn't find weather data for that location. Could you please provide a valid city name?"}],"createdAt":"2024-01-01T00:00:00.350Z"}]},"timestamp":1704067200405}
 ```
 
 **Event Stream (Fatal error):**
@@ -1359,7 +1317,7 @@ The following design decisions were made during proposal development:
 | **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                        |
 | **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                     |
 | **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint |
-| **Server-side tool flow**     | Inline execution within stream, `tambo.tool.result` (CUSTOM) emitted automatically                   |
+| **Server-side tool flow**     | Inline execution within stream, `TOOL_CALL_RESULT` emitted automatically                             |
 | **Context tools**             | Client sends all available tools/components each request (no server tracking)                        |
 | **State update granularity**  | Both full replacement and JSON Patch supported                                                       |
 | **Messages per run**          | Multiple messages allowed when server-side tools loop                                                |
@@ -1512,16 +1470,14 @@ See the Open Questions section for full discussion of both approaches.
 ### Standard AG-UI Events
 
 See the [AG-UI SDK Types](https://docs.ag-ui.com/sdk/js/core/types) for complete event definitions.
-Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`, `TOOL_CALL_*`,
-`STATE_SNAPSHOT`, `STATE_DELTA`.
+Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`, `TOOL_CALL_START`,
+`TOOL_CALL_ARGS`, `TOOL_CALL_END`, `TOOL_CALL_RESULT`, `STATE_SNAPSHOT`, `STATE_DELTA`.
 
 ### Tambo CUSTOM Events (type: "CUSTOM", name: "tambo.\*")
 
 | Event Name                  | When Emitted                   | Key Value Fields                      |
 | --------------------------- | ------------------------------ | ------------------------------------- |
-| tambo.run.finished          | Run completes with messages    | threadId, runId, messages[]           |
 | tambo.run.awaiting_input    | Paused for client tool results | threadId, runId, pendingToolCalls[]   |
-| tambo.tool.result           | Server tool result available   | toolCallId, result[], isError?        |
 | tambo.component.start       | Begin component streaming      | componentId, componentName, messageId |
 | tambo.component.props_delta | Props JSON chunk               | componentId, delta                    |
 | tambo.component.state_delta | State JSON Patch               | componentId, delta[]                  |
