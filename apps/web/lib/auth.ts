@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { SupabaseAdapter } from "@/lib/nextauth-supabase-adapter";
+import * as Sentry from "@sentry/nextjs";
 import {
   isEmailAllowed,
   refreshOidcToken,
@@ -13,10 +14,17 @@ import Email from "next-auth/providers/email";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import { Provider } from "next-auth/providers/index";
+import { Resend } from "resend";
 import {
   AuthProviderConfig,
   getAvailableProviderConfigs,
 } from "./auth-providers";
+
+// Module-level Resend client to avoid re-instantiation on each signup
+const resend =
+  env.RESEND_API_KEY && env.RESEND_AUDIENCE_ID
+    ? new Resend(env.RESEND_API_KEY)
+    : null;
 
 const ProviderConfig = {
   google: {
@@ -195,6 +203,27 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+  },
+  events: {
+    // Subscribe new users to Resend audience (fires only on signup, not existing user login)
+    async createUser({ user }) {
+      if (!resend || !env.RESEND_AUDIENCE_ID || !user.email) {
+        return;
+      }
+
+      try {
+        await resend.contacts.create({
+          audienceId: env.RESEND_AUDIENCE_ID,
+          email: user.email,
+          ...(user.name && { firstName: user.name }),
+        });
+      } catch (error) {
+        Sentry.captureException(error, {
+          tags: { operation: "resend_subscription" },
+          extra: { userId: user.id },
+        });
+      }
+    },
   },
   secret: env.NEXTAUTH_SECRET,
 };
