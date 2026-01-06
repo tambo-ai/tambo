@@ -15,6 +15,9 @@ permissions:
 
 jobs:
   release-please:
+    # Skip for dependabot - secrets aren't available and dependency updates
+    # will be included in the next human-triggered release
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
