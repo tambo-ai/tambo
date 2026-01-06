@@ -46,6 +46,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# mise
+.mise.local.toml
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
