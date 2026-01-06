@@ -71,10 +71,11 @@ Alternatively, use fnm, nvm, or any tool that reads `.node-version` or `.nvmrc`.
 
 ### Tool Versions
 
-Versions of tools (i.e. not a package dependency) are managed via mise. There are other tool version files like `.nvmrc`
-and `.node-version`, but these are just for compatibility with other tools - the source of truth is always mise.
+Versions of tools (e.g. Node, npm, and other CLIs - i.e. not a `package.json` dependency) are managed via mise.
+There are other tool version files like `.nvmrc` and `.node-version`, but these are just for compatibility with other
+tools - the source of truth is always mise.
 
-If a tool is missing or the wrong version, run:
+If a tool is missing or the wrong version, run this to install/update the full set of tools defined in the mise config:
 
 ```sh
 mise install
@@ -90,6 +91,9 @@ eval "$(mise activate bash)"
 eval "$(mise activate fish)"
 ```
 
+You may want to add the appropriate `eval "$(mise activate <shell>)"` line to your shell startup file so the correct
+versions are available in every new terminal session.
+
 If the version is not available in the shell session, you should load the mise config into your shell environment.
 Alternatively, if this doesn't work or isn't possible you can make mise run a specific command with the correct versions
 using:
@@ -98,7 +102,8 @@ using:
 mise exec -- <command>
 ```
 
-If there is a need to add an additional tool or change a tool version, you can run the following commands.
+If there is a need to add an additional tool or change a tool version, you can run the following commands (for example,
+to use Node 22).
 This should only be done if absolutely necessary and with caution, as it will affect all developers working on the
 project.
 
@@ -108,6 +113,7 @@ mise use node@22
 ```
 
 Alternatively, you can create a `.mise.local.toml` file to override the tool versions for your local environment only.
+This file is for local overrides only and should not be committed to version control.
 
 ## 2. Core Development Principles
 
