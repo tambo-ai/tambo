@@ -25,16 +25,19 @@ sequenceDiagram
     participant SDK as Tambo React SDK
     participant API as Tambo API
     participant Backend as Tambo Backend
+    participant DB as Database
     participant LLM as LLM Provider
 
     App->>SDK: useTamboThread()
     App->>SDK: sendMessage(text)
     SDK->>API: POST /v1/threads/{id}/runs
     API->>Backend: Create run, prepare context
+    Backend->>DB: Save user message
     Backend->>LLM: Stream completion request
 
     loop AG-UI Event Stream
         LLM-->>Backend: Token/tool call chunks
+        Backend->>DB: Update assistant message (accumulate)
         Backend-->>API: Transform to AG-UI events
         API-->>SDK: SSE: TEXT_MESSAGE_CONTENT, TOOL_CALL_*, tambo.component.*
         SDK->>SDK: Accumulate events into messages
@@ -42,6 +45,7 @@ sequenceDiagram
     end
 
     LLM-->>Backend: Completion finished
+    Backend->>DB: Finalize message
     Backend-->>API: RUN_FINISHED
     API-->>SDK: SSE: RUN_FINISHED
     SDK-->>App: Final thread state
@@ -59,10 +63,10 @@ flowchart TB
         API["/v1 REST API"]
         Backend[Backend Services]
         DB[(Database)]
+        LLM[LLM Providers]
     end
 
-    subgraph External["External Services"]
-        LLM[LLM Providers]
+    subgraph DevConfigured["Developer Configured"]
         MCP[MCP Servers]
     end
 
@@ -74,7 +78,7 @@ flowchart TB
     API --> Backend
     Backend --> DB
     Backend -->|"Streaming"| LLM
-    Backend -->|"Tool calls"| MCP
+    Backend -.->|"Tool calls"| MCP
 
     API -.->|"AG-UI Events"| SDK
 ```
