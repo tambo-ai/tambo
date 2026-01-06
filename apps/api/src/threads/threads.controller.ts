@@ -22,6 +22,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
+import * as Sentry from "@sentry/nestjs";
 import { AsyncQueue, GenerationStage } from "@tambo-ai-cloud/core";
 import { type Request, type Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
@@ -444,9 +445,15 @@ export class ThreadsController {
 
       await this.handleAdvanceStream(response, queue);
       await p;
-    } catch (error: any) {
-      console.error(error);
-      throw new InternalServerErrorException(`Error in streaming response:`);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Error in streaming response",
+        error instanceof Error ? error.stack : undefined,
+      );
+      Sentry.captureException(error);
+      throw new InternalServerErrorException("Error in streaming response", {
+        cause: error instanceof Error ? error : undefined,
+      });
     }
   }
 
@@ -509,9 +516,15 @@ export class ThreadsController {
       );
       await this.handleAdvanceStream(response, queue);
       await p;
-    } catch (error: any) {
-      console.error(error);
-      throw new InternalServerErrorException("Error in streaming response");
+    } catch (error: unknown) {
+      this.logger.error(
+        "Error in streaming response",
+        error instanceof Error ? error.stack : undefined,
+      );
+      Sentry.captureException(error);
+      throw new InternalServerErrorException("Error in streaming response", {
+        cause: error instanceof Error ? error : undefined,
+      });
     }
   }
 
@@ -576,9 +589,14 @@ export class ThreadsController {
           response.write(`data: ${JSON.stringify(chunk)}\n\n`);
         }
       }
-    } catch (error: any) {
-      console.error(error);
-      response.write(`error: ${error.message}\n\n`);
+    } catch (error: unknown) {
+      this.logger.error(
+        "Error while writing streaming response",
+        error instanceof Error ? error.stack : undefined,
+      );
+      Sentry.captureException(error);
+      const message = error instanceof Error ? error.message : "Unknown error";
+      response.write(`error: ${message}\n\n`);
     } finally {
       response.write("data: DONE\n\n");
       response.end();

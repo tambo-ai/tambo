@@ -30,7 +30,7 @@ export class EndpointDeprecatedException extends HttpException {
   }) {
     super(
       {
-        type: "https://problems-registry.smartbear.com/gone",
+        type: "https://docs.tambo.co/api-reference/problems/endpoint-deprecated",
         status: HttpStatus.GONE,
         title: "Endpoint Deprecated",
         detail,
