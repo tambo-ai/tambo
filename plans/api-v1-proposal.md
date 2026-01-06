@@ -880,22 +880,6 @@ export class InputMessageDto {
 ```typescript
 // tool.dto.ts
 
-export class JsonSchemaPropertyDto {
-  type: string;
-  description?: string;
-  enum?: unknown[];
-  items?: JsonSchemaPropertyDto;
-  properties?: Record<string, JsonSchemaPropertyDto>;
-  required?: string[];
-}
-
-export class JsonSchemaDto {
-  type: "object";
-  properties: Record<string, JsonSchemaPropertyDto>;
-  required?: string[];
-  additionalProperties?: boolean;
-}
-
 export class ToolDto {
   name: string;
   description: string;
@@ -965,6 +949,28 @@ export class ListThreadsQueryDto {
   contextKey?: string;
   limit?: number;
   cursor?: string;
+}
+```
+
+### 4.6 JSON Schema DTOs
+
+```typescript
+// json-schema.dto.ts
+
+export class JsonSchemaPropertyDto {
+  type: string;
+  description?: string;
+  enum?: unknown[];
+  items?: JsonSchemaPropertyDto;
+  properties?: Record<string, JsonSchemaPropertyDto>;
+  required?: string[];
+}
+
+export class JsonSchemaDto {
+  type: "object";
+  properties: Record<string, JsonSchemaPropertyDto>;
+  required?: string[];
+  additionalProperties?: boolean;
 }
 ```
 
