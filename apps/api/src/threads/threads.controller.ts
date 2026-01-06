@@ -118,9 +118,10 @@ export class ThreadsController {
         count: threads.length,
         items: threads,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Error fetching threads for project ${projectId}: ${error.message}`,
+        `Error fetching threads for project ${projectId}: ${message}`,
       );
       throw error;
     }
