@@ -419,246 +419,61 @@ interface Thread {
 
 ## Part 2: AG-UI Events (Wire Protocol)
 
-**References:**
+All streaming responses use the [AG-UI Protocol](https://docs.ag-ui.com), an open standard for
+agent-user interaction. We use the `@ag-ui/core` SDK for event types.
 
-- [AG-UI Events](https://docs.ag-ui.com/concepts/events) - Complete event type documentation
-- [AG-UI Messages](https://docs.ag-ui.com/concepts/messages) - Message structure in AG-UI
-- [AG-UI State Management](https://docs.ag-ui.com/concepts/state) - STATE_SNAPSHOT and STATE_DELTA patterns
+**AG-UI SDK Documentation:**
 
-All streaming responses use AG-UI events. AG-UI defines 17 base event types; we use most of them
-and add Tambo-specific extensions for components.
+- [SDK Overview](https://docs.ag-ui.com/sdk/js/core/overview) - Installation and usage
+- [Core Types](https://docs.ag-ui.com/sdk/js/core/types) - All type definitions
+- [Events Concepts](https://docs.ag-ui.com/concepts/events) - Event type documentation
+- [State Management](https://docs.ag-ui.com/concepts/state) - STATE_SNAPSHOT and STATE_DELTA patterns
 
-### 2.1 Event Types
+### 2.1 How We Use AG-UI Events
 
-**Standard AG-UI Event Types (use the AG-UI SDK):**
+AG-UI provides standard events for text streaming, tool calls, and state management. For example:
 
 ```typescript
-// These are the ACTUAL AG-UI events from @ag-ui/core
-// @see https://docs.ag-ui.com/concepts/events
-enum EventType {
-  // Lifecycle
-  RUN_STARTED = "RUN_STARTED",
-  RUN_FINISHED = "RUN_FINISHED",
-  RUN_ERROR = "RUN_ERROR",
-  STEP_STARTED = "STEP_STARTED",
-  STEP_FINISHED = "STEP_FINISHED",
+// Text streaming uses three events
+{ type: "TEXT_MESSAGE_START", messageId: "msg_001", role: "assistant" }
+{ type: "TEXT_MESSAGE_CONTENT", messageId: "msg_001", delta: "Hello " }
+{ type: "TEXT_MESSAGE_CONTENT", messageId: "msg_001", delta: "world!" }
+{ type: "TEXT_MESSAGE_END", messageId: "msg_001" }
 
-  // Text streaming
-  TEXT_MESSAGE_START = "TEXT_MESSAGE_START",
-  TEXT_MESSAGE_CONTENT = "TEXT_MESSAGE_CONTENT",
-  TEXT_MESSAGE_END = "TEXT_MESSAGE_END",
+// Tool calls stream arguments incrementally
+{ type: "TOOL_CALL_START", toolCallId: "tc_001", toolName: "get_weather" }
+{ type: "TOOL_CALL_ARGS", toolCallId: "tc_001", delta: "{\"city\":" }
+{ type: "TOOL_CALL_ARGS", toolCallId: "tc_001", delta: "\"Paris\"}" }
+{ type: "TOOL_CALL_END", toolCallId: "tc_001" }
 
-  // Tool calls
-  TOOL_CALL_START = "TOOL_CALL_START",
-  TOOL_CALL_ARGS = "TOOL_CALL_ARGS",
-  TOOL_CALL_END = "TOOL_CALL_END",
-  TOOL_CALL_RESULT = "TOOL_CALL_RESULT",
-
-  // State management
-  STATE_SNAPSHOT = "STATE_SNAPSHOT",
-  STATE_DELTA = "STATE_DELTA",
-
-  // Messages
-  MESSAGES_SNAPSHOT = "MESSAGES_SNAPSHOT",
-
-  // Extension points
-  RAW = "RAW", // Pass-through for external system events
-  CUSTOM = "CUSTOM", // Application-defined events
-}
+// Run lifecycle
+{ type: "RUN_STARTED", threadId: "thr_xxx", runId: "run_xxx" }
+{ type: "RUN_FINISHED", threadId: "thr_xxx", runId: "run_xxx" }
+{ type: "RUN_ERROR", message: "Something went wrong", code: "INTERNAL_ERROR" }
 ```
 
-**Tambo-Specific Needs & How to Handle with Standard AG-UI:**
+### 2.2 Tambo CUSTOM Events
 
-We need to represent two things AG-UI doesn't have built-in events for:
+AG-UI provides a `CUSTOM` event type for application-specific extensions. We use this with a
+`tambo.*` namespace for Tambo-specific functionality that AG-UI doesn't cover natively:
 
-1. **Pausing for client-side tool results**
-2. **Streaming UI component props/state**
-
-### Option A: Use CUSTOM Events (Recommended)
-
-AG-UI provides `CUSTOM` events specifically for application-defined behavior:
+1. **Pausing for client-side tool results** - AG-UI doesn't have a "waiting for input" state
+2. **Streaming UI component props/state** - Components are a Tambo-specific concept
+3. **Rich run completion data** - We include full message objects on completion
 
 ```typescript
-// For pausing when client tools are needed
-interface TamboAwaitingInputEvent {
-  type: "CUSTOM";
-  name: "tambo.run.awaiting_input";
-  value: {
-    threadId: string;
-    runId: string;
-    pendingToolCalls: Array<{
-      toolCallId: string;
-      toolName: string;
-      input: Record<string, unknown>;
-    }>;
-  };
-}
-
-// For component streaming
-interface TamboComponentStartEvent {
-  type: "CUSTOM";
-  name: "tambo.component.start";
-  value: {
-    componentId: string;
-    componentName: string;
-    messageId: string;
-  };
-}
-
-interface TamboComponentPropsDeltaEvent {
-  type: "CUSTOM";
-  name: "tambo.component.props_delta";
-  value: {
-    componentId: string;
-    delta: string; // Partial JSON
-  };
-}
-
-interface TamboComponentEndEvent {
-  type: "CUSTOM";
-  name: "tambo.component.end";
-  value: {
-    componentId: string;
-    props: Record<string, unknown>;
-    state?: Record<string, unknown>;
-  };
-}
-```
-
-### Option B: Model Components as Tool Calls
-
-Since components are essentially "rendered tool results", we could reuse TOOL_CALL events:
-
-```typescript
-// Component as a special tool call with name "show_component_<ComponentName>"
-// TOOL_CALL_START: toolName = "show_component_StockChart"
-// TOOL_CALL_ARGS: streams the props JSON
-// TOOL_CALL_END: final props
-// TOOL_CALL_RESULT: optional, could contain component state
-
-// For client tool pausing, use RUN_FINISHED with a custom field indicating
-// pending tool calls, or use CUSTOM event
-```
-
-### Option C: Use STATE_DELTA for Component State
-
-Component state could use the existing state mechanism:
-
-```typescript
-// STATE_SNAPSHOT at component start with initial state
-// STATE_DELTA events for props/state updates
-// Namespace the state: { "components": { "comp_001": { props: {...}, state: {...} } } }
-```
-
-**Recommended Approach: Option A (CUSTOM events)**
-
-This is cleanest because:
-
-1. Uses AG-UI's intended extension mechanism
-2. Clear separation between standard events and Tambo-specific
-3. Easy for SDK to filter/handle
-4. Namespaced (`tambo.*`) to avoid conflicts
-
-````
-
-### 2.2 Event Interfaces
-
-All interfaces below use AG-UI's standard event types. Tambo-specific events use the `CUSTOM` type
-with a `tambo.*` namespace for the name field.
-
-```typescript
-/**
- * Base interface for all AG-UI events
- */
-interface BaseEvent {
-  type: EventType;
-  timestamp?: number;
-}
-
 /**
  * Base interface for Tambo CUSTOM events
  */
-interface TamboCustomEvent extends BaseEvent {
-  type: EventType.CUSTOM;
-  name: string;  // Namespaced: "tambo.*"
+interface TamboCustomEvent {
+  type: "CUSTOM";
+  name: string; // Namespaced: "tambo.*"
   value: unknown;
-}
-
-// ============================================================================
-// STANDARD AG-UI EVENTS
-// These use the exact types from @ag-ui/core
-// ============================================================================
-
-// Lifecycle Events
-interface RunStartedEvent extends BaseEvent {
-  type: EventType.RUN_STARTED;
-  threadId: string;
-  runId: string;
-}
-
-interface RunFinishedEvent extends BaseEvent {
-  type: EventType.RUN_FINISHED;
-  threadId: string;
-  runId: string;
-}
-
-interface RunErrorEvent extends BaseEvent {
-  type: EventType.RUN_ERROR;
-  message: string;
-  code?: string;
-}
-
-// Text Message Events
-interface TextMessageStartEvent extends BaseEvent {
-  type: EventType.TEXT_MESSAGE_START;
-  messageId: string;
-  role: "assistant";
-}
-
-interface TextMessageContentEvent extends BaseEvent {
-  type: EventType.TEXT_MESSAGE_CONTENT;
-  messageId: string;
-  delta: string;
-}
-
-interface TextMessageEndEvent extends BaseEvent {
-  type: EventType.TEXT_MESSAGE_END;
-  messageId: string;
-}
-
-// Tool Call Events
-interface ToolCallStartEvent extends BaseEvent {
-  type: EventType.TOOL_CALL_START;
-  toolCallId: string;
-  toolName: string;
-  parentMessageId?: string;
-}
-
-interface ToolCallArgsEvent extends BaseEvent {
-  type: EventType.TOOL_CALL_ARGS;
-  toolCallId: string;
-  delta: string;                   // Partial JSON
-}
-
-interface ToolCallEndEvent extends BaseEvent {
-  type: EventType.TOOL_CALL_END;
-  toolCallId: string;
-}
-
-// State Events
-interface StateSnapshotEvent extends BaseEvent {
-  type: EventType.STATE_SNAPSHOT;
-  snapshot: Record<string, unknown>;
-}
-
-interface StateDeltaEvent extends BaseEvent {
-  type: EventType.STATE_DELTA;
-  delta: JsonPatchOperation[];
+  timestamp?: number;
 }
 
 // ============================================================================
 // TAMBO CUSTOM EVENTS
-// These use AG-UI's CUSTOM event type with "tambo.*" namespace
 // ============================================================================
 
 /**
@@ -687,7 +502,7 @@ interface TamboRunFinishedEvent extends TamboCustomEvent {
   value: {
     threadId: string;
     runId: string;
-    messages: Message[];  // All messages produced in this run
+    messages: Message[]; // All messages produced in this run
   };
 }
 
@@ -723,7 +538,7 @@ interface TamboComponentPropsDeltaEvent extends TamboCustomEvent {
   name: "tambo.component.props_delta";
   value: {
     componentId: string;
-    delta: string;  // Partial JSON
+    delta: string; // Partial JSON
   };
 }
 
@@ -752,41 +567,17 @@ interface TamboComponentEndEvent extends TamboCustomEvent {
 
 /**
  * JSON Patch operation (RFC 6902)
- * @see https://datatracker.ietf.org/doc/html/rfc6902 - JSON Patch specification
- * @see https://docs.ag-ui.com/concepts/state - AG-UI uses JSON Patch for STATE_DELTA
- *
- * Used for incremental state updates. More bandwidth-efficient than sending
- * full snapshots for small changes.
+ * @see https://datatracker.ietf.org/doc/html/rfc6902
  */
 interface JsonPatchOperation {
   op: "add" | "remove" | "replace" | "move" | "copy";
-  path: string;       // JSON Pointer (RFC 6901) to the target location
-  value?: unknown;    // Required for add, replace
-  from?: string;      // Required for move, copy
+  path: string;
+  value?: unknown;
+  from?: string;
 }
 
-// ============================================================================
-// UNION TYPES
-// ============================================================================
-
 /**
- * Standard AG-UI events
- */
-type StandardAgUiEvent =
-  | RunStartedEvent
-  | RunFinishedEvent
-  | RunErrorEvent
-  | TextMessageStartEvent
-  | TextMessageContentEvent
-  | TextMessageEndEvent
-  | ToolCallStartEvent
-  | ToolCallArgsEvent
-  | ToolCallEndEvent
-  | StateSnapshotEvent
-  | StateDeltaEvent;
-
-/**
- * Tambo CUSTOM events
+ * Union of all Tambo CUSTOM events
  */
 type TamboExtensionEvent =
   | TamboAwaitingInputEvent
@@ -796,12 +587,7 @@ type TamboExtensionEvent =
   | TamboComponentPropsDeltaEvent
   | TamboComponentStateDeltaEvent
   | TamboComponentEndEvent;
-
-/**
- * All events that can appear in a Tambo stream
- */
-type TamboEvent = StandardAgUiEvent | TamboExtensionEvent;
-````
+```
 
 ---
 
@@ -2000,21 +1786,11 @@ One of the most significant differences between APIs is how tool calls are repre
 
 ## Appendix B: Event Quick Reference
 
-### Standard AG-UI Events (from @ag-ui/core)
+### Standard AG-UI Events
 
-| Event                | When Emitted       | Key Fields                             |
-| -------------------- | ------------------ | -------------------------------------- |
-| RUN_STARTED          | Run begins         | threadId, runId                        |
-| RUN_FINISHED         | Run completes      | threadId, runId                        |
-| RUN_ERROR            | Fatal error        | message, code?                         |
-| TEXT_MESSAGE_START   | Begin text output  | messageId, role                        |
-| TEXT_MESSAGE_CONTENT | Text chunk         | messageId, delta                       |
-| TEXT_MESSAGE_END     | End text output    | messageId                              |
-| TOOL_CALL_START      | Begin tool call    | toolCallId, toolName, parentMessageId? |
-| TOOL_CALL_ARGS       | Tool args chunk    | toolCallId, delta                      |
-| TOOL_CALL_END        | Tool call complete | toolCallId                             |
-| STATE_SNAPSHOT       | Full state         | snapshot                               |
-| STATE_DELTA          | State update       | delta (JSON Patch)                     |
+See the [AG-UI SDK Types](https://docs.ag-ui.com/sdk/js/core/types) for complete event definitions.
+Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`, `TOOL_CALL_*`,
+`STATE_SNAPSHOT`, `STATE_DELTA`.
 
 ### Tambo CUSTOM Events (type: "CUSTOM", name: "tambo.\*")
 
