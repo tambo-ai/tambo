@@ -769,97 +769,51 @@ interface GetMessageResponse {
 
 ```typescript
 // content.dto.ts
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class TextContentDto {
-  @ApiProperty({ enum: ["text"] })
   type: "text";
-
-  @ApiProperty()
   text: string;
 }
 
 export class ImageSourceDto {
-  @ApiProperty({ enum: ["base64", "url"] })
   type: "base64" | "url";
-
-  @ApiPropertyOptional()
   mediaType?: string;
-
-  @ApiPropertyOptional()
   data?: string;
-
-  @ApiPropertyOptional()
   url?: string;
 }
 
 export class ImageContentDto {
-  @ApiProperty({ enum: ["image"] })
   type: "image";
-
-  @ApiProperty({ type: ImageSourceDto })
   source: ImageSourceDto;
-
-  @ApiPropertyOptional({ enum: ["auto", "low", "high"] })
   detail?: "auto" | "low" | "high";
 }
 
 export class ResourceAnnotationsDto {
-  @ApiPropertyOptional({ type: [String] })
   audience?: string[];
-
-  @ApiPropertyOptional()
   priority?: number;
 }
 
 export class ResourceDataDto {
-  @ApiPropertyOptional()
   uri?: string;
-
-  @ApiPropertyOptional()
   name?: string;
-
-  @ApiPropertyOptional()
   title?: string;
-
-  @ApiPropertyOptional()
   description?: string;
-
-  @ApiPropertyOptional()
   mimeType?: string;
-
-  @ApiPropertyOptional()
   text?: string;
-
-  @ApiPropertyOptional()
   blob?: string;
-
-  @ApiPropertyOptional({ type: ResourceAnnotationsDto })
   annotations?: ResourceAnnotationsDto;
 }
 
 export class ResourceContentDto {
-  @ApiProperty({ enum: ["resource"] })
   type: "resource";
-
-  @ApiProperty({ type: ResourceDataDto })
   resource: ResourceDataDto;
 }
 
 export class ComponentContentDto {
-  @ApiProperty({ enum: ["component"] })
   type: "component";
-
-  @ApiProperty()
   id: string;
-
-  @ApiProperty()
   name: string;
-
-  @ApiProperty()
   props: Record<string, unknown>;
-
-  @ApiPropertyOptional()
   state?: Record<string, unknown>;
 }
 
@@ -875,7 +829,7 @@ export type ContentDto =
 
 ```typescript
 // message.dto.ts
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export enum MessageRoleDto {
   User = "user",
@@ -888,44 +842,23 @@ export enum MessageRoleDto {
  * Tool call on an assistant message (OpenAI pattern)
  */
 export class ToolCallDto {
-  @ApiProperty()
   id: string;
-
-  @ApiProperty()
   name: string;
-
-  @ApiProperty()
   arguments: Record<string, unknown>;
 }
 
 export class MessageDto {
-  @ApiProperty()
   id: string;
-
-  @ApiProperty({ enum: MessageRoleDto })
   role: MessageRoleDto;
-
-  @ApiProperty({ type: [Object] })
   content: ContentDto[];
-
-  @ApiPropertyOptional({ type: [ToolCallDto] })
   toolCalls?: ToolCallDto[];
-
-  @ApiPropertyOptional()
   toolCallId?: string;
-
-  @ApiPropertyOptional()
   createdAt?: string;
-
-  @ApiPropertyOptional()
   metadata?: Record<string, unknown>;
 }
 
 export class InputMessageDto {
-  @ApiProperty({ enum: MessageRoleDto })
   role: MessageRoleDto;
-
-  @ApiProperty({ type: [Object] })
   content: ContentDto[];
 
   @ApiPropertyOptional({
@@ -938,7 +871,6 @@ export class InputMessageDto {
   })
   isError?: boolean;
 
-  @ApiPropertyOptional()
   metadata?: Record<string, unknown>;
 }
 ```
@@ -947,78 +879,40 @@ export class InputMessageDto {
 
 ```typescript
 // tool.dto.ts
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class JsonSchemaPropertyDto {
-  @ApiProperty()
   type: string;
-
-  @ApiPropertyOptional()
   description?: string;
-
-  @ApiPropertyOptional()
   enum?: unknown[];
-
-  @ApiPropertyOptional()
   items?: JsonSchemaPropertyDto;
-
-  @ApiPropertyOptional()
   properties?: Record<string, JsonSchemaPropertyDto>;
-
-  @ApiPropertyOptional()
   required?: string[];
 }
 
 export class JsonSchemaDto {
-  @ApiProperty({ enum: ["object"] })
   type: "object";
-
-  @ApiProperty()
   properties: Record<string, JsonSchemaPropertyDto>;
-
-  @ApiPropertyOptional()
   required?: string[];
-
-  @ApiPropertyOptional()
   additionalProperties?: boolean;
 }
 
 export class ToolDto {
-  @ApiProperty()
   name: string;
-
-  @ApiProperty()
   description: string;
-
-  @ApiProperty({ type: JsonSchemaDto })
   inputSchema: JsonSchemaDto;
-
-  @ApiPropertyOptional({ type: JsonSchemaDto })
   outputSchema?: JsonSchemaDto;
-
-  @ApiPropertyOptional()
   strict?: boolean;
 }
 
 export class ComponentToolDto extends ToolDto {
-  @ApiPropertyOptional()
   maxCalls?: number;
 }
 
 export class AvailableComponentDto {
-  @ApiProperty()
   name: string;
-
-  @ApiProperty()
   description: string;
-
-  @ApiProperty({ type: JsonSchemaDto })
   propsSchema: JsonSchemaDto;
-
-  @ApiPropertyOptional({ type: JsonSchemaDto })
   stateSchema?: JsonSchemaDto;
-
-  @ApiPropertyOptional({ type: [ComponentToolDto] })
   contextTools?: ComponentToolDto[];
 }
 ```
@@ -1027,45 +921,22 @@ export class AvailableComponentDto {
 
 ```typescript
 // run.dto.ts
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class ToolChoiceNamedDto {
-  @ApiProperty()
   name: string;
 }
 
 export class CreateRunDto {
-  @ApiProperty({ type: InputMessageDto })
   message: InputMessageDto;
-
-  @ApiPropertyOptional({ type: [AvailableComponentDto] })
   availableComponents?: AvailableComponentDto[];
-
-  @ApiPropertyOptional({ type: [ToolDto] })
   tools?: ToolDto[];
-
-  @ApiPropertyOptional({ oneOf: [{ type: "string" }, { type: "object" }] })
   toolChoice?: "auto" | "required" | "none" | ToolChoiceNamedDto;
-
-  @ApiPropertyOptional()
   forceComponent?: string;
-
-  @ApiPropertyOptional()
   createThread?: boolean;
-
-  @ApiPropertyOptional()
   contextKey?: string;
-
-  @ApiPropertyOptional()
   model?: string;
-
-  @ApiPropertyOptional()
   maxTokens?: number;
-
-  @ApiPropertyOptional()
   temperature?: number;
-
-  @ApiPropertyOptional()
   metadata?: Record<string, unknown>;
 }
 ```
@@ -1074,47 +945,25 @@ export class CreateRunDto {
 
 ```typescript
 // thread.dto.ts
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class ThreadDto {
-  @ApiProperty()
   id: string;
-
-  @ApiProperty()
   projectId: string;
-
-  @ApiPropertyOptional()
   contextKey?: string;
-
-  @ApiPropertyOptional()
   metadata?: Record<string, unknown>;
-
-  @ApiProperty()
   createdAt: string;
-
-  @ApiProperty()
   updatedAt: string;
 }
 
 export class CreateThreadDto {
-  @ApiPropertyOptional()
   contextKey?: string;
-
-  @ApiPropertyOptional()
   metadata?: Record<string, unknown>;
-
-  @ApiPropertyOptional({ type: [InputMessageDto] })
   initialMessages?: InputMessageDto[];
 }
 
 export class ListThreadsQueryDto {
-  @ApiPropertyOptional()
   contextKey?: string;
-
-  @ApiPropertyOptional()
   limit?: number;
-
-  @ApiPropertyOptional()
   cursor?: string;
 }
 ```
