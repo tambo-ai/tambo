@@ -11,10 +11,20 @@ function createMockFile(
   type: string,
   content = "test content",
 ): File {
-  // Create content of the specified size
-  const actualContent = content.padEnd(size, "x").slice(0, size);
+  // For small files, create actual content; for large files (>1MB), use minimal content
+  const isLargeFile = size > 1024 * 1024;
+  const actualContent = isLargeFile
+    ? content
+    : content.padEnd(size, "x").slice(0, size);
   const blob = new Blob([actualContent], { type });
-  return new File([blob], name, { type });
+  const file = new File([blob], name, { type });
+
+  // For large files, mock the size property to avoid memory/timeout issues
+  if (isLargeFile) {
+    Object.defineProperty(file, "size", { value: size, writable: false });
+  }
+
+  return file;
 }
 
 describe("useMessageAttachments", () => {
@@ -197,7 +207,7 @@ describe("useMessageAttachments", () => {
     it("should reject files exceeding individual size limit (50MB)", async () => {
       const { result } = renderHook(() => useMessageAttachments());
 
-      // 51MB file (over 50MB limit)
+      // Create a file with mocked 51MB size (over 50MB limit)
       const file = createMockFile("large.png", 51 * 1024 * 1024, "image/png");
 
       await expect(result.current.addAttachments([file])).rejects.toThrow(
@@ -232,7 +242,7 @@ describe("useMessageAttachments", () => {
     it("should reject when exceeding total size limit (100MB)", async () => {
       const { result } = renderHook(() => useMessageAttachments());
 
-      // Add two 40MB files first (80MB total, under 100MB limit)
+      // Add two files with mocked 40MB sizes (80MB total, under 100MB limit)
       const file1 = createMockFile("file1.png", 40 * 1024 * 1024, "image/png");
       const file2 = createMockFile("file2.png", 40 * 1024 * 1024, "image/png");
 
@@ -242,7 +252,7 @@ describe("useMessageAttachments", () => {
 
       expect(result.current.stagedAttachments).toHaveLength(2);
 
-      // Try to add a 30MB file (would exceed 100MB total: 40 + 40 + 30 = 110MB)
+      // Try to add a file with mocked 30MB size (would exceed 100MB total: 40 + 40 + 30 = 110MB)
       const anotherLargeFile = createMockFile(
         "another.png",
         30 * 1024 * 1024,
