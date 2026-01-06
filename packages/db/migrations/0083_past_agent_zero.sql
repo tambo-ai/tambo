@@ -1,3 +1,6 @@
+-- Create anon role if it doesn't exist (for Docker/vanilla PostgreSQL)
+-- On Supabase, this role already exists as a built-in role
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE "anon" NOLOGIN NOINHERIT; END IF; END $$;--> statement-breakpoint
 GRANT SELECT, INSERT, UPDATE ON public.device_auth_codes TO "anon";--> statement-breakpoint
 GRANT SELECT ON public.sessions TO "anon";--> statement-breakpoint
 ALTER TABLE "device_auth_codes" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
