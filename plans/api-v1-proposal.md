@@ -76,7 +76,10 @@ The resource type is used for MCP integration and generic content references.
  *
  * Note: Tool calls use the OpenAI pattern (separate tool_calls array on messages)
  * rather than the Anthropic pattern (tool_use/tool_result content blocks).
- * See "Open Questions" section for discussion of this design decision.
+ * See "Open Questions" section (8.1) for discussion of this design decision.
+ *
+ * Note: The explicit image/audio/file types vs unified binary type is discussed
+ * in "Open Questions" section (8.2). Components inline vs separate is in (8.3).
  */
 type ContentType =
   | "text"
@@ -1434,6 +1437,273 @@ The AG-UI wire protocol uses separate events for tool calls:
 These events are separate from `TEXT_MESSAGE_*` events, suggesting a structural separation similar to the OpenAI pattern. However, these events describe the _wire protocol_, not how messages should be stored or returned from the API.
 
 **Decision needed:** Should stored/returned messages follow the wire protocol's separation (OpenAI pattern) or use a unified content block approach (Anthropic pattern)?
+
+---
+
+### 8.2 Multimodal Content Types
+
+**Status:** Proposal uses explicit types; open for discussion.
+
+The proposal currently defines separate content types for different media: `ImageContent`, `AudioContent`, `FileContent`, plus `ResourceContent` for MCP resources. An alternative is to unify all binary content into a single type with MIME-type differentiation.
+
+#### Option A: Explicit Content Types — CURRENT PROPOSAL
+
+Separate interfaces for each media type with type-specific fields:
+
+```typescript
+interface ImageContent {
+  type: "image";
+  source: {
+    type: "base64" | "url";
+    mediaType?: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+    data?: string;
+    url?: string;
+  };
+  detail?: "auto" | "low" | "high"; // OpenAI vision control
+}
+
+interface AudioContent {
+  type: "audio";
+  source: {
+    type: "base64";
+    mediaType: "audio/wav" | "audio/mp3" | "audio/aac";
+    data: string;
+  };
+}
+
+interface FileContent {
+  type: "file";
+  source: {
+    type: "base64" | "url" | "file_id";
+    mediaType?: string;
+    data?: string;
+    url?: string;
+    fileId?: string;
+    filename?: string;
+  };
+}
+```
+
+**Used by:**
+
+- [OpenAI Chat API](https://platform.openai.com/docs/api-reference/chat/create) - `image_url`, `input_audio`, `file` types
+- [Anthropic Messages API](https://docs.anthropic.com/en/api/messages) - `ImageBlockParam`, etc.
+- [MCP Sampling](https://modelcontextprotocol.io/specification/2025-11-25/server/sampling) - `ImageContent`, `AudioContent`
+
+**Pros:**
+
+- Type-specific validation and constraints (e.g., `detail` only applies to images)
+- Clear discrimination - code can switch on `type` directly
+- Explicit supported formats per media type
+- Aligns with OpenAI, Anthropic, and MCP patterns
+
+**Cons:**
+
+- More types to maintain
+- Adding new media types requires new interfaces
+- Some redundancy in source structure across types
+
+---
+
+#### Option B: Unified Binary Type (AG-UI Pattern)
+
+Single `BinaryContent` type with MIME-type differentiation:
+
+```typescript
+interface TextContent {
+  type: "text";
+  text: string;
+}
+
+interface BinaryContent {
+  type: "binary";
+  mimeType: string; // "image/jpeg", "audio/wav", "application/pdf", etc.
+  id?: string; // Pre-uploaded content reference
+  url?: string; // External URL
+  data?: string; // Inline base64 data
+  filename?: string;
+}
+
+type InputContent = TextContent | BinaryContent;
+```
+
+**Used by:**
+
+- [AG-UI Multimodal Messages](https://docs.ag-ui.com/drafts/multimodal-messages) (draft, but claims implementation)
+
+**Pros:**
+
+- Simpler type system - only two content types for inputs
+- Easily extensible to new media types via MIME type
+- Flexible delivery: URL, base64, or pre-uploaded reference
+- Less code to maintain
+
+**Cons:**
+
+- Loses type-specific fields (e.g., image `detail` would need conditional logic)
+- MIME type validation must happen at runtime
+- Less explicit about what media types are supported
+- AG-UI spec is still in draft status
+
+---
+
+#### Hybrid Consideration
+
+We could use explicit types for common media (image, audio) while treating everything else as `ResourceContent`:
+
+```typescript
+type InputContent =
+  | TextContent
+  | ImageContent // Keep for vision-specific fields like detail
+  | AudioContent // Keep for audio-specific needs
+  | ResourceContent; // Everything else via URI + mimeType
+```
+
+This keeps type safety for common cases while remaining extensible.
+
+**Decision needed:** Should we consolidate to a unified binary type (simpler, more flexible) or keep explicit types (more type safety, aligns with major APIs)?
+
+---
+
+### 8.3 Component Content Representation
+
+**Status:** Proposal uses inline content blocks; open for discussion.
+
+Components are currently represented as content blocks in the `content[]` array, similar to text. An alternative is to represent them as a separate field, similar to how tool calls are handled.
+
+#### Option A: Inline Content Blocks — CURRENT PROPOSAL
+
+Components appear in the `content[]` array alongside text:
+
+```typescript
+interface AssistantMessage {
+  id: string;
+  role: "assistant";
+  content: Content[]; // Text and components interleaved
+  toolCalls?: ToolCall[];
+}
+
+// Example message
+{
+  id: "msg_001",
+  role: "assistant",
+  content: [
+    { type: "text", text: "Here's the stock chart:" },
+    { type: "component", id: "comp_001", name: "StockChart", props: { ticker: "AAPL" } },
+    { type: "text", text: "The price has been trending upward." }
+  ]
+}
+```
+
+**Pros:**
+
+- Natural content ordering - components appear in reading order with text
+- Composable - text before, between, and after components
+- Simpler mental model - everything that renders is "content"
+- Streaming aligns naturally with content order
+
+**Cons:**
+
+- Components are structurally different from text (have props, state, lifecycle)
+- Mixed concerns - rendering content vs interactive elements
+- Inconsistent with tool calls (which are separate)
+
+---
+
+#### Option B: Separate Field (Like Tool Calls)
+
+Components as a separate `components[]` array, parallel to `toolCalls[]`:
+
+```typescript
+interface AssistantMessage {
+  id: string;
+  role: "assistant";
+  content: Content[]; // Only text/image/etc
+  toolCalls?: ToolCall[];
+  components?: ComponentInstance[]; // Separate from content
+}
+
+interface ComponentInstance {
+  id: string;
+  name: string;
+  props: Record<string, unknown>;
+  state?: Record<string, unknown>;
+}
+
+// Example message
+{
+  id: "msg_001",
+  role: "assistant",
+  content: [
+    { type: "text", text: "Here's the stock chart. The price has been trending upward." }
+  ],
+  components: [
+    { id: "comp_001", name: "StockChart", props: { ticker: "AAPL" } }
+  ]
+}
+```
+
+**Pros:**
+
+- Consistent with tool call pattern (separate structural concerns)
+- Cleaner separation - content is static, components are interactive
+- Easier to query/filter (e.g., "get all components from message")
+- Component-specific streaming events (`tambo.component.*`) already separate
+
+**Cons:**
+
+- Loses positional information - where should components render relative to text?
+- Need separate mechanism to indicate component placement (markers? indices?)
+- More complex for simple cases where component follows text naturally
+- Two rendering concerns to coordinate
+
+---
+
+#### Option C: Hybrid with Placement Markers
+
+Keep components in a separate field but use markers in content for placement:
+
+```typescript
+interface AssistantMessage {
+  id: string;
+  role: "assistant";
+  content: Content[]; // Includes ComponentMarker for placement
+  components?: ComponentInstance[];
+}
+
+interface ComponentMarker {
+  type: "component_ref";
+  componentId: string; // References entry in components[]
+}
+
+// Example
+{
+  content: [
+    { type: "text", text: "Here's the chart:" },
+    { type: "component_ref", componentId: "comp_001" },
+    { type: "text", text: "Looks bullish!" }
+  ],
+  components: [
+    { id: "comp_001", name: "StockChart", props: { ticker: "AAPL" } }
+  ]
+}
+```
+
+**Pros:**
+
+- Clear separation of component data from placement
+- Maintains positional information
+- Component data easy to access/update independently
+
+**Cons:**
+
+- Most complex option - two places to look
+- Indirection adds cognitive overhead
+- Markers and components must stay in sync
+
+---
+
+**Decision needed:** Should components be inline content blocks (simpler, ordered), a separate field (consistent with tools), or a hybrid approach?
 
 ---
 
