@@ -81,10 +81,10 @@ describe("useElicitation", () => {
           ? request.params.requestedSchema
           : null;
 
+      expect(requestedSchema).not.toBeNull();
+
       if (requestedSchema === null) {
-        throw new Error(
-          "Test setup error: ElicitRequest is expected to use form params",
-        );
+        return;
       }
 
       expect(result.current.elicitation).toEqual({

@@ -107,9 +107,12 @@ export function useElicitation() {
     ): Promise<ElicitResult> => {
       return await new Promise<ElicitResult>((resolve, reject) => {
         if (!hasRequestedSchema(request.params)) {
+          const mode =
+            "mode" in request.params ? String(request.params.mode) : "unknown";
+
           reject(
             new Error(
-              "Unsupported MCP elicitation params: expected requestedSchema (form mode)",
+              `Unsupported MCP elicitation params: expected requestedSchema (form mode), got mode=${mode}`,
             ),
           );
           return;
