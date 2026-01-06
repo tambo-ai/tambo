@@ -769,161 +769,97 @@ interface GetMessageResponse {
 
 ```typescript
 // content.dto.ts
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  ValidateNested,
-  IsObject,
-  IsBoolean,
-  IsArray,
-  IsNumber,
-} from "class-validator";
-import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-
-export enum ContentTypeDto {
-  Text = "text",
-  Image = "image",
-  Audio = "audio",
-  File = "file",
-  Resource = "resource",
-  Component = "component",
-}
 
 export class TextContentDto {
   @ApiProperty({ enum: ["text"] })
-  @IsEnum(["text"])
   type: "text";
 
   @ApiProperty()
-  @IsString()
   text: string;
 }
 
 export class ImageSourceDto {
   @ApiProperty({ enum: ["base64", "url"] })
-  @IsEnum(["base64", "url"])
   type: "base64" | "url";
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   mediaType?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   data?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   url?: string;
 }
 
 export class ImageContentDto {
   @ApiProperty({ enum: ["image"] })
-  @IsEnum(["image"])
   type: "image";
 
   @ApiProperty({ type: ImageSourceDto })
-  @ValidateNested()
-  @Type(() => ImageSourceDto)
   source: ImageSourceDto;
 
   @ApiPropertyOptional({ enum: ["auto", "low", "high"] })
-  @IsOptional()
-  @IsEnum(["auto", "low", "high"])
   detail?: "auto" | "low" | "high";
 }
 
 export class ResourceAnnotationsDto {
   @ApiPropertyOptional({ type: [String] })
-  @IsOptional()
-  @IsArray()
   audience?: string[];
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
   priority?: number;
 }
 
 export class ResourceDataDto {
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   uri?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   name?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   title?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   description?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   mimeType?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   text?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   blob?: string;
 
   @ApiPropertyOptional({ type: ResourceAnnotationsDto })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => ResourceAnnotationsDto)
   annotations?: ResourceAnnotationsDto;
 }
 
 export class ResourceContentDto {
   @ApiProperty({ enum: ["resource"] })
-  @IsEnum(["resource"])
   type: "resource";
 
   @ApiProperty({ type: ResourceDataDto })
-  @ValidateNested()
-  @Type(() => ResourceDataDto)
   resource: ResourceDataDto;
 }
 
 export class ComponentContentDto {
   @ApiProperty({ enum: ["component"] })
-  @IsEnum(["component"])
   type: "component";
 
   @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty()
-  @IsString()
   name: string;
 
   @ApiProperty()
-  @IsObject()
   props: Record<string, unknown>;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
   state?: Record<string, unknown>;
 }
 
@@ -939,16 +875,6 @@ export type ContentDto =
 
 ```typescript
 // message.dto.ts
-import {
-  IsString,
-  IsEnum,
-  IsOptional,
-  IsArray,
-  ValidateNested,
-  IsObject,
-  IsBoolean,
-} from "class-validator";
-import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export enum MessageRoleDto {
@@ -963,79 +889,56 @@ export enum MessageRoleDto {
  */
 export class ToolCallDto {
   @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty()
-  @IsString()
   name: string;
 
   @ApiProperty()
-  @IsObject()
   arguments: Record<string, unknown>;
 }
 
 export class MessageDto {
   @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty({ enum: MessageRoleDto })
-  @IsEnum(MessageRoleDto)
   role: MessageRoleDto;
 
   @ApiProperty({ type: [Object] })
-  @IsArray()
   content: ContentDto[];
 
   @ApiPropertyOptional({ type: [ToolCallDto] })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => ToolCallDto)
   toolCalls?: ToolCallDto[];
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   toolCallId?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   createdAt?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
   metadata?: Record<string, unknown>;
 }
 
 export class InputMessageDto {
   @ApiProperty({ enum: MessageRoleDto })
-  @IsEnum(MessageRoleDto)
   role: MessageRoleDto;
 
   @ApiProperty({ type: [Object] })
-  @IsArray()
   content: ContentDto[];
 
   @ApiPropertyOptional({
     description: "For role='tool', the ID of the tool call being answered",
   })
-  @IsOptional()
-  @IsString()
   toolCallId?: string;
 
   @ApiPropertyOptional({
     description: "For role='tool', indicates an error result",
   })
-  @IsOptional()
-  @IsBoolean()
   isError?: boolean;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
   metadata?: Record<string, unknown>;
 }
 ```
@@ -1044,46 +947,25 @@ export class InputMessageDto {
 
 ```typescript
 // tool.dto.ts
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsObject,
-  IsNumber,
-  IsArray,
-  ValidateNested,
-} from "class-validator";
-import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class JsonSchemaPropertyDto {
   @ApiProperty()
-  @IsString()
   type: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   description?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsArray()
   enum?: unknown[];
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
   items?: JsonSchemaPropertyDto;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
   properties?: Record<string, JsonSchemaPropertyDto>;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsArray()
   required?: string[];
 }
 
@@ -1092,77 +974,51 @@ export class JsonSchemaDto {
   type: "object";
 
   @ApiProperty()
-  @IsObject()
   properties: Record<string, JsonSchemaPropertyDto>;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsArray()
   required?: string[];
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
   additionalProperties?: boolean;
 }
 
 export class ToolDto {
   @ApiProperty()
-  @IsString()
   name: string;
 
   @ApiProperty()
-  @IsString()
   description: string;
 
   @ApiProperty({ type: JsonSchemaDto })
-  @ValidateNested()
-  @Type(() => JsonSchemaDto)
   inputSchema: JsonSchemaDto;
 
   @ApiPropertyOptional({ type: JsonSchemaDto })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => JsonSchemaDto)
   outputSchema?: JsonSchemaDto;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
   strict?: boolean;
 }
 
 export class ComponentToolDto extends ToolDto {
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
   maxCalls?: number;
 }
 
 export class AvailableComponentDto {
   @ApiProperty()
-  @IsString()
   name: string;
 
   @ApiProperty()
-  @IsString()
   description: string;
 
   @ApiProperty({ type: JsonSchemaDto })
-  @ValidateNested()
-  @Type(() => JsonSchemaDto)
   propsSchema: JsonSchemaDto;
 
   @ApiPropertyOptional({ type: JsonSchemaDto })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => JsonSchemaDto)
   stateSchema?: JsonSchemaDto;
 
   @ApiPropertyOptional({ type: [ComponentToolDto] })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => ComponentToolDto)
   contextTools?: ComponentToolDto[];
 }
 ```
@@ -1171,80 +1027,45 @@ export class AvailableComponentDto {
 
 ```typescript
 // run.dto.ts
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsNumber,
-  IsObject,
-  IsArray,
-  ValidateNested,
-  IsEnum,
-} from "class-validator";
-import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class ToolChoiceNamedDto {
   @ApiProperty()
-  @IsString()
   name: string;
 }
 
 export class CreateRunDto {
   @ApiProperty({ type: InputMessageDto })
-  @ValidateNested()
-  @Type(() => InputMessageDto)
   message: InputMessageDto;
 
   @ApiPropertyOptional({ type: [AvailableComponentDto] })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => AvailableComponentDto)
   availableComponents?: AvailableComponentDto[];
 
   @ApiPropertyOptional({ type: [ToolDto] })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => ToolDto)
   tools?: ToolDto[];
 
   @ApiPropertyOptional({ oneOf: [{ type: "string" }, { type: "object" }] })
-  @IsOptional()
   toolChoice?: "auto" | "required" | "none" | ToolChoiceNamedDto;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   forceComponent?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
   createThread?: boolean;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   contextKey?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   model?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
   maxTokens?: number;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
   temperature?: number;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
   metadata?: Record<string, unknown>;
 }
 ```
@@ -1253,76 +1074,47 @@ export class CreateRunDto {
 
 ```typescript
 // thread.dto.ts
-import {
-  IsString,
-  IsOptional,
-  IsObject,
-  IsArray,
-  ValidateNested,
-} from "class-validator";
-import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class ThreadDto {
   @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty()
-  @IsString()
   projectId: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   contextKey?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
   metadata?: Record<string, unknown>;
 
   @ApiProperty()
-  @IsString()
   createdAt: string;
 
   @ApiProperty()
-  @IsString()
   updatedAt: string;
 }
 
 export class CreateThreadDto {
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   contextKey?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsObject()
   metadata?: Record<string, unknown>;
 
   @ApiPropertyOptional({ type: [InputMessageDto] })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => InputMessageDto)
   initialMessages?: InputMessageDto[];
 }
 
 export class ListThreadsQueryDto {
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   contextKey?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
   limit?: number;
 
   @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
   cursor?: string;
 }
 ```
