@@ -69,6 +69,46 @@ curl https://mise.run/fish | source
 
 Alternatively, use fnm, nvm, or any tool that reads `.node-version` or `.nvmrc`.
 
+### Tool Versions
+
+Versions of tools (i.e. not a package dependency) are managed via mise. There are other tool version files like `.nvmrc`
+and `.node-version`, but these are just for compatibility with other tools - the source of truth is always mise.
+
+If a tool is missing or the wrong version, run:
+
+```sh
+mise install
+```
+
+To install mise into the current shell session, run:
+
+```sh
+eval "$(mise activate)"
+# or by specifying a specific shell:
+eval "$(mise activate zsh)"
+eval "$(mise activate bash)"
+eval "$(mise activate fish)"
+```
+
+If the version is not available in the shell session, you should load the mise config into your shell environment.
+Alternatively, if this doesn't work or isn't possible you can make mise run a specific command with the correct versions
+using:
+
+```sh
+mise exec -- <command>
+```
+
+If there is a need to add an additional tool or change a tool version, you can run the following commands.
+This should only be done if absolutely necessary and with caution, as it will affect all developers working on the
+project.
+
+```bash
+mise install node@22
+mise use node@22
+```
+
+Alternatively, you can create a `.mise.local.toml` file to override the tool versions for your local environment only.
+
 ## 2. Core Development Principles
 
 ### Philosophy
