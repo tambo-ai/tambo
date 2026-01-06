@@ -2,6 +2,12 @@
 
 ## Executive Summary
 
+### Motivation
+
+As we prepare for the Tambo 1.0 release, the current API has accumulated inconsistencies, redundant fields, and ad-hoc patterns that make it difficult to maintain and document. This proposal defines a clean v1 API that consolidates these patterns, aligns with industry standards, and provides a solid foundation for future development.
+
+### Overview
+
 This proposal defines the Tambo API v1, a streaming-first API that uses AG-UI events as the wire protocol. The design aligns with industry standards (OpenAI, Anthropic, MCP) while extending them to support Tambo's unique capability: returning streamable UI components with props and state.
 
 ### Key Design Decisions
@@ -661,9 +667,6 @@ interface CreateRunRequest {
   maxTokens?: number;
   temperature?: number;
 
-  // Optional - Resource handling
-  embedResources?: boolean; // Fetch and embed MCP resources (default: false)
-
   // Optional - Metadata
   metadata?: Record<string, unknown>;
 }
@@ -816,247 +819,9 @@ interface GetMessageResponse {
 
 ---
 
-## Part 4: NestJS DTOs
+## Part 4: Streaming Behavior Examples
 
-### 4.1 Content DTOs
-
-```typescript
-// content.dto.ts
-import { ApiSchema } from "@nestjs/swagger";
-
-@ApiSchema({ name: "TextContent" })
-export class TextContentDto {
-  type: "text";
-  text: string;
-}
-
-@ApiSchema({ name: "ImageSource" })
-export class ImageSourceDto {
-  type: "base64" | "url";
-  mediaType?: string;
-  data?: string;
-  url?: string;
-}
-
-@ApiSchema({ name: "ImageContent" })
-export class ImageContentDto {
-  type: "image";
-  source: ImageSourceDto;
-  detail?: "auto" | "low" | "high";
-}
-
-@ApiSchema({ name: "ResourceAnnotations" })
-export class ResourceAnnotationsDto {
-  audience?: string[];
-  priority?: number;
-}
-
-@ApiSchema({ name: "ResourceData" })
-export class ResourceDataDto {
-  uri?: string;
-  name?: string;
-  title?: string;
-  description?: string;
-  mimeType?: string;
-  text?: string;
-  blob?: string;
-  annotations?: ResourceAnnotationsDto;
-}
-
-@ApiSchema({ name: "ResourceContent" })
-export class ResourceContentDto {
-  type: "resource";
-  resource: ResourceDataDto;
-}
-
-@ApiSchema({ name: "ComponentContent" })
-export class ComponentContentDto {
-  type: "component";
-  id: string;
-  name: string;
-  props: Record<string, unknown>;
-  state?: Record<string, unknown>;
-}
-
-// Union type handled via class-transformer discriminator
-export type ContentDto =
-  | TextContentDto
-  | ImageContentDto
-  | ResourceContentDto
-  | ComponentContentDto;
-```
-
-### 4.2 Message DTOs
-
-```typescript
-// message.dto.ts
-import { ApiPropertyOptional, ApiSchema } from "@nestjs/swagger";
-
-export enum MessageRoleDto {
-  User = "user",
-  Assistant = "assistant",
-  System = "system",
-  Tool = "tool",
-}
-
-/**
- * Tool call on an assistant message (OpenAI pattern)
- */
-@ApiSchema({ name: "ToolCall" })
-export class ToolCallDto {
-  id: string;
-  name: string;
-  arguments: Record<string, unknown>;
-}
-
-@ApiSchema({ name: "Message" })
-export class MessageDto {
-  id: string;
-  role: MessageRoleDto;
-  content: ContentDto[];
-  toolCalls?: ToolCallDto[];
-  toolCallId?: string;
-  createdAt?: string;
-  metadata?: Record<string, unknown>;
-}
-
-@ApiSchema({ name: "InputMessage" })
-export class InputMessageDto {
-  role: MessageRoleDto;
-  content: ContentDto[];
-
-  @ApiPropertyOptional({
-    description: "For role='tool', the ID of the tool call being answered",
-  })
-  toolCallId?: string;
-
-  @ApiPropertyOptional({
-    description: "For role='tool', indicates an error result",
-  })
-  isError?: boolean;
-
-  metadata?: Record<string, unknown>;
-}
-```
-
-### 4.3 Tool DTOs
-
-```typescript
-// tool.dto.ts
-import { ApiSchema } from "@nestjs/swagger";
-
-@ApiSchema({ name: "Tool" })
-export class ToolDto {
-  name: string;
-  description: string;
-  inputSchema: JsonSchemaDto;
-  outputSchema?: JsonSchemaDto;
-  strict?: boolean;
-}
-
-@ApiSchema({ name: "ComponentTool" })
-export class ComponentToolDto extends ToolDto {
-  maxCalls?: number;
-}
-
-@ApiSchema({ name: "AvailableComponent" })
-export class AvailableComponentDto {
-  name: string;
-  description: string;
-  propsSchema: JsonSchemaDto;
-  stateSchema?: JsonSchemaDto;
-  contextTools?: ComponentToolDto[];
-}
-```
-
-### 4.4 Run DTOs
-
-```typescript
-// run.dto.ts
-import { ApiSchema } from "@nestjs/swagger";
-
-@ApiSchema({ name: "ToolChoiceNamed" })
-export class ToolChoiceNamedDto {
-  name: string;
-}
-
-@ApiSchema({ name: "CreateRun" })
-export class CreateRunDto {
-  message: InputMessageDto;
-  availableComponents?: AvailableComponentDto[];
-  tools?: ToolDto[];
-  toolChoice?: "auto" | "required" | "none" | ToolChoiceNamedDto;
-  forceComponent?: string;
-  createThread?: boolean;
-  contextKey?: string;
-  model?: string;
-  maxTokens?: number;
-  temperature?: number;
-  metadata?: Record<string, unknown>;
-}
-```
-
-### 4.5 Thread DTOs
-
-```typescript
-// thread.dto.ts
-import { ApiSchema } from "@nestjs/swagger";
-
-@ApiSchema({ name: "Thread" })
-export class ThreadDto {
-  id: string;
-  projectId: string;
-  contextKey?: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-  updatedAt: string;
-}
-
-@ApiSchema({ name: "CreateThread" })
-export class CreateThreadDto {
-  contextKey?: string;
-  metadata?: Record<string, unknown>;
-  initialMessages?: InputMessageDto[];
-}
-
-@ApiSchema({ name: "ListThreadsQuery" })
-export class ListThreadsQueryDto {
-  contextKey?: string;
-  limit?: number;
-  cursor?: string;
-}
-```
-
-### 4.6 JSON Schema DTOs
-
-```typescript
-// json-schema.dto.ts
-import { ApiSchema } from "@nestjs/swagger";
-
-@ApiSchema({ name: "JsonSchemaProperty" })
-export class JsonSchemaPropertyDto {
-  type: string;
-  description?: string;
-  enum?: unknown[];
-  items?: JsonSchemaPropertyDto;
-  properties?: Record<string, JsonSchemaPropertyDto>;
-  required?: string[];
-}
-
-@ApiSchema({ name: "JsonSchema" })
-export class JsonSchemaDto {
-  type: "object";
-  properties: Record<string, JsonSchemaPropertyDto>;
-  required?: string[];
-  additionalProperties?: boolean;
-}
-```
-
----
-
-## Part 5: Streaming Behavior Examples
-
-### 5.1 Pure Text Interaction (No Components)
+### 4.1 Pure Text Interaction (No Components)
 
 **Request:**
 
@@ -1095,7 +860,7 @@ data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","times
 
 _Note: Clients should accumulate deltas during streaming to build the final message state. After `RUN_FINISHED`, clients can optionally call `GET /v1/threads/{threadId}/messages` to sync and verify the accumulated state._
 
-### 5.2 Text Interaction with Single Component
+### 4.2 Text Interaction with Single Component
 
 **Request:**
 
@@ -1146,7 +911,7 @@ data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200450}
 ```
 
-### 5.3 Multiple Components in One Response
+### 4.3 Multiple Components in One Response
 
 **Request:**
 
@@ -1199,7 +964,7 @@ data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200500}
 ```
 
-### 5.4 Server-Side Tool Calls (MCP Tools)
+### 4.4 Server-Side Tool Calls (MCP Tools)
 
 Server-side tools execute within the stream and produce results inline.
 
@@ -1246,7 +1011,7 @@ data: {"type":"TEXT_MESSAGE_END","messageId":"msg_002","timestamp":1704067200550
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200600}
 ```
 
-### 5.5 Client-Side Tool Calls (Browser Tools)
+### 4.5 Client-Side Tool Calls (Browser Tools)
 
 Client-side tools pause the stream with `tambo.run.awaiting_input`. The client executes the tools and continues with a new request.
 
@@ -1317,7 +1082,7 @@ data: {"type":"TEXT_MESSAGE_END","messageId":"msg_002","timestamp":1704067201150
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_abc456","timestamp":1704067201200}
 ```
 
-### 5.6 Component with Streaming State Updates
+### 4.6 Component with Streaming State Updates
 
 This example shows a component that receives state updates as they become available (e.g., from a long-running data fetch).
 
@@ -1349,7 +1114,7 @@ _Note: This example shows using the standard AG-UI `STATE_SNAPSHOT` and `STATE_D
 namespaced under `/components/{componentId}/`. Alternatively, you could use `tambo.component.state_delta`
 CUSTOM events for component-scoped updates._
 
-### 5.7 Error Handling
+### 4.7 Error Handling
 
 **Event Stream (Error during tool execution):**
 
@@ -1385,14 +1150,14 @@ _Note: `RUN_ERROR` is a standard AG-UI event. The `code` field is optional in AG
 
 ---
 
-## Part 6: Migration Considerations
+## Part 5: Migration Considerations
 
-### 6.1 Breaking Changes from Current API
+### 5.1 Breaking Changes from Current API
 
 1. **AG-UI event format**: Uses AG-UI events instead of current chunked `AdvanceThreadResponseDto` responses.
 2. **Component as content**: Components become `type: "component"` content blocks instead of a separate `component` field on messages.
 
-### 6.2 Backwards Compatibility
+### 5.2 Backwards Compatibility
 
 The React SDK will maintain the same interface it has today (`useTamboThread`, `useTamboComponentState`, etc.) and handle the API changes internally:
 
@@ -1402,7 +1167,7 @@ The React SDK will maintain the same interface it has today (`useTamboThread`, `
 
 ---
 
-## Part 7: Design Decisions Summary
+## Part 6: Design Decisions Summary
 
 The following design decisions were made during proposal development:
 
@@ -1418,13 +1183,12 @@ The following design decisions were made during proposal development:
 | **Disconnection handling**    | Pause and resume - client can reconnect via GET `/runs/{runId}`                                      |
 | **Cancellation**              | Both connection close and explicit DELETE work                                                       |
 | **Thread endpoints**          | Standard REST (not streaming)                                                                        |
-| **MCP resources**             | Configurable via `embedResources` flag                                                               |
 
 ---
 
-## Part 8: Open Questions
+## Part 7: Open Questions
 
-### 8.1 Tool Call Representation
+### 7.1 Tool Call Representation
 
 **Status:** Proposal defaults to OpenAI pattern; open for discussion.
 
@@ -1531,7 +1295,7 @@ These events are separate from `TEXT_MESSAGE_*` events, suggesting a structural 
 
 ---
 
-### 8.2 Multimodal Content Types
+### 7.2 Multimodal Content Types
 
 **Status:** Proposal uses explicit types; open for discussion.
 
@@ -1656,7 +1420,7 @@ This keeps type safety for common cases while remaining extensible.
 
 ---
 
-### 8.3 Component Content Representation
+### 7.3 Component Content Representation
 
 **Status:** Proposal uses inline content blocks; open for discussion.
 
@@ -1843,3 +1607,241 @@ Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`,
 | tambo.component.props_delta | Props JSON chunk               | componentId, delta                    |
 | tambo.component.state_delta | State JSON Patch               | componentId, delta[]                  |
 | tambo.component.end         | Component complete             | componentId, props, state?            |
+
+## Appendix C: NestJS DTO Implementation
+
+_These DTOs are implementation details for the NestJS API server. They mirror the type definitions in Part 1 with NestJS/Swagger decorators._
+
+### C.1 Content DTOs
+
+```typescript
+// content.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
+
+@ApiSchema({ name: "TextContent" })
+export class TextContentDto {
+  type: "text";
+  text: string;
+}
+
+@ApiSchema({ name: "ImageSource" })
+export class ImageSourceDto {
+  type: "base64" | "url";
+  mediaType?: string;
+  data?: string;
+  url?: string;
+}
+
+@ApiSchema({ name: "ImageContent" })
+export class ImageContentDto {
+  type: "image";
+  source: ImageSourceDto;
+  detail?: "auto" | "low" | "high";
+}
+
+@ApiSchema({ name: "ResourceAnnotations" })
+export class ResourceAnnotationsDto {
+  audience?: string[];
+  priority?: number;
+}
+
+@ApiSchema({ name: "ResourceData" })
+export class ResourceDataDto {
+  uri?: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  mimeType?: string;
+  text?: string;
+  blob?: string;
+  annotations?: ResourceAnnotationsDto;
+}
+
+@ApiSchema({ name: "ResourceContent" })
+export class ResourceContentDto {
+  type: "resource";
+  resource: ResourceDataDto;
+}
+
+@ApiSchema({ name: "ComponentContent" })
+export class ComponentContentDto {
+  type: "component";
+  id: string;
+  name: string;
+  props: Record<string, unknown>;
+  state?: Record<string, unknown>;
+}
+
+// Union type handled via class-transformer discriminator
+export type ContentDto =
+  | TextContentDto
+  | ImageContentDto
+  | ResourceContentDto
+  | ComponentContentDto;
+```
+
+### C.2 Message DTOs
+
+```typescript
+// message.dto.ts
+import { ApiPropertyOptional, ApiSchema } from "@nestjs/swagger";
+
+export enum MessageRoleDto {
+  User = "user",
+  Assistant = "assistant",
+  System = "system",
+  Tool = "tool",
+}
+
+/**
+ * Tool call on an assistant message (OpenAI pattern)
+ */
+@ApiSchema({ name: "ToolCall" })
+export class ToolCallDto {
+  id: string;
+  name: string;
+  arguments: Record<string, unknown>;
+}
+
+@ApiSchema({ name: "Message" })
+export class MessageDto {
+  id: string;
+  role: MessageRoleDto;
+  content: ContentDto[];
+  toolCalls?: ToolCallDto[];
+  toolCallId?: string;
+  createdAt?: string;
+  metadata?: Record<string, unknown>;
+}
+
+@ApiSchema({ name: "InputMessage" })
+export class InputMessageDto {
+  role: MessageRoleDto;
+  content: ContentDto[];
+
+  @ApiPropertyOptional({
+    description: "For role='tool', the ID of the tool call being answered",
+  })
+  toolCallId?: string;
+
+  @ApiPropertyOptional({
+    description: "For role='tool', indicates an error result",
+  })
+  isError?: boolean;
+
+  metadata?: Record<string, unknown>;
+}
+```
+
+### C.3 Tool DTOs
+
+```typescript
+// tool.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
+
+@ApiSchema({ name: "Tool" })
+export class ToolDto {
+  name: string;
+  description: string;
+  inputSchema: JsonSchemaDto;
+  outputSchema?: JsonSchemaDto;
+  strict?: boolean;
+}
+
+@ApiSchema({ name: "ComponentTool" })
+export class ComponentToolDto extends ToolDto {
+  maxCalls?: number;
+}
+
+@ApiSchema({ name: "AvailableComponent" })
+export class AvailableComponentDto {
+  name: string;
+  description: string;
+  propsSchema: JsonSchemaDto;
+  stateSchema?: JsonSchemaDto;
+  contextTools?: ComponentToolDto[];
+}
+```
+
+### C.4 Run DTOs
+
+```typescript
+// run.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
+
+@ApiSchema({ name: "ToolChoiceNamed" })
+export class ToolChoiceNamedDto {
+  name: string;
+}
+
+@ApiSchema({ name: "CreateRun" })
+export class CreateRunDto {
+  message: InputMessageDto;
+  availableComponents?: AvailableComponentDto[];
+  tools?: ToolDto[];
+  toolChoice?: "auto" | "required" | "none" | ToolChoiceNamedDto;
+  forceComponent?: string;
+  createThread?: boolean;
+  contextKey?: string;
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+  metadata?: Record<string, unknown>;
+}
+```
+
+### C.5 Thread DTOs
+
+```typescript
+// thread.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
+
+@ApiSchema({ name: "Thread" })
+export class ThreadDto {
+  id: string;
+  projectId: string;
+  contextKey?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+@ApiSchema({ name: "CreateThread" })
+export class CreateThreadDto {
+  contextKey?: string;
+  metadata?: Record<string, unknown>;
+  initialMessages?: InputMessageDto[];
+}
+
+@ApiSchema({ name: "ListThreadsQuery" })
+export class ListThreadsQueryDto {
+  contextKey?: string;
+  limit?: number;
+  cursor?: string;
+}
+```
+
+### C.6 JSON Schema DTOs
+
+```typescript
+// json-schema.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
+
+@ApiSchema({ name: "JsonSchemaProperty" })
+export class JsonSchemaPropertyDto {
+  type: string;
+  description?: string;
+  enum?: unknown[];
+  items?: JsonSchemaPropertyDto;
+  properties?: Record<string, JsonSchemaPropertyDto>;
+  required?: string[];
+}
+
+@ApiSchema({ name: "JsonSchema" })
+export class JsonSchemaDto {
+  type: "object";
+  properties: Record<string, JsonSchemaPropertyDto>;
+  required?: string[];
+  additionalProperties?: boolean;
+}
+```
