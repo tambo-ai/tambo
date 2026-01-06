@@ -17,6 +17,80 @@ This proposal defines the Tambo API v1, a streaming-first API that uses AG-UI ev
 
 ---
 
+## Architecture Overview
+
+```mermaid
+sequenceDiagram
+    participant App as React App
+    participant SDK as Tambo React SDK
+    participant API as Tambo API
+    participant Backend as Tambo Backend
+    participant LLM as LLM Provider
+
+    App->>SDK: useTamboThread()
+    App->>SDK: sendMessage(text)
+    SDK->>API: POST /v1/threads/{id}/runs
+    API->>Backend: Create run, prepare context
+    Backend->>LLM: Stream completion request
+
+    loop AG-UI Event Stream
+        LLM-->>Backend: Token/tool call chunks
+        Backend-->>API: Transform to AG-UI events
+        API-->>SDK: SSE: TEXT_MESSAGE_CONTENT, TOOL_CALL_*, tambo.component.*
+        SDK->>SDK: Accumulate events into messages
+        SDK-->>App: Update thread state (messages, components)
+    end
+
+    LLM-->>Backend: Completion finished
+    Backend-->>API: RUN_FINISHED
+    API-->>SDK: SSE: RUN_FINISHED
+    SDK-->>App: Final thread state
+```
+
+```mermaid
+flowchart TB
+    subgraph Client["Client (Browser)"]
+        App[React App]
+        SDK[Tambo React SDK]
+        Components[Rendered Components]
+    end
+
+    subgraph TamboCloud["Tambo Cloud"]
+        API["/v1 REST API"]
+        Backend[Backend Services]
+        DB[(Database)]
+    end
+
+    subgraph External["External Services"]
+        LLM[LLM Providers]
+        MCP[MCP Servers]
+    end
+
+    App --> SDK
+    SDK -->|"POST /runs (SSE)"| API
+    SDK -->|"Accumulates events"| SDK
+    SDK --> Components
+
+    API --> Backend
+    Backend --> DB
+    Backend -->|"Streaming"| LLM
+    Backend -->|"Tool calls"| MCP
+
+    API -.->|"AG-UI Events"| SDK
+```
+
+**Data Flow:**
+
+1. **Client → API**: SDK sends `CreateRun` request with message, available components, and tools
+2. **API → Backend**: Backend prepares context (thread history, MCP resources) and calls LLM
+3. **LLM → Backend**: LLM streams tokens and tool calls back to backend
+4. **Backend → API**: Backend transforms LLM output into AG-UI events
+5. **API → SDK**: SSE stream delivers events (`TEXT_MESSAGE_*`, `TOOL_CALL_*`, `tambo.component.*`)
+6. **SDK accumulation**: SDK accumulates events into complete message structures
+7. **SDK → App**: React hooks expose accumulated state (messages, components, loading status)
+
+---
+
 ## Part 1: Core Type Definitions
 
 ### 1.1 Roles
@@ -744,12 +818,15 @@ interface GetMessageResponse {
 
 ```typescript
 // content.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: "TextContent" })
 export class TextContentDto {
   type: "text";
   text: string;
 }
 
+@ApiSchema({ name: "ImageSource" })
 export class ImageSourceDto {
   type: "base64" | "url";
   mediaType?: string;
@@ -757,17 +834,20 @@ export class ImageSourceDto {
   url?: string;
 }
 
+@ApiSchema({ name: "ImageContent" })
 export class ImageContentDto {
   type: "image";
   source: ImageSourceDto;
   detail?: "auto" | "low" | "high";
 }
 
+@ApiSchema({ name: "ResourceAnnotations" })
 export class ResourceAnnotationsDto {
   audience?: string[];
   priority?: number;
 }
 
+@ApiSchema({ name: "ResourceData" })
 export class ResourceDataDto {
   uri?: string;
   name?: string;
@@ -779,11 +859,13 @@ export class ResourceDataDto {
   annotations?: ResourceAnnotationsDto;
 }
 
+@ApiSchema({ name: "ResourceContent" })
 export class ResourceContentDto {
   type: "resource";
   resource: ResourceDataDto;
 }
 
+@ApiSchema({ name: "ComponentContent" })
 export class ComponentContentDto {
   type: "component";
   id: string;
@@ -804,7 +886,7 @@ export type ContentDto =
 
 ```typescript
 // message.dto.ts
-import { ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional, ApiSchema } from "@nestjs/swagger";
 
 export enum MessageRoleDto {
   User = "user",
@@ -816,12 +898,14 @@ export enum MessageRoleDto {
 /**
  * Tool call on an assistant message (OpenAI pattern)
  */
+@ApiSchema({ name: "ToolCall" })
 export class ToolCallDto {
   id: string;
   name: string;
   arguments: Record<string, unknown>;
 }
 
+@ApiSchema({ name: "Message" })
 export class MessageDto {
   id: string;
   role: MessageRoleDto;
@@ -832,6 +916,7 @@ export class MessageDto {
   metadata?: Record<string, unknown>;
 }
 
+@ApiSchema({ name: "InputMessage" })
 export class InputMessageDto {
   role: MessageRoleDto;
   content: ContentDto[];
@@ -854,7 +939,9 @@ export class InputMessageDto {
 
 ```typescript
 // tool.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: "Tool" })
 export class ToolDto {
   name: string;
   description: string;
@@ -863,10 +950,12 @@ export class ToolDto {
   strict?: boolean;
 }
 
+@ApiSchema({ name: "ComponentTool" })
 export class ComponentToolDto extends ToolDto {
   maxCalls?: number;
 }
 
+@ApiSchema({ name: "AvailableComponent" })
 export class AvailableComponentDto {
   name: string;
   description: string;
@@ -880,11 +969,14 @@ export class AvailableComponentDto {
 
 ```typescript
 // run.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: "ToolChoiceNamed" })
 export class ToolChoiceNamedDto {
   name: string;
 }
 
+@ApiSchema({ name: "CreateRun" })
 export class CreateRunDto {
   message: InputMessageDto;
   availableComponents?: AvailableComponentDto[];
@@ -904,7 +996,9 @@ export class CreateRunDto {
 
 ```typescript
 // thread.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: "Thread" })
 export class ThreadDto {
   id: string;
   projectId: string;
@@ -914,12 +1008,14 @@ export class ThreadDto {
   updatedAt: string;
 }
 
+@ApiSchema({ name: "CreateThread" })
 export class CreateThreadDto {
   contextKey?: string;
   metadata?: Record<string, unknown>;
   initialMessages?: InputMessageDto[];
 }
 
+@ApiSchema({ name: "ListThreadsQuery" })
 export class ListThreadsQueryDto {
   contextKey?: string;
   limit?: number;
@@ -931,7 +1027,9 @@ export class ListThreadsQueryDto {
 
 ```typescript
 // json-schema.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
 
+@ApiSchema({ name: "JsonSchemaProperty" })
 export class JsonSchemaPropertyDto {
   type: string;
   description?: string;
@@ -941,6 +1039,7 @@ export class JsonSchemaPropertyDto {
   required?: string[];
 }
 
+@ApiSchema({ name: "JsonSchema" })
 export class JsonSchemaDto {
   type: "object";
   properties: Record<string, JsonSchemaPropertyDto>;
@@ -1286,28 +1385,16 @@ _Note: `RUN_ERROR` is a standard AG-UI event. The `code` field is optional in AG
 
 ### 6.1 Breaking Changes from Current API
 
-1. **No sync endpoints**: All responses are streaming. Clients must handle SSE.
-2. **New event format**: Uses AG-UI events instead of current chunked responses.
-3. **Content arrays**: All messages have `content` as array, not string.
-4. **Component as content**: Components are now `content` blocks, not separate fields.
-5. **Tool call format**: Uses OpenAI pattern (`tool_calls` array, `role: "tool"` messages).
+1. **AG-UI event format**: Uses AG-UI events instead of current chunked `AdvanceThreadResponseDto` responses.
+2. **Component as content**: Components become `type: "component"` content blocks instead of a separate `component` field on messages.
 
 ### 6.2 Backwards Compatibility
 
-During migration, consider:
+The React SDK will maintain the same interface it has today (`useTamboThread`, `useTamboComponentState`, etc.) and handle the API changes internally:
 
-- Versioned endpoints (`/v1/` prefix)
-- SDK abstraction layer that handles event accumulation
-- Documentation showing before/after patterns
-
-### 6.3 SDK Support
-
-The React SDK should provide:
-
-- `useTamboRun()` hook that abstracts event handling
-- Automatic component rendering based on `ComponentContent`
-- State management via STATE_DELTA events
-- TypeScript types matching the DTOs
+- Accumulates AG-UI events into the same message structures the SDK already exposes
+- Translates component content blocks back to the component interface hooks expect
+- Versioned endpoints (`/v1/` prefix) allow gradual migration
 
 ---
 
