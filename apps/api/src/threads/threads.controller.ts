@@ -446,13 +446,15 @@ export class ThreadsController {
       await this.handleAdvanceStream(response, queue);
       await p;
     } catch (error: unknown) {
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
       this.logger.error(
         `Error in streaming response (projectId=${projectId}, threadId=${threadId})`,
-        error instanceof Error ? error.stack : undefined,
+        normalizedError.stack,
       );
-      Sentry.captureException(error);
+      Sentry.captureException(normalizedError);
       throw new InternalServerErrorException("Error in streaming response", {
-        cause: error instanceof Error ? error : undefined,
+        cause: normalizedError,
       });
     }
   }
@@ -517,13 +519,15 @@ export class ThreadsController {
       await this.handleAdvanceStream(response, queue);
       await p;
     } catch (error: unknown) {
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
       this.logger.error(
         `Error in streaming response (projectId=${projectId})`,
-        error instanceof Error ? error.stack : undefined,
+        normalizedError.stack,
       );
-      Sentry.captureException(error);
+      Sentry.captureException(normalizedError);
       throw new InternalServerErrorException("Error in streaming response", {
-        cause: error instanceof Error ? error : undefined,
+        cause: normalizedError,
       });
     }
   }
@@ -590,11 +594,13 @@ export class ThreadsController {
         }
       }
     } catch (error: unknown) {
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
       this.logger.error(
         "Error while writing streaming response",
-        error instanceof Error ? error.stack : undefined,
+        normalizedError.stack,
       );
-      Sentry.captureException(error);
+      Sentry.captureException(normalizedError);
       response.write("error: Error in streaming response\n\n");
     } finally {
       response.write("data: DONE\n\n");

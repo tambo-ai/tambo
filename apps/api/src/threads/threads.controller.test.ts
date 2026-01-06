@@ -168,6 +168,9 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
       expect(mockResponse.write).toHaveBeenCalledWith(
         "error: Error in streaming response\n\n",
       );
+      for (const [message] of (mockResponse.write as jest.Mock).mock.calls) {
+        expect(message).not.toContain(internalError.message);
+      }
       expect(mockResponse.end).toHaveBeenCalled();
       expect(threadsService.advanceThread).toHaveBeenCalled();
     });
@@ -237,6 +240,9 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
       expect(mockResponse.write).toHaveBeenCalledWith(
         "error: Error in streaming response\n\n",
       );
+      for (const [message] of (mockResponse.write as jest.Mock).mock.calls) {
+        expect(message).not.toContain(internalError.message);
+      }
       expect(mockResponse.end).toHaveBeenCalled();
       expect(threadsService.advanceThread).toHaveBeenCalled();
     });
