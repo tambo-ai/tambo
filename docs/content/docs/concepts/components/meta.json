@@ -1,8 +1,6 @@
 {
   "title": "Components",
   "pages": [
-    "registering-with-tambo-provider",
-    "registering-components-dynamically",
     "component-state",
     "interactable-components",
     "syncing-editable-interactables"

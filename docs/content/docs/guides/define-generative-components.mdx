@@ -1,16 +1,23 @@
 ---
 title: Register Generative Components
-description: Learn how to define components with proper props schemas for Tambo integration.
+description: Step-by-step guide to registering components so Tambo can generate them on-demand in responses.
 ---
 
-Tell Tambo which components it can use in responses, what they are for, and what props they expect by defining a `TamboComponent` for each.
+This guide shows you how to register React components with Tambo so it can intelligently choose and render them in response to user messages. You'll learn both static registration (at app startup) and dynamic registration (at runtime).
+
+## Prerequisites
+
+- A React component you want Tambo to use
+- A Zod schema defining the component's props
+- `@tambo-ai/react` installed in your project
+
+## Step 1: Define Your Component Schema
+
+Create a Zod schema that describes your component's props. This tells Tambo what data it needs to generate.
 
 ```tsx
 import { z } from "zod";
-import { DataChart } from "@/components/DataChart";
-import { TamboProvider } from "@tambo-ai/react";
 
-// Define the schema with Zod
 export const DataChartProps = z.object({
   data: z.object({
     labels: z.array(z.string()),
@@ -18,31 +25,21 @@ export const DataChartProps = z.object({
   }),
   type: z.enum(["bar", "line", "pie"]),
 });
-
-const tamboComponents: TamboComponent[] = [
-  {
-    component: DataChart,
-    name: "DataChart",
-    description: "Displays data as a chart",
-    propsSchema: DataChartProps,
-  },
-];
-
-<TamboProvider components={tamboComponents}>
-  <App />
-</TamboProvider>;
 ```
 
-Note that when using zod's `.optional()` on a field, tambo may not attempt to generate any value for the prop.
+<Callout type="info" title="Optional Props">
 
-You can also use `z.describe()` to provide extra guidance to the AI:
+When using `.optional()` on a field, Tambo may not attempt to generate any value for that prop. Only mark props as optional if you truly want Tambo to sometimes omit them.
+
+</Callout>
+
+## Step 2: Add Descriptions for Better AI Guidance
+
+Use `z.describe()` to provide hints that help Tambo generate better prop values:
 
 ```tsx
 import { z } from "zod";
-import { DataChart } from "@/components/DataChart";
-import { TamboProvider } from "@tambo-ai/react";
 
-// Define schema with descriptions for AI
 export const DataChartProps = z
   .object({
     data: z
@@ -60,6 +57,26 @@ export const DataChartProps = z
       ),
   })
   .describe("A component for displaying data in various chart formats");
+```
+
+Descriptions help Tambo understand:
+
+- What format to use for values
+- When to use specific enum options
+- The purpose of nested objects
+
+## Step 3: Choose Your Registration Method
+
+You can register components in two ways:
+
+### Option A: Static Registration (Recommended for Most Cases)
+
+Register components when your app initializes by passing them to `TamboProvider`:
+
+```tsx
+import { DataChart } from "@/components/DataChart";
+import { TamboProvider } from "@tambo-ai/react";
+import { DataChartProps } from "@/schemas/DataChartProps";
 
 const tamboComponents: TamboComponent[] = [
   {
@@ -70,21 +87,116 @@ const tamboComponents: TamboComponent[] = [
   },
 ];
 
-<TamboProvider components={tamboComponents}>
-  <App />
-</TamboProvider>;
+function App() {
+  return (
+    <TamboProvider components={tamboComponents}>
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+**Use static registration when:**
+
+- Components are available at app startup
+- You want all components registered immediately
+- Components don't depend on runtime data
+
+### Option B: Dynamic Registration
+
+Register components at runtime using the `registerComponent` function from `useTamboRegistry`:
+
+```tsx
+import { useTamboRegistry } from "@tambo-ai/react";
+import { useEffect } from "react";
+import { DataChart } from "@/components/DataChart";
+import { DataChartProps } from "@/schemas/DataChartProps";
+
+function MyComponent() {
+  const { registerComponent } = useTamboRegistry();
+
+  useEffect(() => {
+    registerComponent({
+      name: "DataChart",
+      description: "Displays data as a chart",
+      component: DataChart,
+      propsSchema: DataChartProps,
+    });
+  }, [registerComponent]);
+
+  return <YourUI />;
+}
+```
+
+**Use dynamic registration when:**
+
+- Components depend on runtime data or user context
+- You want to conditionally register components
+- Components are loaded asynchronously
+- You need to register components based on thread state
+
+<Callout type="info" title="Hook Access">
+
+You can also use `useTambo()` which provides `registerComponent` along with thread management. Both `useTamboRegistry()` and `useTambo()` expose the same `registerComponent` function.
+
+</Callout>
+
+## Step 4: Verify Registration
+
+Once registered, Tambo can use your component in responses. When a user sends a message that matches your component's purpose, Tambo will generate it with appropriate props.
+
+For example, if a user asks "Show me a bar chart of sales data," Tambo will render your `DataChart` component with the generated data.
+
+## Complete Example
+
+Here's a complete example combining all steps:
+
+```tsx
+import { z } from "zod";
+import { DataChart } from "@/components/DataChart";
+import { TamboProvider } from "@tambo-ai/react";
+
+// Step 1: Define schema with descriptions
+export const DataChartProps = z
+  .object({
+    data: z
+      .object({
+        labels: z
+          .array(z.string())
+          .describe("Use single words or short phrases."),
+        values: z.array(z.number()).describe("Use whole numbers."),
+      })
+      .describe("Chart data with labels and values"),
+    type: z
+      .enum(["bar", "line", "pie"])
+      .describe(
+        "Use a chart type appropriate for the data. Only use pie charts when less than 5 values.",
+      ),
+  })
+  .describe("A component for displaying data in various chart formats");
+
+// Step 2: Create component array
+const tamboComponents: TamboComponent[] = [
+  {
+    component: DataChart,
+    name: "DataChart",
+    description: "Displays data as a chart",
+    propsSchema: DataChartProps,
+  },
+];
+
+// Step 3: Register via TamboProvider
+function App() {
+  return (
+    <TamboProvider components={tamboComponents}>
+      <YourApp />
+    </TamboProvider>
+  );
+}
 ```
 
 <Callout type="info" title="Interactable Components">
 
-This registration approach is for generative components that Tambo creates on-demand. If you want to pre-place components on your page and let Tambo modify them, use [Interactable Components](./interactable-components) instead—they register themselves automatically when mounted.
+This registration approach is for generative components that Tambo creates on-demand. If you want to pre-place components on your page and let Tambo modify them, use [Interactable Components](/concepts/components/interactable-components) instead. They register themselves automatically when mounted.
 
 </Callout>
-
-<Callout type="warn" title="Want Both Capabilities?">
-
-If you want Tambo to both modify pre-placed interactable components AND be able to generate new generative component instances inline, register the component in the `TamboProvider` components array as well.
-
-</Callout>
-
-Now when a user sends a message asking about something related to your components, Tambo can respond with the appropriate component filled with relevant data!
