@@ -67,11 +67,11 @@ curl https://mise.run/fish | source
 
 > If you have Windows, see here to start using mise: https://mise.jdx.dev/getting-started.html
 
-Alternatively, if you must use fnm, nvm, or another tool that reads `.node-version` or `.nvmrc`, keep those files exactly matching the versions committed in this repo. Do not change them locally without opening a PR. For Node.js, `.node-version` and `.nvmrc` are the authoritative version files.
+Alternatively, if you must use fnm, nvm, or another tool that reads `.node-version` or `.nvmrc`, keep those files identical to the versions committed in this repo. Do not edit them locally for day-to-day work; follow the PR process below if a version needs to change. For Node.js, `.node-version` and `.nvmrc` are the authoritative version files.
 
 ### Tool Versions
 
-Versions of tools (i.e. not a package dependency) are managed via mise. For most tools currently in this repo, the source of truth is `mise.toml`. For Node.js, the source of truth is `.node-version` (with `.nvmrc` kept in sync for compatibility), which mise reads via `idiomatic_version_file_enable_tools`. These files are typically kept up to date by Renovate.
+Versions of tools (i.e. not a package dependency) are managed via mise. For most tools currently in this repo, the source of truth is `mise.toml`. For Node.js, the source of truth is `.node-version` (with `.nvmrc` kept in sync for compatibility), and mise is configured in `mise.toml` to read that via `idiomatic_version_file_enable_tools`. These files are typically kept up to date by Renovate.
 
 If a tool is missing or the wrong version, run:
 
@@ -98,11 +98,11 @@ If the version is not available in the shell session, you should load the mise c
 mise exec -- <command>
 ```
 
-`mise exec` will ensure the required tools are installed and run the given command using the versions defined in the repo-managed version files (for example, `mise.toml` for most tools and `.node-version`/`.nvmrc` for Node, where those files are the source of truth), without needing to modify the surrounding shell environment.
+`mise exec` will ensure the required tools are installed and run the given command using the versions defined by the repo's authoritative version files (for example, `mise.toml` for most tools and `.node-version`/`.nvmrc` for Node). It does this without needing to modify the surrounding shell environment.
 
-If there is a need to add an additional tool or change a tool version, open a PR updating the relevant version file(s) (usually `mise.toml`, and `.node-version`/`.nvmrc` together for Node). This affects all developers and CI, so avoid committing temporary or experimental version changes. After updating those files, run `mise install` to apply the changes locally. For example, to bump Node, update `.node-version` and `.nvmrc`, run `mise install`, then run the test suite to confirm everything passes.
+If there is a need to add an additional tool or change a tool version, open a PR updating all of that tool's authoritative version file(s) (usually `mise.toml`, and `.node-version`/`.nvmrc` together for Node). This affects all developers and CI, so avoid committing temporary or experimental version changes. After updating those files, run `mise install` to apply the changes locally, then run `npm run lint`, `npm run check-types`, and `npm run test` to confirm everything passes.
 
-Alternatively, you can create a `.mise.local.toml` file to override the tool versions for your local environment only. This file is for local overrides only, is ignored by git, should not be committed to version control, and it does not replace the repo-managed version files (`mise.toml`, `.node-version`, `.nvmrc`) as the source of truth. Do not use `.mise.local.toml` to run older or incompatible tool versions than those defined in the repo.
+Alternatively, you can create a `.mise.local.toml` file to override tool versions for your local environment only. This file is for local overrides only, is ignored by git, and should not be committed to version control. It does not replace the repo-managed version files (`mise.toml`, `.node-version`, `.nvmrc`) as the source of truth. Use it for additive or strictly compatible local changes only (for example, extra local-only tools); do not use it to run older, unsupported, or semver-incompatible tool versions than those defined in the repo.
 
 ## 2. Core Development Principles
 
