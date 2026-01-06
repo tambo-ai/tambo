@@ -188,38 +188,46 @@ interface ResourceContent extends BaseContent {
 }
 
 /**
- * Tool use content - indicates the assistant wants to call a tool
- * Only appears in assistant messages
- * @see https://docs.anthropic.com/en/api/messages - ToolUseBlock
- * @see https://modelcontextprotocol.io/specification/2025-11-25/server/sampling - ToolUseContent
+ * ⚠️ OPEN QUESTION: Tool Call Representation
  *
- * Note: This is Anthropic's approach where tool calls are content blocks.
- * OpenAI instead uses a separate `tool_calls` array on the message.
- * We follow Anthropic/MCP because it's more composable - a message can have
- * text + tool calls + components all in one content array.
+ * There are two competing patterns for representing tool calls in messages:
+ *
+ * **Option A: Content Blocks (Anthropic pattern)**
+ * - Tool calls are `type: "tool_use"` content blocks in the content array
+ * - Tool results are `type: "tool_result"` content blocks
+ * - More composable: text + tool calls + components in one content array
+ * - Used by: Anthropic Messages API, MCP Sampling
+ * @see https://docs.anthropic.com/en/api/messages - ToolUseBlock, ToolResultBlock
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/client/sampling - SamplingMessage
+ *
+ * **Option B: Separate Fields (OpenAI pattern)**
+ * - Tool calls are a separate `tool_calls` array on the message
+ * - Tool results use a separate `role: "tool"` message
+ * - Clearer separation of concerns
+ * - Used by: OpenAI Chat API, MCP Tools (JSON-RPC `tools/call` method)
+ * @see https://platform.openai.com/docs/api-reference/chat/create - tool_calls
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/server/tools - tools/call
+ *
+ * **Note on AG-UI**: The wire protocol uses separate events (TOOL_CALL_START,
+ * TOOL_CALL_ARGS, TOOL_CALL_END) which don't dictate message storage format.
+ * We need to decide how to represent tool calls in stored/returned messages.
+ *
+ * Current proposal uses Option A (content blocks) but this needs discussion.
  */
+
+// Option A: Content block approach (currently proposed)
 interface ToolUseContent extends BaseContent {
   type: "tool_use";
-  id: string; // Unique identifier for this tool call
-  name: string; // Tool name
-  input: Record<string, unknown>; // Parsed JSON arguments
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
 }
 
-/**
- * Tool result content - provides tool execution results
- * Only appears in user/tool messages following a tool_use
- * @see https://docs.anthropic.com/en/api/messages - ToolResultBlockParam
- * @see https://modelcontextprotocol.io/specification/2025-11-25/server/sampling - ToolResultContent
- *
- * Note: Anthropic requires tool_result blocks in user messages.
- * OpenAI uses a separate "tool" role message. We support both patterns -
- * tool_result content can appear in either user or tool role messages.
- */
 interface ToolResultContent extends BaseContent {
   type: "tool_result";
-  toolUseId: string; // Must match the tool_use.id
-  content: Content[]; // Tool output (usually text, can be multi-modal)
-  isError?: boolean; // Indicates tool execution failure
+  toolUseId: string;
+  content: Content[];
+  isError?: boolean;
 }
 
 /**
