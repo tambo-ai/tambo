@@ -67,11 +67,11 @@ curl https://mise.run/fish | source
 
 > If you have Windows, see here to start using mise: https://mise.jdx.dev/getting-started.html
 
-Alternatively, if you must use fnm, nvm, or another tool that reads `.node-version` or `.nvmrc`, treat mise (and the versions defined in `.mise.toml`) as the source of truth for tool versions. Keep those tools in sync with the versions defined there.
+Alternatively, if you must use fnm, nvm, or another tool that reads `.node-version` or `.nvmrc`, keep those files in sync with the repo.
 
 ### Tool Versions
 
-Versions of tools (i.e. not a package dependency) are managed via mise. There are other tool version files like `.nvmrc` and `.node-version`, but these are just for compatibility with other tools - the source of truth is always mise.
+Versions of tools (i.e. not a package dependency) are managed via mise. Most tool versions live in `mise.toml`. The Node.js version is pinned in `.node-version` (and mirrored in `.nvmrc` for compatibility), which mise reads via `idiomatic_version_file_enable_tools`. These files are typically kept up to date by Renovate.
 
 If a tool is missing or the wrong version, run:
 
@@ -98,17 +98,11 @@ If the version is not available in the shell session, you should load the mise c
 mise exec -- <command>
 ```
 
-`mise exec` will ensure the required tools are installed and run the given command using the versions defined in `.mise.toml`, without needing to modify the surrounding shell environment.
+`mise exec` will ensure the required tools are installed and run the given command using the versions defined in `mise.toml` / `.node-version`, without needing to modify the surrounding shell environment.
 
-If there is a need to add an additional tool or change a tool version, you can run the following commands. This should only be done if absolutely necessary and with caution, as it will affect all developers working on the project. Avoid committing temporary or experimental version changes. Check `.mise.toml` for the current project versions.
+If there is a need to add an additional tool or change a tool version, open a PR updating the relevant version file (usually `mise.toml`, and `.node-version` / `.nvmrc` for Node). After updating those files, run `mise install` to apply the changes locally.
 
-```bash
-# Example: replace 22 with the version defined for node in `.mise.toml`
-mise install node@22
-mise use node@22
-```
-
-Alternatively, you can create a `.mise.local.toml` file to override the tool versions for your local environment only. This file is for local overrides only, is ignored by git, should not be committed to version control, and it does not replace `.mise.toml` as the source of truth.
+Alternatively, you can create a `.mise.local.toml` file to override the tool versions for your local environment only. This file is for local overrides only, is ignored by git, should not be committed to version control, and it does not replace the repo-managed version files as the source of truth.
 
 ## 2. Core Development Principles
 
