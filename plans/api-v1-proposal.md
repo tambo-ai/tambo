@@ -275,11 +275,11 @@ interface Message {
 }
 
 /**
- * Input message for requests - content can be string shorthand
+ * Input message for requests
  */
 interface InputMessage {
   role: MessageRole;
-  content: string | InputContent[];
+  content: InputContent[];
 
   // For role="tool" messages, the ID of the tool call being answered
   toolCallId?: string;
@@ -948,7 +948,7 @@ import {
   IsObject,
   IsBoolean,
 } from "class-validator";
-import { Type, Transform } from "class-transformer";
+import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export enum MessageRoleDto {
@@ -1015,13 +1015,8 @@ export class InputMessageDto {
   @IsEnum(MessageRoleDto)
   role: MessageRoleDto;
 
-  @ApiProperty({ oneOf: [{ type: "string" }, { type: "array" }] })
-  @Transform(({ value }) => {
-    if (typeof value === "string") {
-      return [{ type: "text", text: value }];
-    }
-    return value;
-  })
+  @ApiProperty({ type: [Object] })
+  @IsArray()
   content: ContentDto[];
 
   @ApiPropertyOptional({
