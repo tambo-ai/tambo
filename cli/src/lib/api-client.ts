@@ -88,7 +88,7 @@ interface StubRouter {
 // ============================================================================
 
 export function getApiBaseUrl(): string {
-  return process.env.TAMBO_API_URL ?? "https://api.tambo.co";
+  return process.env.TAMBO_API_URL ?? "https://tambo.co";
 }
 
 export class ApiError extends Error {
