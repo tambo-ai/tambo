@@ -28,7 +28,7 @@ export const currentInteractablesContextHelper: ContextHelperFn = () => {
  * Creates an interactables context helper with access to the current components.
  * This is used internally by TamboInteractableProvider.
  * @param components Array of interactable components
- * @returns Context helper function
+ * @returns A context helper function that returns component metadata or null if no components exist
  */
 export const createInteractablesContextHelper = (
   components: any[],
