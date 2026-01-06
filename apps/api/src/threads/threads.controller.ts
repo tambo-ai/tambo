@@ -22,6 +22,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
+import * as Sentry from "@sentry/nestjs";
 import { AsyncQueue, GenerationStage } from "@tambo-ai-cloud/core";
 import { type Request, type Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
@@ -48,6 +49,7 @@ import {
 } from "./dto/thread.dto";
 import { ThreadInProjectGuard } from "./guards/thread-in-project-guard";
 import { ThreadsService } from "./threads.service";
+import { EndpointDeprecatedException } from "./types/errors";
 import { threadMessageToDto } from "./util/messages";
 import { throttleChunks } from "./util/streaming";
 
@@ -370,51 +372,37 @@ export class ThreadsController {
   }
 
   /**
-   * Given a thread, generate the response message, optionally appending a message before generation.
+   * DEPRECATED: Non-streaming endpoint has been removed.
+   * Use POST /:id/advancestream instead.
    */
   @UseGuards(ThreadInProjectGuard)
   @Post(":id/advance")
   @ApiOperation({
-    summary: "Advance a thread",
-    description: "Generates the response message for an existing thread",
+    summary: "DEPRECATED - Advance a thread (non-streaming)",
+    description:
+      "This endpoint has been deprecated. Use POST /:id/advancestream instead.",
+    deprecated: true,
   })
   @ApiParam({
     name: "id",
     description: "Id of an existing thread to advance",
     example: "thr_123.456",
   })
+  @ApiResponse({
+    status: 410,
+    description: "This endpoint is deprecated",
+    type: ProblemDetailsDto,
+  })
   async advanceThread(
-    @Param("id") threadId: string,
+    @Param("id") _threadId: string,
     @Req() request: Request,
-    @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
-    const { projectId, contextKey } = extractContextInfo(
-      request,
-      advanceRequestDto.contextKey,
-    );
-    const queue = new AsyncQueue<AdvanceThreadResponseDto>();
-    // This method will resolve when the queue is done or failed
-    const p = this.threadsService.advanceThread(
-      projectId,
-      advanceRequestDto,
-      threadId,
-      false,
-      advanceRequestDto.toolCallCounts ?? {},
-      undefined,
-      queue,
-      contextKey,
-    );
-
-    let lastMessage: AdvanceThreadResponseDto | null = null;
-    for await (const message of queue) {
-      lastMessage = message;
-    }
-    if (!lastMessage) {
-      throw new InternalServerErrorException("No message found in queue");
-    }
-    // await the promise to ensure the queue is finished
-    await p;
-    return lastMessage;
+    throw new EndpointDeprecatedException({
+      detail:
+        "The non-streaming /:id/advance endpoint has been deprecated. Please use /:id/advancestream instead.",
+      instance: request.originalUrl ?? request.url,
+      migrateToEndpoint: "POST /:id/advancestream",
+    });
   }
 
   @UseGuards(ThreadInProjectGuard)
@@ -449,7 +437,6 @@ export class ThreadsController {
         projectId,
         advanceRequestDto,
         threadId,
-        true,
         advanceRequestDto.toolCallCounts ?? {},
         undefined,
         queue,
@@ -458,50 +445,45 @@ export class ThreadsController {
 
       await this.handleAdvanceStream(response, queue);
       await p;
-    } catch (error: any) {
-      console.error(error);
-      throw new InternalServerErrorException(`Error in streaming response:`);
+    } catch (error: unknown) {
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
+      this.logger.error(
+        `Error in streaming response (projectId=${projectId}, threadId=${threadId})`,
+        normalizedError.stack,
+      );
+      Sentry.captureException(normalizedError);
+      throw new InternalServerErrorException("Error in streaming response", {
+        cause: normalizedError,
+      });
     }
   }
 
   /**
-   * Create a new thread and advance it, optionally appending a message before generation.
+   * DEPRECATED: Non-streaming endpoint has been removed.
+   * Use POST /advancestream instead.
    */
   @Post("advance")
   @ApiOperation({
-    summary: "Create and advance a thread",
-    description: "Creates a new thread and advances it",
+    summary: "DEPRECATED - Create and advance a thread (non-streaming)",
+    description:
+      "This endpoint has been deprecated. Use POST /advancestream instead.",
+    deprecated: true,
+  })
+  @ApiResponse({
+    status: 410,
+    description: "This endpoint is deprecated",
+    type: ProblemDetailsDto,
   })
   async createAndAdvanceThread(
     @Req() request: Request,
-    @Body() advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
-    const { projectId, contextKey } = extractContextInfo(
-      request,
-      advanceRequestDto.contextKey,
-    );
-    const queue = new AsyncQueue<AdvanceThreadResponseDto>();
-    const p = this.threadsService.advanceThread(
-      projectId,
-      advanceRequestDto,
-      undefined,
-      false,
-      advanceRequestDto.toolCallCounts ?? {},
-      undefined,
-      queue,
-      contextKey,
-    );
-    let lastMessage: AdvanceThreadResponseDto | null = null;
-    for await (const message of queue) {
-      lastMessage = message;
-    }
-    if (!lastMessage) {
-      throw new InternalServerErrorException("No message found in queue");
-    }
-    // await the promise to ensure the queue is finished
-    await p;
-    // Since stream=false, result will be AdvanceThreadResponseDto
-    return lastMessage;
+    throw new EndpointDeprecatedException({
+      detail:
+        "The non-streaming /advance endpoint has been deprecated. Please use /advancestream instead.",
+      instance: request.originalUrl ?? request.url,
+      migrateToEndpoint: "POST /advancestream",
+    });
   }
 
   @Post("advancestream")
@@ -529,7 +511,6 @@ export class ThreadsController {
         projectId,
         advanceRequestDto,
         undefined,
-        true,
         advanceRequestDto.toolCallCounts ?? {},
         undefined,
         queue,
@@ -537,9 +518,17 @@ export class ThreadsController {
       );
       await this.handleAdvanceStream(response, queue);
       await p;
-    } catch (error: any) {
-      console.error(error);
-      throw new InternalServerErrorException("Error in streaming response");
+    } catch (error: unknown) {
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
+      this.logger.error(
+        `Error in streaming response (projectId=${projectId})`,
+        normalizedError.stack,
+      );
+      Sentry.captureException(normalizedError);
+      throw new InternalServerErrorException("Error in streaming response", {
+        cause: normalizedError,
+      });
     }
   }
 
@@ -604,9 +593,15 @@ export class ThreadsController {
           response.write(`data: ${JSON.stringify(chunk)}\n\n`);
         }
       }
-    } catch (error: any) {
-      console.error(error);
-      response.write(`error: ${error.message}\n\n`);
+    } catch (error: unknown) {
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
+      this.logger.error(
+        "Error while writing streaming response",
+        normalizedError.stack,
+      );
+      Sentry.captureException(normalizedError);
+      response.write("error: Error in streaming response\n\n");
     } finally {
       response.write("data: DONE\n\n");
       response.end();
