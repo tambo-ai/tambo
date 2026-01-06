@@ -399,7 +399,7 @@ export class ThreadsController {
     throw new EndpointDeprecatedException({
       detail:
         "The non-streaming /:id/advance endpoint has been deprecated. Please use /:id/advancestream instead.",
-      instance: request.url,
+      instance: request.originalUrl ?? request.url,
       migrateToEndpoint: "POST /:id/advancestream",
     });
   }
@@ -472,7 +472,7 @@ export class ThreadsController {
     throw new EndpointDeprecatedException({
       detail:
         "The non-streaming /advance endpoint has been deprecated. Please use /advancestream instead.",
-      instance: request.url,
+      instance: request.originalUrl ?? request.url,
       migrateToEndpoint: "POST /advancestream",
     });
   }
