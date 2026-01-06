@@ -1,5 +1,6 @@
 import { withDbClient } from "@tambo-ai-cloud/db";
 import { Adapter, AdapterSession, AdapterUser } from "next-auth/adapters";
+import { Resend } from "resend";
 import { env } from "./env";
 
 // Type definitions for the adapter
@@ -38,30 +39,49 @@ interface UnlinkAccountData {
 export function SupabaseAdapter(): Adapter {
   return {
     async createUser(data: CreateUserData) {
-      return await withDbClient(env.DATABASE_URL, async (client) => {
-        const now = new Date().toISOString();
-        const { rows } = await client.query(
-          `INSERT INTO auth.users (id, email, email_confirmed_at, created_at, updated_at, raw_user_meta_data) VALUES ($1, $2, $3, $4, $5, $6) returning *`,
-          [
-            data.id || crypto.randomUUID(),
-            data.email,
-            now,
-            now,
-            now,
-            data.name ? { name: data.name } : {},
-          ],
-        );
+      const adapterUser = await withDbClient(
+        env.DATABASE_URL,
+        async (client) => {
+          const now = new Date().toISOString();
+          const { rows } = await client.query(
+            `INSERT INTO auth.users (id, email, email_confirmed_at, created_at, updated_at, raw_user_meta_data) VALUES ($1, $2, $3, $4, $5, $6) returning *`,
+            [
+              data.id || crypto.randomUUID(),
+              data.email,
+              now,
+              now,
+              now,
+              data.name ? { name: data.name } : {},
+            ],
+          );
 
-        if (!rows.length) throw new Error("Failed to create user");
-        const user = rows[0];
+          if (!rows.length) throw new Error("Failed to create user");
+          const user = rows[0];
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.raw_user_meta_data?.name,
-          image: user.raw_user_meta_data?.avatar_url,
-        } as AdapterUser;
-      });
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.raw_user_meta_data?.name,
+            image: user.raw_user_meta_data?.avatar_url,
+          } as AdapterUser;
+        },
+      );
+
+      // Subscribe new user to Resend audience (best-effort)
+      if (env.RESEND_API_KEY && env.RESEND_AUDIENCE_ID) {
+        try {
+          const resend = new Resend(env.RESEND_API_KEY);
+          await resend.contacts.create({
+            audienceId: env.RESEND_AUDIENCE_ID,
+            email: data.email,
+            ...(data.name && { firstName: data.name }),
+          });
+        } catch {
+          // Don't block user creation if Resend subscription fails
+        }
+      }
+
+      return adapterUser;
     },
 
     async getUser(id) {
