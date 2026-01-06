@@ -3,7 +3,7 @@ import clipboard from "clipboardy";
 import open from "open";
 import ora from "ora";
 import { api, ApiError } from "./api-client.js";
-import { saveToken, type StoredToken } from "./token-storage.js";
+import { clearToken, saveToken, type StoredToken } from "./token-storage.js";
 
 /**
  * Result of a successful device auth flow
@@ -125,35 +125,64 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
       if (pollResponse.status === "complete") {
         spinner.succeed(chalk.green("Authentication successful!"));
 
-        if (!pollResponse.sessionToken || !pollResponse.user) {
+        if (!pollResponse.sessionToken) {
           throw new DeviceAuthError(
             "Authentication completed but no session token received",
           );
         }
 
-        // Step 4: Save token to disk
+        // Step 4a: Save token temporarily (allows authenticated requests)
         // Use server-provided expiry, fallback to 90 days if not provided
         const expiresAt =
           pollResponse.expiresAt ??
           new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
 
-        const tokenData: StoredToken = {
+        const tempTokenData: StoredToken = {
           sessionToken: pollResponse.sessionToken,
           expiresAt,
-          user: {
-            id: pollResponse.user.id,
-            email: pollResponse.user.email,
-            name: pollResponse.user.name,
-          },
+          user: { id: "", email: null, name: null }, // Placeholder until we fetch user info
           storedAt: new Date().toISOString(),
         };
 
-        await saveToken(tokenData);
+        await saveToken(tempTokenData);
 
-        return {
-          sessionToken: pollResponse.sessionToken,
-          user: pollResponse.user,
-        };
+        // Step 4b: Fetch user info using the new token (two-step auth flow)
+        // The poll endpoint runs as 'anon' and can't access user data, so we
+        // fetch it separately via an authenticated endpoint.
+        const userSpinner = ora({
+          text: "Fetching user info...",
+          color: "cyan",
+        }).start();
+
+        try {
+          const userInfo = await api.user.getUser.query();
+          userSpinner.stop();
+
+          // Step 4c: Update token with real user info
+          const completeTokenData: StoredToken = {
+            ...tempTokenData,
+            user: {
+              id: userInfo.id,
+              email: userInfo.email,
+              name: userInfo.name,
+            },
+          };
+
+          await saveToken(completeTokenData);
+
+          return {
+            sessionToken: pollResponse.sessionToken,
+            user: completeTokenData.user,
+          };
+        } catch (_userError) {
+          userSpinner.fail(chalk.red("Failed to fetch user info"));
+          // Clean up incomplete token
+          clearToken();
+          throw new DeviceAuthError(
+            "Failed to fetch user info after authentication. Please try again.",
+            "USER_INFO_FAILED",
+          );
+        }
       }
 
       if (pollResponse.status === "expired") {

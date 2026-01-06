@@ -69,11 +69,11 @@ GRANT authenticated TO postgres;
 
 -- Grant schema usage to roles
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
-GRANT USAGE ON SCHEMA auth TO anon, authenticated;
+GRANT USAGE ON SCHEMA auth TO authenticated;
 
--- Grant auth schema access (read-only for user data)
-GRANT SELECT ON ALL TABLES IN SCHEMA auth TO anon, authenticated;
-ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT SELECT ON TABLES TO anon, authenticated;
+-- Grant auth schema access (read-only for user data) - only to authenticated role
+GRANT SELECT ON ALL TABLES IN SCHEMA auth TO authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA auth GRANT SELECT ON TABLES TO authenticated;
 
 -- Create extensions schema if it doesn't exist (for Supabase compatibility)
 DO $$ 

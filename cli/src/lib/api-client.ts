@@ -23,7 +23,12 @@ export interface PollResponse {
   status: "pending" | "expired" | "complete";
   sessionToken?: string;
   expiresAt?: string | null;
-  user?: { id: string; email: string | null; name: string | null } | null;
+}
+
+export interface UserInfo {
+  id: string;
+  email: string | null;
+  name: string | null;
 }
 
 export interface Session {
@@ -72,6 +77,9 @@ interface StubRouter {
         name: string;
       }) => Promise<GeneratedApiKey>;
     };
+  };
+  user: {
+    getUser: { query: () => Promise<UserInfo> };
   };
 }
 

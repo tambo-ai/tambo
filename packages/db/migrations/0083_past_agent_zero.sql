@@ -1,5 +1,5 @@
-GRANT SELECT, INSERT, UPDATE ON "device_auth_codes" TO "anon";--> statement-breakpoint
-GRANT SELECT ON "sessions" TO "anon";--> statement-breakpoint
+GRANT SELECT, INSERT, UPDATE ON public.device_auth_codes TO "anon";--> statement-breakpoint
+GRANT SELECT ON public.sessions TO "anon";--> statement-breakpoint
 ALTER TABLE "device_auth_codes" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE POLICY "device_auth_anon_insert" ON "device_auth_codes" AS PERMISSIVE FOR INSERT TO "anon" WITH CHECK (true);--> statement-breakpoint
 CREATE POLICY "device_auth_anon_select" ON "device_auth_codes" AS PERMISSIVE FOR SELECT TO "anon" USING (true);--> statement-breakpoint

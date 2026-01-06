@@ -123,7 +123,8 @@ export function loadToken(): StoredToken | null {
     const data = readFileSync(filePath, { encoding: "utf-8" });
     const token = JSON.parse(data) as StoredToken;
 
-    // Validate required fields
+    // Validate basic structure (sessionToken, expiresAt, user object)
+    // Note: user.id can be empty during the two-step auth flow bootstrap
     if (!token.sessionToken || !token.expiresAt || !token.user) {
       console.warn(
         `Warning: Auth token file has invalid format. Run 'tambo auth login' to re-authenticate.`,
@@ -142,9 +143,23 @@ export function loadToken(): StoredToken | null {
 }
 
 /**
- * Check if the stored token is still valid (not expired)
+ * Check if token has expired
+ */
+function isTokenExpired(token: StoredToken): boolean {
+  const expiresAt = new Date(token.expiresAt);
+  const now = new Date();
+  // Add a 5-minute buffer to avoid edge cases
+  const bufferMs = 5 * 60 * 1000;
+  return expiresAt.getTime() - bufferMs <= now.getTime();
+}
+
+/**
+ * Check if the stored token is fully valid (not expired AND has user info)
  *
- * @returns true if token exists and is not expired
+ * Use this to determine if the user is properly authenticated.
+ * Returns false for incomplete tokens (e.g., during two-step auth bootstrap).
+ *
+ * @returns true if token exists, is not expired, and has complete user info
  */
 export function isTokenValid(): boolean {
   const token = loadToken();
@@ -152,26 +167,25 @@ export function isTokenValid(): boolean {
     return false;
   }
 
-  const expiresAt = new Date(token.expiresAt);
-  const now = new Date();
-
-  // Add a 5-minute buffer to avoid edge cases
-  const bufferMs = 5 * 60 * 1000;
-  return expiresAt.getTime() - bufferMs > now.getTime();
+  // Check both expiry and completeness (user.id must be present)
+  return !isTokenExpired(token) && !!token.user.id;
 }
 
 /**
- * Get the current session token if valid
+ * Get the current session token if not expired
  *
- * @returns Session token or null if not authenticated
+ * Note: This returns the token even if user info is incomplete (e.g., during
+ * the two-step auth bootstrap). Use isTokenValid() to check full validity.
+ *
+ * @returns Session token or null if not authenticated or expired
  */
 export function getSessionToken(): string | null {
-  if (!isTokenValid()) {
+  const token = loadToken();
+  if (!token || isTokenExpired(token)) {
     return null;
   }
 
-  const token = loadToken();
-  return token?.sessionToken ?? null;
+  return token.sessionToken;
 }
 
 /**
