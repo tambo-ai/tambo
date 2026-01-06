@@ -1,0 +1,35 @@
+---
+title: Endpoint deprecated
+description: Problem details returned when you call an endpoint that has been removed.
+---
+
+Tambo Cloud uses a JSON Problem Details response (RFC 9457 / RFC 7807) to indicate that an endpoint has been deprecated/removed.
+
+## Type URI
+
+`https://docs.tambo.co/api-reference/problems/endpoint-deprecated`
+
+## Example response
+
+This problem type is returned with HTTP status `410 Gone`.
+
+```json
+{
+  "type": "https://docs.tambo.co/api-reference/problems/endpoint-deprecated",
+  "status": 410,
+  "title": "Endpoint Deprecated",
+  "detail": "The non-streaming /advance endpoint has been deprecated. Please use /advancestream instead.",
+  "code": "ENDPOINT_DEPRECATED",
+  "instance": "/threads/advance",
+  "details": {
+    "migrateToEndpoint": "POST /advancestream"
+  }
+}
+```
+
+## Fields
+
+- `code`: Stable identifier for programmatic handling (always `ENDPOINT_DEPRECATED` for this type).
+- `detail`: Human-readable description of the deprecation.
+- `instance`: The request path that triggered the problem.
+- `details.migrateToEndpoint`: Migration guidance (HTTP method + replacement endpoint).
