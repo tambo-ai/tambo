@@ -4,7 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  GoneException,
   InternalServerErrorException,
   Logger,
   Param,
@@ -49,6 +48,7 @@ import {
 } from "./dto/thread.dto";
 import { ThreadInProjectGuard } from "./guards/thread-in-project-guard";
 import { ThreadsService } from "./threads.service";
+import { EndpointDeprecatedException } from "./types/errors";
 import { threadMessageToDto } from "./util/messages";
 import { throttleChunks } from "./util/streaming";
 
@@ -394,11 +394,12 @@ export class ThreadsController {
   })
   async advanceThread(
     @Param("id") _threadId: string,
+    @Req() request: Request,
   ): Promise<AdvanceThreadResponseDto> {
-    throw new GoneException({
-      error: "ENDPOINT_DEPRECATED",
-      message:
-        "The non-streaming /advance endpoint has been deprecated. Please use /advancestream instead.",
+    throw new EndpointDeprecatedException({
+      detail:
+        "The non-streaming /:id/advance endpoint has been deprecated. Please use /:id/advancestream instead.",
+      instance: request.url,
       migrateToEndpoint: "POST /:id/advancestream",
     });
   }
@@ -465,11 +466,13 @@ export class ThreadsController {
     description: "This endpoint is deprecated",
     type: ProblemDetailsDto,
   })
-  async createAndAdvanceThread(): Promise<AdvanceThreadResponseDto> {
-    throw new GoneException({
-      error: "ENDPOINT_DEPRECATED",
-      message:
+  async createAndAdvanceThread(
+    @Req() request: Request,
+  ): Promise<AdvanceThreadResponseDto> {
+    throw new EndpointDeprecatedException({
+      detail:
         "The non-streaming /advance endpoint has been deprecated. Please use /advancestream instead.",
+      instance: request.url,
       migrateToEndpoint: "POST /advancestream",
     });
   }

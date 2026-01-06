@@ -18,6 +18,33 @@ export interface ProblemDetails {
   details?: Record<string, unknown>;
 }
 
+export class EndpointDeprecatedException extends HttpException {
+  constructor({
+    detail,
+    instance,
+    migrateToEndpoint,
+  }: {
+    detail: string;
+    instance?: string;
+    migrateToEndpoint: string;
+  }) {
+    super(
+      {
+        type: "https://problems-registry.smartbear.com/gone",
+        status: HttpStatus.GONE,
+        title: "Endpoint Deprecated",
+        detail,
+        code: "ENDPOINT_DEPRECATED",
+        instance,
+        details: {
+          migrateToEndpoint,
+        },
+      } satisfies ProblemDetails,
+      HttpStatus.GONE,
+    );
+  }
+}
+
 export class SuggestionNotFoundException extends NotFoundException {
   constructor(messageId: string) {
     super({
