@@ -258,5 +258,317 @@ describe("tool utilities", () => {
         { "tambo.co/parentMessageId": "msg-1" },
       );
     });
+
+    it("should convert resource_link to Resource with prefixed URI", async () => {
+      const serverKey = "github";
+      const mockCallWithResourceLink = jest.fn();
+      const resourceLinkSystemTools: McpToolRegistry = {
+        mcpToolSources: {
+          resourceTool: {
+            client: {
+              callTool: mockCallWithResourceLink,
+            } as unknown as MCPClient,
+            serverKey,
+          },
+        },
+        mcpToolsSchema: [],
+        mcpHandlers: {
+          elicitation: jest.fn(),
+          sampling: jest.fn(),
+        },
+      };
+
+      // MCP tool returns a resource_link content type
+      mockCallWithResourceLink.mockResolvedValue({
+        content: [
+          {
+            type: "resource_link",
+            uri: "file:///project/src/main.rs",
+            name: "main.rs",
+            description: "Primary application entry point",
+            mimeType: "text/x-rust",
+          },
+        ],
+      });
+
+      const result = await callSystemTool(
+        resourceLinkSystemTools,
+        { toolName: "resourceTool", parameters: [] },
+        "tool-call-1",
+        "tool-call-msg-1",
+        {
+          message: "",
+          componentName: "X",
+          props: {},
+          componentState: {},
+          reasoning: [],
+        },
+        {
+          messageToAppend: { role: MessageRole.Tool, content: [] },
+          availableComponents: [],
+        },
+      );
+
+      // Should convert to Resource with prefixed URI
+      expect(result.messageToAppend.content).toEqual([
+        {
+          type: ContentPartType.Resource,
+          resource: {
+            uri: "github:file:///project/src/main.rs",
+            name: "main.rs",
+            description: "Primary application entry point",
+            mimeType: "text/x-rust",
+            annotations: undefined,
+          },
+        },
+      ]);
+    });
+
+    it("should convert embedded resource with text content", async () => {
+      const serverKey = "linear";
+      const mockCallWithEmbeddedResource = jest.fn();
+      const embeddedResourceSystemTools: McpToolRegistry = {
+        mcpToolSources: {
+          embeddedTool: {
+            client: {
+              callTool: mockCallWithEmbeddedResource,
+            } as unknown as MCPClient,
+            serverKey,
+          },
+        },
+        mcpToolsSchema: [],
+        mcpHandlers: {
+          elicitation: jest.fn(),
+          sampling: jest.fn(),
+        },
+      };
+
+      // MCP tool returns an embedded resource with text content
+      mockCallWithEmbeddedResource.mockResolvedValue({
+        content: [
+          {
+            type: "resource",
+            resource: {
+              uri: "file:///readme.md",
+              text: "# Hello World\n\nThis is a readme file.",
+              mimeType: "text/markdown",
+            },
+          },
+        ],
+      });
+
+      const result = await callSystemTool(
+        embeddedResourceSystemTools,
+        { toolName: "embeddedTool", parameters: [] },
+        "tool-call-1",
+        "tool-call-msg-1",
+        {
+          message: "",
+          componentName: "X",
+          props: {},
+          componentState: {},
+          reasoning: [],
+        },
+        {
+          messageToAppend: { role: MessageRole.Tool, content: [] },
+          availableComponents: [],
+        },
+      );
+
+      // Should convert to Resource with prefixed URI and inline content
+      expect(result.messageToAppend.content).toEqual([
+        {
+          type: ContentPartType.Resource,
+          resource: {
+            uri: "linear:file:///readme.md",
+            text: "# Hello World\n\nThis is a readme file.",
+            blob: undefined,
+            mimeType: "text/markdown",
+          },
+        },
+      ]);
+    });
+
+    it("should handle mixed text and resource_link content", async () => {
+      const serverKey = "test";
+      const mockCallWithMixedContent = jest.fn();
+      const mixedContentSystemTools: McpToolRegistry = {
+        mcpToolSources: {
+          mixedTool: {
+            client: {
+              callTool: mockCallWithMixedContent,
+            } as unknown as MCPClient,
+            serverKey,
+          },
+        },
+        mcpToolsSchema: [],
+        mcpHandlers: {
+          elicitation: jest.fn(),
+          sampling: jest.fn(),
+        },
+      };
+
+      // MCP tool returns mixed content
+      mockCallWithMixedContent.mockResolvedValue({
+        content: [
+          { type: "text", text: "Found the following file:" },
+          {
+            type: "resource_link",
+            uri: "file:///main.rs",
+            name: "main.rs",
+          },
+        ],
+      });
+
+      const result = await callSystemTool(
+        mixedContentSystemTools,
+        { toolName: "mixedTool", parameters: [] },
+        "tool-call-1",
+        "tool-call-msg-1",
+        {
+          message: "",
+          componentName: "X",
+          props: {},
+          componentState: {},
+          reasoning: [],
+        },
+        {
+          messageToAppend: { role: MessageRole.Tool, content: [] },
+          availableComponents: [],
+        },
+      );
+
+      expect(result.messageToAppend.content).toHaveLength(2);
+      expect(result.messageToAppend.content[0]).toEqual({
+        type: ContentPartType.Text,
+        text: "Found the following file:",
+      });
+      expect(result.messageToAppend.content[1]).toEqual({
+        type: ContentPartType.Resource,
+        resource: {
+          uri: "test:file:///main.rs",
+          name: "main.rs",
+          description: undefined,
+          mimeType: undefined,
+          annotations: undefined,
+        },
+      });
+    });
+
+    it("should convert image content from MCP tool response", async () => {
+      const serverKey = "images";
+      const mockCallWithImage = jest.fn();
+      const imageSystemTools: McpToolRegistry = {
+        mcpToolSources: {
+          imageTool: {
+            client: {
+              callTool: mockCallWithImage,
+            } as unknown as MCPClient,
+            serverKey,
+          },
+        },
+        mcpToolsSchema: [],
+        mcpHandlers: {
+          elicitation: jest.fn(),
+          sampling: jest.fn(),
+        },
+      };
+
+      mockCallWithImage.mockResolvedValue({
+        content: [
+          {
+            type: "image",
+            mimeType: "image/png",
+            data: "base64imagedata",
+          },
+        ],
+      });
+
+      const result = await callSystemTool(
+        imageSystemTools,
+        { toolName: "imageTool", parameters: [] },
+        "tool-call-1",
+        "tool-call-msg-1",
+        {
+          message: "",
+          componentName: "X",
+          props: {},
+          componentState: {},
+          reasoning: [],
+        },
+        {
+          messageToAppend: { role: MessageRole.Tool, content: [] },
+          availableComponents: [],
+        },
+      );
+
+      expect(result.messageToAppend.content).toEqual([
+        {
+          type: ContentPartType.ImageUrl,
+          image_url: {
+            url: "data:image/png;base64,base64imagedata",
+          },
+        },
+      ]);
+    });
+  });
+
+  describe("validateToolResponse with resource content", () => {
+    it("should accept resource-only messages", () => {
+      const message: ThreadMessage = {
+        id: "1",
+        threadId: "1",
+        createdAt: new Date(),
+        content: [
+          {
+            type: ContentPartType.Resource,
+            resource: {
+              uri: "github:file:///main.rs",
+              name: "main.rs",
+              text: "fn main() {}",
+            },
+          },
+        ],
+        role: MessageRole.Tool,
+        tool_call_id: "test-tool-call-id",
+      };
+      expect(validateToolResponse(message)).toBe(true);
+    });
+
+    it("should accept mixed text and resource content", () => {
+      const message: ThreadMessage = {
+        id: "1",
+        threadId: "1",
+        createdAt: new Date(),
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "Here is the file:",
+          },
+          {
+            type: ContentPartType.Resource,
+            resource: {
+              uri: "github:file:///main.rs",
+              name: "main.rs",
+            },
+          },
+        ],
+        role: MessageRole.Tool,
+        tool_call_id: "test-tool-call-id",
+      };
+      expect(validateToolResponse(message)).toBe(true);
+    });
+
+    it("should return false for empty content", () => {
+      const message: ThreadMessage = {
+        id: "1",
+        threadId: "1",
+        createdAt: new Date(),
+        content: [],
+        role: MessageRole.Tool,
+        tool_call_id: "test-tool-call-id",
+      };
+      expect(validateToolResponse(message)).toBe(false);
+    });
   });
 });
