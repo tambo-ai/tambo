@@ -76,9 +76,20 @@ describe("useElicitation", () => {
       });
 
       // Elicitation should be set
+      const requestedSchema =
+        "requestedSchema" in request.params
+          ? request.params.requestedSchema
+          : null;
+
+      if (requestedSchema === null) {
+        throw new Error(
+          "Test setup error: ElicitRequest is expected to use form params",
+        );
+      }
+
       expect(result.current.elicitation).toEqual({
         message: "Please provide your name",
-        requestedSchema: request.params.requestedSchema,
+        requestedSchema,
         signal: extra.signal,
       });
 

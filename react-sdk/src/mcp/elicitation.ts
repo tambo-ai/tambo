@@ -33,6 +33,11 @@ export interface TamboElicitationRequest {
  */
 export type { PrimitiveSchemaDefinition };
 
+type ElicitRequestParamsWithRequestedSchema = Extract<
+  ElicitRequest["params"],
+  { requestedSchema: unknown }
+>;
+
 /**
  * Elicitation response to be sent back
  */
@@ -66,9 +71,19 @@ export interface ElicitationContextState {
  * @returns requestedSchema as ElicitationRequestedSchema
  */
 function toElicitationRequestedSchema(
-  value: ElicitRequest["params"]["requestedSchema"],
+  value: ElicitRequestParamsWithRequestedSchema["requestedSchema"],
 ): ElicitationRequestedSchema {
   return value as ElicitationRequestedSchema;
+}
+
+/**
+ * Type guard for the elicitation form params shape.
+ * @returns true when params include requestedSchema
+ */
+function hasRequestedSchema(
+  params: ElicitRequest["params"],
+): params is ElicitRequestParamsWithRequestedSchema {
+  return "requestedSchema" in params;
 }
 
 /**
@@ -91,6 +106,15 @@ export function useElicitation() {
       extra: RequestHandlerExtra<ClientRequest, ClientNotification>,
     ): Promise<ElicitResult> => {
       return await new Promise<ElicitResult>((resolve, reject) => {
+        if (!hasRequestedSchema(request.params)) {
+          reject(
+            new Error(
+              "Unsupported MCP elicitation params: expected requestedSchema (form mode)",
+            ),
+          );
+          return;
+        }
+
         // Set the elicitation request to show the UI
         // Cast is needed because ElicitRequest uses Zod-inferred types (from the
         // user's installed zod version), while we use pure TypeScript spec types
