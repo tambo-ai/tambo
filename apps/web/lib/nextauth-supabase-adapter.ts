@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { withDbClient } from "@tambo-ai-cloud/db";
 import { Adapter, AdapterSession, AdapterUser } from "next-auth/adapters";
 import { Resend } from "resend";
@@ -76,8 +77,10 @@ export function SupabaseAdapter(): Adapter {
             email: data.email,
             ...(data.name && { firstName: data.name }),
           });
-        } catch {
-          // Don't block user creation if Resend subscription fails
+        } catch (error) {
+          Sentry.captureException(error, {
+            tags: { operation: "resend_subscription" },
+          });
         }
       }
 
