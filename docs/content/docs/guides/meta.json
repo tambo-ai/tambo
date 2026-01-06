@@ -1,4 +1,7 @@
 {
   "title": "Guides",
-  "pages": ["define-generative-components"]
+  "pages": [
+    "register-generative-components",
+    "register-interactable-components"
+  ]
 }
