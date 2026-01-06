@@ -72,8 +72,11 @@ The resource type is used for MCP integration and generic content references.
  * Sources:
  * - text, image, audio, file: OpenAI/Anthropic multimodal content
  * - resource: MCP resource references
- * - tool_use, tool_result: Anthropic's tool content blocks
  * - component: Tambo extension for UI components
+ *
+ * Note: Tool calls use the OpenAI pattern (separate tool_calls array on messages)
+ * rather than the Anthropic pattern (tool_use/tool_result content blocks).
+ * See "Open Questions" section for discussion of this design decision.
  */
 type ContentType =
   | "text"
@@ -81,8 +84,6 @@ type ContentType =
   | "audio"
   | "file"
   | "resource" // MCP resource reference
-  | "tool_use" // Tool invocation (response only) - from Anthropic
-  | "tool_result" // Tool result (request only) - from Anthropic
   | "component"; // UI component (response only, Tambo extension)
 
 /**
@@ -188,49 +189,6 @@ interface ResourceContent extends BaseContent {
 }
 
 /**
- * ⚠️ OPEN QUESTION: Tool Call Representation
- *
- * There are two competing patterns for representing tool calls in messages:
- *
- * **Option A: Content Blocks (Anthropic pattern)**
- * - Tool calls are `type: "tool_use"` content blocks in the content array
- * - Tool results are `type: "tool_result"` content blocks
- * - More composable: text + tool calls + components in one content array
- * - Used by: Anthropic Messages API, MCP Sampling
- * @see https://docs.anthropic.com/en/api/messages - ToolUseBlock, ToolResultBlock
- * @see https://modelcontextprotocol.io/specification/2025-11-25/client/sampling - SamplingMessage
- *
- * **Option B: Separate Fields (OpenAI pattern)**
- * - Tool calls are a separate `tool_calls` array on the message
- * - Tool results use a separate `role: "tool"` message
- * - Clearer separation of concerns
- * - Used by: OpenAI Chat API, MCP Tools (JSON-RPC `tools/call` method)
- * @see https://platform.openai.com/docs/api-reference/chat/create - tool_calls
- * @see https://modelcontextprotocol.io/specification/2025-11-25/server/tools - tools/call
- *
- * **Note on AG-UI**: The wire protocol uses separate events (TOOL_CALL_START,
- * TOOL_CALL_ARGS, TOOL_CALL_END) which don't dictate message storage format.
- * We need to decide how to represent tool calls in stored/returned messages.
- *
- * Current proposal uses Option A (content blocks) but this needs discussion.
- */
-
-// Option A: Content block approach (currently proposed)
-interface ToolUseContent extends BaseContent {
-  type: "tool_use";
-  id: string;
-  name: string;
-  input: Record<string, unknown>;
-}
-
-interface ToolResultContent extends BaseContent {
-  type: "tool_result";
-  toolUseId: string;
-  content: Content[];
-  isError?: boolean;
-}
-
-/**
  * Component content - UI component to render (Tambo extension)
  * Only appears in assistant messages
  */
@@ -251,8 +209,6 @@ type Content =
   | AudioContent
   | FileContent
   | ResourceContent
-  | ToolUseContent
-  | ToolResultContent
   | ComponentContent;
 
 /**
@@ -263,13 +219,12 @@ type InputContent =
   | ImageContent
   | AudioContent
   | FileContent
-  | ResourceContent
-  | ToolResultContent;
+  | ResourceContent;
 
 /**
  * Output content - subset that appears in response messages
  */
-type OutputContent = TextContent | ToolUseContent | ComponentContent;
+type OutputContent = TextContent | ComponentContent;
 ```
 
 ### 1.3 Messages
@@ -283,19 +238,36 @@ type OutputContent = TextContent | ToolUseContent | ComponentContent;
 
 ```typescript
 /**
+ * Tool call on an assistant message (OpenAI pattern)
+ * @see https://platform.openai.com/docs/api-reference/chat/create - tool_calls
+ * @see https://modelcontextprotocol.io/specification/2025-11-25/server/tools - tools/call
+ */
+interface ToolCall {
+  id: string; // Unique identifier for this tool call
+  name: string; // Tool name
+  arguments: Record<string, unknown>; // Parsed JSON arguments
+}
+
+/**
  * Message in a conversation thread
  *
- * Note: We use content as an array of blocks (Anthropic style) rather than
- * a string or mixed type. This allows tool_use, tool_result, and components
- * to live alongside text in the same message.
+ * Uses the OpenAI pattern for tool calls:
+ * - Assistant messages have optional `tool_calls` array
+ * - Tool results are messages with `role: "tool"` and `toolCallId`
+ *
+ * Content is still an array of blocks for multimodal support
+ * (text, images, components).
  */
 interface Message {
   id: string;
   role: MessageRole;
   content: Content[];
 
-  // Tool message specific
-  toolCallId?: string; // For role="tool", links to the tool_use
+  // Tool calls on assistant messages (OpenAI pattern)
+  toolCalls?: ToolCall[];
+
+  // For role="tool" messages, links to the tool call being answered
+  toolCallId?: string;
 
   // Metadata
   createdAt?: string; // ISO 8601 timestamp
@@ -308,7 +280,14 @@ interface Message {
 interface InputMessage {
   role: MessageRole;
   content: string | InputContent[];
-  toolCallId?: string; // Required when role="tool"
+
+  // For role="tool" messages, the ID of the tool call being answered
+  toolCallId?: string;
+
+  // For role="tool" messages, the result (or error) content
+  // Note: This is the tool output, typically text or structured data
+  isError?: boolean;
+
   metadata?: Record<string, unknown>;
 }
 ```
@@ -809,8 +788,6 @@ export enum ContentTypeDto {
   Audio = "audio",
   File = "file",
   Resource = "resource",
-  ToolUse = "tool_use",
-  ToolResult = "tool_result",
   Component = "component",
 }
 
@@ -927,43 +904,6 @@ export class ResourceContentDto {
   resource: ResourceDataDto;
 }
 
-export class ToolUseContentDto {
-  @ApiProperty({ enum: ["tool_use"] })
-  @IsEnum(["tool_use"])
-  type: "tool_use";
-
-  @ApiProperty()
-  @IsString()
-  id: string;
-
-  @ApiProperty()
-  @IsString()
-  name: string;
-
-  @ApiProperty()
-  @IsObject()
-  input: Record<string, unknown>;
-}
-
-export class ToolResultContentDto {
-  @ApiProperty({ enum: ["tool_result"] })
-  @IsEnum(["tool_result"])
-  type: "tool_result";
-
-  @ApiProperty()
-  @IsString()
-  toolUseId: string;
-
-  @ApiProperty({ type: [Object] })
-  @IsArray()
-  content: ContentDto[];
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsBoolean()
-  isError?: boolean;
-}
-
 export class ComponentContentDto {
   @ApiProperty({ enum: ["component"] })
   @IsEnum(["component"])
@@ -992,8 +932,6 @@ export type ContentDto =
   | TextContentDto
   | ImageContentDto
   | ResourceContentDto
-  | ToolUseContentDto
-  | ToolResultContentDto
   | ComponentContentDto;
 ```
 
@@ -1008,6 +946,7 @@ import {
   IsArray,
   ValidateNested,
   IsObject,
+  IsBoolean,
 } from "class-validator";
 import { Type, Transform } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
@@ -1017,6 +956,23 @@ export enum MessageRoleDto {
   Assistant = "assistant",
   System = "system",
   Tool = "tool",
+}
+
+/**
+ * Tool call on an assistant message (OpenAI pattern)
+ */
+export class ToolCallDto {
+  @ApiProperty()
+  @IsString()
+  id: string;
+
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsObject()
+  arguments: Record<string, unknown>;
 }
 
 export class MessageDto {
@@ -1031,6 +987,12 @@ export class MessageDto {
   @ApiProperty({ type: [Object] })
   @IsArray()
   content: ContentDto[];
+
+  @ApiPropertyOptional({ type: [ToolCallDto] })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ToolCallDto)
+  toolCalls?: ToolCallDto[];
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -1062,10 +1024,19 @@ export class InputMessageDto {
   })
   content: ContentDto[];
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: "For role='tool', the ID of the tool call being answered",
+  })
   @IsOptional()
   @IsString()
   toolCallId?: string;
+
+  @ApiPropertyOptional({
+    description: "For role='tool', indicates an error result",
+  })
+  @IsOptional()
+  @IsBoolean()
+  isError?: boolean;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -1614,18 +1585,8 @@ _Stream closes here. Client executes `add_to_cart` in the browser._
 {
   "message": {
     "role": "tool",
-    "content": [
-      {
-        "type": "tool_result",
-        "toolUseId": "tc_001",
-        "content": [
-          {
-            "type": "text",
-            "text": "Added 2x SKU-123 to cart. Cart total: $49.98"
-          }
-        ]
-      }
-    ]
+    "toolCallId": "tc_001",
+    "content": "Added 2x SKU-123 to cart. Cart total: $49.98"
   }
 }
 ```
@@ -1726,7 +1687,7 @@ _Note: `RUN_ERROR` is a standard AG-UI event. The `code` field is optional in AG
 2. **New event format**: Uses AG-UI events instead of current chunked responses.
 3. **Content arrays**: All messages have `content` as array, not string.
 4. **Component as content**: Components are now `content` blocks, not separate fields.
-5. **Tool result format**: Uses `tool_result` content type, not separate message type.
+5. **Tool call format**: Uses OpenAI pattern (`tool_calls` array, `role: "tool"` messages).
 
 ### 6.2 Backwards Compatibility
 
@@ -1767,30 +1728,142 @@ The following design decisions were made during proposal development:
 
 ---
 
+## Part 8: Open Questions
+
+### 8.1 Tool Call Representation
+
+**Status:** Proposal defaults to OpenAI pattern; open for discussion.
+
+There are two competing patterns for representing tool calls in messages:
+
+#### Option A: Separate Fields (OpenAI pattern) — CURRENT PROPOSAL
+
+Tool calls are a separate `tool_calls` array on assistant messages. Tool results are messages with `role: "tool"`.
+
+```typescript
+// Assistant message with tool calls
+{
+  id: "msg_001",
+  role: "assistant",
+  content: [{ type: "text", text: "Let me check the weather..." }],
+  toolCalls: [
+    { id: "tc_001", name: "get_weather", arguments: { city: "Paris" } }
+  ]
+}
+
+// Tool result message
+{
+  id: "msg_002",
+  role: "tool",
+  toolCallId: "tc_001",
+  content: [{ type: "text", text: "72°F, Sunny" }]
+}
+```
+
+**Used by:**
+
+- [OpenAI Chat API](https://platform.openai.com/docs/api-reference/chat/create) - `tool_calls` array
+- [MCP Tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) - JSON-RPC `tools/call` method
+
+**Pros:**
+
+- Clearer separation of concerns - tool calls are structurally distinct from content
+- Consistent with `MessageRole` including "tool"
+- Aligns with AG-UI which uses separate events (`TOOL_CALL_START`, `TOOL_CALL_END`)
+- MCP Tools uses separate JSON-RPC methods, not content blocks
+
+**Cons:**
+
+- Less composable - can't interleave tool calls with text in content array
+- Two different structures to handle (content blocks vs tool calls)
+
+---
+
+#### Option B: Content Blocks (Anthropic pattern)
+
+Tool calls are `type: "tool_use"` content blocks. Tool results are `type: "tool_result"` content blocks.
+
+```typescript
+// Assistant message with tool calls as content blocks
+{
+  id: "msg_001",
+  role: "assistant",
+  content: [
+    { type: "text", text: "Let me check the weather..." },
+    { type: "tool_use", id: "tc_001", name: "get_weather", input: { city: "Paris" } }
+  ]
+}
+
+// User message with tool results as content blocks
+{
+  id: "msg_002",
+  role: "user",
+  content: [
+    { type: "tool_result", toolUseId: "tc_001", content: [{ type: "text", text: "72°F, Sunny" }] }
+  ]
+}
+```
+
+**Used by:**
+
+- [Anthropic Messages API](https://docs.anthropic.com/en/api/messages) - `ToolUseBlock`, `ToolResultBlock`
+- [MCP Sampling](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling) - `SamplingMessage`
+
+**Pros:**
+
+- More composable - text + tool calls + components in one content array
+- Consistent content block pattern for all message content
+- Better for streaming - content blocks can be interleaved naturally
+
+**Cons:**
+
+- `role: "tool"` in `MessageRole` becomes unused/inconsistent
+- MCP Sampling is for client-initiated sampling, not server-side tools
+- Mixes structural concerns (tool orchestration) with content
+
+---
+
+#### AG-UI Consideration
+
+The AG-UI wire protocol uses separate events for tool calls:
+
+- `TOOL_CALL_START` - begins a tool call
+- `TOOL_CALL_ARGS` - streams arguments
+- `TOOL_CALL_END` - completes the tool call
+
+These events are separate from `TEXT_MESSAGE_*` events, suggesting a structural separation similar to the OpenAI pattern. However, these events describe the _wire protocol_, not how messages should be stored or returned from the API.
+
+**Decision needed:** Should stored/returned messages follow the wire protocol's separation (OpenAI pattern) or use a unified content block approach (Anthropic pattern)?
+
+---
+
 ## Appendix A: Type Alignment Summary
 
-**Key Design Choice: Tool Calls as Content Blocks**
+**Key Design Choice: Tool Calls as Separate Fields (OpenAI Pattern)**
 
 One of the most significant differences between APIs is how tool calls are represented:
 
 - **OpenAI**: Tool calls are a _separate field_ (`tool_calls: []`) on assistant messages, not in the content array. Tool results use a separate `role: "tool"` message.
-- **Anthropic/MCP**: Tool calls are _content blocks_ (`type: "tool_use"`) inside the content array. Tool results are also content blocks (`type: "tool_result"`) in user messages.
+- **Anthropic/MCP Sampling**: Tool calls are _content blocks_ (`type: "tool_use"`) inside the content array. Tool results are also content blocks (`type: "tool_result"`) in user messages.
 
-**We chose the Anthropic/MCP approach** because:
+**We chose the OpenAI approach** because:
 
-1. More composable - one message can have text + tool calls + components in a single content array
-2. Better for streaming - content blocks can be interleaved
-3. Aligns with MCP which we use for server-side tools
+1. Clearer separation of concerns - tool calls are structurally distinct from content
+2. Aligns with MCP Tools which uses JSON-RPC `tools/call` method (separate from message content)
+3. Aligns with AG-UI which uses separate events for tool calls (not content blocks)
+4. Having `role: "tool"` is consistent with the `MessageRole` type including "tool"
 
-| Concept         | OpenAI                                           | Anthropic                                  | MCP                                      | Tambo v1                                 |
-| --------------- | ------------------------------------------------ | ------------------------------------------ | ---------------------------------------- | ---------------------------------------- |
-| Roles           | user, assistant, system, tool                    | user, assistant                            | user, assistant                          | user, assistant, system, tool            |
-| Text content    | `{type:"text",text:"..."}`                       | `{type:"text",text:"..."}`                 | `{type:"text",text:"..."}`               | `{type:"text",text:"..."}`               |
-| Image content   | `{type:"image_url",...}`                         | `{type:"image",...}`                       | `{type:"image",...}`                     | `{type:"image",...}`                     |
-| Tool definition | `{name,description,parameters}`                  | `{name,description,input_schema}`          | `{name,description,inputSchema}`         | `{name,description,inputSchema}`         |
-| Tool call       | `{id,type:"function",function:{name,arguments}}` | `{type:"tool_use",id,name,input}`          | `{type:"tool_use",id,name,input}`        | `{type:"tool_use",id,name,input}`        |
-| Tool result     | `{role:"tool",tool_call_id,content}`             | `{type:"tool_result",tool_use_id,content}` | `{type:"tool_result",toolUseId,content}` | `{type:"tool_result",toolUseId,content}` |
-| Streaming       | SSE with delta                                   | SSE with delta                             | N/A (JSON-RPC)                           | AG-UI events                             |
+See the Open Questions section for full discussion of both approaches.
+
+| Concept         | OpenAI                                           | Anthropic                                  | MCP Tools                        | Tambo v1                           |
+| --------------- | ------------------------------------------------ | ------------------------------------------ | -------------------------------- | ---------------------------------- |
+| Roles           | user, assistant, system, tool                    | user, assistant                            | user, assistant                  | user, assistant, system, tool      |
+| Text content    | `{type:"text",text:"..."}`                       | `{type:"text",text:"..."}`                 | `{type:"text",text:"..."}`       | `{type:"text",text:"..."}`         |
+| Image content   | `{type:"image_url",...}`                         | `{type:"image",...}`                       | `{type:"image",...}`             | `{type:"image",...}`               |
+| Tool definition | `{name,description,parameters}`                  | `{name,description,input_schema}`          | `{name,description,inputSchema}` | `{name,description,inputSchema}`   |
+| Tool call       | `{id,type:"function",function:{name,arguments}}` | `{type:"tool_use",id,name,input}`          | JSON-RPC `tools/call`            | `toolCalls: [{id,name,arguments}]` |
+| Tool result     | `{role:"tool",tool_call_id,content}`             | `{type:"tool_result",tool_use_id,content}` | JSON-RPC response                | `{role:"tool",toolCallId,content}` |
+| Streaming       | SSE with delta                                   | SSE with delta                             | N/A (JSON-RPC)                   | AG-UI events                       |
 
 ## Appendix B: Event Quick Reference
 
