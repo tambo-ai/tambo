@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.128.0](https://github.com/tambo-ai/tambo/compare/api-v0.127.1...api-v0.128.0) (2026-01-07)
+
+
+### Features
+
+* **api:** remove non-streaming advance thread endpoints ([#1648](https://github.com/tambo-ai/tambo/issues/1648)) ([3802c8d](https://github.com/tambo-ai/tambo/commit/3802c8deb24e8b72140656418b5e5f0549bbf228))
+
+
+### Bug Fixes
+
+* **docs:** missing `[@returns](https://github.com/returns)` ([#1667](https://github.com/tambo-ai/tambo/issues/1667)) ([d775e23](https://github.com/tambo-ai/tambo/commit/d775e23a271c5db5b549319523fe47fe56a21952))
+
+
+### Miscellaneous Chores
+
+* add cspell settings and correct a few spleling mistaeks ([#1586](https://github.com/tambo-ai/tambo/issues/1586)) ([f5cef2b](https://github.com/tambo-ai/tambo/commit/f5cef2b36d33076f2188f4a663bcebddd9679a9f))
+* **deps:** bump dependencies ([#1624](https://github.com/tambo-ai/tambo/issues/1624)) ([88e8acd](https://github.com/tambo-ai/tambo/commit/88e8acd5050ab746230c2ec86a69fc28222b2753))
+* **deps:** bump openai from 6.9.1 to 6.15.0 ([#1645](https://github.com/tambo-ai/tambo/issues/1645)) ([5384753](https://github.com/tambo-ai/tambo/commit/5384753d5ee12daf79691553123923a5a32fdb39))
+* **deps:** bump the nestjs group with 4 updates ([#1626](https://github.com/tambo-ai/tambo/issues/1626)) ([32c0d8c](https://github.com/tambo-ai/tambo/commit/32c0d8cad96eb6fd06cf6b720af63b4866f7f49e))
+* **deps:** bump the nestjs group with 4 updates ([#1637](https://github.com/tambo-ai/tambo/issues/1637)) ([6283b08](https://github.com/tambo-ai/tambo/commit/6283b08b92af8768a745cb31bb36bf025fdb864d))
+* **deps:** bump the sentry group with 3 updates ([#1630](https://github.com/tambo-ai/tambo/issues/1630)) ([b6f4402](https://github.com/tambo-ai/tambo/commit/b6f44021cb714d903a05dbe2a4ec8ed598e943d0))
+* **deps:** Support multiple tools for managing project tool versions ([#1603](https://github.com/tambo-ai/tambo/issues/1603)) ([31a09c3](https://github.com/tambo-ai/tambo/commit/31a09c32a25c440b16a705804a9b2341b0883514))
+* **repo:** update testing and linting config ([#1619](https://github.com/tambo-ai/tambo/issues/1619)) ([ccc5c05](https://github.com/tambo-ai/tambo/commit/ccc5c05a0f62e4672068f4fbdd7316a7db306e7c))
+
+## [0.127.1](https://github.com/tambo-ai/tambo/compare/api-v0.127.0...api-v0.127.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps:** bump resend from 6.5.2 to 6.6.0 ([#1560](https://github.com/tambo-ai/tambo/issues/1560)) ([b21227c](https://github.com/tambo-ai/tambo/commit/b21227c9548dcae8c41b1f4195e3d4f2fee7085e))
+* **deps:** bump superjson from 2.2.5 to 2.2.6 ([#1567](https://github.com/tambo-ai/tambo/issues/1567)) ([ef27dc8](https://github.com/tambo-ai/tambo/commit/ef27dc8b63739d1b96b86230a719506d8183c592))
+* **deps:** bump the sentry group with 3 updates ([#1615](https://github.com/tambo-ai/tambo/issues/1615)) ([8ebc981](https://github.com/tambo-ai/tambo/commit/8ebc981dd424fe7fa94a1897890d2f0bc59a3dab))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+* **repo:** add settings for vscode-jest extension ([#1591](https://github.com/tambo-ai/tambo/issues/1591)) ([a714303](https://github.com/tambo-ai/tambo/commit/a7143037ccf05ada73a5a7a6fc9a0227ba653a48))
+
+
+### Documentation
+
+* consolidate and update development/deployment documentation ([#1569](https://github.com/tambo-ai/tambo/issues/1569)) ([1e7474b](https://github.com/tambo-ai/tambo/commit/1e7474ba4d919d2452f2792f2cb5c12046eff373))
+
 ## [0.127.0](https://github.com/tambo-ai/tambo/compare/api-v0.126.0...api-v0.127.0) (2025-12-13)
 
 

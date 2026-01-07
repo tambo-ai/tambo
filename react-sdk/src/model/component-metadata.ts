@@ -24,7 +24,9 @@ import {
  * allowing us to accept any compliant validator without depending on a specific library.
  * @see https://standardschema.dev/
  */
-export type SupportedSchema = StandardSchemaV1 | JSONSchema7;
+export type SupportedSchema<Shape = unknown> =
+  | StandardSchemaV1<Shape, Shape>
+  | JSONSchema7;
 
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {
@@ -38,6 +40,14 @@ export type ParameterSpec = TamboAI.ToolParameters & {
 export interface ComponentContextToolMetadata
   extends TamboAI.ComponentContextToolMetadata {
   parameters: ParameterSpec[];
+  /**
+   * Optional per-tool call limit. When set, this overrides the project's
+   * global tool call limit for this specific tool.
+   *
+   * This is useful for tools that should only be called once or twice
+   * regardless of the project's global limit.
+   */
+  maxCalls?: number;
 }
 
 export interface ComponentContextTool {
@@ -131,6 +141,13 @@ export interface TamboTool<
    * Optional human-readable name of the tool for display purposes.
    */
   title?: string;
+  /**
+   * Optional limit for how many times this tool may be called while
+   * generating a single response. If present, this value overrides the
+   * project's global `maxToolCallLimit` for this tool.
+   * @example 1
+   */
+  maxCalls?: number;
   /**
    * Optional properties describing tool behavior
    */

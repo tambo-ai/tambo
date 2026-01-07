@@ -403,6 +403,53 @@ describe("TamboMcpProvider server list changes", () => {
     });
   });
 
+  it("forwards maxCalls from MCP listTools to registry.registerTool", async () => {
+    const registerToolMock = jest.fn();
+
+    // Mock registry to capture registerTool calls
+    (useTamboRegistry as unknown as jest.Mock).mockReturnValue({
+      registerTool: registerToolMock,
+    });
+
+    // Mock client
+    (useTamboClient as unknown as jest.Mock).mockReturnValue({
+      baseURL: "https://api.tambo.co",
+    });
+
+    // Prepare MCP client to return a tool with maxCalls in its metadata
+    (MCPClient as unknown as any).create = jest.fn().mockResolvedValue({
+      listTools: jest.fn().mockResolvedValue([
+        {
+          name: "mcp-tool",
+          description: "Tool from MCP",
+          inputSchema: {},
+          outputSchema: {},
+          // MCP may include maxCalls in the tool metadata
+          maxCalls: 7,
+        },
+      ]),
+      close: jest.fn(),
+    });
+
+    // Render provider to trigger MCP sync
+    render(
+      <TestWrapper mcpServers={["https://mcp.example"]}>
+        <div />
+      </TestWrapper>,
+    );
+
+    // Wait for registerTool to be called
+    await waitFor(() => {
+      expect(registerToolMock).toHaveBeenCalled();
+    });
+
+    // Inspect the first registered tool
+    const registered = registerToolMock.mock.calls[0][0];
+    expect(registered).toBeDefined();
+    expect(registered.name).toBe("mcp-tool");
+    expect(registered.maxCalls).toBe(7);
+  });
+
   it("reuses client when same server is passed with new array instance", async () => {
     const createSpy = jest.fn().mockResolvedValue({
       listTools: jest.fn().mockResolvedValue([]),

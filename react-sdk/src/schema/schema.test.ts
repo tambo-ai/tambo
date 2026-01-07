@@ -1,9 +1,17 @@
 import type { JSONSchema7 } from "json-schema";
 import * as z3 from "zod/v3";
 import * as z4 from "zod/v4";
-import { TamboTool } from "../model/component-metadata";
+import {
+  TamboTool,
+  TamboToolWithToolSchema,
+} from "../model/component-metadata";
 import { looksLikeJSONSchema } from "./json-schema";
-import { getParametersFromToolSchema } from "./schema";
+import {
+  getParametersFromToolSchema,
+  hasInputSchema,
+  safeSchemaToJsonSchema,
+  schemaToJsonSchema,
+} from "./schema";
 import { isStandardSchema } from "./standard-schema";
 
 describe("schema utilities", () => {
@@ -350,6 +358,303 @@ describe("schema utilities", () => {
         expect(params.length).toBeGreaterThanOrEqual(1);
         expect(params[0].name).toBe("param1");
       });
+
+      it("handles toolSchema with JSON Schema directly", () => {
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          toolSchema: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" },
+            },
+            required: ["query"],
+          } as JSONSchema7,
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        // JSON Schema in toolSchema should return params wrapped
+        expect(params.length).toBeGreaterThanOrEqual(1);
+      });
+    });
+
+    describe("edge cases and error handling", () => {
+      it("returns empty params when inputSchema is unknown type", () => {
+        // Create a tool with an invalid inputSchema that isn't Standard Schema or JSON Schema
+        const tool: TamboTool = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          inputSchema: "invalid-schema" as any, // Not a valid schema
+          outputSchema: z4.void(),
+        };
+
+        const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+        const params = getParametersFromToolSchema(tool);
+        consoleSpy.mockRestore();
+
+        expect(params).toEqual([]);
+      });
+
+      it("throws when toolSchema is undefined", () => {
+        // Create a tool with toolSchema that has undefined toolSchema
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          toolSchema: undefined as any,
+        };
+
+        expect(() => getParametersFromToolSchema(tool)).toThrow(
+          "Unable to determine parameters from zod function schema",
+        );
+      });
+
+      it("throws when toolSchema args are not recognized", () => {
+        // Create a tool with toolSchema that is not a function schema or JSON schema
+        // This causes getArgsFromToolSchema to attempt extraction but fail
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          toolSchema: { notASchema: true } as any,
+        };
+
+        // This throws because it's not a Zod function schema
+        expect(() => getParametersFromToolSchema(tool)).toThrow(
+          "Unable to determine parameters from zod function schema",
+        );
+      });
+    });
+
+    describe("toolSchema with JSON Schema tuple", () => {
+      it("handles toolSchema with JSON Schema array/tuple directly", () => {
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          // JSON Schema tuple format
+          toolSchema: {
+            type: "array",
+            items: [
+              { type: "string", description: "First param" },
+              { type: "number", description: "Second param" },
+            ],
+          } as JSONSchema7,
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        // JSON Schema tuples should be extracted as positional params
+        expect(params).toHaveLength(2);
+        expect(params[0].name).toBe("param1");
+        expect(params[0].type).toBe("string");
+        expect(params[0].description).toBe("First param");
+        expect(params[1].name).toBe("param2");
+        expect(params[1].type).toBe("number");
+      });
+
+      it("handles toolSchema with JSON Schema prefixItems (2020-12 format)", () => {
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          // JSON Schema 2020-12 tuple format
+          toolSchema: {
+            type: "array",
+            prefixItems: [
+              { type: "boolean", description: "Flag" },
+              { type: "string" },
+            ],
+          } as JSONSchema7,
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        expect(params).toHaveLength(2);
+        expect(params[0].name).toBe("param1");
+        expect(params[0].type).toBe("boolean");
+        expect(params[0].description).toBe("Flag");
+        expect(params[1].name).toBe("param2");
+        expect(params[1].type).toBe("string");
+      });
+
+      it("handles toolSchema with non-tuple JSON Schema (fallback)", () => {
+        const tool: TamboToolWithToolSchema = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          // Non-tuple JSON Schema - should be wrapped as single param
+          toolSchema: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+            },
+          } as JSONSchema7,
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        // Non-tuple schemas should be wrapped as a single param
+        expect(params).toHaveLength(1);
+        expect(params[0].name).toBe("param1");
+        expect(params[0].type).toBe("object");
+      });
+    });
+  });
+
+  describe("schemaToJsonSchema", () => {
+    it("returns JSON Schema as-is when already a JSON Schema", () => {
+      const jsonSchema: JSONSchema7 = {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+        },
+      };
+
+      const result = schemaToJsonSchema(jsonSchema);
+      expect(result).toBe(jsonSchema); // Same reference
+    });
+
+    it("converts Zod 4 schema to JSON Schema", () => {
+      const zodSchema = z4.object({
+        name: z4.string(),
+        count: z4.number(),
+      });
+
+      const result = schemaToJsonSchema(zodSchema);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            name: expect.objectContaining({ type: "string" }),
+            count: expect.objectContaining({ type: "number" }),
+          }),
+        }),
+      );
+    });
+
+    it("converts Zod 3 schema to JSON Schema", () => {
+      const zodSchema = z3.object({
+        title: z3.string(),
+      });
+
+      const result = schemaToJsonSchema(zodSchema);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            title: expect.objectContaining({ type: "string" }),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe("safeSchemaToJsonSchema", () => {
+    it("returns undefined for null schema", () => {
+      expect(safeSchemaToJsonSchema(null)).toBeUndefined();
+    });
+
+    it("returns undefined for undefined schema", () => {
+      expect(safeSchemaToJsonSchema(undefined)).toBeUndefined();
+    });
+
+    it("converts valid schema successfully", () => {
+      const zodSchema = z4.object({ name: z4.string() });
+      const result = safeSchemaToJsonSchema(zodSchema);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            name: expect.objectContaining({ type: "string" }),
+          }),
+        }),
+      );
+    });
+
+    it("returns undefined and calls onError for invalid schema", () => {
+      // Create something that looks like a Standard Schema but will fail conversion
+      const brokenSchema = {
+        "~standard": {
+          version: 1,
+          vendor: "broken",
+          validate: () => ({ value: {} }),
+        },
+      };
+
+      const onError = jest.fn();
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+      const result = safeSchemaToJsonSchema(brokenSchema as any, onError);
+
+      consoleSpy.mockRestore();
+
+      expect(result).toBeUndefined();
+      expect(onError).toHaveBeenCalled();
+    });
+
+    it("logs error to console when conversion fails", () => {
+      const brokenSchema = {
+        "~standard": {
+          version: 1,
+          vendor: "broken",
+          validate: () => ({ value: {} }),
+        },
+      };
+
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+      safeSchemaToJsonSchema(brokenSchema as any);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error converting schema to JSON Schema:",
+        expect.any(Error),
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("hasInputSchema", () => {
+    it("returns true for tool with inputSchema", () => {
+      const tool: TamboTool = {
+        name: "test",
+        description: "test",
+        tool: jest.fn(),
+        inputSchema: z4.object({ a: z4.string() }),
+        outputSchema: z4.void(),
+      };
+
+      expect(hasInputSchema(tool)).toBe(true);
+    });
+
+    it("returns false for tool with toolSchema (deprecated)", () => {
+      const tool: TamboToolWithToolSchema = {
+        name: "test",
+        description: "test",
+        tool: jest.fn(),
+        toolSchema: z3.function().args(z3.string()).returns(z3.void()),
+      };
+
+      expect(hasInputSchema(tool)).toBe(false);
+    });
+
+    it("returns false for tool with null inputSchema", () => {
+      const tool = {
+        name: "test",
+        description: "test",
+        tool: jest.fn(),
+        inputSchema: null,
+        outputSchema: z4.void(),
+      };
+
+      expect(hasInputSchema(tool as any)).toBe(false);
     });
   });
 });

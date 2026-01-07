@@ -1006,10 +1006,7 @@ export function ProviderKeySectionBase({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">
             LLM Providers
-            <EditWithTamboButton
-              suggestions={providerKeySectionSuggestions}
-              description="Manage LLM providers for this project. Edit the provider and model, set the API key, and more."
-            />
+            <EditWithTamboButton description="Manage LLM providers for this project. Edit the provider and model, set the API key, and more." />
           </CardTitle>
           {hasActualChanges && (
             <Button

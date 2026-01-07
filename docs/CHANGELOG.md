@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.22.0](https://github.com/tambo-ai/tambo/compare/docs-v1.21.1...docs-v1.22.0) (2026-01-07)
+
+
+### Features
+
+* **api:** remove non-streaming advance thread endpoints ([#1648](https://github.com/tambo-ai/tambo/issues/1648)) ([3802c8d](https://github.com/tambo-ai/tambo/commit/3802c8deb24e8b72140656418b5e5f0549bbf228))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump framer-motion from 12.23.24 to 12.23.26 ([#1644](https://github.com/tambo-ai/tambo/issues/1644)) ([34cc795](https://github.com/tambo-ai/tambo/commit/34cc795100121f8b1a4469b9a34a3113ba7bd424))
+* **deps:** bump posthog-js from 1.310.1 to 1.311.0 in the small-safe-packages group across 1 directory ([#1636](https://github.com/tambo-ai/tambo/issues/1636)) ([67d8ba3](https://github.com/tambo-ai/tambo/commit/67d8ba3fdbf22a25e91d0ed624e4ca7272f6b2dd))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1629](https://github.com/tambo-ai/tambo/issues/1629)) ([7655ca7](https://github.com/tambo-ai/tambo/commit/7655ca77bfa5843e30c0d1447cc705c572c5fe41))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1641](https://github.com/tambo-ai/tambo/issues/1641)) ([154b264](https://github.com/tambo-ai/tambo/commit/154b2647a3ba3ee836a521d4a23a20e80d68e497))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+
 ## [1.21.1](https://github.com/tambo-ai/tambo/compare/docs-v1.21.0...docs-v1.21.1) (2025-12-17)
 
 

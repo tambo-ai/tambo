@@ -15,9 +15,7 @@ import {
   Trigger as TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import {
-  type Suggestion,
   useTambo,
-  useTamboContextAttachment,
   useTamboCurrentComponent,
   useTamboThreadInput,
 } from "@tambo-ai/react";
@@ -46,17 +44,6 @@ export interface EditWithTamboButtonProps {
    * own wrapper or see apps/web/components/ui/tambo/edit-with-tambo-button.tsx for reference.
    */
   editorRef?: React.MutableRefObject<Editor | null>;
-  /**
-   * Optional suggestions to display when using "Send in Thread"
-   *
-   * NOTE: Suggestions are set via `setCustomSuggestions()` and persist until:
-   * - A message is sent (if using MessageThreadCollapsible, which clears on send)
-   * - This component unmounts (cleanup fallback)
-   *
-   * For robust clearing behavior, ensure your component tree includes
-   * MessageThreadCollapsible or implements similar clearing logic.
-   */
-  suggestions?: Suggestion[];
 }
 
 /**
@@ -90,12 +77,9 @@ export function EditWithTamboButton({
   className,
   onOpenThread,
   editorRef,
-  suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle } = useTambo();
-  const { setCustomSuggestions, addContextAttachment } =
-    useTamboContextAttachment();
+  const { sendThreadMessage, isIdle, setInteractableSelected } = useTambo();
   const { setValue: setThreadInputValue } = useTamboThreadInput();
 
   const [prompt, setPrompt] = useState("");
@@ -130,16 +114,6 @@ export function EditWithTamboButton({
     }
   }, [shouldCloseOnComplete, isGenerating]);
 
-  // Cleanup: Clear custom suggestions on unmount if suggestions prop is provided
-  // This ensures suggestions don't persist indefinitely if MessageThreadCollapsible
-  // or similar clearing logic isn't present in the consumer's component tree
-  useEffect(() => {
-    if (!suggestions) return;
-    return () => {
-      setCustomSuggestions(null);
-    };
-  }, [suggestions, setCustomSuggestions]);
-
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isGenerating) {
       return;
@@ -170,16 +144,10 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // Set custom suggestions if available
-    if (suggestions) {
-      setCustomSuggestions(suggestions);
+    const interactableId = component?.interactableId ?? "";
+    if (interactableId) {
+      setInteractableSelected(interactableId, true);
     }
-
-    // Add the component as a context attachment
-    const componentName = component?.componentName ?? "Unknown Component";
-    addContextAttachment({
-      name: componentName,
-    });
 
     // Open the thread panel if callback provided
     if (onOpenThread) {
@@ -202,12 +170,10 @@ export function EditWithTamboButton({
     }
   }, [
     prompt,
-    suggestions,
     component,
     onOpenThread,
     editorRef,
-    setCustomSuggestions,
-    addContextAttachment,
+    setInteractableSelected,
     setThreadInputValue,
   ]);
 

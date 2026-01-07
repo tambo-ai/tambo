@@ -7,15 +7,16 @@ import meow, { type Flag, type Result } from "meow";
 import { dirname, join } from "path";
 import semver from "semver";
 import { fileURLToPath } from "url";
-import { NonInteractiveError } from "./utils/interactive.js";
 import { handleAddComponents } from "./commands/add/index.js";
 import { getComponentList } from "./commands/add/utils.js";
+import { handleAuth, showAuthHelp } from "./commands/auth.js";
 import { handleCreateApp } from "./commands/create-app.js";
 import { handleInit } from "./commands/init.js";
 import { handleListComponents } from "./commands/list/index.js";
 import { handleMigrate } from "./commands/migrate.js";
 import { handleUpdateComponents } from "./commands/update.js";
 import { handleUpgrade } from "./commands/upgrade/index.js";
+import { NonInteractiveError } from "./utils/interactive.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,6 +39,9 @@ interface CLIFlags extends Record<string, any> {
   yes?: Flag<"boolean", boolean>;
   dryRun?: Flag<"boolean", boolean>;
   skipAgentDocs?: Flag<"boolean", boolean>;
+  quiet?: Flag<"boolean", boolean>;
+  force?: Flag<"boolean", boolean>;
+  all?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -62,6 +66,8 @@ const OPTION_DOCS: Record<string, string> = {
   template: `${chalk.yellow("--template, -t <name>")}  Template to use: standard, analytics`,
   "init-git": `${chalk.yellow("--init-git")}           Initialize git repository automatically`,
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
+  quiet: `${chalk.yellow("--quiet, -q")}          Exit code 0 if authenticated, 1 otherwise`,
+  force: `${chalk.yellow("--force, -f")}          Skip confirmation prompts`,
 };
 
 const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
@@ -187,6 +193,81 @@ ${chalk.bold("Templates")}
       `$ ${chalk.cyan("tambo migrate --dry-run")}     # Preview changes only`,
     ],
   },
+  auth: {
+    command: "auth",
+    syntax: "auth [subcommand]",
+    description: "Manage authentication (status, login, logout, sessions)",
+    usage: [
+      `$ ${chalk.cyan("tambo auth")} [subcommand] [options]`,
+      `$ ${chalk.cyan("tambo auth status")}         ${chalk.dim("Show authentication status")}`,
+      `$ ${chalk.cyan("tambo auth login")}          ${chalk.dim("Authenticate via browser")}`,
+      `$ ${chalk.cyan("tambo auth logout")}         ${chalk.dim("Clear stored credentials")}`,
+      `$ ${chalk.cyan("tambo auth sessions")}       ${chalk.dim("List CLI sessions")}`,
+      `$ ${chalk.cyan("tambo auth revoke-session")} ${chalk.dim("Revoke CLI session(s)")}`,
+    ],
+    options: ["quiet"],
+    examples: [
+      `$ ${chalk.cyan("tambo auth")}                # Show auth status`,
+      `$ ${chalk.cyan("tambo auth status --quiet")} # Check auth in scripts (exit code)`,
+    ],
+    exampleTitle: "Authentication",
+  },
+  "auth-status": {
+    command: "auth-status",
+    syntax: "auth status",
+    description: "Show current authentication status",
+    usage: [`$ ${chalk.cyan("tambo auth status")} [options]`],
+    options: ["quiet"],
+    examples: [
+      `$ ${chalk.cyan("tambo auth status")}         # Show auth status`,
+      `$ ${chalk.cyan("tambo auth status --quiet")} # Exit 0 if authenticated, 1 otherwise`,
+    ],
+  },
+  "auth-login": {
+    command: "auth-login",
+    syntax: "auth login",
+    description: "Authenticate via browser",
+    usage: [`$ ${chalk.cyan("tambo auth login")}`],
+    options: [],
+    examples: [
+      `$ ${chalk.cyan("tambo auth login")} # Opens browser to authenticate`,
+    ],
+  },
+  "auth-logout": {
+    command: "auth-logout",
+    syntax: "auth logout",
+    description: "Clear stored credentials",
+    usage: [`$ ${chalk.cyan("tambo auth logout")} [options]`],
+    options: ["force"],
+    examples: [
+      `$ ${chalk.cyan("tambo auth logout")}         # Logout with confirmation`,
+      `$ ${chalk.cyan("tambo auth logout --force")} # Logout without prompt`,
+    ],
+  },
+  "auth-sessions": {
+    command: "auth-sessions",
+    syntax: "auth sessions",
+    description: "List active CLI sessions",
+    usage: [`$ ${chalk.cyan("tambo auth sessions")}`],
+    options: [],
+    examples: [
+      `$ ${chalk.cyan("tambo auth sessions")} # List all CLI sessions`,
+    ],
+  },
+  "auth-revoke-session": {
+    command: "auth-revoke-session",
+    syntax: "auth revoke-session [options]",
+    description: "Revoke CLI session(s)",
+    usage: [
+      `$ ${chalk.cyan("tambo auth revoke-session")}       ${chalk.dim("Interactive session picker")}`,
+      `$ ${chalk.cyan("tambo auth revoke-session --all")} ${chalk.dim("Revoke all sessions")}`,
+    ],
+    options: [],
+    examples: [
+      `$ ${chalk.cyan("tambo auth revoke-session")}       # Interactive session picker`,
+      `$ ${chalk.cyan("tambo auth revoke-session --all")} # Revoke all sessions`,
+    ],
+  },
 };
 
 // Generate global help text from command configs
@@ -294,6 +375,20 @@ const cli = meow(generateGlobalHelp(), {
     dryRun: {
       type: "boolean",
       description: "Dry run migration without making changes",
+    },
+    quiet: {
+      type: "boolean",
+      description: "Quiet mode for auth status (exit code only)",
+      shortFlag: "q",
+    },
+    force: {
+      type: "boolean",
+      description: "Force action without confirmation",
+      shortFlag: "f",
+    },
+    all: {
+      type: "boolean",
+      description: "Revoke all CLI sessions",
     },
   },
   importMeta: import.meta,
@@ -453,6 +548,20 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
     await handleMigrate({
       yes: Boolean(flags.yes),
       dryRun: Boolean(flags.dryRun),
+    });
+    return;
+  }
+
+  if (cmd === "auth") {
+    if (flags.help) {
+      showAuthHelp();
+      return;
+    }
+    const subcommand = cli.input[1];
+    await handleAuth(subcommand, {
+      quiet: Boolean(flags.quiet ?? flags.q),
+      force: Boolean(flags.force ?? flags.f),
+      all: Boolean(flags.all),
     });
     return;
   }

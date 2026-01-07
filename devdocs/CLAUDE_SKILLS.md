@@ -14,11 +14,7 @@ Claude Code skills are specialized prompts that give Claude detailed instruction
 
 **Details:** See `.claude/skills/ai-sdk-model-manager/SKILL.md`
 
-### Weekly Release Summarizer
-
-**When to use:** When preparing weekly or monthly release summaries for external developers, creating user-facing release notes, or generating content for Discord announcements and blog posts. Use specific calendar periods (e.g., "last week" = Monday-Sunday) rather than rolling windows.
-
-**Details:** See `.claude/skills/weekly-release-summarizer/SKILL.md`
+> Note: Weekly release summaries now live as Charlie proactive playbooks under `.charlie/playbooks/`.
 
 ## Creating New Skills
 

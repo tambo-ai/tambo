@@ -19,15 +19,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup mise
+        uses: jdx/mise-action@v3.5.1
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v5.0.1
         with:
-          node-version: "22"
-
-      - name: Pin NPM version
-        run: npm install -g npm@11.7.0
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         # This (`npm install) is a workaround for the fact that release-please

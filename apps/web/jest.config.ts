@@ -28,6 +28,8 @@ const config: Config = {
       "<rootDir>/__mocks__/mcpSseMock.ts",
     "^@/(.*)$": "<rootDir>/$1",
     "^@tambo-ai-cloud/(.*)$": "<rootDir>/../../packages/$1/src",
+    "^@tambo-ai/react$": "<rootDir>/../../react-sdk/src/index.ts",
+    "^@tambo-ai/react/(.*)$": "<rootDir>/../../react-sdk/src/$1",
   },
   setupFilesAfterEnv: ["<rootDir>/test/jest.setup.ts"],
   transform: {
@@ -49,8 +51,8 @@ const config: Config = {
   testPathIgnorePatterns: ["/node_modules/", "/.next/", "/dist/"],
   coverageThreshold: {
     global: {
-      branches: 6,
-      lines: 11,
+      branches: 7,
+      lines: 12,
     },
   },
 };

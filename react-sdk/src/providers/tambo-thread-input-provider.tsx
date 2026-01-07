@@ -11,9 +11,16 @@ import {
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
 import { StagedImage, useMessageImages } from "../hooks/use-message-images";
+import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
+import {
+  extractResourceUris,
+  resolveResourceContents,
+} from "../util/resource-content-resolver";
+import { useTamboInteractable } from "./tambo-interactable-provider";
+import { useTamboRegistry } from "./tambo-registry-provider";
 import { useTamboThread } from "./tambo-thread-provider";
 
 /**
@@ -89,7 +96,9 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
   const { thread, sendThreadMessage, contextKey } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
   const imageState = useMessageImages();
-
+  const mcpServers = useTamboMcpServers();
+  const { resourceSource } = useTamboRegistry();
+  const { clearInteractableSelections } = useTamboInteractable();
   const submit = useCallback(
     async ({
       streamResponse,
@@ -120,11 +129,22 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
         });
       }
 
-      // Build message content with text, images, and resource names
+      // Extract resource URIs from the input text and resolve content for client-side resources
+      // (registry and client-side MCP servers). Internal Tambo server resources are skipped
+      // since the backend can resolve them.
+      const resourceUris = extractResourceUris(inputValue);
+      const resolvedContent = await resolveResourceContents(
+        resourceUris,
+        mcpServers,
+        resourceSource ?? undefined,
+      );
+
+      // Build message content with text, images, resource names, and resolved content
       const messageContent = buildMessageContent(
         inputValue,
         imageState.images,
         resourceNames,
+        resolvedContent,
       );
 
       try {
@@ -136,10 +156,12 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
           additionalContext: additionalContext,
           content: messageContent,
         });
-      } catch (error: any) {
+        clearInteractableSelections();
+      } catch (error: unknown) {
         // Handle image-related errors with friendly messages
         if (imageState.images.length > 0) {
-          const errorMessage = error?.message?.toLowerCase() ?? "";
+          const errorMessage =
+            error instanceof Error ? error.message.toLowerCase() : "";
 
           // Backend not yet supporting image content type
           if (errorMessage.includes("unknown content part type: image")) {
@@ -195,7 +217,16 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
       // Clear text after successful submission
       setInputValue("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
+    [
+      inputValue,
+      sendThreadMessage,
+      thread.id,
+      contextKey,
+      imageState,
+      mcpServers,
+      resourceSource,
+      clearInteractableSelections,
+    ],
   );
 
   const {

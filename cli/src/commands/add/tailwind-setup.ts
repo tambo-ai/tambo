@@ -3,12 +3,12 @@ import deepmerge from "deepmerge";
 import { deepEqual } from "fast-equals";
 import fs from "fs";
 import path from "path";
-import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
 import postcss from "postcss";
 import semver from "semver";
 import type { Config } from "tailwindcss";
 import { Project, ScriptKind } from "ts-morph";
 import { fileURLToPath } from "url";
+import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
 import { parseConfigObject } from "./tailwind/config/parsing.js";
 import { showChangesSummary, showCssDiff } from "./tailwind/css/diff-viewer.js";
 import {
@@ -39,7 +39,7 @@ const __dirname = path.dirname(__filename);
  * Sets up Tailwind CSS and global styles for the project
  * @param projectRoot The root directory of the project
  */
-export async function setupTailwindandGlobals(projectRoot: string) {
+export async function setupTailwindAndGlobals(projectRoot: string) {
   const tailwindConfigPath = path.join(projectRoot, "tailwind.config.ts");
 
   // Detect Tailwind version first

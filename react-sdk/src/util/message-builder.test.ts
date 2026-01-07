@@ -866,4 +866,352 @@ describe("buildMessageContent", () => {
       expect(result[0].type).toBe("resource");
     });
   });
+
+  describe("resource content resolution", () => {
+    it("should include text content from resolved resource", () => {
+      const resourceContent = new Map([
+        [
+          "registry:file:///doc.txt",
+          {
+            contents: [
+              {
+                uri: "file:///doc.txt",
+                mimeType: "text/plain",
+                text: "This is the document content",
+              },
+            ],
+          },
+        ],
+      ]);
+
+      const result = buildMessageContent(
+        "Check @registry:file:///doc.txt",
+        [],
+        {},
+        resourceContent,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "text",
+          text: "Check ",
+        },
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///doc.txt",
+            text: "This is the document content",
+            mimeType: "text/plain",
+          },
+        },
+      ]);
+    });
+
+    it("should include blob content from resolved resource", () => {
+      const resourceContent = new Map([
+        [
+          "registry:file:///image.png",
+          {
+            contents: [
+              {
+                uri: "file:///image.png",
+                mimeType: "image/png",
+                blob: "base64encodeddata",
+              },
+            ],
+          },
+        ],
+      ]);
+
+      const result = buildMessageContent(
+        "Check @registry:file:///image.png",
+        [],
+        {},
+        resourceContent,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "text",
+          text: "Check ",
+        },
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///image.png",
+            blob: "base64encodeddata",
+            mimeType: "image/png",
+          },
+        },
+      ]);
+    });
+
+    it("should include name and resolved content together", () => {
+      const resourceNames = {
+        "registry:file:///doc.txt": "Important Document",
+      };
+      const resourceContent = new Map([
+        [
+          "registry:file:///doc.txt",
+          {
+            contents: [
+              {
+                uri: "file:///doc.txt",
+                mimeType: "text/plain",
+                text: "Document content here",
+              },
+            ],
+          },
+        ],
+      ]);
+
+      const result = buildMessageContent(
+        "@registry:file:///doc.txt",
+        [],
+        resourceNames,
+        resourceContent,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///doc.txt",
+            name: "Important Document",
+            text: "Document content here",
+            mimeType: "text/plain",
+          },
+        },
+      ]);
+    });
+
+    it("should handle multiple resources with mixed resolved content", () => {
+      const resourceContent = new Map([
+        [
+          "registry:file:///doc1.txt",
+          {
+            contents: [
+              {
+                uri: "file:///doc1.txt",
+                text: "First doc content",
+              },
+            ],
+          },
+        ],
+        // doc2 is NOT in resourceContent - simulates internal server resource
+      ]);
+
+      const result = buildMessageContent(
+        "@registry:file:///doc1.txt and @tambo-abc:tambo://doc2",
+        [],
+        {},
+        resourceContent,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///doc1.txt",
+            text: "First doc content",
+          },
+        },
+        {
+          type: "text",
+          text: " and ",
+        },
+        {
+          type: "resource",
+          resource: {
+            uri: "tambo://doc2",
+            // No text/blob - internal server resource
+          },
+        },
+      ]);
+    });
+
+    it("should handle resolved content without mimeType", () => {
+      const resourceContent = new Map([
+        [
+          "server:file:///doc.txt",
+          {
+            contents: [
+              {
+                uri: "file:///doc.txt",
+                text: "Content without mimeType",
+              },
+            ],
+          },
+        ],
+      ]);
+
+      const result = buildMessageContent(
+        "@server:file:///doc.txt",
+        [],
+        {},
+        resourceContent,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///doc.txt",
+            text: "Content without mimeType",
+          },
+        },
+      ]);
+    });
+
+    it("should handle empty resourceContent map gracefully", () => {
+      const result = buildMessageContent(
+        "@registry:file:///doc.txt",
+        [],
+        {},
+        new Map(),
+      );
+
+      expect(result).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///doc.txt",
+          },
+        },
+      ]);
+    });
+
+    it("should handle undefined resourceContent gracefully", () => {
+      const result = buildMessageContent(
+        "@registry:file:///doc.txt",
+        [],
+        {},
+        undefined,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///doc.txt",
+          },
+        },
+      ]);
+    });
+
+    it("should handle resolved content with empty contents array", () => {
+      const resourceContent = new Map([
+        [
+          "registry:file:///doc.txt",
+          {
+            contents: [],
+          },
+        ],
+      ]);
+
+      const result = buildMessageContent(
+        "@registry:file:///doc.txt",
+        [],
+        {},
+        resourceContent,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///doc.txt",
+          },
+        },
+      ]);
+    });
+
+    it("should include resolved content with MCP server resources", () => {
+      const resourceContent = new Map([
+        [
+          "linear:linear://issue/123",
+          {
+            contents: [
+              {
+                uri: "linear://issue/123",
+                mimeType: "application/json",
+                text: '{"title": "Bug fix", "status": "open"}',
+              },
+            ],
+          },
+        ],
+      ]);
+
+      const result = buildMessageContent(
+        "Check issue @linear:linear://issue/123",
+        [],
+        {},
+        resourceContent,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "text",
+          text: "Check issue ",
+        },
+        {
+          type: "resource",
+          resource: {
+            uri: "linear://issue/123",
+            text: '{"title": "Bug fix", "status": "open"}',
+            mimeType: "application/json",
+          },
+        },
+      ]);
+    });
+
+    it("should combine resolved content with images", () => {
+      const resourceContent = new Map([
+        [
+          "registry:file:///doc.txt",
+          {
+            contents: [
+              {
+                uri: "file:///doc.txt",
+                text: "Document content",
+              },
+            ],
+          },
+        ],
+      ]);
+
+      const images = [
+        createMockStagedImage({
+          dataUrl: "data:image/png;base64,imagedata",
+        }),
+      ];
+
+      const result = buildMessageContent(
+        "Check @registry:file:///doc.txt",
+        images,
+        {},
+        resourceContent,
+      );
+
+      expect(result).toEqual([
+        {
+          type: "text",
+          text: "Check ",
+        },
+        {
+          type: "resource",
+          resource: {
+            uri: "file:///doc.txt",
+            text: "Document content",
+          },
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: "data:image/png;base64,imagedata",
+          },
+        },
+      ]);
+    });
+  });
 });

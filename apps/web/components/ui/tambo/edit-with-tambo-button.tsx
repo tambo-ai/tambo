@@ -10,12 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
-import {
-  type Suggestion,
-  useTambo,
-  useTamboContextAttachment,
-  useTamboCurrentComponent,
-} from "@tambo-ai/react";
+import { useTambo, useTamboCurrentComponent } from "@tambo-ai/react";
 import { Bot, ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -30,17 +25,6 @@ export interface EditWithTamboButtonProps {
   className?: string;
   /** Optional callback to open the thread panel/chat interface. Uses useMessageThreadPanel by default if not provided */
   onOpenThread?: () => void;
-  /**
-   * Optional suggestions to display when using "Send in Thread"
-   *
-   * NOTE: Suggestions are set via `setCustomSuggestions()` and persist until:
-   * - A message is sent (if using MessageThreadPanel, which clears on send)
-   * - This component unmounts (cleanup fallback)
-   *
-   * For robust clearing behavior, ensure your component tree includes
-   * MessageThreadPanel or implements similar clearing logic.
-   */
-  suggestions?: Suggestion[];
 }
 
 /**
@@ -72,13 +56,10 @@ export function EditWithTamboButton({
   description,
   className,
   onOpenThread: onOpenThreadProp,
-  suggestions,
 }: EditWithTamboButtonProps) {
   const component = useTamboCurrentComponent();
-  const { sendThreadMessage, isIdle } = useTambo();
+  const { sendThreadMessage, isIdle, setInteractableSelected } = useTambo();
   const { setIsOpen: setThreadPanelOpen, editorRef } = useMessageThreadPanel();
-  const { addContextAttachment, setCustomSuggestions } =
-    useTamboContextAttachment();
 
   const [prompt, setPrompt] = useState("");
   // NOTE: Using isIdle from useTambo() instead of tracking error/pending state locally.
@@ -116,16 +97,6 @@ export function EditWithTamboButton({
     }
   }, [shouldCloseOnComplete, isGenerating]);
 
-  // Cleanup: Clear custom suggestions on unmount if suggestions prop is provided
-  // This ensures suggestions don't persist indefinitely if MessageThreadPanel
-  // or similar clearing logic isn't present in the consumer's component tree
-  useEffect(() => {
-    if (!suggestions) return;
-    return () => {
-      setCustomSuggestions(null);
-    };
-  }, [suggestions, setCustomSuggestions]);
-
   const handleSend = useCallback(async () => {
     if (!prompt.trim() || isGenerating) {
       return;
@@ -156,17 +127,11 @@ export function EditWithTamboButton({
     // Save the message before clearing
     const messageToInsert = prompt.trim();
 
-    // Set custom suggestions if available
-    if (suggestions) {
-      setCustomSuggestions(suggestions);
-    }
-
-    // Add the component as a context attachment
     const componentName = component?.componentName ?? "Unknown Component";
     const interactableId = component?.interactableId ?? "";
-    addContextAttachment({
-      name: componentName,
-    });
+    if (interactableId) {
+      setInteractableSelected(interactableId, true);
+    }
 
     // Open the thread panel first
     onOpenThread();
@@ -188,15 +153,7 @@ export function EditWithTamboButton({
         editor.appendText(messageToInsert);
       }
     }
-  }, [
-    prompt,
-    component,
-    suggestions,
-    setCustomSuggestions,
-    addContextAttachment,
-    onOpenThread,
-    editorRef,
-  ]);
+  }, [prompt, component, setInteractableSelected, onOpenThread, editorRef]);
 
   const handleMainAction = useCallback(() => {
     if (sendMode === "thread") {

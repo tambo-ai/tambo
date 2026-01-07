@@ -68,12 +68,10 @@ import { addMessage, threadMessageToDto, updateMessage } from "./util/messages";
 import { mapSuggestionToDto } from "./util/suggestions";
 import { createMcpHandlers } from "./util/thread-mcp-handlers";
 import {
-  addAssistantResponse,
   addUserMessage,
   appendNewMessageToThread,
   finishInProgressMessage,
   fixStreamedToolCalls,
-  processThreadMessage,
   updateGenerationStage,
   updateThreadMessageFromLegacyDecision,
 } from "./util/thread-state";
@@ -214,7 +212,7 @@ export class ThreadsService {
 
     const thread = await operations.createThread(this.getDb(), {
       projectId: createThreadDto.projectId,
-      contextKey: contextKey,
+      contextKey,
       metadata: createThreadDto.metadata,
       name: createThreadDto.name,
     });
@@ -906,36 +904,6 @@ export class ThreadsService {
     projectId: string,
     advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
-    stream?: true,
-    toolCallCounts?: Record<string, number>,
-    cachedSystemTools?: McpToolRegistry,
-    queue?: AsyncQueue<AdvanceThreadResponseDto>,
-    contextKey?: string,
-  ): Promise<void>;
-  async advanceThread(
-    projectId: string,
-    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
-    unresolvedThreadId?: string,
-    stream?: false,
-    toolCallCounts?: Record<string, number>,
-    cachedSystemTools?: McpToolRegistry,
-    queue?: AsyncQueue<AdvanceThreadResponseDto>,
-  ): Promise<void>;
-  async advanceThread(
-    projectId: string,
-    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
-    unresolvedThreadId?: string,
-    stream?: boolean,
-    toolCallCounts?: Record<string, number>,
-    cachedSystemTools?: McpToolRegistry,
-    queue?: AsyncQueue<AdvanceThreadResponseDto>,
-    contextKey?: string,
-  ): Promise<void>;
-  async advanceThread(
-    projectId: string,
-    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
-    unresolvedThreadId?: string,
-    stream?: boolean,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<AdvanceThreadResponseDto>,
@@ -948,7 +916,6 @@ export class ThreadsService {
         attributes: {
           projectId,
           threadId: unresolvedThreadId,
-          stream: !!stream,
           hasMessage: !!advanceRequestDto.messageToAppend,
           toolCallCount: Object.keys(toolCallCounts).length,
         },
@@ -958,7 +925,6 @@ export class ThreadsService {
           projectId,
           advanceRequestDto,
           unresolvedThreadId,
-          stream,
           toolCallCounts,
           cachedSystemTools,
           queue,
@@ -971,7 +937,6 @@ export class ThreadsService {
     projectId: string,
     advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
-    stream?: boolean,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<AdvanceThreadResponseDto>,
@@ -1106,109 +1071,21 @@ export class ThreadsService {
         : undefined;
       const mcpAccessToken = mcpAccessTokenResult?.token;
 
-      if (stream) {
-        await this.generateStreamingResponse(
-          projectId,
-          thread.id,
-          db,
-          tamboBackend,
-          queue,
-          messages,
-          userMessage,
-          advanceRequestDto,
-          toolCallCounts,
-          allTools,
-          mcpAccessToken,
-          project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
-          mcpClients,
-        );
-        return;
-      }
-
-      const responseMessage = await processThreadMessage(
-        db,
+      await this.generateStreamingResponse(
+        projectId,
         thread.id,
+        db,
+        tamboBackend,
+        queue,
         messages,
         userMessage,
         advanceRequestDto,
-        tamboBackend,
+        toolCallCounts,
         allTools,
+        mcpAccessToken,
+        project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
         mcpClients,
       );
-
-      const {
-        responseMessageDto,
-        resultingGenerationStage,
-        resultingStatusMessage,
-      } = await addAssistantResponse(
-        db,
-        thread.id,
-        userMessage.id,
-        responseMessage,
-        this.logger,
-      );
-
-      const toolCallRequest = responseMessage.toolCallRequest;
-
-      // Check tool call limits if we have a tool call request
-      const toolLimits = deriveToolLimitsFromDto(advanceRequestDto);
-      const toolLimitErrorMessage = await checkToolCallLimitViolation(
-        this.getDb(),
-        thread.id,
-        responseMessageDto.id,
-        responseMessageDto,
-        messages,
-        toolCallCounts,
-        toolCallRequest,
-        project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
-        mcpAccessToken,
-        undefined,
-        toolLimits,
-      );
-      if (toolLimitErrorMessage) {
-        queue.push(toolLimitErrorMessage);
-        return;
-      }
-
-      if (isSystemToolCall(toolCallRequest, allTools)) {
-        if (!responseMessage.toolCallId) {
-          console.warn(
-            `While handling tool call request ${toolCallRequest.toolName}, no tool call id in response message ${responseMessage}, returning assistant message`,
-          );
-          Sentry.captureMessage(
-            "Missing tool call ID from system tool call in stream",
-            "warning",
-          );
-        }
-        await this.handleSystemToolCall(
-          toolCallRequest,
-          responseMessage.toolCallId ?? "",
-          responseMessageDto.id,
-          allTools,
-          responseMessage,
-          advanceRequestDto,
-          projectId,
-          thread.id,
-          false,
-          toolCallCounts,
-          queue,
-        );
-        return;
-      }
-
-      queue.push({
-        responseMessageDto: {
-          ...responseMessageDto,
-          content: convertContentPartToDto(responseMessageDto.content),
-          componentState: responseMessageDto.componentState ?? {},
-          component: responseMessageDto.component as ComponentDecisionV2Dto,
-        },
-        generationStage: resultingGenerationStage,
-        statusMessage: resultingStatusMessage,
-        ...(mcpAccessToken && { mcpAccessToken }),
-      });
-
-      return;
     } catch (error) {
       queue.fail(error);
       // Capture any errors with full context
@@ -1217,7 +1094,6 @@ export class ThreadsService {
         scope.setTag("projectId", projectId);
         scope.setTag("threadId", unresolvedThreadId);
         scope.setContext("request", {
-          stream,
           hasMessage: !!advanceRequestDto.messageToAppend,
           availableComponents: advanceRequestDto.availableComponents?.length,
         });
@@ -1238,33 +1114,6 @@ export class ThreadsService {
     advanceRequestDto: AdvanceThreadDto,
     projectId: string,
     threadId: string,
-    stream: boolean,
-    toolCallCounts: Record<string, number>,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
-  ): Promise<void>;
-  private async handleSystemToolCall(
-    toolCallRequest: ToolCallRequest,
-    toolCallId: string,
-    toolCallMessageId: string,
-    allTools: McpToolRegistry,
-    componentDecision: LegacyComponentDecision,
-    advanceRequestDto: AdvanceThreadDto,
-    projectId: string,
-    threadId: string,
-    stream: true,
-    toolCallCounts: Record<string, number>,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
-  ): Promise<void>;
-  private async handleSystemToolCall(
-    toolCallRequest: ToolCallRequest,
-    toolCallId: string,
-    toolCallMessageId: string,
-    allTools: McpToolRegistry,
-    componentDecision: LegacyComponentDecision,
-    advanceRequestDto: AdvanceThreadDto,
-    projectId: string,
-    threadId: string,
-    stream: boolean,
     toolCallCounts: Record<string, number>,
     queue: AsyncQueue<AdvanceThreadResponseDto>,
   ): Promise<void> {
@@ -1277,7 +1126,6 @@ export class ThreadsService {
           toolCallId,
           projectId,
           threadId,
-          stream,
         },
       },
       async () =>
@@ -1290,7 +1138,6 @@ export class ThreadsService {
           advanceRequestDto,
           projectId,
           threadId,
-          stream,
           toolCallCounts,
           queue,
         ),
@@ -1306,7 +1153,6 @@ export class ThreadsService {
     advanceRequestDto: AdvanceThreadDto,
     projectId: string,
     threadId: string,
-    stream: boolean,
     toolCallCounts: Record<string, number>,
     queue: AsyncQueue<AdvanceThreadResponseDto>,
   ): Promise<void> {
@@ -1343,7 +1189,6 @@ export class ThreadsService {
         projectId,
         messageWithToolResponse,
         threadId,
-        stream,
         updatedToolCallCounts,
         allTools,
         queue,
@@ -1941,7 +1786,6 @@ export class ThreadsService {
           originalRequest,
           projectId,
           threadId,
-          true,
           toolCallCounts,
           queue,
         );
@@ -2018,7 +1862,6 @@ export class ThreadsService {
           projectId,
           toolResponseAdvanceDto,
           threadId,
-          true,
           updatedToolCallCounts,
           allTools,
           queue,

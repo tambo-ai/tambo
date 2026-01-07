@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.68.0](https://github.com/tambo-ai/tambo/compare/react-v0.67.1...react-v0.68.0) (2025-12-18)
+
+
+### Features
+
+* **react-sdk:** add tools to update interactable component state ([#1580](https://github.com/tambo-ai/tambo/issues/1580)) ([d29c79e](https://github.com/tambo-ai/tambo/commit/d29c79e4a08683a42549985eed1363d8c981e767))
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+
+## [0.67.1](https://github.com/tambo-ai/tambo/compare/react-v0.67.0...react-v0.67.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** propagate resources stuff from TamboProvider -&gt; registry ([#1568](https://github.com/tambo-ai/tambo/issues/1568)) ([03ed3c2](https://github.com/tambo-ai/tambo/commit/03ed3c281070ed91a7e44415f4924b0bb497b295))
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps-dev:** bump the eslint group with 5 updates ([#1541](https://github.com/tambo-ai/tambo/issues/1541)) ([6329a46](https://github.com/tambo-ai/tambo/commit/6329a461e8b9f036e111e24890c27a98925f4d15))
+
 ## [0.67.0](https://github.com/tambo-ai/tambo/compare/react-v0.66.2...react-v0.67.0) (2025-12-15)
 
 

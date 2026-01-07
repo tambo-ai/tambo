@@ -18,10 +18,36 @@ import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import { ThreadInProjectGuard } from "./guards/thread-in-project-guard";
 import { ThreadsController } from "./threads.controller";
 import { ThreadsService } from "./threads.service";
+import { EndpointDeprecatedException } from "./types/errors";
 
 const mockExtractContextInfo = extractContextInfo as jest.MockedFunction<
   typeof extractContextInfo
 >;
+
+const expectEndpointDeprecatedProblem = (
+  error: unknown,
+  {
+    requestUrl,
+    migrateToEndpoint,
+    detail,
+  }: { requestUrl: string; migrateToEndpoint: string; detail: string },
+) => {
+  expect(error).toBeInstanceOf(EndpointDeprecatedException);
+  const endpointDeprecatedError = error as EndpointDeprecatedException;
+
+  expect(endpointDeprecatedError.getStatus()).toBe(410);
+  expect(endpointDeprecatedError.getResponse()).toEqual({
+    type: "https://docs.tambo.co/api-reference/problems/endpoint-deprecated",
+    status: 410,
+    title: "Endpoint Deprecated",
+    detail,
+    code: "ENDPOINT_DEPRECATED",
+    instance: requestUrl,
+    details: {
+      migrateToEndpoint,
+    },
+  });
+};
 
 describe("ThreadsController - Stream Routes Error Propagation", () => {
   let controller: ThreadsController;
@@ -63,7 +89,7 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
     threadsService = module.get<ThreadsService>(ThreadsService);
 
     // Set up mock request and response
-    mockRequest = {};
+    mockRequest = { url: "/threads/test/advancestream" };
     mockResponse = {
       setHeader: jest.fn(),
       write: jest.fn(),
@@ -120,7 +146,6 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
             _projectId,
             _advanceRequestDto,
             _unresolvedThreadId,
-            _stream,
             _toolCallCounts,
             _cachedSystemTools,
             queue,
@@ -141,8 +166,11 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
 
       // Assert - Error should be written to stream response
       expect(mockResponse.write).toHaveBeenCalledWith(
-        `error: ${internalError.message}\n\n`,
+        "error: Error in streaming response\n\n",
       );
+      for (const [message] of (mockResponse.write as jest.Mock).mock.calls) {
+        expect(message).not.toContain(internalError.message);
+      }
       expect(mockResponse.end).toHaveBeenCalled();
       expect(threadsService.advanceThread).toHaveBeenCalled();
     });
@@ -191,7 +219,6 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
             _projectId,
             _advanceRequestDto,
             _unresolvedThreadId,
-            _stream,
             _toolCallCounts,
             _cachedSystemTools,
             queue,
@@ -211,10 +238,77 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
 
       // Assert - Error should be written to stream response
       expect(mockResponse.write).toHaveBeenCalledWith(
-        `error: ${internalError.message}\n\n`,
+        "error: Error in streaming response\n\n",
       );
+      for (const [message] of (mockResponse.write as jest.Mock).mock.calls) {
+        expect(message).not.toContain(internalError.message);
+      }
       expect(mockResponse.end).toHaveBeenCalled();
       expect(threadsService.advanceThread).toHaveBeenCalled();
+    });
+  });
+
+  describe("POST /:id/advance (deprecated)", () => {
+    it("should return 410 Gone with deprecation error", async () => {
+      // Arrange
+      const threadId = "test-thread-id";
+      const request = { url: `/threads/${threadId}/advance` } as Request;
+
+      // Act & Assert - The deprecated endpoint should throw EndpointDeprecatedException
+      await expect(controller.advanceThread(threadId, request)).rejects.toThrow(
+        EndpointDeprecatedException,
+      );
+
+      // Verify the service was never called
+      expect(threadsService.advanceThread).not.toHaveBeenCalled();
+    });
+
+    it("should include migration guidance in the error response", async () => {
+      // Arrange
+      const threadId = "test-thread-id";
+      const request = { url: `/threads/${threadId}/advance` } as Request;
+
+      // Act & Assert
+      const error = await controller
+        .advanceThread(threadId, request)
+        .catch((caughtError) => caughtError);
+
+      expectEndpointDeprecatedProblem(error, {
+        requestUrl: request.url,
+        migrateToEndpoint: "POST /:id/advancestream",
+        detail:
+          "The non-streaming /:id/advance endpoint has been deprecated. Please use /:id/advancestream instead.",
+      });
+    });
+  });
+
+  describe("POST /advance (deprecated)", () => {
+    it("should return 410 Gone with deprecation error", async () => {
+      const request = { url: "/threads/advance" } as Request;
+
+      // Act & Assert - The deprecated endpoint should throw EndpointDeprecatedException
+      await expect(controller.createAndAdvanceThread(request)).rejects.toThrow(
+        EndpointDeprecatedException,
+      );
+
+      // Verify the service was never called
+      expect(threadsService.advanceThread).not.toHaveBeenCalled();
+    });
+
+    it("should include migration guidance in the error response", async () => {
+      const request = { url: "/threads/advance" } as Request;
+
+      // Act & Assert
+      const error = await controller
+        .createAndAdvanceThread(request)
+        .catch((caughtError) => caughtError);
+
+      expectEndpointDeprecatedProblem(error, {
+        requestUrl: request.url,
+        migrateToEndpoint: "POST /advancestream",
+        detail:
+          "The non-streaming /advance endpoint has been deprecated. Please use /advancestream instead.",
+      });
     });
   });
 });

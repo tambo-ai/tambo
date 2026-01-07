@@ -53,14 +53,11 @@ Sampling is automatically handled when you connect to server-side MCP servers th
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
-import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 function App() {
   return (
     <TamboProvider components={...} mcpServers={[]}>
-      <TamboMcpProvider>
-        {/* Sampling from server-side MCP servers works automatically */}
-      </TamboMcpProvider>
+      {/* Sampling from server-side MCP servers works automatically */}
     </TamboProvider>
   );
 }

@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.45.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.44.1...tambo-v0.45.0) (2025-12-18)
+
+
+### Features
+
+* **showcase:** add dark mode to showcase and fix css ([#1527](https://github.com/tambo-ai/tambo/issues/1527)) ([6fa757d](https://github.com/tambo-ai/tambo/commit/6fa757ddbadbbaa5fb243207c0ae12ef5520d4a6))
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+* **resources:** Use default streamdown configuration, drop explicit `rehype-harden` configuration ([#1593](https://github.com/tambo-ai/tambo/issues/1593)) ([55801f8](https://github.com/tambo-ai/tambo/commit/55801f87a93d9fa8e96b451bff2ed3347516f8e5))
+* thread stuck in loading state after tool call failures/refresh ([#1579](https://github.com/tambo-ai/tambo/issues/1579)) ([e138b40](https://github.com/tambo-ai/tambo/commit/e138b40dcffc5e6b87f5aa1d31bfcec29e40878f))
+
+## [0.44.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.44.0...tambo-v0.44.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+* **web:** allow Enter key to select items from TipTap suggestion popover ([#1571](https://github.com/tambo-ai/tambo/issues/1571)) ([dcb153c](https://github.com/tambo-ai/tambo/commit/dcb153c675a1f0689b2b048fd48970d160c82a94))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps:** bump inquirer from 12.9.4 to 13.0.2 ([#1549](https://github.com/tambo-ai/tambo/issues/1549)) ([90a68ea](https://github.com/tambo-ai/tambo/commit/90a68eaf81ea81b1e51462e19917253e58a87125))
+
 ## [0.44.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.43.1...tambo-v0.44.0) (2025-12-15)
 
 

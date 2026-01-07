@@ -14,6 +14,10 @@
 </p>
 
 <p align="center">
+  <a href="https://trendshift.io/repositories/15734" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/15734" alt="tambo-ai/tambo | Trendshift" width="250" height="55" /></a>
+</p>
+
+<p align="center">
   <a href="https://docs.tambo.co">Documentation</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
@@ -179,7 +183,7 @@ Docs: [threads and messages](https://docs.tambo.co/concepts/message-threads), [s
 Connect to Linear, Slack, databases, or your own MCP servers. Tambo supports the full MCP protocol: tools, prompts, elicitations, and sampling.
 
 ```tsx
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
@@ -190,9 +194,7 @@ const mcpServers = [
 ];
 
 <TamboProvider components={components} mcpServers={mcpServers}>
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>;
 ```
 

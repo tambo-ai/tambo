@@ -100,7 +100,7 @@ export const ThreadDropdown = React.forwardRef<
           <div
             role="button"
             tabIndex={0}
-            className="rounded-md px-1 flex items-center gap-2 text-sm border border-gray-200 bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
+            className="rounded-md px-1 flex items-center gap-2 text-sm border border-border bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
             aria-label="Thread History"
           >
             <ChevronDownIcon className="h-4 w-4" />
@@ -108,7 +108,7 @@ export const ThreadDropdown = React.forwardRef<
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="z-50 min-w-[200px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+            className="z-50 min-w-[200px] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
             side="right"
             align="start"
             sideOffset={5}
@@ -132,7 +132,7 @@ export const ThreadDropdown = React.forwardRef<
               </span>
             </DropdownMenu.Item>
 
-            <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
+            <DropdownMenu.Separator className="my-1 h-px bg-border" />
 
             <ThreadListContent
               isLoading={isLoading}
