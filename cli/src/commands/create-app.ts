@@ -3,6 +3,10 @@ import fs from "fs";
 import ora from "ora";
 import path from "path";
 import { execSync, interactivePrompt } from "../utils/interactive.js";
+import {
+  detectPackageManager,
+  getInstallCommand,
+} from "../utils/package-manager.js";
 
 // Define available templates
 interface Template {
@@ -269,21 +273,25 @@ export async function handleCreateApp(
     }
 
     // Install dependencies with spinner
+    // Detect package manager from the target directory (which is now cwd)
+    const pm = detectPackageManager();
+    const installCmd = getInstallCommand(pm);
+    // --legacy-peer-deps is npm-specific
+    const legacyPeerDepsFlag =
+      options.legacyPeerDeps && pm === "npm" ? " --legacy-peer-deps" : "";
+
     const installSpinner = ora({
-      text: "Installing dependencies...",
+      text: `Installing dependencies using ${pm}...`,
       spinner: "dots",
     }).start();
 
     try {
-      execSync(
-        `npm install${options.legacyPeerDeps ? " --legacy-peer-deps" : ""}`,
-        { stdio: "ignore" },
-      );
+      execSync(`${pm} ${installCmd}${legacyPeerDepsFlag}`, { stdio: "ignore" });
       installSpinner.succeed("Dependencies installed successfully");
     } catch (_error) {
       installSpinner.fail("Failed to install dependencies");
       throw new Error(
-        "Failed to install dependencies. Please try running 'npm install' manually.",
+        `Failed to install dependencies. Please try running '${pm} ${installCmd}' manually.`,
       );
     }
 
