@@ -52,6 +52,11 @@ jobs:
       - name: Setup tools
         uses: ./.github/actions/setup-tools
 
+      - name: Setup npm registry
+        uses: actions/setup-node@v6
+        with:
+          registry-url: "https://registry.npmjs.org"
+
       - name: Build
         run: npx turbo build --filter=@tambo-ai/react
 
@@ -75,6 +80,11 @@ jobs:
       - name: Setup tools
         uses: ./.github/actions/setup-tools
 
+      - name: Setup npm registry
+        uses: actions/setup-node@v6
+        with:
+          registry-url: "https://registry.npmjs.org"
+
       - name: Build
         run: npx turbo build --filter=tambo
 
@@ -97,6 +107,11 @@ jobs:
 
       - name: Setup tools
         uses: ./.github/actions/setup-tools
+
+      - name: Setup npm registry
+        uses: actions/setup-node@v6
+        with:
+          registry-url: "https://registry.npmjs.org"
 
       - name: Build
         run: npx turbo build --filter=create-tambo-app
