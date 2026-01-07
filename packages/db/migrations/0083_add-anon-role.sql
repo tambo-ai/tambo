@@ -1,4 +1,11 @@
-CREATE ROLE "anon" WITH CREATEROLE NOINHERIT;--> statement-breakpoint
+-- Custom SQL migration file for device auth anon role setup
+-- Create anon role idempotently (Supabase already has this role)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    CREATE ROLE "anon" NOINHERIT;
+  END IF;
+END $$;--> statement-breakpoint
 GRANT SELECT, INSERT, UPDATE ON public.device_auth_codes TO "anon";--> statement-breakpoint
 GRANT SELECT ON public.sessions TO "anon";--> statement-breakpoint
 ALTER TABLE "device_auth_codes" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
