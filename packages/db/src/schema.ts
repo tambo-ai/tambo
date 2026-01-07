@@ -44,7 +44,7 @@ export const projectApiKeyRole = pgRole("project_api_key", {
 
 /** Anon role for unauthenticated requests (e.g., device auth initiation/polling)
  * Note: Role is created via custom migration 0083_add-anon-role.sql.
- * See that migration for details on why we use pgRole() with no options there.
+ * See that migration for details on why we use pgRole() with no options here.
  */
 export const anonRole = pgRole("anon");
 
