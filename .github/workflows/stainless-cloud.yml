@@ -14,15 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # setup node
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-      # pin npm version
-      - run: npm install -g npm@11.7.0
-      # install dependencies
-      - run: npm ci
-        working-directory: tambo-cloud
+      # setup tools
+      - uses: ./.github/actions/setup-tools
       # Run the generate-config script from the apps/api directory
       - run: OPENAPI_SPEC_FILE=${{ runner.temp }}/openapi.json npm run generate-config
         working-directory: apps/api
