@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.128.0](https://github.com/tambo-ai/tambo/compare/api-v0.127.1...api-v0.128.0) (2026-01-07)
+
+
+### Features
+
+* **api:** remove non-streaming advance thread endpoints ([#1648](https://github.com/tambo-ai/tambo/issues/1648)) ([3802c8d](https://github.com/tambo-ai/tambo/commit/3802c8deb24e8b72140656418b5e5f0549bbf228))
+
+
+### Bug Fixes
+
+* **docs:** missing `[@returns](https://github.com/returns)` ([#1667](https://github.com/tambo-ai/tambo/issues/1667)) ([d775e23](https://github.com/tambo-ai/tambo/commit/d775e23a271c5db5b549319523fe47fe56a21952))
+
+
+### Miscellaneous Chores
+
+* add cspell settings and correct a few spleling mistaeks ([#1586](https://github.com/tambo-ai/tambo/issues/1586)) ([f5cef2b](https://github.com/tambo-ai/tambo/commit/f5cef2b36d33076f2188f4a663bcebddd9679a9f))
+* **deps:** bump dependencies ([#1624](https://github.com/tambo-ai/tambo/issues/1624)) ([88e8acd](https://github.com/tambo-ai/tambo/commit/88e8acd5050ab746230c2ec86a69fc28222b2753))
+* **deps:** bump openai from 6.9.1 to 6.15.0 ([#1645](https://github.com/tambo-ai/tambo/issues/1645)) ([5384753](https://github.com/tambo-ai/tambo/commit/5384753d5ee12daf79691553123923a5a32fdb39))
+* **deps:** bump the nestjs group with 4 updates ([#1626](https://github.com/tambo-ai/tambo/issues/1626)) ([32c0d8c](https://github.com/tambo-ai/tambo/commit/32c0d8cad96eb6fd06cf6b720af63b4866f7f49e))
+* **deps:** bump the nestjs group with 4 updates ([#1637](https://github.com/tambo-ai/tambo/issues/1637)) ([6283b08](https://github.com/tambo-ai/tambo/commit/6283b08b92af8768a745cb31bb36bf025fdb864d))
+* **deps:** bump the sentry group with 3 updates ([#1630](https://github.com/tambo-ai/tambo/issues/1630)) ([b6f4402](https://github.com/tambo-ai/tambo/commit/b6f44021cb714d903a05dbe2a4ec8ed598e943d0))
+* **deps:** Support multiple tools for managing project tool versions ([#1603](https://github.com/tambo-ai/tambo/issues/1603)) ([31a09c3](https://github.com/tambo-ai/tambo/commit/31a09c32a25c440b16a705804a9b2341b0883514))
+* **repo:** update testing and linting config ([#1619](https://github.com/tambo-ai/tambo/issues/1619)) ([ccc5c05](https://github.com/tambo-ai/tambo/commit/ccc5c05a0f62e4672068f4fbdd7316a7db306e7c))
+
 ## [0.127.1](https://github.com/tambo-ai/tambo/compare/api-v0.127.0...api-v0.127.1) (2025-12-23)
 
 
