@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=http://json.schemastore.org/github-action.json
+
+name: "Setup Tools"
+description: Configure common tools for GitHub Actions workflows.
+
+inputs:
+  install:
+    description: "Whether to install npm dependencies."
+    required: false
+    default: "true"
+  frozen:
+    description: "Freeze dependencies to avoid changes during installation."
+    required: false
+    default: "true"
+  cache:
+    description: "Whether to cache npm dependencies."
+    required: false
+    default: "true"
+  working-directory:
+    description: "The working directory to run commands in."
+    required: false
+    default: "."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Mise
+      uses: jdx/mise-action@v3.5.1
+
+    - name: Setup Node Cache
+      if: ${{ inputs.cache == 'true' }}
+      uses: actions/setup-node@v6
+      with:
+        # only specifying cache here. Node install is handled by mise
+        cache: "npm"
+        cache-dependency-path: "package-lock.json"
+
+    - name: Install dependencies
+      if: ${{ inputs.install == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.frozen == 'true' && 'npm ci' || 'npm install' }}

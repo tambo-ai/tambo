@@ -129,20 +129,9 @@ jobs:
             fi
           fi
 
-      - name: Set up Node.js
+      - name: Setup Tools
         if: steps.check-changes.outputs.changed == 'true'
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-
-      - name: Pin NPM version
-        if: steps.check-changes.outputs.changed == 'true'
-        run: npm install -g npm@11.7.0
-
-      - name: Install dependencies
-        if: steps.check-changes.outputs.changed == 'true'
-        run: npm ci
-        working-directory: tambo-cloud
+        uses: ./.github/actions/setup-tools
 
       - name: Run database migrations
         if: steps.check-changes.outputs.changed == 'true'
