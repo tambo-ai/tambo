@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { SupabaseAdapter } from "@/lib/nextauth-supabase-adapter";
+import * as Sentry from "@sentry/nextjs";
 import {
   isEmailAllowed,
   refreshOidcToken,
@@ -13,10 +14,51 @@ import Email from "next-auth/providers/email";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import { Provider } from "next-auth/providers/index";
+import { Resend } from "resend";
 import {
   AuthProviderConfig,
   getAvailableProviderConfigs,
 } from "./auth-providers";
+
+// Module-level Resend client to avoid re-instantiation on each signup
+const resend =
+  env.RESEND_API_KEY && env.RESEND_AUDIENCE_ID
+    ? new Resend(env.RESEND_API_KEY)
+    : null;
+
+const RESEND_SUBSCRIPTION_TIMEOUT_MS = 1500;
+
+class TimeoutError extends Error {
+  readonly timeoutMs: number;
+
+  constructor(timeoutMs: number) {
+    super(`Operation timed out after ${timeoutMs}ms`);
+    this.name = "TimeoutError";
+    this.timeoutMs = timeoutMs;
+  }
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<T> {
+  return await new Promise((resolve, reject) => {
+    const timeoutId: ReturnType<typeof setTimeout> = setTimeout(() => {
+      reject(new TimeoutError(timeoutMs));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+}
 
 const ProviderConfig = {
   google: {
@@ -195,6 +237,39 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+  },
+  events: {
+    // Subscribe new users to Resend audience (fires only on signup, not existing user login)
+    async createUser({ user }) {
+      if (!resend || !env.RESEND_AUDIENCE_ID || !user.email) {
+        return;
+      }
+
+      try {
+        await withTimeout(
+          resend.contacts.create({
+            audienceId: env.RESEND_AUDIENCE_ID,
+            email: user.email,
+            ...(user.name && { firstName: user.name }),
+          }),
+          RESEND_SUBSCRIPTION_TIMEOUT_MS,
+        );
+      } catch (error) {
+        const isTimeoutError = error instanceof TimeoutError;
+        Sentry.captureException(error, {
+          tags: {
+            operation: "resend_subscription",
+            ...(isTimeoutError ? { timeout: "true" } : {}),
+          },
+          extra: {
+            userId: user.id,
+            ...(isTimeoutError
+              ? { timeoutMs: RESEND_SUBSCRIPTION_TIMEOUT_MS }
+              : {}),
+          },
+        });
+      }
+    },
   },
   secret: env.NEXTAUTH_SECRET,
 };
