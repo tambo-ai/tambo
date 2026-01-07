@@ -183,6 +183,11 @@ Alternatively, you can create a `.mise.local.toml` file to override tool version
 - **Prefer `Record<string, unknown>` over `object`** or `{ [key: string]: unknown }` when possible.
 - **Do not disable ESLint rules** unless explicitly requested - fix the root cause instead.
 - **Do not disable TypeScript errors** unless explicitly requested - fix the root cause instead.
+- **Constrain generics** with `extends` - avoid overly broad `<T>`, prefer `<T extends SomeType>`.
+- **Use discriminated unions** for mutually exclusive states (e.g., `{ success: true; data: T } | { success: false; error: Error }`).
+- **Use `as const`** to preserve literal types, especially for arrays that should be tuples.
+- **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
+- **Avoid `{}` type** - it means "any non-nullish value" which is rarely what you want.
 
 ### Type Inference
 
@@ -191,9 +196,12 @@ Alternatively, you can create a `.mise.local.toml` file to override tool version
   - Return values of functions that have an obvious return type
   - Local variables that are well defined
 - **Let TypeScript infer return types** when they're obvious.
-- **Avoid creating intermediate "helper" types** for internal functions.
+- **Avoid creating one-off/intermediate "helper" types** for internal functions.
 - **Use inferred types** from database schemas, tRPC schemas, and other sources of truth.
 - **Add explicit types** when it improves clarity or catches errors.
+- **Avoid type casts (e.g. `as`)** unless absolutely necessary - casting objects through `unknown` to a new type is a code smell and should be avoided. Instead try to update function signatures to accept the missing type, or update the code to not need the type cast.
+- **Use `satisfies` to assert the type of an object** as an alternative to type casts, when the type is not obvious, such as when working with JSON data or when the type is not defined in the codebase. This is especially useful for returning values from functions that are not explicitly typed.
+- **Type guards** should be used to narrow down the type of an object, not to cast it to a new type. This also means avoiding type guards with `unknown` as the type parameter.
 
 ### Type Conversions
 
