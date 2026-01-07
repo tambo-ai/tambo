@@ -49,7 +49,7 @@
     "rxjs": "7.8.1",
     "ts-essentials": "^10.1.1",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.25.0"
+    "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
     "@tambo-ai/eslint-config": "*",
