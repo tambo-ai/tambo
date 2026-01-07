@@ -54,63 +54,26 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - Node.js >=22
 - npm >=11
 
-**Recommended:** Install [mise](https://mise.jdx.dev) for automatic version management:
-
-```sh
-# zsh
-curl https://mise.run/zsh | sh
-# bash
-curl https://mise.run/bash | sh
-# fish
-curl https://mise.run/fish | source
-```
-
-> If you have Windows, see here to start using mise: https://mise.jdx.dev/getting-started.html
-
-Alternatively, if you must use fnm, nvm, or another tool that reads `.node-version` or `.nvmrc`, keep those files identical to the versions committed in this repo. Do not edit them locally for day-to-day work; if you temporarily change them for debugging, reset those changes before committing or opening a PR. If a version needs to change, follow the PR process described below. For Node.js, `.node-version` and `.nvmrc` are the authoritative version files and must remain in sync with each other, and mise is configured to read from them as well.
+**Recommended:** Install [mise](https://mise.jdx.dev) for automatic version management. See [mise getting started](https://mise.jdx.dev/getting-started.html) for installation instructions.
 
 ### Tool Versions
 
-Versions of tools (i.e. not a package dependency) are managed via mise.
+Tool versions are managed via mise. Source of truth files:
 
-- For most tools in this repo, the source of truth is `mise.toml`.
-- For Node.js:
-  - The source of truth is `.node-version`.
-  - `.nvmrc` must be kept in sync for compatibility with `nvm` and similar tools.
-  - mise is configured (via `idiomatic_version_file_enable_tools` in `mise.toml`) to read the Node version from `.node-version`, so all tools converge on the same version.
+- **Most tools**: `mise.toml`
+- **Node.js**: `.node-version` (`.nvmrc` kept in sync for nvm compatibility)
 
-These files are typically kept up to date by Renovate.
-
-If a tool is missing or the wrong version, run:
+These files are kept up to date by Renovate.
 
 ```bash
-mise install
+mise install              # Install/update tools to correct versions
+mise exec -- <command>    # Run command with correct tool versions (useful in scripts/CI)
+eval "$(mise activate)"   # Activate mise in current shell
 ```
 
-To install mise into the current shell session, run:
+**Changing tool versions**: Open a PR updating the authoritative version file(s). For Node.js, always update both `.node-version` and `.nvmrc` together. Run `mise install`, then verify with `npm run lint && npm run check-types && npm test`.
 
-```sh
-# Choose ONE of the following depending on your shell:
-eval "$(mise activate)"
-# zsh:
-# eval "$(mise activate zsh)"
-# bash:
-# eval "$(mise activate bash)"
-# fish:
-# eval "$(mise activate fish)"
-```
-
-If the version is not available in the shell session, you should load the mise config into your shell environment. In non-interactive contexts (like scripts or CI), or if this doesn't work or isn't possible, you can make mise run a specific command with the correct versions using:
-
-```sh
-mise exec -- <command>
-```
-
-`mise exec` will ensure the required tools are installed and run the given command using the versions configured for this repo (for example, via `mise.toml` for most tools and `.node-version`/`.nvmrc` for Node). It always respects those authoritative version files and does this without needing to modify the surrounding shell environment.
-
-If there is a need to add an additional tool or change a tool version, open a PR updating all of that tool's authoritative version file(s) (usually `mise.toml`, and `.node-version`/`.nvmrc` together for Node; see the "Tool Versions" section above). For Node.js specifically, never update only one of `.node-version` or `.nvmrc`; they must always be changed together. This affects all developers and CI, so avoid committing temporary or experimental version changes. After updating those files, run `mise install` to apply the changes locally, then run `npm run lint`, `npm run check-types`, and `npm run test` to confirm everything passes. These files are generally kept up to date by Renovate, so once aligned, future bumps will typically be handled automatically.
-
-Alternatively, you can create a `.mise.local.toml` file to override tool versions for your local environment only. This file is for local overrides only, is ignored by git, and should not be committed to version control. It does not replace the repo-managed version files (`mise.toml`, `.node-version`, `.nvmrc`) as the source of truth. Use it only for additive or strictly compatible local changes (for example, extra local-only tools or patch-level version bumps like `1.2.3` → `1.2.4`, but not minor/major bumps like `1.2.x` → `1.3.x`); do not use it to override Node.js versions or to run older, unsupported, or semver-incompatible tool versions than those defined in the repo. If you run into version-related issues or accidentally used `.mise.local.toml` for incompatible changes, delete the file, run `mise install`, then re-run `npm run lint`, `npm run check-types`, and `npm run test` to get back to a clean, supported setup.
+**Local overrides**: Use `.mise.local.toml` (gitignored) for local-only changes. Only for additive or patch-level changes—don't override Node.js or use incompatible versions.
 
 ## 2. Core Development Principles
 
@@ -404,6 +367,10 @@ npm test              # Unit/integration tests
 ```
 
 ## 10. Git Workflow & PRs
+
+### Branch Naming
+
+Create branches in the format `<userid>/<feature-name>`, e.g., `alecf/add-dark-mode` or `jane/fix-login-bug`.
 
 ### Conventional Commits
 
