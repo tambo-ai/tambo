@@ -31,7 +31,7 @@
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.25.0"
+    "zod-to-json-schema": "^3.25.1"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
