@@ -24,6 +24,7 @@ import { tryParseJson } from "./content";
 /**
  * Validates that a tool response message has valid content.
  * Accepts text, image, audio, and resource content types.
+ * Messages containing any other content type are considered invalid.
  *
  * @returns True if the message has valid content
  */
@@ -45,13 +46,12 @@ export function validateToolResponse(message: ThreadMessage): boolean {
     return false;
   }
 
-  const isTextOnlyResponse = message.content.every(
-    (part) => part.type === ContentPartType.Text,
+  const textContentParts = message.content.filter(
+    (part): part is { type: ContentPartType.Text; text: string } =>
+      part.type === ContentPartType.Text,
   );
-  if (isTextOnlyResponse) {
-    const contentString = message.content
-      .map((part) => ("text" in part ? part.text : ""))
-      .join("");
+  if (textContentParts.length === message.content.length) {
+    const contentString = textContentParts.map((part) => part.text).join("");
     tryParseJson(contentString);
   }
 
