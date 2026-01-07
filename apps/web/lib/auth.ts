@@ -31,7 +31,7 @@ const RESEND_SUBSCRIPTION_TIMEOUT_MS = 1500;
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return await new Promise((resolve, reject) => {
     const timeoutId: ReturnType<typeof setTimeout> = setTimeout(() => {
-      reject(new Error(`Resend subscription timed out after ${timeoutMs}ms`));
+      reject(new Error(`Operation timed out after ${timeoutMs}ms`));
     }, timeoutMs);
 
     promise.then(
