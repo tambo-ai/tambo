@@ -10,6 +10,7 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    labels: [] # automation-labels.yml handles labeling
     ignore:
       - dependency-name: "actions/setup-node"
       - dependency-name: "actions/checkout"
@@ -24,6 +25,7 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
+    labels: [] # automation-labels.yml handles labeling
     # Let package releases bake for a bit before updating,
     # in case there is a bad release. However, always update
     # the latest version of the Tambo packages.
@@ -70,7 +72,6 @@ updates:
           - "typescript-eslint"
           - "eslint-plugin-*"
           - "eslint-config-*"
-          - "typescript-eslint"
       testing:
         patterns:
           - "jest"
