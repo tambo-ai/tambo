@@ -229,13 +229,31 @@ export function getTokenStoragePath(): string {
 }
 
 /**
+ * In-memory token for temporary use during auth flows.
+ * Takes precedence over disk storage but below TAMBO_TOKEN env var.
+ */
+let inMemoryToken: string | null = null;
+
+/**
+ * Set an in-memory token for temporary use (e.g., during auth bootstrap).
+ * This allows making authenticated requests without persisting incomplete tokens.
+ */
+export function setInMemoryToken(token: string | null): void {
+  inMemoryToken = token;
+}
+
+/**
  * Environment variable override for CI/testing
- * If TAMBO_TOKEN is set, it takes precedence over stored token
+ * Priority: TAMBO_TOKEN env var > in-memory token > stored token on disk
  */
 export function getEffectiveSessionToken(): string | null {
   const envToken = process.env.TAMBO_TOKEN;
   if (envToken) {
     return envToken;
+  }
+
+  if (inMemoryToken) {
+    return inMemoryToken;
   }
 
   return getSessionToken();

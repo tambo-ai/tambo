@@ -3,7 +3,11 @@ import clipboard from "clipboardy";
 import open from "open";
 import ora from "ora";
 import { api, ApiError } from "./api-client.js";
-import { clearToken, saveToken, type StoredToken } from "./token-storage.js";
+import {
+  saveToken,
+  setInMemoryToken,
+  type StoredToken,
+} from "./token-storage.js";
 
 /**
  * Result of a successful device auth flow
@@ -131,7 +135,6 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
           );
         }
 
-        // Step 4a: Save token temporarily (allows authenticated requests)
         // Server guarantees expiresAt is present for completed polls (sessions have NOT NULL expiry)
         if (!pollResponse.expiresAt) {
           throw new DeviceAuthError(
@@ -140,14 +143,9 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
           );
         }
 
-        const tempTokenData: StoredToken = {
-          sessionToken: pollResponse.sessionToken,
-          expiresAt: pollResponse.expiresAt,
-          user: { id: "", email: null, name: null }, // Placeholder until we fetch user info
-          storedAt: new Date().toISOString(),
-        };
-
-        await saveToken(tempTokenData);
+        // Step 4a: Set in-memory token for the upcoming getUser request.
+        // We don't persist to disk yet to avoid saving an incomplete token.
+        setInMemoryToken(pollResponse.sessionToken);
 
         // Step 4b: Fetch user info using the new token (two-step auth flow)
         // The poll endpoint runs as 'anon' and can't access user data, so we
@@ -161,17 +159,20 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
           const userInfo = await api.user.getUser.query();
           userSpinner.stop();
 
-          // Step 4c: Update token with real user info
+          // Step 4c: Save complete token to disk (only after we have user info)
           const completeTokenData: StoredToken = {
-            ...tempTokenData,
+            sessionToken: pollResponse.sessionToken,
+            expiresAt: pollResponse.expiresAt,
             user: {
               id: userInfo.id,
               email: userInfo.email,
               name: userInfo.name,
             },
+            storedAt: new Date().toISOString(),
           };
 
           await saveToken(completeTokenData);
+          setInMemoryToken(null); // Clear in-memory token now that we've persisted
 
           return {
             sessionToken: pollResponse.sessionToken,
@@ -179,8 +180,7 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
           };
         } catch (userError) {
           userSpinner.fail(chalk.red("Failed to fetch user info"));
-          // Clean up incomplete token
-          clearToken();
+          setInMemoryToken(null); // Clear in-memory token on failure
           throw new DeviceAuthError(
             `Failed to fetch user info after authentication. Please try again. (${userError instanceof Error ? userError.message : String(userError)})`,
             "USER_INFO_FAILED",
