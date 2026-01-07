@@ -98,10 +98,11 @@ export class BearerTokenGuard implements CanActivate {
       );
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const isError = error instanceof Error;
       this.logger.error(
-        `Error validating OAuth bearer token: ${error.message}`,
-        error.stack,
+        `Error validating OAuth bearer token: ${isError ? error.message : String(error)}`,
+        isError ? error.stack : undefined,
       );
       throw new UnauthorizedException("Invalid bearer token");
     }

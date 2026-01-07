@@ -1,19 +1,19 @@
 import {
-  BadRequestException,
-  Body,
-  Controller,
-  InternalServerErrorException,
-  Post,
-  Req,
-  UnauthorizedException,
-  UseGuards,
+    BadRequestException,
+    Body,
+    Controller,
+    InternalServerErrorException,
+    Post,
+    Req,
+    UnauthorizedException,
+    UseGuards,
 } from "@nestjs/common";
 import {
-  ApiConsumes,
-  ApiOperation,
-  ApiResponse,
-  ApiSecurity,
-  ApiTags,
+    ApiConsumes,
+    ApiOperation,
+    ApiResponse,
+    ApiSecurity,
+    ApiTags,
 } from "@nestjs/swagger";
 import * as Sentry from "@sentry/nestjs";
 import { OAuthValidationMode } from "@tambo-ai-cloud/core";
@@ -21,8 +21,8 @@ import { getDb, operations } from "@tambo-ai-cloud/db";
 import { type Request } from "express";
 import { SignJWT } from "jose";
 import {
-  OAuthTokenRequestDto,
-  OAuthTokenResponseDto,
+    OAuthTokenRequestDto,
+    OAuthTokenResponseDto,
 } from "../common/dto/oauth-token.dto";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { validateSubjectToken } from "../common/utils/oauth";
@@ -178,10 +178,11 @@ export class OAuthController {
         expires_in: expiresIn,
         issued_token_type: "urn:ietf:params:oauth:token-type:access_token",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const isError = error instanceof Error;
       this.logger.error(
-        `Error validating OAuth token: ${error.message}`,
-        error.stack,
+        `Error validating OAuth token: ${isError ? error.message : String(error)}`,
+        isError ? error.stack : undefined,
       );
 
       if (

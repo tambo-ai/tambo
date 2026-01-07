@@ -61,10 +61,11 @@ export class ApiKeyGuard implements CanActivate {
 
       this.logger.log(`Valid API key used for project ${projectId}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const isError = error instanceof Error;
       this.logger.error(
-        `Error validating API key: ${error.message}`,
-        error.stack,
+        `Error validating API key: ${isError ? error.message : String(error)}`,
+        isError ? error.stack : undefined,
       );
       return false;
     }
@@ -92,10 +93,11 @@ export class ApiKeyGuard implements CanActivate {
       await this.projectsService.updateApiKeyLastUsed(apiKeyId, new Date());
 
       return apiKeyId;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const isError = error instanceof Error;
       this.logger.error(
-        `Error validating API key: ${error.message}`,
-        error.stack,
+        `Error validating API key: ${isError ? error.message : String(error)}`,
+        isError ? error.stack : undefined,
       );
       return null;
     }

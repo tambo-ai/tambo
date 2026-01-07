@@ -1,14 +1,14 @@
 "use client";
 import React, {
-  createContext,
-  PropsWithChildren,
-  useCallback,
-  useContext,
-  useState,
+    createContext,
+    PropsWithChildren,
+    useCallback,
+    useContext,
+    useState,
 } from "react";
 import {
-  useTamboMutation,
-  UseTamboMutationResult,
+    useTamboMutation,
+    UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
 import { StagedImage, useMessageImages } from "../hooks/use-message-images";
 import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
@@ -16,8 +16,8 @@ import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
 import {
-  extractResourceUris,
-  resolveResourceContents,
+    extractResourceUris,
+    resolveResourceContents,
 } from "../util/resource-content-resolver";
 import { useTamboInteractable } from "./tambo-interactable-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
@@ -157,10 +157,11 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
           content: messageContent,
         });
         clearInteractableSelections();
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Handle image-related errors with friendly messages
         if (imageState.images.length > 0) {
-          const errorMessage = error?.message?.toLowerCase() ?? "";
+          const errorMessage =
+            error instanceof Error ? error.message.toLowerCase() : "";
 
           // Backend not yet supporting image content type
           if (errorMessage.includes("unknown content part type: image")) {

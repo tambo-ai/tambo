@@ -79,10 +79,11 @@ export class ProjectAccessOwnGuard implements CanActivate {
         `[${correlationId}] API key ${apiKey} accessed project ${projectId}`,
       );
       return true;
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const isError = e instanceof Error;
       this.logger.error(
-        `[${correlationId}] Error verifying project access: API key ${apiKey}, project ${request.params.id}: ${e.message}`,
-        e.stack,
+        `[${correlationId}] Error verifying project access: API key ${apiKey}, project ${request.params.id}: ${isError ? e.message : String(e)}`,
+        isError ? e.stack : undefined,
       );
       return false;
     }
