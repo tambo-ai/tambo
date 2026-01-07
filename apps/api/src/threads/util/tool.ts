@@ -144,9 +144,14 @@ function mcpContentBlockToContentPart(
 
     default: {
       // Handle unknown types gracefully
-      let type = "unknown"
-      if (content && typeof content === "object" && "type" in content && typeof content.type === "string") {
-        type = content.type
+      let type = "unknown";
+      if (
+        content &&
+        typeof content === "object" &&
+        "type" in content &&
+        typeof content.type === "string"
+      ) {
+        type = content.type;
       }
       console.warn(`Unknown MCP content type in tool response: ${type}`);
       return {
