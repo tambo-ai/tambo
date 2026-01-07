@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.125.0](https://github.com/tambo-ai/tambo/compare/web-v0.124.0...web-v0.125.0) (2026-01-07)
+
+
+### Features
+
+* **cli:** implement device authentication flow and session management ([#1599](https://github.com/tambo-ai/tambo/issues/1599)) ([b22355f](https://github.com/tambo-ai/tambo/commit/b22355f7d3599af87de0f22b96980830142c3b8c))
+* **db:** add anon role and RLS policies for device auth flow ([#1647](https://github.com/tambo-ai/tambo/issues/1647)) ([5e19a04](https://github.com/tambo-ai/tambo/commit/5e19a04a31fe95e3f43cbac253d78f51b35e3c8e))
+
+
+### Bug Fixes
+
+* **web:** restore Resend audience subscription on user signup ([#1665](https://github.com/tambo-ai/tambo/issues/1665)) ([f4b8add](https://github.com/tambo-ai/tambo/commit/f4b8addf95e4d4e0e82e4e9931ad9fc157983410))
+
+
+### Miscellaneous Chores
+
+* add cspell settings and correct a few spleling mistaeks ([#1586](https://github.com/tambo-ai/tambo/issues/1586)) ([f5cef2b](https://github.com/tambo-ai/tambo/commit/f5cef2b36d33076f2188f4a663bcebddd9679a9f))
+* **deps:** bump @modelcontextprotocol/sdk from 1.24.3 to 1.25.1 ([#1643](https://github.com/tambo-ai/tambo/issues/1643)) ([fca2a86](https://github.com/tambo-ai/tambo/commit/fca2a8648ed50cf8cd96f713b4a1ce74ce8e9b12))
+* **deps:** bump @tanstack/react-query from 5.90.10 to 5.90.12 ([#1633](https://github.com/tambo-ai/tambo/issues/1633)) ([3f997f5](https://github.com/tambo-ai/tambo/commit/3f997f5d9b63c2fa9a3a038c1ab29103361fad35))
+* **deps:** bump @tanstack/react-query from 5.90.12 to 5.90.16 ([#1674](https://github.com/tambo-ai/tambo/issues/1674)) ([72d1c08](https://github.com/tambo-ai/tambo/commit/72d1c08f0520a94287b6100782919b58272096d3))
+* **deps:** bump @vercel/analytics from 1.5.0 to 1.6.1 ([#1646](https://github.com/tambo-ai/tambo/issues/1646)) ([1a65b10](https://github.com/tambo-ai/tambo/commit/1a65b10031e61fd080de57bf9d654b78ef6133b7))
+* **deps:** bump autoprefixer from 10.4.22 to 10.4.23 ([#1679](https://github.com/tambo-ai/tambo/issues/1679)) ([b4c9942](https://github.com/tambo-ai/tambo/commit/b4c9942e7ddc32c655a2aef63f2f58d4c76f2d15))
+* **deps:** bump framer-motion from 12.23.24 to 12.23.26 ([#1644](https://github.com/tambo-ai/tambo/issues/1644)) ([34cc795](https://github.com/tambo-ai/tambo/commit/34cc795100121f8b1a4469b9a34a3113ba7bd424))
+* **deps:** bump posthog-js from 1.310.1 to 1.311.0 in the small-safe-packages group across 1 directory ([#1636](https://github.com/tambo-ai/tambo/issues/1636)) ([67d8ba3](https://github.com/tambo-ai/tambo/commit/67d8ba3fdbf22a25e91d0ed624e4ca7272f6b2dd))
+* **deps:** bump recharts from 3.5.1 to 3.6.0 ([#1642](https://github.com/tambo-ai/tambo/issues/1642)) ([bd84e15](https://github.com/tambo-ai/tambo/commit/bd84e1514bafb7a5e835c4395035228b502898ff))
+* **deps:** bump shiki from 3.19.0 to 3.20.0 ([#1675](https://github.com/tambo-ai/tambo/issues/1675)) ([3ff08ed](https://github.com/tambo-ai/tambo/commit/3ff08ede0e7f39641df72b3933d3497434418270))
+* **deps:** bump the sentry group with 3 updates ([#1630](https://github.com/tambo-ai/tambo/issues/1630)) ([b6f4402](https://github.com/tambo-ai/tambo/commit/b6f44021cb714d903a05dbe2a4ec8ed598e943d0))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1629](https://github.com/tambo-ai/tambo/issues/1629)) ([7655ca7](https://github.com/tambo-ai/tambo/commit/7655ca77bfa5843e30c0d1447cc705c572c5fe41))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1641](https://github.com/tambo-ai/tambo/issues/1641)) ([154b264](https://github.com/tambo-ai/tambo/commit/154b2647a3ba3ee836a521d4a23a20e80d68e497))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+* **deps:** bump the tiptap group with 8 updates ([#1632](https://github.com/tambo-ai/tambo/issues/1632)) ([7aba2f8](https://github.com/tambo-ai/tambo/commit/7aba2f8859371e72b7ee3aa5443b1fe19bb6b361))
+* **deps:** Support multiple tools for managing project tool versions ([#1603](https://github.com/tambo-ai/tambo/issues/1603)) ([31a09c3](https://github.com/tambo-ai/tambo/commit/31a09c32a25c440b16a705804a9b2341b0883514))
+
+
+### Tests
+
+* **react-sdk:** improve test coverage with behavioral tests ([#1607](https://github.com/tambo-ai/tambo/issues/1607)) ([9ec425a](https://github.com/tambo-ai/tambo/commit/9ec425a07bfcc4da7d7ef258ca5aeeb6aa8ba06f))
+
 ## [0.124.0](https://github.com/tambo-ai/tambo/compare/web-v0.123.4...web-v0.124.0) (2025-12-08)
 
 
