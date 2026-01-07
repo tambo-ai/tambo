@@ -174,12 +174,12 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
             sessionToken: pollResponse.sessionToken,
             user: completeTokenData.user,
           };
-        } catch (_userError) {
+        } catch (userError) {
           userSpinner.fail(chalk.red("Failed to fetch user info"));
           // Clean up incomplete token
           clearToken();
           throw new DeviceAuthError(
-            "Failed to fetch user info after authentication. Please try again.",
+            `Failed to fetch user info after authentication. Please try again. (${userError instanceof Error ? userError.message : String(userError)})`,
             "USER_INFO_FAILED",
           );
         }
