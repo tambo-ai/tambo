@@ -76,7 +76,7 @@
     "@standard-community/standard-json": "^0.3.5",
     "@standard-schema/spec": "^1.0.0",
     "@tambo-ai/typescript-sdk": "^0.80.0",
-    "@tanstack/react-query": "^5.90.12",
+    "@tanstack/react-query": "^5.90.16",
     "fast-equals": "^5.3.3",
     "partial-json": "^0.1.7",
     "react-fast-compare": "^3.2.2",
