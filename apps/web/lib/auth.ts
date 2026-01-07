@@ -28,10 +28,23 @@ const resend =
 
 const RESEND_SUBSCRIPTION_TIMEOUT_MS = 1500;
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+class TimeoutError extends Error {
+  readonly timeoutMs: number;
+
+  constructor(timeoutMs: number) {
+    super(`Operation timed out after ${timeoutMs}ms`);
+    this.name = "TimeoutError";
+    this.timeoutMs = timeoutMs;
+  }
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<T> {
   return await new Promise((resolve, reject) => {
     const timeoutId: ReturnType<typeof setTimeout> = setTimeout(() => {
-      reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+      reject(new TimeoutError(timeoutMs));
     }, timeoutMs);
 
     promise.then(
@@ -242,9 +255,18 @@ export const authOptions: NextAuthOptions = {
           RESEND_SUBSCRIPTION_TIMEOUT_MS,
         );
       } catch (error) {
+        const isTimeoutError = error instanceof TimeoutError;
         Sentry.captureException(error, {
-          tags: { operation: "resend_subscription" },
-          extra: { userId: user.id },
+          tags: {
+            operation: "resend_subscription",
+            ...(isTimeoutError ? { timeout: "true" } : {}),
+          },
+          extra: {
+            userId: user.id,
+            ...(isTimeoutError
+              ? { timeoutMs: RESEND_SUBSCRIPTION_TIMEOUT_MS }
+              : {}),
+          },
         });
       }
     },
