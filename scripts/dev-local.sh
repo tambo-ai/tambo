@@ -50,9 +50,9 @@ if ! docker ps | grep -q tambo_postgres; then
 fi
 
 # 2. Start Supabase (if not running)
-if ! supabase status 2>/dev/null | grep -q "supabase local development setup is running"; then
+if ! npx --yes supabase status 2>/dev/null | grep -q "supabase local development setup is running"; then
   echo "Starting Supabase..."
-  supabase start
+  npx --yes supabase start
 fi
 
 # 3. Run migrations (idempotent)
