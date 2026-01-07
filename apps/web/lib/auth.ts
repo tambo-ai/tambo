@@ -26,6 +26,27 @@ const resend =
     ? new Resend(env.RESEND_API_KEY)
     : null;
 
+const RESEND_SUBSCRIPTION_TIMEOUT_MS = 1500;
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return await new Promise((resolve, reject) => {
+    const timeoutId: ReturnType<typeof setTimeout> = setTimeout(() => {
+      reject(new Error(`Resend subscription timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+}
+
 const ProviderConfig = {
   google: {
     clientId: env.GOOGLE_CLIENT_ID!,
@@ -212,11 +233,14 @@ export const authOptions: NextAuthOptions = {
       }
 
       try {
-        await resend.contacts.create({
-          audienceId: env.RESEND_AUDIENCE_ID,
-          email: user.email,
-          ...(user.name && { firstName: user.name }),
-        });
+        await withTimeout(
+          resend.contacts.create({
+            audienceId: env.RESEND_AUDIENCE_ID,
+            email: user.email,
+            ...(user.name && { firstName: user.name }),
+          }),
+          RESEND_SUBSCRIPTION_TIMEOUT_MS,
+        );
       } catch (error) {
         Sentry.captureException(error, {
           tags: { operation: "resend_subscription" },
