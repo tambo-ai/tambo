@@ -67,7 +67,7 @@ jest.unstable_mockModule("./init.js", () => ({
 
 // Mock tailwind setup
 jest.unstable_mockModule("./add/tailwind-setup.js", () => ({
-  setupTailwindandGlobals: jest.fn(async () => {
+  setupTailwindAndGlobals: jest.fn(async () => {
     // No-op for tests
   }),
 }));
@@ -1058,7 +1058,7 @@ describe("handleUpdateComponents", () => {
           "export const Message = () => <div>Old</div>;",
       });
 
-      // Get the original setupTailwindandGlobals to verify it's called
+      // Get the original setupTailwindAndGlobals to verify it's called
       // The mock is already set up at the top of the file, so we just need to verify
       // that it gets called. Since we're using the same mock, we can check the output
       // which should mention "Checking CSS configuration"

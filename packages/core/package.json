@@ -31,19 +31,12 @@
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.25.0"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10"
-  },
-  "volta": {
-    "extends": "../../package.json"
+    "zod-to-json-schema": "^3.25.1"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.24.0",
+    "@modelcontextprotocol/sdk": "^1.25.1",
     "jose": "^5.10.0",
-    "openai": "^6.4.0",
+    "openai": "^6.15.0",
     "resend": "^6.6.0"
   }
 }

@@ -48,11 +48,10 @@ export class ThreadInProjectGuard implements CanActivate {
         `Valid thread ${threadId} access for project ${projectId}`,
       );
       return true;
-    } catch (error: any) {
-      this.logger.error(
-        `Error validating thread access: ${error.message}`,
-        error.stack,
-      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error validating thread access: ${message}`, stack);
       return false;
     }
   }

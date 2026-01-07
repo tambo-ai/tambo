@@ -411,9 +411,9 @@ describe("ThreadsService.advanceThread initialization", () => {
         throw new Error("STOP_AFTER_INIT");
       });
 
-    await expect(
-      service.advanceThread(projectId, dto, undefined, true),
-    ).rejects.toThrow("STOP_AFTER_INIT");
+    await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+      "STOP_AFTER_INIT",
+    );
 
     // Verify system tools were retrieved from database
     expect(operations.getProjectMcpServers).toHaveBeenCalledWith(
@@ -441,7 +441,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         undefined, // queue
@@ -480,9 +479,9 @@ describe("ThreadsService.advanceThread initialization", () => {
       throw new Error("STOP_AFTER_INIT");
     });
 
-    await expect(
-      service.advanceThread(projectId, dto, undefined, false),
-    ).rejects.toThrow("STOP_AFTER_INIT");
+    await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+      "STOP_AFTER_INIT",
+    );
 
     expect(__testRunDecisionLoop__).toHaveBeenCalledTimes(1);
     const callArg = __testRunDecisionLoop__.mock.calls[0][0];
@@ -539,7 +538,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined, // let service create new thread
-        true,
         {},
         undefined,
         queue,
@@ -591,7 +589,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -631,7 +628,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -678,7 +674,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true, // streaming enabled (but only one message pushed)
         {},
         undefined,
         queue,
@@ -728,7 +723,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -788,7 +782,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -839,7 +832,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,

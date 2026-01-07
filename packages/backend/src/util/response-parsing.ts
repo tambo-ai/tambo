@@ -1,5 +1,12 @@
 import { parse } from "partial-json";
 
+/**
+ * Extracts the message content from an LLM response, handling cases where the response
+ * is a JSON object with a message field rather than a plain string.
+ * @param content The raw content string from the LLM response
+ * @param log Whether to log warnings when extracting from JSON objects
+ * @returns The extracted message string, or an empty string if content is null or a partial component decision
+ */
 export function extractMessageContent(
   content: string | null,
   log: boolean = true,

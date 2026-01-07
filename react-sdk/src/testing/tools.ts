@@ -35,6 +35,7 @@ export function serializeRegistry(mockRegistry: TamboComponent[]) {
 interface CreateMockToolOptions {
   inputSchema: TamboTool["inputSchema"];
   outputSchema?: TamboTool["outputSchema"];
+  maxCalls?: number;
 }
 
 // Helper to create a minimal TamboTool for testing
@@ -70,6 +71,9 @@ export function createMockTool(
         type: "object",
         properties: {},
       },
+      ...(schemaOrOptions.maxCalls !== undefined
+        ? { maxCalls: schemaOrOptions.maxCalls }
+        : {}),
     };
   }
 
@@ -87,16 +91,19 @@ export function createMockTool(
  * Creates a mock TamboToolWithToolSchema for testing purposes.
  * Does NOT adapt to inputSchema format - preserves the deprecated toolSchema interface.
  * @param toolSchema - The tool schema for the tool
+ * @param maxCalls - Optional max calls override
  * @returns A mock TamboToolWithToolSchema instance (NOT adapted)
  * @internal
  */
 export function createMockToolWithToolSchema(
   toolSchema: TamboToolWithToolSchema["toolSchema"],
+  maxCalls?: number,
 ): TamboToolWithToolSchema {
   return {
     name: "testTool",
     description: "A test tool",
     tool: jest.fn().mockImplementation(() => {}),
     toolSchema,
-  };
+    ...(maxCalls !== undefined ? { maxCalls } : {}),
+  } as TamboToolWithToolSchema;
 }

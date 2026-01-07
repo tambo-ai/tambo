@@ -1,7 +1,7 @@
 "use client";
 import TamboAI, { ClientOptions } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
-import React, { createContext, PropsWithChildren, useState } from "react";
+import React, { createContext, PropsWithChildren, useMemo } from "react";
 import packageJson from "../../package.json";
 import { useTamboSessionToken } from "./hooks/use-tambo-session-token";
 
@@ -27,6 +27,12 @@ export interface TamboClientProviderProps {
    * user when calling the Tambo API.
    */
   userToken?: string;
+
+  /**
+   * Additional headers to include in all requests to the Tambo API.
+   * These will be merged with the default headers.
+   */
+  additionalHeaders?: Record<string, string>;
 }
 
 export interface TamboClientContextProps {
@@ -36,6 +42,8 @@ export interface TamboClientContextProps {
   queryClient: QueryClient;
   /** Whether the session token is currently being updated */
   isUpdatingToken: boolean;
+  /** Additional headers to include in all requests */
+  additionalHeaders?: Record<string, string>;
 }
 
 export const TamboClientContext = createContext<
@@ -51,25 +59,35 @@ export const TamboClientContext = createContext<
  * @param props.apiKey - The API key for the Tambo API
  * @param props.environment - The environment to use for the Tambo API
  * @param props.userToken - The oauth access token to use to identify the user in the Tambo API
+ * @param props.additionalHeaders - Additional headers to include in all requests
  * @returns The TamboClientProvider component
  */
 export const TamboClientProvider: React.FC<
   PropsWithChildren<TamboClientProviderProps>
-> = ({ children, tamboUrl, apiKey, environment, userToken }) => {
-  const tamboConfig: ClientOptions = {
-    apiKey,
-    defaultHeaders: {
-      "X-Tambo-React-Version": packageJson.version,
-    },
-  };
-  if (tamboUrl) {
-    tamboConfig.baseURL = tamboUrl;
-  }
-  if (environment) {
-    tamboConfig.environment = environment;
-  }
-  const [client] = useState(() => new TamboAI(tamboConfig));
-  const [queryClient] = useState(() => new QueryClient());
+> = ({
+  children,
+  tamboUrl,
+  apiKey,
+  environment,
+  userToken,
+  additionalHeaders,
+}) => {
+  const tamboConfig = useMemo(
+    () =>
+      ({
+        apiKey,
+        defaultHeaders: {
+          "X-Tambo-React-Version": packageJson.version,
+          ...additionalHeaders,
+        },
+        baseURL: tamboUrl ?? undefined,
+        environment: environment ?? undefined,
+      }) satisfies ClientOptions,
+    [additionalHeaders, apiKey, tamboUrl, environment],
+  );
+
+  const client = useMemo(() => new TamboAI(tamboConfig), [tamboConfig]);
+  const queryClient = useMemo(() => new QueryClient(), []);
 
   // Keep the session token updated and get the updating state
   const { isFetching: isUpdatingToken } = useTamboSessionToken(
@@ -84,6 +102,7 @@ export const TamboClientProvider: React.FC<
         client,
         queryClient,
         isUpdatingToken,
+        additionalHeaders: tamboConfig.defaultHeaders,
       }}
     >
       {children}

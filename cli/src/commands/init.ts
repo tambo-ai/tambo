@@ -5,6 +5,13 @@ import open from "open";
 import ora from "ora";
 import path from "path";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
+import { api } from "../lib/api-client.js";
+import {
+  DeviceAuthError,
+  isTokenValid,
+  runDeviceAuthFlow,
+  verifySession,
+} from "../lib/device-auth.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import {
   interactivePrompt,
@@ -266,61 +273,213 @@ export async function getInstallationPath(yes = false): Promise<string> {
 }
 
 /**
- * Handles the authentication flow with Tambo
+ * Handles the authentication flow with Tambo using device auth
  * @returns Promise<boolean> Returns true if authentication was successful
  * @throws AuthenticationError
  */
 async function handleAuthentication(): Promise<boolean> {
   try {
-    // 1. Browser-based auth flow
     console.log(chalk.cyan("\nStep 1: Authentication"));
 
-    // Check for existing API key first
+    // Check for existing API key first (backwards compatibility)
     const existingKey = await checkExistingApiKey();
     if (existingKey) {
       console.log(chalk.green("\n✔ Using existing API key"));
       return true;
     }
 
-    // Continue with browser-based auth flow
-    const authUrl = `https://tambo.co/login?returnUrl=%2Fcli-auth`;
-    console.log(chalk.gray("\nOpening browser for authentication..."));
+    // Check if already authenticated via device auth
+    // First do local check, then verify with server to ensure sync
+    if (isTokenValid()) {
+      const spinner = ora("Verifying session...").start();
+      const isValid = await verifySession();
+      spinner.stop();
 
-    try {
-      await open(authUrl);
-    } catch (error) {
-      throw new AuthenticationError(
-        "Failed to open browser for authentication. Please visit https://tambo.co/cli-auth manually. Error: " +
-          error,
-      );
+      if (isValid) {
+        console.log(chalk.green("\n✔ Already authenticated"));
+        return await handleProjectAndApiKey();
+      }
+      // Session was invalid on server - token already cleared by verifySession
+      console.log(chalk.yellow("\n⚠ Session expired, please re-authenticate"));
     }
 
-    // 2. Get API key from user
-    const { apiKey } = await interactivePrompt<{ apiKey: string }>(
-      {
-        type: "password",
-        name: "apiKey",
-        mask: "*",
-        message: "Please paste your API key from the browser:",
-        validate: (input: string) => {
-          if (!input?.trim()) return "API key is required";
-          return true;
-        },
-      },
-      chalk.yellow(
-        "Cannot prompt for API key in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+    // Run device auth flow
+    const authResult = await runDeviceAuthFlow();
+
+    console.log(
+      chalk.green(
+        `\n✔ Authenticated as ${authResult.user.email ?? authResult.user.name ?? "user"}`,
       ),
     );
 
-    // 3. Save API key to .env file
-    const saved = await writeApiKeyToEnv(apiKey);
-    return saved;
+    // After auth, select/create project and generate API key
+    return await handleProjectAndApiKey();
   } catch (error) {
-    if (error instanceof AuthenticationError) {
-      console.error(chalk.red(`Authentication error: ${error.message}`));
+    if (error instanceof DeviceAuthError) {
+      console.error(chalk.red(`\n✖ Authentication failed`));
+      console.error(chalk.gray(`  ${error.message}`));
+    } else if (error instanceof AuthenticationError) {
+      console.error(chalk.red(`\nAuthentication error: ${error.message}`));
     } else {
-      console.error(chalk.red(`Failed to save API key: ${error}`));
+      console.error(chalk.red(`\nFailed to authenticate: ${error}`));
     }
+    return false;
+  }
+}
+
+/**
+ * Handles project selection/creation and API key generation after device auth
+ */
+async function handleProjectAndApiKey(): Promise<boolean> {
+  try {
+    console.log(chalk.cyan("\nStep 2: Project Setup"));
+
+    // Fetch user's projects
+    const spinner = ora("Loading your projects...").start();
+    let projects;
+    try {
+      projects = await api.project.getUserProjects.query({});
+      spinner.stop();
+    } catch (error) {
+      spinner.fail("Failed to load projects");
+      throw error;
+    }
+
+    let selectedProjectId: string;
+    let selectedProjectName: string;
+
+    if (projects.length === 0) {
+      // No projects, create one
+      console.log(
+        chalk.gray("\nNo existing projects found. Creating one...\n"),
+      );
+
+      const { projectName } = await interactivePrompt<{ projectName: string }>(
+        {
+          type: "input",
+          name: "projectName",
+          message: "Project name:",
+          default: path.basename(process.cwd()),
+          validate: (input: string) => {
+            if (!input?.trim()) return "Project name is required";
+            return true;
+          },
+        },
+        chalk.yellow("Cannot prompt for project name in non-interactive mode."),
+      );
+
+      const createSpinner = ora("Creating project...").start();
+      try {
+        const project = await api.project.createProject2.mutate({
+          name: projectName.trim(),
+        });
+        createSpinner.succeed(`Created project: ${project.name}`);
+        selectedProjectId = project.id;
+        selectedProjectName = project.name;
+      } catch (error) {
+        createSpinner.fail("Failed to create project");
+        throw error;
+      }
+    } else {
+      // Let user select existing project or create new
+      const choices = [
+        ...projects.map((p: { id: string; name: string }) => ({
+          name: p.name,
+          value: p.id,
+        })),
+        { name: chalk.cyan("+ Create new project"), value: "__NEW__" },
+      ];
+
+      const { projectChoice } = await interactivePrompt<{
+        projectChoice: string;
+      }>(
+        {
+          type: "select",
+          name: "projectChoice",
+          message: "Select a project:",
+          choices,
+        },
+        chalk.yellow(
+          "Cannot prompt for project selection in non-interactive mode.",
+        ),
+      );
+
+      if (projectChoice === "__NEW__") {
+        const { projectName } = await interactivePrompt<{
+          projectName: string;
+        }>(
+          {
+            type: "input",
+            name: "projectName",
+            message: "Project name:",
+            default: path.basename(process.cwd()),
+            validate: (input: string) => {
+              if (!input?.trim()) return "Project name is required";
+              return true;
+            },
+          },
+          chalk.yellow(
+            "Cannot prompt for project name in non-interactive mode.",
+          ),
+        );
+
+        const createSpinner = ora("Creating project...").start();
+        try {
+          const project = await api.project.createProject2.mutate({
+            name: projectName.trim(),
+          });
+          createSpinner.succeed(`Created project: ${project.name}`);
+          selectedProjectId = project.id;
+          selectedProjectName = project.name;
+        } catch (error) {
+          createSpinner.fail("Failed to create project");
+          throw error;
+        }
+      } else {
+        const selected = projects.find(
+          (p: { id: string; name: string }) => p.id === projectChoice,
+        );
+        selectedProjectId = projectChoice;
+        selectedProjectName = selected?.name ?? projectChoice;
+        console.log(
+          chalk.green(`\n✔ Selected project: ${selectedProjectName}`),
+        );
+      }
+    }
+
+    // Generate API key
+    console.log(chalk.cyan("\nStep 3: Generate API Key"));
+    const keySpinner = ora("Generating API key...").start();
+
+    try {
+      const timestamp = new Date().toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const result = await api.project.generateApiKey.mutate({
+        projectId: selectedProjectId,
+        name: `CLI Key (${timestamp})`,
+      });
+      keySpinner.succeed("API key generated");
+
+      // Save to .env file
+      const saved = await writeApiKeyToEnv(result.apiKey);
+      if (saved) {
+        console.log(
+          chalk.gray(
+            `\n   Project: ${selectedProjectName}\n   Key saved to your .env file`,
+          ),
+        );
+      }
+      return saved;
+    } catch (error) {
+      keySpinner.fail("Failed to generate API key");
+      throw error;
+    }
+  } catch (error) {
+    console.error(chalk.red(`\nProject setup failed: ${error}`));
     return false;
   }
 }

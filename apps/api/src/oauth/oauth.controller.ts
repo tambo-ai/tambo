@@ -178,11 +178,10 @@ export class OAuthController {
         expires_in: expiresIn,
         issued_token_type: "urn:ietf:params:oauth:token-type:access_token",
       };
-    } catch (error: any) {
-      this.logger.error(
-        `Error validating OAuth token: ${error.message}`,
-        error.stack,
-      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Error validating OAuth token: ${message}`, stack);
 
       if (
         error instanceof BadRequestException ||

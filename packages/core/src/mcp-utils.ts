@@ -17,6 +17,8 @@ import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
  * - "https://google.com" → "google"
  * - "https://google.co.uk" → "google"
  * - "https://mcp.company.co.uk" → "company"
+ *
+ * @returns A lowercase server key derived from the URL hostname
  */
 export function deriveServerKey(url: string): string {
   try {
@@ -73,6 +75,7 @@ export function deriveServerKey(url: string): string {
 
 /**
  * Validates that a serverKey is valid (min 2 characters, alphanumeric + underscore)
+ * @returns True if the key is at least 2 characters and contains only alphanumeric characters or underscores
  */
 export function isValidServerKey(key: string): boolean {
   const trimmed = key.trim();
