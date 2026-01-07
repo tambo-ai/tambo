@@ -16,6 +16,10 @@ inputs:
     description: "Whether to cache npm dependencies."
     required: false
     default: "true"
+  cache-dependency-path:
+    description: "Path to the file that determines the cache key (e.g., package-lock.json). Relative to working-directory."
+    required: false
+    default: "package-lock.json"
   working-directory:
     description: "The working directory to run commands in."
     required: false
@@ -32,8 +36,8 @@ runs:
       uses: actions/setup-node@v6
       with:
         # only specifying cache here. Node install is handled by mise
-        cache: "npm"
-        cache-dependency-path: "package-lock.json"
+        cache: npm
+        cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.cache-dependency-path }}
 
     - name: Install dependencies
       if: ${{ inputs.install == 'true' }}
