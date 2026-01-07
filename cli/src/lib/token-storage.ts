@@ -124,7 +124,6 @@ export function loadToken(): StoredToken | null {
     const token = JSON.parse(data) as StoredToken;
 
     // Validate basic structure (sessionToken, expiresAt, user object)
-    // Note: user.id can be empty during the two-step auth flow bootstrap
     if (!token.sessionToken || !token.expiresAt || !token.user) {
       console.warn(
         `Warning: Auth token file has invalid format. Run 'tambo auth login' to re-authenticate.`,
