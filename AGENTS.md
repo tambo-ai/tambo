@@ -150,7 +150,7 @@ eval "$(mise activate)"   # Activate mise in current shell
 - **Use discriminated unions** for mutually exclusive states (e.g., `{ success: true; data: T } | { success: false; error: Error }`).
 - **Use `as const`** to preserve literal types, especially for arrays that should be tuples.
 - **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
-- **Avoid `{}` type** - it means "any non-nullish value" which is rarely what you want.
+- **Avoid `{}` type** - it means "any non-nullish value" (including primitives) which is rarely what you want.
 
 ### Type Inference
 
@@ -162,9 +162,9 @@ eval "$(mise activate)"   # Activate mise in current shell
 - **Avoid creating one-off/intermediate "helper" types** for internal functions.
 - **Use inferred types** from database schemas, tRPC schemas, and other sources of truth.
 - **Add explicit types** when it improves clarity or catches errors.
-- **Avoid type casts (e.g. `as`)** unless absolutely necessary - casting objects through `unknown` to a new type is a code smell and should be avoided. Instead try to update function signatures to accept the missing type, or update the code to not need the type cast.
-- **Use `satisfies` to assert the type of an object** as an alternative to type casts, when the type is not obvious, such as when working with JSON data or when the type is not defined in the codebase. This is especially useful for returning values from functions that are not explicitly typed.
-- **Type guards** should be used to narrow down the type of an object, not to cast it to a new type. This also means avoiding type guards with `unknown` as the type parameter.
+- **Avoid type casts (e.g. `as`)** unless absolutely necessary. Prefer updating function signatures/types so the code doesn't need a cast. Casting through `unknown` is usually a smell; when it's needed at an interop boundary, do runtime validation first (e.g. Zod) and keep the cast local.
+- **Use `satisfies` to check an object literal matches a type** while preserving inference (compile-time only). It does not validate runtime data; use a schema validator for untrusted input.
+- **Type guards** should perform real runtime checks to narrow values (often from `unknown`). Avoid "fake" guards that just assert a type without validation.
 
 ### Type Conversions
 
