@@ -1,6 +1,6 @@
 {
-  "id": "b6d79d10-3085-4470-a1ec-5052e8f25569",
-  "prevId": "5778586e-7996-4f80-a089-e22b56f0e941",
+  "id": "c8887c1f-86ba-4086-b387-a51e9e826b5c",
+  "prevId": "44496f64-f7e6-42e6-b56f-b74d2fb139e7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2579,12 +2579,6 @@
   },
   "sequences": {},
   "roles": {
-    "anon": {
-      "name": "anon",
-      "createDb": false,
-      "createRole": false,
-      "inherit": true
-    },
     "project_api_key": {
       "name": "project_api_key",
       "createDb": false,

@@ -46,7 +46,7 @@ export const projectApiKeyRole = pgRole("project_api_key", {
  * Note: Role is created via custom migration 0083_add-anon-role.sql.
  * See that migration for details on why we use pgRole() with no options here.
  */
-export const anonRole = pgRole("anon");
+export const anonRole = pgRole("anon").existing();
 
 // User schema for NextAuth adapter tables
 export const authSchema = pgSchema("auth");

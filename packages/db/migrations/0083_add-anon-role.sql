@@ -8,9 +8,8 @@
 --
 -- Why not use `pgRole("anon", { inherit: false })` in schema.ts?
 -- When pgRole has options, Drizzle generates CREATE ROLE statements in migrations,
--- which fails on Supabase where 'anon' already exists. By using pgRole("anon") with
--- no options, Drizzle only references the role name (for RLS policies) without trying
--- to create it. This custom migration handles the actual role creation idempotently.
+-- which fails on Supabase where 'anon' already exists. By using pgRole("anon").existing(),
+-- Drizzle treats the role as externally managed and doesn't track it in snapshots.
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN

@@ -1,5 +1,5 @@
 {
-  "id": "5778586e-7996-4f80-a089-e22b56f0e941",
+  "id": "44496f64-f7e6-42e6-b56f-b74d2fb139e7",
   "prevId": "d016c901-291a-46e6-9301-c6912f15d867",
   "version": "7",
   "dialect": "postgresql",
@@ -2551,12 +2551,6 @@
   "views": {},
   "sequences": {},
   "roles": {
-    "anon": {
-      "name": "anon",
-      "createDb": false,
-      "createRole": false,
-      "inherit": true
-    },
     "project_api_key": {
       "name": "project_api_key",
       "createDb": false,
