@@ -1,15 +1,22 @@
 -- Custom SQL migration file for device auth anon role setup
--- Create anon role idempotently (Supabase already has this role)
+--
+-- Creates the 'anon' role for unauthenticated requests (device auth initiation/polling).
+-- This is idempotent: on Supabase, 'anon' already exists so this is a no-op.
+--
+-- We use NOINHERIT as a security best practice to prevent privilege escalation if the
+-- role is ever added to another role. This matches Supabase's built-in 'anon' behavior.
+--
+-- Why not use `pgRole("anon", { inherit: false })` in schema.ts?
+-- When pgRole has options, Drizzle generates CREATE ROLE statements in migrations,
+-- which fails on Supabase where 'anon' already exists. By using pgRole("anon") with
+-- no options, Drizzle only references the role name (for RLS policies) without trying
+-- to create it. This custom migration handles the actual role creation idempotently.
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
     CREATE ROLE "anon" NOINHERIT;
   END IF;
 END $$;--> statement-breakpoint
+-- Grant permissions for device auth flow (anon can read/write device_auth_codes, read sessions)
 GRANT SELECT, INSERT, UPDATE ON public.device_auth_codes TO "anon";--> statement-breakpoint
-GRANT SELECT ON public.sessions TO "anon";--> statement-breakpoint
-ALTER TABLE "device_auth_codes" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE POLICY "device_auth_anon_insert" ON "device_auth_codes" AS PERMISSIVE FOR INSERT TO "anon" WITH CHECK (true);--> statement-breakpoint
-CREATE POLICY "device_auth_anon_select" ON "device_auth_codes" AS PERMISSIVE FOR SELECT TO "anon" USING (true);--> statement-breakpoint
-CREATE POLICY "device_auth_anon_update" ON "device_auth_codes" AS PERMISSIVE FOR UPDATE TO "anon" USING (true);--> statement-breakpoint
-CREATE POLICY "device_auth_authenticated_all" ON "device_auth_codes" AS PERMISSIVE FOR ALL TO "authenticated" USING (true);
+GRANT SELECT ON public.sessions TO "anon";
