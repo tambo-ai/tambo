@@ -278,35 +278,26 @@ export const deviceAuthRouter = createTRPCRouter({
 
       // Check if verified
       if (deviceAuthCode.isUsed && deviceAuthCode.sessionId) {
-        // Get user info and session expiry for the response
-        const [result] = await ctx.db
+        // Get session expiry for the response
+        const [session] = await ctx.db
           .select({
-            userId: schema.authUsers.id,
-            userEmail: schema.authUsers.email,
-            userName: schema.authUsers.rawUserMetaData,
-            sessionExpiresAt: schema.sessions.expiresAt,
+            expiresAt: schema.sessions.expiresAt,
           })
           .from(schema.sessions)
-          .innerJoin(
-            schema.authUsers,
-            eq(schema.sessions.userId, schema.authUsers.id),
-          )
           .where(eq(schema.sessions.id, deviceAuthCode.sessionId))
           .limit(1);
+
+        if (!session) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Session not found for completed device auth code",
+          });
+        }
 
         return {
           status: "complete" as const,
           sessionToken: deviceAuthCode.sessionId,
-          expiresAt: result?.sessionExpiresAt?.toISOString() ?? null,
-          user: result
-            ? {
-                id: result.userId,
-                email: result.userEmail,
-                name:
-                  (result.userName as Record<string, unknown> | null)?.name ??
-                  null,
-              }
-            : null,
+          expiresAt: session.expiresAt.toISOString(),
         };
       }
 
