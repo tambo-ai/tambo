@@ -50,6 +50,7 @@ if ! docker ps | grep -q tambo_postgres; then
 fi
 
 # 2. Start Supabase (if not running)
+# Use npx so developers don't need a globally installed Supabase CLI.
 if ! npx --yes supabase status 2>/dev/null | grep -q "supabase local development setup is running"; then
   echo "Starting Supabase..."
   npx --yes supabase start
