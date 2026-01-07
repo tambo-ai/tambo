@@ -47,7 +47,7 @@ describe("tool utilities", () => {
       expect(validateToolResponse(message)).toBe(true);
     });
 
-    it("should ignore resource content types", () => {
+    it("should return false when message contains unsupported content types", () => {
       const text = "text response";
       const message: ThreadMessage = {
         id: "1",
@@ -55,7 +55,7 @@ describe("tool utilities", () => {
         createdAt: new Date(),
         content: [
           {
-            type: "resource" as any,
+            type: "unsupported" as any,
             text: "resource",
           },
           {
@@ -66,7 +66,7 @@ describe("tool utilities", () => {
         role: MessageRole.Tool,
         tool_call_id: "test-tool-call-id",
       };
-      expect(validateToolResponse(message)).toBe(true);
+      expect(validateToolResponse(message)).toBe(false);
     });
 
     it("should return true for image content", () => {

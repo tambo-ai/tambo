@@ -32,8 +32,7 @@ export function validateToolResponse(message: ThreadMessage): boolean {
     return false;
   }
 
-  // Check for valid content types (text, image, audio, or resource)
-  const validContent = message.content.filter((part) => {
+  const allPartsAreValid = message.content.every((part) => {
     return (
       part.type === ContentPartType.Text ||
       part.type === ContentPartType.ImageUrl ||
@@ -42,25 +41,20 @@ export function validateToolResponse(message: ThreadMessage): boolean {
     );
   });
 
-  if (validContent.length === 0) {
+  if (!allPartsAreValid) {
     return false;
   }
 
-  // For text-only responses, validate content
-  const textOnlyContent = validContent.filter(
+  const isTextOnlyResponse = message.content.every(
     (part) => part.type === ContentPartType.Text,
   );
-  if (
-    textOnlyContent.length === validContent.length &&
-    textOnlyContent.length > 0
-  ) {
-    const contentString = textOnlyContent.map((part) => part.text).join("");
-    // Try to parse as JSON for additional validation, but accept either way
+  if (isTextOnlyResponse) {
+    const contentString = message.content
+      .map((part) => ("text" in part ? part.text : ""))
+      .join("");
     tryParseJson(contentString);
-    return true;
   }
 
-  // Accept any mix of valid content types
   return true;
 }
 
