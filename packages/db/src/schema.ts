@@ -44,7 +44,8 @@ export const projectApiKeyRole = pgRole("project_api_key", {
 
 /** Anon role for unauthenticated requests (e.g., device auth initiation/polling) */
 export const anonRole = pgRole("anon", {
-  createRole: false,
+  createRole: true,
+  inherit: false,
 });
 
 // User schema for NextAuth adapter tables
