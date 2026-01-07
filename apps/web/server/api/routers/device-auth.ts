@@ -297,7 +297,7 @@ export const deviceAuthRouter = createTRPCRouter({
         return {
           status: "complete" as const,
           sessionToken: deviceAuthCode.sessionId,
-          expiresAt: session.expiresAt?.toISOString() ?? null,
+          expiresAt: session.expiresAt.toISOString(),
         };
       }
 

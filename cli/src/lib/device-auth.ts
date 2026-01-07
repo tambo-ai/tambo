@@ -132,14 +132,17 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
         }
 
         // Step 4a: Save token temporarily (allows authenticated requests)
-        // Use server-provided expiry, fallback to 90 days if not provided
-        const expiresAt =
-          pollResponse.expiresAt ??
-          new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+        // Server guarantees expiresAt is present for completed polls (sessions have NOT NULL expiry)
+        if (!pollResponse.expiresAt) {
+          throw new DeviceAuthError(
+            "Something went wrong during authentication. Please try again.",
+            "POLL_ERROR",
+          );
+        }
 
         const tempTokenData: StoredToken = {
           sessionToken: pollResponse.sessionToken,
-          expiresAt,
+          expiresAt: pollResponse.expiresAt,
           user: { id: "", email: null, name: null }, // Placeholder until we fetch user info
           storedAt: new Date().toISOString(),
         };
