@@ -67,8 +67,8 @@ These files are kept up to date by Renovate.
 
 ```bash
 mise install              # Install/update tools to correct versions
-mise exec -- <command>    # Run command with correct tool versions (useful in scripts/CI)
-eval "$(mise activate)"   # Activate mise in current shell
+mise exec -- <command>    # Preferred for scripts/CI/non-interactive shells
+eval "$(mise activate)"   # Interactive shells only
 ```
 
 **Changing tool versions**: Open a PR updating the authoritative version file(s). For Node.js, always update both `.node-version` and `.nvmrc` together. Run `mise install`, then verify with `npm run lint && npm run check-types && npm test`.
@@ -164,7 +164,7 @@ eval "$(mise activate)"   # Activate mise in current shell
 - **Add explicit types** when it improves clarity or catches errors.
 - **Avoid type casts (e.g. `as`)** unless absolutely necessary. Prefer updating function signatures/types so the code doesn't need a cast. Casting through `unknown` is usually a smell; when it's needed at an interop boundary, do runtime validation first (e.g. Zod) and keep the cast local.
 - **Use `satisfies` to check an object literal matches a type** while preserving inference (compile-time only). It does not validate runtime data; use a schema validator for untrusted input.
-- **Type guards** should perform real runtime checks to narrow values (often from `unknown`). Avoid "fake" guards that just assert a type without validation.
+- **Type guards** should perform real runtime checks to narrow values. Use `unknown` as an input type only when the value is truly unknown (e.g. JSON deserialization, user input). Avoid "fake" guards that just assert a type without validation.
 
 ### Type Conversions
 
