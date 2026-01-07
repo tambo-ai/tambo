@@ -19,7 +19,6 @@ import mimeTypes from "mime-types";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
 import { AudioFormat, ChatCompletionContentPartDto } from "../dto/message.dto";
-import { tryParseJson } from "./content";
 
 /**
  * Validates that a tool response message has valid content.
@@ -44,15 +43,6 @@ export function validateToolResponse(message: ThreadMessage): boolean {
 
   if (!allPartsAreValid) {
     return false;
-  }
-
-  const textContentParts = message.content.filter(
-    (part): part is { type: ContentPartType.Text; text: string } =>
-      part.type === ContentPartType.Text,
-  );
-  if (textContentParts.length === message.content.length) {
-    const contentString = textContentParts.map((part) => part.text).join("");
-    tryParseJson(contentString);
   }
 
   return true;

@@ -11,7 +11,7 @@ import { callSystemTool, validateToolResponse } from "./tool";
 
 describe("tool utilities", () => {
   describe("validateToolResponse", () => {
-    it("should parse JSON from text content", () => {
+    it("should accept JSON text content", () => {
       const response = { key: "value" };
       const message: ThreadMessage = {
         id: "1",
@@ -29,7 +29,7 @@ describe("tool utilities", () => {
       expect(validateToolResponse(message)).toBe(true);
     });
 
-    it("should return text content if not JSON", () => {
+    it("should accept non-JSON text content", () => {
       const text = "plain text response";
       const message: ThreadMessage = {
         id: "1",
