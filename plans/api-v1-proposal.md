@@ -113,13 +113,14 @@ flowchart TB
 
 ```typescript
 /**
- * Message roles following OpenAI conventions (superset of Anthropic/MCP).
+ * Message roles following Anthropic/MCP conventions.
  *
- * OpenAI uses all four roles. Anthropic puts system in a separate parameter
- * and uses tool_result content blocks instead of a "tool" role. We follow
- * OpenAI's approach for flexibility.
+ * We use three roles. Tool calls and results are represented as content blocks
+ * (tool_use, tool_result) rather than a separate "tool" role, following Anthropic's
+ * pattern. System messages use the "system" role for simplicity (vs Anthropic's
+ * separate system parameter).
  */
-type MessageRole = "user" | "assistant" | "system" | "tool";
+type MessageRole = "user" | "assistant" | "system";
 ```
 
 ### 1.2 Content Types
@@ -132,46 +133,32 @@ type MessageRole = "user" | "assistant" | "system" | "tool";
 
 Content follows a discriminated union pattern with a `type` field. This aligns with both OpenAI and Anthropic.
 
-**Design Note: Why separate image/audio/file vs resource?**
+**Design Note: Unified Resource Type**
 
-We include both specific modality types AND the generic resource type:
+We use a single `resource` type for all binary/multimodal content (images, audio, files, documents) rather than separate types. This:
 
-1. **image, audio, file** - From OpenAI/Anthropic. These have modality-specific fields:
-   - Images have `detail` level (auto/low/high) for vision processing cost control
-   - Audio has `format` (wav/mp3) for codec specification
-   - Files have `filename` for display and MIME type inference
-
-2. **resource** - From MCP. A generic URI-based reference that can point to anything:
-   - Useful for MCP server resources (`file://`, `git://`, custom schemes)
-   - Supports both inline content (text/blob) and URI references
-   - Has MCP-specific annotations (audience, priority)
-
-The specific types are used when the client knows the modality and wants fine-grained control.
-The resource type is used for MCP integration and generic content references.
+- Simplifies the type system - one content type handles all media
+- Uses MIME types (`mimeType` field) for format discrimination
+- Aligns with MCP's resource model
+- Includes optional fields like `detail` for vision processing when needed
 
 ```typescript
 /**
  * Content block discriminator values.
  *
  * Sources:
- * - text, image, audio, file: OpenAI/Anthropic multimodal content
- * - resource: MCP resource references
- * - component: Tambo extension for UI components
- *
- * Note: Tool calls use the OpenAI pattern (separate tool_calls array on messages)
- * rather than the Anthropic pattern (tool_use/tool_result content blocks).
- * See "Open Questions" section (8.1) for discussion of this design decision.
- *
- * Note: The explicit image/audio/file types vs unified binary type is discussed
- * in "Open Questions" section (8.2). Components inline vs separate is in (8.3).
+ * - text: Standard text content (all APIs)
+ * - resource: Unified binary/multimodal content (MCP-inspired)
+ * - tool_use: Tool call from assistant (Anthropic pattern)
+ * - tool_result: Tool result from user (Anthropic pattern)
+ * - component: UI component (Tambo extension)
  */
 type ContentType =
   | "text"
-  | "image"
-  | "audio"
-  | "file"
-  | "resource" // MCP resource reference
-  | "component"; // UI component (response only, Tambo extension)
+  | "resource" // Unified binary/multimodal content
+  | "tool_use" // Tool call (assistant only)
+  | "tool_result" // Tool result (user only)
+  | "component"; // UI component (assistant only, Tambo extension)
 
 /**
  * Base content block interface
@@ -192,87 +179,63 @@ interface TextContent extends BaseContent {
 }
 
 /**
- * Image content - for vision inputs
- * @see https://platform.openai.com/docs/api-reference/chat/create - "image_url" type
- * @see https://docs.anthropic.com/en/api/messages - ImageBlockParam
- * @see https://modelcontextprotocol.io/specification/2025-11-25/server/sampling - ImageContent
- *
- * Note: OpenAI uses "image_url" with nested image_url.url. Anthropic uses "image"
- * with source.data (base64). We follow Anthropic's structure but support both
- * base64 and URL sources. The "detail" field is from OpenAI for controlling
- * vision processing cost.
- */
-interface ImageContent extends BaseContent {
-  type: "image";
-  source: {
-    type: "base64" | "url";
-    mediaType?: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
-    data?: string; // base64 data when type="base64"
-    url?: string; // URL when type="url"
-  };
-  detail?: "auto" | "low" | "high"; // From OpenAI - controls vision processing
-}
-
-/**
- * Audio content - for speech inputs
- * @see https://platform.openai.com/docs/api-reference/chat/create - "input_audio" type
- * @see https://modelcontextprotocol.io/specification/2025-11-25/server/sampling - AudioContent
- *
- * Note: Anthropic doesn't have native audio input. This follows OpenAI/MCP patterns.
- */
-interface AudioContent extends BaseContent {
-  type: "audio";
-  source: {
-    type: "base64";
-    mediaType: "audio/wav" | "audio/mp3" | "audio/aac";
-    data: string;
-  };
-}
-
-/**
- * File content - for document inputs (PDFs, etc.)
- * @see https://platform.openai.com/docs/api-reference/chat/create - "file" content part
- *
- * Note: This is primarily from OpenAI's file content type which supports
- * uploaded files via file_id or inline base64. Useful for PDFs and documents.
- */
-interface FileContent extends BaseContent {
-  type: "file";
-  source: {
-    type: "base64" | "url" | "file_id";
-    mediaType?: string;
-    data?: string; // base64 when type="base64"
-    url?: string; // URL when type="url"
-    fileId?: string; // Reference when type="file_id"
-    filename?: string;
-  };
-}
-
-/**
- * Resource content - MCP-style resource reference
+ * Resource content - unified type for all binary/multimodal content
  * @see https://modelcontextprotocol.io/specification/2025-11-25/server/resources - Resource
  * @see https://modelcontextprotocol.io/specification/2025-11-25/server/sampling - EmbeddedResource
  *
- * This is the MCP approach: a generic resource identified by URI that can
- * contain any content type. Supports both references (uri) and embedded
- * content (text/blob). Unlike specific image/audio/file types, this is
- * URI-centric and includes MCP-specific annotations.
+ * Handles images, audio, files, and any other binary content through a single
+ * interface. Use mimeType to indicate the content type (image/png, audio/wav,
+ * application/pdf, etc.). Supports URI references, inline base64, or text content.
  */
 interface ResourceContent extends BaseContent {
   type: "resource";
   resource: {
-    uri?: string; // Resource identifier (file://, https://, git://, etc.)
+    // Identification
+    uri?: string; // Resource identifier (file://, https://, data:, etc.)
     name?: string; // Programmatic name
-    title?: string; // Display name (MCP dual naming pattern)
+    title?: string; // Display name
+
+    // Content - at least one should be present
+    mimeType?: string; // Content type (image/png, audio/wav, application/pdf, etc.)
+    text?: string; // Inline text content
+    blob?: string; // Base64-encoded binary data
+
+    // Optional metadata
     description?: string;
-    mimeType?: string;
-    text?: string; // Inline text content (MCP TextResourceContents)
-    blob?: string; // Base64-encoded binary (MCP BlobResourceContents)
+    filename?: string; // Original filename for downloads/display
+    detail?: "auto" | "low" | "high"; // Vision processing level (for images)
     annotations?: {
       audience?: MessageRole[]; // MCP annotation: intended audience
       priority?: number; // MCP annotation: 0-1, higher = more important
     };
   };
+}
+
+/**
+ * Tool use content - represents a tool call from the assistant
+ * @see https://docs.anthropic.com/en/api/messages - ToolUseBlock
+ *
+ * Appears in assistant messages when the model wants to call a tool.
+ */
+interface ToolUseContent extends BaseContent {
+  type: "tool_use";
+  id: string; // Unique identifier for this tool call
+  name: string; // Tool name
+  input: Record<string, unknown>; // Tool arguments (Anthropic uses "input")
+}
+
+/**
+ * Tool result content - represents the result of a tool call
+ * @see https://docs.anthropic.com/en/api/messages - ToolResultBlock
+ *
+ * Appears in user messages following an assistant message with tool_use.
+ * The toolUseId links back to the corresponding tool_use content block.
+ */
+interface ToolResultContent extends BaseContent {
+  type: "tool_result";
+  toolUseId: string; // Links to the tool_use content block
+  content: (TextContent | ResourceContent)[]; // Result content
+  isError?: boolean; // Indicates the tool call failed
 }
 
 /**
@@ -292,26 +255,24 @@ interface ComponentContent extends BaseContent {
  */
 type Content =
   | TextContent
-  | ImageContent
-  | AudioContent
-  | FileContent
   | ResourceContent
+  | ToolUseContent
+  | ToolResultContent
   | ComponentContent;
 
 /**
  * Input content - subset allowed in request messages
  */
-type InputContent =
-  | TextContent
-  | ImageContent
-  | AudioContent
-  | FileContent
-  | ResourceContent;
+type InputContent = TextContent | ResourceContent | ToolResultContent;
 
 /**
  * Output content - subset that appears in response messages
  */
-type OutputContent = TextContent | ComponentContent;
+type OutputContent =
+  | TextContent
+  | ResourceContent
+  | ToolUseContent
+  | ComponentContent;
 ```
 
 ### 1.3 Messages
@@ -325,36 +286,19 @@ type OutputContent = TextContent | ComponentContent;
 
 ```typescript
 /**
- * Tool call on an assistant message (OpenAI pattern)
- * @see https://platform.openai.com/docs/api-reference/chat/create - tool_calls
- * @see https://modelcontextprotocol.io/specification/2025-11-25/server/tools - tools/call
- */
-interface ToolCall {
-  id: string; // Unique identifier for this tool call
-  name: string; // Tool name
-  arguments: Record<string, unknown>; // Parsed JSON arguments
-}
-
-/**
  * Message in a conversation thread
  *
- * Uses the OpenAI pattern for tool calls:
- * - Assistant messages have optional `tool_calls` array
- * - Tool results are messages with `role: "tool"` and `toolCallId`
+ * Uses the Anthropic pattern for tool calls:
+ * - Tool calls are `tool_use` content blocks in assistant messages
+ * - Tool results are `tool_result` content blocks in user messages
  *
- * Content is still an array of blocks for multimodal support
- * (text, images, components).
+ * Content is an array of blocks for multimodal support
+ * (text, resources, tool_use, tool_result, components).
  */
 interface Message {
   id: string;
   role: MessageRole;
   content: Content[];
-
-  // Tool calls on assistant messages (OpenAI pattern)
-  toolCalls?: ToolCall[];
-
-  // For role="tool" messages, links to the tool call being answered
-  toolCallId?: string;
 
   // Metadata
   createdAt?: string; // ISO 8601 timestamp
@@ -367,14 +311,6 @@ interface Message {
 interface InputMessage {
   role: MessageRole;
   content: InputContent[];
-
-  // For role="tool" messages, the ID of the tool call being answered
-  toolCallId?: string;
-
-  // For role="tool" messages, the result (or error) content
-  // Note: This is the tool output, typically text or structured data
-  isError?: boolean;
-
   metadata?: Record<string, unknown>;
 }
 ```
@@ -1061,9 +997,19 @@ _Stream closes here. Client executes `add_to_cart` in the browser._
 ```json
 {
   "message": {
-    "role": "tool",
-    "toolCallId": "tc_001",
-    "content": "Added 2x SKU-123 to cart. Cart total: $49.98"
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "toolUseId": "tc_001",
+        "content": [
+          {
+            "type": "text",
+            "text": "Added 2x SKU-123 to cart. Cart total: $49.98"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
@@ -1171,424 +1117,49 @@ The React SDK will maintain the same interface it has today (`useTamboThread`, `
 
 The following design decisions were made during proposal development:
 
-| Question                      | Decision                                                                                             |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                        |
-| **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                     |
-| **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint |
-| **Server-side tool flow**     | Inline execution within stream, `TOOL_CALL_RESULT` emitted automatically                             |
-| **Context tools**             | Client sends all available tools/components each request (no server tracking)                        |
-| **State update granularity**  | Both full replacement and JSON Patch supported                                                       |
-| **Messages per run**          | Multiple messages allowed when server-side tools loop                                                |
-| **Disconnection handling**    | Pause and resume - client can reconnect via GET `/runs/{runId}`                                      |
-| **Cancellation**              | Both connection close and explicit DELETE work                                                       |
-| **Thread endpoints**          | Standard REST (not streaming)                                                                        |
-
----
-
-## Part 7: Open Questions
-
-### 7.1 Tool Call Representation
-
-**Status:** Proposal defaults to OpenAI pattern; open for discussion.
-
-There are two competing patterns for representing tool calls in messages:
-
-#### Option A: Separate Fields (OpenAI pattern) — CURRENT PROPOSAL
-
-Tool calls are a separate `tool_calls` array on assistant messages. Tool results are messages with `role: "tool"`.
-
-```typescript
-// Assistant message with tool calls
-{
-  id: "msg_001",
-  role: "assistant",
-  content: [{ type: "text", text: "Let me check the weather..." }],
-  toolCalls: [
-    { id: "tc_001", name: "get_weather", arguments: { city: "Paris" } }
-  ]
-}
-
-// Tool result message
-{
-  id: "msg_002",
-  role: "tool",
-  toolCallId: "tc_001",
-  content: [{ type: "text", text: "72°F, Sunny" }]
-}
-```
-
-**Used by:**
-
-- [OpenAI Chat API](https://platform.openai.com/docs/api-reference/chat/create) - `tool_calls` array
-- [MCP Tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools) - JSON-RPC `tools/call` method
-
-**Pros:**
-
-- Clearer separation of concerns - tool calls are structurally distinct from content
-- Consistent with `MessageRole` including "tool"
-- Aligns with AG-UI which uses separate events (`TOOL_CALL_START`, `TOOL_CALL_END`)
-- MCP Tools uses separate JSON-RPC methods, not content blocks
-
-**Cons:**
-
-- Less composable - can't interleave tool calls with text in content array
-- Two different structures to handle (content blocks vs tool calls)
-
----
-
-#### Option B: Content Blocks (Anthropic pattern)
-
-Tool calls are `type: "tool_use"` content blocks. Tool results are `type: "tool_result"` content blocks.
-
-```typescript
-// Assistant message with tool calls as content blocks
-{
-  id: "msg_001",
-  role: "assistant",
-  content: [
-    { type: "text", text: "Let me check the weather..." },
-    { type: "tool_use", id: "tc_001", name: "get_weather", input: { city: "Paris" } }
-  ]
-}
-
-// User message with tool results as content blocks
-{
-  id: "msg_002",
-  role: "user",
-  content: [
-    { type: "tool_result", toolUseId: "tc_001", content: [{ type: "text", text: "72°F, Sunny" }] }
-  ]
-}
-```
-
-**Used by:**
-
-- [Anthropic Messages API](https://docs.anthropic.com/en/api/messages) - `ToolUseBlock`, `ToolResultBlock`
-- [MCP Sampling](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling) - `SamplingMessage`
-
-**Pros:**
-
-- More composable - text + tool calls + components in one content array
-- Consistent content block pattern for all message content
-- Better for streaming - content blocks can be interleaved naturally
-
-**Cons:**
-
-- `role: "tool"` in `MessageRole` becomes unused/inconsistent
-- MCP Sampling is for client-initiated sampling, not server-side tools
-- Mixes structural concerns (tool orchestration) with content
-
----
-
-#### AG-UI Consideration
-
-The AG-UI wire protocol uses separate events for tool calls:
-
-- `TOOL_CALL_START` - begins a tool call
-- `TOOL_CALL_ARGS` - streams arguments
-- `TOOL_CALL_END` - completes the tool call
-
-These events are separate from `TEXT_MESSAGE_*` events, suggesting a structural separation similar to the OpenAI pattern. However, these events describe the _wire protocol_, not how messages should be stored or returned from the API.
-
-**Decision needed:** Should stored/returned messages follow the wire protocol's separation (OpenAI pattern) or use a unified content block approach (Anthropic pattern)?
-
----
-
-### 7.2 Multimodal Content Types
-
-**Status:** Proposal uses explicit types; open for discussion.
-
-The proposal currently defines separate content types for different media: `ImageContent`, `AudioContent`, `FileContent`, plus `ResourceContent` for MCP resources. An alternative is to unify all binary content into a single type with MIME-type differentiation.
-
-#### Option A: Explicit Content Types — CURRENT PROPOSAL
-
-Separate interfaces for each media type with type-specific fields:
-
-```typescript
-interface ImageContent {
-  type: "image";
-  source: {
-    type: "base64" | "url";
-    mediaType?: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
-    data?: string;
-    url?: string;
-  };
-  detail?: "auto" | "low" | "high"; // OpenAI vision control
-}
-
-interface AudioContent {
-  type: "audio";
-  source: {
-    type: "base64";
-    mediaType: "audio/wav" | "audio/mp3" | "audio/aac";
-    data: string;
-  };
-}
-
-interface FileContent {
-  type: "file";
-  source: {
-    type: "base64" | "url" | "file_id";
-    mediaType?: string;
-    data?: string;
-    url?: string;
-    fileId?: string;
-    filename?: string;
-  };
-}
-```
-
-**Used by:**
-
-- [OpenAI Chat API](https://platform.openai.com/docs/api-reference/chat/create) - `image_url`, `input_audio`, `file` types
-- [Anthropic Messages API](https://docs.anthropic.com/en/api/messages) - `ImageBlockParam`, etc.
-- [MCP Sampling](https://modelcontextprotocol.io/specification/2025-11-25/server/sampling) - `ImageContent`, `AudioContent`
-
-**Pros:**
-
-- Type-specific validation and constraints (e.g., `detail` only applies to images)
-- Clear discrimination - code can switch on `type` directly
-- Explicit supported formats per media type
-- Aligns with OpenAI, Anthropic, and MCP patterns
-
-**Cons:**
-
-- More types to maintain
-- Adding new media types requires new interfaces
-- Some redundancy in source structure across types
-
----
-
-#### Option B: Unified Binary Type (AG-UI Pattern)
-
-Single `BinaryContent` type with MIME-type differentiation:
-
-```typescript
-interface TextContent {
-  type: "text";
-  text: string;
-}
-
-interface BinaryContent {
-  type: "binary";
-  mimeType: string; // "image/jpeg", "audio/wav", "application/pdf", etc.
-  id?: string; // Pre-uploaded content reference
-  url?: string; // External URL
-  data?: string; // Inline base64 data
-  filename?: string;
-}
-
-type InputContent = TextContent | BinaryContent;
-```
-
-**Used by:**
-
-- [AG-UI Multimodal Messages](https://docs.ag-ui.com/drafts/multimodal-messages) (draft, but claims implementation)
-
-**Pros:**
-
-- Simpler type system - only two content types for inputs
-- Easily extensible to new media types via MIME type
-- Flexible delivery: URL, base64, or pre-uploaded reference
-- Less code to maintain
-
-**Cons:**
-
-- Loses type-specific fields (e.g., image `detail` would need conditional logic)
-- MIME type validation must happen at runtime
-- Less explicit about what media types are supported
-- AG-UI spec is still in draft status
-
----
-
-#### Hybrid Consideration
-
-We could use explicit types for common media (image, audio) while treating everything else as `ResourceContent`:
-
-```typescript
-type InputContent =
-  | TextContent
-  | ImageContent // Keep for vision-specific fields like detail
-  | AudioContent // Keep for audio-specific needs
-  | ResourceContent; // Everything else via URI + mimeType
-```
-
-This keeps type safety for common cases while remaining extensible.
-
-**Decision needed:** Should we consolidate to a unified binary type (simpler, more flexible) or keep explicit types (more type safety, aligns with major APIs)?
-
----
-
-### 7.3 Component Content Representation
-
-**Status:** Proposal uses inline content blocks; open for discussion.
-
-Components are currently represented as content blocks in the `content[]` array, similar to text. An alternative is to represent them as a separate field, similar to how tool calls are handled.
-
-#### Option A: Inline Content Blocks — CURRENT PROPOSAL
-
-Components appear in the `content[]` array alongside text:
-
-```typescript
-interface AssistantMessage {
-  id: string;
-  role: "assistant";
-  content: Content[]; // Text and components interleaved
-  toolCalls?: ToolCall[];
-}
-
-// Example message
-{
-  id: "msg_001",
-  role: "assistant",
-  content: [
-    { type: "text", text: "Here's the stock chart:" },
-    { type: "component", id: "comp_001", name: "StockChart", props: { ticker: "AAPL" } },
-    { type: "text", text: "The price has been trending upward." }
-  ]
-}
-```
-
-**Pros:**
-
-- Natural content ordering - components appear in reading order with text
-- Composable - text before, between, and after components
-- Simpler mental model - everything that renders is "content"
-- Streaming aligns naturally with content order
-
-**Cons:**
-
-- Components are structurally different from text (have props, state, lifecycle)
-- Mixed concerns - rendering content vs interactive elements
-- Inconsistent with tool calls (which are separate)
-
----
-
-#### Option B: Separate Field (Like Tool Calls)
-
-Components as a separate `components[]` array, parallel to `toolCalls[]`:
-
-```typescript
-interface AssistantMessage {
-  id: string;
-  role: "assistant";
-  content: Content[]; // Only text/image/etc
-  toolCalls?: ToolCall[];
-  components?: ComponentInstance[]; // Separate from content
-}
-
-interface ComponentInstance {
-  id: string;
-  name: string;
-  props: Record<string, unknown>;
-  state?: Record<string, unknown>;
-}
-
-// Example message
-{
-  id: "msg_001",
-  role: "assistant",
-  content: [
-    { type: "text", text: "Here's the stock chart. The price has been trending upward." }
-  ],
-  components: [
-    { id: "comp_001", name: "StockChart", props: { ticker: "AAPL" } }
-  ]
-}
-```
-
-**Pros:**
-
-- Consistent with tool call pattern (separate structural concerns)
-- Cleaner separation - content is static, components are interactive
-- Easier to query/filter (e.g., "get all components from message")
-- Component-specific streaming events (`tambo.component.*`) already separate
-
-**Cons:**
-
-- Loses positional information - where should components render relative to text?
-- Need separate mechanism to indicate component placement (markers? indices?)
-- More complex for simple cases where component follows text naturally
-- Two rendering concerns to coordinate
-
----
-
-#### Option C: Hybrid with Placement Markers
-
-Keep components in a separate field but use markers in content for placement:
-
-```typescript
-interface AssistantMessage {
-  id: string;
-  role: "assistant";
-  content: Content[]; // Includes ComponentMarker for placement
-  components?: ComponentInstance[];
-}
-
-interface ComponentMarker {
-  type: "component_ref";
-  componentId: string; // References entry in components[]
-}
-
-// Example
-{
-  content: [
-    { type: "text", text: "Here's the chart:" },
-    { type: "component_ref", componentId: "comp_001" },
-    { type: "text", text: "Looks bullish!" }
-  ],
-  components: [
-    { id: "comp_001", name: "StockChart", props: { ticker: "AAPL" } }
-  ]
-}
-```
-
-**Pros:**
-
-- Clear separation of component data from placement
-- Maintains positional information
-- Component data easy to access/update independently
-
-**Cons:**
-
-- Most complex option - two places to look
-- Indirection adds cognitive overhead
-- Markers and components must stay in sync
-
----
-
-**Decision needed:** Should components be inline content blocks (simpler, ordered), a separate field (consistent with tools), or a hybrid approach?
+| Question                      | Decision                                                                                               |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Tool call representation**  | Anthropic pattern - `tool_use`/`tool_result` content blocks (not OpenAI's separate `tool_calls` array) |
+| **Multimodal content types**  | Unified `resource` type with MIME types (not separate image/audio/file types)                          |
+| **Component representation**  | Inline content blocks in `content[]` array (components render in reading order with text)              |
+| **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                          |
+| **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                       |
+| **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint   |
+| **Server-side tool flow**     | Inline execution within stream, `TOOL_CALL_RESULT` emitted automatically                               |
+| **Context tools**             | Client sends all available tools/components each request (no server tracking)                          |
+| **State update granularity**  | Both full replacement and JSON Patch supported                                                         |
+| **Messages per run**          | Multiple messages allowed when server-side tools loop                                                  |
+| **Disconnection handling**    | Pause and resume - client can reconnect via GET `/runs/{runId}`                                        |
+| **Cancellation**              | Both connection close and explicit DELETE work                                                         |
+| **Thread endpoints**          | Standard REST (not streaming)                                                                          |
 
 ---
 
 ## Appendix A: Type Alignment Summary
 
-**Key Design Choice: Tool Calls as Separate Fields (OpenAI Pattern)**
+**Key Design Choice: Tool Calls as Content Blocks (Anthropic Pattern)**
 
 One of the most significant differences between APIs is how tool calls are represented:
 
 - **OpenAI**: Tool calls are a _separate field_ (`tool_calls: []`) on assistant messages, not in the content array. Tool results use a separate `role: "tool"` message.
 - **Anthropic/MCP Sampling**: Tool calls are _content blocks_ (`type: "tool_use"`) inside the content array. Tool results are also content blocks (`type: "tool_result"`) in user messages.
 
-**We chose the OpenAI approach** because:
+**We chose the Anthropic approach** because:
 
-1. Clearer separation of concerns - tool calls are structurally distinct from content
-2. Aligns with MCP Tools which uses JSON-RPC `tools/call` method (separate from message content)
-3. Aligns with AG-UI which uses separate events for tool calls (not content blocks)
-4. Having `role: "tool"` is consistent with the `MessageRole` type including "tool"
+1. Uniform content model - everything is a content block, making message handling consistent
+2. Better aligns with our unified `resource` content type philosophy (fewer special cases)
+3. Anthropic's pattern is gaining adoption and is used by MCP Sampling
+4. Eliminates the need for a separate `tool` role, keeping MessageRole simpler
 
-See the Open Questions section for full discussion of both approaches.
-
-| Concept         | OpenAI                                           | Anthropic                                  | MCP Tools                        | Tambo v1                           |
-| --------------- | ------------------------------------------------ | ------------------------------------------ | -------------------------------- | ---------------------------------- |
-| Roles           | user, assistant, system, tool                    | user, assistant                            | user, assistant                  | user, assistant, system, tool      |
-| Text content    | `{type:"text",text:"..."}`                       | `{type:"text",text:"..."}`                 | `{type:"text",text:"..."}`       | `{type:"text",text:"..."}`         |
-| Image content   | `{type:"image_url",...}`                         | `{type:"image",...}`                       | `{type:"image",...}`             | `{type:"image",...}`               |
-| Tool definition | `{name,description,parameters}`                  | `{name,description,input_schema}`          | `{name,description,inputSchema}` | `{name,description,inputSchema}`   |
-| Tool call       | `{id,type:"function",function:{name,arguments}}` | `{type:"tool_use",id,name,input}`          | JSON-RPC `tools/call`            | `toolCalls: [{id,name,arguments}]` |
-| Tool result     | `{role:"tool",tool_call_id,content}`             | `{type:"tool_result",tool_use_id,content}` | JSON-RPC response                | `{role:"tool",toolCallId,content}` |
-| Streaming       | SSE with delta                                   | SSE with delta                             | N/A (JSON-RPC)                   | AG-UI events                       |
+| Concept          | OpenAI                                           | Anthropic                                  | MCP Tools                        | Tambo v1                                 |
+| ---------------- | ------------------------------------------------ | ------------------------------------------ | -------------------------------- | ---------------------------------------- |
+| Roles            | user, assistant, system, tool                    | user, assistant                            | user, assistant                  | user, assistant, system                  |
+| Text content     | `{type:"text",text:"..."}`                       | `{type:"text",text:"..."}`                 | `{type:"text",text:"..."}`       | `{type:"text",text:"..."}`               |
+| Resource content | `{type:"image_url",...}`                         | `{type:"image",...}`                       | `{type:"resource",...}`          | `{type:"resource",resource:{...}}`       |
+| Tool definition  | `{name,description,parameters}`                  | `{name,description,input_schema}`          | `{name,description,inputSchema}` | `{name,description,inputSchema}`         |
+| Tool call        | `{id,type:"function",function:{name,arguments}}` | `{type:"tool_use",id,name,input}`          | JSON-RPC `tools/call`            | `{type:"tool_use",id,name,input}`        |
+| Tool result      | `{role:"tool",tool_call_id,content}`             | `{type:"tool_result",tool_use_id,content}` | JSON-RPC response                | `{type:"tool_result",toolUseId,content}` |
+| Streaming        | SSE with delta                                   | SSE with delta                             | N/A (JSON-RPC)                   | AG-UI events                             |
 
 ## Appendix B: Event Quick Reference
 
@@ -1624,21 +1195,6 @@ export class TextContentDto {
   text: string;
 }
 
-@ApiSchema({ name: "ImageSource" })
-export class ImageSourceDto {
-  type: "base64" | "url";
-  mediaType?: string;
-  data?: string;
-  url?: string;
-}
-
-@ApiSchema({ name: "ImageContent" })
-export class ImageContentDto {
-  type: "image";
-  source: ImageSourceDto;
-  detail?: "auto" | "low" | "high";
-}
-
 @ApiSchema({ name: "ResourceAnnotations" })
 export class ResourceAnnotationsDto {
   audience?: string[];
@@ -1651,9 +1207,11 @@ export class ResourceDataDto {
   name?: string;
   title?: string;
   description?: string;
+  filename?: string;
   mimeType?: string;
   text?: string;
   blob?: string;
+  detail?: "auto" | "low" | "high"; // Vision processing level (for images)
   annotations?: ResourceAnnotationsDto;
 }
 
@@ -1661,6 +1219,22 @@ export class ResourceDataDto {
 export class ResourceContentDto {
   type: "resource";
   resource: ResourceDataDto;
+}
+
+@ApiSchema({ name: "ToolUseContent" })
+export class ToolUseContentDto {
+  type: "tool_use";
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
+@ApiSchema({ name: "ToolResultContent" })
+export class ToolResultContentDto {
+  type: "tool_result";
+  toolUseId: string;
+  content: (TextContentDto | ResourceContentDto)[];
+  isError?: boolean;
 }
 
 @ApiSchema({ name: "ComponentContent" })
@@ -1675,8 +1249,9 @@ export class ComponentContentDto {
 // Union type handled via class-transformer discriminator
 export type ContentDto =
   | TextContentDto
-  | ImageContentDto
   | ResourceContentDto
+  | ToolUseContentDto
+  | ToolResultContentDto
   | ComponentContentDto;
 ```
 
@@ -1684,23 +1259,12 @@ export type ContentDto =
 
 ```typescript
 // message.dto.ts
-import { ApiPropertyOptional, ApiSchema } from "@nestjs/swagger";
+import { ApiSchema } from "@nestjs/swagger";
 
 export enum MessageRoleDto {
   User = "user",
   Assistant = "assistant",
   System = "system",
-  Tool = "tool",
-}
-
-/**
- * Tool call on an assistant message (OpenAI pattern)
- */
-@ApiSchema({ name: "ToolCall" })
-export class ToolCallDto {
-  id: string;
-  name: string;
-  arguments: Record<string, unknown>;
 }
 
 @ApiSchema({ name: "Message" })
@@ -1708,8 +1272,6 @@ export class MessageDto {
   id: string;
   role: MessageRoleDto;
   content: ContentDto[];
-  toolCalls?: ToolCallDto[];
-  toolCallId?: string;
   createdAt?: string;
   metadata?: Record<string, unknown>;
 }
@@ -1718,17 +1280,6 @@ export class MessageDto {
 export class InputMessageDto {
   role: MessageRoleDto;
   content: ContentDto[];
-
-  @ApiPropertyOptional({
-    description: "For role='tool', the ID of the tool call being answered",
-  })
-  toolCallId?: string;
-
-  @ApiPropertyOptional({
-    description: "For role='tool', indicates an error result",
-  })
-  isError?: boolean;
-
   metadata?: Record<string, unknown>;
 }
 ```
