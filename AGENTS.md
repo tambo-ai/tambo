@@ -150,7 +150,7 @@ eval "$(mise activate)"   # Interactive shells only
 - **Use discriminated unions** for mutually exclusive states (e.g., `{ success: true; data: T } | { success: false; error: Error }`).
 - **Use `as const`** to preserve literal types, especially for arrays that should be tuples.
 - **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
-- **Avoid `{}` type** - it means "any non-nullish value" (including primitives) which is rarely what you want.
+- **Avoid `{}` type** - it means "any non-nullish value" (including primitives). Prefer `unknown` (truly unknown), `object` (any non-primitive object), or `Record<string, unknown>` / a specific object type for key-value objects.
 
 ### Type Inference
 
