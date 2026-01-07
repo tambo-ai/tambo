@@ -287,10 +287,17 @@ export const deviceAuthRouter = createTRPCRouter({
           .where(eq(schema.sessions.id, deviceAuthCode.sessionId))
           .limit(1);
 
+        if (!session) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Session not found for completed device auth code",
+          });
+        }
+
         return {
           status: "complete" as const,
           sessionToken: deviceAuthCode.sessionId,
-          expiresAt: session?.expiresAt?.toISOString() ?? null,
+          expiresAt: session.expiresAt?.toISOString() ?? null,
         };
       }
 
