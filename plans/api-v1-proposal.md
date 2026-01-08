@@ -1238,6 +1238,23 @@ The following design decisions were made during proposal development:
 
 ---
 
+## Part 7: Out of Scope
+
+The following operational aspects are intentionally out of scope for this API proposal. They are handled by other systems or documented elsewhere.
+
+| Aspect                      | Assumption                                                                                          |
+| --------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Authentication/Identity** | API is fully authenticated via OAuth 2.0 with Bearer token header. Identity management is external. |
+| **Rate Limiting**           | Handled at infrastructure layer (API gateway). Not specified in endpoint contracts.                 |
+| **Billing/Usage Metering**  | Usage tracking and billing handled by separate metering service. Not exposed in this API.           |
+| **Logging/Auditing**        | Request logging, PII handling, and audit trails managed by observability infrastructure.            |
+| **CORS Policy**             | Cross-origin request handling configured at infrastructure layer, not per-endpoint.                 |
+| **API Versioning Strategy** | This document defines v1. Migration strategy for future versions documented separately.             |
+| **Regional Availability**   | Data residency and multi-region deployment are infrastructure concerns, not API design.             |
+| **Request/Response Limits** | Max payload sizes and timeout policies configured at infrastructure layer.                          |
+
+---
+
 ## Appendix A: Type Alignment Summary
 
 **Key Design Choice: Tool Calls as Content Blocks (Anthropic Pattern)**
