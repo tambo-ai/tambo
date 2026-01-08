@@ -60,7 +60,7 @@
     "@trpc/server": "^11.7.2",
     "chalk": "^5.6.0",
     "cli-table3": "^0.6.5",
-    "clipboardy": "^5.0.0",
+    "clipboardy": "^5.0.2",
     "deepmerge": "^4.3.1",
     "diff": "^8.0.2",
     "dotenv": "^17.2.3",
