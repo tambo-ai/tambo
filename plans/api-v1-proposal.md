@@ -450,10 +450,12 @@ interface Thread {
   currentRunId?: string; // ID of active run (when not idle)
   statusMessage?: string; // Human-readable detail (e.g., "Fetching weather data...")
 
-  // Pending client-side tool calls
-  // Client can POST tool results one at a time, in any order.
-  // Cleared when all responded or on cancel.
+  // Pending client-side tool calls from the last run.
+  // To continue, POST tool results with previousRunId set to lastCompletedRunId.
+  // Client can respond one at a time, in any order.
+  // Cleared when a new run starts (via previousRunId) or on cancel.
   pendingToolCallIds?: string[];
+  lastCompletedRunId?: string; // Set when run finishes with pending tool calls
 
   // Last run outcome (cleared on next RUN_STARTED)
   lastRunCancelled?: boolean;
@@ -650,6 +652,11 @@ interface CreateRunRequest {
   toolChoice?: ToolChoice;
   forceComponent?: string; // Force a specific component
 
+  // Optional - Continuation (for tool result submissions)
+  // Required when message contains tool_result content.
+  // Prevents duplicate continuations from the same run.
+  previousRunId?: string;
+
   // Optional - Thread management
   createThread?: boolean; // Create thread if doesn't exist
   contextKey?: string; // User/session identifier
@@ -667,7 +674,10 @@ interface CreateRunRequest {
 **Note on Tools:**
 
 - Tools submitted in the `tools` array are client-side tools, executed by the frontend
-- When a client-side tool is called, `tambo.run.awaiting_input` is emitted and the stream pauses
+- When a client-side tool is called:
+  1. `tambo.run.awaiting_input` is emitted with the pending tool call IDs
+  2. `RUN_FINISHED` is emitted (run ends cleanly)
+  3. Client executes the tool and POSTs results with `previousRunId` to start a new run
 - Server-side tools (MCP tools) are pre-registered at the project level, not per-request
 - When a server-side tool is called, it executes inline and `TOOL_CALL_RESULT` is emitted
 
@@ -1044,14 +1054,17 @@ data: {"type":"TOOL_CALL_ARGS","toolCallId":"tc_001","delta":"{\"productId\":\"S
 data: {"type":"TOOL_CALL_END","toolCallId":"tc_001","timestamp":1704067200150}
 
 data: {"type":"CUSTOM","name":"tambo.run.awaiting_input","value":{"threadId":"thr_abc123","runId":"run_xyz789","pendingToolCallIds":["tc_001"]},"timestamp":1704067200200}
+
+data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200250}
 ```
 
-_Stream closes here. Client executes `add_to_cart` in the browser._
+_Run ends here. Stream closes. Client executes `add_to_cart` in the browser._
 
 **Continuation Request (with tool results):**
 
 ```json
 {
+  "previousRunId": "run_xyz789",
   "message": {
     "role": "user",
     "content": [
@@ -1069,6 +1082,9 @@ _Stream closes here. Client executes `add_to_cart` in the browser._
   }
 }
 ```
+
+_Note: `previousRunId` is required when submitting tool results. The server rejects
+duplicate continuations from the same run (idempotency check)._
 
 **Continuation Event Stream:**
 
@@ -1181,7 +1197,7 @@ The following design decisions were made during proposal development:
 | **Component delta format**    | JSON Patch (RFC 6902) for both props and state; `streaming` map with tri-state (started/streaming/done)                          |
 | **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                                                    |
 | **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                                                 |
-| **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint                             |
+| **Client-side tool flow**     | Run ends with `awaiting_input` then `RUN_FINISHED`; client POSTs tool results with `previousRunId` to start new run              |
 | **Server-side tool flow**     | Inline execution within stream, `TOOL_CALL_RESULT` emitted automatically                                                         |
 | **Context tools**             | Client sends all available tools/components each request (no server tracking)                                                    |
 | **State update granularity**  | Both full replacement and JSON Patch supported                                                                                   |
@@ -1390,6 +1406,10 @@ export class CreateRunDto {
   tools?: ToolDto[];
   toolChoice?: "auto" | "required" | "none" | ToolChoiceNamedDto;
   forceComponent?: string;
+
+  // Required when message contains tool_result content
+  previousRunId?: string;
+
   createThread?: boolean;
   contextKey?: string;
   model?: string;
@@ -1436,6 +1456,7 @@ export class ThreadDto {
 
   // Pending client-side tool calls
   pendingToolCallIds?: string[];
+  lastCompletedRunId?: string; // Set when run finishes with pending tool calls
 
   // Last run outcome (cleared on next RUN_STARTED)
   lastRunCancelled?: boolean;
