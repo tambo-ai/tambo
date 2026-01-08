@@ -4,7 +4,6 @@
  * Creates the S3 bucket if it doesn't exist.
  *
  * Usage: npm run storage:init -w apps/api
- *
  * Supports:
  * - MinIO (via S3 CreateBucket API)
  * - Supabase (via Supabase REST API)
@@ -36,9 +35,7 @@ const S3_BUCKET = process.env.S3_BUCKET ?? "user-files";
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
-function isSupabaseEndpoint(endpoint: string): boolean {
-  return endpoint.includes("supabase") || endpoint.includes("/storage/v1/s3");
-}
+const STORAGE_PROVIDER = process.env.STORAGE_PROVIDER ?? "s3";
 
 async function createSupabaseBucket(
   supabaseUrl: string,
@@ -137,8 +134,8 @@ async function main(): Promise<void> {
 
   let success: boolean;
 
-  if (isSupabaseEndpoint(S3_ENDPOINT)) {
-    console.log("Detected Supabase storage");
+  if (STORAGE_PROVIDER === "supabase") {
+    console.log("Using Supabase storage");
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error(
@@ -152,9 +149,14 @@ async function main(): Promise<void> {
       SUPABASE_SERVICE_ROLE_KEY,
       S3_BUCKET,
     );
-  } else {
+  } else if (STORAGE_PROVIDER === "s3") {
     console.log("Using S3-compatible storage (MinIO/AWS)");
     success = await createS3Bucket();
+  } else {
+    console.error(
+      `Invalid STORAGE_PROVIDER: ${STORAGE_PROVIDER}. Expected "s3" or "supabase".`,
+    );
+    process.exit(1);
   }
 
   if (!success) {
