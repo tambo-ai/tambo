@@ -4,7 +4,7 @@
  * Creates the S3 bucket if it doesn't exist.
  *
  * Usage: npm run storage:init -w apps/api
- * Supports:
+ * Supports (set STORAGE_PROVIDER=supabase for Supabase):
  * - MinIO (via S3 CreateBucket API)
  * - Supabase (via Supabase REST API)
  */
