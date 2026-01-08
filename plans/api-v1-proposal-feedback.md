@@ -2,6 +2,8 @@
 
 _Feedback from critical review to address in future revisions._
 
+**Maintenance:** Remove items from this file as they are addressed. Do not add "addressed" sections.
+
 ---
 
 ## Medium Priority
@@ -22,33 +24,9 @@ _Feedback from critical review to address in future revisions._
 
 ## Lower Priority
 
-### Redundancy
-
-5. **Streaming examples 4.1-4.3**: Have similar structure. The first example could be more compact, with subsequent examples only showing differences.
-
-6. **Type Alignment Summary (Appendix A)**: Largely repeats information already explained in inline references throughout Part 1.
-
-7. **JSON schema types**: Defined in Part 1 type definitions and again in Appendix C DTOs.
-
 ### Technical Clarifications
 
-8. **`TOOL_CALL_ARGS.delta` type**: The streaming examples show string chunks (`delta: "{\"city\":"`) but `ToolUseContent.input` is typed as `Record<string, unknown>`. Clarify that wire format is string chunks but final accumulated type is parsed JSON.
-
-9. **Example 4.6 mixing paradigms**: Uses both AG-UI `STATE_SNAPSHOT`/`STATE_DELTA` and Tambo CUSTOM events. The note says these are alternatives but example uses both - pick one approach.
-
-10. **Continuation request format (Example 4.5)**: Example shows `content` as array matching type but note uses singular "tool results" language. Consider showing multi-tool-result example.
-
-11. **Missing `test` operation in JsonPatchOperation**: RFC 6902 includes `test` operation but our type omits it. Intentional?
-
-12. **InputContent allows ToolResultContent**: But ToolResultContent has role constraints (only valid in user messages after assistant tool_use). This isn't enforced by the type.
-
-### Inconsistencies
-
-13. **Thread vs Run metadata naming**: `CreateThreadWithRunDto` has `threadMetadata` and `runMetadata` but `CreateRunDto` just has `metadata`. Should be consistent.
-
-14. **Timestamp fields**: Some types use `timestamp?: number` (events), others use `createdAt?: string` (messages). Document the format difference explicitly.
-
-15. **`toolUseId` casing**: TypeScript uses `toolUseId` (camelCase) but Anthropic's API uses `tool_use_id` (snake_case). The type definition comment references Anthropic but uses different casing.
+1. **InputContent allows ToolResultContent**: But ToolResultContent has role constraints (only valid in user messages after assistant tool_use). This isn't enforced by the type.
 
 ### Future Specification Needs
 

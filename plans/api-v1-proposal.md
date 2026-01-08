@@ -103,6 +103,11 @@ flowchart TB
 
 ## Part 1: Core Type Definitions
 
+**Timestamp Conventions:**
+
+- **Stored objects** (Message, Thread): Use ISO 8601 strings for `createdAt` (e.g., `"2024-01-01T12:00:00Z"`)
+- **Streaming events**: Use numeric Unix milliseconds for `timestamp` (e.g., `1704067200000`) per AG-UI convention
+
 ### 1.1 Roles
 
 **References:**
@@ -229,11 +234,11 @@ interface ToolUseContent extends BaseContent {
  * @see https://docs.anthropic.com/en/api/messages - ToolResultBlock
  *
  * Appears in user messages following an assistant message with tool_use.
- * The toolUseId links back to the corresponding tool_use content block.
+ * Note: We use camelCase `toolUseId` (Anthropic uses snake_case `tool_use_id`).
  */
 interface ToolResultContent extends BaseContent {
   type: "tool_result";
-  toolUseId: string; // Links to the tool_use content block
+  toolUseId: string; // Links to the tool_use content block's id
   content: (TextContent | ResourceContent)[]; // Result content
   isError?: boolean; // Indicates the tool call failed
 }
@@ -342,36 +347,9 @@ interface InputMessage {
 interface Tool {
   name: string; // Unique identifier (a-z, A-Z, 0-9, _, -)
   description: string; // What the tool does
-  inputSchema: JSONSchema; // JSON Schema for parameters (Anthropic/MCP naming)
-  outputSchema?: JSONSchema; // Optional schema for structured output (MCP)
+  inputSchema: object; // JSON Schema object (see json-schema.org)
+  outputSchema?: object; // Optional JSON Schema for structured output
   strict?: boolean; // Enable strict schema validation (OpenAI)
-}
-
-/**
- * JSON Schema subset for tool parameters
- */
-interface JSONSchema {
-  type: "object";
-  properties: Record<string, JSONSchemaProperty>;
-  required?: string[];
-  additionalProperties?: boolean;
-}
-
-interface JSONSchemaProperty {
-  type:
-    | "string"
-    | "number"
-    | "integer"
-    | "boolean"
-    | "array"
-    | "object"
-    | "null";
-  description?: string;
-  enum?: unknown[];
-  items?: JSONSchemaProperty;
-  properties?: Record<string, JSONSchemaProperty>;
-  required?: string[];
-  default?: unknown;
 }
 
 /**
@@ -399,8 +377,8 @@ type ToolChoice =
 interface AvailableComponent {
   name: string; // Component name (e.g., "StockChart")
   description: string; // What this component displays
-  propsSchema: JSONSchema; // JSON Schema for props
-  stateSchema?: JSONSchema; // Optional schema for state
+  propsSchema: object; // JSON Schema object (see json-schema.org)
+  stateSchema?: object; // Optional JSON Schema for state
 }
 ```
 
@@ -509,8 +487,11 @@ AG-UI provides standard events for text streaming, tool calls, and state managem
 
 **Event-to-Content Mapping:** These streaming events accumulate into content blocks in the current
 message. `TOOL_CALL_START` creates a `tool_use` content block, `TOOL_CALL_ARGS` appends to its
-`input`, and `TOOL_CALL_RESULT` creates a corresponding `tool_result` block. The SDK and database
-should update the message's `content[]` array as events arrive.
+`input`, and `TOOL_CALL_RESULT` creates a corresponding `tool_result` block.
+
+**Wire format note:** `TOOL_CALL_ARGS.delta` is a string chunk on the wire (e.g., `"{\"city\":"`).
+The SDK concatenates these chunks and parses the final JSON string into the `ToolUseContent.input`
+field, which is typed as `Record<string, unknown>`.
 
 ### 2.2 Tambo CUSTOM Events
 
@@ -624,10 +605,10 @@ interface TamboComponentEndEvent extends TamboCustomEvent {
  * @see https://datatracker.ietf.org/doc/html/rfc6902
  */
 interface JsonPatchOperation {
-  op: "add" | "remove" | "replace" | "move" | "copy";
+  op: "add" | "remove" | "replace" | "move" | "copy" | "test";
   path: string;
-  value?: unknown;
-  from?: string;
+  value?: unknown; // Required for add, replace, test
+  from?: string; // Required for move, copy
 }
 
 /**
@@ -705,8 +686,8 @@ interface CreateRunRequest {
   maxTokens?: number;
   temperature?: number;
 
-  // Optional - Metadata
-  metadata?: Record<string, unknown>;
+  // Optional - Metadata (consistent with CreateThreadWithRunRequest)
+  runMetadata?: Record<string, unknown>;
 }
 ```
 
@@ -863,42 +844,24 @@ interface GetMessageResponse {
 
 ### 4.1 Pure Text Interaction (No Components)
 
-**Request:**
+**Request:** `POST /v1/threads/{threadId}/runs`
 
 ```json
-{
-  "message": {
-    "role": "user",
-    "content": "What is the capital of France?"
-  }
-}
+{ "message": { "role": "user", "content": "What is the capital of France?" } }
 ```
 
-**Event Stream:**
+**Event Stream:** _(timestamps omitted for brevity)_
 
 ```
-data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200000}
-
-data: {"type":"TEXT_MESSAGE_START","messageId":"msg_001","role":"assistant","timestamp":1704067200050}
-
-data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":"The","timestamp":1704067200100}
-
-data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":" capital","timestamp":1704067200150}
-
-data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":" of","timestamp":1704067200200}
-
-data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":" France","timestamp":1704067200250}
-
-data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":" is","timestamp":1704067200300}
-
-data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":" Paris.","timestamp":1704067200350}
-
-data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001","timestamp":1704067200400}
-
-data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200450}
+data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789"}
+data: {"type":"TEXT_MESSAGE_START","messageId":"msg_001","role":"assistant"}
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":"The capital of France is "}
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":"Paris."}
+data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001"}
+data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789"}
 ```
 
-_Note: Clients should accumulate deltas during streaming to build the final message state. After `RUN_FINISHED`, clients can optionally call `GET /v1/threads/{threadId}/messages` to sync and verify the accumulated state._
+_Note: Clients accumulate deltas to build final message state._
 
 ### 4.2 Text Interaction with Single Component
 
@@ -906,10 +869,7 @@ _Note: Clients should accumulate deltas during streaming to build the final mess
 
 ```json
 {
-  "message": {
-    "role": "user",
-    "content": "Show me the stock price of AAPL"
-  },
+  "message": { "role": "user", "content": "Show me the stock price of AAPL" },
   "availableComponents": [
     {
       "name": "StockChart",
@@ -927,82 +887,46 @@ _Note: Clients should accumulate deltas during streaming to build the final mess
 }
 ```
 
-**Event Stream:**
+**Event Stream:** _(timestamps omitted)_
 
 ```
-data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200000}
-
-data: {"type":"TEXT_MESSAGE_START","messageId":"msg_001","role":"assistant","timestamp":1704067200050}
-
-data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":"Here's the stock chart for Apple (AAPL):","timestamp":1704067200100}
-
-data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001","timestamp":1704067200150}
-
-data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200200}
-
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[],"streaming":{"ticker":"started","timeRange":"started"}},"timestamp":1704067200220}
-
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/ticker","value":"AAPL"}],"streaming":{"ticker":"done","timeRange":"streaming"}},"timestamp":1704067200250}
-
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/timeRange","value":"1M"}],"streaming":{"ticker":"done","timeRange":"done"}},"timestamp":1704067200300}
-
-data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}},"timestamp":1704067200350}
-
-data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200450}
+data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789"}
+data: {"type":"TEXT_MESSAGE_START","messageId":"msg_001","role":"assistant"}
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":"Here's the stock chart for Apple (AAPL):"}
+data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001"}
+data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"StockChart","messageId":"msg_001"}}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[],"streaming":{"ticker":"started","timeRange":"started"}}}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/ticker","value":"AAPL"}],"streaming":{"ticker":"done","timeRange":"streaming"}}}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/timeRange","value":"1M"}],"streaming":{"ticker":"done","timeRange":"done"}}}
+data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}}}
+data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789"}
 ```
+
+_Component events show progressive streaming: `streaming` field indicates which props are still being populated._
 
 ### 4.3 Multiple Components in One Response
 
-**Request:**
+Same request format as 4.2, but the LLM renders multiple component instances:
 
-```json
-{
-  "message": {
-    "role": "user",
-    "content": "Compare AAPL and MSFT stocks side by side"
-  },
-  "availableComponents": [
-    {
-      "name": "StockChart",
-      "description": "Displays a stock price chart",
-      "propsSchema": {
-        "type": "object",
-        "properties": {
-          "ticker": { "type": "string" },
-          "timeRange": { "type": "string" }
-        },
-        "required": ["ticker"]
-      }
-    }
-  ]
-}
-```
+**Request:** `"Compare AAPL and MSFT side by side"` with same `availableComponents` as 4.2.
 
-**Event Stream:**
+**Event Stream:** _(showing only component events after text message)_
 
 ```
-data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200000}
-
-data: {"type":"TEXT_MESSAGE_START","messageId":"msg_001","role":"assistant","timestamp":1704067200050}
-
-data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":"Here's a side-by-side comparison of Apple and Microsoft:","timestamp":1704067200100}
-
-data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001","timestamp":1704067200150}
-
-data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200200}
-
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/ticker","value":"AAPL"},{"op":"add","path":"/timeRange","value":"1M"}],"streaming":{"ticker":"done","timeRange":"done"}},"timestamp":1704067200250}
-
-data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}},"timestamp":1704067200300}
-
-data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_002","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200350}
-
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_002","delta":[{"op":"add","path":"/ticker","value":"MSFT"},{"op":"add","path":"/timeRange","value":"1M"}],"streaming":{"ticker":"done","timeRange":"done"}},"timestamp":1704067200400}
-
-data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_002","props":{"ticker":"MSFT","timeRange":"1M"}},"timestamp":1704067200450}
-
-data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200500}
+data: {"type":"RUN_STARTED",...}
+data: {"type":"TEXT_MESSAGE_START",...}
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"msg_001","delta":"Here's a side-by-side comparison:"}
+data: {"type":"TEXT_MESSAGE_END",...}
+data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"StockChart","messageId":"msg_001"}}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/ticker","value":"AAPL"}],...}}
+data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}}}
+data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_002","componentName":"StockChart","messageId":"msg_001"}}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_002","delta":[{"op":"add","path":"/ticker","value":"MSFT"}],...}}
+data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_002","props":{"ticker":"MSFT","timeRange":"1M"}}}
+data: {"type":"RUN_FINISHED",...}
 ```
+
+_Multiple components share the same `messageId` and stream sequentially._
 
 ### 4.4 Server-Side Tool Calls (MCP Tools)
 
@@ -1124,6 +1048,29 @@ _Run ends here. Stream closes. Client executes `add_to_cart` in the browser._
 _Note: `previousRunId` is required when submitting tool results. The server rejects
 duplicate continuations from the same run (idempotency check)._
 
+**Multi-tool result example:** When the LLM requests multiple tools, return all results in one message:
+
+```json
+{
+  "previousRunId": "run_xyz789",
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "toolUseId": "tc_001",
+        "content": [{ "type": "text", "text": "Result 1" }]
+      },
+      {
+        "type": "tool_result",
+        "toolUseId": "tc_002",
+        "content": [{ "type": "text", "text": "Result 2" }]
+      }
+    ]
+  }
+}
+```
+
 **Continuation Event Stream:**
 
 ```
@@ -1140,35 +1087,25 @@ data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_abc456","times
 
 ### 4.6 Component with Streaming State Updates
 
-This example shows a component that receives state updates as they become available (e.g., from a long-running data fetch).
+This example shows a component that receives state updates as data becomes available (e.g., rows loading from a database).
 
-**Event Stream:**
+**Event Stream:** _(timestamps omitted)_
 
 ```
-data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200000}
-
-data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"DataTable","messageId":"msg_001"},"timestamp":1704067200050}
-
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/title","value":"User Analytics"}],"streaming":{"title":"done"}},"timestamp":1704067200100}
-
-data: {"type":"STATE_SNAPSHOT","snapshot":{"components":{"comp_001":{"loading":true,"rows":[],"totalCount":0}}},"timestamp":1704067200150}
-
-data: {"type":"STATE_DELTA","delta":[{"op":"replace","path":"/components/comp_001/totalCount","value":150}],"timestamp":1704067200200}
-
-data: {"type":"STATE_DELTA","delta":[{"op":"add","path":"/components/comp_001/rows/-","value":{"id":1,"name":"Alice","visits":42}}],"timestamp":1704067200250}
-
-data: {"type":"STATE_DELTA","delta":[{"op":"add","path":"/components/comp_001/rows/-","value":{"id":2,"name":"Bob","visits":38}}],"timestamp":1704067200300}
-
-data: {"type":"STATE_DELTA","delta":[{"op":"replace","path":"/components/comp_001/loading","value":false}],"timestamp":1704067200350}
-
-data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"title":"User Analytics"},"state":{"loading":false,"rows":[{"id":1,"name":"Alice","visits":42},{"id":2,"name":"Bob","visits":38}],"totalCount":150}},"timestamp":1704067200400}
-
-data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200450}
+data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789"}
+data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"DataTable","messageId":"msg_001"}}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/title","value":"User Analytics"}]}}
+data: {"type":"CUSTOM","name":"tambo.component.state_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/loading","value":true},{"op":"add","path":"/rows","value":[]},{"op":"add","path":"/totalCount","value":0}]}}
+data: {"type":"CUSTOM","name":"tambo.component.state_delta","value":{"componentId":"comp_001","delta":[{"op":"replace","path":"/totalCount","value":150}]}}
+data: {"type":"CUSTOM","name":"tambo.component.state_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/rows/-","value":{"id":1,"name":"Alice","visits":42}}]}}
+data: {"type":"CUSTOM","name":"tambo.component.state_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/rows/-","value":{"id":2,"name":"Bob","visits":38}}]}}
+data: {"type":"CUSTOM","name":"tambo.component.state_delta","value":{"componentId":"comp_001","delta":[{"op":"replace","path":"/loading","value":false}]}}
+data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"title":"User Analytics"},"state":{"loading":false,"rows":[...],"totalCount":150}}}
+data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789"}
 ```
 
-_Note: This example shows using the standard AG-UI `STATE_SNAPSHOT` and `STATE_DELTA` events for component state,
-namespaced under `/components/{componentId}/`. Alternatively, you could use `tambo.component.state_delta`
-CUSTOM events for component-scoped updates._
+_We use `tambo.component.state_delta` CUSTOM events for component state (not AG-UI's generic STATE_SNAPSHOT/STATE_DELTA),
+keeping component state scoped to the component rather than a global state tree._
 
 ### 4.7 Error Handling
 
@@ -1310,21 +1247,9 @@ Once the v1 API is fully implemented and validated:
 
 ## Appendix A: Type Alignment Summary
 
-**Key Design Choice: Tool Calls as Content Blocks (Anthropic Pattern)**
+Quick reference for how Tambo v1 types map to common API conventions. See Part 6 for design rationale.
 
-One of the most significant differences between APIs is how tool calls are represented:
-
-- **OpenAI**: Tool calls are a _separate field_ (`tool_calls: []`) on assistant messages, not in the content array. Tool results use a separate `role: "tool"` message.
-- **Anthropic/MCP Sampling**: Tool calls are _content blocks_ (`type: "tool_use"`) inside the content array. Tool results are also content blocks (`type: "tool_result"`) in user messages.
-
-**We chose the Anthropic approach** because:
-
-1. Uniform content model - everything is a content block, making message handling consistent
-2. Better aligns with our unified `resource` content type philosophy (fewer special cases)
-3. Anthropic's pattern is gaining adoption and is used by MCP Sampling
-4. Eliminates the need for a separate `tool` role, keeping MessageRole simpler
-
-| Concept          | OpenAI                                           | Anthropic                                  | MCP Tools                        | Tambo v1                                 |
+| Concept          | OpenAI                                           | Anthropic                                  | MCP                              | Tambo v1                                 |
 | ---------------- | ------------------------------------------------ | ------------------------------------------ | -------------------------------- | ---------------------------------------- |
 | Roles            | user, assistant, system, tool                    | user, assistant                            | user, assistant                  | user, assistant, system                  |
 | Text content     | `{type:"text",text:"..."}`                       | `{type:"text",text:"..."}`                 | `{type:"text",text:"..."}`       | `{type:"text",text:"..."}`               |
@@ -1334,13 +1259,15 @@ One of the most significant differences between APIs is how tool calls are repre
 | Tool result      | `{role:"tool",tool_call_id,content}`             | `{type:"tool_result",tool_use_id,content}` | JSON-RPC response                | `{type:"tool_result",toolUseId,content}` |
 | Streaming        | SSE with delta                                   | SSE with delta                             | N/A (JSON-RPC)                   | AG-UI events                             |
 
+_Key alignment: Tool calls/results are content blocks (Anthropic pattern), not separate message fields._
+
 ## Appendix B: Event Quick Reference
 
 ### Standard AG-UI Events
 
 See the [AG-UI SDK Types](https://docs.ag-ui.com/sdk/js/core/types) for complete event definitions.
 Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`, `TOOL_CALL_START`,
-`TOOL_CALL_ARGS`, `TOOL_CALL_END`, `TOOL_CALL_RESULT`, `STATE_SNAPSHOT`, `STATE_DELTA`.
+`TOOL_CALL_ARGS`, `TOOL_CALL_END`, `TOOL_CALL_RESULT`, `CUSTOM`.
 
 ### Tambo CUSTOM Events (type: "CUSTOM", name: "tambo.\*")
 
@@ -1354,7 +1281,7 @@ Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`,
 
 ## Appendix C: NestJS DTO Implementation
 
-_These DTOs are implementation details for the NestJS API server. They mirror the type definitions in Part 1 with NestJS/Swagger decorators._
+_Implementation guidance for the NestJS API server. The TypeScript interfaces in Part 1 are the definitive API definitions; these DTOs add NestJS/Swagger decorators and validation for the server implementation._
 
 ### C.1 Content DTOs
 
@@ -1467,8 +1394,8 @@ import { ApiSchema } from "@nestjs/swagger";
 export class ToolDto {
   name: string;
   description: string;
-  inputSchema: JsonSchemaDto;
-  outputSchema?: JsonSchemaDto;
+  inputSchema: object; // JSON Schema
+  outputSchema?: object; // JSON Schema
   strict?: boolean;
 }
 
@@ -1476,8 +1403,8 @@ export class ToolDto {
 export class AvailableComponentDto {
   name: string;
   description: string;
-  propsSchema: JsonSchemaDto;
-  stateSchema?: JsonSchemaDto;
+  propsSchema: object; // JSON Schema
+  stateSchema?: object; // JSON Schema
 }
 ```
 
@@ -1519,7 +1446,7 @@ export class CreateRunDto {
   model?: string;
   maxTokens?: number;
   temperature?: number;
-  metadata?: Record<string, unknown>;
+  runMetadata?: Record<string, unknown>;
 }
 ```
 
@@ -1586,32 +1513,7 @@ export class ListThreadsQueryDto {
 }
 ```
 
-### C.6 JSON Schema DTOs
-
-```typescript
-// json-schema.dto.ts
-import { ApiSchema } from "@nestjs/swagger";
-
-@ApiSchema({ name: "JsonSchemaProperty" })
-export class JsonSchemaPropertyDto {
-  type: string;
-  description?: string;
-  enum?: unknown[];
-  items?: JsonSchemaPropertyDto;
-  properties?: Record<string, JsonSchemaPropertyDto>;
-  required?: string[];
-}
-
-@ApiSchema({ name: "JsonSchema" })
-export class JsonSchemaDto {
-  type: "object";
-  properties: Record<string, JsonSchemaPropertyDto>;
-  required?: string[];
-  additionalProperties?: boolean;
-}
-```
-
-### C.7 Event DTOs
+### C.6 Event DTOs
 
 ```typescript
 // event.dto.ts
@@ -1622,10 +1524,10 @@ import { ApiSchema } from "@nestjs/swagger";
  */
 @ApiSchema({ name: "JsonPatchOperation" })
 export class JsonPatchOperationDto {
-  op: "add" | "remove" | "replace" | "move" | "copy";
+  op: "add" | "remove" | "replace" | "move" | "copy" | "test";
   path: string;
-  value?: unknown;
-  from?: string;
+  value?: unknown; // Required for add, replace, test
+  from?: string; // Required for move, copy
 }
 
 /**
