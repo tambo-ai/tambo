@@ -4,7 +4,14 @@ This guide covers setting up file storage for the Tambo API. The API supports S3
 
 ## Overview
 
-The storage system uses the AWS S3 SDK with `forcePathStyle: true` for compatibility with S3-compatible services. Files are uploaded via `POST /storage/upload` and stored under `{projectId}/{timestamp}-{filename}`.
+The storage system uses presigned URLs for direct browser-to-S3 uploads, avoiding file data flowing through the API server. The flow is:
+
+1. Client requests a presigned URL via `POST /storage/presign`
+2. API returns `{ uploadUrl, attachmentUri, expiresIn }`
+3. Client uploads file directly to S3 using the presigned URL
+4. Client uses the `attachmentUri` to reference the file in messages
+
+Files are stored under `{projectId}/{timestamp}-{uuid}-{filename}`.
 
 ## Quick Start
 
@@ -80,16 +87,31 @@ docker exec tambo_minio mc mb local/user-files
 
 ### Testing
 
+**Step 1: Get a presigned URL**
+
 ```bash
-curl -X POST http://localhost:3001/storage/upload \
+curl -X POST http://localhost:3001/storage/presign \
   -H "x-api-key: YOUR_API_KEY" \
-  -F "file=@/path/to/file.txt"
+  -H "Content-Type: application/json" \
+  -d '{"filename": "test.txt", "contentType": "text/plain"}'
 ```
 
 Response:
 
 ```json
-{ "attachmentUri": "attachment://projectId/1234567890-file.txt" }
+{
+  "uploadUrl": "http://localhost:9000/user-files/projectId/1234567890-uuid-test.txt?X-Amz-Signature=...",
+  "attachmentUri": "attachment://projectId/1234567890-uuid-test.txt",
+  "expiresIn": 3600
+}
+```
+
+**Step 2: Upload file directly to S3**
+
+```bash
+curl -X PUT "<uploadUrl from step 1>" \
+  -H "Content-Type: text/plain" \
+  --data-binary @/path/to/file.txt
 ```
 
 ## Option 2: Supabase Storage
@@ -193,6 +215,54 @@ S3_SECRET_ACCESS_KEY=<your-secret-key>
 S3_BUCKET=your-bucket-name
 ```
 
+## CORS Configuration
+
+For direct browser-to-S3 uploads, CORS must be configured on the S3 bucket (not the API).
+
+### MinIO
+
+Via MinIO Console at http://localhost:9001, or using mc CLI:
+
+```bash
+# Create a CORS config file
+cat > /tmp/cors.json << 'EOF'
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": ["http://localhost:3000"],
+      "AllowedMethods": ["PUT"],
+      "AllowedHeaders": ["Content-Type"],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}
+EOF
+
+# Apply CORS config
+docker exec tambo_minio mc anonymous set-json /tmp/cors.json local/user-files
+```
+
+### AWS S3
+
+Via AWS Console or CLI:
+
+```bash
+aws s3api put-bucket-cors --bucket your-bucket-name --cors-configuration '{
+  "CORSRules": [
+    {
+      "AllowedOrigins": ["https://your-domain.com"],
+      "AllowedMethods": ["PUT"],
+      "AllowedHeaders": ["Content-Type"],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}'
+```
+
+### Cloudflare R2
+
+Via Cloudflare Dashboard under R2 > your-bucket > Settings > CORS Policy.
+
 ## Troubleshooting
 
 ### API uploads go to wrong storage backend
@@ -231,16 +301,24 @@ Ensure the bucket exists and the API has restarted after configuration changes. 
 docker logs supabase_storage_<project-id> 2>&1 | tail -20
 ```
 
+### Browser CORS errors on direct upload
+
+Ensure CORS is configured on the S3 bucket (see CORS Configuration section above). The presigned URL includes authentication, but the bucket must allow cross-origin PUT requests.
+
 ## Architecture
 
 ```
-Client → POST /storage/upload → API → S3 SDK → Storage Backend
-                                          ↓
-                              Returns: attachment://projectId/timestamp-filename
+Upload Flow (presigned URLs):
+Client → POST /storage/presign → API generates presigned URL
+                                      ↓
+                          Returns: { uploadUrl, attachmentUri, expiresIn }
+                                      ↓
+Client → PUT uploadUrl → S3 (direct upload, bypasses API)
 
-Client → Thread with attachment:// URI → API → AttachmentFetcher → S3 SDK → Storage Backend
+Retrieval Flow (for LLM processing):
+Client → Thread with attachment:// URI → API → AttachmentFetcher → S3
                                                       ↓
-                                          Returns file content for LLM processing
+                                          Returns file content for LLM
 ```
 
-The `attachment://` URI scheme is resolved by `AttachmentFetcher` when processing thread messages, allowing the LLM to access uploaded file content.
+The `attachment://` URI scheme is resolved by `AttachmentFetcher` when processing thread messages, allowing the LLM to access uploaded file content. The retrieval still goes through the API because LLMs cannot access S3 directly.

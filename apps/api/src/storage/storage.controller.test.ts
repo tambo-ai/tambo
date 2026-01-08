@@ -1,5 +1,4 @@
 import {
-  BadGatewayException,
   BadRequestException,
   ServiceUnavailableException,
 } from "@nestjs/common";
@@ -9,15 +8,13 @@ import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 
-// Set up mocks
-const mockUploadFile = jest.fn();
+const mockGetSignedUploadUrl = jest.fn();
 const mockExtractContextInfo = jest.fn();
 
 jest.mock("@tambo-ai-cloud/backend", () => ({
-  // Always return true so s3Client is created
   isS3Configured: jest.fn().mockReturnValue(true),
   createS3Client: jest.fn().mockReturnValue({ mockS3Client: true }),
-  uploadFile: mockUploadFile,
+  getSignedUploadUrl: mockGetSignedUploadUrl,
 }));
 
 jest.mock("../common/utils/extract-context-info", () => ({
@@ -25,27 +22,11 @@ jest.mock("../common/utils/extract-context-info", () => ({
 }));
 
 import { StorageController } from "./storage.controller";
+import { PresignUploadDto } from "./dto/presign.dto";
 
 describe("StorageController", () => {
   let controller: StorageController;
   let mockRequest: Partial<Request>;
-
-  const createMockFile = (
-    originalname: string,
-    mimetype: string,
-    size: number,
-  ): Express.Multer.File => ({
-    fieldname: "file",
-    originalname,
-    encoding: "7bit",
-    mimetype,
-    size,
-    buffer: Buffer.from("test content"),
-    destination: "",
-    filename: "",
-    path: "",
-    stream: null as never,
-  });
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -85,90 +66,88 @@ describe("StorageController", () => {
       contextKey: undefined,
     });
 
+    mockGetSignedUploadUrl.mockResolvedValue(
+      "https://s3.example.com/test-bucket/key?X-Amz-Signature=abc123",
+    );
+
     mockRequest = {
-      url: "/storage/upload",
+      url: "/storage/presign",
     };
   });
 
-  describe("upload", () => {
-    it("throws BadRequestException when no file is provided", async () => {
-      await expect(
-        controller.upload(undefined as never, mockRequest as Request),
-      ).rejects.toThrow(BadRequestException);
-    });
+  describe("presign", () => {
+    it("returns presigned URL and attachment URI", async () => {
+      const dto: PresignUploadDto = {
+        filename: "test.pdf",
+        contentType: "application/pdf",
+      };
 
-    it("uploads file and returns attachment URI", async () => {
-      mockUploadFile.mockResolvedValue(undefined);
+      const result = await controller.presign(dto, mockRequest as Request);
 
-      const file = createMockFile("test.pdf", "application/pdf", 1024);
-
-      const result = await controller.upload(file, mockRequest as Request);
-
+      expect(result.uploadUrl).toBe(
+        "https://s3.example.com/test-bucket/key?X-Amz-Signature=abc123",
+      );
       expect(result.attachmentUri).toMatch(
         /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-test\.pdf$/,
       );
-      expect(mockUploadFile).toHaveBeenCalled();
+      expect(result.expiresIn).toBe(3600);
     });
 
-    it("sanitizes filename in the URI", async () => {
-      mockUploadFile.mockResolvedValue(undefined);
+    it("calls getSignedUploadUrl with correct parameters", async () => {
+      const dto: PresignUploadDto = {
+        filename: "document.pdf",
+        contentType: "application/pdf",
+      };
 
-      const file = createMockFile(
-        "test file with spaces & special!chars.pdf",
+      await controller.presign(dto, mockRequest as Request);
+
+      expect(mockGetSignedUploadUrl).toHaveBeenCalledWith(
+        expect.anything(), // s3Client
+        "test-bucket",
+        expect.stringMatching(
+          /^p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-document\.pdf$/,
+        ),
         "application/pdf",
-        1024,
+        3600,
       );
+    });
 
-      const result = await controller.upload(file, mockRequest as Request);
+    it("sanitizes filename in the key", async () => {
+      const dto: PresignUploadDto = {
+        filename: "test file with spaces & special!chars.pdf",
+        contentType: "application/pdf",
+      };
 
-      // Filename should be sanitized
+      const result = await controller.presign(dto, mockRequest as Request);
+
       expect(result.attachmentUri).toMatch(
         /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-test_file_with_spaces_special_chars\.pdf$/,
       );
     });
 
     it("includes projectId in the storage path", async () => {
-      mockUploadFile.mockImplementation(async (_client, _bucket, key) => key);
-
       mockExtractContextInfo.mockReturnValue({
         projectId: "p_abcdEF12.43bbdf",
         contextKey: undefined,
       });
 
-      const file = createMockFile("doc.pdf", "application/pdf", 1024);
+      const dto: PresignUploadDto = {
+        filename: "doc.pdf",
+        contentType: "application/pdf",
+      };
 
-      const result = await controller.upload(file, mockRequest as Request);
+      const result = await controller.presign(dto, mockRequest as Request);
 
       expect(result.attachmentUri).toContain("p_abcdEF12.43bbdf/");
     });
 
-    it("handles various MIME types correctly", async () => {
-      mockUploadFile.mockResolvedValue(undefined);
+    it("preserves allowed characters in filename", async () => {
+      const dto: PresignUploadDto = {
+        filename: "my-file_v1.2.3.tar.gz",
+        contentType: "application/gzip",
+      };
 
-      const file = createMockFile("image.png", "image/png", 2048);
-      const result = await controller.upload(file, mockRequest as Request);
-
-      expect(result.attachmentUri).toMatch(
-        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-image\.png$/,
-      );
-      expect(mockUploadFile).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.any(String),
-        expect.stringContaining("image.png"),
-        expect.any(Buffer),
-        "image/png",
-      );
-    });
-
-    it("preserves allowed characters in filename (dots, hyphens, underscores)", async () => {
-      mockUploadFile.mockResolvedValue(undefined);
-
-      const file = createMockFile(
-        "my-file_v1.2.3.tar.gz",
-        "application/gzip",
-        4096,
-      );
-      const result = await controller.upload(file, mockRequest as Request);
+      const result = await controller.presign(dto, mockRequest as Request);
 
       expect(result.attachmentUri).toMatch(
         /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-my-file_v1\.2\.3\.tar\.gz$/,
@@ -176,38 +155,43 @@ describe("StorageController", () => {
     });
 
     it("sanitizes Unicode characters in filename", async () => {
-      mockUploadFile.mockResolvedValue(undefined);
+      const dto: PresignUploadDto = {
+        filename: "документ.pdf",
+        contentType: "application/pdf",
+      };
 
-      const file = createMockFile("документ.pdf", "application/pdf", 1024);
-      const result = await controller.upload(file, mockRequest as Request);
+      const result = await controller.presign(dto, mockRequest as Request);
 
-      // Unicode characters should be replaced with underscores
       expect(result.attachmentUri).toMatch(
         /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-file\.pdf$/,
       );
     });
 
-    it("propagates upload errors", async () => {
-      mockUploadFile.mockRejectedValue(new Error("S3 upload failed"));
+    it("throws BadRequestException for invalid projectId", async () => {
+      mockExtractContextInfo.mockReturnValue({
+        projectId: "invalid project id with spaces",
+        contextKey: undefined,
+      });
 
-      const file = createMockFile("test.pdf", "application/pdf", 1024);
+      const dto: PresignUploadDto = {
+        filename: "test.pdf",
+        contentType: "application/pdf",
+      };
 
       await expect(
-        controller.upload(file, mockRequest as Request),
-      ).rejects.toThrow(BadGatewayException);
+        controller.presign(dto, mockRequest as Request),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });
 
-// Separate test suite for S3 not configured scenario
 describe("StorageController - S3 not configured", () => {
   it("throws ServiceUnavailableException when S3 is not configured", async () => {
-    // This test uses isolated modules to ensure fresh mock state
     jest.isolateModules(async () => {
       jest.doMock("@tambo-ai-cloud/backend", () => ({
         isS3Configured: jest.fn().mockReturnValue(false),
         createS3Client: jest.fn(),
-        uploadFile: jest.fn(),
+        getSignedUploadUrl: jest.fn(),
       }));
 
       jest.doMock("../common/utils/extract-context-info", () => ({
@@ -240,22 +224,14 @@ describe("StorageController - S3 not configured", () => {
       const unconfiguredController =
         module.get<InstanceType<typeof IsolatedController>>(IsolatedController);
 
-      const file: Express.Multer.File = {
-        fieldname: "file",
-        originalname: "test.pdf",
-        encoding: "7bit",
-        mimetype: "application/pdf",
-        size: 1024,
-        buffer: Buffer.from("test content"),
-        destination: "",
-        filename: "",
-        path: "",
-        stream: null as never,
+      const dto = {
+        filename: "test.pdf",
+        contentType: "application/pdf",
       };
 
       await expect(
-        unconfiguredController.upload(file, {
-          url: "/storage/upload",
+        unconfiguredController.presign(dto, {
+          url: "/storage/presign",
         } as Request),
       ).rejects.toThrow(ServiceUnavailableException);
     });

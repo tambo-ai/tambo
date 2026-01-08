@@ -1,30 +1,24 @@
 import {
   BadRequestException,
-  BadGatewayException,
+  Body,
   Controller,
   Post,
   Req,
   ServiceUnavailableException,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FileInterceptor } from "@nestjs/platform-express";
 import {
-  ApiBody,
-  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 import { S3Client } from "@aws-sdk/client-s3";
-import { memoryStorage } from "multer";
 import {
   createS3Client,
+  getSignedUploadUrl,
   isS3Configured,
-  uploadFile,
 } from "@tambo-ai-cloud/backend";
 import { randomUUID } from "crypto";
 import { extname } from "path";
@@ -32,10 +26,10 @@ import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import { extractContextInfo } from "../common/utils/extract-context-info";
-import { UploadResponseDto } from "./dto/upload.dto";
+import { PresignUploadDto, PresignUploadResponseDto } from "./dto/presign.dto";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_FILENAME_LENGTH = 180;
+const PRESIGN_EXPIRY_SECONDS = 3600;
 
 const PROJECT_ID_REGEX = /^[a-zA-Z0-9_.-]{4,128}$/;
 
@@ -90,73 +84,53 @@ export class StorageController {
     }
   }
 
-  @Post("upload")
-  @UseInterceptors(
-    FileInterceptor("file", {
-      limits: { fileSize: MAX_FILE_SIZE },
-      storage: memoryStorage(),
-    }),
-  )
-  @ApiOperation({ summary: "Upload a file attachment" })
-  @ApiConsumes("multipart/form-data")
-  @ApiBody({
-    schema: {
-      type: "object",
-      properties: {
-        file: {
-          type: "string",
-          format: "binary",
-        },
-      },
-    },
+  @Post("presign")
+  @ApiOperation({
+    summary: "Get a presigned URL for direct S3 upload",
+    description:
+      "Returns a presigned URL that allows direct file upload to S3. " +
+      "The client should PUT the file directly to the returned uploadUrl.",
   })
   @ApiResponse({
     status: 201,
-    description: "File uploaded successfully",
-    type: UploadResponseDto,
+    description: "Presigned URL generated successfully",
+    type: PresignUploadResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: "Storage not configured or invalid file",
-  })
-  @ApiResponse({
-    status: 502,
-    description: "Failed to upload file to storage",
+    description: "Invalid request (missing filename or contentType)",
   })
   @ApiResponse({
     status: 503,
     description: "Storage is not configured",
   })
-  async upload(
-    @UploadedFile() file: Express.Multer.File,
+  async presign(
+    @Body() dto: PresignUploadDto,
     @Req() request: Request,
-  ): Promise<UploadResponseDto> {
+  ): Promise<PresignUploadResponseDto> {
     if (!this.s3Client) {
       throw new ServiceUnavailableException(
         "Storage is not configured. S3 credentials are required.",
       );
     }
 
-    if (!file) {
-      throw new BadRequestException("No file provided");
-    }
-
     const { projectId } = extractContextInfo(request, undefined);
     assertValidProjectId(projectId);
 
-    const key = `${projectId}/${Date.now()}-${randomUUID()}-${sanitizeFilename(file.originalname)}`;
-    try {
-      await uploadFile(
-        this.s3Client,
-        this.bucket,
-        key,
-        file.buffer,
-        file.mimetype,
-      );
-    } catch {
-      throw new BadGatewayException("Failed to upload file to storage");
-    }
+    const key = `${projectId}/${Date.now()}-${randomUUID()}-${sanitizeFilename(dto.filename)}`;
 
-    return { attachmentUri: `attachment://${key}` };
+    const uploadUrl = await getSignedUploadUrl(
+      this.s3Client,
+      this.bucket,
+      key,
+      dto.contentType,
+      PRESIGN_EXPIRY_SECONDS,
+    );
+
+    return {
+      uploadUrl,
+      attachmentUri: `attachment://${key}`,
+      expiresIn: PRESIGN_EXPIRY_SECONDS,
+    };
   }
 }
