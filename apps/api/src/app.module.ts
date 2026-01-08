@@ -23,6 +23,7 @@ import { OAuthModule } from "./oauth/oauth.module";
 import { ProjectsModule } from "./projects/projects.module";
 import { RegistryModule } from "./registry/registry.module";
 import { SchedulerModule } from "./scheduler/scheduler.module";
+import { StorageModule } from "./storage/storage.module";
 import { ThreadsModule } from "./threads/threads.module";
 import { UsersModule } from "./users/users.module";
 
@@ -45,6 +46,7 @@ export class GlobalModule {}
     GlobalModule,
     UsersModule,
     SchedulerModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService, AuthService],

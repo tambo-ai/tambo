@@ -1,11 +1,14 @@
 import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as Sentry from "@sentry/nestjs";
+import { S3Client } from "@aws-sdk/client-s3";
 import {
   convertMetadataToTools,
+  createS3Client,
   createTamboBackend,
   generateChainId,
   getToolsFromSources,
+  isS3Configured,
   ITamboBackend,
   McpToolRegistry,
   ModelOptions,
@@ -85,10 +88,14 @@ import {
   DEFAULT_MAX_TOTAL_TOOL_CALLS,
   updateToolCallCounts,
 } from "./util/tool-call-tracking";
+import { createAttachmentFetcher } from "./util/attachment-fetcher";
 
 const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
 export class ThreadsService {
+  private readonly s3Client: S3Client | undefined;
+  private readonly s3Bucket: string;
+
   constructor(
     // @Inject(TRANSACTION)
     // private readonly tx: HydraDatabase,
@@ -99,7 +106,21 @@ export class ThreadsService {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
-  ) {}
+  ) {
+    // Initialize S3 client for attachment storage
+    const s3Config = {
+      endpoint: this.configService.get<string>("S3_ENDPOINT") ?? "",
+      region: this.configService.get<string>("S3_REGION") ?? "us-east-1",
+      accessKeyId: this.configService.get<string>("S3_ACCESS_KEY_ID") ?? "",
+      secretAccessKey:
+        this.configService.get<string>("S3_SECRET_ACCESS_KEY") ?? "",
+    };
+    this.s3Bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
+
+    if (isS3Configured(s3Config)) {
+      this.s3Client = createS3Client(s3Config);
+    }
+  }
 
   getDb() {
     // return this.tx ?? this.db;
@@ -1340,8 +1361,14 @@ export class ThreadsService {
           },
         });
 
-        // Build resource fetchers from MCP clients
+        // Build resource fetchers from MCP clients and add attachment fetcher
         const resourceFetchers = createResourceFetcherMap(mcpClients);
+        if (this.s3Client) {
+          resourceFetchers["attachment"] = createAttachmentFetcher(
+            this.s3Client,
+            this.s3Bucket,
+          );
+        }
 
         const messageStream = await tamboBackend.runDecisionLoop({
           messages,
@@ -1414,11 +1441,20 @@ export class ThreadsService {
         },
       });
 
+      // Build resource fetchers from MCP clients and add attachment fetcher
+      const resourceFetchers = createResourceFetcherMap(mcpClients);
+      if (this.s3Client) {
+        resourceFetchers["attachment"] = createAttachmentFetcher(
+          this.s3Client,
+          this.s3Bucket,
+        );
+      }
+
       const streamedResponseMessages = await tamboBackend.runDecisionLoop({
         messages,
         strictTools,
         forceToolChoice: advanceRequestDto.forceToolChoice,
-        resourceFetchers: createResourceFetcherMap(mcpClients),
+        resourceFetchers,
       });
 
       decisionLoopSpan.end();

@@ -21,7 +21,8 @@
     "clean": "rm -rf dist coverage",
     "check-types": "tsc --noEmit",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "storage:init": "tsx scripts/storage-init.ts"
   },
   "dependencies": {
     "@ag-ui/client": "0.0.40",
