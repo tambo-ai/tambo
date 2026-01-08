@@ -1414,3 +1414,89 @@ export class JsonSchemaDto {
   additionalProperties?: boolean;
 }
 ```
+
+### C.7 Event DTOs
+
+```typescript
+// event.dto.ts
+import { ApiSchema } from "@nestjs/swagger";
+
+/**
+ * JSON Patch operation (RFC 6902)
+ */
+@ApiSchema({ name: "JsonPatchOperation" })
+export class JsonPatchOperationDto {
+  op: "add" | "remove" | "replace" | "move" | "copy";
+  path: string;
+  value?: unknown;
+  from?: string;
+}
+
+/**
+ * Streaming status for a prop path
+ */
+export enum PropStreamingStatus {
+  Started = "started",
+  Streaming = "streaming",
+  Done = "done",
+}
+
+/**
+ * Value payload for tambo.component.props_delta CUSTOM event
+ */
+@ApiSchema({ name: "ComponentPropsDeltaValue" })
+export class ComponentPropsDeltaValueDto {
+  componentId: string;
+  delta: JsonPatchOperationDto[];
+  streaming?: Record<string, PropStreamingStatus>;
+}
+
+/**
+ * Value payload for tambo.component.state_delta CUSTOM event
+ */
+@ApiSchema({ name: "ComponentStateDeltaValue" })
+export class ComponentStateDeltaValueDto {
+  componentId: string;
+  delta: JsonPatchOperationDto[];
+}
+
+/**
+ * Value payload for tambo.component.start CUSTOM event
+ */
+@ApiSchema({ name: "ComponentStartValue" })
+export class ComponentStartValueDto {
+  componentId: string;
+  componentName: string;
+  messageId: string;
+}
+
+/**
+ * Value payload for tambo.component.end CUSTOM event
+ */
+@ApiSchema({ name: "ComponentEndValue" })
+export class ComponentEndValueDto {
+  componentId: string;
+  props: Record<string, unknown>;
+  state?: Record<string, unknown>;
+}
+
+/**
+ * Pending tool call info for awaiting_input event
+ */
+@ApiSchema({ name: "PendingToolCall" })
+export class PendingToolCallDto {
+  toolCallId: string;
+  toolName: string;
+  input: Record<string, unknown>;
+}
+
+/**
+ * Value payload for tambo.run.awaiting_input CUSTOM event
+ */
+@ApiSchema({ name: "AwaitingInputValue" })
+export class AwaitingInputValueDto {
+  threadId: string;
+  runId: string;
+  pendingToolCalls: PendingToolCallDto[];
+}
+```
