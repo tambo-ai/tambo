@@ -7,6 +7,22 @@ export {
   useTamboCurrentMessage,
   type TamboCurrentComponent,
 } from "./hooks/use-current-message";
+// Attachment system (new API)
+export {
+  useMessageAttachments,
+  isFileTypeSupported,
+  getAllSupportedMimeTypes,
+  getAcceptString,
+  getMimeType,
+  getAttachmentType,
+  SUPPORTED_ATTACHMENT_TYPES,
+  AttachmentUploadError,
+  type StagedAttachment,
+  type AttachmentType,
+  type UploadStatus,
+  type UploadResult,
+} from "./hooks/use-message-attachments";
+// Backwards compatibility (deprecated)
 export { useMessageImages, type StagedImage } from "./hooks/use-message-images";
 export { useTamboStreamingProps } from "./hooks/use-streaming-props";
 export * from "./hooks/use-suggestions";

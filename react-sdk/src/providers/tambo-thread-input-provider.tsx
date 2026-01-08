@@ -10,7 +10,15 @@ import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
-import { StagedImage, useMessageImages } from "../hooks/use-message-images";
+import {
+  StagedAttachment,
+  useMessageAttachments,
+} from "../hooks/use-message-attachments";
+
+/**
+ * @deprecated Use StagedAttachment instead
+ */
+type StagedImage = StagedAttachment;
 import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
@@ -19,6 +27,7 @@ import {
   extractResourceUris,
   resolveResourceContents,
 } from "../util/resource-content-resolver";
+import { useTamboClient } from "./tambo-client-provider";
 import { useTamboInteractable } from "./tambo-interactable-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
 import { useTamboThread } from "./tambo-thread-provider";
@@ -66,15 +75,41 @@ export interface TamboThreadInputContextProps extends Omit<
     additionalContext?: Record<string, any>;
     resourceNames?: Record<string, string>;
   }) => Promise<void>;
-  /** Currently staged images */
+  /** Currently staged attachments (images, documents, text files) */
+  attachments: StagedAttachment[];
+  /** Add a single file as attachment */
+  addAttachment: (file: File) => Promise<void>;
+  /** Add multiple files as attachments */
+  addAttachments: (files: File[]) => Promise<void>;
+  /** Remove an attachment by id */
+  removeAttachment: (id: string) => void;
+  /** Clear all staged attachments */
+  clearAttachments: () => void;
+  /** Whether any uploads are in progress */
+  isUploading: boolean;
+  /** Whether all uploads have completed successfully */
+  allUploadsComplete: boolean;
+  /** Whether any uploads have failed */
+  hasUploadErrors: boolean;
+  /**
+   * @deprecated Use attachments instead
+   */
   images: StagedImage[];
-  /** Add a single image */
+  /**
+   * @deprecated Use addAttachment instead
+   */
   addImage: (file: File) => Promise<void>;
-  /** Add multiple images */
+  /**
+   * @deprecated Use addAttachments instead
+   */
   addImages: (files: File[]) => Promise<void>;
-  /** Remove an image by id */
+  /**
+   * @deprecated Use removeAttachment instead
+   */
   removeImage: (id: string) => void;
-  /** Clear all staged images */
+  /**
+   * @deprecated Use clearAttachments instead
+   */
   clearImages: () => void;
 }
 
@@ -95,7 +130,8 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
 }) => {
   const { thread, sendThreadMessage, contextKey } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
-  const imageState = useMessageImages();
+  const client = useTamboClient();
+  const attachmentState = useMessageAttachments(client);
   const mcpServers = useTamboMcpServers();
   const { resourceSource } = useTamboRegistry();
   const { clearInteractableSelections } = useTamboInteractable();
@@ -123,10 +159,33 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
       }
 
       // Check if we have content to send
-      if (!inputValue.trim() && imageState.images.length === 0) {
+      if (!inputValue.trim() && attachmentState.attachments.length === 0) {
         throw new ThreadInputError(INPUT_ERROR_MESSAGES.EMPTY, {
-          cause: "No text or images to send",
+          cause: "No text or attachments to send",
         });
+      }
+
+      // Check upload status before sending
+      if (attachmentState.attachments.length > 0) {
+        // Check for upload errors
+        if (attachmentState.hasUploadErrors) {
+          const failedFiles = attachmentState.attachments
+            .filter((a) => a.uploadStatus === "error")
+            .map((a) => a.name)
+            .join(", ");
+          throw new ThreadInputError(
+            `Some files failed to upload: ${failedFiles}`,
+            { cause: "Upload errors" },
+          );
+        }
+
+        // Check if uploads are still in progress
+        if (attachmentState.isUploading) {
+          throw new ThreadInputError(
+            "Please wait for file uploads to complete before sending.",
+            { cause: "Uploads in progress" },
+          );
+        }
       }
 
       // Extract resource URIs from the input text and resolve content for client-side resources
@@ -139,16 +198,16 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
         resourceSource ?? undefined,
       );
 
-      // Build message content with text, images, resource names, and resolved content
+      // Build message content with text, attachments, resource names, and resolved content
       const messageContent = buildMessageContent(
         inputValue,
-        imageState.images,
+        attachmentState.attachments,
         resourceNames,
         resolvedContent,
       );
 
       try {
-        await sendThreadMessage(inputValue || "Image message", {
+        await sendThreadMessage(inputValue || "Attachment message", {
           threadId: thread.id,
           contextKey,
           streamResponse: streamResponse,
@@ -158,54 +217,70 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
         });
         clearInteractableSelections();
       } catch (error: unknown) {
-        // Handle image-related errors with friendly messages
-        if (imageState.images.length > 0) {
+        // Handle attachment-related errors with friendly messages
+        if (attachmentState.attachments.length > 0) {
           const errorMessage =
             error instanceof Error ? error.message.toLowerCase() : "";
 
-          // Backend not yet supporting image content type
-          if (errorMessage.includes("unknown content part type: image")) {
+          // Backend not yet supporting content type
+          if (errorMessage.includes("unknown content part type")) {
             throw new ThreadInputError(
-              "Image attachments are not yet supported by the backend. This feature is coming soon.",
+              "This attachment type is not yet supported by the backend. This feature is coming soon.",
               { cause: error },
             );
           }
 
-          // Handle specific model vision support errors
-          // OpenAI errors
-          if (
-            errorMessage.includes(
-              "does not support image message content types",
-            ) ||
-            (errorMessage.includes("invalid model") &&
+          // Handle specific model vision support errors for images
+          const hasImages = attachmentState.attachments.some(
+            (a) => a.attachmentType === "image",
+          );
+          if (hasImages) {
+            // OpenAI errors
+            if (
               errorMessage.includes(
-                "image_url is only supported by certain models",
-              ))
-          ) {
-            throw new ThreadInputError(
-              "This model doesn't support images. Please use GPT-4o, GPT-4 Turbo, or other vision-capable models.",
-              { cause: error },
-            );
+                "does not support image message content types",
+              ) ||
+              (errorMessage.includes("invalid model") &&
+                errorMessage.includes(
+                  "image_url is only supported by certain models",
+                ))
+            ) {
+              throw new ThreadInputError(
+                "This model doesn't support images. Please use GPT-4o, GPT-4 Turbo, or other vision-capable models.",
+                { cause: error },
+              );
+            }
+
+            // Anthropic Claude errors
+            if (
+              errorMessage.includes("does not support image") ||
+              errorMessage.includes("vision not supported")
+            ) {
+              throw new ThreadInputError(
+                "This Claude model doesn't support images. Please use Claude 3.5 Sonnet, Claude 3 Opus, or other vision-capable models.",
+                { cause: error },
+              );
+            }
+
+            // Generic image/vision errors
+            if (
+              errorMessage.includes("image") ||
+              errorMessage.includes("vision")
+            ) {
+              throw new ThreadInputError(
+                "This model doesn't support image attachments. Please use a vision-capable model.",
+                { cause: error },
+              );
+            }
           }
 
-          // Anthropic Claude errors
-          if (
-            errorMessage.includes("does not support image") ||
-            errorMessage.includes("vision not supported")
-          ) {
+          // Handle PDF-specific errors
+          const hasPdfs = attachmentState.attachments.some(
+            (a) => a.attachmentType === "document",
+          );
+          if (hasPdfs && errorMessage.includes("pdf")) {
             throw new ThreadInputError(
-              "This Claude model doesn't support images. Please use Claude 3.5 Sonnet, Claude 3 Opus, or other vision-capable models.",
-              { cause: error },
-            );
-          }
-
-          // Generic image/vision errors
-          if (
-            errorMessage.includes("image") ||
-            errorMessage.includes("vision")
-          ) {
-            throw new ThreadInputError(
-              "This model doesn't support image attachments. Please use a vision-capable model.",
+              "This model doesn't support PDF attachments.",
               { cause: error },
             );
           }
@@ -222,7 +297,7 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
       sendThreadMessage,
       thread.id,
       contextKey,
-      imageState,
+      attachmentState,
       mcpServers,
       resourceSource,
       clearInteractableSelections,
@@ -242,11 +317,22 @@ export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
     value: inputValue,
     setValue: setInputValue,
     submit: submitAsync,
-    images: imageState.images,
-    addImage: imageState.addImage,
-    addImages: imageState.addImages,
-    removeImage: imageState.removeImage,
-    clearImages: imageState.clearImages,
+    // New attachment API
+    attachments: attachmentState.attachments,
+    addAttachment: attachmentState.addAttachment,
+    addAttachments: attachmentState.addAttachments,
+    removeAttachment: attachmentState.removeAttachment,
+    clearAttachments: attachmentState.clearAttachments,
+    // Upload status
+    isUploading: attachmentState.isUploading,
+    allUploadsComplete: attachmentState.allUploadsComplete,
+    hasUploadErrors: attachmentState.hasUploadErrors,
+    // Backwards compatibility aliases (deprecated)
+    images: attachmentState.images,
+    addImage: attachmentState.addImage,
+    addImages: attachmentState.addImages,
+    removeImage: attachmentState.removeImage,
+    clearImages: attachmentState.clearImages,
   };
 
   return (

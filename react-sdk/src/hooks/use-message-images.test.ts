@@ -18,11 +18,20 @@ let fileReaderInstances: {
 const createSuccessfulFileReader = () => {
   const reader = {
     readAsDataURL: jest.fn(),
+    readAsText: jest.fn(),
     onload: null as ((e: any) => void) | null,
     onerror: null as ((e: any) => void) | null,
     result: "data:image/png;base64,mock-data",
   };
   reader.readAsDataURL = jest.fn(() => {
+    setTimeout(() => {
+      if (reader.onload) {
+        reader.onload({} as any);
+      }
+    }, 0);
+  });
+  reader.readAsText = jest.fn(() => {
+    reader.result = "mock text content";
     setTimeout(() => {
       if (reader.onload) {
         reader.onload({} as any);
@@ -37,11 +46,19 @@ const createSuccessfulFileReader = () => {
 const createFailingFileReader = () => {
   const reader = {
     readAsDataURL: jest.fn(),
+    readAsText: jest.fn(),
     onload: null as ((e: any) => void) | null,
     onerror: null as ((e: any) => void) | null,
     result: "",
   };
   reader.readAsDataURL = jest.fn(() => {
+    setTimeout(() => {
+      if (reader.onerror) {
+        reader.onerror(new Error("Failed to read file"));
+      }
+    }, 0);
+  });
+  reader.readAsText = jest.fn(() => {
     setTimeout(() => {
       if (reader.onerror) {
         reader.onerror(new Error("Failed to read file"));
@@ -98,14 +115,14 @@ describe("useMessageImages", () => {
       );
     });
 
-    it("should reject non-image files", async () => {
+    it("should reject unsupported file types", async () => {
       const { result } = renderHook(() => useMessageImages());
-      const mockFile = new File(["test"], "test-document.pdf", {
-        type: "application/pdf",
+      const mockFile = new File(["test"], "test-file.exe", {
+        type: "application/octet-stream",
       });
 
       await expect(result.current.addImage(mockFile)).rejects.toThrow(
-        "Only image files are allowed",
+        "Unsupported file type",
       );
     });
 
@@ -141,11 +158,13 @@ describe("useMessageImages", () => {
       expect(result.current.images[2].name).toBe("photo3.gif");
     });
 
-    it("should filter non-images from batch and add valid ones", async () => {
+    it("should filter unsupported files from batch and add valid ones", async () => {
       const { result } = renderHook(() => useMessageImages());
       const mockFiles = [
         new File(["image"], "photo.png", { type: "image/png" }),
-        new File(["pdf"], "document.pdf", { type: "application/pdf" }),
+        new File(["binary"], "program.exe", {
+          type: "application/octet-stream",
+        }),
         new File(["image"], "another.jpg", { type: "image/jpeg" }),
       ];
 
@@ -153,21 +172,25 @@ describe("useMessageImages", () => {
         await result.current.addImages(mockFiles);
       });
 
-      // Should only add the 2 valid images
+      // Should only add the 2 supported files (images)
       expect(result.current.images).toHaveLength(2);
       expect(result.current.images[0].name).toBe("photo.png");
       expect(result.current.images[1].name).toBe("another.jpg");
     });
 
-    it("should reject batch with zero valid images", async () => {
+    it("should reject batch with zero valid files", async () => {
       const { result } = renderHook(() => useMessageImages());
       const mockFiles = [
-        new File(["test"], "document.pdf", { type: "application/pdf" }),
-        new File(["test"], "text.txt", { type: "text/plain" }),
+        new File(["binary"], "program.exe", {
+          type: "application/octet-stream",
+        }),
+        new File(["binary"], "another.bin", {
+          type: "application/octet-stream",
+        }),
       ];
 
       await expect(result.current.addImages(mockFiles)).rejects.toThrow(
-        "No valid image files provided",
+        "No valid files provided",
       );
     });
   });

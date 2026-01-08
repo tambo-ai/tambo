@@ -1,17 +1,20 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { StagedImage } from "../hooks/use-message-images";
+import { StagedAttachment } from "../hooks/use-message-attachments";
 import { buildMessageContent } from "./message-builder";
 
 describe("buildMessageContent", () => {
   const createMockStagedImage = (
-    overrides: Partial<StagedImage> = {},
-  ): StagedImage => ({
+    overrides: Partial<StagedAttachment> = {},
+  ): StagedAttachment => ({
     id: "test-id",
     name: "test-image.png",
     dataUrl: "data:image/png;base64,mock-data",
     file: new File([""], "test-image.png", { type: "image/png" }),
     size: 1024,
     type: "image/png",
+    mimeType: "image/png",
+    attachmentType: "image",
+    uploadStatus: "complete",
     ...overrides,
   });
 
@@ -151,13 +154,13 @@ describe("buildMessageContent", () => {
   it("should throw error when no content provided", () => {
     expect(() => {
       buildMessageContent("", [], {});
-    }).toThrow("Message must contain text or images");
+    }).toThrow("Message must contain text or attachments");
   });
 
   it("should throw error when only whitespace provided", () => {
     expect(() => {
       buildMessageContent("   \n\t  ", [], {});
-    }).toThrow("Message must contain text or images");
+    }).toThrow("Message must contain text or attachments");
   });
 
   it("should return correct content type structure", () => {
@@ -167,7 +170,9 @@ describe("buildMessageContent", () => {
     // Verify the structure matches ChatCompletionContentPart interface
     result.forEach((part: TamboAI.Beta.Threads.ChatCompletionContentPart) => {
       expect(part).toHaveProperty("type");
-      expect(["text", "image_url", "input_audio"]).toContain(part.type);
+      expect(["text", "image_url", "input_audio", "resource"]).toContain(
+        part.type,
+      );
 
       if (part.type === "text") {
         expect(part).toHaveProperty("text");

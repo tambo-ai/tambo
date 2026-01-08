@@ -1,6 +1,6 @@
 import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { StagedImage } from "../hooks/use-message-images";
+import { StagedAttachment } from "../hooks/use-message-attachments";
 
 /**
  * Regular expression to match MCP resource references in the format: \@serverKey:uri
@@ -105,16 +105,18 @@ function parseResourceReferences(
 }
 
 /**
- * Builds message content with text, MCP resource references, and images
+ * Builds message content with text, MCP resource references, and attachments.
+ * Supports images (as image_url), text files (as file with text content),
+ * and documents like PDFs (as file with base64 content).
  * @param text - The text content, may include \@serverKey:uri resource references
- * @param images - Array of staged images
+ * @param attachments - Array of staged attachments (images, documents, text files)
  * @param resourceNames - Map of resource IDs (serverKey:uri) to their display names
  * @param resourceContent - Optional map of prefixed URIs to resolved content (for client-side resources)
  * @returns Array of message content parts
  */
 export function buildMessageContent(
   text: string,
-  images: StagedImage[],
+  attachments: StagedAttachment[],
   resourceNames: Record<string, string> = {},
   resourceContent?: Map<string, ReadResourceResult>,
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
@@ -130,19 +132,98 @@ export function buildMessageContent(
     content.push(...parts);
   }
 
-  // Add images at the end
-  for (const image of images) {
-    content.push({
-      type: "image_url",
-      image_url: {
-        url: image.dataUrl,
-      },
-    });
+  // Add attachments at the end, handling each type appropriately
+  for (const attachment of attachments) {
+    const contentPart = buildAttachmentContentPart(attachment);
+    content.push(contentPart);
   }
 
   if (content.length === 0) {
-    throw new Error("Message must contain text or images");
+    throw new Error("Message must contain text or attachments");
   }
 
   return content;
+}
+
+/**
+ * Builds a content part for an attachment based on its type.
+ *
+ * If the attachment has been uploaded (uploadResult is present), uses the
+ * attachment:// URI to reference the file in S3. The backend fetches the
+ * content when processing the message.
+ *
+ * If no upload result (legacy/fallback mode), embeds content inline:
+ * - Images: image_url with base64 data URL
+ * - Text files: resource with inline text content
+ * - Documents (PDF): resource with base64 blob
+ * @param attachment - The staged attachment
+ * @returns The appropriate content part for the attachment type
+ */
+function buildAttachmentContentPart(
+  attachment: StagedAttachment,
+): TamboAI.Beta.Threads.ChatCompletionContentPart {
+  // If attachment was uploaded to S3, use the attachment URI
+  // Backend will fetch the content from S3 when processing
+  if (attachment.uploadResult) {
+    return {
+      type: "resource",
+      resource: {
+        uri: attachment.uploadResult.attachmentUri,
+        name: attachment.uploadResult.filename,
+        mimeType: attachment.uploadResult.mimeType,
+      },
+    };
+  }
+
+  // Fallback to inline content (legacy mode when no client was provided)
+  switch (attachment.attachmentType) {
+    case "image":
+      return {
+        type: "image_url",
+        image_url: {
+          url: attachment.dataUrl,
+        },
+      };
+
+    case "text":
+      // For text files, use resource with inline text content
+      return {
+        type: "resource",
+        resource: {
+          uri: `attachment://${attachment.name}`,
+          name: attachment.name,
+          mimeType: attachment.mimeType,
+          text: attachment.textContent ?? "",
+        },
+      };
+
+    case "document": {
+      // For documents like PDFs, use resource with base64 blob
+      // Extract base64 data from data URL (format: data:mime/type;base64,<data>)
+      const base64Data = attachment.dataUrl.split(",")[1] ?? "";
+      return {
+        type: "resource",
+        resource: {
+          uri: `attachment://${attachment.name}`,
+          name: attachment.name,
+          mimeType: attachment.mimeType,
+          blob: base64Data,
+        },
+      };
+    }
+
+    default: {
+      // Fallback: treat as binary file using resource with blob
+      const fallbackBase64 = attachment.dataUrl.split(",")[1] ?? "";
+      return {
+        type: "resource",
+        resource: {
+          uri: `attachment://${attachment.name}`,
+          name: attachment.name,
+          mimeType: attachment.mimeType,
+          blob: fallbackBase64,
+        },
+      };
+    }
+  }
 }
