@@ -516,13 +516,22 @@ interface TamboComponentStartEvent extends TamboCustomEvent {
 }
 
 /**
- * Emitted during component prop streaming (partial JSON).
+ * Emitted during component prop streaming (JSON Patch).
+ *
+ * Props are streamed as JSON Patch operations. The server buffers partial JSON
+ * from the LLM and emits patch operations when complete values are recognized.
+ * This provides natural per-prop completion tracking: when you receive a patch
+ * for a path, that value is complete.
+ *
+ * For nested objects, you may receive multiple patches as inner values complete.
+ * The `streaming` map indicates which top-level props are still being filled.
  */
 interface TamboComponentPropsDeltaEvent extends TamboCustomEvent {
   name: "tambo.component.props_delta";
   value: {
     componentId: string;
-    delta: string; // Partial JSON
+    operations: JsonPatchOperation[]; // Patch operations for completed values
+    streaming?: Record<string, boolean>; // Props still being streamed (true = in progress)
   };
 }
 
@@ -533,7 +542,7 @@ interface TamboComponentStateDeltaEvent extends TamboCustomEvent {
   name: "tambo.component.state_delta";
   value: {
     componentId: string;
-    delta: JsonPatchOperation[];
+    operations: JsonPatchOperation[];
   };
 }
 
@@ -836,13 +845,11 @@ data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001","timestamp":1704067200150
 
 data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200200}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":"{\"ticker\":"},"timestamp":1704067200250}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","operations":[{"op":"add","path":"/ticker","value":"AAPL"}],"streaming":{"timeRange":true}},"timestamp":1704067200250}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":"\"AAPL\","},"timestamp":1704067200300}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","operations":[{"op":"add","path":"/timeRange","value":"1M"}]},"timestamp":1704067200300}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":"\"timeRange\":\"1M\"}"},"timestamp":1704067200350}
-
-data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}},"timestamp":1704067200400}
+data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}},"timestamp":1704067200350}
 
 data: {"type":"RUN_FINISHED","threadId":"thr_abc123","runId":"run_xyz789","timestamp":1704067200450}
 ```
@@ -887,13 +894,13 @@ data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001","timestamp":1704067200150
 
 data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200200}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":"{\"ticker\":\"AAPL\",\"timeRange\":\"1M\"}"},"timestamp":1704067200250}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","operations":[{"op":"add","path":"/ticker","value":"AAPL"},{"op":"add","path":"/timeRange","value":"1M"}]},"timestamp":1704067200250}
 
 data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}},"timestamp":1704067200300}
 
 data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_002","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200350}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_002","delta":"{\"ticker\":\"MSFT\",\"timeRange\":\"1M\"}"},"timestamp":1704067200400}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_002","operations":[{"op":"add","path":"/ticker","value":"MSFT"},{"op":"add","path":"/timeRange","value":"1M"}]},"timestamp":1704067200400}
 
 data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_002","props":{"ticker":"MSFT","timeRange":"1M"}},"timestamp":1704067200450}
 
@@ -1039,15 +1046,15 @@ data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789","timest
 
 data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"DataTable","messageId":"msg_001"},"timestamp":1704067200050}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":"{\"title\":\"User Analytics\"}"},"timestamp":1704067200100}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","operations":[{"op":"add","path":"/title","value":"User Analytics"}]},"timestamp":1704067200100}
 
 data: {"type":"STATE_SNAPSHOT","snapshot":{"components":{"comp_001":{"loading":true,"rows":[],"totalCount":0}}},"timestamp":1704067200150}
 
 data: {"type":"STATE_DELTA","delta":[{"op":"replace","path":"/components/comp_001/totalCount","value":150}],"timestamp":1704067200200}
 
-data: {"type":"STATE_DELTA","delta":[{"op":"add","path":"/components/comp_001/rows/0","value":{"id":1,"name":"Alice","visits":42}}],"timestamp":1704067200250}
+data: {"type":"STATE_DELTA","delta":[{"op":"add","path":"/components/comp_001/rows/-","value":{"id":1,"name":"Alice","visits":42}}],"timestamp":1704067200250}
 
-data: {"type":"STATE_DELTA","delta":[{"op":"add","path":"/components/comp_001/rows/1","value":{"id":2,"name":"Bob","visits":38}}],"timestamp":1704067200300}
+data: {"type":"STATE_DELTA","delta":[{"op":"add","path":"/components/comp_001/rows/-","value":{"id":2,"name":"Bob","visits":38}}],"timestamp":1704067200300}
 
 data: {"type":"STATE_DELTA","delta":[{"op":"replace","path":"/components/comp_001/loading","value":false}],"timestamp":1704067200350}
 
@@ -1122,6 +1129,7 @@ The following design decisions were made during proposal development:
 | **Tool call representation**  | Anthropic pattern - `tool_use`/`tool_result` content blocks (not OpenAI's separate `tool_calls` array) |
 | **Multimodal content types**  | Unified `resource` type with MIME types (not separate image/audio/file types)                          |
 | **Component representation**  | Inline content blocks in `content[]` array (components render in reading order with text)              |
+| **Component delta format**    | JSON Patch (RFC 6902) for both props and state deltas; `streaming` map tracks per-prop completion      |
 | **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                          |
 | **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                       |
 | **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint   |
@@ -1175,8 +1183,8 @@ Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`,
 | --------------------------- | ------------------------------ | ------------------------------------- |
 | tambo.run.awaiting_input    | Paused for client tool results | threadId, runId, pendingToolCalls[]   |
 | tambo.component.start       | Begin component streaming      | componentId, componentName, messageId |
-| tambo.component.props_delta | Props JSON chunk               | componentId, delta                    |
-| tambo.component.state_delta | State JSON Patch               | componentId, delta[]                  |
+| tambo.component.props_delta | Props update (JSON Patch)      | componentId, operations[], streaming? |
+| tambo.component.state_delta | State update (JSON Patch)      | componentId, operations[]             |
 | tambo.component.end         | Component complete             | componentId, props, state?            |
 
 ## Appendix C: NestJS DTO Implementation
