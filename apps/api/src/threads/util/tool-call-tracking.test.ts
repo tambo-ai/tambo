@@ -1,5 +1,6 @@
 import { MessageRole, ToolCallRequest } from "@tambo-ai-cloud/core";
 import {
+  DEFAULT_MAX_TOTAL_TOOL_CALLS,
   updateToolCallCounts,
   validateToolCallLimits,
 } from "./tool-call-tracking";
@@ -175,12 +176,13 @@ describe("tool-call-tracking utilities", () => {
       const finalMessage = createMockThreadMessage(toolCallRequest);
       const messages = [createMockThreadMessage()];
 
-      // Create counts where this specific tool call has been made 3 times
-      const signature = JSON.stringify({
-        toolName: "testTool",
-        parameters: [],
-      });
-      const toolCounts = { [signature]: 3 };
+      // Create counts with signature-based keys (like updateToolCallCounts does)
+      // Simulate 3 identical calls to testTool
+      let toolCounts: Record<string, number> = {};
+      toolCounts = updateToolCallCounts(toolCounts, toolCallRequest);
+      toolCounts = updateToolCallCounts(toolCounts, toolCallRequest);
+      toolCounts = updateToolCallCounts(toolCounts, toolCallRequest);
+      // Now toolCounts has the signature with count 3
 
       const result = validateToolCallLimits(
         finalMessage,
@@ -314,6 +316,76 @@ describe("tool-call-tracking utilities", () => {
         10,
       );
 
+      expect(result).toBeUndefined();
+    });
+
+    it("should aggregate different signatures for the same tool and enforce derived per-tool limits", () => {
+      // Pass per-tool limit of 2 calls
+      // When making a 3rd call, it should exceed the limit
+      const perToolCounts = { aggTool: 2 };
+
+      const finalMessage = createMockThreadMessage(
+        createMockToolCallRequest("aggTool"),
+      );
+
+      // Provide a per-tool limit equal to 2; since perToolCounts == 2,
+      // the next call would exceed the limit
+      const toolLimits = { aggTool: { maxCalls: 2 } };
+
+      const result = validateToolCallLimits(
+        finalMessage,
+        [],
+        { aggTool: 2 }, // currentToolCounts (per-tool format)
+        createMockToolCallRequest("aggTool"),
+        DEFAULT_MAX_TOTAL_TOOL_CALLS,
+        perToolCounts,
+        toolLimits,
+      );
+
+      expect(result).toContain("maximum number of calls for tool");
+      expect(result).toContain("aggTool");
+    });
+
+    it("should honor provided perToolCounts when supplied and enforce per-tool limit", () => {
+      const finalMessage = createMockThreadMessage(
+        createMockToolCallRequest("providedTool"),
+      );
+
+      const perToolCounts = { providedTool: 3 };
+      const toolLimits = { providedTool: { maxCalls: 3 } };
+
+      const result = validateToolCallLimits(
+        finalMessage,
+        [],
+        {},
+        createMockToolCallRequest("providedTool"),
+        DEFAULT_MAX_TOTAL_TOOL_CALLS,
+        perToolCounts,
+        toolLimits,
+      );
+
+      expect(result).toContain("maximum number of calls for tool");
+    });
+
+    it("per-tool override should allow exceeding project-wide limit for that tool", () => {
+      // Create per-tool counts so that total calls >= project limit
+      const toolCounts = { otherTool: 2 }; // total = 2, which meets project limit of 2
+
+      // Per-tool override for `specialTool` should bypass project-level total check
+      const perToolCounts = { specialTool: 1 };
+      const toolLimits = { specialTool: { maxCalls: 5 } };
+
+      const result = validateToolCallLimits(
+        createMockThreadMessage(createMockToolCallRequest("specialTool")),
+        [],
+        toolCounts, // per-tool format
+        createMockToolCallRequest("specialTool"),
+        2, // project maxToolCallLimit set to 2
+        perToolCounts,
+        toolLimits,
+      );
+
+      // Should be allowed because per-tool override exists and current per-tool total(1) < 5
       expect(result).toBeUndefined();
     });
   });

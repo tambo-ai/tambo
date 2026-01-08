@@ -1,11 +1,6 @@
 {
   "name": "@tambo-ai/typescript-config",
   "version": "0.0.0",
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "volta": {
-    "extends": "../../package.json"
-  }
+  "private": true,
+  "license": "MIT"
 }

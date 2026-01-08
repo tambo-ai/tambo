@@ -35,7 +35,7 @@ export default function FormComponentPage() {
                 <FormChatInterface />
               </TamboProvider>
             }
-            code={`import { Form } from "@tambo-ai/react";
+            code={`import { Form } from "@/components/tambo/form";
 
 export function ContactForm() {
   return (

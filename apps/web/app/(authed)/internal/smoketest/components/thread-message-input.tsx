@@ -4,14 +4,10 @@ import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { FC, useState } from "react";
 
 interface ThreadMessageInputProps {
-  contextKey?: string;
   onSubmit: (value: string) => void;
 }
 
-const ThreadMessageInput: FC<ThreadMessageInputProps> = ({
-  contextKey,
-  onSubmit,
-}) => {
+const ThreadMessageInput: FC<ThreadMessageInputProps> = ({ onSubmit }) => {
   const { value, setValue, submit, isPending, error } = useTamboThreadInput();
   const { cancel } = useTamboThread();
   const [streamEnabled, setStreamEnabled] = useState(true);
@@ -19,7 +15,7 @@ const ThreadMessageInput: FC<ThreadMessageInputProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!value.trim()) return;
-    await submit({ streamResponse: streamEnabled, contextKey });
+    await submit({ streamResponse: streamEnabled });
     onSubmit(value);
   };
 

@@ -76,9 +76,20 @@ describe("useElicitation", () => {
       });
 
       // Elicitation should be set
+      const requestedSchema =
+        "requestedSchema" in request.params
+          ? request.params.requestedSchema
+          : null;
+
+      expect(requestedSchema).not.toBeNull();
+
+      if (requestedSchema === null) {
+        return;
+      }
+
       expect(result.current.elicitation).toEqual({
         message: "Please provide your name",
-        requestedSchema: request.params.requestedSchema,
+        requestedSchema,
         signal: extra.signal,
       });
 

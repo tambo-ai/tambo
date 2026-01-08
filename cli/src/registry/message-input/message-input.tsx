@@ -17,8 +17,6 @@ import {
   useTamboThreadInput,
   type StagedImage,
 } from "@tambo-ai/react";
-import type { Editor } from "@tiptap/react";
-import { TextEditor, type ResourceItem, type PromptItem } from "./text-editor";
 import {
   useTamboElicitationContext,
   useTamboMcpPrompt,
@@ -40,6 +38,13 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import * as React from "react";
+import { useDebounce } from "use-debounce";
+import {
+  TextEditor,
+  type PromptItem,
+  type ResourceItem,
+  type TamboEditor,
+} from "./text-editor";
 // eslint-disable-next-line @typescript-eslint/promise-function-async
 const DictationButton = dynamic(() => import("./dictation-button"), {
   ssr: false,
@@ -109,116 +114,150 @@ const filterPromptItems = (
   );
 };
 
+const EXTERNAL_SEARCH_DEBOUNCE_MS = 200;
+
 /**
- * Hook to create a combined resource provider that merges MCP resources with an external provider.
- * Returns a stable ResourceProvider that searches both sources.
+ * Hook to get a combined resource list that merges MCP resources with an external provider.
+ * Returns the combined, filtered resource items.
+ *
+ * @param externalProvider - Optional external resource provider
+ * @param search - Search string to filter resources. For MCP servers, results are filtered locally.
+ *                 For registry dynamic sources, the search is passed to listResources(search).
  */
-function useCombinedResourceProvider(
+function useCombinedResourceList(
   externalProvider: ResourceProvider | undefined,
-): ResourceProvider {
-  const { data: mcpResources } = useTamboMcpResourceList();
+  search: string,
+): ResourceItem[] {
+  const { data: mcpResources } = useTamboMcpResourceList(search);
+  const [debouncedSearch] = useDebounce(search, EXTERNAL_SEARCH_DEBOUNCE_MS);
 
-  return React.useMemo<ResourceProvider>(
-    () => ({
-      search: async (query: string): Promise<ResourceItem[]> => {
-        try {
-          // Get MCP resources
-          const mcpItems: ResourceItem[] = mcpResources
-            ? (
-                mcpResources as {
-                  resource: { uri: string; name?: string };
-                }[]
-              ).map((entry) => ({
-                // Use the full URI (already includes serverKey prefix from MCP hook)
-                // When inserted as @{id}, parseResourceReferences will strip serverKey before sending to backend
-                id: entry.resource.uri,
-                name: entry.resource.name ?? entry.resource.uri,
-                icon: React.createElement(AtSign, { className: "w-4 h-4" }),
-                componentData: { type: "mcp-resource", data: entry },
-              }))
-            : [];
-
-          // Get external resources
-          const externalItems = externalProvider
-            ? await externalProvider.search(query)
-            : [];
-
-          // Combine and dedupe
-          const combined = [...mcpItems, ...externalItems];
-          const filtered = filterResourceItems(combined, query);
-          return dedupeResourceItems(filtered);
-        } catch (error) {
-          console.error("Failed to fetch resources", error);
-          return [];
-        }
-      },
-    }),
-    [mcpResources, externalProvider],
+  // Convert MCP resources to ResourceItems
+  const mcpItems: ResourceItem[] = React.useMemo(
+    () =>
+      mcpResources
+        ? (
+            mcpResources as {
+              resource: { uri: string; name?: string };
+            }[]
+          ).map((entry) => ({
+            // Use the full URI (already includes serverKey prefix from MCP hook)
+            // When inserted as @{id}, parseResourceReferences will strip serverKey before sending to backend
+            id: entry.resource.uri,
+            name: entry.resource.name ?? entry.resource.uri,
+            icon: React.createElement(AtSign, { className: "w-4 h-4" }),
+            componentData: { type: "mcp-resource", data: entry },
+          }))
+        : [],
+    [mcpResources],
   );
+
+  // Track external provider results with state
+  const [externalItems, setExternalItems] = React.useState<ResourceItem[]>([]);
+
+  // Fetch external resources when search changes
+  React.useEffect(() => {
+    if (!externalProvider) {
+      setExternalItems([]);
+      return;
+    }
+
+    let cancelled = false;
+    externalProvider
+      .search(debouncedSearch)
+      .then((items) => {
+        if (!cancelled) {
+          setExternalItems(items);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch external resources", error);
+        if (!cancelled) {
+          setExternalItems([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [externalProvider, debouncedSearch]);
+
+  // Combine and dedupe - MCP resources are already filtered by the hook
+  // External items need to be filtered locally
+  const combined = React.useMemo(() => {
+    const filteredExternal = filterResourceItems(externalItems, search);
+    return dedupeResourceItems([...mcpItems, ...filteredExternal]);
+  }, [mcpItems, externalItems, search]);
+
+  return combined;
 }
 
 /**
- * Hook to create a combined prompt provider that merges MCP prompts with an external provider.
- * Returns a stable PromptProvider that searches both sources and fetches prompt details.
+ * Hook to get a combined prompt list that merges MCP prompts with an external provider.
+ * Returns the combined, filtered prompt items.
  *
- * Note: MCP prompts are marked with a special ID prefix so they can be handled separately
- * via the useTamboMcpPrompt hook (since we can't call hooks inside get()).
+ * @param externalProvider - Optional external prompt provider
+ * @param search - Search string to filter prompts by name. MCP prompts are filtered via the hook.
  */
-function useCombinedPromptProvider(
+function useCombinedPromptList(
   externalProvider: PromptProvider | undefined,
-): PromptProvider {
-  const { data: mcpPrompts } = useTamboMcpPromptList();
+  search: string,
+): PromptItem[] {
+  // Pass search to MCP hook for filtering
+  const { data: mcpPrompts } = useTamboMcpPromptList(search);
+  const [debouncedSearch] = useDebounce(search, EXTERNAL_SEARCH_DEBOUNCE_MS);
 
-  return React.useMemo<PromptProvider>(
-    () => ({
-      search: async (query: string): Promise<PromptItem[]> => {
-        try {
-          // Get MCP prompts (mark with mcp-prompt: prefix so we know to handle them specially)
-          const mcpItems: PromptItem[] = mcpPrompts
-            ? (mcpPrompts as { prompt: { name: string } }[]).map((entry) => ({
-                id: `mcp-prompt:${entry.prompt.name}`,
-                name: entry.prompt.name,
-                icon: React.createElement(FileText, { className: "w-4 h-4" }),
-                text: "", // Text will be fetched when selected via useTamboMcpPrompt
-              }))
-            : [];
-
-          // Get external prompts
-          const externalItems = externalProvider
-            ? await externalProvider.search(query)
-            : [];
-
-          // Combine and filter
-          const combined = [...mcpItems, ...externalItems];
-          return filterPromptItems(combined, query);
-        } catch (error) {
-          console.error("Failed to fetch prompts", error);
-          return [];
-        }
-      },
-      get: async (id: string): Promise<PromptItem> => {
-        // Check if this is an MCP prompt (marked with mcp-prompt: prefix)
-        if (id.startsWith("mcp-prompt:")) {
-          // Return a placeholder - actual text will be fetched via useTamboMcpPrompt hook
-          const promptName = id.replace("mcp-prompt:", "");
-          return {
-            id,
-            name: promptName,
+  // Convert MCP prompts to PromptItems (mark with mcp-prompt: prefix for special handling)
+  const mcpItems: PromptItem[] = React.useMemo(
+    () =>
+      mcpPrompts
+        ? (mcpPrompts as { prompt: { name: string } }[]).map((entry) => ({
+            id: `mcp-prompt:${entry.prompt.name}`,
+            name: entry.prompt.name,
             icon: React.createElement(FileText, { className: "w-4 h-4" }),
-            text: "", // Will be populated by MCP hook
-          };
-        }
-
-        // Delegate to external provider
-        if (externalProvider) {
-          return await externalProvider.get(id);
-        }
-
-        throw new Error(`Prompt not found: ${id}`);
-      },
-    }),
-    [mcpPrompts, externalProvider],
+            text: "", // Text will be fetched when selected via useTamboMcpPrompt
+          }))
+        : [],
+    [mcpPrompts],
   );
+
+  // Track external provider results with state
+  const [externalItems, setExternalItems] = React.useState<PromptItem[]>([]);
+
+  // Fetch external prompts when search changes
+  React.useEffect(() => {
+    if (!externalProvider) {
+      setExternalItems([]);
+      return;
+    }
+
+    let cancelled = false;
+    externalProvider
+      .search(debouncedSearch)
+      .then((items) => {
+        if (!cancelled) {
+          setExternalItems(items);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch external prompts", error);
+        if (!cancelled) {
+          setExternalItems([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [externalProvider, debouncedSearch]);
+
+  // Combine - MCP prompts are already filtered by the hook
+  // External items need to be filtered locally
+  const combined = React.useMemo(() => {
+    const filteredExternal = filterPromptItems(externalItems, search);
+    return [...mcpItems, ...filteredExternal];
+  }, [mcpItems, externalItems, search]);
+
+  return combined;
 }
 
 /**
@@ -262,10 +301,11 @@ const messageInputVariants = cva("w-full", {
  * @property {function} handleSubmit - Function to handle form submission
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
- * @property {string|undefined} contextKey - The thread context key
- * @property {Editor|null} editorRef - Reference to the TipTap editor instance
+ * @property {TamboEditor|null} editorRef - Reference to the TamboEditor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
+ * @property {string | null} imageError - Error related to image uploads
+ * @property {function} setImageError - Function to set the image upload error
  * @property {TamboElicitationRequest | null} elicitation - Current elicitation request (read-only)
  * @property {function} resolveElicitation - Function to resolve the elicitation promise (automatically clears state)
  */
@@ -273,16 +313,17 @@ interface MessageInputContextValue {
   value: string;
   setValue: (value: string) => void;
   submit: (options: {
-    contextKey?: string;
     streamResponse?: boolean;
+    resourceNames: Record<string, string>;
   }) => Promise<void>;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   isPending: boolean;
   error: Error | null;
-  contextKey?: string;
-  editorRef: React.RefObject<Editor | null>;
+  editorRef: React.RefObject<TamboEditor>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
+  imageError: string | null;
+  setImageError: React.Dispatch<React.SetStateAction<string | null>>;
   elicitation: TamboElicitationRequest | null;
   resolveElicitation: ((response: TamboElicitationResponse) => void) | null;
 }
@@ -316,12 +357,10 @@ const useMessageInputContext = () => {
  * Extends standard HTMLFormElement attributes.
  */
 export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement> {
-  /** The context key identifying which thread to send messages to. */
-  contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
-  /** Optional ref to forward to the TipTap editor instance. */
-  inputRef?: React.RefObject<Editor | null>;
+  /** Optional ref to forward to the TamboEditor instance. */
+  inputRef?: React.RefObject<TamboEditor>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -332,7 +371,7 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
  * @component MessageInput
  * @example
  * ```tsx
- * <MessageInput contextKey="my-thread" variant="solid">
+ * <MessageInput variant="solid">
  *   <MessageInput.Textarea />
  *   <MessageInput.SubmitButton />
  *   <MessageInput.Error />
@@ -340,12 +379,11 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
  * ```
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
-  ({ children, className, contextKey, variant, ...props }, ref) => {
+  ({ children, className, variant, ...props }, ref) => {
     return (
       <MessageInputInternal
         ref={ref}
         className={className}
-        contextKey={contextKey}
         variant={variant}
         {...props}
       >
@@ -362,7 +400,7 @@ MessageInput.displayName = "MessageInput";
 const MessageInputInternal = React.forwardRef<
   HTMLFormElement,
   MessageInputProps
->(({ children, className, contextKey, variant, inputRef, ...props }, ref) => {
+>(({ children, className, variant, inputRef, ...props }, ref) => {
   const {
     value,
     setValue,
@@ -376,9 +414,10 @@ const MessageInputInternal = React.forwardRef<
   const { cancel } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [imageError, setImageError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  const editorRef = React.useRef<Editor | null>(null);
+  const editorRef = React.useRef<TamboEditor>(null!);
   const dragCounter = React.useRef(0);
 
   // Use elicitation context (optional)
@@ -387,7 +426,7 @@ const MessageInputInternal = React.forwardRef<
   React.useEffect(() => {
     setDisplayValue(value);
     if (value && editorRef.current) {
-      editorRef.current.commands.focus();
+      editorRef.current.focus();
     }
   }, [value]);
 
@@ -396,16 +435,26 @@ const MessageInputInternal = React.forwardRef<
       e.preventDefault();
       if ((!value.trim() && images.length === 0) || isSubmitting) return;
 
+      // Clear any previous errors
       setSubmitError(null);
+      setImageError(null);
       setDisplayValue("");
       setIsSubmitting(true);
+
+      // Extract resource names directly from editor at submit time to ensure we have the latest
+      let latestResourceNames: Record<string, string> = {};
+      const editor = editorRef.current;
+      if (editor) {
+        const extracted = editor.getTextWithResourceURIs();
+        latestResourceNames = extracted.resourceNames;
+      }
 
       const imageIdsAtSubmitTime = images.map((image) => image.id);
 
       try {
         await submit({
-          contextKey,
           streamResponse: true,
+          resourceNames: latestResourceNames,
         });
         setValue("");
         // Clear only the images that were staged when submission started so
@@ -415,11 +464,13 @@ const MessageInputInternal = React.forwardRef<
         }
         // Refocus the editor after a successful submission
         setTimeout(() => {
-          editorRef.current?.commands.focus();
+          editorRef.current?.focus();
         }, 0);
       } catch (error) {
         console.error("Failed to submit message:", error);
         setDisplayValue(value);
+        // On submit failure, also clear image error
+        setImageError(null);
         setSubmitError(
           error instanceof Error
             ? error.message
@@ -435,7 +486,6 @@ const MessageInputInternal = React.forwardRef<
     [
       value,
       submit,
-      contextKey,
       setValue,
       setDisplayValue,
       setSubmitError,
@@ -443,6 +493,7 @@ const MessageInputInternal = React.forwardRef<
       isSubmitting,
       images,
       removeImage,
+      editorRef,
     ],
   );
 
@@ -486,14 +537,25 @@ const MessageInputInternal = React.forwardRef<
       );
 
       if (files.length > 0) {
+        const totalImages = images.length + files.length;
+        if (totalImages > MAX_IMAGES) {
+          setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+          return;
+        }
+        setImageError(null); // Clear previous error
         try {
           await addImages(files);
         } catch (error) {
           console.error("Failed to add dropped images:", error);
+          setImageError(
+            error instanceof Error
+              ? error.message
+              : "Failed to add images. Please try again.",
+          );
         }
       }
     },
-    [addImages],
+    [addImages, images, setImageError],
   );
 
   const handleElicitationResponse = React.useCallback(
@@ -517,10 +579,11 @@ const MessageInputInternal = React.forwardRef<
       handleSubmit,
       isPending: isPending ?? isSubmitting,
       error,
-      contextKey,
       editorRef: inputRef ?? editorRef,
       submitError,
       setSubmitError,
+      imageError,
+      setImageError,
       elicitation,
       resolveElicitation,
     }),
@@ -532,10 +595,11 @@ const MessageInputInternal = React.forwardRef<
       isPending,
       isSubmitting,
       error,
-      contextKey,
       inputRef,
       editorRef,
       submitError,
+      imageError,
+      setImageError,
       elicitation,
       resolveElicitation,
     ],
@@ -593,6 +657,9 @@ MessageInput.displayName = "MessageInput";
  * Symbol for marking pasted images
  */
 const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
+
+/** Maximum number of images that can be staged at once */
+const MAX_IMAGES = 10;
 
 /**
  * Extend the File interface to include IS_PASTED_IMAGE symbol
@@ -653,15 +720,37 @@ const MessageInputTextarea = ({
   onResourceSelect,
   ...props
 }: MessageInputTextareaProps) => {
-  const { value, setValue, handleSubmit, editorRef } = useMessageInputContext();
+  const { value, setValue, handleSubmit, editorRef, setImageError } =
+    useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage } = useTamboThreadInput();
+  const { addImage, images } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
+  // Resource names are extracted from editor at submit time, no need to track in state
+  const setResourceNames = React.useCallback(
+    (
+      _resourceNames:
+        | Record<string, string>
+        | ((prev: Record<string, string>) => Record<string, string>),
+    ) => {
+      // No-op - we extract resource names directly from editor at submit time
+    },
+    [],
+  );
 
-  // Combine MCP resources/prompts with external providers
-  const combinedResourceProvider =
-    useCombinedResourceProvider(resourceProvider);
-  const combinedPromptProvider = useCombinedPromptProvider(promptProvider);
+  // Track search state for resources (controlled by TextEditor)
+  const [resourceSearch, setResourceSearch] = React.useState("");
+
+  // Track search state for prompts (controlled by TextEditor)
+  const [promptSearch, setPromptSearch] = React.useState("");
+
+  // Get combined resource list (MCP + external provider), filtered by search
+  const resourceItems = useCombinedResourceList(
+    resourceProvider,
+    resourceSearch,
+  );
+
+  // Get combined prompt list (MCP + external provider), filtered by search
+  const promptItems = useCombinedPromptList(promptProvider, promptSearch);
 
   // State for MCP prompt fetching (since we can't call hooks inside get())
   const [selectedMcpPromptName, setSelectedMcpPromptName] = React.useState<
@@ -674,16 +763,12 @@ const MessageInputTextarea = ({
   // Handle MCP prompt insertion when data is fetched
   React.useEffect(() => {
     if (selectedMcpPromptData && selectedMcpPromptName) {
-      const promptMessages = (selectedMcpPromptData as { messages?: unknown[] })
-        ?.messages;
+      const promptMessages = selectedMcpPromptData?.messages;
       if (promptMessages) {
         const promptText = promptMessages
-          .map((msg: unknown) => {
-            const typedMsg = msg as {
-              content?: { type?: string; text?: string };
-            };
-            if (typedMsg.content?.type === "text") {
-              return typedMsg.content.text;
+          .map((msg) => {
+            if (msg.content?.type === "text") {
+              return msg.content.text;
             }
             return "";
           })
@@ -692,9 +777,9 @@ const MessageInputTextarea = ({
 
         const editor = editorRef.current;
         if (editor) {
-          editor.commands.setContent(promptText);
+          editor.setContent(promptText);
           setValue(promptText);
-          editor.commands.focus("end");
+          editor.focus("end");
         }
       }
       setSelectedMcpPromptName(null);
@@ -710,12 +795,24 @@ const MessageInputTextarea = ({
   }, []);
 
   // Handle image paste - mark as pasted and add to thread
+  const pendingImagesRef = React.useRef(0);
+
   const handleAddImage = React.useCallback(
     async (file: File) => {
-      file[IS_PASTED_IMAGE] = true;
-      await addImage(file);
+      if (images.length + pendingImagesRef.current >= MAX_IMAGES) {
+        setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+        return;
+      }
+      setImageError(null);
+      pendingImagesRef.current += 1;
+      try {
+        file[IS_PASTED_IMAGE] = true;
+        await addImage(file);
+      } finally {
+        pendingImagesRef.current -= 1;
+      }
     },
-    [addImage],
+    [addImage, images, setImageError],
   );
 
   return (
@@ -725,16 +822,19 @@ const MessageInputTextarea = ({
       {...props}
     >
       <TextEditor
+        ref={editorRef}
         value={value}
         onChange={setValue}
+        onResourceNamesChange={setResourceNames}
         onSubmit={handleSubmit}
         onAddImage={handleAddImage}
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
-        editorRef={editorRef}
         className="bg-background text-foreground"
-        onSearchResources={combinedResourceProvider.search}
-        onSearchPrompts={combinedPromptProvider.search}
+        onSearchResources={setResourceSearch}
+        resources={resourceItems}
+        onSearchPrompts={setPromptSearch}
+        prompts={promptItems}
         onResourceSelect={onResourceSelect ?? (() => {})}
         onPromptSelect={handlePromptSelect}
       />
@@ -764,9 +864,10 @@ const MessageInputPlainTextarea = ({
   placeholder = "What do you want to do?",
   ...props
 }: MessageInputPlainTextareaProps) => {
-  const { value, setValue, handleSubmit } = useMessageInputContext();
+  const { value, setValue, handleSubmit, setImageError } =
+    useMessageInputContext();
   const { isIdle } = useTamboThread();
-  const { addImage } = useTamboThreadInput();
+  const { addImage, images } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
   const isPending = !isIdle;
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
@@ -798,6 +899,13 @@ const MessageInputPlainTextarea = ({
     if (!hasText) {
       e.preventDefault(); // Only prevent when image-only paste
     }
+
+    const totalImages = images.length + imageItems.length;
+    if (totalImages > MAX_IMAGES) {
+      setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+      return;
+    }
+    setImageError(null);
 
     for (const item of imageItems) {
       const file = item.getAsFile();
@@ -862,8 +970,13 @@ const MessageInputSubmitButton = React.forwardRef<
   MessageInputSubmitButtonProps
 >(({ className, children, ...props }, ref) => {
   const { isPending } = useMessageInputContext();
-  const { cancel } = useTamboThread();
+  const { cancel, isIdle } = useTamboThread();
   const isUpdatingToken = useIsTamboTokenUpdating();
+
+  // Show cancel button if either:
+  // 1. A mutation is in progress (isPending), OR
+  // 2. Thread is stuck in a processing state (e.g., after browser refresh during tool execution)
+  const showCancelButton = isPending || !isIdle;
 
   const handleCancel = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -872,23 +985,25 @@ const MessageInputSubmitButton = React.forwardRef<
   };
 
   const buttonClasses = cn(
-    "w-10 h-10 bg-black/80 text-white rounded-lg hover:bg-black/70 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
+    "w-10 h-10 bg-foreground text-background rounded-lg hover:bg-foreground/90 disabled:opacity-50 flex items-center justify-center enabled:cursor-pointer",
     className,
   );
 
   return (
     <button
       ref={ref}
-      type={isPending ? "button" : "submit"}
+      type={showCancelButton ? "button" : "submit"}
       disabled={isUpdatingToken}
-      onClick={isPending ? handleCancel : undefined}
+      onClick={showCancelButton ? handleCancel : undefined}
       className={buttonClasses}
-      aria-label={isPending ? "Cancel message" : "Send message"}
-      data-slot={isPending ? "message-input-cancel" : "message-input-submit"}
+      aria-label={showCancelButton ? "Cancel message" : "Send message"}
+      data-slot={
+        showCancelButton ? "message-input-cancel" : "message-input-submit"
+      }
       {...props}
     >
       {children ??
-        (isPending ? (
+        (showCancelButton ? (
           <Square className="w-4 h-4" fill="currentColor" />
         ) : (
           <ArrowUp className="w-5 h-5" />
@@ -999,9 +1114,9 @@ const MessageInputError = React.forwardRef<
   HTMLParagraphElement,
   MessageInputErrorProps
 >(({ className, ...props }, ref) => {
-  const { error, submitError } = useMessageInputContext();
+  const { error, submitError, imageError } = useMessageInputContext();
 
-  if (!error && !submitError) {
+  if (!error && !submitError && !imageError) {
     return null;
   }
 
@@ -1012,7 +1127,7 @@ const MessageInputError = React.forwardRef<
       data-slot="message-input-error"
       {...props}
     >
-      {error?.message ?? submitError}
+      {error?.message ?? submitError ?? imageError}
     </p>
   );
 });
@@ -1046,7 +1161,8 @@ const MessageInputFileButton = React.forwardRef<
   HTMLButtonElement,
   MessageInputFileButtonProps
 >(({ className, accept = "image/*", multiple = true, ...props }, ref) => {
-  const { addImages } = useTamboThreadInput();
+  const { addImages, images } = useTamboThreadInput();
+  const { setImageError } = useMessageInputContext();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -1055,7 +1171,17 @@ const MessageInputFileButton = React.forwardRef<
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
+
     try {
+      const totalImages = images.length + files.length;
+
+      if (totalImages > MAX_IMAGES) {
+        setImageError(`Max ${MAX_IMAGES} uploads at a time`);
+        e.target.value = "";
+        return;
+      }
+
+      setImageError(null);
       await addImages(files);
     } catch (error) {
       console.error("Failed to add selected files:", error);
@@ -1164,25 +1290,15 @@ const MessageInputMcpResourceButton = React.forwardRef<
   const { setValue, value, editorRef } = useMessageInputContext();
 
   const insertResourceReference = React.useCallback(
-    (resourceRef: string) => {
+    (id: string, label: string) => {
       const editor = editorRef.current;
       if (editor) {
-        editor
-          .chain()
-          .focus()
-          .insertContent([
-            {
-              type: "mention",
-              attrs: { id: resourceRef.slice(1), label: resourceRef.slice(1) },
-            },
-            { type: "text", text: " " },
-          ])
-          .run();
-        setValue(editor.getText());
+        editor.insertMention(id, label);
+        setValue(editor.getTextWithResourceURIs().text);
         return;
       }
       // Fallback: append to end of plain text value
-      const newValue = value ? `${value} ${resourceRef}` : resourceRef;
+      const newValue = value ? `${value} ${id}` : id;
       setValue(newValue);
     },
     [editorRef, setValue, value],
@@ -1193,7 +1309,7 @@ const MessageInputMcpResourceButton = React.forwardRef<
       ref={ref}
       {...props}
       value={value}
-      onInsertText={insertResourceReference}
+      onInsertResource={insertResourceReference}
     />
   );
 });
@@ -1434,13 +1550,13 @@ export {
   MessageInputMcpConfigButton,
   MessageInputMcpPromptButton,
   MessageInputMcpResourceButton,
+  MessageInputPlainTextarea,
   MessageInputStagedImages,
   MessageInputSubmitButton,
-  MessageInputPlainTextarea,
   MessageInputTextarea,
   MessageInputToolbar,
   messageInputVariants,
 };
 
 // Re-export types from text-editor for convenience
-export type { ResourceItem, PromptItem } from "./text-editor";
+export type { PromptItem, ResourceItem } from "./text-editor";

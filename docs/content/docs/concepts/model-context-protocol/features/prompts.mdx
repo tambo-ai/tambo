@@ -17,6 +17,49 @@ Prompts are predefined text templates exposed by MCP servers that users can inse
 
 For example, a GitHub MCP server might provide prompts like "Create a detailed issue report" or "Review this pull request", which expand into well-structured templates when selected.
 
+## User Experience
+
+### Using the "/" Hotkey
+
+Type "/" at the start of an empty text field to quickly access prompts:
+
+![Selecting a prompt with / hotkey](prompt-slash-selection.png)
+
+1. Type "/" at the beginning of an empty message input
+2. A dropdown appears showing all available prompts
+3. Type to filter prompts by name
+4. Use arrow keys to navigate and Enter to select
+5. The selected prompt text is inserted into the message input
+
+### Using the Prompts Button
+
+Alternatively, click the prompts button to browse available templates:
+
+![Prompts Button](prompts-button.png)
+
+1. A document icon (📄) appears in the message input area
+2. Clicking it opens a dropdown showing all available prompts
+3. Prompts are organized by MCP server
+4. Selecting a prompt inserts its content into the message input
+5. The user can then edit the prompt before sending
+
+## Prompt Naming
+
+Prompts are **always prefixed** with the `serverKey` to identify which MCP server they come from. The format is:
+
+```
+<serverKey>:<promptName>
+```
+
+For example, a prompt called `new-issue` from a Linear MCP server with `serverKey` of `linear` would be referenced as `linear:new-issue`.
+
+The `serverKey` is configured when setting up the MCP server:
+
+- **Client-side**: Set in the `mcpServers` array passed to `TamboProvider`
+- **Server-side**: Configured in your Tambo Cloud project settings
+
+If you don't specify `serverKey`, Tambo derives one from the URL (e.g., `https://mcp.linear.app/mcp` becomes `linear`). For more details, see [Server namespacing](/concepts/model-context-protocol/providers/clientside-mcp-connection#server-namespacing).
+
 ## Built-in Support
 
 The `message-input` component automatically displays available prompts from all connected MCP servers. When any MCP server exposes prompts, a document button (📄) appears in the message input area:
@@ -25,7 +68,7 @@ The `message-input` component automatically displays available prompts from all 
 import { MessageInput } from "@/components/ui/message-input";
 
 // Prompts are automatically displayed - no additional setup needed
-<MessageInput contextKey="my-thread">
+<MessageInput>
   <MessageInput.Textarea />
   <MessageInput.McpPromptButton />
   <MessageInput.SubmitButton />
@@ -63,18 +106,6 @@ sequenceDiagram
     Tambo->>Browser: Prompt content
     Browser->>User: Insert prompt into input
 ```
-
-## User Experience
-
-![Prompts Button](prompts-button.png)
-
-When prompts are available:
-
-1. A document icon (📄) appears in the message input area
-2. Clicking it opens a dropdown showing all available prompts
-3. Prompts are organized by MCP server
-4. Selecting a prompt inserts its content into the message input
-5. The user can then edit the prompt before sending
 
 ## Current Limitations
 
@@ -122,6 +153,8 @@ The hook returns an array of `ListPromptEntry` objects, each containing:
 - `server` - The connected MCP server providing this prompt
 - `prompt` - The prompt metadata (name, description)
 
+**Note:** The `prompt.name` field will include the `serverKey` prefix (e.g., `linear:new-issue`).
+
 ### Get Specific Prompt
 
 Use `useTamboMcpPrompt` to fetch a specific prompt's content:
@@ -130,6 +163,7 @@ Use `useTamboMcpPrompt` to fetch a specific prompt's content:
 import { useTamboMcpPrompt } from "@tambo-ai/react/mcp";
 
 function PromptContent({ promptName }: { promptName: string }) {
+  // promptName should include the serverKey prefix (e.g., "linear:new-issue")
   const { data: prompt, isLoading, error } = useTamboMcpPrompt(promptName);
 
   if (isLoading) return <div>Loading...</div>;
@@ -194,7 +228,6 @@ A task tracking MCP server provides prompts for common workflows:
 
 Planned enhancements for MCP prompts include:
 
-- **Inline prompts**: Allow users to edit prompts in the message input, with a `/` hotkey.
 - **Parameter support**: Allow users to customize prompts with dynamic values
 - **Custom UI**: Build custom prompt pickers with different layouts
 - **Prompt history**: Track frequently used prompts

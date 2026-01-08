@@ -127,21 +127,22 @@ mock for `@tambo-ai/react`:
 
 - The default mock implementation lives in
   `__tests__/__mocks__/@tambo-ai-react.ts`.
-- In tests, call `jest.mock("@tambo-ai/react")` once at the top of the file.
-- Cast the exported hooks to `jest.MockedFunction<typeof useTambo>` (etc) when
-  you need to override behavior for a specific scenario.
+- The mock is auto-applied via `moduleNameMapper` in `jest.config.ts`.
+- Use `jest.mocked()` for type-safe mock access when you need to override
+  behavior for a specific scenario.
 
 Example:
 
 ```tsx
+import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import { render } from "@testing-library/react";
 import { ComponentName } from "@/components/tambo/component-name";
 import { useTambo } from "@tambo-ai/react";
 
-jest.mock("@tambo-ai/react");
+// @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 
 describe("ComponentName", () => {
-  const mockUseTambo = useTambo as jest.MockedFunction<typeof useTambo>;
+  const mockUseTambo = jest.mocked(useTambo);
 
   beforeEach(() => {
     mockUseTambo.mockReturnValue({

@@ -1,10 +1,15 @@
 import { act, renderHook } from "@testing-library/react";
+import React from "react";
 import { TamboThreadMessage } from "../model/generate-component-response";
 import { useTamboClient } from "../providers/tambo-client-provider";
+import { useTamboInteractable } from "../providers/tambo-interactable-provider";
 import { useTamboThread } from "../providers/tambo-thread-provider";
 import { PartialTamboAI } from "../testing/types";
 import { useTamboComponentState } from "./use-component-state";
-import { useTamboCurrentMessage } from "./use-current-message";
+import {
+  TamboMessageContext,
+  useTamboCurrentMessage,
+} from "./use-current-message";
 
 // Mock the required providers
 jest.mock("../providers/tambo-client-provider", () => ({
@@ -17,6 +22,11 @@ jest.mock("../providers/tambo-thread-provider", () => ({
 
 jest.mock("./use-current-message", () => ({
   useTamboCurrentMessage: jest.fn(),
+  TamboMessageContext: React.createContext<TamboThreadMessage | null>(null),
+}));
+
+jest.mock("../providers/tambo-interactable-provider", () => ({
+  useTamboInteractable: jest.fn(),
 }));
 
 // Create a mock debounced function with flush method
@@ -56,9 +66,37 @@ describe("useTamboComponentState", () => {
 
   const mockUpdateThreadMessage = jest.fn();
   const mockUpdateComponentState = jest.fn();
+  const mockSetInteractableState = jest.fn();
+  const mockGetInteractableComponentState = jest.fn();
+
+  // Track context values for mocking
+  let mockMessage: TamboThreadMessage | null = null;
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset context values
+    mockMessage = createMockMessage();
+
+    // Mock useContext to return appropriate values based on context
+    const originalUseContext = React.useContext;
+    jest.spyOn(React, "useContext").mockImplementation((context) => {
+      if (context === TamboMessageContext) {
+        // Return the message from useTamboCurrentMessage mock if available
+        try {
+          const currentMessageMock = jest.mocked(useTamboCurrentMessage);
+          const mockImpl = currentMessageMock.getMockImplementation();
+          if (mockImpl) {
+            return mockImpl();
+          }
+        } catch {
+          // Fallback to mockMessage
+        }
+        return mockMessage;
+      }
+      // For other contexts, use the original implementation
+      return originalUseContext(context);
+    });
 
     // Setup default mock for useDebouncedCallback
     jest
@@ -81,6 +119,15 @@ describe("useTamboComponentState", () => {
     } as any);
 
     jest.mocked(useTamboCurrentMessage).mockReturnValue(createMockMessage());
+
+    jest.mocked(useTamboInteractable).mockReturnValue({
+      setInteractableState: mockSetInteractableState,
+      getInteractableComponentState: mockGetInteractableComponentState,
+    } as any);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe("Initial State Management", () => {
@@ -420,6 +467,58 @@ describe("useTamboComponentState", () => {
         useTamboComponentState("testKey", "initial", undefined),
       );
 
+      expect(result.current[0]).toBe("initial");
+    });
+  });
+
+  describe("Interactable State Sync", () => {
+    it("should sync local state when interactable state changes externally", () => {
+      // Setup: Component is in interactable context with an ID
+      const message = createMockMessage({
+        componentState: {},
+        interactableMetadata: {
+          id: "test-interactable-id",
+          componentName: "TestComponent",
+          description: "Test",
+        },
+      });
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(message);
+
+      // Start with initial state
+      mockGetInteractableComponentState.mockReturnValue({ testKey: "initial" });
+
+      const { result, rerender } = renderHook(() =>
+        useTamboComponentState("testKey", "initial"),
+      );
+
+      expect(result.current[0]).toBe("initial");
+
+      // Simulate external state update (e.g., from Tambo tool call)
+      mockGetInteractableComponentState.mockReturnValue({
+        testKey: "updated-by-tambo",
+      });
+
+      // Trigger rerender to pick up new interactable state
+      rerender();
+
+      // Local state should sync with the external update
+      expect(result.current[0]).toBe("updated-by-tambo");
+    });
+
+    it("should not sync when not in interactable context", () => {
+      // Setup: Component is NOT in interactable context (no interactableMetadata.id)
+      const message = createMockMessage({
+        componentState: { testKey: "initial" },
+      });
+      jest.mocked(useTamboCurrentMessage).mockReturnValue(message);
+
+      mockGetInteractableComponentState.mockReturnValue({ testKey: "ignored" });
+
+      const { result } = renderHook(() =>
+        useTamboComponentState("testKey", "initial"),
+      );
+
+      // Should use message state, not interactable state
       expect(result.current[0]).toBe("initial");
     });
   });

@@ -14,6 +14,10 @@
 </p>
 
 <p align="center">
+  <a href="https://trendshift.io/repositories/15734" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/15734" alt="tambo-ai/tambo | Trendshift" width="250" height="55" /></a>
+</p>
+
+<p align="center">
   <a href="https://docs.tambo.co">Documentation</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
@@ -121,6 +125,8 @@ Wrap your app with `TamboProvider`.
 </TamboProvider>
 ```
 
+For apps with signed-in users, pass a per-user `userToken` (OAuth access token) to `TamboProvider` to enable per-user auth and connect Tambo to your app's end-user identity. See [User Authentication](https://docs.tambo.co/concepts/user-authentication) for details.
+
 Docs: [provider options](https://docs.tambo.co/api-reference/tambo-provider)
 
 ### Hooks
@@ -177,7 +183,7 @@ Docs: [threads and messages](https://docs.tambo.co/concepts/message-threads), [s
 Connect to Linear, Slack, databases, or your own MCP servers. Tambo supports the full MCP protocol: tools, prompts, elicitations, and sampling.
 
 ```tsx
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
@@ -188,9 +194,7 @@ const mcpServers = [
 ];
 
 <TamboProvider components={components} mcpServers={mcpServers}>
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>;
 ```
 
@@ -364,7 +368,11 @@ Built something? [Open a PR](https://github.com/tambo-ai/tambo/pulls) or [share 
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Unless otherwise noted in a workspace (app or package), code in this repo is
+licensed under MIT (see the root [LICENSE](LICENSE)).
+
+Some workspaces are licensed under Apache-2.0; see the accompanying `LICENSE`
+and `NOTICE` files in those workspaces.
 
 ---
 

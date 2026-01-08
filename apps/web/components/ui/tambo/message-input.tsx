@@ -10,6 +10,7 @@ import {
   TextEditor,
   type PromptItem,
   type ResourceItem,
+  type TamboEditor,
 } from "@/components/ui/tambo/text-editor";
 import { cn } from "@/lib/utils";
 import {
@@ -23,7 +24,6 @@ import {
   useTamboMcpPromptList,
   useTamboMcpResourceList,
 } from "@tambo-ai/react/mcp";
-import type { Editor } from "@tiptap/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ArrowUp, AtSign, FileText, Paperclip, Square } from "lucide-react";
 import * as React from "react";
@@ -260,23 +260,20 @@ const messageInputVariants = cva("w-full", {
  * @property {function} handleSubmit - Function to handle form submission
  * @property {boolean} isPending - Whether a submission is in progress
  * @property {Error|null} error - Any error from the submission
- * @property {string|undefined} contextKey - The thread context key
- * @property {Editor|null} editorRef - Reference to the TipTap editor instance
+ * @property {TamboEditor|null} editorRef - Reference to the TamboEditor instance
  * @property {string | null} submitError - Error from the submission
  * @property {function} setSubmitError - Function to set the submission error
  */
 interface MessageInputContextValue {
   value: string;
   setValue: (value: string) => void;
-  submit: (options: {
-    contextKey?: string;
-    streamResponse?: boolean;
-  }) => Promise<void>;
+  submit: (options: { streamResponse?: boolean }) => Promise<void>;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   isPending: boolean;
   error: Error | null;
-  contextKey?: string;
-  editorRef: React.RefObject<Editor | null>;
+  editorRef:
+    | React.RefObject<TamboEditor>
+    | React.MutableRefObject<TamboEditor | null>;
   submitError: string | null;
   setSubmitError: React.Dispatch<React.SetStateAction<string | null>>;
 }
@@ -310,12 +307,12 @@ const useMessageInputContext = () => {
  * Extends standard HTMLFormElement attributes.
  */
 export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement> {
-  /** The context key identifying which thread to send messages to. */
-  contextKey?: string;
   /** Optional styling variant for the input container. */
   variant?: VariantProps<typeof messageInputVariants>["variant"];
-  /** Optional ref to forward to the TipTap editor instance. */
-  inputRef?: React.RefObject<Editor | null>;
+  /** Optional ref to forward to the TamboEditor instance. */
+  inputRef?:
+    | React.RefObject<TamboEditor>
+    | React.MutableRefObject<TamboEditor | null>;
   /** The child elements to render within the form container. */
   children?: React.ReactNode;
 }
@@ -326,7 +323,7 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
  * @component MessageInput
  * @example
  * ```tsx
- * <MessageInput contextKey="my-thread" variant="solid">
+ * <MessageInput variant="solid">
  *   <MessageInput.Textarea />
  *   <MessageInput.SubmitButton />
  *   <MessageInput.Error />
@@ -334,12 +331,11 @@ export interface MessageInputProps extends React.HTMLAttributes<HTMLFormElement>
  * ```
  */
 const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
-  ({ children, className, contextKey, variant, ...props }, ref) => {
+  ({ children, className, variant, ...props }, ref) => {
     return (
       <MessageInputInternal
         ref={ref}
         className={className}
-        contextKey={contextKey}
         variant={variant}
         {...props}
       >
@@ -356,7 +352,7 @@ MessageInput.displayName = "MessageInput";
 const MessageInputInternal = React.forwardRef<
   HTMLFormElement,
   MessageInputProps
->(({ children, className, contextKey, variant, inputRef, ...props }, ref) => {
+>(({ children, className, variant, inputRef, ...props }, ref) => {
   const {
     value,
     setValue,
@@ -373,7 +369,7 @@ const MessageInputInternal = React.forwardRef<
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  const editorRef = React.useRef<Editor | null>(null);
+  const editorRef = React.useRef<TamboEditor>(null!);
   const dragCounter = React.useRef(0);
 
   React.useEffect(() => {
@@ -399,7 +395,6 @@ const MessageInputInternal = React.forwardRef<
 
       try {
         await submit({
-          contextKey,
           streamResponse: true,
         });
         setValue("");
@@ -421,7 +416,6 @@ const MessageInputInternal = React.forwardRef<
     [
       value,
       submit,
-      contextKey,
       setValue,
       setDisplayValue,
       setSubmitError,
@@ -495,7 +489,6 @@ const MessageInputInternal = React.forwardRef<
       handleSubmit,
       isPending: isPending ?? isSubmitting,
       error,
-      contextKey,
       editorRef: inputRef ?? editorRef,
       submitError,
       setSubmitError,
@@ -508,7 +501,6 @@ const MessageInputInternal = React.forwardRef<
       isPending,
       isSubmitting,
       error,
-      contextKey,
       inputRef,
       editorRef,
       submitError,
@@ -601,6 +593,18 @@ const MessageInputTextarea = ({
   const { addImage } = useTamboThreadInput();
   const isUpdatingToken = useIsTamboTokenUpdating();
 
+  // Resource names are extracted from editor at submit time, no need to track in state
+  const setResourceNames = React.useCallback(
+    (
+      _resourceNames:
+        | Record<string, string>
+        | ((prev: Record<string, string>) => Record<string, string>),
+    ) => {
+      // No-op - we don't need to track resource names in apps/web
+    },
+    [],
+  );
+
   // Combine MCP resources/prompts with external providers
   const combinedResourceProvider =
     useCombinedResourceProvider(resourceProvider);
@@ -617,16 +621,12 @@ const MessageInputTextarea = ({
   // Handle MCP prompt insertion when data is fetched
   React.useEffect(() => {
     if (selectedMcpPromptData && selectedMcpPromptName) {
-      const promptMessages = (selectedMcpPromptData as { messages?: unknown[] })
-        ?.messages;
+      const promptMessages = selectedMcpPromptData?.messages;
       if (promptMessages) {
         const promptText = promptMessages
-          .map((msg: unknown) => {
-            const typedMsg = msg as {
-              content?: { type?: string; text?: string };
-            };
-            if (typedMsg.content?.type === "text") {
-              return typedMsg.content.text;
+          .map((msg) => {
+            if (msg.content?.type === "text") {
+              return msg.content.text;
             }
             return "";
           })
@@ -635,9 +635,9 @@ const MessageInputTextarea = ({
 
         const editor = editorRef.current;
         if (editor) {
-          editor.commands.setContent(promptText);
+          editor.setContent(promptText);
           setValue(promptText);
-          editor.commands.focus("end");
+          editor.focus("end");
         }
       }
       setSelectedMcpPromptName(null);
@@ -668,13 +668,14 @@ const MessageInputTextarea = ({
       {...props}
     >
       <TextEditor
+        ref={editorRef}
         value={value}
         onChange={setValue}
+        onResourceNamesChange={setResourceNames}
         onSubmit={handleSubmit}
         onAddImage={handleAddImage}
         placeholder={placeholder}
         disabled={!isIdle || isUpdatingToken}
-        editorRef={editorRef}
         className="bg-background text-foreground"
         onSearchResources={combinedResourceProvider.search}
         onSearchPrompts={combinedPromptProvider.search}
@@ -714,8 +715,13 @@ const MessageInputSubmitButton = React.forwardRef<
   MessageInputSubmitButtonProps
 >(({ className, children, ...props }, ref) => {
   const { isPending } = useMessageInputContext();
-  const { cancel } = useTamboThread();
+  const { cancel, isIdle } = useTamboThread();
   const isUpdatingToken = useIsTamboTokenUpdating();
+
+  // Show cancel button if either:
+  // 1. A mutation is in progress (isPending), OR
+  // 2. Thread is stuck in a processing state (e.g., after browser refresh during tool execution)
+  const showCancelButton = isPending || !isIdle;
 
   const handleCancel = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -731,16 +737,18 @@ const MessageInputSubmitButton = React.forwardRef<
   return (
     <button
       ref={ref}
-      type={isPending ? "button" : "submit"}
+      type={showCancelButton ? "button" : "submit"}
       disabled={isUpdatingToken}
-      onClick={isPending ? handleCancel : undefined}
+      onClick={showCancelButton ? handleCancel : undefined}
       className={buttonClasses}
-      aria-label={isPending ? "Cancel message" : "Send message"}
-      data-slot={isPending ? "message-input-cancel" : "message-input-submit"}
+      aria-label={showCancelButton ? "Cancel message" : "Send message"}
+      data-slot={
+        showCancelButton ? "message-input-cancel" : "message-input-submit"
+      }
       {...props}
     >
       {children ??
-        (isPending ? (
+        (showCancelButton ? (
           <Square className="w-4 h-4" fill="currentColor" />
         ) : (
           <ArrowUp className="w-5 h-5" />

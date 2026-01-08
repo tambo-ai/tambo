@@ -79,7 +79,7 @@ import {
   useTamboThread,
   useTamboThreadInput,
 } from "@tambo-ai/react";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 // 1. Register your components
 const components = [
@@ -241,7 +241,7 @@ const InteractableNote = withInteractable(Note, {
 Connect to Linear, Slack, databases, or your own MCP servers. Tambo supports the full MCP protocol: tools, prompts, elicitations, and sampling.
 
 ```tsx
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
@@ -252,9 +252,7 @@ const mcpServers = [
 ];
 
 <TamboProvider components={components} mcpServers={mcpServers}>
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>;
 ```
 
@@ -275,25 +273,24 @@ const mcpServers = [
 Sometimes you need functions that run in the browser. DOM manipulation, authenticated fetches, accessing React state. Define them as tools and the AI can call them.
 
 ```tsx
-import { type TamboTool } from "@tambo-ai/react";
+import { z } from "zod/v4";
+import { defineTool } from "@tambo-ai/react";
 
-const tools: TamboTool[] = [
-  {
+const tools = [
+  defineTool({
     name: "getWeather",
     description: "Fetches weather data for a location",
-    tool: async (location: string) =>
+    tool: async ({ location }) =>
       fetch(`/api/weather?q=${location}`).then((r) => r.json()),
-    toolSchema: z
-      .function()
-      .args(z.string())
-      .returns(
-        z.object({
-          temperature: z.number(),
-          condition: z.string(),
-          location: z.string(),
-        }),
-      ),
-  },
+    inputSchema: z.object({
+      location: z.string(),
+    }),
+    outputSchema: z.object({
+      temperature: z.number(),
+      condition: z.string(),
+      location: z.string(),
+    }),
+  }),
 ];
 
 <TamboProvider tools={tools} components={components}>
@@ -316,10 +313,10 @@ const tools: TamboTool[] = [
       const data = await fetchImageData(imageId);
       return { url: data.imageUrl, description: data.description };
     },
-    toolSchema: z
-      .function()
-      .args(z.string())
-      .returns(z.object({ url: z.string(), description: z.string() })),
+    toolSchema: z.function({
+      input: z.string(),
+      output: z.object({ url: z.string(), description: z.string() }),
+    }),
     transformToContent: (result) => [
       { type: "text", text: result.description },
       { type: "image_url", image_url: { url: result.url } },
@@ -329,6 +326,107 @@ const tools: TamboTool[] = [
 ```
 
 The MCP integration automatically uses `transformToContent` to pass through rich content.
+
+### Local Resources
+
+Resources provide context to the AI by making content accessible without requiring a full MCP server. You can register static resources, dynamic resource functions, or both.
+
+#### Static Resources
+
+Register individual resources directly in your provider:
+
+```tsx
+import { type ListResourceItem } from "@tambo-ai/react";
+
+const resources: ListResourceItem[] = [
+  {
+    uri: "file:///config/app-settings.json",
+    name: "App Settings",
+    description: "Current application configuration",
+    mimeType: "application/json",
+  },
+  {
+    uri: "file:///docs/user-guide.md",
+    name: "User Guide",
+    description: "Getting started documentation",
+    mimeType: "text/markdown",
+  },
+];
+
+<TamboProvider resources={resources}>
+  <App />
+</TamboProvider>;
+```
+
+#### Dynamic Resources
+
+For resources that need to be fetched or computed at runtime, provide `listResources` and `getResource` functions:
+
+```tsx
+import { type ResourceSource, type ReadResourceResult } from "@tambo-ai/react";
+
+const listResources = async (search?: string) => {
+  const allDocs = await fetchUserDocuments();
+  return allDocs
+    .filter((doc) => !search || doc.name.includes(search))
+    .map((doc) => ({
+      uri: `file:///docs/${doc.id}`,
+      name: doc.name,
+      description: doc.summary,
+      mimeType: "text/markdown",
+    }));
+};
+
+const getResource = async (uri: string): Promise<ReadResourceResult> => {
+  const docId = uri.split("/").pop();
+  const content = await fetchDocumentContent(docId);
+  return {
+    contents: [
+      {
+        uri,
+        mimeType: "text/markdown",
+        text: content,
+      },
+    ],
+  };
+};
+
+<TamboProvider listResources={listResources} getResource={getResource}>
+  <App />
+</TamboProvider>;
+```
+
+**Important:** Both `listResources` and `getResource` must be provided together - you cannot provide one without the other.
+
+#### Programmatic Registration
+
+You can also register resources programmatically:
+
+```tsx
+const { registerResource, registerResourceSource } = useTamboRegistry();
+
+// Register a single resource
+registerResource({
+  uri: "file:///runtime/state.json",
+  name: "Application State",
+  mimeType: "application/json",
+});
+
+// Register a dynamic source
+registerResourceSource({
+  listResources: async () => [...],
+  getResource: async (uri) => ({ contents: [...] }),
+});
+```
+
+#### Resource vs MCP Server
+
+- **Local resources**: Fast, simple, runs in the browser. Great for app state, config, cached data.
+- **MCP servers**: Full protocol support, server-side execution. Use for databases, APIs, external services.
+
+Local resources appear in `useTamboMcpResourceList()` alongside MCP resources, with MCP resources always prefixed by their serverKey.
+
+[→ Learn more about resources](https://docs.tambo.co/concepts/resources)
 
 ### Streaming Status
 

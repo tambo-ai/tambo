@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { EditableHint } from "@/components/ui/editable-hint";
 import { Input } from "@/components/ui/input";
+import { EditWithTamboButton } from "@/components/ui/tambo/edit-with-tambo-button";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
@@ -9,7 +9,7 @@ import { withInteractable, type Suggestion } from "@tambo-ai/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { z } from "zod";
+import { z } from "zod/v3";
 import {
   DeleteConfirmationDialog,
   type AlertState,
@@ -309,11 +309,7 @@ export function APIKeyList({
           <div className="flex items-center gap-2">
             <h4 className="text-lg font-semibold">
               API Keys
-              <EditableHint
-                suggestions={apiKeyListSuggestions}
-                description="Click to know more about how to manage API keys"
-                componentName={COMPONENT_NAME}
-              />
+              <EditWithTamboButton description="Manage API keys for this project. You can add, delete, and generate new API keys." />
             </h4>
           </div>
 

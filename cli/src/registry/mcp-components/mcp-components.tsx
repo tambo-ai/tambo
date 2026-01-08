@@ -102,7 +102,7 @@ export const McpPromptButton = React.forwardRef<
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content
-              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-gray-200 bg-popover p-1 text-popover-foreground shadow-md"
+              className="z-50 min-w-[200px] max-w-[300px] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
               side="top"
               align="start"
               sideOffset={5}
@@ -191,7 +191,7 @@ interface ResourceComboboxProps {
   setSearchQuery: (query: string) => void;
   filteredResources: ReturnType<typeof useTamboMcpResourceList>["data"];
   isLoading: boolean;
-  onSelectResource: (uri: string) => void;
+  onSelectResource: (id: string, label: string) => void;
 }
 
 /**
@@ -209,7 +209,7 @@ const ResourceCombobox: React.FC<ResourceComboboxProps> = ({
   return (
     <DropdownMenu.Portal>
       <DropdownMenu.Content
-        className="z-50 w-[400px] max-h-[400px] overflow-hidden rounded-md border border-gray-200 bg-popover text-popover-foreground shadow-md"
+        className="z-50 w-[400px] max-h-[400px] overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md"
         side="top"
         align="start"
         sideOffset={5}
@@ -266,7 +266,7 @@ function ResourceListContent({
   isLoading: boolean;
   filteredResources: ReturnType<typeof useTamboMcpResourceList>["data"];
   searchQuery: string;
-  onSelectResource: (uri: string) => void;
+  onSelectResource: (id: string, label: string) => void;
 }) {
   if (isLoading) {
     return (
@@ -288,10 +288,13 @@ function ResourceListContent({
     <>
       {filteredResources.map((resourceEntry) => (
         <DropdownMenu.Item
-          key={`${resourceEntry.server.url}-${resourceEntry.resource.uri}`}
+          key={resourceEntry.resource.uri}
           className="relative flex cursor-pointer select-none items-start flex-col rounded-sm px-2 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
           onSelect={() => {
-            onSelectResource(resourceEntry.resource.uri);
+            onSelectResource(
+              resourceEntry.resource.uri,
+              resourceEntry.resource.name || resourceEntry.resource.uri,
+            );
           }}
         >
           <div className="flex items-start justify-between w-full gap-2">
@@ -320,7 +323,7 @@ function ResourceListContent({
  */
 export interface McpResourceButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Callback to insert text into the input */
-  onInsertText: (text: string) => void;
+  onInsertResource: (id: string, label: string) => void;
   /** Current input value */
   value: string;
   /** Optional custom className */
@@ -342,7 +345,7 @@ export interface McpResourceButtonProps extends React.ButtonHTMLAttributes<HTMLB
 export const McpResourceButton = React.forwardRef<
   HTMLButtonElement,
   McpResourceButtonProps
->(({ className, onInsertText, value: _value, ...props }, ref) => {
+>(({ className, onInsertResource, value: _value, ...props }, ref) => {
   const { data: resourceList, isLoading } = useTamboMcpResourceList();
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -367,10 +370,9 @@ export const McpResourceButton = React.forwardRef<
     });
   }, [resourceList, searchQuery]);
 
-  const handleSelectResource = (resourceUri: string) => {
-    // Pass raw @resource string to caller; caller decides how to insert
-    const resourceRef = `@${resourceUri}`;
-    onInsertText(resourceRef);
+  const handleSelectResource = (id: string, label: string) => {
+    // Pass raw resource string to caller; caller decides how to insert
+    onInsertResource(id, label);
     setIsOpen(false);
     setSearchQuery("");
   };

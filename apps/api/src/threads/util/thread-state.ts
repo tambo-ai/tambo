@@ -1,14 +1,9 @@
 import { Logger } from "@nestjs/common";
 import {
-  getToolsFromSources,
-  ITamboBackend,
-  ToolRegistry,
-} from "@tambo-ai-cloud/backend";
-import {
   ActionType,
   ContentPartType,
   GenerationStage,
-  getToolName,
+  isUiToolName,
   LegacyComponentDecision,
   MessageRole,
   ThreadAssistantMessage,
@@ -17,63 +12,17 @@ import {
   ThreadToolMessage,
   ThreadUserMessage,
   ToolCallRequest,
-  unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
-import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
+import { HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
-import OpenAI from "openai";
-import { createResourceFetcherMap } from "../../common/systemTools";
-import { ThreadMcpClient } from "../../mcp-server/elicitations";
-import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
 import { MessageRequest } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
 import {
-  addAssistantMessageToThread,
   addMessage,
   updateMessage,
   verifyLatestMessageConsistency,
 } from "./messages";
-import { validateToolResponse } from "./tool";
-
-/**
- * Get the final decision from a stream of component decisions
- * by waiting for the last chunk in the stream.
- */
-async function getFinalDecision(
-  stream: AsyncIterableIterator<LegacyComponentDecision>,
-  originalTools: OpenAI.Chat.Completions.ChatCompletionTool[],
-): Promise<LegacyComponentDecision> {
-  let finalDecision: LegacyComponentDecision | undefined;
-
-  for await (const chunk of stream) {
-    finalDecision = chunk;
-  }
-
-  if (!finalDecision) {
-    throw new Error("No decision was received from the stream");
-  }
-
-  const strictToolCallRequest = finalDecision.toolCallRequest;
-  if (strictToolCallRequest) {
-    const originalTool = originalTools.find(
-      (tool) => getToolName(tool) === strictToolCallRequest.toolName,
-    );
-    if (!originalTool) {
-      throw new Error("Original tool not found");
-    }
-    const finalToolCallRequest = unstrictifyToolCallRequest(
-      originalTool,
-      strictToolCallRequest,
-    );
-    finalDecision = {
-      ...finalDecision,
-      toolCallRequest: finalToolCallRequest,
-    };
-  }
-
-  return finalDecision;
-}
 
 /**
  * Update the generation stage of a thread
@@ -88,75 +37,6 @@ export async function updateGenerationStage(
     generationStage,
     statusMessage,
   });
-}
-
-/**
- * Process the newest message in a thread.
- *
- * If it is a tool message (response to a tool call) then we hydrate the component.
- * Otherwise, we choose a component to generate.
- *
- * @param db
- * @param threadId
- * @param messages
- * @param advanceRequestDto
- * @param tamboBackend
- * @param allTools
- * @param mcpClients - MCP clients for resource fetching
- * @returns
- */
-export async function processThreadMessage(
-  db: HydraDatabase,
-  threadId: string,
-  messages: ThreadMessage[],
-  userMessage: ThreadMessage,
-  advanceRequestDto: AdvanceThreadDto,
-  tamboBackend: ITamboBackend,
-  allTools: ToolRegistry,
-  mcpClients: ThreadMcpClient[],
-): Promise<LegacyComponentDecision> {
-  const latestMessage = messages[messages.length - 1];
-  // For tool responses, we can fully hydrate the component
-  if (latestMessage.role === MessageRole.Tool) {
-    await updateGenerationStage(
-      db,
-      threadId,
-      GenerationStage.HYDRATING_COMPONENT,
-      `Hydrating ${latestMessage.component?.componentName}...`,
-    );
-
-    const toolResponse = validateToolResponse(userMessage);
-    if (!toolResponse) {
-      throw new Error("No tool response found");
-    }
-  } else {
-    // For non-tool responses, we need to generate a component
-    await updateGenerationStage(
-      db,
-      threadId,
-      GenerationStage.CHOOSING_COMPONENT,
-      `Choosing component...`,
-    );
-  }
-  const { strictTools, originalTools } = getToolsFromSources(
-    allTools,
-    advanceRequestDto.availableComponents ?? [],
-  );
-
-  // Build resource fetchers from MCP clients
-  const resourceFetchers = createResourceFetcherMap(mcpClients);
-
-  const decisionStream = await tamboBackend.runDecisionLoop({
-    messages,
-    strictTools,
-    forceToolChoice:
-      latestMessage.role === MessageRole.User
-        ? advanceRequestDto.forceToolChoice
-        : undefined,
-    resourceFetchers,
-  });
-
-  return await getFinalDecision(decisionStream, originalTools);
 }
 
 /**
@@ -216,71 +96,6 @@ function isThreadProcessing(generationStage: GenerationStage) {
     GenerationStage.HYDRATING_COMPONENT,
     GenerationStage.CHOOSING_COMPONENT,
   ].includes(generationStage);
-}
-
-/**
- * Add an assistant response to a thread, making sure that the thread is not already in the middle of processing.
- */
-export async function addAssistantResponse(
-  db: HydraDatabase,
-  threadId: string,
-  newestMessageId: string,
-  responseMessage: LegacyComponentDecision,
-  logger?: Logger,
-): Promise<{
-  responseMessageDto: ThreadMessage;
-  resultingGenerationStage: GenerationStage;
-  resultingStatusMessage: string;
-}> {
-  try {
-    const result = await db.transaction(
-      async (tx) => {
-        await verifyLatestMessageConsistency(
-          tx,
-          threadId,
-          newestMessageId,
-          false,
-        );
-
-        const responseMessageDto = await addAssistantMessageToThread(
-          tx,
-          responseMessage,
-          threadId,
-        );
-
-        const resultingGenerationStage = responseMessage.toolCallRequest
-          ? GenerationStage.FETCHING_CONTEXT
-          : GenerationStage.COMPLETE;
-        const resultingStatusMessage = responseMessage.toolCallRequest
-          ? `Fetching context...`
-          : `Complete`;
-
-        await updateGenerationStage(
-          tx,
-          threadId,
-          resultingGenerationStage,
-          resultingStatusMessage,
-        );
-
-        return {
-          responseMessageDto,
-          resultingGenerationStage,
-          resultingStatusMessage,
-        };
-      },
-      {
-        isolationLevel: "read committed",
-      },
-    );
-
-    return result;
-  } catch (error) {
-    logger?.error(
-      "Transaction failed: Adding assistant response.",
-      (error as Error).stack,
-    );
-    throw error;
-  }
 }
 
 /**
@@ -353,6 +168,18 @@ export function updateThreadMessageFromLegacyDecision(
   // duplication, because they appear in the thread message
   const { reasoning, isToolCallFinished, ...simpleDecisionChunk } = chunk;
 
+  // For UI tools, strip tool call fields from the component field
+  // so the client never sees them as tool calls
+  let component = simpleDecisionChunk;
+  if (chunk.toolCallRequest && isUiToolName(chunk.toolCallRequest.toolName)) {
+    const {
+      toolCallRequest: _toolCallRequest,
+      toolCallId: _toolCallId,
+      ...componentWithoutToolCall
+    } = simpleDecisionChunk;
+    component = componentWithoutToolCall;
+  }
+
   const commonFields = {
     id: initialMessage.id,
     threadId: initialMessage.threadId,
@@ -370,7 +197,7 @@ export function updateThreadMessageFromLegacyDecision(
         text: chunk.message,
       },
     ],
-    component: simpleDecisionChunk,
+    component,
   };
 
   // Handle reasoning and tool calls based on role
@@ -382,11 +209,19 @@ export function updateThreadMessageFromLegacyDecision(
       reasoningDurationMS: chunk.reasoningDurationMS,
     };
 
-    // Only set outer tool call fields if tool call is finished.
-    if (isToolCallFinished && chunk.toolCallRequest) {
-      currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
-      currentThreadMessage.tool_call_id = chunk.toolCallId;
-      currentThreadMessage.actionType = ActionType.ToolCall;
+    // Handle tool call fields differently for UI tools vs non-UI tools:
+    // - UI tools: Set fields as soon as we have valid toolCallRequest and toolCallId
+    //   (so they're tracked as tool calls during streaming)
+    // - Non-UI tools: Only set fields when isToolCallFinished is true
+    //   (so client SDK doesn't call them until complete)
+    if (chunk.toolCallRequest && chunk.toolCallId) {
+      const isUITool = isUiToolName(chunk.toolCallRequest.toolName);
+
+      if (isUITool || isToolCallFinished) {
+        currentThreadMessage.toolCallRequest = chunk.toolCallRequest;
+        currentThreadMessage.tool_call_id = chunk.toolCallId;
+        currentThreadMessage.actionType = ActionType.ToolCall;
+      }
     }
 
     return currentThreadMessage;

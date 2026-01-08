@@ -19,6 +19,48 @@ import { useState } from "react";
 import { Streamdown } from "streamdown";
 
 /**
+ * Converts message content to markdown format for rendering with streamdown.
+ * Handles text and resource content parts, converting resources to markdown links
+ * with a custom URL scheme that will be rendered as Mention components.
+ *
+ * @param content - The message content (string, element, array, etc.)
+ * @returns A markdown string ready for streamdown rendering
+ */
+function convertContentToMarkdown(
+  content: TamboThreadMessage["content"] | React.ReactNode | undefined | null,
+): string {
+  if (!content) return "";
+  if (typeof content === "string") return content;
+  if (React.isValidElement(content)) {
+    // For React elements, we can't convert to markdown - this shouldn't happen
+    // in normal flow, but keep backward compatibility
+    return "";
+  }
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const item of content) {
+      if (item?.type === "text") {
+        parts.push(item.text ?? "");
+      } else if (item?.type === "resource") {
+        const resource = item.resource;
+        const uri = resource?.uri;
+        if (uri) {
+          // Use resource name for display, fallback to URI if no name
+          const displayName = resource?.name ?? uri;
+          // Use a custom protocol that looks more standard to avoid blocking
+          // Format: tambo-resource://<encoded-uri>
+          // We'll detect this in the link component and decode the URI
+          const encodedUri = encodeURIComponent(uri);
+          parts.push(`[${displayName}](tambo-resource://${encodedUri})`);
+        }
+      }
+    }
+    return parts.join(" ");
+  }
+  return "";
+}
+
+/**
  * CSS variants for the message container
  * @typedef {Object} MessageVariants
  * @property {string} default - Default styling
@@ -185,11 +227,11 @@ LoadingIndicator.displayName = "LoadingIndicator";
  */
 function MessageContentRenderer({
   contentToRender,
-  safeContent,
+  markdownContent,
   markdown,
 }: {
   contentToRender: unknown;
-  safeContent: string | React.ReactElement;
+  markdownContent: string;
   markdown: boolean;
 }) {
   if (!contentToRender) {
@@ -200,12 +242,10 @@ function MessageContentRenderer({
   }
   if (markdown) {
     return (
-      <Streamdown components={markdownComponents}>
-        {typeof safeContent === "string" ? safeContent : ""}
-      </Streamdown>
+      <Streamdown components={markdownComponents}>{markdownContent}</Streamdown>
     );
   }
-  return safeContent;
+  return markdownContent;
 }
 
 /**
@@ -263,7 +303,7 @@ export interface MessageContentProps extends Omit<
   "content"
 > {
   /** Optional override for the message content. If not provided, uses the content from the message object in the context. */
-  content?: string | { type: string; text?: string }[];
+  content?: string | TamboThreadMessage["content"];
   /** Optional flag to render as Markdown. Default is true. */
   markdown?: boolean;
 }
@@ -281,12 +321,12 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
     const { message, isLoading } = useMessageContext();
     const contentToRender = children ?? contentProp ?? message.content;
 
-    const safeContent = React.useMemo(
-      () => getSafeContent(contentToRender as TamboThreadMessage["content"]),
-      [contentToRender],
-    );
+    const markdownContent = React.useMemo(() => {
+      const result = convertContentToMarkdown(contentToRender);
+      return result;
+    }, [contentToRender]);
     const hasContent = React.useMemo(
-      () => checkHasContent(contentToRender as TamboThreadMessage["content"]),
+      () => checkHasContent(contentToRender),
       [contentToRender],
     );
 
@@ -316,7 +356,7 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
           >
             <MessageContentRenderer
               contentToRender={contentToRender}
-              safeContent={safeContent}
+              markdownContent={markdownContent}
               markdown={markdown}
             />
             {message.isCancelled && (
@@ -440,7 +480,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
             aria-controls={toolDetailsId}
             onClick={() => setIsExpanded(!isExpanded)}
             className={cn(
-              "flex items-center gap-1 cursor-pointer hover:bg-gray-100 rounded-md p-1 select-none w-fit",
+              "flex items-center gap-1 cursor-pointer hover:bg-muted rounded-md p-1 select-none w-fit",
             )}
           >
             <ToolcallStatusIcon

@@ -311,9 +311,9 @@ describe("ThreadsService.advanceThread initialization", () => {
     ]);
 
     operations.addMessage.mockImplementation(
-      async (_db: any, input: typeof schema.messages.$inferInsert) => ({
+      async (_db: any, threadIdInput: string, input: any) => ({
         id: "u1",
-        threadId: input.threadId,
+        threadId: threadIdInput,
         role: input.role,
         parentMessageId: input.parentMessageId ?? null,
         content: input.content,
@@ -321,9 +321,9 @@ describe("ThreadsService.advanceThread initialization", () => {
         metadata: input.metadata ?? null,
         actionType: input.actionType ?? null,
         toolCallRequest: input.toolCallRequest ?? null,
-        toolCallId: input.toolCallId ?? null,
+        toolCallId: input.tool_call_id ?? null,
         componentState: input.componentState ?? {},
-        componentDecision: input.componentDecision ?? null,
+        componentDecision: input.component ?? null,
         error: input.error ?? null,
         isCancelled: input.isCancelled ?? false,
         additionalContext: input.additionalContext ?? {},
@@ -411,9 +411,9 @@ describe("ThreadsService.advanceThread initialization", () => {
         throw new Error("STOP_AFTER_INIT");
       });
 
-    await expect(
-      service.advanceThread(projectId, dto, undefined, true),
-    ).rejects.toThrow("STOP_AFTER_INIT");
+    await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+      "STOP_AFTER_INIT",
+    );
 
     // Verify system tools were retrieved from database
     expect(operations.getProjectMcpServers).toHaveBeenCalledWith(
@@ -441,7 +441,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         undefined, // queue
@@ -480,9 +479,9 @@ describe("ThreadsService.advanceThread initialization", () => {
       throw new Error("STOP_AFTER_INIT");
     });
 
-    await expect(
-      service.advanceThread(projectId, dto, undefined, false),
-    ).rejects.toThrow("STOP_AFTER_INIT");
+    await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+      "STOP_AFTER_INIT",
+    );
 
     expect(__testRunDecisionLoop__).toHaveBeenCalledTimes(1);
     const callArg = __testRunDecisionLoop__.mock.calls[0][0];
@@ -539,7 +538,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined, // let service create new thread
-        true,
         {},
         undefined,
         queue,
@@ -591,7 +589,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -631,7 +628,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -678,7 +674,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true, // streaming enabled (but only one message pushed)
         {},
         undefined,
         queue,
@@ -728,7 +723,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -788,7 +782,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -839,7 +832,6 @@ describe("ThreadsService.advanceThread initialization", () => {
         projectId,
         dto,
         undefined,
-        true,
         {},
         undefined,
         queue,
@@ -1138,8 +1130,8 @@ describe("ThreadsService.advanceThread initialization", () => {
         );
         expect(operations.addMessage).toHaveBeenCalledWith(
           fakeDb,
+          threadId,
           expect.objectContaining({
-            threadId,
             role: MessageRole.Assistant,
             content: [{ type: ContentPartType.Text, text: "" }],
           }),
@@ -1182,11 +1174,11 @@ describe("ThreadsService.advanceThread initialization", () => {
         // Check that operations.addMessage was called with the right structure
         expect(operations.addMessage).toHaveBeenCalledWith(
           fakeDb,
+          threadId,
           expect.objectContaining({
-            threadId,
             role: MessageRole.Tool,
             actionType: "tool_response",
-            toolCallId: "tc_123",
+            tool_call_id: "tc_123",
             content: [{ type: ContentPartType.Text, text: "" }],
           }),
         );

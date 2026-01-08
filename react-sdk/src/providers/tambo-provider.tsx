@@ -1,5 +1,6 @@
 "use client";
 import React, { PropsWithChildren, createContext, useContext } from "react";
+import { TamboMcpProvider } from "../mcp/tambo-mcp-provider";
 import { TamboInteractableContext } from "../model/tambo-interactable";
 import {
   TamboClientContext,
@@ -15,7 +16,6 @@ import {
 import {
   ContextAttachmentState,
   TamboContextAttachmentProvider,
-  TamboContextAttachmentProviderProps,
   useTamboContextAttachment,
 } from "./tambo-context-attachment-provider";
 import {
@@ -33,10 +33,7 @@ import {
   TamboRegistryProvider,
   TamboRegistryProviderProps,
 } from "./tambo-registry-provider";
-import {
-  TamboThreadInputProvider,
-  TamboThreadInputProviderProps,
-} from "./tambo-thread-input-provider";
+import { TamboThreadInputProvider } from "./tambo-thread-input-provider";
 import {
   TamboGenerationStageContextProps,
   TamboThreadContextProps,
@@ -64,7 +61,6 @@ import {
  * @param props.contextKey - Optional context key passed to thread input provider for scoping threads
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
  * @param props.initialMessages - Initial messages to be included in new threads
- * @param props.getContextHelperData - Optional function to customize the data sent to the AI for each context attachment
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
@@ -72,9 +68,7 @@ export const TamboProvider: React.FC<
     TamboClientProviderProps &
       TamboRegistryProviderProps &
       TamboThreadProviderProps &
-      TamboContextHelpersProviderProps &
-      TamboThreadInputProviderProps &
-      Partial<Pick<TamboContextAttachmentProviderProps, "getContextHelperData">>
+      TamboContextHelpersProviderProps
   >
 > = ({
   children,
@@ -92,7 +86,9 @@ export const TamboProvider: React.FC<
   contextKey,
   initialMessages,
   onCallUnregisteredTool,
-  getContextHelperData,
+  getResource,
+  listResources,
+  resources,
 }) => {
   return (
     <TamboClientProvider
@@ -106,28 +102,32 @@ export const TamboProvider: React.FC<
         tools={tools}
         mcpServers={mcpServers}
         onCallUnregisteredTool={onCallUnregisteredTool}
+        getResource={getResource}
+        listResources={listResources}
+        resources={resources}
       >
         <TamboContextHelpersProvider contextHelpers={contextHelpers}>
           <TamboThreadProvider
+            contextKey={contextKey}
             streaming={streaming}
             autoGenerateThreadName={autoGenerateThreadName}
             autoGenerateNameThreshold={autoGenerateNameThreshold}
             initialMessages={initialMessages}
           >
             <TamboMcpTokenProvider>
-              <TamboThreadInputProvider contextKey={contextKey}>
-                <TamboContextAttachmentProvider
-                  getContextHelperData={getContextHelperData}
-                >
+              <TamboMcpProvider contextKey={contextKey}>
+                <TamboContextAttachmentProvider>
                   <TamboComponentProvider>
                     <TamboInteractableProvider>
-                      <TamboCompositeProvider>
-                        {children}
-                      </TamboCompositeProvider>
+                      <TamboThreadInputProvider>
+                        <TamboCompositeProvider>
+                          {children}
+                        </TamboCompositeProvider>
+                      </TamboThreadInputProvider>
                     </TamboInteractableProvider>
                   </TamboComponentProvider>
                 </TamboContextAttachmentProvider>
-              </TamboThreadInputProvider>
+              </TamboMcpProvider>
             </TamboMcpTokenProvider>
           </TamboThreadProvider>
         </TamboContextHelpersProvider>

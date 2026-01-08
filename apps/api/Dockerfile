@@ -42,12 +42,11 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV TURBO_TELEMETRY_DISABLED=1
 ENV TURBO_CACHE_DIR=/workspace/.turbo/cache
+ARG TURBO_TEAM
+ARG TURBO_API
 
 # Build the application
-RUN \
-  --mount=type=secret,id=TURBO_TEAM,env=TURBO_TEAM \
-  --mount=type=secret,id=TURBO_TOKEN,env=TURBO_TOKEN \
-  --mount=type=secret,id=TURBO_API,env=TURBO_API \
+RUN --mount=type=secret,id=TURBO_TOKEN,env=TURBO_TOKEN \
   npx turbo run build --filter="@tambo-ai-cloud/api"
 
 # ---- /builder ----

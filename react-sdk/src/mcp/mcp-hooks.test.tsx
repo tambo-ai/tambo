@@ -10,6 +10,7 @@ import {
   useTamboMcpPromptList,
   useTamboMcpResourceList,
   useTamboMcpResource,
+  isMcpResourceEntry,
   type ListPromptEntry,
   type ListResourceEntry,
 } from "./mcp-hooks";
@@ -268,17 +269,17 @@ describe("useTamboMcpPromptList - individual server caching", () => {
     );
 
     // Wait for prompts to be updated (server B prompts should disappear)
-    // When only 1 server remains, prompts should NOT be prefixed
+    // Prompts are now always prefixed (breaking change)
     await waitFor(() => {
       expect(capturedPrompts.length).toBe(2);
     });
 
     const updatedPromptNames = capturedPrompts.map((p) => p.prompt.name);
-    expect(updatedPromptNames).toContain("prompt-a1");
-    expect(updatedPromptNames).toContain("prompt-a2");
+    expect(updatedPromptNames).toContain("server-a:prompt-a1");
+    expect(updatedPromptNames).toContain("server-a:prompt-a2");
     expect(updatedPromptNames).not.toContain("prompt-b1");
     expect(updatedPromptNames).not.toContain("prompt-b2");
-    expect(updatedPromptNames).not.toContain("server-a:prompt-a1"); // No prefix when only 1 server
+    expect(updatedPromptNames).not.toContain("prompt-a1"); // Always prefixed now
 
     // Verify server B's client was closed
     expect(clientB.close).toHaveBeenCalled();
@@ -550,12 +551,14 @@ describe("useTamboMcpPromptList - individual server caching", () => {
       </TamboClientContext.Provider>,
     );
 
-    // Wait for initial prompts from server A
+    // Wait for initial prompts from server A (always prefixed)
     await waitFor(() => {
       expect(capturedPrompts.length).toBe(1);
     });
 
-    expect(capturedPrompts.map((p) => p.prompt.name)).toContain("prompt-a");
+    expect(capturedPrompts.map((p) => p.prompt.name)).toContain(
+      "server-a:prompt-a",
+    );
 
     // Add server B
     rerender(
@@ -599,6 +602,194 @@ describe("useTamboMcpPromptList - individual server caching", () => {
   });
 });
 
+describe("useTamboMcpPromptList - search filtering", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    createImpl = jest.fn();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+  });
+
+  it("should filter MCP prompts locally by search string", async () => {
+    const serverAPrompts = {
+      prompts: [
+        { name: "create-issue", description: "Create a new issue" },
+        { name: "list-tasks", description: "List all tasks" },
+        { name: "search-docs", description: "Search documentation" },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue(serverAPrompts),
+      listResources: jest.fn().mockResolvedValue({ resources: [] }),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async () => clientA);
+
+    let capturedPrompts: ListPromptEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: prompts } = useTamboMcpPromptList(search);
+      useEffect(() => {
+        if (prompts) {
+          capturedPrompts = prompts;
+        }
+      }, [prompts]);
+      return null;
+    };
+
+    const { rerender } = render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for all prompts to be loaded (no search)
+    await waitFor(() => {
+      expect(capturedPrompts.length).toBe(3);
+    });
+
+    // Now search for "issue"
+    rerender(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="issue" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Should only have the create-issue prompt
+    await waitFor(() => {
+      expect(capturedPrompts.length).toBe(1);
+    });
+
+    expect(capturedPrompts[0].prompt.name).toBe("server-a:create-issue");
+
+    // MCP listPrompts should only be called once (not re-fetched on search change)
+    expect(mockClientA.listPrompts).toHaveBeenCalledTimes(1);
+  });
+
+  it("should filter prompts case-insensitively", async () => {
+    const serverAPrompts = {
+      prompts: [
+        { name: "Create-Issue", description: "Create a new issue" },
+        { name: "list-tasks", description: "List all tasks" },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue(serverAPrompts),
+      listResources: jest.fn().mockResolvedValue({ resources: [] }),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async () => clientA);
+
+    let capturedPrompts: ListPromptEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: prompts } = useTamboMcpPromptList(search);
+      useEffect(() => {
+        if (prompts) {
+          capturedPrompts = prompts;
+        }
+      }, [prompts]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="CREATE" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Should find "Create-Issue" even though search is uppercase
+    await waitFor(() => {
+      expect(capturedPrompts.length).toBe(1);
+    });
+
+    expect(capturedPrompts[0].prompt.name).toBe("server-a:Create-Issue");
+  });
+});
+
 describe("useTamboMcpResourceList - resource management", () => {
   let queryClient: QueryClient;
 
@@ -615,6 +806,31 @@ describe("useTamboMcpResourceList - resource management", () => {
 
   afterEach(() => {
     queryClient.clear();
+  });
+
+  it("should identify MCP-backed entries with isMcpResourceEntry", () => {
+    const registryEntry: ListResourceEntry = {
+      server: null,
+      // Resource shape is not important for this helper, so cast to keep the
+      // test focused on the discriminant field.
+      resource: {
+        uri: "file:///registry/doc.txt",
+        name: "Registry Doc",
+        mimeType: "text/plain",
+      } as any,
+    };
+
+    const mcpEntry: ListResourceEntry = {
+      server: { key: "server-a", client: {} } as any,
+      resource: {
+        uri: "server-a:file:///home/user/doc.txt",
+        name: "Document",
+        mimeType: "text/plain",
+      } as any,
+    };
+
+    expect(isMcpResourceEntry(mcpEntry)).toBe(true);
+    expect(isMcpResourceEntry(registryEntry)).toBe(false);
   });
 
   it("should fetch and combine resources from multiple servers", async () => {
@@ -734,15 +950,19 @@ describe("useTamboMcpResourceList - resource management", () => {
     const resource1 = capturedResources.find(
       (r) => r.resource.uri === "server-a:file:///home/user/doc1.txt",
     );
-    expect(resource1?.server.url).toBe("https://server-a.example");
+    expect(resource1).toBeDefined();
+    expect(resource1!.server).not.toBeNull();
+    expect(resource1!.server!.url).toBe("https://server-a.example");
 
     const resource2 = capturedResources.find(
       (r) => r.resource.uri === "server-b:file:///workspace/code.js",
     );
-    expect(resource2?.server.url).toBe("https://server-b.example");
+    expect(resource2).toBeDefined();
+    expect(resource2!.server).not.toBeNull();
+    expect(resource2!.server!.url).toBe("https://server-b.example");
   });
 
-  it("should not prefix resources when only one server exists", async () => {
+  it("should always prefix MCP resources even with single server", async () => {
     const serverAResources = {
       resources: [
         {
@@ -808,11 +1028,13 @@ describe("useTamboMcpResourceList - resource management", () => {
       expect(capturedResources.length).toBe(1);
     });
 
-    // No prefix when only 1 server
-    expect(capturedResources[0].resource.uri).toBe("file:///home/user/doc.txt");
+    // Always prefix MCP resources, even with 1 server (breaking change)
+    expect(capturedResources[0].resource.uri).toBe(
+      "server-a:file:///home/user/doc.txt",
+    );
   });
 
-  it("should remove resource prefixes when a server is removed", async () => {
+  it("should maintain prefixes even when servers are removed", async () => {
     const serverAResources = {
       resources: [
         {
@@ -942,16 +1164,405 @@ describe("useTamboMcpResourceList - resource management", () => {
       </TamboClientContext.Provider>,
     );
 
-    // Wait for server B resources to be removed and prefixes stripped
+    // Wait for server B resources to be removed (prefixes maintained)
     await waitFor(() => {
       expect(capturedResources.length).toBe(2);
     });
 
     const updatedUris = capturedResources.map((r) => r.resource.uri);
-    expect(updatedUris).toContain("file:///home/user/doc1.txt"); // No prefix
-    expect(updatedUris).toContain("file:///home/user/doc2.txt");
-    expect(updatedUris).not.toContain("server-a:file:///home/user/doc1.txt"); // No prefix when only 1 server
+    // Prefixes are maintained even with only 1 server (breaking change)
+    expect(updatedUris).toContain("server-a:file:///home/user/doc1.txt");
+    expect(updatedUris).toContain("server-a:file:///home/user/doc2.txt");
+    expect(updatedUris).not.toContain("file:///home/user/doc1.txt"); // Always prefixed now
     expect(updatedUris).not.toContain("server-b:file:///workspace/code.js"); // Server B removed
+  });
+});
+
+describe("useTamboMcpResourceList - search filtering", () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    createImpl = jest.fn();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+  });
+
+  afterEach(() => {
+    queryClient.clear();
+  });
+
+  it("should filter MCP resources locally by search string", async () => {
+    const serverAResources = {
+      resources: [
+        {
+          uri: "file:///home/user/document.txt",
+          name: "My Document",
+          mimeType: "text/plain",
+        },
+        {
+          uri: "file:///home/user/image.png",
+          name: "My Image",
+          mimeType: "image/png",
+        },
+        {
+          uri: "file:///home/user/notes.txt",
+          name: "Notes",
+          mimeType: "text/plain",
+        },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverAResources),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async () => clientA);
+
+    let capturedResources: ListResourceEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: resources } = useTamboMcpResourceList(search);
+      useEffect(() => {
+        if (resources) {
+          capturedResources = resources;
+        }
+      }, [resources]);
+      return null;
+    };
+
+    const { rerender } = render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for all resources to be loaded (no search)
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(3);
+    });
+
+    // Now search for "document"
+    rerender(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="document" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Should only have the document resource
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(1);
+    });
+
+    expect(capturedResources[0].resource.name).toBe("My Document");
+
+    // MCP listResources should only be called once (not re-fetched on search change)
+    expect(mockClientA.listResources).toHaveBeenCalledTimes(1);
+  });
+
+  it("should pass search string to registry listResources for dynamic generation", async () => {
+    const listResources = jest
+      .fn()
+      .mockImplementation(async (search?: string) => {
+        // Dynamically generate resources based on search
+        if (!search) return [];
+        return [
+          {
+            uri: `dynamic://${search}`,
+            name: `Dynamic Resource for ${search}`,
+            mimeType: "text/plain",
+          },
+        ];
+      });
+    const getResource = jest.fn().mockResolvedValue({
+      contents: [{ uri: "test", text: "test content", mimeType: "text/plain" }],
+    });
+
+    let capturedResources: ListResourceEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: resources } = useTamboMcpResourceList(search);
+      useEffect(() => {
+        if (resources) {
+          capturedResources = resources;
+        }
+      }, [resources]);
+      return null;
+    };
+
+    const { rerender } = render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          listResources={listResources}
+          getResource={getResource}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="foo" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for dynamic resource to be generated
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(1);
+    });
+
+    // Verify listResources was called with the search string
+    expect(listResources).toHaveBeenCalledWith("foo");
+    expect(capturedResources[0].resource.name).toBe("Dynamic Resource for foo");
+    // Registry resources get the "registry:" prefix
+    expect(capturedResources[0].resource.uri).toBe("registry:dynamic://foo");
+
+    // Now search for "bar"
+    rerender(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          listResources={listResources}
+          getResource={getResource}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="bar" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for new dynamic resource
+    await waitFor(() => {
+      expect(capturedResources[0].resource.uri).toBe("registry:dynamic://bar");
+    });
+
+    // listResources should be called again with new search
+    expect(listResources).toHaveBeenCalledWith("bar");
+    expect(capturedResources[0].resource.name).toBe("Dynamic Resource for bar");
+  });
+
+  it("should not locally substring-filter dynamic registry resources", async () => {
+    const listResources = jest
+      .fn()
+      .mockImplementation(async (search?: string) => {
+        if (!search) return [];
+        // Simulate a provider that matches resources using non-substring logic.
+        return [
+          {
+            uri: "dynamic://matched-by-provider",
+            name: "Smart Match",
+            mimeType: "text/plain",
+          },
+        ];
+      });
+    const getResource = jest.fn().mockResolvedValue({
+      contents: [{ uri: "test", text: "test content", mimeType: "text/plain" }],
+    });
+
+    let capturedResources: ListResourceEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: resources } = useTamboMcpResourceList(search);
+      useEffect(() => {
+        if (resources) {
+          capturedResources = resources;
+        }
+      }, [resources]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          listResources={listResources}
+          getResource={getResource}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="foo" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(capturedResources.length).toBe(1);
+    });
+
+    expect(listResources).toHaveBeenCalledWith("foo");
+    expect(capturedResources[0].server).toBeNull();
+    expect(capturedResources[0].resource.name).toBe("Smart Match");
+    expect(capturedResources[0].resource.uri).toBe(
+      "registry:dynamic://matched-by-provider",
+    );
+  });
+
+  it("should combine MCP filtered resources with dynamically generated registry resources", async () => {
+    const serverAResources = {
+      resources: [
+        {
+          uri: "file:///apple.txt",
+          name: "Apple",
+          mimeType: "text/plain",
+        },
+        {
+          uri: "file:///banana.txt",
+          name: "Banana",
+          mimeType: "text/plain",
+        },
+      ],
+    };
+
+    const mockClientA = {
+      listTools: jest.fn().mockResolvedValue([]),
+      listPrompts: jest.fn().mockResolvedValue({ prompts: [] }),
+      listResources: jest.fn().mockResolvedValue(serverAResources),
+      close: jest.fn(),
+    };
+
+    const clientA = {
+      client: mockClientA,
+      listTools: jest.fn().mockResolvedValue([]),
+      close: jest.fn(),
+    };
+
+    createImpl.mockImplementation(async () => clientA);
+
+    const listResources = jest
+      .fn()
+      .mockImplementation(async (search?: string) => {
+        // Always return a resource that includes the search term
+        return [
+          {
+            uri: `registry://${search ?? "all"}`,
+            name: `Registry ${search ?? "all"}`,
+            mimeType: "text/plain",
+          },
+        ];
+      });
+    const getResource = jest.fn().mockResolvedValue({
+      contents: [{ uri: "test", text: "test", mimeType: "text/plain" }],
+    });
+
+    let capturedResources: ListResourceEntry[] = [];
+    const Capture: React.FC<{ search?: string }> = ({ search }) => {
+      const { data: resources } = useTamboMcpResourceList(search);
+      useEffect(() => {
+        if (resources) {
+          capturedResources = resources;
+        }
+      }, [resources]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          mcpServers={[
+            {
+              url: "https://server-a.example",
+              transport: MCPTransport.SSE,
+            },
+          ]}
+          listResources={listResources}
+          getResource={getResource}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture search="apple" />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    // Wait for resources
+    await waitFor(() => {
+      // Should have: 1 MCP resource (Apple filtered) + 1 registry resource (dynamic)
+      expect(capturedResources.length).toBe(2);
+    });
+
+    const uris = capturedResources.map((r) => r.resource.uri);
+    // MCP "Apple" should match (filtered locally)
+    expect(uris).toContain("server-a:file:///apple.txt");
+    // Registry dynamic resource
+    expect(uris).toContain("registry:registry://apple");
+    // MCP "Banana" should NOT be included (filtered out)
+    expect(uris).not.toContain("server-a:file:///banana.txt");
   });
 });
 
@@ -973,7 +1584,7 @@ describe("useTamboMcpResource - read individual resource", () => {
     queryClient.clear();
   });
 
-  it("should read a resource from a single server (unprefixed)", async () => {
+  it("should read a resource from a single server (prefixed)", async () => {
     const serverAResources = {
       resources: [
         {
@@ -1012,8 +1623,9 @@ describe("useTamboMcpResource - read individual resource", () => {
 
     let capturedResourceData: any = null;
     const Capture: React.FC = () => {
+      // MCP resources are always prefixed, even with single server
       const { data: resourceData } = useTamboMcpResource(
-        "file:///home/user/doc.txt",
+        "server-a:file:///home/user/doc.txt",
       );
       useEffect(() => {
         if (resourceData) {
@@ -1172,5 +1784,62 @@ describe("useTamboMcpResource - read individual resource", () => {
     expect(mockClientA.readResource).toHaveBeenCalledWith({
       uri: "file:///home/user/doc.txt",
     });
+  });
+
+  it("should read registry resources via resourceSource with registry prefix", async () => {
+    const originalUri = "file:///local/registry-doc.txt";
+    const prefixedUri = `registry:${originalUri}`;
+
+    const listResources = jest.fn().mockResolvedValue([]);
+    const getResource = jest.fn().mockResolvedValue({
+      contents: [
+        {
+          uri: originalUri,
+          mimeType: "text/plain",
+          text: "Registry content",
+        },
+      ],
+    });
+
+    let capturedResourceData: any = null;
+    const Capture: React.FC = () => {
+      // Request with registry: prefix
+      const { data: resourceData } = useTamboMcpResource(prefixedUri);
+      useEffect(() => {
+        if (resourceData) {
+          capturedResourceData = resourceData;
+        }
+      }, [resourceData]);
+      return null;
+    };
+
+    render(
+      <TamboClientContext.Provider
+        value={{
+          client: { baseURL: "https://api.tambo.co" } as any,
+          queryClient,
+          isUpdatingToken: false,
+        }}
+      >
+        <TamboRegistryProvider
+          listResources={listResources}
+          getResource={getResource}
+        >
+          <TamboMcpTokenProvider>
+            <TamboMcpProvider>
+              <Capture />
+            </TamboMcpProvider>
+          </TamboMcpTokenProvider>
+        </TamboRegistryProvider>
+      </TamboClientContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(capturedResourceData).not.toBeNull();
+    });
+
+    // getResource should be called with the original URI (prefix stripped)
+    expect(getResource).toHaveBeenCalledWith(originalUri);
+    expect(capturedResourceData.contents[0].text).toBe("Registry content");
   });
 });

@@ -1,5 +1,70 @@
 # Changelog
 
+## [1.22.0](https://github.com/tambo-ai/tambo/compare/docs-v1.21.1...docs-v1.22.0) (2026-01-07)
+
+
+### Features
+
+* **api:** remove non-streaming advance thread endpoints ([#1648](https://github.com/tambo-ai/tambo/issues/1648)) ([3802c8d](https://github.com/tambo-ai/tambo/commit/3802c8deb24e8b72140656418b5e5f0549bbf228))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump framer-motion from 12.23.24 to 12.23.26 ([#1644](https://github.com/tambo-ai/tambo/issues/1644)) ([34cc795](https://github.com/tambo-ai/tambo/commit/34cc795100121f8b1a4469b9a34a3113ba7bd424))
+* **deps:** bump posthog-js from 1.310.1 to 1.311.0 in the small-safe-packages group across 1 directory ([#1636](https://github.com/tambo-ai/tambo/issues/1636)) ([67d8ba3](https://github.com/tambo-ai/tambo/commit/67d8ba3fdbf22a25e91d0ed624e4ca7272f6b2dd))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1629](https://github.com/tambo-ai/tambo/issues/1629)) ([7655ca7](https://github.com/tambo-ai/tambo/commit/7655ca77bfa5843e30c0d1447cc705c572c5fe41))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1641](https://github.com/tambo-ai/tambo/issues/1641)) ([154b264](https://github.com/tambo-ai/tambo/commit/154b2647a3ba3ee836a521d4a23a20e80d68e497))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+
+## [1.21.1](https://github.com/tambo-ai/tambo/compare/docs-v1.21.0...docs-v1.21.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps:** Bump @tambo-ai/typescript-sdk to get tool maxCalls ([#1533](https://github.com/tambo-ai/tambo/issues/1533)) ([97e85ba](https://github.com/tambo-ai/tambo/commit/97e85ba0eb334a8b3b482a0cff368d2528b91d74))
+* **deps:** bump dompurify from 3.3.0 to 3.3.1 ([#1555](https://github.com/tambo-ai/tambo/issues/1555)) ([cbc3328](https://github.com/tambo-ai/tambo/commit/cbc332845171e87d4f04c11429af8acbf1e4b0d3))
+* **deps:** bump the next group with 2 updates ([#1543](https://github.com/tambo-ai/tambo/issues/1543)) ([86e399f](https://github.com/tambo-ai/tambo/commit/86e399fbb3b10aacfb626af96bfd0e5880e1d78a))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1546](https://github.com/tambo-ai/tambo/issues/1546)) ([462d2c8](https://github.com/tambo-ai/tambo/commit/462d2c8f23f11512ccd3de6caa89c6d9cbb5bf69))
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+* remove tambo-cloud directory after migration ([#1521](https://github.com/tambo-ai/tambo/issues/1521)) ([686dde6](https://github.com/tambo-ai/tambo/commit/686dde6fcc1f612b092d750359ac1f1b56055d9b))
+
+
+### Documentation
+
+* clarify per-user auth and MCP server auth ([#1517](https://github.com/tambo-ai/tambo/issues/1517)) ([5030748](https://github.com/tambo-ai/tambo/commit/5030748fbf056768b6dcdf7b5536762a1d5f86f4))
+* use relative internal docs links ([#1523](https://github.com/tambo-ai/tambo/issues/1523)) ([c3e4b1a](https://github.com/tambo-ai/tambo/commit/c3e4b1a47ebb01d6710165fdc932119ca693aed9))
+
+## [1.21.0](https://github.com/tambo-ai/tambo/compare/docs-v1.20.0...docs-v1.21.0) (2025-12-11)
+
+
+### Features
+
+* integrate EditWithTambo component for inline component editing ([#1477](https://github.com/tambo-ai/tambo/issues/1477)) ([390c204](https://github.com/tambo-ai/tambo/commit/390c2045148c63dfb85f1988861e1cf6ad7f021e))
+* **react-sdk:** add local resource registration to TamboRegistryProvider ([#1504](https://github.com/tambo-ai/tambo/issues/1504)) ([59c94a9](https://github.com/tambo-ai/tambo/commit/59c94a9214c165cbc6728d5a17f39697e4d4c370))
+
+
+### Bug Fixes
+
+* **resources:** Make sure to show resource names in text editor and user messages ([#1497](https://github.com/tambo-ai/tambo/issues/1497)) ([b2d8013](https://github.com/tambo-ai/tambo/commit/b2d8013c0b4bf5fbf7801eca20e97fcf98b5ae55))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the small-safe-packages group with 3 updates ([#1487](https://github.com/tambo-ai/tambo/issues/1487)) ([2178c32](https://github.com/tambo-ai/tambo/commit/2178c32ed7c962a915aa80694cc8e3c4a7f434ba))
+
+
+### Documentation
+
+* **cli:** document useMergeRefs React 19 cleanup ([#1470](https://github.com/tambo-ai/tambo/issues/1470)) ([e215716](https://github.com/tambo-ai/tambo/commit/e21571673b4c92c6fedbb6e74dceb27b921d0a19))
+* **docs:** strengthen metadata for key docs pages (TAM-768) ([#1474](https://github.com/tambo-ai/tambo/issues/1474)) ([1343592](https://github.com/tambo-ai/tambo/commit/13435921864af1a9c8e608bfc552747738f59bd5))
+* **mcp:** add comprehensive resources and prompts documentation ([#1501](https://github.com/tambo-ai/tambo/issues/1501)) ([3973dcc](https://github.com/tambo-ai/tambo/commit/3973dccf62cfec63eae3a655be94acbfb55db314))
+
 ## [1.20.0](https://github.com/tambo-ai/tambo/compare/docs-v1.19.1...docs-v1.20.0) (2025-12-08)
 
 

@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { z } from "zod/v3";
+import { z } from "zod/v4";
 import { TamboInteractableComponent } from "../model/tambo-interactable";
 import {
   TamboInteractableProvider,
@@ -523,34 +523,39 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
         },
       };
 
-      const component: Omit<TamboInteractableComponent, "id" | "createdAt"> = {
+      const propsSchema = z.object({
+        users: z.array(
+          z.object({
+            id: z.number(),
+            name: z.string(),
+          }),
+        ),
+        settings: z.object({
+          theme: z.string(),
+          language: z.string(),
+          notifications: z.boolean(),
+          privacy: z.object({
+            shareData: z.boolean(),
+            analytics: z.boolean(),
+            marketing: z.boolean(),
+          }),
+        }),
+        metadata: z.object({
+          version: z.string(),
+          build: z.string(),
+          timestamp: z.number(),
+        }),
+      });
+
+      const component: Omit<
+        TamboInteractableComponent<z.infer<typeof propsSchema>>,
+        "id" | "createdAt"
+      > = {
         name: "TestComponent",
         description: "A test component with large data",
         component: () => <div>Test</div>,
         props: largeData,
-        propsSchema: z.object({
-          users: z.array(
-            z.object({
-              id: z.number(),
-              name: z.string(),
-            }),
-          ),
-          settings: z.object({
-            theme: z.string(),
-            language: z.string(),
-            notifications: z.boolean(),
-            privacy: z.object({
-              shareData: z.boolean(),
-              analytics: z.boolean(),
-              marketing: z.boolean(),
-            }),
-          }),
-          metadata: z.object({
-            version: z.string(),
-            build: z.string(),
-            timestamp: z.number(),
-          }),
-        }),
+        propsSchema,
       };
 
       let componentId = "";
@@ -558,7 +563,11 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
         componentId = result.current.addInteractableComponent(component);
       });
 
-      const originalProps = result.current.interactableComponents[0].props;
+      const originalProps = (
+        result.current.interactableComponents[0] as TamboInteractableComponent<
+          z.infer<typeof propsSchema>
+        >
+      ).props;
       const originalUsers = originalProps.users;
 
       // Apply a small partial update - only change theme (shallow merge behavior)
@@ -572,7 +581,11 @@ describe("updateInteractableComponentProps - Partial Updates", () => {
         });
       });
 
-      const updatedProps = result.current.interactableComponents[0].props;
+      const updatedProps = (
+        result.current.interactableComponents[0] as TamboInteractableComponent<
+          z.infer<typeof propsSchema>
+        >
+      ).props;
 
       // Verify the update worked
       expect(updatedProps.settings.theme).toBe("dark");

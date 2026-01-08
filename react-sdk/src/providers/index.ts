@@ -1,4 +1,9 @@
-export type { TamboComponent, TamboTool } from "../model/component-metadata";
+export type {
+  RegisterToolFn,
+  RegisterToolsFn,
+  TamboComponent,
+  TamboTool,
+} from "../model/component-metadata";
 export {
   TamboClientProvider,
   useIsTamboTokenUpdating,
@@ -13,7 +18,6 @@ export {
   useTamboContextAttachment,
   type ContextAttachment,
   type ContextAttachmentState,
-  type ContextHelperData,
   type TamboContextAttachmentProviderProps,
 } from "./tambo-context-attachment-provider";
 export {

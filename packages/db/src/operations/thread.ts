@@ -1,4 +1,10 @@
-import { GenerationStage, MessageRole } from "@tambo-ai-cloud/core";
+import {
+  ComponentDecisionV2,
+  GenerationStage,
+  MessageRole,
+  UnsavedThreadMessage,
+  validateUnsavedThreadMessage,
+} from "@tambo-ai-cloud/core";
 import {
   and,
   count,
@@ -226,7 +232,8 @@ export async function deleteThread(db: HydraDb, threadId: string) {
 
 export async function addMessage(
   db: HydraDb,
-  messageInput: typeof schema.messages.$inferInsert,
+  threadId: string,
+  messageInput: UnsavedThreadMessage,
 ): Promise<typeof schema.messages.$inferSelect> {
   // TODO: Handle File types in message content
   // When File content parts are present:
@@ -238,9 +245,11 @@ export async function addMessage(
   // 5. For external URIs: optionally fetch and cache in S3
   // 6. Update content part to reference S3 location for retrieval
 
+  const insertable = buildUnsavedMessageInsert(threadId, messageInput);
+
   const [message] = await db
     .insert(schema.messages)
-    .values(messageInput)
+    .values(insertable)
     .returning();
 
   // Update the thread's updatedAt timestamp
@@ -250,6 +259,37 @@ export async function addMessage(
     .where(eq(schema.threads.id, message.threadId));
 
   return message;
+}
+
+function buildUnsavedMessageInsert(
+  threadId: string,
+  unsavedMsg: UnsavedThreadMessage,
+): typeof schema.messages.$inferInsert {
+  const message = validateUnsavedThreadMessage(unsavedMsg);
+  const componentDecision = message.component
+    ? ({
+        ...message.component,
+        props: message.component.props ?? {},
+      } satisfies ComponentDecisionV2)
+    : undefined;
+
+  return {
+    threadId,
+    role: message.role,
+    content: message.content,
+    parentMessageId: message.parentMessageId,
+    componentDecision,
+    componentState: message.componentState ?? {},
+    additionalContext: message.additionalContext ?? {},
+    error: message.error ?? undefined,
+    metadata: message.metadata ?? undefined,
+    isCancelled: message.isCancelled ?? false,
+    actionType: message.actionType ?? undefined,
+    toolCallRequest: message.toolCallRequest ?? undefined,
+    toolCallId: message.tool_call_id ?? undefined,
+    reasoning: message.reasoning ?? undefined,
+    reasoningDurationMS: message.reasoningDurationMS ?? undefined,
+  };
 }
 
 export async function getMessages(

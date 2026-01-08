@@ -1,10 +1,11 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { parse } from "partial-json";
 import React from "react";
-import { z } from "zod/v3";
 import { wrapWithTamboMessageProvider } from "../hooks/use-current-message";
 import { ComponentRegistry } from "../model/component-metadata";
 import { TamboThreadMessage } from "../model/generate-component-response";
+import { isStandardSchema } from "../schema";
+import { isPromise } from "../util/is-promise";
 import { getComponentFromRegistry } from "../util/registry";
 
 /**
@@ -27,10 +28,28 @@ export function renderComponentIntoMessage(
     componentList,
   );
 
-  const validatedProps =
-    registeredComponent.props instanceof z.ZodType
-      ? registeredComponent.props.parse(parsedProps)
-      : parsedProps;
+  let validatedProps: Record<string, unknown> = parsedProps as Record<
+    string,
+    unknown
+  >;
+  if (isStandardSchema(registeredComponent.props)) {
+    const result = registeredComponent.props["~standard"].validate(parsedProps);
+    // Standard Schema validate() returns { value: T } on success or { issues: [...] } on failure
+    // Async validation is not supported for component rendering
+    if (isPromise(result)) {
+      throw new Error(
+        "Async schema validation is not supported for component props",
+      );
+    }
+    if ("value" in result) {
+      validatedProps = result.value as Record<string, unknown>;
+    } else {
+      // Validation failed - throw with first issue message
+      const issueMessage =
+        result.issues?.[0]?.message ?? "Schema validation failed";
+      throw new Error(`Component props validation failed: ${issueMessage}`);
+    }
+  }
 
   const renderedComponent = React.createElement(
     registeredComponent.component,

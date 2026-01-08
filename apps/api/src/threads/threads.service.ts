@@ -20,6 +20,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   GenerationStage,
   getToolName,
+  isUiToolName,
   LegacyComponentDecision,
   MCPClient,
   MessageRole,
@@ -67,12 +68,10 @@ import { addMessage, threadMessageToDto, updateMessage } from "./util/messages";
 import { mapSuggestionToDto } from "./util/suggestions";
 import { createMcpHandlers } from "./util/thread-mcp-handlers";
 import {
-  addAssistantResponse,
   addUserMessage,
   appendNewMessageToThread,
   finishInProgressMessage,
   fixStreamedToolCalls,
-  processThreadMessage,
   updateGenerationStage,
   updateThreadMessageFromLegacyDecision,
 } from "./util/thread-state";
@@ -213,7 +212,7 @@ export class ThreadsService {
 
     const thread = await operations.createThread(this.getDb(), {
       projectId: createThreadDto.projectId,
-      contextKey: contextKey,
+      contextKey,
       metadata: createThreadDto.metadata,
       name: createThreadDto.name,
     });
@@ -905,36 +904,6 @@ export class ThreadsService {
     projectId: string,
     advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
-    stream?: true,
-    toolCallCounts?: Record<string, number>,
-    cachedSystemTools?: McpToolRegistry,
-    queue?: AsyncQueue<AdvanceThreadResponseDto>,
-    contextKey?: string,
-  ): Promise<void>;
-  async advanceThread(
-    projectId: string,
-    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
-    unresolvedThreadId?: string,
-    stream?: false,
-    toolCallCounts?: Record<string, number>,
-    cachedSystemTools?: McpToolRegistry,
-    queue?: AsyncQueue<AdvanceThreadResponseDto>,
-  ): Promise<void>;
-  async advanceThread(
-    projectId: string,
-    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
-    unresolvedThreadId?: string,
-    stream?: boolean,
-    toolCallCounts?: Record<string, number>,
-    cachedSystemTools?: McpToolRegistry,
-    queue?: AsyncQueue<AdvanceThreadResponseDto>,
-    contextKey?: string,
-  ): Promise<void>;
-  async advanceThread(
-    projectId: string,
-    advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
-    unresolvedThreadId?: string,
-    stream?: boolean,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<AdvanceThreadResponseDto>,
@@ -947,7 +916,6 @@ export class ThreadsService {
         attributes: {
           projectId,
           threadId: unresolvedThreadId,
-          stream: !!stream,
           hasMessage: !!advanceRequestDto.messageToAppend,
           toolCallCount: Object.keys(toolCallCounts).length,
         },
@@ -957,7 +925,6 @@ export class ThreadsService {
           projectId,
           advanceRequestDto,
           unresolvedThreadId,
-          stream,
           toolCallCounts,
           cachedSystemTools,
           queue,
@@ -970,7 +937,6 @@ export class ThreadsService {
     projectId: string,
     advanceRequestDto: Omit<AdvanceThreadDto, "contextKey">,
     unresolvedThreadId?: string,
-    stream?: boolean,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
     queue?: AsyncQueue<AdvanceThreadResponseDto>,
@@ -1105,106 +1071,21 @@ export class ThreadsService {
         : undefined;
       const mcpAccessToken = mcpAccessTokenResult?.token;
 
-      if (stream) {
-        await this.generateStreamingResponse(
-          projectId,
-          thread.id,
-          db,
-          tamboBackend,
-          queue,
-          messages,
-          userMessage,
-          advanceRequestDto,
-          toolCallCounts,
-          allTools,
-          mcpAccessToken,
-          project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
-          mcpClients,
-        );
-        return;
-      }
-
-      const responseMessage = await processThreadMessage(
-        db,
+      await this.generateStreamingResponse(
+        projectId,
         thread.id,
+        db,
+        tamboBackend,
+        queue,
         messages,
         userMessage,
         advanceRequestDto,
-        tamboBackend,
+        toolCallCounts,
         allTools,
+        mcpAccessToken,
+        project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
         mcpClients,
       );
-
-      const {
-        responseMessageDto,
-        resultingGenerationStage,
-        resultingStatusMessage,
-      } = await addAssistantResponse(
-        db,
-        thread.id,
-        userMessage.id,
-        responseMessage,
-        this.logger,
-      );
-
-      const toolCallRequest = responseMessage.toolCallRequest;
-
-      // Check tool call limits if we have a tool call request
-      const toolLimitErrorMessage = await checkToolCallLimitViolation(
-        this.getDb(),
-        thread.id,
-        responseMessageDto.id,
-        responseMessageDto,
-        messages,
-        toolCallCounts,
-        toolCallRequest,
-        project?.maxToolCallLimit ?? DEFAULT_MAX_TOTAL_TOOL_CALLS,
-        mcpAccessToken,
-      );
-      if (toolLimitErrorMessage) {
-        queue.push(toolLimitErrorMessage);
-        return;
-      }
-
-      if (isSystemToolCall(toolCallRequest, allTools)) {
-        if (!responseMessage.toolCallId) {
-          console.warn(
-            `While handling tool call request ${toolCallRequest.toolName}, no tool call id in response message ${responseMessage}, returning assistant message`,
-          );
-          Sentry.captureMessage(
-            "Missing tool call ID from system tool call in stream",
-            "warning",
-          );
-        }
-        await this.handleSystemToolCall(
-          toolCallRequest,
-          responseMessage.toolCallId ?? "",
-          responseMessageDto.id,
-          allTools,
-          responseMessage,
-          advanceRequestDto,
-          projectId,
-          thread.id,
-          false,
-          toolCallCounts,
-          queue,
-        );
-        return;
-      }
-
-      queue.push({
-        responseMessageDto: {
-          ...responseMessageDto,
-          content: convertContentPartToDto(responseMessageDto.content),
-          componentState: responseMessageDto.componentState ?? {},
-          component: responseMessageDto.component as ComponentDecisionV2Dto,
-        },
-        generationStage: resultingGenerationStage,
-        statusMessage: resultingStatusMessage,
-        ...(mcpAccessToken && { mcpAccessToken }),
-      });
-
-      return;
     } catch (error) {
       queue.fail(error);
       // Capture any errors with full context
@@ -1213,7 +1094,6 @@ export class ThreadsService {
         scope.setTag("projectId", projectId);
         scope.setTag("threadId", unresolvedThreadId);
         scope.setContext("request", {
-          stream,
           hasMessage: !!advanceRequestDto.messageToAppend,
           availableComponents: advanceRequestDto.availableComponents?.length,
         });
@@ -1234,33 +1114,6 @@ export class ThreadsService {
     advanceRequestDto: AdvanceThreadDto,
     projectId: string,
     threadId: string,
-    stream: boolean,
-    toolCallCounts: Record<string, number>,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
-  ): Promise<void>;
-  private async handleSystemToolCall(
-    toolCallRequest: ToolCallRequest,
-    toolCallId: string,
-    toolCallMessageId: string,
-    allTools: McpToolRegistry,
-    componentDecision: LegacyComponentDecision,
-    advanceRequestDto: AdvanceThreadDto,
-    projectId: string,
-    threadId: string,
-    stream: true,
-    toolCallCounts: Record<string, number>,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
-  ): Promise<void>;
-  private async handleSystemToolCall(
-    toolCallRequest: ToolCallRequest,
-    toolCallId: string,
-    toolCallMessageId: string,
-    allTools: McpToolRegistry,
-    componentDecision: LegacyComponentDecision,
-    advanceRequestDto: AdvanceThreadDto,
-    projectId: string,
-    threadId: string,
-    stream: boolean,
     toolCallCounts: Record<string, number>,
     queue: AsyncQueue<AdvanceThreadResponseDto>,
   ): Promise<void> {
@@ -1273,7 +1126,6 @@ export class ThreadsService {
           toolCallId,
           projectId,
           threadId,
-          stream,
         },
       },
       async () =>
@@ -1286,7 +1138,6 @@ export class ThreadsService {
           advanceRequestDto,
           projectId,
           threadId,
-          stream,
           toolCallCounts,
           queue,
         ),
@@ -1302,7 +1153,6 @@ export class ThreadsService {
     advanceRequestDto: AdvanceThreadDto,
     projectId: string,
     threadId: string,
-    stream: boolean,
     toolCallCounts: Record<string, number>,
     queue: AsyncQueue<AdvanceThreadResponseDto>,
   ): Promise<void> {
@@ -1339,7 +1189,6 @@ export class ThreadsService {
         projectId,
         messageWithToolResponse,
         threadId,
-        stream,
         updatedToolCallCounts,
         allTools,
         queue,
@@ -1856,6 +1705,7 @@ export class ThreadsService {
 
       // Check tool call limits if we have a tool call request
       if (currentThreadMessage) {
+        const toolLimits = deriveToolLimitsFromDto(originalRequest);
         const toolLimitErrorMessage = await checkToolCallLimitViolation(
           this.getDb(),
           threadId,
@@ -1866,6 +1716,8 @@ export class ThreadsService {
           toolCallRequest,
           maxToolCallLimit,
           mcpAccessToken,
+          undefined,
+          toolLimits,
         );
 
         if (toolLimitErrorMessage) {
@@ -1934,8 +1786,84 @@ export class ThreadsService {
           originalRequest,
           projectId,
           threadId,
-          true,
           toolCallCounts,
+          queue,
+        );
+
+        return;
+      }
+
+      // Check if this is a UI tool call - if so, auto-generate a tool response and continue the loop
+      if (toolCallRequest && isUiToolName(toolCallRequest.toolName)) {
+        // Yield the final response first
+        // Strip toolCallRequest and tool_call_id for UI tools - the client should just render
+        // the component, not try to call it as a tool. The tool call info is still in
+        // the component field for server-side tracking.
+        const {
+          toolCallRequest: _toolCallRequest,
+          tool_call_id: _tool_call_id,
+          ...messageWithoutToolCall
+        } = finalThreadMessage;
+        queue.push({
+          responseMessageDto: {
+            ...messageWithoutToolCall,
+            content: convertContentPartToDto(messageWithoutToolCall.content),
+            componentState: messageWithoutToolCall.componentState ?? {},
+            component:
+              messageWithoutToolCall.component as ComponentDecisionV2Dto,
+          },
+          generationStage: resultingGenerationStage,
+          statusMessage: resultingStatusMessage,
+          ...(mcpAccessToken && { mcpAccessToken }),
+        });
+
+        // `tool_call_id` can be missing in edge cases, but UI tools should never be client-invokable.
+        // Always strip tool call fields from the client-facing message above, and only auto-continue
+        // the decision loop if we have an id to attach to the synthetic tool response.
+        const toolCallId = finalThreadMessage.tool_call_id;
+        if (!toolCallId) {
+          Sentry.withScope((scope) => {
+            scope.setLevel("warning");
+            scope.setContext("uiToolCall", {
+              threadId,
+              messageId: finalThreadMessage.id,
+              toolName: toolCallRequest.toolName,
+            });
+            Sentry.captureMessage("Missing UI tool call ID in stream");
+          });
+          return;
+        }
+
+        // Update tool call counts
+        const updatedToolCallCounts = updateToolCallCounts(
+          toolCallCounts,
+          toolCallRequest,
+        );
+
+        // Continue the loop with the tool response
+        const toolResponseAdvanceDto: AdvanceThreadDto = {
+          messageToAppend: {
+            role: MessageRole.Tool,
+            content: [
+              {
+                type: ContentPartType.Text,
+                text: "Component was rendered",
+              },
+            ],
+            tool_call_id: toolCallId,
+            actionType: ActionType.ToolResponse,
+            component: finalThreadMessage.component as ComponentDecisionV2Dto,
+          },
+          availableComponents: originalRequest.availableComponents,
+          contextKey: originalRequest.contextKey,
+        };
+
+        await this.advanceThread(
+          projectId,
+          toolResponseAdvanceDto,
+          threadId,
+          updatedToolCallCounts,
+          allTools,
           queue,
         );
 
@@ -2269,4 +2197,34 @@ async function syncThreadStatus(
       });
     },
   );
+}
+/**
+ * Extracts per-tool maxCalls limits from the advance request DTO.
+ * Returns a map of tool name → { maxCalls?: number }.
+ */
+function deriveToolLimitsFromDto(
+  advanceRequest: AdvanceThreadDto,
+): Record<string, { maxCalls?: number }> {
+  const limits: Record<string, { maxCalls?: number }> = {};
+
+  if (Array.isArray(advanceRequest.clientTools)) {
+    for (const tool of advanceRequest.clientTools) {
+      const name = tool.name;
+      if (!name) continue;
+      limits[name] = { maxCalls: tool.maxCalls };
+    }
+  }
+
+  if (Array.isArray(advanceRequest.availableComponents)) {
+    for (const component of advanceRequest.availableComponents) {
+      if (!Array.isArray(component.contextTools)) continue;
+      for (const tool of component.contextTools) {
+        const name = tool.name;
+        if (!name) continue;
+        limits[name] = { maxCalls: tool.maxCalls };
+      }
+    }
+  }
+
+  return limits;
 }

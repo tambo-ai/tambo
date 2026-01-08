@@ -41,6 +41,11 @@ jest.mock("@tambo-ai/react", () => ({
     setCustomSuggestions: jest.fn(),
     addContextAttachment: jest.fn(),
   }),
+  useTamboCurrentComponent: () => null,
+  useTambo: () => ({
+    sendThreadMessage: jest.fn(),
+    isIdle: true,
+  }),
 }));
 
 function renderEditor(

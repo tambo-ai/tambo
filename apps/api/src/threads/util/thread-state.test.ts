@@ -2,9 +2,11 @@ import { operations } from "@tambo-ai-cloud/db";
 
 import { Logger } from "@nestjs/common";
 import {
+  ActionType,
   ChatCompletionContentPart,
   ContentPartType,
   GenerationStage,
+  UI_TOOLNAME_PREFIX,
   LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
@@ -14,11 +16,13 @@ import { SQL } from "drizzle-orm";
 import { PgTable, PgTransaction } from "drizzle-orm/pg-core";
 import {
   addUserMessage,
+  appendNewMessageToThread,
   finishInProgressMessage,
   fixStreamedToolCalls,
   updateGenerationStage,
   updateThreadMessageFromLegacyDecision,
 } from "./thread-state";
+import * as messagesModule from "./messages";
 
 const schema = jest.requireActual("@tambo-ai-cloud/db").schema;
 
@@ -29,10 +33,18 @@ jest.mock("@tambo-ai-cloud/db", () => {
     operations: {
       updateThread: jest.fn(),
       updateMessage: jest.fn(),
+      addMessage: jest.fn(),
     },
     schema,
+    dbMessageToThreadMessage: jest.fn((message) => message),
   };
 });
+
+jest.mock("./messages", () => ({
+  ...jest.requireActual("./messages"),
+  addMessage: jest.fn(),
+  verifyLatestMessageConsistency: jest.fn(),
+}));
 
 describe("Thread State", () => {
   let mockDb: HydraDb;
@@ -152,6 +164,153 @@ describe("Thread State", () => {
     });
   });
 
+  describe("appendNewMessageToThread", () => {
+    it("should create a new message with default role (Assistant)", async () => {
+      const now = new Date();
+      const mockCreatedMessage: ThreadMessage = {
+        id: "msg-new-1",
+        threadId: "thread-1",
+        parentMessageId: "msg-1",
+        role: MessageRole.Assistant,
+        content: [
+          { type: ContentPartType.Text, text: "" } as ChatCompletionContentPart,
+        ],
+        componentState: {},
+        createdAt: now,
+      };
+
+      const mockTransaction = {
+        ...mockDb,
+        schema,
+        nestedIndex: 0,
+        rollback: jest.fn(),
+        setTransaction: jest.fn(),
+      } as unknown as PgTransaction<any, any, any>;
+
+      jest
+        .mocked(mockDb.transaction)
+        .mockImplementation(
+          async (callback) => await callback(mockTransaction),
+        );
+
+      // Mock verifyLatestMessageConsistency to do nothing (success)
+      jest
+        .mocked(messagesModule.verifyLatestMessageConsistency)
+        .mockResolvedValue(undefined);
+
+      // Mock addMessage to return the created message
+      jest
+        .mocked(messagesModule.addMessage)
+        .mockResolvedValue(mockCreatedMessage);
+
+      const result = await appendNewMessageToThread(
+        mockDb,
+        "thread-1",
+        "msg-1",
+      );
+
+      expect(result).toBeDefined();
+      expect(result.role).toBe(MessageRole.Assistant);
+      expect(
+        messagesModule.verifyLatestMessageConsistency,
+      ).toHaveBeenCalledWith(mockTransaction, "thread-1", "msg-1", false);
+      expect(messagesModule.addMessage).toHaveBeenCalledWith(
+        mockTransaction,
+        "thread-1",
+        expect.objectContaining({
+          role: MessageRole.Assistant,
+          content: [{ type: ContentPartType.Text, text: "" }],
+        }),
+      );
+    });
+
+    it("should create a message with custom role and initial text", async () => {
+      const now = new Date();
+      const mockCreatedMessage: ThreadMessage = {
+        id: "msg-new-2",
+        threadId: "thread-1",
+        parentMessageId: "msg-1",
+        role: MessageRole.System,
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "Custom initial text",
+          } as ChatCompletionContentPart,
+        ],
+        componentState: {},
+        createdAt: now,
+      };
+
+      const mockTransaction = {
+        ...mockDb,
+        schema,
+        nestedIndex: 0,
+        rollback: jest.fn(),
+        setTransaction: jest.fn(),
+      } as unknown as PgTransaction<any, any, any>;
+
+      jest
+        .mocked(mockDb.transaction)
+        .mockImplementation(
+          async (callback) => await callback(mockTransaction),
+        );
+
+      // Mock verifyLatestMessageConsistency to do nothing (success)
+      jest
+        .mocked(messagesModule.verifyLatestMessageConsistency)
+        .mockResolvedValue(undefined);
+
+      // Mock addMessage to return the created message
+      jest
+        .mocked(messagesModule.addMessage)
+        .mockResolvedValue(mockCreatedMessage);
+
+      const result = await appendNewMessageToThread(
+        mockDb,
+        "thread-1",
+        "msg-1",
+        MessageRole.System,
+        "Custom initial text",
+      );
+
+      expect(result).toBeDefined();
+      expect(result.role).toBe(MessageRole.System);
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(messagesModule.addMessage).toHaveBeenCalledWith(
+        mockTransaction,
+        "thread-1",
+        expect.objectContaining({
+          role: MessageRole.System,
+          content: [
+            { type: ContentPartType.Text, text: "Custom initial text" },
+          ],
+        }),
+      );
+    });
+
+    it("should log error and rethrow when transaction fails", async () => {
+      const transactionError = new Error("Transaction failed");
+
+      jest.mocked(mockDb.transaction).mockRejectedValue(transactionError);
+
+      await expect(
+        appendNewMessageToThread(
+          mockDb,
+          "thread-1",
+          "msg-1",
+          undefined,
+          undefined,
+          mockLogger,
+        ),
+      ).rejects.toThrow("Transaction failed");
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Transaction failed: Adding in-progress message",
+        expect.any(String),
+      );
+    });
+  });
+
   describe("updateThreadMessageFromLegacyDecision", () => {
     it("should convert decision stream to message stream", async () => {
       const mockDecision: LegacyComponentDecision = {
@@ -238,23 +397,23 @@ describe("Thread State", () => {
       expect(threadMessage.component?.toolCallId).toBe("tool-123");
     });
 
-    it("should include tool call info in component field but not set outer fields when isToolCallFinished is false", () => {
-      const toolCallRequest = {
-        toolName: "myTool",
-        parameters: [{ parameterName: "param1", parameterValue: "value1" }],
+    it("should set outer tool call fields for UI tools during streaming, but not for non-UI tools", () => {
+      // Test UI tool (show_component_ prefix)
+      const uiToolCallRequest = {
+        toolName: UI_TOOLNAME_PREFIX + "Graph",
+        parameters: [{ parameterName: "data", parameterValue: [1, 2, 3] }],
       };
 
-      // Simulate a streaming chunk with tool call info but not finished
-      const mockDecisionInProgress: LegacyComponentDecision = {
+      const mockUIDecisionInProgress: LegacyComponentDecision = {
         id: "dec-1",
-        message: "With tool in progress",
-        componentName: "test-component",
-        props: {},
+        message: "Showing graph",
+        componentName: "Graph",
+        props: { data: [1, 2, 3] },
         componentState: {},
         reasoning: ["test reasoning"],
-        toolCallRequest, // Tool call info is present
-        toolCallId: "tool-456",
-        isToolCallFinished: false, // But not finished yet
+        toolCallRequest: uiToolCallRequest,
+        toolCallId: "tool-ui-123",
+        isToolCallFinished: false, // Not finished yet, but should still set fields for UI tools
       };
 
       const mockInProgressMessage: ThreadMessage = {
@@ -271,20 +430,174 @@ describe("Thread State", () => {
         componentState: {},
       };
 
-      const threadMessage = updateThreadMessageFromLegacyDecision(
+      const uiThreadMessage = updateThreadMessageFromLegacyDecision(
         mockInProgressMessage,
-        mockDecisionInProgress,
+        mockUIDecisionInProgress,
       );
 
-      // Should include tool call info in component field
-      expect(threadMessage.component?.toolCallRequest).toEqual(toolCallRequest);
-      expect(threadMessage.component?.toolCallId).toBe("tool-456");
+      // UI tools should set outer fields immediately during streaming
+      expect(uiThreadMessage.toolCallRequest).toEqual(uiToolCallRequest);
+      expect(uiThreadMessage.tool_call_id).toBe("tool-ui-123");
+      expect(uiThreadMessage.actionType).toBe(ActionType.ToolCall);
 
-      // Should NOT set outer fields when isToolCallFinished is false
-      // (this indicates it's a streaming chunk, not a final chunk)
-      expect(threadMessage.toolCallRequest).toBeUndefined();
-      expect(threadMessage.tool_call_id).toBeUndefined();
-      expect(threadMessage.actionType).toBeUndefined();
+      // Test non-UI tool (no show_component_ prefix)
+      const nonUIToolCallRequest = {
+        toolName: "get_weather",
+        parameters: [{ parameterName: "city", parameterValue: "SF" }],
+      };
+
+      const mockNonUIDecisionInProgress: LegacyComponentDecision = {
+        id: "dec-2",
+        message: "Getting weather",
+        componentName: "",
+        props: null,
+        componentState: {},
+        reasoning: ["test reasoning"],
+        toolCallRequest: nonUIToolCallRequest,
+        toolCallId: "tool-nonui-456",
+        isToolCallFinished: false, // Not finished - should NOT set fields for non-UI tools
+      };
+
+      const nonUIThreadMessage = updateThreadMessageFromLegacyDecision(
+        mockInProgressMessage,
+        mockNonUIDecisionInProgress,
+      );
+
+      // Non-UI tools should NOT set outer fields until finished
+      expect(nonUIThreadMessage.toolCallRequest).toBeUndefined();
+      expect(nonUIThreadMessage.tool_call_id).toBeUndefined();
+      expect(nonUIThreadMessage.actionType).toBeUndefined();
+
+      // But should set them when finished
+      const mockNonUIDecisionFinished: LegacyComponentDecision = {
+        ...mockNonUIDecisionInProgress,
+        isToolCallFinished: true,
+      };
+
+      const nonUIThreadMessageFinished = updateThreadMessageFromLegacyDecision(
+        mockInProgressMessage,
+        mockNonUIDecisionFinished,
+      );
+
+      // Now should set fields when finished
+      expect(nonUIThreadMessageFinished.toolCallRequest).toEqual(
+        nonUIToolCallRequest,
+      );
+      expect(nonUIThreadMessageFinished.tool_call_id).toBe("tool-nonui-456");
+      expect(nonUIThreadMessageFinished.actionType).toBe(ActionType.ToolCall);
+    });
+
+    it("should handle User role messages", () => {
+      const mockDecision: LegacyComponentDecision = {
+        message: "User message content",
+        componentName: "",
+        props: null,
+        componentState: { userState: "value" },
+        reasoning: [],
+      };
+
+      const mockUserMessage: ThreadMessage = {
+        id: "msg-user-1",
+        threadId: "thread-1",
+        role: MessageRole.User,
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "original",
+          } as ChatCompletionContentPart,
+        ],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const result = updateThreadMessageFromLegacyDecision(
+        mockUserMessage,
+        mockDecision,
+      );
+
+      expect(result.role).toBe(MessageRole.User);
+      expect(result.id).toBe("msg-user-1");
+      expect(result.threadId).toBe("thread-1");
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[0].type === "text" && result.content[0].text).toBe(
+        "User message content",
+      );
+      expect(result.componentState).toEqual({ userState: "value" });
+    });
+
+    it("should handle System role messages", () => {
+      const mockDecision: LegacyComponentDecision = {
+        message: "System message content",
+        componentName: "",
+        props: null,
+        componentState: {},
+        reasoning: [],
+      };
+
+      const mockSystemMessage: ThreadMessage = {
+        id: "msg-system-1",
+        threadId: "thread-1",
+        role: MessageRole.System,
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "original system",
+          } as ChatCompletionContentPart,
+        ],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const result = updateThreadMessageFromLegacyDecision(
+        mockSystemMessage,
+        mockDecision,
+      );
+
+      expect(result.role).toBe(MessageRole.System);
+      expect(result.id).toBe("msg-system-1");
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[0].type === "text" && result.content[0].text).toBe(
+        "System message content",
+      );
+    });
+
+    it("should handle Tool role messages and preserve tool_call_id", () => {
+      const mockDecision: LegacyComponentDecision = {
+        message: "Tool response content",
+        componentName: "",
+        props: null,
+        componentState: {},
+        reasoning: [],
+      };
+
+      const mockToolMessage: ThreadMessage = {
+        id: "msg-tool-1",
+        threadId: "thread-1",
+        role: MessageRole.Tool,
+        tool_call_id: "original-tool-call-id",
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "original tool response",
+          } as ChatCompletionContentPart,
+        ],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const result = updateThreadMessageFromLegacyDecision(
+        mockToolMessage,
+        mockDecision,
+      );
+
+      expect(result.role).toBe(MessageRole.Tool);
+      expect(result.id).toBe("msg-tool-1");
+      // Tool messages should preserve the original tool_call_id
+      expect(result.tool_call_id).toBe("original-tool-call-id");
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[0].type === "text" && result.content[0].text).toBe(
+        "Tool response content",
+      );
     });
   });
 

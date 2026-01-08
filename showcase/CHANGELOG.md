@@ -1,5 +1,108 @@
 # Changelog
 
+## [0.34.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.34.0...showcase-v0.34.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+* **web:** allow Enter key to select items from TipTap suggestion popover ([#1571](https://github.com/tambo-ai/tambo/issues/1571)) ([dcb153c](https://github.com/tambo-ai/tambo/commit/dcb153c675a1f0689b2b048fd48970d160c82a94))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps-dev:** bump the eslint group with 5 updates ([#1541](https://github.com/tambo-ai/tambo/issues/1541)) ([6329a46](https://github.com/tambo-ai/tambo/commit/6329a461e8b9f036e111e24890c27a98925f4d15))
+* **deps:** bump @tiptap/extension-paragraph from 3.11.1 to 3.13.0 ([#1554](https://github.com/tambo-ai/tambo/issues/1554)) ([bec8c0e](https://github.com/tambo-ai/tambo/commit/bec8c0e155c35be63923e8b072a46b7d5d67df16))
+* **deps:** bump @vercel/og from 0.8.5 to 1.0.0 ([#1562](https://github.com/tambo-ai/tambo/issues/1562)) ([03ca0f4](https://github.com/tambo-ai/tambo/commit/03ca0f494bca97deac07d44bafa665bf5eb2583d))
+* **deps:** bump dompurify from 3.3.0 to 3.3.1 ([#1555](https://github.com/tambo-ai/tambo/issues/1555)) ([cbc3328](https://github.com/tambo-ai/tambo/commit/cbc332845171e87d4f04c11429af8acbf1e4b0d3))
+* **deps:** bump the next group with 2 updates ([#1543](https://github.com/tambo-ai/tambo/issues/1543)) ([86e399f](https://github.com/tambo-ai/tambo/commit/86e399fbb3b10aacfb626af96bfd0e5880e1d78a))
+* **deps:** bump the small-safe-packages group with 3 updates ([#1546](https://github.com/tambo-ai/tambo/issues/1546)) ([462d2c8](https://github.com/tambo-ai/tambo/commit/462d2c8f23f11512ccd3de6caa89c6d9cbb5bf69))
+* **deps:** bump the tiptap group with 7 updates ([#1558](https://github.com/tambo-ai/tambo/issues/1558)) ([664709a](https://github.com/tambo-ai/tambo/commit/664709a5ef24464dccb1078b0ddacb9ea1f5f989))
+
+## [0.34.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.33.1...showcase-v0.34.0) (2025-12-15)
+
+
+### Features
+
+* add EditWithTamboButton page to showcase site ([#1508](https://github.com/tambo-ai/tambo/issues/1508)) ([57e2594](https://github.com/tambo-ai/tambo/commit/57e2594214bcf0035531923fb2cc252b7e73e090))
+
+
+### Bug Fixes
+
+* import paths in showcase examples ([#1510](https://github.com/tambo-ai/tambo/issues/1510)) ([e164d5a](https://github.com/tambo-ai/tambo/commit/e164d5ad94c5f146201e2f9da13e61b5b97d677d))
+* **react:** correct schema parsing logic ([#1513](https://github.com/tambo-ai/tambo/issues/1513)) ([bf7a54a](https://github.com/tambo-ai/tambo/commit/bf7a54ae5515fa6386950a65b6eb03ca891ad250))
+
+
+### Miscellaneous Chores
+
+* **deps:** Bump @tambo-ai/typescript-sdk to get tool maxCalls ([#1533](https://github.com/tambo-ai/tambo/issues/1533)) ([97e85ba](https://github.com/tambo-ai/tambo/commit/97e85ba0eb334a8b3b482a0cff368d2528b91d74))
+* don't show EditWithTamboButton when component is in thread ([#1519](https://github.com/tambo-ai/tambo/issues/1519)) ([5e814e4](https://github.com/tambo-ai/tambo/commit/5e814e4c439f4f4869614035dcf61a9684d16689))
+
+## [0.33.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.33.0...showcase-v0.33.1) (2025-12-11)
+
+
+### Code Refactoring
+
+* **cli:** migrate text-editor from tippy.js to Radix Popover ([#1506](https://github.com/tambo-ai/tambo/issues/1506)) ([554ce9e](https://github.com/tambo-ai/tambo/commit/554ce9eb1e2e4ee463af7a9a2157aa7ad4c4debb))
+
+## [0.33.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.32.1...showcase-v0.33.0) (2025-12-10)
+
+
+### Features
+
+* integrate EditWithTambo component for inline component editing ([#1477](https://github.com/tambo-ai/tambo/issues/1477)) ([390c204](https://github.com/tambo-ai/tambo/commit/390c2045148c63dfb85f1988861e1cf6ad7f021e))
+* **react-sdk:** add local resource registration to TamboRegistryProvider ([#1504](https://github.com/tambo-ai/tambo/issues/1504)) ([59c94a9](https://github.com/tambo-ai/tambo/commit/59c94a9214c165cbc6728d5a17f39697e4d4c370))
+
+
+### Bug Fixes
+
+* **editor:** Clean up message-input and text-editor to only expose a limited set of capabilities in the editor ([#1502](https://github.com/tambo-ai/tambo/issues/1502)) ([2938064](https://github.com/tambo-ai/tambo/commit/2938064b2ff4b4504af1e13de24117192a6dc811))
+* **resources:** Make sure to show resource names in text editor and user messages ([#1497](https://github.com/tambo-ai/tambo/issues/1497)) ([b2d8013](https://github.com/tambo-ai/tambo/commit/b2d8013c0b4bf5fbf7801eca20e97fcf98b5ae55))
+
+
+### Documentation
+
+* **cli:** document useMergeRefs React 19 cleanup ([#1470](https://github.com/tambo-ai/tambo/issues/1470)) ([e215716](https://github.com/tambo-ai/tambo/commit/e21571673b4c92c6fedbb6e74dceb27b921d0a19))
+
+## [0.32.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.32.0...showcase-v0.32.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* **showcase:** do not render components twice in full screen mode ([#1490](https://github.com/tambo-ai/tambo/issues/1490)) ([331ede1](https://github.com/tambo-ai/tambo/commit/331ede1e3476cf704e929a7cfdb69d9181416608))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1483](https://github.com/tambo-ai/tambo/issues/1483)) ([892f7a4](https://github.com/tambo-ai/tambo/commit/892f7a4ed55beb99c5b540f2cb6139bb62dcd880))
+
+## [0.32.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.31.0...showcase-v0.32.0) (2025-12-08)
+
+
+### Features
+
+* **cli:** bring wysiwyg editor into main message-input component ([#1415](https://github.com/tambo-ai/tambo/issues/1415)) ([6d0a89d](https://github.com/tambo-ai/tambo/commit/6d0a89dfa75c953279b56771209c74c4b3bcc58d))
+* **mcp-resources:** Enable @-resource and /-command inline completion ([#1464](https://github.com/tambo-ai/tambo/issues/1464)) ([775ca87](https://github.com/tambo-ai/tambo/commit/775ca8789341de492bd084e1fbede76ffd3d1f8c))
+
+
+### Bug Fixes
+
+* **deps:** upgrade to zod v3 subpath imports and MCP SDK 1.24 ([#1465](https://github.com/tambo-ai/tambo/issues/1465)) ([c8b7f07](https://github.com/tambo-ai/tambo/commit/c8b7f079560d423082c005018a103b9eb3cf6993))
+* **showcase:** improve header hierarchy on home and get-started ([#1421](https://github.com/tambo-ai/tambo/issues/1421)) ([93a590e](https://github.com/tambo-ai/tambo/commit/93a590e5c718b35f46618c2d2066ce93880bfc91))
+* **showcase:** include all pages in sitemap ([#1417](https://github.com/tambo-ai/tambo/issues/1417)) ([49b4fa0](https://github.com/tambo-ai/tambo/commit/49b4fa07cb80e794472ccc5d437f243d2b2c4cc7))
+* **showcase:** update robots.txt for TAM-559 ([#1418](https://github.com/tambo-ai/tambo/issues/1418)) ([c625fd9](https://github.com/tambo-ai/tambo/commit/c625fd916e845195092bb4f44b09e3c8939ef44c))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1431](https://github.com/tambo-ai/tambo/issues/1431)) ([50e1f34](https://github.com/tambo-ai/tambo/commit/50e1f3446320d3319339eef233fe3347576fff08))
+* **deps:** Bump @tambo-ai/typescript-sdk to get updated enum ([#1445](https://github.com/tambo-ai/tambo/issues/1445)) ([7bee1f3](https://github.com/tambo-ai/tambo/commit/7bee1f32b7864d381eb2b5f346ec050ed61358a3))
+* **deps:** bump next from 15.5.6 to 15.5.7 ([#1473](https://github.com/tambo-ai/tambo/issues/1473)) ([d8c7f1e](https://github.com/tambo-ai/tambo/commit/d8c7f1e0e8bab619daccf774822c421891ac3e5f))
+* **deps:** bump recharts from 3.4.1 to 3.5.0 ([#1439](https://github.com/tambo-ai/tambo/issues/1439)) ([f2d2200](https://github.com/tambo-ai/tambo/commit/f2d220039cee70670c2740d46d192eed42e3894e))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1436](https://github.com/tambo-ai/tambo/issues/1436)) ([5974a87](https://github.com/tambo-ai/tambo/commit/5974a87c06577da92cd6ef9a500ebc9226f46fec))
+* sync iconsize changes ([#1426](https://github.com/tambo-ai/tambo/issues/1426)) ([19d0528](https://github.com/tambo-ai/tambo/commit/19d052843d78c0b18134c89c2cfa7669b028e4f4))
+
 ## [0.31.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.30.0...showcase-v0.31.0) (2025-11-20)
 
 

@@ -53,7 +53,27 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - Node.js >=22
 - npm >=11
-- Uses Volta for version management consistency
+
+**Recommended:** Install [mise](https://mise.jdx.dev) for automatic version management. See [mise getting started](https://mise.jdx.dev/getting-started.html) for installation instructions.
+
+### Tool Versions
+
+Tool versions are managed via mise. Source of truth files:
+
+- **Most tools**: `mise.toml`
+- **Node.js**: `.node-version` (`.nvmrc` kept in sync for nvm compatibility)
+
+These files are kept up to date by Renovate.
+
+```bash
+mise install              # Install/update tools to correct versions
+mise exec -- <command>    # Preferred for scripts/CI/non-interactive shells
+eval "$(mise activate)"   # Interactive shells only
+```
+
+**Changing tool versions**: Open a PR updating the authoritative version file(s). For Node.js, always update both `.node-version` and `.nvmrc` together. Run `mise install`, then verify with `npm run lint && npm run check-types && npm test`.
+
+**Local overrides**: Use `.mise.local.toml` (gitignored) for local-only changes. Only for additive or patch-level changes—don't override Node.js or use incompatible versions.
 
 ## 2. Core Development Principles
 
@@ -126,6 +146,11 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - **Prefer `Record<string, unknown>` over `object`** or `{ [key: string]: unknown }` when possible.
 - **Do not disable ESLint rules** unless explicitly requested - fix the root cause instead.
 - **Do not disable TypeScript errors** unless explicitly requested - fix the root cause instead.
+- **Constrain generics** with `extends` - avoid overly broad `<T>`, prefer `<T extends SomeType>`.
+- **Use discriminated unions** for mutually exclusive states (e.g., `{ success: true; data: T } | { success: false; error: Error }`).
+- **Use `as const`** to preserve literal types, especially for arrays that should be tuples.
+- **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
+- **Avoid `{}` type** - it means "any non-nullish value" (including primitives). Prefer `unknown` (truly unknown), `object` (any non-primitive object), or `Record<string, unknown>` / a specific object type for key-value objects.
 
 ### Type Inference
 
@@ -134,9 +159,12 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
   - Return values of functions that have an obvious return type
   - Local variables that are well defined
 - **Let TypeScript infer return types** when they're obvious.
-- **Avoid creating intermediate "helper" types** for internal functions.
+- **Avoid creating one-off/intermediate "helper" types** for internal functions.
 - **Use inferred types** from database schemas, tRPC schemas, and other sources of truth.
 - **Add explicit types** when it improves clarity or catches errors.
+- **Avoid type casts (e.g. `as`)** unless absolutely necessary. Prefer updating function signatures/types so the code doesn't need a cast. Casting through `unknown` is usually a smell; when it's needed at an interop boundary, do runtime validation first (e.g. Zod) and keep the cast local.
+- **Use `satisfies` to check an object literal matches a type** while preserving inference (compile-time only). It does not validate runtime data; use a schema validator for untrusted input.
+- **Type guards** should perform real runtime checks to narrow values. Use `unknown` as an input type only when the value is truly unknown (e.g. JSON deserialization, user input). Avoid "fake" guards that just assert a type without validation.
 
 ### Type Conversions
 
@@ -231,13 +259,13 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
 
-Database commands:
+Database commands (require `-w packages/db` flag from root):
 
 ```bash
-npm run db:generate  # Generate migrations from schema changes
-npm run db:migrate   # Apply migrations
-npm run db:check     # Check status
-npm run db:studio    # Open Drizzle Studio
+npm run db:generate -w packages/db  # Generate migrations from schema changes
+npm run db:migrate -w packages/db   # Apply migrations
+npm run db:check -w packages/db     # Check status
+npm run db:studio -w packages/db    # Open Drizzle Studio
 ```
 
 ## 7. Shared Packages & Utilities
@@ -250,27 +278,33 @@ npm run db:studio    # Open Drizzle Studio
 
 ### Commands
 
-#### Framework Development
+#### Development Commands
 
 ```bash
-# Development
-npm run dev              # Start showcase + docs development servers
+# Development (two different apps!)
+npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 3000/3001
+npm run dev              # Start React SDK (showcase + docs)
+
+# Quality checks
+npm run lint             # Lint all packages
+npm run lint:fix         # Auto-fix linting issues
+npm run check-types      # TypeScript type checking
+npm test                 # Run all tests
+npm run format           # Format code with Prettier
+
+# Individual package development (from package directory or with -w flag)
+npm run dev -w cli       # Start specific workspace
+npm run build -w react-sdk  # Build specific package
+```
+
+#### Turbo Commands (alternative)
+
+```bash
 turbo dev               # Start all packages in development mode
 turbo build             # Build all packages
 turbo lint              # Lint all packages
 turbo test              # Run tests across all packages
 turbo check-types       # Type-check all packages
-
-# Individual package development (from package directory)
-npm run dev             # Package-specific development
-npm run build           # Build single package
-npm run test            # Test single package
-npm run lint            # Lint single package
-npm run check-types     # Type-check single package
-
-# Utility commands
-npm run format          # Format code with Prettier
-npm run lint:fix        # Auto-fix linting issues
 ```
 
 ### Build System
@@ -334,6 +368,10 @@ npm test              # Unit/integration tests
 
 ## 10. Git Workflow & PRs
 
+### Branch Naming
+
+Create branches in the format `<userid>/<feature-name>`, e.g., `alecf/add-dark-mode` or `jane/fix-login-bug`.
+
 ### Conventional Commits
 
 All PR titles MUST follow this format:
@@ -394,3 +432,4 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 - Do not compliment them or try to gain favor from them.
 - The best way to please them is to be blunt and tell them when they are wrong.
 - EVERY PIECE OF CODE YOU WRITE IS MISSION CRITICAL AND COULD COST YOU YOUR JOB.
+- When adding/editing JSDoc comments, make sure to add @returns to provide a description of the function return (the type should not be specified since TS will infer the return from the code, not the comment.)

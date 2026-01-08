@@ -10,10 +10,17 @@ import {
   useTamboMutation,
   UseTamboMutationResult,
 } from "../hooks/react-query-hooks";
-import { useMessageImages, StagedImage } from "../hooks/use-message-images";
+import { StagedImage, useMessageImages } from "../hooks/use-message-images";
+import { useTamboMcpServers } from "../mcp/tambo-mcp-provider";
 import { ThreadInputError } from "../model/thread-input-error";
 import { validateInput } from "../model/validate-input";
 import { buildMessageContent } from "../util/message-builder";
+import {
+  extractResourceUris,
+  resolveResourceContents,
+} from "../util/resource-content-resolver";
+import { useTamboInteractable } from "./tambo-interactable-provider";
+import { useTamboRegistry } from "./tambo-registry-provider";
 import { useTamboThread } from "./tambo-thread-provider";
 
 /**
@@ -54,10 +61,10 @@ export interface TamboThreadInputContextProps extends Omit<
    * @param options - Submission options
    */
   submit: (options?: {
-    contextKey?: string;
     streamResponse?: boolean;
     forceToolChoice?: string;
     additionalContext?: Record<string, any>;
+    resourceNames?: Record<string, string>;
   }) => Promise<void>;
   /** Currently staged images */
   images: StagedImage[];
@@ -75,37 +82,34 @@ export const TamboThreadInputContext = createContext<
   TamboThreadInputContextProps | undefined
 >(undefined);
 
-export interface TamboThreadInputProviderProps {
-  contextKey?: string;
-}
-
 /**
  * Provider that manages shared thread input state across all components
  * This ensures that useTamboThreadInput, useTamboSuggestions, and components
  * all share the same input state
  * @param props - The props for the TamboThreadInputProvider
- * @param props.contextKey - Optional context key.
  * @param props.children - The children to render.
  * @returns The thread input context
  */
-export const TamboThreadInputProvider: React.FC<
-  PropsWithChildren<TamboThreadInputProviderProps>
-> = ({ children, contextKey }) => {
-  const { thread, sendThreadMessage } = useTamboThread();
+export const TamboThreadInputProvider: React.FC<PropsWithChildren> = ({
+  children,
+}) => {
+  const { thread, sendThreadMessage, contextKey } = useTamboThread();
   const [inputValue, setInputValue] = useState("");
   const imageState = useMessageImages();
-
+  const mcpServers = useTamboMcpServers();
+  const { resourceSource } = useTamboRegistry();
+  const { clearInteractableSelections } = useTamboInteractable();
   const submit = useCallback(
     async ({
-      contextKey: submitContextKey,
       streamResponse,
       forceToolChoice,
       additionalContext,
+      resourceNames = {},
     }: {
-      contextKey?: string;
       streamResponse?: boolean;
       forceToolChoice?: string;
       additionalContext?: Record<string, any>;
+      resourceNames?: Record<string, string>;
     } = {}) => {
       // Validate text input if present
       if (inputValue?.trim()) {
@@ -125,22 +129,39 @@ export const TamboThreadInputProvider: React.FC<
         });
       }
 
-      // Build message content with text and images
-      const messageContent = buildMessageContent(inputValue, imageState.images);
+      // Extract resource URIs from the input text and resolve content for client-side resources
+      // (registry and client-side MCP servers). Internal Tambo server resources are skipped
+      // since the backend can resolve them.
+      const resourceUris = extractResourceUris(inputValue);
+      const resolvedContent = await resolveResourceContents(
+        resourceUris,
+        mcpServers,
+        resourceSource ?? undefined,
+      );
+
+      // Build message content with text, images, resource names, and resolved content
+      const messageContent = buildMessageContent(
+        inputValue,
+        imageState.images,
+        resourceNames,
+        resolvedContent,
+      );
 
       try {
         await sendThreadMessage(inputValue || "Image message", {
           threadId: thread.id,
-          contextKey: submitContextKey ?? contextKey ?? undefined,
+          contextKey,
           streamResponse: streamResponse,
           forceToolChoice: forceToolChoice,
           additionalContext: additionalContext,
           content: messageContent,
         });
-      } catch (error: any) {
+        clearInteractableSelections();
+      } catch (error: unknown) {
         // Handle image-related errors with friendly messages
         if (imageState.images.length > 0) {
-          const errorMessage = error?.message?.toLowerCase() ?? "";
+          const errorMessage =
+            error instanceof Error ? error.message.toLowerCase() : "";
 
           // Backend not yet supporting image content type
           if (errorMessage.includes("unknown content part type: image")) {
@@ -196,7 +217,16 @@ export const TamboThreadInputProvider: React.FC<
       // Clear text after successful submission
       setInputValue("");
     },
-    [inputValue, sendThreadMessage, thread.id, contextKey, imageState],
+    [
+      inputValue,
+      sendThreadMessage,
+      thread.id,
+      contextKey,
+      imageState,
+      mcpServers,
+      resourceSource,
+      clearInteractableSelections,
+    ],
   );
 
   const {

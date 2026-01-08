@@ -1,20 +1,43 @@
 ---
 title: Context Attachments
-description: Add visual context badges that automatically provide AI with focused information about what users are working on.
+description: Stage context pieces that will be sent with the next user message
 ---
 
-Context attachments enable you to display visual badges above the message input that automatically provide the AI with additional context. This helps the AI understand what the user is focused on and provide more relevant responses.
+Context attachments allow you to stage context pieces that will be automatically included in the `additionalContext` when the next message is sent.
 
 ## How context attachments work
 
-Context attachments appear as removable badges above the message input. When present, they automatically send contextual information to the AI, helping it:
+Context attachments are automatically registered as a single merged context helper (with the key `contextAttachments`) that returns an array of all active attachments. When you add or remove attachments, the context helper automatically updates to reflect the current state. The attachments will be included in the `additionalContext` when the next user message is sent, and are automatically cleared after submission (one-time use).
 
-- Focus on specific files, components, or pages the user is viewing
-- Understand which part of your application the user is working on
-- Provide more targeted and relevant responses
-- Enable visual feedback showing what context is active
+### Context Helper Behavior
 
-The feature also supports custom suggestions, allowing you to override Tambo's auto-generated suggestions with your own contextual suggestions.
+The `TamboContextAttachmentProvider` automatically registers a context helper with the key `contextAttachments`. This helper:
+
+- Returns an array of all active attachments when there are any
+- Returns `null` when there are no attachments
+- Automatically updates when attachments are added or removed
+- Is included in `additionalContext` when the next message is sent
+
+The context helper structure looks like this:
+
+```json
+{
+  "contextAttachments": [
+    {
+      "id": "uuid-1",
+      "displayName": "File.txt",
+      "context": "The contents of File.txt",
+      "type": "file"
+    },
+    {
+      "id": "uuid-2",
+      "displayName": "Selection",
+      "context": "Selected text content",
+      "type": "selection"
+    }
+  ]
+}
+```
 
 ## Basic Usage
 
@@ -29,12 +52,9 @@ function FileViewer({ file }) {
 
   const handleSelectFile = () => {
     addContextAttachment({
-      name: file.name,
-      icon: <FileIcon />,
-      metadata: {
-        filePath: file.path,
-        type: file.type,
-      },
+      context: file.content,
+      displayName: file.name,
+      type: "file",
     });
   };
 
@@ -49,9 +69,9 @@ Each context attachment has the following structure:
 ```tsx
 interface ContextAttachment {
   id: string; // Auto-generated unique identifier
-  name: string; // Display name shown in the badge
-  icon?: React.ReactNode; // Optional icon to display
-  metadata?: Record<string, unknown>; // Additional data for the AI
+  displayName?: string; // Optional display name for UI rendering
+  context: string; // The context value that will be used in additionalContext
+  type?: string; // Optional type identifier for grouping/rendering
 }
 ```
 
@@ -65,44 +85,45 @@ const {
   addContextAttachment, // Add a new context attachment
   removeContextAttachment, // Remove by ID
   clearContextAttachments, // Remove all attachments
-  customSuggestions, // Current custom suggestions
-  setCustomSuggestions, // Set custom suggestions
 } = useTamboContextAttachment();
 ```
 
 ### Adding Context Attachments
 
-Add a context attachment by calling `addContextAttachment` with a name and optional metadata:
+Add a context attachment by calling `addContextAttachment` with an object containing the context value, optional display name, and optional type:
 
 ```tsx
 const { addContextAttachment } = useTamboContextAttachment();
 
-// Simple text context
-addContextAttachment({
-  name: "Dashboard Page",
+// Simple context attachment without displayName
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
 });
 
-// With icon and metadata
-addContextAttachment({
-  name: "Button.tsx",
-  icon: <FileIcon />,
-  metadata: {
-    filePath: "/src/components/Button.tsx",
-    lineNumber: 42,
-  },
+// With displayName
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
+  displayName: "File.txt",
+});
+
+// With displayName and type for grouping
+const attachment = addContextAttachment({
+  context: "The contents of File.txt",
+  displayName: "File.txt",
+  type: "file",
 });
 ```
 
-The `id` field is automatically generated. If you add a context with the same `name` as an existing one, it will be ignored to prevent duplicates.
+The function returns the `ContextAttachment` object with an auto-generated `id`. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments. This array will be included in `additionalContext` when the next message is sent.
 
 ### Removing Context Attachments
 
-Remove a specific context attachment by its ID:
+Remove a specific context attachment by its ID. The context helper will automatically update to reflect the change:
 
 ```tsx
 const { removeContextAttachment } = useTamboContextAttachment();
 
-removeContextAttachment(contextId);
+removeContextAttachment(attachment.id);
 ```
 
 Or clear all attachments at once:
@@ -113,113 +134,19 @@ const { clearContextAttachments } = useTamboContextAttachment();
 clearContextAttachments();
 ```
 
-### Displaying Active Attachments
+**Note:** Context attachments are automatically cleared after message submission (one-time use). You typically don't need to manually clear them unless you want to remove them before sending a message.
 
-Display the current attachments as badges:
+### Accessing Active Attachments
 
-```tsx
-const { attachments, removeContextAttachment } = useTamboContextAttachment();
-
-return (
-  <div>
-    {attachments.map((attachment) => (
-      <div key={attachment.id}>
-        {attachment.icon}
-        <span>{attachment.name}</span>
-        <button onClick={() => removeContextAttachment(attachment.id)}>
-          ×
-        </button>
-      </div>
-    ))}
-  </div>
-);
-```
-
-## Customizing Context Data
-
-By default, context attachments send a standard structure to the AI. You can customize this by providing a `getContextHelperData` function to `TamboProvider`:
+Access the current attachments array:
 
 ```tsx
-import { TamboProvider } from "@tambo-ai/react";
+const { attachments } = useTamboContextAttachment();
 
-<TamboProvider
-  apiKey="your-api-key"
-  getContextHelperData={(context) => ({
-    selectedFile: {
-      name: context.name,
-      path: context.metadata?.filePath,
-      instruction: "Focus on this file when responding",
-      // Add any custom fields
-      language: context.metadata?.language,
-      lastModified: context.metadata?.lastModified,
-    },
-  })}
->
-  <App />
-</TamboProvider>;
-```
-
-The function can be async to fetch additional data:
-
-```tsx
-<TamboProvider
-  apiKey="your-api-key"
-  getContextHelperData={async (context) => {
-    const fileContent = await fetchFileContent(context.metadata?.filePath);
-    return {
-      selectedFile: {
-        name: context.name,
-        content: fileContent,
-        instruction: "Use this file content to help the user",
-      },
-    };
-  }}
->
-  <App />
-</TamboProvider>
-```
-
-## Custom Suggestions
-
-Context attachments can be combined with custom suggestions to override Tambo's auto-generated suggestions:
-
-```tsx
-import { useTamboContextAttachment } from "@tambo-ai/react";
-
-function ComponentSelector({ component }) {
-  const { addContextAttachment, setCustomSuggestions } =
-    useTamboContextAttachment();
-
-  const handleSelectComponent = () => {
-    addContextAttachment({
-      name: component.name,
-      metadata: { componentId: component.id },
-    });
-
-    setCustomSuggestions([
-      {
-        id: "1",
-        title: "Edit this component",
-        detailedSuggestion: `Modify the ${component.name} component`,
-        messageId: "",
-      },
-      {
-        id: "2",
-        title: "Add a feature",
-        detailedSuggestion: `Add a new feature to ${component.name}`,
-        messageId: "",
-      },
-    ]);
-  };
-
-  return <button onClick={handleSelectComponent}>Select Component</button>;
-}
-```
-
-To clear custom suggestions and return to auto-generated ones:
-
-```tsx
-setCustomSuggestions(null);
+// Use attachments for UI rendering or other purposes
+attachments.forEach((attachment) => {
+  console.log(attachment.displayName, attachment.context, attachment.type);
+});
 ```
 
 ## Complete Example
@@ -228,53 +155,35 @@ Here's a complete example showing context attachments in a file browser:
 
 ```tsx
 import { useTamboContextAttachment } from "@tambo-ai/react";
-import { FileIcon, XIcon } from "lucide-react";
 
 function FileBrowser({ files }) {
   const {
     attachments,
     addContextAttachment,
     removeContextAttachment,
-    setCustomSuggestions,
+    clearContextAttachments,
   } = useTamboContextAttachment();
 
   const handleFileClick = (file) => {
+    // Stage the file content for the next message
     addContextAttachment({
-      name: file.name,
-      icon: <FileIcon className="w-4 h-4" />,
-      metadata: {
-        filePath: file.path,
-        language: file.language,
-      },
+      context: file.content,
+      displayName: file.name,
+      type: "file",
     });
-
-    setCustomSuggestions([
-      {
-        id: "1",
-        title: "Explain this file",
-        detailedSuggestion: `Explain what ${file.name} does`,
-        messageId: "",
-      },
-      {
-        id: "2",
-        title: "Suggest improvements",
-        detailedSuggestion: `Suggest improvements to ${file.name}`,
-        messageId: "",
-      },
-    ]);
   };
 
   return (
     <div>
-      {/* Active Context Badges */}
+      {/* Display active attachments */}
       {attachments.length > 0 && (
         <div>
+          <h3>Staged Context:</h3>
           {attachments.map((attachment) => (
             <div key={attachment.id}>
-              {attachment.icon}
-              <span>{attachment.name}</span>
+              <span>{attachment.displayName}</span>
               <button onClick={() => removeContextAttachment(attachment.id)}>
-                <XIcon className="w-3 h-3" />
+                Remove
               </button>
             </div>
           ))}
@@ -285,7 +194,6 @@ function FileBrowser({ files }) {
       <div>
         {files.map((file) => (
           <button key={file.id} onClick={() => handleFileClick(file)}>
-            <FileIcon />
             {file.name}
           </button>
         ))}
@@ -294,33 +202,3 @@ function FileBrowser({ files }) {
   );
 }
 ```
-
-## How It Works
-
-When you add a context attachment:
-
-1. The attachment is added to the `attachments` array and displayed as a badge
-2. A context helper is automatically registered with `TamboContextHelpersProvider`
-3. The context data is sent along with every message until the attachment is removed
-4. When removed, the context helper is automatically unregistered
-
-This automatic synchronization means you don't need to manually manage context helpers—just add and remove attachments as needed.
-
-## Integration with Existing Context
-
-Context attachments work alongside other context helpers:
-
-- **Prebuilt helpers** like `currentTimeContextHelper` continue to work
-- **Custom helpers** from `contextHelpers` prop are still sent
-- **Manual context** via `additionalContext` is merged with attachment context
-- All context sources are combined when sending messages
-
-## Use Cases
-
-Context attachments are particularly useful for:
-
-- **Code editors**: Focus on specific files or functions
-- **Dashboards**: Indicate which widget or section is active
-- **Forms**: Show which field or step is being worked on
-- **Multi-page apps**: Display the current page or route
-- **Component libraries**: Highlight selected components

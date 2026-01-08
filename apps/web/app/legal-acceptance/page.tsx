@@ -3,18 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LEGAL_CONFIG } from "@/lib/legal-config";
-import { api } from "@/trpc/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { DashboardThemeProvider } from "@/providers/dashboard-theme-provider";
+import { api } from "@/trpc/react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function LegalAcceptancePage() {
   const [accepted, setAccepted] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const utils = api.useUtils();
+
+  // Get return URL from query params, default to dashboard
+  const returnUrl = searchParams.get("returnUrl") ?? "/dashboard";
 
   // Check legal status when authenticated; if already accepted, redirect
   const { data: legalStatus } = api.user.hasAcceptedLegal.useQuery(undefined, {
@@ -27,9 +31,9 @@ export default function LegalAcceptancePage() {
       return;
     }
     if (status === "authenticated" && legalStatus?.accepted) {
-      router.replace("/dashboard");
+      router.replace(returnUrl);
     }
-  }, [status, legalStatus, router]);
+  }, [status, legalStatus, router, returnUrl]);
 
   const acceptLegalMutation = api.user.acceptLegal.useMutation({
     onSuccess: async () => {
@@ -42,7 +46,7 @@ export default function LegalAcceptancePage() {
         ...(prev ?? {}),
       }));
       await utils.user.hasAcceptedLegal.invalidate();
-      router.replace("/dashboard");
+      router.replace(returnUrl);
     },
   });
 

@@ -3,9 +3,11 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 
 /**
- * Custom hook to merge multiple refs into one callback ref
- * @param refs - Array of refs to merge
- * @returns A callback ref that updates all provided refs
+ * Merges multiple refs into a single callback ref.
+ *
+ * In React 19, callback refs may return cleanup functions; this hook fans out
+ * both assignments and cleanups to all provided refs and tracks the last
+ * cleanup so it runs when the instance changes.
  */
 export function useMergeRefs<Instance>(
   ...refs: (React.Ref<Instance> | undefined)[]
@@ -142,6 +144,11 @@ export function usePositioning(
 /**
  * Converts message content into a safely renderable format.
  * Handles text, resource references, and other content types.
+ *
+ * @deprecated This function is deprecated. Message rendering now uses a private
+ * `convertContentToMarkdown()` function within the message component. This function
+ * is kept for backward compatibility since it's exposed in the SDK.
+ *
  * @param content - The message content (string, element, array, etc.)
  * @returns A renderable string or React element.
  */

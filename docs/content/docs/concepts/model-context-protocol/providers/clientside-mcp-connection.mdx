@@ -27,11 +27,11 @@ This is useful for:
 >
 > `zod` can also be `^3.25` if you prefer Zod 3; both `^3.25` and `^4.0` satisfy the SDK's `zod/v3` subpath constraints. This keeps MCP support opt-in while avoiding runtime errors when you start using the MCP hooks and providers.
 
-To implement client-side MCP support, pass `mcpServers` to `TamboProvider` and wrap your app with `TamboMcpProvider`:
+To implement client-side MCP support, pass `mcpServers` to `TamboProvider`:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 function MyApp() {
   return (
@@ -51,26 +51,23 @@ function MyApp() {
         },
       ]}
     >
-      <TamboMcpProvider>
-        {/* Your application components */}
-      </TamboMcpProvider>
+      {/* Your application components */}
     </TamboProvider>
   );
 }
 ```
 
-> **Note**: As of `@tambo-ai/react@0.65.0`, pass `mcpServers` to `TamboProvider` instead of `TamboMcpProvider`.
-
-The `TamboMcpProvider` establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
+`TamboProvider` automatically establishes connections to the specified MCP servers and makes their tools available to Tambo agents in your application.
 
 > Note
 >
-> When more than one MCP server is configured, Tambo prefixes names to avoid collisions using the `serverKey`:
+> Tambo **always prefixes** names using the `serverKey` to identify which MCP server they come from:
 >
 > - Prompts: `serverKey:promptName` (colon separator)
+> - Resources: `serverKey:resourceUri` (colon separator)
 > - Tools: `serverKey__toolName` (double-underscore separator)
 >
-> If you do not provide `serverKey`, Tambo derives one from the server URL (for example, `https://mcp.linear.app/mcp` becomes `linear`). To keep things predictable across environments, set `serverKey` explicitly. Avoid using `:` and `__` in the `serverKey` since prompts use `:` and tools use `__` as separators; prefer letters, numbers, `_`, and `-`.
+> If you do not provide `serverKey`, Tambo derives one from the server URL (for example, `https://mcp.linear.app/mcp` becomes `linear`). To keep things predictable across environments, set `serverKey` explicitly. Avoid using `:` and `__` in the `serverKey` since prompts/resources use `:` and tools use `__` as separators; prefer letters, numbers, `_`, and `-`.
 
 ## Control Flow
 
@@ -148,7 +145,7 @@ import { MessageInput } from "@/components/ui/message-input";
 
 function ChatInterface() {
   return (
-    <MessageInput contextKey="my-thread">
+    <MessageInput>
       <MessageInput.Textarea />
       <MessageInput.Toolbar>
         <MessageInput.FileButton />
@@ -161,7 +158,7 @@ function ChatInterface() {
 }
 ```
 
-When a user selects a resource from the button, it inserts a reference with the syntax `@<resourceUri>` (e.g., `@file:///path/to/file.txt` or `@linear:file://issue/123` if multiple servers are configured).
+When a user selects a resource from the button, it inserts a reference with the syntax `@<serverKey>:<resourceUri>` (e.g., `@linear:issue://TAM-123`). The `resourceUri` portion (for example, `issue://TAM-123`) is defined by the MCP server; Tambo only adds the `@<serverKey>:` prefix.
 
 ## Working with MCP Prompts
 
@@ -222,7 +219,7 @@ import { MessageInput } from "@/components/ui/message-input";
 
 function ChatInterface() {
   return (
-    <MessageInput contextKey="my-thread">
+    <MessageInput>
       <MessageInput.Textarea />
       <MessageInput.Toolbar>
         <MessageInput.McpPromptButton />
@@ -235,11 +232,13 @@ function ChatInterface() {
 
 ## Server Namespacing
 
-When multiple MCP servers are configured, tools, prompts, and resources are automatically prefixed with a `serverKey` to avoid naming conflicts:
+Tools, prompts, and resources are **always prefixed** with the `serverKey` to identify which MCP server they come from:
 
 - **Tools**: `<serverKey>__<toolName>` (e.g., `linear__create_issue`)
 - **Prompts**: `<serverKey>:<promptName>` (e.g., `linear:new-issue`)
-- **Resources**: `<serverKey>:<resourceUri>` (e.g., `linear:file://issue/123`)
+- **Resources**: `<serverKey>:<resourceUri>` (e.g., `linear:issue://TAM-123`)
+
+In all cases, the `serverKey` portion is managed by Tambo or your configuration, while `<resourceUri>` is defined by the MCP server itself.
 
 The `serverKey` is automatically derived from the server URL (e.g., "linear" from "https://mcp.linear.app"), or you can specify it explicitly:
 
@@ -258,8 +257,6 @@ The `serverKey` is automatically derived from the server URL (e.g., "linear" fro
     },
   ]}
 >
-  <TamboMcpProvider>{/* Your app */}</TamboMcpProvider>
+  {/* Your app */}
 </TamboProvider>
 ```
-
-When only one server is configured, no prefixes are applied (backward compatible).

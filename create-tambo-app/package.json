@@ -2,6 +2,7 @@
   "name": "create-tambo-app",
   "version": "0.2.0",
   "description": "Create a new Tambo application",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/tambo-ai/tambo.git",
@@ -22,7 +23,8 @@
   },
   "files": [
     "src",
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "sideEffects": false,
   "scripts": {
@@ -34,17 +36,13 @@
     "clean": "rimraf dist"
   },
   "engines": {
-    "node": ">=22",
-    "npm": ">=11"
-  },
-  "volta": {
-    "extends": "../package.json"
+    "node": ">=22"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "eslint": "^9.39.1",
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
     "rimraf": "^6.1.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.0"
+    "typescript-eslint": "^8.51.0"
   }
 }
