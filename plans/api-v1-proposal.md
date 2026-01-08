@@ -529,17 +529,16 @@ interface TamboCustomEvent {
 /**
  * Emitted when the run is paused waiting for client-side tool results.
  * Client should execute the pending tool calls and POST results to continue.
+ *
+ * Only includes tool call IDs - the tool name and input were already
+ * streamed via TOOL_CALL_START/TOOL_CALL_ARGS/TOOL_CALL_END events.
  */
 interface TamboAwaitingInputEvent extends TamboCustomEvent {
   name: "tambo.run.awaiting_input";
   value: {
     threadId: string;
     runId: string;
-    pendingToolCalls: Array<{
-      toolCallId: string;
-      toolName: string;
-      input: Record<string, unknown>;
-    }>;
+    pendingToolCallIds: string[];
   };
 }
 
@@ -1044,7 +1043,7 @@ data: {"type":"TOOL_CALL_ARGS","toolCallId":"tc_001","delta":"{\"productId\":\"S
 
 data: {"type":"TOOL_CALL_END","toolCallId":"tc_001","timestamp":1704067200150}
 
-data: {"type":"CUSTOM","name":"tambo.run.awaiting_input","value":{"threadId":"thr_abc123","runId":"run_xyz789","pendingToolCalls":[{"toolCallId":"tc_001","toolName":"add_to_cart","input":{"productId":"SKU-123","quantity":2}}]},"timestamp":1704067200200}
+data: {"type":"CUSTOM","name":"tambo.run.awaiting_input","value":{"threadId":"thr_abc123","runId":"run_xyz789","pendingToolCallIds":["tc_001"]},"timestamp":1704067200200}
 ```
 
 _Stream closes here. Client executes `add_to_cart` in the browser._
@@ -1232,7 +1231,7 @@ Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`,
 
 | Event Name                  | When Emitted                   | Key Value Fields                                          |
 | --------------------------- | ------------------------------ | --------------------------------------------------------- |
-| tambo.run.awaiting_input    | Paused for client tool results | threadId, runId, pendingToolCalls[]                       |
+| tambo.run.awaiting_input    | Paused for client tool results | threadId, runId, pendingToolCallIds[]                     |
 | tambo.component.start       | Begin component streaming      | componentId, componentName, messageId                     |
 | tambo.component.props_delta | Props update (JSON Patch)      | componentId, delta[], streaming? (started/streaming/done) |
 | tambo.component.state_delta | State update (JSON Patch)      | componentId, delta[]                                      |
@@ -1553,22 +1552,12 @@ export class ComponentEndValueDto {
 }
 
 /**
- * Pending tool call info for awaiting_input event
- */
-@ApiSchema({ name: "PendingToolCall" })
-export class PendingToolCallDto {
-  toolCallId: string;
-  toolName: string;
-  input: Record<string, unknown>;
-}
-
-/**
  * Value payload for tambo.run.awaiting_input CUSTOM event
  */
 @ApiSchema({ name: "AwaitingInputValue" })
 export class AwaitingInputValueDto {
   threadId: string;
   runId: string;
-  pendingToolCalls: PendingToolCallDto[];
+  pendingToolCallIds: string[];
 }
 ```
