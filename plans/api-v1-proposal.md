@@ -1287,7 +1287,7 @@ This allows early adopters to test the new API while the existing provider remai
 Once the v1 API is fully implemented and validated:
 
 - The existing `<TamboProvider>` will be updated to use the v1 API
-- `@tambo-ai/react/v1` subpath will be deprecated (re-exports main provider)
+- `@tambo-ai/react/v1` subpath will be removed entirely
 - Breaking type changes will be documented in migration guide
 - SDK version bumped to 1.0 to signal stable v1 API support
 
@@ -1295,7 +1295,7 @@ Once the v1 API is fully implemented and validated:
 
 1. (Now) Use current `<TamboProvider>` with existing API
 2. (Preview) Optionally test `<TamboV1Provider>` from `/v1` subpath
-3. (1.0 release) Update to new `<TamboProvider>` with v1 types
+3. (1.0 release) Switch back to `<TamboProvider>` (now with v1 types)
 
 ---
 
