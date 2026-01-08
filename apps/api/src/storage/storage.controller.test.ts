@@ -123,7 +123,7 @@ describe("StorageController", () => {
 
       // Filename should be sanitized
       expect(result.attachmentUri).toMatch(
-        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-test_file_with_spaces___special_chars\.pdf$/,
+        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-test_file_with_spaces_special_chars\.pdf$/,
       );
     });
 
@@ -183,7 +183,7 @@ describe("StorageController", () => {
 
       // Unicode characters should be replaced with underscores
       expect(result.attachmentUri).toMatch(
-        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-_+\.pdf$/,
+        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-file\.pdf$/,
       );
     });
 

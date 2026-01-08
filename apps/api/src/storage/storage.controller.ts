@@ -27,6 +27,7 @@ import {
   uploadFile,
 } from "@tambo-ai-cloud/backend";
 import { randomUUID } from "crypto";
+import { extname } from "path";
 import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -49,13 +50,20 @@ function assertValidProjectId(projectId: string): void {
  * Preserves alphanumeric characters, dots, hyphens, and underscores.
  */
 function sanitizeFilename(filename: string): string {
-  const sanitized = filename
+  const extension = extname(filename);
+  const baseName = extension ? filename.slice(0, -extension.length) : filename;
+
+  const sanitizedBase = baseName
     .replace(/[^a-zA-Z0-9._-]/g, "_")
     .replace(/\.{2,}/g, ".")
-    .replace(/^[_.]+/, "")
     .replace(/_+/g, "_");
 
-  return sanitized.slice(0, MAX_FILENAME_LENGTH) || "file";
+  const trimmedBase = sanitizedBase.replace(/^[_.]+/, "");
+  const trimmedExtension = extension.replace(/[^a-zA-Z0-9.]/g, "");
+
+  const fullName = `${trimmedBase || "file"}${trimmedExtension}`;
+
+  return fullName.slice(0, MAX_FILENAME_LENGTH) || "file";
 }
 
 @ApiTags("storage")
