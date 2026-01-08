@@ -14,6 +14,10 @@ on:
       - ".github/labels.yml"
       - ".github/workflows/automation-labels.yml"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   meta:
     name: "Meta"
