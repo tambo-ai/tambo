@@ -35,7 +35,8 @@ const S3_BUCKET = process.env.S3_BUCKET ?? "user-files";
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
-const STORAGE_PROVIDER = process.env.STORAGE_PROVIDER ?? "s3";
+const rawStorageProvider = process.env.STORAGE_PROVIDER;
+const storageProvider = (rawStorageProvider ?? "s3").toLowerCase();
 
 async function createSupabaseBucket(
   supabaseUrl: string,
@@ -134,7 +135,16 @@ async function main(): Promise<void> {
 
   let success: boolean;
 
-  if (STORAGE_PROVIDER === "supabase") {
+  if (
+    !rawStorageProvider &&
+    (SUPABASE_URL.trim() !== "" || SUPABASE_SERVICE_ROLE_KEY.trim() !== "")
+  ) {
+    console.warn(
+      "SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY are set but STORAGE_PROVIDER is not. Defaulting to STORAGE_PROVIDER=s3.",
+    );
+  }
+
+  if (storageProvider === "supabase") {
     console.log("Using Supabase storage");
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -149,12 +159,12 @@ async function main(): Promise<void> {
       SUPABASE_SERVICE_ROLE_KEY,
       S3_BUCKET,
     );
-  } else if (STORAGE_PROVIDER === "s3") {
+  } else if (storageProvider === "s3") {
     console.log("Using S3-compatible storage (MinIO/AWS)");
     success = await createS3Bucket();
   } else {
     console.error(
-      `Invalid STORAGE_PROVIDER: ${STORAGE_PROVIDER}. Expected "s3" or "supabase".`,
+      `Invalid STORAGE_PROVIDER: ${rawStorageProvider}. Expected "s3" or "supabase".`,
     );
     process.exit(1);
   }
