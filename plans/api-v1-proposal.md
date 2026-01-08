@@ -306,10 +306,11 @@ interface Message {
 }
 
 /**
- * Input message for requests
+ * Input message for requests.
+ * Role is always "user" - assistant/system messages are only emitted by the server.
  */
 interface InputMessage {
-  role: MessageRole;
+  role: "user";
   content: InputContent[];
   metadata?: Record<string, unknown>;
 }
@@ -438,28 +439,34 @@ interface RunError {
 
 ```typescript
 /**
- * Thread represents a conversation
+ * Thread represents a conversation.
+ *
+ * Thread state is divided into three concerns:
+ * 1. Current run lifecycle (runStatus) - is a run active right now?
+ * 2. Last run outcome (lastRunCancelled, lastRunError) - how did it end?
+ * 3. Next run requirements (pendingToolCallIds) - what must the next run provide?
  */
 interface Thread {
   id: string;
   projectId: string;
   contextKey?: string; // User/session identifier
 
-  // Current run state
+  // 1. Current run lifecycle
+  // Only relevant while a run is active (runStatus !== "idle")
   runStatus: RunStatus;
   currentRunId?: string; // ID of active run (when not idle)
   statusMessage?: string; // Human-readable detail (e.g., "Fetching weather data...")
 
-  // Pending client-side tool calls from the last run.
-  // To continue, POST tool results with previousRunId set to lastCompletedRunId.
-  // Client can respond one at a time, in any order.
-  // Cleared when a new run starts (via previousRunId) or on cancel.
-  pendingToolCallIds?: string[];
-  lastCompletedRunId?: string; // Set when run finishes with pending tool calls
-
-  // Last run outcome (cleared on next RUN_STARTED)
+  // 2. Last run outcome (cleared when next run starts)
   lastRunCancelled?: boolean;
   lastRunError?: RunError;
+
+  // 3. Next run requirements
+  // If pendingToolCallIds is non-empty, the next run's message MUST contain
+  // a tool_result for at least one of these IDs (with previousRunId set).
+  // Sending a regular user message while tool calls are pending is an error.
+  pendingToolCallIds?: string[];
+  lastCompletedRunId?: string; // Required as previousRunId when continuing
 
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -546,13 +553,17 @@ interface TamboAwaitingInputEvent extends TamboCustomEvent {
 
 /**
  * Emitted when component streaming begins.
+ *
+ * The component is added to the current assistant message's content array
+ * (identified by messageId). Components accumulate alongside text and tool
+ * calls in the order they're streamed, allowing mixed content rendering.
  */
 interface TamboComponentStartEvent extends TamboCustomEvent {
   name: "tambo.component.start";
   value: {
     componentId: string;
     componentName: string;
-    messageId: string;
+    messageId: string; // The message this component belongs to
   };
 }
 
@@ -778,22 +789,18 @@ interface CreateThreadResponse {
 
 **Delete Thread:** `DELETE /v1/threads/{threadId}`
 
-### 3.3 Run Management
+### 3.3 Run Lifecycle
 
-**Reconnect to Run:** `GET /v1/threads/{threadId}/runs/{runId}`
+**Runs are ephemeral.** A run exists only for the duration of a single HTTP request:
 
-Reconnect to a running or paused run. Returns an SSE stream continuing from where the client left off.
-
-```typescript
-// Response: SSE stream of events
-// If run is finished, returns single RUN_FINISHED event
-// If run is awaiting input, returns RUN_AWAITING_INPUT event
-// If run is in progress, streams remaining events
-```
+- Run starts when client POSTs to `/runs` endpoint
+- Run ends when the SSE stream closes (success, error, or cancellation)
+- There is no reconnection - if the connection drops, the run is cancelled
+- The thread is left in the state reflected by its fields (`pendingToolCallIds`, `lastRunError`, etc.)
 
 **Cancel Run:** `DELETE /v1/threads/{threadId}/runs/{runId}`
 
-Cancel a running or paused run. Also triggered by closing the SSE connection.
+Explicitly cancel a running run. Note: closing the SSE connection also cancels the run.
 
 ```typescript
 interface CancelRunResponse {
@@ -1231,7 +1238,7 @@ The following design decisions were made during proposal development:
 | **Context tools**             | Client sends all available tools/components each request (no server tracking)                                                    |
 | **State update granularity**  | Both full replacement and JSON Patch supported                                                                                   |
 | **Messages per run**          | Multiple messages allowed when server-side tools loop                                                                            |
-| **Disconnection handling**    | Pause and resume - client can reconnect via GET `/runs/{runId}`                                                                  |
+| **Disconnection handling**    | No reconnection - runs are ephemeral. Connection drop cancels run; thread state reflects outcome.                                |
 | **Cancellation**              | Both connection close and explicit DELETE work                                                                                   |
 | **Thread endpoints**          | Standard REST (not streaming)                                                                                                    |
 | **Run/thread status**         | Simple `RunStatus` (idle/waiting/streaming); edge cases via separate fields (pendingToolCallIds, lastRunCancelled, lastRunError) |
@@ -1442,7 +1449,7 @@ export class MessageDto {
 
 @ApiSchema({ name: "InputMessage" })
 export class InputMessageDto {
-  role: MessageRoleDto;
+  role: "user"; // Only user messages accepted as input
   content: ContentDto[];
   metadata?: Record<string, unknown>;
 }
