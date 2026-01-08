@@ -94,7 +94,7 @@
     "@testing-library/react": "^16.3.1",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
-    "@types/node": "^22.15.32",
+    "@types/node": "^25.0.3",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@valibot/to-json-schema": "^1.4.0",

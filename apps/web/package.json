@@ -123,7 +123,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
     "@types/luxon": "^3.7.1",
-    "@types/node": "^22.15.32",
+    "@types/node": "^25.0.3",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.23",
