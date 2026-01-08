@@ -51,7 +51,51 @@ fi
 
 # 2. Start Supabase (if not running)
 # Use npx so developers don't need a globally installed Supabase CLI.
-if ! npx --yes supabase status 2>/dev/null | grep -q "supabase local development setup is running"; then
+if ! npx --yes supabase status -o json 2>/dev/null | node <<'NODE'
+const fs = require("node:fs");
+
+const input = fs.readFileSync(0, "utf8").trim();
+if (input.length === 0) {
+  process.exit(1);
+}
+
+let data;
+try {
+  data = JSON.parse(input);
+} catch {
+  process.exit(1);
+}
+
+const hasApiUrl = (value) => {
+  if (value === null || typeof value !== "object") {
+    return false;
+  }
+
+  const direct = value.apiUrl ?? value.api_url;
+  if (typeof direct === "string" && direct.length > 0) {
+    return true;
+  }
+
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry !== "string" || entry.length === 0) {
+      continue;
+    }
+
+    if (key.toLowerCase().includes("api url")) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+if (Array.isArray(data)) {
+  process.exit(data.some(hasApiUrl) ? 0 : 1);
+}
+
+process.exit(hasApiUrl(data) ? 0 : 1);
+NODE
+then
   echo "Starting Supabase..."
   npx --yes supabase start
 fi
