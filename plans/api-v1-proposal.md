@@ -15,11 +15,11 @@ This proposal defines the Tambo API v1, a streaming-first API that uses AG-UI ev
 1. **Streaming-only**: No synchronous endpoints - all responses stream via Server-Sent Events (SSE)
 2. **AG-UI Protocol**: Uses the AG-UI event system for all streaming communication
 3. **Industry-aligned Types**: Messages, Content, and Tools follow OpenAI/Anthropic conventions
-4. **First-class Components**: UI components are treated as special tool calls with streaming props/state
+4. **First-class Components**: Components appear as content blocks (like tool calls) and stream via dedicated `tambo.component.*` events
 5. **Multi-component Support**: A single response can return multiple components
 6. **Server & Client Tools**: Server-side tools (MCP, pre-registered) execute inline; client-side tools (per-request) pause the stream
-7. **Bidirectional State**: Clients can push state updates to components via dedicated endpoint
-8. **Pause & Resume**: Disconnected clients can reconnect to running/paused runs
+7. **Bidirectional State**: Clients can push state updates to components via dedicated endpoint (when not streaming)
+8. **Ephemeral Runs**: Runs exist only for the duration of a request; connection drops cancel the run
 
 ---
 
@@ -294,9 +294,11 @@ type OutputContent =
  *
  * Content is an array of blocks for multimodal support
  * (text, resources, tool_use, tool_result, components).
+ *
+ * IDs are always server-generated (format: msg_xxx). Clients cannot set message IDs.
  */
 interface Message {
-  id: string;
+  id: string; // Server-generated, format: msg_xxx
   role: MessageRole;
   content: Content[];
 
@@ -399,14 +401,6 @@ interface AvailableComponent {
   description: string; // What this component displays
   propsSchema: JSONSchema; // JSON Schema for props
   stateSchema?: JSONSchema; // Optional schema for state
-  contextTools?: ComponentTool[]; // Tools available when this component is active
-}
-
-/**
- * Tool that becomes available in context of a specific component
- */
-interface ComponentTool extends Tool {
-  maxCalls?: number; // Limit calls to this tool
 }
 ```
 
@@ -504,12 +498,19 @@ AG-UI provides standard events for text streaming, tool calls, and state managem
 { type: "TOOL_CALL_ARGS", toolCallId: "tc_001", delta: "{\"city\":" }
 { type: "TOOL_CALL_ARGS", toolCallId: "tc_001", delta: "\"Paris\"}" }
 { type: "TOOL_CALL_END", toolCallId: "tc_001" }
+// Server-side tool results
+{ type: "TOOL_CALL_RESULT", toolCallId: "tc_001", result: "72°F and sunny" }
 
 // Run lifecycle
 { type: "RUN_STARTED", threadId: "thr_xxx", runId: "run_xxx" }
 { type: "RUN_FINISHED", threadId: "thr_xxx", runId: "run_xxx" }
 { type: "RUN_ERROR", message: "Something went wrong", code: "INTERNAL_ERROR" }
 ```
+
+**Event-to-Content Mapping:** These streaming events accumulate into content blocks in the current
+message. `TOOL_CALL_START` creates a `tool_use` content block, `TOOL_CALL_ARGS` appends to its
+`input`, and `TOOL_CALL_RESULT` creates a corresponding `tool_result` block. The SDK and database
+should update the message's `content[]` array as events arrive.
 
 ### 2.2 Tambo CUSTOM Events
 
@@ -664,7 +665,6 @@ interface CreateThreadWithRunRequest {
   availableComponents?: AvailableComponent[];
   tools?: Tool[]; // Client-side tools (executed by frontend)
   toolChoice?: ToolChoice;
-  forceComponent?: string; // Force a specific component
 
   // Optional - Model configuration
   model?: string; // Override default model
@@ -694,7 +694,6 @@ interface CreateRunRequest {
   availableComponents?: AvailableComponent[];
   tools?: Tool[]; // Client-side tools (executed by frontend)
   toolChoice?: ToolChoice;
-  forceComponent?: string; // Force a specific component
 
   // Optional - Continuation (for tool result submissions)
   // Required when message contains tool_result content.
@@ -814,6 +813,9 @@ interface CancelRunResponse {
 **Update Component State:** `POST /v1/threads/{threadId}/components/{componentId}/state`
 
 Push state updates from client to a component. Supports both full replacement and JSON Patch.
+
+**Constraint:** This endpoint returns an error if the thread has an active run (`runStatus !== "idle"`).
+Client-side state updates are only allowed between runs to avoid conflicts with server-side streaming.
 
 ```typescript
 interface UpdateComponentStateRequest {
@@ -1470,18 +1472,12 @@ export class ToolDto {
   strict?: boolean;
 }
 
-@ApiSchema({ name: "ComponentTool" })
-export class ComponentToolDto extends ToolDto {
-  maxCalls?: number;
-}
-
 @ApiSchema({ name: "AvailableComponent" })
 export class AvailableComponentDto {
   name: string;
   description: string;
   propsSchema: JsonSchemaDto;
   stateSchema?: JsonSchemaDto;
-  contextTools?: ComponentToolDto[];
 }
 ```
 
@@ -1503,7 +1499,6 @@ export class CreateThreadWithRunDto {
   availableComponents?: AvailableComponentDto[];
   tools?: ToolDto[];
   toolChoice?: "auto" | "required" | "none" | ToolChoiceNamedDto;
-  forceComponent?: string;
   model?: string;
   maxTokens?: number;
   temperature?: number;
@@ -1517,7 +1512,6 @@ export class CreateRunDto {
   availableComponents?: AvailableComponentDto[];
   tools?: ToolDto[];
   toolChoice?: "auto" | "required" | "none" | ToolChoiceNamedDto;
-  forceComponent?: string;
 
   // Required when message contains tool_result content
   previousRunId?: string;
