@@ -10,6 +10,10 @@ import {
 } from "@tambo-ai-cloud/core";
 import type { HydraDb } from "@tambo-ai-cloud/db";
 import { dbMessageToThreadMessage, operations } from "@tambo-ai-cloud/db";
+import type {
+  EmbeddedResource,
+  ResourceLink,
+} from "@modelcontextprotocol/sdk/types.js";
 import mimeTypes from "mime-types";
 import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
 import { AudioFormat } from "../dto/message.dto";
@@ -136,8 +140,25 @@ type McpContent = Parameters<
   MCPHandlers["sampling"]
 >[0]["params"]["messages"][0]["content"];
 
-// Single content item type (for when content is not an array)
-type McpContentItem = Exclude<McpContent, readonly unknown[]>;
+// Single content item type from SDK (for when content is not an array)
+type McpSdkContentItem = Exclude<McpContent, readonly unknown[]>;
+
+/**
+ * Extended content item type that includes resource types.
+ * The MCP SDK's SamplingMessageContentBlockSchema doesn't include resource types,
+ * but MCP servers can still return them at runtime.
+ */
+type McpContentItem = McpSdkContentItem | ResourceLink | EmbeddedResource;
+
+function isResourceLink(content: McpContentItem): content is ResourceLink {
+  return content.type === "resource_link";
+}
+
+function isEmbeddedResource(
+  content: McpContentItem,
+): content is EmbeddedResource {
+  return content.type === "resource";
+}
 
 function isMcpContentItem(value: unknown): value is McpContentItem {
   if (typeof value !== "object" || value === null) {
@@ -148,19 +169,46 @@ function isMcpContentItem(value: unknown): value is McpContentItem {
     return false;
   }
 
-  const { type } = value as { type?: unknown };
-
-  return typeof type === "string";
+  return typeof value.type === "string";
 }
 
 function mcpContentItemToContentPart(
   content: McpContentItem,
 ): ChatCompletionContentPart {
+  // Check for resource types first using type guards
+  if (isResourceLink(content)) {
+    // For sampling messages, we don't have serverKey context to prefix URIs.
+    // Log warning and return placeholder - proper handling requires architecture changes.
+    console.warn(
+      "resource_link in sampling message not yet supported - resource will not be fetched",
+      { uri: content.uri, name: content.name },
+    );
+    return {
+      type: ContentPartType.Text,
+      text: `[Resource link: ${content.name ?? content.uri}]`,
+    };
+  }
+
+  if (isEmbeddedResource(content)) {
+    // Embedded resource - has inline content already
+    const resourceContent = content.resource;
+    return {
+      type: ContentPartType.Resource,
+      resource: {
+        uri: resourceContent.uri,
+        text: "text" in resourceContent ? resourceContent.text : undefined,
+        blob: "blob" in resourceContent ? resourceContent.blob : undefined,
+        mimeType: resourceContent.mimeType,
+      },
+    };
+  }
+
+  // Handle SDK-defined content types
   switch (content.type) {
     case "text":
       return { type: ContentPartType.Text, text: content.text };
+
     case "image":
-      // TODO: convert from image to image url?
       return {
         type: ContentPartType.ImageUrl,
         image_url: {
@@ -190,15 +238,13 @@ function mcpContentItemToContentPart(
         },
       };
     }
+
     default:
-      // content is `never` at this point, but we don't want to fully break
-      // the app, so we just return a text content part with a warning
-      console.warn(
-        `Unknown content type: ${String((content as { type?: unknown })?.type)}`,
-      );
+      // Truly unknown content type
+      console.warn(`Unknown content type: ${String(content.type)}`);
       return {
         type: ContentPartType.Text,
-        text: `[Unsupported content type: ${String((content as { type?: unknown })?.type)}]`,
+        text: `[Unsupported content type: ${String(content.type)}]`,
       };
   }
 }
@@ -216,16 +262,18 @@ function mcpContentToContentParts(
       return emptyTextPart;
     }
 
-    const parts = content
-      .filter((item): item is McpContentItem => {
-        if (!isMcpContentItem(item)) {
-          console.warn("Unexpected MCP content array element", item);
-          return false;
-        }
-        return true;
-      })
-      .map(mcpContentItemToContentPart);
+    // Filter to valid content items and convert
+    // Note: At runtime, MCP servers may return resource types not in the SDK schema
+    const validItems: McpContentItem[] = [];
+    for (const item of content) {
+      if (isMcpContentItem(item)) {
+        validItems.push(item);
+      } else {
+        console.warn("Unexpected MCP content array element", item);
+      }
+    }
 
+    const parts = validItems.map(mcpContentItemToContentPart);
     return parts.length > 0 ? parts : emptyTextPart;
   }
 
