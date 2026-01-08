@@ -18,6 +18,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { S3Client } from "@aws-sdk/client-s3";
+import { memoryStorage } from "multer";
 import {
   createS3Client,
   isS3Configured,
@@ -67,6 +68,7 @@ export class StorageController {
   @UseInterceptors(
     FileInterceptor("file", {
       limits: { fileSize: MAX_FILE_SIZE },
+      storage: memoryStorage(),
     }),
   )
   @ApiOperation({ summary: "Upload a file attachment" })
