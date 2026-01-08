@@ -492,12 +492,34 @@ export const TamboThreadProvider: React.FC<
       });
 
       if (sendToServer) {
-        // TODO: if this fails, we need to revert the local state update
-        await client.beta.threads.messages.create(message.threadId, {
-          content: message.content,
-          role: message.role,
-          additionalContext: chatMessage.additionalContext,
-        });
+        try {
+          await client.beta.threads.messages.create(message.threadId, {
+            content: message.content,
+            role: message.role,
+            additionalContext: chatMessage.additionalContext,
+          });
+        } catch (error) {
+          // Rollback
+          setThreadMap((prevMap) => {
+            if (!threadId) return prevMap;
+            const thread = prevMap[threadId];
+            if (!thread) return prevMap;
+
+            // Filter out the failed message
+            const filteredMessages = thread.messages.filter(
+              (msg) => msg.id !== messageId,
+            );
+
+            return {
+              ...prevMap,
+              [threadId]: {
+                ...thread,
+                messages: filteredMessages,
+              },
+            };
+          });
+          throw error;
+        }
       }
       return threadMap[threadId]?.messages || [];
     },
@@ -1033,14 +1055,14 @@ export const TamboThreadProvider: React.FC<
       const messageContent = content ?? [
         { type: "text" as const, text: message },
       ];
-
+      const userMessageId = crypto.randomUUID();
       await addThreadMessage(
         {
           content: messageContent as any,
           renderedComponent: null,
           role: "user",
           threadId: threadId,
-          id: crypto.randomUUID(),
+          id: userMessageId,
           createdAt: new Date().toISOString(),
           componentState: {},
           additionalContext: combinedContext,
@@ -1096,6 +1118,21 @@ export const TamboThreadProvider: React.FC<
           );
         } catch (error) {
           updateThreadStatus(threadId, GenerationStage.ERROR);
+          // Rollback the optimistic user message
+          setThreadMap((prevMap) => {
+            const thread = prevMap[threadId];
+            if (!thread) return prevMap;
+
+            return {
+              ...prevMap,
+              [threadId]: {
+                ...thread,
+                messages: thread.messages.filter(
+                  (msg) => msg.id !== userMessageId,
+                ),
+              },
+            };
+          });
           throw error;
         }
         try {
@@ -1109,6 +1146,21 @@ export const TamboThreadProvider: React.FC<
           return result;
         } catch (error) {
           updateThreadStatus(threadId, GenerationStage.ERROR);
+          // Rollback the optimistic user message
+          setThreadMap((prevMap) => {
+            const thread = prevMap[threadId];
+            if (!thread) return prevMap;
+
+            return {
+              ...prevMap,
+              [threadId]: {
+                ...thread,
+                messages: thread.messages.filter(
+                  (msg) => msg.id !== userMessageId,
+                ),
+              },
+            };
+          });
           throw error;
         }
       }
@@ -1138,6 +1190,21 @@ export const TamboThreadProvider: React.FC<
         }
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
+        // Rollback the optimistic user message
+        setThreadMap((prevMap) => {
+          const thread = prevMap[threadId];
+          if (!thread) return prevMap;
+
+          return {
+            ...prevMap,
+            [threadId]: {
+              ...thread,
+              messages: thread.messages.filter(
+                (msg) => msg.id !== userMessageId,
+              ),
+            },
+          };
+        });
         throw error;
       }
 
