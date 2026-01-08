@@ -105,38 +105,6 @@ Understanding when to use each type helps you design effective Tambo application
 
 You can use both together: register a component as generative for on-demand creation, and also make it interactable for persistent instances.
 
-## Component Selection Process
-
-Tambo uses several signals to decide which component to generate:
-
-### Component Metadata
-
-The `name` and `description` fields are crucial for selection:
-
-```tsx
-{
-  name: "WeatherCard",  // Clear, descriptive name
-  description: "Displays current weather conditions for a city with temperature, conditions, and forecast",  // Detailed purpose
-  component: WeatherCard,
-  propsSchema: WeatherPropsSchema,
-}
-```
-
-Descriptions should clearly explain:
-
-- What the component displays or does
-- When it's appropriate to use
-- What kind of data it expects
-
-### Conversation Context
-
-Tambo considers:
-
-- Previous messages in the thread
-- Already-rendered components
-- User's stated preferences
-- Available tools and resources
-
 When Tambo generates a component:
 
 1. **Message sent**: User sends a message to the thread
