@@ -66,34 +66,14 @@ try {
   process.exit(1);
 }
 
-const hasApiUrl = (value) => {
-  if (value === null || typeof value !== "object") {
-    return false;
-  }
-
-  const direct = value.apiUrl ?? value.api_url;
-  if (typeof direct === "string" && direct.length > 0) {
-    return true;
-  }
-
-  for (const [key, entry] of Object.entries(value)) {
-    if (typeof entry !== "string" || entry.length === 0) {
-      continue;
-    }
-
-    if (key.toLowerCase().includes("api url")) {
-      return true;
-    }
-  }
-
-  return false;
-};
-
-if (Array.isArray(data)) {
-  process.exit(data.some(hasApiUrl) ? 0 : 1);
+if (data === null || typeof data !== "object" || Array.isArray(data)) {
+  process.exit(1);
 }
 
-process.exit(hasApiUrl(data) ? 0 : 1);
+const apiUrl = data["API_URL"];
+// `supabase status -o json` emits connection info keyed by env var names.
+// Treat a non-empty `API_URL` as the signal that the local stack is running.
+process.exit(typeof apiUrl === "string" && apiUrl.length > 0 ? 0 : 1);
 NODE
 then
   echo "Starting Supabase..."
