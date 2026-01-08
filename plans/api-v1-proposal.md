@@ -1255,6 +1255,50 @@ The following operational aspects are intentionally out of scope for this API pr
 
 ---
 
+## Part 8: SDK Migration Strategy
+
+This section outlines how the `@tambo-ai/react` SDK will be updated to support the v1 API.
+
+### Phase 1: Preview Release
+
+A new `<TamboV1Provider>` will be introduced in a subpackage:
+
+```typescript
+import { TamboV1Provider } from "@tambo-ai/react/v1";
+
+// Preview usage - interface mostly identical to current TamboProvider
+<TamboV1Provider apiKey={apiKey} apiBaseUrl={apiBaseUrl}>
+  <App />
+</TamboV1Provider>
+```
+
+**Key characteristics:**
+
+- Exported from `@tambo-ai/react/v1` subpath (not the main export)
+- Interface largely mirrors existing `<TamboProvider>` for easy migration
+- Uses updated types aligned with this proposal (content blocks, RunStatus, etc.)
+- Connects to `/v1/` API endpoints
+- Marked as preview/experimental in documentation
+
+This allows early adopters to test the new API while the existing provider remains stable.
+
+### Phase 2: Stable Release (SDK 1.0)
+
+Once the v1 API is fully implemented and validated:
+
+- The existing `<TamboProvider>` will be updated to use the v1 API
+- `@tambo-ai/react/v1` subpath will be deprecated (re-exports main provider)
+- Breaking type changes will be documented in migration guide
+- SDK version bumped to 1.0 to signal stable v1 API support
+
+**Migration path for users:**
+
+1. (Now) Use current `<TamboProvider>` with existing API
+2. (Preview) Optionally test `<TamboV1Provider>` from `/v1` subpath
+3. (1.0 release) Update to new `<TamboProvider>` with v1 types
+
+---
+
 ## Appendix A: Type Alignment Summary
 
 **Key Design Choice: Tool Calls as Content Blocks (Anthropic Pattern)**
