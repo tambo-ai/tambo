@@ -633,13 +633,46 @@ type TamboExtensionEvent =
 
 ## Part 3: API Endpoints
 
-### 3.1 Run Endpoint (Primary)
+### 3.1 Run Endpoints
+
+#### Create Thread with Run
+
+**Endpoint:** `POST /v1/threads/runs`
+
+Creates a new thread and immediately starts a run. Use this when starting a new conversation.
+
+```typescript
+interface CreateThreadWithRunRequest {
+  // Required
+  message: InputMessage; // The user's message
+
+  // Optional - Thread configuration
+  contextKey?: string; // User/session identifier for the new thread
+
+  // Optional - Run context
+  availableComponents?: AvailableComponent[];
+  tools?: Tool[]; // Client-side tools (executed by frontend)
+  toolChoice?: ToolChoice;
+  forceComponent?: string; // Force a specific component
+
+  // Optional - Model configuration
+  model?: string; // Override default model
+  maxTokens?: number;
+  temperature?: number;
+
+  // Optional - Metadata
+  threadMetadata?: Record<string, unknown>; // Metadata for the thread
+  runMetadata?: Record<string, unknown>; // Metadata for the run
+}
+```
+
+Response is an SSE stream (same format as Create Run below).
+
+#### Create Run
 
 **Endpoint:** `POST /v1/threads/{threadId}/runs`
 
-This is the main endpoint for interacting with the AI. It streams AG-UI events.
-
-#### Request
+Starts a new run on an existing thread. Use this for continuing conversations.
 
 ```typescript
 interface CreateRunRequest {
@@ -656,10 +689,6 @@ interface CreateRunRequest {
   // Required when message contains tool_result content.
   // Prevents duplicate continuations from the same run.
   previousRunId?: string;
-
-  // Optional - Thread management
-  createThread?: boolean; // Create thread if doesn't exist
-  contextKey?: string; // User/session identifier
 
   // Optional - Model configuration
   model?: string; // Override default model
@@ -1399,6 +1428,21 @@ export class ToolChoiceNamedDto {
   name: string;
 }
 
+@ApiSchema({ name: "CreateThreadWithRun" })
+export class CreateThreadWithRunDto {
+  message: InputMessageDto;
+  contextKey?: string; // For the new thread
+  availableComponents?: AvailableComponentDto[];
+  tools?: ToolDto[];
+  toolChoice?: "auto" | "required" | "none" | ToolChoiceNamedDto;
+  forceComponent?: string;
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+  threadMetadata?: Record<string, unknown>;
+  runMetadata?: Record<string, unknown>;
+}
+
 @ApiSchema({ name: "CreateRun" })
 export class CreateRunDto {
   message: InputMessageDto;
@@ -1410,8 +1454,6 @@ export class CreateRunDto {
   // Required when message contains tool_result content
   previousRunId?: string;
 
-  createThread?: boolean;
-  contextKey?: string;
   model?: string;
   maxTokens?: number;
   temperature?: number;
