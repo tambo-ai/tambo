@@ -516,33 +516,41 @@ interface TamboComponentStartEvent extends TamboCustomEvent {
 }
 
 /**
+ * Streaming status for a prop path.
+ */
+type PropStreamingStatus = "started" | "streaming" | "done";
+
+/**
  * Emitted during component prop streaming (JSON Patch).
  *
  * Props are streamed as JSON Patch operations. The server buffers partial JSON
  * from the LLM and emits patch operations when complete values are recognized.
- * This provides natural per-prop completion tracking: when you receive a patch
- * for a path, that value is complete.
  *
- * For nested objects, you may receive multiple patches as inner values complete.
- * The `streaming` map indicates which top-level props are still being filled.
+ * The `streaming` map tracks the status of each top-level prop:
+ * - "started": Prop streaming has begun but no complete value yet
+ * - "streaming": Prop is actively receiving data (partial value may exist)
+ * - "done": Prop value is complete
+ *
+ * Uses `delta` field name for alignment with AG-UI STATE_DELTA event format.
  */
 interface TamboComponentPropsDeltaEvent extends TamboCustomEvent {
   name: "tambo.component.props_delta";
   value: {
     componentId: string;
-    operations: JsonPatchOperation[]; // Patch operations for completed values
-    streaming?: Record<string, boolean>; // Props still being streamed (true = in progress)
+    delta: JsonPatchOperation[];
+    streaming?: Record<string, PropStreamingStatus>;
   };
 }
 
 /**
  * Emitted for component state updates (JSON Patch).
+ * Uses `delta` field name for alignment with AG-UI STATE_DELTA event format.
  */
 interface TamboComponentStateDeltaEvent extends TamboCustomEvent {
   name: "tambo.component.state_delta";
   value: {
     componentId: string;
-    operations: JsonPatchOperation[];
+    delta: JsonPatchOperation[];
   };
 }
 
@@ -845,9 +853,11 @@ data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001","timestamp":1704067200150
 
 data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200200}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","operations":[{"op":"add","path":"/ticker","value":"AAPL"}],"streaming":{"timeRange":true}},"timestamp":1704067200250}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[],"streaming":{"ticker":"started","timeRange":"started"}},"timestamp":1704067200220}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","operations":[{"op":"add","path":"/timeRange","value":"1M"}]},"timestamp":1704067200300}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/ticker","value":"AAPL"}],"streaming":{"ticker":"done","timeRange":"streaming"}},"timestamp":1704067200250}
+
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/timeRange","value":"1M"}],"streaming":{"ticker":"done","timeRange":"done"}},"timestamp":1704067200300}
 
 data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}},"timestamp":1704067200350}
 
@@ -894,13 +904,13 @@ data: {"type":"TEXT_MESSAGE_END","messageId":"msg_001","timestamp":1704067200150
 
 data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200200}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","operations":[{"op":"add","path":"/ticker","value":"AAPL"},{"op":"add","path":"/timeRange","value":"1M"}]},"timestamp":1704067200250}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/ticker","value":"AAPL"},{"op":"add","path":"/timeRange","value":"1M"}],"streaming":{"ticker":"done","timeRange":"done"}},"timestamp":1704067200250}
 
 data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_001","props":{"ticker":"AAPL","timeRange":"1M"}},"timestamp":1704067200300}
 
 data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_002","componentName":"StockChart","messageId":"msg_001"},"timestamp":1704067200350}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_002","operations":[{"op":"add","path":"/ticker","value":"MSFT"},{"op":"add","path":"/timeRange","value":"1M"}]},"timestamp":1704067200400}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_002","delta":[{"op":"add","path":"/ticker","value":"MSFT"},{"op":"add","path":"/timeRange","value":"1M"}],"streaming":{"ticker":"done","timeRange":"done"}},"timestamp":1704067200400}
 
 data: {"type":"CUSTOM","name":"tambo.component.end","value":{"componentId":"comp_002","props":{"ticker":"MSFT","timeRange":"1M"}},"timestamp":1704067200450}
 
@@ -1046,7 +1056,7 @@ data: {"type":"RUN_STARTED","threadId":"thr_abc123","runId":"run_xyz789","timest
 
 data: {"type":"CUSTOM","name":"tambo.component.start","value":{"componentId":"comp_001","componentName":"DataTable","messageId":"msg_001"},"timestamp":1704067200050}
 
-data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","operations":[{"op":"add","path":"/title","value":"User Analytics"}]},"timestamp":1704067200100}
+data: {"type":"CUSTOM","name":"tambo.component.props_delta","value":{"componentId":"comp_001","delta":[{"op":"add","path":"/title","value":"User Analytics"}],"streaming":{"title":"done"}},"timestamp":1704067200100}
 
 data: {"type":"STATE_SNAPSHOT","snapshot":{"components":{"comp_001":{"loading":true,"rows":[],"totalCount":0}}},"timestamp":1704067200150}
 
@@ -1124,22 +1134,22 @@ The React SDK will maintain the same interface it has today (`useTamboThread`, `
 
 The following design decisions were made during proposal development:
 
-| Question                      | Decision                                                                                               |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Tool call representation**  | Anthropic pattern - `tool_use`/`tool_result` content blocks (not OpenAI's separate `tool_calls` array) |
-| **Multimodal content types**  | Unified `resource` type with MIME types (not separate image/audio/file types)                          |
-| **Component representation**  | Inline content blocks in `content[]` array (components render in reading order with text)              |
-| **Component delta format**    | JSON Patch (RFC 6902) for both props and state deltas; `streaming` map tracks per-prop completion      |
-| **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                          |
-| **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                       |
-| **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint   |
-| **Server-side tool flow**     | Inline execution within stream, `TOOL_CALL_RESULT` emitted automatically                               |
-| **Context tools**             | Client sends all available tools/components each request (no server tracking)                          |
-| **State update granularity**  | Both full replacement and JSON Patch supported                                                         |
-| **Messages per run**          | Multiple messages allowed when server-side tools loop                                                  |
-| **Disconnection handling**    | Pause and resume - client can reconnect via GET `/runs/{runId}`                                        |
-| **Cancellation**              | Both connection close and explicit DELETE work                                                         |
-| **Thread endpoints**          | Standard REST (not streaming)                                                                          |
+| Question                      | Decision                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Tool call representation**  | Anthropic pattern - `tool_use`/`tool_result` content blocks (not OpenAI's separate `tool_calls` array)  |
+| **Multimodal content types**  | Unified `resource` type with MIME types (not separate image/audio/file types)                           |
+| **Component representation**  | Inline content blocks in `content[]` array (components render in reading order with text)               |
+| **Component delta format**    | JSON Patch (RFC 6902) for both props and state; `streaming` map with tri-state (started/streaming/done) |
+| **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                           |
+| **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                        |
+| **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint    |
+| **Server-side tool flow**     | Inline execution within stream, `TOOL_CALL_RESULT` emitted automatically                                |
+| **Context tools**             | Client sends all available tools/components each request (no server tracking)                           |
+| **State update granularity**  | Both full replacement and JSON Patch supported                                                          |
+| **Messages per run**          | Multiple messages allowed when server-side tools loop                                                   |
+| **Disconnection handling**    | Pause and resume - client can reconnect via GET `/runs/{runId}`                                         |
+| **Cancellation**              | Both connection close and explicit DELETE work                                                          |
+| **Thread endpoints**          | Standard REST (not streaming)                                                                           |
 
 ---
 
@@ -1179,13 +1189,13 @@ Key events we use: `RUN_STARTED`, `RUN_FINISHED`, `RUN_ERROR`, `TEXT_MESSAGE_*`,
 
 ### Tambo CUSTOM Events (type: "CUSTOM", name: "tambo.\*")
 
-| Event Name                  | When Emitted                   | Key Value Fields                      |
-| --------------------------- | ------------------------------ | ------------------------------------- |
-| tambo.run.awaiting_input    | Paused for client tool results | threadId, runId, pendingToolCalls[]   |
-| tambo.component.start       | Begin component streaming      | componentId, componentName, messageId |
-| tambo.component.props_delta | Props update (JSON Patch)      | componentId, operations[], streaming? |
-| tambo.component.state_delta | State update (JSON Patch)      | componentId, operations[]             |
-| tambo.component.end         | Component complete             | componentId, props, state?            |
+| Event Name                  | When Emitted                   | Key Value Fields                                          |
+| --------------------------- | ------------------------------ | --------------------------------------------------------- |
+| tambo.run.awaiting_input    | Paused for client tool results | threadId, runId, pendingToolCalls[]                       |
+| tambo.component.start       | Begin component streaming      | componentId, componentName, messageId                     |
+| tambo.component.props_delta | Props update (JSON Patch)      | componentId, delta[], streaming? (started/streaming/done) |
+| tambo.component.state_delta | State update (JSON Patch)      | componentId, delta[]                                      |
+| tambo.component.end         | Component complete             | componentId, props, state?                                |
 
 ## Appendix C: NestJS DTO Implementation
 
