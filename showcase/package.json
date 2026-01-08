@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 8262",
     "build": "next build",
     "postbuild": "next-sitemap",
     "start": "next start",

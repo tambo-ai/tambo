@@ -11,7 +11,7 @@ Detailed guidance for Claude Code agents working inside `apps/api`, the NestJS O
 ## Essential Commands
 
 ```bash
-npm run dev           # Start Nest in watch mode (port 3000 by default)
+npm run dev           # Start Nest in watch mode (port 8261 by default)
 npm run build         # Compile to dist/ for production
 npm run start:prod    # Run the compiled build
 npm run generate-config # Bootstraps runtime config snapshot
@@ -98,7 +98,7 @@ apps/api/src
 3. **Add DTOs + tests** before wiring controllers.
 4. **Wire services** and ensure providers are registered inside the module.
 5. **Add Swagger decorators** for every route (summary, description, auth requirements).
-6. **Verify locally** with `npm run dev` and the Swagger UI at `http://localhost:3000/api`.
+6. **Verify locally** with `npm run dev` and the Swagger UI at `http://localhost:8261/api`.
 7. **Run lint, type-check, and tests** before committing.
 
 ## Common Pitfalls

@@ -39,7 +39,7 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string().transform(allowEmptyString).optional(),
     /** Generate with `openssl rand -hex 32` */
     NEXTAUTH_SECRET: z.string().min(8),
-    /** URL of the client app so we can redirect back to it after auth, e.g. https://tambo.co or http://localhost:3000 */
+    /** URL of the client app so we can redirect back to it after auth, e.g. https://tambo.co or http://localhost:8260 */
     NEXTAUTH_URL: z.string().url(),
     /** Email address to send emails from. Required if using email authentication. */
     EMAIL_FROM_DEFAULT: z.string().transform(allowEmptyString).optional(),

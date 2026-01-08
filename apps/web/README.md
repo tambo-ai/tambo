@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-The dev server runs on `http://localhost:3000`.
+The dev server runs on `http://localhost:8260`.
 
 ## Commands
 

@@ -6,7 +6,7 @@ describe("urlSecurity", () => {
   test("skips validation when ALLOW_LOCAL_MCP_SERVERS is set", async () => {
     jest.doMock("@/lib/env", () => ({ env: { ALLOW_LOCAL_MCP_SERVERS: "1" } }));
     const { validateSafeURL } = await import("@/lib/urlSecurity");
-    const res = await validateSafeURL("http://localhost:3000");
+    const res = await validateSafeURL("http://localhost:8260");
     expect(res.safe).toBe(true);
   });
 
