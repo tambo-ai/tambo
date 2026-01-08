@@ -61,6 +61,13 @@ async function createSupabaseBucket(
       return true;
     }
 
+    if (checkResponse.status === 401 || checkResponse.status === 403) {
+      console.error(
+        "Supabase credentials invalid/insufficient (need service role key)",
+      );
+      return false;
+    }
+
     // Create the bucket
     const createResponse = await fetch(url, {
       method: "POST",
@@ -78,6 +85,11 @@ async function createSupabaseBucket(
 
     if (createResponse.ok) {
       console.log(`Created bucket "${bucketName}"`);
+      return true;
+    }
+
+    if (createResponse.status === 409) {
+      console.log(`Bucket "${bucketName}" already exists`);
       return true;
     }
 
@@ -106,15 +118,16 @@ async function createS3Bucket(): Promise<boolean> {
   }
 
   const client = createS3Client(s3Config);
-  const success = await ensureBucket(client, S3_BUCKET);
 
-  if (success) {
+  try {
+    await ensureBucket(client, S3_BUCKET);
     console.log(`Bucket "${S3_BUCKET}" is ready`);
-  } else {
+    return true;
+  } catch (error) {
     console.error(`Failed to create bucket "${S3_BUCKET}"`);
+    console.error(error);
+    return false;
   }
-
-  return success;
 }
 
 async function main(): Promise<void> {

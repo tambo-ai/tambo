@@ -35,16 +35,22 @@ function isTextMimeType(mimeType: string): boolean {
  *
  * @param s3Client - Configured S3Client instance
  * @param bucket - S3 bucket name where attachments are stored
+ * @param allowedPrefix - Allowed key prefix (e.g., projectId) for attachment access control
  * @returns A function that fetches attachment content by URI
  *
  * @example
- * const fetcher = createAttachmentFetcher(s3Client, "user-files");
- * const result = await fetcher("attachment://proj_123/1704567890-doc.pdf");
+ * const fetcher = createAttachmentFetcher(s3Client, "user-files", "p_123...abcdef");
+ * const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/1704567890-doc.pdf");
  */
 export function createAttachmentFetcher(
   s3Client: S3Client,
   bucket: string,
+  allowedPrefix: string,
 ): (uri: string) => Promise<ReadResourceResult> {
+  const normalizedAllowedPrefix = allowedPrefix.endsWith("/")
+    ? allowedPrefix
+    : `${allowedPrefix}/`;
+
   return async (uri: string): Promise<ReadResourceResult> => {
     if (!uri.startsWith(ATTACHMENT_PREFIX)) {
       throw new Error(
@@ -53,6 +59,17 @@ export function createAttachmentFetcher(
     }
 
     const storagePath = uri.slice(ATTACHMENT_PREFIX.length);
+
+    if (!storagePath.trim()) {
+      throw new Error(
+        `Invalid attachment URI: ${uri}. Missing path after "${ATTACHMENT_PREFIX}"`,
+      );
+    }
+
+    if (!storagePath.startsWith(normalizedAllowedPrefix)) {
+      throw new Error("Attachment access denied");
+    }
+
     const buffer = await getFile(s3Client, bucket, storagePath);
     const mimeType = mime.lookup(storagePath) || "application/octet-stream";
 

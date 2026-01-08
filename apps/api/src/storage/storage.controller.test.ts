@@ -1,4 +1,8 @@
-import { BadRequestException } from "@nestjs/common";
+import {
+  BadGatewayException,
+  BadRequestException,
+  ServiceUnavailableException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { Request } from "express";
@@ -77,7 +81,7 @@ describe("StorageController", () => {
     jest.clearAllMocks();
 
     mockExtractContextInfo.mockReturnValue({
-      projectId: "proj_123",
+      projectId: "p_u2tgQg5U.43bbdf",
       contextKey: undefined,
     });
 
@@ -94,20 +98,20 @@ describe("StorageController", () => {
     });
 
     it("uploads file and returns attachment URI", async () => {
-      mockUploadFile.mockResolvedValue("proj_123/1704567890-test.pdf");
+      mockUploadFile.mockResolvedValue(undefined);
 
       const file = createMockFile("test.pdf", "application/pdf", 1024);
 
       const result = await controller.upload(file, mockRequest as Request);
 
       expect(result.attachmentUri).toMatch(
-        /^attachment:\/\/proj_123\/\d+-test\.pdf$/,
+        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-test\.pdf$/,
       );
       expect(mockUploadFile).toHaveBeenCalled();
     });
 
     it("sanitizes filename in the URI", async () => {
-      mockUploadFile.mockResolvedValue("proj_123/1704567890-test_file.pdf");
+      mockUploadFile.mockResolvedValue(undefined);
 
       const file = createMockFile(
         "test file with spaces & special!chars.pdf",
@@ -119,7 +123,7 @@ describe("StorageController", () => {
 
       // Filename should be sanitized
       expect(result.attachmentUri).toMatch(
-        /^attachment:\/\/proj_123\/\d+-test_file_with_spaces___special_chars\.pdf$/,
+        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-test_file_with_spaces___special_chars\.pdf$/,
       );
     });
 
@@ -127,7 +131,7 @@ describe("StorageController", () => {
       mockUploadFile.mockImplementation(async (_client, _bucket, key) => key);
 
       mockExtractContextInfo.mockReturnValue({
-        projectId: "proj_custom",
+        projectId: "p_abcdEF12.43bbdf",
         contextKey: undefined,
       });
 
@@ -135,17 +139,17 @@ describe("StorageController", () => {
 
       const result = await controller.upload(file, mockRequest as Request);
 
-      expect(result.attachmentUri).toContain("proj_custom/");
+      expect(result.attachmentUri).toContain("p_abcdEF12.43bbdf/");
     });
 
     it("handles various MIME types correctly", async () => {
-      mockUploadFile.mockResolvedValue("proj_123/1704567890-image.png");
+      mockUploadFile.mockResolvedValue(undefined);
 
       const file = createMockFile("image.png", "image/png", 2048);
       const result = await controller.upload(file, mockRequest as Request);
 
       expect(result.attachmentUri).toMatch(
-        /^attachment:\/\/proj_123\/\d+-image\.png$/,
+        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-image\.png$/,
       );
       expect(mockUploadFile).toHaveBeenCalledWith(
         expect.anything(),
@@ -157,9 +161,7 @@ describe("StorageController", () => {
     });
 
     it("preserves allowed characters in filename (dots, hyphens, underscores)", async () => {
-      mockUploadFile.mockResolvedValue(
-        "proj_123/1704567890-my-file_v1.2.3.tar.gz",
-      );
+      mockUploadFile.mockResolvedValue(undefined);
 
       const file = createMockFile(
         "my-file_v1.2.3.tar.gz",
@@ -169,19 +171,19 @@ describe("StorageController", () => {
       const result = await controller.upload(file, mockRequest as Request);
 
       expect(result.attachmentUri).toMatch(
-        /^attachment:\/\/proj_123\/\d+-my-file_v1\.2\.3\.tar\.gz$/,
+        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-my-file_v1\.2\.3\.tar\.gz$/,
       );
     });
 
     it("sanitizes Unicode characters in filename", async () => {
-      mockUploadFile.mockResolvedValue("proj_123/1704567890-document.pdf");
+      mockUploadFile.mockResolvedValue(undefined);
 
       const file = createMockFile("документ.pdf", "application/pdf", 1024);
       const result = await controller.upload(file, mockRequest as Request);
 
       // Unicode characters should be replaced with underscores
       expect(result.attachmentUri).toMatch(
-        /^attachment:\/\/proj_123\/\d+-_+\.pdf$/,
+        /^attachment:\/\/p_u2tgQg5U\.43bbdf\/\d+-[0-9a-f-]{36}-_+\.pdf$/,
       );
     });
 
@@ -192,14 +194,14 @@ describe("StorageController", () => {
 
       await expect(
         controller.upload(file, mockRequest as Request),
-      ).rejects.toThrow("S3 upload failed");
+      ).rejects.toThrow(BadGatewayException);
     });
   });
 });
 
 // Separate test suite for S3 not configured scenario
 describe("StorageController - S3 not configured", () => {
-  it("throws BadRequestException when S3 is not configured", async () => {
+  it("throws ServiceUnavailableException when S3 is not configured", async () => {
     // This test uses isolated modules to ensure fresh mock state
     jest.isolateModules(async () => {
       jest.doMock("@tambo-ai-cloud/backend", () => ({
@@ -210,7 +212,7 @@ describe("StorageController - S3 not configured", () => {
 
       jest.doMock("../common/utils/extract-context-info", () => ({
         extractContextInfo: jest.fn().mockReturnValue({
-          projectId: "proj_123",
+          projectId: "p_u2tgQg5U.43bbdf",
           contextKey: undefined,
         }),
       }));
@@ -255,7 +257,7 @@ describe("StorageController - S3 not configured", () => {
         unconfiguredController.upload(file, {
           url: "/storage/upload",
         } as Request),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ServiceUnavailableException);
     });
   });
 });

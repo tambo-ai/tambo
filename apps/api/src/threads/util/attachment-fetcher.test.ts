@@ -25,12 +25,20 @@ describe("attachment-fetcher", () => {
 
   describe("createAttachmentFetcher", () => {
     it("returns a function", () => {
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
       expect(typeof fetcher).toBe("function");
     });
 
     it("throws for invalid URI without attachment:// prefix", async () => {
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
 
       await expect(fetcher("file://some/path.pdf")).rejects.toThrow(
         'Invalid attachment URI: file://some/path.pdf. Must start with "attachment://"',
@@ -41,13 +49,17 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(Buffer.from("test content"));
       mockMimeLookup.mockReturnValue("text/plain");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      await fetcher("attachment://proj_123/1704567890-doc.txt");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      await fetcher("attachment://p_u2tgQg5U.43bbdf/1704567890-doc.txt");
 
       expect(mockGetFile).toHaveBeenCalledWith(
         mockS3Client,
         "test-bucket",
-        "proj_123/1704567890-doc.txt",
+        "p_u2tgQg5U.43bbdf/1704567890-doc.txt",
       );
     });
 
@@ -55,13 +67,17 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(Buffer.from("Hello, world!"));
       mockMimeLookup.mockReturnValue("text/plain");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/file.txt");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/file.txt");
 
       expect(result).toEqual({
         contents: [
           {
-            uri: "attachment://proj_123/file.txt",
+            uri: "attachment://p_u2tgQg5U.43bbdf/file.txt",
             mimeType: "text/plain",
             text: "Hello, world!",
           },
@@ -73,13 +89,17 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(Buffer.from('{"key": "value"}'));
       mockMimeLookup.mockReturnValue("application/json");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/data.json");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/data.json");
 
       expect(result).toEqual({
         contents: [
           {
-            uri: "attachment://proj_123/data.json",
+            uri: "attachment://p_u2tgQg5U.43bbdf/data.json",
             mimeType: "application/json",
             text: '{"key": "value"}',
           },
@@ -92,13 +112,17 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(binaryContent);
       mockMimeLookup.mockReturnValue("image/png");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/image.png");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/image.png");
 
       expect(result).toEqual({
         contents: [
           {
-            uri: "attachment://proj_123/image.png",
+            uri: "attachment://p_u2tgQg5U.43bbdf/image.png",
             mimeType: "image/png",
             blob: binaryContent.toString("base64"),
           },
@@ -111,13 +135,19 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(pdfContent);
       mockMimeLookup.mockReturnValue("application/pdf");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/document.pdf");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher(
+        "attachment://p_u2tgQg5U.43bbdf/document.pdf",
+      );
 
       expect(result).toEqual({
         contents: [
           {
-            uri: "attachment://proj_123/document.pdf",
+            uri: "attachment://p_u2tgQg5U.43bbdf/document.pdf",
             mimeType: "application/pdf",
             blob: pdfContent.toString("base64"),
           },
@@ -129,8 +159,14 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(Buffer.from("binary data"));
       mockMimeLookup.mockReturnValue(false); // mime-types returns false for unknown
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/unknown.xyz");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher(
+        "attachment://p_u2tgQg5U.43bbdf/unknown.xyz",
+      );
 
       expect(result.contents[0].mimeType).toBe("application/octet-stream");
       expect("blob" in result.contents[0]).toBe(true);
@@ -140,23 +176,39 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockRejectedValue(new Error("S3 access denied"));
       mockMimeLookup.mockReturnValue("text/plain");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
 
-      await expect(fetcher("attachment://proj_123/file.txt")).rejects.toThrow(
-        "S3 access denied",
+      await expect(
+        fetcher("attachment://p_u2tgQg5U.43bbdf/file.txt"),
+      ).rejects.toThrow("S3 access denied");
+    });
+
+    it("rejects empty path after prefix", async () => {
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+
+      await expect(fetcher("attachment://")).rejects.toThrow(
+        'Invalid attachment URI: attachment://. Missing path after "attachment://"',
       );
     });
 
-    it("handles empty path after prefix", async () => {
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
+    it("rejects attachments that do not match the allowed prefix", async () => {
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
 
-      // This should call getFile with an empty path
-      mockGetFile.mockResolvedValue(Buffer.from("content"));
-      mockMimeLookup.mockReturnValue(false);
-
-      await fetcher("attachment://");
-
-      expect(mockGetFile).toHaveBeenCalledWith(mockS3Client, "test-bucket", "");
+      await expect(
+        fetcher("attachment://p_other1234.43bbdf/file.txt"),
+      ).rejects.toThrow("Attachment access denied");
     });
 
     it("returns text content for text/html MIME type", async () => {
@@ -165,13 +217,17 @@ describe("attachment-fetcher", () => {
       );
       mockMimeLookup.mockReturnValue("text/html");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/page.html");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/page.html");
 
       expect(result).toEqual({
         contents: [
           {
-            uri: "attachment://proj_123/page.html",
+            uri: "attachment://p_u2tgQg5U.43bbdf/page.html",
             mimeType: "text/html",
             text: "<html><body>Hello</body></html>",
           },
@@ -183,13 +239,17 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(Buffer.from("<root><item/></root>"));
       mockMimeLookup.mockReturnValue("application/xml");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/data.xml");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/data.xml");
 
       expect(result).toEqual({
         contents: [
           {
-            uri: "attachment://proj_123/data.xml",
+            uri: "attachment://p_u2tgQg5U.43bbdf/data.xml",
             mimeType: "application/xml",
             text: "<root><item/></root>",
           },
@@ -202,13 +262,17 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(audioContent);
       mockMimeLookup.mockReturnValue("audio/mpeg");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/song.mp3");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/song.mp3");
 
       expect(result).toEqual({
         contents: [
           {
-            uri: "attachment://proj_123/song.mp3",
+            uri: "attachment://p_u2tgQg5U.43bbdf/song.mp3",
             mimeType: "audio/mpeg",
             blob: audioContent.toString("base64"),
           },
@@ -221,13 +285,17 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(videoContent);
       mockMimeLookup.mockReturnValue("video/mp4");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      const result = await fetcher("attachment://proj_123/video.mp4");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/video.mp4");
 
       expect(result).toEqual({
         contents: [
           {
-            uri: "attachment://proj_123/video.mp4",
+            uri: "attachment://p_u2tgQg5U.43bbdf/video.mp4",
             mimeType: "video/mp4",
             blob: videoContent.toString("base64"),
           },
@@ -239,13 +307,17 @@ describe("attachment-fetcher", () => {
       mockGetFile.mockResolvedValue(Buffer.from("content"));
       mockMimeLookup.mockReturnValue("text/plain");
 
-      const fetcher = createAttachmentFetcher(mockS3Client, "test-bucket");
-      await fetcher("attachment://proj_123/folder/subfolder/file.txt");
+      const fetcher = createAttachmentFetcher(
+        mockS3Client,
+        "test-bucket",
+        "p_u2tgQg5U.43bbdf",
+      );
+      await fetcher("attachment://p_u2tgQg5U.43bbdf/folder/subfolder/file.txt");
 
       expect(mockGetFile).toHaveBeenCalledWith(
         mockS3Client,
         "test-bucket",
-        "proj_123/folder/subfolder/file.txt",
+        "p_u2tgQg5U.43bbdf/folder/subfolder/file.txt",
       );
     });
   });

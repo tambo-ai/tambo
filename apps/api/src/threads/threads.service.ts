@@ -1367,6 +1367,7 @@ export class ThreadsService {
           resourceFetchers["attachment"] = createAttachmentFetcher(
             this.s3Client,
             this.s3Bucket,
+            projectId,
           );
         }
 
@@ -1447,6 +1448,7 @@ export class ThreadsService {
         resourceFetchers["attachment"] = createAttachmentFetcher(
           this.s3Client,
           this.s3Bucket,
+          projectId,
         );
       }
 

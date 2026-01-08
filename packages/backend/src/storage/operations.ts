@@ -7,6 +7,32 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+function getHttpStatusCode(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  if (!("$metadata" in error)) return undefined;
+
+  const metadata = (error as { $metadata?: unknown }).$metadata;
+  if (!metadata || typeof metadata !== "object") return undefined;
+  if (!("httpStatusCode" in metadata)) return undefined;
+
+  const statusCode = (metadata as { httpStatusCode?: unknown }).httpStatusCode;
+  return typeof statusCode === "number" ? statusCode : undefined;
+}
+
+function isMissingBucketError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const statusCode = getHttpStatusCode(error);
+
+  return (
+    statusCode === 404 ||
+    error.name === "NotFound" ||
+    error.name === "NoSuchBucket" ||
+    error.name === "NotFoundException"
+  );
+}
+
 /**
  * Upload a file to S3.
  * @param client - S3Client instance
@@ -57,6 +83,13 @@ export async function getFile(
     throw new Error(`No body returned for key: ${key}`);
   }
 
+  if (
+    typeof response.ContentLength === "number" &&
+    response.ContentLength > MAX_FILE_BYTES
+  ) {
+    throw new Error(`Attachment too large: ${response.ContentLength} bytes`);
+  }
+
   // Convert readable stream to buffer
   const chunks: Uint8Array[] = [];
   for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
@@ -94,35 +127,34 @@ export async function getSignedUploadUrl(
  * Ensure a bucket exists, creating it if necessary.
  * @param client - S3Client instance
  * @param bucket - Target bucket name
- * @returns True if bucket exists or was created, false if creation failed
+ * @returns Resolves when the bucket exists or was created
+ * @throws Error if the bucket cannot be accessed or created
  */
 export async function ensureBucket(
   client: S3Client,
   bucket: string,
-): Promise<boolean> {
+): Promise<void> {
   try {
     await client.send(new HeadBucketCommand({ Bucket: bucket }));
-    return true;
+    return;
   } catch (error) {
     // Bucket doesn't exist, try to create it
-    if (
-      error instanceof Error &&
-      (error.name === "NotFound" || error.name === "NoSuchBucket")
-    ) {
+    if (isMissingBucketError(error)) {
       try {
         await client.send(new CreateBucketCommand({ Bucket: bucket }));
-        return true;
+        return;
       } catch (createError) {
         // Bucket may have been created by another process
         if (
           createError instanceof Error &&
-          createError.name === "BucketAlreadyOwnedByYou"
+          (createError.name === "BucketAlreadyOwnedByYou" ||
+            createError.name === "BucketAlreadyExists")
         ) {
-          return true;
+          return;
         }
-        return false;
+        throw createError;
       }
     }
-    return false;
+    throw error;
   }
 }

@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  BadGatewayException,
   Controller,
   Post,
   Req,
+  ServiceUnavailableException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -24,6 +26,7 @@ import {
   isS3Configured,
   uploadFile,
 } from "@tambo-ai-cloud/backend";
+import { randomUUID } from "crypto";
 import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -31,13 +34,28 @@ import { extractContextInfo } from "../common/utils/extract-context-info";
 import { UploadResponseDto } from "./dto/upload.dto";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILENAME_LENGTH = 180;
+
+const PROJECT_ID_REGEX = /^p_?[a-zA-Z0-9]{8,32}\.[0-9a-f]{6}$/;
+
+function assertValidProjectId(projectId: string): void {
+  if (!PROJECT_ID_REGEX.test(projectId)) {
+    throw new BadRequestException("Invalid project id");
+  }
+}
 
 /**
  * Sanitize a filename by removing potentially dangerous characters.
  * Preserves alphanumeric characters, dots, hyphens, and underscores.
  */
 function sanitizeFilename(filename: string): string {
-  return filename.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+  const sanitized = filename
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .replace(/\.{2,}/g, ".")
+    .replace(/^[_.]+/, "")
+    .replace(/_+/g, "_");
+
+  return sanitized.slice(0, MAX_FILENAME_LENGTH) || "file";
 }
 
 @ApiTags("storage")
@@ -93,13 +111,21 @@ export class StorageController {
     status: 400,
     description: "Storage not configured or invalid file",
   })
+  @ApiResponse({
+    status: 502,
+    description: "Failed to upload file to storage",
+  })
+  @ApiResponse({
+    status: 503,
+    description: "Storage is not configured",
+  })
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Req() request: Request,
   ): Promise<UploadResponseDto> {
     if (!this.s3Client) {
-      throw new BadRequestException(
-        "Storage not configured. S3 credentials are required.",
+      throw new ServiceUnavailableException(
+        "Storage is not configured. S3 credentials are required.",
       );
     }
 
@@ -108,15 +134,20 @@ export class StorageController {
     }
 
     const { projectId } = extractContextInfo(request, undefined);
+    assertValidProjectId(projectId);
 
-    const key = `${projectId}/${Date.now()}-${sanitizeFilename(file.originalname)}`;
-    await uploadFile(
-      this.s3Client,
-      this.bucket,
-      key,
-      file.buffer,
-      file.mimetype,
-    );
+    const key = `${projectId}/${Date.now()}-${randomUUID()}-${sanitizeFilename(file.originalname)}`;
+    try {
+      await uploadFile(
+        this.s3Client,
+        this.bucket,
+        key,
+        file.buffer,
+        file.mimetype,
+      );
+    } catch {
+      throw new BadGatewayException("Failed to upload file to storage");
+    }
 
     return { attachmentUri: `attachment://${key}` };
   }

@@ -120,6 +120,23 @@ describe("storage operations", () => {
         getFile(mockClient, "test-bucket", "test-key.pdf"),
       ).rejects.toThrow("Access denied");
     });
+
+    it("throws if ContentLength exceeds max size", async () => {
+      const mockBody = {
+        async *[Symbol.asyncIterator]() {
+          yield Buffer.from("chunk");
+        },
+      };
+
+      mockSend.mockResolvedValue({
+        Body: mockBody,
+        ContentLength: 10 * 1024 * 1024 + 1,
+      });
+
+      await expect(
+        getFile(mockClient, "test-bucket", "too-big.bin"),
+      ).rejects.toThrow("Attachment too large");
+    });
   });
 
   describe("getSignedUploadUrl", () => {
@@ -162,9 +179,9 @@ describe("storage operations", () => {
     it("returns true if bucket already exists", async () => {
       mockSend.mockResolvedValue({});
 
-      const result = await ensureBucket(mockClient, "existing-bucket");
-
-      expect(result).toBe(true);
+      await expect(ensureBucket(mockClient, "existing-bucket")).resolves.toBe(
+        undefined,
+      );
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend.mock.calls[0][0]._type).toBe("HeadBucketCommand");
     });
@@ -174,9 +191,9 @@ describe("storage operations", () => {
       notFoundError.name = "NotFound";
       mockSend.mockRejectedValueOnce(notFoundError).mockResolvedValueOnce({});
 
-      const result = await ensureBucket(mockClient, "new-bucket");
-
-      expect(result).toBe(true);
+      await expect(ensureBucket(mockClient, "new-bucket")).resolves.toBe(
+        undefined,
+      );
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(mockSend.mock.calls[0][0]._type).toBe("HeadBucketCommand");
       expect(mockSend.mock.calls[1][0]._type).toBe("CreateBucketCommand");
@@ -189,9 +206,9 @@ describe("storage operations", () => {
         .mockRejectedValueOnce(noSuchBucketError)
         .mockResolvedValueOnce({});
 
-      const result = await ensureBucket(mockClient, "new-bucket");
-
-      expect(result).toBe(true);
+      await expect(ensureBucket(mockClient, "new-bucket")).resolves.toBe(
+        undefined,
+      );
       expect(mockSend).toHaveBeenCalledTimes(2);
     });
 
@@ -204,12 +221,12 @@ describe("storage operations", () => {
         .mockRejectedValueOnce(notFoundError)
         .mockRejectedValueOnce(alreadyOwnedError);
 
-      const result = await ensureBucket(mockClient, "concurrent-bucket");
-
-      expect(result).toBe(true);
+      await expect(ensureBucket(mockClient, "concurrent-bucket")).resolves.toBe(
+        undefined,
+      );
     });
 
-    it("returns false if bucket creation fails", async () => {
+    it("throws if bucket creation fails", async () => {
       const notFoundError = new Error("Not Found");
       notFoundError.name = "NotFound";
       const accessDeniedError = new Error("Access Denied");
@@ -218,19 +235,33 @@ describe("storage operations", () => {
         .mockRejectedValueOnce(notFoundError)
         .mockRejectedValueOnce(accessDeniedError);
 
-      const result = await ensureBucket(mockClient, "forbidden-bucket");
-
-      expect(result).toBe(false);
+      await expect(
+        ensureBucket(mockClient, "forbidden-bucket"),
+      ).rejects.toThrow("Access Denied");
     });
 
-    it("returns false if head bucket fails with unexpected error", async () => {
+    it("throws if head bucket fails with unexpected error", async () => {
       const unexpectedError = new Error("Network error");
       unexpectedError.name = "NetworkingError";
       mockSend.mockRejectedValue(unexpectedError);
 
-      const result = await ensureBucket(mockClient, "problem-bucket");
+      await expect(ensureBucket(mockClient, "problem-bucket")).rejects.toThrow(
+        "Network error",
+      );
+    });
 
-      expect(result).toBe(false);
+    it("detects missing bucket by httpStatusCode", async () => {
+      const missingError = Object.assign(new Error("Not Found"), {
+        $metadata: { httpStatusCode: 404 },
+      });
+
+      mockSend.mockRejectedValueOnce(missingError).mockResolvedValueOnce({});
+
+      await expect(ensureBucket(mockClient, "new-bucket")).resolves.toBe(
+        undefined,
+      );
+      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(mockSend.mock.calls[1][0]._type).toBe("CreateBucketCommand");
     });
   });
 });
