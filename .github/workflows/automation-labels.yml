@@ -169,7 +169,7 @@ jobs:
 
       - name: Comment on PR about label updates
         if: github.event_name == 'pull_request' && contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
-        uses: marocchino/sticky-pull-request-comment@v2.4.0
+        uses: marocchino/sticky-pull-request-comment@v2.9.4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: "## :label: Repository Labels Updated"
@@ -180,7 +180,7 @@ jobs:
 
       - name: Delete Comment on PR if no label updates
         if: github.event_name == 'pull_request' && !contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
-        uses: marocchino/sticky-pull-request-comment@v2.4.0
+        uses: marocchino/sticky-pull-request-comment@v2.9.4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: "## :label: Repository Labels Updated"
