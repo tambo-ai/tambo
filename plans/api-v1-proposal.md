@@ -413,27 +413,25 @@ interface ComponentTool extends Tool {
 
 ```typescript
 /**
- * Status of the current/last run from the thread's perspective.
+ * Streaming status of the current run.
  *
- * Unlike AG-UI's discrete "run" model where each run is terminal, Tambo threads
- * are continuous conversations. This status represents where the thread is in
- * its lifecycle:
+ * This is a simple lifecycle aligned with AG-UI's run model:
+ * - idle: No active SSE stream
+ * - waiting: RUN_STARTED emitted, waiting for first content (TTFB phase)
+ * - streaming: Actively receiving content
  *
- * - idle: No active run, waiting for user to send a message
- * - running: Active run in progress (streaming text, executing tools, rendering components)
- * - awaiting_tool_result: Run paused, waiting for client to execute tool and POST result
- * - error: Last run failed with an error
- * - cancelled: Last run was cancelled by client
- *
- * Note: There is no "complete" status. When a run completes successfully, the
- * thread returns to "idle" - ready for the next user message.
+ * Edge cases like cancellation, errors, and pending tool calls are tracked
+ * via separate fields on Thread, not as status values.
  */
-type RunStatus =
-  | "idle"
-  | "running"
-  | "awaiting_tool_result"
-  | "error"
-  | "cancelled";
+type RunStatus = "idle" | "waiting" | "streaming";
+
+/**
+ * Error information from the last run
+ */
+interface RunError {
+  code?: string;
+  message: string;
+}
 ```
 
 ### 1.7 Threads
@@ -446,9 +444,21 @@ interface Thread {
   id: string;
   projectId: string;
   contextKey?: string; // User/session identifier
+
+  // Current run state
   runStatus: RunStatus;
-  currentRunId?: string; // ID of active run (when runStatus is "running" or "awaiting_tool_result")
-  statusMessage?: string; // Human-readable status detail (e.g., "Fetching weather data...")
+  currentRunId?: string; // ID of active run (when not idle)
+  statusMessage?: string; // Human-readable detail (e.g., "Fetching weather data...")
+
+  // Pending client-side tool calls
+  // Client can POST tool results one at a time, in any order.
+  // Cleared when all responded or on cancel.
+  pendingToolCallIds?: string[];
+
+  // Last run outcome (cleared on next RUN_STARTED)
+  lastRunCancelled?: boolean;
+  lastRunError?: RunError;
+
   metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
@@ -1164,23 +1174,23 @@ The React SDK will maintain the same interface it has today (`useTamboThread`, `
 
 The following design decisions were made during proposal development:
 
-| Question                      | Decision                                                                                                    |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Tool call representation**  | Anthropic pattern - `tool_use`/`tool_result` content blocks (not OpenAI's separate `tool_calls` array)      |
-| **Multimodal content types**  | Unified `resource` type with MIME types (not separate image/audio/file types)                               |
-| **Component representation**  | Inline content blocks in `content[]` array (components render in reading order with text)                   |
-| **Component delta format**    | JSON Patch (RFC 6902) for both props and state; `streaming` map with tri-state (started/streaming/done)     |
-| **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                               |
-| **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                            |
-| **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint        |
-| **Server-side tool flow**     | Inline execution within stream, `TOOL_CALL_RESULT` emitted automatically                                    |
-| **Context tools**             | Client sends all available tools/components each request (no server tracking)                               |
-| **State update granularity**  | Both full replacement and JSON Patch supported                                                              |
-| **Messages per run**          | Multiple messages allowed when server-side tools loop                                                       |
-| **Disconnection handling**    | Pause and resume - client can reconnect via GET `/runs/{runId}`                                             |
-| **Cancellation**              | Both connection close and explicit DELETE work                                                              |
-| **Thread endpoints**          | Standard REST (not streaming)                                                                               |
-| **Run/thread status**         | Simplified `RunStatus` (idle/running/awaiting_tool_result/error/cancelled); no "complete" - returns to idle |
+| Question                      | Decision                                                                                                                         |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Tool call representation**  | Anthropic pattern - `tool_use`/`tool_result` content blocks (not OpenAI's separate `tool_calls` array)                           |
+| **Multimodal content types**  | Unified `resource` type with MIME types (not separate image/audio/file types)                                                    |
+| **Component representation**  | Inline content blocks in `content[]` array (components render in reading order with text)                                        |
+| **Component delta format**    | JSON Patch (RFC 6902) for both props and state; `streaming` map with tri-state (started/streaming/done)                          |
+| **AG-UI extensions**          | Use `CUSTOM` events with `tambo.*` namespace for Tambo-specific functionality                                                    |
+| **Component state ownership** | Bidirectional - server can push state, clients can also update via POST endpoint                                                 |
+| **Client-side tool flow**     | Stream emits `tambo.run.awaiting_input` (CUSTOM), client POSTs tool results to same `/runs` endpoint                             |
+| **Server-side tool flow**     | Inline execution within stream, `TOOL_CALL_RESULT` emitted automatically                                                         |
+| **Context tools**             | Client sends all available tools/components each request (no server tracking)                                                    |
+| **State update granularity**  | Both full replacement and JSON Patch supported                                                                                   |
+| **Messages per run**          | Multiple messages allowed when server-side tools loop                                                                            |
+| **Disconnection handling**    | Pause and resume - client can reconnect via GET `/runs/{runId}`                                                                  |
+| **Cancellation**              | Both connection close and explicit DELETE work                                                                                   |
+| **Thread endpoints**          | Standard REST (not streaming)                                                                                                    |
+| **Run/thread status**         | Simple `RunStatus` (idle/waiting/streaming); edge cases via separate fields (pendingToolCallIds, lastRunCancelled, lastRunError) |
 
 ---
 
@@ -1397,14 +1407,21 @@ export class CreateRunDto {
 import { ApiSchema } from "@nestjs/swagger";
 
 /**
- * Status of the current/last run from the thread's perspective
+ * Streaming status of the current run
  */
 export enum RunStatusDto {
   Idle = "idle",
-  Running = "running",
-  AwaitingToolResult = "awaiting_tool_result",
-  Error = "error",
-  Cancelled = "cancelled",
+  Waiting = "waiting",
+  Streaming = "streaming",
+}
+
+/**
+ * Error information from the last run
+ */
+@ApiSchema({ name: "RunError" })
+export class RunErrorDto {
+  code?: string;
+  message: string;
 }
 
 @ApiSchema({ name: "Thread" })
@@ -1412,9 +1429,19 @@ export class ThreadDto {
   id: string;
   projectId: string;
   contextKey?: string;
+
+  // Current run state
   runStatus: RunStatusDto;
   currentRunId?: string;
   statusMessage?: string;
+
+  // Pending client-side tool calls
+  pendingToolCallIds?: string[];
+
+  // Last run outcome (cleared on next RUN_STARTED)
+  lastRunCancelled?: boolean;
+  lastRunError?: RunErrorDto;
+
   metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
