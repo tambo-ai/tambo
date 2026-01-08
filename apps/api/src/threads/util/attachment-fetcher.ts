@@ -47,6 +47,10 @@ export function createAttachmentFetcher(
   bucket: string,
   allowedPrefix: string,
 ): (uri: string) => Promise<ReadResourceResult> {
+  if (!allowedPrefix.trim()) {
+    throw new Error("allowedPrefix must be non-empty");
+  }
+
   const normalizedAllowedPrefix = allowedPrefix.endsWith("/")
     ? allowedPrefix
     : `${allowedPrefix}/`;

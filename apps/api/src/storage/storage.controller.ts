@@ -37,7 +37,7 @@ import { UploadResponseDto } from "./dto/upload.dto";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_FILENAME_LENGTH = 180;
 
-const PROJECT_ID_REGEX = /^p_?[a-zA-Z0-9]{8,32}\.[0-9a-f]{6}$/;
+const PROJECT_ID_REGEX = /^[a-zA-Z0-9_.-]{4,128}$/;
 
 function assertValidProjectId(projectId: string): void {
   if (!PROJECT_ID_REGEX.test(projectId)) {
