@@ -43,6 +43,29 @@ When using `.optional()` on a field, Tambo may not attempt to generate any value
 
 </Callout>
 
+The schema passed to Tambo must match the actual shape of the component's props, or tambo may generate invalid props. One pattern to ensure this is to define the props based on the schema:
+
+```tsx
+import { z } from "zod";
+import type { ComponentProps } from "react";
+
+const ChartPropsSchema = z.object({
+  data: z.array(
+    z.object({
+      label: z.string(),
+      value: z.number(),
+    }),
+  ),
+  type: z.enum(["bar", "line", "pie"]),
+});
+
+type ChartProps = z.infer<typeof ChartPropsSchema>;
+
+function Chart({ data, type }: ChartProps) {
+  // Component implementation
+}
+```
+
 ## Step 2: Add Descriptions for Better AI Guidance
 
 Use `z.describe()` to provide hints that help Tambo generate better prop values:
@@ -75,7 +98,37 @@ Descriptions help Tambo understand:
 - When to use specific enum options
 - The purpose of nested objects
 
+Use descriptive field names and helpful descriptions:
+
+```tsx
+// ✅ Good: Clear field names and guidance
+z.object({
+  comparisonData: z
+    .array(
+      z.object({
+        category: z.string().describe("Category name being compared"),
+        value: z.number().describe("Numeric value for this category"),
+      }),
+    )
+    .describe("Array of data points to compare"),
+});
+
+// ❌ Poor: Generic names, no guidance
+z.object({
+  data: z.array(z.any()),
+});
+```
+
 ## Step 3: Choose Your Registration Method
+
+Write descriptions that explain both what the component does and when to use it:
+
+```tsx
+// ✅ Good: Clear purpose and usage
+description: "Displays a bar chart comparing multiple categories. Use when the user asks to compare, visualize differences, or show rankings.";
+// ❌ Poor: Too vague
+description: "A chart component";
+```
 
 You can register components in two ways:
 
