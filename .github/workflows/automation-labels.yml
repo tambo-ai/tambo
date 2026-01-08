@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Mise
         uses: jdx/mise-action@v3.5.1
@@ -56,7 +56,7 @@ jobs:
               "CharlieHelps"
             ]
         run: | # shell
-          AUTHOR="external"
+          AUTHOR="community"
 
           if jq -e ". | index(\"${AUTHOR_LOGIN}\")" <<< "${TAMBO_TEAM_MEMBERS}" > /dev/null; then
             AUTHOR="tambo-team"
@@ -151,18 +151,18 @@ jobs:
     needs: [meta]
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
     env:
-      SHOULD_SYNC: contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels'))
+      SHOULD_SYNC: ${{ contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels') }}
     permissions:
       contents: read # to fetch repository content
       issues: write # to create and update labels
       pull-requests: write # to comment on PRs
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Update Labels
         uses: crazy-max/ghaction-github-labeler@v5.3.0
-        if: ${{ env.SHOULD_SYNC }}
+        if: ${{ env.SHOULD_SYNC == 'true' }}
         with:
           dry-run: ${{ github.event_name == 'pull_request' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -170,7 +170,7 @@ jobs:
           yaml-file: .github/labels.yml
 
       - name: Comment on PR about label updates
-        if: github.event_name == 'pull_request' && env.SHOULD_SYNC
+        if: github.event_name == 'pull_request' && env.SHOULD_SYNC == 'true'
         uses: marocchino/sticky-pull-request-comment@v2.4.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -181,7 +181,7 @@ jobs:
             https://github.com/tambo-ai/tambo/pull/${{ github.event.pull_request.number }}/changes#diff-${{ github.event.pull_request.head.sha }}
 
       - name: Delete Comment on PR if no label updates
-        if: github.event_name == 'pull_request' && !env.SHOULD_SYNC
+        if: github.event_name == 'pull_request' && env.SHOULD_SYNC != 'true'
         uses: marocchino/sticky-pull-request-comment@v2.4.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -221,7 +221,7 @@ jobs:
       added_labels: ${{ steps.determine_labels.outputs.added_labels || '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Mise
         uses: jdx/mise-action@v3.5.1

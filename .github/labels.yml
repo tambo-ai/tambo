@@ -184,10 +184,6 @@
   color: "6f42c1"
   description: "Created by a community member"
 
-- name: "contributor: external"
-  color: "6f42c1"
-  description: "Created by an external contributor"
-
 - name: "contributor: tambo-team"
   color: "80ffce"
   description: "Created by a Tambo team member"
