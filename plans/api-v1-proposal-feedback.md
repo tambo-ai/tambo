@@ -4,28 +4,6 @@ _Feedback from critical review to address in future revisions._
 
 ---
 
-## Resolved (Updated in Proposal)
-
-The following high-priority items have been addressed:
-
-1. ~~**Run state machine is underspecified**~~ → **RESOLVED**: Clarified that `RunStatus` only tracks current run lifecycle (idle/waiting/streaming). Other states are tracked via separate fields:
-   - Last run outcome: `lastRunCancelled`, `lastRunError`
-   - Next run requirements: `pendingToolCallIds`, `lastCompletedRunId`
-
-2. ~~**Ambiguous reconnection behavior**~~ → **RESOLVED**: Removed reconnection endpoint. Runs are ephemeral - if connection drops, run is cancelled. No event replay.
-
-3. ~~**Tool result submission race conditions**~~ → **RESOLVED**: Clarified in Thread interface that if `pendingToolCallIds` is non-empty, the next message MUST contain a tool_result for at least one ID. Sending a regular user message while tool calls are pending is an error.
-
-4. ~~**Missing validation rules for InputMessage**~~ → **RESOLVED**: InputMessage.role is now typed as `"user"` (literal). Only user messages accepted as input; other roles emitted by server only.
-
-5. ~~**Component/Message relationship unclear**~~ → **RESOLVED**: Added documentation that components accumulate into the current message's content array alongside text and tool calls in streaming order.
-
-6. ~~**No way to send user message without starting a run**~~ → **CONFIRMED INTENTIONAL**: This is by design. Use `initialMessages` at thread creation if needed.
-
-7. ~~**Thread.pendingToolCallIds lifetime unclear**~~ → **RESOLVED**: Documented that sending a regular message while tool calls are pending is an error. Next run MUST provide tool results.
-
----
-
 ## Medium Priority
 
 ### Ambiguous Behaviors
@@ -121,8 +99,6 @@ _(Punted for this revision, track for later)_
 
 ## Questions for Discussion
 
-1. ~~**Should `RunStatus` include `awaiting_input`?**~~ → **DECIDED**: No. Keep RunStatus simple (idle/waiting/streaming). Use `pendingToolCallIds` to signal awaiting state.
+1. **Should there be a `MESSAGES_SYNC` event?** Currently clients must call `GET /messages` after `RUN_FINISHED` to verify accumulated state. A sync event with final message array would eliminate this need.
 
-2. **Should there be a `MESSAGES_SYNC` event?** Currently clients must call `GET /messages` after `RUN_FINISHED` to verify accumulated state. A sync event with final message array would eliminate this need.
-
-3. **Is the streaming-only design correct for all use cases?** Some SDK consumers may want synchronous message creation for simpler integrations. Consider a `stream: false` option that returns complete response.
+2. **Is the streaming-only design correct for all use cases?** Some SDK consumers may want synchronous message creation for simpler integrations. Consider a `stream: false` option that returns complete response.
