@@ -164,7 +164,7 @@ async function main(): Promise<void> {
     success = await createS3Bucket();
   } else {
     console.error(
-      `Invalid STORAGE_PROVIDER: ${rawStorageProvider}. Expected "s3" or "supabase".`,
+      `Invalid STORAGE_PROVIDER: ${rawStorageProvider ?? "<unset>"}. Expected "s3" or "supabase" (normalized: "${storageProvider}").`,
     );
     process.exit(1);
   }
