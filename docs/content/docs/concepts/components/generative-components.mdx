@@ -84,7 +84,7 @@ const DataChartProps = z.object({
 
 ### 4. Component Rendering
 
-Tambo renders the selected component with generated props as part of the assistant's message. The component appears inline in the conversation thread, creating a visual response alongside any text.
+Tambo renders the selected component with generated props as part of the assistant's message. The component appears inline in the conversation thread, creating a visual response alongside any text. Components rendered in messages become part of the conversation history, allowing Tambo to reference them in future messages.
 
 ## Generative vs. Interactable Components
 
@@ -104,22 +104,6 @@ Understanding when to use each type helps you design effective Tambo application
 - **Interactable**: User has a shopping cart on the page → User asks "Add 3 more items" → Tambo updates the existing cart component's props
 
 You can use both together: register a component as generative for on-demand creation, and also make it interactable for persistent instances.
-
-When Tambo generates a component:
-
-1. **Message sent**: User sends a message to the thread
-2. **Component selection**: Tambo analyzes and chooses an appropriate component
-3. **Props generation**: Tambo generates props matching the schema
-4. **Rendering**: Component appears in the message thread
-5. **State management**: Component state is stored in the message
-
-Each message can contain:
-
-- Text content from Tambo
-- One or more generative components
-- Component state for interactive features
-
-Components rendered in messages become part of the conversation history, allowing Tambo to reference them in future messages.
 
 ## Best Practices
 
