@@ -88,6 +88,7 @@ export async function getFile(
     throw new Error(`No body returned for key: ${key}`);
   }
 
+  // Early rejection if ContentLength is available and exceeds limit
   if (
     typeof response.ContentLength === "number" &&
     response.ContentLength > MAX_FILE_BYTES
@@ -95,9 +96,17 @@ export async function getFile(
     throw new Error(`Attachment too large: ${response.ContentLength} bytes`);
   }
 
-  // Convert readable stream to buffer
+  // Convert readable stream to buffer with streaming size guard
+  // This protects against OOM when ContentLength is missing or incorrect
   const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
   for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+    totalBytes += chunk.byteLength;
+    if (totalBytes > MAX_FILE_BYTES) {
+      throw new Error(
+        `Attachment too large: exceeded ${MAX_FILE_BYTES} bytes while streaming`,
+      );
+    }
     chunks.push(chunk);
   }
 
