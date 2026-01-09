@@ -5,7 +5,7 @@ set -euo pipefail
 
 # Default to the new /mcp route; allow override via environment variable
 # Usage: TARGET_URL="https://mcp.tambo.co/mcp" ./scripts/cloud/smoke-mcp.sh
-TARGET_URL="${TARGET_URL:-http://localhost:3000/mcp}"
+TARGET_URL="${TARGET_URL:-http://localhost:8261/mcp}"
 
 info "[smoke] Hitting $TARGET_URL ..."
 

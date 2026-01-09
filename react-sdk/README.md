@@ -246,7 +246,7 @@ import { MCPTransport } from "@tambo-ai/react/mcp";
 const mcpServers = [
   {
     name: "filesystem",
-    url: "http://localhost:3001/mcp",
+    url: "http://localhost:8261/mcp",
     transport: MCPTransport.HTTP,
   },
 ];

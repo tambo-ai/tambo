@@ -7,7 +7,7 @@ NestJS service powering the Tambo Cloud backend (projects, threads, registry syn
 1. Copy `.env.example` to `.env` (see root `turbo.json` for the full env list).
 2. `npm install`
 3. `npm run dev`
-4. Swagger is available at [http://localhost:3000/api](http://localhost:3000/api)
+4. Swagger is available at [http://localhost:8261/api](http://localhost:8261/api)
 
 ## Commands
 
