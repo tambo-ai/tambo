@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import { Check, Copy, ExternalLink } from "lucide-react";
+import { Check, Copy, ExternalLink, X } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -74,12 +74,31 @@ const CodeHeader = ({
   code?: string;
 }) => {
   const [copied, setCopied] = React.useState(false);
+  const [error, setError] = React.useState(false);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (!code) return;
-    void navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setError(false);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy code to clipboard:", err);
+      setError(true);
+      setTimeout(() => setError(false), 2000);
+    }
+  };
+
+  const getButtonIcon = () => {
+    if (error) {
+      return <X className="w-4 h-4 text-red-500" />;
+    }
+    if (copied) {
+      return <Check className="w-4 h-4 text-green-500" />;
+    }
+    return <Copy className="w-4 h-4" />;
   };
 
   return (
@@ -88,13 +107,9 @@ const CodeHeader = ({
       <button
         onClick={copyToClipboard}
         className="p-1 rounded-md hover:bg-backdrop transition-colors cursor-pointer"
-        title="Copy code"
+        title={error ? "Failed to copy" : "Copy code"}
       >
-        {!copied ? (
-          <Copy className="h-4 w-4" />
-        ) : (
-          <Check className="h-4 w-4 text-green-500" />
-        )}
+        {getButtonIcon()}
       </button>
     </div>
   );
