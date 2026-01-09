@@ -74,6 +74,7 @@
     "@nestjs/testing": "^11.1.11",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
+    "@types/content-type": "^1.1.9",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",
