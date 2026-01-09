@@ -1,5 +1,6 @@
 import {
   BadGatewayException,
+  BadRequestException,
   Body,
   Controller,
   Post,
@@ -33,6 +34,14 @@ import { extractContextInfo } from "../common/utils/extract-context-info";
 import { PresignUploadDto, PresignUploadResponseDto } from "./dto/presign.dto";
 
 const PRESIGN_EXPIRY_SECONDS = 3600;
+
+/**
+ * Regex pattern for validating MIME content types.
+ * Follows RFC 6838 media type syntax (more permissive than strict RFC but safe).
+ * Examples: "application/pdf", "image/png", "text/plain; charset=utf-8"
+ */
+const CONTENT_TYPE_REGEX =
+  /^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:;\s*\S+=\S+)*$/;
 
 /**
  * Generate a short, URL-safe unique ID using base62 encoding.
@@ -109,7 +118,14 @@ export class StorageController {
 
     const { projectId } = extractContextInfo(request, undefined);
 
+    // Validate contentType to prevent weird values being signed
+    if (!CONTENT_TYPE_REGEX.test(dto.contentType)) {
+      throw new BadRequestException("Invalid contentType format");
+    }
+
     // Generate a short unique ID and build the signed storage key
+    // Key format is deterministic: {projectId}/{uniqueId}-{signature}
+    // Max ~70 chars, well under S3's 1024 byte limit
     const uniqueId = generateUniqueId();
     const storageKey = buildStorageKey(projectId, uniqueId, this.signingSecret);
 
