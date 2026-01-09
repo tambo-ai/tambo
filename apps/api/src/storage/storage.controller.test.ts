@@ -23,12 +23,22 @@ jest.mock("../common/utils/extract-context-info", () => ({
 
 import { StorageController } from "./storage.controller";
 import { PresignUploadDto } from "./dto/presign.dto";
+import { CorrelationLoggerService } from "../common/services/logger.service";
 
 describe("StorageController", () => {
   let controller: StorageController;
   let mockRequest: Partial<Request>;
+  let mockLogger: jest.Mocked<CorrelationLoggerService>;
 
   beforeAll(async () => {
+    mockLogger = {
+      error: jest.fn(),
+      log: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+    } as unknown as jest.Mocked<CorrelationLoggerService>;
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StorageController],
       providers: [
@@ -47,6 +57,10 @@ describe("StorageController", () => {
               return config[key];
             }),
           },
+        },
+        {
+          provide: CorrelationLoggerService,
+          useValue: mockLogger,
         },
       ],
     })
@@ -176,6 +190,23 @@ describe("StorageController", () => {
         controller.presign(dto, mockRequest as Request),
       ).rejects.toThrow(BadGatewayException);
     });
+
+    it("logs error when presigned URL generation fails", async () => {
+      mockGetSignedUploadUrl.mockRejectedValue(new Error("S3 error"));
+
+      const dto: PresignUploadDto = {
+        contentType: "application/pdf",
+        size: 1024,
+      };
+
+      await expect(
+        controller.presign(dto, mockRequest as Request),
+      ).rejects.toThrow(BadGatewayException);
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining("Failed to generate presigned URL"),
+      );
+    });
   });
 });
 
@@ -202,6 +233,9 @@ describe("StorageController - S3 not configured", () => {
             const { StorageController: IsolatedController } =
               await import("./storage.controller");
 
+            const { CorrelationLoggerService: IsolatedLoggerService } =
+              await import("../common/services/logger.service");
+
             const module: TestingModule = await Test.createTestingModule({
               controllers: [IsolatedController],
               providers: [
@@ -210,6 +244,10 @@ describe("StorageController - S3 not configured", () => {
                   useValue: {
                     get: jest.fn().mockReturnValue(""),
                   },
+                },
+                {
+                  provide: IsolatedLoggerService,
+                  useValue: { error: jest.fn(), log: jest.fn() },
                 },
               ],
             })
@@ -265,6 +303,9 @@ describe("StorageController - S3 not configured", () => {
             const { StorageController: IsolatedController } =
               await import("./storage.controller");
 
+            const { CorrelationLoggerService: IsolatedLoggerService } =
+              await import("../common/services/logger.service");
+
             const module: TestingModule = await Test.createTestingModule({
               controllers: [IsolatedController],
               providers: [
@@ -284,6 +325,10 @@ describe("StorageController - S3 not configured", () => {
                       return config[key];
                     }),
                   },
+                },
+                {
+                  provide: IsolatedLoggerService,
+                  useValue: { error: jest.fn(), log: jest.fn() },
                 },
               ],
             })

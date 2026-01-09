@@ -21,6 +21,7 @@ jest.mock("../../common/utils/extract-context-info", () => ({
 
 // Import controller after mocks are set up
 import { StorageController } from "../storage.controller";
+import { CorrelationLoggerService } from "../../common/services/logger.service";
 
 describe("StorageController (integration)", () => {
   let app: INestApplication;
@@ -44,6 +45,10 @@ describe("StorageController (integration)", () => {
               return config[key];
             },
           },
+        },
+        {
+          provide: CorrelationLoggerService,
+          useValue: { error: jest.fn(), log: jest.fn() },
         },
       ],
     })

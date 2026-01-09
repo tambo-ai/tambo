@@ -31,6 +31,7 @@ import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import { extractContextInfo } from "../common/utils/extract-context-info";
+import { CorrelationLoggerService } from "../common/services/logger.service";
 import { PresignUploadDto, PresignUploadResponseDto } from "./dto/presign.dto";
 
 const PRESIGN_EXPIRY_SECONDS = 3600;
@@ -63,7 +64,10 @@ export class StorageController {
   private readonly bucket: string;
   private readonly signingSecret: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly logger: CorrelationLoggerService,
+  ) {
     const config = {
       endpoint: this.configService.get<string>("S3_ENDPOINT") ?? "",
       region: this.configService.get<string>("S3_REGION") ?? "us-east-1",
@@ -143,7 +147,10 @@ export class StorageController {
         attachmentUri: buildAttachmentUri(projectId, uniqueId),
         expiresIn: PRESIGN_EXPIRY_SECONDS,
       };
-    } catch {
+    } catch (error) {
+      this.logger.error(
+        `Failed to generate presigned URL for project ${projectId}: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
       throw new BadGatewayException("Failed to create upload URL");
     }
   }
