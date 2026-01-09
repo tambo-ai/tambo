@@ -5,6 +5,7 @@ import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
+import { StorageConfigService } from "../common/services/storage-config.service";
 import { ProjectsService } from "../projects/projects.service";
 import { AdvanceThreadDto } from "./dto/advance-thread.dto";
 import { MessageRequest } from "./dto/message.dto";
@@ -79,6 +80,15 @@ describe("ThreadsService - Initial Messages", () => {
         {
           provide: AuthService,
           useValue: mockAuthService,
+        },
+        {
+          provide: StorageConfigService,
+          useValue: {
+            s3Client: undefined,
+            bucket: "test-bucket",
+            signingSecret: "",
+            isConfigured: false,
+          },
         },
       ],
     }).compile();
