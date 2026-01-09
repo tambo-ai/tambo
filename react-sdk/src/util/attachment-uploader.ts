@@ -2,7 +2,7 @@ import type TamboAI from "@tambo-ai/typescript-sdk";
 import { AttachmentType } from "../hooks/use-message-attachments";
 
 /** Maximum file size in bytes (10MB, matching API limit) */
-const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
+export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 
 /**
  * Response from the presign endpoint

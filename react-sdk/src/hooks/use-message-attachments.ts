@@ -1,9 +1,33 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useCallback, useMemo, useState } from "react";
 import {
+  MAX_ATTACHMENT_SIZE,
   uploadAttachment,
   type UploadResult,
 } from "../util/attachment-uploader";
+
+/**
+ * Reason why a file was rejected
+ */
+export type FileRejectionReason = "unsupported_type" | "file_too_large";
+
+/**
+ * Information about a rejected file
+ */
+export interface RejectedFile {
+  file: File;
+  reason: FileRejectionReason;
+}
+
+/**
+ * Options for the useMessageAttachments hook
+ */
+export interface UseMessageAttachmentsOptions {
+  /** TamboAI client for immediate uploads */
+  client?: TamboAI;
+  /** Callback when files are rejected during batch add */
+  onFilesRejected?: (rejectedFiles: RejectedFile[]) => void;
+}
 
 /**
  * Attachment type category for determining how to process the file
@@ -255,16 +279,32 @@ async function fileToText(file: File): Promise<string> {
   });
 }
 
+function shouldReadDataUrl(
+  attachmentType: AttachmentType,
+  client?: TamboAI,
+): boolean {
+  if (attachmentType === "image") {
+    return true;
+  }
+
+  return attachmentType === "document" && !client;
+}
+
 /**
  * Hook for managing attachments in message input.
  * Supports images, PDFs, text files, CSV, markdown, JSON, and code files.
  * When a client is provided, uploads start immediately when files are added.
- * @param client - Optional TamboAI client for immediate uploads
+ * @param options - Hook options including client and callbacks
  * @returns Object with attachments array, management functions, and upload status
  */
 export function useMessageAttachments(
-  client?: TamboAI,
+  options: UseMessageAttachmentsOptions | TamboAI = {},
 ): UseMessageAttachmentsReturn {
+  // Support both old signature (client only) and new signature (options object)
+  const { client, onFilesRejected } =
+    options && "post" in options
+      ? { client: options, onFilesRejected: undefined }
+      : (options);
   const [attachments, setAttachments] = useState<StagedAttachment[]>([]);
 
   const updateAttachmentStatus = useCallback(
@@ -313,6 +353,11 @@ export function useMessageAttachments(
 
   const addAttachment = useCallback(
     async (file: File) => {
+      // Check file size BEFORE reading into memory
+      if (file.size > MAX_ATTACHMENT_SIZE) {
+        throw new Error(`File ${file.name} exceeds the maximum size of 10MB.`);
+      }
+
       const mimeType = getMimeType(file);
       const attachmentType = getAttachmentType(mimeType);
 
@@ -322,9 +367,12 @@ export function useMessageAttachments(
         );
       }
 
-      const dataUrl = await fileToDataUrl(file);
+      // Generate data URL for image previews and offline documents.
+      const dataUrl = shouldReadDataUrl(attachmentType, client)
+        ? await fileToDataUrl(file)
+        : "";
 
-      // For text-based files, also read the text content
+      // For text-based files, read the text content
       let textContent: string | undefined;
       if (attachmentType === "text") {
         textContent = await fileToText(file);
@@ -356,10 +404,29 @@ export function useMessageAttachments(
 
   const addAttachments = useCallback(
     async (files: File[]) => {
-      const validFiles = files.filter((file) => {
+      const rejectedFiles: RejectedFile[] = [];
+      const validFiles: File[] = [];
+
+      // Validate all files BEFORE reading any into memory
+      for (const file of files) {
+        if (file.size > MAX_ATTACHMENT_SIZE) {
+          rejectedFiles.push({ file, reason: "file_too_large" });
+          continue;
+        }
+
         const mimeType = getMimeType(file);
-        return getAttachmentType(mimeType) !== "unknown";
-      });
+        if (getAttachmentType(mimeType) === "unknown") {
+          rejectedFiles.push({ file, reason: "unsupported_type" });
+          continue;
+        }
+
+        validFiles.push(file);
+      }
+
+      // Notify about rejected files
+      if (rejectedFiles.length > 0 && onFilesRejected) {
+        onFilesRejected(rejectedFiles);
+      }
 
       if (validFiles.length === 0) {
         throw new Error(
@@ -371,9 +438,13 @@ export function useMessageAttachments(
         validFiles.map(async (file) => {
           const mimeType = getMimeType(file);
           const attachmentType = getAttachmentType(mimeType);
-          const dataUrl = await fileToDataUrl(file);
 
-          // For text-based files, also read the text content
+          // Generate data URL for image previews and offline documents.
+          const dataUrl = shouldReadDataUrl(attachmentType, client)
+            ? await fileToDataUrl(file)
+            : "";
+
+          // For text-based files, read the text content
           let textContent: string | undefined;
           if (attachmentType === "text") {
             textContent = await fileToText(file);
@@ -403,7 +474,7 @@ export function useMessageAttachments(
         }
       }
     },
-    [client, startUpload],
+    [client, onFilesRejected, startUpload],
   );
 
   const removeAttachment = useCallback((id: string) => {
@@ -454,5 +525,8 @@ export function useMessageAttachments(
 }
 
 // Re-export upload types for convenience
-export { AttachmentUploadError } from "../util/attachment-uploader";
+export {
+  AttachmentUploadError,
+  MAX_ATTACHMENT_SIZE,
+} from "../util/attachment-uploader";
 export type { UploadResult } from "../util/attachment-uploader";

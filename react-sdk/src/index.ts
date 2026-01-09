@@ -17,6 +17,7 @@ export {
   getAttachmentType,
   SUPPORTED_ATTACHMENT_TYPES,
   AttachmentUploadError,
+  MAX_ATTACHMENT_SIZE,
   type StagedAttachment,
   type AttachmentType,
   type UploadStatus,
