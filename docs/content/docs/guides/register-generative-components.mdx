@@ -11,7 +11,7 @@ This guide shows you how to register your React components with Tambo so it can 
 <LearnMore
   title="Learn more about generative components"
   description="Understand what generative components are and when to use them"
-  href="/concepts/components/generative-components"
+  href="/concepts/generative-interfaces/generative-components"
   icon={BookOpen}
 />
 
@@ -28,40 +28,42 @@ Create a Zod schema that describes your component's props. This tells Tambo what
 ```tsx
 import { z } from "zod";
 
-export const DataChartProps = z.object({
-  data: z.object({
-    labels: z.array(z.string()),
-    values: z.array(z.number()),
-  }),
-  type: z.enum(["bar", "line", "pie"]),
+export const WeatherCardPropsSchema = z.object({
+  city: z.string(),
+  temperature: z.number(),
+  condition: z.string(),
+  humidity: z.number().optional(),
 });
 ```
 
-<Callout type="info" title="Optional Props">
+<Callout type="info" title="Optional Props and Streaming">
 
-When using `.optional()` on a field, Tambo may not attempt to generate any value for that prop. Only mark props as optional if you truly want Tambo to sometimes omit them.
+When using `.optional()` on a field, Tambo may not generate a value for that prop. Only mark props as optional if you truly want Tambo to sometimes omit them.
+
+**Important for streaming**: During streaming, all props (required and optional) start as `undefined` and populate as data arrives. Your component should handle undefined values gracefully by using optional prop types (`city?: string`) or providing default values in your component implementation.
 
 </Callout>
 
-The schema passed to Tambo must match the actual shape of the component's props, or tambo may generate invalid props. One pattern to ensure this is to define the props based on the schema:
+The schema passed to Tambo must match the actual shape of the component's props, or Tambo may generate invalid props. One pattern to ensure this is to define the props based on the schema using `z.infer`:
 
 ```tsx
 import { z } from "zod";
-import type { ComponentProps } from "react";
 
-const ChartPropsSchema = z.object({
-  data: z.array(
-    z.object({
-      label: z.string(),
-      value: z.number(),
-    }),
-  ),
-  type: z.enum(["bar", "line", "pie"]),
+const WeatherCardPropsSchema = z.object({
+  city: z.string(),
+  temperature: z.number(),
+  condition: z.string(),
+  humidity: z.number().optional(),
 });
 
-type ChartProps = z.infer<typeof ChartPropsSchema>;
+type WeatherCardProps = z.infer<typeof WeatherCardPropsSchema>;
 
-function Chart({ data, type }: ChartProps) {
+function WeatherCard({
+  city,
+  temperature,
+  condition,
+  humidity,
+}: WeatherCardProps) {
   // Component implementation
 }
 ```
@@ -73,49 +75,43 @@ Use `z.describe()` to provide hints that help Tambo generate better prop values:
 ```tsx
 import { z } from "zod";
 
-export const DataChartProps = z
+export const WeatherCardPropsSchema = z
   .object({
-    data: z
-      .object({
-        labels: z
-          .array(z.string())
-          .describe("Use single words or short phrases."),
-        values: z.array(z.number()).describe("Use whole numbers."),
-      })
-      .describe("A component for displaying data in various chart formats"),
-    type: z
-      .enum(["bar", "line", "pie"])
-      .describe(
-        "Use a chart type that is appropriate for the data. Only use pie charts when less than 5 values.",
-      ),
+    city: z.string().describe("City name to display, e.g., 'San Francisco'"),
+    temperature: z
+      .number()
+      .describe("Temperature in Celsius as a whole number"),
+    condition: z
+      .string()
+      .describe("Weather condition like 'Sunny', 'Cloudy', 'Rainy'"),
+    humidity: z
+      .number()
+      .optional()
+      .describe("Humidity percentage (0-100). Optional field."),
   })
-  .describe("A component for displaying data in various chart formats");
+  .describe("Displays current weather information for a city");
 ```
 
 Descriptions help Tambo understand:
 
 - What format to use for values
 - When to use specific enum options
-- The purpose of nested objects
+- Expected value ranges and formats
 
 Use descriptive field names and helpful descriptions:
 
 ```tsx
 // ✅ Good: Clear field names and guidance
 z.object({
-  comparisonData: z
-    .array(
-      z.object({
-        category: z.string().describe("Category name being compared"),
-        value: z.number().describe("Numeric value for this category"),
-      }),
-    )
-    .describe("Array of data points to compare"),
+  city: z.string().describe("City name to display"),
+  temperature: z.number().describe("Temperature in Celsius"),
+  condition: z.string().describe("Weather condition description"),
 });
 
 // ❌ Poor: Generic names, no guidance
 z.object({
-  data: z.array(z.any()),
+  data: z.any(),
+  value: z.string(),
 });
 ```
 
@@ -124,22 +120,22 @@ z.object({
 Create a `TamboComponent` object including a reference to your component, the schema defined previously, a name, and a description of when to use the component.
 
 ```tsx
-const tamboChartComponent: TamboComponent = {
-  component: DataChart,
-  name: "DataChart",
+const weatherCardComponent: TamboComponent = {
+  component: WeatherCard,
+  name: "WeatherCard",
   description:
-    "Displays a chart comparing multiple categories. Use when the user asks to compare, visualize differences, or show rankings.",
-  propsSchema: DataChartProps,
+    "Displays current weather for a city. Use when the user asks about weather, temperature, or conditions.",
+  propsSchema: WeatherCardPropsSchema,
 };
 ```
 
-Make sure the description explains both what the component does and when to use it to help Tambo use it approprately:
+Make sure the description explains both what the component does and when to use it to help Tambo use it appropriately:
 
 ```tsx
 // ✅ Good: Clear purpose and usage
-description: "Displays a bar chart comparing multiple categories. Use when the user asks to compare, visualize differences, or show rankings.";
+description: "Displays current weather for a city. Use when the user asks about weather, temperature, or conditions.";
 // ❌ Poor: Too vague
-description: "A chart component";
+description: "A weather component";
 ```
 
 Finally, give Tambo access to it by registering it in one of two ways:
@@ -151,7 +147,7 @@ Register components when your app initializes by passing them to `TamboProvider`
 ```tsx
 function App() {
   return (
-    <TamboProvider components={[tamboChartComponent]}>
+    <TamboProvider components={[weatherCardComponent]}>
       <YourApp />
     </TamboProvider>
   );
@@ -171,13 +167,13 @@ Register components at runtime using the `registerComponent` function from `useT
 ```tsx
 import { useTamboRegistry } from "@tambo-ai/react";
 import { useEffect } from "react";
-import { tamboChartComponent } from "@/components/DataChart";
+import { weatherCardComponent } from "@/components/WeatherCard";
 
 function MyComponent() {
   const { registerComponent } = useTamboRegistry();
 
   useEffect(() => {
-    registerComponent(tamboChartComponent);
+    registerComponent(weatherCardComponent);
   }, [registerComponent]);
 
   return <YourUI />;
@@ -195,7 +191,7 @@ function MyComponent() {
 
 Once registered, Tambo can use your component in responses. When a user sends a message that matches your component's purpose, Tambo will generate it with appropriate props.
 
-For example, if a user asks "Show me a bar chart of sales data," Tambo will render your `DataChart` component with the generated data.
+For example, if a user asks "What's the weather in Tokyo?", Tambo will render your `WeatherCard` component with generated weather data for Tokyo.
 
 ## Complete Example
 
@@ -203,35 +199,34 @@ Here's a complete example combining all steps:
 
 ```tsx
 import { z } from "zod";
-import { DataChart } from "@/components/DataChart";
+import { WeatherCard } from "@/components/WeatherCard";
 import { TamboProvider } from "@tambo-ai/react";
 
 // Step 1/2: Define schema with descriptions
-export const DataChartProps = z
+export const WeatherCardPropsSchema = z
   .object({
-    data: z
-      .object({
-        labels: z
-          .array(z.string())
-          .describe("Use single words or short phrases."),
-        values: z.array(z.number()).describe("Use whole numbers."),
-      })
-      .describe("Chart data with labels and values"),
-    type: z
-      .enum(["bar", "line", "pie"])
-      .describe(
-        "Use a chart type appropriate for the data. Only use pie charts when less than 5 values.",
-      ),
+    city: z.string().describe("City name to display, e.g., 'San Francisco'"),
+    temperature: z
+      .number()
+      .describe("Temperature in Celsius as a whole number"),
+    condition: z
+      .string()
+      .describe("Weather condition like 'Sunny', 'Cloudy', 'Rainy'"),
+    humidity: z
+      .number()
+      .optional()
+      .describe("Humidity percentage (0-100). Optional field."),
   })
-  .describe("A component for displaying data in various chart formats");
+  .describe("Displays current weather information for a city");
 
 // Step 3: Registration via TamboProvider
 const tamboComponents: TamboComponent[] = [
   {
-    component: DataChart,
-    name: "DataChart",
-    description: "Displays data as a chart",
-    propsSchema: DataChartProps,
+    component: WeatherCard,
+    name: "WeatherCard",
+    description:
+      "Displays current weather for a city. Use when the user asks about weather, temperature, or conditions.",
+    propsSchema: WeatherCardPropsSchema,
   },
 ];
 
