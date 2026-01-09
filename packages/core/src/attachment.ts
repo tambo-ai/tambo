@@ -16,7 +16,7 @@ const SIGNATURE_LENGTH = 8;
  * Regex pattern for validating unique IDs.
  * Must be exactly ATTACHMENT_ID_LENGTH base62 characters.
  */
-const UNIQUE_ID_PATTERN = /^[A-Za-z0-9]{10}$/;
+const UNIQUE_ID_PATTERN = new RegExp(`^[A-Za-z0-9]{${ATTACHMENT_ID_LENGTH}}$`);
 
 /**
  * Generate an HMAC signature for an attachment path.
