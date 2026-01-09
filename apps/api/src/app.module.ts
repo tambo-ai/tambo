@@ -18,6 +18,7 @@ import {
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
 import { AuthService } from "./common/services/auth.service";
 import { EmailService } from "./common/services/email.service";
+import { StorageConfigService } from "./common/services/storage-config.service";
 import { ConfigServiceSingleton } from "./config.service";
 import { OAuthModule } from "./oauth/oauth.module";
 import { ProjectsModule } from "./projects/projects.module";
@@ -29,8 +30,9 @@ import { UsersModule } from "./users/users.module";
 
 @Global()
 @Module({
-  providers: [TransactionProvider, DatabaseProvider],
-  exports: [TRANSACTION, DATABASE],
+  imports: [ConfigModule],
+  providers: [TransactionProvider, DatabaseProvider, StorageConfigService],
+  exports: [TRANSACTION, DATABASE, StorageConfigService],
 })
 export class GlobalModule {}
 

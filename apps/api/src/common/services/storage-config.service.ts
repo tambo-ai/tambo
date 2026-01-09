@@ -1,0 +1,35 @@
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { S3Client } from "@aws-sdk/client-s3";
+import { createS3Client, isS3Configured } from "@tambo-ai-cloud/backend";
+
+/**
+ * Centralized S3 storage configuration service.
+ * Provides a single source of truth for S3 client initialization
+ * and storage-related configuration across the API.
+ */
+@Injectable()
+export class StorageConfigService {
+  readonly s3Client: S3Client | undefined;
+  readonly bucket: string;
+  readonly signingSecret: string;
+  readonly isConfigured: boolean;
+
+  constructor(private readonly configService: ConfigService) {
+    const s3Config = {
+      endpoint: this.configService.get<string>("S3_ENDPOINT") ?? "",
+      region: this.configService.get<string>("S3_REGION") ?? "us-east-1",
+      accessKeyId: this.configService.get<string>("S3_ACCESS_KEY_ID") ?? "",
+      secretAccessKey:
+        this.configService.get<string>("S3_SECRET_ACCESS_KEY") ?? "",
+    };
+
+    this.bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
+    this.signingSecret = this.configService.get<string>("API_KEY_SECRET") ?? "";
+    this.isConfigured = isS3Configured(s3Config);
+
+    if (this.isConfigured) {
+      this.s3Client = createS3Client(s3Config);
+    }
+  }
+}

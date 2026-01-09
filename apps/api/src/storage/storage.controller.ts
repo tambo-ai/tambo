@@ -8,19 +8,13 @@ import {
   ServiceUnavailableException,
   UseGuards,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   ApiOperation,
   ApiResponse,
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
-import { S3Client } from "@aws-sdk/client-s3";
-import {
-  createS3Client,
-  getSignedUploadUrl,
-  isS3Configured,
-} from "@tambo-ai-cloud/backend";
+import { getSignedUploadUrl } from "@tambo-ai-cloud/backend";
 import {
   buildAttachmentUri,
   buildStorageKey,
@@ -33,6 +27,7 @@ import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import { CorrelationLoggerService } from "../common/services/logger.service";
+import { StorageConfigService } from "../common/services/storage-config.service";
 import { PresignUploadDto, PresignUploadResponseDto } from "./dto/presign.dto";
 
 const PRESIGN_EXPIRY_SECONDS = 3600;
@@ -53,28 +48,10 @@ const generateUniqueId = customAlphabet(
 @UseGuards(ApiKeyGuard, BearerTokenGuard)
 @Controller("storage")
 export class StorageController {
-  private readonly s3Client: S3Client | undefined;
-  private readonly bucket: string;
-  private readonly signingSecret: string;
-
   constructor(
-    private readonly configService: ConfigService,
+    private readonly storageConfig: StorageConfigService,
     private readonly logger: CorrelationLoggerService,
-  ) {
-    const config = {
-      endpoint: this.configService.get<string>("S3_ENDPOINT") ?? "",
-      region: this.configService.get<string>("S3_REGION") ?? "us-east-1",
-      accessKeyId: this.configService.get<string>("S3_ACCESS_KEY_ID") ?? "",
-      secretAccessKey:
-        this.configService.get<string>("S3_SECRET_ACCESS_KEY") ?? "",
-    };
-    this.bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
-    this.signingSecret = this.configService.get<string>("API_KEY_SECRET") ?? "";
-
-    if (isS3Configured(config)) {
-      this.s3Client = createS3Client(config);
-    }
-  }
+  ) {}
 
   @Post("presign")
   @ApiOperation({
@@ -101,13 +78,13 @@ export class StorageController {
     @Body() dto: PresignUploadDto,
     @Req() request: Request,
   ): Promise<PresignUploadResponseDto> {
-    if (!this.s3Client) {
+    if (!this.storageConfig.s3Client) {
       throw new ServiceUnavailableException(
         "Storage is not configured. S3 credentials are required.",
       );
     }
 
-    if (!this.signingSecret) {
+    if (!this.storageConfig.signingSecret) {
       throw new ServiceUnavailableException(
         "Storage signing is not configured. API_KEY_SECRET is required.",
       );
@@ -127,12 +104,16 @@ export class StorageController {
     // Key format is deterministic: {projectId}/{uniqueId}-{signature}
     // Max ~70 chars, well under S3's 1024 byte limit
     const uniqueId = generateUniqueId();
-    const storageKey = buildStorageKey(projectId, uniqueId, this.signingSecret);
+    const storageKey = buildStorageKey(
+      projectId,
+      uniqueId,
+      this.storageConfig.signingSecret,
+    );
 
     try {
       const uploadUrl = await getSignedUploadUrl(
-        this.s3Client,
-        this.bucket,
+        this.storageConfig.s3Client,
+        this.storageConfig.bucket,
         storageKey,
         dto.contentType,
         PRESIGN_EXPIRY_SECONDS,

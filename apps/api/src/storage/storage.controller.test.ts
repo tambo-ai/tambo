@@ -2,7 +2,6 @@ import {
   BadGatewayException,
   ServiceUnavailableException,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
@@ -12,8 +11,6 @@ const mockGetSignedUploadUrl = jest.fn();
 const mockExtractContextInfo = jest.fn();
 
 jest.mock("@tambo-ai-cloud/backend", () => ({
-  isS3Configured: jest.fn().mockReturnValue(true),
-  createS3Client: jest.fn().mockReturnValue({ mockS3Client: true }),
   getSignedUploadUrl: mockGetSignedUploadUrl,
 }));
 
@@ -24,11 +21,13 @@ jest.mock("../common/utils/extract-context-info", () => ({
 import { StorageController } from "./storage.controller";
 import { PresignUploadDto } from "./dto/presign.dto";
 import { CorrelationLoggerService } from "../common/services/logger.service";
+import { StorageConfigService } from "../common/services/storage-config.service";
 
 describe("StorageController", () => {
   let controller: StorageController;
   let mockRequest: Partial<Request>;
   let mockLogger: jest.Mocked<CorrelationLoggerService>;
+  let mockStorageConfig: jest.Mocked<StorageConfigService>;
 
   beforeAll(async () => {
     mockLogger = {
@@ -39,24 +38,19 @@ describe("StorageController", () => {
       verbose: jest.fn(),
     } as unknown as jest.Mocked<CorrelationLoggerService>;
 
+    mockStorageConfig = {
+      s3Client: { mockS3Client: true },
+      bucket: "test-bucket",
+      signingSecret: "test-signing-secret",
+      isConfigured: true,
+    } as unknown as jest.Mocked<StorageConfigService>;
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StorageController],
       providers: [
         {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn((key: string) => {
-              const config: Record<string, string> = {
-                S3_ENDPOINT: "https://s3.example.com",
-                S3_REGION: "us-east-1",
-                S3_ACCESS_KEY_ID: "test-key",
-                S3_SECRET_ACCESS_KEY: "test-secret",
-                S3_BUCKET: "test-bucket",
-                API_KEY_SECRET: "test-signing-secret",
-              };
-              return config[key];
-            }),
-          },
+          provide: StorageConfigService,
+          useValue: mockStorageConfig,
         },
         {
           provide: CorrelationLoggerService,
@@ -213,154 +207,91 @@ describe("StorageController", () => {
 
 describe("StorageController - S3 not configured", () => {
   it("throws ServiceUnavailableException when S3 is not configured", async () => {
-    // Use a promise to properly await the isolateModules callback
-    await new Promise<void>((resolve, reject) => {
-      jest.isolateModules(() => {
-        void (async () => {
-          try {
-            jest.doMock("@tambo-ai-cloud/backend", () => ({
-              isS3Configured: jest.fn().mockReturnValue(false),
-              createS3Client: jest.fn(),
-              getSignedUploadUrl: jest.fn(),
-            }));
+    const unconfiguredStorageConfig = {
+      s3Client: undefined,
+      bucket: "test-bucket",
+      signingSecret: "test-signing-secret",
+      isConfigured: false,
+    } as unknown as StorageConfigService;
 
-            jest.doMock("../common/utils/extract-context-info", () => ({
-              extractContextInfo: jest.fn().mockReturnValue({
-                projectId: "p_u2tgQg5U.43bbdf",
-                contextKey: undefined,
-              }),
-            }));
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [StorageController],
+      providers: [
+        {
+          provide: StorageConfigService,
+          useValue: unconfiguredStorageConfig,
+        },
+        {
+          provide: CorrelationLoggerService,
+          useValue: { error: jest.fn(), log: jest.fn() },
+        },
+      ],
+    })
+      .overrideGuard(ApiKeyGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(BearerTokenGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
-            const { StorageController: IsolatedController } =
-              await import("./storage.controller");
+    const unconfiguredController =
+      module.get<StorageController>(StorageController);
 
-            const { CorrelationLoggerService: IsolatedLoggerService } =
-              await import("../common/services/logger.service");
+    const dto: PresignUploadDto = {
+      contentType: "application/pdf",
+      size: 1024,
+    };
 
-            const module: TestingModule = await Test.createTestingModule({
-              controllers: [IsolatedController],
-              providers: [
-                {
-                  provide: ConfigService,
-                  useValue: {
-                    get: jest.fn().mockReturnValue(""),
-                  },
-                },
-                {
-                  provide: IsolatedLoggerService,
-                  useValue: { error: jest.fn(), log: jest.fn() },
-                },
-              ],
-            })
-              .overrideGuard(ApiKeyGuard)
-              .useValue({ canActivate: () => true })
-              .overrideGuard(BearerTokenGuard)
-              .useValue({ canActivate: () => true })
-              .compile();
-
-            const unconfiguredController =
-              module.get<InstanceType<typeof IsolatedController>>(
-                IsolatedController,
-              );
-
-            const dto: PresignUploadDto = {
-              contentType: "application/pdf",
-              size: 1024,
-            };
-
-            await expect(
-              unconfiguredController.presign(dto, {
-                url: "/storage/presign",
-              } as Request),
-            ).rejects.toThrow(ServiceUnavailableException);
-
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        })();
-      });
-    });
+    await expect(
+      unconfiguredController.presign(dto, {
+        url: "/storage/presign",
+      } as Request),
+    ).rejects.toThrow(ServiceUnavailableException);
   });
 
   it("throws ServiceUnavailableException when API_KEY_SECRET is missing", async () => {
-    await new Promise<void>((resolve, reject) => {
-      jest.isolateModules(() => {
-        void (async () => {
-          try {
-            jest.doMock("@tambo-ai-cloud/backend", () => ({
-              isS3Configured: jest.fn().mockReturnValue(true),
-              createS3Client: jest.fn().mockReturnValue({ mockS3Client: true }),
-              getSignedUploadUrl: jest.fn(),
-            }));
+    const noSecretStorageConfig = {
+      s3Client: { mockS3Client: true },
+      bucket: "test-bucket",
+      signingSecret: "", // Empty!
+      isConfigured: true,
+    } as unknown as StorageConfigService;
 
-            jest.doMock("../common/utils/extract-context-info", () => ({
-              extractContextInfo: jest.fn().mockReturnValue({
-                projectId: "p_u2tgQg5U.43bbdf",
-                contextKey: undefined,
-              }),
-            }));
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [StorageController],
+      providers: [
+        {
+          provide: StorageConfigService,
+          useValue: noSecretStorageConfig,
+        },
+        {
+          provide: CorrelationLoggerService,
+          useValue: { error: jest.fn(), log: jest.fn() },
+        },
+      ],
+    })
+      .overrideGuard(ApiKeyGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(BearerTokenGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
-            const { StorageController: IsolatedController } =
-              await import("./storage.controller");
+    const controllerWithoutSecret =
+      module.get<StorageController>(StorageController);
 
-            const { CorrelationLoggerService: IsolatedLoggerService } =
-              await import("../common/services/logger.service");
-
-            const module: TestingModule = await Test.createTestingModule({
-              controllers: [IsolatedController],
-              providers: [
-                {
-                  provide: ConfigService,
-                  useValue: {
-                    get: jest.fn((key: string) => {
-                      // S3 configured but no API_KEY_SECRET
-                      const config: Record<string, string> = {
-                        S3_ENDPOINT: "https://s3.example.com",
-                        S3_REGION: "us-east-1",
-                        S3_ACCESS_KEY_ID: "test-key",
-                        S3_SECRET_ACCESS_KEY: "test-secret",
-                        S3_BUCKET: "test-bucket",
-                        API_KEY_SECRET: "", // Empty!
-                      };
-                      return config[key];
-                    }),
-                  },
-                },
-                {
-                  provide: IsolatedLoggerService,
-                  useValue: { error: jest.fn(), log: jest.fn() },
-                },
-              ],
-            })
-              .overrideGuard(ApiKeyGuard)
-              .useValue({ canActivate: () => true })
-              .overrideGuard(BearerTokenGuard)
-              .useValue({ canActivate: () => true })
-              .compile();
-
-            const controllerWithoutSecret =
-              module.get<InstanceType<typeof IsolatedController>>(
-                IsolatedController,
-              );
-
-            const dto: PresignUploadDto = {
-              contentType: "application/pdf",
-              size: 1024,
-            };
-
-            await expect(
-              controllerWithoutSecret.presign(dto, {
-                url: "/storage/presign",
-              } as Request),
-            ).rejects.toThrow(ServiceUnavailableException);
-
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        })();
-      });
+    mockExtractContextInfo.mockReturnValue({
+      projectId: "p_u2tgQg5U.43bbdf",
+      contextKey: undefined,
     });
+
+    const dto: PresignUploadDto = {
+      contentType: "application/pdf",
+      size: 1024,
+    };
+
+    await expect(
+      controllerWithoutSecret.presign(dto, {
+        url: "/storage/presign",
+      } as Request),
+    ).rejects.toThrow(ServiceUnavailableException);
   });
 });
