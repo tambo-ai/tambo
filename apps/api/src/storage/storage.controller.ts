@@ -27,7 +27,7 @@ import {
   ATTACHMENT_ID_LENGTH,
 } from "@tambo-ai-cloud/core";
 import { customAlphabet } from "nanoid";
-import contentType from "content-type";
+import { parse as parseContentType } from "content-type";
 import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -118,7 +118,7 @@ export class StorageController {
     // Validate contentType using RFC 7231 compliant parser
     // Throws TypeError if invalid, which we convert to BadRequestException
     try {
-      contentType.parse(dto.contentType);
+      parseContentType(dto.contentType);
     } catch {
       throw new BadRequestException("Invalid contentType format");
     }
