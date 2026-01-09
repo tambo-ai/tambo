@@ -2,6 +2,7 @@
   "title": "Guides",
   "pages": [
     "register-generative-components",
-    "register-interactable-components"
+    "register-interactable-components",
+    "customize-interactables-context"
   ]
 }

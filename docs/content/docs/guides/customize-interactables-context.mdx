@@ -1,0 +1,185 @@
+---
+title: Customize Interactables Context
+description: Control what interactable component information is shared with the AI
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+This guide shows you how to customize which interactable components are visible to the AI and what information is shared about them.
+
+By default, all interactable components automatically share their full state with the AI. This guide explains how to customize this behavior for privacy, performance, or specific use cases.
+
+<LearnMore
+  title="Learn about automatic context"
+  description="Understand how interactables context works by default"
+  href="/concepts/generative-interfaces/interactable-components#automatic-context-awareness"
+  icon={BookOpen}
+/>
+
+## Prerequisites
+
+- Interactable components registered in your app (see [Register interactable components](/guides/register-interactable-components))
+- Understanding of context helpers (see [Additional Context](/concepts/additional-context))
+
+## Default Behavior
+
+By default, all interactable components automatically share their complete state with the AI, including:
+
+- Component ID and name
+- Component description
+- Current prop values
+- Props schema
+
+This automatic context allows users to ask questions like "What's on this page?" or "Update the note title to 'Important'".
+
+## Disable Context Globally
+
+To disable interactables context across your entire app:
+
+```tsx
+<TamboProvider
+  apiKey={apiKey}
+  contextHelpers={{
+    // Disable interactables context globally
+    interactables: () => null,
+  }}
+>
+  <TamboInteractableProvider>
+    {/* Components still work, but aren't visible in AI context */}
+    <InteractableNote title="Hidden from AI" />
+  </TamboInteractableProvider>
+</TamboProvider>
+```
+
+When disabled globally, interactable components still function normally (Tambo can still update them via their IDs if provided explicitly), but they won't appear in the automatic context sent with each message.
+
+## Enable Context Locally
+
+If you've disabled context globally but want to enable it for a specific page:
+
+```tsx
+import {
+  useTamboContextHelpers,
+  useCurrentInteractablesSnapshot,
+} from "@tambo-ai/react";
+
+function SpecificPage() {
+  const { addContextHelper } = useTamboContextHelpers();
+  const snapshot = useCurrentInteractablesSnapshot();
+
+  React.useEffect(() => {
+    // Re-enable interactables context for this page only
+    const helper = () => {
+      if (snapshot.length === 0) return null;
+
+      return {
+        description: "Interactable components on this page that you can modify",
+        components: snapshot.map((component) => ({
+          id: component.id,
+          componentName: component.name,
+          description: component.description,
+          props: component.props,
+        })),
+      };
+    };
+
+    addContextHelper("interactables", helper);
+  }, [addContextHelper, snapshot]);
+
+  return (
+    <TamboInteractableProvider>
+      <InteractableNote title="Visible to AI" />
+    </TamboInteractableProvider>
+  );
+}
+```
+
+This pattern is useful when you want most pages to hide interactables but specific pages to expose them.
+
+## Share Only Component IDs
+
+For privacy or token optimization, share only IDs and names, letting the AI request full details when needed:
+
+```tsx
+import {
+  useCurrentInteractablesSnapshot,
+  useTamboContextHelpers,
+} from "@tambo-ai/react";
+
+function IdsOnlyContext() {
+  const { addContextHelper } = useTamboContextHelpers();
+  const snapshot = useCurrentInteractablesSnapshot();
+
+  React.useEffect(() => {
+    const idsOnlyHelper = () => {
+      if (snapshot.length === 0) return null;
+
+      return {
+        description: "Available interactable component IDs.",
+        components: snapshot.map((component) => ({
+          id: component.id,
+          componentName: component.name,
+          // Deliberately omit props
+        })),
+      };
+    };
+
+    addContextHelper("interactables", idsOnlyHelper);
+  }, [addContextHelper, snapshot]);
+
+  return null; // This component just configures context
+}
+
+// Usage
+<TamboInteractableProvider>
+  <IdsOnlyContext />
+  <InteractableNote title="Props not visible unless requested" />
+</TamboInteractableProvider>;
+```
+
+This reduces token usage and keeps prop values private until the AI specifically needs them.
+
+## Filter by Component Type
+
+Show only specific component types in the AI context:
+
+```tsx
+function FilteredContext() {
+  const { addContextHelper } = useTamboContextHelpers();
+  const snapshot = useCurrentInteractablesSnapshot();
+
+  React.useEffect(() => {
+    const filteredHelper = () => {
+      // Only show Notes, hide other component types
+      const allowedTypes = ["Note"];
+      const filteredComponents = snapshot.filter((component) =>
+        allowedTypes.includes(component.name),
+      );
+
+      if (filteredComponents.length === 0) return null;
+
+      return {
+        description: "Available interactable components (filtered)",
+        components: filteredComponents.map((component) => ({
+          id: component.id,
+          componentName: component.name,
+          props: component.props,
+        })),
+      };
+    };
+
+    addContextHelper("interactables", filteredHelper);
+  }, [addContextHelper, snapshot]);
+
+  return null;
+}
+```
+
+Use this pattern when you have multiple component types but only want the AI to interact with specific ones.
+
+## Next Steps
+
+- **Register components**: [Register interactable components](/guides/register-interactable-components) to get started
+- **Additional context**: [Additional Context concepts](/concepts/additional-context) for broader context customization
+- **Two-way sync**: [Syncing editable interactables](/guides/syncing-editable-interactables) for bi-directional state management
