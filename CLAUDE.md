@@ -14,7 +14,7 @@ Guidelines for Claude Code (claude.ai/code) when touching this repo.
 
 ```bash
 # Development (two different apps)
-npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 3000/3001
+npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
 npm run dev              # Start React SDK (showcase + docs)
 
 # Quality checks (run before commits)

@@ -21,11 +21,13 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
   - Built as ESM module with executable binary
 
 - **showcase/** - Demo application (`@tambo-ai/showcase`)
+  - Runs on port 8262
   - Next.js app demonstrating all Tambo components and patterns
   - Components auto-synced from CLI registry - edit CLI registry, not showcase components directly
   - Serves as both documentation and testing ground
 
 - **docs/** - Documentation site (`@tambo-ai/docs`)
+  - Runs on port 8263
   - Built with Fumadocs, includes comprehensive guides and API reference
   - This package contains ui components that originated from the cli/ package.
     Any changes to the components should be made in the cli/ package first, and
@@ -42,8 +44,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Tambo Cloud Platform
 
-- **apps/web** - Next.js app (UI)
-- **apps/api** - NestJS app (OpenAPI server)
+- **apps/web** - Next.js app (UI) - runs on port 8260
+- **apps/api** - NestJS app (OpenAPI server) - runs on port 8261
 - **packages/db** - Drizzle ORM schema + migrations + DB helpers
 - **packages/core** - Shared pure utilities (no DB access)
 - **packages/backend** - LLM/agent-side helpers
@@ -282,7 +284,7 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 
 ```bash
 # Development (two different apps!)
-npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 3000/3001
+npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
 npm run dev              # Start React SDK (showcase + docs)
 
 # Quality checks
