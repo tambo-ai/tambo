@@ -39,6 +39,7 @@ describe("StorageController (integration)", () => {
                 S3_ACCESS_KEY_ID: "test-key",
                 S3_SECRET_ACCESS_KEY: "test-secret",
                 S3_BUCKET: "test-bucket",
+                API_KEY_SECRET: "test-signing-secret",
               };
               return config[key];
             },
@@ -77,36 +78,37 @@ describe("StorageController (integration)", () => {
       const response = await request(app.getHttpServer())
         .post("/storage/presign")
         .send({
-          filename: "document.pdf",
           contentType: "application/pdf",
+          size: 1024,
         })
         .expect(201);
 
       expect(response.body).toMatchObject({
         uploadUrl: expect.stringContaining("http://localhost:9000"),
+        // URI format: attachment://{projectId}/{uniqueId} (10 char base62 ID)
         attachmentUri: expect.stringMatching(
-          /^attachment:\/\/p_testProject123\/\d+-[0-9a-f-]{36}-document\.pdf$/,
+          /^attachment:\/\/p_testProject123\/[A-Za-z0-9]{10}$/,
         ),
         expiresIn: 3600,
       });
     });
 
-    it("sanitizes filename with special characters", async () => {
+    it("returns URI with short unique ID", async () => {
       const response = await request(app.getHttpServer())
         .post("/storage/presign")
         .send({
-          filename: "my file (copy).pdf",
           contentType: "application/pdf",
+          size: 2048,
         })
         .expect(201);
 
-      // Spaces become underscores, parentheses become underscores, consecutive underscores collapse
+      // URI contains just a short unique ID
       expect(response.body.attachmentUri).toMatch(
-        /^attachment:\/\/p_testProject123\/\d+-[0-9a-f-]{36}-my_file_copy_\.pdf$/,
+        /^attachment:\/\/p_testProject123\/[A-Za-z0-9]{10}$/,
       );
     });
 
-    it("returns 400 when filename is missing", async () => {
+    it("returns 400 when size is missing", async () => {
       const response = await request(app.getHttpServer())
         .post("/storage/presign")
         .send({
@@ -115,7 +117,7 @@ describe("StorageController (integration)", () => {
         .expect(400);
 
       expect(response.body.message).toEqual(
-        expect.arrayContaining([expect.stringContaining("filename")]),
+        expect.arrayContaining([expect.stringContaining("size")]),
       );
     });
 
@@ -123,7 +125,7 @@ describe("StorageController (integration)", () => {
       const response = await request(app.getHttpServer())
         .post("/storage/presign")
         .send({
-          filename: "test.pdf",
+          size: 1024,
         })
         .expect(400);
 
@@ -141,41 +143,108 @@ describe("StorageController (integration)", () => {
       expect(response.body.statusCode).toBe(400);
     });
 
-    it("returns 400 for empty filename string", async () => {
+    it("returns 400 for size of 0", async () => {
       const response = await request(app.getHttpServer())
         .post("/storage/presign")
         .send({
-          filename: "",
           contentType: "application/pdf",
+          size: 0,
         })
         .expect(400);
 
       expect(response.body.statusCode).toBe(400);
+      expect(response.body.message).toEqual(
+        expect.arrayContaining([expect.stringContaining("size")]),
+      );
     });
 
-    it("handles unicode filenames by sanitizing", async () => {
+    it("returns 400 for size exceeding 10MB", async () => {
       const response = await request(app.getHttpServer())
         .post("/storage/presign")
         .send({
-          filename: "文档.pdf",
           contentType: "application/pdf",
+          size: 11 * 1024 * 1024, // 11MB
+        })
+        .expect(400);
+
+      expect(response.body.statusCode).toBe(400);
+      expect(response.body.message).toEqual(
+        expect.arrayContaining([expect.stringContaining("size")]),
+      );
+    });
+
+    it("accepts size at the 10MB limit", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/storage/presign")
+        .send({
+          contentType: "application/pdf",
+          size: 10 * 1024 * 1024, // exactly 10MB
         })
         .expect(201);
 
-      expect(response.body.attachmentUri).toMatch(/\.pdf$/);
-      expect(response.body.attachmentUri).not.toContain("文档");
+      expect(response.body.attachmentUri).toMatch(
+        /^attachment:\/\/p_testProject123\/[A-Za-z0-9]{10}$/,
+      );
     });
 
     it("includes correct content-type header", async () => {
       const response = await request(app.getHttpServer())
         .post("/storage/presign")
         .send({
-          filename: "test.pdf",
           contentType: "application/pdf",
+          size: 1024,
         })
         .expect(201);
 
       expect(response.headers["content-type"]).toMatch(/application\/json/);
+    });
+
+    it("generates unique attachment URIs for each request", async () => {
+      const response1 = await request(app.getHttpServer())
+        .post("/storage/presign")
+        .send({
+          contentType: "application/pdf",
+          size: 1024,
+        })
+        .expect(201);
+
+      const response2 = await request(app.getHttpServer())
+        .post("/storage/presign")
+        .send({
+          contentType: "application/pdf",
+          size: 1024,
+        })
+        .expect(201);
+
+      expect(response1.body.attachmentUri).not.toBe(
+        response2.body.attachmentUri,
+      );
+    });
+
+    it("handles different content types", async () => {
+      const imageResponse = await request(app.getHttpServer())
+        .post("/storage/presign")
+        .send({
+          contentType: "image/png",
+          size: 512,
+        })
+        .expect(201);
+
+      expect(imageResponse.body.attachmentUri).toMatch(
+        /^attachment:\/\/p_testProject123\/[A-Za-z0-9]{10}$/,
+      );
+
+      const jsonResponse = await request(app.getHttpServer())
+        .post("/storage/presign")
+        .send({
+          contentType: "application/json",
+          size: 256,
+        })
+        .expect(201);
+
+      expect(jsonResponse.body.attachmentUri).toMatch(
+        /^attachment:\/\/p_testProject123\/[A-Za-z0-9]{10}$/,
+      );
     });
   });
 });

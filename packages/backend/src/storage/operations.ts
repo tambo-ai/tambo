@@ -60,18 +60,23 @@ export async function uploadFile(
   return key;
 }
 
+export interface GetFileResult {
+  buffer: Buffer;
+  contentType: string;
+}
+
 /**
  * Retrieve a file from S3.
  * @param client - S3Client instance
  * @param bucket - Source bucket name
  * @param key - Object key (path) in the bucket
- * @returns File content as Buffer
+ * @returns File content as Buffer and ContentType from S3 metadata
  */
 export async function getFile(
   client: S3Client,
   bucket: string,
   key: string,
-): Promise<Buffer> {
+): Promise<GetFileResult> {
   const response = await client.send(
     new GetObjectCommand({
       Bucket: bucket,
@@ -95,7 +100,11 @@ export async function getFile(
   for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
     chunks.push(chunk);
   }
-  return Buffer.concat(chunks);
+
+  return {
+    buffer: Buffer.concat(chunks),
+    contentType: response.ContentType ?? "application/octet-stream",
+  };
 }
 
 /**

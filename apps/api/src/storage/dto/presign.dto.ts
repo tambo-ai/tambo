@@ -1,15 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
+
+/** Maximum file size in bytes (10MB, matching download limit) */
+export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 
 export class PresignUploadDto {
-  @ApiProperty({
-    description: "The filename to use for the uploaded file",
-    example: "document.pdf",
-  })
-  @IsString()
-  @IsNotEmpty()
-  filename!: string;
-
   @ApiProperty({
     description: "The MIME type of the file",
     example: "application/pdf",
@@ -17,6 +12,15 @@ export class PresignUploadDto {
   @IsString()
   @IsNotEmpty()
   contentType!: string;
+
+  @ApiProperty({
+    description: "The file size in bytes (max 10MB)",
+    example: 1024000,
+  })
+  @IsNumber()
+  @Min(1)
+  @Max(MAX_ATTACHMENT_SIZE)
+  size!: number;
 }
 
 export class PresignUploadResponseDto {
@@ -28,8 +32,7 @@ export class PresignUploadResponseDto {
 
   @ApiProperty({
     description: "The attachment URI to reference this file in messages",
-    example:
-      "attachment://p_u2tgQg5U.43bbdf/1704567890-550e8400-e29b-41d4-a716-446655440000-document.pdf",
+    example: "attachment://p_u2tgQg5U.43bbdf/Ab3xY9kLmN",
   })
   attachmentUri!: string;
 

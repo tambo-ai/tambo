@@ -85,7 +85,7 @@ describe("storage operations", () => {
   });
 
   describe("getFile", () => {
-    it("retrieves a file and returns buffer", async () => {
+    it("retrieves a file and returns buffer with contentType", async () => {
       const mockBody = {
         async *[Symbol.asyncIterator]() {
           yield Buffer.from("chunk1");
@@ -93,16 +93,34 @@ describe("storage operations", () => {
         },
       };
 
-      mockSend.mockResolvedValue({ Body: mockBody });
+      mockSend.mockResolvedValue({
+        Body: mockBody,
+        ContentType: "application/pdf",
+      });
 
       const result = await getFile(mockClient, "test-bucket", "test-key.pdf");
 
-      expect(result.toString()).toBe("chunk1chunk2");
+      expect(result.buffer.toString()).toBe("chunk1chunk2");
+      expect(result.contentType).toBe("application/pdf");
       expect(mockSend).toHaveBeenCalledTimes(1);
 
       const command = mockSend.mock.calls[0][0];
       expect(command.Bucket).toBe("test-bucket");
       expect(command.Key).toBe("test-key.pdf");
+    });
+
+    it("returns default contentType when not provided by S3", async () => {
+      const mockBody = {
+        async *[Symbol.asyncIterator]() {
+          yield Buffer.from("data");
+        },
+      };
+
+      mockSend.mockResolvedValue({ Body: mockBody });
+
+      const result = await getFile(mockClient, "test-bucket", "test-key");
+
+      expect(result.contentType).toBe("application/octet-stream");
     });
 
     it("throws if no body returned", async () => {

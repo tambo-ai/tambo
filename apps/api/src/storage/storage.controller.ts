@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+  BadGatewayException,
   Body,
   Controller,
   Post,
@@ -20,44 +20,37 @@ import {
   getSignedUploadUrl,
   isS3Configured,
 } from "@tambo-ai-cloud/backend";
-import { randomUUID } from "crypto";
-import { extname } from "path";
+import {
+  buildAttachmentUri,
+  buildStorageKey,
+  ATTACHMENT_ID_LENGTH,
+} from "@tambo-ai-cloud/core";
+import { randomBytes } from "crypto";
 import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import { PresignUploadDto, PresignUploadResponseDto } from "./dto/presign.dto";
 
-const MAX_FILENAME_LENGTH = 180;
 const PRESIGN_EXPIRY_SECONDS = 3600;
 
-const PROJECT_ID_REGEX = /^[a-zA-Z0-9_.-]{4,128}$/;
-
-function assertValidProjectId(projectId: string): void {
-  if (!PROJECT_ID_REGEX.test(projectId)) {
-    throw new BadRequestException("Invalid project id");
-  }
-}
+/**
+ * Base62 alphabet for generating short, URL-safe unique IDs.
+ */
+const BASE62_ALPHABET =
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 /**
- * Sanitize a filename by removing potentially dangerous characters.
- * Preserves alphanumeric characters, dots, hyphens, and underscores.
+ * Generate a short, URL-safe unique ID using base62 encoding.
+ * @param length - Number of characters in the output
  */
-function sanitizeFilename(filename: string): string {
-  const extension = extname(filename);
-  const baseName = extension ? filename.slice(0, -extension.length) : filename;
-
-  const sanitizedBase = baseName
-    .replace(/[^a-zA-Z0-9._-]/g, "_")
-    .replace(/\.{2,}/g, ".")
-    .replace(/_+/g, "_");
-
-  const trimmedBase = sanitizedBase.replace(/^[_.]+/, "");
-  const trimmedExtension = extension.replace(/[^a-zA-Z0-9.]/g, "");
-
-  const fullName = `${trimmedBase || "file"}${trimmedExtension}`;
-
-  return fullName.slice(0, MAX_FILENAME_LENGTH) || "file";
+function generateUniqueId(length: number = ATTACHMENT_ID_LENGTH): string {
+  const bytes = randomBytes(length);
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += BASE62_ALPHABET[bytes[i] % 62];
+  }
+  return result;
 }
 
 @ApiTags("storage")
@@ -68,6 +61,7 @@ function sanitizeFilename(filename: string): string {
 export class StorageController {
   private readonly s3Client: S3Client | undefined;
   private readonly bucket: string;
+  private readonly signingSecret: string;
 
   constructor(private readonly configService: ConfigService) {
     const config = {
@@ -78,6 +72,7 @@ export class StorageController {
         this.configService.get<string>("S3_SECRET_ACCESS_KEY") ?? "",
     };
     this.bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
+    this.signingSecret = this.configService.get<string>("API_KEY_SECRET") ?? "";
 
     if (isS3Configured(config)) {
       this.s3Client = createS3Client(config);
@@ -98,7 +93,8 @@ export class StorageController {
   })
   @ApiResponse({
     status: 400,
-    description: "Invalid request (missing filename or contentType)",
+    description:
+      "Invalid request (missing contentType or size, or size exceeds 10MB)",
   })
   @ApiResponse({
     status: 503,
@@ -114,23 +110,34 @@ export class StorageController {
       );
     }
 
+    if (!this.signingSecret) {
+      throw new ServiceUnavailableException(
+        "Storage signing is not configured. API_KEY_SECRET is required.",
+      );
+    }
+
     const { projectId } = extractContextInfo(request, undefined);
-    assertValidProjectId(projectId);
 
-    const key = `${projectId}/${Date.now()}-${randomUUID()}-${sanitizeFilename(dto.filename)}`;
+    // Generate a short unique ID and build the signed storage key
+    const uniqueId = generateUniqueId();
+    const storageKey = buildStorageKey(projectId, uniqueId, this.signingSecret);
 
-    const uploadUrl = await getSignedUploadUrl(
-      this.s3Client,
-      this.bucket,
-      key,
-      dto.contentType,
-      PRESIGN_EXPIRY_SECONDS,
-    );
+    try {
+      const uploadUrl = await getSignedUploadUrl(
+        this.s3Client,
+        this.bucket,
+        storageKey,
+        dto.contentType,
+        PRESIGN_EXPIRY_SECONDS,
+      );
 
-    return {
-      uploadUrl,
-      attachmentUri: `attachment://${key}`,
-      expiresIn: PRESIGN_EXPIRY_SECONDS,
-    };
+      return {
+        uploadUrl,
+        attachmentUri: buildAttachmentUri(projectId, uniqueId),
+        expiresIn: PRESIGN_EXPIRY_SECONDS,
+      };
+    } catch {
+      throw new BadGatewayException("Failed to create upload URL");
+    }
   }
 }

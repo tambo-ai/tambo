@@ -1,9 +1,7 @@
 import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import { S3Client } from "@aws-sdk/client-s3";
 import { getFile } from "@tambo-ai-cloud/backend";
-import mime from "mime-types";
-
-const ATTACHMENT_PREFIX = "attachment://";
+import { ATTACHMENT_PREFIX, parseAttachmentUri } from "@tambo-ai-cloud/core";
 
 /**
  * MIME types that should be returned as text content.
@@ -33,56 +31,51 @@ function isTextMimeType(mimeType: string): boolean {
  * Create an attachment fetcher function that can be registered with the ResourceFetcherMap.
  * This fetcher handles attachment:// URIs by retrieving files from S3 storage.
  *
+ * The attachment URI format is: attachment://{projectId}/{uniqueId}
+ * The actual S3 key includes a signature suffix for security.
+ *
  * @param s3Client - Configured S3Client instance
  * @param bucket - S3 bucket name where attachments are stored
- * @param allowedPrefix - Allowed key prefix (e.g., projectId) for attachment access control
+ * @param allowedProjectId - The project ID that is allowed to access attachments
+ * @param signingSecret - Secret used to verify and reconstruct S3 keys
  * @returns A function that fetches attachment content by URI
  *
  * @example
- * const fetcher = createAttachmentFetcher(s3Client, "user-files", "p_123...abcdef");
- * const result = await fetcher("attachment://p_u2tgQg5U.43bbdf/1704567890-doc.pdf");
+ * const fetcher = createAttachmentFetcher(s3Client, "user-files", "p_123abc", "secret");
+ * const result = await fetcher("attachment://p_123abc/Ab3xY9kLmN");
  */
 export function createAttachmentFetcher(
   s3Client: S3Client,
   bucket: string,
-  allowedPrefix: string,
+  allowedProjectId: string,
+  signingSecret: string,
 ): (uri: string) => Promise<ReadResourceResult> {
-  if (!allowedPrefix.trim()) {
-    throw new Error("allowedPrefix must be non-empty");
+  if (!allowedProjectId.trim()) {
+    throw new Error("allowedProjectId must be non-empty");
   }
 
-  const normalizedAllowedPrefix = allowedPrefix.endsWith("/")
-    ? allowedPrefix
-    : `${allowedPrefix}/`;
+  if (!signingSecret) {
+    throw new Error("signingSecret must be non-empty");
+  }
 
   return async (uri: string): Promise<ReadResourceResult> => {
-    if (!uri.startsWith(ATTACHMENT_PREFIX)) {
-      throw new Error(
-        `Invalid attachment URI: ${uri}. Must start with "${ATTACHMENT_PREFIX}"`,
-      );
-    }
+    // Parse the URI and reconstruct the storage key with signature
+    const { projectId, storageKey } = parseAttachmentUri(uri, signingSecret);
 
-    const storagePath = uri.slice(ATTACHMENT_PREFIX.length);
-
-    if (!storagePath.trim()) {
-      throw new Error(
-        `Invalid attachment URI: ${uri}. Missing path after "${ATTACHMENT_PREFIX}"`,
-      );
-    }
-
-    if (!storagePath.startsWith(normalizedAllowedPrefix)) {
+    // Verify the project ID matches the allowed project
+    if (projectId !== allowedProjectId) {
       throw new Error("Attachment access denied");
     }
 
-    const buffer = await getFile(s3Client, bucket, storagePath);
-    const mimeType = mime.lookup(storagePath) || "application/octet-stream";
+    // Get file content and ContentType from S3 metadata
+    const { buffer, contentType } = await getFile(s3Client, bucket, storageKey);
 
-    if (isTextMimeType(mimeType)) {
+    if (isTextMimeType(contentType)) {
       return {
         contents: [
           {
             uri,
-            mimeType,
+            mimeType: contentType,
             text: buffer.toString("utf-8"),
           },
         ],
@@ -93,10 +86,12 @@ export function createAttachmentFetcher(
       contents: [
         {
           uri,
-          mimeType,
+          mimeType: contentType,
           blob: buffer.toString("base64"),
         },
       ],
     };
   };
 }
+
+export { ATTACHMENT_PREFIX };

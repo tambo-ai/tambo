@@ -95,6 +95,7 @@ const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 export class ThreadsService {
   private readonly s3Client: S3Client | undefined;
   private readonly s3Bucket: string;
+  private readonly signingSecret: string;
 
   constructor(
     // @Inject(TRANSACTION)
@@ -116,6 +117,7 @@ export class ThreadsService {
         this.configService.get<string>("S3_SECRET_ACCESS_KEY") ?? "",
     };
     this.s3Bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
+    this.signingSecret = this.configService.get<string>("API_KEY_SECRET") ?? "";
 
     if (isS3Configured(s3Config)) {
       this.s3Client = createS3Client(s3Config);
@@ -1363,11 +1365,12 @@ export class ThreadsService {
 
         // Build resource fetchers from MCP clients and add attachment fetcher
         const resourceFetchers = createResourceFetcherMap(mcpClients);
-        if (this.s3Client) {
+        if (this.s3Client && this.signingSecret) {
           resourceFetchers["attachment"] = createAttachmentFetcher(
             this.s3Client,
             this.s3Bucket,
             projectId,
+            this.signingSecret,
           );
         }
 
@@ -1444,11 +1447,12 @@ export class ThreadsService {
 
       // Build resource fetchers from MCP clients and add attachment fetcher
       const resourceFetchers = createResourceFetcherMap(mcpClients);
-      if (this.s3Client) {
+      if (this.s3Client && this.signingSecret) {
         resourceFetchers["attachment"] = createAttachmentFetcher(
           this.s3Client,
           this.s3Bucket,
           projectId,
+          this.signingSecret,
         );
       }
 
