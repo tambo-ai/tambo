@@ -59,6 +59,7 @@
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.3",
     "mime-types": "^3.0.2",
+    "nanoid": "^3.3.11",
     "openai": "^6.15.0",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",

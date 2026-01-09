@@ -25,7 +25,7 @@ import {
   buildStorageKey,
   ATTACHMENT_ID_LENGTH,
 } from "@tambo-ai-cloud/core";
-import { randomBytes } from "crypto";
+import { customAlphabet } from "nanoid";
 import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -35,23 +35,14 @@ import { PresignUploadDto, PresignUploadResponseDto } from "./dto/presign.dto";
 const PRESIGN_EXPIRY_SECONDS = 3600;
 
 /**
- * Base62 alphabet for generating short, URL-safe unique IDs.
- */
-const BASE62_ALPHABET =
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-/**
  * Generate a short, URL-safe unique ID using base62 encoding.
- * @param length - Number of characters in the output
+ * Uses nanoid's customAlphabet which handles rejection sampling internally
+ * to avoid modulo bias.
  */
-function generateUniqueId(length: number = ATTACHMENT_ID_LENGTH): string {
-  const bytes = randomBytes(length);
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    result += BASE62_ALPHABET[bytes[i] % 62];
-  }
-  return result;
-}
+const generateUniqueId = customAlphabet(
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+  ATTACHMENT_ID_LENGTH,
+);
 
 @ApiTags("storage")
 @ApiSecurity("apiKey")
