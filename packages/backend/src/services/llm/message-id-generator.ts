@@ -1,3 +1,9 @@
+import { randomUUID } from "crypto";
+
+/**
+ * Generate a unique message ID using cryptographically secure randomness.
+ * Format: message-{uuid}
+ */
 export function generateMessageId(): string {
-  return `message-${Math.random().toString(36).substring(2, 15)}`;
+  return `message-${randomUUID()}`;
 }
