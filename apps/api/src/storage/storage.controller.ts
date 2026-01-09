@@ -27,6 +27,7 @@ import {
   ATTACHMENT_ID_LENGTH,
 } from "@tambo-ai-cloud/core";
 import { customAlphabet } from "nanoid";
+import contentType from "content-type";
 import { Request } from "express";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -35,14 +36,6 @@ import { CorrelationLoggerService } from "../common/services/logger.service";
 import { PresignUploadDto, PresignUploadResponseDto } from "./dto/presign.dto";
 
 const PRESIGN_EXPIRY_SECONDS = 3600;
-
-/**
- * Regex pattern for validating MIME content types.
- * Follows RFC 6838 media type syntax (more permissive than strict RFC but safe).
- * Examples: "application/pdf", "image/png", "text/plain; charset=utf-8"
- */
-const CONTENT_TYPE_REGEX =
-  /^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*\/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:;\s*\S+=\S+)*$/;
 
 /**
  * Generate a short, URL-safe unique ID using base62 encoding.
@@ -122,8 +115,11 @@ export class StorageController {
 
     const { projectId } = extractContextInfo(request, undefined);
 
-    // Validate contentType to prevent weird values being signed
-    if (!CONTENT_TYPE_REGEX.test(dto.contentType)) {
+    // Validate contentType using RFC 7231 compliant parser
+    // Throws TypeError if invalid, which we convert to BadRequestException
+    try {
+      contentType.parse(dto.contentType);
+    } catch {
       throw new BadRequestException("Invalid contentType format");
     }
 
