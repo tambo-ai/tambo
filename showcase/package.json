@@ -27,6 +27,7 @@
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.80.0",
     "@tiptap/extension-document": "^3.14.0",
+    "@tiptap/extension-hard-break": "^3.15.3",
     "@tiptap/extension-mention": "^3.14.0",
     "@tiptap/extension-paragraph": "^3.14.0",
     "@tiptap/extension-placeholder": "^3.14.0",
@@ -57,7 +58,8 @@
     "streamdown": "^1.6.10",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
-    "tippy.js": "^6.3.7"
+    "tippy.js": "^6.3.7",
+    "use-debounce": "^10.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

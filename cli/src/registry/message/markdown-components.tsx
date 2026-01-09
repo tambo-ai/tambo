@@ -75,31 +75,37 @@ const CodeHeader = ({
 }) => {
   const [copied, setCopied] = React.useState(false);
   const [error, setError] = React.useState(false);
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const copyToClipboard = async () => {
     if (!code) return;
+
+    // Clear any existing timeout to prevent race conditions
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
 
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
       setError(false);
-      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy code to clipboard:", err);
       setError(true);
-      setTimeout(() => setError(false), 2000);
     }
+    timeoutRef.current = setTimeout(() => setError(false), 2000);
   };
 
-  const getButtonIcon = () => {
+  const Icon = React.useMemo(() => {
     if (error) {
-      return <X className="w-4 h-4 text-red-500" />;
+      return <X className="size-4 text-red-500" />;
     }
     if (copied) {
-      return <Check className="w-4 h-4 text-green-500" />;
+      return <Check className="size-4 text-green-500" />;
     }
-    return <Copy className="w-4 h-4" />;
-  };
+    return <Copy className="size-4" />;
+  }, [copied, error]);
 
   return (
     <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-foreground">
@@ -109,7 +115,7 @@ const CodeHeader = ({
         className="p-1 rounded-md hover:bg-backdrop transition-colors cursor-pointer"
         title={error ? "Failed to copy" : "Copy code"}
       >
-        {getButtonIcon()}
+        {Icon}
       </button>
     </div>
   );
