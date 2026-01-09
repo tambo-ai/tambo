@@ -11,7 +11,7 @@ The storage system uses presigned URLs for direct browser-to-S3 uploads, avoidin
 3. Client uploads file directly to S3 using the presigned URL
 4. Client uses the `attachmentUri` to reference the file in messages
 
-Files are stored under `{projectId}/{timestamp}-{uuid}-{filename}`.
+Files are stored under `{projectId}/{uniqueId}-{signature}` where `uniqueId` is a 10-character base62 ID and `signature` is an 8-character HMAC suffix.
 
 ## Quick Start
 
@@ -93,18 +93,20 @@ docker exec tambo_minio mc mb local/user-files
 curl -X POST http://localhost:3001/storage/presign \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"filename": "test.txt", "contentType": "text/plain"}'
+  -d '{"contentType": "text/plain", "size": 1024}'
 ```
 
 Response:
 
 ```json
 {
-  "uploadUrl": "http://localhost:9000/user-files/projectId/1234567890-uuid-test.txt?X-Amz-Signature=...",
-  "attachmentUri": "attachment://projectId/1234567890-uuid-test.txt",
+  "uploadUrl": "http://localhost:9000/user-files/p_abc123/Ab3xY9kLmN-deadbeef?X-Amz-Signature=...",
+  "attachmentUri": "attachment://p_abc123/Ab3xY9kLmN",
   "expiresIn": 3600
 }
 ```
+
+Note: The `attachmentUri` contains only `{projectId}/{uniqueId}`. The signature suffix is added internally when resolving the S3 key.
 
 **Step 2: Upload file directly to S3**
 
