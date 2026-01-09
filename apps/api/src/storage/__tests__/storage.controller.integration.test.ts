@@ -1,7 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
-import { ConfigService } from "@nestjs/config";
 import { ApiKeyGuard } from "../../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../../projects/guards/bearer-token.guard";
 
@@ -10,8 +9,6 @@ const mockGetSignedUploadUrl = jest.fn();
 const mockExtractContextInfo = jest.fn();
 
 jest.mock("@tambo-ai-cloud/backend", () => ({
-  isS3Configured: () => true,
-  createS3Client: () => ({ mockS3Client: true }),
   getSignedUploadUrl: (...args: unknown[]) => mockGetSignedUploadUrl(...args),
 }));
 
@@ -22,6 +19,7 @@ jest.mock("../../common/utils/extract-context-info", () => ({
 // Import controller after mocks are set up
 import { StorageController } from "../storage.controller";
 import { CorrelationLoggerService } from "../../common/services/logger.service";
+import { StorageConfigService } from "../../common/services/storage-config.service";
 
 describe("StorageController (integration)", () => {
   let app: INestApplication;
@@ -31,19 +29,12 @@ describe("StorageController (integration)", () => {
       controllers: [StorageController],
       providers: [
         {
-          provide: ConfigService,
+          provide: StorageConfigService,
           useValue: {
-            get: (key: string) => {
-              const config: Record<string, string> = {
-                S3_ENDPOINT: "http://localhost:9000",
-                S3_REGION: "us-east-1",
-                S3_ACCESS_KEY_ID: "test-key",
-                S3_SECRET_ACCESS_KEY: "test-secret",
-                S3_BUCKET: "test-bucket",
-                API_KEY_SECRET: "test-signing-secret",
-              };
-              return config[key];
-            },
+            s3Client: { mockS3Client: true },
+            bucket: "test-bucket",
+            signingSecret: "test-signing-secret",
+            isConfigured: true,
           },
         },
         {
