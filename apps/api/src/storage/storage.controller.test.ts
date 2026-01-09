@@ -205,6 +205,7 @@ describe("StorageController", () => {
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining("Failed to generate presigned URL"),
+        expect.stringContaining("S3 error"),
       );
     });
   });

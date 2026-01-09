@@ -144,8 +144,10 @@ export class StorageController {
         expiresIn: PRESIGN_EXPIRY_SECONDS,
       };
     } catch (error) {
+      // Preserve full error object for $metadata/stack traces in production logs
       this.logger.error(
-        `Failed to generate presigned URL for project ${projectId}: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Failed to generate presigned URL for project ${projectId}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new BadGatewayException("Failed to create upload URL");
     }
