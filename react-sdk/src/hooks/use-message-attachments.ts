@@ -58,22 +58,77 @@ export const SUPPORTED_ATTACHMENT_TYPES: Record<AttachmentType, string[]> = {
     "text/html",
     "text/css",
     "text/javascript",
+    "application/javascript",
+    "application/x-javascript",
+    "text/ecmascript",
+    "application/ecmascript",
     "application/json",
     "application/xml",
     "text/xml",
+    "text/typescript",
+    "application/typescript",
+    "application/x-typescript",
     "text/x-python",
     "text/x-java",
+    "text/x-java-source",
     "text/x-c",
     "text/x-cpp",
+    "text/x-c++",
+    "text/x-c++src",
     "text/x-csharp",
     "text/x-go",
     "text/x-rust",
     "text/x-typescript",
+    "text/x-ruby",
+    "text/x-php",
+    "application/x-php",
+    "text/x-shellscript",
+    "application/x-sh",
+    "text/x-kotlin",
+    "text/x-scala",
+    "text/x-swift",
+    "text/x-objective-c",
+    "text/x-objcsrc",
     "text/x-yaml",
     "application/x-yaml",
   ],
   unknown: [],
 };
+
+/**
+ * MIME types considered "code" for icon rendering.
+ */
+export const CODE_MIME_TYPES = [
+  "text/javascript",
+  "application/javascript",
+  "application/x-javascript",
+  "text/ecmascript",
+  "application/ecmascript",
+  "text/typescript",
+  "application/typescript",
+  "application/x-typescript",
+  "text/x-typescript",
+  "text/x-python",
+  "text/x-java",
+  "text/x-java-source",
+  "text/x-c",
+  "text/x-cpp",
+  "text/x-c++",
+  "text/x-c++src",
+  "text/x-csharp",
+  "text/x-go",
+  "text/x-rust",
+  "text/x-ruby",
+  "text/x-php",
+  "application/x-php",
+  "text/x-shellscript",
+  "application/x-sh",
+  "text/x-kotlin",
+  "text/x-scala",
+  "text/x-swift",
+  "text/x-objective-c",
+  "text/x-objcsrc",
+] as const;
 
 /**
  * File extensions mapped to their MIME types for fallback detection
@@ -304,7 +359,7 @@ export function useMessageAttachments(
   const { client, onFilesRejected } =
     options && "post" in options
       ? { client: options, onFilesRejected: undefined }
-      : (options);
+      : options;
   const [attachments, setAttachments] = useState<StagedAttachment[]>([]);
 
   const updateAttachmentStatus = useCallback(

@@ -16,6 +16,7 @@ export {
   getMimeType,
   getAttachmentType,
   SUPPORTED_ATTACHMENT_TYPES,
+  CODE_MIME_TYPES,
   AttachmentUploadError,
   MAX_ATTACHMENT_SIZE,
   type StagedAttachment,

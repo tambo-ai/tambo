@@ -12,7 +12,11 @@ import {
 } from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import {
+  CODE_MIME_TYPES,
+  getAttachmentType,
   getAcceptString,
+  getMimeType,
+  MAX_ATTACHMENT_SIZE,
   useIsTamboTokenUpdating,
   useTamboThread,
   useTamboThreadInput,
@@ -536,14 +540,26 @@ const MessageInputInternal = React.forwardRef<
       const files = Array.from(e.dataTransfer.files);
 
       if (files.length > 0) {
-        const totalAttachments = attachments.length + files.length;
+        const { validFiles, rejectedFiles } = getValidatedFiles(files);
+        const rejectionMessage = formatRejectionMessage(rejectedFiles);
+        if (rejectionMessage) {
+          setImageError(rejectionMessage);
+        }
+
+        if (validFiles.length === 0) {
+          return;
+        }
+
+        const totalAttachments = attachments.length + validFiles.length;
         if (totalAttachments > MAX_ATTACHMENTS) {
           setImageError(`Max ${MAX_ATTACHMENTS} files at a time`);
           return;
         }
-        setImageError(null); // Clear previous error
+        if (!rejectionMessage) {
+          setImageError(null); // Clear previous error
+        }
         try {
-          await addAttachments(files);
+          await addAttachments(validFiles);
         } catch (error) {
           console.error("Failed to add dropped files:", error);
           setImageError(
@@ -659,6 +675,60 @@ const IS_PASTED_FILE = Symbol.for("tambo-is-pasted-file");
 
 /** Maximum number of attachments that can be staged at once */
 const MAX_ATTACHMENTS = 10;
+const MAX_ATTACHMENT_SIZE_MB = Math.round(MAX_ATTACHMENT_SIZE / (1024 * 1024));
+
+type FileRejectionReason = "unsupported_type" | "file_too_large";
+
+interface RejectedFileInfo {
+  file: File;
+  reason: FileRejectionReason;
+}
+
+function getValidatedFiles(files: File[]): {
+  validFiles: File[];
+  rejectedFiles: RejectedFileInfo[];
+} {
+  const validFiles: File[] = [];
+  const rejectedFiles: RejectedFileInfo[] = [];
+
+  for (const file of files) {
+    if (file.size > MAX_ATTACHMENT_SIZE) {
+      rejectedFiles.push({ file, reason: "file_too_large" });
+      continue;
+    }
+
+    const mimeType = getMimeType(file);
+    if (getAttachmentType(mimeType) === "unknown") {
+      rejectedFiles.push({ file, reason: "unsupported_type" });
+      continue;
+    }
+
+    validFiles.push(file);
+  }
+
+  return { validFiles, rejectedFiles };
+}
+
+function formatRejectionMessage(rejectedFiles: RejectedFileInfo[]): string {
+  const tooLarge = rejectedFiles
+    .filter((rejected) => rejected.reason === "file_too_large")
+    .map((rejected) => rejected.file.name);
+  const unsupported = rejectedFiles
+    .filter((rejected) => rejected.reason === "unsupported_type")
+    .map((rejected) => rejected.file.name);
+
+  const parts: string[] = [];
+  if (tooLarge.length > 0) {
+    parts.push(
+      `Too large (max ${MAX_ATTACHMENT_SIZE_MB}MB): ${tooLarge.join(", ")}`,
+    );
+  }
+  if (unsupported.length > 0) {
+    parts.push(`Unsupported type: ${unsupported.join(", ")}`);
+  }
+
+  return parts.join(" | ");
+}
 
 /**
  * Extend the File interface to include IS_PASTED_FILE symbol
@@ -798,6 +868,13 @@ const MessageInputTextarea = ({
 
   const handleAddFile = React.useCallback(
     async (file: File) => {
+      const { rejectedFiles } = getValidatedFiles([file]);
+      const rejectionMessage = formatRejectionMessage(rejectedFiles);
+      if (rejectionMessage) {
+        setImageError(rejectionMessage);
+        return;
+      }
+
       if (
         attachments.length + pendingAttachmentsRef.current >=
         MAX_ATTACHMENTS
@@ -902,23 +979,35 @@ const MessageInputPlainTextarea = ({
       e.preventDefault(); // Only prevent when image-only paste
     }
 
-    const totalAttachments = attachments.length + imageItems.length;
+    const files = imageItems
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => Boolean(file));
+    const { validFiles, rejectedFiles } = getValidatedFiles(files);
+    const rejectionMessage = formatRejectionMessage(rejectedFiles);
+    if (rejectionMessage) {
+      setImageError(rejectionMessage);
+    }
+
+    const totalAttachments = attachments.length + validFiles.length;
     if (totalAttachments > MAX_ATTACHMENTS) {
       setImageError(`Max ${MAX_ATTACHMENTS} files at a time`);
       return;
     }
-    setImageError(null);
+    if (!rejectionMessage) {
+      setImageError(null);
+    }
 
-    for (const item of imageItems) {
-      const file = item.getAsFile();
-      if (file) {
-        try {
-          // Mark this file as pasted so we can show "File 1", "File 2", etc.
-          file[IS_PASTED_FILE] = true;
-          await addAttachment(file);
-        } catch (error) {
-          console.error("Failed to add pasted file:", error);
-        }
+    if (validFiles.length === 0) {
+      return;
+    }
+
+    for (const file of validFiles) {
+      try {
+        // Mark this file as pasted so we can show "File 1", "File 2", etc.
+        file[IS_PASTED_FILE] = true;
+        await addAttachment(file);
+      } catch (error) {
+        console.error("Failed to add pasted file:", error);
       }
     }
   };
@@ -1177,9 +1266,14 @@ const MessageInputFileButton = React.forwardRef<
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
+    const { validFiles, rejectedFiles } = getValidatedFiles(files);
+    const rejectionMessage = formatRejectionMessage(rejectedFiles);
+    if (rejectionMessage) {
+      setImageError(rejectionMessage);
+    }
 
     try {
-      const totalAttachments = attachments.length + files.length;
+      const totalAttachments = attachments.length + validFiles.length;
 
       if (totalAttachments > MAX_ATTACHMENTS) {
         setImageError(`Max ${MAX_ATTACHMENTS} files at a time`);
@@ -1187,8 +1281,14 @@ const MessageInputFileButton = React.forwardRef<
         return;
       }
 
-      setImageError(null);
-      await addAttachments(files);
+      if (!rejectionMessage) {
+        setImageError(null);
+      }
+      if (validFiles.length === 0) {
+        e.target.value = "";
+        return;
+      }
+      await addAttachments(validFiles);
     } catch (error) {
       console.error("Failed to add selected files:", error);
       setImageError(
@@ -1354,16 +1454,8 @@ function getAttachmentIcon(attachment: StagedAttachment): React.ReactNode {
     );
   }
 
-  // Code files
-  if (
-    mimeType.includes("javascript") ||
-    mimeType.includes("typescript") ||
-    mimeType.includes("python") ||
-    mimeType.includes("java") ||
-    mimeType.includes("c") ||
-    mimeType.includes("go") ||
-    mimeType.includes("rust")
-  ) {
+  // Code files - check specific MIME types to avoid false positives
+  if (CODE_MIME_TYPES.includes(mimeType)) {
     return <Code className="w-3.5 h-3.5 flex-shrink-0 text-blue-500" />;
   }
 
