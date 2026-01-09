@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Copy, Check, ExternalLink } from "lucide-react";
+import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import DOMPurify from "dompurify";
+import { Check, Copy, ExternalLink, X } from "lucide-react";
+import * as React from "react";
 
 /**
  * Markdown Components for Streamdown
@@ -48,6 +48,22 @@ const looksLikeCode = (text: string): boolean => {
 };
 
 /**
+ * Resource mention component that displays resource names.
+ * Matches the styling from text-editor.tsx mention components.
+ */
+function ResourceMention({ name, uri }: { name: string; uri: string }) {
+  return (
+    <span
+      className="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
+      data-resource-uri={uri}
+      title={uri}
+    >
+      @{name}
+    </span>
+  );
+}
+
+/**
  * Header component for code blocks with language display and copy functionality
  */
 const CodeHeader = ({
@@ -58,29 +74,48 @@ const CodeHeader = ({
   code?: string;
 }) => {
   const [copied, setCopied] = React.useState(false);
+  const [error, setError] = React.useState(false);
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const copyToClipboard = async () => {
     if (!code) return;
-    await navigator.clipboard.writeText(code).catch((error) => {
-      console.error("Failed to copy code to clipboard:", error);
-    });
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+    // Clear any existing timeout to prevent race conditions
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setError(false);
+    } catch (err) {
+      console.error("Failed to copy code to clipboard:", err);
+      setError(true);
+    }
+    timeoutRef.current = setTimeout(() => setError(false), 2000);
   };
 
+  const Icon = React.useMemo(() => {
+    if (error) {
+      return <X className="size-4 text-red-500" />;
+    }
+    if (copied) {
+      return <Check className="size-4 text-green-500" />;
+    }
+    return <Copy className="size-4" />;
+  }, [copied, error]);
+
   return (
-    <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-primary">
-      <span className="lowercase text-primary">{language}</span>
+    <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-foreground">
+      <span className="lowercase text-muted-foreground">{language}</span>
       <button
-        onClick={async () => await copyToClipboard()}
+        onClick={copyToClipboard}
         className="p-1 rounded-md hover:bg-backdrop transition-colors cursor-pointer"
-        title="Copy code"
+        title={error ? "Failed to copy" : "Copy code"}
       >
-        {!copied ? (
-          <Copy className="h-4 w-4" />
-        ) : (
-          <Check className="h-4 w-4 text-green-500" />
-        )}
+        {Icon}
       </button>
     </div>
   );
@@ -116,7 +151,7 @@ export const createMarkdownComponents = (): Record<
             className={cn(
               "overflow-x-auto rounded-b-md bg-background",
               "[&::-webkit-scrollbar]:w-[6px]",
-              "[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-md",
+              "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:rounded-md",
               "[&::-webkit-scrollbar:horizontal]:h-[4px]",
             )}
           >
@@ -210,20 +245,55 @@ export const createMarkdownComponents = (): Record<
 
   /**
    * Anchor component for links
-   * Opens links in new tab with security attributes
-   * Includes hover underline effect
+   * Detects tambo-resource:// URIs and renders them as ResourceMention components.
+   * Regular links open in new tab with security attributes.
    */
-  a: ({ href, children }) => (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-primary font-medium px-1.5 py-0.5 rounded-md bg-primary/5 hover:bg-primary/10 hover:underline transition-colors inline-flex items-center gap-1.5"
-    >
-      {children}
-      <ExternalLink className="w-3 h-3" />
-    </a>
-  ),
+  a: ({ href, children }) => {
+    // Check if href uses tambo-resource:// protocol to signal it's a resource
+    if (href?.startsWith("tambo-resource://")) {
+      // Extract encoded URI (everything after tambo-resource://)
+      const encodedUri = href.slice("tambo-resource://".length);
+      // Decode the URI
+      let uri: string;
+      try {
+        uri = decodeURIComponent(encodedUri);
+      } catch {
+        // If decoding fails, use the encoded version as fallback
+        uri = encodedUri;
+      }
+      // Extract name from children (link text)
+      // Handle different children types (string, number, array, etc.)
+      let name: string;
+      if (typeof children === "string") {
+        name = children;
+      } else if (typeof children === "number") {
+        name = String(children);
+      } else if (Array.isArray(children)) {
+        // If children is an array, join string elements
+        name = children
+          .map((child) =>
+            typeof child === "string" ? child : String(child ?? ""),
+          )
+          .join("");
+      } else {
+        name = String(children ?? uri);
+      }
+      return <ResourceMention name={name || uri} uri={uri} />;
+    }
+
+    // Regular link rendering
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 text-foreground underline underline-offset-4 decoration-muted-foreground hover:text-foreground hover:decoration-foreground transition-colors"
+      >
+        <span>{children}</span>
+        <ExternalLink className="w-3 h-3" />
+      </a>
+    );
+  },
 
   /**
    * Horizontal rule component
