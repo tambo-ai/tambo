@@ -1,27 +1,68 @@
 ---
-title: Registering Components
-description: Learn how to make your React components available to Tambo.
+title: Generative User Interfaces
+description: Understand how AI creates dynamic, visual interfaces in response to conversation instead of returning text-only responses.
 ---
 
-Register your React components as generative components that Tambo can intelligently choose and populate with data. Tell Tambo which components are available and what props they expect. This enables conversational control of your app where users can ask for specific functionality and Tambo responds with the appropriate component filled with relevant data.
+Generative User Interfaces represent a shift in how applications respond to users. Instead of predetermined flows or text-only responses, AI dynamically creates visual components that match the context of the conversation. This enables more intuitive interactions where users can request functionality through natural language and receive rich, interactive responses.
 
-```tsx
-const components: TamboComponent[] = [
-  {
-    name: "WeatherDisplay",
-    description: "A display of the weather in a city",
-    component: WeatherDisplayComponent,
-    propsSchema: WeatherDisplayPropsSchema,
-  },
-  {
-    name: "UserProfile",
-    description: "A user profile card with avatar and basic information",
-    component: UserProfileComponent,
-    propsSchema: UserProfilePropsSchema,
-  },
-];
+## What is Generative UI?
 
-<TamboProvider components={components}>
-  <App />
-</TamboProvider>;
-```
+Traditional chatbots return text. When you ask "Show me sales data," you get a paragraph describing the numbers. Generative UI changes this—the AI responds by creating an actual chart component, populated with the relevant data, rendered directly in the conversation.
+
+This approach transforms AI interactions from read-only text exchanges into dynamic interfaces where:
+
+- **Visual responses replace text descriptions**: Charts, cards, forms, and other components appear instead of paragraphs
+- **Context drives what appears**: The AI interprets intent and responds with appropriate visual elements
+- **Interfaces evolve with conversation**: Each message can bring new components or update existing ones
+
+The result is applications that feel more natural to use. Instead of navigating menus or filling forms, users describe what they want and the interface adapts to match.
+
+## How Tambo Approaches Generative UI
+
+Tambo enables building generative UI through a registration and matching system. You make your React components available to the AI by describing what they do and what data they need. Tambo uses these descriptions to intelligently select and render components during conversations.
+
+### Intelligent Selection
+
+When a user sends a message, Tambo analyzes the request against registered components. It considers the semantic meaning of the message, the conversation history, and the descriptions of available components. Based on this analysis, it selects the component that best matches the user's intent.
+
+The matching process happens automatically. Tambo interprets natural language, maps it to component purposes, and makes selection decisions. A message about displaying data might match to a chart component. A request to edit information could map to a form.
+
+### Dynamic Rendering
+
+Once Tambo selects a component, it generates appropriate data to populate it and renders the result inline in the conversation. The component becomes part of the message history, creating a visual conversation thread where text and interactive elements coexist.
+
+This rendering happens in real-time. Users see their requests transform into visual responses immediately, making the interface feel responsive and alive.
+
+## Exploring This Section
+
+The following pages dive deeper into specific aspects of generative UI with Tambo:
+
+import LearnMore from "@/components/learn-more";
+import { Component, Hand, Database, ArrowLeftRight } from "lucide-react";
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+  <LearnMore
+    title="Generative Components"
+    description="Components the AI creates on-demand in response to messages"
+    href="/concepts/generative-interfaces/generative-components"
+    icon={Component}
+  />
+  <LearnMore
+    title="Interactable Components"
+    description="Pre-placed components that AI can read and update"
+    href="/concepts/generative-interfaces/interactable-components"
+    icon={Hand}
+  />
+  <LearnMore
+    title="Component State"
+    description="Make component state visible to AI for contextual responses"
+    href="/concepts/generative-interfaces/component-state"
+    icon={Database}
+  />
+  <LearnMore
+    title="Syncing Editable Interactables"
+    description="Two-way synchronization between user edits and AI updates"
+    href="/concepts/generative-interfaces/syncing-editable-interactables"
+    icon={ArrowLeftRight}
+  />
+</div>
