@@ -3,9 +3,7 @@ title: Generative Components
 description: Understanding how Tambo creates components on-demand in response to user messages.
 ---
 
-Generative components are React components that Tambo creates and renders dynamically in response to user messages. Unlike interactable components that you pre-place on the page, generative components are chosen and instantiated by Tambo based on the conversation context.
-
-## What Are Generative Components?
+Generative components are React components that Tambo creates and renders dynamically in response to user messages. Unlike Interactable components that you pre-place on the page, generative components are chosen and instantiated by Tambo based on the conversation context.
 
 When you register a component with Tambo, you're giving it the ability to decide when and how to render that component. Tambo analyzes the user's message, considers available components, and generates appropriate props to create a new instance of the component inline in the conversation.
 
@@ -104,25 +102,6 @@ Understanding when to use each type helps you design effective Tambo application
 - **Interactable**: User has a shopping cart on the page → User asks "Add 3 more items" → Tambo updates the existing cart component's props
 
 You can use both together: register a component as generative for on-demand creation, and also make it interactable for persistent instances.
-
-## When to Use Generative Components
-
-Generative components excel for:
-
-- **Data visualizations**: Charts, graphs, maps that display query results
-- **Summary cards**: Information displays that summarize data
-- **One-time displays**: Content that appears once per message
-- **Dynamic content**: Components whose props vary significantly based on user requests
-- **Exploratory interfaces**: Where users ask "show me X" and get visual results
-
-Consider interactable components instead when you need:
-
-- Persistent state across messages
-- Components that update incrementally
-- Pre-placed UI elements that users modify
-- Shopping carts, forms, or task boards
-
-Generative components enable Tambo to create rich, contextual responses that go beyond text, making conversations more visual and interactive.
 
 import LearnMore from "@/components/learn-more";
 import { Rocket } from "lucide-react";
