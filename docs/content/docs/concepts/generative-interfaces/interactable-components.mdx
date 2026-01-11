@@ -4,206 +4,25 @@ description: Allow Tambo to update your pre-placed components
 ---
 
 import LearnMore from "@/components/learn-more";
-import { Code } from "lucide-react";
+import { Rocket } from "lucide-react";
 
-When you want to place specific components on screen rather than letting Tambo choose which to show, but still want to allow your users to interact with them using natural language, use Tambo's Interactable components.
+When you want to place specific components on screen rather than letting Tambo choose which to show, but still want to allow your users to interact with them using natural language, use Tambo's Interactable components. Unlike [generative components](/concepts/generative-interfaces/generative-components) that Tambo creates on-demand when responding to messages, Interactable components are **pre-placed by you** while still allowing Tambo to modify their props when responding to users.
 
-Unlike [generative components](/concepts/generative-interfaces/generative-components) that Tambo creates on-demand when responding to messages, interactable components are pre-placed by you while still allowing Tambo to modify their props.
+You place them, set their initial state, and users can interact with them directly like any other React component. Simultaneously, Tambo can observe their current props values and update them through natural language requests.
 
-<LearnMore
-  title="How to register interactable components"
-  description="Step-by-step guide to making your components interactable"
-  href="/guides/register-interactable-components"
-  icon={Code}
-/>
+This creates a conversational interface where traditional UI manipulation (clicking, typing) and natural language interaction work together. A user might click to edit a note's title, then ask Tambo to "update the content with today's meeting notes," both modifying the same component.
 
 ## How Interactables Work
 
-When you wrap a component with `withInteractable`, Tambo creates a bidirectional connection between your UI and the AI:
+When you wrap a component with `withInteractable`, Tambo creates an automatic bidirectional connection:
 
-1. **State Storage**: Tambo stores a state object representing the component's props
-2. **Tool Registration**: Tambo automatically registers an update tool for the component
-3. **Context Awareness**: The component's current state is visible to the AI
-4. **Updates**: When Tambo decides to modify the component, it calls the update tool, which triggers a re-render with new props
+**Automatic Context Sending**: The current props of the component are visible to Tambo automatically.
 
-This happens automatically—you wrap your component once, and Tambo handles the rest.
+**Automatic Tool Registration**: Update tools are automatically registered to allow Tambo to update the component's props when needed.
 
-```tsx
-// Conceptual example showing the pattern
-const InteractableCard = withInteractable(Card, {
-  componentName: "Card",
-  description: "A card component with title and content",
-  propsSchema: cardSchema,
-});
-
-// When rendered, Tambo can now update it through natural language
-<InteractableCard title="My Card" content="Initial content" />
-```
-
-For step-by-step implementation, see [How to register interactable components](/guides/register-interactable-components).
-
-## Integration with Tambo Provider
-
-Interactable components require the `TamboProvider` to function. The provider manages the connection between your components and Tambo's state management system.
-
-```tsx
-import { TamboProvider } from "@tambo-ai/react";
-
-function App() {
-  return (
-    <TamboProvider>
-      {/* Your app with interactable components */}
-      <InteractableNote />
-    </TamboProvider>
-  );
-}
-```
-
-This creates a conversational interface where users can modify your UI through natural language, making applications more accessible and user-friendly.
-
-## Automatic Context Awareness
-
-One of the key features of interactable components is automatic context awareness. When you use interactable components, Tambo automatically knows:
-
-- **What components are on the page**: The AI sees all registered interactable components
-- **Current component state**: The AI knows the current props of each component
-- **Component purposes**: The AI understands what each component does based on its description
-- **Available operations**: The AI knows it can update component props through natural language
-
-This automatic awareness means users can naturally reference components in conversation:
-
-- "What's on this page?"
-- "Change the note title to 'Important Reminder'"
-- "Show me the current state of the card"
-- "Update the form with my information"
-
-By default, this context is provided automatically with every message. This can be customized if needed—see [Customizing automatic context](/guides/register-interactable-components#customize-context) in the implementation guide.
-
-## Partial Updates and Property Replacement
-
-Interactable components use **property replacement** for updates, not deep merging. This means:
-
-- **Top-level props** are replaced individually
-- **Nested objects** are replaced entirely, not merged
-- **Arrays** are replaced entirely when updated
-
-### How Property Replacement Works
-
-When Tambo updates props, it only replaces the properties explicitly provided:
-
-```tsx
-// Original props
-{
-  title: "Original Title",
-  content: "Original Content",
-  metadata: {
-    author: "Alice",
-    tags: ["important", "draft"]
-  }
-}
-
-// Update provides only title
-{
-  title: "New Title"
-}
-
-// Result: only title changes
-{
-  title: "New Title",
-  content: "Original Content",  // unchanged
-  metadata: { ... }  // unchanged
-}
-```
-
-However, when updating nested objects, the entire nested object is replaced:
-
-```tsx
-// Update provides nested object
-{
-  metadata: {
-    author: "Bob"
-  }
-}
-
-// Result: entire metadata object is replaced
-{
-  title: "New Title",
-  content: "Original Content",
-  metadata: {
-    author: "Bob"
-    // tags are GONE - entire object was replaced
-  }
-}
-```
-
-### Why Property Replacement?
-
-This behavior is intentional and provides predictability:
-
-- **Explicit updates**: You always know exactly what will change
-- **No hidden merging logic**: No surprises from deep merge algorithms
-- **Simpler reasoning**: Easy to understand what an update will do
-- **Better for AI**: Clear semantics help the AI make correct updates
-
-For practical guidance on handling this in your components, see the [implementation guide](/guides/register-interactable-components#partial-updates).
-
-## Auto-registered Tools
-
-When interactable components are present, Tambo automatically registers tools to help the AI interact with them:
-
-- **`get_all_interactable_components`**: Returns all interactable components with their current props
-- **`get_interactable_component_by_id`**: Returns a specific component by its ID
-- **`remove_interactable_component`**: Removes a component from the interactables list
-- **`update_interactable_component_<id>`**: Updates props for a specific component ID
-
-These tools are registered automatically—no manual setup required. The AI uses them behind the scenes to discover and modify your UI based on natural language requests.
-
-## Accessing Component Metadata
-
-Interactable components provide hooks to access metadata from within nested components:
-
-- **`useTamboCurrentComponent`**: Access parent component's name, ID, description, and props
-- **`useCurrentInteractablesSnapshot`**: Get a snapshot of all interactable components on the page
-
-These hooks enable patterns like:
-- Inline AI editors that know which component they're editing
-- Component toolbars that adapt based on the parent component
-- Dynamic UI that changes based on component state
-
-For implementation patterns and complete examples, see [Accessing component metadata](/guides/register-interactable-components#accessing-metadata).
-
-## When to Use Interactable Components
-
-Interactable components work best for **persistent UI elements that users and AI modify together**:
-
-### Ideal Use Cases
-
-- **Stateful widgets**: Shopping carts, wish lists, task boards
-- **Forms**: Multi-field forms where AI can fill or update fields
-- **Dashboards**: Widgets that users place and AI updates with data
-- **Editable content**: Notes, documents, cards that users edit and AI assists with
-- **Configuration panels**: Settings screens where AI helps configure options
-
-### When to Use Generative Instead
-
-Consider [generative components](/concepts/generative-interfaces/generative-components) when:
-
-- **One-time displays**: Content shown once per message (charts, summaries)
-- **AI-controlled placement**: Let AI decide what to show and where
-- **Ephemeral content**: Information that doesn't persist across messages
-- **Dynamic creation**: AI creates components based on user requests
-
-### Combining Both
-
-You can use the same component as both generative and interactable:
-
-- **Generative**: Register the component to let AI create instances in conversation
-- **Interactable**: Pre-place instances that AI can update
-
-This hybrid approach gives maximum flexibility—AI can create new instances when appropriate, and users can have persistent instances that both they and AI can modify.
-
-## Next Steps
-
-- **Implement**: [How to register interactable components](/guides/register-interactable-components)
-- **Advanced**: [Syncing editable interactables](/guides/syncing-editable-interactables) for two-way state synchronization
-- **Compare**: [Generative components](/concepts/generative-interfaces/generative-components) to understand the differences
+<LearnMore
+  title="How to register Interactable components"
+  description="Step-by-step guide to making your components Interactable"
+  href="/guides/register-interactable-components"
+  icon={Rocket}
+/>

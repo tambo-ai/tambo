@@ -6,7 +6,7 @@ description: Step-by-step guide to making pre-placed components editable by Tamb
 import LearnMore from "@/components/learn-more";
 import { BookOpen } from "lucide-react";
 
-This guide shows you how to register React components as "interactable" so Tambo can modify their props in response to user messages. Unlike generative components that Tambo creates on-demand, interactable components are pre-placed by you and allow Tambo to update them in place.
+This guide shows you how to register React components as "Interactable" so Tambo can modify their props in response to user messages. Unlike generative components that Tambo creates on-demand, Interactable components are pre-placed by you and allow Tambo to update them in place.
 
 <LearnMore
   title="Learn more about Interactable components"
@@ -15,19 +15,16 @@ This guide shows you how to register React components as "interactable" so Tambo
   icon={BookOpen}
 />
 
-## Prerequisites
+## Step 1: Build Your React Component
 
-- A React component you want to make interactable
-- A Zod schema defining the component's props
-- `@tambo-ai/react` installed in your project
-- Your app wrapped with `<TamboProvider>`
+Create a standard React component that accepts props.
 
-## Step 1: Build Your Presentational Component
+If you're using `useState` and your component has state values that depend on the props, use `useEffect` to sync state with updated prop values as they stream in from Tambo.
 
-Create a standard React component that accepts props. Use `useEffect` to sync any local UI state with incoming prop changes from Tambo.
+If you want Tambo to be able to see and update state values rather than just props, replace `useState` with `useTamboComponentState`, and use the `setFromProp` parameter to sync state from props during streaming rather than `useEffect`.
 
 ```tsx
-import { useEffect, useState } from "react";
+import { useTamboComponentState } from "@tambo-ai/react";
 
 type NoteProps = {
   title: string;
@@ -36,15 +33,16 @@ type NoteProps = {
 };
 
 export function Note({ title, content, color = "yellow" }: NoteProps) {
-  const [draftContent, setDraftContent] = useState(content);
-
-  // Sync local state when props change from Tambo
-  useEffect(() => {
-    setDraftContent(content);
-  }, [content]);
+  // useTamboComponentState allows Tambo to see and update the draft content
+  // The setFromProp parameter syncs state from props during streaming
+  const [draftContent, setDraftContent] = useTamboComponentState(
+    "draftContent",
+    "",
+    content,
+  );
 
   return (
-    <section className={`note note-${color}`}>
+    <section className={"note note-" + color}>
       <h3>{title}</h3>
       <textarea
         value={draftContent}
@@ -54,12 +52,6 @@ export function Note({ title, content, color = "yellow" }: NoteProps) {
   );
 }
 ```
-
-**Key points:**
-
-- Component should accept props normally
-- Use `useEffect` to mirror prop changes to local state
-- Local edits (like textarea changes) stay in component state
 
 ## Step 2: Define Your Props Schema
 
@@ -83,7 +75,7 @@ This schema tells Tambo:
 
 ## Step 3: Wrap with `withInteractable`
 
-Use `withInteractable` to create an interactable version of your component:
+Use `withInteractable` to create an Interactable version of your component:
 
 ```tsx
 import { withInteractable } from "@tambo-ai/react";
@@ -106,13 +98,13 @@ export const InteractableNote = withInteractable(Note, {
 
 <Callout type="info" title="Automatic Registration">
 
-Unlike generative components, interactable components register themselves automatically when they mount. You don't need to add them to `TamboProvider`'s components array.
+Unlike generative components, Interactable components register themselves automatically when they mount. You don't need to add them to `TamboProvider`'s components array.
 
 </Callout>
 
 ## Step 4: Render in Your App
 
-Place the interactable component in your app where you want it to appear, within the `TamboProvider`:
+Place the Interactable component in your app where you want it to appear, within the `TamboProvider`:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
@@ -144,11 +136,14 @@ Tambo can now see and modify this component when users send messages like:
 Here's a complete working example:
 
 ```tsx
-import { useEffect, useState } from "react";
-import { withInteractable, TamboProvider } from "@tambo-ai/react";
+import {
+  useTamboComponentState,
+  withInteractable,
+  TamboProvider,
+} from "@tambo-ai/react";
 import { z } from "zod";
 
-// Step 1: Presentational component
+// Step 1: Define Component
 type NoteProps = {
   title: string;
   content: string;
@@ -156,14 +151,16 @@ type NoteProps = {
 };
 
 function Note({ title, content, color = "yellow" }: NoteProps) {
-  const [draftContent, setDraftContent] = useState(content);
-
-  useEffect(() => {
-    setDraftContent(content);
-  }, [content]);
+  // useTamboComponentState allows Tambo to see and update the draft content
+  // The setFromProp parameter syncs state from props during streaming
+  const [draftContent, setDraftContent] = useTamboComponentState(
+    "draftContent",
+    "",
+    content,
+  );
 
   return (
-    <section className={`note note-${color}`}>
+    <section className={"note note-" + color}>
       <h3>{title}</h3>
       <textarea
         value={draftContent}
@@ -202,10 +199,3 @@ export default function Page() {
   );
 }
 ```
-
-## Next Steps
-
-- **Two-way sync**: [Syncing editable interactables](/guides/syncing-editable-interactables) for bi-directional state management
-- **Context customization**: [Customize interactables context](/guides/customize-interactables-context) for advanced context control
-- **Concepts**: [Interactable components](/concepts/generative-interfaces/interactable-components) for deeper understanding
-- **API reference**: See hook documentation for `useTamboCurrentComponent` and `useCurrentInteractablesSnapshot`
