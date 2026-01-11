@@ -3,7 +3,6 @@
   "pages": [
     "generative-components",
     "interactable-components",
-    "component-state",
-    "syncing-editable-interactables"
+    "component-state"
   ]
 }
