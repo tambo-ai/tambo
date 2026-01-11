@@ -25,6 +25,12 @@ const config = {
         destination: "/:path*",
         permanent: true,
       },
+      // Message Threads → Conversation Storage migration
+      {
+        source: "/concepts/message-threads/:path*",
+        destination: "/concepts/conversation-storage",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

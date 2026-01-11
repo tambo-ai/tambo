@@ -2,7 +2,7 @@
   "title": "Concepts",
   "pages": [
     "generative-interfaces",
-    "message-threads",
+    "conversation-storage",
     "tools",
     "resources",
     "model-context-protocol",

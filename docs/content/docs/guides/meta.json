@@ -3,6 +3,7 @@
   "pages": [
     "register-generative-components",
     "register-interactable-components",
-    "customize-interactables-context"
+    "customize-interactables-context",
+    "build-custom-conversation-ui"
   ]
 }

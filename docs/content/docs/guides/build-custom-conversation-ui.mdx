@@ -1,0 +1,571 @@
+---
+title: Build Custom Conversation UI
+description: Create your own chat interface using the React SDK to access and display stored conversations
+---
+
+The Tambo React SDK provides hooks for accessing stored conversation data, allowing you to build custom interfaces that match your application's design. Whether you're building a traditional chat, a canvas-style workspace, or a hybrid interface, the SDK handles data fetching, real-time updates, and state management while you control the presentation.
+
+This guide walks through building a complete custom conversation interface from scratch.
+
+## Prerequisites
+
+Before building custom conversation UI:
+
+- Understand how [Conversation Storage](/concepts/conversation-storage) works
+- Have registered [components](/guides/register-generative-components) with Tambo
+- Set up the `TamboProvider` in your application
+
+## Step 1: Display Thread List
+
+Start by showing users their available conversations. The `useTamboThreads` hook fetches all threads for the current user:
+
+```tsx
+import { useTamboThreads } from "@tambo-ai/react";
+
+function ThreadList() {
+  const { threads } = useTamboThreads();
+
+  return (
+    <div className="thread-list">
+      <h2>Conversations</h2>
+      {threads.map((thread) => (
+        <div key={thread.id} className="thread-item">
+          <h3>{thread.title || "Untitled Conversation"}</h3>
+          <p>{new Date(thread.createdAt).toLocaleDateString()}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+The `threads` array contains all stored conversations with their metadata. Each thread object includes:
+- `id`: Unique identifier
+- `title`: Optional thread title
+- `createdAt`: Creation timestamp
+- `updatedAt`: Last message timestamp
+- `participantIds`: Users involved in the thread
+
+## Step 2: Switch Between Threads
+
+Allow users to select and view different conversations using `switchCurrentThread`:
+
+```tsx
+import { useTamboThread, useTamboThreads } from "@tambo-ai/react";
+
+function ThreadList() {
+  const { threads } = useTamboThreads();
+  const { thread: currentThread, switchCurrentThread } = useTamboThread();
+
+  return (
+    <div className="thread-list">
+      {threads.map((thread) => (
+        <button
+          key={thread.id}
+          onClick={() => switchCurrentThread(thread.id)}
+          className={currentThread?.id === thread.id ? "active" : ""}
+        >
+          {thread.title || "Untitled Conversation"}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+When you switch threads, the entire UI automatically updates to show the new thread's messages and state. The SDK handles fetching the thread data and updating component state.
+
+## Step 3: Display Messages
+
+Show the conversation history using the current thread's messages:
+
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
+function MessageList() {
+  const { thread } = useTamboThread();
+
+  if (!thread) {
+    return <div>Loading conversation...</div>;
+  }
+
+  return (
+    <div className="messages">
+      {thread.messages.map((message) => (
+        <div key={message.id} className={`message message-${message.role}`}>
+          <div className="message-sender">{message.role}</div>
+
+          {/* Render text content */}
+          {message.content.map((contentPart, idx) => {
+            if (contentPart.type === "text") {
+              return <p key={idx}>{contentPart.text}</p>;
+            }
+            return null;
+          })}
+
+          {/* Render component if present */}
+          {message.renderedComponent && (
+            <div className="message-component">{message.renderedComponent}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+Each message includes:
+- `content`: Array of content parts (text, images, etc.)
+- `renderedComponent`: Generated component if Tambo created one
+- `role`: Who sent the message (`user`, `assistant`, or `system`)
+- `componentState`: Persisted state from `useTamboComponentState`
+
+### Canvas-Style Display
+
+For interfaces showing only the latest component (dashboards, workspaces), walk backwards through messages to find the most recent component:
+
+```tsx
+function CanvasView() {
+  const { thread } = useTamboThread();
+
+  const latestComponent = thread?.messages
+    .slice()
+    .reverse()
+    .find((message) => message.renderedComponent)?.renderedComponent;
+
+  return (
+    <div className="canvas">
+      {latestComponent ? (
+        latestComponent
+      ) : (
+        <p>Ask Tambo to create something...</p>
+      )}
+    </div>
+  );
+}
+```
+
+This pattern is useful when you want a clean workspace that updates with each AI response, rather than showing full conversation history.
+
+## Step 4: Send Messages
+
+Create an input form that sends messages to the current thread:
+
+```tsx
+import { useTamboThreadInput } from "@tambo-ai/react";
+
+function MessageInput() {
+  const { value, setValue, submit, isPending, error } = useTamboThreadInput();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!value.trim() || isPending) return;
+
+    await submit({
+      streamResponse: true, // Stream responses in real-time
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Type your message..."
+        disabled={isPending}
+      />
+      <button type="submit" disabled={isPending || !value.trim()}>
+        {isPending ? "Sending..." : "Send"}
+      </button>
+      {error && <div className="error">{error.message}</div>}
+    </form>
+  );
+}
+```
+
+The `useTamboThreadInput` hook manages input state and submission. It provides:
+- `value`: Current input text
+- `setValue`: Update input text
+- `submit`: Send the message
+- `isPending`: Whether a message is currently being processed
+- `error`: Any error that occurred during submission
+
+### Alternative: Direct Message Sending
+
+For more control, use `sendThreadMessage` directly:
+
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
+function CustomInput() {
+  const { sendThreadMessage } = useTamboThread();
+  const [input, setInput] = useState("");
+
+  const handleSend = async () => {
+    await sendThreadMessage(input, {
+      streamResponse: true,
+    });
+    setInput("");
+  };
+
+  return (
+    <div>
+      <input value={input} onChange={(e) => setInput(e.target.value)} />
+      <button onClick={handleSend}>Send</button>
+    </div>
+  );
+}
+```
+
+## Step 5: Show Generation Status
+
+Provide feedback during AI response generation using thread status:
+
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
+function StatusIndicator() {
+  const { isProcessing, statusMessage, generationStage } = useTamboThread();
+
+  if (!isProcessing) {
+    return null;
+  }
+
+  return (
+    <div className="status-indicator">
+      <div className="spinner" />
+      <p>{statusMessage}</p>
+    </div>
+  );
+}
+```
+
+The `statusMessage` is a context-aware string generated by Tambo that describes what's happening. For example: "Looking for a component to help with your request about sales data."
+
+### Custom Status Messages
+
+For more control, check the specific generation stage:
+
+```tsx
+import { useTamboThread, GenerationStage } from "@tambo-ai/react";
+
+function DetailedStatus() {
+  const { generationStage } = useTamboThread();
+
+  const getStatusText = () => {
+    switch (generationStage) {
+      case GenerationStage.CHOOSING_COMPONENT:
+        return "Selecting the best component...";
+      case GenerationStage.FETCHING_CONTEXT:
+        return "Gathering additional data...";
+      case GenerationStage.HYDRATING_COMPONENT:
+        return "Preparing component...";
+      case GenerationStage.STREAMING_RESPONSE:
+        return "Generating response...";
+      case GenerationStage.ERROR:
+        return "Something went wrong";
+      default:
+        return null;
+    }
+  };
+
+  const statusText = getStatusText();
+  if (!statusText) return null;
+
+  return <div className="status">{statusText}</div>;
+}
+```
+
+Available generation stages:
+- `IDLE`: No active generation
+- `CHOOSING_COMPONENT`: Selecting appropriate component
+- `FETCHING_CONTEXT`: Fetching data via tools/resources
+- `HYDRATING_COMPONENT`: Generating component props
+- `STREAMING_RESPONSE`: Streaming text/component data
+- `COMPLETE`: Generation finished successfully
+- `ERROR`: Generation failed
+- `CANCELLED`: User cancelled generation
+
+## Step 6: Handle Image Attachments
+
+Allow users to attach images to their messages:
+
+```tsx
+import { useTamboThreadInput } from "@tambo-ai/react";
+
+function MessageInputWithImages() {
+  const { value, setValue, submit, isPending } = useTamboThreadInput();
+  const [images, setImages] = useState<File[]>([]);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImages(Array.from(e.target.files));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!value.trim() && images.length === 0) return;
+
+    await submit({
+      streamResponse: true,
+      images, // Attach images to the message
+    });
+
+    // Clear input after sending
+    setImages([]);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Type your message..."
+      />
+
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleImageSelect}
+      />
+
+      {images.length > 0 && (
+        <div className="image-previews">
+          {images.map((img, idx) => (
+            <img
+              key={idx}
+              src={URL.createObjectURL(img)}
+              alt={`Attachment ${idx + 1}`}
+              className="preview"
+            />
+          ))}
+        </div>
+      )}
+
+      <button type="submit" disabled={isPending}>
+        Send
+      </button>
+    </form>
+  );
+}
+```
+
+Images are automatically uploaded and included in the message. The AI can reference these images when generating responses.
+
+## Step 7: Add Additional Context
+
+Include extra context with messages to help Tambo generate better responses:
+
+```tsx
+import { useTamboThreadInput } from "@tambo-ai/react";
+
+function ContextualInput() {
+  const { value, setValue, submit } = useTamboThreadInput();
+
+  const handleSubmit = async () => {
+    await submit({
+      streamResponse: true,
+      additionalContext: {
+        pageInfo: {
+          url: window.location.pathname,
+          title: document.title,
+        },
+        userPreferences: {
+          theme: "dark",
+          language: "en",
+        },
+      },
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <textarea value={value} onChange={(e) => setValue(e.target.value)} />
+      <button type="submit">Send</button>
+    </form>
+  );
+}
+```
+
+The `additionalContext` object can include any serializable data. This context is sent with the message and helps the AI understand the situation better.
+
+### Context Helpers
+
+For context that should be included with every message, use context helpers:
+
+```tsx
+import {
+  TamboProvider,
+  currentPageContextHelper,
+  currentTimeContextHelper,
+} from "@tambo-ai/react";
+
+function App() {
+  return (
+    <TamboProvider
+      tamboUrl="https://api.tambo.ai"
+      apiKey="your-api-key"
+      contextHelpers={[currentPageContextHelper, currentTimeContextHelper]}
+    >
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+These helpers automatically inject context with every message, without needing to manually pass it each time.
+
+## Complete Example
+
+Here's a full custom conversation UI combining all the pieces:
+
+```tsx
+import { useTamboThread, useTamboThreads, useTamboThreadInput } from "@tambo-ai/react";
+
+function ConversationUI() {
+  const { threads } = useTamboThreads();
+  const { thread, switchCurrentThread, isProcessing, statusMessage } = useTamboThread();
+  const { value, setValue, submit, isPending } = useTamboThreadInput();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!value.trim() || isPending) return;
+    await submit({ streamResponse: true });
+  };
+
+  return (
+    <div className="conversation-ui">
+      {/* Thread List Sidebar */}
+      <aside className="threads-sidebar">
+        <h2>Conversations</h2>
+        {threads.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => switchCurrentThread(t.id)}
+            className={thread?.id === t.id ? "active" : ""}
+          >
+            {t.title || "New Conversation"}
+          </button>
+        ))}
+      </aside>
+
+      {/* Main Conversation Area */}
+      <main className="conversation-main">
+        {/* Messages */}
+        <div className="messages">
+          {thread?.messages.map((message) => (
+            <div key={message.id} className={`message message-${message.role}`}>
+              {message.content.map((part, idx) =>
+                part.type === "text" ? <p key={idx}>{part.text}</p> : null
+              )}
+              {message.renderedComponent && (
+                <div>{message.renderedComponent}</div>
+              )}
+            </div>
+          ))}
+
+          {/* Status Indicator */}
+          {isProcessing && (
+            <div className="status">
+              <div className="spinner" />
+              <p>{statusMessage}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Input Form */}
+        <form onSubmit={handleSubmit} className="input-form">
+          <textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Type your message..."
+            disabled={isPending}
+          />
+          <button type="submit" disabled={isPending || !value.trim()}>
+            {isPending ? "Sending..." : "Send"}
+          </button>
+        </form>
+      </main>
+    </div>
+  );
+}
+```
+
+## Advanced Patterns
+
+### Create New Threads Explicitly
+
+By default, Tambo creates threads automatically when needed. To create threads with initial state:
+
+```tsx
+import { useTamboThread, TamboThreadMessage } from "@tambo-ai/react";
+
+function NewThreadButton() {
+  const { createThread } = useTamboThread();
+
+  const handleNewThread = async () => {
+    const initialMessages: TamboThreadMessage[] = [
+      {
+        id: crypto.randomUUID(),
+        role: "system",
+        content: [
+          {
+            type: "text",
+            text: "You are a helpful assistant specialized in data analysis.",
+          },
+        ],
+        createdAt: new Date().toISOString(),
+        componentState: {},
+      },
+    ];
+
+    const newThread = await createThread({ initialMessages });
+    // Thread is now active and ready for messages
+  };
+
+  return <button onClick={handleNewThread}>New Analysis Session</button>;
+}
+```
+
+### Real-time Updates
+
+The SDK automatically updates your UI when new messages arrive, whether from the current user or other participants in multi-user threads. No polling or manual refresh needed—the data binding is reactive.
+
+### Thread Metadata
+
+Access and display thread metadata for richer UIs:
+
+```tsx
+function ThreadDetails() {
+  const { thread } = useTamboThread();
+
+  if (!thread) return null;
+
+  return (
+    <div className="thread-details">
+      <h3>Thread Info</h3>
+      <p>Created: {new Date(thread.createdAt).toLocaleString()}</p>
+      <p>Last Updated: {new Date(thread.updatedAt).toLocaleString()}</p>
+      <p>Messages: {thread.messages.length}</p>
+      <p>Participants: {thread.participantIds.join(", ")}</p>
+    </div>
+  );
+}
+```
+
+## Related Concepts
+
+- **[Conversation Storage](/concepts/conversation-storage)**: Understanding how threads are persisted
+- **[Streaming](/concepts/streaming)**: How real-time responses work
+- **[Additional Context](/concepts/additional-context)**: Providing context to improve responses
+- **[Component State](/concepts/generative-interfaces/component-state)**: How component state persists across renders
+
+## Next Steps
+
+With custom conversation UI built, consider:
+- Adding thread search and filtering
+- Implementing message reactions or annotations
+- Building collaborative features for multi-user threads
+- Creating specialized views for different use cases (support, documentation, etc.)
