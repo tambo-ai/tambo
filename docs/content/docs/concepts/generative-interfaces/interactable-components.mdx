@@ -10,15 +10,32 @@ When you want to place specific components on screen rather than letting Tambo c
 
 You place them, set their initial state, and users can interact with them directly like any other React component. Simultaneously, Tambo can observe their current props values and update them through natural language requests.
 
-This creates a conversational interface where traditional UI manipulation (clicking, typing) and natural language interaction work together. A user might click to edit a note's title, then ask Tambo to "update the content with today's meeting notes," both modifying the same component.
+This creates a conversational interface where traditional UI manipulation and natural language interaction work together. A user might click and edit a note's title, then ask Tambo to "update the content of this note with today's meeting notes," both modifying the same component.
 
 ## How Interactables Work
+
+Interactables are normal React components that you build and then wrap with Tambo's `withInteractable` to give Tambo access to them.
+
+```tsx
+import { withInteractable } from "@tambo-ai/react";
+import { Note } from "./note";
+import { NotePropsSchema } from "./note-schema";
+
+export const InteractableNote = withInteractable(Note, {
+  componentName: "Note",
+  description:
+    "A simple note component for recording ideas that can change title, content, and background color",
+  propsSchema: NotePropsSchema,
+});
+```
 
 When you wrap a component with `withInteractable`, Tambo creates an automatic bidirectional connection:
 
 **Automatic Context Sending**: The current props of the component are visible to Tambo automatically.
 
 **Automatic Tool Registration**: Update tools are automatically registered to allow Tambo to update the component's props when needed.
+
+Place these wherever you normally would within the application to enable a traditional, statically-organized, user interface enhanced with AI capabilities.
 
 <LearnMore
   title="How to register Interactable components"
