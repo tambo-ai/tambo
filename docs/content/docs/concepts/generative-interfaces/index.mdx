@@ -3,39 +3,31 @@ title: Generative User Interfaces
 description: Understand how Tambo creates dynamic, visual interfaces in response to conversation instead of returning text-only responses.
 ---
 
-Generative User Interfaces represent a shift in how applications respond to users. Instead of predetermined flows or text-only responses, AI dynamically creates visual components that match the context of the conversation. This enables more intuitive interactions where users can request functionality through natural language and receive rich, interactive responses.
+Traditional user interfaces are predetermined by their creators based on assumptions about how users should interact with the software. Users navigate menus, fill forms, and click through screens that developers have pre-built. To see sales data, you must know where to find the dashboard, which filters to apply, and how to configure the view. The interface is fixed and you must adapt to it.
 
-## What is Generative UI?
-
-Generative UI is an interface that adapts in real-time to the user's goals. When you ask "Show me sales data," the AI might respond by showing an actual chart component, populated with the relevant data, rendered directly in the conversation.
-
-This approach transforms AI interactions from read-only text exchanges into dynamic interfaces where:
-
-- **Visual responses replace text descriptions**: Charts, cards, forms, and other components appear instead of paragraphs
-- **Context drives what appears**: The AI interprets intent and responds with appropriate visual elements
-- **Interfaces evolve with conversation**: Each message can bring new components or update existing ones
-
-The result is applications that feel more natural to use. Instead of navigating menus or filling forms, users describe what they want and the interface adapts to match.
+Generative user interfaces flip this model. Instead of navigating predetermined layouts, users describe what they want in natural language, and the appropriate interface is decided in real-time. When you ask "Show me sales data," a generative interface renders an actual interactive chart component, populated with your data. The interface adapts to users rather than requiring users to adapt to the interface.
 
 ## How Tambo Approaches Generative UI
 
-Rather than attempting to have AI generate new UI from scratch in responses, which introduces risk and unpredictability, Tambo's approach is to use React components you build and give it access to.
+### Use Your Own React Components
+
+Rather than attempting to have AI generate new UI from scratch in responses, which introduces risk and unpredictability, Tambo's approach is to use React components you build and give it access to. You provide descriptions of when and how to use each component, and Tambo automatically uses the appropriate components when responding to users' messages to help them accomplish their goals.
 
 Tambo supports generative UI through two fundamental approaches:
 
-**Generative Components** - Tambo creates new component instances in response to user messages. When a user asks for information or functionality, Tambo selects an appropriate component, generates the data to populate it, and includes it in the response message. This creates visual responses that appear as part of the conversation.
+**[Generative Components](/concepts/generative-interfaces/generative-components)** - Tambo creates new component instances in response to user messages. When a user asks for information or functionality, Tambo selects an appropriate component, generates the data to populate it, and includes it in the response message. This creates visual responses that appear as part of the conversation.
 
-**Interactable Components** - Tambo updates components that are already placed on screen. You position components in your interface, and Tambo can read their current state and modify them through conversation.
+**[Interactable Components](/concepts/generative-interfaces/interactable-components)** - Tambo updates components that are already placed on screen. You position components in your interface, and Tambo can read their current state and modify them through conversation.
 
 Both approaches can work together in the same application. A user might ask Tambo to create a new chart (generative), then later ask it to "update the filters on my dashboard" (interactable). This flexibility allows you to choose the right pattern for each use case.
 
-### Intelligent Selection
+### Component Selection
 
-When a user sends a message, Tambo analyzes the request against registered components. It considers the semantic meaning of the message, the conversation history, and the descriptions of available components. Based on this analysis, it selects the component that best matches the user's intent.
+When a user sends a message, Tambo analyzes the request registered components and tools. It considers the semantic meaning of the message, the conversation history, and the descriptions of available components. Based on this analysis, it determines whether any of the available components match the user's intent and whether it needs to fetch any additional data to populate them.
 
 The matching process happens automatically. Tambo interprets natural language, maps it to component purposes, and makes selection decisions. A message about displaying data might match to a chart component. A request to edit information could map to a form.
 
-### Dynamic Rendering
+### Rendering Selected Components
 
 When using generative components, Tambo includes the selected component in the response message. The component becomes part of the message history, creating a visual conversation thread where text and interactive elements coexist.
 
