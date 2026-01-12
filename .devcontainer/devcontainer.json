@@ -6,6 +6,7 @@
   },
 
   // Ensure config directories exist on host before container creation
+  // NOTE: initializeCommand runs on the host and uses the host $HOME.
   "initializeCommand": "sh -lc 'mkdir -p \"$HOME/.config/gh\" \"$HOME/.config/claude\" \"$HOME/.claude\"'",
 
   "remoteUser": "vscode",

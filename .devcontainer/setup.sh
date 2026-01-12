@@ -4,6 +4,11 @@ set -e
 # Assumes this script runs as the same user configured as remoteUser in
 # devcontainer.json, so that $HOME points at that user's home directory.
 
+if [ -z "${HOME:-}" ] || [ ! -d "${HOME}" ] || [ ! -w "${HOME}" ]; then
+  echo "ERROR: HOME is not set to a writable directory; expected to run as remoteUser" >&2
+  exit 1
+fi
+
 ensure_line() {
   local line="$1" file="$2"
 
@@ -65,6 +70,11 @@ fi
 
 # Install npm dependencies with correct Node version
 # Use npm ci for reproducible installs; requires committed, up-to-date package-lock.json
+if [ ! -f package-lock.json ]; then
+  echo "ERROR: package-lock.json is missing. This repo expects a committed lockfile." >&2
+  exit 1
+fi
+
 if ! npm ci; then
   echo "ERROR: npm ci failed. Ensure package-lock.json is present and up to date, then rebuild the devcontainer." >&2
   exit 1
