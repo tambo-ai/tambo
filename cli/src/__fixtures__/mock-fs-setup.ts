@@ -190,9 +190,22 @@ export function captureConsoleOutput(): {
 
 /**
  * Creates a basic project structure with just package.json
- * Includes Next.js to simulate the most common use case
+ * Framework-agnostic - no framework dependencies included
  */
 export function createBasicProject(): Record<string, string | null> {
+  return {
+    "/mock-project/package.json": JSON.stringify({
+      name: "test-project",
+      dependencies: {},
+    }),
+  };
+}
+
+/**
+ * Creates a basic Next.js project structure
+ * Use this when testing Next.js-specific behavior (e.g., env var prefix detection)
+ */
+export function createNextProject(): Record<string, string | null> {
   return {
     "/mock-project/package.json": JSON.stringify({
       name: "test-project",
@@ -205,9 +218,25 @@ export function createBasicProject(): Record<string, string | null> {
 
 /**
  * Creates a project with React dependency and src directory
- * Includes Next.js to simulate the most common use case
+ * Framework-agnostic - no framework dependencies included
  */
 export function createProjectWithReact(): Record<string, string | null> {
+  return {
+    "/mock-project/package.json": JSON.stringify({
+      name: "test-project",
+      dependencies: {
+        "@tambo-ai/react": "^1.0.0",
+      },
+    }),
+    "/mock-project/src": null,
+  };
+}
+
+/**
+ * Creates a Next.js project with React dependency and src directory
+ * Use this when testing Next.js-specific behavior (e.g., env var prefix detection)
+ */
+export function createNextProjectWithReact(): Record<string, string | null> {
   return {
     "/mock-project/package.json": JSON.stringify({
       name: "test-project",
@@ -221,39 +250,42 @@ export function createProjectWithReact(): Record<string, string | null> {
 }
 
 /**
- * Creates a project with existing API key in .env.local
+ * Creates a Next.js project with existing API key in .env.local
+ * Uses Next.js because it references NEXT_PUBLIC_TAMBO_API_KEY
  */
 export function createProjectWithEnv(
   key: string,
 ): Record<string, string | null> {
   return {
-    ...createBasicProject(),
+    ...createNextProject(),
     "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${key}\n`,
   };
 }
 
 /**
- * Creates a project with both .env and .env.local files
+ * Creates a Next.js project with both .env and .env.local files
+ * Uses Next.js because it references NEXT_PUBLIC_TAMBO_API_KEY
  */
 export function createProjectWithBothEnvFiles(
   localKey: string,
   envKey: string,
 ): Record<string, string | null> {
   return {
-    ...createBasicProject(),
+    ...createNextProject(),
     "/mock-project/.env": `NEXT_PUBLIC_TAMBO_API_KEY=${envKey}\n`,
     "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${localKey}\n`,
   };
 }
 
 /**
- * Creates a project with existing tambo.ts file
+ * Creates a Next.js project with existing tambo.ts file
+ * Uses Next.js because this is typically used for init tests that expect NEXT_PUBLIC_TAMBO_API_KEY
  */
 export function createProjectWithTamboTs(
   content?: string,
 ): Record<string, string | null> {
   return {
-    ...createBasicProject(),
+    ...createNextProject(),
     "/mock-project/src": null,
     "/mock-project/src/lib/tambo.ts":
       content ?? "export const components: TamboComponent[] = [];",
@@ -408,8 +440,8 @@ export function createRegistryFiles(
 }
 
 /**
- * Creates a project with React dependency, src directory, and registry files
- * This is the most common setup for full-send tests
+ * Creates a Next.js project with React dependency, src directory, and registry files
+ * This is the most common setup for full-send tests that expect NEXT_PUBLIC_TAMBO_API_KEY
  */
 export function createProjectWithReactAndRegistry(
   components: string[] = [
@@ -420,7 +452,7 @@ export function createProjectWithReactAndRegistry(
   ],
 ): Record<string, string | null> {
   return {
-    ...createProjectWithReact(),
+    ...createNextProjectWithReact(),
     ...createRegistryFiles(components),
   };
 }
