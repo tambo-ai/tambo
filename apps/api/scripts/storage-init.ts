@@ -172,4 +172,4 @@ async function main(): Promise<void> {
   console.log("Storage initialization complete");
 }
 
-main();
+void main();
