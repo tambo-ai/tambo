@@ -47,6 +47,17 @@ function MessageList() {
             return null;
           })}
 
+          {/* Show tool calls */}
+          {message.role === "assistant" && message.toolCallRequest && (
+            <div className="tool-calls">
+              {message.toolCallRequest.tool_calls.map((toolCall) => (
+                <div key={toolCall.id} className="tool-call">
+                  <strong>Calling tool:</strong> {toolCall.function.name}
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Render component if present */}
           {message.renderedComponent && (
             <div className="message-component">{message.renderedComponent}</div>
@@ -58,7 +69,7 @@ function MessageList() {
 }
 ```
 
-Messages contain text content, images, and generated components. The `renderedComponent` property contains any component Tambo created in response to the message.
+Messages contain text content, images, generated components, and tool calls. The `renderedComponent` property contains any component Tambo created in response to the message. Tool calls show which tools the AI invoked, useful for debugging or transparency.
 
 **Alternative: Canvas-Style Display**
 
