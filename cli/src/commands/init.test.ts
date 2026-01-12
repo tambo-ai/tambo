@@ -13,7 +13,7 @@ import {
   createNextProject,
   createProjectWithBothEnvFiles,
   createProjectWithEnv,
-  createProjectWithReactAndRegistry,
+  createProjectWithTamboSDKAndRegistry,
   createProjectWithTamboTs,
   createRegistryFiles,
 } from "../__fixtures__/mock-fs-setup.js";
@@ -561,7 +561,7 @@ describe("handleInit", () => {
   describe("full-send init", () => {
     beforeEach(() => {
       vol.fromJSON(
-        createProjectWithReactAndRegistry([
+        createProjectWithTamboSDKAndRegistry([
           "message-thread-full",
           "control-bar",
         ]),
@@ -1160,7 +1160,7 @@ describe("handleInit", () => {
   describe("full-send instructions", () => {
     beforeEach(() => {
       vol.fromJSON(
-        createProjectWithReactAndRegistry([
+        createProjectWithTamboSDKAndRegistry([
           "message-thread-full",
           "control-bar",
         ]),
@@ -1266,7 +1266,9 @@ describe("handleInit", () => {
 
     it("should respect --legacyPeerDeps flag", async () => {
       // Setup: Switch to React project
-      vol.fromJSON(createProjectWithReactAndRegistry(["message-thread-full"]));
+      vol.fromJSON(
+        createProjectWithTamboSDKAndRegistry(["message-thread-full"]),
+      );
 
       // Set up device auth mock
       mockGeneratedApiKey = "test-key";

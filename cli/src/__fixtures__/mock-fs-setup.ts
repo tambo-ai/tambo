@@ -210,17 +210,17 @@ export function createNextProject(): Record<string, string | null> {
     "/mock-project/package.json": JSON.stringify({
       name: "test-project",
       dependencies: {
-        next: "^14.0.0",
+        next: "^16.0.0",
       },
     }),
   };
 }
 
 /**
- * Creates a project with React dependency and src directory
+ * Creates a project with Tambo SDK dependency and src directory
  * Framework-agnostic - no framework dependencies included
  */
-export function createProjectWithReact(): Record<string, string | null> {
+export function createProjectWithTamboSDK(): Record<string, string | null> {
   return {
     "/mock-project/package.json": JSON.stringify({
       name: "test-project",
@@ -233,10 +233,10 @@ export function createProjectWithReact(): Record<string, string | null> {
 }
 
 /**
- * Creates a Next.js project with React dependency and src directory
+ * Creates a Next.js project with Tambo SDK dependency and src directory
  * Use this when testing Next.js-specific behavior (e.g., env var prefix detection)
  */
-export function createNextProjectWithReact(): Record<string, string | null> {
+export function createNextProjectWithTamboSDK(): Record<string, string | null> {
   return {
     "/mock-project/package.json": JSON.stringify({
       name: "test-project",
@@ -440,10 +440,10 @@ export function createRegistryFiles(
 }
 
 /**
- * Creates a Next.js project with React dependency, src directory, and registry files
+ * Creates a Next.js project with Tambo SDK, src directory, and registry files
  * This is the most common setup for full-send tests that expect NEXT_PUBLIC_TAMBO_API_KEY
  */
-export function createProjectWithReactAndRegistry(
+export function createProjectWithTamboSDKAndRegistry(
   components: string[] = [
     "message-thread-full",
     "message-thread-panel",
@@ -452,7 +452,7 @@ export function createProjectWithReactAndRegistry(
   ],
 ): Record<string, string | null> {
   return {
-    ...createNextProjectWithReact(),
+    ...createNextProjectWithTamboSDK(),
     ...createRegistryFiles(components),
   };
 }
