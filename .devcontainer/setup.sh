@@ -1,12 +1,16 @@
 #!/bin/bash
 set -e
 
-# Activate mise for this shell session
-eval "$(mise activate bash)"
-
 # Trust and install tools from mise.toml and .node-version
 mise trust
 mise install
+
+# Export mise environment to get correct Node in PATH
+eval "$(mise env -s bash)"
+
+# Verify Node version
+echo "Using Node version: $(node --version)"
+echo "Using npm version: $(npm --version)"
 
 # Install npm dependencies with correct Node version
 npm install
