@@ -18,7 +18,7 @@
   ],
 
   // Run mise install, npm install, and configure starship
-  "postCreateCommand": "mise trust && mise install && npm install && mkdir -p /root/.config && cp .config/starship.toml /root/.config/starship.toml && echo 'eval \"$(starship init bash)\"' >> /root/.bashrc",
+  "postCreateCommand": "bash -c 'eval \"$(mise activate bash)\" && mise trust && mise install && npm install && mkdir -p /root/.config && cp .config/starship.toml /root/.config/starship.toml && echo eval \\\"\\$(mise activate bash)\\\" >> /root/.bashrc && echo eval \\\"\\$(starship init bash)\\\" >> /root/.bashrc'",
 
   // Forward dev server ports (8260-8263) - IDE will auto-assign if conflicts
   "forwardPorts": [8260, 8261, 8262, 8263],
