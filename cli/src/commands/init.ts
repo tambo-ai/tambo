@@ -98,11 +98,22 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
     const existingContent = fs.readFileSync(targetEnvFile, "utf8");
     // Match any Tambo API key variant (with or without framework prefix)
     const keyRegex = /^(NEXT_PUBLIC_|VITE_|REACT_APP_)?TAMBO_API_KEY=.*/gm;
+    const existingMatches = existingContent.match(keyRegex);
 
-    if (keyRegex.test(existingContent)) {
-      // Find the existing key name for the message
-      const existingMatch = existingContent.match(keyRegex);
-      const existingKeyName = existingMatch?.[0].split("=")[0] ?? envVarName;
+    if (existingMatches && existingMatches.length > 0) {
+      // Extract key names from matches
+      const existingKeyNames = existingMatches.map(
+        (match) => match.split("=")[0],
+      );
+
+      // Build appropriate warning message
+      let warningMessage: string;
+      if (existingKeyNames.length === 1) {
+        warningMessage = `⚠️  This will overwrite the existing value of ${existingKeyNames[0]} in ${targetEnvFile}, are you sure?`;
+      } else {
+        // Multiple keys found - warn about all of them
+        warningMessage = `⚠️  Found multiple Tambo API key variants in ${targetEnvFile}:\n   ${existingKeyNames.join(", ")}\n   This will remove all of them and replace with ${envVarName}. Continue?`;
+      }
 
       const { confirmReplace } = await interactivePrompt<{
         confirmReplace: boolean;
@@ -110,9 +121,7 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
         {
           type: "confirm",
           name: "confirmReplace",
-          message: chalk.yellow(
-            `⚠️  This will overwrite the existing value of ${existingKeyName} in ${targetEnvFile}, are you sure?`,
-          ),
+          message: chalk.yellow(warningMessage),
           default: false,
         },
         chalk.yellow(
@@ -125,15 +134,35 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
         return true;
       }
 
-      // Replace existing key with new one (using detected framework's prefix)
-      const updatedContent = existingContent.replace(
-        keyRegex,
-        `${envVarName}=${apiKey.trim()}`,
-      );
-      fs.writeFileSync(targetEnvFile, updatedContent);
-      console.log(
-        chalk.green(`\n✔ Updated API key in ${targetEnvFile} as ${envVarName}`),
-      );
+      // Remove all existing key variants and add the new one
+      // Use a function to ensure only one replacement is made (first match gets the new value, rest get removed)
+      let replacedFirst = false;
+      const updatedContent = existingContent.replace(keyRegex, () => {
+        if (!replacedFirst) {
+          replacedFirst = true;
+          return `${envVarName}=${apiKey.trim()}`;
+        }
+        // Remove subsequent matches (return empty string, will leave blank line)
+        return "";
+      });
+
+      // Clean up any double blank lines left from removals
+      const cleanedContent = updatedContent.replace(/\n{3,}/g, "\n\n");
+      fs.writeFileSync(targetEnvFile, cleanedContent);
+
+      if (existingKeyNames.length > 1) {
+        console.log(
+          chalk.green(
+            `\n✔ Replaced ${existingKeyNames.length} key variants with ${envVarName} in ${targetEnvFile}`,
+          ),
+        );
+      } else {
+        console.log(
+          chalk.green(
+            `\n✔ Updated API key in ${targetEnvFile} as ${envVarName}`,
+          ),
+        );
+      }
       return true;
     }
 
@@ -757,6 +786,7 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
     .join("\n");
 
   // Just the TamboProvider part for clipboard with all selected components
+  const framework = detectFramework();
   const envVarName = getTamboApiKeyEnvVar();
   const providerSnippet = `"use client"; // Important!
 import { TamboProvider } from "@tambo-ai/react";
@@ -791,6 +821,28 @@ ${componentInstances}
   } catch (error) {
     console.log(chalk.cyan("\n" + providerSnippet + "\n"));
     console.log(chalk.yellow("\n   ⚠️ Failed to copy to clipboard: " + error));
+  }
+
+  // Warn non-framework users about env var exposure
+  if (!framework) {
+    console.log(
+      chalk.yellow(
+        "\n   ⚠️  No supported framework detected. The environment variable",
+      ),
+    );
+    console.log(
+      chalk.yellow(
+        `      ${envVarName} will not be automatically exposed to the browser.`,
+      ),
+    );
+    console.log(
+      chalk.yellow(
+        "      You may need to configure your bundler to expose it, or pass",
+      ),
+    );
+    console.log(
+      chalk.yellow("      the API key directly to the TamboProvider.\n"),
+    );
   }
 
   console.log(chalk.bold("\n2. Use the installed components"));

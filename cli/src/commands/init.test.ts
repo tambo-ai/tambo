@@ -24,6 +24,30 @@ jest.unstable_mockModule("fs", () => ({
   default: memfsFs,
 }));
 
+// Mock framework detection to return Next.js by default (most tests expect this)
+// Tests can override this by setting mockDetectedFramework before running
+let mockDetectedFramework: {
+  name: string;
+  displayName: string;
+  envPrefix: string | null;
+} | null = {
+  name: "next",
+  displayName: "Next.js",
+  envPrefix: "NEXT_PUBLIC_",
+};
+
+jest.unstable_mockModule("../utils/framework-detection.js", () => ({
+  detectFramework: () => mockDetectedFramework,
+  getTamboApiKeyEnvVar: () =>
+    mockDetectedFramework?.envPrefix
+      ? `${mockDetectedFramework.envPrefix}TAMBO_API_KEY`
+      : "TAMBO_API_KEY",
+  getEnvVarName: (baseName: string) =>
+    mockDetectedFramework?.envPrefix
+      ? `${mockDetectedFramework.envPrefix}${baseName}`
+      : baseName,
+}));
+
 // Mock child_process for npm install
 let execSyncCalls: string[] = [];
 const mockExecSync = (command: string) => {
@@ -270,6 +294,13 @@ describe("handleInit", () => {
   beforeEach(() => {
     // Reset memfs volume
     vol.reset();
+
+    // Reset framework detection mock to Next.js (most tests expect this)
+    mockDetectedFramework = {
+      name: "next",
+      displayName: "Next.js",
+      envPrefix: "NEXT_PUBLIC_",
+    };
 
     // Reset exec calls
     execSyncCalls = [];
