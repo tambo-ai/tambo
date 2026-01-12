@@ -1,4 +1,5 @@
 import { createHmac } from "crypto";
+import { ATTACHMENT_PREFIX } from "./shared-constants";
 
 /**
  * Length of the unique attachment ID (using nanoid alphabet).
@@ -82,14 +83,13 @@ export function parseAttachmentUri(
   uniqueId: string;
   storageKey: string;
 } {
-  const prefix = "attachment://";
-  if (!uri.startsWith(prefix)) {
+  if (!uri.startsWith(ATTACHMENT_PREFIX)) {
     throw new Error(
-      `Invalid attachment URI: ${uri}. Must start with "${prefix}"`,
+      `Invalid attachment URI: ${uri}. Must start with "${ATTACHMENT_PREFIX}"`,
     );
   }
 
-  const path = uri.slice(prefix.length);
+  const path = uri.slice(ATTACHMENT_PREFIX.length);
   if (!path.trim()) {
     throw new Error(`Invalid attachment URI: ${uri}. Missing path.`);
   }
