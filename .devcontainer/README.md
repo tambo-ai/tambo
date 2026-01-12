@@ -72,6 +72,34 @@ The devcontainer automatically mounts your host authentication credentials so yo
 
 **Starship prompt** is automatically configured on first container creation. Open a new terminal to see the improved prompt with git branch, Node version, and more.
 
+### Attaching from External Terminal
+
+You can attach to the devcontainer from any terminal outside of VS Code/Cursor:
+
+**Quick attach (from repo directory):**
+
+```bash
+docker exec -it $(docker ps -q --filter "label=devcontainer.local_folder=$(pwd)") bash
+```
+
+**Find and attach manually:**
+
+```bash
+# List all devcontainers
+docker ps --filter "label=devcontainer.config_file"
+
+# Attach to a specific container
+docker exec -it <container-id> bash
+```
+
+**Pro tip - add an alias to your `~/.zshrc` or `~/.bashrc`:**
+
+```bash
+alias devcontainer='docker exec -it $(docker ps -q --filter "label=devcontainer.local_folder=$(pwd)") bash'
+```
+
+Then from any repo directory, just run `devcontainer` to jump into that repo's container.
+
 ## Cleanup
 
 Remove a worktree when done:
