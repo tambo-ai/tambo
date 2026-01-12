@@ -1345,9 +1345,9 @@ export class ThreadsService {
 
         // Build resource fetchers from MCP clients and add attachment fetcher
         const resourceFetchers = createResourceFetcherMap(mcpClients);
-        if (this.storageConfig.s3Client && this.storageConfig.signingSecret) {
+        if (this.storageConfig.hasStorageConfig()) {
           resourceFetchers["attachment"] = createAttachmentFetcher(
-            this.storageConfig.s3Client,
+            this.storageConfig.s3Client!,
             this.storageConfig.bucket,
             projectId,
             this.storageConfig.signingSecret,
@@ -1427,9 +1427,9 @@ export class ThreadsService {
 
       // Build resource fetchers from MCP clients and add attachment fetcher
       const resourceFetchers = createResourceFetcherMap(mcpClients);
-      if (this.storageConfig.s3Client && this.storageConfig.signingSecret) {
+      if (this.storageConfig.hasStorageConfig()) {
         resourceFetchers["attachment"] = createAttachmentFetcher(
-          this.storageConfig.s3Client,
+          this.storageConfig.s3Client!,
           this.storageConfig.bucket,
           projectId,
           this.storageConfig.signingSecret,

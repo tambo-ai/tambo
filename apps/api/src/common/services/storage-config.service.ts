@@ -13,7 +13,6 @@ export class StorageConfigService {
   readonly s3Client: S3Client | undefined;
   readonly bucket: string;
   readonly signingSecret: string;
-  readonly isConfigured: boolean;
 
   constructor(private readonly configService: ConfigService) {
     const s3Config = {
@@ -26,10 +25,17 @@ export class StorageConfigService {
 
     this.bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
     this.signingSecret = this.configService.get<string>("API_KEY_SECRET") ?? "";
-    this.isConfigured = isS3Configured(s3Config);
 
-    if (this.isConfigured) {
+    if (isS3Configured(s3Config)) {
       this.s3Client = createS3Client(s3Config);
     }
+  }
+
+  /**
+   * Check if storage is fully configured for attachment operations.
+   * Requires both S3 client and signing secret to be available.
+   */
+  hasStorageConfig(): boolean {
+    return this.s3Client !== undefined && this.signingSecret.length > 0;
   }
 }
