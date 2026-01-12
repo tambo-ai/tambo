@@ -6,14 +6,15 @@
   },
 
   // Ensure config directories exist on host before container creation
-  "initializeCommand": "mkdir -p ~/.config/gh ~/.config/claude",
+  "initializeCommand": "mkdir -p ~/.config/gh ~/.config/claude ~/.claude",
 
   // Mount host directories for git, gh, and claude authentication
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
     "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,readonly",
     "source=${localEnv:HOME}/.config/gh,target=/root/.config/gh,type=bind",
-    "source=${localEnv:HOME}/.config/claude,target=/root/.config/claude,type=bind"
+    "source=${localEnv:HOME}/.config/claude,target=/root/.config/claude,type=bind",
+    "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind"
   ],
 
   // Run mise install, npm install, and configure starship
