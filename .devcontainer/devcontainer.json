@@ -8,6 +8,9 @@
   // Mount the workspace (supports worktrees - each worktree opens in its own container)
   "workspaceFolder": "/workspace",
 
+  // Ensure config directories exist on host before container creation
+  "initializeCommand": "mkdir -p ~/.config/gh ~/.config/claude",
+
   // Mount host directories for git, gh, and claude authentication
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
