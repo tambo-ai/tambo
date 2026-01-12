@@ -5,9 +5,6 @@
     "context": ".."
   },
 
-  // Mount the workspace (supports worktrees - each worktree opens in its own container)
-  "workspaceFolder": "/workspace",
-
   // Ensure config directories exist on host before container creation
   "initializeCommand": "mkdir -p ~/.config/gh ~/.config/claude",
 
