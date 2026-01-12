@@ -396,7 +396,7 @@ describe("ThreadsService.advanceThread initialization", () => {
             s3Client: undefined,
             bucket: "test-bucket",
             signingSecret: "",
-            isConfigured: false,
+            hasStorageConfig: () => false,
           },
         },
       ],

@@ -1,9 +1,9 @@
-import { randomUUID } from "crypto";
+import { nanoid } from "nanoid";
 
 /**
  * Generate a unique message ID using cryptographically secure randomness.
- * Format: message-{uuid}
+ * Format: message-{nanoid}
  */
 export function generateMessageId(): string {
-  return `message-${randomUUID()}`;
+  return `message-${nanoid()}`;
 }
