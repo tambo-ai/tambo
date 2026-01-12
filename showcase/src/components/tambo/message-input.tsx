@@ -50,6 +50,7 @@ import Image from "next/image";
 import * as React from "react";
 import { useDebounce } from "use-debounce";
 import {
+  getImageItems,
   TextEditor,
   type PromptItem,
   type ResourceItem,
@@ -896,11 +897,7 @@ const MessageInputPlainTextarea = ({
   };
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const items = Array.from(e.clipboardData.items);
-    const imageItems = items.filter((item) => item.type.startsWith("image/"));
-
-    // Allow default paste if there is text, even when images exist
-    const hasText = e.clipboardData.getData("text/plain").length > 0;
+    const { imageItems, hasText } = getImageItems(e.clipboardData);
 
     if (imageItems.length === 0) {
       return; // Allow default text paste
@@ -918,15 +915,12 @@ const MessageInputPlainTextarea = ({
     setImageError(null);
 
     for (const item of imageItems) {
-      const file = item.getAsFile();
-      if (file) {
-        try {
-          // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
-          file[IS_PASTED_IMAGE] = true;
-          await addImage(file);
-        } catch (error) {
-          console.error("Failed to add pasted image:", error);
-        }
+      try {
+        // Mark this image as pasted so we can show "Image 1", "Image 2", etc.
+        item[IS_PASTED_IMAGE] = true;
+        await addImage(item);
+      } catch (error) {
+        console.error("Failed to add pasted image:", error);
       }
     }
   };
