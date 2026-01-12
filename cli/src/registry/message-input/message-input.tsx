@@ -46,7 +46,30 @@ import {
 
 // Lazy load DictationButton for code splitting (framework-agnostic alternative to next/dynamic)
 // eslint-disable-next-line @typescript-eslint/promise-function-async
-const DictationButton = React.lazy(() => import("./dictation-button"));
+const LazyDictationButton = React.lazy(() => import("./dictation-button"));
+
+/**
+ * Wrapper component that includes Suspense boundary for the lazy-loaded DictationButton.
+ * This ensures the component can be safely used without requiring consumers to add their own Suspense.
+ * Also handles SSR by only rendering on the client (DictationButton uses Web Audio APIs).
+ */
+const DictationButton = () => {
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
+
+  return (
+    <React.Suspense fallback={null}>
+      <LazyDictationButton />
+    </React.Suspense>
+  );
+};
 
 /**
  * Provider interface for searching resources (for "@" mentions).
@@ -1370,6 +1393,8 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
             <img
               src={image.dataUrl}
               alt={displayName}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -1519,9 +1544,7 @@ const MessageInputToolbar = React.forwardRef<
         })}
       </div>
       <div className="flex items-center gap-2">
-        <React.Suspense fallback={null}>
-          <DictationButton />
-        </React.Suspense>
+        <DictationButton />
         {/* Right side - only submit button */}
         {React.Children.map(children, (child): React.ReactNode => {
           if (

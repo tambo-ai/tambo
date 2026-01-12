@@ -282,6 +282,8 @@ const MessageImages = React.forwardRef<HTMLDivElement, MessageImagesProps>(
               alt={`Image ${index + 1}`}
               width={128}
               height={128}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
           </div>
