@@ -64,7 +64,7 @@ export function buildAttachmentUri(
   projectId: string,
   uniqueId: string,
 ): string {
-  return `attachment://${projectId}/${uniqueId}`;
+  return `${ATTACHMENT_PREFIX}${projectId}/${uniqueId}`;
 }
 
 /**
