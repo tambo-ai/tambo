@@ -190,24 +190,31 @@ export function captureConsoleOutput(): {
 
 /**
  * Creates a basic project structure with just package.json
+ * Includes Next.js to simulate the most common use case
  */
 export function createBasicProject(): Record<string, string | null> {
   return {
     "/mock-project/package.json": JSON.stringify({
       name: "test-project",
-      dependencies: {},
+      dependencies: {
+        next: "^14.0.0",
+      },
     }),
   };
 }
 
 /**
  * Creates a project with React dependency and src directory
+ * Includes Next.js to simulate the most common use case
  */
 export function createProjectWithReact(): Record<string, string | null> {
   return {
     "/mock-project/package.json": JSON.stringify({
       name: "test-project",
-      dependencies: { "@tambo-ai/react": "^1.0.0" },
+      dependencies: {
+        next: "^14.0.0",
+        "@tambo-ai/react": "^1.0.0",
+      },
     }),
     "/mock-project/src": null,
   };
