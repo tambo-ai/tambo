@@ -33,33 +33,6 @@ function isMissingBucketError(error: unknown): boolean {
   );
 }
 
-/**
- * Upload a file to S3.
- * @param client - S3Client instance
- * @param bucket - Target bucket name
- * @param key - Object key (path) in the bucket
- * @param buffer - File content as Buffer
- * @param mimeType - MIME type of the file
- * @returns The key of the uploaded object
- */
-export async function uploadFile(
-  client: S3Client,
-  bucket: string,
-  key: string,
-  buffer: Buffer,
-  mimeType: string,
-): Promise<string> {
-  await client.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: buffer,
-      ContentType: mimeType,
-    }),
-  );
-  return key;
-}
-
 export interface GetFileResult {
   buffer: Buffer;
   contentType: string;

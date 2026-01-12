@@ -1,10 +1,5 @@
 import { S3Client } from "@aws-sdk/client-s3";
-import {
-  ensureBucket,
-  getFile,
-  getSignedUploadUrl,
-  uploadFile,
-} from "./operations";
+import { ensureBucket, getFile, getSignedUploadUrl } from "./operations";
 
 // Mock the AWS SDK
 jest.mock("@aws-sdk/client-s3", () => {
@@ -46,42 +41,6 @@ describe("storage operations", () => {
     jest.clearAllMocks();
     mockSend = jest.fn();
     mockClient = { send: mockSend } as unknown as jest.Mocked<S3Client>;
-  });
-
-  describe("uploadFile", () => {
-    it("uploads a file and returns the key", async () => {
-      mockSend.mockResolvedValue({});
-
-      const result = await uploadFile(
-        mockClient,
-        "test-bucket",
-        "test-key.pdf",
-        Buffer.from("test content"),
-        "application/pdf",
-      );
-
-      expect(result).toBe("test-key.pdf");
-      expect(mockSend).toHaveBeenCalledTimes(1);
-
-      const command = mockSend.mock.calls[0][0];
-      expect(command.Bucket).toBe("test-bucket");
-      expect(command.Key).toBe("test-key.pdf");
-      expect(command.ContentType).toBe("application/pdf");
-    });
-
-    it("throws if upload fails", async () => {
-      mockSend.mockRejectedValue(new Error("Upload failed"));
-
-      await expect(
-        uploadFile(
-          mockClient,
-          "test-bucket",
-          "test-key.pdf",
-          Buffer.from("test content"),
-          "application/pdf",
-        ),
-      ).rejects.toThrow("Upload failed");
-    });
   });
 
   describe("getFile", () => {
