@@ -18,6 +18,5 @@
       "@tambo-ai-cloud/db": ["../../packages/db/src"],
       "@tambo-ai-cloud/testing": ["../../packages/testing/src"]
     }
-  },
-  "exclude": ["scripts"]
+  }
 }

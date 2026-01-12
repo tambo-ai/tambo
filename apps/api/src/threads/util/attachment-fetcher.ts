@@ -4,17 +4,11 @@ import { getFile } from "@tambo-ai-cloud/backend";
 import { ATTACHMENT_PREFIX, parseAttachmentUri } from "@tambo-ai-cloud/core";
 
 /**
- * MIME types that should be returned as text content.
- * All other types will be returned as base64-encoded blobs.
+ * Non-text MIME types that should still be treated as text content.
+ * The isTextMimeType function also checks for the "text/" prefix,
+ * so this set only needs application/* types that are text-based.
  */
 const TEXT_MIME_TYPES = new Set([
-  "text/plain",
-  "text/html",
-  "text/css",
-  "text/javascript",
-  "text/markdown",
-  "text/csv",
-  "text/xml",
   "application/json",
   "application/xml",
   "application/javascript",
@@ -24,7 +18,7 @@ const TEXT_MIME_TYPES = new Set([
  * Check if a MIME type should be treated as text content.
  */
 function isTextMimeType(mimeType: string): boolean {
-  return TEXT_MIME_TYPES.has(mimeType) || mimeType.startsWith("text/");
+  return mimeType.startsWith("text/") || TEXT_MIME_TYPES.has(mimeType);
 }
 
 /**

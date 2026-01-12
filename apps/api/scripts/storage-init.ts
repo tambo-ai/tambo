@@ -10,13 +10,9 @@
  */
 
 import { config } from "dotenv";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { resolve } from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load environment variables from apps/api/.env
+// Load environment variables from apps/api/.env (script is in apps/api/scripts/)
 config({ path: resolve(__dirname, "../.env") });
 
 import {
