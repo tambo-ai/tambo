@@ -35,8 +35,6 @@ import {
   Square,
   X,
 } from "lucide-react";
-import dynamic from "next/dynamic";
-import Image from "next/image";
 import * as React from "react";
 import { useDebounce } from "use-debounce";
 import {
@@ -45,10 +43,10 @@ import {
   type ResourceItem,
   type TamboEditor,
 } from "./text-editor";
+
+// Lazy load DictationButton for code splitting (framework-agnostic alternative to next/dynamic)
 // eslint-disable-next-line @typescript-eslint/promise-function-async
-const DictationButton = dynamic(() => import("./dictation-button"), {
-  ssr: false,
-});
+const DictationButton = React.lazy(() => import("./dictation-button"));
 
 /**
  * Provider interface for searching resources (for "@" mentions).
@@ -1369,12 +1367,10 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
           )}
         >
           <div className="relative w-full h-full">
-            <Image
+            <img
               src={image.dataUrl}
               alt={displayName}
-              fill
-              unoptimized
-              className="object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
@@ -1523,7 +1519,9 @@ const MessageInputToolbar = React.forwardRef<
         })}
       </div>
       <div className="flex items-center gap-2">
-        <DictationButton />
+        <React.Suspense fallback={null}>
+          <DictationButton />
+        </React.Suspense>
         {/* Right side - only submit button */}
         {React.Children.map(children, (child): React.ReactNode => {
           if (
