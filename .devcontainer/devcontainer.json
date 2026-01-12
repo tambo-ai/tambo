@@ -6,15 +6,21 @@
   },
 
   // Ensure config directories exist on host before container creation
-  "initializeCommand": "mkdir -p ~/.config/gh ~/.config/claude ~/.claude",
+  "initializeCommand": "bash -lc 'mkdir -p \"$HOME/.config/gh\" \"$HOME/.config/claude\" \"$HOME/.claude\"'",
+
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
 
   // Mount host directories for git, gh, and claude authentication
   "mounts": [
-    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
-    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,readonly",
-    "source=${localEnv:HOME}/.config/gh,target=/root/.config/gh,type=bind",
-    "source=${localEnv:HOME}/.config/claude,target=/root/.config/claude,type=bind",
-    "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind"
+    // SECURITY: Mounting your host SSH credentials into a container is risky.
+    // We do it (read-only) because this repo often runs non-interactive devcontainers
+    // where auth prompts are painful (or impossible). Treat the container as trusted code.
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,readonly",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly",
+    "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
+    "source=${localEnv:HOME}/.config/claude,target=/home/vscode/.config/claude,type=bind",
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
   ],
 
   // Run setup script to install tools and configure shell
@@ -43,7 +49,7 @@
 
   // Connect to host Supabase PostgreSQL (port 54322)
   "containerEnv": {
-    "DATABASE_URL": "postgresql://postgres:postgres@host.docker.internal:54322/postgres"
+    "DATABASE_URL": "${localEnv:DATABASE_URL:postgresql://postgres:postgres@host.docker.internal:54322/postgres}"
   },
 
   // VS Code / Cursor extensions
@@ -78,8 +84,5 @@
     "ghcr.io/devcontainers-extra/features/starship:1": {},
     "ghcr.io/devcontainers-extra/features/direnv:1": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
-  },
-
-  // Run as root for simplicity (mise installed as root)
-  "remoteUser": "root"
+  }
 }
