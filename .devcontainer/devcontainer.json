@@ -6,8 +6,7 @@
   },
 
   // Ensure config directories exist on host before container creation
-  // NOTE: Requires bash to be present on the host.
-  "initializeCommand": "bash -c 'mkdir -p \"$HOME/.config/gh\" \"$HOME/.config/claude\" \"$HOME/.claude\"'",
+  "initializeCommand": "sh -lc 'mkdir -p \"$HOME/.config/gh\" \"$HOME/.config/claude\" \"$HOME/.claude\"'",
 
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
