@@ -1,7 +1,7 @@
 import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import { S3Client } from "@aws-sdk/client-s3";
 import { getFile } from "@tambo-ai-cloud/backend";
-import { ATTACHMENT_PREFIX, parseAttachmentUri } from "@tambo-ai-cloud/core";
+import { parseAttachmentUri } from "@tambo-ai-cloud/core";
 
 /**
  * Non-text MIME types that should still be treated as text content.
@@ -87,5 +87,3 @@ export function createAttachmentFetcher(
     };
   };
 }
-
-export { ATTACHMENT_PREFIX };
