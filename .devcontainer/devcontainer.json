@@ -1,0 +1,76 @@
+{
+  "name": "Tambo AI Dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  // Mount the workspace (supports worktrees - each worktree opens in its own container)
+  "workspaceFolder": "/workspace",
+
+  // Run mise install and npm install after container creation
+  "postCreateCommand": "mise trust && mise install && npm install",
+
+  // Forward dev server ports (8260-8263) - IDE will auto-assign if conflicts
+  "forwardPorts": [8260, 8261, 8262, 8263],
+  "portsAttributes": {
+    "8260": {
+      "label": "Web (Next.js)",
+      "onAutoForward": "notify"
+    },
+    "8261": {
+      "label": "API (NestJS)",
+      "onAutoForward": "notify"
+    },
+    "8262": {
+      "label": "Showcase",
+      "onAutoForward": "notify"
+    },
+    "8263": {
+      "label": "Docs",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // Connect to host Supabase PostgreSQL (port 54322)
+  "containerEnv": {
+    "DATABASE_URL": "postgresql://postgres:postgres@host.docker.internal:54322/postgres"
+  },
+
+  // VS Code / Cursor extensions
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "prisma.prisma"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "typescript.preferences.importModuleSpecifier": "relative"
+      }
+    }
+  },
+
+  // Features to add to the container
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/mise:1": {},
+    "ghcr.io/devcontainers-extra/features/supabase-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/starship:1": {},
+    "ghcr.io/devcontainers-extra/features/direnv:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+
+  // Run as root for simplicity (mise installed as root)
+  "remoteUser": "root"
+}
