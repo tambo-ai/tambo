@@ -197,7 +197,7 @@ function ThreadList() {
       <h2>Conversations</h2>
       {threads.map((thread) => (
         <div key={thread.id} className="thread-item">
-          <h3>Conversation</h3>
+          <h3>{thread.name || "Untitled Conversation"}</h3>
           <p>{new Date(thread.createdAt).toLocaleDateString()}</p>
         </div>
       ))}
@@ -227,7 +227,7 @@ function ThreadList() {
           onClick={() => switchCurrentThread(thread.id)}
           className={currentThread?.id === thread.id ? "active" : ""}
         >
-          Conversation
+          {thread.name || "Untitled Conversation"}
         </button>
       ))}
     </div>
@@ -271,7 +271,7 @@ function ConversationUI() {
             onClick={() => switchCurrentThread(t.id)}
             className={thread?.id === t.id ? "active" : ""}
           >
-            Conversation
+            {t.name || "Untitled Conversation"}
           </button>
         ))}
       </aside>
