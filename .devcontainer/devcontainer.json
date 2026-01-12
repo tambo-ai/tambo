@@ -6,7 +6,8 @@
   },
 
   // Ensure config directories exist on host before container creation
-  "initializeCommand": "bash -lc 'mkdir -p \"$HOME/.config/gh\" \"$HOME/.config/claude\" \"$HOME/.claude\"'",
+  // NOTE: Requires bash to be present on the host.
+  "initializeCommand": "bash -c 'mkdir -p \"$HOME/.config/gh\" \"$HOME/.config/claude\" \"$HOME/.claude\"'",
 
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
@@ -16,8 +17,10 @@
   // remoteUser, update these mount targets accordingly.
   "mounts": [
     // SECURITY: Mounting your host SSH credentials into a container is risky.
+    // Any code running in this container could read and exfiltrate your SSH keys.
     // We do it (read-only) because this repo often runs non-interactive devcontainers
     // where auth prompts are painful (or impossible). Treat the container as trusted code.
+    // If you prefer not to mount ~/.ssh, consider SSH agent forwarding or using gh auth.
     "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,readonly",
     "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly",
     "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
@@ -51,6 +54,7 @@
 
   // Connect to host Supabase PostgreSQL (port 54322)
   // Prefer host DATABASE_URL if set, but it must be reachable from inside Docker.
+  // WARNING: Be careful not to point this at production from your host env.
   // For local Supabase, use host.docker.internal:54322 (not localhost).
   "containerEnv": {
     "DATABASE_URL": "${localEnv:DATABASE_URL:postgresql://postgres:postgres@host.docker.internal:54322/postgres}"
