@@ -8,8 +8,16 @@
   // Mount the workspace (supports worktrees - each worktree opens in its own container)
   "workspaceFolder": "/workspace",
 
-  // Run mise install and npm install after container creation
-  "postCreateCommand": "mise trust && mise install && npm install",
+  // Mount host directories for git, gh, and claude authentication
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,readonly",
+    "source=${localEnv:HOME}/.config/gh,target=/root/.config/gh,type=bind",
+    "source=${localEnv:HOME}/.config/claude,target=/root/.config/claude,type=bind"
+  ],
+
+  // Run mise install, npm install, and configure starship
+  "postCreateCommand": "mise trust && mise install && npm install && echo 'eval \"$(starship init bash)\"' >> /root/.bashrc",
 
   // Forward dev server ports (8260-8263) - IDE will auto-assign if conflicts
   "forwardPorts": [8260, 8261, 8262, 8263],

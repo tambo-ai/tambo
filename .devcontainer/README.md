@@ -61,6 +61,17 @@ npm run dev:docs     # Just docs site (port 8263)
 
 All containers connect to Supabase PostgreSQL on your host via `host.docker.internal:54322`. The `DATABASE_URL` is pre-configured.
 
+### Authentication & Configuration
+
+The devcontainer automatically mounts your host authentication credentials so you don't need to log in again:
+
+- **SSH keys** (`~/.ssh`) - Git operations use your existing SSH keys (read-only)
+- **Git config** (`~/.gitconfig`) - Your git username, email, and settings (read-only)
+- **GitHub CLI** (`~/.config/gh`) - Your `gh` authentication persists across container rebuilds
+- **Claude Code** (`~/.config/claude`) - Your Claude sessions and login persist across rebuilds
+
+**Starship prompt** is automatically configured on first container creation. Open a new terminal to see the improved prompt with git branch, Node version, and more.
+
 ## Cleanup
 
 Remove a worktree when done:
