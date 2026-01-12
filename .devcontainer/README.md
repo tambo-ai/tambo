@@ -70,7 +70,7 @@ The devcontainer automatically mounts your host authentication credentials so yo
 - **GitHub CLI** (`~/.config/gh`) - Your `gh` authentication persists across container rebuilds
 - **Claude Code** (`~/.config/claude`) - Your Claude sessions and login persist across rebuilds
 
-**Starship prompt** is automatically configured on first container creation. Open a new terminal to see the improved prompt with git branch, Node version, and more.
+**Starship prompt** is automatically configured on first container creation with a fast, minimal config optimized for large monorepos (`.config/starship.toml`). Open a new terminal to see the improved prompt with git branch, Node version, and more.
 
 ### Attaching from External Terminal
 
