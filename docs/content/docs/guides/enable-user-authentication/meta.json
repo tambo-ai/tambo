@@ -1,7 +1,6 @@
 {
-  "title": "User Authentication",
+  "title": "Add User Authentication",
   "pages": [
-    "overview",
     "nextauth",
     "auth0",
     "clerk",

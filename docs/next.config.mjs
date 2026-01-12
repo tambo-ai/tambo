@@ -31,6 +31,17 @@ const config = {
         destination: "/concepts/conversation-storage",
         permanent: true,
       },
+      // User Authentication reorganization
+      {
+        source: "/concepts/user-authentication/overview",
+        destination: "/concepts/user-authentication",
+        permanent: true,
+      },
+      {
+        source: "/concepts/user-authentication/:provider",
+        destination: "/guides/enable-user-authentication/:provider",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

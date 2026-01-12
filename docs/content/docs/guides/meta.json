@@ -4,6 +4,7 @@
     "register-generative-components",
     "register-interactable-components",
     "customize-interactables-context",
-    "build-custom-conversation-ui"
+    "build-custom-conversation-ui",
+    "enable-user-authentication"
   ]
 }
