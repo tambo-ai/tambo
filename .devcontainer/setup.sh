@@ -5,6 +5,9 @@ ensure_line() {
   local line="$1" file="$2"
 
   if ! grep -qxF "$line" "$file" 2>/dev/null; then
+    if [ -s "$file" ] && [ -n "$(tail -c1 "$file" 2>/dev/null)" ]; then
+      echo >> "$file"
+    fi
     echo "$line" >> "$file"
   fi
 }
@@ -52,9 +55,7 @@ echo "Using Node version: $(node --version)"
 echo "Using npm version: $(npm --version)"
 
 # Install npm dependencies with correct Node version
-if [ ! -d node_modules ]; then
-  npm ci
-fi
+npm ci
 
 # Set up starship config
 mkdir -p "$HOME/.config"

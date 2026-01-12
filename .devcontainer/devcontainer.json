@@ -12,6 +12,8 @@
   "updateRemoteUserUID": true,
 
   // Mount host directories for git, gh, and claude authentication
+  // NOTE: Mount targets assume remoteUser=vscode (home=/home/vscode). If you change
+  // remoteUser, update these mount targets accordingly.
   "mounts": [
     // SECURITY: Mounting your host SSH credentials into a container is risky.
     // We do it (read-only) because this repo often runs non-interactive devcontainers
@@ -48,6 +50,8 @@
   },
 
   // Connect to host Supabase PostgreSQL (port 54322)
+  // Prefer host DATABASE_URL if set, but it must be reachable from inside Docker.
+  // For local Supabase, use host.docker.internal:54322 (not localhost).
   "containerEnv": {
     "DATABASE_URL": "${localEnv:DATABASE_URL:postgresql://postgres:postgres@host.docker.internal:54322/postgres}"
   },
