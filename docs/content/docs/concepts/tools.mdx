@@ -1,0 +1,57 @@
+---
+title: Tools
+description: How function calling transforms natural language interfaces from conversations into operating systems
+---
+
+Tools are functions that allow Tambo to take actions in response to natural language. When a user asks "What's the weather in San Francisco?", Tambo can use a registered tool that calls a weather API, retrieves current data, and use that data to populate a `WeatherDisplay` component.
+
+## Tambos Approaches for Enabling Tools
+
+There are two distinct approaches to providing tools to Tambo, each with its own philosophy and trade-offs.
+
+### Local Tools
+
+Local tools are JavaScript functions that execute in your React app, defined by you and registered with Tambo. When processing a user message, Tambo may decide to use tools you have registered to retrieve information or to take actions. Local tools allow you to easily extend the capabilities of Tambo.
+
+```tsx
+const getWeather = (city: string) => {
+  return `The weather in ${city} is warm and sunny!`;
+};
+
+export const weatherTool: TamboTool = {
+  name: "getWeather",
+  description: "A tool to get the current weather conditions of a city",
+  tool: getWeather,
+  toolSchema: z
+    .function()
+    .args(z.string().describe("The city name to get weather information for"))
+    .returns(z.string()),
+};
+
+<TamboProvider tools={[weatherTool]}>
+  <App />
+</TamboProvider>;
+```
+
+import LearnMore from "@/components/learn-more";
+import { Wrench } from "lucide-react";
+
+<LearnMore
+  title="Register Tools"
+  description="Step-by-step guide for adding custom tools to your application"
+  href="/guides/register-tools"
+  icon={Wrench}
+/>
+
+### MCP Tools
+
+MCP tools come from external servers that package tool definitions and implementations into reusable services. Services like Linear and GitHub provide MCP servers, letting you gain powerful integrations without writing them yourself, or as a way to expose your own API to Tambo. MCP tools are automatically discovered and made available to Tambo when you connect to an MCP server (either server-side or client-side).
+
+import { Network } from "lucide-react";
+
+<LearnMore
+  title="Model Context Protocol"
+  description="Connect to external MCP servers for ready-made integrations"
+  href="/concepts/model-context-protocol"
+  icon={Network}
+/>

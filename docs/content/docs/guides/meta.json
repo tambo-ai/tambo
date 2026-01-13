@@ -5,6 +5,7 @@
     "register-interactable-components",
     "customize-interactables-context",
     "build-custom-conversation-ui",
+    "register-tools",
     "enable-user-authentication"
   ]
 }

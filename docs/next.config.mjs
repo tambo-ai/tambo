@@ -42,6 +42,12 @@ const config = {
         destination: "/guides/enable-user-authentication/:provider",
         permanent: true,
       },
+      // Tools reorganization
+      {
+        source: "/concepts/tools/adding-tools",
+        destination: "/guides/register-tools",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
