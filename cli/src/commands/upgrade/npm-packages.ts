@@ -3,6 +3,11 @@ import ora from "ora";
 import path from "path";
 import { KNOWN_SAFE_PACKAGES } from "../../constants/packages.js";
 import { execFileSync } from "../../utils/interactive.js";
+import {
+  detectPackageManager,
+  getInstallCommand,
+  getPackageRunnerArgs,
+} from "../../utils/package-manager.js";
 import type { UpgradeOptions } from "./index.js";
 
 /**
@@ -11,7 +16,8 @@ import type { UpgradeOptions } from "./index.js";
 export async function upgradeNpmPackages(
   options: UpgradeOptions,
 ): Promise<boolean> {
-  const spinner = ora("Upgrading npm packages...").start();
+  const pm = detectPackageManager();
+  const spinner = ora(`Upgrading packages using ${pm}...`).start();
   const allowNonInteractive = Boolean(options.yes);
 
   try {
@@ -22,15 +28,18 @@ export async function upgradeNpmPackages(
       return false;
     }
 
-    // First, try to install npm-check-updates if not available
-    spinner.text = "Checking for npm-check-updates...";
+    // Get the package runner for this package manager
+    const [runnerCmd, runnerArgs] = getPackageRunnerArgs(pm);
+
+    // First, check if the package runner is available
+    spinner.text = `Checking for ${runnerCmd}...`;
     try {
-      execFileSync("npx", ["--version"], {
+      execFileSync(runnerCmd, ["--version"], {
         stdio: "ignore",
         allowNonInteractive,
       });
     } catch {
-      spinner.fail("npx is required but not available");
+      spinner.fail(`${runnerCmd} is required but not available`);
       return false;
     }
 
@@ -47,14 +56,13 @@ export async function upgradeNpmPackages(
     );
 
     if (installedSafePackages.length === 0) {
-      spinner.info(
-        "No packages found to update. Skipping npm package updates.",
-      );
+      spinner.info("No packages found to update. Skipping package updates.");
       return true;
     }
     spinner.stop();
 
     const ncuArgs = [
+      ...runnerArgs,
       "npm-check-updates",
       "--upgrade",
       "--target",
@@ -66,28 +74,29 @@ export async function upgradeNpmPackages(
       installedSafePackages.join(","),
     ];
 
-    execFileSync("npx", ncuArgs, {
+    execFileSync(runnerCmd, ncuArgs, {
       stdio: "inherit",
       allowNonInteractive,
     });
 
     // Now install the updated dependencies
     const installSpinner = ora("Installing updated packages...").start();
-    const npmArgs = [
-      "install",
-      ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
-    ];
+    const installCmd = getInstallCommand(pm);
+    // --legacy-peer-deps is npm-specific
+    const legacyPeerDepsFlag =
+      options.legacyPeerDeps && pm === "npm" ? ["--legacy-peer-deps"] : [];
+    const installArgs = [installCmd, ...legacyPeerDepsFlag];
 
-    execFileSync("npm", npmArgs, {
+    execFileSync(pm, installArgs, {
       stdio: options.silent ? "ignore" : "inherit",
       allowNonInteractive,
     });
 
     console.log("\n");
-    installSpinner.succeed("Successfully upgraded npm packages\n");
+    installSpinner.succeed(`Successfully upgraded packages using ${pm}\n`);
     return true;
   } catch (error) {
-    spinner.fail(`Failed to upgrade npm packages: ${error}`);
+    spinner.fail(`Failed to upgrade packages: ${error}`);
     return false;
   }
 }
