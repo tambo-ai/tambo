@@ -230,32 +230,32 @@ export function ProjectTable({
                       />
                     </TableCell>
                     <TableCell className={`${cellClass} font-medium px-4`}>
-                      {/* Always show as link on small screens, respect compact prop on larger screens */}
+                      {/* Show as link when we have an ID; otherwise fall back to plain text */}
                       <div className="lg:hidden">
                         {projectId ? (
                           <Link
                             href={`/dashboard/${projectId}`}
-                            className="inline-flex items-center gap-1 transition-colors duration-100 group"
+                            className="inline-flex items-center gap-1 transition-colors duration-100 group rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                           >
-                            <span className="group-hover:underline underline-offset-4">
+                            <span className="group-hover:underline group-focus-visible:underline underline-offset-4">
                               {project.name}
                             </span>
-                            <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
+                            <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-100" />
                           </Link>
                         ) : (
                           project.name
                         )}
                       </div>
                       <div className="hidden lg:block">
-                        {compact && projectId ? (
+                        {projectId ? (
                           <Link
                             href={`/dashboard/${projectId}`}
-                            className="inline-flex items-center gap-1 transition-colors duration-100 group"
+                            className="inline-flex items-center gap-1 transition-colors duration-100 group rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                           >
-                            <span className="group-hover:underline underline-offset-4">
+                            <span className="group-hover:underline group-focus-visible:underline underline-offset-4">
                               {project.name}
                             </span>
-                            <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
+                            <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-100" />
                           </Link>
                         ) : (
                           project.name
