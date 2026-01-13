@@ -822,10 +822,14 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
-              toolCallCounts: {
-                ...(params.toolCallCounts ?? {}),
-                [toolName]: (params.toolCallCounts?.[toolName] ?? 0) + 1,
-              },
+              ...(toolName
+                ? {
+                    toolCallCounts: {
+                      ...(params.toolCallCounts ?? {}),
+                      [toolName]: (params.toolCallCounts?.[toolName] ?? 0) + 1,
+                    },
+                  }
+                : {}),
               messageToAppend: {
                 content: contentParts,
                 role: "tool",
@@ -959,7 +963,12 @@ export const TamboThreadProvider: React.FC<
       updateThreadStatus(completedThreadId, GenerationStage.COMPLETE);
       maybeAutoGenerateThreadName(completedThreadId, contextKey);
 
-      return finalMessage ?? createEmptyMessage(completedThreadId);
+      return (
+        finalMessage ?? {
+          ...createEmptyMessage(completedThreadId),
+          content: [{ type: "text", text: "Error processing stream" }],
+        }
+      );
     },
     [
       addThreadMessage,
