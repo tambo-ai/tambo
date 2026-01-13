@@ -100,7 +100,7 @@
     "remark-rehype": "^11.1.2",
     "resend": "^6.6.0",
     "shiki": "^3.20.0",
-    "streamdown": "^1.6.10",
+    "streamdown": "^1.6.11",
     "superjson": "^2.2.6",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
