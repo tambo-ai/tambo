@@ -1810,6 +1810,576 @@ describe("TamboThreadProvider", () => {
         }),
       );
     });
+
+    it("should handle transformToContent returning empty array", async () => {
+      const mockTransformToContent = jest.fn().mockReturnValue([]);
+
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "empty-transform-tool",
+              tool: jest.fn().mockResolvedValue({ data: "result" }),
+              description: "Tool returning empty transform",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              transformToContent: mockTransformToContent,
+            },
+          ],
+        },
+      ];
+
+      const WrapperWithEmptyTransformTool = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const client = useTamboClient();
+        const queryClient = useTamboQueryClient();
+
+        return (
+          <TamboClientContext.Provider
+            value={{
+              client,
+              queryClient,
+              isUpdatingToken: false,
+            }}
+          >
+            <TamboRegistryProvider components={customToolRegistry}>
+              <TamboContextHelpersProvider
+                contextHelpers={{
+                  currentTimeContextHelper: () => null,
+                  currentPageContextHelper: () => null,
+                }}
+              >
+                <TamboMcpTokenProvider>
+                  <TamboThreadProvider streaming={false}>
+                    {children}
+                  </TamboThreadProvider>
+                </TamboMcpTokenProvider>
+              </TamboContextHelpersProvider>
+            </TamboRegistryProvider>
+          </TamboClientContext.Provider>
+        );
+      };
+
+      const mockToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "tool-call-1",
+          content: [{ type: "text", text: "Tool call" }],
+          role: "tool",
+          threadId: "test-thread-1",
+          toolCallRequest: {
+            toolName: "empty-transform-tool",
+            parameters: [{ parameterName: "input", parameterValue: "test" }],
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      jest
+        .mocked(mockThreadsApi.advanceByID)
+        .mockResolvedValueOnce(mockToolCallResponse)
+        .mockResolvedValueOnce({
+          responseMessageDto: {
+            id: "final-response",
+            content: [{ type: "text", text: "Final response" }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+          mcpAccessToken: "test-mcp-access-token",
+        });
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: WrapperWithEmptyTransformTool,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Use empty transform tool", {
+          threadId: "test-thread-1",
+          streamResponse: false,
+        });
+      });
+
+      // Verify transformToContent was called
+      expect(mockTransformToContent).toHaveBeenCalledWith({ data: "result" });
+
+      // Verify the second advance call used empty content array
+      expect(mockThreadsApi.advanceByID).toHaveBeenLastCalledWith(
+        "test-thread-1",
+        expect.objectContaining({
+          messageToAppend: expect.objectContaining({
+            content: [],
+            role: "tool",
+          }),
+        }),
+      );
+    });
+  });
+
+  describe("tamboStreamableHint streaming behavior", () => {
+    it("should call streamable tool during streaming when tamboStreamableHint is true", async () => {
+      const streamableToolFn = jest
+        .fn()
+        .mockResolvedValue({ data: "streamed" });
+
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "streamable-tool",
+              tool: streamableToolFn,
+              description: "Tool safe for streaming",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              annotations: { tamboStreamableHint: true },
+            },
+          ],
+        },
+      ];
+
+      const WrapperWithStreamableTool = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const client = useTamboClient();
+        const queryClient = useTamboQueryClient();
+
+        return (
+          <TamboClientContext.Provider
+            value={{
+              client,
+              queryClient,
+              isUpdatingToken: false,
+            }}
+          >
+            <TamboRegistryProvider components={customToolRegistry}>
+              <TamboContextHelpersProvider
+                contextHelpers={{
+                  currentTimeContextHelper: () => null,
+                  currentPageContextHelper: () => null,
+                }}
+              >
+                <TamboMcpTokenProvider>
+                  <TamboThreadProvider streaming={true}>
+                    {children}
+                  </TamboThreadProvider>
+                </TamboMcpTokenProvider>
+              </TamboContextHelpersProvider>
+            </TamboRegistryProvider>
+          </TamboClientContext.Provider>
+        );
+      };
+
+      // First chunk initializes finalMessage
+      const mockInitialChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "initial-chunk",
+          content: [{ type: "text", text: "Starting..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      // Second chunk has the tool call - this triggers streaming tool handling
+      const mockToolCallChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "initial-chunk", // Same ID as initial - it's an update
+          content: [{ type: "text", text: "Streaming..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          component: {
+            componentName: "",
+            componentState: {},
+            message: "",
+            props: {},
+            toolCallRequest: {
+              toolName: "streamable-tool",
+              parameters: [
+                { parameterName: "input", parameterValue: "stream-test" },
+              ],
+            },
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockFinalChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "initial-chunk",
+          content: [{ type: "text", text: "Complete" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockInitialChunk;
+          yield mockToolCallChunk;
+          yield mockFinalChunk;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValueOnce(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: WrapperWithStreamableTool,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Test streamable tool", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Streamable tool should be called during streaming
+      expect(streamableToolFn).toHaveBeenCalledWith({ input: "stream-test" });
+    });
+
+    it("should NOT call non-streamable tool during streaming", async () => {
+      const nonStreamableToolFn = jest
+        .fn()
+        .mockResolvedValue({ data: "result" });
+
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "non-streamable-tool",
+              tool: nonStreamableToolFn,
+              description: "Tool not safe for streaming",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              // No tamboStreamableHint - defaults to false
+            },
+          ],
+        },
+      ];
+
+      const WrapperWithNonStreamableTool = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const client = useTamboClient();
+        const queryClient = useTamboQueryClient();
+
+        return (
+          <TamboClientContext.Provider
+            value={{
+              client,
+              queryClient,
+              isUpdatingToken: false,
+            }}
+          >
+            <TamboRegistryProvider components={customToolRegistry}>
+              <TamboContextHelpersProvider
+                contextHelpers={{
+                  currentTimeContextHelper: () => null,
+                  currentPageContextHelper: () => null,
+                }}
+              >
+                <TamboMcpTokenProvider>
+                  <TamboThreadProvider streaming={true}>
+                    {children}
+                  </TamboThreadProvider>
+                </TamboMcpTokenProvider>
+              </TamboContextHelpersProvider>
+            </TamboRegistryProvider>
+          </TamboClientContext.Provider>
+        );
+      };
+
+      // First chunk initializes finalMessage
+      const mockInitialChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Starting..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      // Second chunk has the tool call - but tool is NOT streamable
+      const mockToolCallChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Streaming..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          component: {
+            componentName: "",
+            componentState: {},
+            message: "",
+            props: {},
+            toolCallRequest: {
+              toolName: "non-streamable-tool",
+              parameters: [{ parameterName: "input", parameterValue: "test" }],
+            },
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockFinalChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Complete" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockInitialChunk;
+          yield mockToolCallChunk;
+          yield mockFinalChunk;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValueOnce(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: WrapperWithNonStreamableTool,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Test non-streamable tool", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Non-streamable tool should NOT be called during the streaming chunk phase
+      // (it would only be called when generationStage is COMPLETE with a toolCallRequest)
+      expect(nonStreamableToolFn).not.toHaveBeenCalled();
+    });
+
+    it("should only call streamable tools during streaming when mixed", async () => {
+      const streamableToolFn = jest
+        .fn()
+        .mockResolvedValue({ data: "streamed" });
+      const nonStreamableToolFn = jest
+        .fn()
+        .mockResolvedValue({ data: "not-streamed" });
+
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "streamable-tool",
+              tool: streamableToolFn,
+              description: "Tool safe for streaming",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              annotations: { tamboStreamableHint: true },
+            },
+            {
+              name: "non-streamable-tool",
+              tool: nonStreamableToolFn,
+              description: "Tool not safe for streaming",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              annotations: { tamboStreamableHint: false },
+            },
+          ],
+        },
+      ];
+
+      const WrapperWithMixedTools = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const client = useTamboClient();
+        const queryClient = useTamboQueryClient();
+
+        return (
+          <TamboClientContext.Provider
+            value={{
+              client,
+              queryClient,
+              isUpdatingToken: false,
+            }}
+          >
+            <TamboRegistryProvider components={customToolRegistry}>
+              <TamboContextHelpersProvider
+                contextHelpers={{
+                  currentTimeContextHelper: () => null,
+                  currentPageContextHelper: () => null,
+                }}
+              >
+                <TamboMcpTokenProvider>
+                  <TamboThreadProvider streaming={true}>
+                    {children}
+                  </TamboThreadProvider>
+                </TamboMcpTokenProvider>
+              </TamboContextHelpersProvider>
+            </TamboRegistryProvider>
+          </TamboClientContext.Provider>
+        );
+      };
+
+      // First chunk initializes finalMessage
+      const mockInitialChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Starting..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      // Second chunk calls the streamable tool
+      const mockStreamableToolChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+        {
+          responseMessageDto: {
+            id: "streaming-chunk",
+            content: [{ type: "text", text: "Calling streamable..." }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            component: {
+              componentName: "",
+              componentState: {},
+              message: "",
+              props: {},
+              toolCallRequest: {
+                toolName: "streamable-tool",
+                parameters: [
+                  { parameterName: "input", parameterValue: "streamed-input" },
+                ],
+              },
+            },
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+
+      // Third chunk calls the non-streamable tool
+      const mockNonStreamableToolChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+        {
+          responseMessageDto: {
+            id: "streaming-chunk",
+            content: [{ type: "text", text: "Calling non-streamable..." }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            component: {
+              componentName: "",
+              componentState: {},
+              message: "",
+              props: {},
+              toolCallRequest: {
+                toolName: "non-streamable-tool",
+                parameters: [
+                  {
+                    parameterName: "input",
+                    parameterValue: "non-streamed-input",
+                  },
+                ],
+              },
+            },
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+
+      const mockFinalChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Complete" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockInitialChunk;
+          yield mockStreamableToolChunk;
+          yield mockNonStreamableToolChunk;
+          yield mockFinalChunk;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValueOnce(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: WrapperWithMixedTools,
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Test mixed tools", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Only the streamable tool should be called during streaming
+      expect(streamableToolFn).toHaveBeenCalledWith({
+        input: "streamed-input",
+      });
+      expect(nonStreamableToolFn).not.toHaveBeenCalled();
+    });
   });
 
   describe("auto-generate thread name", () => {

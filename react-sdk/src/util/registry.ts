@@ -152,6 +152,9 @@ export const mapTamboToolToContextTool = (
     ...("maxCalls" in tool && tool.maxCalls !== undefined
       ? { maxCalls: tool.maxCalls }
       : {}),
+    ...("annotations" in tool && tool.annotations !== undefined
+      ? { annotations: tool.annotations }
+      : {}),
   };
 };
 
