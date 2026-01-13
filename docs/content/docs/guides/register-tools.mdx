@@ -3,80 +3,81 @@ title: Register Tools
 description: How to add custom tools to extend Tambo's capabilities
 ---
 
-Define your tool function and register it with Tambo. Local tools are JavaScript functions that run in your React app. Use them for DOM interactions, wrapping authenticated fetch requests, or accessing React state.
+import LearnMore from "@/components/learn-more";
+import { Wrench } from "lucide-react";
+
+This guide shows you how to register custom JavaScript functions as tools so Tambo can call them to retrieve data or take actions in response to user messages.
+
+<LearnMore
+  title="Learn more about tools"
+  description="Understand what tools are and how they enable Tambo to take actions"
+  href="/concepts/tools"
+  icon={Wrench}
+/>
+
+## Prerequisites
+
+- TamboProvider set up in your application
+- Zod installed for schema definitions
+
+## Step 1: Define your tool function
+
+Create a JavaScript function that performs the action:
 
 ```tsx
-// Define the tool function. Avoid exposing third‑party API keys in the browser —
-// call your own API route (or an MCP server) that uses a server‑side key.
 const getWeather = async (city: string) => {
-  try {
-    const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } catch (error) {
-    throw new Error(`Failed to fetch weather for ${city}`);
-  }
+  const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
 };
-
-// Create a TamboTool definition including your tool function
-export const tools: TamboTool[] = [
-  {
-    name: "get_weather",
-    description: "Fetch current weather information for a specified city",
-    tool: getWeather,
-    toolSchema: z
-      .function()
-      .args(z.string().describe("The city to fetch weather for"))
-      .returns(
-        z.object({
-          location: z.object({
-            name: z.string(),
-          }),
-        }),
-      ),
-  },
-];
-
-// Register your tools with Tambo
-<TamboProvider tools={tools}>
-  <App />
-</TamboProvider>;
 ```
 
-Now Tambo can fetch weather information for a city when responding to a message!
+## Step 2: Create the tool definition
 
-> Note: Do not pass secret API keys to the browser. Keep provider keys server‑side (e.g., in an API route or MCP server). The example above calls `/api/weather`, which should read a secret like `WEATHER_API_KEY` on the server.
-
-**When to use local tools:** DOM interactions, wrapping authenticated fetch requests, or accessing React state. Runs entirely in the browser. For server-side integrations with databases, APIs, or file systems, consider using [MCP servers](/concepts/model-context-protocol) instead.
-
-```ts title="Example: Next.js route handler (app/api/weather/route.ts)"
-import { NextResponse } from "next/server";
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const city = searchParams.get("city");
-  if (!city)
-    return NextResponse.json({ error: "city required" }, { status: 400 });
-
-  const key = process.env.WEATHER_API_KEY!; // server-side secret
-  const resp = await fetch(
-    `https://api.weatherapi.com/v1/current.json?key=${key}&q=${encodeURIComponent(city)}`,
-  );
-  const data = await resp.json();
-  return NextResponse.json(data);
-}
-```
-
-## Returning Rich Content
-
-By default, tool responses are converted to strings and sent back to the AI as text. However, tools can return rich content like images, audio, or mixed media by using the `transformToContent` parameter.
-
-The `transformToContent` function transforms your tool's return value into an array of content parts before sending it back to the AI. This is useful when your tool needs to return images, audio files, or a combination of different content types.
+Wrap your function in a TamboTool object with a schema. The `description` field helps Tambo decide when to use your tool, and `.describe()` on schema fields helps Tambo understand how to call it with the right parameters.
 
 ```tsx
 import { TamboTool } from "@tambo-ai/react";
 import { z } from "zod";
 
+export const weatherTool: TamboTool = {
+  name: "get_weather",
+  // Clear description of what the tool does and when to use it
+  description: "Fetch current weather information for a specified city",
+  tool: getWeather,
+  toolSchema: z
+    .function()
+    // Use .describe() to explain each parameter
+    .args(z.string().describe("The city to fetch weather for"))
+    .returns(
+      z.object({
+        location: z.object({
+          name: z.string(),
+        }),
+      }),
+    ),
+};
+```
+
+Write clear, specific descriptions so Tambo knows when to call your tool and what values to pass.
+
+## Step 3: Register with TamboProvider
+
+Pass your tools array to the provider:
+
+```tsx
+<TamboProvider tools={[weatherTool]}>
+  <App />
+</TamboProvider>
+```
+
+Tambo can now call your tool when relevant to user messages.
+
+## Return Rich Content (Optional)
+
+To return images, audio, or mixed media instead of plain text, add `transformToContent` to your tool definition:
+
+```tsx
 const getProductImage = async (productId: string) => {
   const product = await fetchProductData(productId);
   return {
@@ -87,54 +88,32 @@ const getProductImage = async (productId: string) => {
   };
 };
 
-export const tools: TamboTool[] = [
-  {
-    name: "get_product_image",
-    description: "Fetch product information including image",
-    tool: getProductImage,
-    toolSchema: z
-      .function()
-      .args(z.string().describe("Product ID"))
-      .returns(
-        z.object({
-          name: z.string(),
-          description: z.string(),
-          imageUrl: z.string(),
-          price: z.number(),
-        }),
-      ),
-    // Transform the result into content parts
-    transformToContent: (result) => [
-      {
-        type: "text",
-        text: `${result.name} - $${result.price}\n\n${result.description}`,
-      },
-      {
-        type: "image_url",
-        image_url: { url: result.imageUrl },
-      },
-    ],
-  },
-];
+export const productTool: TamboTool = {
+  name: "get_product",
+  description: "Fetch product information with image",
+  tool: getProductImage,
+  toolSchema: z
+    .function()
+    .args(z.string().describe("Product ID"))
+    .returns(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        imageUrl: z.string(),
+        price: z.number(),
+      }),
+    ),
+  transformToContent: (result) => [
+    {
+      type: "text",
+      text: `${result.name} - $${result.price}\n\n${result.description}`,
+    },
+    {
+      type: "image_url",
+      image_url: { url: result.imageUrl },
+    },
+  ],
+};
 ```
 
-### Supported Content Types
-
-The `transformToContent` function can return an array of content parts with the following types:
-
-- **Text**: `{ type: "text", text: string }`
-- **Image**: `{ type: "image_url", image_url: { url: string } }`
-- **Audio**: `{ type: "input_audio", input_audio: { data: string, format: "wav" | "mp3" } }`
-
-You can mix and match these content types to create rich, multimedia responses from your tools.
-
-### When to Use transformToContent
-
-Use `transformToContent` when your tool:
-
-- Returns image URLs that should be displayed inline
-- Generates audio that should be played
-- Needs to return a combination of text and media
-- Integrates with MCP servers (which already return content in this format)
-
-If your tool only returns text or simple data, you don't need `transformToContent` - the default behavior will handle it automatically.
+Content types: `text`, `image_url`, `input_audio`
