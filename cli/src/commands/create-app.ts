@@ -2,10 +2,15 @@ import chalk from "chalk";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
-import { execSync, interactivePrompt } from "../utils/interactive.js";
+import {
+  execFileSync,
+  execSync,
+  interactivePrompt,
+} from "../utils/interactive.js";
 import {
   detectPackageManager,
   getInstallCommand,
+  validatePackageManager,
 } from "../utils/package-manager.js";
 
 // Define available templates
@@ -273,12 +278,13 @@ export async function handleCreateApp(
     }
 
     // Install dependencies with spinner
-    // Detect package manager from the target directory (which is now cwd)
-    const pm = detectPackageManager();
+    // Detect package manager from the target directory (which is now cwd after chdir above)
+    const pm = detectPackageManager(targetDir);
+    validatePackageManager(pm);
     const installCmd = getInstallCommand(pm);
     // --legacy-peer-deps is npm-specific
     const legacyPeerDepsFlag =
-      options.legacyPeerDeps && pm === "npm" ? " --legacy-peer-deps" : "";
+      options.legacyPeerDeps && pm === "npm" ? ["--legacy-peer-deps"] : [];
 
     const installSpinner = ora({
       text: `Installing dependencies using ${pm}...`,
@@ -286,7 +292,8 @@ export async function handleCreateApp(
     }).start();
 
     try {
-      execSync(`${pm} ${installCmd}${legacyPeerDepsFlag}`, { stdio: "ignore" });
+      const args = [installCmd, ...legacyPeerDepsFlag];
+      execFileSync(pm, args, { stdio: "ignore", allowNonInteractive: true });
       installSpinner.succeed("Dependencies installed successfully");
     } catch (_error) {
       installSpinner.fail("Failed to install dependencies");

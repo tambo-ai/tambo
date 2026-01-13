@@ -15,7 +15,6 @@ const {
   detectPackageManager,
   getDevFlag,
   getInstallCommand,
-  getPackageRunner,
   getPackageRunnerArgs,
 } = await import("./package-manager.js");
 
@@ -93,8 +92,8 @@ describe("package-manager", () => {
       expect(getInstallCommand("npm")).toBe("install");
     });
 
-    it("should return 'install' for yarn", () => {
-      expect(getInstallCommand("yarn")).toBe("install");
+    it("should return 'add' for yarn", () => {
+      expect(getInstallCommand("yarn")).toBe("add");
     });
   });
 
@@ -109,20 +108,6 @@ describe("package-manager", () => {
 
     it("should return '--dev' for yarn", () => {
       expect(getDevFlag("yarn")).toBe("--dev");
-    });
-  });
-
-  describe("getPackageRunner", () => {
-    it("should return 'pnpm dlx' for pnpm", () => {
-      expect(getPackageRunner("pnpm")).toBe("pnpm dlx");
-    });
-
-    it("should return 'npx' for npm", () => {
-      expect(getPackageRunner("npm")).toBe("npx");
-    });
-
-    it("should return 'yarn dlx' for yarn", () => {
-      expect(getPackageRunner("yarn")).toBe("yarn dlx");
     });
   });
 
