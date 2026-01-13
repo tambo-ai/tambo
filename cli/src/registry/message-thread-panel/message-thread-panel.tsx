@@ -45,8 +45,6 @@ import type { Suggestion } from "@tambo-ai/react";
  * @interface
  */
 export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Optional content to render in the left panel of the grid */
-  children?: React.ReactNode;
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
