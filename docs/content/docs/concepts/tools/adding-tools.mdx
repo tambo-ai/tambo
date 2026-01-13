@@ -131,7 +131,7 @@ Use `transformToContent` when your tool:
 
 If your tool only returns text or simple data, you don't need `transformToContent` - the default behavior will handle it automatically.
 
-## Read-Only Tools for Real-Time Streaming
+## Streamable Tools
 
 By default, Tambo waits until tool arguments are fully generated before executing the tool. For tools that update UI state without side effects, this can feel slow because users don't see updates until the complete arguments are ready.
 
@@ -226,7 +226,7 @@ Avoid `annotations.tamboStreamableHint: true` when your tool:
 
 ### Handling Partial Data
 
-Your read-only tool should handle incomplete data gracefully. Use optional properties and defensive checks:
+Your streamable tool should handle incomplete data gracefully. Use optional properties and defensive checks:
 
 ```tsx
 const updateDashboard = (data: {
