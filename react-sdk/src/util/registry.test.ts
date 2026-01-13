@@ -293,6 +293,92 @@ describe("registry util: maxCalls", () => {
   });
 });
 
+describe("registry util: annotations", () => {
+  it("mapTamboToolToContextTool includes annotations when present", () => {
+    const tool: TamboTool = {
+      name: "read-only-tool",
+      description: "A tool that can be called with partial args",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+      annotations: { readOnlyHint: true },
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toEqual({ readOnlyHint: true });
+  });
+
+  it("mapTamboToolToContextTool does not include annotations when undefined", () => {
+    const tool: TamboTool = {
+      name: "regular-tool",
+      description: "A regular tool",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toBeUndefined();
+  });
+
+  it("mapTamboToolToContextTool includes annotations with readOnlyHint: false when explicitly set", () => {
+    const tool: TamboTool = {
+      name: "explicit-non-read-only-tool",
+      description: "A tool explicitly marked as non-read-only",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+      annotations: { readOnlyHint: false },
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toEqual({ readOnlyHint: false });
+  });
+
+  it("getUnassociatedTools preserves annotations", () => {
+    const tool: TamboTool = {
+      name: "streaming-tool",
+      description: "A streaming tool",
+      tool: () => {},
+      inputSchema: {},
+      outputSchema: {},
+      annotations: { readOnlyHint: true },
+    };
+    const registry = { "streaming-tool": tool };
+    const associations = { SomeComponent: [] as string[] };
+    const out = getUnassociatedTools(registry, associations);
+    expect(out.find((t) => t.name === "streaming-tool")?.annotations).toEqual({
+      readOnlyHint: true,
+    });
+  });
+
+  it("mapTamboToolToContextTool includes tamboStreamableHint annotation", () => {
+    const tool: TamboTool = {
+      name: "streamable-tool",
+      description: "A tool safe to call during streaming",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+      annotations: { tamboStreamableHint: true },
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toEqual({ tamboStreamableHint: true });
+  });
+
+  it("mapTamboToolToContextTool preserves multiple combined annotations", () => {
+    const tool: TamboTool = {
+      name: "combined-annotations-tool",
+      description: "A tool with multiple annotations",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+      annotations: { readOnlyHint: true, tamboStreamableHint: true },
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toEqual({
+      readOnlyHint: true,
+      tamboStreamableHint: true,
+    });
+  });
+});
+
 describe("convertPropsToJsonSchema", () => {
   it("should return undefined when component has no props", () => {
     const component = {
