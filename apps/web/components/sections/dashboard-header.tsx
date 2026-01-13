@@ -4,6 +4,7 @@ import { Icons } from "@/components/icons";
 import { MobileDashboardNavigation } from "@/components/sections/mobile-dashboard-navigation";
 import { ProjectDropdown } from "@/components/sections/project-dropdown";
 import { UserProfileDropdown } from "@/components/sections/user-profile-dropdown";
+import { buttonVariants } from "@/components/ui/button";
 import { TamboChatTrigger } from "@/components/tambo-chat-trigger";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -77,6 +78,18 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
               <div className="hidden md:block">
                 <TamboChatTrigger />
               </div>
+
+              <a
+                href="/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "hidden md:inline-flex",
+                )}
+              >
+                Docs
+              </a>
 
               {/* Desktop Profile Dropdown */}
               <div className="hidden md:block">
