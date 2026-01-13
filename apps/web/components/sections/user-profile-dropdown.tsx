@@ -76,7 +76,7 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
 
         <DropdownMenuItem asChild>
           <a
-            href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
+            href={siteConfig.links.docs}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center cursor-pointer"

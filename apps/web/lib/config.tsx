@@ -39,6 +39,7 @@ export const siteConfig = {
     twitter: "https://x.com/tambo_ai",
     discord: "https://discord.gg/dJNvPEHth6",
     github: "https://github.com/tambo-ai/tambo",
+    docs: process.env.NEXT_PUBLIC_DOCS_URL || "/docs",
   },
   metadata: {
     title: "Add React UI to your AI agent/copilot | tambo-ai",
