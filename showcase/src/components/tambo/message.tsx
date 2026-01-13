@@ -56,11 +56,12 @@ function convertContentToMarkdown(
         if (uri) {
           // Use resource name for display, fallback to URI if no name
           const displayName = resource?.name ?? uri;
-          // Use a custom protocol that looks more standard to avoid blocking
-          // Format: tambo-resource://<encoded-uri>
-          // We'll detect this in the link component and decode the URI
+          // Use an HTTPS URL to avoid being stripped by markdown sanitization.
+          // We'll detect this in the link component and decode the URI.
           const encodedUri = encodeURIComponent(uri);
-          parts.push(`[${displayName}](tambo-resource://${encodedUri})`);
+          parts.push(
+            `[${displayName}](https://tambo-resource.invalid/?uri=${encodedUri})`,
+          );
         }
       }
     }

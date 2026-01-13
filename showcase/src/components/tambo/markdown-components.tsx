@@ -73,6 +73,34 @@ function ResourceMention({ name, uri }: { name: string; uri: string }) {
   );
 }
 
+function getResourceUriFromHref(href: string | undefined): string | null {
+  if (!href) return null;
+
+  if (href.startsWith("tambo-resource://")) {
+    return decodeResourceUri(href.slice("tambo-resource://".length));
+  }
+
+  try {
+    const url = new URL(href);
+    if (url.origin !== "https://tambo-resource.invalid") return null;
+
+    const encodedUri = url.searchParams.get("uri");
+    if (!encodedUri) return null;
+
+    return decodeResourceUri(encodedUri);
+  } catch {
+    return null;
+  }
+}
+
+function decodeResourceUri(encodedUri: string): string {
+  try {
+    return decodeURIComponent(encodedUri);
+  } catch {
+    return encodedUri;
+  }
+}
+
 /**
  * Header component for code blocks with language display and copy functionality
  */
@@ -260,18 +288,8 @@ export const createMarkdownComponents = (): Record<
    * Regular links open in new tab with security attributes.
    */
   a: ({ href, children }) => {
-    // Check if href uses tambo-resource:// protocol to signal it's a resource
-    if (href?.startsWith("tambo-resource://")) {
-      // Extract encoded URI (everything after tambo-resource://)
-      const encodedUri = href.slice("tambo-resource://".length);
-      // Decode the URI
-      let uri: string;
-      try {
-        uri = decodeURIComponent(encodedUri);
-      } catch {
-        // If decoding fails, use the encoded version as fallback
-        uri = encodedUri;
-      }
+    const uri = getResourceUriFromHref(href);
+    if (uri) {
       // Extract name from children (link text)
       // Handle different children types (string, number, array, etc.)
       let name: string;
