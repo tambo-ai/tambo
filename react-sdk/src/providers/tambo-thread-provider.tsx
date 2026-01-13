@@ -925,15 +925,21 @@ export const TamboThreadProvider: React.FC<
                 chunk.responseMessageDto.component.toolCallRequest;
               const tool = toolName ? toolRegistry[toolName] : undefined;
 
+              // if there is a tool call request on a component in a streaming chunk, and the tool
+              // is marked as streamable by the correct annotation, handle it
               const isStreamable =
                 tool?.annotations?.tamboStreamableHint ?? false;
 
               if (isStreamable) {
-                await handleToolCall(
+                // We're not paying attention to the tool call response here - we only want the
+                // final tool call which is handled by the presence of a toolCallRequest on the
+                // top-level responseMessageDto
+                // see above: `if (chunk.responseMessageDto.toolCallRequest) { ... }`
+                void (await handleToolCall(
                   chunk.responseMessageDto.component.toolCallRequest,
                   toolRegistry,
                   onCallUnregisteredTool,
-                );
+                ));
               }
             }
 
