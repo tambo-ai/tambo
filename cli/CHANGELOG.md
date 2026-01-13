@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.46.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.45.0...tambo-v0.46.0) (2026-01-13)
+
+
+### Features
+
+* **cli:** add framework detection for automatic env var prefix selection ([#1734](https://github.com/tambo-ai/tambo/issues/1734)) ([5445ab2](https://github.com/tambo-ai/tambo/commit/5445ab22ab63722091cd87ed62cc0f212f8e9595))
+* **cli:** Detect and use project's package manager (pnpm/yarn/npm) ([#1684](https://github.com/tambo-ai/tambo/issues/1684)) ([473a872](https://github.com/tambo-ai/tambo/commit/473a87208b53486851f51aa0b4cf5d6a20243f9a))
+* **db:** add anon role and RLS policies for device auth flow ([#1647](https://github.com/tambo-ai/tambo/issues/1647)) ([5e19a04](https://github.com/tambo-ai/tambo/commit/5e19a04a31fe95e3f43cbac253d78f51b35e3c8e))
+* **showcase/message-input:** persist user input via session storage … ([#1259](https://github.com/tambo-ai/tambo/issues/1259)) ([0130917](https://github.com/tambo-ai/tambo/commit/013091741d78dfd3ae81ea6255bba26d1fd7786b))
+
+
+### Bug Fixes
+
+* **ui:** Error handling for clipboard operations in markdown-components [#1698](https://github.com/tambo-ai/tambo/issues/1698) ([#1726](https://github.com/tambo-ai/tambo/issues/1726)) ([dd34f5c](https://github.com/tambo-ai/tambo/commit/dd34f5c32b2bad92a16f62f0f66499623a323880))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.1 to 22.19.5 ([#1746](https://github.com/tambo-ai/tambo/issues/1746)) ([aa0ca84](https://github.com/tambo-ai/tambo/commit/aa0ca84eb3e5cc582290e6aa0df6672f4b404969))
+* **deps:** bump clipboardy from 5.0.1 to 5.0.2 ([#1696](https://github.com/tambo-ai/tambo/issues/1696)) ([7e08037](https://github.com/tambo-ai/tambo/commit/7e0803777a3034b608f85d54731899fd5b7acfc6))
+* **deps:** bump inquirer from 13.0.2 to 13.1.0 ([#1694](https://github.com/tambo-ai/tambo/issues/1694)) ([e33615e](https://github.com/tambo-ai/tambo/commit/e33615eda60386ae34c0368a905639559f624e99))
+* **test:** bump coverage thresholds (2026-01-12) ([#1729](https://github.com/tambo-ai/tambo/issues/1729)) ([5a54f2f](https://github.com/tambo-ai/tambo/commit/5a54f2f80c1167c2458ca5d49705b4b45e99825f))
+
+
+### Code Refactoring
+
+* **cli:** make registry components framework-agnostic ([#1737](https://github.com/tambo-ai/tambo/issues/1737)) ([2a35797](https://github.com/tambo-ai/tambo/commit/2a35797333c64f328b8794bf38d6246f1fe43a09))
+* **cli:** remove unused children prop from MessageThreadPanel ([#1750](https://github.com/tambo-ai/tambo/issues/1750)) ([b6f0e34](https://github.com/tambo-ai/tambo/commit/b6f0e348c2c1174cecc01834e85125e0b2558b55))
+
 ## [0.45.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.44.1...tambo-v0.45.0) (2025-12-18)
 
 
