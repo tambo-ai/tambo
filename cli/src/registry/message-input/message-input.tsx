@@ -35,8 +35,6 @@ import {
   Square,
   X,
 } from "lucide-react";
-import dynamic from "next/dynamic";
-import Image from "next/image";
 import * as React from "react";
 import { useDebounce } from "use-debounce";
 import {
@@ -45,10 +43,33 @@ import {
   type ResourceItem,
   type TamboEditor,
 } from "./text-editor";
+
+// Lazy load DictationButton for code splitting (framework-agnostic alternative to next/dynamic)
 // eslint-disable-next-line @typescript-eslint/promise-function-async
-const DictationButton = dynamic(() => import("./dictation-button"), {
-  ssr: false,
-});
+const LazyDictationButton = React.lazy(() => import("./dictation-button"));
+
+/**
+ * Wrapper component that includes Suspense boundary for the lazy-loaded DictationButton.
+ * This ensures the component can be safely used without requiring consumers to add their own Suspense.
+ * Also handles SSR by only rendering on the client (DictationButton uses Web Audio APIs).
+ */
+const DictationButton = () => {
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
+
+  return (
+    <React.Suspense fallback={null}>
+      <LazyDictationButton />
+    </React.Suspense>
+  );
+};
 
 /**
  * Provider interface for searching resources (for "@" mentions).
@@ -1369,12 +1390,12 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
           )}
         >
           <div className="relative w-full h-full">
-            <Image
+            <img
               src={image.dataUrl}
               alt={displayName}
-              fill
-              unoptimized
-              className="object-cover"
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
