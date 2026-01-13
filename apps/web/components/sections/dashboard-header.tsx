@@ -80,7 +80,7 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
               </div>
 
               <a
-                href="/docs"
+                href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
