@@ -1,10 +1,13 @@
 import type TamboAI from "@tambo-ai/typescript-sdk";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   MAX_ATTACHMENT_SIZE,
   uploadAttachment,
   type UploadResult,
 } from "../util/attachment-uploader";
+
+/** Maximum number of concurrent uploads */
+const MAX_CONCURRENT_UPLOADS = 4;
 
 /**
  * Reason why a file was rejected
@@ -181,7 +184,10 @@ export interface StagedAttachment {
   id: string;
   /** Original file name */
   name: string;
-  /** Data URL for preview (base64 encoded) */
+  /**
+   * URL for preview. When a client is provided, this is an Object URL (memory-efficient).
+   * In fallback mode (no client), this is a data URL (base64 encoded) for embedding in messages.
+   */
   dataUrl: string;
   /** Text content for text-based files */
   textContent?: string;
@@ -334,15 +340,36 @@ async function fileToText(file: File): Promise<string> {
   });
 }
 
-function shouldReadDataUrl(
+/**
+ * Determines if we need to read the file as a data URL (base64).
+ * Data URLs are only needed in fallback mode (no client) for embedding content in messages.
+ * When a client is provided, we use memory-efficient Object URLs for preview instead.
+ * @returns Whether the file should be read as a data URL
+ */
+function shouldReadAsDataUrl(
   attachmentType: AttachmentType,
   client?: TamboAI,
 ): boolean {
-  if (attachmentType === "image") {
-    return true;
+  // In fallback mode (no client), we need data URLs for embedding in messages
+  if (!client) {
+    // Images and documents need data URLs for inline embedding
+    return attachmentType === "image" || attachmentType === "document";
   }
+  // With client, uploads go to S3 - we use Object URLs for preview (memory efficient)
+  return false;
+}
 
-  return attachmentType === "document" && !client;
+/**
+ * Determines if we should create an Object URL for preview.
+ * Object URLs are memory-efficient (don't load file into JS heap).
+ * @returns Whether an Object URL should be created
+ */
+function shouldCreateObjectUrl(
+  attachmentType: AttachmentType,
+  client?: TamboAI,
+): boolean {
+  // Only images need preview URLs when client is provided
+  return attachmentType === "image" && !!client;
 }
 
 /**
@@ -362,6 +389,10 @@ export function useMessageAttachments(
       : options;
   const [attachments, setAttachments] = useState<StagedAttachment[]>([]);
 
+  // Track active uploads for concurrency limiting
+  const activeUploadsRef = useRef(0);
+  const uploadQueueRef = useRef<StagedAttachment[]>([]);
+
   const updateAttachmentStatus = useCallback(
     (
       id: string,
@@ -378,32 +409,58 @@ export function useMessageAttachments(
     [],
   );
 
-  const startUpload = useCallback(
-    async (attachment: StagedAttachment) => {
-      if (!client) return;
+  /**
+   * Process the next item in the upload queue if under concurrency limit
+   */
+  const processUploadQueue = useCallback(() => {
+    if (!client) return;
 
+    while (
+      activeUploadsRef.current < MAX_CONCURRENT_UPLOADS &&
+      uploadQueueRef.current.length > 0
+    ) {
+      const attachment = uploadQueueRef.current.shift();
+      if (!attachment) break;
+
+      activeUploadsRef.current++;
       updateAttachmentStatus(attachment.id, { uploadStatus: "uploading" });
 
-      try {
-        const result = await uploadAttachment(
-          client,
-          attachment.file,
-          attachment.mimeType,
-          attachment.attachmentType,
-        );
-        updateAttachmentStatus(attachment.id, {
-          uploadStatus: "complete",
-          uploadResult: result,
+      uploadAttachment(
+        client,
+        attachment.file,
+        attachment.mimeType,
+        attachment.attachmentType,
+      )
+        .then((result) => {
+          updateAttachmentStatus(attachment.id, {
+            uploadStatus: "complete",
+            uploadResult: result,
+          });
+        })
+        .catch((error: unknown) => {
+          updateAttachmentStatus(attachment.id, {
+            uploadStatus: "error",
+            uploadError:
+              error instanceof Error ? error : new Error("Upload failed"),
+          });
+        })
+        .finally(() => {
+          activeUploadsRef.current--;
+          processUploadQueue(); // Process next in queue
         });
-      } catch (error) {
-        updateAttachmentStatus(attachment.id, {
-          uploadStatus: "error",
-          uploadError:
-            error instanceof Error ? error : new Error("Upload failed"),
-        });
-      }
+    }
+  }, [client, updateAttachmentStatus]);
+
+  /**
+   * Queue an attachment for upload with concurrency limiting
+   */
+  const queueUpload = useCallback(
+    (attachment: StagedAttachment) => {
+      if (!client) return;
+      uploadQueueRef.current.push(attachment);
+      processUploadQueue();
     },
-    [client, updateAttachmentStatus],
+    [client, processUploadQueue],
   );
 
   const addAttachment = useCallback(
@@ -422,10 +479,16 @@ export function useMessageAttachments(
         );
       }
 
-      // Generate data URL for image previews and offline documents.
-      const dataUrl = shouldReadDataUrl(attachmentType, client)
-        ? await fileToDataUrl(file)
-        : "";
+      // Generate preview URL - use memory-efficient Object URLs when uploading,
+      // or data URLs for fallback mode (needed for inline embedding in messages)
+      let dataUrl = "";
+      if (shouldCreateObjectUrl(attachmentType, client)) {
+        // Object URL - memory efficient, just references the file
+        dataUrl = URL.createObjectURL(file);
+      } else if (shouldReadAsDataUrl(attachmentType, client)) {
+        // Data URL - needed for inline embedding in fallback mode
+        dataUrl = await fileToDataUrl(file);
+      }
 
       // For text-based files, read the text content
       let textContent: string | undefined;
@@ -448,13 +511,12 @@ export function useMessageAttachments(
 
       setAttachments((prev) => [...prev, newAttachment]);
 
-      // Start upload immediately if client is provided
+      // Queue upload if client is provided (with concurrency limiting)
       if (client) {
-        // Use void to fire-and-forget - the status update will reflect progress
-        void startUpload(newAttachment);
+        queueUpload(newAttachment);
       }
     },
-    [client, startUpload],
+    [client, queueUpload],
   );
 
   const addAttachments = useCallback(
@@ -494,10 +556,16 @@ export function useMessageAttachments(
           const mimeType = getMimeType(file);
           const attachmentType = getAttachmentType(mimeType);
 
-          // Generate data URL for image previews and offline documents.
-          const dataUrl = shouldReadDataUrl(attachmentType, client)
-            ? await fileToDataUrl(file)
-            : "";
+          // Generate preview URL - use memory-efficient Object URLs when uploading,
+          // or data URLs for fallback mode (needed for inline embedding in messages)
+          let dataUrl = "";
+          if (shouldCreateObjectUrl(attachmentType, client)) {
+            // Object URL - memory efficient, just references the file
+            dataUrl = URL.createObjectURL(file);
+          } else if (shouldReadAsDataUrl(attachmentType, client)) {
+            // Data URL - needed for inline embedding in fallback mode
+            dataUrl = await fileToDataUrl(file);
+          }
 
           // For text-based files, read the text content
           let textContent: string | undefined;
@@ -522,22 +590,37 @@ export function useMessageAttachments(
 
       setAttachments((prev) => [...prev, ...newAttachments]);
 
-      // Start all uploads in parallel if client is provided
+      // Queue uploads with concurrency limiting if client is provided
       if (client) {
         for (const attachment of newAttachments) {
-          void startUpload(attachment);
+          queueUpload(attachment);
         }
       }
     },
-    [client, onFilesRejected, startUpload],
+    [client, onFilesRejected, queueUpload],
   );
 
   const removeAttachment = useCallback((id: string) => {
-    setAttachments((prev) => prev.filter((attachment) => attachment.id !== id));
+    setAttachments((prev) => {
+      // Find and cleanup Object URL before removing
+      const toRemove = prev.find((a) => a.id === id);
+      if (toRemove?.dataUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(toRemove.dataUrl);
+      }
+      return prev.filter((attachment) => attachment.id !== id);
+    });
   }, []);
 
   const clearAttachments = useCallback(() => {
-    setAttachments([]);
+    setAttachments((prev) => {
+      // Cleanup all Object URLs before clearing
+      for (const attachment of prev) {
+        if (attachment.dataUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(attachment.dataUrl);
+        }
+      }
+      return [];
+    });
   }, []);
 
   // Computed upload status
