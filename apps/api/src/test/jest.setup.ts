@@ -1,3 +1,25 @@
+// Suppress console output during tests to keep test output clean.
+// Tests can still verify console calls via jest.spyOn() assertions.
+// To see console output in a specific test, use:
+//   jest.spyOn(console, 'log').mockRestore();
+beforeAll(() => {
+  jest.spyOn(console, "log").mockImplementation(() => {});
+  jest.spyOn(console, "warn").mockImplementation(() => {});
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, "debug").mockImplementation(() => {});
+  jest.spyOn(console, "info").mockImplementation(() => {});
+});
+
+afterAll(() => {
+  jest.restoreAllMocks();
+});
+
+// Suppress NestJS Logger output during tests by disabling the default logger.
+// This runs before each test file and suppresses [Nest] prefixed log messages.
+// Individual tests can still create Logger instances and spy on them if needed.
+import { Logger } from "@nestjs/common";
+Logger.overrideLogger(false);
+
 // Global mock for superjson (ESM module)
 jest.mock("superjson", () => ({
   default: {
