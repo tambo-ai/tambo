@@ -425,6 +425,30 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
 );
 MessageInput.displayName = "MessageInput";
 
+const STORAGE_KEY = "tambo.components.messageInput.draft";
+
+const getStorageKey = (key: string) => `${STORAGE_KEY}.${key}`;
+
+const storeValueInSessionStorage = (key: string, value?: string) => {
+  const storageKey = getStorageKey(key);
+  if (value === undefined) {
+    sessionStorage.removeItem(storageKey);
+    return;
+  }
+
+  sessionStorage.setItem(storageKey, JSON.stringify({ rawQuery: value }));
+};
+
+const getValueFromSessionStorage = (key: string): string => {
+  const storedValue = sessionStorage.getItem(getStorageKey(key)) ?? "";
+  try {
+    const parsed = JSON.parse(storedValue);
+    return parsed.rawQuery ?? "";
+  } catch {
+    return "";
+  }
+};
+
 /**
  * Internal MessageInput component that uses the TamboThreadInput context
  */
@@ -442,7 +466,7 @@ const MessageInputInternal = React.forwardRef<
     addImages,
     removeImage,
   } = useTamboThreadInput();
-  const { cancel } = useTamboThread();
+  const { cancel, thread } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [imageError, setImageError] = React.useState<string | null>(null);
@@ -455,11 +479,19 @@ const MessageInputInternal = React.forwardRef<
   const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
   React.useEffect(() => {
+    // On mount, load any stored draft value, but only if current value is empty
+    const storedValue = getValueFromSessionStorage(thread.id);
+    if (!storedValue) return;
+    setValue((value) => value ?? storedValue);
+  }, [setValue, thread.id]);
+
+  React.useEffect(() => {
     setDisplayValue(value);
+    storeValueInSessionStorage(thread.id, value);
     if (value && editorRef.current) {
       editorRef.current.focus();
     }
-  }, [value]);
+  }, [value, thread.id]);
 
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
@@ -470,6 +502,7 @@ const MessageInputInternal = React.forwardRef<
       setSubmitError(null);
       setImageError(null);
       setDisplayValue("");
+      storeValueInSessionStorage(thread.id);
       setIsSubmitting(true);
 
       // Extract resource names directly from editor at submit time to ensure we have the latest
@@ -525,6 +558,7 @@ const MessageInputInternal = React.forwardRef<
       images,
       removeImage,
       editorRef,
+      thread.id,
     ],
   );
 
