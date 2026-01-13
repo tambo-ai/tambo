@@ -18,6 +18,12 @@ import {
   NonInteractiveError,
 } from "../utils/interactive.js";
 import {
+  findAllTamboApiKeys,
+  findTamboApiKey,
+  setTamboApiKey,
+  type TamboApiKeyName,
+} from "../utils/dotenv-utils.js";
+import {
   detectFramework,
   getTamboApiKeyEnvVar,
 } from "../utils/framework-detection.js";
@@ -78,17 +84,18 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
 
     // Detect framework and get appropriate env var name
     const framework = detectFramework();
-    const envVarName = getTamboApiKeyEnvVar();
-    const envContent = `\n${envVarName}=${apiKey.trim()}\n`;
+    const envVarName = getTamboApiKeyEnvVar() as TamboApiKeyName;
 
     if (framework) {
       console.log(chalk.gray(`\nDetected ${framework.displayName} project`));
     }
 
     if (!fs.existsSync(targetEnvFile)) {
-      fs.writeFileSync(targetEnvFile, "# Environment Variables\n");
+      fs.writeFileSync(
+        targetEnvFile,
+        `# Environment Variables\n${envVarName}=${apiKey.trim()}\n`,
+      );
       console.log(chalk.green(`\n✔ Created new ${targetEnvFile} file`));
-      fs.appendFileSync(targetEnvFile, envContent);
       console.log(
         chalk.green(`\n✔ API key saved to ${targetEnvFile} as ${envVarName}`),
       );
@@ -96,24 +103,14 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
     }
 
     const existingContent = fs.readFileSync(targetEnvFile, "utf8");
-    // Match any Tambo API key variant (with or without framework prefix)
-    const keyRegex = /^(NEXT_PUBLIC_|VITE_|REACT_APP_)?TAMBO_API_KEY=.*/gm;
-    const existingMatches = existingContent.match(keyRegex);
+    const existingKeyNames = findAllTamboApiKeys(existingContent);
 
-    if (existingMatches && existingMatches.length > 0) {
-      // Extract key names from matches
-      const existingKeyNames = existingMatches.map(
-        (match) => match.split("=")[0],
-      );
-
+    if (existingKeyNames.length > 0) {
       // Build appropriate warning message
-      let warningMessage: string;
-      if (existingKeyNames.length === 1) {
-        warningMessage = `⚠️  This will overwrite the existing value of ${existingKeyNames[0]} in ${targetEnvFile}, are you sure?`;
-      } else {
-        // Multiple keys found - warn about all of them
-        warningMessage = `⚠️  Found multiple Tambo API key variants in ${targetEnvFile}:\n   ${existingKeyNames.join(", ")}\n   This will remove all of them and replace with ${envVarName}. Continue?`;
-      }
+      const warningMessage =
+        existingKeyNames.length === 1
+          ? `⚠️  This will overwrite the existing value of ${existingKeyNames[0]} in ${targetEnvFile}, are you sure?`
+          : `⚠️  Found multiple Tambo API key variants in ${targetEnvFile}:\n   ${existingKeyNames.join(", ")}\n   This will remove all of them and replace with ${envVarName}. Continue?`;
 
       const { confirmReplace } = await interactivePrompt<{
         confirmReplace: boolean;
@@ -133,43 +130,30 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
         console.log(chalk.gray("\nKeeping existing API key."));
         return true;
       }
-
-      // Remove all existing key variants and add the new one
-      // Use a function to ensure only one replacement is made (first match gets the new value, rest get removed)
-      let replacedFirst = false;
-      const updatedContent = existingContent.replace(keyRegex, () => {
-        if (!replacedFirst) {
-          replacedFirst = true;
-          return `${envVarName}=${apiKey.trim()}`;
-        }
-        // Remove subsequent matches (return empty string, will leave blank line)
-        return "";
-      });
-
-      // Clean up any double blank lines left from removals
-      const cleanedContent = updatedContent.replace(/\n{3,}/g, "\n\n");
-      fs.writeFileSync(targetEnvFile, cleanedContent);
-
-      if (existingKeyNames.length > 1) {
-        console.log(
-          chalk.green(
-            `\n✔ Replaced ${existingKeyNames.length} key variants with ${envVarName} in ${targetEnvFile}`,
-          ),
-        );
-      } else {
-        console.log(
-          chalk.green(
-            `\n✔ Updated API key in ${targetEnvFile} as ${envVarName}`,
-          ),
-        );
-      }
-      return true;
     }
 
-    fs.appendFileSync(targetEnvFile, envContent);
-    console.log(
-      chalk.green(`\n✔ API key saved to ${targetEnvFile} as ${envVarName}`),
+    const updatedContent = setTamboApiKey(
+      existingContent,
+      envVarName,
+      apiKey.trim(),
     );
+    fs.writeFileSync(targetEnvFile, updatedContent);
+
+    if (existingKeyNames.length > 1) {
+      console.log(
+        chalk.green(
+          `\n✔ Replaced ${existingKeyNames.length} key variants with ${envVarName} in ${targetEnvFile}`,
+        ),
+      );
+    } else if (existingKeyNames.length === 1) {
+      console.log(
+        chalk.green(`\n✔ Updated API key in ${targetEnvFile} as ${envVarName}`),
+      );
+    } else {
+      console.log(
+        chalk.green(`\n✔ API key saved to ${targetEnvFile} as ${envVarName}`),
+      );
+    }
     return true;
   } catch (error) {
     console.error(chalk.red(`\nFailed to save API key: ${error}`));
@@ -220,19 +204,17 @@ function displaySelfHostInstructions(): void {
 /**
  * Checks for existing API key in .env files
  * Supports multiple env var formats (with or without framework prefixes)
- * @returns string | null Returns existing API key if found, null otherwise
+ * @returns Existing API key value if user chooses to keep it, null otherwise
  */
 async function checkExistingApiKey(): Promise<string | null> {
   const envFiles = [".env.local", ".env"];
-  // Match any Tambo API key variant (with or without framework prefix)
-  const keyRegex = /^(NEXT_PUBLIC_|VITE_|REACT_APP_)?TAMBO_API_KEY=(.+)$/m;
 
   for (const file of envFiles) {
     if (fs.existsSync(file)) {
       const content = fs.readFileSync(file, "utf8");
-      const match = keyRegex.exec(content);
-      if (match?.[2]) {
-        const existingKeyName = match[0].split("=")[0];
+      const existingKey = findTamboApiKey(content);
+
+      if (existingKey) {
         const { overwriteExisting } = await interactivePrompt<{
           overwriteExisting: boolean;
         }>(
@@ -240,7 +222,7 @@ async function checkExistingApiKey(): Promise<string | null> {
             type: "confirm",
             name: "overwriteExisting",
             message: chalk.yellow(
-              `⚠️  Would you like to overwrite the value of ${existingKeyName} in your .env file?`,
+              `⚠️  Would you like to overwrite the value of ${existingKey.keyName} in your .env file?`,
             ),
             default: true,
           },
@@ -250,7 +232,7 @@ async function checkExistingApiKey(): Promise<string | null> {
         );
 
         if (!overwriteExisting) {
-          return match[2].trim();
+          return existingKey.value.trim();
         }
       }
     }
