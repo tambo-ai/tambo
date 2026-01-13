@@ -41,6 +41,7 @@ import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
+import { StorageConfigService } from "../common/services/storage-config.service";
 import {
   createResourceFetcherMap,
   getSystemTools,
@@ -85,6 +86,7 @@ import {
   DEFAULT_MAX_TOTAL_TOOL_CALLS,
   updateToolCallCounts,
 } from "./util/tool-call-tracking";
+import { createAttachmentFetcher } from "./util/attachment-fetcher";
 
 const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
@@ -99,6 +101,7 @@ export class ThreadsService {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
+    private readonly storageConfig: StorageConfigService,
   ) {}
 
   getDb() {
@@ -1340,8 +1343,16 @@ export class ThreadsService {
           },
         });
 
-        // Build resource fetchers from MCP clients
+        // Build resource fetchers from MCP clients and add attachment fetcher
         const resourceFetchers = createResourceFetcherMap(mcpClients);
+        if (this.storageConfig.hasStorageConfig()) {
+          resourceFetchers["attachment"] = createAttachmentFetcher(
+            this.storageConfig.s3Client!,
+            this.storageConfig.bucket,
+            projectId,
+            this.storageConfig.signingSecret,
+          );
+        }
 
         const messageStream = await tamboBackend.runDecisionLoop({
           messages,
@@ -1414,11 +1425,22 @@ export class ThreadsService {
         },
       });
 
+      // Build resource fetchers from MCP clients and add attachment fetcher
+      const resourceFetchers = createResourceFetcherMap(mcpClients);
+      if (this.storageConfig.hasStorageConfig()) {
+        resourceFetchers["attachment"] = createAttachmentFetcher(
+          this.storageConfig.s3Client!,
+          this.storageConfig.bucket,
+          projectId,
+          this.storageConfig.signingSecret,
+        );
+      }
+
       const streamedResponseMessages = await tamboBackend.runDecisionLoop({
         messages,
         strictTools,
         forceToolChoice: advanceRequestDto.forceToolChoice,
-        resourceFetchers: createResourceFetcherMap(mcpClients),
+        resourceFetchers,
       });
 
       decisionLoopSpan.end();

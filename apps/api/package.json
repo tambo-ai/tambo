@@ -21,7 +21,8 @@
     "clean": "rm -rf dist coverage",
     "check-types": "tsc --noEmit",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "storage:init": "tsx scripts/storage-init.ts"
   },
   "dependencies": {
     "@ag-ui/client": "0.0.40",
@@ -58,6 +59,7 @@
     "json-schema": "^0.4.0",
     "jsonwebtoken": "^9.0.3",
     "mime-types": "^3.0.2",
+    "nanoid": "^3.3.11",
     "openai": "^6.15.0",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
@@ -72,6 +74,7 @@
     "@nestjs/testing": "^11.1.11",
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
+    "@types/content-type": "^1.1.9",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/json-schema": "^7.0.15",

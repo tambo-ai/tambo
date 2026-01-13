@@ -1,3 +1,9 @@
+import { nanoid } from "nanoid";
+
+/**
+ * Generate a unique message ID using cryptographically secure randomness.
+ * Format: message-{nanoid}
+ */
 export function generateMessageId(): string {
-  return `message-${Math.random().toString(36).substring(2, 15)}`;
+  return `message-${nanoid()}`;
 }
