@@ -20,11 +20,7 @@ type primitive = string | number | boolean | null | undefined;
  * A recursive type representing an object that can be templated.
  */
 export type TemplateValue =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
+  | primitive
   | { [key: string]: TemplateValue }
   | TemplateValue[];
 
@@ -292,7 +288,7 @@ function handleChatHistory(
         `No value was found in 'templateParams' for the variable '${varName}'. Ensure you have a corresponding entry in 'templateParams'.`,
       );
     }
-    return value;
+    return Array.isArray(value) ? value : [];
   });
 
   return allHistory;
