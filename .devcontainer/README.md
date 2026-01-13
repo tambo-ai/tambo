@@ -29,7 +29,7 @@ git worktree add ../tambo-feature-x feature-branch
 
 1. Open the worktree folder in Cursor/VS Code
 2. When prompted, click "Reopen in Container"
-3. Wait for the container to build and `npm install` to complete
+3. Wait for the container to build and `npm ci` to complete
 
 ### Port Handling
 
@@ -59,7 +59,9 @@ npm run dev:docs     # Just docs site (port 8263)
 
 ### Database Connection
 
-All containers connect to Supabase PostgreSQL on your host via `host.docker.internal:54322`. The `DATABASE_URL` is pre-configured.
+By default, containers connect to Supabase PostgreSQL on your host via `host.docker.internal:54322`.
+
+If you want to use a different database, you can override `DATABASE_URL` by exporting it on your host before opening the devcontainer.
 
 ### Authentication & Configuration
 
