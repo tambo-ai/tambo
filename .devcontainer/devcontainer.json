@@ -1,0 +1,96 @@
+{
+  "name": "Tambo AI Dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  // Ensure config directories exist on host before container creation
+  // NOTE: initializeCommand runs on the host and uses the host $HOME.
+  "initializeCommand": "sh -lc 'mkdir -p \"$HOME/.config/gh\" \"$HOME/.config/claude\" \"$HOME/.claude\"'",
+
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+
+  // Mount host directories for git, gh, and claude authentication
+  // NOTE: Mount targets assume remoteUser=vscode (home=/home/vscode). If you change
+  // remoteUser, update these mount targets accordingly.
+  "mounts": [
+    // SECURITY: Mounting your host SSH credentials into a container is risky.
+    // Any code running in this container could read and exfiltrate your SSH keys.
+    // We do it (read-only) because this repo often runs non-interactive devcontainers
+    // where auth prompts are painful (or impossible). Treat the container as trusted code.
+    // If you prefer not to mount ~/.ssh, consider SSH agent forwarding or using gh auth.
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,readonly",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly",
+    "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
+    "source=${localEnv:HOME}/.config/claude,target=/home/vscode/.config/claude,type=bind",
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+  ],
+
+  // Run setup script to install tools and configure shell
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+
+  // Forward dev server ports (8260-8263) - IDE will auto-assign if conflicts
+  "forwardPorts": [8260, 8261, 8262, 8263],
+  "portsAttributes": {
+    "8260": {
+      "label": "Web (Next.js)",
+      "onAutoForward": "notify"
+    },
+    "8261": {
+      "label": "API (NestJS)",
+      "onAutoForward": "notify"
+    },
+    "8262": {
+      "label": "Showcase",
+      "onAutoForward": "notify"
+    },
+    "8263": {
+      "label": "Docs",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // Connect to host Supabase PostgreSQL (port 54322)
+  // Prefer host DATABASE_URL if set, but it must be reachable from inside Docker.
+  // WARNING: Be careful not to point this at production from your host env.
+  // For local Supabase, use host.docker.internal:54322 (not localhost).
+  "containerEnv": {
+    "DATABASE_URL": "${localEnv:DATABASE_URL:postgresql://postgres:postgres@host.docker.internal:54322/postgres}"
+  },
+
+  // VS Code / Cursor extensions
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "prisma.prisma"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "typescript.preferences.importModuleSpecifier": "relative"
+      }
+    }
+  },
+
+  // Features to add to the container
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/mise:1": {},
+    "ghcr.io/devcontainers-extra/features/supabase-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/starship:1": {},
+    "ghcr.io/devcontainers-extra/features/direnv:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  }
+}
