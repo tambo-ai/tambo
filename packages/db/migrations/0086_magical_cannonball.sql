@@ -21,4 +21,5 @@ CREATE TABLE "runs" (
 ALTER TABLE "runs" ADD CONSTRAINT "runs_thread_id_threads_id_fk" FOREIGN KEY ("thread_id") REFERENCES "public"."threads"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "runs_thread_id_idx" ON "runs" USING btree ("thread_id");--> statement-breakpoint
 CREATE INDEX "runs_status_idx" ON "runs" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "runs_created_at_idx" ON "runs" USING btree ("created_at");
+CREATE INDEX "runs_created_at_idx" ON "runs" USING btree ("created_at");--> statement-breakpoint
+ALTER TABLE "threads" ADD CONSTRAINT "threads_current_run_id_fk" FOREIGN KEY ("current_run_id") REFERENCES "public"."runs"("id") ON DELETE set null ON UPDATE no action;
