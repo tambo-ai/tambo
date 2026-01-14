@@ -256,17 +256,11 @@ interface LibrettoChatHistoryItem {
  * @returns true if it follows the Libretto chat history structure
  */
 function isLibrettoChatHistory(objs: unknown): objs is LibrettoChatHistoryItem {
-  if (
-    typeof objs === "object" &&
-    objs !== null &&
-    !Array.isArray(objs) &&
-    ROLE_KEY in objs
-  ) {
-    // An object, check role being chat_history
-    return (objs as any)[ROLE_KEY] === CHAT_HISTORY;
+  if (typeof objs !== "object" || objs === null || Array.isArray(objs)) {
+    return false;
   }
-
-  return false;
+  const record = objs as Record<string, unknown>;
+  return record[ROLE_KEY] === CHAT_HISTORY;
 }
 
 function handleChatHistory(
@@ -283,12 +277,28 @@ function handleChatHistory(
 
   const allHistory = varsInChatHistory.flatMap((varName) => {
     const value = params[varName];
-    if (!value) {
+    if (value === undefined) {
       throw new Error(
         `No value was found in 'templateParams' for the variable '${varName}'. Ensure you have a corresponding entry in 'templateParams'.`,
       );
     }
-    return Array.isArray(value) ? value : [];
+
+    if (!Array.isArray(value)) {
+      throw new Error(
+        `Expected value for variable '${varName}' to be an array of ThreadMessage, but got ${typeof value}`,
+      );
+    }
+
+    // Validate each element matches ThreadMessage structure
+    for (const msg of value) {
+      if (typeof msg !== "object" || msg === null || !("role" in msg)) {
+        throw new Error(
+          `Expected each element in '${varName}' to be a ThreadMessage, but found an invalid object.`,
+        );
+      }
+    }
+
+    return value as ThreadMessage[];
   });
 
   return allHistory;
