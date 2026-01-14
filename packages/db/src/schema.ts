@@ -570,10 +570,10 @@ export const threads = pgTable(
       .notNull(),
 
     // ==========================================
-    // V1 API fields (per plans/api-v1-proposal.md)
+    // V1 API run lifecycle fields
     // ==========================================
 
-    // 1. Current run lifecycle (only relevant while runStatus !== "idle")
+    // Current run lifecycle (only relevant while runStatus !== "idle")
     runStatus: text("run_status", {
       enum: Object.values<string>(V1RunStatus) as [V1RunStatus],
     })
@@ -582,15 +582,13 @@ export const threads = pgTable(
     currentRunId: text("current_run_id"),
     statusMessage: text("status_message"), // Human-readable detail (e.g., "Fetching weather data...")
 
-    // 2. Last run outcome (cleared when next run starts)
+    // Last run outcome (cleared when next run starts)
     lastRunCancelled: boolean("last_run_cancelled"),
     lastRunError: customJsonb<V1RunError>("last_run_error"),
 
-    // 3. Next run requirements
-    // If pendingToolCallIds is non-empty, the next run's message MUST contain
-    // a tool_result for at least one of these IDs (with previousRunId set).
+    // Next run requirements
     pendingToolCallIds: customJsonb<string[]>("pending_tool_call_ids"),
-    lastCompletedRunId: text("last_completed_run_id"), // Required as previousRunId when continuing
+    lastCompletedRunId: text("last_completed_run_id"),
   }),
   (table) => {
     return [

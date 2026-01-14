@@ -8,7 +8,7 @@ import { ThreadsModule } from "../threads/threads.module";
  * V1 API module
  *
  * Provides a simplified, streaming-first API following AG-UI protocol patterns.
- * Routes are mounted under /v1/ prefix via RouterModule in app.module.ts.
+ * Controllers use @Controller('v1/...') to mount routes under the /v1/ prefix.
  */
 @Module({
   imports: [ConfigModule, ProjectsModule, ThreadsModule],

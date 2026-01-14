@@ -79,15 +79,12 @@ export function createMockDBThread(
     generationStage: overrides.generationStage ?? generationStage,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
-    // v1 API fields (per plans/api-v1-proposal.md)
-    // 1. Current run lifecycle
+    // v1 API run lifecycle fields
     runStatus: overrides.runStatus ?? V1RunStatus.IDLE,
     currentRunId: overrides.currentRunId ?? null,
     statusMessage: overrides.statusMessage ?? null,
-    // 2. Last run outcome
     lastRunCancelled: overrides.lastRunCancelled ?? null,
     lastRunError: overrides.lastRunError ?? null,
-    // 3. Next run requirements
     pendingToolCallIds: overrides.pendingToolCallIds ?? null,
     lastCompletedRunId: overrides.lastCompletedRunId ?? null,
   };

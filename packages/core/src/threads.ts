@@ -339,29 +339,24 @@ export interface Thread {
   updatedAt: Date;
 
   // ==========================================
-  // V1 API fields (per plans/api-v1-proposal.md)
+  // V1 API run lifecycle fields
   // ==========================================
 
-  // 1. Current run lifecycle (only relevant while runStatus !== "idle")
-  /** Status of the current run (v1 API) */
+  /** Status of the current run */
   runStatus?: V1RunStatus;
-  /** ID of the currently active run, if any (v1 API) */
+  /** ID of the currently active run, if any */
   currentRunId?: string;
-  /** Human-readable detail (e.g., "Fetching weather data...") */
+  /** Human-readable status detail (e.g., "Fetching weather data...") */
   statusMessage?: string;
 
-  // 2. Last run outcome (cleared when next run starts)
   /** Whether the last run was cancelled */
   lastRunCancelled?: boolean;
   /** Error information from the last run */
   lastRunError?: V1RunError;
 
-  // 3. Next run requirements
-  // If pendingToolCallIds is non-empty, the next run's message MUST contain
-  // a tool_result for at least one of these IDs (with previousRunId set).
-  /** Tool call IDs awaiting client-side results (v1 API) */
+  /** Tool call IDs awaiting client-side results */
   pendingToolCallIds?: string[];
-  /** Required as previousRunId when continuing after tool calls */
+  /** ID of the last completed run */
   lastCompletedRunId?: string;
 }
 

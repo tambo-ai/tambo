@@ -108,7 +108,7 @@ const errorMetadata: Record<V1ErrorCode, { title: string; status: number }> = {
  * @example
  * ```typescript
  * throw new HttpException(
- *   createProblemDetail("CONCURRENT_RUN", "A run is already active on this thread"),
+ *   createProblemDetail(V1ErrorCodes.CONCURRENT_RUN, "A run is already active on this thread"),
  *   HttpStatus.CONFLICT,
  * );
  * ```
@@ -119,12 +119,14 @@ export function createProblemDetail(
   extra?: Record<string, unknown>,
 ): ProblemDetail {
   const metadata = errorMetadata[code];
+  const errorId = crypto.randomUUID();
 
   return {
     type: `urn:tambo:error:${code.toLowerCase()}`,
     title: metadata.title,
     status: metadata.status,
     detail,
+    instance: `urn:tambo:error-instance:${errorId}`,
     ...extra,
   };
 }

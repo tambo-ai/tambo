@@ -34,7 +34,7 @@ export class V1TextContentDto {
     example: "text",
   })
   @Equals("text")
-  readonly type!: "text"; // No default value - use definite assignment
+  readonly type!: "text";
 
   @ApiProperty({
     description: "The text content",

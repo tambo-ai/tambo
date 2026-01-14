@@ -7,6 +7,8 @@ import {
   IsNumber,
   IsIn,
   IsObject,
+  Min,
+  Max,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { V1InputMessageDto } from "./message.dto";
@@ -63,7 +65,8 @@ export class V1CreateRunDto {
   toolChoice?: V1ToolChoiceDto;
 
   @ApiProperty({
-    description: "Previous run ID for tool result submissions",
+    description:
+      "ID of the previous run. Required when continuing a thread that already has messages.",
     required: false,
   })
   @IsOptional()
@@ -82,17 +85,23 @@ export class V1CreateRunDto {
   @ApiProperty({
     description: "Maximum tokens to generate",
     required: false,
+    minimum: 1,
   })
   @IsOptional()
   @IsNumber()
+  @Min(1)
   maxTokens?: number;
 
   @ApiProperty({
     description: "Temperature for generation (0-2)",
     required: false,
+    minimum: 0,
+    maximum: 2,
   })
   @IsOptional()
   @IsNumber()
+  @Min(0)
+  @Max(2)
   temperature?: number;
 
   @ApiProperty({
@@ -130,9 +139,7 @@ export class V1CreateThreadWithRunDto extends V1CreateRunDto {
 /**
  * Response DTO for cancelling a run.
  *
- * Per the proposal, cancellation:
- * - Sets runStatus back to "idle"
- * - Sets lastRunCancelled to true on the thread
+ * Cancellation sets runStatus back to "idle" and lastRunCancelled to true on the thread.
  */
 @ApiSchema({ name: "CancelRunResponse" })
 export class V1CancelRunResponseDto {

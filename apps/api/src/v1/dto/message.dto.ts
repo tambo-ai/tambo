@@ -48,6 +48,8 @@ export class V1MessageDto {
     type: [Object],
   })
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Object, v1ContentBlockDiscriminator)
   content!: V1ContentBlock[];
 
   @ApiProperty({
