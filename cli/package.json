@@ -71,6 +71,7 @@
     "meow": "^14.0.0",
     "open": "^11.0.0",
     "ora": "^9.0.0",
+    "postcss": "^8.5.3",
     "react-markdown": "^10.1.0",
     "rehype-harden": "^1.1.7",
     "sanitize-html": "^2.17.0",
