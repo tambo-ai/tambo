@@ -70,16 +70,16 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       />
 
       {noApiKeys && (
-        <Alert className="bg-card">
+        <Alert className="bg-card items-center">
           <KeyRound className="h-4 w-4" />
-          <div className="flex w-full items-center justify-between gap-4 self-center">
-            <div>
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+            <div className="min-w-0">
               <AlertTitle>Create an API key</AlertTitle>
               <AlertDescription>
                 Generate an API key to connect your app to this project.
               </AlertDescription>
             </div>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="shrink-0">
               <Link href={`/dashboard/${projectId}/settings`}>
                 Create API key
               </Link>
@@ -89,10 +89,10 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       )}
 
       {apiKeysLoadError && (
-        <Alert className="bg-card">
+        <Alert className="bg-card items-center">
           <KeyRound className="h-4 w-4" />
-          <div className="flex w-full items-center justify-between gap-4 self-center">
-            <div>
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+            <div className="min-w-0">
               <AlertTitle>Couldn’t load API keys</AlertTitle>
               <AlertDescription>
                 We couldn’t load your API keys right now. Try again or open
@@ -105,10 +105,11 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
                 variant="outline"
                 onClick={() => void refetchApiKeys()}
                 disabled={isFetchingApiKeys}
+                className="shrink-0"
               >
                 {isFetchingApiKeys ? "Retrying..." : "Retry"}
               </Button>
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="shrink-0">
                 <Link href={`/dashboard/${projectId}/settings`}>
                   Open settings
                 </Link>
