@@ -12,9 +12,6 @@ import { Type } from "class-transformer";
 import { V1MessageDto } from "./message.dto";
 import { V1RunStatus } from "@tambo-ai-cloud/core";
 
-// Re-export for convenience
-export { V1RunStatus } from "@tambo-ai-cloud/core";
-
 /**
  * Error information from a failed run.
  */
