@@ -94,7 +94,7 @@ apps/api/src
 ### NestJS unit tests (providers/services)
 
 - Use `Test.createTestingModule(...)` to build a lightweight module and override providers.
-- If you need to resolve a request-scoped provider (`@Injectable({ scope: Scope.REQUEST })`), use the helpers in `apps/api/src/test/nest-testing.ts` and follow the Nest docs pattern for `ContextIdFactory`.
+- If you need to resolve a request-scoped provider (`@Injectable({ scope: Scope.REQUEST })`), use the helpers in `apps/api/src/test/nest-testing.ts`. `createTestRequestContext()` creates a `ContextId`, and `resolveRequestScopedProvider()` registers the request via `module.registerRequestByContextId(...)` before resolving.
 
 ```ts
 import { ContextIdFactory } from "@nestjs/core";
@@ -123,8 +123,8 @@ it("resolves request-scoped providers", async () => {
     headers: {},
   });
 
-  // If code under test calls ContextIdFactory.getByRequest(), force it to use
-  // the same ContextId we created above.
+  // Only needed if code under test calls ContextIdFactory.getByRequest().
+  // In that case, force it to return the same ContextId we created above.
   jest
     .spyOn(ContextIdFactory, "getByRequest")
     .mockImplementation(() => context.contextId);

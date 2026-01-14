@@ -1,32 +1,15 @@
-import type { ModuleMetadata, Type } from "@nestjs/common";
+import type { Type } from "@nestjs/common";
 import { ContextIdFactory, type ContextId } from "@nestjs/core";
-import {
-  Test,
-  type TestingModule,
-  type TestingModuleBuilder,
-} from "@nestjs/testing";
+import type { TestingModule } from "@nestjs/testing";
 
 export type TestRequestContext<TRequest extends Record<string, unknown>> = {
   readonly contextId: ContextId;
   readonly request: TRequest;
 };
 
-export function createTestingModuleBuilder(
-  metadata: ModuleMetadata,
-): TestingModuleBuilder {
-  return Test.createTestingModule(metadata);
-}
-
-export async function createTestingModule(
-  metadata: ModuleMetadata,
-  configure?: (builder: TestingModuleBuilder) => void,
-): Promise<TestingModule> {
-  const builder = createTestingModuleBuilder(metadata);
-  configure?.(builder);
-  return await builder.compile();
-}
-
-export function createTestRequestContext(): TestRequestContext<Record<string, unknown>>;
+export function createTestRequestContext(): TestRequestContext<
+  Record<string, unknown>
+>;
 export function createTestRequestContext<
   TRequest extends Record<string, unknown>,
 >(request: TRequest): TestRequestContext<TRequest>;
