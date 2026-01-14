@@ -9,43 +9,47 @@ import {
   IsObject,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { InputMessageDto } from "./message.dto";
-import { ToolDto, AvailableComponentDto, ToolChoiceDto } from "./tool.dto";
-import { CreateThreadDto } from "./thread.dto";
+import { V1InputMessageDto } from "./message.dto";
+import {
+  V1ToolDto,
+  V1AvailableComponentDto,
+  V1ToolChoiceDto,
+} from "./tool.dto";
+import { V1CreateThreadDto } from "./thread.dto";
 
 /**
  * Request DTO for creating a run on an existing thread.
  */
-@ApiSchema({ name: "V1CreateRunRequest" })
-export class CreateRunDto {
+@ApiSchema({ name: "CreateRunRequest" })
+export class V1CreateRunDto {
   @ApiProperty({
     description: "The user's message",
   })
   @ValidateNested()
-  @Type(() => InputMessageDto)
-  message!: InputMessageDto;
+  @Type(() => V1InputMessageDto)
+  message!: V1InputMessageDto;
 
   @ApiProperty({
     description: "Available UI components the model can render",
-    type: [AvailableComponentDto],
+    type: [V1AvailableComponentDto],
     required: false,
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => AvailableComponentDto)
-  availableComponents?: AvailableComponentDto[];
+  @Type(() => V1AvailableComponentDto)
+  availableComponents?: V1AvailableComponentDto[];
 
   @ApiProperty({
     description: "Client-side tools the model can call",
-    type: [ToolDto],
+    type: [V1ToolDto],
     required: false,
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ToolDto)
-  tools?: ToolDto[];
+  @Type(() => V1ToolDto)
+  tools?: V1ToolDto[];
 
   @ApiProperty({
     description: "How the model should use tools",
@@ -56,7 +60,7 @@ export class CreateRunDto {
     ],
   })
   @IsOptional()
-  toolChoice?: ToolChoiceDto;
+  toolChoice?: V1ToolChoiceDto;
 
   @ApiProperty({
     description: "Previous run ID for tool result submissions",
@@ -103,16 +107,16 @@ export class CreateRunDto {
 /**
  * Request DTO for creating a thread with a run.
  */
-@ApiSchema({ name: "V1CreateThreadWithRunRequest" })
-export class CreateThreadWithRunDto extends CreateRunDto {
+@ApiSchema({ name: "CreateThreadWithRunRequest" })
+export class V1CreateThreadWithRunDto extends V1CreateRunDto {
   @ApiProperty({
     description: "Thread configuration",
     required: false,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => CreateThreadDto)
-  thread?: CreateThreadDto;
+  @Type(() => V1CreateThreadDto)
+  thread?: V1CreateThreadDto;
 
   @ApiProperty({
     description: "Metadata for the thread",
@@ -130,8 +134,8 @@ export class CreateThreadWithRunDto extends CreateRunDto {
  * - Sets runStatus back to "idle"
  * - Sets lastRunCancelled to true on the thread
  */
-@ApiSchema({ name: "V1CancelRunResponse" })
-export class CancelRunResponseDto {
+@ApiSchema({ name: "CancelRunResponse" })
+export class V1CancelRunResponseDto {
   @ApiProperty({
     description: "The run ID that was cancelled",
   })

@@ -9,7 +9,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { MessageDto } from "./message.dto";
+import { V1MessageDto } from "./message.dto";
 import { V1RunStatus } from "@tambo-ai-cloud/core";
 
 // Re-export for convenience
@@ -18,8 +18,8 @@ export { V1RunStatus } from "@tambo-ai-cloud/core";
 /**
  * Error information from a failed run.
  */
-@ApiSchema({ name: "V1RunError" })
-export class RunErrorDto {
+@ApiSchema({ name: "RunError" })
+export class V1RunErrorDto {
   @ApiProperty({
     description: "Error code",
     example: "INTERNAL_ERROR",
@@ -44,9 +44,11 @@ export class RunErrorDto {
  * 1. Current run lifecycle (runStatus) - is a run active right now?
  * 2. Last run outcome (lastRunCancelled, lastRunError) - how did it end?
  * 3. Next run requirements (pendingToolCallIds) - what must the next run provide?
+ *
+ * Note: Uses V1Thread API schema name to avoid collision with existing Thread.
  */
 @ApiSchema({ name: "V1Thread" })
-export class ThreadDto {
+export class V1ThreadDto {
   @ApiProperty({
     description: "Unique identifier for this thread",
     example: "thr_abc123xyz",
@@ -114,12 +116,12 @@ export class ThreadDto {
   @ApiProperty({
     description: "Error information from the last run",
     required: false,
-    type: RunErrorDto,
+    type: V1RunErrorDto,
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => RunErrorDto)
-  lastRunError?: RunErrorDto;
+  @Type(() => V1RunErrorDto)
+  lastRunError?: V1RunErrorDto;
 
   // ==========================================
   // 3. Next run requirements
@@ -173,22 +175,24 @@ export class ThreadDto {
 
 /**
  * Thread response with messages included.
+ *
+ * Note: Uses V1ThreadWithMessages API schema name to avoid collision.
  */
 @ApiSchema({ name: "V1ThreadWithMessages" })
-export class ThreadWithMessagesDto extends ThreadDto {
+export class V1ThreadWithMessagesDto extends V1ThreadDto {
   @ApiProperty({
     description: "Messages in this thread",
-    type: [MessageDto],
+    type: [V1MessageDto],
   })
   @IsArray()
-  messages!: MessageDto[];
+  messages!: V1MessageDto[];
 }
 
 /**
  * Request DTO for creating a thread.
  */
-@ApiSchema({ name: "V1CreateThreadRequest" })
-export class CreateThreadDto {
+@ApiSchema({ name: "CreateThreadRequest" })
+export class V1CreateThreadDto {
   @ApiProperty({
     description: "Optional context key for thread organization",
     required: false,
@@ -209,20 +213,20 @@ export class CreateThreadDto {
 /**
  * Response DTO for creating a thread.
  */
-@ApiSchema({ name: "V1CreateThreadResponse" })
-export class CreateThreadResponseDto extends ThreadDto {}
+@ApiSchema({ name: "CreateThreadResponse" })
+export class V1CreateThreadResponseDto extends V1ThreadDto {}
 
 /**
  * Response DTO for getting a thread.
  */
-@ApiSchema({ name: "V1GetThreadResponse" })
-export class GetThreadResponseDto extends ThreadWithMessagesDto {}
+@ApiSchema({ name: "GetThreadResponse" })
+export class V1GetThreadResponseDto extends V1ThreadWithMessagesDto {}
 
 /**
  * Query parameters for listing threads.
  */
-@ApiSchema({ name: "V1ListThreadsQuery" })
-export class ListThreadsQueryDto {
+@ApiSchema({ name: "ListThreadsQuery" })
+export class V1ListThreadsQueryDto {
   @ApiProperty({
     description: "Maximum number of threads to return",
     required: false,
@@ -252,14 +256,14 @@ export class ListThreadsQueryDto {
 /**
  * Response DTO for listing threads.
  */
-@ApiSchema({ name: "V1ListThreadsResponse" })
-export class ListThreadsResponseDto {
+@ApiSchema({ name: "ListThreadsResponse" })
+export class V1ListThreadsResponseDto {
   @ApiProperty({
     description: "List of threads",
-    type: [ThreadDto],
+    type: [V1ThreadDto],
   })
   @IsArray()
-  threads!: ThreadDto[];
+  threads!: V1ThreadDto[];
 
   @ApiProperty({
     description: "Cursor for the next page of results",

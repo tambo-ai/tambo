@@ -10,24 +10,24 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import {
-  ContentBlock,
-  TextContentDto,
-  ResourceContentDto,
-  ToolResultContentDto,
-  contentBlockDiscriminator,
+  V1ContentBlock,
+  V1TextContentDto,
+  V1ResourceContentDto,
+  V1ToolResultContentDto,
+  v1ContentBlockDiscriminator,
 } from "./content.dto";
 
 /**
  * Message role following OpenAI/Anthropic conventions.
  */
-export type MessageRole = "user" | "assistant" | "system";
+export type V1MessageRole = "user" | "assistant" | "system";
 
 /**
  * V1 Message response DTO.
  * Represents a message in a thread.
  */
-@ApiSchema({ name: "V1Message" })
-export class MessageDto {
+@ApiSchema({ name: "Message" })
+export class V1MessageDto {
   @ApiProperty({
     description: "Unique identifier for this message",
     example: "msg_abc123xyz",
@@ -41,14 +41,14 @@ export class MessageDto {
     example: "assistant",
   })
   @IsIn(["user", "assistant", "system"])
-  role!: MessageRole;
+  role!: V1MessageRole;
 
   @ApiProperty({
     description: "Content blocks in this message",
     type: [Object],
   })
   @IsArray()
-  content!: ContentBlock[];
+  content!: V1ContentBlock[];
 
   @ApiProperty({
     description: "When the message was created (ISO 8601)",
@@ -72,17 +72,17 @@ export class MessageDto {
  * Input content - subset allowed in user messages.
  * Users can send text, resources, or tool results.
  */
-export type InputContent =
-  | TextContentDto
-  | ResourceContentDto
-  | ToolResultContentDto;
+export type V1InputContent =
+  | V1TextContentDto
+  | V1ResourceContentDto
+  | V1ToolResultContentDto;
 
 /**
  * Input message for requests.
  * Only "user" role is allowed for input messages.
  */
-@ApiSchema({ name: "V1InputMessage" })
-export class InputMessageDto {
+@ApiSchema({ name: "InputMessage" })
+export class V1InputMessageDto {
   @ApiProperty({
     description: "Message role - must be 'user' for input messages",
     enum: ["user"],
@@ -99,19 +99,19 @@ export class InputMessageDto {
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => Object, {
-    ...contentBlockDiscriminator,
+    ...v1ContentBlockDiscriminator,
     // Override to only allow input content types
     discriminator: {
       property: "type",
       subTypes: [
-        { value: TextContentDto, name: "text" },
-        { value: ResourceContentDto, name: "resource" },
-        { value: ToolResultContentDto, name: "tool_result" },
+        { value: V1TextContentDto, name: "text" },
+        { value: V1ResourceContentDto, name: "resource" },
+        { value: V1ToolResultContentDto, name: "tool_result" },
       ],
     },
     keepDiscriminatorProperty: true,
   })
-  content!: InputContent[];
+  content!: V1InputContent[];
 
   @ApiProperty({
     description: "Additional metadata to attach to the message",
@@ -125,13 +125,13 @@ export class InputMessageDto {
 /**
  * Response DTO for listing messages.
  */
-@ApiSchema({ name: "V1ListMessagesResponse" })
-export class ListMessagesResponseDto {
+@ApiSchema({ name: "ListMessagesResponse" })
+export class V1ListMessagesResponseDto {
   @ApiProperty({
     description: "List of messages in the thread",
-    type: [MessageDto],
+    type: [V1MessageDto],
   })
-  messages!: MessageDto[];
+  messages!: V1MessageDto[];
 
   @ApiProperty({
     description: "Cursor for the next page of results",
@@ -150,8 +150,8 @@ export class ListMessagesResponseDto {
 /**
  * Query parameters for listing messages.
  */
-@ApiSchema({ name: "V1ListMessagesQuery" })
-export class ListMessagesQueryDto {
+@ApiSchema({ name: "ListMessagesQuery" })
+export class V1ListMessagesQueryDto {
   @ApiProperty({
     description: "Maximum number of messages to return",
     required: false,
@@ -183,5 +183,5 @@ export class ListMessagesQueryDto {
 /**
  * Response DTO for getting a single message.
  */
-@ApiSchema({ name: "V1GetMessageResponse" })
-export class GetMessageResponseDto extends MessageDto {}
+@ApiSchema({ name: "GetMessageResponse" })
+export class V1GetMessageResponseDto extends V1MessageDto {}

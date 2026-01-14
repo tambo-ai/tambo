@@ -16,18 +16,18 @@ import { ResourceDto } from "../../threads/dto/message.dto";
  * Union type for all content block types.
  * Used for type-safe content handling.
  */
-export type ContentBlock =
-  | TextContentDto
-  | ResourceContentDto
-  | ToolUseContentDto
-  | ToolResultContentDto
-  | ComponentContentDto;
+export type V1ContentBlock =
+  | V1TextContentDto
+  | V1ResourceContentDto
+  | V1ToolUseContentDto
+  | V1ToolResultContentDto
+  | V1ComponentContentDto;
 
 /**
  * Text content block.
  */
-@ApiSchema({ name: "V1TextContent" })
-export class TextContentDto {
+@ApiSchema({ name: "TextContent" })
+export class V1TextContentDto {
   @ApiProperty({
     description: "Content block type identifier",
     enum: ["text"],
@@ -48,8 +48,8 @@ export class TextContentDto {
 /**
  * Resource content block for files, URLs, or binary data.
  */
-@ApiSchema({ name: "V1ResourceContent" })
-export class ResourceContentDto {
+@ApiSchema({ name: "ResourceContent" })
+export class V1ResourceContentDto {
   @ApiProperty({
     description: "Content block type identifier",
     enum: ["resource"],
@@ -69,8 +69,8 @@ export class ResourceContentDto {
 /**
  * Tool use content block - represents a tool call from the assistant.
  */
-@ApiSchema({ name: "V1ToolUseContent" })
-export class ToolUseContentDto {
+@ApiSchema({ name: "ToolUseContent" })
+export class V1ToolUseContentDto {
   @ApiProperty({
     description: "Content block type identifier",
     enum: ["tool_use"],
@@ -106,8 +106,8 @@ export class ToolUseContentDto {
 /**
  * Tool result content block - represents the result of a tool call.
  */
-@ApiSchema({ name: "V1ToolResultContent" })
-export class ToolResultContentDto {
+@ApiSchema({ name: "ToolResultContent" })
+export class V1ToolResultContentDto {
   @ApiProperty({
     description: "Content block type identifier",
     enum: ["tool_result"],
@@ -134,13 +134,13 @@ export class ToolResultContentDto {
     discriminator: {
       property: "type",
       subTypes: [
-        { value: TextContentDto, name: "text" },
-        { value: ResourceContentDto, name: "resource" },
+        { value: V1TextContentDto, name: "text" },
+        { value: V1ResourceContentDto, name: "resource" },
       ],
     },
     keepDiscriminatorProperty: true,
   })
-  content!: (TextContentDto | ResourceContentDto)[];
+  content!: (V1TextContentDto | V1ResourceContentDto)[];
 
   @ApiProperty({
     description: "Whether the tool call resulted in an error",
@@ -154,8 +154,8 @@ export class ToolResultContentDto {
 /**
  * Component content block - represents a UI component rendered by the client.
  */
-@ApiSchema({ name: "V1ComponentContent" })
-export class ComponentContentDto {
+@ApiSchema({ name: "ComponentContent" })
+export class V1ComponentContentDto {
   @ApiProperty({
     description: "Content block type identifier",
     enum: ["component"],
@@ -200,15 +200,15 @@ export class ComponentContentDto {
  * Helper for discriminated union validation in nested arrays.
  * Used with @Type() decorator to properly validate content blocks.
  */
-export const contentBlockDiscriminator = {
+export const v1ContentBlockDiscriminator = {
   discriminator: {
     property: "type",
     subTypes: [
-      { value: TextContentDto, name: "text" },
-      { value: ResourceContentDto, name: "resource" },
-      { value: ToolUseContentDto, name: "tool_use" },
-      { value: ToolResultContentDto, name: "tool_result" },
-      { value: ComponentContentDto, name: "component" },
+      { value: V1TextContentDto, name: "text" },
+      { value: V1ResourceContentDto, name: "resource" },
+      { value: V1ToolUseContentDto, name: "tool_use" },
+      { value: V1ToolResultContentDto, name: "tool_result" },
+      { value: V1ComponentContentDto, name: "component" },
     ],
   },
   keepDiscriminatorProperty: true,

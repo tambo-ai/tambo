@@ -11,8 +11,8 @@ import {
  * Tool definition for client-side tools.
  * Follows OpenAI/Anthropic/MCP conventions.
  */
-@ApiSchema({ name: "V1Tool" })
-export class ToolDto {
+@ApiSchema({ name: "Tool" })
+export class V1ToolDto {
   @ApiProperty({
     description: "Unique tool name (a-z, A-Z, 0-9, _, -)",
     example: "get_weather",
@@ -63,9 +63,12 @@ export class ToolDto {
 /**
  * Available component definition.
  * Describes a UI component the model can render.
+ *
+ * Note: Uses V1AvailableComponent API schema name to avoid collision
+ * with existing AvailableComponent in threads DTOs.
  */
 @ApiSchema({ name: "V1AvailableComponent" })
-export class AvailableComponentDto {
+export class V1AvailableComponentDto {
   @ApiProperty({
     description: "Component name (e.g., 'StockChart')",
     example: "WeatherCard",
@@ -109,8 +112,8 @@ export class AvailableComponentDto {
 /**
  * Tool choice for named tool forcing.
  */
-@ApiSchema({ name: "V1ToolChoiceNamed" })
-export class ToolChoiceNamedDto {
+@ApiSchema({ name: "ToolChoiceNamed" })
+export class V1ToolChoiceNamedDto {
   @ApiProperty({
     description: "Name of the tool that must be used",
     example: "get_weather",
@@ -124,8 +127,8 @@ export class ToolChoiceNamedDto {
  * Tool choice union type.
  * Controls how the model uses tools.
  */
-export type ToolChoiceDto =
+export type V1ToolChoiceDto =
   | "auto" // Model decides (default)
   | "required" // Must use at least one tool
   | "none" // Cannot use tools
-  | ToolChoiceNamedDto; // Must use specific tool
+  | V1ToolChoiceNamedDto; // Must use specific tool
