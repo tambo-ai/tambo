@@ -26,16 +26,17 @@ export const ProjectInfoProps = z.object({
     ),
   project: ProjectInfoSchema.optional().describe("The project to display."),
   createdAt: z
-    .union([z.string(), z.date()])
+    .string()
+    .datetime()
     .optional()
-    .describe("The creation date of the project."),
+    .describe("The ISO-8601 creation date of the project."),
   isLoading: z.boolean().optional().describe("Whether the project is loading."),
 });
 
 interface ProjectInfoProps {
   project?: RouterOutputs["project"]["getUserProjects"][number];
-  /** A `Date` or datetime string representing the project creation date. */
-  createdAt?: Date | string;
+  /** ISO-8601 datetime string (e.g. from `Date.prototype.toISOString()`). */
+  createdAt?: string;
   isLoading?: boolean;
   compact?: boolean;
 }
@@ -91,13 +92,12 @@ export function ProjectInfo({
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
 
-  // Expects a `Date` or datetime string; returns the raw input if parsing fails.
-  const formatDate = (dateValue: Date | string) => {
-    const date =
-      typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+  // Expects an ISO-8601 datetime string; returns the raw input if parsing fails.
+  const formatDate = (isoDateString: string) => {
+    const date = new Date(isoDateString);
 
     if (Number.isNaN(date.getTime())) {
-      return typeof dateValue === "string" ? dateValue : "Unknown";
+      return isoDateString;
     }
 
     // Intentionally uses the viewer's local time zone (the default).
