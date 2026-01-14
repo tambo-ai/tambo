@@ -55,36 +55,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const docsBaseUrl = "https://docs.tambo.co";
-  const docsUrl = (() => {
-    // `NEXT_PUBLIC_DOCS_URL` is already used across `apps/web` for linking/redirects.
-    // Here we treat any invalid/unsupported value as “unset” and fall back to the
-    // production docs host.
-    const rawDocsUrl = process.env.NEXT_PUBLIC_DOCS_URL?.trim();
-    if (!rawDocsUrl) {
-      return docsBaseUrl;
-    }
-
-    const trimTrailingSlashes = (value: string) => {
-      let result = value;
-      while (result.endsWith("/")) {
-        result = result.slice(0, -1);
-      }
-      return result;
-    };
-
-    try {
-      const url = new URL(rawDocsUrl);
-      if (url.protocol !== "http:" && url.protocol !== "https:") {
-        return docsBaseUrl;
-      }
-      return trimTrailingSlashes(url.toString());
-    } catch {
-      return docsBaseUrl;
-    }
-  })();
-
-  const docsOrigin = new URL(docsUrl).origin;
+  const docsUrl = "https://docs.tambo.co";
+  const llmsUrl = "https://docs.tambo.co/llms.txt";
+  const llmsFullUrl = "https://docs.tambo.co/llms-full.txt";
 
   // Generate schema for the website and organization
   const websiteSchema = generateWebsiteSchema();
@@ -102,17 +75,8 @@ export default async function RootLayout({
       <head>
         <PreloadResources />
         <link rel="help" href={docsUrl} />
-        {/* LLM manifests are served from the root of the docs origin. */}
-        <link
-          rel="alternate"
-          type="text/plain"
-          href={`${docsOrigin}/llms.txt`}
-        />
-        <link
-          rel="alternate"
-          type="text/plain"
-          href={`${docsOrigin}/llms-full.txt`}
-        />
+        <link rel="alternate" type="text/plain" href={llmsUrl} />
+        <link rel="alternate" type="text/plain" href={llmsFullUrl} />
       </head>
       <TamboProviderWrapper>
         <Suspense>
