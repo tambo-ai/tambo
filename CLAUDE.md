@@ -10,18 +10,6 @@ Guidelines for Claude Code (claude.ai/code) when touching this repo.
 2. Use the workspace scripts it lists (see below for key commands).
 3. Defer to it whenever instructions collide; if something's still unclear, ask the user.
 
-## Avoid RegEx When Possible
-
-- **Prefer string methods**: Simple patterns like `str.includes()`, `str.startsWith()`, `str.split()`, and `str.replace()` are easier to read and maintain.
-- **Avoid global flag (`/g`)**: Creates stateful regex objects where `lastIndex` persists between calls, causing subtle bugs.
-- **Avoid multiline flag (`/m`)**: Line ending differences across platforms (`\n` vs `\r\n`) cause inconsistent behavior; multiline patterns are harder to reason about.
-- **If regex is unavoidable**: Keep it simple, add a comment explaining the pattern, and test edge cases thoroughly.
-
-## Export and Import Patterns
-
-- **No internal barrel files**: Don't create `index.ts` files that just re-export symbols from nearby files. Import directly from the source file. Exception: package entry points (e.g., `packages/core/src/index.ts`) are fine.
-- **No backwards-compatibility re-exports**: When moving a symbol from one file to another, update all consumers to import from the new location. Don't leave behind re-exports "for convenience."
-
 ## Key Commands
 
 ```bash
