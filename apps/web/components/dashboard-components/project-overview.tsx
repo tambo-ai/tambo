@@ -32,6 +32,11 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     );
   }
 
+  const createdAtDate = new Date(project.createdAt);
+  const createdAtIso = Number.isNaN(createdAtDate.getTime())
+    ? undefined
+    : createdAtDate.toISOString();
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -39,10 +44,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <ProjectInfo
-        project={project}
-        createdAt={project.createdAt.toISOString()}
-      />
+      <ProjectInfo project={project} createdAt={createdAtIso} />
       <div>
         <DailyMessagesChart projectIds={[projectId]} days={30} />
 
