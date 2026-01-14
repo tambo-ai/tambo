@@ -6,6 +6,7 @@ import {
   GenerationStage,
   MessageRole,
   OAuthValidationMode,
+  V1RunStatus,
   ThreadAssistantMessage,
   ThreadMessage,
   ThreadSystemMessage,
@@ -76,9 +77,16 @@ export function createMockDBThread(
     contextKey: overrides.contextKey ?? null,
     metadata: overrides.metadata ?? null,
     generationStage: overrides.generationStage ?? generationStage,
-    statusMessage: overrides.statusMessage ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
+    // v1 API run lifecycle fields
+    runStatus: overrides.runStatus ?? V1RunStatus.IDLE,
+    currentRunId: overrides.currentRunId ?? null,
+    statusMessage: overrides.statusMessage ?? null,
+    lastRunCancelled: overrides.lastRunCancelled ?? null,
+    lastRunError: overrides.lastRunError ?? null,
+    pendingToolCallIds: overrides.pendingToolCallIds ?? null,
+    lastCompletedRunId: overrides.lastCompletedRunId ?? null,
   };
 
   return thread;
