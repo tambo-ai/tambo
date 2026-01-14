@@ -4,6 +4,7 @@ import { Icons } from "@/components/icons";
 import { MobileDashboardNavigation } from "@/components/sections/mobile-dashboard-navigation";
 import { ProjectDropdown } from "@/components/sections/project-dropdown";
 import { UserProfileDropdown } from "@/components/sections/user-profile-dropdown";
+import { buttonVariants } from "@/components/ui/button";
 import { TamboChatTrigger } from "@/components/tambo-chat-trigger";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -73,6 +74,18 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
 
             {/* Right side - Desktop: Profile dropdown, Mobile: Mobile nav */}
             <div className="flex items-center gap-2">
+              <a
+                href={siteConfig.links.docs}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "hidden md:inline-flex",
+                )}
+              >
+                Docs
+              </a>
+
               {/* Tambo Assistant Trigger - Desktop only */}
               <div className="hidden md:block">
                 <TamboChatTrigger />
