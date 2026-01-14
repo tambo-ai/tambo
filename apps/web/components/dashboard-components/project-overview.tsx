@@ -38,8 +38,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     shouldFetchApiKeys &&
     !isLoadingApiKeys &&
     !isApiKeysError &&
-    apiKeys !== undefined &&
-    apiKeys.length === 0;
+    (apiKeys?.length ?? 0) === 0;
 
   const apiKeysLoadError =
     shouldFetchApiKeys && !isLoadingApiKeys && isApiKeysError;
