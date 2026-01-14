@@ -91,17 +91,18 @@ export function ProjectInfo({
   const isLowMessages = remainingMessages < 50;
 
   const formatDate = (dateValue: Date | string) => {
-    try {
-      const date =
-        typeof dateValue === "string" ? new Date(dateValue) : dateValue;
-      return date.toLocaleDateString("en-US", {
-        year: compact ? "2-digit" : "numeric",
-        month: compact ? "short" : "long",
-        day: "numeric",
-      });
-    } catch (_error) {
-      return String(dateValue);
+    const date =
+      typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+
+    if (Number.isNaN(date.getTime())) {
+      return typeof dateValue === "string" ? dateValue : "Invalid Date";
     }
+
+    return date.toLocaleDateString("en-US", {
+      year: compact ? "2-digit" : "numeric",
+      month: compact ? "short" : "long",
+      day: "numeric",
+    });
   };
 
   // Compact version - to be used in chat with tambo
