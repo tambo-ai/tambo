@@ -19,8 +19,14 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface ProjectSettingsProps {
   projectId: string;
@@ -37,10 +43,27 @@ const containerVariants = {
   },
 };
 
+const SETTINGS_SECTIONS = [
+  "api-keys",
+  "llm-providers",
+  "custom-instructions",
+  "oauth-settings",
+  "mcp-servers",
+  "tool-call-limit",
+] as const;
+
+type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
+
+function isSettingsSection(value: string | null): value is SettingsSection {
+  return value !== null && SETTINGS_SECTIONS.includes(value as SettingsSection);
+}
+
 export function ProjectSettings({ projectId }: ProjectSettingsProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [activeSection, setActiveSection] = useState("api-keys");
+  const searchParams = useSearchParams();
+  const [activeSection, setActiveSection] =
+    useState<SettingsSection>("api-keys");
   const [alertState, setAlertState] = useState<AlertState>({
     show: false,
     title: "",
@@ -58,6 +81,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
   const oauthSettingsRef = useRef<HTMLDivElement>(null);
   const mcpServersRef = useRef<HTMLDivElement>(null);
   const toolCallLimitRef = useRef<HTMLDivElement>(null);
+  const hasAutoScrolledRef = useRef(false);
 
   // Add a ref for the scrollable container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -143,9 +167,11 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
     setEditedName("");
   };
 
-  const scrollToSection = (section: string) => {
+  const scrollToSection = useCallback((section: SettingsSection) => {
+    // This callback relies only on stable refs; if you add state/props here,
+    // update the dependency array accordingly.
     setActiveSection(section);
-    const refs = {
+    const refs: Record<SettingsSection, RefObject<HTMLDivElement>> = {
       "api-keys": apiKeysRef,
       "llm-providers": llmProvidersRef,
       "custom-instructions": customInstructionsRef,
@@ -155,7 +181,7 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
     };
 
     // Get the target element and the scroll container
-    const targetElement = refs[section as keyof typeof refs].current;
+    const targetElement = refs[section].current;
     const scrollContainer = scrollContainerRef.current;
 
     if (targetElement && scrollContainer) {
@@ -171,7 +197,19 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
         behavior: "smooth",
       });
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (hasAutoScrolledRef.current) return;
+
+    const initialSection = searchParams.get("section");
+
+    hasAutoScrolledRef.current = true;
+
+    if (isSettingsSection(initialSection)) {
+      scrollToSection(initialSection);
+    }
+  }, [searchParams, scrollToSection]);
 
   if (isLoadingProject) {
     return <SettingsPageSkeleton />;

@@ -1,10 +1,12 @@
 import { CopyButton } from "@/components/copy-button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { isLikelyIsoDateTimeString } from "@/lib/is-likely-iso-datetime";
 import { type RouterOutputs, api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { AiProviderType, DEFAULT_OPENAI_MODEL } from "@tambo-ai-cloud/core";
 import { z } from "zod/v3";
 import { FREE_MESSAGE_LIMIT } from "./provider-key-section";
 
@@ -42,6 +44,12 @@ interface ProjectInfoProps {
   compact?: boolean;
 }
 
+interface ProjectInfoLoadedProps {
+  project: NonNullable<ProjectInfoProps["project"]>;
+  createdAt?: string;
+  compact: boolean;
+}
+
 // Animation variants for staggered children
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -68,19 +76,6 @@ export function ProjectInfo({
   createdAt,
   compact = false,
 }: ProjectInfoProps) {
-  // Fetch message usage data
-  const { data: messageUsage } = api.project.getProjectMessageUsage.useQuery(
-    { projectId: project?.id ?? "" },
-    {
-      enabled: !!project?.id,
-    },
-  );
-
-  const { data: storedApiKeys, isLoading: isLoadingKeys } =
-    api.project.getProviderKeys.useQuery(project?.id ?? "", {
-      enabled: !!project?.id,
-    });
-
   if (!project) {
     return (
       <Card
@@ -93,13 +88,72 @@ export function ProjectInfo({
     );
   }
 
+  return (
+    <ProjectInfoLoaded
+      project={project}
+      createdAt={createdAt}
+      compact={compact}
+    />
+  );
+}
+
+function ProjectInfoLoaded({
+  project,
+  createdAt,
+  compact,
+}: ProjectInfoLoadedProps) {
+  // Fetch message usage data
+  const { data: messageUsage } = api.project.getProjectMessageUsage.useQuery({
+    projectId: project.id,
+  });
+
+  const {
+    data: storedApiKeys,
+    isLoading: isLoadingKeys,
+    isFetching: isFetchingKeys,
+    isError: isKeysError,
+  } = api.project.getProviderKeys.useQuery(project.id);
+
   // Calculate remaining messages
   const messageCount = messageUsage?.messageCount ?? 0;
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
 
   const hasProviderKey = (storedApiKeys?.length ?? 0) > 0;
-  const shouldShowStarterQuota = !isLoadingKeys && !hasProviderKey;
+  const isKeyStatusUnknown = isLoadingKeys || isFetchingKeys || isKeysError;
+  const shouldShowStarterQuota = !hasProviderKey && !isKeyStatusUnknown;
+
+  const providerType = project.providerType;
+
+  const llmProvider = project.defaultLlmProviderName || "openai";
+  const llmModel = (() => {
+    if (llmProvider === "openai-compatible") {
+      return project.customLlmModelName || "Custom model";
+    }
+
+    if (llmProvider === "openai" && !project.defaultLlmModelName) {
+      return DEFAULT_OPENAI_MODEL;
+    }
+
+    if (!project.defaultLlmModelName) {
+      return "Using provider default";
+    }
+
+    return project.defaultLlmModelName;
+  })();
+
+  const providerModelLabel =
+    providerType === AiProviderType.AGENT
+      ? "Agent mode"
+      : `${llmProvider} • ${llmModel}`;
+
+  const keyStatusNote = (() => {
+    if (isKeysError) return "Key status unavailable";
+    if (isLoadingKeys || isFetchingKeys) return "Checking key status...";
+    return null;
+  })();
+
+  const settingsHref = `/dashboard/${project.id}/settings?section=llm-providers`;
 
   // Expects an ISO-8601 datetime string; returns "—" when the input isn't a
   // likely ISO datetime or can't be parsed.
@@ -161,7 +215,7 @@ export function ProjectInfo({
               <span>Owner: {project.userId?.slice(0, 8) ?? "Unknown"}...</span>
             </div>
 
-            {shouldShowStarterQuota && (
+            {shouldShowStarterQuota ? (
               <div className="flex items-center gap-2">
                 <span
                   className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
@@ -171,11 +225,28 @@ export function ProjectInfo({
                 </span>
                 {isLowMessages && (
                   <Link
-                    href={`/dashboard/${project.id}/settings`}
+                    href={settingsHref}
                     className="text-primary hover:underline font-medium"
                   >
                     Add key
                   </Link>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-foreground">{providerModelLabel}</span>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                >
+                  <Link href={settingsHref}>Change</Link>
+                </Button>
+                {keyStatusNote && (
+                  <span className="text-muted-foreground">
+                    ({keyStatusNote})
+                  </span>
                 )}
               </div>
             )}
@@ -201,7 +272,7 @@ export function ProjectInfo({
         </motion.div>
 
         <motion.div
-          className={`grid grid-cols-1 sm:grid-cols-2 ${shouldShowStarterQuota ? "md:grid-cols-4" : "md:grid-cols-3"} gap-4`}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -243,29 +314,55 @@ export function ProjectInfo({
             </motion.div>
           </div>
 
-          {shouldShowStarterQuota && (
-            <div className="sm:border-l border-muted-foreground/20 sm:pl-4">
-              <motion.div variants={itemVariants}>
-                <h5 className="text-xs font-medium text-foreground mb-1">
-                  Starter LLM calls remaining
-                </h5>
-                <div className="flex items-center gap-4">
-                  <p
-                    className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
-                  >
-                    {remainingMessages} starter LLM calls left — bring your own
-                    key to keep going
+          <div className="sm:border-l border-muted-foreground/20 sm:pl-4">
+            <motion.div variants={itemVariants}>
+              {shouldShowStarterQuota ? (
+                <>
+                  <h5 className="text-xs font-medium text-foreground mb-1">
+                    Starter LLM calls remaining
+                  </h5>
+                  <div className="flex items-center gap-4">
+                    <p
+                      className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
+                    >
+                      {remainingMessages} starter LLM calls left — bring your
+                      own key to keep going
+                    </p>
+                    <Link
+                      href={settingsHref}
+                      className="text-xs font-semibold underline"
+                    >
+                      Add provider key
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between gap-2">
+                    <h5 className="text-xs font-medium text-foreground">
+                      Provider • Model
+                    </h5>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                    >
+                      <Link href={settingsHref}>Change</Link>
+                    </Button>
+                  </div>
+                  <p className="text-xs sm:text-sm truncate">
+                    {providerModelLabel}
                   </p>
-                  <Link
-                    href={`/dashboard/${project.id}/settings`}
-                    className="text-xs font-semibold underline"
-                  >
-                    Add provider key
-                  </Link>
-                </div>
-              </motion.div>
-            </div>
-          )}
+                  {keyStatusNote && (
+                    <p className="text-xs text-muted-foreground">
+                      {keyStatusNote}
+                    </p>
+                  )}
+                </>
+              )}
+            </motion.div>
+          </div>
         </motion.div>
       </CardContent>
     </Card>
