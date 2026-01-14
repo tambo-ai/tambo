@@ -41,7 +41,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     >
       <ProjectInfo
         project={project}
-        createdAt={new Date(project.createdAt).toLocaleDateString()}
+        createdAt={project.createdAt.toISOString()}
       />
       <div>
         <DailyMessagesChart projectIds={[projectId]} days={30} />
