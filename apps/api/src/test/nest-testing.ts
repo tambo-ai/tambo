@@ -26,24 +26,23 @@ export async function createTestingModule(
   return await builder.compile();
 }
 
-export function createTestRequestContext<
-  TRequest extends Record<string, unknown> = Record<string, unknown>,
->(request?: TRequest): TestRequestContext<TRequest> {
+export function createTestRequestContext(
+  request: Record<string, unknown> = {},
+): TestRequestContext<Record<string, unknown>> {
   return {
     contextId: ContextIdFactory.create(),
-    request: request ?? ({} as TRequest),
+    request,
   };
 }
 
 export async function resolveRequestScopedProvider<
-  TInput = any,
-  TResult = TInput,
+  TProvider = unknown,
   TRequest extends Record<string, unknown> = Record<string, unknown>,
 >(
   module: TestingModule,
-  provider: Type<TInput> | string | symbol,
+  provider: Type<TProvider> | string | symbol,
   context: TestRequestContext<TRequest>,
-): Promise<TResult> {
+): Promise<TProvider> {
   module.registerRequestByContextId(context.request, context.contextId);
-  return await module.resolve<TInput, TResult>(provider, context.contextId);
+  return await module.resolve<TProvider>(provider, context.contextId);
 }
