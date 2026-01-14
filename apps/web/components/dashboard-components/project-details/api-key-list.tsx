@@ -266,11 +266,12 @@ export function APIKeyList({
   };
 
   const isLoading = apiKeysLoading || externalLoading;
+  const hasLoadedApiKeys = apiKeys !== undefined;
   const hasNoKeys =
     !!projectId &&
     !isLoading &&
     !apiKeysError &&
-    apiKeys !== undefined &&
+    hasLoadedApiKeys &&
     apiKeys.length === 0;
 
   useEffect(() => {
