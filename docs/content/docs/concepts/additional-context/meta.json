@@ -5,6 +5,8 @@
     "custom-helpers",
     "context-attachments",
     "dynamic-control",
+    "system-messages",
+    "...resources",
     "examples"
   ]
 }

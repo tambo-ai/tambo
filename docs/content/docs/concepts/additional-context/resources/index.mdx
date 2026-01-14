@@ -1,0 +1,70 @@
+---
+title: Resources
+description: Allow users to reference documentation and files in messages through @ mentions
+---
+
+Resources are data sources that users can explicitly reference in their messages using @ mentions. Unlike context helpers that automatically run with each message, resources are user-controlled—users choose when to include them by typing `@resourceName` in their message.
+
+Resources can come from two sources:
+- **Local resources**: Registered directly in your React app
+- **MCP resources**: Exposed by connected MCP servers
+
+Both types work the same way from the user's perspective—they type @ to search and select resources, and the content is included in the message when sent.
+
+## Local Resources
+
+Register resources directly in your React app for documentation, configuration, or user-uploaded files:
+
+```tsx
+import { useTamboLocalResources } from "@tambo-ai/react";
+
+const { registerLocalResource } = useTamboLocalResources();
+
+registerLocalResource({
+  uri: "docs://getting-started",
+  name: "Getting Started Guide",
+  description: "Introduction to our product",
+  mimeType: "text/plain",
+  text: "Welcome to our product! Here's how to get started...",
+});
+```
+
+[Learn how to add local resources →](/concepts/additional-context/resources/adding-resources)
+
+## MCP Resources
+
+Connect MCP servers to expose resources from external services like Linear, GitHub, or databases:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+<TamboProvider
+  mcpServers={[
+    {
+      serverKey: "linear",
+      transport: { type: "sse", url: "/api/mcp/linear" },
+    },
+  ]}
+>
+  <App />
+</TamboProvider>;
+```
+
+Users can then reference Linear issues with `@linear:issue://TAM-123` in their messages.
+
+[Learn more about MCP Resources →](/concepts/model-context-protocol/features/resources)
+
+## When to Use Resources
+
+**Use resources when:**
+- Users need to reference specific documentation or files in their messages
+- Content should only be included when explicitly requested (not every message)
+- You want to provide searchable, browsable content that users can discover
+- You have large documents that would overwhelm automatic context
+
+**Use context helpers instead when:**
+- Context should be automatically included with every message
+- You need dynamic data like current time, page, or user state
+- Context is small and always relevant
+
+Resources give users control over what context to include, while context helpers provide automatic ambient context.

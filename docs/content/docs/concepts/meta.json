@@ -4,7 +4,6 @@
     "generative-interfaces",
     "conversation-storage",
     "tools",
-    "resources",
     "model-context-protocol",
     "user-authentication",
     "additional-context",

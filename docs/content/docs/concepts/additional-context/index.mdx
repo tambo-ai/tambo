@@ -17,7 +17,7 @@ When configured, context helpers automatically add metadata to messages without 
 
 ## How to Add Context
 
-There are four ways to add additional context to messages:
+There are five ways to add additional context to messages:
 
 ### 1. Prebuilt Context Helpers
 
@@ -126,7 +126,87 @@ function FileViewer({ file }) {
 }
 ```
 
-All four methods can be used together—context from helpers, context attachments, and manual context are merged when sending messages.
+### 5. Resources
+
+Register data sources that users can reference in messages using @ mentions. Resources allow users to explicitly pull in documentation, files, or other content from local or MCP sources.
+
+```tsx
+import { useTamboLocalResources } from "@tambo-ai/react";
+
+const { registerLocalResource } = useTamboLocalResources();
+
+registerLocalResource({
+  uri: "docs://api-guide",
+  name: "API Guide",
+  description: "Complete API documentation",
+  mimeType: "text/plain",
+  text: "API documentation content...",
+});
+```
+
+Users reference resources in messages with `@resourceUri` syntax. The resource content is included as part of the message when sent.
+
+[Learn more about Resources →](/concepts/additional-context/resources)
+
+All five methods can be used together—context from helpers, context attachments, manual context, and resources are merged when sending messages.
+
+## Complementary Context Methods
+
+Beyond the message-level context above, Tambo provides additional ways to provide context with different characteristics:
+
+### System Messages
+
+Set persistent instructions and behavioral guidelines for an entire conversation thread. System messages are set once at thread creation and remain in effect for the thread's lifetime, making them ideal for defining AI persona, domain expertise, or persistent constraints.
+
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
+const { createThread } = useTamboThread();
+
+await createThread({
+  initialMessages: [
+    {
+      id: crypto.randomUUID(),
+      role: "system",
+      content: [
+        {
+          type: "text",
+          text: "You are a financial advisor specializing in retirement planning.",
+        },
+      ],
+      createdAt: new Date().toISOString(),
+      componentState: {},
+    },
+  ],
+});
+```
+
+System messages are best for instructions that don't change during the conversation, while context helpers excel at dynamic data that updates between messages.
+
+[Learn more about System Messages →](/concepts/additional-context/system-messages)
+
+### Resources from MCP Servers
+
+When you connect MCP servers, their resources become available for users to reference in messages. MCP resources work the same way as local resources—users reference them with @ mentions, and their content is included in the message.
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+<TamboProvider
+  mcpServers={[
+    {
+      serverKey: "linear",
+      transport: { type: "sse", url: "/api/mcp/linear" },
+    },
+  ]}
+>
+  {/* Users can now reference Linear resources like @linear:issue://TAM-123 */}
+</TamboProvider>;
+```
+
+MCP resources are particularly valuable for integrating external services like Linear, GitHub, databases, or file systems into your AI conversations.
+
+[Learn more about MCP Resources →](/concepts/model-context-protocol/features/resources)
 
 ## When to Use Each Method
 
@@ -136,6 +216,9 @@ All four methods can be used together—context from helpers, context attachment
 | Custom Helpers      | You have app-wide context that should always be included          | User profile, app settings, feature flags                                        |
 | Manual Context      | Context is specific to a particular interaction                   | Search filters, form data, temporary state                                       |
 | Context Attachments | You want to stage context that will be sent with the next message | File contents, selected text, temporary context that should be cleared after use |
+| Resources           | Users need to reference documentation or files in messages        | API documentation, configuration files, user-uploaded documents                  |
+| System Messages     | You need persistent instructions for an entire thread             | AI persona, domain expertise, behavioral constraints                             |
+| MCP Resources       | You have structured reference materials from external servers     | Linear issues, GitHub files, database records from MCP servers                   |
 
 ## Available Prebuilt Context Helpers (On by Default)
 

@@ -1,0 +1,243 @@
+---
+title: System Messages
+description: Set persistent instructions and context through system role messages
+---
+
+System messages allow you to set persistent instructions that guide the AI's behavior throughout an entire conversation thread. Unlike context helpers that run with each message, system messages are set once when creating a thread and remain in effect for the thread's lifetime.
+
+## How System Messages Work
+
+System messages are special messages with the `system` role that tell the AI how to behave, what persona to adopt, what information to remember, or what constraints to follow. They're sent as part of the initial thread state and influence every response the AI generates in that thread.
+
+Common use cases include:
+- Setting AI personality and tone
+- Defining domain expertise (e.g., "You are a financial advisor")
+- Providing persistent context about the user or session
+- Setting behavioral constraints or response formats
+- Giving access to reference information
+
+## Creating Threads with System Messages
+
+Use the `createThread` function with initial system messages:
+
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
+function StartConversation() {
+  const { createThread } = useTamboThread();
+
+  const handleStartSession = async () => {
+    const initialMessages = [
+      {
+        id: crypto.randomUUID(),
+        role: "system" as const,
+        content: [
+          {
+            type: "text" as const,
+            text: "You are a helpful assistant specialized in data analysis. When analyzing data, always explain your methodology and highlight key insights.",
+          },
+        ],
+        createdAt: new Date().toISOString(),
+        componentState: {},
+      },
+    ];
+
+    await createThread({ initialMessages });
+  };
+
+  return <button onClick={handleStartSession}>Start Analysis Session</button>;
+}
+```
+
+## Multiple System Messages
+
+You can include multiple system messages to organize different types of context:
+
+```tsx
+const initialMessages = [
+  {
+    id: crypto.randomUUID(),
+    role: "system" as const,
+    content: [
+      {
+        type: "text" as const,
+        text: "You are a financial advisor specializing in retirement planning.",
+      },
+    ],
+    createdAt: new Date().toISOString(),
+    componentState: {},
+  },
+  {
+    id: crypto.randomUUID(),
+    role: "system" as const,
+    content: [
+      {
+        type: "text" as const,
+        text: `Current user context:
+- Age: 45
+- Risk tolerance: Moderate
+- Investment horizon: 20 years
+- Current portfolio: $500,000`,
+      },
+    ],
+    createdAt: new Date().toISOString(),
+    componentState: {},
+  },
+];
+```
+
+## Dynamic System Messages
+
+Generate system messages based on user data or application state:
+
+```tsx
+function StartPersonalizedChat({ userId }: { userId: string }) {
+  const { createThread } = useTamboThread();
+
+  const handleStart = async () => {
+    const userData = await fetchUserData(userId);
+
+    const systemMessage = {
+      id: crypto.randomUUID(),
+      role: "system" as const,
+      content: [
+        {
+          type: "text" as const,
+          text: `You are assisting ${userData.name}, a ${userData.role} at ${userData.company}.
+Tailor your responses to their expertise level and current projects.
+
+Current projects: ${userData.projects.join(", ")}
+Preferred communication style: ${userData.preferences.communicationStyle}`,
+        },
+      ],
+      createdAt: new Date().toISOString(),
+      componentState: {},
+    };
+
+    await createThread({ initialMessages: [systemMessage] });
+  };
+
+  return <button onClick={handleStart}>Start Chat</button>;
+}
+```
+
+## System Messages vs Context Helpers
+
+| Feature             | System Messages                                     | Context Helpers                                           |
+| ------------------- | --------------------------------------------------- | --------------------------------------------------------- |
+| When set            | Once at thread creation                             | Every message                                             |
+| Persistence         | Entire thread lifetime                              | Only current message                                      |
+| Use case            | Persistent instructions, persona, behavioral rules  | Dynamic data (time, page, user state)                     |
+| Performance         | Set once, no overhead per message                   | Runs on every message                                     |
+| Updatability        | Fixed after thread creation                         | Can change between messages                               |
+| Best for            | Instructions that don't change during conversation  | Context that changes as user navigates or state updates   |
+
+**When to use each:**
+- **System messages**: Core instructions, persona, domain expertise, persistent constraints
+- **Context helpers**: Current page, time, user location, active components, dynamic app state
+
+**Use both together** for comprehensive context - system messages for persistent instructions, context helpers for dynamic information.
+
+## Pattern: Role-Based System Messages
+
+Create specialized conversation types with different system messages:
+
+```tsx
+function ConversationStarter() {
+  const { createThread } = useTamboThread();
+
+  const systemMessages = {
+    analysis: `You are a data analyst. Provide clear, structured analysis with:
+- Key findings (bullet points)
+- Supporting evidence
+- Confidence levels
+- Recommendations`,
+
+    brainstorm: `You are a creative brainstorming partner. Generate:
+- Diverse ideas (aim for 10+)
+- Unconventional approaches
+- Combinations of concepts
+- "Yes, and..." building on user ideas`,
+
+    review: `You are a code reviewer. Focus on:
+- Correctness and bugs
+- Performance implications
+- Security concerns
+- Readability and maintainability`,
+  };
+
+  const startConversation = async (type: keyof typeof systemMessages) => {
+    await createThread({
+      initialMessages: [
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          content: [{ type: "text", text: systemMessages[type] }],
+          createdAt: new Date().toISOString(),
+          componentState: {},
+        },
+      ],
+    });
+  };
+
+  return (
+    <div>
+      <button onClick={() => startConversation("analysis")}>
+        Data Analysis
+      </button>
+      <button onClick={() => startConversation("brainstorm")}>
+        Brainstorm
+      </button>
+      <button onClick={() => startConversation("review")}>Code Review</button>
+    </div>
+  );
+}
+```
+
+## Combining with Other Context Methods
+
+System messages work alongside all other context methods:
+
+```tsx
+import { TamboProvider, currentTimeContextHelper } from "@tambo-ai/react";
+
+// 1. System message: Persistent instructions
+const systemMessage = {
+  role: "system" as const,
+  content: [
+    {
+      type: "text" as const,
+      text: "You are a scheduling assistant. Always confirm timezone when discussing times.",
+    },
+  ],
+  // ... other fields
+};
+
+// 2. Context helpers: Dynamic context
+<TamboProvider
+  contextHelpers={{
+    userTime: currentTimeContextHelper,
+    userPage: currentPageContextHelper,
+  }}
+>
+  {/* App */}
+</TamboProvider>;
+
+// 3. Manual context: Per-message context
+await submit({
+  additionalContext: {
+    meetingPreferences: { duration: 30, buffer: 5 },
+  },
+});
+```
+
+All three layers combine to give the AI complete context:
+- **System message**: Persistent behavioral instructions
+- **Context helpers**: Current environment (time, page)
+- **Manual context**: Specific interaction data
+
+## Related Concepts
+
+- **[Context Helpers](/concepts/additional-context/configuration)** - Automatic context that runs with each message
+- **[Manual Context](/concepts/additional-context/index#manual-context-via-message-functions)** - Per-message context via `additionalContext`
+- **[Conversation Storage](/concepts/conversation-storage)** - How threads and messages are persisted
