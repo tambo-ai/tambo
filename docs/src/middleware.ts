@@ -93,3 +93,11 @@ export function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
+
+// Config matcher for performance
+export const config = {
+  matcher: [
+    // Skip middleware for static assets
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
+};
