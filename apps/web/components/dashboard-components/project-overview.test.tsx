@@ -22,9 +22,12 @@ jest.mock(
 jest.mock(
   "@/components/dashboard-components/project-details/project-info",
   () => ({
-    ProjectInfo: ({ createdAt }: { createdAt?: string }) => (
-      <div>CreatedAt: {createdAt ?? "none"}</div>
-    ),
+    ProjectInfo: ({
+      createdAt,
+    }: {
+      project: unknown;
+      createdAt?: string | undefined;
+    }) => <div>CreatedAt: {createdAt ?? "none"}</div>,
   }),
 );
 
@@ -35,7 +38,7 @@ describe("ProjectOverview", () => {
     jest.clearAllMocks();
   });
 
-  it("normalizes string createdAt values without throwing", () => {
+  it("passes through valid ISO createdAt strings to ProjectInfo", () => {
     getUserProjectsUseQueryMock.mockImplementation(
       (_input: unknown, opts?: { select?: (projects: any[]) => unknown }) => ({
         data: opts?.select?.([

@@ -1,5 +1,6 @@
 import { CopyButton } from "@/components/copy-button";
 import { Card, CardContent } from "@/components/ui/card";
+import { isLikelyIsoDateTimeString } from "@/lib/is-likely-iso-datetime";
 import { type RouterOutputs, api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -92,8 +93,13 @@ export function ProjectInfo({
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
 
-  // Expects an ISO-8601 datetime string; returns a placeholder if parsing fails.
+  // Expects an ISO-8601 datetime string; returns "—" when the input isn't a
+  // likely ISO datetime or can't be parsed.
   const formatDate = (isoDateString: string) => {
+    if (!isLikelyIsoDateTimeString(isoDateString)) {
+      return "—";
+    }
+
     const date = new Date(isoDateString);
 
     if (Number.isNaN(date.getTime())) {

@@ -5,6 +5,7 @@ import { DailyMessagesChart } from "@/components/dashboard-components/project-de
 import { ProjectInfo } from "@/components/dashboard-components/project-details/project-info";
 import { ProjectOverviewSkeleton } from "@/components/skeletons/dashboard-skeletons";
 import { Card } from "@/components/ui/card";
+import { normalizeCreatedAt } from "@/lib/normalize-created-at";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 
@@ -32,17 +33,8 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     );
   }
 
-  const rawCreatedAt = project.createdAt as unknown;
-  const createdAtDate =
-    rawCreatedAt instanceof Date
-      ? rawCreatedAt
-      : typeof rawCreatedAt === "string" || typeof rawCreatedAt === "number"
-        ? new Date(rawCreatedAt)
-        : null;
-  const createdAtIso =
-    createdAtDate === null || Number.isNaN(createdAtDate.getTime())
-      ? undefined
-      : createdAtDate.toISOString();
+  // `normalizeCreatedAt` returns an ISO string or `undefined` when invalid.
+  const createdAtIso = normalizeCreatedAt(project.createdAt);
 
   return (
     <motion.div

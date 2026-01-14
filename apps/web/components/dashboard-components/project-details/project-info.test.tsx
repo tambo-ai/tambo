@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 const getProjectMessageUsageUseQueryMock = jest.fn();
 
@@ -33,6 +33,35 @@ jest.mock("./provider-key-section", () => ({
 
 import { ProjectInfo } from "./project-info";
 
+type Project = NonNullable<ComponentProps<typeof ProjectInfo>["project"]>;
+
+function makeProject(overrides: Partial<Project> = {}): Project {
+  return {
+    id: "proj_1",
+    name: "Test Project",
+    userId: "user_1234567890",
+    createdAt: new Date("2026-01-14T00:00:00.000Z"),
+    updatedAt: null,
+    customInstructions: null,
+    allowSystemPromptOverride: false,
+    defaultLlmProviderName: null,
+    defaultLlmModelName: null,
+    customLlmModelName: null,
+    customLlmBaseURL: null,
+    maxToolCallLimit: 10,
+    isTokenRequired: false,
+    providerType: null,
+    agentProviderType: null,
+    agentUrl: null,
+    agentName: null,
+    customLlmParameters: null,
+    messages: 0,
+    users: 0,
+    lastMessageAt: null,
+    ...overrides,
+  };
+}
+
 describe("ProjectInfo", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -41,12 +70,12 @@ describe("ProjectInfo", () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("renders a placeholder instead of leaking invalid createdAt values", () => {
-    const project = {
-      id: "proj_1",
-      name: "Test Project",
-      userId: "user_1234567890",
-    } as any;
+    const project = makeProject();
 
     render(<ProjectInfo project={project} createdAt="not-a-date" />);
 
@@ -54,12 +83,17 @@ describe("ProjectInfo", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
+  it("renders a placeholder for non-ISO createdAt strings", () => {
+    const project = makeProject();
+
+    render(<ProjectInfo project={project} createdAt="2026-01-14" />);
+
+    expect(screen.getByText("Created")).toBeInTheDocument();
+    expect(screen.getByText("—")).toBeInTheDocument();
+  });
+
   it("formats valid ISO dates using toLocaleDateString", () => {
-    const project = {
-      id: "proj_1",
-      name: "Test Project",
-      userId: "user_1234567890",
-    } as any;
+    const project = makeProject();
 
     const toLocaleDateStringSpy = jest
       .spyOn(Date.prototype, "toLocaleDateString")
@@ -78,14 +112,11 @@ describe("ProjectInfo", () => {
         day: "numeric",
       }),
     );
+    toLocaleDateStringSpy.mockRestore();
   });
 
   it("formats valid ISO dates using compact options", () => {
-    const project = {
-      id: "proj_1",
-      name: "Test Project",
-      userId: "user_1234567890",
-    } as any;
+    const project = makeProject();
 
     const toLocaleDateStringSpy = jest
       .spyOn(Date.prototype, "toLocaleDateString")
@@ -108,5 +139,7 @@ describe("ProjectInfo", () => {
         day: "numeric",
       }),
     );
+    toLocaleDateStringSpy.mockRestore();
+    expect(screen.queryByText("Created")).not.toBeInTheDocument();
   });
 });
