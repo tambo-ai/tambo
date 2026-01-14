@@ -100,6 +100,7 @@ export function ProjectInfo({
       return isoDateString;
     }
 
+    // Intentionally uses the viewer's local time zone (the default).
     return date.toLocaleDateString("en-US", {
       year: compact ? "2-digit" : "numeric",
       month: compact ? "short" : "long",
