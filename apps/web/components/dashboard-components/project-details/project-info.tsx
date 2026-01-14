@@ -89,7 +89,6 @@ export function ProjectInfo({
   const messageCount = messageUsage?.messageCount ?? 0;
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
-  const starterCallsCopy = `${remainingMessages} LLM calls (BYOK for more)`;
 
   const formatDate = (dateString: string) => {
     try {
@@ -147,14 +146,14 @@ export function ProjectInfo({
               <span
                 className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
               >
-                {starterCallsCopy}
+                {remainingMessages}
               </span>
               {isLowMessages && (
                 <Link
                   href={`/dashboard/${project.id}/settings`}
                   className="text-primary hover:underline font-medium"
                 >
-                  Add key
+                  Add API Key
                 </Link>
               )}
             </div>
@@ -231,13 +230,13 @@ export function ProjectInfo({
                 <p
                   className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
                 >
-                  {starterCallsCopy}
+                  {remainingMessages}
                 </p>
                 <Link
                   href={`/dashboard/${project.id}/settings`}
                   className="text-xs font-semibold underline"
                 >
-                  Add provider key
+                  Add API Key
                 </Link>
               </div>
             </motion.div>
