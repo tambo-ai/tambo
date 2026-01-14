@@ -606,6 +606,93 @@ export const threads = pgTable(
   },
 );
 export type DBThread = typeof threads.$inferSelect;
+
+/**
+ * Run request parameters stored for auditing/debugging.
+ * Only model is a separate column; other parameters are bundled here.
+ */
+export interface RunRequestParams {
+  maxTokens?: number;
+  temperature?: number;
+  toolChoice?: string | { name: string };
+  [key: string]: unknown;
+}
+
+/**
+ * Runs table for tracking individual generation runs within a thread.
+ * Each run represents a single request/response cycle, including tool calls.
+ */
+export const runs = pgTable(
+  "runs",
+  ({ text, timestamp, boolean }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('run_')`),
+    threadId: text("thread_id")
+      .references(() => threads.id, { onDelete: "cascade" })
+      .notNull(),
+
+    // Run status lifecycle
+    status: text("status", {
+      enum: Object.values<string>(V1RunStatus) as [V1RunStatus],
+    })
+      .default(V1RunStatus.WAITING)
+      .notNull(),
+    statusMessage: text("status_message"), // "Fetching weather data..."
+
+    // Error tracking (populated when status indicates failure)
+    errorCode: text("error_code"),
+    errorMessage: text("error_message"),
+
+    // Tool call state
+    pendingToolCallIds: customJsonb<string[]>("pending_tool_call_ids"),
+
+    // Continuation chain (self-reference for run chains)
+    previousRunId: text("previous_run_id"),
+
+    // Request parameters (for auditing/replay)
+    model: text("model"),
+    requestParams: customJsonb<RunRequestParams>("request_params"),
+
+    // Metadata
+    metadata: customJsonb<Record<string, unknown>>("metadata"),
+
+    // Whether this run was cancelled
+    isCancelled: boolean("is_cancelled").default(false).notNull(),
+
+    // Timestamps
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }), // First content received
+    completedAt: timestamp("completed_at", { withTimezone: true }), // Run finished
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    index("runs_thread_id_idx").on(table.threadId),
+    index("runs_status_idx").on(table.status),
+    index("runs_created_at_idx").on(table.createdAt),
+  ],
+);
+
+export type DBRun = typeof runs.$inferSelect;
+
+export const runRelations = relations(runs, ({ one }) => ({
+  thread: one(threads, {
+    fields: [runs.threadId],
+    references: [threads.id],
+  }),
+  previousRun: one(runs, {
+    fields: [runs.previousRunId],
+    references: [runs.id],
+    relationName: "runChain",
+  }),
+}));
+
 export const messages = pgTable(
   "messages",
   ({ text, timestamp, boolean }) => ({
@@ -688,6 +775,7 @@ export const threadRelations = relations(threads, ({ one, many }) => ({
     references: [projects.id],
   }),
   messages: many(messages),
+  runs: many(runs),
 }));
 export type DBThreadWithMessages = DBThread & {
   messages: DBMessageWithSuggestions[];
