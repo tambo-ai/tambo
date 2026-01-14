@@ -166,15 +166,15 @@ export function ProjectInfo({
 
   // Full version
   return (
-    <Card className="border-card-background bg-card-background rounded-3xl overflow-hidden p-2 sm:p-4">
-      <CardContent className="p-2 sm:p-4 space-y-4">
+    <Card className="border-card-background bg-card-background rounded-3xl overflow-hidden">
+      <CardContent className="p-4 space-y-4">
         <motion.div
           className="flex items-center gap-2"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <h4 className="text-3xl sm:text-4xl md:text-6xl pb-4 sm:pb-4">
+          <h4 className="text-3xl sm:text-4xl md:text-6xl pb-2">
             {project.name}
           </h4>
         </motion.div>
@@ -227,7 +227,7 @@ export function ProjectInfo({
               <h5 className="text-xs font-medium text-foreground mb-1">
                 Starter LLM calls remaining
               </h5>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col items-start gap-2">
                 <p
                   className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
                 >
