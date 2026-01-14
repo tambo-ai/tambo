@@ -101,7 +101,7 @@ export function ProjectInfo({
     }
 
     // Intentionally uses the viewer's local time zone (the default).
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(undefined, {
       year: compact ? "2-digit" : "numeric",
       month: compact ? "short" : "long",
       day: "numeric",
