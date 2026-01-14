@@ -7,12 +7,6 @@ export type TestRequestContext<TRequest extends Record<string, unknown>> = {
   readonly request: TRequest;
 };
 
-export function createTestRequestContext(): TestRequestContext<
-  Record<string, unknown>
->;
-export function createTestRequestContext<
-  TRequest extends Record<string, unknown>,
->(request: TRequest): TestRequestContext<TRequest>;
 export function createTestRequestContext(
   request: Record<string, unknown> = {},
 ): TestRequestContext<Record<string, unknown>> {

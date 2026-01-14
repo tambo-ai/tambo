@@ -125,17 +125,21 @@ it("resolves request-scoped providers", async () => {
 
   // Only needed if code under test calls ContextIdFactory.getByRequest().
   // In that case, force it to return the same ContextId we created above.
-  jest
+  const getByRequestSpy = jest
     .spyOn(ContextIdFactory, "getByRequest")
     .mockImplementation(() => context.contextId);
 
-  const requestScoped = await resolveRequestScopedProvider(
-    module,
-    MyRequestScopedService,
-    context,
-  );
+  try {
+    const requestScoped = await resolveRequestScopedProvider(
+      module,
+      MyRequestScopedService,
+      context,
+    );
 
-  expect(requestScoped).toBeDefined();
+    expect(requestScoped).toBeDefined();
+  } finally {
+    getByRequestSpy.mockRestore();
+  }
 });
 ```
 
