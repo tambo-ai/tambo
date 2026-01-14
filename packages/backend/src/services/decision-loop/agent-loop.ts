@@ -53,6 +53,9 @@ export async function* runAgentLoop(
 
     const messageRole = toCoreMessageRole(message.role);
     if (!messageRole) {
+      console.warn(
+        `Dropping AG-UI message with unsupported role '${message.role}' (id: '${message.id}')`,
+      );
       // `@ag-ui/core` messages can include roles (like `developer`/`activity`) that
       // aren't represented in `@tambo-ai-cloud/core`'s `MessageRole` enum.
       continue;
