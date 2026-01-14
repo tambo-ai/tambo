@@ -22,7 +22,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       select: (projects) => projects.find((p) => p.id === projectId),
     });
 
-  const shouldFetchApiKeys = Boolean(projectId && project);
+  const shouldFetchApiKeys = Boolean(projectId);
 
   const {
     data: apiKeys,
@@ -38,7 +38,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     shouldFetchApiKeys &&
     !isLoadingApiKeys &&
     !isApiKeysError &&
-    (!apiKeys || apiKeys.length === 0);
+    (apiKeys?.length ?? 0) === 0;
 
   const apiKeysLoadError =
     shouldFetchApiKeys && !isLoadingApiKeys && isApiKeysError;
