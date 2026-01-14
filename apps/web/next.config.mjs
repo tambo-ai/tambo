@@ -17,7 +17,69 @@ jiti.import("./lib/env").catch(console.error);
 /** @type {import('next').NextConfig} */
 const config = {
   redirects: () => {
+    const dashboardUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://app.tambo.co";
+
     return [
+      // Dashboard app redirects (app.tambo.co)
+      {
+        source: "/dashboard",
+        destination: dashboardUrl,
+        permanent: true,
+      },
+      {
+        source: "/dashboard/:path*",
+        destination: `${dashboardUrl}/:path*`,
+        permanent: true,
+      },
+      {
+        source: "/login",
+        destination: `${dashboardUrl}/login`,
+        permanent: true,
+      },
+      {
+        source: "/oauth/callback",
+        destination: `${dashboardUrl}/oauth/callback`,
+        permanent: true,
+      },
+      {
+        source: "/legal-acceptance",
+        destination: `${dashboardUrl}/legal-acceptance`,
+        permanent: true,
+      },
+      {
+        source: "/unauthorized",
+        destination: `${dashboardUrl}/unauthorized`,
+        permanent: true,
+      },
+      {
+        source: "/cli-sessions",
+        destination: `${dashboardUrl}/cli-sessions`,
+        permanent: true,
+      },
+      {
+        source: "/device",
+        destination: `${dashboardUrl}/device`,
+        permanent: true,
+      },
+      // Internal routes
+      {
+        source: "/internal/:path*",
+        destination: `${dashboardUrl}/internal/:path*`,
+        permanent: true,
+      },
+      // API redirects (auth/trpc only - forms stay on landing page)
+      {
+        source: "/api/auth/:path*",
+        destination: `${dashboardUrl}/api/auth/:path*`,
+        permanent: true,
+      },
+      {
+        source: "/api/trpc/:path*",
+        destination: `${dashboardUrl}/api/trpc/:path*`,
+        permanent: true,
+      },
+      // Docs redirects
       {
         source: "/docs",
         destination:
