@@ -115,7 +115,7 @@ export function ProjectInfo({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Link href={`/dashboard/${project.id}`}>
+            <Link href={`/${project.id}`}>
               <h4 className="text-lg font-semibold truncate group inline-flex items-center hover:underline">
                 {project.name}
                 <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -151,7 +151,7 @@ export function ProjectInfo({
               </span>
               {isLowMessages && (
                 <Link
-                  href={`/dashboard/${project.id}/settings`}
+                  href={`/${project.id}/settings`}
                   className="text-primary hover:underline font-medium"
                 >
                   Add key
@@ -235,7 +235,7 @@ export function ProjectInfo({
                   key to keep going
                 </p>
                 <Link
-                  href={`/dashboard/${project.id}/settings`}
+                  href={`/${project.id}/settings`}
                   className="text-xs font-semibold underline"
                 >
                   Add provider key

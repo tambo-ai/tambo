@@ -19,7 +19,7 @@ interface ProviderButtonProps {
 
 export function ProviderButton({
   provider,
-  routeOnSuccess = "/dashboard",
+  routeOnSuccess = "/",
   variant = "default",
 }: ProviderButtonProps) {
   const [isLoading, setIsLoading] = useState(false);

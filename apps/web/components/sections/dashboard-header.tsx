@@ -49,8 +49,8 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
             <div className="flex items-center gap-4">
               {/* Show Tambo logo when not on a project page */}
               {!projectId && (
-                <Link
-                  href="/"
+                <a
+                  href="https://tambo.co"
                   title="brand-logo"
                   className="relative mr-6 flex items-center"
                 >
@@ -60,7 +60,7 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
                   />
 
                   <WhitelabelBadge />
-                </Link>
+                </a>
               )}
 
               {/* Show project dropdown when on a project page */}

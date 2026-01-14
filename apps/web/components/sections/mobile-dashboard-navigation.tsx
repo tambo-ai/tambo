@@ -70,7 +70,7 @@ export function MobileDashboardNavigation() {
 
   const handleProjectChange = (selectedProjectId: string) => {
     if (selectedProjectId !== projectId) {
-      router.push(`/dashboard/${selectedProjectId}`);
+      router.push(`/${selectedProjectId}`);
     }
   };
 

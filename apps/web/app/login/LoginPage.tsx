@@ -31,7 +31,7 @@ const contentVariants = {
 
 function LoginContent({ providers }: { providers: AuthProviderConfig[] }) {
   const { data: session } = useNextAuthSession();
-  const returnUrl = useSearchParams().get("returnUrl") || "/dashboard";
+  const returnUrl = useSearchParams().get("returnUrl") || "/";
 
   return (
     <>

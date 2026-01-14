@@ -40,7 +40,7 @@ export function BlogHeader({
           <div className="flex items-center gap-2">
             <TamboChatTrigger />
             <Link
-              href="/dashboard"
+              href="/"
               className={cn(
                 buttonVariants({ variant: "default" }),
                 "h-9 rounded-md group tracking-tight font-medium text-sm",

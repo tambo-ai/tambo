@@ -18,7 +18,7 @@ export default function LegalAcceptancePage() {
   const utils = api.useUtils();
 
   // Get return URL from query params, default to dashboard
-  const returnUrl = searchParams.get("returnUrl") ?? "/dashboard";
+  const returnUrl = searchParams.get("returnUrl") ?? "/";
 
   // Check legal status when authenticated; if already accepted, redirect
   const { data: legalStatus } = api.user.hasAcceptedLegal.useQuery(undefined, {

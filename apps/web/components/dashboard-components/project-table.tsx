@@ -234,7 +234,7 @@ export function ProjectTable({
                       <div className="lg:hidden">
                         {projectId ? (
                           <Link
-                            href={`/dashboard/${projectId}`}
+                            href={`/${projectId}`}
                             className="inline-flex items-center gap-1 transition-colors duration-100 group"
                           >
                             <span className="group-hover:underline underline-offset-4">
@@ -249,7 +249,7 @@ export function ProjectTable({
                       <div className="hidden lg:block">
                         {compact && projectId ? (
                           <Link
-                            href={`/dashboard/${projectId}`}
+                            href={`/${projectId}`}
                             className="inline-flex items-center gap-1 transition-colors duration-100 group"
                           >
                             <span className="group-hover:underline underline-offset-4">
@@ -324,7 +324,7 @@ export function ProjectTable({
                       <div className="flex items-center">
                         {projectId ? (
                           <Link
-                            href={`/dashboard/${projectId}`}
+                            href={`/${projectId}`}
                             className="hover:bg-accent rounded-md p-1"
                           >
                             View

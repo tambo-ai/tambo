@@ -17,146 +17,16 @@ jiti.import("./lib/env").catch(console.error);
 /** @type {import('next').NextConfig} */
 const config = {
   redirects: () => {
-    const dashboardUrl =
-      process.env.NEXT_PUBLIC_APP_URL || "https://app.tambo.co";
-
     return [
-      // Dashboard app redirects (app.tambo.co)
+      // Legacy /dashboard routes redirect to new root paths
       {
         source: "/dashboard",
-        destination: dashboardUrl,
+        destination: "/",
         permanent: true,
       },
       {
         source: "/dashboard/:path*",
-        destination: `${dashboardUrl}/:path*`,
-        permanent: true,
-      },
-      {
-        source: "/login",
-        destination: `${dashboardUrl}/login`,
-        permanent: true,
-      },
-      {
-        source: "/oauth/callback",
-        destination: `${dashboardUrl}/oauth/callback`,
-        permanent: true,
-      },
-      {
-        source: "/legal-acceptance",
-        destination: `${dashboardUrl}/legal-acceptance`,
-        permanent: true,
-      },
-      {
-        source: "/unauthorized",
-        destination: `${dashboardUrl}/unauthorized`,
-        permanent: true,
-      },
-      {
-        source: "/cli-sessions",
-        destination: `${dashboardUrl}/cli-sessions`,
-        permanent: true,
-      },
-      {
-        source: "/device",
-        destination: `${dashboardUrl}/device`,
-        permanent: true,
-      },
-      // Internal routes
-      {
-        source: "/internal/:path*",
-        destination: `${dashboardUrl}/internal/:path*`,
-        permanent: true,
-      },
-      // API redirects (auth/trpc only - forms stay on landing page)
-      {
-        source: "/api/auth/:path*",
-        destination: `${dashboardUrl}/api/auth/:path*`,
-        permanent: true,
-      },
-      {
-        source: "/api/trpc/:path*",
-        destination: `${dashboardUrl}/api/trpc/:path*`,
-        permanent: true,
-      },
-      // Docs redirects
-      {
-        source: "/docs",
-        destination:
-          process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co",
-        permanent: true,
-      },
-      {
-        source: "/docs/:path*",
-        destination:
-          process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co",
-        permanent: true,
-      },
-      {
-        source: "/blog/posts",
-        destination: "/blog",
-        permanent: true,
-      },
-      {
-        source: "/book",
-        destination: "https://cal.com/michaelmagan",
-        permanent: false,
-      },
-      {
-        source: "/discord",
-        destination: "https://discord.gg/dJNvPEHth6",
-        permanent: false,
-      },
-      {
-        source: "/gh",
-        destination: "https://github.com/tambo-ai/tambo",
-        permanent: false,
-      },
-      {
-        source: "/issue",
-        destination: "https://github.com/tambo-ai/tambo/issues/new",
-        permanent: false,
-      },
-      {
-        source: "/license",
-        destination:
-          process.env.NEXT_PUBLIC_LICENSE_URL ||
-          "https://docs.google.com/document/d/1UHvU9pKnuZ4wHRjxRk_8nqmeDK8KTmHc/edit?usp=sharing&ouid=105761745283245441798&rtpof=true&sd=true",
-        permanent: false,
-      },
-      {
-        source: "/privacy",
-        destination:
-          process.env.NEXT_PUBLIC_PRIVACY_URL ||
-          "https://docs.google.com/document/d/1OFX8Y-uc7_TLDFUKxq3dYI0ozbpN8igD/edit?usp=sharing&ouid=105761745283245441798&rtpof=true&sd=true",
-        permanent: false,
-      },
-      {
-        source: "/slack-waitlist",
-        destination: "/",
-        permanent: false,
-      },
-      {
-        source: "/start",
-        destination:
-          "https://stackblitz.com/~/github.com/tambo-ai/tambo-template",
-        permanent: false,
-      },
-      {
-        source: "/terms",
-        destination:
-          process.env.NEXT_PUBLIC_TERMS_URL ||
-          "https://docs.google.com/document/d/1GOjwt8tHx3AQ1SeZJ0rXhxuuSfRYnjLIaF02chvFqYo/edit?usp=sharing",
-        permanent: false,
-      },
-      {
-        source: "/x",
-        destination: "https://x.com/tambo_ai",
-        permanent: false,
-      },
-      {
-        source: "/mcp",
-        destination: "/#mcp",
+        destination: "/:path*",
         permanent: true,
       },
     ];

@@ -28,6 +28,7 @@ tmp
 
 # testing
 coverage
+/test
 *.log
 .DS_Store
 .idea

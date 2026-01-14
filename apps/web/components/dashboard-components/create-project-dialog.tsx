@@ -158,7 +158,7 @@ export function CreateProjectDialog({
 
       // Only navigate to project details page after successful creation if not prevented
       if (project.id && !preventNavigation) {
-        router.push(`/dashboard/${project.id}`);
+        router.push(`/${project.id}`);
       }
     } finally {
       setIsLoading(false);
