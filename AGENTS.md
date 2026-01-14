@@ -136,7 +136,8 @@ eval "$(mise activate)"   # Interactive shells only
 
 - Prefer named exports; allow multiple exports when they belong together (e.g., component + related types).
 - Avoid default exports.
-- Don't create generic index.ts barrels for internal modules; import directly from concrete files.
+- Don't create `index.ts` barrels for internal modules; import directly from source files. Exception: package entry points (e.g., `packages/core/src/index.ts`) are fine.
+- Don't re-export symbols for backwards compatibility. When moving a symbol, update all consumers to import from the new location.
 
 ## 3. TypeScript Standards
 
@@ -195,6 +196,13 @@ eval "$(mise activate)"   # Interactive shells only
 - **Avoid `reduce()`** - it's often confusing and can usually be replaced with simpler patterns.
   - Exception: when the mental model genuinely requires accumulation (e.g., summing numbers).
 - **Avoid complex method chaining** - break it into named intermediate steps for clarity.
+
+### Avoid RegEx When Possible
+
+- **Prefer string methods**: `str.includes()`, `str.startsWith()`, `str.split()`, and `str.replace()` are easier to read and maintain.
+- **Avoid global flag (`/g`)**: Creates stateful regex objects where `lastIndex` persists between calls, causing subtle bugs.
+- **Avoid multiline flag (`/m`)**: Platform differences in line endings (`\n` vs `\r\n`) cause inconsistent behavior.
+- **If regex is unavoidable**: Keep it simple, add a comment explaining the pattern, and test edge cases thoroughly.
 
 ## 4. Frontend Development (React + Next.js)
 
