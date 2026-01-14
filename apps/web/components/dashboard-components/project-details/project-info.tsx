@@ -27,6 +27,7 @@ export const ProjectInfoProps = z.object({
   project: ProjectInfoSchema.optional().describe("The project to display."),
   createdAt: z
     .string()
+    .datetime()
     .optional()
     .describe("The ISO-8601 creation date of the project."),
   isLoading: z.boolean().optional().describe("Whether the project is loading."),
@@ -91,16 +92,6 @@ export function ProjectInfo({
   const isLowMessages = remainingMessages < 50;
 
   const formatDate = (isoDateString: string) => {
-    const isIsoLikeDateString =
-      isoDateString.includes("T") ||
-      (isoDateString.length >= 10 &&
-        isoDateString[4] === "-" &&
-        isoDateString[7] === "-");
-
-    if (!isIsoLikeDateString) {
-      return isoDateString;
-    }
-
     const date = new Date(isoDateString);
 
     if (Number.isNaN(date.getTime())) {
