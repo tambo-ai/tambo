@@ -95,7 +95,7 @@ export function ProjectInfo({
       typeof dateValue === "string" ? new Date(dateValue) : dateValue;
 
     if (Number.isNaN(date.getTime())) {
-      return typeof dateValue === "string" ? dateValue : "Invalid Date";
+      return typeof dateValue === "string" ? dateValue : "Unknown";
     }
 
     return date.toLocaleDateString("en-US", {
