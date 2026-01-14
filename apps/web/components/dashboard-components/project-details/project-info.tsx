@@ -248,9 +248,9 @@ function ProjectInfoLoaded({
                 <span className="text-foreground">{providerModelLabel}</span>
                 <Button
                   asChild
-                  variant="outline"
+                  variant="link"
                   size="sm"
-                  className="h-6 px-2 text-xs"
+                  className="h-auto p-0 text-xs font-medium text-primary"
                 >
                   <Link href={settingsHref}>Change</Link>
                 </Button>
@@ -354,9 +354,9 @@ function ProjectInfoLoaded({
                     </h5>
                     <Button
                       asChild
-                      variant="outline"
+                      variant="link"
                       size="sm"
-                      className="h-7 px-2 text-xs"
+                      className="h-auto p-0 text-xs font-semibold text-primary"
                     >
                       <Link href={settingsHref}>Change</Link>
                     </Button>
