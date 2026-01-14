@@ -56,8 +56,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const docsUrl = "https://docs.tambo.co";
-  const llmsUrl = `${docsUrl}/llms.txt`;
-  const llmsFullUrl = `${docsUrl}/llms-full.txt`;
+  const llmsUrl = "https://docs.tambo.co/llms.txt";
+  const llmsFullUrl = "https://docs.tambo.co/llms-full.txt";
 
   // Generate schema for the website and organization
   const websiteSchema = generateWebsiteSchema();
