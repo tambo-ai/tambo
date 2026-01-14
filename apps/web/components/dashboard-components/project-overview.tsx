@@ -32,10 +32,17 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     );
   }
 
-  const createdAtDate = new Date(project.createdAt);
-  const createdAtIso = Number.isNaN(createdAtDate.getTime())
-    ? undefined
-    : createdAtDate.toISOString();
+  const rawCreatedAt = project.createdAt as unknown;
+  const createdAtDate =
+    rawCreatedAt instanceof Date
+      ? rawCreatedAt
+      : typeof rawCreatedAt === "string" || typeof rawCreatedAt === "number"
+        ? new Date(rawCreatedAt)
+        : null;
+  const createdAtIso =
+    createdAtDate === null || Number.isNaN(createdAtDate.getTime())
+      ? undefined
+      : createdAtDate.toISOString();
 
   return (
     <motion.div

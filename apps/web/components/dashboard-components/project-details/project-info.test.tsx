@@ -79,4 +79,34 @@ describe("ProjectInfo", () => {
       }),
     );
   });
+
+  it("formats valid ISO dates using compact options", () => {
+    const project = {
+      id: "proj_1",
+      name: "Test Project",
+      userId: "user_1234567890",
+    } as any;
+
+    const toLocaleDateStringSpy = jest
+      .spyOn(Date.prototype, "toLocaleDateString")
+      .mockReturnValue("MOCK_COMPACT_DATE");
+
+    render(
+      <ProjectInfo
+        project={project}
+        createdAt="2026-01-14T12:34:56.000Z"
+        compact
+      />,
+    );
+
+    expect(screen.getByText("MOCK_COMPACT_DATE")).toBeInTheDocument();
+    expect(toLocaleDateStringSpy).toHaveBeenCalledWith(
+      undefined,
+      expect.objectContaining({
+        year: "2-digit",
+        month: "short",
+        day: "numeric",
+      }),
+    );
+  });
 });

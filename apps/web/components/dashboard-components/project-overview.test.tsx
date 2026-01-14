@@ -72,4 +72,26 @@ describe("ProjectOverview", () => {
 
     expect(screen.getByText("CreatedAt: none")).toBeInTheDocument();
   });
+
+  it("passes ISO string when createdAt is a Date instance", () => {
+    const createdAt = new Date("2026-01-14T00:00:00.000Z");
+
+    getUserProjectsUseQueryMock.mockImplementation(
+      (_input: unknown, opts?: { select?: (projects: any[]) => unknown }) => ({
+        data: opts?.select?.([
+          {
+            id: "proj_1",
+            createdAt,
+          },
+        ]),
+        isLoading: false,
+      }),
+    );
+
+    render(<ProjectOverview projectId="proj_1" />);
+
+    expect(
+      screen.getByText(`CreatedAt: ${createdAt.toISOString()}`),
+    ).toBeInTheDocument();
+  });
 });
