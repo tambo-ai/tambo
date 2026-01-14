@@ -94,10 +94,6 @@ export function ProjectInfo({
 
   // Expects an ISO-8601 datetime string; returns the raw input if parsing fails.
   const formatDate = (isoDateString: string) => {
-    if (!isoDateString.includes("T")) {
-      return isoDateString;
-    }
-
     const date = new Date(isoDateString);
 
     if (Number.isNaN(date.getTime())) {
