@@ -50,13 +50,21 @@ export async function* runAgentLoop(
   });
   for await (const event of stream) {
     const { message } = event;
+
+    const messageRole = toCoreMessageRole(message.role);
+    if (!messageRole) {
+      // `@ag-ui/core` messages can include roles (like `developer`/`activity`) that
+      // aren't represented in `@tambo-ai-cloud/core`'s `MessageRole` enum.
+      continue;
+    }
+
     const toolCallId = getToolCallId(message);
     const toolCallRequest = getToolCallRequest(message);
     yield {
       id: message.id,
-      role: message.role as MessageRole,
+      role: messageRole,
       parentMessageId: message.parentMessageId,
-      message: message.content || "",
+      message: convertAguiMessageContentToString(message),
       componentName: null,
       props: null,
       componentState: null,
@@ -67,6 +75,49 @@ export async function* runAgentLoop(
       reasoning: message.reasoning,
     };
   }
+}
+
+function toCoreMessageRole(role: Message["role"]): MessageRole | null {
+  switch (role) {
+    case "user": {
+      return MessageRole.User;
+    }
+    case "assistant": {
+      return MessageRole.Assistant;
+    }
+    case "system": {
+      return MessageRole.System;
+    }
+    case "tool": {
+      return MessageRole.Tool;
+    }
+    default: {
+      return null;
+    }
+  }
+}
+
+function convertAguiMessageContentToString(message: Message): string {
+  if (typeof message.content === "string") {
+    return message.content;
+  }
+
+  if (message.content === undefined) {
+    return "";
+  }
+
+  if (Array.isArray(message.content)) {
+    return message.content
+      .map((part) => {
+        if (part.type === "text") {
+          return part.text;
+        }
+        return `[binary:${part.mimeType}]`;
+      })
+      .join("\n");
+  }
+
+  return JSON.stringify(message.content);
 }
 function getToolCallId(message: Message) {
   if (message.role === "assistant") {

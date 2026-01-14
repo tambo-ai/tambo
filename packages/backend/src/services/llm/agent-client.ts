@@ -43,7 +43,9 @@ interface WithReasoning {
   parentMessageId?: string;
 }
 
-export type AgentMessage = AGUIMessage & WithReasoning;
+type NonActivityMessage = Exclude<AGUIMessage, { role: "activity" }>;
+
+export type AgentMessage = NonActivityMessage & WithReasoning;
 
 export interface AgentResponse {
   type: AgentResponseType;
@@ -205,7 +207,12 @@ export class AgentClient {
           // consumer to replace all the messages they've receieved with all of
           // these, but we don't yet have a way to do that
           const e = event as MessagesSnapshotEvent;
-          currentMessage = e.messages[e.messages.length - 1];
+          const lastMessage = getLastNonActivityMessage(e.messages);
+          if (!lastMessage) {
+            break;
+          }
+
+          currentMessage = lastMessage;
           switch (currentMessage.role) {
             case "assistant": {
               yield {
@@ -234,9 +241,6 @@ export class AgentClient {
               };
               break;
             }
-            default: {
-              invalidEvent(currentMessage);
-            }
           }
           break;
         }
@@ -253,16 +257,18 @@ export class AgentClient {
           // we don't support "runs" yet, but "finished" may be a point to emit the final response
           const e = event as RunFinishedEvent;
           if (e.result) {
-            currentMessage = {
+            const finishedMessage: AgentMessage = {
               ...createNewMessage(MessageRole.Assistant, generateMessageId()),
               content:
                 typeof e.result === "string"
                   ? e.result
                   : JSON.stringify(e.result),
             };
+
+            currentMessage = finishedMessage;
             yield {
               type: AgentResponseType.MESSAGE,
-              message: currentMessage,
+              message: finishedMessage,
               complete: true,
             };
           }
@@ -280,6 +286,12 @@ export class AgentClient {
         }
         case EventType.STATE_DELTA: {
           const _e = event as StateDeltaEvent;
+          break;
+        }
+
+        case EventType.ACTIVITY_SNAPSHOT:
+        case EventType.ACTIVITY_DELTA: {
+          // We don't currently support activity events.
           break;
         }
         case EventType.TOOL_CALL_START: {
@@ -427,10 +439,12 @@ export class AgentClient {
           if (!currentMessage) {
             throw new Error("No current message");
           }
+
+          const currentContent = convertContentToString(currentMessage.content);
           currentMessage = {
             // this hacky cast works around a TS type ambiguity
             ...(currentMessage as unknown as AgentMessage),
-            content: currentMessage.content + e.delta,
+            content: currentContent + e.delta,
           };
           yield {
             type: AgentResponseType.MESSAGE,
@@ -531,6 +545,42 @@ export class AgentClient {
 
 function invalidEvent(eventType: never) {
   console.error(`Invalid event type: ${eventType}`);
+}
+
+function getLastNonActivityMessage(
+  messages: AGUIMessage[],
+): NonActivityMessage | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (message.role !== "activity") {
+      return message;
+    }
+  }
+
+  return null;
+}
+
+function convertContentToString(content: AgentMessage["content"]): string {
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (content === undefined) {
+    return "";
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (part.type === "text") {
+          return part.text;
+        }
+        return `[binary:${part.mimeType}]`;
+      })
+      .join("\n");
+  }
+
+  return JSON.stringify(content);
 }
 
 /** Convert ChatCompletionContentPart[] to string for AGUI messages */
