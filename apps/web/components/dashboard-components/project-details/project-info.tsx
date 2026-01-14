@@ -26,8 +26,10 @@ export const ProjectInfoProps = z.object({
     ),
   project: ProjectInfoSchema.optional().describe("The project to display."),
   createdAt: z
-    .string()
-    .datetime()
+    .preprocess(
+      (value) => (value instanceof Date ? value.toISOString() : value),
+      z.string().datetime(),
+    )
     .optional()
     .describe("The ISO-8601 creation date of the project."),
   isLoading: z.boolean().optional().describe("Whether the project is loading."),
@@ -35,8 +37,8 @@ export const ProjectInfoProps = z.object({
 
 interface ProjectInfoProps {
   project?: RouterOutputs["project"]["getUserProjects"][number];
-  /** ISO-8601 datetime string (e.g. from `Date.prototype.toISOString()`). */
-  createdAt?: string;
+  /** A `Date` or ISO-8601 datetime string (e.g. from `Date.prototype.toISOString()`). */
+  createdAt?: Date | string;
   isLoading?: boolean;
   compact?: boolean;
 }
@@ -92,12 +94,13 @@ export function ProjectInfo({
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
 
-  // Expects an ISO-8601 datetime string; returns the raw input if parsing fails.
-  const formatDate = (isoDateString: string) => {
-    const date = new Date(isoDateString);
+  // Expects a `Date` or ISO-8601 datetime string; returns the raw input if parsing fails.
+  const formatDate = (dateValue: Date | string) => {
+    const date =
+      typeof dateValue === "string" ? new Date(dateValue) : dateValue;
 
     if (Number.isNaN(date.getTime())) {
-      return isoDateString;
+      return typeof dateValue === "string" ? dateValue : "Unknown";
     }
 
     // Intentionally uses the viewer's local time zone (the default).

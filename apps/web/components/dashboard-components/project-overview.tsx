@@ -39,10 +39,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <ProjectInfo
-        project={project}
-        createdAt={project.createdAt.toISOString()}
-      />
+      <ProjectInfo project={project} createdAt={project.createdAt} />
       <div>
         <DailyMessagesChart projectIds={[projectId]} days={30} />
 
