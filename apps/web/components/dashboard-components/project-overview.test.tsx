@@ -1,12 +1,16 @@
 import { render, screen } from "@testing-library/react";
 
 const getUserProjectsUseQueryMock = jest.fn();
+const getApiKeysUseQueryMock = jest.fn();
 
 jest.mock("@/trpc/react", () => ({
   api: {
     project: {
       getUserProjects: {
         useQuery: (...args: unknown[]) => getUserProjectsUseQueryMock(...args),
+      },
+      getApiKeys: {
+        useQuery: (...args: unknown[]) => getApiKeysUseQueryMock(...args),
       },
     },
   },
@@ -36,6 +40,14 @@ import { ProjectOverview } from "./project-overview";
 describe("ProjectOverview", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    getApiKeysUseQueryMock.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isFetching: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
   });
 
   it("passes through valid ISO createdAt strings to ProjectInfo", () => {
