@@ -293,19 +293,33 @@ export enum GenerationStage {
 }
 
 /**
- * Status of the current run on a thread (v1 API)
+ * V1 Run Status - streaming status of the current run.
+ *
+ * This is a simple lifecycle aligned with AG-UI's run model:
+ * - idle: No active SSE stream
+ * - waiting: RUN_STARTED emitted, waiting for first content (TTFB phase)
+ * - streaming: Actively receiving content
+ *
+ * Edge cases like cancellation, errors, and pending tool calls are tracked
+ * via separate fields on Thread, not as status values.
  */
-export enum RunStatus {
+export enum V1RunStatus {
   /** No run is active */
   IDLE = "idle",
-  /** A run is currently executing */
-  RUNNING = "running",
-  /** Run is paused waiting for client-side tool results */
-  AWAITING_INPUT = "awaiting_input",
-  /** Run was cancelled (by user or connection drop) */
-  CANCELLED = "cancelled",
-  /** Run failed with an error */
-  FAILED = "failed",
+  /** RUN_STARTED emitted, waiting for first content */
+  WAITING = "waiting",
+  /** Actively receiving content */
+  STREAMING = "streaming",
+}
+
+/**
+ * V1 Run Error - error information from the last run.
+ */
+export interface V1RunError {
+  /** Error code (e.g., "RATE_LIMIT_EXCEEDED", "INTERNAL_ERROR") */
+  code?: string;
+  /** Human-readable error message */
+  message: string;
 }
 
 export interface Thread {
@@ -319,22 +333,36 @@ export interface Thread {
   metadata?: Record<string, unknown>;
   /** Current stage of the generation process */
   generationStage: GenerationStage;
-  /** Message to display describing the current stage of the generation process */
-  statusMessage?: string;
   /** Timestamp when thread was created */
   createdAt: Date;
   /** Timestamp when thread was last updated */
   updatedAt: Date;
 
-  // v1 API fields
+  // ==========================================
+  // V1 API fields (per plans/api-v1-proposal.md)
+  // ==========================================
+
+  // 1. Current run lifecycle (only relevant while runStatus !== "idle")
   /** Status of the current run (v1 API) */
-  runStatus?: RunStatus;
+  runStatus?: V1RunStatus;
   /** ID of the currently active run, if any (v1 API) */
   currentRunId?: string;
+  /** Human-readable detail (e.g., "Fetching weather data...") */
+  statusMessage?: string;
+
+  // 2. Last run outcome (cleared when next run starts)
+  /** Whether the last run was cancelled */
+  lastRunCancelled?: boolean;
+  /** Error information from the last run */
+  lastRunError?: V1RunError;
+
+  // 3. Next run requirements
+  // If pendingToolCallIds is non-empty, the next run's message MUST contain
+  // a tool_result for at least one of these IDs (with previousRunId set).
   /** Tool call IDs awaiting client-side results (v1 API) */
   pendingToolCallIds?: string[];
-  /** Tool call IDs that have been processed (v1 API) */
-  processedToolCallIds?: string[];
+  /** Required as previousRunId when continuing after tool calls */
+  lastCompletedRunId?: string;
 }
 
 export interface Resource {

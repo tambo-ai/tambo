@@ -60,36 +60,63 @@ apps/api/src/
 
 #### 1.1 Database Schema Changes
 
-Add columns to `threads` table:
+Add columns to `threads` table. Per the proposal, RunStatus is a simple 3-state enum tracking the current run lifecycle. Edge cases (cancellation, errors, pending tool calls) are tracked via separate Thread fields.
 
 ```typescript
-// packages/db/src/schema.ts
-export const RunStatus = {
-  IDLE: "idle",
-  RUNNING: "running",
-  AWAITING_INPUT: "awaiting_input",
-  CANCELLED: "cancelled",
-  FAILED: "failed",
-} as const;
-export type RunStatus = (typeof RunStatus)[keyof typeof RunStatus];
+// packages/core/src/threads.ts (add to existing file)
+/**
+ * V1 Run Status - streaming status of the current run.
+ *
+ * This is a simple lifecycle aligned with AG-UI's run model:
+ * - idle: No active SSE stream
+ * - waiting: RUN_STARTED emitted, waiting for first content (TTFB phase)
+ * - streaming: Actively receiving content
+ *
+ * Edge cases like cancellation, errors, and pending tool calls are tracked
+ * via separate fields on Thread, not as status values.
+ */
+export enum V1RunStatus {
+  IDLE = "idle",
+  WAITING = "waiting",
+  STREAMING = "streaming",
+}
 
-// In threads table definition:
+/**
+ * V1 Run Error - error information from the last run.
+ */
+export interface V1RunError {
+  code?: string;
+  message: string;
+}
+
+// packages/db/src/schema.ts - In threads table definition:
+// 1. Current run lifecycle (only relevant while runStatus !== "idle")
 runStatus: text("run_status", {
-  enum: Object.values<string>(RunStatus) as [RunStatus],
+  enum: Object.values<string>(V1RunStatus) as [V1RunStatus],
 })
-  .default(RunStatus.IDLE)
+  .default(V1RunStatus.IDLE)
   .notNull(),
 currentRunId: text("current_run_id"),
+statusMessage: text("status_message"), // Human-readable detail (e.g., "Fetching weather data...")
+
+// 2. Last run outcome (cleared when next run starts)
+lastRunCancelled: boolean("last_run_cancelled"),
+lastRunError: customJsonb<V1RunError>("last_run_error"),
+
+// 3. Next run requirements
+// If pendingToolCallIds is non-empty, next run's message MUST contain
+// a tool_result for at least one of these IDs (with previousRunId set).
 pendingToolCallIds: customJsonb<string[]>("pending_tool_call_ids"),
-processedToolCallIds: customJsonb<string[]>("processed_tool_call_ids"),
+lastCompletedRunId: text("last_completed_run_id"), // Required as previousRunId when continuing
 ```
 
 **Tasks:**
 
-- [ ] Add schema changes to `packages/db/src/schema.ts`
+- [ ] Add `V1RunStatus` enum and `V1RunError` interface to `packages/core/src/threads.ts`
+- [ ] Add schema changes to `packages/db/src/schema.ts` (7 new columns)
 - [ ] Generate migration: `npm run db:generate -w packages/db`
 - [ ] Test migration: `npm run db:migrate -w packages/db`
-- [ ] Export `RunStatus` from schema
+- [ ] Export types from packages/core
 
 #### 1.2 Guard Modification (Simple Approach)
 
@@ -328,7 +355,7 @@ export class V1Controller {
 
 - All CRUD endpoints work with existing auth guards
 - Pagination works correctly
-- Thread responses include v1 format (runStatus, pendingToolCallIds)
+- Thread responses include v1 format (runStatus, currentRunId, statusMessage, lastRunCancelled, lastRunError, pendingToolCallIds, lastCompletedRunId)
 - Swagger UI shows all endpoints
 
 ---
@@ -347,14 +374,18 @@ async startRun(
   const runId = uuidv7();
 
   // Atomic conditional UPDATE - prevents race condition
+  // Clear last run outcome fields when starting new run
   const result = await this.db
     .update(threads)
     .set({
-      runStatus: RunStatus.RUNNING,
+      runStatus: V1RunStatus.WAITING,
       currentRunId: runId,
+      statusMessage: null,
+      lastRunCancelled: null,
+      lastRunError: null,
       updatedAt: new Date(),
     })
-    .where(and(eq(threads.id, threadId), eq(threads.runStatus, RunStatus.IDLE)))
+    .where(and(eq(threads.id, threadId), eq(threads.runStatus, V1RunStatus.IDLE)))
     .returning({ id: threads.id });
 
   if (result.length === 0) {
@@ -498,29 +529,26 @@ async processToolResults(
       where: eq(threads.id, threadId),
     });
 
-    if (thread?.currentRunId !== previousRunId) {
+    // Validate previousRunId matches lastCompletedRunId
+    if (thread?.lastCompletedRunId !== previousRunId) {
       throw new BadRequestException("Invalid previousRunId");
     }
 
     const pending = new Set(thread.pendingToolCallIds ?? []);
-    const processed = new Set(thread.processedToolCallIds ?? []);
     const accepted: string[] = [];
 
     for (const result of toolResults) {
-      if (processed.has(result.toolUseId)) continue; // Idempotent
       if (!pending.has(result.toolUseId)) {
-        throw new BadRequestException(`Unknown toolUseId: ${result.toolUseId}`);
+        throw new BadRequestException(`Unknown or already processed toolUseId: ${result.toolUseId}`);
       }
 
       pending.delete(result.toolUseId);
-      processed.add(result.toolUseId);
       accepted.push(result.toolUseId);
     }
 
+    // Thread stays idle - a new run will be started to process the results
     await tx.update(threads).set({
-      pendingToolCallIds: Array.from(pending),
-      processedToolCallIds: Array.from(processed),
-      runStatus: pending.size === 0 ? RunStatus.IDLE : RunStatus.AWAITING_INPUT,
+      pendingToolCallIds: pending.size > 0 ? Array.from(pending) : null,
     }).where(eq(threads.id, threadId));
 
     return { accepted, stillPending: Array.from(pending) };
@@ -576,11 +604,12 @@ async updateComponentState(
   dto: UpdateComponentStateDto,
 ): Promise<{ state: Record<string, unknown> }> {
   // Check thread is idle (inline, no separate guard)
+  // Per proposal: state updates allowed when runStatus === "idle"
   const thread = await this.db.query.threads.findFirst({
     where: eq(threads.id, threadId),
   });
 
-  if (thread?.runStatus !== RunStatus.IDLE && thread?.runStatus !== RunStatus.AWAITING_INPUT) {
+  if (thread?.runStatus !== V1RunStatus.IDLE) {
     throw new HttpException(
       createProblemDetail("RUN_ACTIVE", "Cannot update component state while a run is active"),
       HttpStatus.CONFLICT,

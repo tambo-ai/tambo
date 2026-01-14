@@ -1,17 +1,19 @@
 import { ApiProperty, ApiSchema } from "@nestjs/swagger";
-import { IsString, IsOptional, IsArray, IsIn, IsObject } from "class-validator";
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsIn,
+  IsObject,
+  IsBoolean,
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
 import { MessageDto } from "./message.dto";
+import { V1RunStatus } from "@tambo-ai-cloud/core";
 
-/**
- * Run status for v1 API.
- * Tracks the lifecycle of a run on a thread.
- */
-export type V1RunStatus =
-  | "idle"
-  | "running"
-  | "awaiting_input"
-  | "cancelled"
-  | "failed";
+// Re-export for convenience
+export { V1RunStatus } from "@tambo-ai-cloud/core";
 
 /**
  * Error information from a failed run.
@@ -37,6 +39,11 @@ export class RunErrorDto {
 
 /**
  * V1 Thread response DTO.
+ *
+ * Thread state is divided into three concerns:
+ * 1. Current run lifecycle (runStatus) - is a run active right now?
+ * 2. Last run outcome (lastRunCancelled, lastRunError) - how did it end?
+ * 3. Next run requirements (pendingToolCallIds) - what must the next run provide?
  */
 @ApiSchema({ name: "V1Thread" })
 export class ThreadDto {
@@ -62,16 +69,21 @@ export class ThreadDto {
   @IsString()
   contextKey?: string;
 
+  // ==========================================
+  // 1. Current run lifecycle
+  // ==========================================
+
   @ApiProperty({
-    description: "Current run status",
-    enum: ["idle", "running", "awaiting_input", "cancelled", "failed"],
+    description:
+      "Current run status: idle (no run), waiting (run started, awaiting content), streaming (receiving content)",
+    enum: ["idle", "waiting", "streaming"],
     example: "idle",
   })
-  @IsIn(["idle", "running", "awaiting_input", "cancelled", "failed"])
+  @IsIn(["idle", "waiting", "streaming"])
   runStatus!: V1RunStatus;
 
   @ApiProperty({
-    description: "ID of the currently active run",
+    description: "ID of the currently active run (when not idle)",
     required: false,
   })
   @IsOptional()
@@ -79,22 +91,62 @@ export class ThreadDto {
   currentRunId?: string;
 
   @ApiProperty({
-    description: "Human-readable status message",
+    description:
+      "Human-readable status message (e.g., 'Fetching weather data...')",
     required: false,
-    example: "Processing your request...",
   })
   @IsOptional()
   @IsString()
   statusMessage?: string;
 
+  // ==========================================
+  // 2. Last run outcome (cleared when next run starts)
+  // ==========================================
+
   @ApiProperty({
-    description: "Tool call IDs awaiting client-side results",
+    description: "Whether the last run was cancelled",
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  lastRunCancelled?: boolean;
+
+  @ApiProperty({
+    description: "Error information from the last run",
+    required: false,
+    type: RunErrorDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => RunErrorDto)
+  lastRunError?: RunErrorDto;
+
+  // ==========================================
+  // 3. Next run requirements
+  // ==========================================
+
+  @ApiProperty({
+    description:
+      "Tool call IDs awaiting client-side results. If non-empty, next run must provide tool_result content with previousRunId set.",
     type: [String],
     required: false,
   })
   @IsOptional()
   @IsArray()
   pendingToolCallIds?: string[];
+
+  @ApiProperty({
+    description:
+      "ID of the last completed run. Required as previousRunId when continuing after tool calls.",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  lastCompletedRunId?: string;
+
+  // ==========================================
+  // Metadata & timestamps
+  // ==========================================
 
   @ApiProperty({
     description: "Additional metadata",

@@ -1,5 +1,9 @@
 import type { RouterOutputs } from "@/trpc/react";
-import { GenerationStage, MessageRole, RunStatus } from "@tambo-ai-cloud/core";
+import {
+  GenerationStage,
+  MessageRole,
+  V1RunStatus,
+} from "@tambo-ai-cloud/core";
 
 type ThreadType = RouterOutputs["thread"]["getThread"];
 type MessageType = ThreadType["messages"][0];
@@ -61,11 +65,16 @@ export function createMockThread(
     createdAt: now,
     updatedAt: now,
     messages: [],
-    // v1 API fields
-    runStatus: RunStatus.IDLE,
+    // v1 API fields (per plans/api-v1-proposal.md)
+    // 1. Current run lifecycle
+    runStatus: V1RunStatus.IDLE,
     currentRunId: null,
+    // 2. Last run outcome
+    lastRunCancelled: null,
+    lastRunError: null,
+    // 3. Next run requirements
     pendingToolCallIds: null,
-    processedToolCallIds: null,
+    lastCompletedRunId: null,
   };
 
   return { ...baseThread, ...overrides };

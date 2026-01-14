@@ -1,5 +1,5 @@
 {
-  "id": "5ab7502b-463c-4769-a5a4-f3175e97da9b",
+  "id": "21c83dc0-8b39-4fe9-83a9-ded667cc7274",
   "prevId": "c8887c1f-86ba-4086-b387-a51e9e826b5c",
   "version": "7",
   "dialect": "postgresql",
@@ -2210,12 +2210,6 @@
           "notNull": true,
           "default": "'IDLE'"
         },
-        "status_message": {
-          "name": "status_message",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -2243,15 +2237,33 @@
           "primaryKey": false,
           "notNull": false
         },
+        "status_message": {
+          "name": "status_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_run_cancelled": {
+          "name": "last_run_cancelled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_run_error": {
+          "name": "last_run_error",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "pending_tool_call_ids": {
           "name": "pending_tool_call_ids",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "processed_tool_call_ids": {
-          "name": "processed_tool_call_ids",
-          "type": "jsonb",
+        "last_completed_run_id": {
+          "name": "last_completed_run_id",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }

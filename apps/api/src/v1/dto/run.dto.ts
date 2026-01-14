@@ -125,26 +125,23 @@ export class CreateThreadWithRunDto extends CreateRunDto {
 
 /**
  * Response DTO for cancelling a run.
+ *
+ * Per the proposal, cancellation:
+ * - Sets runStatus back to "idle"
+ * - Sets lastRunCancelled to true on the thread
  */
 @ApiSchema({ name: "V1CancelRunResponse" })
 export class CancelRunResponseDto {
   @ApiProperty({
-    description: "Whether the cancellation was successful",
+    description: "The run ID that was cancelled",
   })
-  success!: boolean;
-
-  @ApiProperty({
-    description: "The new run status after cancellation",
-    enum: ["cancelled", "idle"],
-  })
-  @IsIn(["cancelled", "idle"])
-  runStatus!: "cancelled" | "idle";
-
-  @ApiProperty({
-    description: "Message describing the result",
-    required: false,
-  })
-  @IsOptional()
   @IsString()
-  message?: string;
+  runId!: string;
+
+  @ApiProperty({
+    description: "New status after cancellation (always 'cancelled')",
+    enum: ["cancelled"],
+  })
+  @IsIn(["cancelled"])
+  status!: "cancelled";
 }
