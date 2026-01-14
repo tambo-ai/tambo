@@ -28,7 +28,7 @@ export const ProjectInfoProps = z.object({
   createdAt: z
     .string()
     .optional()
-    .describe("The creation date of the project."),
+    .describe("The ISO-8601 creation date of the project."),
   isLoading: z.boolean().optional().describe("Whether the project is loading."),
 });
 
@@ -90,11 +90,21 @@ export function ProjectInfo({
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (isoDateString: string) => {
+    const isIsoLikeDateString =
+      isoDateString.includes("T") ||
+      (isoDateString.length >= 10 &&
+        isoDateString[4] === "-" &&
+        isoDateString[7] === "-");
+
+    if (!isIsoLikeDateString) {
+      return isoDateString;
+    }
+
+    const date = new Date(isoDateString);
 
     if (Number.isNaN(date.getTime())) {
-      return dateString;
+      return isoDateString;
     }
 
     return date.toLocaleDateString("en-US", {
