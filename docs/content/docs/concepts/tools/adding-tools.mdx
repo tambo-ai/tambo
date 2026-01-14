@@ -24,16 +24,12 @@ export const tools: TamboTool[] = [
     name: "get_weather",
     description: "Fetch current weather information for a specified city",
     tool: getWeather,
-    toolSchema: z
-      .function()
-      .args(z.string().describe("The city to fetch weather for"))
-      .returns(
-        z.object({
-          location: z.object({
-            name: z.string(),
-          }),
-        }),
-      ),
+    inputSchema: z.string().describe("The city to fetch weather for"),
+    outputSchema: z.object({
+      location: z.object({
+        name: z.string(),
+      }),
+    }),
   },
 ];
 
@@ -92,17 +88,13 @@ export const tools: TamboTool[] = [
     name: "get_product_image",
     description: "Fetch product information including image",
     tool: getProductImage,
-    toolSchema: z
-      .function()
-      .args(z.string().describe("Product ID"))
-      .returns(
-        z.object({
-          name: z.string(),
-          description: z.string(),
-          imageUrl: z.string(),
-          price: z.number(),
-        }),
-      ),
+    inputSchema: z.string().describe("Product ID"),
+    outputSchema: z.object({
+      name: z.string(),
+      description: z.string(),
+      imageUrl: z.string(),
+      price: z.number(),
+    }),
     // Transform the result into content parts
     transformToContent: (result) => [
       {
@@ -138,3 +130,121 @@ Use `transformToContent` when your tool:
 - Integrates with MCP servers (which already return content in this format)
 
 If your tool only returns text or simple data, you don't need `transformToContent` - the default behavior will handle it automatically.
+
+## Streamable Tools
+
+By default, Tambo waits until tool arguments are fully generated before executing the tool. For tools that update UI state without side effects, this can feel slow because users don't see updates until the complete arguments are ready.
+
+The `annotations.tamboStreamableHint` option enables real-time tool execution during streaming. When set to `true`, the tool will be called multiple times with partial arguments as they stream in, allowing for instant UI updates. This follows the [MCP ToolAnnotations specification](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations).
+
+```tsx
+import { TamboTool } from "@tambo-ai/react";
+import { z } from "zod";
+
+const updateChart = (data: { title?: string; values?: number[] }) => {
+  // This tool updates chart UI state
+  // It can handle partial data gracefully
+  setChartState((prev) => ({
+    ...prev,
+    ...(data.title && { title: data.title }),
+    ...(data.values && { values: data.values }),
+  }));
+};
+
+export const tools: TamboTool[] = [
+  {
+    name: "update_chart",
+    description: "Update the chart visualization with new data",
+    tool: updateChart,
+    inputSchema: z.object({
+      title: z.string().optional(),
+      values: z.array(z.number()).optional(),
+    }),
+    outputSchema: z.void(),
+    annotations: {
+      tamboStreamableHint: true, // Enable streaming execution
+    },
+  },
+];
+```
+
+### Tool Annotations
+
+Tambo supports [MCP ToolAnnotations](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations) to describe tool behavior:
+
+| Annotation            | Default | Description                                                                          |
+| --------------------- | ------- | ------------------------------------------------------------------------------------ |
+| `title`               | -       | Human-readable title for the tool.                                                   |
+| `readOnlyHint`        | `false` | Tool doesn't modify its environment.                                                 |
+| `destructiveHint`     | `true`  | Tool may perform destructive updates (only meaningful when `readOnlyHint` is false). |
+| `idempotentHint`      | `false` | Calling repeatedly with same args has no additional effect.                          |
+| `openWorldHint`       | `false` | Tool may interact with external entities.                                            |
+| `tamboStreamableHint` | `false` | Tool is safe to call repeatedly with partial arguments during streaming.             |
+
+### How Streamable Tools Work
+
+When `annotations.tamboStreamableHint: true`:
+
+1. **Partial execution**: The tool is called with partial arguments as they stream in
+2. **Error handling**: If any partial call throws an error, streaming continues, and only the final call's error (if any) is reported
+3. **Final result**: Only the final call's return value (when arguments are complete) is sent back to the AI
+4. **Intermediate returns are ignored**: Return values from partial calls are discarded
+
+### When to Use Streamable Tools
+
+Use `annotations.tamboStreamableHint: true` when your tool:
+
+- Updates UI state that can be applied incrementally
+- Can handle incomplete or partial data gracefully
+- Has no side effects (doesn't modify external state)
+- Benefits from real-time feedback (charts, forms, visualizations)
+
+### When NOT to Use Streamable Tools
+
+Avoid `annotations.tamboStreamableHint: true` when your tool:
+
+- Makes API calls or database writes (would cause duplicate requests)
+- Has side effects that shouldn't be repeated
+- Requires complete arguments to function correctly
+- Returns data that the AI needs immediately
+
+```tsx
+// ❌ Bad: API call tool - would make duplicate requests
+{
+  name: "create_user",
+  tool: async (data) => await api.createUser(data),
+  annotations: { tamboStreamableHint: true }, // Don't do this!
+}
+
+// ✅ Good: UI state tool - safe to call multiple times
+{
+  name: "update_form",
+  tool: (fields) => setFormState(fields),
+  annotations: { tamboStreamableHint: true }, // Safe for repeated calls
+}
+```
+
+### Handling Partial Data
+
+Your streamable tool should handle incomplete data gracefully. Use optional properties and defensive checks:
+
+```tsx
+const updateDashboard = (data: {
+  title?: string;
+  metrics?: { name: string; value: number }[];
+  timeRange?: string;
+}) => {
+  // Only update fields that are present
+  if (data.title !== undefined) {
+    setTitle(data.title);
+  }
+  if (data.metrics !== undefined) {
+    setMetrics(data.metrics);
+  }
+  if (data.timeRange !== undefined) {
+    setTimeRange(data.timeRange);
+  }
+};
+```
+
+This pattern ensures your UI updates progressively as the AI generates each field, providing a smooth real-time experience.

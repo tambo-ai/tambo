@@ -7,7 +7,11 @@ import {
 } from "@/components/tambo/suggestions-tooltip";
 import { cn } from "@/lib/utils";
 import type { Suggestion, TamboThread } from "@tambo-ai/react";
-import { useTambo, useTamboSuggestions } from "@tambo-ai/react";
+import {
+  GenerationStage,
+  useTambo,
+  useTamboSuggestions,
+} from "@tambo-ai/react";
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
 import { useEffect, useRef } from "react";
@@ -249,7 +253,8 @@ const MessageSuggestionsStatus = React.forwardRef<
         "p-2 rounded-md text-sm bg-transparent",
         !error &&
           !isGenerating &&
-          (!thread?.generationStage || thread.generationStage === "COMPLETE")
+          (!thread?.generationStage ||
+            thread.generationStage === GenerationStage.COMPLETE)
           ? "p-0 min-h-0 mb-0"
           : "",
         className,
@@ -286,7 +291,7 @@ function GenerationStageContent({
   generationStage?: string;
   isGenerating: boolean;
 }) {
-  if (generationStage && generationStage !== "COMPLETE") {
+  if (generationStage && generationStage !== GenerationStage.COMPLETE) {
     return <MessageGenerationStage />;
   }
   if (isGenerating) {

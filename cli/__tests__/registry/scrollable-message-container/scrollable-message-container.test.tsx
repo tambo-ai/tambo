@@ -1,9 +1,9 @@
 /// <reference types="@testing-library/jest-dom" />
-import { jest, describe, it, expect, beforeEach } from "@jest/globals";
-import React from "react";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { GenerationStage, useTambo } from "@tambo-ai/react";
 import { render } from "@testing-library/react";
+import React from "react";
 import { ScrollableMessageContainer } from "../../../src/registry/scrollable-message-container/scrollable-message-container";
-import { useTambo } from "@tambo-ai/react";
 
 // @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 
@@ -14,7 +14,7 @@ describe("ScrollableMessageContainer", () => {
     mockUseTambo.mockReturnValue({
       thread: {
         messages: [],
-        generationStage: "IDLE",
+        generationStage: GenerationStage.IDLE,
       },
     } as never);
   });

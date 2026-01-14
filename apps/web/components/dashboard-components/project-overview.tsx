@@ -7,6 +7,7 @@ import { ProjectOverviewSkeleton } from "@/components/skeletons/dashboard-skelet
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { normalizeCreatedAt } from "@/lib/normalize-created-at";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { KeyRound } from "lucide-react";
@@ -57,6 +58,9 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     );
   }
 
+  // `normalizeCreatedAt` returns an ISO string or `undefined` when invalid.
+  const createdAtIso = normalizeCreatedAt(project.createdAt);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -64,10 +68,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <ProjectInfo
-        project={project}
-        createdAt={new Date(project.createdAt).toLocaleDateString()}
-      />
+      <ProjectInfo project={project} createdAt={createdAtIso} />
 
       {noApiKeys && (
         <Alert className="bg-card">
