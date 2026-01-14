@@ -1,204 +1,145 @@
 ---
 title: Context Attachments
-description: Stage context pieces that will be sent with the next user message
+description: Understanding staged, user-controlled context
 ---
 
-Context attachments allow you to stage context pieces that will be automatically included in the `additionalContext` when the next message is sent.
+import LearnMore from "@/components/learn-more";
+import { Rocket } from "lucide-react";
 
-## How context attachments work
+Context attachments represent a fundamentally different approach to providing context: instead of automatic inclusion or programmatic control, users explicitly stage context they want to include in their next message. Think of it as a clipboard for AI context.
 
-Context attachments are automatically registered as a single merged context helper (with the key `contextAttachments`) that returns an array of all active attachments. When you add or remove attachments, the context helper automatically updates to reflect the current state. The attachments will be included in the `additionalContext` when the next user message is sent, and are automatically cleared after submission (one-time use).
+## The Staging Pattern
 
-### Context Helper Behavior
+Imagine a file browser in your application. Users are looking at their documents, and they want to ask the AI a question about a specific file. Without context attachments, they'd need to either:
+- Copy and paste the file content into their message (tedious)
+- Hope the AI somehow knows about the file (it doesn't)
+- Rely on you to automatically include all files (expensive and unnecessary)
 
-The `TamboContextAttachmentProvider` automatically registers a context helper with the key `contextAttachments`. This helper:
+Context attachments solve this with a staging pattern: users select what they want to focus on, that context is "staged," and when they send their message, the staged context is included and then automatically cleared.
 
-- Returns an array of all active attachments when there are any
-- Returns `null` when there are no attachments
-- Automatically updates when attachments are added or removed
-- Is included in `additionalContext` when the next message is sent
+## Why User-Controlled Context Matters
 
-The context helper structure looks like this:
+Not all context should be automatic. Sometimes users know exactly what information is relevant to their question, and they should be able to tell the AI "focus on this."
 
-```json
-{
-  "contextAttachments": [
-    {
-      "id": "uuid-1",
-      "displayName": "File.txt",
-      "context": "The contents of File.txt",
-      "type": "file"
-    },
-    {
-      "id": "uuid-2",
-      "displayName": "Selection",
-      "context": "Selected text content",
-      "type": "selection"
-    }
-  ]
-}
-```
+**File viewers**: "I'm looking at five documents, but I want to ask about this specific one"
 
-## Basic Usage
+**Text selections**: "I've highlighted this paragraph—help me rewrite it"
 
-The `useTamboContextAttachment` hook provides methods to manage context attachments:
+**Canvas elements**: "I'm working on this specific component—suggest improvements"
 
-```tsx
-import { useTamboContextAttachment } from "@tambo-ai/react";
+**Code editors**: "Look at these three files together—find the bug"
 
-function FileViewer({ file }) {
-  const { addContextAttachment, removeContextAttachment } =
-    useTamboContextAttachment();
+User-controlled context gives users agency. They decide what's relevant, what to include, and when to include it.
 
-  const handleSelectFile = () => {
-    addContextAttachment({
-      context: file.content,
-      displayName: file.name,
-      type: "file",
-    });
-  };
+## How Context Attachments Work
 
-  return <button onClick={handleSelectFile}>Focus on {file.name}</button>;
-}
-```
+Context attachments are automatically registered as a context helper behind the scenes. When you add attachments, they become part of a special `contextAttachments` array that's included in the next message's additional context.
 
-## Context Attachment Structure
+The key insight: **attachments are temporary by design**. After the message is sent, they're automatically cleared. This prevents context from "stacking up" across multiple messages and keeps each interaction focused on what the user explicitly chose.
 
-Each context attachment has the following structure:
+### The Lifecycle
+
+1. **User action**: User clicks "Focus on this file" or selects text
+2. **Staged**: Attachment is added to the staged list (visible to user)
+3. **Message sent**: Staged attachments are included in `additionalContext`
+4. **Auto-clear**: Attachments are automatically removed
+5. **Next message**: User can stage new context for the next interaction
+
+This one-time-use pattern matches how people naturally think about providing context: "For *this* question, I want you to know about *this* file."
+
+## Common Use Cases
+
+### File Browsers and Document Viewers
+
+Users browse available files and explicitly select which ones to include:
 
 ```tsx
-interface ContextAttachment {
-  id: string; // Auto-generated unique identifier
-  displayName?: string; // Optional display name for UI rendering
-  context: string; // The context value that will be used in additionalContext
-  type?: string; // Optional type identifier for grouping/rendering
-}
+"I have 50 documents, but for this question,
+focus on quarterly-report.pdf and budget.xlsx"
 ```
 
-## Hook API
+The AI receives just those two files, not all 50.
 
-The `useTamboContextAttachment` hook returns:
+### Text Selection and Highlighting
+
+Users highlight sections of content they want to discuss:
 
 ```tsx
-const {
-  attachments, // Array of active context attachments
-  addContextAttachment, // Add a new context attachment
-  removeContextAttachment, // Remove by ID
-  clearContextAttachments, // Remove all attachments
-} = useTamboContextAttachment();
+"I've selected this paragraph from the terms of service.
+Can you explain it in simpler terms?"
 ```
 
-### Adding Context Attachments
+The selected text becomes temporary context.
 
-Add a context attachment by calling `addContextAttachment` with an object containing the context value, optional display name, and optional type:
+### Canvas and Workspace Applications
+
+In design tools, code editors, or workspace apps, users focus the AI on specific elements:
 
 ```tsx
-const { addContextAttachment } = useTamboContextAttachment();
-
-// Simple context attachment without displayName
-const attachment = addContextAttachment({
-  context: "The contents of File.txt",
-});
-
-// With displayName
-const attachment = addContextAttachment({
-  context: "The contents of File.txt",
-  displayName: "File.txt",
-});
-
-// With displayName and type for grouping
-const attachment = addContextAttachment({
-  context: "The contents of File.txt",
-  displayName: "File.txt",
-  type: "file",
-});
+"I'm working on the UserProfile component.
+Suggest improvements for accessibility."
 ```
 
-The function returns the `ContextAttachment` object with an auto-generated `id`. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments. This array will be included in `additionalContext` when the next message is sent.
+The component's current state is staged as context.
 
-### Removing Context Attachments
+### Progressive Context Building
 
-Remove a specific context attachment by its ID. The context helper will automatically update to reflect the change:
+Users can stage multiple pieces of context before sending their message:
 
 ```tsx
-const { removeContextAttachment } = useTamboContextAttachment();
+// User stages:
+1. Select diagram.png
+2. Select requirements.md
+3. Select current-implementation.ts
 
-removeContextAttachment(attachment.id);
+// Then asks:
+"Do these three things align? Any gaps?"
 ```
 
-Or clear all attachments at once:
+All three attachments are included together in one message.
 
-```tsx
-const { clearContextAttachments } = useTamboContextAttachment();
+## Comparing to Other Context Methods
 
-clearContextAttachments();
-```
+| Aspect | Context Attachments | Context Helpers | Resources |
+|--------|-------------------|----------------|-----------|
+| **Who decides** | User | System/Developer | User |
+| **When included** | Once (next message) | Every message | When referenced |
+| **Persistence** | One-time use | Automatic per-message | Per-message |
+| **Cleared** | Automatically after send | Never (always runs) | N/A (per-message) |
+| **User visible** | Yes (staged list) | No (happens automatically) | Yes (@ mention) |
 
-**Note:** Context attachments are automatically cleared after message submission (one-time use). You typically don't need to manually clear them unless you want to remove them before sending a message.
+Context attachments sit between automatic helpers and user-referenced resources. They're user-initiated like resources, but staged and temporary like a selection tool.
 
-### Accessing Active Attachments
+## The "Clipboard" Mental Model
 
-Access the current attachments array:
+The best way to think about context attachments is as a clipboard:
 
-```tsx
-const { attachments } = useTamboContextAttachment();
+- **Copy** (stage): User adds context to the clipboard
+- **Paste** (send): Message includes everything on the clipboard
+- **Auto-clear** (after send): Clipboard is automatically emptied
 
-// Use attachments for UI rendering or other purposes
-attachments.forEach((attachment) => {
-  console.log(attachment.displayName, attachment.context, attachment.type);
-});
-```
+This matches how people work with temporary, focused context in other applications.
 
-## Complete Example
+## When to Use Context Attachments
 
-Here's a complete example showing context attachments in a file browser:
+**Use context attachments when:**
+- Users need to explicitly choose what context to include
+- Context is temporary and specific to one question
+- You want users to see what context has been staged
+- Different interactions need different context from the same data set
 
-```tsx
-import { useTamboContextAttachment } from "@tambo-ai/react";
+**Don't use context attachments when:**
+- Context should always be included automatically (use context helpers)
+- You want to programmatically control context (use manual context)
+- Context is large reference material users browse (use resources)
 
-function FileBrowser({ files }) {
-  const {
-    attachments,
-    addContextAttachment,
-    removeContextAttachment,
-    clearContextAttachments,
-  } = useTamboContextAttachment();
+## Implementation
 
-  const handleFileClick = (file) => {
-    // Stage the file content for the next message
-    addContextAttachment({
-      context: file.content,
-      displayName: file.name,
-      type: "file",
-    });
-  };
+Ready to implement context attachments in your application?
 
-  return (
-    <div>
-      {/* Display active attachments */}
-      {attachments.length > 0 && (
-        <div>
-          <h3>Staged Context:</h3>
-          {attachments.map((attachment) => (
-            <div key={attachment.id}>
-              <span>{attachment.displayName}</span>
-              <button onClick={() => removeContextAttachment(attachment.id)}>
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* File List */}
-      <div>
-        {files.map((file) => (
-          <button key={file.id} onClick={() => handleFileClick(file)}>
-            {file.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-```
+<LearnMore
+  title="Use Context Attachments"
+  description="Step-by-step guide to implementing staged context"
+  href="/guides/additional-context/use-context-attachments"
+  icon={Rocket}
+/>

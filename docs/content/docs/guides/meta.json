@@ -6,6 +6,7 @@
     "customize-interactables-context",
     "build-custom-conversation-ui",
     "register-tools",
-    "enable-user-authentication"
+    "enable-user-authentication",
+    "add-additional-context"
   ]
 }

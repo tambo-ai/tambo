@@ -1,0 +1,323 @@
+---
+title: Manage Context Dynamically
+description: Add and remove context helpers at runtime based on application state
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+This guide shows you how to manage context helpers dynamically at runtime using the `useTamboContextHelpers` hook. Dynamic management is useful when context depends on user actions, application state, or page navigation.
+
+<LearnMore
+  title="Understanding Additional Context"
+  description="Learn about context helpers and when to use them"
+  href="/concepts/additional-context"
+  icon={BookOpen}
+/>
+
+## Prerequisites
+
+- Basic understanding of context helpers (see [Configure Context Helpers](/guides/additional-context/configure-context-helpers))
+- Understanding of React hooks and effects
+
+## Step 1: Import the Hook
+
+Import the `useTamboContextHelpers` hook:
+
+```tsx
+import { useTamboContextHelpers } from "@tambo-ai/react";
+```
+
+## Step 2: Use the Hook API
+
+The hook provides three methods:
+
+```tsx
+const {
+  getContextHelpers, // Get current map of helpers
+  addContextHelper, // Add or replace a helper
+  removeContextHelper, // Remove a helper
+} = useTamboContextHelpers();
+```
+
+## Pattern 1: Context Based on Application State
+
+Add or update helpers when application state changes:
+
+```tsx
+function ProjectContextController({ projectId }: { projectId: string }) {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  useEffect(() => {
+    // Skip if no project selected
+    if (!projectId) return;
+
+    // Add helper for current project
+    addContextHelper("currentProject", async () => ({
+      projectId,
+      projectName: await getProjectName(projectId),
+      projectData: await getProjectData(projectId),
+      permissions: await getProjectPermissions(projectId),
+    }));
+
+    // Cleanup when project changes or component unmounts
+    return () => {
+      removeContextHelper("currentProject");
+    };
+  }, [projectId, addContextHelper, removeContextHelper]);
+
+  return null; // This is a logic-only component
+}
+```
+
+Use this pattern in your application:
+
+```tsx
+function App() {
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
+  return (
+    <TamboProvider apiKey={apiKey}>
+      <ProjectContextController projectId={currentProjectId} />
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+## Pattern 2: User Session Context
+
+Add session context on login and remove on logout:
+
+```tsx
+function SessionContextManager() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const { user, session } = useAuth();
+
+  useEffect(() => {
+    if (!user || !session) {
+      // User logged out - remove session context
+      removeContextHelper("session");
+      return;
+    }
+
+    // User logged in - add session context
+    addContextHelper("session", async () => ({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      sessionId: session.id,
+      sessionStartTime: session.startTime,
+    }));
+
+    return () => {
+      removeContextHelper("session");
+    };
+  }, [user, session, addContextHelper, removeContextHelper]);
+
+  return null;
+}
+```
+
+## Pattern 3: Privacy Settings UI
+
+Build a UI that lets users toggle context helpers:
+
+```tsx
+function PrivacySettings() {
+  const { getContextHelpers, addContextHelper } = useTamboContextHelpers();
+  const helpers = getContextHelpers();
+  const [disabledHelpers, setDisabledHelpers] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const toggleHelper = (key: string) => {
+    if (disabledHelpers.has(key)) {
+      // Re-enable: restore the original helper
+      // (You'd need to store the original helper somewhere)
+      setDisabledHelpers((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    } else {
+      // Disable: replace with null-returning function
+      addContextHelper(key, () => null);
+      setDisabledHelpers((prev) => new Set(prev).add(key));
+    }
+  };
+
+  return (
+    <div>
+      <h3>Context Privacy Settings</h3>
+      <p>Control what information is shared with the AI</p>
+      {Object.keys(helpers).map((key) => (
+        <div key={key}>
+          <label>
+            <input
+              type="checkbox"
+              checked={!disabledHelpers.has(key)}
+              onChange={() => toggleHelper(key)}
+            />
+            {key}
+          </label>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Pattern 4: Conditional Context
+
+Add helpers only when certain conditions are met:
+
+```tsx
+function FeatureContextManager() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const { features } = useFeatureFlags();
+
+  useEffect(() => {
+    if (features.advancedMode) {
+      // Add extra context for advanced users
+      addContextHelper("advancedFeatures", () => ({
+        mode: "advanced",
+        capabilities: ["bulk-operations", "custom-scripts", "api-access"],
+        limits: {
+          maxOperations: 1000,
+          rateLimitPerHour: 10000,
+        },
+      }));
+    } else {
+      removeContextHelper("advancedFeatures");
+    }
+  }, [features.advancedMode, addContextHelper, removeContextHelper]);
+
+  return null;
+}
+```
+
+## Pattern 5: Page-Specific Context with Provider
+
+For page-scoped context, use `TamboContextHelpersProvider` (from [Configure Context Helpers](/guides/additional-context/configure-context-helpers)):
+
+```tsx title="app/dashboard/page.tsx"
+import { TamboContextHelpersProvider } from "@tambo-ai/react";
+
+export default function DashboardPage() {
+  return (
+    <TamboContextHelpersProvider
+      contextHelpers={{
+        dashboardData: async () => ({
+          widgets: await getActiveWidgets(),
+          filters: getCurrentFilters(),
+          dateRange: getSelectedDateRange(),
+        }),
+      }}
+    >
+      <DashboardContent />
+    </TamboContextHelpersProvider>
+  );
+}
+```
+
+The helper is active only while the page is mounted.
+
+## Best Practices
+
+### 1. Clean Up in useEffect
+
+Always remove helpers in the cleanup function:
+
+```tsx
+useEffect(() => {
+  addContextHelper("myHelper", myHelperFunction);
+
+  return () => {
+    removeContextHelper("myHelper"); // Clean up!
+  };
+}, [dependencies]);
+```
+
+### 2. Handle Dependencies Correctly
+
+Include all hook methods in dependencies if using them in useEffect:
+
+```tsx
+useEffect(() => {
+  addContextHelper("key", helperFunction);
+  return () => removeContextHelper("key");
+}, [addContextHelper, removeContextHelper, /* other deps */]);
+```
+
+### 3. Namespace Keys
+
+Avoid conflicts by namespacing helper keys:
+
+```tsx
+addContextHelper("dashboard:filters", filtersHelper);
+addContextHelper("settings:preferences", preferencesHelper);
+```
+
+### 4. Consider Performance
+
+Helper functions run on every message, so:
+- Keep them fast
+- Cache expensive computations
+- Return `null` when data isn't available
+
+## Complete Example
+
+Full implementation with dynamic project context:
+
+```tsx
+import { useTamboContextHelpers } from "@tambo-ai/react";
+import { useEffect } from "react";
+
+function DynamicProjectContext({ projectId }: { projectId: string | null }) {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  useEffect(() => {
+    if (!projectId) {
+      removeContextHelper("project");
+      return;
+    }
+
+    addContextHelper("project", async () => {
+      try {
+        const [name, members, settings] = await Promise.all([
+          fetchProjectName(projectId),
+          fetchProjectMembers(projectId),
+          fetchProjectSettings(projectId),
+        ]);
+
+        return {
+          id: projectId,
+          name,
+          memberCount: members.length,
+          settings,
+          lastAccessed: new Date().toISOString(),
+        };
+      } catch (error) {
+        console.error("Failed to fetch project context:", error);
+        return null; // Skip context on error
+      }
+    });
+
+    return () => {
+      removeContextHelper("project");
+    };
+  }, [projectId, addContextHelper, removeContextHelper]);
+
+  return null;
+}
+```
+
+## Next Steps
+
+<LearnMore
+  title="Create Custom Context Helpers"
+  description="Learn how to build your own helper functions"
+  href="/guides/additional-context/create-custom-helpers"
+  icon={BookOpen}
+/>

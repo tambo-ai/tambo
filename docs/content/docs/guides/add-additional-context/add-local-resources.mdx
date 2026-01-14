@@ -1,9 +1,24 @@
 ---
-title: Adding Local Resources
-description: Register local resources to provide context data to Tambo
+title: Add Local Resources
+description: Register local resources that users can reference in messages
 ---
 
-Register resources with Tambo to provide context data, documentation, or other information to the AI. Local resources are data sources that run in your React app. Use them for providing documentation, configuration data, or dynamic content that the AI can reference when responding to user messages.
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+This guide shows you how to register local resources in your Tambo application. Resources allow users to explicitly reference documentation, files, or other content in their messages using @ mentions.
+
+<LearnMore
+  title="Understanding Resources"
+  description="Learn about resources and when to use them"
+  href="/concepts/additional-context/resources"
+  icon={BookOpen}
+/>
+
+## Prerequisites
+
+- A Tambo application with `TamboRegistryProvider` configured
+- Understanding of React providers
 
 ## Static Resources
 

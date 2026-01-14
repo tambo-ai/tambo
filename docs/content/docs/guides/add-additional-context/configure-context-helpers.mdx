@@ -1,0 +1,135 @@
+---
+title: Configure Context Helpers
+description: Set up automatic context that runs with every message
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+This guide shows you how to configure context helpers in your Tambo application. Context helpers run automatically with every message, providing ambient information like the current time, page, or user profile without requiring explicit code in your components.
+
+<LearnMore
+  title="Understanding Additional Context"
+  description="Learn about the different ways to provide context and when to use each"
+  href="/concepts/additional-context"
+  icon={BookOpen}
+/>
+
+## Prerequisites
+
+- A Tambo application with `TamboProvider` configured
+- Basic understanding of React context and providers
+
+## Step 1: Configure at the Root (Recommended)
+
+The most common approach is to configure context helpers at your application root using the `contextHelpers` prop on `TamboProvider`:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import {
+  currentTimeContextHelper,
+  currentPageContextHelper,
+} from "@tambo-ai/react";
+
+function AppRoot({ children }: { children: React.ReactNode }) {
+  return (
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      contextHelpers={{
+        userTime: currentTimeContextHelper,
+        userPage: currentPageContextHelper,
+      }}
+    >
+      {children}
+    </TamboProvider>
+  );
+}
+```
+
+### How It Works
+
+- Each key in the `contextHelpers` object becomes the context name sent with messages
+- Each value is a function that returns the context data (or `null`/`undefined` to skip)
+- Helpers can be synchronous or asynchronous
+- All helpers run automatically before sending each message
+
+### Available Prebuilt Helpers
+
+Tambo provides these prebuilt context helpers:
+
+- **`currentTimeContextHelper`**: Provides current timestamp
+- **`currentPageContextHelper`**: Provides current URL and page title
+- **`currentInteractablesContextHelper`**: Automatically enabled when using interactable components
+
+## Step 2: Configure Per-Page (Optional)
+
+For page-specific context, use `TamboContextHelpersProvider` to scope helpers to specific routes or layouts:
+
+```tsx
+import { TamboContextHelpersProvider } from "@tambo-ai/react";
+import { currentPageContextHelper } from "@tambo-ai/react";
+
+function DashboardPage() {
+  return (
+    <TamboContextHelpersProvider
+      contextHelpers={{
+        // Only active while this page is mounted
+        userPage: currentPageContextHelper,
+      }}
+    >
+      {/* Your page content */}
+    </TamboContextHelpersProvider>
+  );
+}
+```
+
+**When to use this pattern:**
+- You don't want to configure helpers at the root
+- You need different helpers for different pages
+- You want to experiment with helpers on specific routes
+
+**Important notes:**
+- You still need `TamboProvider` higher in the component tree
+- If the same key is registered in multiple places, the most recently mounted registration takes effect
+- Helpers are only active while the provider is mounted
+
+## Understanding Message Context Structure
+
+When your helpers run, their results are merged into the message context with your chosen key names:
+
+```tsx
+<TamboProvider
+  contextHelpers={{
+    userTime: currentTimeContextHelper,
+    session: async () => ({
+      sessionId: "abc123",
+      userId: "user456",
+    }),
+  }}
+>
+```
+
+This produces the following context structure sent with each message:
+
+```json
+{
+  "userTime": {
+    "timestamp": "2025-01-15T20:30:00.000Z"
+  },
+  "session": {
+    "sessionId": "abc123",
+    "userId": "user456"
+  }
+}
+```
+
+The AI receives this context automatically and can use it to provide more relevant responses.
+
+## Next Steps
+
+<LearnMore
+  title="Create Custom Context Helpers"
+  description="Learn how to build your own helpers for application-specific context"
+  href="/guides/additional-context/create-custom-helpers"
+  icon={BookOpen}
+/>

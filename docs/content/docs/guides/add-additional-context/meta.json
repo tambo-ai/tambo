@@ -1,0 +1,11 @@
+{
+  "title": "Add Additional Context",
+  "pages": [
+    "configure-context-helpers",
+    "create-custom-helpers",
+    "manage-context-dynamically",
+    "use-context-attachments",
+    "set-thread-instructions",
+    "add-local-resources"
+  ]
+}

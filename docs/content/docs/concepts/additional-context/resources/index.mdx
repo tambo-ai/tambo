@@ -3,13 +3,36 @@ title: Resources
 description: Allow users to reference documentation and files in messages through @ mentions
 ---
 
-Resources are data sources that users can explicitly reference in their messages using @ mentions. Unlike context helpers that automatically run with each message, resources are user-controlled—users choose when to include them by typing `@resourceName` in their message.
+import LearnMore from "@/components/learn-more";
+import { FileText, Rocket } from "lucide-react";
 
-Resources can come from two sources:
-- **Local resources**: Registered directly in your React app
-- **MCP resources**: Exposed by connected MCP servers
+Resources give users a way to explicitly pull documentation, files, or other content into their messages. Instead of the AI querying for resources on-demand, users reference them with @ mentions, and the content is included when the message is sent.
 
-Both types work the same way from the user's perspective—they type @ to search and select resources, and the content is included in the message when sent.
+Think of resources as a searchable library that users can browse and cite in their conversations.
+
+## How Resources Work
+
+Resources are push-based, not pull-based. When a user types `@` in the message input, they see available resources, select what they want, and that content gets included in the message as it's sent. The AI doesn't query for resources later—it receives them upfront as part of the message context.
+
+This is different from some systems where the AI discovers and fetches resources on its own. With Tambo, **users control** what resources to include and when.
+
+## Two Types of Resources
+
+Resources can come from two sources, but both work identically from the user's perspective:
+
+**Local resources**: Registered directly in your React app
+- Documentation you author
+- Configuration files
+- User-uploaded documents
+- Application data exported as resources
+
+**MCP resources**: Exposed by connected MCP servers
+- External services (Linear issues, GitHub files)
+- Database records
+- File systems
+- Third-party integrations
+
+Both types appear in the same @ mention picker. Users type `@`, search for what they need, and select it.
 
 ## Local Resources
 

@@ -1,282 +1,209 @@
 ---
 title: Additional Context
-description: Add additional information along with user's message
+description: Help the AI understand your users' environment and intent
 ---
 
-Additional Context helps you add information that will be sent along with the user's message. You can include prebuilt helpers, create custom helpers, or send per-message context to provide more relevant AI responses.
+import LearnMore from "@/components/learn-more";
+import { Settings, Paperclip, MessageSquare, FileText } from "lucide-react";
 
-## How additional context works
+When users interact with Tambo, the AI doesn't just see their message—it needs to understand their environment, what page they're on, what time it is, and what other information is relevant. Without this context, every conversation happens in a vacuum.
 
-When configured, context helpers automatically add metadata to messages without extra code in your components. This contextual information helps the AI:
+Think of additional context as layers of information that help the AI see what you see. These layers work together to give the AI a complete picture of each interaction.
 
-- Provide time-aware responses (e.g., "Good morning" at the right time)
-- Understand what page or section the user is currently viewing
-- Give location-specific recommendations
-- Provide more relevant help based on the user's current context
-- Access custom business logic and application state
+## The Context Problem
 
-## How to Add Context
+Imagine a user asks "What's next on my schedule?" The message alone doesn't tell the AI:
+- What time it is now (morning? afternoon?)
+- What timezone the user is in
+- What page they're looking at (calendar? dashboard?)
+- What project they have selected
+- What files or documents they've been working with
 
-There are five ways to add additional context to messages:
+Additional context solves this by automatically or explicitly including relevant information with each message.
 
-### 1. Prebuilt Context Helpers
+## Five Ways to Provide Context
 
-Tambo provides prebuilt helper functions that can be passed to the provider:
+Tambo offers five complementary approaches to context, each suited for different types of information:
 
-```tsx
-import { TamboProvider } from "@tambo-ai/react";
-import {
-  currentTimeContextHelper,
-  currentPageContextHelper,
-} from "@tambo-ai/react";
+### Automatic Context (Context Helpers)
 
-<TamboProvider
-  contextHelpers={{
-    userTime: currentTimeContextHelper,
-    userPage: currentPageContextHelper,
-  }}
-/>;
+Context helpers run automatically with every message, providing ambient information that's always relevant. This is ideal for data that changes between messages but should always be available to the AI.
+
+**When to use**: Current time, active page, user authentication state, selected project, app settings
+
+**Characteristics**:
+- Runs on every message automatically
+- Updates dynamically as state changes
+- No user action required
+- Best for frequently-referenced data
+
+<LearnMore
+  title="Configure Context Helpers"
+  description="Set up automatic context in your application"
+  href="/guides/additional-context/configure-context-helpers"
+  icon={Settings}
+/>
+
+### Per-Message Context (Manual Context)
+
+Sometimes context is specific to a single interaction—search filters, form data, or temporary state that applies to just this message. Manual context lets you include this programmatically when sending messages.
+
+**When to use**: Search parameters, form submissions, filter selections, interaction-specific data
+
+**Characteristics**:
+- Included only with specific messages
+- Controlled programmatically in your code
+- Doesn't persist beyond the message
+- Best for one-off contextual data
+
+<LearnMore
+  title="Configure Context Helpers"
+  description="Learn about the additionalContext parameter"
+  href="/guides/additional-context/configure-context-helpers"
+  icon={Settings}
+/>
+
+### Staged Context (Context Attachments)
+
+Context attachments let users explicitly stage context they want to include in their next message. Think of it like a clipboard—users select files, highlight text, or focus on specific elements, and that context gets included once, then automatically cleared.
+
+**When to use**: File contents, text selections, canvas elements, temporary user-controlled context
+
+**Characteristics**:
+- User-initiated (they choose what to include)
+- Staged before sending
+- Automatically cleared after submission (one-time use)
+- Best for explicit, temporary context
+
+<LearnMore
+  title="Use Context Attachments"
+  description="Implement staged context in your UI"
+  href="/guides/additional-context/use-context-attachments"
+  icon={Paperclip}
+/>
+
+### Thread Context (System Messages)
+
+System messages set persistent instructions that guide the entire conversation. Unlike context that changes with each message, system messages establish the AI's role, expertise, and behavioral constraints for the thread's lifetime.
+
+**When to use**: AI persona, domain expertise, persistent behavioral rules, conversation-level instructions
+
+**Characteristics**:
+- Set once at thread creation
+- Persists for entire conversation
+- Can't be changed after creation
+- Best for instructions that don't change
+
+<LearnMore
+  title="Set Thread Instructions"
+  description="Create threads with system messages"
+  href="/guides/additional-context/set-thread-instructions"
+  icon={MessageSquare}
+/>
+
+### User-Referenced Context (Resources)
+
+Resources allow users to explicitly pull in documentation, files, or other content by typing @ and selecting what they want to reference. The content is included in the message when sent.
+
+**When to use**: Documentation, reference files, knowledge base articles, user-uploaded documents
+
+**Characteristics**:
+- User-controlled (@ mention syntax)
+- Searchable and browsable
+- Included in message when referenced
+- Best for large reference materials
+
+<LearnMore
+  title="Understanding Resources"
+  description="Learn about local and MCP resources"
+  href="/concepts/additional-context/resources"
+  icon={FileText}
+/>
+
+## Comparing Context Methods
+
+Different context methods serve different purposes. Here's how they compare:
+
+| Method | Automatic/Manual | Persistent | Initiated By | Best For |
+|--------|-----------------|------------|--------------|----------|
+| Context Helpers | Automatic | Per-message | System | Ambient data (time, page, state) |
+| Manual Context | Manual | Per-message | Developer | Interaction-specific data |
+| Context Attachments | Manual | One-time | User | Temporary user selections |
+| System Messages | Manual | Thread lifetime | Developer | Persistent instructions |
+| Resources | Manual | Per-message | User | Reference documentation |
+
+The key distinction is between **automatic** context (helpers run without user action) and **explicit** context (user or developer chooses when to include it).
+
+Another important distinction is **persistence**: context helpers and resources work per-message, while system messages persist for the entire thread.
+
+## Layered Context: How Methods Combine
+
+These five methods aren't mutually exclusive—they work together to provide comprehensive context:
+
+```
+Thread Start: System message establishes AI role and constraints
+    ↓
+Message 1:
+  • Context helpers provide current time, page, user state
+  • User attaches a file via context attachment
+  • User references docs via @ mention
+  • Developer includes form data via manual context
+    ↓
+Message 2:
+  • Same context helpers run again (new data)
+  • Context attachment cleared (one-time use)
+  • User references different docs
+    ↓
+Thread continues...
 ```
 
-You can also wrap parts of your app with `TamboContextHelpersProvider` to declare helpers in-place. This is useful when you don't want to set `contextHelpers` at the root, or when you need page/layout-specific helpers that only apply while that page is mounted:
+All context layers merge together when sending each message. The AI receives:
+- **Persistent foundation**: System message instructions
+- **Dynamic environment**: Context helpers (time, page, state)
+- **User selections**: Context attachments and resources
+- **Interaction data**: Manual context
 
-```tsx
-import { TamboContextHelpersProvider } from "@tambo-ai/react";
-import { currentPageContextHelper } from "@tambo-ai/react";
+This layered approach gives the AI both broad environmental awareness and specific contextual details for each interaction.
 
-export default function DashboardPage() {
-  return (
-    <TamboContextHelpersProvider
-      contextHelpers={{
-        // Registers only while this page is mounted
-        userPage: currentPageContextHelper,
-      }}
-    >
-      {/* Components that send messages (e.g., MessageThreadFull, inputs, etc.) */}
-    </TamboContextHelpersProvider>
-  );
-}
-```
+## When Each Method Matters
 
-This is equivalent to passing the same helpers via `TamboProvider`’s `contextHelpers` prop. If the same key is registered in multiple places at different times, the most recently mounted registration takes effect while it’s mounted.
+**Use context helpers when** you need the AI to always know certain information—current page, time, authenticated user, active project. This becomes the AI's baseline awareness.
 
-### 2. Custom Context Helpers
+**Use manual context when** you're programmatically including data specific to an interaction—search filters on a search page, form values on submission, selected options.
 
-Create your own helpers to automatically include application-specific data. Each helper is a function that returns a value, or null to skip.
+**Use context attachments when** users need control over what context to include—letting them focus the AI on specific files, text selections, or workspace elements.
 
-```tsx
-// Define helpers outside components
-const profileHelper = async () => ({
-  userId: getCurrentUserId(),
-  role: getUserRole(),
-  preferences: await getUserPreferences(),
-});
+**Use system messages when** you need to establish persistent instructions—AI persona that doesn't change, domain expertise that applies to every response, behavioral rules.
 
-<TamboProvider
-  contextHelpers={{
-    // The key becomes the context name
-    userProfile: profileHelper,
+**Use resources when** users need to reference large documentation or files—API docs, knowledge base articles, user-uploaded documents that shouldn't be in every message.
 
-    // Or define inline
-    appState: async () => ({
-      theme: getTheme(),
-      version: getAppVersion(),
-    }),
-  }}
-/>;
-```
+## Next Steps
 
-### 3. Manual Context via Message Functions
+Ready to implement? Each context method has a dedicated guide:
 
-Add custom context on a per-message basis using the `additionalContext` parameter:
-
-```tsx
-// Using useTamboThreadInput hook
-const { submit } = useTamboThreadInput();
-
-await submit({
-  streamResponse: true,
-  additionalContext: {
-    customData: "specific to this message",
-    userPreferences: { theme: "dark" },
-  },
-});
-```
-
-### 4. Context Attachments
-
-Stage context pieces that will be automatically included in the next user message. Context attachments are registered as a context helper (key: `contextAttachments`) and are automatically cleared after submission (one-time use).
-
-```tsx
-import { useTamboContextAttachment } from "@tambo-ai/react";
-
-function FileViewer({ file }) {
-  const { addContextAttachment } = useTamboContextAttachment();
-
-  const handleSelectFile = () => {
-    // Stage file content for the next message
-    addContextAttachment({
-      context: file.content,
-      displayName: file.name,
-      type: "file",
-    });
-  };
-
-  return <button onClick={handleSelectFile}>Focus on {file.name}</button>;
-}
-```
-
-### 5. Resources
-
-Register data sources that users can reference in messages using @ mentions. Resources allow users to explicitly pull in documentation, files, or other content from local or MCP sources.
-
-```tsx
-import { useTamboLocalResources } from "@tambo-ai/react";
-
-const { registerLocalResource } = useTamboLocalResources();
-
-registerLocalResource({
-  uri: "docs://api-guide",
-  name: "API Guide",
-  description: "Complete API documentation",
-  mimeType: "text/plain",
-  text: "API documentation content...",
-});
-```
-
-Users reference resources in messages with `@resourceUri` syntax. The resource content is included as part of the message when sent.
-
-[Learn more about Resources →](/concepts/additional-context/resources)
-
-All five methods can be used together—context from helpers, context attachments, manual context, and resources are merged when sending messages.
-
-## Complementary Context Methods
-
-Beyond the message-level context above, Tambo provides additional ways to provide context with different characteristics:
-
-### System Messages
-
-Set persistent instructions and behavioral guidelines for an entire conversation thread. System messages are set once at thread creation and remain in effect for the thread's lifetime, making them ideal for defining AI persona, domain expertise, or persistent constraints.
-
-```tsx
-import { useTamboThread } from "@tambo-ai/react";
-
-const { createThread } = useTamboThread();
-
-await createThread({
-  initialMessages: [
-    {
-      id: crypto.randomUUID(),
-      role: "system",
-      content: [
-        {
-          type: "text",
-          text: "You are a financial advisor specializing in retirement planning.",
-        },
-      ],
-      createdAt: new Date().toISOString(),
-      componentState: {},
-    },
-  ],
-});
-```
-
-System messages are best for instructions that don't change during the conversation, while context helpers excel at dynamic data that updates between messages.
-
-[Learn more about System Messages →](/concepts/additional-context/system-messages)
-
-### Resources from MCP Servers
-
-When you connect MCP servers, their resources become available for users to reference in messages. MCP resources work the same way as local resources—users reference them with @ mentions, and their content is included in the message.
-
-```tsx
-import { TamboProvider } from "@tambo-ai/react";
-
-<TamboProvider
-  mcpServers={[
-    {
-      serverKey: "linear",
-      transport: { type: "sse", url: "/api/mcp/linear" },
-    },
-  ]}
->
-  {/* Users can now reference Linear resources like @linear:issue://TAM-123 */}
-</TamboProvider>;
-```
-
-MCP resources are particularly valuable for integrating external services like Linear, GitHub, databases, or file systems into your AI conversations.
-
-[Learn more about MCP Resources →](/concepts/model-context-protocol/features/resources)
-
-## When to Use Each Method
-
-| Method              | Use When                                                          | Example                                                                          |
-| ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Prebuilt Helpers    | You need standard metadata like time or page info                 | Use `currentTimeContextHelper` for scheduling features                           |
-| Custom Helpers      | You have app-wide context that should always be included          | User profile, app settings, feature flags                                        |
-| Manual Context      | Context is specific to a particular interaction                   | Search filters, form data, temporary state                                       |
-| Context Attachments | You want to stage context that will be sent with the next message | File contents, selected text, temporary context that should be cleared after use |
-| Resources           | Users need to reference documentation or files in messages        | API documentation, configuration files, user-uploaded documents                  |
-| System Messages     | You need persistent instructions for an entire thread             | AI persona, domain expertise, behavioral constraints                             |
-| MCP Resources       | You have structured reference materials from external servers     | Linear issues, GitHub files, database records from MCP servers                   |
-
-## Available Prebuilt Context Helpers (On by Default)
-
-These helpers are automatically enabled when using the corresponding provider. You can disable them by overriding them with a function that returns null.
-
-### currentTimeContextHelper
-
-Provides the user's current time and timezone information.
-
-Example result:
-
-```json
-{
-  "timestamp": "2025-01-15T20:30:00.000Z"
-}
-```
-
-### currentPageContextHelper
-
-Provides information about the current page or route.
-
-Example result:
-
-```json
-{
-  "url": "/dashboard/analytics",
-  "title": "Analytics Dashboard"
-}
-```
-
-### currentInteractablesContextHelper
-
-**Automatically enabled** when using `TamboInteractableProvider`. Provides information about all interactable components currently on the page that the AI can read and modify.
-
-We found this to be the most effective way to provide the AI with information about the current page and the components on the page. It's easy to disable or customize as needed.
-
-Example result:
-
-```json
-{
-  "description": "These are the interactable components currently visible on the page...",
-  "components": [
-    {
-      "id": "Note-abc123",
-      "componentName": "Note",
-      "description": "A simple note",
-      "props": { "title": "My Note", "content": "Hello world" },
-      "propsSchema": "Available - use component-specific update tools"
-    }
-  ]
-}
-```
-
-See [Interactable Components](/concepts/components/interactable-components) for details on customizing or disabling this helper.
-
-**Notes:**
-
-- Helpers are plain functions. Return a value to include it, or null/undefined to skip.
-- The helper key becomes the context name in messages.
-
-Learn more about [Context Attachments](/concepts/additional-context/context-attachments).
+<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem", marginTop: "1.5rem" }}>
+  <LearnMore
+    title="Configure Context Helpers"
+    description="Set up automatic context"
+    href="/guides/additional-context/configure-context-helpers"
+    icon={Settings}
+  />
+  <LearnMore
+    title="Use Context Attachments"
+    description="Implement staged context"
+    href="/guides/additional-context/use-context-attachments"
+    icon={Paperclip}
+  />
+  <LearnMore
+    title="Set Thread Instructions"
+    description="Create persistent instructions"
+    href="/guides/additional-context/set-thread-instructions"
+    icon={MessageSquare}
+  />
+  <LearnMore
+    title="Add Local Resources"
+    description="Register referenceable content"
+    href="/guides/additional-context/add-local-resources"
+    icon={FileText}
+  />
+</div>
