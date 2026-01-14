@@ -91,6 +91,49 @@ apps/api/src
   - Cross-module flows (e.g., threads touching projects) via integration tests
 - Always run `npm run test:cov` when adding meaningful logic to keep a coverage baseline; document gaps if coverage dips.
 
+### NestJS unit tests (providers/services)
+
+- Use `Test.createTestingModule(...)` to build a lightweight module and override providers.
+- If you need to resolve a request-scoped provider (`@Injectable({ scope: Scope.REQUEST })`), use the helpers in `apps/api/src/test/nest-testing.ts`.
+
+```ts
+import { Test, type TestingModule } from "@nestjs/testing";
+
+// Helper import path depends on your test file location.
+// Adjust this relative path based on where your test file lives under `src/`.
+// For example, from `src/common/services/foo.service.test.ts` you'd use `../../test/nest-testing`.
+import {
+  createTestRequestContext,
+  resolveRequestScopedProvider,
+} from "../../test/nest-testing";
+
+it("resolves request-scoped providers", async () => {
+  const module: TestingModule = await Test.createTestingModule({
+    // Replace these with the providers you want to test.
+    providers: [MyService, MyRequestScopedService],
+  })
+    .overrideProvider(MyService)
+    .useValue({
+      doThing: jest.fn(),
+    })
+    .compile();
+
+  const context = createTestRequestContext({
+    headers: {},
+  });
+
+  const requestScoped = await resolveRequestScopedProvider(
+    module,
+    MyRequestScopedService,
+    context,
+  );
+
+  expect(requestScoped).toBeDefined();
+});
+```
+
+See `src/test/nest-testing.example.test.ts` for a runnable example.
+
 ## Development Workflow
 
 1. **Read existing code** within the domain module before touching anything.
