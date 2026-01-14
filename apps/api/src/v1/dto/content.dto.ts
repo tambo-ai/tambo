@@ -1,75 +1,16 @@
 import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import {
-  IsString,
-  IsOptional,
   ValidateNested,
   IsArray,
   IsBoolean,
+  IsOptional,
+  IsString,
   Equals,
   IsNotEmpty,
   IsObject,
 } from "class-validator";
 import { Type } from "class-transformer";
-
-/**
- * Resource data for resource content blocks.
- * Based on MCP Resource specification.
- */
-@ApiSchema({ name: "V1ResourceData" })
-export class ResourceDataDto {
-  @ApiProperty({
-    description:
-      "URI identifying the resource (e.g., file://, https://, s3://)",
-    example: "https://example.com/document.pdf",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  uri?: string;
-
-  @ApiProperty({
-    description: "Human-readable name for the resource",
-    example: "project-documentation.pdf",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiProperty({
-    description: "Optional description of the resource",
-    example: "Project documentation for Q4 2024",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @ApiProperty({
-    description: "MIME type of the resource",
-    example: "application/pdf",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  mimeType?: string;
-
-  @ApiProperty({
-    description: "Inline text content (alternative to uri)",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  text?: string;
-
-  @ApiProperty({
-    description: "Base64-encoded blob data (alternative to uri or text)",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  blob?: string;
-}
+import { ResourceDto } from "../../threads/dto/message.dto";
 
 /**
  * Union type for all content block types.
@@ -121,8 +62,8 @@ export class ResourceContentDto {
     description: "Resource data containing URI, text, or blob",
   })
   @ValidateNested()
-  @Type(() => ResourceDataDto)
-  resource!: ResourceDataDto;
+  @Type(() => ResourceDto)
+  resource!: ResourceDto;
 }
 
 /**
