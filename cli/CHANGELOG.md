@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.46.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.46.0...tambo-v0.46.1) (2026-01-14)
+
+
+### Bug Fixes
+
+* **cli:** add missing date-fns dependency ([#1761](https://github.com/tambo-ai/tambo/issues/1761)) ([e502652](https://github.com/tambo-ai/tambo/commit/e502652120a4cbc09cc435b5690860dac6dffdbe))
+* **cli:** add missing postcss dependency ([#1763](https://github.com/tambo-ai/tambo/issues/1763)) ([3690ae7](https://github.com/tambo-ai/tambo/commit/3690ae717f653ca582e8b223d076d68015bf79e0))
+
 ## [0.46.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.45.0...tambo-v0.46.0) (2026-01-13)
 
 
