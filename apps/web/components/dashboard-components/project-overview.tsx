@@ -5,6 +5,7 @@ import { DailyMessagesChart } from "@/components/dashboard-components/project-de
 import { ProjectInfo } from "@/components/dashboard-components/project-details/project-info";
 import { ProjectOverviewSkeleton } from "@/components/skeletons/dashboard-skeletons";
 import { Card } from "@/components/ui/card";
+import { normalizeCreatedAt } from "@/lib/normalize-created-at";
 import { api } from "@/trpc/react";
 import { motion } from "framer-motion";
 
@@ -32,6 +33,9 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
     );
   }
 
+  // `normalizeCreatedAt` returns an ISO string or `undefined` when invalid.
+  const createdAtIso = normalizeCreatedAt(project.createdAt);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -39,10 +43,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <ProjectInfo
-        project={project}
-        createdAt={new Date(project.createdAt).toLocaleDateString()}
-      />
+      <ProjectInfo project={project} createdAt={createdAtIso} />
       <div>
         <DailyMessagesChart projectIds={[projectId]} days={30} />
 
