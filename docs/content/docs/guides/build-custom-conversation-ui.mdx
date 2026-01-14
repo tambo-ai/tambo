@@ -362,6 +362,103 @@ function NewThreadButton() {
 }
 ```
 
+## Add Contextual Suggestions (Optional)
+
+Show AI-generated suggestions after each assistant message to help users discover next actions.
+
+### Display Suggestions
+
+Use the `useTamboSuggestions` hook to get and display suggestions:
+
+```tsx
+import { useTamboThread, useTamboSuggestions } from "@tambo-ai/react";
+
+function MessageThread() {
+  const { thread } = useTamboThread();
+  const { suggestions, isLoading, isAccepting, accept } = useTamboSuggestions({
+    maxSuggestions: 3, // Optional: 1-10, default 3
+  });
+
+  const latestMessage = thread.messages[thread.messages.length - 1];
+  const showSuggestions = latestMessage?.role === "assistant";
+
+  return (
+    <div>
+      {/* Messages */}
+      {thread.messages.map((message) => (
+        <div key={message.id}>{message.content}</div>
+      ))}
+
+      {/* Suggestions */}
+      {showSuggestions && !isLoading && (
+        <div className="suggestions">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion.id}
+              onClick={() => accept(suggestion)}
+              disabled={isAccepting}
+            >
+              {suggestion.title}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+Suggestions are automatically generated after each assistant message when the hook is used.
+
+### Accept Suggestions
+
+The `accept` function provides two modes:
+
+```tsx
+// Set suggestion text in the input (user can edit before sending)
+accept(suggestion);
+
+// Set text and automatically submit
+accept(suggestion, true);
+```
+
+### Custom Suggestions
+
+Override auto-generated suggestions for specific contexts using `useTamboContextAttachment`:
+
+```tsx
+import { useTamboContextAttachment } from "@tambo-ai/react";
+
+function ComponentSelector({ component }) {
+  const { setCustomSuggestions } = useTamboContextAttachment();
+
+  const handleSelectComponent = () => {
+    setCustomSuggestions([
+      {
+        id: "1",
+        title: "Edit this component",
+        detailedSuggestion: `Modify the ${component.name} component`,
+        messageId: "",
+      },
+      {
+        id: "2",
+        title: "Add a feature",
+        detailedSuggestion: `Add a new feature to ${component.name}`,
+        messageId: "",
+      },
+    ]);
+  };
+
+  return <button onClick={handleSelectComponent}>Select</button>;
+}
+```
+
+Clear custom suggestions to return to auto-generated ones:
+
+```tsx
+setCustomSuggestions(null);
+```
+
 ## Related Concepts
 
 - **[Conversation Storage](/concepts/conversation-storage)** - Understanding how threads are persisted

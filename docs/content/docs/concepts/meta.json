@@ -8,7 +8,6 @@
     "model-context-protocol",
     "user-authentication",
     "additional-context",
-    "tracking-progress",
-    "suggestions"
+    "tracking-progress"
   ]
 }
