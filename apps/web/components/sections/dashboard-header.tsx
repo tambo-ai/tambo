@@ -74,11 +74,6 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
 
             {/* Right side - Desktop: Profile dropdown, Mobile: Mobile nav */}
             <div className="flex items-center gap-2">
-              {/* Tambo Assistant Trigger - Desktop only */}
-              <div className="hidden md:block">
-                <TamboChatTrigger />
-              </div>
-
               <a
                 href={siteConfig.links.docs}
                 target="_blank"
@@ -90,6 +85,11 @@ export function DashboardHeader({ className }: DashboardHeaderProps) {
               >
                 Docs
               </a>
+
+              {/* Tambo Assistant Trigger - Desktop only */}
+              <div className="hidden md:block">
+                <TamboChatTrigger />
+              </div>
 
               {/* Desktop Profile Dropdown */}
               <div className="hidden md:block">
