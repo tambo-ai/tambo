@@ -6,7 +6,6 @@
     "tools",
     "resources",
     "model-context-protocol",
-    "streaming",
     "user-authentication",
     "additional-context",
     "tracking-progress",
