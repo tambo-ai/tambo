@@ -76,6 +76,11 @@ export function ProjectInfo({
     },
   );
 
+  const { data: storedApiKeys, isLoading: isLoadingKeys } =
+    api.project.getProviderKeys.useQuery(project?.id ?? "", {
+      enabled: !!project?.id,
+    });
+
   if (!project) {
     return (
       <Card
@@ -92,6 +97,9 @@ export function ProjectInfo({
   const messageCount = messageUsage?.messageCount ?? 0;
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
+
+  const hasProviderKey = (storedApiKeys?.length ?? 0) > 0;
+  const shouldShowStarterQuota = !isLoadingKeys && !hasProviderKey;
 
   // Expects an ISO-8601 datetime string; returns "—" when the input isn't a
   // likely ISO datetime or can't be parsed.
@@ -153,21 +161,24 @@ export function ProjectInfo({
               <span>Owner: {project.userId?.slice(0, 8) ?? "Unknown"}...</span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span
-                className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
-              >
-                {remainingMessages}
-              </span>
-              {isLowMessages && (
-                <Link
-                  href={`/dashboard/${project.id}/settings`}
-                  className="text-primary hover:underline font-medium"
+            {shouldShowStarterQuota && (
+              <div className="flex items-center gap-2">
+                <span
+                  className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
                 >
-                  Add API Key
-                </Link>
-              )}
-            </div>
+                  {remainingMessages} starter LLM calls left — bring your own
+                  key to keep going
+                </span>
+                {isLowMessages && (
+                  <Link
+                    href={`/dashboard/${project.id}/settings`}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Add key
+                  </Link>
+                )}
+              </div>
+            )}
           </motion.div>
         </CardContent>
       </Card>
@@ -190,7 +201,7 @@ export function ProjectInfo({
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"
+          className={`grid grid-cols-1 sm:grid-cols-2 ${shouldShowStarterQuota ? "md:grid-cols-4" : "md:grid-cols-3"} gap-4`}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -232,26 +243,29 @@ export function ProjectInfo({
             </motion.div>
           </div>
 
-          <div className="sm:border-l border-muted-foreground/20 sm:pl-4">
-            <motion.div variants={itemVariants}>
-              <h5 className="text-xs font-medium text-foreground mb-1">
-                Starter LLM calls remaining
-              </h5>
-              <div className="flex flex-col items-start gap-2">
-                <p
-                  className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
-                >
-                  {remainingMessages}
-                </p>
-                <Link
-                  href={`/dashboard/${project.id}/settings`}
-                  className="text-xs font-semibold underline"
-                >
-                  Add API Key
-                </Link>
-              </div>
-            </motion.div>
-          </div>
+          {shouldShowStarterQuota && (
+            <div className="sm:border-l border-muted-foreground/20 sm:pl-4">
+              <motion.div variants={itemVariants}>
+                <h5 className="text-xs font-medium text-foreground mb-1">
+                  Starter LLM calls remaining
+                </h5>
+                <div className="flex items-center gap-4">
+                  <p
+                    className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
+                  >
+                    {remainingMessages} starter LLM calls left — bring your own
+                    key to keep going
+                  </p>
+                  <Link
+                    href={`/dashboard/${project.id}/settings`}
+                    className="text-xs font-semibold underline"
+                  >
+                    Add provider key
+                  </Link>
+                </div>
+              </motion.div>
+            </div>
+          )}
         </motion.div>
       </CardContent>
     </Card>
