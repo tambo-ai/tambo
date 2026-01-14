@@ -50,6 +50,58 @@ describe("ProjectOverview", () => {
     });
   });
 
+  it("shows the create API key callout when the API keys query returns an empty array", () => {
+    getUserProjectsUseQueryMock.mockImplementation(
+      (_input: unknown, opts?: { select?: (projects: any[]) => unknown }) => ({
+        data: opts?.select?.([
+          {
+            id: "proj_1",
+            createdAt: "2026-01-14T00:00:00.000Z",
+          },
+        ]),
+        isLoading: false,
+      }),
+    );
+
+    getApiKeysUseQueryMock.mockReturnValueOnce({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+
+    render(<ProjectOverview projectId="proj_1" />);
+
+    expect(screen.getByText("Create an API key")).toBeInTheDocument();
+  });
+
+  it("shows the API keys error callout when the API keys query errors", () => {
+    getUserProjectsUseQueryMock.mockImplementation(
+      (_input: unknown, opts?: { select?: (projects: any[]) => unknown }) => ({
+        data: opts?.select?.([
+          {
+            id: "proj_1",
+            createdAt: "2026-01-14T00:00:00.000Z",
+          },
+        ]),
+        isLoading: false,
+      }),
+    );
+
+    getApiKeysUseQueryMock.mockReturnValueOnce({
+      data: undefined,
+      isLoading: false,
+      isFetching: false,
+      isError: true,
+      refetch: jest.fn(),
+    });
+
+    render(<ProjectOverview projectId="proj_1" />);
+
+    expect(screen.getByText(/load api keys/i)).toBeInTheDocument();
+  });
+
   it("passes through valid ISO createdAt strings to ProjectInfo", () => {
     getUserProjectsUseQueryMock.mockImplementation(
       (_input: unknown, opts?: { select?: (projects: any[]) => unknown }) => ({
