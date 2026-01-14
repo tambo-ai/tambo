@@ -157,15 +157,14 @@ export function ProjectInfo({
               <span
                 className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
               >
-                {remainingMessages} starter LLM calls left — bring your own key
-                to keep going
+                {remainingMessages}
               </span>
               {isLowMessages && (
                 <Link
                   href={`/dashboard/${project.id}/settings`}
                   className="text-primary hover:underline font-medium"
                 >
-                  Add key
+                  Add API Key
                 </Link>
               )}
             </div>
@@ -242,14 +241,13 @@ export function ProjectInfo({
                 <p
                   className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
                 >
-                  {remainingMessages} starter LLM calls left — bring your own
-                  key to keep going
+                  {remainingMessages}
                 </p>
                 <Link
                   href={`/dashboard/${project.id}/settings`}
                   className="text-xs font-semibold underline"
                 >
-                  Add provider key
+                  Add API Key
                 </Link>
               </div>
             </motion.div>
