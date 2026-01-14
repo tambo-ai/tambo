@@ -27,6 +27,7 @@ import { SchedulerModule } from "./scheduler/scheduler.module";
 import { StorageModule } from "./storage/storage.module";
 import { ThreadsModule } from "./threads/threads.module";
 import { UsersModule } from "./users/users.module";
+import { V1Module } from "./v1/v1.module";
 
 @Global()
 @Module({
@@ -49,6 +50,7 @@ export class GlobalModule {}
     UsersModule,
     SchedulerModule,
     StorageModule,
+    V1Module,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService, AuthService],

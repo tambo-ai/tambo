@@ -12,6 +12,7 @@ import {
   OAuthClientInformation,
   OAuthTokens,
   OAuthValidationMode,
+  RunStatus,
   SessionClientInformation,
   SessionSource,
   ToolCallRequest,
@@ -566,6 +567,15 @@ export const threads = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    // v1 API fields
+    runStatus: text("run_status", {
+      enum: Object.values<string>(RunStatus) as [RunStatus],
+    })
+      .default(RunStatus.IDLE)
+      .notNull(),
+    currentRunId: text("current_run_id"),
+    pendingToolCallIds: customJsonb<string[]>("pending_tool_call_ids"),
+    processedToolCallIds: customJsonb<string[]>("processed_tool_call_ids"),
   }),
   (table) => {
     return [

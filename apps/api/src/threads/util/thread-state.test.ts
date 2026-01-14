@@ -9,6 +9,7 @@ import {
   UI_TOOLNAME_PREFIX,
   LegacyComponentDecision,
   MessageRole,
+  RunStatus,
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
 import { HydraDb } from "@tambo-ai-cloud/db";
@@ -94,6 +95,10 @@ describe("Thread State", () => {
         name: "Test name",
         createdAt: now,
         updatedAt: now,
+        runStatus: RunStatus.IDLE,
+        currentRunId: null,
+        pendingToolCallIds: null,
+        processedToolCallIds: null,
       });
       jest
         .mocked(
@@ -131,6 +136,10 @@ describe("Thread State", () => {
         metadata: null,
         statusMessage: null,
         name: null,
+        runStatus: RunStatus.IDLE,
+        currentRunId: null,
+        pendingToolCallIds: null,
+        processedToolCallIds: null,
       };
 
       const mockTransaction = {

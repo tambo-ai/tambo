@@ -292,6 +292,22 @@ export enum GenerationStage {
   CANCELLED = "CANCELLED",
 }
 
+/**
+ * Status of the current run on a thread (v1 API)
+ */
+export enum RunStatus {
+  /** No run is active */
+  IDLE = "idle",
+  /** A run is currently executing */
+  RUNNING = "running",
+  /** Run is paused waiting for client-side tool results */
+  AWAITING_INPUT = "awaiting_input",
+  /** Run was cancelled (by user or connection drop) */
+  CANCELLED = "cancelled",
+  /** Run failed with an error */
+  FAILED = "failed",
+}
+
 export interface Thread {
   /** Unique identifier for the thread */
   id: string;
@@ -309,6 +325,16 @@ export interface Thread {
   createdAt: Date;
   /** Timestamp when thread was last updated */
   updatedAt: Date;
+
+  // v1 API fields
+  /** Status of the current run (v1 API) */
+  runStatus?: RunStatus;
+  /** ID of the currently active run, if any (v1 API) */
+  currentRunId?: string;
+  /** Tool call IDs awaiting client-side results (v1 API) */
+  pendingToolCallIds?: string[];
+  /** Tool call IDs that have been processed (v1 API) */
+  processedToolCallIds?: string[];
 }
 
 export interface Resource {

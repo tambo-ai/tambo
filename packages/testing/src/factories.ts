@@ -6,6 +6,7 @@ import {
   GenerationStage,
   MessageRole,
   OAuthValidationMode,
+  RunStatus,
   ThreadAssistantMessage,
   ThreadMessage,
   ThreadSystemMessage,
@@ -79,6 +80,11 @@ export function createMockDBThread(
     statusMessage: overrides.statusMessage ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
+    // v1 API fields
+    runStatus: overrides.runStatus ?? RunStatus.IDLE,
+    currentRunId: overrides.currentRunId ?? null,
+    pendingToolCallIds: overrides.pendingToolCallIds ?? null,
+    processedToolCallIds: overrides.processedToolCallIds ?? null,
   };
 
   return thread;

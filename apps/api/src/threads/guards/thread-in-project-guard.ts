@@ -23,7 +23,8 @@ export class ThreadInProjectGuard implements CanActivate {
       request,
       request.params.contextKey,
     );
-    const threadId = request.params.id;
+    // Support both :id (legacy) and :thread_id (v1 API) param names
+    const threadId = request.params.thread_id ?? request.params.id;
 
     if (!threadId) {
       this.logger.error("Missing thread ID in request parameters");
