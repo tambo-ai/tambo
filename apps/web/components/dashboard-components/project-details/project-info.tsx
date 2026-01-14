@@ -35,6 +35,7 @@ export const ProjectInfoProps = z.object({
 
 interface ProjectInfoProps {
   project?: RouterOutputs["project"]["getUserProjects"][number];
+  /** ISO-8601 datetime string (e.g. from `Date.prototype.toISOString()`). */
   createdAt?: string;
   isLoading?: boolean;
   compact?: boolean;
@@ -91,6 +92,7 @@ export function ProjectInfo({
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
 
+  // Expects an ISO-8601 datetime string; returns the raw input if parsing fails.
   const formatDate = (isoDateString: string) => {
     const date = new Date(isoDateString);
 
