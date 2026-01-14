@@ -34,7 +34,7 @@ export const ProjectInfoProps = z.object({
 
 interface ProjectInfoProps {
   project?: RouterOutputs["project"]["getUserProjects"][number];
-  createdAt?: Date | string;
+  createdAt?: string;
   isLoading?: boolean;
   compact?: boolean;
 }
@@ -90,12 +90,11 @@ export function ProjectInfo({
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
 
-  const formatDate = (dateValue: Date | string) => {
-    const date =
-      typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
 
     if (Number.isNaN(date.getTime())) {
-      return typeof dateValue === "string" ? dateValue : "Unknown";
+      return dateString;
     }
 
     return date.toLocaleDateString("en-US", {
