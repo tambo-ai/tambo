@@ -103,9 +103,11 @@ function ProjectInfoLoaded({
   compact,
 }: ProjectInfoLoadedProps) {
   // Fetch message usage data
-  const { data: messageUsage } = api.project.getProjectMessageUsage.useQuery({
-    projectId: project.id,
-  });
+  const {
+    data: messageUsage,
+    isLoading: isLoadingUsage,
+    isError: isUsageError,
+  } = api.project.getProjectMessageUsage.useQuery({ projectId: project.id });
 
   const {
     data: storedApiKeys,
@@ -115,9 +117,19 @@ function ProjectInfoLoaded({
   } = api.project.getProviderKeys.useQuery(project.id);
 
   // Calculate remaining messages
-  const messageCount = messageUsage?.messageCount ?? 0;
-  const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
-  const isLowMessages = remainingMessages < 50;
+  const messageCount = messageUsage?.messageCount;
+  const remainingMessages =
+    typeof messageCount === "number"
+      ? Math.max(0, FREE_MESSAGE_LIMIT - messageCount)
+      : null;
+  const isLowMessages = remainingMessages !== null && remainingMessages < 50;
+
+  const isUsageUnavailable =
+    isLoadingUsage || isUsageError || remainingMessages === null;
+
+  const starterQuotaCopy = isUsageUnavailable
+    ? "Starter LLM usage unavailable — bring your own key to keep going"
+    : `${remainingMessages} starter LLM calls left — bring your own key to keep going`;
 
   const hasProviderKey = (storedApiKeys?.length ?? 0) > 0;
   const isKeyStatusUnknown = isLoadingKeys || isFetchingKeys || isKeysError;
@@ -220,8 +232,7 @@ function ProjectInfoLoaded({
                 <span
                   className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
                 >
-                  {remainingMessages} starter LLM calls left — bring your own
-                  key to keep going
+                  {starterQuotaCopy}
                 </span>
                 {isLowMessages && (
                   <Link
@@ -325,8 +336,7 @@ function ProjectInfoLoaded({
                     <p
                       className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
                     >
-                      {remainingMessages} starter LLM calls left — bring your
-                      own key to keep going
+                      {starterQuotaCopy}
                     </p>
                     <Link
                       href={settingsHref}

@@ -204,10 +204,9 @@ export function ProjectSettings({ projectId }: ProjectSettingsProps) {
 
     const initialSection = searchParams.get("section");
 
-    hasAutoScrolledRef.current = true;
-
     if (isSettingsSection(initialSection)) {
       scrollToSection(initialSection);
+      hasAutoScrolledRef.current = true;
     }
   }, [searchParams, scrollToSection]);
 
