@@ -72,18 +72,14 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       {noApiKeys && (
         <Alert className="bg-card">
           <KeyRound className="h-4 w-4 self-center" />
-          <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-1 flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <AlertTitle>Create an API key</AlertTitle>
               <AlertDescription>
                 Generate an API key to connect your app to this project.
               </AlertDescription>
             </div>
-            <Button
-              asChild
-              size="sm"
-              className="shrink-0 self-start sm:self-auto"
-            >
+            <Button asChild size="sm" className="shrink-0">
               <Link href={`/dashboard/${projectId}/settings`}>
                 Create API key
               </Link>
@@ -95,7 +91,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       {apiKeysLoadError && (
         <Alert className="bg-card">
           <KeyRound className="h-4 w-4 self-center" />
-          <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-1 flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <AlertTitle>Couldn’t load API keys</AlertTitle>
               <AlertDescription>
@@ -103,7 +99,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
                 settings.
               </AlertDescription>
             </div>
-            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
                 variant="outline"
