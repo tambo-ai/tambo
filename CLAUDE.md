@@ -17,6 +17,11 @@ Guidelines for Claude Code (claude.ai/code) when touching this repo.
 - **Avoid multiline flag (`/m`)**: Line ending differences across platforms (`\n` vs `\r\n`) cause inconsistent behavior; multiline patterns are harder to reason about.
 - **If regex is unavoidable**: Keep it simple, add a comment explaining the pattern, and test edge cases thoroughly.
 
+## Export and Import Patterns
+
+- **No internal barrel files**: Don't create `index.ts` files that just re-export symbols from nearby files. Import directly from the source file. Exception: package entry points (e.g., `packages/core/src/index.ts`) are fine.
+- **No backwards-compatibility re-exports**: When moving a symbol from one file to another, update all consumers to import from the new location. Don't leave behind re-exports "for convenience."
+
 ## Key Commands
 
 ```bash
