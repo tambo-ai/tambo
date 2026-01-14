@@ -266,7 +266,12 @@ export function APIKeyList({
   };
 
   const isLoading = apiKeysLoading || externalLoading;
-  const hasNoKeys = !isLoading && (apiKeys?.length ?? 0) === 0;
+  const hasNoKeys =
+    !!projectId &&
+    !isLoading &&
+    !apiKeysError &&
+    apiKeys !== undefined &&
+    apiKeys.length === 0;
 
   useEffect(() => {
     if (hasNoKeys && !hasAutoOpenedCreateRef.current) {
