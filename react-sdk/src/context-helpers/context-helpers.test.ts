@@ -14,12 +14,19 @@ describe("Context Helpers (prebuilt functions)", () => {
       // Should not be null (error case)
       expect(context).not.toBeNull();
 
+      // Type guard: ensure context is an object
+      expect(typeof context).toBe("object");
+      if (typeof context !== "object" || context === null) {
+        throw new Error("Expected context to be a non-null object");
+      }
+
       // Shape: { timestamp: string }
       expect(context).toHaveProperty("timestamp");
-      expect(typeof context!.timestamp).toBe("string");
+      const contextObj = context as Record<string, unknown>;
+      expect(typeof contextObj.timestamp).toBe("string");
 
       // Verify timestamp string parses
-      expect(() => new Date(context!.timestamp as string)).not.toThrow();
+      expect(() => new Date(contextObj.timestamp as string)).not.toThrow();
     });
   });
 
@@ -33,12 +40,19 @@ describe("Context Helpers (prebuilt functions)", () => {
         return;
       }
 
+      // Type guard: ensure context is an object
+      expect(typeof context).toBe("object");
+      if (typeof context !== "object") {
+        throw new Error("Expected context to be an object");
+      }
+
       // Shape: { url: string, title: string }
       expect(context).toHaveProperty("url");
       expect(context).toHaveProperty("title");
 
-      expect(typeof context.url).toBe("string");
-      expect(typeof context.title).toBe("string");
+      const contextObj = context as Record<string, unknown>;
+      expect(typeof contextObj.url).toBe("string");
+      expect(typeof contextObj.title).toBe("string");
     });
   });
 });
