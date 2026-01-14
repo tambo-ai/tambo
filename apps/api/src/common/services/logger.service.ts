@@ -9,23 +9,23 @@ export class CorrelationLoggerService extends Logger {
     this.correlationId = correlationId;
   }
 
-  log(message: any) {
+  log(message: unknown) {
     super.log(this.formatMessage(message));
   }
 
-  error(message: any, trace?: string) {
+  error(message: unknown, trace?: string) {
     super.error(this.formatMessage(message), trace);
   }
 
-  warn(message: any) {
+  warn(message: unknown) {
     super.warn(this.formatMessage(message));
   }
 
-  debug(message: any) {
+  debug(message: unknown) {
     super.debug(this.formatMessage(message));
   }
 
-  verbose(message: any) {
+  verbose(message: unknown) {
     super.verbose(this.formatMessage(message));
   }
 
@@ -33,10 +33,33 @@ export class CorrelationLoggerService extends Logger {
     this.log(JSON.stringify(log));
   }
 
-  formatMessage(message: any): string {
+  formatMessage(message: unknown): string {
+    const formattedMessage = this.stringifyMessage(message);
+
     if (!this.correlationId) {
+      return formattedMessage;
+    }
+
+    return `[correlationId: ${this.correlationId}] ${formattedMessage}`;
+  }
+
+  stringifyMessage(message: unknown): string {
+    if (typeof message === "string") {
       return message;
     }
-    return `[correlationId: ${this.correlationId}] ${message}`;
+
+    if (message instanceof Error) {
+      return message.stack ?? message.message;
+    }
+
+    if (typeof message === "object" && message !== null) {
+      try {
+        return JSON.stringify(message);
+      } catch {
+        return "[unserializable object]";
+      }
+    }
+
+    return String(message);
   }
 }
