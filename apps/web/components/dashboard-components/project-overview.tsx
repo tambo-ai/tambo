@@ -70,8 +70,8 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       />
 
       {noApiKeys && (
-        <Alert className="bg-card items-center">
-          <KeyRound className="h-4 w-4" />
+        <Alert className="bg-card">
+          <KeyRound className="h-4 w-4 self-center" />
           <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
             <div className="min-w-0">
               <AlertTitle>Create an API key</AlertTitle>
@@ -89,8 +89,8 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       )}
 
       {apiKeysLoadError && (
-        <Alert className="bg-card items-center">
-          <KeyRound className="h-4 w-4" />
+        <Alert className="bg-card">
+          <KeyRound className="h-4 w-4 self-center" />
           <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
             <div className="min-w-0">
               <AlertTitle>Couldn’t load API keys</AlertTitle>
