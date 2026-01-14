@@ -26,6 +26,10 @@ export async function createTestingModule(
   return await builder.compile();
 }
 
+export function createTestRequestContext(): TestRequestContext<Record<string, unknown>>;
+export function createTestRequestContext<
+  TRequest extends Record<string, unknown>,
+>(request: TRequest): TestRequestContext<TRequest>;
 export function createTestRequestContext(
   request: Record<string, unknown> = {},
 ): TestRequestContext<Record<string, unknown>> {
