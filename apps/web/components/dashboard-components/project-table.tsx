@@ -243,8 +243,7 @@ export function ProjectTable({
                       />
                     </TableCell>
                     <TableCell className={`${cellClass} font-medium px-4`}>
-                      <div className="lg:hidden">{projectName}</div>
-                      <div className="hidden lg:block">{projectName}</div>
+                      {projectName}
                     </TableCell>
                     <TableCell
                       className={`${cellClass} px-4 hidden sm:table-cell`}
