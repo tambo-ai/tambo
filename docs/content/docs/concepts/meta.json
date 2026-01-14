@@ -4,9 +4,8 @@
     "generative-interfaces",
     "conversation-storage",
     "tools",
-    "model-context-protocol",
-    "user-authentication",
     "additional-context",
-    "tracking-progress"
+    "model-context-protocol",
+    "user-authentication"
   ]
 }
