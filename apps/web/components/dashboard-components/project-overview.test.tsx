@@ -42,7 +42,7 @@ describe("ProjectOverview", () => {
     jest.clearAllMocks();
 
     getApiKeysUseQueryMock.mockReturnValue({
-      data: [{}],
+      data: [{ id: "key_1" }],
       isLoading: false,
       isFetching: false,
       isError: false,
