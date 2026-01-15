@@ -87,6 +87,10 @@ interface StubRouter {
 // Client Setup
 // ============================================================================
 
+/**
+ * Returns the base URL for the tRPC API (apps/web at app.tambo.co).
+ * Note: This is NOT the NestJS REST API at api.tambo.co.
+ */
 export function getApiBaseUrl(): string {
   return process.env.TAMBO_API_URL ?? "https://app.tambo.co";
 }

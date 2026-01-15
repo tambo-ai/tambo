@@ -199,6 +199,7 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
       },
     },
   },
+  // Note: This is the tRPC API (apps/web), not the NestJS API (api.tambo.co)
   getApiBaseUrl: () => "https://app.tambo.co",
 }));
 
