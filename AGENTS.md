@@ -100,6 +100,7 @@ eval "$(mise activate)"   # Interactive shells only
 - **No Silent Fallbacks**: Code must fail immediately when expected conditions aren't met. Silent fallback behavior masks bugs and creates unpredictable systems.
 - **Explicit Error Messages**: When something goes wrong, stop execution with clear error messages explaining what failed and what was expected.
 - **Example**: `throw new Error(\`Required model ${modelName} not found\`)` instead of falling back to first available model.
+- **Data mapping**: When converting enums or union types, handle all known values explicitly and throw for unknown values. Don't use catch-all defaults that mask data integrity issues. Log warnings if skipping invalid data intentionally.
 
 ### Naming Conventions
 
@@ -268,6 +269,7 @@ eval "$(mise activate)"   # Interactive shells only
 
 - Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
+- Don't denormalize FKs that can be derived from relationships (e.g., if `runs.threadId` exists and threads have `projectId`, don't add `runs.projectId`).
 
 Database commands (require `-w packages/db` flag from root):
 
@@ -443,3 +445,4 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 - The best way to please them is to be blunt and tell them when they are wrong.
 - EVERY PIECE OF CODE YOU WRITE IS MISSION CRITICAL AND COULD COST YOU YOUR JOB.
 - When adding/editing JSDoc comments, make sure to add @returns to provide a description of the function return (the type should not be specified since TS will infer the return from the code, not the comment.)
+- Never reference planning documents, proposals, or design docs in code comments (e.g., `// See plans/foo.md`). These artifacts are short-lived but comments persist indefinitely. Code comments should be self-contained.

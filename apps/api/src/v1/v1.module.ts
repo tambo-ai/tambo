@@ -3,6 +3,8 @@ import { ConfigModule } from "@nestjs/config";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { ProjectsModule } from "../projects/projects.module";
 import { ThreadsModule } from "../threads/threads.module";
+import { V1Controller } from "./v1.controller";
+import { V1Service } from "./v1.service";
 
 /**
  * V1 API module
@@ -12,8 +14,8 @@ import { ThreadsModule } from "../threads/threads.module";
  */
 @Module({
   imports: [ConfigModule, ProjectsModule, ThreadsModule],
-  controllers: [],
-  providers: [CorrelationLoggerService],
+  controllers: [V1Controller],
+  providers: [CorrelationLoggerService, V1Service],
   exports: [],
 })
 export class V1Module {}
