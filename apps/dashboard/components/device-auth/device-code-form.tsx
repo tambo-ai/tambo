@@ -88,10 +88,10 @@ export function DeviceCodeForm({ initialCode }: DeviceCodeFormProps) {
           </div>
 
           <Link
-            href="/dashboard"
+            href="/"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
-            Go to Dashboard →
+            Go to Home →
           </Link>
         </div>
       </div>

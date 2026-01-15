@@ -200,7 +200,9 @@ function PricingTier({
         "noopener,noreferrer",
       );
     } else {
-      router.push("/dashboard");
+      router.push(
+        process.env.NEXT_PUBLIC_DASHBOARD_URL || "https://app.tambo.co",
+      );
     }
   };
 

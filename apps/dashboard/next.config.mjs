@@ -16,11 +16,16 @@ const marketingUrl =
 const config = {
   redirects: () => {
     return [
-      // Redirect root to dashboard
+      // Backwards compatibility: redirect old /dashboard routes to new root routes
       {
-        source: "/",
-        destination: "/dashboard",
-        permanent: false,
+        source: "/dashboard",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/:path*",
+        destination: "/:path*",
+        permanent: true,
       },
       // External redirects
       {

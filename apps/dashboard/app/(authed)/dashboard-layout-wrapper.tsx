@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Suspense } from "react";
 import { DashboardThemeProvider } from "@/providers/dashboard-theme-provider";
 
-interface DashboardLayoutProps {
+interface DashboardLayoutWrapperProps {
   children: React.ReactNode;
 }
 
@@ -18,7 +18,9 @@ const fadeInVariants = {
   },
 };
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayoutWrapper({
+  children,
+}: DashboardLayoutWrapperProps) {
   return (
     <DashboardThemeProvider defaultTheme="light">
       <div className="flex min-h-screen flex-col bg-background">

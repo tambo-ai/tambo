@@ -30,7 +30,7 @@ export const baseOptions: BaseLayoutProps = {
         />
       ),
       text: "Dashboard",
-      url: "https://tambo.co/dashboard",
+      url: "https://app.tambo.co",
     },
   ],
   githubUrl: "https://github.com/tambo-ai/tambo",

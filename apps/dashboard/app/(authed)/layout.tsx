@@ -1,5 +1,6 @@
 import { NextAuthLayoutWrapper } from "@/components/auth/nextauth-layout-wrapper";
 import { HydrateClient, trpc } from "@/server/api/root";
+import { DashboardLayoutWrapper } from "./dashboard-layout-wrapper";
 
 export default async function AuthedLayout({
   children,
@@ -12,7 +13,9 @@ export default async function AuthedLayout({
   ]);
   return (
     <HydrateClient>
-      <NextAuthLayoutWrapper>{children}</NextAuthLayoutWrapper>
+      <NextAuthLayoutWrapper>
+        <DashboardLayoutWrapper>{children}</DashboardLayoutWrapper>
+      </NextAuthLayoutWrapper>
     </HydrateClient>
   );
 }

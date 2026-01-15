@@ -231,8 +231,8 @@ export const authOptions: NextAuthOptions = {
       if (new URL(url).origin === baseUrl) {
         return url;
       }
-      // Default to dashboard
-      return `${baseUrl}/dashboard`;
+      // Default to home
+      return baseUrl;
     },
   },
   pages: {

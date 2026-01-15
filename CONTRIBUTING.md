@@ -100,7 +100,7 @@ npm run dev
 ### 6. Get a Local API Key
 
 1. Start the dev servers: `npm run dev:dashboard`
-2. Visit http://localhost:8260/dashboard and sign in
+2. Visit http://localhost:8260 and sign in
 3. Create a project and generate an API key
 4. Add to `apps/dashboard/.env.local`: `NEXT_PUBLIC_TAMBO_API_KEY=your_key`
 5. Verify with http://localhost:8260/internal/smoketest

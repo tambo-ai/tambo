@@ -9,7 +9,7 @@ interface AuthFormProps {
 }
 
 export function NextAuthAuthForm({
-  routeOnSuccess = "/dashboard",
+  routeOnSuccess = "/",
   providers,
 }: AuthFormProps) {
   return (

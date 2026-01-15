@@ -81,9 +81,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
               </AlertDescription>
             </div>
             <Button asChild size="sm" className="shrink-0">
-              <Link href={`/dashboard/${projectId}/settings`}>
-                Create API key
-              </Link>
+              <Link href={`/${projectId}/settings`}>Create API key</Link>
             </Button>
           </div>
         </Alert>
@@ -111,9 +109,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
                 {isFetchingApiKeys ? "Retrying..." : "Retry"}
               </Button>
               <Button asChild size="sm" className="shrink-0">
-                <Link href={`/dashboard/${projectId}/settings`}>
-                  Open settings
-                </Link>
+                <Link href={`/${projectId}/settings`}>Open settings</Link>
               </Button>
             </div>
           </div>
