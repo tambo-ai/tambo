@@ -98,7 +98,6 @@ apps/api/src
 - When passing a request to `createTestRequestContext(...)`, mirror the request shape your code uses with `ContextIdFactory.getByRequest(...)`.
 
 ```ts
-import { ContextIdFactory } from "@nestjs/core";
 import type { TestingModule } from "@nestjs/testing";
 
 // Helper import path depends on your test file location.
@@ -124,13 +123,6 @@ it("resolves request-scoped providers", async () => {
     headers: {},
   });
 
-  // Most tests don't need this.
-  // Only needed if code under test calls ContextIdFactory.getByRequest().
-  // In that case, force it to return the same ContextId we created above.
-  const getByRequestSpy = jest
-    .spyOn(ContextIdFactory, "getByRequest")
-    .mockImplementation(() => context.contextId);
-
   try {
     const requestScoped = await resolveRequestScopedProvider(
       module,
@@ -140,10 +132,25 @@ it("resolves request-scoped providers", async () => {
 
     expect(requestScoped).toBeDefined();
   } finally {
-    getByRequestSpy.mockRestore();
     await module.close();
   }
 });
+```
+
+If code under test calls `ContextIdFactory.getByRequest(...)` (most tests won't), stub it _inside the test_ and restore it in a `finally` (or `afterEach`) block:
+
+```ts
+import { ContextIdFactory } from "@nestjs/core";
+
+const getByRequestSpy = jest
+  .spyOn(ContextIdFactory, "getByRequest")
+  .mockImplementation(() => context.contextId);
+
+try {
+  // ...
+} finally {
+  getByRequestSpy.mockRestore();
+}
 ```
 
 Always close the `TestingModule` in a `finally` block (or `afterEach`) when using `createTestingModule(...)`.

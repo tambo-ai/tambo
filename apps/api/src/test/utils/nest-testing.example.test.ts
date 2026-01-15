@@ -1,5 +1,4 @@
 import { Injectable, Scope } from "@nestjs/common";
-import { ContextIdFactory } from "@nestjs/core";
 
 import { createTestRequestContext } from "./create-test-request-context";
 import { createTestingModule } from "./create-testing-module";
@@ -35,11 +34,6 @@ describe("NestJS unit test helpers", () => {
 
     const context = createTestRequestContext();
 
-    // Only needed if code under test calls `ContextIdFactory.getByRequest()`.
-    const getByRequestSpy = jest
-      .spyOn(ContextIdFactory, "getByRequest")
-      .mockImplementation(() => context.contextId);
-
     try {
       const service = await resolveRequestScopedProvider(
         module,
@@ -49,7 +43,6 @@ describe("NestJS unit test helpers", () => {
 
       expect(service.getValue()).toBe("mocked");
     } finally {
-      getByRequestSpy.mockRestore();
       await module.close();
     }
   });

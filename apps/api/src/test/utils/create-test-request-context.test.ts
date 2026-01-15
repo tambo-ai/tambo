@@ -15,7 +15,12 @@ describe("createTestRequestContext", () => {
   });
 
   it("defaults request to an empty object", () => {
-    const context = createTestRequestContext();
-    expect(context.request).toEqual({});
+    const context1 = createTestRequestContext();
+    const context2 = createTestRequestContext();
+
+    expect(context1.request).toEqual({});
+    expect(context2.request).toEqual({});
+    expect(context1.request).not.toBe(context2.request);
+    expect(context1.contextId).not.toBe(context2.contextId);
   });
 });
