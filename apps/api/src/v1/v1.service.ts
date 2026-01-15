@@ -81,15 +81,17 @@ export class V1Service {
     // Cursor-based pagination (using createdAt + id)
     if (query.cursor) {
       const cursor = parseV1CompoundCursor(query.cursor);
-      conditions.push(
-        or(
-          lt(schema.threads.createdAt, cursor.createdAt),
-          and(
-            eq(schema.threads.createdAt, cursor.createdAt),
-            lt(schema.threads.id, cursor.id),
-          ),
+      const cursorCondition = or(
+        lt(schema.threads.createdAt, cursor.createdAt),
+        and(
+          eq(schema.threads.createdAt, cursor.createdAt),
+          lt(schema.threads.id, cursor.id),
         ),
       );
+
+      if (cursorCondition) {
+        conditions.push(cursorCondition);
+      }
     }
 
     const threads = await this.db.query.threads.findMany({
@@ -152,9 +154,14 @@ export class V1Service {
       );
     }
 
+    const normalizedContextKey = contextKey ?? undefined;
+    if (normalizedContextKey && normalizedContextKey.trim() === "") {
+      throw new BadRequestException("contextKey cannot be empty");
+    }
+
     const thread = await operations.createThread(this.db, {
       projectId,
-      contextKey,
+      contextKey: normalizedContextKey,
       metadata: dto.metadata,
     });
 
@@ -199,7 +206,7 @@ export class V1Service {
     // Cursor-based pagination (using createdAt + id)
     if (query.cursor) {
       const cursor = parseV1CompoundCursor(query.cursor);
-      conditions.push(
+      const cursorCondition =
         order === "asc"
           ? or(
               gt(schema.messages.createdAt, cursor.createdAt),
@@ -214,8 +221,11 @@ export class V1Service {
                 eq(schema.messages.createdAt, cursor.createdAt),
                 lt(schema.messages.id, cursor.id),
               ),
-            ),
-      );
+            );
+
+      if (cursorCondition) {
+        conditions.push(cursorCondition);
+      }
     }
 
     const messages = await this.db.query.messages.findMany({
