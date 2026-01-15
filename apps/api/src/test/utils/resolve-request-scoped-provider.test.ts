@@ -66,6 +66,8 @@ describe("resolveRequestScopedProvider", () => {
     try {
       const context = createTestRequestContext();
       const value = await resolveRequestScopedProvider(module, token, context);
+
+      // Compile-time check: string/symbol tokens should resolve to `unknown`.
       assertTrue<IsUnknown<typeof value>>(true);
       expect(value).toBe(123);
     } finally {

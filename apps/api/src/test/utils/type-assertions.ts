@@ -1,3 +1,5 @@
+// Test-only type utilities. Do not import from production code.
+
 export type IsAny<T> = 0 extends 1 & T ? true : false;
 
 export type IsUnknown<T> =
