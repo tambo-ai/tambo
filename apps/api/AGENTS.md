@@ -102,7 +102,7 @@ import type { TestingModule } from "@nestjs/testing";
 
 // Helper import path depends on your test file location.
 // Adjust this relative path based on where your test file lives under `src/`.
-// For example, from `src/common/services/foo.service.test.ts` you'd use `../../test/utils/*`.
+// For example, from `src/common/services/foo.service.test.ts` you'd use `../../test/utils/create-testing-module` and related helpers.
 import { createTestRequestContext } from "../../test/utils/create-test-request-context";
 import { createTestingModule } from "../../test/utils/create-testing-module";
 import { resolveRequestScopedProvider } from "../../test/utils/resolve-request-scoped-provider";

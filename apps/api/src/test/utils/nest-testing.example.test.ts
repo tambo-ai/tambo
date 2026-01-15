@@ -1,4 +1,5 @@
 import { Injectable, Scope } from "@nestjs/common";
+import { ContextIdFactory } from "@nestjs/core";
 
 import { createTestRequestContext } from "./create-test-request-context";
 import { createTestingModule } from "./create-testing-module";
@@ -32,8 +33,12 @@ describe("NestJS unit test helpers", () => {
         }),
     );
 
+    const context = createTestRequestContext();
+    const getByRequestSpy = jest
+      .spyOn(ContextIdFactory, "getByRequest")
+      .mockImplementation(() => context.contextId);
+
     try {
-      const context = createTestRequestContext();
       const service = await resolveRequestScopedProvider(
         module,
         ExampleRequestScopedService,
@@ -42,6 +47,7 @@ describe("NestJS unit test helpers", () => {
 
       expect(service.getValue()).toBe("mocked");
     } finally {
+      getByRequestSpy.mockRestore();
       await module.close();
     }
   });
