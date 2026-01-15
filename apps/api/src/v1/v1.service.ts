@@ -56,6 +56,10 @@ export class V1Service {
   ) {}
 
   private parseLimit(raw: string | undefined, fallback: number): number {
+    if (raw !== undefined && raw.trim() === "") {
+      throw new BadRequestException("Invalid limit");
+    }
+
     const parsed = raw === undefined ? fallback : Number(raw);
     if (!Number.isInteger(parsed)) {
       throw new BadRequestException("Invalid limit");

@@ -159,6 +159,12 @@ describe("V1Service", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it("should reject an empty limit", async () => {
+      await expect(
+        service.listThreads("prj_123", undefined, { limit: "" }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it("should indicate hasMore when more results exist", async () => {
       // Return 21 results when limit is 20 (default)
       const threads = Array(21)
@@ -363,6 +369,12 @@ describe("V1Service", () => {
     it("should reject an invalid limit", async () => {
       await expect(
         service.listMessages("thr_123", { limit: "not-a-number" }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("should reject an empty limit", async () => {
+      await expect(
+        service.listMessages("thr_123", { limit: "" }),
       ).rejects.toThrow(BadRequestException);
     });
 

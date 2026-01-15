@@ -6,6 +6,14 @@ export interface V1CompoundCursor {
 }
 
 export function encodeV1CompoundCursor(cursor: V1CompoundCursor): string {
+  if (!cursor.id) {
+    throw new Error("Cannot encode cursor: id is empty");
+  }
+
+  if (Number.isNaN(cursor.createdAt.getTime())) {
+    throw new Error("Cannot encode cursor: createdAt is invalid");
+  }
+
   return Buffer.from(
     JSON.stringify({
       createdAt: cursor.createdAt.toISOString(),
