@@ -53,28 +53,28 @@ Create `packages/ui-registry/` as an internal package. Apps import components di
 
 ```
 packages/ui-registry/
-├── package.json                     # Explicit exports for each component
+├── package.json                         # Explicit exports for each component
 ├── tsconfig.json
 ├── globals.css
 └── src/
-    ├── components/                  # Components (nested structure preserved)
+    ├── components/                      # Components (nested structure preserved)
     │   ├── message/
-    │   │   ├── config.json          # Component metadata
-    │   │   ├── message.tsx          # Main component
-    │   │   ├── markdown-components.tsx  # Helper file
-    │   │   └── index.tsx            # Re-export
+    │   │   ├── config.json              # Component metadata
+    │   │   ├── message.tsx              # Main component
+    │   │   ├── markdown-components.tsx  # Helper component
+    │   │   └── index.tsx                # Barrel export
     │   ├── message-input/
     │   │   ├── config.json
     │   │   ├── message-input.tsx
-    │   │   ├── text-editor.tsx      # Helper file
-    │   │   ├── dictation-button.tsx # Helper file
+    │   │   ├── text-editor.tsx
+    │   │   ├── dictation-button.tsx
     │   │   └── index.tsx
     │   └── ... (remaining components follow same pattern)
     ├── config/
-    │   └── tailwind.config.ts       # Tailwind configuration for tambo add
+    │   └── tailwind.config.ts           # Tailwind configuration for tambo add
     ├── lib/
-    │   └── thread-hooks.ts          # Shared hooks (130+ lines)
-    └── utils.ts                     # cn(), etc.
+    │   └── thread-hooks.ts              # Shared hooks (130+ lines)
+    └── utils.ts                         # cn(), etc.
 ```
 
 **Key principles:**
@@ -146,7 +146,7 @@ import "@tambo-ai/ui-registry/globals.css";
 
 ### Web Component Audit
 
-`apps/web/components/ui/tambo/` has diverged. Before migration:
+`apps/web/components/ui/tambo/` has diverged. Before migration, audit the files and decide which to keep, reconcile, or move out. Leave existing components in place, but COPY reconciled versions to registry package.
 
 **Diverged (need reconciliation):**
 
@@ -326,9 +326,8 @@ The CLI build depends on registry source files. This ensures registry changes tr
       "dependsOn": ["^build"],
       "inputs": [
         "src/**",
-        "../../packages/ui-registry/src/**",
-        "../../packages/ui-registry/registry/**",
-        "../../packages/ui-registry/globals.css"
+        // add registry source files as inputs
+        "../../packages/ui-registry/src/**"
       ],
       "outputs": ["dist/**"]
     }
@@ -357,8 +356,9 @@ The CLI build depends on registry source files. This ensures registry changes tr
    - Add to root workspaces
 
 2. **Move registry files (preserve nested structure)**
-   - Move entire component directories: `cli/src/registry/<name>/` → `packages/ui-registry/src/components/<name>/`
-   - Each directory keeps its `config.json`, main component, helper files, and `index.tsx`
+   - Move entire component directories from cli folder:
+     - `cli/src/registry/<name>/` → `packages/ui-registry/src/components/<name>/`
+     - Each directory keeps its `config.json`, main component, helper files, and `index.tsx`
    - Move `cli/src/registry/lib/*` → `packages/ui-registry/src/lib/`
    - Move `cli/src/registry/config/*` → `packages/ui-registry/src/config/` (tailwind config, etc.)
    - Move `cli/src/registry/utils.ts` → `packages/ui-registry/src/utils.ts`
@@ -370,17 +370,17 @@ The CLI build depends on registry source files. This ensures registry changes tr
    - Keep relative imports for files within same component directory (e.g., `./text-editor`)
 
 4. **Move web-specific components**
-   - Move remaining, non-tambo components up to `apps/web/components/ui/` or migrate to registry deemed valuable to all apps
+   - Move non-tambo components up to `apps/web/components/ui/` or migrate to registry deemed valuable to all apps
    - Update web imports
 
 5. **Reconcile diverged files**
-   - Diff and merge `message.tsx`, `thread-hooks.ts`
-   - Pick best implementation for registry
+   - Review and reconcile differences in all the different applications (web, showcase, docs)
+   - Pick best implementation for registry and COPY to registry package (existing file will be removed once all apps use registry)
 
 6. **Create prebuild script** (`cli/scripts/copy-registry.ts`)
-   - Copy `packages/ui-registry/src/` → `cli/dist/registry/` (preserves nested structure)
-   - Only include `.ts` and `.tsx` files, exclude `.test.ts(x)` files
-   - Include `config.json` files for component metadata
+   - Copy `packages/ui-registry/src/` → `cli/dist/registry/`
+     - Only include `.ts` and `.tsx` files, exclude `.test.ts` and `.test.tsx` files
+     - Include `config.json` files for component metadata
    - No transformation at build time - files keep `@tambo-ai/ui-registry/*` imports
    - Run as part of `npm run build` in CLI package
 
