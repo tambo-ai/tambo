@@ -30,7 +30,11 @@ describe("createTestingModule", () => {
         }),
     );
 
-    const service = module.get(ExampleService);
-    expect(service.getValue()).toBe("mocked");
+    try {
+      const service = module.get(ExampleService);
+      expect(service.getValue()).toBe("mocked");
+    } finally {
+      await module.close();
+    }
   });
 });

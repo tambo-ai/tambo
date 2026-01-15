@@ -95,6 +95,7 @@ apps/api/src
 
 - Use `createTestingModule(...)` from `apps/api/src/test/utils/create-testing-module.ts` to build a lightweight module and override providers.
 - If you need to resolve a request-scoped provider (`@Injectable({ scope: Scope.REQUEST })`), use the helpers in `apps/api/src/test/utils/*`.
+- When passing a request to `createTestRequestContext(...)`, mirror the request shape your code uses with `ContextIdFactory.getByRequest(...)`.
 
 ```ts
 import { ContextIdFactory } from "@nestjs/core";
