@@ -32,13 +32,17 @@ describe("NestJS unit test helpers", () => {
         }),
     );
 
-    const context = createTestRequestContext();
-    const service = await resolveRequestScopedProvider(
-      module,
-      ExampleRequestScopedService,
-      context,
-    );
+    try {
+      const context = createTestRequestContext();
+      const service = await resolveRequestScopedProvider(
+        module,
+        ExampleRequestScopedService,
+        context,
+      );
 
-    expect(service.getValue()).toBe("mocked");
+      expect(service.getValue()).toBe("mocked");
+    } finally {
+      await module.close();
+    }
   });
 });
