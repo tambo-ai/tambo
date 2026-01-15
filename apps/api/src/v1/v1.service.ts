@@ -7,6 +7,7 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+import * as Sentry from "@sentry/nestjs";
 import {
   EventType,
   type BaseEvent,
@@ -528,107 +529,131 @@ export class V1Service {
     projectId: string,
     contextKey?: string,
   ): Promise<void> {
-    this.logger.log(`Executing run ${runId} on thread ${threadId}`);
+    return await Sentry.startSpan(
+      {
+        op: "v1.executeRun",
+        name: `V1 Run ${runId}`,
+        attributes: { threadId, runId, projectId },
+      },
+      async () => {
+        // Set Sentry context for this run
+        Sentry.setContext("v1Run", {
+          threadId,
+          runId,
+          projectId,
+          contextKey,
+          model: dto.model,
+        });
 
-    // 1. Emit RUN_STARTED event
-    const runStartedEvent: RunStartedEvent = {
-      type: EventType.RUN_STARTED,
-      threadId,
-      runId,
-      timestamp: Date.now(),
-    };
-    this.emitEvent(response, runStartedEvent);
+        this.logger.log(`Executing run ${runId} on thread ${threadId}`);
 
-    // Update run and thread status to STREAMING
-    await operations.updateRunStatus(this.db, runId, V1RunStatus.STREAMING);
-    await operations.updateThreadRunStatus(
-      this.db,
-      threadId,
-      V1RunStatus.STREAMING,
-    );
+        // 1. Emit RUN_STARTED event
+        const runStartedEvent: RunStartedEvent = {
+          type: EventType.RUN_STARTED,
+          threadId,
+          runId,
+          timestamp: Date.now(),
+        };
+        this.emitEvent(response, runStartedEvent);
 
-    try {
-      // 2. Convert V1 message to internal format
-      const messageToAppend = this.convertV1MessageToInternal(dto.message);
+        // Update run and thread status to STREAMING
+        await operations.updateRunStatus(this.db, runId, V1RunStatus.STREAMING);
+        await operations.updateThreadRunStatus(
+          this.db,
+          threadId,
+          V1RunStatus.STREAMING,
+        );
 
-      // 3. Create streaming infrastructure
-      const queue = new AsyncQueue<StreamQueueItem>();
+        try {
+          // 2. Convert V1 message to internal format
+          const messageToAppend = this.convertV1MessageToInternal(dto.message);
 
-      // 4. Start streaming via shared logic with advanceThread
-      // advanceThread is fire-and-forget style - it resolves when streaming completes
-      // but pushes to queue while running
-      //
-      // TODO(Step 8): Convert V1 tools/components to internal format
-      // V1 uses JSON Schemas (inputSchema, propsSchema) while internal uses
-      // parsed metadata (ToolParameters[], contextTools). Proper conversion
-      // needed when implementing client-side tool handling.
-      const streamingPromise = this.threadsService.advanceThread(
-        projectId,
-        {
-          messageToAppend,
-          // V1 tools/components format differs from internal - conversion needed
-          availableComponents: undefined,
-          clientTools: undefined,
-        },
-        threadId,
-        {}, // toolCallCounts - start fresh for V1 API
-        undefined, // cachedSystemTools
-        queue,
-        contextKey,
-      );
+          // 3. Create streaming infrastructure
+          const queue = new AsyncQueue<StreamQueueItem>();
 
-      // 5. Consume queue and emit AG-UI events
-      for await (const item of queue) {
-        // Emit all AG-UI events from this stream item
-        if (item.aguiEvents) {
-          for (const event of item.aguiEvents) {
-            this.emitEvent(response, event);
+          // 4. Start streaming via shared logic with advanceThread
+          // advanceThread is fire-and-forget style - it resolves when streaming completes
+          // but pushes to queue while running
+          //
+          // TODO(Step 8): Convert V1 tools/components to internal format
+          // V1 uses JSON Schemas (inputSchema, propsSchema) while internal uses
+          // parsed metadata (ToolParameters[], contextTools). Proper conversion
+          // needed when implementing client-side tool handling.
+          const streamingPromise = this.threadsService.advanceThread(
+            projectId,
+            {
+              messageToAppend,
+              // V1 tools/components format differs from internal - conversion needed
+              availableComponents: undefined,
+              clientTools: undefined,
+            },
+            threadId,
+            {}, // toolCallCounts - start fresh for V1 API
+            undefined, // cachedSystemTools
+            queue,
+            contextKey,
+          );
+
+          // 5. Consume queue and emit AG-UI events
+          for await (const item of queue) {
+            // Emit all AG-UI events from this stream item
+            if (item.aguiEvents) {
+              for (const event of item.aguiEvents) {
+                this.emitEvent(response, event);
+              }
+            }
           }
+
+          // Wait for streaming to complete (should already be done since queue finished)
+          await streamingPromise;
+
+          // 6. Mark run as completed successfully
+          await operations.completeRun(this.db, runId);
+          await operations.releaseRunLock(this.db, threadId, runId);
+
+          // 7. Emit RUN_FINISHED
+          const runFinishedEvent: RunFinishedEvent = {
+            type: EventType.RUN_FINISHED,
+            threadId,
+            runId,
+            timestamp: Date.now(),
+          };
+          this.emitEvent(response, runFinishedEvent);
+        } catch (error) {
+          // 8. Handle error - emit RUN_ERROR and update state
+          this.logger.error(
+            `Run ${runId} failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
+
+          // Capture exception with Sentry context
+          Sentry.captureException(error, {
+            tags: { threadId, runId, projectId },
+            extra: { model: dto.model, contextKey },
+          });
+
+          const runErrorEvent: RunErrorEvent = {
+            type: EventType.RUN_ERROR,
+            message: error instanceof Error ? error.message : "Unknown error",
+            code: "INTERNAL_ERROR",
+            timestamp: Date.now(),
+          };
+          this.emitEvent(response, runErrorEvent);
+
+          const errorInfo = {
+            code: "INTERNAL_ERROR",
+            message: error instanceof Error ? error.message : "Unknown error",
+          };
+
+          // Update run and thread with error
+          await operations.completeRun(this.db, runId, { error: errorInfo });
+          await operations.releaseRunLock(this.db, threadId, runId, {
+            error: errorInfo,
+          });
+
+          throw error;
         }
-      }
-
-      // Wait for streaming to complete (should already be done since queue finished)
-      await streamingPromise;
-
-      // 6. Mark run as completed successfully
-      await operations.completeRun(this.db, runId);
-      await operations.releaseRunLock(this.db, threadId, runId);
-
-      // 7. Emit RUN_FINISHED
-      const runFinishedEvent: RunFinishedEvent = {
-        type: EventType.RUN_FINISHED,
-        threadId,
-        runId,
-        timestamp: Date.now(),
-      };
-      this.emitEvent(response, runFinishedEvent);
-    } catch (error) {
-      // 8. Handle error - emit RUN_ERROR and update state
-      this.logger.error(
-        `Run ${runId} failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-
-      const runErrorEvent: RunErrorEvent = {
-        type: EventType.RUN_ERROR,
-        message: error instanceof Error ? error.message : "Unknown error",
-        code: "INTERNAL_ERROR",
-        timestamp: Date.now(),
-      };
-      this.emitEvent(response, runErrorEvent);
-
-      const errorInfo = {
-        code: "INTERNAL_ERROR",
-        message: error instanceof Error ? error.message : "Unknown error",
-      };
-
-      // Update run and thread with error
-      await operations.completeRun(this.db, runId, { error: errorInfo });
-      await operations.releaseRunLock(this.db, threadId, runId, {
-        error: errorInfo,
-      });
-
-      throw error;
-    }
+      },
+    );
   }
 
   /**

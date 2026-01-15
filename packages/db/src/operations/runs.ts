@@ -103,6 +103,10 @@ export async function createRun(
     })
     .returning({ id: runs.id });
 
+  if (!run) {
+    throw new Error(`Failed to create run for thread ${input.threadId}`);
+  }
+
   return run;
 }
 

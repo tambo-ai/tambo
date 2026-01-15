@@ -506,8 +506,7 @@ export class AISdkClient implements LLMClient {
           // Tambo should be handling all tool results, not operating like an agent
           throw new Error("Tool result should not be emitted during streaming");
         case "tool-error":
-          console.error("Got error from tool call", delta.error);
-          break;
+          throw delta.error;
         case "reasoning-start":
           // append to the last element of the array
           accumulatedReasoning = [...accumulatedReasoning, ""];

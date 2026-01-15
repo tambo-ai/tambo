@@ -22,11 +22,16 @@ jest.mock("@tambo-ai-cloud/db", () => ({
       projectId: { name: "projectId" },
       contextKey: { name: "contextKey" },
       createdAt: { name: "createdAt" },
+      runStatus: { name: "runStatus" },
     },
     messages: {
       id: { name: "id" },
       threadId: { name: "threadId" },
       createdAt: { name: "createdAt" },
+    },
+    runs: {
+      id: { name: "id" },
+      threadId: { name: "threadId" },
     },
   },
 }));
@@ -46,7 +51,14 @@ type MockDb = {
       findMany: jest.Mock;
       findFirst: jest.Mock;
     };
+    runs: {
+      findFirst: jest.Mock;
+    };
   };
+  // Chain mocks for update().set().where().returning()
+  update: jest.Mock;
+  // Chain mocks for insert().values().returning()
+  insert: jest.Mock;
 };
 
 // Mock ThreadsService type for testing
@@ -89,6 +101,21 @@ describe("V1Service", () => {
   };
 
   beforeEach(() => {
+    // Create chain mock helpers for update().set().where().returning()
+    const createUpdateChain = (returningValue: unknown[]) => {
+      const returning = jest.fn().mockResolvedValue(returningValue);
+      const where = jest.fn().mockReturnValue({ returning });
+      const set = jest.fn().mockReturnValue({ where });
+      return jest.fn().mockReturnValue({ set });
+    };
+
+    // Create chain mock helpers for insert().values().returning()
+    const createInsertChain = (returningValue: unknown[]) => {
+      const returning = jest.fn().mockResolvedValue(returningValue);
+      const values = jest.fn().mockReturnValue({ returning });
+      return jest.fn().mockReturnValue({ values });
+    };
+
     mockDb = {
       query: {
         threads: {
@@ -99,7 +126,12 @@ describe("V1Service", () => {
           findMany: jest.fn(),
           findFirst: jest.fn(),
         },
+        runs: {
+          findFirst: jest.fn(),
+        },
       },
+      update: createUpdateChain([{ id: "thr_123" }]),
+      insert: createInsertChain([{ id: "run_123" }]),
     };
 
     mockThreadsService = {
@@ -638,8 +670,197 @@ describe("V1Service", () => {
     });
   });
 
-  // Note: startRun and cancelRun tests require more complex DB mocking
-  // (update, insert, returning) that would make these tests brittle.
-  // These methods are better tested via integration tests that use a real DB.
-  // The unit tests above cover the thread/message query operations.
+  describe("startRun", () => {
+    it("should return error when thread not found", async () => {
+      mockDb.query.threads.findFirst.mockResolvedValue(null);
+
+      const result = await service.startRun("thr_nonexistent", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.getStatus()).toBe(404);
+        const response = result.error.getResponse() as { type?: string };
+        expect(response.type).toContain("thread_not_found");
+      }
+    });
+
+    it("should require previousRunId when thread has existing messages", async () => {
+      mockDb.query.threads.findFirst.mockResolvedValue({
+        ...mockThread,
+        messages: [mockMessage], // Thread has messages
+        lastCompletedRunId: "run_prev",
+      });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+        // No previousRunId provided
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.getStatus()).toBe(400);
+        const response = result.error.getResponse() as {
+          type?: string;
+          detail?: string;
+        };
+        expect(response.type).toContain("invalid_previous_run");
+        expect(response.detail).toContain("previousRunId is required");
+      }
+    });
+
+    it("should reject mismatched previousRunId", async () => {
+      mockDb.query.threads.findFirst.mockResolvedValue({
+        ...mockThread,
+        messages: [mockMessage],
+        lastCompletedRunId: "run_actual_last",
+      });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+        previousRunId: "run_wrong_id",
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.getStatus()).toBe(400);
+        const response = result.error.getResponse() as {
+          type?: string;
+          detail?: string;
+        };
+        expect(response.type).toContain("invalid_previous_run");
+        expect(response.detail).toContain("does not match");
+      }
+    });
+
+    it("should return conflict when run already active", async () => {
+      mockDb.query.threads.findFirst.mockResolvedValue({
+        ...mockThread,
+        messages: [], // No messages, so no previousRunId needed
+        runStatus: V1RunStatus.STREAMING, // Already running
+        currentRunId: "run_active",
+      });
+
+      // Mock atomic update returning empty array (lock not acquired)
+      mockDb.update = jest.fn().mockReturnValue({
+        set: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            returning: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.getStatus()).toBe(409);
+        const response = result.error.getResponse() as { type?: string };
+        expect(response.type).toContain("concurrent_run");
+      }
+    });
+
+    it("should successfully start run on idle thread", async () => {
+      mockDb.query.threads.findFirst.mockResolvedValue({
+        ...mockThread,
+        messages: [], // No messages, so no previousRunId needed
+        runStatus: V1RunStatus.IDLE,
+      });
+
+      // Mock successful atomic update (lock acquired)
+      const mockUpdateWhere = jest.fn().mockReturnValue({
+        returning: jest.fn().mockResolvedValue([{ id: "thr_123" }]),
+      });
+      const mockUpdateSet = jest
+        .fn()
+        .mockReturnValue({ where: mockUpdateWhere });
+      mockDb.update = jest.fn().mockReturnValue({ set: mockUpdateSet });
+
+      // Mock run insert
+      mockDb.insert = jest.fn().mockReturnValue({
+        values: jest.fn().mockReturnValue({
+          returning: jest.fn().mockResolvedValue([{ id: "run_new" }]),
+        }),
+      });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.runId).toBe("run_new");
+        expect(result.threadId).toBe("thr_123");
+      }
+    });
+
+    it("should allow previousRunId on thread with messages", async () => {
+      mockDb.query.threads.findFirst.mockResolvedValue({
+        ...mockThread,
+        messages: [mockMessage],
+        lastCompletedRunId: "run_prev",
+        runStatus: V1RunStatus.IDLE,
+      });
+
+      // Mock successful atomic update
+      mockDb.update = jest.fn().mockReturnValue({
+        set: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            returning: jest.fn().mockResolvedValue([{ id: "thr_123" }]),
+          }),
+        }),
+      });
+
+      // Mock run insert
+      mockDb.insert = jest.fn().mockReturnValue({
+        values: jest.fn().mockReturnValue({
+          returning: jest.fn().mockResolvedValue([{ id: "run_new" }]),
+        }),
+      });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+        previousRunId: "run_prev", // Matches lastCompletedRunId
+      });
+
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("cancelRun", () => {
+    it("should throw NotFoundException for non-existent run", async () => {
+      mockDb.query.runs.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.cancelRun("thr_123", "run_nonexistent", "user_cancelled"),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("should successfully cancel an existing run", async () => {
+      mockDb.query.runs.findFirst.mockResolvedValue({
+        id: "run_123",
+        threadId: "thr_123",
+        status: V1RunStatus.STREAMING,
+      });
+
+      // Mock the update calls
+      mockDb.update = jest.fn().mockReturnValue({
+        set: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue(undefined),
+        }),
+      });
+
+      const result = await service.cancelRun(
+        "thr_123",
+        "run_123",
+        "user_cancelled",
+      );
+
+      expect(result.runId).toBe("run_123");
+      expect(result.status).toBe("cancelled");
+    });
+  });
 });

@@ -5,6 +5,8 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -50,6 +52,8 @@ import { V1Service } from "./v1.service";
 @UseGuards(ApiKeyGuard, BearerTokenGuard)
 @Controller("v1")
 export class V1Controller {
+  private readonly logger = new Logger(V1Controller.name);
+
   constructor(private readonly v1Service: V1Service) {}
 
   // ==========================================
@@ -294,10 +298,15 @@ export class V1Controller {
 
     // Handle connection close
     response.on("close", () => {
-      this.v1Service
+      void this.v1Service
         .cancelRun(thread.id, startResult.runId, "connection_closed")
-        .catch(() => {
-          // Ignore errors during cleanup - run may have already completed
+        .catch((error: unknown) => {
+          // NotFoundException is expected if run already completed
+          if (!(error instanceof NotFoundException)) {
+            this.logger.warn(
+              `Failed to cancel run ${startResult.runId} on connection close: ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
+          }
         });
     });
 
@@ -383,10 +392,15 @@ export class V1Controller {
 
     // Handle connection close
     response.on("close", () => {
-      this.v1Service
+      void this.v1Service
         .cancelRun(threadId, startResult.runId, "connection_closed")
-        .catch(() => {
-          // Ignore errors during cleanup - run may have already completed
+        .catch((error: unknown) => {
+          // NotFoundException is expected if run already completed
+          if (!(error instanceof NotFoundException)) {
+            this.logger.warn(
+              `Failed to cancel run ${startResult.runId} on connection close: ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
+          }
         });
     });
 
