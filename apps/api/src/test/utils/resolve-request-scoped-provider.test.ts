@@ -67,7 +67,8 @@ describe("resolveRequestScopedProvider", () => {
       const context = createTestRequestContext();
       const value = await resolveRequestScopedProvider(module, token, context);
 
-      // Compile-time checks: string/symbol tokens should resolve to `unknown` and never `any`.
+      // These `assertTrue` calls are intentionally compile-time guards. If `value` ever widens
+      // to `any` or narrows away from `unknown`, these checks should fail and break the build.
       assertTrue<IsUnknown<typeof value>>(true);
       assertTrue<IsAny<typeof value> extends false ? true : false>(true);
       expect(value).toBe(123);
