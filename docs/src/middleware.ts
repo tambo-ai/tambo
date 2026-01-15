@@ -40,9 +40,14 @@ function shouldSkipPath(pathname: string): boolean {
   if (pathname.startsWith("/_next")) return true;
   if (pathname.startsWith("/api/")) return true;
   if (pathname === "/llms.txt" || pathname === "/llms-full.txt") return true;
-  // Skip the Markdown route itself (avoids infinite loops)
-  if (pathname.startsWith("/llms.mdx/")) return true;
   if (pathname === "/robots.txt") return true;
+
+  // Skip the Markdown route itself (avoids infinite loops)
+  if (pathname === "/llms.mdx" || pathname.startsWith("/llms.mdx/"))
+    return true;
+
+  // Already handled by next.config.mjs
+  if (pathname.endsWith(".mdx")) return true;
 
   // Skip static assets (extensions)
   const staticExtensions = [
