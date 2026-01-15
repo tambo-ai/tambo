@@ -1,10 +1,8 @@
 import { Injectable, Scope } from "@nestjs/common";
-import { Test } from "@nestjs/testing";
 
-import {
-  createTestRequestContext,
-  resolveRequestScopedProvider,
-} from "./nest-testing";
+import { createTestRequestContext } from "./create-test-request-context";
+import { createTestingModule } from "./create-testing-module";
+import { resolveRequestScopedProvider } from "./resolve-request-scoped-provider";
 
 @Injectable()
 class ExampleDependencyService {
@@ -24,14 +22,15 @@ class ExampleRequestScopedService {
 
 describe("NestJS unit test helpers", () => {
   it("supports overriding providers and resolving request-scoped providers", async () => {
-    const module = await Test.createTestingModule({
-      providers: [ExampleDependencyService, ExampleRequestScopedService],
-    })
-      .overrideProvider(ExampleDependencyService)
-      .useValue({
-        getValue: () => "mocked",
-      })
-      .compile();
+    const module = await createTestingModule(
+      {
+        providers: [ExampleDependencyService, ExampleRequestScopedService],
+      },
+      (builder) =>
+        builder.overrideProvider(ExampleDependencyService).useValue({
+          getValue: () => "mocked",
+        }),
+    );
 
     const context = createTestRequestContext();
     const service = await resolveRequestScopedProvider(

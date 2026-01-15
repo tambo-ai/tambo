@@ -93,31 +93,31 @@ apps/api/src
 
 ### NestJS unit tests (providers/services)
 
-- Use `Test.createTestingModule(...)` directly (as per the NestJS docs) to build a lightweight module and override providers.
-- If you need to resolve a request-scoped provider (`@Injectable({ scope: Scope.REQUEST })`), use the helpers in `apps/api/src/test/nest-testing.ts`. `createTestRequestContext()` creates a `ContextId`, and `resolveRequestScopedProvider()` registers the request via `module.registerRequestByContextId(...)` before resolving.
+- Use `createTestingModule(...)` from `apps/api/src/test/utils/create-testing-module.ts` to build a lightweight module and override providers.
+- If you need to resolve a request-scoped provider (`@Injectable({ scope: Scope.REQUEST })`), use the helpers in `apps/api/src/test/utils/*`.
 
 ```ts
 import { ContextIdFactory } from "@nestjs/core";
-import { Test, type TestingModule } from "@nestjs/testing";
+import type { TestingModule } from "@nestjs/testing";
 
 // Helper import path depends on your test file location.
 // Adjust this relative path based on where your test file lives under `src/`.
-// For example, from `src/common/services/foo.service.test.ts` you'd use `../../test/nest-testing`.
-import {
-  createTestRequestContext,
-  resolveRequestScopedProvider,
-} from "../../test/nest-testing";
+// For example, from `src/common/services/foo.service.test.ts` you'd use `../../test/utils/*`.
+import { createTestRequestContext } from "../../test/utils/create-test-request-context";
+import { createTestingModule } from "../../test/utils/create-testing-module";
+import { resolveRequestScopedProvider } from "../../test/utils/resolve-request-scoped-provider";
 
 it("resolves request-scoped providers", async () => {
-  const module: TestingModule = await Test.createTestingModule({
-    // Replace these with the providers you want to test.
-    providers: [MyService, MyRequestScopedService],
-  })
-    .overrideProvider(MyService)
-    .useValue({
-      doThing: jest.fn(),
-    })
-    .compile();
+  const module: TestingModule = await createTestingModule(
+    {
+      // Replace these with the providers you want to test.
+      providers: [MyService, MyRequestScopedService],
+    },
+    (builder) =>
+      builder.overrideProvider(MyService).useValue({
+        doThing: jest.fn(),
+      }),
+  );
 
   const context = createTestRequestContext({
     headers: {},
@@ -144,7 +144,7 @@ it("resolves request-scoped providers", async () => {
 });
 ```
 
-See `src/test/nest-testing.example.test.ts` for a runnable example.
+See `src/test/utils/nest-testing.example.test.ts` for a runnable example.
 
 ## Development Workflow
 
