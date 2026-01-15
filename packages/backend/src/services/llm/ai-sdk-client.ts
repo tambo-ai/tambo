@@ -424,8 +424,7 @@ export class AISdkClient implements LLMClient {
 
     // Track message ID for AG-UI events
     let textMessageId: string | undefined;
-    // Track tool call ID - using the LLM-provided ID when available
-    let currentToolCallId: string | undefined;
+    let toolCallArgDeltas: string[] = [];
 
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
@@ -465,42 +464,44 @@ export class AISdkClient implements LLMClient {
           break;
         case "tool-input-start":
           accumulatedToolCall.name = delta.toolName;
-          // Generate a temporary tool call ID (will be replaced when we get the real one)
-          currentToolCallId = generateMessageId();
-          aguiEvents.push({
-            type: EventType.TOOL_CALL_START,
-            toolCallId: currentToolCallId,
-            toolCallName: delta.toolName,
-            parentMessageId: textMessageId,
-            timestamp: Date.now(),
-          } as ToolCallStartEvent);
+          accumulatedToolCall.arguments = "";
+          accumulatedToolCall.id = undefined;
+          toolCallArgDeltas = [];
           break;
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
-          if (currentToolCallId) {
-            aguiEvents.push({
-              type: EventType.TOOL_CALL_ARGS,
-              toolCallId: currentToolCallId,
-              delta: delta.delta,
-              timestamp: Date.now(),
-            } as ToolCallArgsEvent);
-          }
+          toolCallArgDeltas = [...toolCallArgDeltas, delta.delta];
           break;
         case "tool-input-end":
           break;
         case "tool-call":
-          // Update tool call ID to the real one from the LLM
           accumulatedToolCall.id = delta.toolCallId;
-          // Note: We already emitted TOOL_CALL_START with a generated ID,
-          // and TOOL_CALL_ARGS events. The consumer can use the final toolCallId
-          // from the LLM response if needed.
-          if (currentToolCallId) {
+          if (accumulatedToolCall.name) {
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_START,
+              toolCallId: delta.toolCallId,
+              toolCallName: accumulatedToolCall.name,
+              parentMessageId: textMessageId,
+              timestamp: Date.now(),
+            } as ToolCallStartEvent);
+
+            for (const toolCallArgDelta of toolCallArgDeltas) {
+              aguiEvents.push({
+                type: EventType.TOOL_CALL_ARGS,
+                toolCallId: delta.toolCallId,
+                delta: toolCallArgDelta,
+                timestamp: Date.now(),
+              } as ToolCallArgsEvent);
+            }
+
             aguiEvents.push({
               type: EventType.TOOL_CALL_END,
-              toolCallId: currentToolCallId,
+              toolCallId: delta.toolCallId,
               timestamp: Date.now(),
             } as ToolCallEndEvent);
           }
+
+          toolCallArgDeltas = [];
           break;
         case "tool-result":
           // Tambo should be handling all tool results, not operating like an agent
@@ -556,13 +557,17 @@ export class AISdkClient implements LLMClient {
       let toolCallRequest:
         | OpenAI.Chat.Completions.ChatCompletionMessageToolCall
         | undefined;
-      if (accumulatedToolCall.name && accumulatedToolCall.arguments) {
+      if (
+        accumulatedToolCall.id &&
+        accumulatedToolCall.name &&
+        accumulatedToolCall.arguments
+      ) {
         toolCallRequest = {
           function: {
             name: accumulatedToolCall.name,
             arguments: accumulatedToolCall.arguments,
           },
-          id: accumulatedToolCall.id ?? "",
+          id: accumulatedToolCall.id,
           type: "function",
         };
       }
