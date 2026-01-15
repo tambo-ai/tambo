@@ -1,31 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Determines if the Accept header prefers Markdown/plain text over HTML.
+ * Parses the Accept header and extracts content types with their q-values.
+ * Returns an Array<{type, q}> sorted by quality (descending).
+ */
+function parseAcceptHeader(
+  acceptHeader: string,
+): Array<{ type: string; q: number }> {
+  return (
+    acceptHeader
+      .split(",")
+      .map((part) => {
+        const [type, ...params] = part.split(";").map((s) => s.trim());
+
+        // Default q-value to 1.0 if not present
+        let q = 1.0;
+        for (const param of params) {
+          // Extract q-values from parameters like "q=0.9"
+          const match = param.match(/^q\s*=\s*([0-9.]+)$/i);
+          if (match) {
+            q = parseFloat(match[1]);
+            break;
+          }
+        }
+
+        return { type: type.toLowerCase(), q };
+      })
+      // Sort by q-value (descending)
+      .sort((a, b) => b.q - a.q)
+  );
+}
+
+/**
+ * Determines if the Accept header prefers Markdown/plain text over HTML (sorted by q-values)
  * Returns true if:
- * - `text/markdown` appears before `text/html`
- * - `text/plain` appears before `text/html`
+ * - `text/markdown` has higher q-value than `text/html`
+ * - `text/plain` has higher q-value than `text/html`
  * - `text/html` is absent and `text/markdown` or `text/plain` is present
  */
 function prefersMarkdown(acceptHeader: string | null): boolean {
   if (!acceptHeader) return false;
 
-  const accept = acceptHeader.toLowerCase();
-  const htmlIndex = accept.indexOf("text/html");
-  const markdownIndex = accept.indexOf("text/markdown");
-  const plainIndex = accept.indexOf("text/plain");
+  const sortedEntries = parseAcceptHeader(acceptHeader);
 
-  // If `text/html` is not present
+  // Find indices in the sorted entries
+  const htmlIndex = sortedEntries.findIndex(
+    (entry) => entry.type === "text/html",
+  );
+  const markdownIndex = sortedEntries.findIndex(
+    (entry) => entry.type === "text/markdown",
+  );
+  const plainIndex = sortedEntries.findIndex(
+    (entry) => entry.type === "text/plain",
+  );
+
+  // If HTML is not present (index === -1)
   if (htmlIndex === -1) {
     return markdownIndex !== -1 || plainIndex !== -1;
   }
 
-  // If `text/markdown` appears before `text/html`
+  // Check if markdown or plain appears before HTML in sorted order
   if (markdownIndex !== -1 && markdownIndex < htmlIndex) {
     return true;
   }
 
-  // If `text/plain` appears before `text/html`
   if (plainIndex !== -1 && plainIndex < htmlIndex) {
     return true;
   }
