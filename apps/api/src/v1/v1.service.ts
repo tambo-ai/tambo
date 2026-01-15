@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
-import { and, asc, desc, eq, gt, isNull, lt, or } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
   V1GetMessageResponseDto,
@@ -43,8 +43,10 @@ export class V1Service {
           `This content will be skipped in the V1 API response.`,
       );
     },
-    onInvalidContentPart: (message) => {
-      this.logger.warn(`${message}. This content will be skipped.`);
+    onInvalidContentPart: ({ type, reason }) => {
+      this.logger.warn(
+        `Invalid content part type "${type}" (${reason}). This content will be skipped.`,
+      );
     },
   };
 
@@ -58,7 +60,7 @@ export class V1Service {
    */
   async listThreads(
     projectId: string,
-    contextKey: string | null | undefined,
+    contextKey: string | undefined,
     query: V1ListThreadsQueryDto,
   ): Promise<V1ListThreadsResponseDto> {
     const limit = query.limit ? parseInt(query.limit, 10) : 20;
@@ -67,15 +69,11 @@ export class V1Service {
     // Build where conditions
     const conditions = [eq(schema.threads.projectId, projectId)];
     if (contextKey !== undefined) {
-      if (contextKey !== null && contextKey.trim() === "") {
+      if (contextKey.trim() === "") {
         throw new BadRequestException("contextKey cannot be empty");
       }
 
-      conditions.push(
-        contextKey === null
-          ? isNull(schema.threads.contextKey)
-          : eq(schema.threads.contextKey, contextKey),
-      );
+      conditions.push(eq(schema.threads.contextKey, contextKey));
     }
 
     // Cursor-based pagination (using createdAt + id)
@@ -87,11 +85,9 @@ export class V1Service {
           eq(schema.threads.createdAt, cursor.createdAt),
           lt(schema.threads.id, cursor.id),
         ),
-      );
+      )!;
 
-      if (cursorCondition) {
-        conditions.push(cursorCondition);
-      }
+      conditions.push(cursorCondition);
     }
 
     const threads = await this.db.query.threads.findMany({
@@ -145,7 +141,7 @@ export class V1Service {
    */
   async createThread(
     projectId: string,
-    contextKey: string | null | undefined,
+    contextKey: string | undefined,
     dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
     if (dto.initialMessages?.length) {
@@ -154,14 +150,13 @@ export class V1Service {
       );
     }
 
-    const normalizedContextKey = contextKey ?? undefined;
-    if (normalizedContextKey && normalizedContextKey.trim() === "") {
+    if (contextKey !== undefined && contextKey.trim() === "") {
       throw new BadRequestException("contextKey cannot be empty");
     }
 
     const thread = await operations.createThread(this.db, {
       projectId,
-      contextKey: normalizedContextKey,
+      contextKey,
       metadata: dto.metadata,
     });
 
@@ -223,9 +218,7 @@ export class V1Service {
               ),
             );
 
-      if (cursorCondition) {
-        conditions.push(cursorCondition);
-      }
+      conditions.push(cursorCondition!);
     }
 
     const messages = await this.db.query.messages.findMany({

@@ -196,9 +196,10 @@ describe("v1-conversions", () => {
       );
 
       expect(result).toBeNull();
-      expect(onInvalidContentPart).toHaveBeenCalledWith(
-        "image_url content part missing url",
-      );
+      expect(onInvalidContentPart).toHaveBeenCalledWith({
+        type: "image_url",
+        reason: "missing url",
+      });
     });
   });
 

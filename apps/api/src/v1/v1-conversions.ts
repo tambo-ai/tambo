@@ -81,7 +81,7 @@ export interface ContentConversionOptions {
   /**
    * Called when a known content type is invalid and must be skipped.
    */
-  onInvalidContentPart?: (message: string) => void;
+  onInvalidContentPart?: (info: { type: string; reason: string }) => void;
 }
 
 /**
@@ -113,7 +113,10 @@ export function contentPartToV1Block(
     case "image_url": {
       const url = part.image_url?.url;
       if (!url) {
-        options?.onInvalidContentPart?.("image_url content part missing url");
+        options?.onInvalidContentPart?.({
+          type: "image_url",
+          reason: "missing url",
+        });
         return null;
       }
 

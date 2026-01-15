@@ -178,6 +178,27 @@ describe("V1Service", () => {
       );
       expect(cursor.id).toBe(result.threads[result.threads.length - 1].id);
     });
+
+    it("should include the id in nextCursor when createdAt ties", async () => {
+      const t1 = {
+        ...mockThread,
+        id: "thr_b",
+        createdAt: new Date("2024-01-02T00:00:00Z"),
+      };
+      const t2 = {
+        ...mockThread,
+        id: "thr_a",
+        createdAt: new Date("2024-01-02T00:00:00Z"),
+      };
+      mockDb.query.threads.findMany.mockResolvedValue([t1, t2]);
+
+      const result = await service.listThreads("prj_123", undefined, {
+        limit: "1",
+      });
+
+      expect(result.hasMore).toBe(true);
+      expect(parseV1CompoundCursor(result.nextCursor!).id).toBe("thr_b");
+    });
   });
 
   describe("getThread", () => {
