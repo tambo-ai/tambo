@@ -139,6 +139,7 @@ eval "$(mise activate)"   # Interactive shells only
 - Avoid default exports.
 - Don't create `index.ts` barrels for internal modules; import directly from source files. Exception: package entry points (e.g., `packages/core/src/index.ts`) are fine.
 - Don't re-export symbols for backwards compatibility. When moving a symbol, update all consumers to import from the new location.
+- **Never use dynamic `import()`** for regular imports, even for type imports. Use static imports at the top of the file. Dynamic imports are only appropriate for code splitting in specific scenarios (e.g., lazy-loaded routes).
 
 ## 3. TypeScript Standards
 
@@ -270,6 +271,7 @@ eval "$(mise activate)"   # Interactive shells only
 - Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
 - Don't denormalize FKs that can be derived from relationships (e.g., if `runs.threadId` exists and threads have `projectId`, don't add `runs.projectId`).
+- **Factor database operations into `packages/db/src/operations/`**. Services in `apps/api` should call operation functions rather than writing inline DB queries. This promotes reuse and keeps DB logic centralized. Export new operations from `packages/db/src/operations/index.ts`.
 
 Database commands (require `-w packages/db` flag from root):
 
