@@ -3,6 +3,14 @@ import type { TestingModule } from "@nestjs/testing";
 
 import type { TestRequestContext } from "./create-test-request-context";
 
+/**
+ * Resolves a request-scoped provider for a synthetic test request.
+ *
+ * `context.request` should mimic the shape of the real request object used with
+ * `ContextIdFactory.getByRequest(...)` in the application (e.g. an HTTP request).
+ *
+ * Callers must close the `TestingModule` via `await module.close()`.
+ */
 export async function resolveRequestScopedProvider<
   TProvider,
   TRequest extends Record<string, unknown>,
@@ -25,7 +33,6 @@ export async function resolveRequestScopedProvider<
   provider: Type<unknown> | string | symbol,
   context: TestRequestContext<TRequest>,
 ): Promise<unknown> {
-  // Callers should close the TestingModule via `await module.close()`.
   module.registerRequestByContextId(context.request, context.contextId);
   return await module.resolve(provider, context.contextId);
 }
