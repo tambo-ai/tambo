@@ -2,8 +2,9 @@
 
 ## Summary
 
-**Last updated:** 2025-01-13
+**Last updated:** 2025-01-14
 **Phases:** 4 (consolidated from 11 after review)
+**Current status:** Phase 1 and Phase 2 complete, Phase 3 ready to begin
 **Review feedback incorporated:** DHH Rails reviewer, Kieran TypeScript reviewer, Code Simplicity reviewer
 
 ### Key Changes from Review
@@ -13,6 +14,14 @@
 3. **Consolidated to 4 phases** - Error handling and OpenAPI docs happen naturally during implementation
 4. **Dropped unnecessary abstractions** - No parameterized guard decorators, no SseEmitter class, no abstract base classes
 5. **Removed premature optimizations** - No buffering, in-memory caching, or JSON Patch size thresholds until profiling shows need
+
+### Implementation Learnings (Phase 1)
+
+1. **Don't reference planning docs in code comments** - Proposals/plans are short-lived artifacts; comments live indefinitely. Never write `// See plans/foo.md` in production code.
+2. **Don't denormalize FKs derivable from relationships** - e.g., `runs` table doesn't need `projectId` since it's available via `thread.projectId`. Reduces data duplication and sync issues.
+3. **Boolean naming convention** - Use `is`/`has` prefix consistently: `isCancelled` not `wasCancelled`.
+4. **Question decorator necessity** - `@Type()` decorators ARE needed for arrays/discriminated unions/nested classes (runtime type info), but don't add them reflexively. TypeScript types are erased at runtime.
+5. **previousRunId semantics** - Required when continuing ANY thread with existing messages, not just for tool results. The API enforces run continuity.
 
 ---
 
@@ -54,87 +63,69 @@ apps/api/src/
 
 ## Implementation Phases
 
-### Phase 1: Foundation & Schema
+### Phase 1: Foundation & Schema ✅ COMPLETED
 
 **Scope:** Database schema changes, DTOs, module structure, guard modification.
 
-#### 1.1 Database Schema Changes
+**Status:** Completed 2025-01-14. PR #1767 merged.
 
-Add columns to `threads` table. Per the proposal, RunStatus is a simple 3-state enum tracking the current run lifecycle. Edge cases (cancellation, errors, pending tool calls) are tracked via separate Thread fields.
+#### 1.1 Database Schema Changes ✅
 
-```typescript
-// packages/core/src/threads.ts (add to existing file)
-/**
- * V1 Run Status - streaming status of the current run.
- *
- * This is a simple lifecycle aligned with AG-UI's run model:
- * - idle: No active SSE stream
- * - waiting: RUN_STARTED emitted, waiting for first content (TTFB phase)
- * - streaming: Actively receiving content
- *
- * Edge cases like cancellation, errors, and pending tool calls are tracked
- * via separate fields on Thread, not as status values.
- */
-export enum V1RunStatus {
-  IDLE = "idle",
-  WAITING = "waiting",
-  STREAMING = "streaming",
-}
+Added columns to `threads` table and created new `runs` table.
 
-/**
- * V1 Run Error - error information from the last run.
- */
-export interface V1RunError {
-  code?: string;
-  message: string;
-}
+**Threads table additions (7 columns):**
 
-// packages/db/src/schema.ts - In threads table definition:
-// 1. Current run lifecycle (only relevant while runStatus !== "idle")
-runStatus: text("run_status", {
-  enum: Object.values<string>(V1RunStatus) as [V1RunStatus],
-})
-  .default(V1RunStatus.IDLE)
-  .notNull(),
-currentRunId: text("current_run_id"),
-statusMessage: text("status_message"), // Human-readable detail (e.g., "Fetching weather data...")
+- `run_status` - V1RunStatus enum (idle/waiting/streaming)
+- `current_run_id` - FK to runs table
+- `status_message` - Human-readable status detail
+- `last_run_cancelled` - Boolean flag
+- `last_run_error` - JSONB V1RunError
+- `pending_tool_call_ids` - JSONB string array
+- `last_completed_run_id` - For run continuation
 
-// 2. Last run outcome (cleared when next run starts)
-lastRunCancelled: boolean("last_run_cancelled"),
-lastRunError: customJsonb<V1RunError>("last_run_error"),
+**Runs table (new):**
 
-// 3. Next run requirements
-// If pendingToolCallIds is non-empty, next run's message MUST contain
-// a tool_result for at least one of these IDs (with previousRunId set).
-pendingToolCallIds: customJsonb<string[]>("pending_tool_call_ids"),
-lastCompletedRunId: text("last_completed_run_id"), // Required as previousRunId when continuing
-```
+- `id` - Primary key with `run_` prefix
+- `thread_id` - FK to threads (cascade delete)
+- `status` - V1RunStatus enum
+- `status_message`, `error_code`, `error_message` - Status tracking
+- `pending_tool_call_ids` - JSONB string array
+- `previous_run_id` - Self-reference for run chains
+- `model` - Model used for the run
+- `request_params` - JSONB RunRequestParams (maxTokens, temperature, toolChoice)
+- `metadata` - JSONB arbitrary metadata
+- `is_cancelled` - Boolean flag
+- `created_at`, `started_at`, `completed_at`, `updated_at` - Timestamps
 
-**Tasks:**
+**FK relationships:**
 
-- [ ] Add `V1RunStatus` enum and `V1RunError` interface to `packages/core/src/threads.ts`
-- [ ] Add schema changes to `packages/db/src/schema.ts` (7 new columns)
-- [ ] Generate migration: `npm run db:generate -w packages/db`
-- [ ] Test migration: `npm run db:migrate -w packages/db`
-- [ ] Export types from packages/core
+- `threads.current_run_id` -> `runs.id` (ON DELETE SET NULL)
+- `runs.thread_id` -> `threads.id` (ON DELETE CASCADE)
 
-#### 1.2 Guard Modification (Simple Approach)
+**Tasks:** ✅ All completed
 
-Modify existing `ThreadInProjectGuard` to check both param names:
+- [x] Add `V1RunStatus` enum and `V1RunError` interface to `packages/core/src/threads.ts`
+- [x] Add schema changes to `packages/db/src/schema.ts` (threads + runs tables)
+- [x] Generate migration: `0086_magical_cannonball.sql`
+- [x] Export types from packages/core
+
+#### 1.2 Guard Modification ✅
+
+Modified `ThreadInProjectGuard` to support multiple param names:
 
 ```typescript
 // apps/api/src/threads/guards/thread-in-project-guard.ts
-// Change line 26 from:
-const threadId = request.params.id;
-// To:
-const threadId = request.params.threadId ?? request.params.id;
+const threadId =
+  request.params.threadId ?? request.params.thread_id ?? request.params.id;
 ```
 
-That's it. One line change. No decorators, no metadata, no abstractions.
+Also fixed critical bug: catch block now only suppresses "Thread not found" errors, rethrowing unexpected errors instead of masking them as 403s.
 
-#### 1.3 DTOs with Correct Discriminated Union Validation
+#### 1.3 DTOs with Correct Discriminated Union Validation ✅
 
 **CRITICAL: Do NOT use default value assignments on type fields.**
+
+All DTOs created with proper discriminated union validation using `@Type()` with discriminator config.
 
 ```typescript
 // apps/api/src/v1/dto/content.dto.ts
@@ -247,116 +238,94 @@ export class ComponentContentDto {
 }
 ```
 
-**Tasks:**
+**Tasks:** ✅ All completed
 
-- [ ] Create `apps/api/src/v1/v1.module.ts`
-- [ ] Create `apps/api/src/v1/dto/content.dto.ts` (as above)
-- [ ] Create `apps/api/src/v1/dto/message.dto.ts`
-- [ ] Create `apps/api/src/v1/dto/thread.dto.ts`
-- [ ] Create `apps/api/src/v1/dto/run.dto.ts`
-- [ ] Create `apps/api/src/v1/dto/tool.dto.ts`
-- [ ] Create `apps/api/src/v1/v1.errors.ts` (RFC 9457 helper)
-- [ ] Register v1 module in `apps/api/src/app.module.ts`
-- [ ] Add `forbidNonWhitelisted: true` to ValidationPipe in `main.ts`
+- [x] Create `apps/api/src/v1/v1.module.ts`
+- [x] Create `apps/api/src/v1/dto/content.dto.ts`
+- [x] Create `apps/api/src/v1/dto/message.dto.ts`
+- [x] Create `apps/api/src/v1/dto/thread.dto.ts`
+- [x] Create `apps/api/src/v1/dto/run.dto.ts`
+- [x] Create `apps/api/src/v1/dto/tool.dto.ts`
+- [x] Create `apps/api/src/v1/v1.errors.ts` (RFC 9457 helper with instance URIs)
+- [x] Register v1 module in `apps/api/src/app.module.ts`
 
-**Success criteria:**
+**Additional review fixes applied:**
+
+- Added `@ValidateNested({ each: true })` on `V1MessageDto.content`
+- Added `Min(0)` / `Max(2)` validators for temperature
+- Added `Min(1)` validator for maxTokens
+- Fixed error handling in guard to rethrow unexpected errors
+
+**Success criteria:** ✅ Met
 
 - Migration applies cleanly
 - DTOs compile with proper TypeScript types
-- Validation rejects invalid type values (test with `{ type: "invalid", text: "test" }`)
+- Validation rejects invalid type values
 
 ---
 
-### Phase 2: Thread & Message CRUD
+### Phase 2: Thread & Message CRUD ✅ COMPLETED
 
 **Scope:** All non-streaming endpoints with Swagger decorators.
 
-#### 2.1 Thread Endpoints
+**Status:** Completed 2025-01-14.
 
-```typescript
-// apps/api/src/v1/v1.controller.ts
-@ApiTags("v1")
-@ApiSecurity("apiKey")
-@ApiSecurity("bearer")
-@UseGuards(ApiKeyGuard, BearerTokenGuard)
-@Controller("v1")
-export class V1Controller {
-  constructor(private readonly v1Service: V1Service) {}
+#### 2.1 Thread Endpoints ✅
 
-  // Thread CRUD
-  @Get("threads")
-  @ApiOperation({ summary: "List threads" })
-  async listThreads(
-    @Req() request: Request,
-    @Query() query: ListThreadsQueryDto,
-  ): Promise<ListThreadsResponseDto> {
-    const { projectId, contextKey } = extractContextInfo(request);
-    return this.v1Service.listThreads(projectId, contextKey, query);
-  }
+Created `apps/api/src/v1/v1.controller.ts` with all thread CRUD endpoints:
 
-  @Get("threads/:threadId")
-  @UseGuards(ThreadInProjectGuard)
-  @ApiOperation({ summary: "Get thread with messages" })
-  async getThread(
-    @Param("threadId") threadId: string,
-  ): Promise<GetThreadResponseDto> {
-    return this.v1Service.getThread(threadId);
-  }
+- `GET /v1/threads` - List threads with cursor-based pagination
+- `GET /v1/threads/:threadId` - Get thread with all messages
+- `POST /v1/threads` - Create empty thread
+- `DELETE /v1/threads/:threadId` - Delete thread
 
-  @Post("threads")
-  @ApiOperation({ summary: "Create empty thread" })
-  async createThread(
-    @Req() request: Request,
-    @Body() dto: CreateThreadDto,
-  ): Promise<CreateThreadResponseDto> {
-    const { projectId, contextKey } = extractContextInfo(request);
-    return this.v1Service.createThread(projectId, contextKey, dto);
-  }
+#### 2.2 Message Endpoints ✅
 
-  @Delete("threads/:threadId")
-  @UseGuards(ThreadInProjectGuard)
-  @ApiOperation({ summary: "Delete thread" })
-  async deleteThread(@Param("threadId") threadId: string): Promise<void> {
-    return this.v1Service.deleteThread(threadId);
-  }
+Added message endpoints to the same controller:
 
-  // Message endpoints
-  @Get("threads/:threadId/messages")
-  @UseGuards(ThreadInProjectGuard)
-  @ApiOperation({ summary: "List messages" })
-  async listMessages(
-    @Param("threadId") threadId: string,
-    @Query() query: ListMessagesQueryDto,
-  ): Promise<ListMessagesResponseDto> {
-    return this.v1Service.listMessages(threadId, query);
-  }
+- `GET /v1/threads/:threadId/messages` - List messages with pagination and ordering
+- `GET /v1/threads/:threadId/messages/:messageId` - Get single message
 
-  @Get("threads/:threadId/messages/:messageId")
-  @UseGuards(ThreadInProjectGuard)
-  @ApiOperation({ summary: "Get message" })
-  async getMessage(
-    @Param("threadId") threadId: string,
-    @Param("messageId") messageId: string,
-  ): Promise<GetMessageResponseDto> {
-    return this.v1Service.getMessage(threadId, messageId);
-  }
-}
-```
+#### 2.3 Service Implementation ✅
 
-**Tasks:**
+Created `apps/api/src/v1/v1.service.ts` with:
 
-- [ ] Create `apps/api/src/v1/v1.controller.ts` with thread CRUD
-- [ ] Create `apps/api/src/v1/v1.service.ts` with thread operations
-- [ ] Add message list/get endpoints to controller
-- [ ] Add Swagger decorators to all endpoints
-- [ ] Write integration tests for thread CRUD
+- Cursor-based pagination for threads and messages
+- Content conversion from internal format to V1 content blocks
+- Component content block generation from `componentDecision` + `componentState`
+- Proper mapping of all V1 thread fields (runStatus, currentRunId, etc.)
 
-**Success criteria:**
+**Tasks:** ✅ All completed
+
+- [x] Create `apps/api/src/v1/v1.controller.ts` with thread CRUD
+- [x] Create `apps/api/src/v1/v1.service.ts` with thread operations
+- [x] Add message list/get endpoints to controller
+- [x] Add Swagger decorators to all endpoints
+- [x] Write unit tests for controller and service
+
+**Success criteria:** ✅ Met
 
 - All CRUD endpoints work with existing auth guards
 - Pagination works correctly
 - Thread responses include v1 format (runStatus, currentRunId, statusMessage, lastRunCancelled, lastRunError, pendingToolCallIds, lastCompletedRunId)
 - Swagger UI shows all endpoints
+
+### Implementation Learnings (Phase 2)
+
+1. **No silent fallbacks in data mapping** - When mapping internal data to API format:
+   - Role mapping must explicitly handle known roles and throw for unknown (don't silently return a default)
+   - Content type conversion must log warnings for unknown types (not silently skip)
+   - Component name validation must throw if required field is missing (not return null)
+
+2. **Validate database operation returns** - Always check that write operations (create, update) return the expected record. If `createThread` returns null, throw an error with context.
+
+3. **Test error paths and edge cases** - Unit tests must cover:
+   - Unknown/invalid enum values (e.g., unknown message role)
+   - Empty arrays (e.g., message with no content)
+   - Missing required fields in data (e.g., componentDecision without componentName)
+   - Context key fallback behavior (query param vs bearer token)
+
+4. **Compare implementation against API proposal** - Check that all fields defined in the proposal are implemented. `initialMessages` was missing from `CreateThreadDto`.
 
 ---
 
