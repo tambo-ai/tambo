@@ -108,7 +108,7 @@ export class V1Controller {
   @ApiOperation({
     summary: "Create empty thread",
     description:
-      "Create a new empty thread. Messages can be added via runs or the message endpoints.",
+      "Create a new empty thread. Note: initialMessages is not supported yet; create the thread first, then add messages via runs/message endpoints.",
   })
   @ApiResponse({
     status: 201,

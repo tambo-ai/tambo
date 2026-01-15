@@ -74,14 +74,24 @@ export function threadToDto(thread: DbThread): V1ThreadDto {
 export interface ContentConversionOptions {
   /**
    * Called when an unknown content type is encountered.
-   * If not provided, unknown types are silently skipped.
    */
-  onUnknownContentType?: (type: unknown) => void;
+  onUnknownContentType: (info: { type: string }) => void;
 
   /**
    * Called when a known content type is invalid and must be skipped.
    */
   onInvalidContentPart?: (info: { type: string; reason: string }) => void;
+}
+
+const defaultContentConversionOptions: ContentConversionOptions = {
+  onUnknownContentType: ({ type }) => {
+    throw new Error(`Unknown content part type "${type}"`);
+  },
+};
+
+function getContentPartType(part: ChatCompletionContentPart): string {
+  const type = (part as { type?: unknown }).type;
+  return typeof type === "string" ? type : "<non-string type>";
 }
 
 /**
@@ -92,6 +102,8 @@ export function contentPartToV1Block(
   part: ChatCompletionContentPart,
   options?: ContentConversionOptions,
 ): V1ContentBlock | null {
+  const effectiveOptions = options ?? defaultContentConversionOptions;
+
   switch (part.type) {
     case ContentPartType.Text:
     case "text": {
@@ -132,7 +144,7 @@ export function contentPartToV1Block(
     }
     default:
       // Notify caller of unknown content type
-      options?.onUnknownContentType?.((part as { type: unknown }).type);
+      effectiveOptions.onUnknownContentType({ type: getContentPartType(part) });
       return null;
   }
 }

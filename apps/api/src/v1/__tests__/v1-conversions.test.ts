@@ -160,11 +160,11 @@ describe("v1-conversions", () => {
 
     it("should return null for unknown content types", () => {
       const part = { type: "unknown_type", data: "something" } as unknown;
-      const result = contentPartToV1Block(
-        part as Parameters<typeof contentPartToV1Block>[0],
-      );
-
-      expect(result).toBeNull();
+      expect(() =>
+        contentPartToV1Block(
+          part as Parameters<typeof contentPartToV1Block>[0],
+        ),
+      ).toThrow(/Unknown content part type/);
     });
 
     it("should call onUnknownContentType callback for unknown types", () => {
@@ -175,7 +175,9 @@ describe("v1-conversions", () => {
         onUnknownContentType,
       });
 
-      expect(onUnknownContentType).toHaveBeenCalledWith("future_type");
+      expect(onUnknownContentType).toHaveBeenCalledWith({
+        type: "future_type",
+      });
     });
 
     it("should handle missing text gracefully", () => {
@@ -190,9 +192,10 @@ describe("v1-conversions", () => {
     it("should handle missing image_url gracefully", () => {
       const part = { type: "image_url" as const };
       const onInvalidContentPart = jest.fn();
+      const onUnknownContentType = jest.fn();
       const result = contentPartToV1Block(
         part as Parameters<typeof contentPartToV1Block>[0],
-        { onInvalidContentPart },
+        { onInvalidContentPart, onUnknownContentType },
       );
 
       expect(result).toBeNull();
@@ -239,6 +242,7 @@ describe("v1-conversions", () => {
     });
 
     it("should skip unknown content types", () => {
+      const onUnknownContentType = jest.fn();
       const message = {
         ...baseMessage,
         content: [
@@ -248,11 +252,15 @@ describe("v1-conversions", () => {
         ],
       } as unknown as DbMessage;
 
-      const result = contentToV1Blocks(message);
+      const result = contentToV1Blocks(message, { onUnknownContentType });
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({ type: "text", text: "Hello" });
       expect(result[1]).toEqual({ type: "text", text: "World" });
+
+      expect(onUnknownContentType).toHaveBeenCalledWith({
+        type: "unknown_type",
+      });
     });
 
     it("should add component block when componentDecision exists", () => {
@@ -376,7 +384,9 @@ describe("v1-conversions", () => {
 
       messageToDto(message, { onUnknownContentType });
 
-      expect(onUnknownContentType).toHaveBeenCalledWith("future_type");
+      expect(onUnknownContentType).toHaveBeenCalledWith({
+        type: "future_type",
+      });
     });
 
     it("should convert null metadata to undefined", () => {

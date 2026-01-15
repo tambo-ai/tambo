@@ -37,7 +37,7 @@ export class V1Service {
    * Logs warnings for unknown content types.
    */
   private readonly contentConversionOptions: ContentConversionOptions = {
-    onUnknownContentType: (type) => {
+    onUnknownContentType: ({ type }) => {
       this.logger.warn(
         `Unknown content part type "${type}" encountered. ` +
           `This content will be skipped in the V1 API response.`,
@@ -55,6 +55,19 @@ export class V1Service {
     private readonly db: HydraDatabase,
   ) {}
 
+  private parseLimit(raw: string | undefined, fallback: number): number {
+    if (raw === undefined) {
+      return fallback;
+    }
+
+    const parsed = Number(raw);
+    if (!Number.isInteger(parsed)) {
+      throw new BadRequestException("Invalid limit");
+    }
+
+    return parsed;
+  }
+
   /**
    * List threads for a project with cursor-based pagination.
    */
@@ -63,7 +76,7 @@ export class V1Service {
     contextKey: string | undefined,
     query: V1ListThreadsQueryDto,
   ): Promise<V1ListThreadsResponseDto> {
-    const limit = query.limit ? parseInt(query.limit, 10) : 20;
+    const limit = this.parseLimit(query.limit, 20);
     const effectiveLimit = Math.min(Math.max(1, limit), 100);
 
     // Build where conditions
@@ -187,7 +200,7 @@ export class V1Service {
     threadId: string,
     query: V1ListMessagesQueryDto,
   ): Promise<V1ListMessagesResponseDto> {
-    const limit = query.limit ? parseInt(query.limit, 10) : 50;
+    const limit = this.parseLimit(query.limit, 50);
     const effectiveLimit = Math.min(Math.max(1, limit), 100);
     const order = query.order ?? "asc";
 
