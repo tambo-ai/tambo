@@ -9,8 +9,10 @@ describe("createTestRequestContext", () => {
     };
 
     const context = createTestRequestContext(request);
+    const authorization: string = context.request.headers.authorization;
 
     expect(context.request).toBe(request);
+    expect(authorization).toBe("Bearer test");
     expect(context.contextId).toBeDefined();
   });
 
