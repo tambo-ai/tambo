@@ -145,6 +145,8 @@ it("resolves request-scoped providers", async () => {
 });
 ```
 
+Always close the `TestingModule` in a `finally` block (or `afterEach`) when using `createTestingModule(...)`.
+
 See `src/test/utils/nest-testing.example.test.ts` for a runnable example.
 
 ## Development Workflow
