@@ -199,7 +199,7 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
       },
     },
   },
-  getApiBaseUrl: () => "https://tambo.co",
+  getApiBaseUrl: () => "https://app.tambo.co",
 }));
 
 // Mock the registry utilities to use memfs paths (same as add.test.ts)

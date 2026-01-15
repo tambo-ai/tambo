@@ -14,10 +14,32 @@ const jiti = createJiti(fileURLToPath(import.meta.url));
 // Import env here to validate the environment variables during build. Using jiti we can import .ts files :)
 jiti.import("./lib/env").catch(console.error);
 
+// Auth redirect config: when AUTH_REDIRECT_FROM_HOST is set, redirect auth routes to NEXT_PUBLIC_APP_URL
+const authRedirectFromHost = process.env.AUTH_REDIRECT_FROM_HOST;
+const authRedirectToUrl = process.env.NEXT_PUBLIC_APP_URL;
+const authRedirects =
+  authRedirectFromHost && authRedirectToUrl
+    ? [
+        {
+          source: "/login",
+          has: [{ type: "host", value: authRedirectFromHost }],
+          destination: `${authRedirectToUrl}/login`,
+          permanent: false,
+        },
+        {
+          source: "/api/auth/:path*",
+          has: [{ type: "host", value: authRedirectFromHost }],
+          destination: `${authRedirectToUrl}/api/auth/:path*`,
+          permanent: false,
+        },
+      ]
+    : [];
+
 /** @type {import('next').NextConfig} */
 const config = {
   redirects: () => {
     return [
+      ...authRedirects,
       {
         source: "/docs",
         destination:

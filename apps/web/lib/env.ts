@@ -50,6 +50,9 @@ export const env = createEnv({
     // Restrict logins to a specific verified email domain when self-hosting.
     // When unset, any verified email is allowed.
     ALLOWED_LOGIN_DOMAIN: z.string().optional().or(z.literal("")),
+    // When set, redirects auth routes from this host to NEXT_PUBLIC_APP_URL.
+    // Used to redirect tambo.co/login -> app.tambo.co/login
+    AUTH_REDIRECT_FROM_HOST: z.string().optional(),
   },
   /*
    * Environment variables available on the client (and server).
@@ -142,6 +145,7 @@ export const env = createEnv({
     TAMBO_WHITELABEL_ORG_NAME: process.env.TAMBO_WHITELABEL_ORG_NAME,
     TAMBO_WHITELABEL_ORG_LOGO: process.env.TAMBO_WHITELABEL_ORG_LOGO,
     ALLOWED_LOGIN_DOMAIN: process.env.ALLOWED_LOGIN_DOMAIN,
+    AUTH_REDIRECT_FROM_HOST: process.env.AUTH_REDIRECT_FROM_HOST,
 
     // Sentry
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,

@@ -65,7 +65,7 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
     }
   },
   verifySession: async () => mockVerifySessionResult,
-  getApiBaseUrl: () => "https://api.tambo.co",
+  getApiBaseUrl: () => "https://app.tambo.co",
   isAuthError: (error: unknown) => {
     if (error instanceof Error && error.message === "UNAUTHORIZED") return true;
     return false;
