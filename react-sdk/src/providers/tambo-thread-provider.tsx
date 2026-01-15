@@ -822,6 +822,8 @@ export const TamboThreadProvider: React.FC<
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
+              // Exclude initialMessages from tool response since thread already exists
+              initialMessages: undefined,
               ...(toolName
                 ? {
                     toolCallCounts: {
