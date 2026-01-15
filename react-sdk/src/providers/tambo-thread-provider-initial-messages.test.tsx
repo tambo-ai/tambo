@@ -2,6 +2,7 @@ import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { DeepPartial } from "ts-essentials";
+import { TamboTool } from "..";
 import {
   GenerationStage,
   TamboThreadMessage,
@@ -53,7 +54,7 @@ const createMockMessage = (
 // Test wrapper
 const createWrapper = (
   initialMessages: TamboThreadMessage[] = [],
-  tools: any[] = [],
+  tools: TamboTool[] = [],
 ) => {
   const TestWrapper = ({ children }: { children: React.ReactNode }) => {
     const client = useTamboClient();
