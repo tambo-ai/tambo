@@ -11,13 +11,11 @@ import { MobileNavigation } from "@/components/sections/mobile-navigation";
 
 export function Header({
   showDashboardButton = true,
-  showLogoutButton = false,
   showDiscordButton = false,
   transparent = true,
   className,
 }: {
   showDashboardButton?: boolean;
-  showLogoutButton?: boolean;
   showDiscordButton?: boolean;
   transparent?: boolean;
   className?: string;
@@ -48,7 +46,6 @@ export function Header({
           {/* Desktop navigation - client component */}
           <HeaderActions
             showDashboardButton={showDashboardButton}
-            showLogoutButton={showLogoutButton}
             showDiscordButton={showDiscordButton}
           />
 
@@ -56,7 +53,6 @@ export function Header({
           <div className="block cursor-pointer lg:hidden">
             <MobileNavigation
               showDashboardButton={showDashboardButton}
-              showLogoutButton={showLogoutButton}
               showDiscordButton={showDiscordButton}
             />
           </div>

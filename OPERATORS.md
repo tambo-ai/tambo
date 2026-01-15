@@ -10,7 +10,7 @@ Tambo consists of three services:
 
 | Service        | Technology    | Default Port | Description                  |
 | -------------- | ------------- | ------------ | ---------------------------- |
-| **Web**        | Next.js       | 3210         | Dashboard and user interface |
+| **Dashboard**  | Next.js       | 3210         | Dashboard and user interface |
 | **API**        | NestJS        | 3211         | REST API for client requests |
 | **PostgreSQL** | PostgreSQL 17 | 5433         | Database                     |
 
@@ -67,22 +67,22 @@ See [Environment Variables Reference](#environment-variables-reference) for all 
 
 ### 6. Access Your Deployment
 
-- **Web Dashboard**: http://localhost:3210
+- **Dashboard**: http://localhost:3210
 - **API**: http://localhost:3211
 
 ## Environment Variables Reference
 
 ### Core Configuration
 
-| Variable              | Required | Description                                                                              |
-| --------------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `POSTGRES_PASSWORD`   | Yes      | PostgreSQL password                                                                      |
-| `POSTGRES_DB`         | No       | Database name (default: `tambo`)                                                         |
-| `POSTGRES_USER`       | No       | Database user (default: `postgres`)                                                      |
-| `API_KEY_SECRET`      | Yes      | 32+ character secret for API key encryption                                              |
-| `PROVIDER_KEY_SECRET` | Yes      | 32+ character secret for provider key encryption                                         |
-| `NEXTAUTH_SECRET`     | Yes      | Secret for NextAuth.js sessions                                                          |
-| `NEXTAUTH_URL`        | Yes      | Base URL for auth callbacks (e.g., `http://localhost:3210` or `https://your-domain.com`) |
+| Variable              | Required | Description                                                                                  |
+| --------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `POSTGRES_PASSWORD`   | Yes      | PostgreSQL password                                                                          |
+| `POSTGRES_DB`         | No       | Database name (default: `tambo`)                                                             |
+| `POSTGRES_USER`       | No       | Database user (default: `postgres`)                                                          |
+| `API_KEY_SECRET`      | Yes      | 32+ character secret for API key encryption                                                  |
+| `PROVIDER_KEY_SECRET` | Yes      | 32+ character secret for provider key encryption                                             |
+| `NEXTAUTH_SECRET`     | Yes      | Secret for NextAuth.js sessions                                                              |
+| `NEXTAUTH_URL`        | Yes      | Base URL for auth callbacks (e.g., `http://localhost:3210` or `https://app.your-domain.com`) |
 
 ### OpenAI Configuration
 
@@ -148,7 +148,7 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 2. Create OAuth 2.0 Client ID
 3. Add authorized redirect URI:
    - Local: `http://localhost:3210/api/auth/callback/google`
-   - Production: `https://your-domain.com/api/auth/callback/google`
+   - Production: `https://app.your-domain.com/api/auth/callback/google`
 4. Copy Client ID and Secret to `docker.env`
 
 ### GitHub OAuth
@@ -157,7 +157,7 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 2. Create a new OAuth App
 3. Set Authorization callback URL:
    - Local: `http://localhost:3210/api/auth/callback/github`
-   - Production: `https://your-domain.com/api/auth/callback/github`
+   - Production: `https://app.your-domain.com/api/auth/callback/github`
 4. Copy Client ID and Secret to `docker.env`
 
 ## Production Deployment
@@ -181,20 +181,20 @@ The Docker images can be deployed to Kubernetes. Example deployment:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tambo-web
+  name: tambo-dashboard
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: tambo-web
+      app: tambo-dashboard
   template:
     metadata:
       labels:
-        app: tambo-web
+        app: tambo-dashboard
     spec:
       containers:
-        - name: web
-          image: tambo-web:latest
+        - name: dashboard
+          image: tambo-dashboard:latest
           ports:
             - containerPort: 3000
           envFrom:
@@ -211,9 +211,9 @@ Build images:
 Tag and push to your container registry:
 
 ```bash
-docker tag tambo-web:latest your-registry/tambo-web:latest
+docker tag tambo-dashboard:latest your-registry/tambo-dashboard:latest
 docker tag tambo-api:latest your-registry/tambo-api:latest
-docker push your-registry/tambo-web:latest
+docker push your-registry/tambo-dashboard:latest
 docker push your-registry/tambo-api:latest
 ```
 
@@ -267,7 +267,7 @@ docker compose --env-file docker.env exec -T postgres psql -U postgres tambo < b
 # Specific service
 ./scripts/cloud/tambo-logs.sh postgres
 ./scripts/cloud/tambo-logs.sh api
-./scripts/cloud/tambo-logs.sh web
+./scripts/cloud/tambo-logs.sh dashboard
 ```
 
 ### Health Checks

@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { api } from "@/trpc/react";
 import { useState } from "react";
 
 interface EmailDialogProps {
@@ -20,17 +19,34 @@ interface EmailDialogProps {
 
 export function EmailDialog({ open, onOpenChange }: EmailDialogProps) {
   const [email, setEmail] = useState("");
-  const {
-    mutateAsync: subscribe,
-    isPending,
-    error,
-    isSuccess,
-  } = api.app.subscribe.useMutation();
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await subscribe({ email });
-    setEmail("");
+    setIsPending(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to subscribe");
+      }
+
+      setIsSuccess(true);
+      setEmail("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
@@ -51,7 +67,7 @@ export function EmailDialog({ open, onOpenChange }: EmailDialogProps) {
             required
             disabled={isPending || isSuccess}
           />
-          {error && <p className="text-sm text-red-500">{error.message}</p>}
+          {error && <p className="text-sm text-red-500">{error}</p>}
           {isSuccess ? (
             <div className="flex items-center gap-2 text-green-500">
               <Icons.logo className="h-6 w-auto" aria-label="Success" />

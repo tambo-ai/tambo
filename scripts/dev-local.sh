@@ -6,7 +6,7 @@ set -e
 
 echo "Starting local dev environment..."
 
-echo "Checking that ports 8260-8263 are free (web/api/showcase/docs)..."
+echo "Checking that ports 8260-8263 are free (dashboard/api/showcase/docs)..."
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js is required to run this script. Please install Node and try again."
   exit 1
@@ -87,11 +87,11 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5433/tambo" npm run db:mi
 # 4. Start all dev servers
 echo ""
 echo "Starting dev servers..."
-echo "  Web:      http://localhost:8260"
-echo "  API:      http://localhost:8261"
-echo "  Showcase: http://localhost:8262"
-echo "  Docs:     http://localhost:8263"
-echo "  Supabase: http://127.0.0.1:54423"
+echo "  Dashboard: http://localhost:8260"
+echo "  API:       http://localhost:8261"
+echo "  Showcase:  http://localhost:8262"
+echo "  Docs:      http://localhost:8263"
+echo "  Supabase:  http://127.0.0.1:54423"
 echo ""
 
 npm run dev:cloud:full

@@ -14,10 +14,56 @@ const jiti = createJiti(fileURLToPath(import.meta.url));
 // Import env here to validate the environment variables during build. Using jiti we can import .ts files :)
 jiti.import("./lib/env").catch(console.error);
 
+// Dashboard app URL for redirects
+const dashboardUrl =
+  process.env.NEXT_PUBLIC_DASHBOARD_URL || "https://app.tambo.co";
+
 /** @type {import('next').NextConfig} */
 const config = {
   redirects: () => {
     return [
+      // Dashboard redirects - redirect to app.tambo.co
+      {
+        source: "/dashboard",
+        destination: dashboardUrl,
+        permanent: false,
+      },
+      {
+        source: "/dashboard/:path*",
+        destination: `${dashboardUrl}/:path*`,
+        permanent: false,
+      },
+      {
+        source: "/login",
+        destination: `${dashboardUrl}/login`,
+        permanent: false,
+      },
+      {
+        source: "/oauth/callback",
+        destination: `${dashboardUrl}/oauth/callback`,
+        permanent: false,
+      },
+      {
+        source: "/device",
+        destination: `${dashboardUrl}/device`,
+        permanent: false,
+      },
+      {
+        source: "/cli-sessions",
+        destination: `${dashboardUrl}/cli-sessions`,
+        permanent: false,
+      },
+      {
+        source: "/legal-acceptance",
+        destination: `${dashboardUrl}/legal-acceptance`,
+        permanent: false,
+      },
+      {
+        source: "/internal/:path*",
+        destination: `${dashboardUrl}/internal/:path*`,
+        permanent: false,
+      },
+      // Docs redirects
       {
         source: "/docs",
         destination:

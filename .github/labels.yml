@@ -38,6 +38,10 @@
   description: "Changes to UI components"
   from_name: "ui"
 
+- name: "area: dashboard"
+  color: "26b5ce"
+  description: "Changes to the dashboard app (apps/dashboard)"
+
 - name: "area: web"
   color: "26b5ce"
   description: "Changes to the web app (apps/web)"

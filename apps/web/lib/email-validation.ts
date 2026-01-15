@@ -32,7 +32,6 @@ export interface EmailValidationResult {
 export interface EmailValidationOptions {
   validateMx?: boolean;
   validateDisposable?: boolean;
-  // Removed validateSMTP and validateTypo as they're unreliable/not needed
 }
 
 // DNS over HTTPS for cross-platform MX record checking

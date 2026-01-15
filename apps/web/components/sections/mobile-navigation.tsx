@@ -3,20 +3,17 @@
 import { MobileDrawer } from "@/components/mobile-drawer";
 
 interface MobileNavigationProps {
-  showDashboardButton: boolean;
-  showLogoutButton: boolean;
+  showDashboardButton?: boolean;
   showDiscordButton?: boolean;
 }
 
 export function MobileNavigation({
-  showDashboardButton,
-  showLogoutButton,
+  showDashboardButton = true,
   showDiscordButton = false,
 }: MobileNavigationProps) {
   return (
     <MobileDrawer
       showDashboardButton={showDashboardButton}
-      showLogoutButton={showLogoutButton}
       showDiscordButton={showDiscordButton}
     />
   );

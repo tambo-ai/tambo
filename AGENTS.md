@@ -44,7 +44,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Tambo Cloud Platform
 
-- **apps/web** - Next.js app (UI) - runs on port 8260
+- **apps/dashboard** - Next.js app (Dashboard UI) - runs on port 8260
 - **apps/api** - NestJS app (OpenAPI server) - runs on port 8261
 - **packages/db** - Drizzle ORM schema + migrations + DB helpers
 - **packages/core** - Shared pure utilities (no DB access)
@@ -208,7 +208,7 @@ eval "$(mise activate)"   # Interactive shells only
 
 ### Component Architecture
 
-- **Do not create new /api endpoints** in apps/web; use the app's private tRPC API and server utilities instead.
+- **Do not create new /api endpoints** in apps/dashboard; use the app's private tRPC API and server utilities instead.
 - **Prefer functional, declarative components**; avoid classes.
 - Use TypeScript everywhere. Use interfaces for object shapes.
 - Prefer React.FC for components. Use PropsWithChildren and `ComponentProps[WithRef|WithoutRef]` as needed.
@@ -229,7 +229,7 @@ eval "$(mise activate)"   # Interactive shells only
 
 ### Typography
 
-- Sentient for headings (font-heading/font-sentient), Geist Sans for body (font-sans), Geist Mono for code (font-mono). See apps/web/lib/fonts.ts for font configuration.
+- Sentient for headings (font-heading/font-sentient), Geist Sans for body (font-sans), Geist Mono for code (font-mono). See apps/dashboard/lib/fonts.ts for font configuration.
 
 ### Text Handling & JSX Patterns
 
@@ -292,7 +292,7 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 
 ```bash
 # Development (two different apps!)
-npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
+npm run dev:cloud        # Start Tambo Cloud (dashboard + API) - ports 8260 + 8261
 npm run dev              # Start React SDK (showcase + docs)
 
 # Quality checks
@@ -363,7 +363,7 @@ When working across multiple packages:
 - **File names**: every test ends with `.test.ts` or `.test.tsx` (no `.spec` or other suffixes).
 - **Unit tests**: live beside the file they cover (e.g. `foo.ts` has `foo.test.ts` in the same directory, not under `__tests__`).
 - **Integration tests**: the only tests that stay in a `__tests__` folder, and the filename must describe the scenario (never just mirror another file's name).
-- **Fixtures & mocks**: keep shared helpers in a `__fixtures__` or `__mocks__` directory at the package's source root (e.g. `apps/web/__mocks__`), never nested inside feature folders.
+- **Fixtures & mocks**: keep shared helpers in a `__fixtures__` or `__mocks__` directory at the package's source root (e.g. `apps/dashboard/__mocks__`), never nested inside feature folders.
 
 ### Pre-commit/PR Verification Checklist
 
@@ -394,13 +394,13 @@ Examples:
 
 ```
 feat(api): add transcript export
-fix(web): prevent duplicate project creation
+fix(dashboard): prevent duplicate project creation
 chore(db): reorganize migration files
 ```
 
 See .github/workflows/conventional-commits.yml for a list of types such as feat, fix, perf, deps, revert, docs, style, chore, refactor, test, build, ci.
 
-Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, docs
+Common scopes: api, dashboard, core, db, deps, ci, config, react-sdk, cli, showcase, docs
 
 ### PR Requirements
 

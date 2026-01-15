@@ -32,6 +32,17 @@ export async function POST(req: Request) {
 
     const { firstName, lastName, email, title } = result.data;
 
+    // Check if database is configured
+    if (!env.DATABASE_URL) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database not configured",
+        },
+        { status: 500 },
+      );
+    }
+
     // Get database connection
     const db = getDb(env.DATABASE_URL);
 

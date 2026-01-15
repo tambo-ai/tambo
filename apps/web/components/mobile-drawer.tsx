@@ -18,17 +18,17 @@ import Link from "next/link";
 import { IoMenuSharp } from "react-icons/io5";
 
 interface MobileDrawerProps {
-  showDashboardButton: boolean;
-  showLogoutButton: boolean;
+  showDashboardButton?: boolean;
   showDiscordButton?: boolean;
 }
 
 export function MobileDrawer({
-  showDashboardButton,
-  showLogoutButton,
+  showDashboardButton = true,
   showDiscordButton: _showDiscordButton = false,
 }: MobileDrawerProps) {
   const { togglePanel } = useMessageThreadPanel();
+  const dashboardUrl =
+    process.env.NEXT_PUBLIC_DASHBOARD_URL || "https://app.tambo.co";
 
   return (
     <Drawer>
@@ -52,15 +52,15 @@ export function MobileDrawer({
         </DrawerHeader>
         <div className="px-6 flex flex-col gap-2">
           {showDashboardButton && (
-            <Link
-              href="/dashboard"
+            <a
+              href={dashboardUrl}
               className={cn(
                 buttonVariants({ variant: "ghost" }),
                 "justify-start text-base w-full",
               )}
             >
-              Dashboard
-            </Link>
+              Sign In
+            </a>
           )}
           <DrawerClose asChild>
             <Link
@@ -104,20 +104,10 @@ export function MobileDrawer({
               Ask Tambo
             </button>
           </DrawerClose>
-          {showLogoutButton && (
-            <button
-              className={cn(
-                buttonVariants({ variant: "ghost" }),
-                "justify-start text-base w-full",
-              )}
-            >
-              Logout
-            </button>
-          )}
         </div>
         <DrawerFooter>
           <a
-            href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
+            href={process.env.NEXT_PUBLIC_DOCS_URL || "https://docs.tambo.co"}
             className={cn(
               buttonVariants({ variant: "default" }),
               "text-white rounded-full group",

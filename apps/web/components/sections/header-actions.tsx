@@ -1,28 +1,24 @@
 "use client";
 
-import { NextAuthLogoutButton } from "@/components/auth/nextauth-logout-button";
+import { TamboChatTrigger } from "@/components/tambo-chat-trigger";
 import { buttonVariants } from "@/components/ui/button";
 import { DiscordLink } from "@/components/ui/discord-link";
-// import { GitHubLink } from "@/components/ui/github-link";
-import { TamboChatTrigger } from "@/components/tambo-chat-trigger";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 
 interface HeaderActionsProps {
-  showDashboardButton: boolean;
-  showLogoutButton: boolean;
+  showDashboardButton?: boolean;
   showDiscordButton?: boolean;
 }
 
 export function HeaderActions({
-  showDashboardButton,
-  showLogoutButton,
+  showDashboardButton = true,
   showDiscordButton = true,
 }: HeaderActionsProps) {
-  const { data: session } = useSession();
-  const isAuthenticated = !!session;
+  // Dashboard URL - redirects are configured in next.config.mjs
+  const dashboardUrl =
+    process.env.NEXT_PUBLIC_DASHBOARD_URL || "https://app.tambo.co";
 
   return (
     <div className="hidden lg:flex items-center gap-x-4">
@@ -63,22 +59,20 @@ export function HeaderActions({
         Blog
       </Link>
       <TamboChatTrigger />
-      {/* <GitHubLink href={siteConfig.links.github} text="Github" /> */}
       {showDiscordButton && (
         <DiscordLink href={siteConfig.links.discord} text="Discord" />
       )}
       {showDashboardButton && (
-        <Link
-          href="/dashboard"
+        <a
+          href={dashboardUrl}
           className={cn(
             buttonVariants({ variant: "default" }),
             "h-9 rounded-md group tracking-tight font-medium",
           )}
         >
-          {isAuthenticated ? "Dashboard" : "Sign In"}
-        </Link>
+          Sign In
+        </a>
       )}
-      {showLogoutButton && <NextAuthLogoutButton />}
     </div>
   );
 }

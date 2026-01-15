@@ -50,17 +50,17 @@ services:
       retries: 4
       start_period: 20s
 
-  # Web Service (Next.js)
-  web:
-    image: tambo-web:latest
+  # Dashboard Service (Next.js)
+  dashboard:
+    image: tambo-dashboard:latest
     env_file:
       - ./docker.env
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/dashboard/Dockerfile
       args:
         NODE_ENV: ${NODE_ENV:-production}
-    container_name: tambo_web
+    container_name: tambo_dashboard
     ports:
       - "3210:3000"
     environment:

@@ -55,13 +55,13 @@ jobs:
     strategy:
       matrix:
         images:
-          - name: web
+          - name: dashboard
             context: .
-            dockerfile: ./apps/web/Dockerfile
-            path: apps/web
+            dockerfile: ./apps/dashboard/Dockerfile
+            path: apps/dashboard
             repo: ghcr.io/tambo-ai
-            image: tambo-web-server
-            description: Next.js web frontend for Tambo AI platform
+            image: tambo-dashboard-server
+            description: Next.js dashboard for Tambo AI platform
 
           - name: api
             context: .
@@ -178,7 +178,7 @@ jobs:
           # Wait for API to be ready (using the /health endpoint)
           timeout 45 bash -c 'until curl -fso /dev/null http://localhost:3211/health 2>/dev/null; do sleep 3; done'
 
-          # Wait for Web to be ready
+          # Wait for Dashboard to be ready
           timeout 45 bash -c 'until curl -fso /dev/null http://localhost:3210/ 2>/dev/null; do sleep 3; done'
 
       - name: Check service status
@@ -196,8 +196,8 @@ jobs:
           echo "Testing API root endpoint..."
           curl -fso /dev/null http://localhost:3211/ && echo -e "\nAPI root endpoint responding"
 
-          echo "Testing Web endpoint..."
-          curl -fso /dev/null http://localhost:3210/ && echo -e "\nWeb endpoint responding"
+          echo "Testing Dashboard endpoint..."
+          curl -fso /dev/null http://localhost:3210/ && echo -e "\nDashboard endpoint responding"
 
       - name: Initialize database
         run: ./scripts/cloud/init-database.sh

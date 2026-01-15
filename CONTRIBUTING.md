@@ -26,7 +26,7 @@ npm install
 
 ```bash
 cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.example apps/web/.env.local
+cp apps/dashboard/.env.example apps/dashboard/.env.local
 cp packages/db/.env.example packages/db/.env
 ```
 
@@ -82,13 +82,13 @@ npm run db:migrate -w packages/db
 
 ### 5. Start Development Servers
 
-For Tambo Cloud (web dashboard + API):
+For Tambo Cloud (dashboard + API):
 
 ```bash
-npm run dev:cloud
+npm run dev:dashboard
 ```
 
-- **Web App**: http://localhost:8260
+- **Dashboard**: http://localhost:8260
 - **API**: http://localhost:8261
 
 For the React SDK framework (showcase + docs):
@@ -99,17 +99,17 @@ npm run dev
 
 ### 6. Get a Local API Key
 
-1. Start the dev servers: `npm run dev:cloud`
+1. Start the dev servers: `npm run dev:dashboard`
 2. Visit http://localhost:8260/dashboard and sign in
 3. Create a project and generate an API key
-4. Add to `apps/web/.env.local`: `NEXT_PUBLIC_TAMBO_API_KEY=your_key`
+4. Add to `apps/dashboard/.env.local`: `NEXT_PUBLIC_TAMBO_API_KEY=your_key`
 5. Verify with http://localhost:8260/internal/smoketest
 
 ## Common Commands
 
 ```bash
 # Development
-npm run dev:cloud        # Start web + API for Tambo Cloud
+npm run dev:dashboard    # Start dashboard + API for Tambo Cloud
 npm run dev              # Start showcase + docs for React SDK
 
 # Quality (required before PRs)
@@ -127,30 +127,30 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 
 ### Required
 
-| Variable              | Location                                                   | Description                  |
-| --------------------- | ---------------------------------------------------------- | ---------------------------- |
-| `DATABASE_URL`        | `packages/db/.env`, `apps/api/.env`, `apps/web/.env.local` | PostgreSQL connection string |
-| `API_KEY_SECRET`      | `apps/api/.env`, `apps/web/.env.local`                     | API key encryption secret    |
-| `PROVIDER_KEY_SECRET` | `apps/api/.env`, `apps/web/.env.local`                     | Provider key encryption      |
-| `NEXTAUTH_SECRET`     | `apps/web/.env.local`                                      | NextAuth.js session secret   |
-| `NEXTAUTH_URL`        | `apps/web/.env.local`                                      | http://localhost:8260        |
+| Variable              | Location                                                         | Description                  |
+| --------------------- | ---------------------------------------------------------------- | ---------------------------- |
+| `DATABASE_URL`        | `packages/db/.env`, `apps/api/.env`, `apps/dashboard/.env.local` | PostgreSQL connection string |
+| `API_KEY_SECRET`      | `apps/api/.env`, `apps/dashboard/.env.local`                     | API key encryption secret    |
+| `PROVIDER_KEY_SECRET` | `apps/api/.env`, `apps/dashboard/.env.local`                     | Provider key encryption      |
+| `NEXTAUTH_SECRET`     | `apps/dashboard/.env.local`                                      | NextAuth.js session secret   |
+| `NEXTAUTH_URL`        | `apps/dashboard/.env.local`                                      | http://localhost:8260        |
 
 ### Optional
 
-| Variable                  | Location              | Description                                                                   |
-| ------------------------- | --------------------- | ----------------------------------------------------------------------------- |
-| `OPENAI_API_KEY`          | `apps/api/.env`       | To allow Tambo Cloud to use AI features                                       |
-| `FALLBACK_OPENAI_API_KEY` | `apps/api/.env`       | Used as a fallback API key for OpenAI if others are not set                   |
-| `GOOGLE_CLIENT_ID`        | `apps/web/.env.local` | Google App Client ID for OAuth login (https://console.cloud.google.com/)      |
-| `GOOGLE_CLIENT_SECRET`    | `apps/web/.env.local` | As above                                                                      |
-| `GITHUB_CLIENT_ID`        | `apps/web/.env.local` | GitHub App Client ID for OAuth login (https://github.com/settings/developers) |
-| `GITHUB_CLIENT_SECRET`    | `apps/web/.env.local` | As above                                                                      |
+| Variable                  | Location                    | Description                                                                   |
+| ------------------------- | --------------------------- | ----------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`          | `apps/api/.env`             | To allow Tambo Cloud to use AI features                                       |
+| `FALLBACK_OPENAI_API_KEY` | `apps/api/.env`             | Used as a fallback API key for OpenAI if others are not set                   |
+| `GOOGLE_CLIENT_ID`        | `apps/dashboard/.env.local` | Google App Client ID for OAuth login (https://console.cloud.google.com/)      |
+| `GOOGLE_CLIENT_SECRET`    | `apps/dashboard/.env.local` | As above                                                                      |
+| `GITHUB_CLIENT_ID`        | `apps/dashboard/.env.local` | GitHub App Client ID for OAuth login (https://github.com/settings/developers) |
+| `GITHUB_CLIENT_SECRET`    | `apps/dashboard/.env.local` | As above                                                                      |
 
 ## Repository Structure
 
 | Directory          | Description                     |
 | ------------------ | ------------------------------- |
-| `apps/web`         | Next.js web application         |
+| `apps/dashboard`   | Next.js dashboard application   |
 | `apps/api`         | NestJS API server               |
 | `packages/db`      | Drizzle schema + migrations     |
 | `packages/core`    | Shared utilities (no DB access) |
@@ -206,7 +206,7 @@ npm install
 - `fix|perf|refactor(scope): ...` → Patch release
 - Breaking change → add `!`: `feat(scope)!: ...`
 
-Scopes: `api`, `web`, `core`, `cli`, `docs`, `react-sdk`
+Scopes: `api`, `dashboard`, `core`, `cli`, `docs`, `react-sdk`
 
 ### PR Checklist
 

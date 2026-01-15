@@ -16,6 +16,7 @@
     "create-tambo-app": {},
     "docs": {},
     "apps/web": {},
+    "apps/dashboard": {},
     "apps/api": {}
   },
   "changelog-sections": [

@@ -16,40 +16,19 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    DISALLOWED_EMAIL_DOMAINS: z.string().min(1).optional(),
-    INTERNAL_SLACK_USER_ID: z.string().min(1).optional(),
-    SLACK_OAUTH_TOKEN: z.string().min(1).optional(),
     PORT: z.string().min(1).optional(),
-    DATABASE_URL: z.string().min(1),
-    /** Generate with `openssl rand -hex 32` */
-    API_KEY_SECRET: z.string().min(8),
-    /** Generate with `openssl rand -hex 32` */
-    PROVIDER_KEY_SECRET: z.string().min(8),
+    // For newsletter and contact forms
     RESEND_API_KEY: z.string().min(1).optional(),
     RESEND_AUDIENCE_ID: z.string().min(1).optional(),
-    // for smoketesting
-    WEATHER_API_KEY: z.string().min(1).optional(),
-    // Dev-only, allow testing server-side MCP servers running locally
-    ALLOW_LOCAL_MCP_SERVERS: z.string().min(1).optional(),
+    // For Slack notifications
+    INTERNAL_SLACK_USER_ID: z.string().min(1).optional(),
+    SLACK_OAUTH_TOKEN: z.string().min(1).optional(),
+    // For email domain validation
+    DISALLOWED_EMAIL_DOMAINS: z.string().min(1).optional(),
+    // For GitHub stars display
     GITHUB_TOKEN: z.string().min(1).optional(),
-    // NextAuth OAuth providers
-    GITHUB_CLIENT_ID: z.string().transform(allowEmptyString).optional(),
-    GITHUB_CLIENT_SECRET: z.string().transform(allowEmptyString).optional(),
-    GOOGLE_CLIENT_ID: z.string().transform(allowEmptyString).optional(),
-    GOOGLE_CLIENT_SECRET: z.string().transform(allowEmptyString).optional(),
-    /** Generate with `openssl rand -hex 32` */
-    NEXTAUTH_SECRET: z.string().min(8),
-    /** URL of the client app so we can redirect back to it after auth, e.g. https://tambo.co or http://localhost:8260 */
-    NEXTAUTH_URL: z.string().url(),
-    /** Email address to send emails from. Required if using email authentication. */
-    EMAIL_FROM_DEFAULT: z.string().transform(allowEmptyString).optional(),
-
-    // Whitelabeling (server-side copies; optional so can be omitted)
-    TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional().or(z.literal("")),
-    TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional().or(z.literal("")),
-    // Restrict logins to a specific verified email domain when self-hosting.
-    // When unset, any verified email is allowed.
-    ALLOWED_LOGIN_DOMAIN: z.string().optional().or(z.literal("")),
+    // For contacts database
+    DATABASE_URL: z.string().min(1).optional(),
   },
   /*
    * Environment variables available on the client (and server).
@@ -60,25 +39,9 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1).optional(),
-    // for dogfooding our own API
+    // For demo page using Tambo API
     NEXT_PUBLIC_TAMBO_API_KEY: z.string().min(1).optional(),
-    NEXT_PUBLIC_TAMBO_DASH_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_TAMBO_API_URL: z.string().min(1).optional(),
-    NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY: z.string().min(1).optional(),
-    NEXT_PUBLIC_SMOKETEST_PROJECT_ID: z.string().min(1).optional(),
-
-    // Whitelabeling vars
-    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z
-      .string()
-      .min(1)
-      .optional()
-      .or(z.literal("")),
-    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z
-      .string()
-      .url()
-      .optional()
-      .or(z.literal("")),
-
     // Sentry
     NEXT_PUBLIC_SENTRY_DSN: z.string().transform(allowEmptyString).optional(),
     NEXT_PUBLIC_SENTRY_ORG: z.string().transform(allowEmptyString).optional(),
@@ -90,6 +53,21 @@ export const env = createEnv({
     NEXT_PUBLIC_TERMS_URL: z.string().url().optional(),
     NEXT_PUBLIC_PRIVACY_URL: z.string().url().optional(),
     NEXT_PUBLIC_LICENSE_URL: z.string().url().optional(),
+    // Dashboard URL for redirects
+    NEXT_PUBLIC_DASHBOARD_URL: z.string().url().optional(),
+    // Docs URL for redirects
+    NEXT_PUBLIC_DOCS_URL: z.string().url().optional(),
+    // Whitelabeling vars
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z
+      .string()
+      .min(1)
+      .optional()
+      .or(z.literal("")),
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z
+      .string()
+      .url()
+      .optional()
+      .or(z.literal("")),
   },
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
@@ -99,50 +77,19 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
-    DISALLOWED_EMAIL_DOMAINS: process.env.DISALLOWED_EMAIL_DOMAINS,
-    INTERNAL_SLACK_USER_ID: process.env.INTERNAL_SLACK_USER_ID,
-    SLACK_OAUTH_TOKEN: process.env.SLACK_OAUTH_TOKEN,
     PORT: process.env.PORT,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    DATABASE_URL: process.env.DATABASE_URL,
-    API_KEY_SECRET: process.env.API_KEY_SECRET,
-    PROVIDER_KEY_SECRET: process.env.PROVIDER_KEY_SECRET,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_AUDIENCE_ID: process.env.RESEND_AUDIENCE_ID,
-    WEATHER_API_KEY: process.env.WEATHER_API_KEY,
-    NEXT_PUBLIC_TAMBO_API_KEY: process.env.NEXT_PUBLIC_TAMBO_API_KEY,
-    NEXT_PUBLIC_TAMBO_DASH_KEY: process.env.NEXT_PUBLIC_TAMBO_DASH_KEY,
-    NEXT_PUBLIC_TAMBO_API_URL: process.env.NEXT_PUBLIC_TAMBO_API_URL,
-    NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY:
-      process.env.NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY,
-    NEXT_PUBLIC_SMOKETEST_PROJECT_ID:
-      process.env.NEXT_PUBLIC_SMOKETEST_PROJECT_ID,
-
-    // Whitelabeling (falls back to non-public vars for convenience)
-    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME:
-      process.env.NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME ??
-      process.env.TAMBO_WHITELABEL_ORG_NAME,
-    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO:
-      process.env.NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO ??
-      process.env.TAMBO_WHITELABEL_ORG_LOGO,
-    ALLOW_LOCAL_MCP_SERVERS: process.env.ALLOW_LOCAL_MCP_SERVERS,
+    INTERNAL_SLACK_USER_ID: process.env.INTERNAL_SLACK_USER_ID,
+    SLACK_OAUTH_TOKEN: process.env.SLACK_OAUTH_TOKEN,
+    DISALLOWED_EMAIL_DOMAINS: process.env.DISALLOWED_EMAIL_DOMAINS,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
-    // NextAuth OAuth providers
-    GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
-    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    EMAIL_FROM_DEFAULT: process.env.EMAIL_FROM_DEFAULT,
-
-    // Whitelabeling server values (mirrors client fallbacks)
-    TAMBO_WHITELABEL_ORG_NAME: process.env.TAMBO_WHITELABEL_ORG_NAME,
-    TAMBO_WHITELABEL_ORG_LOGO: process.env.TAMBO_WHITELABEL_ORG_LOGO,
-    ALLOWED_LOGIN_DOMAIN: process.env.ALLOWED_LOGIN_DOMAIN,
-
+    DATABASE_URL: process.env.DATABASE_URL,
+    NEXT_PUBLIC_TAMBO_API_KEY: process.env.NEXT_PUBLIC_TAMBO_API_KEY,
+    NEXT_PUBLIC_TAMBO_API_URL: process.env.NEXT_PUBLIC_TAMBO_API_URL,
     // Sentry
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ORG: process.env.NEXT_PUBLIC_SENTRY_ORG,
@@ -151,6 +98,15 @@ export const env = createEnv({
     NEXT_PUBLIC_TERMS_URL: process.env.NEXT_PUBLIC_TERMS_URL,
     NEXT_PUBLIC_PRIVACY_URL: process.env.NEXT_PUBLIC_PRIVACY_URL,
     NEXT_PUBLIC_LICENSE_URL: process.env.NEXT_PUBLIC_LICENSE_URL,
+    // Dashboard URL for redirects
+    NEXT_PUBLIC_DASHBOARD_URL: process.env.NEXT_PUBLIC_DASHBOARD_URL,
+    // Docs URL for redirects
+    NEXT_PUBLIC_DOCS_URL: process.env.NEXT_PUBLIC_DOCS_URL,
+    // Whitelabeling vars
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME:
+      process.env.NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME,
+    NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO:
+      process.env.NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO,
   },
   skipValidation: process.env.SKIP_ENV_VALIDATION === "true",
 });

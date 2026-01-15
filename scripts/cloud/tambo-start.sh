@@ -71,9 +71,9 @@ success \
   "🎉 Tambo Docker Stack started successfully!" \
   "" \
   "📋 Available services:" \
-  "  • Tambo Web: http://localhost:3210" \
-  "  • Tambo API: http://localhost:3211" \
-  "  • PostgreSQL Database: localhost:5433" \
+  "  • Dashboard:   http://localhost:3210" \
+  "  • API:         http://localhost:3211" \
+  "  • PostgreSQL:  localhost:5433" \
   "" \
   "💡 To stop the stack: ./scripts/cloud/tambo-stop.sh" \
   "💡 To view logs: ./scripts/cloud/tambo-logs.sh" 

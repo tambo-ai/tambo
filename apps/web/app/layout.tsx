@@ -12,16 +12,10 @@ import {
   generateWebsiteSchema,
 } from "@/lib/schema";
 import { cn } from "@/lib/utils";
-import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 import { MessageThreadPanelProvider } from "@/providers/message-thread-panel-provider";
-import { NextAuthProvider } from "@/providers/nextauth-provider";
-import { TamboProviderWrapper } from "@/providers/tambo-provider";
-import { TRPCReactProvider } from "@/trpc/react";
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata, Viewport } from "next";
-import { getServerSession } from "next-auth";
 import { Suspense } from "react";
-import { authOptions } from "../lib/auth";
 import "./globals.css";
 import { PHProvider, PostHogPageview } from "./providers";
 
@@ -58,7 +52,6 @@ export default async function RootLayout({
   // Generate schema for the website and organization
   const websiteSchema = generateWebsiteSchema();
   const organizationSchema = generateOrganizationSchema();
-  const session = await getServerSession(authOptions);
 
   return (
     <html
@@ -71,47 +64,37 @@ export default async function RootLayout({
       <head>
         <PreloadResources />
       </head>
-      <TamboProviderWrapper>
-        <Suspense>
-          <PostHogPageview />
-        </Suspense>
-        <Suspense>
-          <WebVitalsReporter />
-        </Suspense>
-        <TRPCReactProvider>
-          <PHProvider>
-            <body
-              className={cn(
-                "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
-              )}
-            >
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="light"
-                enableSystem={false}
-                forcedTheme="light"
-              >
-                <NextAuthProvider session={session}>
-                  <MessageThreadPanelProvider>
-                    <div className="flex h-screen overflow-hidden w-full">
-                      <main className="flex-1 min-w-0 overflow-auto snap-y snap-proximity">
-                        {children}
-                      </main>
-                      <ComponentsThemeProvider defaultTheme="light">
-                        <MessageThreadPanel />
-                      </ComponentsThemeProvider>
-                    </div>
-                    <TailwindIndicator />
-                  </MessageThreadPanelProvider>
-                </NextAuthProvider>
-              </ThemeProvider>
-              <Toaster />
-              <Analytics />
-              <Schema jsonLd={[websiteSchema, organizationSchema]} />
-            </body>
-          </PHProvider>
-        </TRPCReactProvider>
-      </TamboProviderWrapper>
+      <Suspense>
+        <PostHogPageview />
+      </Suspense>
+      <Suspense>
+        <WebVitalsReporter />
+      </Suspense>
+      <PHProvider>
+        <body
+          className={cn(
+            "min-h-screen bg-background antialiased w-full scroll-smooth font-sans",
+          )}
+        >
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            forcedTheme="light"
+          >
+            <MessageThreadPanelProvider>
+              <main className="flex-1 min-w-0 overflow-auto snap-y snap-proximity">
+                {children}
+              </main>
+              <MessageThreadPanel />
+              <TailwindIndicator />
+            </MessageThreadPanelProvider>
+          </ThemeProvider>
+          <Toaster />
+          <Analytics />
+          <Schema jsonLd={[websiteSchema, organizationSchema]} />
+        </body>
+      </PHProvider>
     </html>
   );
 }
