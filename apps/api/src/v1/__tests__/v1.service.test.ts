@@ -624,4 +624,9 @@ describe("V1Service", () => {
       ).rejects.toThrow(/Failed to create thread for project prj_123/);
     });
   });
+
+  // Note: startRun and cancelRun tests require more complex DB mocking
+  // (update, insert, returning) that would make these tests brittle.
+  // These methods are better tested via integration tests that use a real DB.
+  // The unit tests above cover the thread/message query operations.
 });

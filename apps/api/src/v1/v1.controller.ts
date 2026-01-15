@@ -9,16 +9,18 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UseGuards,
 } from "@nestjs/common";
 import {
   ApiOperation,
   ApiParam,
+  ApiProduces,
   ApiResponse,
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
-import { Request } from "express";
+import { Request, Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
 import { BearerTokenGuard } from "../projects/guards/bearer-token.guard";
@@ -28,6 +30,11 @@ import {
   V1ListMessagesQueryDto,
   V1ListMessagesResponseDto,
 } from "./dto/message.dto";
+import {
+  V1CancelRunResponseDto,
+  V1CreateRunDto,
+  V1CreateThreadWithRunDto,
+} from "./dto/run.dto";
 import {
   V1CreateThreadDto,
   V1CreateThreadResponseDto,
@@ -219,5 +226,217 @@ export class V1Controller {
     @Param("messageId") messageId: string,
   ): Promise<V1GetMessageResponseDto> {
     return await this.v1Service.getMessage(threadId, messageId);
+  }
+
+  // ==========================================
+  // Run endpoints
+  // ==========================================
+
+  @Post("threads/runs")
+  @ApiOperation({
+    summary: "Create thread with run (SSE)",
+    description:
+      "Creates a new thread and immediately starts a streaming run. Returns an SSE stream of AG-UI events.",
+  })
+  @ApiProduces("text/event-stream")
+  @ApiResponse({
+    status: 200,
+    description: "SSE stream of AG-UI events",
+    headers: {
+      "X-Thread-Id": {
+        description: "The created thread ID",
+        schema: { type: "string" },
+      },
+      "X-Run-Id": {
+        description: "The created run ID",
+        schema: { type: "string" },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 409,
+    description: "Concurrent run conflict",
+  })
+  async createThreadWithRun(
+    @Req() request: Request,
+    @Body() dto: V1CreateThreadWithRunDto,
+    @Res() response: Response,
+  ): Promise<void> {
+    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      dto.thread?.contextKey,
+    );
+
+    // Create thread first
+    const effectiveContextKey = dto.thread?.contextKey ?? bearerContextKey;
+    const thread = await this.v1Service.createThread(
+      projectId,
+      effectiveContextKey,
+      {
+        contextKey: dto.thread?.contextKey,
+        metadata: dto.threadMetadata ?? dto.thread?.metadata,
+      },
+    );
+
+    // Start run (handles concurrency atomically)
+    const startResult = await this.v1Service.startRun(thread.id, dto);
+    if (!startResult.success) {
+      throw startResult.error;
+    }
+
+    // Set SSE headers
+    response.setHeader("Content-Type", "text/event-stream");
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("Connection", "keep-alive");
+    response.setHeader("X-Thread-Id", thread.id);
+    response.setHeader("X-Run-Id", startResult.runId);
+    response.flushHeaders();
+
+    // Handle connection close
+    response.on("close", () => {
+      this.v1Service
+        .cancelRun(thread.id, startResult.runId, "connection_closed")
+        .catch(() => {
+          // Ignore errors during cleanup - run may have already completed
+        });
+    });
+
+    try {
+      await this.v1Service.executeRun(
+        response,
+        thread.id,
+        startResult.runId,
+        dto,
+      );
+    } catch (error) {
+      // Emit error event if headers already sent
+      if (response.headersSent) {
+        const errorEvent = {
+          type: "RUN_ERROR",
+          message: error instanceof Error ? error.message : "Unknown error",
+          code: "INTERNAL_ERROR",
+          timestamp: Date.now(),
+        };
+        response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
+      }
+      throw error;
+    } finally {
+      response.end();
+    }
+  }
+
+  @Post("threads/:threadId/runs")
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "Create run on existing thread (SSE)",
+    description:
+      "Starts a streaming run on an existing thread. Returns an SSE stream of AG-UI events.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiProduces("text/event-stream")
+  @ApiResponse({
+    status: 200,
+    description: "SSE stream of AG-UI events",
+    headers: {
+      "X-Run-Id": {
+        description: "The created run ID",
+        schema: { type: "string" },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Thread not found",
+  })
+  @ApiResponse({
+    status: 409,
+    description: "Concurrent run conflict",
+  })
+  async createRun(
+    @Param("threadId") threadId: string,
+    @Body() dto: V1CreateRunDto,
+    @Res() response: Response,
+  ): Promise<void> {
+    // Start run (handles concurrency atomically)
+    const startResult = await this.v1Service.startRun(threadId, dto);
+    if (!startResult.success) {
+      throw startResult.error;
+    }
+
+    // Set SSE headers
+    response.setHeader("Content-Type", "text/event-stream");
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("Connection", "keep-alive");
+    response.setHeader("X-Run-Id", startResult.runId);
+    response.flushHeaders();
+
+    // Handle connection close
+    response.on("close", () => {
+      this.v1Service
+        .cancelRun(threadId, startResult.runId, "connection_closed")
+        .catch(() => {
+          // Ignore errors during cleanup - run may have already completed
+        });
+    });
+
+    try {
+      await this.v1Service.executeRun(
+        response,
+        threadId,
+        startResult.runId,
+        dto,
+      );
+    } catch (error) {
+      // Emit error event if headers already sent
+      if (response.headersSent) {
+        const errorEvent = {
+          type: "RUN_ERROR",
+          message: error instanceof Error ? error.message : "Unknown error",
+          code: "INTERNAL_ERROR",
+          timestamp: Date.now(),
+        };
+        response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
+      }
+      throw error;
+    } finally {
+      response.end();
+    }
+  }
+
+  @Delete("threads/:threadId/runs/:runId")
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "Cancel run",
+    description:
+      "Explicitly cancel a running run. Note: closing the SSE connection also cancels the run.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "runId",
+    description: "Run ID",
+    example: "run_xyz789abc",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Run cancelled",
+    type: V1CancelRunResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Run not found",
+  })
+  async cancelRun(
+    @Param("threadId") threadId: string,
+    @Param("runId") runId: string,
+  ): Promise<V1CancelRunResponseDto> {
+    return await this.v1Service.cancelRun(threadId, runId, "user_cancelled");
   }
 }

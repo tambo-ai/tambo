@@ -7,3 +7,4 @@ export * from "./thread";
 export * from "./logs";
 export * from "./tambo-user";
 export * from "./mcp-usage";
+export * from "./runs";
