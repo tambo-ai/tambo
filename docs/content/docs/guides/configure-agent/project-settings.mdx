@@ -1,0 +1,197 @@
+---
+title: Configure Project Settings
+description: Step-by-step guide to creating and configuring projects in Tambo Cloud
+---
+
+This guide walks you through creating a new project in Tambo Cloud and configuring all project-level settings that control agent behavior.
+
+## Prerequisites
+
+- A Tambo Cloud account
+- Access to the Tambo Cloud dashboard
+
+## Creating a New Project
+
+1. Navigate to the [Tambo Cloud dashboard](https://cloud.tambo.ai)
+2. Click **New Project** or **Create Project**
+3. Enter a project name (e.g., "Production Chatbot", "Development Environment")
+4. Optionally add a project description to help team members understand its purpose
+5. Click **Create** to initialize the project
+
+Your new project is created with default settings. You can now configure it to match your requirements.
+
+## Configuring Project Details
+
+### Update Project Name and Description
+
+1. Navigate to your project in the dashboard
+2. Click **Settings** or **Project Settings**
+3. Update the **Name** field if needed
+4. Add or edit the **Description** to document the project's purpose
+5. Click **Save** to apply changes
+
+## Setting Custom Instructions
+
+Custom instructions define the default system prompt sent to the LLM with every request in this project.
+
+1. In your project settings, locate the **Custom Instructions** section
+2. Click **Edit** or click into the text editor
+3. Enter your instructions in natural language
+
+**Example instructions:**
+```
+You are a helpful software development assistant. You write clean,
+maintainable code following industry best practices. When answering
+questions, prioritize clarity and correctness. Always explain your
+reasoning when making technical decisions.
+```
+
+4. Click **Save** to store your instructions
+
+**Tips:**
+- Keep instructions concise but specific
+- Focus on persona, tone, and core capabilities
+- Avoid including dynamic information (timestamps, user IDs, etc.)
+- Test with different phrasings if agent behavior doesn't match expectations
+
+### Enabling System Prompt Override
+
+By default, projects don't allow thread-level instruction overrides. Enable this if you need per-conversation customization:
+
+1. In the **Custom Instructions** section, find **Allow System Prompt Override**
+2. Toggle it **On** to enable thread-level overrides
+3. Click **Save**
+
+**When enabled:**
+- Threads can provide their own system message in `initialMessages`
+- Thread instructions completely replace project instructions (no merging)
+- Useful for applications where each conversation needs different agent behavior
+
+**Security note:** When enabled, end-users can modify agent behavior by providing system messages. Only enable this if you trust your users or have additional guardrails.
+
+## Configuring LLM Provider and Model
+
+The LLM provider and model control which AI service handles your requests.
+
+1. In project settings, locate **LLM Configuration** or **Model Settings**
+2. Click **Configure LLM Provider**
+
+For detailed provider configuration instructions, see [Configure LLM Provider](/docs/guides/configure-agent/llm-provider).
+
+Quick summary:
+- Select a provider (OpenAI, Anthropic, Google, etc.)
+- Choose a model from available options
+- Add API keys if required
+- Configure model-specific parameters
+
+## Setting Token Limits
+
+Token limits prevent excessive costs and ensure consistent performance.
+
+1. In project settings, find **Token Limits** or **Advanced Settings**
+2. Locate the **Max Input Tokens** field
+3. Enter your desired limit (e.g., `8000`, `16000`, `100000`)
+4. Click **Save**
+
+**How it works:**
+- Tambo truncates conversation history to fit within the limit
+- Recent messages are prioritized
+- System instructions are always included
+- Helps control costs for long conversations
+
+**Recommendations:**
+- Start with 8,000-16,000 for most applications
+- Increase for applications requiring large context windows
+- Monitor usage in your dashboard analytics
+
+## Setting Tool Call Limits
+
+Tool call limits prevent runaway agent behavior and control execution costs.
+
+1. In project settings, find **Tool Call Limits** or **Advanced Settings**
+2. Locate the **Max Tool Call Limit** field
+3. Enter your desired limit (default: `10`)
+4. Click **Save**
+
+**How it works:**
+- Limits the number of tool executions per agent response
+- Prevents infinite loops in tool execution
+- Agent stops executing tools when limit is reached
+
+**Recommendations:**
+- Default (10) works for most applications
+- Increase for complex multi-step workflows
+- Decrease for simple applications where tools should be used sparingly
+
+## Managing API Keys
+
+API keys authenticate your project with LLM providers.
+
+### Adding an API Key
+
+1. In project settings, navigate to **API Keys** or **LLM Configuration**
+2. Select your provider (OpenAI, Anthropic, etc.)
+3. Click **Add API Key** or **Configure**
+4. Paste your API key from the provider
+5. Click **Save**
+
+**Getting API keys:**
+- **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **Anthropic**: [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+- **Google**: [makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
+
+### Testing Your Configuration
+
+After adding an API key:
+
+1. Navigate to **Test** or **Playground** in your project
+2. Send a test message
+3. Verify the response matches your expectations
+4. Check that custom instructions are being followed
+
+If you encounter errors:
+- Verify the API key is correct and has not expired
+- Check that your provider account has available credits
+- Ensure the selected model is available in your provider account
+
+## Security Best Practices
+
+- **Rotate API keys regularly** - Generate new keys and revoke old ones periodically
+- **Use separate projects** - Don't share projects between production and development
+- **Limit override permissions** - Only enable system prompt override when necessary
+- **Monitor usage** - Review token consumption and tool call patterns in analytics
+- **Set appropriate limits** - Configure token and tool limits based on your use case
+
+## Next Steps
+
+- [Configure LLM Provider](/docs/guides/configure-agent/llm-provider) - Detailed provider setup
+- [Configure Agent Behavior](/docs/guides/configure-agent/agent-behavior) - Practical configuration patterns
+- [Add Additional Context](/docs/guides/add-additional-context) - Runtime context injection
+- [Agent Configuration Concepts](/docs/concepts/agent-configuration) - Understanding the configuration system
+
+## Troubleshooting
+
+### Changes Don't Appear in Application
+
+Project configuration changes apply immediately to new threads. Existing threads use the configuration from when they were created. To apply changes:
+
+- Create a new thread
+- Or restart your application if configuration is cached
+
+### Custom Instructions Not Working
+
+Check that:
+
+- Instructions are saved in project settings
+- You're testing with a new thread (not an existing one)
+- System prompt override isn't enabled with thread-level instructions that replace yours
+- Instructions are clear and specific enough for the model to understand
+
+### API Key Errors
+
+Common API key issues:
+
+- **Invalid Key** - Check that you copied the key correctly without extra spaces
+- **Expired Key** - Generate a new key from your provider
+- **No Credits** - Add credits to your provider account
+- **Wrong Provider** - Ensure the key matches the selected provider

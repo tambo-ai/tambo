@@ -8,6 +8,17 @@ import { Rocket } from "lucide-react";
 
 System messages are fundamentally different from other context methods. While context helpers inform each message with current data, system messages *program* the entire conversation. They establish persistent instructions that guide the AI's behavior for the thread's lifetime.
 
+## Thread-Level vs Project-Level Instructions
+
+System messages in this context refer to **thread-level** instructions set when creating a conversation. These are distinct from **project-level** custom instructions:
+
+- **Project custom instructions** - Default instructions for all threads in a project (configured in [project settings](/docs/guides/configure-agent/project-settings))
+- **Thread system messages** - Override project instructions for a specific conversation (enabled via `allowSystemPromptOverride`)
+
+When a thread is created with project custom instructions, those instructions become the thread's system message. Thread-level system messages can replace (not merge with) project instructions when overrides are enabled.
+
+For a complete understanding of the configuration hierarchy, see [Agent Configuration](/docs/concepts/agent-configuration).
+
 ## Programming vs Informing
 
 Think of the difference this way:

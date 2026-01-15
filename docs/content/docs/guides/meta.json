@@ -1,6 +1,7 @@
 {
   "title": "Guides",
   "pages": [
+    "configure-agent",
     "register-generative-components",
     "register-interactable-components",
     "customize-interactables-context",

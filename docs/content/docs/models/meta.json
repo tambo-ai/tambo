@@ -1,16 +1,4 @@
 {
   "title": "Models",
-  "pages": [
-    "index",
-    "---Providers---",
-    "openai",
-    "anthropic",
-    "google",
-    "groq",
-    "mistral",
-    "---Configuration---",
-    "labels",
-    "custom-llm-parameters",
-    "reasoning-models"
-  ]
+  "pages": ["index", "labels", "reasoning-models"]
 }

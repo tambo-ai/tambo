@@ -1,0 +1,539 @@
+---
+title: Configure Agent Behavior
+description: Practical patterns and examples for customizing agent behavior in Tambo
+---
+
+This guide provides practical patterns and examples for configuring agent behavior across different use cases. Learn when to use each configuration level and how to combine them effectively.
+
+## Prerequisites
+
+- Understanding of [Agent Configuration concepts](/docs/concepts/agent-configuration)
+- A configured Tambo Cloud project (see [Configure Project Settings](/docs/guides/configure-agent/project-settings))
+
+## Configuration Decision Framework
+
+Before configuring your agent, ask these questions:
+
+1. **Does this apply to all conversations?** → Use project-level configuration
+2. **Is this conversation-specific?** → Use thread-level configuration
+3. **Does this change with each message?** → Use message-level context helpers
+
+## Common Configuration Patterns
+
+### Pattern 1: General-Purpose Assistant
+
+**Use case:** A helpful assistant that answers questions across many topics.
+
+**Project configuration:**
+
+```
+Custom Instructions:
+"You are a knowledgeable and helpful assistant. Provide clear, accurate
+answers to questions. When you're unsure, say so rather than guessing.
+Keep responses concise but complete."
+
+Model: gpt-4o or claude-3-5-sonnet-20241022
+Temperature: 0.7
+```
+
+**Why this works:**
+
+- Balanced temperature (0.7) for good mix of creativity and consistency
+- Clear persona without over-specifying behavior
+- Works across diverse conversation topics
+
+### Pattern 2: Specialized Domain Expert
+
+**Use case:** An agent focused on a specific domain (e.g., legal, medical, technical).
+
+**Project configuration:**
+
+```
+Custom Instructions:
+"You are a senior software engineer specializing in React and TypeScript.
+When helping with code:
+- Write type-safe TypeScript with proper interfaces
+- Follow React best practices and hooks patterns
+- Explain your reasoning for architectural decisions
+- Point out potential bugs or security issues
+- Suggest improvements when appropriate"
+
+Model: claude-3-5-sonnet-20241022 (excels at coding)
+Temperature: 0.5 (more focused, less experimental)
+```
+
+**Why this works:**
+
+- Specific expertise and expectations set upfront
+- Lower temperature for consistent, focused answers
+- Clear guidelines for how to handle code
+
+### Pattern 3: Creative Writing Assistant
+
+**Use case:** Generating creative content, stories, marketing copy.
+
+**Project configuration:**
+
+```
+Custom Instructions:
+"You are a creative writing assistant. Help users craft engaging,
+original content. Be imaginative and offer unique perspectives.
+When writing:
+- Use vivid, descriptive language
+- Vary sentence structure for rhythm
+- Show, don't tell
+- Match the tone the user requests"
+
+Model: gpt-4o or claude-3-5-sonnet-20241022
+Temperature: 0.9-1.0 (high creativity)
+top_p: 0.95
+presence_penalty: 0.3 (reduce repetition)
+```
+
+**Why this works:**
+
+- Higher temperature encourages creative, varied responses
+- Presence penalty prevents repetitive phrases
+- Instructions emphasize creativity and originality
+
+### Pattern 4: Customer Support Bot
+
+**Use case:** Handling customer inquiries with access to knowledge base.
+
+**Project configuration:**
+
+```
+Custom Instructions:
+"You are a friendly customer support agent for [Company Name]. Your goal
+is to resolve customer issues efficiently and professionally. Always:
+- Greet customers warmly
+- Listen carefully to their concerns
+- Provide accurate, specific solutions
+- Escalate to human support when needed
+- Thank customers for their patience"
+
+Model: gpt-3.5-turbo (fast, cost-effective)
+Temperature: 0.5 (consistent, professional tone)
+Tools: [search_knowledge_base, create_support_ticket, check_order_status]
+```
+
+**Message-level context:**
+
+Use context helpers to inject:
+
+- Customer name and account details
+- Recent order history
+- Previous support interactions
+- Current support ticket status
+
+**Why this works:**
+
+- Project instructions define consistent support persona
+- Tools enable taking actions (searching KB, creating tickets)
+- Dynamic customer data injected per message
+- Lower temperature ensures professional, consistent responses
+
+### Pattern 5: Multi-Tenant Application
+
+**Use case:** Different agents for different customer organizations.
+
+**Architecture:** Separate projects per customer or customer tier.
+
+**Project A (Enterprise customers):**
+
+```
+Custom Instructions:
+"You are an AI assistant for [Enterprise Customer Name]. You have access
+to their proprietary data and tools. Maintain strict confidentiality."
+
+Model: gpt-4o (premium model)
+Temperature: 0.7
+allowSystemPromptOverride: false (security)
+Tools: [customer_specific_tools]
+```
+
+**Project B (Standard customers):**
+
+```
+Custom Instructions:
+"You are a helpful AI assistant. Provide general information and guidance."
+
+Model: gpt-3.5-turbo (cost-effective)
+Temperature: 0.7
+allowSystemPromptOverride: false
+Tools: [general_tools_only]
+```
+
+**Why this works:**
+
+- Complete isolation between customers
+- Different model tiers based on service level
+- Separate tool access per tenant
+- Independent security and compliance controls
+
+### Pattern 6: Context-Aware Coding Assistant
+
+**Use case:** AI pair programmer with awareness of current file and project.
+
+**Project configuration:**
+
+```
+Custom Instructions:
+"You are an expert programming assistant. When helping with code:
+- Understand the full context before suggesting changes
+- Match the existing code style and patterns
+- Explain trade-offs when making architectural decisions
+- Catch potential bugs and security issues
+- Write tests when appropriate"
+
+Model: claude-3-5-sonnet-20241022
+Temperature: 0.6
+```
+
+**Message-level context:**
+
+```typescript
+import { useTambo } from "@tambo-ai/react";
+
+function CodeEditor() {
+  const { sendMessage } = useTambo();
+
+  const askAboutCode = async (question: string) => {
+    await sendMessage({
+      content: question,
+      contextHelpers: {
+        systemMessages: [
+          {
+            content: `Current file: ${currentFile.path}
+
+File contents:
+\`\`\`${currentFile.language}
+${currentFile.contents}
+\`\`\`
+
+Project structure:
+${projectStructure}
+
+Recent changes:
+${git.recentCommits}`,
+          },
+        ],
+      },
+    });
+  };
+}
+```
+
+**Why this works:**
+
+- Project instructions establish coding expertise
+- Dynamic file contents and project context injected per message
+- Agent understands full context without storing sensitive code in project config
+- Fresh context with every request
+
+### Pattern 7: Reasoning-Intensive Tasks
+
+**Use case:** Complex problem-solving requiring deep reasoning.
+
+**Project configuration:**
+
+```
+Custom Instructions:
+"You are an expert problem solver. For complex questions:
+- Break down problems into smaller steps
+- Consider multiple approaches before deciding
+- Show your reasoning process
+- Validate your conclusions
+- Point out assumptions and limitations"
+
+Model: o1-preview (reasoning model)
+reasoningEffort: high
+```
+
+**Why this works:**
+
+- Reasoning models (o1-preview, o1-mini) excel at complex logic
+- High reasoning effort for thorough analysis
+- Instructions emphasize systematic problem-solving
+- No temperature parameter (reasoning models use fixed temperature)
+
+## Combining Configuration Levels
+
+### Example: Personalized Financial Advisor
+
+**Project-level (core persona):**
+
+```
+Custom Instructions:
+"You are a certified financial advisor. Provide sound financial guidance
+based on established principles. Always disclose when advice is general
+vs. personalized. Recommend consulting a human advisor for major decisions."
+
+Model: gpt-4o
+Temperature: 0.5
+```
+
+**Thread-level (conversation goal):**
+
+```typescript
+// Create thread with specific focus
+const thread = await createThread({
+  projectId: "financial-advisor-project",
+  initialMessages: [
+    {
+      role: "system",
+      content:
+        "Focus this conversation on retirement planning for a 35-year-old.",
+    },
+  ],
+});
+```
+
+**Message-level (user context):**
+
+```typescript
+// Inject current user data with each message
+await sendMessage({
+  content: userQuestion,
+  contextHelpers: {
+    systemMessages: [
+      {
+        content: `User profile:
+        Age: ${user.age}
+        Income: ${user.income}
+        Current savings: ${user.savings}
+        Risk tolerance: ${user.riskTolerance}
+        Financial goals: ${user.goals.join(", ")}`,
+      },
+    ],
+  },
+});
+```
+
+**Why this layered approach works:**
+
+- Project: Establishes professional financial advisor persona
+- Thread: Focuses conversation on retirement planning
+- Message: Provides up-to-date user financial data
+- Each level complements the others without conflict
+
+## When to Use Thread Overrides
+
+Thread-level overrides completely replace project instructions. Use them sparingly:
+
+### Good Use Cases:
+
+- **A/B testing different agent personas**
+- **Allowing power users to customize behavior**
+- **Specialized workflows within a multi-purpose app**
+
+### Example: A/B Testing Personas
+
+```typescript
+// Project has allowSystemPromptOverride: true
+
+// Control group: uses project instructions
+const controlThread = await createThread({ projectId });
+
+// Treatment group: tests friendlier persona
+const treatmentThread = await createThread({
+  projectId,
+  initialMessages: [
+    {
+      role: "system",
+      content:
+        "You are an extremely friendly and enthusiastic assistant! Use emojis and casual language.",
+    },
+  ],
+});
+```
+
+### Bad Use Cases:
+
+- ❌ Storing user-specific data (use message-level context instead)
+- ❌ Injecting dynamic information (use context helpers instead)
+- ❌ Working around project instruction limits (revise project instructions instead)
+
+## Choosing the Right Model
+
+Different models excel at different tasks:
+
+### Model Selection Guide
+
+| Use Case                 | Recommended Model               | Why                          |
+| ------------------------ | ------------------------------- | ---------------------------- |
+| **General conversation** | gpt-4o, claude-3-5-sonnet       | Balanced capability and cost |
+| **Cost-sensitive**       | gpt-3.5-turbo, claude-3-haiku   | Fast, affordable             |
+| **Coding**               | claude-3-5-sonnet-20241022      | Excellent at code            |
+| **Reasoning**            | o1-preview, o1-mini             | Deep analytical thinking     |
+| **Long context**         | claude-3-5-sonnet (200K tokens) | Large context windows        |
+| **Fast responses**       | gpt-3.5-turbo, gemini-1.5-flash | Low latency                  |
+
+## Parameter Tuning for Different Behaviors
+
+### Conservative (consistent, professional):
+
+```json
+{
+  "temperature": 0.3,
+  "top_p": 0.8
+}
+```
+
+Use for: customer support, financial advice, legal assistance
+
+### Balanced (general-purpose):
+
+```json
+{
+  "temperature": 0.7,
+  "top_p": 0.9
+}
+```
+
+Use for: general assistants, Q&A, tutoring
+
+### Creative (varied, exploratory):
+
+```json
+{
+  "temperature": 1.0,
+  "top_p": 0.95,
+  "presence_penalty": 0.3
+}
+```
+
+Use for: creative writing, brainstorming, ideation
+
+## Testing Your Configuration
+
+### Quick Validation
+
+1. **Test default behavior** - Send a simple question without context
+2. **Test with context** - Add context helpers and verify they're used
+3. **Test edge cases** - Try unusual inputs to verify guardrails
+4. **Test consistency** - Ask similar questions, verify similar answers
+
+### A/B Testing
+
+Compare configurations to find what works best:
+
+```typescript
+// Test two temperature settings
+const testConfigurations = async () => {
+  // Configuration A: temperature 0.5
+  const responseA = await sendToProject("project-a", question);
+
+  // Configuration B: temperature 0.9
+  const responseB = await sendToProject("project-b", question);
+
+  // Compare quality, relevance, creativity
+};
+```
+
+## Common Pitfalls
+
+### Over-Specifying Instructions
+
+❌ **Too specific:**
+
+```
+"Always start responses with 'As an AI assistant...', use exactly 3 paragraphs,
+include emojis, avoid certain words, format in specific ways..."
+```
+
+✅ **Better:**
+
+```
+"You are a helpful assistant. Provide clear, accurate answers. Be concise but complete."
+```
+
+### Mixing Static and Dynamic Data
+
+❌ **Wrong:**
+
+```
+Project Custom Instructions:
+"Current user: John Smith
+User preferences: dark mode
+Current date: 2024-01-15"
+```
+
+✅ **Right:**
+
+```
+// Project: Core persona only
+Custom Instructions: "You are a helpful assistant..."
+
+// Message-level: Dynamic data
+contextHelpers: {
+  systemMessages: [{
+    content: `User: ${user.name}\nPreferences: ${user.prefs}\nDate: ${new Date()}`
+  }]
+}
+```
+
+### Ignoring Token Costs
+
+Long custom instructions consume tokens with every request. Keep them focused:
+
+❌ **Too verbose (wastes tokens):**
+
+```
+"You are an extremely knowledgeable assistant with expertise in numerous domains
+including but not limited to science, technology, engineering, mathematics,
+literature, history, geography, and many more fields. When responding to questions..."
+(continues for several more paragraphs)
+```
+
+✅ **Concise (saves tokens):**
+
+```
+"You are a knowledgeable assistant. Provide accurate, well-reasoned answers across diverse topics."
+```
+
+## Troubleshooting
+
+### Agent Not Following Instructions
+
+**Check:**
+
+- Instructions are clear and specific
+- No thread-level override is replacing them
+- Model is capable of understanding the instructions
+- Temperature isn't too high (&gt;1.0 reduces instruction-following)
+
+### Inconsistent Behavior
+
+**Check:**
+
+- Temperature setting (lower = more consistent)
+- Multiple conflicting instructions at different levels
+- Dynamic context changing between messages
+- Model capacity (smaller models are less consistent)
+
+### Agent Too Constrained
+
+**Check:**
+
+- Temperature too low (&lt;0.3)
+- Instructions too restrictive or specific
+- Token limits cutting off responses
+- Model not capable enough for the task
+
+## Best Practices
+
+1. **Start simple** - Begin with basic instructions, add complexity as needed
+2. **Test thoroughly** - Validate with real user scenarios
+3. **Document decisions** - Note why specific settings were chosen
+4. **Monitor performance** - Track quality, cost, latency
+5. **Iterate** - Refine based on user feedback and metrics
+6. **Use appropriate models** - Match model capabilities to task requirements
+7. **Layer context appropriately** - Static in project, dynamic via context helpers
+
+## Next Steps
+
+- [Add Additional Context](/docs/guides/add-additional-context) - Runtime context injection
+- [Register Tools](/docs/guides/register-tools) - Enable agent actions
+- [Agent Configuration Concepts](/docs/concepts/agent-configuration) - Deep dive into the system
+- [Provider Reference](/docs/reference/providers) - Detailed model capabilities

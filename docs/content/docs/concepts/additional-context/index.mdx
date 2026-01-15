@@ -10,6 +10,16 @@ When users interact with Tambo, the AI doesn't just see their message—it needs
 
 Think of additional context as layers of information that help the AI see what you see. These layers work together to give the AI a complete picture of each interaction.
 
+## Context in the Configuration Hierarchy
+
+Additional context operates at the **message level** of Tambo's [agent configuration hierarchy](/docs/concepts/agent-configuration):
+
+1. **Project-level** - Custom instructions and LLM settings (set in project configuration)
+2. **Thread-level** - System message overrides (optional, per conversation)
+3. **Message-level** - Additional context methods (this page)
+
+Project and thread configuration establish the AI's core persona and behavior. Additional context augments each message with dynamic information—current time, user state, file contents, etc.—without modifying the underlying agent configuration.
+
 ## The Context Problem
 
 Imagine a user asks "What's next on my schedule?" The message alone doesn't tell the AI:
