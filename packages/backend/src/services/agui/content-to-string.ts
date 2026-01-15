@@ -31,7 +31,7 @@ export function aguiContentToString(content: AguiMessageContent): string {
           return part.text;
         }
 
-        return `[binary:${part ? `${part.mimeType}` : "undefined"}]`;
+        return `[binary:${part.mimeType}]`;
       })
       .join("\n");
   }
