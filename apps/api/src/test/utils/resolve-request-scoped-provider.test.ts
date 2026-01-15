@@ -3,6 +3,7 @@ import { Injectable, Scope } from "@nestjs/common";
 import { createTestRequestContext } from "./create-test-request-context";
 import { createTestingModule } from "./create-testing-module";
 import { resolveRequestScopedProvider } from "./resolve-request-scoped-provider";
+import { assertTrue, type IsUnknown } from "./type-assertions";
 
 @Injectable()
 class ExampleDepService {
@@ -65,6 +66,7 @@ describe("resolveRequestScopedProvider", () => {
     try {
       const context = createTestRequestContext();
       const value = await resolveRequestScopedProvider(module, token, context);
+      assertTrue<IsUnknown<typeof value>>(true);
       expect(value).toBe(123);
     } finally {
       await module.close();
