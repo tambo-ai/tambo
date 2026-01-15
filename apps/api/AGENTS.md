@@ -140,6 +140,7 @@ it("resolves request-scoped providers", async () => {
     expect(requestScoped).toBeDefined();
   } finally {
     getByRequestSpy.mockRestore();
+    await module.close();
   }
 });
 ```
