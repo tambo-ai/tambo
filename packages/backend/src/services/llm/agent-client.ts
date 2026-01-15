@@ -29,6 +29,7 @@ import {
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
+import { aguiContentToString } from "../agui/content-to-string";
 import { EventHandlerParams, runStreamingAgent } from "./async-adapters";
 import { CompleteParams, LLMResponse } from "./llm-client";
 import { generateMessageId } from "./message-id-generator";
@@ -289,11 +290,6 @@ export class AgentClient {
           break;
         }
 
-        case EventType.ACTIVITY_SNAPSHOT:
-        case EventType.ACTIVITY_DELTA: {
-          // We don't currently support activity events.
-          break;
-        }
         case EventType.TOOL_CALL_START: {
           const e = event as ToolCallStartEvent;
           const messageId = e.parentMessageId ?? generateMessageId();
@@ -440,7 +436,7 @@ export class AgentClient {
             throw new Error("No current message");
           }
 
-          const currentContent = convertContentToString(currentMessage.content);
+          const currentContent = aguiContentToString(currentMessage.content);
           currentMessage = {
             // this hacky cast works around a TS type ambiguity
             ...(currentMessage as unknown as AgentMessage),
@@ -550,37 +546,7 @@ function invalidEvent(eventType: never) {
 function getLastNonActivityMessage(
   messages: AGUIMessage[],
 ): NonActivityMessage | null {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    if (message.role !== "activity") {
-      return message;
-    }
-  }
-
-  return null;
-}
-
-function convertContentToString(content: AgentMessage["content"]): string {
-  if (typeof content === "string") {
-    return content;
-  }
-
-  if (content === undefined) {
-    return "";
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map((part) => {
-        if (part.type === "text") {
-          return part.text;
-        }
-        return `[binary:${part.mimeType}]`;
-      })
-      .join("\n");
-  }
-
-  return JSON.stringify(content);
+  return messages.at(-1) ?? null;
 }
 
 /** Convert ChatCompletionContentPart[] to string for AGUI messages */

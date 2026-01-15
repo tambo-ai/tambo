@@ -11,6 +11,7 @@ import {
   prefetchAndCacheResources,
   ResourceFetcherMap,
 } from "../../util/resource-transformation";
+import { aguiContentToString } from "../agui/content-to-string";
 import { AgentClient } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
 
@@ -67,7 +68,7 @@ export async function* runAgentLoop(
       id: message.id,
       role: messageRole,
       parentMessageId: message.parentMessageId,
-      message: convertAguiMessageContentToString(message),
+      message: aguiContentToString(message.content),
       componentName: null,
       props: null,
       componentState: null,
@@ -100,28 +101,6 @@ function toCoreMessageRole(role: Message["role"]): MessageRole | null {
   }
 }
 
-function convertAguiMessageContentToString(message: Message): string {
-  if (typeof message.content === "string") {
-    return message.content;
-  }
-
-  if (message.content === undefined) {
-    return "";
-  }
-
-  if (Array.isArray(message.content)) {
-    return message.content
-      .map((part) => {
-        if (part.type === "text") {
-          return part.text;
-        }
-        return `[binary:${part.mimeType}]`;
-      })
-      .join("\n");
-  }
-
-  return JSON.stringify(message.content);
-}
 function getToolCallId(message: Message) {
   if (message.role === "assistant") {
     return message.toolCalls?.[0]?.id;
