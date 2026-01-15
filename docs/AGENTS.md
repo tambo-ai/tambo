@@ -103,7 +103,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - Components: Registration, schemas, lifecycle, interactables
    - Message Threads: Sending messages, responses, history management, status tracking
    - Tools: Function calling, schemas, orchestration
-   - Model Context Protocol: Overview, providers overview (client-side and server-side comparison, rich content support), client-side connections, server-side connections, features overview (elicitations, tools, sampling, prompts, resources)
+   - Model Context Protocol: Overview (what is MCP, connection architectures - server-side vs client-side comparison, server namespacing, rich content support, quick start), Features (tools, prompts, resources, elicitations, sampling - all explained with user experience examples)
    - User Authentication: OAuth providers, session management, context keys
    - Additional Context: Configuration, custom helpers, context attachments, dynamic control, system messages (thread-level instructions), resources (local and MCP, @ mention syntax, user-controlled context inclusion)
 

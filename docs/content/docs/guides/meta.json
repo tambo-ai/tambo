@@ -6,6 +6,8 @@
     "customize-interactables-context",
     "build-custom-conversation-ui",
     "register-tools",
+    "connect-mcp-servers",
+    "customize-mcp-ui",
     "enable-user-authentication",
     "add-additional-context"
   ]

@@ -1,0 +1,218 @@
+---
+title: Connect MCP Servers
+description: Configure Model Context Protocol servers to extend Tambo with external tools and data
+---
+
+This guide shows you how to connect MCP servers to your Tambo application, both through the Tambo dashboard (server-side) and directly in your React code (client-side).
+
+For an overview of MCP and when to use each connection type, see [Model Context Protocol](/concepts/model-context-protocol).
+
+## Prerequisites
+
+- A Tambo project set up with `TamboProvider`
+- For client-side MCP: Install peer dependencies
+
+```bash
+npm install @modelcontextprotocol/sdk@^1.24.0 zod@^4.0.0 zod-to-json-schema@^3.25.0
+```
+
+## Server-side Connection (Recommended)
+
+Server-side MCP connections are configured through the Tambo dashboard and run on Tambo's infrastructure. This provides better performance and supports OAuth authentication.
+
+### Step 1: Navigate to MCP Settings
+
+1. Go to your [Tambo dashboard](https://tambo.co/dashboard)
+2. Select your project
+3. Find the "MCP Servers" section
+4. Click "Add MCP Server"
+
+### Step 2: Configure the Server
+
+Enter the MCP server details:
+
+- **Server URL**: The endpoint URL (e.g., `https://mcp.linear.app`)
+- **Server Type**: Choose between `StreamableHTTP` or `SSE` based on the server's protocol
+- **Server Key** (optional): A stable identifier for namespacing (e.g., `linear`)
+
+Click "Save" to create the connection.
+
+### Step 3: Authenticate (If Required)
+
+If the MCP server requires authentication:
+
+1. A "Begin Authentication" button will appear
+2. Click it to start the OAuth flow
+3. Complete authentication in the popup window
+4. The server status will update to "Connected"
+
+The OAuth identity is currently shared across all users of your project. Only configure servers where this shared access is acceptable.
+
+### Step 4: Verify Connection
+
+The MCP server is now available to your application. No client-side code changes are needed - Tambo automatically makes the server's capabilities available.
+
+Test by asking your AI assistant to use tools from the connected server.
+
+## Client-side Connection
+
+Client-side MCP connections run in the user's browser, allowing access to local servers and leveraging browser authentication.
+
+### Step 1: Install Dependencies
+
+```bash
+npm install @modelcontextprotocol/sdk@^1.24.0 zod@^4.0.0 zod-to-json-schema@^3.25.0
+```
+
+### Step 2: Configure MCP Servers
+
+Add the `mcpServers` prop to your `TamboProvider`:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import { MCPTransport } from "@tambo-ai/react/mcp";
+
+function App() {
+  return (
+    <TamboProvider
+      components={components}
+      mcpServers={[
+        {
+          url: "http://localhost:8123/",
+          serverKey: "local",
+          transport: MCPTransport.HTTP,
+        },
+      ]}
+    >
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+### Step 3: Add Custom Headers (Optional)
+
+If your MCP server requires authentication headers:
+
+```tsx
+<TamboProvider
+  mcpServers={[
+    {
+      url: "https://api.example.com/mcp",
+      serverKey: "example",
+      customHeaders: {
+        "Authorization": `Bearer ${token}`,
+        "X-Api-Key": "your-api-key",
+      },
+      transport: MCPTransport.HTTP,
+    },
+  ]}
+>
+  <YourApp />
+</TamboProvider>
+```
+
+### Step 4: Test the Connection
+
+The MCP server is now connected. Test by:
+
+1. Starting your development server
+2. Opening your application
+3. Trying to use MCP features (prompts, resources, tools)
+
+Check the browser console for connection status and any errors.
+
+## Multiple MCP Servers
+
+You can connect multiple MCP servers simultaneously:
+
+```tsx
+<TamboProvider
+  mcpServers={[
+    {
+      url: "https://mcp.linear.app",
+      serverKey: "linear",
+      transport: MCPTransport.HTTP,
+    },
+    {
+      url: "https://mcp.github.com",
+      serverKey: "github",
+      transport: MCPTransport.HTTP,
+    },
+    {
+      url: "http://localhost:8123/",
+      serverKey: "local",
+      transport: MCPTransport.HTTP,
+    },
+  ]}
+>
+  <YourApp />
+</TamboProvider>
+```
+
+Each server's capabilities are prefixed with its `serverKey` to prevent naming conflicts.
+
+## Server Key Best Practices
+
+The `serverKey` is used to namespace MCP capabilities:
+
+- **Tools**: `serverKey__toolName` (e.g., `linear__create_issue`)
+- **Prompts**: `serverKey:promptName` (e.g., `linear:new-issue`)
+- **Resources**: Varies by connection type
+
+Follow these guidelines:
+
+1. **Explicit is better**: Always set `serverKey` rather than relying on URL-derived keys
+2. **Environment-aware**: Use different keys per environment (e.g., `linear-staging`, `linear-prod`)
+3. **Avoid special characters**: Use only letters, numbers, `_`, and `-`
+4. **Don't use separators**: Avoid `:` and `__` (reserved for namespacing)
+
+## Troubleshooting
+
+### Connection Fails
+
+**Server-side:**
+- Verify the server URL is correct and accessible from Tambo's infrastructure
+- Check that the server type (StreamableHTTP/SSE) matches the server's protocol
+- Ensure authentication is completed if required
+
+**Client-side:**
+- Check browser console for CORS errors
+- Verify the server URL is accessible from the browser
+- Confirm peer dependencies are installed correctly
+
+### Tools Not Appearing
+
+- Wait a few seconds for the MCP server to initialize
+- Check that the server is returning tools in its capabilities
+- Verify the `serverKey` is unique across all connected servers
+
+### Authentication Issues
+
+**Server-side:**
+- Ensure you completed the OAuth flow
+- Check token expiration in the dashboard
+- Try re-authenticating by clicking "Begin Authentication" again
+
+**Client-side:**
+- OAuth is not currently supported for client-side connections
+- Use `customHeaders` for API key authentication instead
+- Ensure the browser has existing session cookies if relying on session auth
+
+## What's Next
+
+Now that you have MCP servers connected, learn how to customize the UI:
+
+import LearnMore from "@/components/learn-more";
+
+<LearnMore
+  title="Customize MCP UI"
+  description="Build custom interfaces for prompts, resources, and elicitations"
+  href="/guides/customize-mcp-ui"
+/>
+
+<LearnMore
+  title="MCP Features"
+  description="Understand how tools, prompts, resources, elicitations, and sampling work"
+  href="/concepts/model-context-protocol/features"
+/>
