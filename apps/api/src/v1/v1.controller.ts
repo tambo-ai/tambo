@@ -307,6 +307,8 @@ export class V1Controller {
         thread.id,
         startResult.runId,
         dto,
+        projectId,
+        effectiveContextKey,
       );
     } catch (error) {
       // Emit error event if headers already sent
@@ -357,10 +359,15 @@ export class V1Controller {
     description: "Concurrent run conflict",
   })
   async createRun(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
     @Body() dto: V1CreateRunDto,
     @Res() response: Response,
   ): Promise<void> {
+    // Extract project and context info from the request
+    // Note: V1CreateRunDto doesn't have contextKey, so we only use bearer token context
+    const { projectId, contextKey } = extractContextInfo(request, undefined);
+
     // Start run (handles concurrency atomically)
     const startResult = await this.v1Service.startRun(threadId, dto);
     if (!startResult.success) {
@@ -389,6 +396,8 @@ export class V1Controller {
         threadId,
         startResult.runId,
         dto,
+        projectId,
+        contextKey,
       );
     } catch (error) {
       // Emit error event if headers already sent

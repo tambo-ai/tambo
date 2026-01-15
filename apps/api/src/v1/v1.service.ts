@@ -7,13 +7,28 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
-import { V1RunStatus } from "@tambo-ai-cloud/core";
+import {
+  EventType,
+  type BaseEvent,
+  type RunStartedEvent,
+  type RunFinishedEvent,
+  type RunErrorEvent,
+} from "@ag-ui/core";
+import {
+  AsyncQueue,
+  ContentPartType,
+  MessageRole,
+  V1RunStatus,
+} from "@tambo-ai-cloud/core";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
 import type { Response } from "express";
 import { createProblemDetail, V1ErrorCodes } from "./v1.errors";
 import { V1CreateRunDto } from "./dto/run.dto";
+import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
+import { ThreadsService } from "../threads/threads.service";
+import type { MessageRequest } from "../threads/dto/message.dto";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
   V1GetMessageResponseDto,
@@ -66,6 +81,7 @@ export class V1Service {
   constructor(
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
+    private readonly threadsService: ThreadsService,
   ) {}
 
   private parseLimit(raw: string | undefined, fallback: number): number {
@@ -501,61 +517,162 @@ export class V1Service {
    * @param threadId - Thread to execute the run on
    * @param runId - The run ID (already created by startRun)
    * @param dto - Run configuration including message, tools, etc.
+   * @param projectId - The project ID for the thread
+   * @param contextKey - Optional context key for thread scoping
    */
   async executeRun(
     response: Response,
     threadId: string,
     runId: string,
-    _dto: V1CreateRunDto,
+    dto: V1CreateRunDto,
+    projectId: string,
+    contextKey?: string,
   ): Promise<void> {
-    // TODO: Implement executeRun in Phase 3
-    // This is a placeholder - full implementation will:
-    // 1. Emit RUN_STARTED event
-    // 2. Add user message to thread
-    // 3. Call LLM via shared logic with advanceThread
-    // 4. Stream AG-UI events (TEXT_MESSAGE_START, TEXT_MESSAGE_CONTENT, etc.)
-    // 5. Handle tool calls
-    // 6. Emit RUN_FINISHED or RUN_ERROR
-    // 7. Update run/thread state
-
     this.logger.log(`Executing run ${runId} on thread ${threadId}`);
 
-    // Emit placeholder events for now
-    const runStartedEvent = {
-      type: "RUN_STARTED",
+    // 1. Emit RUN_STARTED event
+    const runStartedEvent: RunStartedEvent = {
+      type: EventType.RUN_STARTED,
       threadId,
       runId,
       timestamp: Date.now(),
     };
-    response.write(`data: ${JSON.stringify(runStartedEvent)}\n\n`);
+    this.emitEvent(response, runStartedEvent);
 
-    // Mark run as completed (placeholder)
-    await this.db
-      .update(schema.runs)
-      .set({
-        status: V1RunStatus.IDLE,
-        completedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.runs.id, runId));
-
-    // Release run lock
-    await this.db
-      .update(schema.threads)
-      .set({
-        runStatus: V1RunStatus.IDLE,
-        currentRunId: null,
-        lastCompletedRunId: runId,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.threads.id, threadId));
-
-    const runFinishedEvent = {
-      type: "RUN_FINISHED",
+    // Update run and thread status to STREAMING
+    await operations.updateRunStatus(this.db, runId, V1RunStatus.STREAMING);
+    await operations.updateThreadRunStatus(
+      this.db,
       threadId,
-      runId,
-      timestamp: Date.now(),
+      V1RunStatus.STREAMING,
+    );
+
+    try {
+      // 2. Convert V1 message to internal format
+      const messageToAppend = this.convertV1MessageToInternal(dto.message);
+
+      // 3. Create streaming infrastructure
+      const queue = new AsyncQueue<StreamQueueItem>();
+
+      // 4. Start streaming via shared logic with advanceThread
+      // advanceThread is fire-and-forget style - it resolves when streaming completes
+      // but pushes to queue while running
+      //
+      // TODO(Step 8): Convert V1 tools/components to internal format
+      // V1 uses JSON Schemas (inputSchema, propsSchema) while internal uses
+      // parsed metadata (ToolParameters[], contextTools). Proper conversion
+      // needed when implementing client-side tool handling.
+      const streamingPromise = this.threadsService.advanceThread(
+        projectId,
+        {
+          messageToAppend,
+          // V1 tools/components format differs from internal - conversion needed
+          availableComponents: undefined,
+          clientTools: undefined,
+        },
+        threadId,
+        {}, // toolCallCounts - start fresh for V1 API
+        undefined, // cachedSystemTools
+        queue,
+        contextKey,
+      );
+
+      // 5. Consume queue and emit AG-UI events
+      for await (const item of queue) {
+        // Emit all AG-UI events from this stream item
+        if (item.aguiEvents) {
+          for (const event of item.aguiEvents) {
+            this.emitEvent(response, event);
+          }
+        }
+      }
+
+      // Wait for streaming to complete (should already be done since queue finished)
+      await streamingPromise;
+
+      // 6. Mark run as completed successfully
+      await operations.completeRun(this.db, runId);
+      await operations.releaseRunLock(this.db, threadId, runId);
+
+      // 7. Emit RUN_FINISHED
+      const runFinishedEvent: RunFinishedEvent = {
+        type: EventType.RUN_FINISHED,
+        threadId,
+        runId,
+        timestamp: Date.now(),
+      };
+      this.emitEvent(response, runFinishedEvent);
+    } catch (error) {
+      // 8. Handle error - emit RUN_ERROR and update state
+      this.logger.error(
+        `Run ${runId} failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+
+      const runErrorEvent: RunErrorEvent = {
+        type: EventType.RUN_ERROR,
+        message: error instanceof Error ? error.message : "Unknown error",
+        code: "INTERNAL_ERROR",
+        timestamp: Date.now(),
+      };
+      this.emitEvent(response, runErrorEvent);
+
+      const errorInfo = {
+        code: "INTERNAL_ERROR",
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
+
+      // Update run and thread with error
+      await operations.completeRun(this.db, runId, { error: errorInfo });
+      await operations.releaseRunLock(this.db, threadId, runId, {
+        error: errorInfo,
+      });
+
+      throw error;
+    }
+  }
+
+  /**
+   * Emit an AG-UI event to the SSE response.
+   */
+  private emitEvent(response: Response, event: BaseEvent): void {
+    response.write(`data: ${JSON.stringify(event)}\n\n`);
+  }
+
+  /**
+   * Convert V1 input message to internal MessageRequest format.
+   */
+  private convertV1MessageToInternal(
+    message: V1CreateRunDto["message"],
+  ): MessageRequest {
+    return {
+      role: MessageRole.User,
+      content: message.content.map((block) => {
+        switch (block.type) {
+          case "text":
+            return {
+              type: ContentPartType.Text,
+              text: block.text,
+            };
+          case "resource":
+            return {
+              type: ContentPartType.Resource,
+              resource: block.resource,
+            };
+          case "tool_result":
+            // Tool results should be handled separately in processToolResults
+            // For now, convert to text representation
+            return {
+              type: ContentPartType.Text,
+              text: block.content
+                .map((c) => (c.type === "text" ? c.text : "[resource]"))
+                .join("\n"),
+            };
+          default:
+            throw new Error(
+              `Unknown content type: ${(block as { type: string }).type}`,
+            );
+        }
+      }),
     };
-    response.write(`data: ${JSON.stringify(runFinishedEvent)}\n\n`);
   }
 }

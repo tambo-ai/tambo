@@ -49,9 +49,15 @@ type MockDb = {
   };
 };
 
+// Mock ThreadsService type for testing
+type MockThreadsService = {
+  advanceThread: jest.Mock;
+};
+
 describe("V1Service", () => {
   let service: V1Service;
   let mockDb: MockDb;
+  let mockThreadsService: MockThreadsService;
 
   const mockThread = {
     id: "thr_123",
@@ -96,8 +102,15 @@ describe("V1Service", () => {
       },
     };
 
-    // Create service with mock database (cast to unknown first to satisfy constructor type)
-    service = new V1Service(mockDb as unknown as HydraDatabase);
+    mockThreadsService = {
+      advanceThread: jest.fn(),
+    };
+
+    // Create service with mock database and threads service (cast to unknown first to satisfy constructor type)
+    service = new V1Service(
+      mockDb as unknown as HydraDatabase,
+      mockThreadsService as unknown as import("../../threads/threads.service").ThreadsService,
+    );
   });
 
   afterEach(() => {

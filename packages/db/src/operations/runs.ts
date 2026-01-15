@@ -221,3 +221,25 @@ export async function updateThreadRunStatus(
     })
     .where(eq(threads.id, threadId));
 }
+
+/**
+ * Mark a run as complete (success or error).
+ */
+export async function completeRun(
+  db: HydraDatabase,
+  runId: string,
+  options: {
+    error?: { code: string; message: string };
+  } = {},
+): Promise<void> {
+  await db
+    .update(runs)
+    .set({
+      status: V1RunStatus.IDLE,
+      errorCode: options.error?.code ?? null,
+      errorMessage: options.error?.message ?? null,
+      completedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(runs.id, runId));
+}

@@ -6,6 +6,19 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { LanguageModelV2 } from "@ai-sdk/provider";
 import {
+  EventType,
+  type BaseEvent,
+  type TextMessageContentEvent,
+  type TextMessageEndEvent,
+  type TextMessageStartEvent,
+  type ThinkingTextMessageContentEvent,
+  type ThinkingTextMessageEndEvent,
+  type ThinkingTextMessageStartEvent,
+  type ToolCallArgsEvent,
+  type ToolCallEndEvent,
+  type ToolCallStartEvent,
+} from "@ag-ui/core";
+import {
   CustomLlmParameters,
   getToolDescription,
   getToolName,
@@ -35,8 +48,10 @@ import {
   CompleteParams,
   LLMClient,
   LLMResponse,
+  LLMStreamItem,
   StreamingCompleteParams,
 } from "./llm-client";
+import { generateMessageId } from "./message-id-generator";
 import { limitTokens } from "./token-limiter";
 
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
@@ -133,11 +148,11 @@ export class AISdkClient implements LLMClient {
 
   async complete(
     params: StreamingCompleteParams,
-  ): Promise<AsyncIterableIterator<LLMResponse>>;
+  ): Promise<AsyncIterableIterator<LLMStreamItem>>;
   async complete(params: CompleteParams): Promise<LLMResponse>;
   async complete(
     params: StreamingCompleteParams | CompleteParams,
-  ): Promise<LLMResponse | AsyncIterableIterator<LLMResponse>> {
+  ): Promise<LLMResponse | AsyncIterableIterator<LLMStreamItem>> {
     const providerKey = getProviderFromModel(this.model, this.provider);
 
     // Get the model instance with proper configuration
@@ -396,7 +411,7 @@ export class AISdkClient implements LLMClient {
 
   private async *handleStreamingResponse(
     result: TextStreamResponse,
-  ): AsyncIterableIterator<LLMResponse> {
+  ): AsyncIterableIterator<LLMStreamItem> {
     let accumulatedMessage = "";
     let accumulatedReasoning: string[] = [];
     let reasoningStartTimestamp: number | undefined;
@@ -407,26 +422,85 @@ export class AISdkClient implements LLMClient {
       id?: string;
     } = { arguments: "" };
 
+    // Track message ID for AG-UI events
+    let textMessageId: string | undefined;
+    // Track tool call ID - using the LLM-provided ID when available
+    let currentToolCallId: string | undefined;
+
     for await (const delta of result.fullStream) {
+      // Collect AG-UI events for this delta
+      const aguiEvents: BaseEvent[] = [];
+
       switch (delta.type) {
         case "text-start":
           accumulatedMessage = "";
+          // Generate message ID for this text stream
+          textMessageId = generateMessageId();
+          aguiEvents.push({
+            type: EventType.TEXT_MESSAGE_START,
+            messageId: textMessageId,
+            role: "assistant",
+            timestamp: Date.now(),
+          } as TextMessageStartEvent);
           break;
         case "text-delta":
           accumulatedMessage += delta.text;
+          if (textMessageId) {
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_CONTENT,
+              messageId: textMessageId,
+              delta: delta.text,
+              timestamp: Date.now(),
+            } as TextMessageContentEvent);
+          }
           break;
         case "text-end":
+          if (textMessageId) {
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_END,
+              messageId: textMessageId,
+              timestamp: Date.now(),
+            } as TextMessageEndEvent);
+          }
           break;
         case "tool-input-start":
           accumulatedToolCall.name = delta.toolName;
+          // Generate a temporary tool call ID (will be replaced when we get the real one)
+          currentToolCallId = generateMessageId();
+          aguiEvents.push({
+            type: EventType.TOOL_CALL_START,
+            toolCallId: currentToolCallId,
+            toolCallName: delta.toolName,
+            parentMessageId: textMessageId,
+            timestamp: Date.now(),
+          } as ToolCallStartEvent);
           break;
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
+          if (currentToolCallId) {
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_ARGS,
+              toolCallId: currentToolCallId,
+              delta: delta.delta,
+              timestamp: Date.now(),
+            } as ToolCallArgsEvent);
+          }
           break;
         case "tool-input-end":
           break;
         case "tool-call":
+          // Update tool call ID to the real one from the LLM
           accumulatedToolCall.id = delta.toolCallId;
+          // Note: We already emitted TOOL_CALL_START with a generated ID,
+          // and TOOL_CALL_ARGS events. The consumer can use the final toolCallId
+          // from the LLM response if needed.
+          if (currentToolCallId) {
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_END,
+              toolCallId: currentToolCallId,
+              timestamp: Date.now(),
+            } as ToolCallEndEvent);
+          }
           break;
         case "tool-result":
           // Tambo should be handling all tool results, not operating like an agent
@@ -438,15 +512,28 @@ export class AISdkClient implements LLMClient {
           // append to the last element of the array
           accumulatedReasoning = [...accumulatedReasoning, ""];
           reasoningStartTimestamp = reasoningStartTimestamp ?? Date.now();
+          aguiEvents.push({
+            type: EventType.THINKING_TEXT_MESSAGE_START,
+            timestamp: Date.now(),
+          } as ThinkingTextMessageStartEvent);
           break;
         case "reasoning-delta":
           accumulatedReasoning = [
             ...accumulatedReasoning.slice(0, -1),
             accumulatedReasoning[accumulatedReasoning.length - 1] + delta.text,
           ];
+          aguiEvents.push({
+            type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+            delta: delta.text,
+            timestamp: Date.now(),
+          } as ThinkingTextMessageContentEvent);
           break;
         case "reasoning-end":
           reasoningEndTimestamp = Date.now();
+          aguiEvents.push({
+            type: EventType.THINKING_TEXT_MESSAGE_END,
+            timestamp: Date.now(),
+          } as ThinkingTextMessageEndEvent);
           break;
         case "source": // url? not sure what this is
         case "file": // TODO: handle files - should be added as message objects
@@ -461,13 +548,12 @@ export class AISdkClient implements LLMClient {
         case "error":
           console.error("error:", delta.error);
           throw delta.error;
-          // Mostly ignored/unsupported
-          break;
         case "abort":
           throw new Error("Aborted by SDK");
         default:
           warnUnknownMessageType(delta);
       }
+
       let toolCallRequest:
         | OpenAI.Chat.Completions.ChatCompletionMessageToolCall
         | undefined;
@@ -483,19 +569,22 @@ export class AISdkClient implements LLMClient {
       }
 
       yield {
-        message: {
-          content: accumulatedMessage,
-          role: "assistant",
-          tool_calls: toolCallRequest ? [toolCallRequest] : undefined,
-          refusal: null,
+        llmResponse: {
+          message: {
+            content: accumulatedMessage,
+            role: "assistant",
+            tool_calls: toolCallRequest ? [toolCallRequest] : undefined,
+            refusal: null,
+          },
+          reasoning: accumulatedReasoning,
+          reasoningDurationMS:
+            reasoningStartTimestamp && reasoningEndTimestamp
+              ? reasoningEndTimestamp - reasoningStartTimestamp
+              : undefined,
+          index: 0,
+          logprobs: null,
         },
-        reasoning: accumulatedReasoning,
-        reasoningDurationMS:
-          reasoningStartTimestamp && reasoningEndTimestamp
-            ? reasoningEndTimestamp - reasoningStartTimestamp
-            : undefined,
-        index: 0,
-        logprobs: null,
+        aguiEvents,
       };
     }
 
