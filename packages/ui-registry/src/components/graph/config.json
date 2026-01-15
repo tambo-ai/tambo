@@ -1,0 +1,14 @@
+{
+  "name": "graph",
+  "description": "Visualizes and interacts with graph-based data structures",
+  "componentName": "Graph",
+  "dependencies": ["class-variance-authority", "recharts", "@tambo-ai/react"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "graph.tsx",
+      "content": "src/registry/graph/graph.tsx"
+    }
+  ]
+}

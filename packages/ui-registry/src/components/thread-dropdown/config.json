@@ -1,0 +1,19 @@
+{
+  "name": "thread-dropdown",
+  "description": "Displays and manages a dropdown menu for collapsible chat threads",
+  "componentName": "ThreadDropdown",
+  "dependencies": [
+    "class-variance-authority",
+    "@tambo-ai/react",
+    "lucide-react",
+    "radix-ui"
+  ],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "thread-dropdown.tsx",
+      "content": "src/registry/thread-dropdown/thread-dropdown.tsx"
+    }
+  ]
+}

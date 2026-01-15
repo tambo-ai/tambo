@@ -1,0 +1,14 @@
+{
+  "name": "thread-content",
+  "description": "Displays the messages within a thread",
+  "componentName": "ThreadContent",
+  "dependencies": ["class-variance-authority", "@tambo-ai/react"],
+  "devDependencies": [],
+  "requires": ["message"],
+  "files": [
+    {
+      "name": "thread-content.tsx",
+      "content": "src/registry/thread-content/thread-content.tsx"
+    }
+  ]
+}

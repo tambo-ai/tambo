@@ -1,0 +1,30 @@
+{
+  "name": "message-thread-full",
+  "description": "Displays a complete message thread with all its content and interactions",
+  "componentName": "MessageThreadFull",
+  "dependencies": ["@tambo-ai/react", "class-variance-authority"],
+  "devDependencies": [],
+  "requires": [
+    "thread-content",
+    "message-input",
+    "message-suggestions",
+    "thread-history",
+    "message",
+    "scrollable-message-container",
+    "thread-content"
+  ],
+  "files": [
+    {
+      "name": "message-thread-full.tsx",
+      "content": "src/registry/message-thread-full/message-thread-full.tsx"
+    },
+    {
+      "name": "lib/thread-hooks.ts",
+      "content": "src/registry/lib/thread-hooks.ts"
+    },
+    {
+      "name": "thread-container.tsx",
+      "content": "src/registry/message-thread-full/thread-container.tsx"
+    }
+  ]
+}

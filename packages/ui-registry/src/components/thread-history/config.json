@@ -1,0 +1,14 @@
+{
+  "name": "thread-history",
+  "description": "Displays the chronological history of a conversation thread",
+  "componentName": "ThreadHistory",
+  "dependencies": ["lucide-react", "@tambo-ai/react", "radix-ui"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "thread-history.tsx",
+      "content": "src/registry/thread-history/thread-history.tsx"
+    }
+  ]
+}

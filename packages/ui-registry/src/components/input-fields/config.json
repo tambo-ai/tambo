@@ -1,0 +1,14 @@
+{
+  "name": "input-fields",
+  "description": "Provides reusable input fields with various styles and validation options",
+  "componentName": "InputFields",
+  "dependencies": ["class-variance-authority"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "input-fields.tsx",
+      "content": "src/registry/input-fields/input-fields.tsx"
+    }
+  ]
+}

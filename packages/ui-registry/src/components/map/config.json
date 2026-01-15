@@ -1,0 +1,22 @@
+{
+  "name": "map",
+  "description": "Interactive map component with clustering and heatmap support.",
+  "componentName": "Map",
+  "dependencies": [
+    "class-variance-authority",
+    "react-leaflet",
+    "@react-leaflet/core",
+    "leaflet",
+    "leaflet.heat",
+    "leaflet.markercluster",
+    "@tambo-ai/react"
+  ],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "map.tsx",
+      "content": "src/registry/map/map.tsx"
+    }
+  ]
+}

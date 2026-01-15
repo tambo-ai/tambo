@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    /* Default Tailwind CSS Variables customized with tambo colors */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 235 12% 21%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 218 11% 46%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 14% 90%;
+    --muted-foreground: 217 14% 68%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --border: 207 22% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --chart-1: 30 80% 54.9%;
+    --chart-2: 339.8 74.8% 54.9%;
+    --chart-3: 219.9 70.2% 50%;
+    --chart-4: 160 60% 45.1%;
+    --chart-5: 280 64.7% 60%;
+
+    /* Tambo Specific Variables needed for tambo components */
+    --radius: 0.5rem;
+    --container: 210 29% 97%;
+    --backdrop: 210 88% 14% / 0.25;
+    --muted-backdrop: 210 88% 14% / 0.1;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 3rem;
+  }
+  .dark {
+    /* Default Tailwind CSS Variables customized with tambo colors */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --chart-1: 30 80% 54.9%;
+    --chart-2: 339.8 74.8% 54.9%;
+    --chart-3: 219.9 70.2% 50%;
+    --chart-4: 160 60% 45.1%;
+    --chart-5: 280 64.7% 60%;
+
+    /* Tambo Specific Variables needed for tambo components */
+    --radius: 0.5rem;
+    --container: 210 29% 97%;
+    --backdrop: 210 88% 14% / 0.25;
+    --muted-backdrop: 210 88% 14% / 0.1;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 3rem;
+  }
+}
+@layer utilities {
+  /* Background Utilities */
+  .bg-background {
+    background-color: hsl(var(--background));
+  }
+  .bg-card {
+    background-color: hsl(var(--card));
+  }
+  .bg-popover {
+    background-color: hsl(var(--popover));
+  }
+  .bg-primary {
+    background-color: hsl(var(--primary));
+  }
+  .bg-secondary {
+    background-color: hsl(var(--secondary));
+  }
+  .bg-backdrop {
+    background-color: hsl(var(--backdrop));
+  }
+  .bg-muted {
+    background-color: hsl(var(--muted));
+  }
+  .bg-accent {
+    background-color: hsl(var(--accent));
+  }
+  .bg-container {
+    background-color: hsl(var(--container));
+  }
+  .bg-destructive {
+    background-color: hsl(var(--destructive));
+  }
+  .bg-input {
+    background-color: hsl(var(--input));
+  }
+  .bg-border {
+    background-color: hsl(var(--border));
+  }
+
+  /* Text Utilities */
+  .text-primary {
+    color: hsl(var(--primary));
+  }
+  .text-primary-foreground {
+    color: hsl(var(--primary-foreground));
+  }
+  .text-secondary {
+    color: hsl(var(--secondary));
+  }
+  .text-secondary-foreground {
+    color: hsl(var(--secondary-foreground));
+  }
+  .text-foreground {
+    color: hsl(var(--foreground));
+  }
+  .text-card-foreground {
+    color: hsl(var(--card-foreground));
+  }
+  .text-popover-foreground {
+    color: hsl(var(--popover-foreground));
+  }
+  .text-muted-foreground {
+    /* disabled color */
+    color: hsl(var(--muted-foreground));
+  }
+  .text-accent-foreground {
+    color: hsl(var(--accent-foreground));
+  }
+  .text-backdrop {
+    color: hsl(var(--backdrop));
+  }
+
+  /* Border Utilities */
+  .border-border {
+    border-color: hsl(var(--border));
+  }
+  .border-flat {
+    border: 1px solid hsl(var(--border));
+  }
+  .border-container {
+    border-color: hsl(var(--container));
+  }
+
+  /* Ring Utilities */
+  .ring-ring {
+    --tw-ring-color: hsl(var(--ring));
+  }
+
+  /* Hover Utilities */
+  .hover\:bg-primary\/90:hover {
+    background-color: hsl(var(--primary) / 0.9);
+  }
+  .hover\:bg-muted\/90:hover {
+    background-color: hsl(var(--muted) / 0.9);
+  }
+  .hover\:bg-backdrop:hover {
+    background-color: hsl(var(--muted-backdrop));
+  }
+  .hover\:bg-container:hover {
+    background-color: hsl(var(--container));
+  }
+  .hover\:text-secondary:hover {
+    color: hsl(var(--secondary));
+  }
+}
+
+/*
+Animated gradient for thinking text, creates a shimmering effect that moves across the text.
+*/
+@keyframes thinking-gradient {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-thinking-gradient {
+  /* Fallback */
+  background: linear-gradient(90deg, #666 0%, #bbb 50%, #666 100%);
+  /* Preferred (overrides when supported) */
+  background: linear-gradient(
+    90deg,
+    oklch(0.14 0 0) 0%,
+    oklch(0.7 0 0) 50%,
+    oklch(0.14 0 0) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: thinking-gradient 2s linear infinite;
+}

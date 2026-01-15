@@ -1,0 +1,22 @@
+{
+  "name": "message-suggestions",
+  "description": "Displays AI-generated message suggestions to help users compose responses",
+  "componentName": "MessageSuggestions",
+  "dependencies": ["lucide-react", "@tambo-ai/react", "radix-ui"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "message-suggestions.tsx",
+      "content": "src/registry/message-suggestions/message-suggestions.tsx"
+    },
+    {
+      "name": "message-generation-stage.tsx",
+      "content": "src/registry/message-suggestions/message-generation-stage.tsx"
+    },
+    {
+      "name": "suggestions-tooltip.tsx",
+      "content": "src/registry/message-suggestions/suggestions-tooltip.tsx"
+    }
+  ]
+}

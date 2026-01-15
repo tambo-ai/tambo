@@ -1,0 +1,19 @@
+{
+  "name": "control-bar",
+  "description": "Provides controls and actions in the interface",
+  "componentName": "ControlBar",
+  "dependencies": ["@tambo-ai/react", "radix-ui", "class-variance-authority"],
+  "devDependencies": [],
+  "requires": [
+    "thread-content",
+    "message-input",
+    "message",
+    "scrollable-message-container"
+  ],
+  "files": [
+    {
+      "name": "control-bar.tsx",
+      "content": "src/registry/control-bar/control-bar.tsx"
+    }
+  ]
+}

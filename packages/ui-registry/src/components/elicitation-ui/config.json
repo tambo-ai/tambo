@@ -1,0 +1,14 @@
+{
+  "name": "elicitation-ui",
+  "description": "MCP elicitation UI component for handling user input requests from MCP servers",
+  "componentName": "ElicitationUI",
+  "dependencies": ["@tambo-ai/react"],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "elicitation-ui.tsx",
+      "content": "src/registry/elicitation-ui/elicitation-ui.tsx"
+    }
+  ]
+}
