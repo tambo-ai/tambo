@@ -3,7 +3,7 @@ import { Injectable, Scope } from "@nestjs/common";
 import { createTestRequestContext } from "./create-test-request-context";
 import { createTestingModule } from "./create-testing-module";
 import { resolveRequestScopedProvider } from "./resolve-request-scoped-provider";
-import { assertTrue, type IsUnknown } from "./type-assertions";
+import { assertTrue, type IsAny, type IsUnknown } from "./type-assertions";
 
 @Injectable()
 class ExampleDepService {
@@ -67,8 +67,9 @@ describe("resolveRequestScopedProvider", () => {
       const context = createTestRequestContext();
       const value = await resolveRequestScopedProvider(module, token, context);
 
-      // Compile-time check: string/symbol tokens should resolve to `unknown`.
+      // Compile-time checks: string/symbol tokens should resolve to `unknown` and never `any`.
       assertTrue<IsUnknown<typeof value>>(true);
+      assertTrue<IsAny<typeof value> extends false ? true : false>(true);
       expect(value).toBe(123);
     } finally {
       await module.close();
