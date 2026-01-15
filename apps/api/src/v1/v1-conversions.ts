@@ -74,6 +74,8 @@ export function threadToDto(thread: DbThread): V1ThreadDto {
 export interface ContentConversionOptions {
   /**
    * Called when an unknown content type is encountered.
+   * `type` is always a string; malformed or non-string types are normalized to
+   * a descriptive placeholder.
    */
   onUnknownContentType?: (info: { type: string }) => void;
 
@@ -97,8 +99,9 @@ function getContentPartType(part: ChatCompletionContentPart): string {
 
 /**
  * Convert a single content part to a V1 content block.
- * Returns null for unknown content types when `options.onUnknownContentType`
- * does not throw.
+ * By default, this throws if an unknown content type is encountered.
+ * To skip or log unknown types instead, provide a non-throwing
+ * `options.onUnknownContentType` handler.
  */
 export function contentPartToV1Block(
   part: ChatCompletionContentPart,
