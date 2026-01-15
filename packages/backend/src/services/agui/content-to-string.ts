@@ -1,4 +1,21 @@
-export function aguiContentToString(content: unknown): string {
+type AguiContentPart =
+  | {
+      type: "text";
+      text: string;
+    }
+  | {
+      type: string;
+      mimeType?: string;
+    };
+
+export type AguiMessageContent =
+  | string
+  | undefined
+  | readonly AguiContentPart[]
+  | Record<string, unknown>
+  | null;
+
+export function aguiContentToString(content: AguiMessageContent): string {
   if (typeof content === "string") {
     return content;
   }
@@ -10,19 +27,11 @@ export function aguiContentToString(content: unknown): string {
   if (Array.isArray(content)) {
     return content
       .map((part) => {
-        const partRecord: Record<string, unknown> | undefined =
-          typeof part === "object" && part !== null
-            ? (part as Record<string, unknown>)
-            : undefined;
-
-        if (
-          partRecord?.type === "text" &&
-          typeof partRecord.text === "string"
-        ) {
-          return partRecord.text;
+        if (part.type === "text") {
+          return part.text;
         }
 
-        return `[binary:${partRecord ? `${partRecord.mimeType}` : "undefined"}]`;
+        return `[binary:${part ? `${part.mimeType}` : "undefined"}]`;
       })
       .join("\n");
   }

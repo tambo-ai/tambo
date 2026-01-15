@@ -44,9 +44,7 @@ interface WithReasoning {
   parentMessageId?: string;
 }
 
-type NonActivityMessage = Exclude<AGUIMessage, { role: "activity" }>;
-
-export type AgentMessage = NonActivityMessage & WithReasoning;
+export type AgentMessage = AGUIMessage & WithReasoning;
 
 export interface AgentResponse {
   type: AgentResponseType;
@@ -208,7 +206,7 @@ export class AgentClient {
           // consumer to replace all the messages they've receieved with all of
           // these, but we don't yet have a way to do that
           const e = event as MessagesSnapshotEvent;
-          const lastMessage = getLastNonActivityMessage(e.messages);
+          const lastMessage = getLastMessage(e.messages);
           if (!lastMessage) {
             break;
           }
@@ -543,9 +541,7 @@ function invalidEvent(eventType: never) {
   console.error(`Invalid event type: ${eventType}`);
 }
 
-function getLastNonActivityMessage(
-  messages: AGUIMessage[],
-): NonActivityMessage | null {
+function getLastMessage(messages: AGUIMessage[]): AGUIMessage | null {
   return messages.at(-1) ?? null;
 }
 
