@@ -24,13 +24,13 @@ const authRedirects =
           source: "/login",
           has: [{ type: "host", value: authRedirectFromHost }],
           destination: `${authRedirectToUrl}/login`,
-          permanent: false,
+          permanent: true,
         },
         {
           source: "/api/auth/:path*",
           has: [{ type: "host", value: authRedirectFromHost }],
           destination: `${authRedirectToUrl}/api/auth/:path*`,
-          permanent: false,
+          permanent: true,
         },
       ]
     : [];
