@@ -31,9 +31,9 @@ describe("f - tagged template literal", () => {
   });
 
   it("formats template with multiple variables", () => {
-    const t = f("Hello {name}, you are {age}");
+    const t = f("Hello {name}, age {age}");
     const out = formatTemplate(t, { name: "user", age: "1" });
-    expect(out).toBe("Hello user, you are 1");
+    expect(out).toBe("Hello user, age 1");
   });
 
   it("throws if variable is missing", () => {
@@ -43,30 +43,30 @@ describe("f - tagged template literal", () => {
 });
 
 describe("objectTemplate - templates for nested objects", () => {
-  it("formats a simple object", () => {
+  it("formats object with single variable", () => {
     const t = objectTemplate({ msg: "Hello {name}" });
     const out = formatTemplate(t, { name: "user" });
 
     expect(out).toEqual({ msg: "Hello user" });
   });
 
-  it("formats nested objects", () => {
+  it("formats object with nested variables", () => {
     const t = objectTemplate({
       user: { greeting: "Hello {name}" },
     });
-    const out = formatTemplate(t, { name: "admin" });
-
-    expect(out.user.greeting).toBe("Hello admin");
-  });
-
-  it("formats arrays", () => {
-    const t = objectTemplate(["Hello {name}", "Bye {name}"]);
     const out = formatTemplate(t, { name: "user" });
 
-    expect(out).toEqual(["Hello user", "Bye user"]);
+    expect(out.user.greeting).toBe("Hello user");
   });
 
-  it("throws if input is not an object or string", () => {
+  it("formats array with variables", () => {
+    const t = objectTemplate(["Hello {name}", "age is {age}"]);
+    const out = formatTemplate(t, { name: "user", age: "1" });
+
+    expect(out).toEqual(["Hello user", "age is 1"]);
+  });
+
+  it("throws if input is not object or string", () => {
     expect(() => objectTemplate(5 as unknown as object)).toThrow(
       "Can only generate object templates for objects or strings",
     );
