@@ -321,10 +321,11 @@ export class V1Controller {
       );
     } catch (error) {
       // Emit error event if headers already sent
+      // Note: We use a generic message to avoid exposing internal error details
       if (response.headersSent) {
         const errorEvent = {
           type: "RUN_ERROR",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: "An internal error occurred",
           code: "INTERNAL_ERROR",
           timestamp: Date.now(),
         };
@@ -415,10 +416,11 @@ export class V1Controller {
       );
     } catch (error) {
       // Emit error event if headers already sent
+      // Note: We use a generic message to avoid exposing internal error details
       if (response.headersSent) {
         const errorEvent = {
           type: "RUN_ERROR",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: "An internal error occurred",
           code: "INTERNAL_ERROR",
           timestamp: Date.now(),
         };

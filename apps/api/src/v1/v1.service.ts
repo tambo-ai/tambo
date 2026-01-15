@@ -621,9 +621,9 @@ export class V1Service {
           this.emitEvent(response, runFinishedEvent);
         } catch (error) {
           // 8. Handle error - emit RUN_ERROR and update state
-          this.logger.error(
-            `Run ${runId} failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-          );
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
+          this.logger.error(`Run ${runId} failed: ${errorMessage}`);
 
           // Capture exception with Sentry context
           Sentry.captureException(error, {
@@ -631,17 +631,19 @@ export class V1Service {
             extra: { model: dto.model, contextKey },
           });
 
+          // Use generic message for client to avoid exposing internal details
           const runErrorEvent: RunErrorEvent = {
             type: EventType.RUN_ERROR,
-            message: error instanceof Error ? error.message : "Unknown error",
+            message: "An internal error occurred",
             code: "INTERNAL_ERROR",
             timestamp: Date.now(),
           };
           this.emitEvent(response, runErrorEvent);
 
+          // Store full error details in database for debugging
           const errorInfo = {
             code: "INTERNAL_ERROR",
-            message: error instanceof Error ? error.message : "Unknown error",
+            message: errorMessage,
           };
 
           // Update run and thread with error
