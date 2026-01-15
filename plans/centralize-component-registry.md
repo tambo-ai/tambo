@@ -6,118 +6,154 @@
 
 ## Overview
 
-Create `packages/registry/` as a shared internal package that consuming apps import directly at build time. This eliminates code duplication and ensures all apps use identical component code from a single source of truth.
+Create `packages/ui-registry/` as a shared internal package that consuming apps import directly at build time. This eliminates code duplication and ensures all apps use identical component code from a single source of truth.
 
 ## Goals
 
 1. **Single Source of Truth**: One canonical location for all Tambo components
-2. **Direct Imports**: Apps import from `@tambo-ai/registry` at build time - no file copying
+2. **Direct Imports**: Apps import from `@tambo-ai/ui-registry` at build time - no file copying
 3. **Eliminate Drift**: Impossible to have diverged component code across apps
 
 ## Non-Goals
 
-- Publishing `@tambo-ai/registry` to npm (internal only)
+- Publishing `@tambo-ai/ui-registry` to npm (internal only)
 - Changing how end users consume components via `tambo add`
 
 ## Problem Statement
 
-The component registry is duplicated across multiple locations:
+Tambo components serve two different audiences:
 
-| Location                         | Status          | Issues                     |
-| -------------------------------- | --------------- | -------------------------- |
-| `cli/src/registry/`              | Source of truth | Bundled in CLI npm package |
-| `showcase/src/components/tambo/` | Auto-synced     | Working, but still a copy  |
-| `apps/web/components/ui/tambo/`  | Manual copy     | **Diverged significantly** |
-| `docs/src/components/tambo/`     | Manual copy     | Subset only, minor drift   |
+1. **End users** - get source files via `tambo add` (CLI copies to their project)
+2. **Internal apps** - showcase, web, docs need to use the same components
 
-**Why syncing is not enough:**
+The current architecture only serves #1. Components live in `cli/src/registry/` and internal apps get copies:
 
-- Synced files are still copies - easy to accidentally edit the wrong location
-- Sync can be skipped or forgotten, leading to drift
-- Multiple copies in git history create noise and merge conflicts
-- Each app has its own version of "the same" component
+| Location                         | How it gets components | Problem                                    |
+| -------------------------------- | ---------------------- | ------------------------------------------ |
+| `cli/src/registry/`              | Source of truth        | Designed for CLI distribution, not imports |
+| `showcase/src/components/tambo/` | Auto-synced            | Copy - still diverges, git noise           |
+| `apps/web/components/ui/tambo/`  | Manual copy            | **Diverged significantly**                 |
+| `docs/src/components/tambo/`     | Manual copy            | Subset only, drifted                       |
 
-**The real problem:** Components should be shared code, not copied code.
+**The root issue:** There's no proper shared package for internal apps to import from. Everything flows through the CLI's distribution structure, forcing internal apps to use copies.
+
+**Why "just sync better" doesn't fix it:**
+
+- Copies are the wrong abstraction - these are shared dependencies, not vendored files
+- IDE "Go to Definition" navigates to copy, not source - devs edit wrong file
+- N copies in git = bloat, merge conflicts, blame noise
+- CI enforcement catches drift _after_ wasted dev time
+- Sync scripts are maintenance burden
+
+**What we actually need:** A workspace package that internal apps import directly, while CLI continues bundling files for end-user distribution.
 
 ## Proposed Solution
 
-Create `packages/registry/` as an internal package. Apps import components directly via workspace dependencies and package exports. The CLI is the only consumer that needs physical copies (for npm distribution).
+Create `packages/ui-registry/` as an internal package. Apps import components directly via workspace dependencies and package exports. The CLI is the only consumer that needs physical copies (for npm distribution).
 
 ```
-packages/registry/
-├── package.json
+packages/ui-registry/
+├── package.json                     # Explicit exports for each component
 ├── tsconfig.json
 ├── globals.css
-├── src/
-│   ├── components/
-│   │   ├── message.tsx              # Main components
-│   │   ├── message-input.tsx
-│   │   ├── markdown-components.tsx  # Helper components (flattened)
-│   │   ├── text-editor.tsx
-│   │   ├── dictation-button.tsx
-│   │   └── ... (all files flat, no nesting)
-│   ├── lib/
-│   │   └── thread-hooks.ts          # Shared hooks (130+ lines)
-│   └── utils.ts                     # cn(), etc.
-└── registry/
-    ├── message.json                 # CLI metadata (dependencies, files)
-    ├── message-input.json
-    └── ...
+└── src/
+    ├── components/                  # Components (nested structure preserved)
+    │   ├── message/
+    │   │   ├── config.json          # Component metadata
+    │   │   ├── message.tsx          # Main component
+    │   │   ├── markdown-components.tsx  # Helper file
+    │   │   └── index.tsx            # Re-export
+    │   ├── message-input/
+    │   │   ├── config.json
+    │   │   ├── message-input.tsx
+    │   │   ├── text-editor.tsx      # Helper file
+    │   │   ├── dictation-button.tsx # Helper file
+    │   │   └── index.tsx
+    │   └── ... (remaining components follow same pattern)
+    ├── config/
+    │   └── tailwind.config.ts       # Tailwind configuration for tambo add
+    ├── lib/
+    │   └── thread-hooks.ts          # Shared hooks (130+ lines)
+    └── utils.ts                     # cn(), etc.
 ```
 
 **Key principles:**
 
-- **All `.tsx` files flat** in `src/components/` - no nested directories
-- Helper components (text-editor, markdown-components) become standalone files
-- Main components import siblings: `import { TextEditor } from "./text-editor"`
-- `lib/` for shared hooks (too substantial for utils.ts)
-- `registry/*.json` for CLI metadata (dependencies, file lists)
+- **Preserve existing nested structure** - each component gets its own directory (e.g., `message/`, `message-input/`)
+- Helper files (text-editor, markdown-components) stay with their parent component
+- Each component directory has `config.json`, main component file, and `index.tsx` re-export
+- `lib/` for shared hooks used across multiple components
 
 ## Architecture
 
 ### How Apps Consume Components
 
-**Showcase, Web, Docs** - Direct imports via package exports:
+**Internal apps (showcase, web, docs):**
+
+- Add `"@tambo-ai/ui-registry": "*"` as workspace dependency
+- Add `transpilePackages: ["@tambo-ai/ui-registry"]` to Next.js config
+- Import directly: `import { Message } from "@tambo-ai/ui-registry/components/message"`
+
+**CLI distribution:**
+
+- Prebuild step copies registry to `cli/dist/registry/` (files bundled with CLI npm package)
+- `tambo add` reads bundled files, transforms imports at runtime, writes to user project
+- Runtime transformation allows customizing paths based on user's project structure
+- Users get TypeScript source files (matches shadcn/ui approach)
+
+### Inter-Component Dependencies
+
+Components may import from each other (e.g., `message-thread-full` imports `message`).
+
+**In the registry package:** Use package imports for all dependencies:
 
 ```typescript
-// In showcase/src/app/page.tsx
-import { MessageThreadFull } from "@tambo-ai/registry/components/message-thread-full";
-import { cn } from "@tambo-ai/registry/utils";
-import { useTamboThreadScroll } from "@tambo-ai/registry/lib/thread-hooks";
-import "@tambo-ai/registry/globals.css";
+// packages/ui-registry/src/components/message-thread-full/message-thread-full.tsx
+import { Message } from "@tambo-ai/ui-registry/components/message";
 ```
 
-Module resolution:
-
-1. Workspace dependency symlinks `@tambo-ai/registry` to `node_modules`
-2. Package `exports` field maps import paths to source files
-3. Next.js `transpilePackages` compiles the TypeScript
-
-**CLI** - Copies files at build time for npm distribution:
+**When copied to user projects:** CLI transforms imports at runtime:
 
 ```typescript
-// CLI's pre-build step copies packages/registry/ to cli/dist/registry/
-// tambo add reads registry/*.json for metadata, src/components/ for code
+// After tambo add
+import { Message } from "@/components/tambo/message";
 ```
 
-Direct imports mean:
+**Automatic dependency resolution:** The `registry/*.json` metadata files specify which components depend on others. When a user runs `tambo add message-thread-full`, the CLI:
 
-- No sync scripts to run or forget
-- IDE "Go to Definition" goes to the real source
-- Changes are immediately visible in all apps
+1. Reads `registry/message-thread-full.json`
+2. Finds `requires: ["message", "message-input"]`
+3. Recursively installs all dependencies
+
+### CSS Handling
+
+**In the registry package:** CSS lives in `globals.css` at package root.
+
+**For internal apps:** Import directly:
+
+```typescript
+import "@tambo-ai/ui-registry/globals.css";
+```
+
+**For user projects via `tambo add`:**
+
+1. CLI reads user's existing `globals.css` (or `app/globals.css`)
+2. Appends Tambo CSS variables and component styles
+3. Does NOT overwrite - merges intelligently
+4. Handles Tailwind v3 and v4 differences (existing logic in `cli/src/commands/add/tailwind/`)
 
 ## Prerequisites
 
 ### Web Component Audit
 
-`apps/web/components/ui/tambo/` has 19 files. Before migration, categorize each:
+`apps/web/components/ui/tambo/` has diverged. Before migration:
 
 **Diverged (need reconciliation):**
 
 - `message.tsx` - Uses `useMergedRef` vs `useMergeRefs`, different imports
 - `thread-hooks.ts` - 65+ lines of difference in ref handling
 
-**Web-specific (move to `apps/web/components/ui/web-specific/`):**
+**Web-specific (move to `apps/web/components/ui/`):**
 
 - `context-attachment-badge.tsx`
 - `demo-config.ts`
@@ -130,20 +166,16 @@ Direct imports mean:
 - `text-editor.tsx`
 - `mcp-config-modal.tsx`
 
-**Shared (move to registry):**
-
-- Remaining files that match CLI registry
-
-**Action:** Diff each file against CLI registry version. Pick the better version for shared components. Move web-specific components out.
+**Action:** Diff each file against CLI registry. Pick better version. Move web-specific components out to the higher-level `components/` directory.
 
 ## Technical Approach
 
 ### Package Structure
 
 ```json
-// packages/registry/package.json
+// packages/ui-registry/package.json
 {
-  "name": "@tambo-ai/registry",
+  "name": "@tambo-ai/ui-registry",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -151,11 +183,11 @@ Direct imports mean:
     "./globals.css": "./globals.css",
     "./utils": "./src/utils.ts",
     "./lib/thread-hooks": "./src/lib/thread-hooks.ts",
-    "./components/message": "./src/components/message.tsx",
-    "./components/message-input": "./src/components/message-input.tsx",
-    "./components/message-thread-full": "./src/components/message-thread-full.tsx",
-    "./components/markdown-components": "./src/components/markdown-components.tsx",
-    "./components/text-editor": "./src/components/text-editor.tsx"
+    "./config/tailwind": "./src/config/tailwind.config.ts",
+    "./components/message": "./src/components/message/index.tsx",
+    "./components/message-input": "./src/components/message-input/index.tsx",
+    "./components/message-thread-full": "./src/components/message-thread-full/index.tsx"
+    // ... (all components explicitly listed)
   },
   "peerDependencies": {
     "@tambo-ai/react": "*",
@@ -180,7 +212,7 @@ Direct imports mean:
 **Note on exports:** Using explicit exports (not wildcards) for reliability across bundlers. Each component gets an entry. A script can generate this list from `src/components/`.
 
 ```json
-// packages/registry/tsconfig.json
+// packages/ui-registry/tsconfig.json
 {
   "extends": "@tambo-ai/typescript-config/base.json",
   "compilerOptions": {
@@ -204,7 +236,7 @@ Each app needs two things:
 // showcase/package.json, apps/web/package.json, docs/package.json
 {
   "dependencies": {
-    "@tambo-ai/registry": "*"
+    "@tambo-ai/ui-registry": "*"
   }
 }
 ```
@@ -220,77 +252,71 @@ npm workspaces symlinks the package. The `exports` field handles module resoluti
 // apps/web/next.config.mjs  (note: .mjs not .ts)
 // docs/next.config.mjs
 const nextConfig = {
-  transpilePackages: ["@tambo-ai/registry"],
+  transpilePackages: ["@tambo-ai/ui-registry"],
   // ... other config
 };
 ```
 
 **TypeScript paths are optional.** Test without them first - IDE navigation may work via workspace symlinks. Add paths only if "Go to Definition" doesn't navigate to source.
 
-### CLI Build Pipeline
+## Registry Metadata Structure
 
-The CLI needs physical files to bundle in the npm package. A pre-build step copies the registry:
+Each component has a co-located `config.json` file in its directory (existing format preserved):
 
 ```json
-// cli/package.json
+// packages/ui-registry/src/components/message-thread-full/config.json
 {
-  "scripts": {
-    "prebuild": "tsx scripts/copy-registry.ts",
-    "build": "tsc --project tsconfig.build.json"
-  }
+  "name": "message-thread-full",
+  "description": "Displays a complete message thread with all its content and interactions",
+  "componentName": "MessageThreadFull",
+  "dependencies": ["@tambo-ai/react", "class-variance-authority"],
+  "devDependencies": [],
+  "requires": [
+    "thread-content",
+    "message-input",
+    "message-suggestions",
+    "message"
+  ],
+  "files": [
+    {
+      "name": "message-thread-full.tsx",
+      "content": "src/components/message-thread-full/message-thread-full.tsx"
+    },
+    {
+      "name": "lib/thread-hooks.ts",
+      "content": "src/lib/thread-hooks.ts"
+    }
+  ]
 }
 ```
 
-```typescript
-// cli/scripts/copy-registry.ts
-import { cpSync, rmSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+### Import Path Strategy/Transformation
 
-// ESM-compatible __dirname (CLI is an ESM module)
-const __dirname = dirname(fileURLToPath(import.meta.url));
+Import transformation happens at **runtime** when `tambo add` copies files to user projects. The `@tambo-ai/ui-registry/*` imports in bundled files are just strings—never resolved by Node.
 
-const REGISTRY_SRC = join(__dirname, "../../packages/registry");
-const REGISTRY_DEST = join(__dirname, "../dist/registry");
+**Default import mapping:**
 
-// Clean and copy
-rmSync(REGISTRY_DEST, { recursive: true, force: true });
-cpSync(REGISTRY_SRC, REGISTRY_DEST, { recursive: true });
+| Registry Import                      | User Project Import    |
+| ------------------------------------ | ---------------------- |
+| `@tambo-ai/ui-registry/utils`        | `@/lib/utils`          |
+| `@tambo-ai/ui-registry/components/*` | `@/components/tambo/*` |
+| `@tambo-ai/ui-registry/lib/*`        | `@/lib/*`              |
 
-console.log("✓ Registry copied to cli/dist/registry/");
-```
+**Benefits of runtime transformation:**
 
-### Import Path Strategy
+- Can detect user's project structure (e.g., `src/` prefix, custom paths)
+- Can respect user's existing tsconfig path aliases
+- Flexible output paths without requiring CLI rebuild
 
-**Critical prerequisite:** Components currently use `@/` imports that must be updated to `@tambo-ai/registry/` imports BEFORE migration:
+### TypeScript Configuration
 
-```typescript
-// BEFORE (current cli/src/registry/ components)
-import { cn } from "@/lib/utils";
-import { useTamboThreadScroll } from "@/lib/thread-hooks";
-import { Message } from "@/components/tambo/message";
+**Required for consumers:** `transpilePackages` in Next.js config. This is mandatory, not optional.
 
-// AFTER (packages/registry/src/components/)
-import { cn } from "@tambo-ai/registry/utils";
-import { useTamboThreadScroll } from "@tambo-ai/registry/lib/thread-hooks";
-import { Message } from "@tambo-ai/registry/components/message";
-```
-
-The CLI's `tambo add` command transforms imports when copying to user projects:
-
-```typescript
-// cli/src/commands/add/utils.ts - transformRegistryImports()
-function transformRegistryImports(content: string): string {
-  return content
-    .replace(/@tambo-ai\/registry\/components\//g, "@/components/tambo/")
-    .replace(/@tambo-ai\/registry\/lib\//g, "@/lib/")
-    .replace(/@tambo-ai\/registry\/utils/g, "@/lib/utils");
-}
-```
+**TypeScript paths:** NOT required. Workspace symlinks handle resolution. Do not add `paths` config - it creates maintenance burden and can conflict with workspace resolution.
 
 ### Turbo Configuration
 
-No sync tasks needed. Apps import directly. Only CLI needs a copy step:
+The CLI build depends on registry source files. This ensures registry changes trigger CLI rebuilds even with caching.
 
 ```json
 // turbo.json (simplified)
@@ -298,6 +324,12 @@ No sync tasks needed. Apps import directly. Only CLI needs a copy step:
   "tasks": {
     "tambo#build": {
       "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "../../packages/ui-registry/src/**",
+        "../../packages/ui-registry/registry/**",
+        "../../packages/ui-registry/globals.css"
+      ],
       "outputs": ["dist/**"]
     }
   }
@@ -306,95 +338,122 @@ No sync tasks needed. Apps import directly. Only CLI needs a copy step:
 
 ## Acceptance Criteria
 
-- [ ] All shared components exist in `packages/registry/src/components/`
-- [ ] Showcase, Web, Docs import from `@tambo-ai/registry` and build successfully
+- [ ] All shared components exist in `packages/ui-registry/src/components/`
+- [ ] Showcase, Web, Docs import from `@tambo-ai/ui-registry` and build successfully
 - [ ] CLI copies registry at build time; `tambo add <component>` works
 - [ ] Old component directories deleted (showcase, web, docs)
 - [ ] `npm run lint && npm run check-types && npm test` all pass
-- [ ] HMR works: edit in `packages/registry/`, change appears in running apps
+- [ ] HMR works: edit in `packages/ui-registry/`, change appears in running apps
+- [ ] `tambo add` resolves and transforms imports, installs component dependencies
+- [ ] `tambo upgrade` works with new structure
 
 ## Implementation Phases
 
-### Phase 1: Create Registry Package
+### Phase 1: Create Registry Package + Update CLI
 
-1. **Create `packages/registry/`**
-   - `package.json` with explicit exports
-   - `tsconfig.json`
-   - `globals.css`
-   - `src/components/`, `src/lib/`, `src/utils.ts`
-   - `registry/` for CLI metadata
-   - Add to root `package.json` workspaces
+1. **Create `packages/ui-registry/`**
+   - `package.json` with explicit exports (no wildcards)
+   - `tsconfig.json` extending shared config
+   - Add to root workspaces
 
-2. **Flatten and move components**
-   - Move main components: `cli/src/registry/<name>/<name>.tsx` → `packages/registry/src/components/<name>.tsx`
-   - Move helper files to top level: `text-editor.tsx`, `markdown-components.tsx`, `dictation-button.tsx`, etc.
-   - Move `lib/thread-hooks.ts` → `packages/registry/src/lib/thread-hooks.ts`
-   - Move utilities to `packages/registry/src/utils.ts`
-   - Remove `index.tsx` re-export files (not needed with flat structure)
+2. **Move registry files (preserve nested structure)**
+   - Move entire component directories: `cli/src/registry/<name>/` → `packages/ui-registry/src/components/<name>/`
+   - Each directory keeps its `config.json`, main component, helper files, and `index.tsx`
+   - Move `cli/src/registry/lib/*` → `packages/ui-registry/src/lib/`
+   - Move `cli/src/registry/config/*` → `packages/ui-registry/src/config/` (tailwind config, etc.)
+   - Move `cli/src/registry/utils.ts` → `packages/ui-registry/src/utils.ts`
 
-3. **Move CLI metadata**
-   - Move `cli/src/registry/<name>/config.json` → `packages/registry/registry/<name>.json`
-   - Update file paths in config to reflect new structure
+3. **Update imports in moved components**
+   - `@/lib/utils` → `@tambo-ai/ui-registry/utils`
+   - `@/lib/thread-hooks` → `@tambo-ai/ui-registry/lib/thread-hooks`
+   - `@/components/tambo/*` → `@tambo-ai/ui-registry/components/*`
+   - Keep relative imports for files within same component directory (e.g., `./text-editor`)
 
-4. **Update imports in moved components**
-   - `@/lib/utils` → `@tambo-ai/registry/utils`
-   - `@/lib/thread-hooks` → `@tambo-ai/registry/lib/thread-hooks`
-   - `@/components/tambo/*` → `@tambo-ai/registry/components/*`
-   - Relative imports for siblings: `./text-editor`, `./markdown-components`
-
-5. **Generate exports list**
-   - Script to generate explicit exports in package.json from `src/components/`
-
-6. **Move web-specific components**
-   - Create `apps/web/components/ui/web-specific/`
-   - Move 10+ web-only components there
+4. **Move web-specific components**
+   - Move remaining, non-tambo components up to `apps/web/components/ui/` or migrate to registry deemed valuable to all apps
    - Update web imports
 
-7. **Reconcile diverged files**
-   - Diff `message.tsx`, `thread-hooks.ts` between CLI and web
-   - Pick best version, update registry
+5. **Reconcile diverged files**
+   - Diff and merge `message.tsx`, `thread-hooks.ts`
+   - Pick best implementation for registry
 
-### Phase 2: Migrate Consumers
+6. **Create prebuild script** (`cli/scripts/copy-registry.ts`)
+   - Copy `packages/ui-registry/src/` → `cli/dist/registry/` (preserves nested structure)
+   - Only include `.ts` and `.tsx` files, exclude `.test.ts(x)` files
+   - Include `config.json` files for component metadata
+   - No transformation at build time - files keep `@tambo-ai/ui-registry/*` imports
+   - Run as part of `npm run build` in CLI package
+
+7. **Update CLI to read from new location**
+   - Update path resolution in `cli/src/commands/add/` to read from `dist/registry/`
+   - Implement runtime import transformation using existing logic, updated for new import patterns
+   - Update Turbo config with registry inputs for cache invalidation
+
+### Phase 2: Migrate Remaining Consumers
 
 1. **Configure each consumer** (showcase, web, docs)
-   - Add `"@tambo-ai/registry": "*"` to `package.json`
-   - Add `transpilePackages: ["@tambo-ai/registry"]` to Next.js config
-   - Run `npm install`
+   - Add `"@tambo-ai/ui-registry": "*"` to dependencies
+   - Add `transpilePackages: ["@tambo-ai/ui-registry"]` to Next.js config
 
 2. **Update imports**
-   - Showcase: `@/components/tambo/*` → `@tambo-ai/registry/components/*`
-   - Web: `@/components/ui/tambo/*` → `@tambo-ai/registry/components/*`
-   - Docs: `@/components/tambo/*` → `@tambo-ai/registry/components/*`
+   - Showcase: `@/components/tambo/*` → `@tambo-ai/ui-registry/components/*`
+   - Web: `@/components/ui/tambo/*` → `@tambo-ai/ui-registry/components/*`
+   - Docs: `@/components/tambo/*` → `@tambo-ai/ui-registry/components/*`
 
-3. **Delete old directories**
+3. **Verify before deleting**
+   - All apps build successfully
+   - HMR works
+   - Type checking passes
+   - Manual smoke test in each app
+
+4. **Delete old directories** (only after verification)
    - `showcase/src/components/tambo/`
    - `apps/web/components/ui/tambo/` (shared components only)
    - `docs/src/components/tambo/`
    - `scripts/sync-showcase-components.ts`
+   - Remove `sync:showcase` from turbo.json and package.json
 
-4. **Verify**
-   - All apps build
-   - HMR works
-   - `npm run check-types` passes
+### Phase 3: Verification & Cleanup
 
-### Phase 3: Update CLI
-
-1. **Add prebuild copy script**
-   - Create `cli/scripts/copy-registry.ts`
-   - Add `"prebuild": "tsx scripts/copy-registry.ts"` to CLI package.json
-
-2. **Update path resolution**
-   - CLI reads metadata from `dist/registry/registry/*.json`
-   - CLI reads components from `dist/registry/src/components/`
-   - Update `cli/src/commands/add/` to handle new structure
-
-3. **Update import transformation**
-   - Add `transformRegistryImports()` to convert `@tambo-ai/registry/*` → `@/*` for user projects
-
-4. **Test**
-   - `tambo add message-thread-full` in fresh project
+1. **Integration testing**
+   - `tambo add message` in fresh project
+   - `tambo add message-thread-full` (component with dependencies)
    - Verify transformed imports work
-   - Verify dependencies are installed correctly
+   - Verify CSS merges correctly
+
+2. **HMR verification**
+   - Start each consumer in dev mode
+   - Edit component in `packages/ui-registry/`
+   - Confirm change appears without restart
+
+3. **CI enforcement**
+   - Add lint step to verify exports match filesystem
+   - Ensure all apps build in CI
+
+## Testing Requirements
+
+**Import transformation (runtime):**
+
+- Transforms `@tambo-ai/ui-registry/*` imports to user project paths
+- Preserves non-registry imports
+- Handles multiple imports per file
+
+**`tambo add` scenarios:**
+
+| Scenario                    | Validates                        |
+| --------------------------- | -------------------------------- |
+| Single component            | Basic flow                       |
+| Component with dependencies | Recursive install via `requires` |
+| Multiple components         | No duplicate installs            |
+| Re-add existing component   | Idempotent, no errors            |
+| Component with CSS          | globals.css merge                |
+
+**`tambo upgrade` scenarios:**
+
+| Scenario                    | Validates                     |
+| --------------------------- | ----------------------------- |
+| Upgrade single component    | Updates to latest version     |
+| Upgrade multiple components | All updated without conflicts |
 
 ## References
 
