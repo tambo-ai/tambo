@@ -204,6 +204,42 @@ describe("V1Controller", () => {
           dto,
         );
       });
+
+      it("should use bearer token context key when body contextKey is not provided", async () => {
+        const mockRequest = {} as Request;
+        mockExtractContextInfo.mockReturnValue({
+          projectId: "prj_123",
+          contextKey: "bearer_context",
+        });
+        mockV1Service.createThread.mockResolvedValue({} as any);
+
+        await controller.createThread(mockRequest, {});
+
+        expect(mockV1Service.createThread).toHaveBeenCalledWith(
+          "prj_123",
+          "bearer_context",
+          {},
+        );
+      });
+
+      it("should prefer body contextKey over bearer token context key", async () => {
+        const mockRequest = {} as Request;
+        mockExtractContextInfo.mockReturnValue({
+          projectId: "prj_123",
+          contextKey: "bearer_context",
+        });
+        mockV1Service.createThread.mockResolvedValue({} as any);
+
+        await controller.createThread(mockRequest, {
+          contextKey: "body_context",
+        });
+
+        expect(mockV1Service.createThread).toHaveBeenCalledWith(
+          "prj_123",
+          "body_context",
+          { contextKey: "body_context" },
+        );
+      });
     });
 
     describe("deleteThread", () => {
