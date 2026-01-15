@@ -25,6 +25,7 @@ export async function resolveRequestScopedProvider<
   provider: Type<unknown> | string | symbol,
   context: TestRequestContext<TRequest>,
 ): Promise<unknown> {
+  // Callers should close the TestingModule via `await module.close()`.
   module.registerRequestByContextId(context.request, context.contextId);
   return await module.resolve(provider, context.contextId);
 }

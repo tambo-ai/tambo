@@ -11,11 +11,13 @@ export function createTestRequestContext(): TestRequestContext<
 export function createTestRequestContext<
   TRequest extends Record<string, unknown>,
 >(request: TRequest): TestRequestContext<TRequest>;
-export function createTestRequestContext(
-  request: Record<string, unknown> = {},
-): TestRequestContext<Record<string, unknown>> {
+export function createTestRequestContext<
+  TRequest extends Record<string, unknown>,
+>(request?: TRequest) {
+  const defaultRequest: Record<string, unknown> = {};
+
   return {
     contextId: ContextIdFactory.create(),
-    request,
+    request: request ?? defaultRequest,
   };
 }
