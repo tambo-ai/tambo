@@ -1,7 +1,13 @@
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
-import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, lt, or } from "drizzle-orm";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
   V1GetMessageResponseDto,
@@ -20,6 +26,7 @@ import {
   messageToDto,
   ContentConversionOptions,
 } from "./v1-conversions";
+import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
 
 @Injectable()
 export class V1Service {
@@ -36,6 +43,9 @@ export class V1Service {
           `This content will be skipped in the V1 API response.`,
       );
     },
+    onInvalidContentPart: (message) => {
+      this.logger.warn(`${message}. This content will be skipped.`);
+    },
   };
 
   constructor(
@@ -48,7 +58,7 @@ export class V1Service {
    */
   async listThreads(
     projectId: string,
-    contextKey: string | undefined,
+    contextKey: string | null | undefined,
     query: V1ListThreadsQueryDto,
   ): Promise<V1ListThreadsResponseDto> {
     const limit = query.limit ? parseInt(query.limit, 10) : 20;
@@ -56,18 +66,35 @@ export class V1Service {
 
     // Build where conditions
     const conditions = [eq(schema.threads.projectId, projectId)];
-    if (contextKey) {
-      conditions.push(eq(schema.threads.contextKey, contextKey));
+    if (contextKey !== undefined) {
+      if (contextKey !== null && contextKey.trim() === "") {
+        throw new BadRequestException("contextKey cannot be empty");
+      }
+
+      conditions.push(
+        contextKey === null
+          ? isNull(schema.threads.contextKey)
+          : eq(schema.threads.contextKey, contextKey),
+      );
     }
 
-    // Cursor-based pagination (using createdAt)
+    // Cursor-based pagination (using createdAt + id)
     if (query.cursor) {
-      conditions.push(lt(schema.threads.createdAt, new Date(query.cursor)));
+      const cursor = parseV1CompoundCursor(query.cursor);
+      conditions.push(
+        or(
+          lt(schema.threads.createdAt, cursor.createdAt),
+          and(
+            eq(schema.threads.createdAt, cursor.createdAt),
+            lt(schema.threads.id, cursor.id),
+          ),
+        ),
+      );
     }
 
     const threads = await this.db.query.threads.findMany({
       where: and(...conditions),
-      orderBy: [desc(schema.threads.createdAt)],
+      orderBy: [desc(schema.threads.createdAt), desc(schema.threads.id)],
       limit: effectiveLimit + 1, // Fetch one extra to determine hasMore
     });
 
@@ -77,7 +104,10 @@ export class V1Service {
     return {
       threads: resultThreads.map((t) => threadToDto(t)),
       nextCursor: hasMore
-        ? resultThreads[resultThreads.length - 1]?.createdAt.toISOString()
+        ? encodeV1CompoundCursor({
+            createdAt: resultThreads[resultThreads.length - 1].createdAt,
+            id: resultThreads[resultThreads.length - 1].id,
+          })
         : undefined,
       hasMore,
     };
@@ -113,9 +143,15 @@ export class V1Service {
    */
   async createThread(
     projectId: string,
-    contextKey: string | undefined,
+    contextKey: string | null | undefined,
     dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
+    if (dto.initialMessages?.length) {
+      throw new BadRequestException(
+        "initialMessages is not supported yet. Create the thread first, then add messages via runs/message endpoints.",
+      );
+    }
+
     const thread = await operations.createThread(this.db, {
       projectId,
       contextKey,
@@ -153,17 +189,33 @@ export class V1Service {
     const effectiveLimit = Math.min(Math.max(1, limit), 100);
     const order = query.order ?? "asc";
 
+    if (order !== "asc" && order !== "desc") {
+      throw new BadRequestException(`Invalid order: ${order}`);
+    }
+
     // Build where conditions
     const conditions = [eq(schema.messages.threadId, threadId)];
 
-    // Cursor-based pagination
+    // Cursor-based pagination (using createdAt + id)
     if (query.cursor) {
-      const cursorDate = new Date(query.cursor);
-      if (order === "asc") {
-        conditions.push(gt(schema.messages.createdAt, cursorDate));
-      } else {
-        conditions.push(lt(schema.messages.createdAt, cursorDate));
-      }
+      const cursor = parseV1CompoundCursor(query.cursor);
+      conditions.push(
+        order === "asc"
+          ? or(
+              gt(schema.messages.createdAt, cursor.createdAt),
+              and(
+                eq(schema.messages.createdAt, cursor.createdAt),
+                gt(schema.messages.id, cursor.id),
+              ),
+            )
+          : or(
+              lt(schema.messages.createdAt, cursor.createdAt),
+              and(
+                eq(schema.messages.createdAt, cursor.createdAt),
+                lt(schema.messages.id, cursor.id),
+              ),
+            ),
+      );
     }
 
     const messages = await this.db.query.messages.findMany({
@@ -172,6 +224,7 @@ export class V1Service {
         order === "asc"
           ? asc(schema.messages.createdAt)
           : desc(schema.messages.createdAt),
+        order === "asc" ? asc(schema.messages.id) : desc(schema.messages.id),
       ],
       limit: effectiveLimit + 1,
     });
@@ -186,7 +239,10 @@ export class V1Service {
         messageToDto(m, this.contentConversionOptions),
       ),
       nextCursor: hasMore
-        ? resultMessages[resultMessages.length - 1]?.createdAt.toISOString()
+        ? encodeV1CompoundCursor({
+            createdAt: resultMessages[resultMessages.length - 1].createdAt,
+            id: resultMessages[resultMessages.length - 1].id,
+          })
         : undefined,
       hasMore,
     };

@@ -77,6 +77,11 @@ export interface ContentConversionOptions {
    * If not provided, unknown types are silently skipped.
    */
   onUnknownContentType?: (type: unknown) => void;
+
+  /**
+   * Called when a known content type is invalid and must be skipped.
+   */
+  onInvalidContentPart?: (message: string) => void;
 }
 
 /**
@@ -106,11 +111,17 @@ export function contentPartToV1Block(
     }
     case ContentPartType.ImageUrl:
     case "image_url": {
+      const url = part.image_url?.url;
+      if (!url) {
+        options?.onInvalidContentPart?.("image_url content part missing url");
+        return null;
+      }
+
       // Convert image_url to resource format for V1
       const resourceBlock: V1ResourceContentDto = {
         type: "resource",
         resource: {
-          uri: part.image_url?.url ?? "",
+          uri: url,
           mimeType: "image/*",
         },
       };

@@ -1,10 +1,14 @@
-import { NotFoundException } from "@nestjs/common";
+import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import {
   V1RunStatus,
   ContentPartType,
   GenerationStage,
 } from "@tambo-ai-cloud/core";
 import { V1Service } from "../v1.service";
+import {
+  encodeV1CompoundCursor,
+  parseV1CompoundCursor,
+} from "../v1-pagination";
 
 // Mock the database operations module
 jest.mock("@tambo-ai-cloud/db", () => ({
@@ -14,15 +18,15 @@ jest.mock("@tambo-ai-cloud/db", () => ({
   },
   schema: {
     threads: {
-      id: "id",
-      projectId: "projectId",
-      contextKey: "contextKey",
-      createdAt: "createdAt",
+      id: { name: "id" },
+      projectId: { name: "projectId" },
+      contextKey: { name: "contextKey" },
+      createdAt: { name: "createdAt" },
     },
     messages: {
-      id: "id",
-      threadId: "threadId",
-      createdAt: "createdAt",
+      id: { name: "id" },
+      threadId: { name: "threadId" },
+      createdAt: { name: "createdAt" },
     },
   },
 }));
@@ -120,16 +124,33 @@ describe("V1Service", () => {
       expect(mockDb.query.threads.findMany).toHaveBeenCalled();
     });
 
+    it("should reject an empty context key", async () => {
+      await expect(service.listThreads("prj_123", "", {})).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
     it("should handle pagination with cursor", async () => {
       mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
 
+      const cursor = encodeV1CompoundCursor({
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+        id: "thr_000",
+      });
+
       const result = await service.listThreads("prj_123", undefined, {
-        cursor: "2024-01-01T00:00:00Z",
+        cursor,
         limit: "10",
       });
 
       expect(mockDb.query.threads.findMany).toHaveBeenCalled();
       expect(result).toBeDefined();
+    });
+
+    it("should reject an invalid cursor", async () => {
+      await expect(
+        service.listThreads("prj_123", undefined, { cursor: "not-a-cursor" }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it("should indicate hasMore when more results exist", async () => {
@@ -150,6 +171,12 @@ describe("V1Service", () => {
       expect(result.hasMore).toBe(true);
       expect(result.threads).toHaveLength(20);
       expect(result.nextCursor).toBeDefined();
+
+      const cursor = parseV1CompoundCursor(result.nextCursor!);
+      expect(cursor.createdAt.toISOString()).toBe(
+        result.threads[result.threads.length - 1].createdAt,
+      );
+      expect(cursor.id).toBe(result.threads[result.threads.length - 1].id);
     });
   });
 
@@ -226,6 +253,17 @@ describe("V1Service", () => {
       expect(result.contextKey).toBe("user_456");
       expect(result.metadata).toEqual({ custom: "data" });
     });
+
+    it("should reject initialMessages for now", async () => {
+      await expect(
+        service.createThread("prj_123", undefined, {
+          initialMessages: [
+            { role: "user", content: [{ type: "text", text: "Hi" }] },
+          ],
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockOperations.createThread).not.toHaveBeenCalled();
+    });
   });
 
   describe("deleteThread", () => {
@@ -276,12 +314,59 @@ describe("V1Service", () => {
     it("should handle pagination with cursor", async () => {
       mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
 
+      const cursor = encodeV1CompoundCursor({
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+        id: "msg_000",
+      });
+
       await service.listMessages("thr_123", {
-        cursor: "2024-01-01T00:00:00Z",
+        cursor,
         limit: "10",
       });
 
       expect(mockDb.query.messages.findMany).toHaveBeenCalled();
+    });
+
+    it("should reject an invalid cursor", async () => {
+      await expect(
+        service.listMessages("thr_123", { cursor: "not-a-cursor" }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("should set nextCursor for both asc and desc", async () => {
+      const msg1 = {
+        ...mockMessage,
+        id: "msg_1",
+        createdAt: new Date("2024-01-01T00:00:00Z"),
+      };
+      const msg2 = {
+        ...mockMessage,
+        id: "msg_2",
+        createdAt: new Date("2024-01-02T00:00:00Z"),
+      };
+      const msg3 = {
+        ...mockMessage,
+        id: "msg_3",
+        createdAt: new Date("2024-01-03T00:00:00Z"),
+      };
+
+      mockDb.query.messages.findMany.mockResolvedValueOnce([msg1, msg2, msg3]);
+      const ascPage = await service.listMessages("thr_123", {
+        limit: "2",
+        order: "asc",
+      });
+      expect(ascPage.hasMore).toBe(true);
+      expect(ascPage.messages).toHaveLength(2);
+      expect(parseV1CompoundCursor(ascPage.nextCursor!).id).toBe("msg_2");
+
+      mockDb.query.messages.findMany.mockResolvedValueOnce([msg3, msg2, msg1]);
+      const descPage = await service.listMessages("thr_123", {
+        limit: "2",
+        order: "desc",
+      });
+      expect(descPage.hasMore).toBe(true);
+      expect(descPage.messages).toHaveLength(2);
+      expect(parseV1CompoundCursor(descPage.nextCursor!).id).toBe("msg_2");
     });
   });
 
@@ -394,6 +479,10 @@ describe("V1Service", () => {
     });
 
     it("should skip unknown content types without error", async () => {
+      const warnSpy = jest
+        .spyOn(Logger.prototype, "warn")
+        .mockImplementation(() => undefined);
+
       const messageWithUnknownContent = {
         ...mockMessage,
         content: [
@@ -412,6 +501,11 @@ describe("V1Service", () => {
       expect(result.content).toHaveLength(2);
       expect(result.content[0]).toEqual({ type: "text", text: "Hello" });
       expect(result.content[1]).toEqual({ type: "text", text: "World" });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Unknown content part type"),
+      );
+      warnSpy.mockRestore();
     });
 
     it("should throw error when componentDecision has no componentName", async () => {
