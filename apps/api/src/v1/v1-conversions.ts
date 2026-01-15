@@ -75,7 +75,7 @@ export interface ContentConversionOptions {
   /**
    * Called when an unknown content type is encountered.
    */
-  onUnknownContentType: (info: { type: string }) => void;
+  onUnknownContentType?: (info: { type: string }) => void;
 
   /**
    * Called when a known content type is invalid and must be skipped.
@@ -83,10 +83,11 @@ export interface ContentConversionOptions {
   onInvalidContentPart?: (info: { type: string; reason: string }) => void;
 }
 
-const defaultContentConversionOptions: ContentConversionOptions = {
+const defaultContentConversionOptions: Required<ContentConversionOptions> = {
   onUnknownContentType: ({ type }) => {
     throw new Error(`Unknown content part type "${type}"`);
   },
+  onInvalidContentPart: () => undefined,
 };
 
 function getContentPartType(part: ChatCompletionContentPart): string {
@@ -96,13 +97,16 @@ function getContentPartType(part: ChatCompletionContentPart): string {
 
 /**
  * Convert a single content part to a V1 content block.
- * Returns null for unknown content types.
+ * Returns null for unknown content types when `options.onUnknownContentType`
+ * does not throw.
  */
 export function contentPartToV1Block(
   part: ChatCompletionContentPart,
   options?: ContentConversionOptions,
 ): V1ContentBlock | null {
-  const effectiveOptions = options ?? defaultContentConversionOptions;
+  const onUnknownContentType =
+    options?.onUnknownContentType ??
+    defaultContentConversionOptions.onUnknownContentType;
 
   switch (part.type) {
     case ContentPartType.Text:
@@ -144,7 +148,7 @@ export function contentPartToV1Block(
     }
     default:
       // Notify caller of unknown content type
-      effectiveOptions.onUnknownContentType({ type: getContentPartType(part) });
+      onUnknownContentType({ type: getContentPartType(part) });
       return null;
   }
 }

@@ -192,10 +192,9 @@ describe("v1-conversions", () => {
     it("should handle missing image_url gracefully", () => {
       const part = { type: "image_url" as const };
       const onInvalidContentPart = jest.fn();
-      const onUnknownContentType = jest.fn();
       const result = contentPartToV1Block(
         part as Parameters<typeof contentPartToV1Block>[0],
-        { onInvalidContentPart, onUnknownContentType },
+        { onInvalidContentPart },
       );
 
       expect(result).toBeNull();
