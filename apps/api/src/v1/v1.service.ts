@@ -56,16 +56,12 @@ export class V1Service {
   ) {}
 
   private parseLimit(raw: string | undefined, fallback: number): number {
-    if (raw === undefined) {
-      return fallback;
-    }
-
-    const parsed = Number(raw);
+    const parsed = raw === undefined ? fallback : Number(raw);
     if (!Number.isInteger(parsed)) {
       throw new BadRequestException("Invalid limit");
     }
 
-    return parsed;
+    return Math.min(Math.max(1, parsed), 100);
   }
 
   /**
@@ -76,8 +72,7 @@ export class V1Service {
     contextKey: string | undefined,
     query: V1ListThreadsQueryDto,
   ): Promise<V1ListThreadsResponseDto> {
-    const limit = this.parseLimit(query.limit, 20);
-    const effectiveLimit = Math.min(Math.max(1, limit), 100);
+    const effectiveLimit = this.parseLimit(query.limit, 20);
 
     // Build where conditions
     const conditions = [eq(schema.threads.projectId, projectId)];
@@ -200,8 +195,7 @@ export class V1Service {
     threadId: string,
     query: V1ListMessagesQueryDto,
   ): Promise<V1ListMessagesResponseDto> {
-    const limit = this.parseLimit(query.limit, 50);
-    const effectiveLimit = Math.min(Math.max(1, limit), 100);
+    const effectiveLimit = this.parseLimit(query.limit, 50);
     const order = query.order ?? "asc";
 
     if (order !== "asc" && order !== "desc") {
