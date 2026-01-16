@@ -2,7 +2,7 @@ import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { DeepPartial } from "ts-essentials";
+import type { PartialDeep } from "type-fest";
 import { z } from "zod/v4";
 import { TamboComponent } from "../model/component-metadata";
 import {
@@ -20,7 +20,7 @@ import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "./tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "./tambo-thread-provider";
 
-type PartialTamboAI = DeepPartial<TamboAI>;
+type PartialTamboAI = PartialDeep<TamboAI>;
 
 // Mock crypto.randomUUID
 Object.defineProperty(global, "crypto", {
@@ -102,13 +102,13 @@ describe("TamboThreadProvider", () => {
     advance: jest.fn(),
     advanceByID: jest.fn(),
     generateName: jest.fn(),
-  } satisfies DeepPartial<
+  } satisfies PartialDeep<
     TamboAI["beta"]["threads"]
   > as unknown as TamboAI.Beta.Threads;
 
   const mockProjectsApi = {
     getCurrent: jest.fn(),
-  } satisfies DeepPartial<
+  } satisfies PartialDeep<
     TamboAI["beta"]["projects"]
   > as unknown as TamboAI.Beta.Projects;
 

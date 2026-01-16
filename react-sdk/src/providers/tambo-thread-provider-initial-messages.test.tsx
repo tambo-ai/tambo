@@ -1,7 +1,7 @@
 import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { DeepPartial } from "ts-essentials";
+import type { PartialDeep } from "type-fest";
 import { TamboTool } from "..";
 import {
   GenerationStage,
@@ -17,7 +17,7 @@ import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "./tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "./tambo-thread-provider";
 
-type PartialTamboAI = DeepPartial<TamboAI>;
+type PartialTamboAI = PartialDeep<TamboAI>;
 
 // Mock crypto.randomUUID
 Object.defineProperty(global, "crypto", {
