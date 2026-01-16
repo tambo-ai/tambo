@@ -7,7 +7,7 @@ import type { Session } from "../lib/api-client.js";
 import {
   api,
   ApiError,
-  getApiBaseUrl,
+  getConsoleBaseUrl,
   isAuthError,
   verifySession,
 } from "../lib/api-client.js";
@@ -131,7 +131,7 @@ export async function handleAuthStatus(
   console.log(
     chalk.gray(`\n  Token stored at: ${chalk.dim(getTokenStoragePath())}`),
   );
-  console.log(chalk.gray(`  API endpoint: ${chalk.dim(getApiBaseUrl())}`));
+  console.log(chalk.gray(`  API endpoint: ${chalk.dim(getConsoleBaseUrl())}`));
   console.log();
   return 0;
 }
