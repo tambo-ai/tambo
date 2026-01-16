@@ -1,10 +1,8 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
-import type { PartialDeep } from "type-fest";
 import { useTamboSessionToken } from "./use-tambo-session-token";
-
-type PartialTamboAI = PartialDeep<TamboAI>;
+import type { PartialTamboAI } from "../../testing/types";
 
 describe("useTamboSessionToken", () => {
   const mockTokenResponse = {
@@ -15,7 +13,7 @@ describe("useTamboSessionToken", () => {
 
   const mockAuthApi = {
     getToken: jest.fn(),
-  } satisfies PartialDeep<TamboAI["beta"]["auth"]>;
+  } satisfies NonNullable<PartialTamboAI["beta"]>["auth"];
 
   const mockBeta = {
     auth: mockAuthApi,

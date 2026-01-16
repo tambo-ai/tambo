@@ -2,7 +2,6 @@ import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import type { PartialDeep } from "type-fest";
 import { z } from "zod/v4";
 import { TamboComponent } from "../model/component-metadata";
 import {
@@ -10,6 +9,7 @@ import {
   TamboThreadMessage,
 } from "../model/generate-component-response";
 import { serializeRegistry } from "../testing/tools";
+import type { PartialTamboAI } from "../testing/types";
 import {
   TamboClientContext,
   useTamboClient,
@@ -19,8 +19,6 @@ import { TamboContextHelpersProvider } from "./tambo-context-helpers-provider";
 import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "./tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "./tambo-thread-provider";
-
-type PartialTamboAI = PartialDeep<TamboAI>;
 
 // Mock crypto.randomUUID
 Object.defineProperty(global, "crypto", {
@@ -102,15 +100,15 @@ describe("TamboThreadProvider", () => {
     advance: jest.fn(),
     advanceByID: jest.fn(),
     generateName: jest.fn(),
-  } satisfies PartialDeep<
-    TamboAI["beta"]["threads"]
-  > as unknown as TamboAI.Beta.Threads;
+  } satisfies NonNullable<
+    PartialTamboAI["beta"]
+  >["threads"] as unknown as TamboAI.Beta.Threads;
 
   const mockProjectsApi = {
     getCurrent: jest.fn(),
-  } satisfies PartialDeep<
-    TamboAI["beta"]["projects"]
-  > as unknown as TamboAI.Beta.Projects;
+  } satisfies NonNullable<
+    PartialTamboAI["beta"]
+  >["projects"] as unknown as TamboAI.Beta.Projects;
 
   const mockBeta = {
     threads: mockThreadsApi,

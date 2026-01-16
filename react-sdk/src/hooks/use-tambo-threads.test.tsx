@@ -1,7 +1,6 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
-import type { PartialDeep } from "type-fest";
 import { useTamboThread } from "../providers";
 import {
   useTamboClient,
@@ -49,7 +48,7 @@ describe("useTamboThreadList", () => {
     delete: jest.fn(),
     advance: jest.fn(),
     advanceByID: jest.fn(),
-  } satisfies PartialDeep<TamboAI["beta"]["threads"]>;
+  } satisfies NonNullable<PartialTamboAI["beta"]>["threads"];
 
   const mockBeta = {
     projects: mockProjects,

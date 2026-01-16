@@ -159,9 +159,11 @@ eval "$(mise activate)"   # Interactive shells only
 
 ### type-fest Utility Types
 
-Prefer the `type-fest` package for advanced type manipulation. Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `RequiredDeep`, `Merge`, `ValueOf`, `UnreachableCaseError`, etc. Before writing any complicated derivative types, check `type-fest` first.
+Prefer the `type-fest` package for advanced type manipulation: https://github.com/sindresorhus/type-fest
 
-If you introduce `type-fest` usage in a workspace, add it to that workspace's `dependencies` (don't rely on transitive/hoisted deps).
+Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `RequiredDeep`, `Merge`, `ValueOf`, `SetOptional`, etc. Before writing any complicated derivative types, check `type-fest` first.
+
+If you need `type-fest` in a workspace that doesn't already use it, add it to that workspace's `dependencies` as part of your change (don't assume it's globally available across all workspaces).
 
 ### Type Inference
 
