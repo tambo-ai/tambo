@@ -219,7 +219,7 @@ export class AgentClient {
               yield {
                 type: AgentResponseType.MESSAGE,
                 message: {
-                  content: currentMessage.content,
+                  content: aguiContentToString(currentMessage.content),
                   role: currentMessage.role,
                   id: currentMessage.id,
                 },
@@ -515,6 +515,11 @@ export class AgentClient {
         case EventType.THINKING_TEXT_MESSAGE_END: {
           break;
         }
+        case EventType.ACTIVITY_SNAPSHOT:
+        case EventType.ACTIVITY_DELTA: {
+          // We don't support activity events yet
+          break;
+        }
         default: {
           invalidEvent(event.type);
         }
@@ -534,8 +539,14 @@ function invalidEvent(eventType: never) {
   console.error(`Invalid event type: ${eventType}`);
 }
 
-function getLastMessage(messages: AGUIMessage[]): AGUIMessage | null {
-  return messages.length > 0 ? messages[messages.length - 1] : null;
+function getLastMessage(messages: AGUIMessage[]): NonActivityMessage | null {
+  // Filter out activity messages and get the last non-activity message
+  const nonActivityMessages = messages.filter(
+    (m): m is NonActivityMessage => m.role !== "activity",
+  );
+  return nonActivityMessages.length > 0
+    ? nonActivityMessages[nonActivityMessages.length - 1]
+    : null;
 }
 
 /** Convert ChatCompletionContentPart[] to string for AGUI messages */
