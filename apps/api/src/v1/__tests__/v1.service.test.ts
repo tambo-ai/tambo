@@ -15,6 +15,16 @@ jest.mock("@tambo-ai-cloud/db", () => ({
   operations: {
     createThread: jest.fn(),
     deleteThread: jest.fn(),
+    getThreadForRunStart: jest.fn(),
+    acquireRunLock: jest.fn(),
+    createRun: jest.fn(),
+    setCurrentRunId: jest.fn(),
+    getRun: jest.fn(),
+    markRunCancelled: jest.fn(),
+    releaseRunLockIfCurrent: jest.fn(),
+    updateRunStatus: jest.fn(),
+    updateThreadRunStatus: jest.fn(),
+    completeRun: jest.fn(),
   },
   schema: {
     threads: {
@@ -22,11 +32,16 @@ jest.mock("@tambo-ai-cloud/db", () => ({
       projectId: { name: "projectId" },
       contextKey: { name: "contextKey" },
       createdAt: { name: "createdAt" },
+      runStatus: { name: "runStatus" },
     },
     messages: {
       id: { name: "id" },
       threadId: { name: "threadId" },
       createdAt: { name: "createdAt" },
+    },
+    runs: {
+      id: { name: "id" },
+      threadId: { name: "threadId" },
     },
   },
 }));
@@ -37,6 +52,7 @@ const mockOperations = operations as jest.Mocked<typeof operations>;
 
 // Mock db type for testing - only implements the query methods used by V1Service
 type MockDb = {
+  transaction: jest.Mock;
   query: {
     threads: {
       findMany: jest.Mock;
@@ -46,12 +62,25 @@ type MockDb = {
       findMany: jest.Mock;
       findFirst: jest.Mock;
     };
+    runs: {
+      findFirst: jest.Mock;
+    };
   };
+  // Chain mocks for update().set().where().returning()
+  update: jest.Mock;
+  // Chain mocks for insert().values().returning()
+  insert: jest.Mock;
+};
+
+// Mock ThreadsService type for testing
+type MockThreadsService = {
+  advanceThread: jest.Mock;
 };
 
 describe("V1Service", () => {
   let service: V1Service;
   let mockDb: MockDb;
+  let mockThreadsService: MockThreadsService;
 
   const mockThread = {
     id: "thr_123",
@@ -83,7 +112,23 @@ describe("V1Service", () => {
   };
 
   beforeEach(() => {
+    // Create chain mock helpers for update().set().where().returning()
+    const createUpdateChain = (returningValue: unknown[]) => {
+      const returning = jest.fn().mockResolvedValue(returningValue);
+      const where = jest.fn().mockReturnValue({ returning });
+      const set = jest.fn().mockReturnValue({ where });
+      return jest.fn().mockReturnValue({ set });
+    };
+
+    // Create chain mock helpers for insert().values().returning()
+    const createInsertChain = (returningValue: unknown[]) => {
+      const returning = jest.fn().mockResolvedValue(returningValue);
+      const values = jest.fn().mockReturnValue({ returning });
+      return jest.fn().mockReturnValue({ values });
+    };
+
     mockDb = {
+      transaction: jest.fn(),
       query: {
         threads: {
           findMany: jest.fn(),
@@ -93,11 +138,28 @@ describe("V1Service", () => {
           findMany: jest.fn(),
           findFirst: jest.fn(),
         },
+        runs: {
+          findFirst: jest.fn(),
+        },
       },
+      update: createUpdateChain([{ id: "thr_123" }]),
+      insert: createInsertChain([{ id: "run_123" }]),
     };
 
-    // Create service with mock database (cast to unknown first to satisfy constructor type)
-    service = new V1Service(mockDb as unknown as HydraDatabase);
+    mockDb.transaction.mockImplementation(async (handler) => {
+      const txDb = { ...mockDb } as unknown as HydraDatabase;
+      return await handler(txDb);
+    });
+
+    mockThreadsService = {
+      advanceThread: jest.fn(),
+    };
+
+    // Create service with mock database and threads service (cast to unknown first to satisfy constructor type)
+    service = new V1Service(
+      mockDb as unknown as HydraDatabase,
+      mockThreadsService as unknown as import("../../threads/threads.service").ThreadsService,
+    );
   });
 
   afterEach(() => {
@@ -622,6 +684,205 @@ describe("V1Service", () => {
       await expect(
         service.createThread("prj_123", undefined, {}),
       ).rejects.toThrow(/Failed to create thread for project prj_123/);
+    });
+  });
+
+  describe("startRun", () => {
+    it("should return error when thread not found", async () => {
+      mockOperations.getThreadForRunStart.mockResolvedValue({
+        thread: null,
+        hasMessages: false,
+      });
+
+      const result = await service.startRun("thr_nonexistent", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.getStatus()).toBe(404);
+        const response = result.error.getResponse() as { type?: string };
+        expect(response.type).toContain("thread_not_found");
+      }
+    });
+
+    it("should require previousRunId when thread has existing messages", async () => {
+      mockOperations.getThreadForRunStart.mockResolvedValue({
+        thread: {
+          ...mockThread,
+          lastCompletedRunId: "run_prev",
+        },
+        hasMessages: true,
+      });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+        // No previousRunId provided
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.getStatus()).toBe(400);
+        const response = result.error.getResponse() as {
+          type?: string;
+          detail?: string;
+        };
+        expect(response.type).toContain("invalid_previous_run");
+        expect(response.detail).toContain("previousRunId is required");
+      }
+    });
+
+    it("should reject mismatched previousRunId", async () => {
+      mockOperations.getThreadForRunStart.mockResolvedValue({
+        thread: {
+          ...mockThread,
+          lastCompletedRunId: "run_actual_last",
+        },
+        hasMessages: true,
+      });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+        previousRunId: "run_wrong_id",
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.getStatus()).toBe(400);
+        const response = result.error.getResponse() as {
+          type?: string;
+          detail?: string;
+        };
+        expect(response.type).toContain("invalid_previous_run");
+        expect(response.detail).toContain("does not match");
+      }
+    });
+
+    it("should return conflict when run already active", async () => {
+      mockOperations.getThreadForRunStart.mockResolvedValue({
+        thread: {
+          ...mockThread,
+          runStatus: V1RunStatus.STREAMING,
+          currentRunId: "run_active",
+        },
+        hasMessages: false,
+      });
+      mockOperations.acquireRunLock.mockResolvedValue(false);
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.getStatus()).toBe(409);
+        const response = result.error.getResponse() as { type?: string };
+        expect(response.type).toContain("concurrent_run");
+      }
+
+      expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+      expect(mockOperations.createRun).not.toHaveBeenCalled();
+    });
+
+    it("should successfully start run on idle thread", async () => {
+      mockOperations.getThreadForRunStart.mockResolvedValue({
+        thread: {
+          ...mockThread,
+          runStatus: V1RunStatus.IDLE,
+        },
+        hasMessages: false,
+      });
+      mockOperations.acquireRunLock.mockResolvedValue(true);
+      mockOperations.createRun.mockResolvedValue({ id: "run_new" });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.runId).toBe("run_new");
+        expect(result.threadId).toBe("thr_123");
+      }
+
+      expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+      expect(mockOperations.acquireRunLock).toHaveBeenCalledTimes(1);
+      expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
+      expect(mockOperations.setCurrentRunId).toHaveBeenCalledTimes(1);
+    });
+
+    it("should allow previousRunId on thread with messages", async () => {
+      mockOperations.getThreadForRunStart.mockResolvedValue({
+        thread: {
+          ...mockThread,
+          lastCompletedRunId: "run_prev",
+          runStatus: V1RunStatus.IDLE,
+        },
+        hasMessages: true,
+      });
+      mockOperations.acquireRunLock.mockResolvedValue(true);
+      mockOperations.createRun.mockResolvedValue({ id: "run_new" });
+
+      const result = await service.startRun("thr_123", {
+        message: { role: "user", content: [{ type: "text", text: "Hi" }] },
+        previousRunId: "run_prev", // Matches lastCompletedRunId
+      });
+
+      expect(result.success).toBe(true);
+
+      expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+      expect(mockOperations.acquireRunLock).toHaveBeenCalledTimes(1);
+      expect(mockOperations.createRun).toHaveBeenCalledTimes(1);
+      expect(mockOperations.setCurrentRunId).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("cancelRun", () => {
+    it("should throw NotFoundException for non-existent run", async () => {
+      mockOperations.getRun.mockResolvedValue(null);
+
+      await expect(
+        service.cancelRun("thr_123", "run_nonexistent", "user_cancelled"),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("should throw NotFoundException when the run is no longer active", async () => {
+      mockOperations.getRun.mockResolvedValue({
+        id: "run_123",
+        threadId: "thr_123",
+        status: V1RunStatus.STREAMING,
+      } as any);
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(false);
+
+      await expect(
+        service.cancelRun("thr_123", "run_123", "user_cancelled"),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+      expect(mockOperations.markRunCancelled).not.toHaveBeenCalled();
+    });
+
+    it("should successfully cancel an existing run", async () => {
+      mockOperations.getRun.mockResolvedValue({
+        id: "run_123",
+        threadId: "thr_123",
+        status: V1RunStatus.STREAMING,
+      } as any);
+      mockOperations.releaseRunLockIfCurrent.mockResolvedValue(true);
+      mockOperations.markRunCancelled.mockResolvedValue(undefined);
+
+      const result = await service.cancelRun(
+        "thr_123",
+        "run_123",
+        "user_cancelled",
+      );
+
+      expect(result.runId).toBe("run_123");
+      expect(result.status).toBe("cancelled");
+
+      expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+      expect(mockOperations.releaseRunLockIfCurrent).toHaveBeenCalledTimes(1);
+      expect(mockOperations.markRunCancelled).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -33,3 +33,5 @@ export {
   type TamboBackend as ITamboBackend,
   type ModelOptions,
 } from "./tambo-backend";
+export { type DecisionStreamItem } from "./services/decision-loop/decision-loop-service";
+export { sanitizeEvent } from "./util/event-sanitization";
