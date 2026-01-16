@@ -157,6 +157,10 @@ eval "$(mise activate)"   # Interactive shells only
 - **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
 - **Avoid `{}` type** - it means "any non-nullish value" (including primitives). Prefer `unknown` (truly unknown), `object` (any non-primitive object), or `Record<string, unknown>` / a specific object type for key-value objects.
 
+### ts-essentials Utility Types
+
+We use the `ts-essentials` package for advanced type manipulation. Most types do exactly what they sound like: `DeepPartial`, `DeepReadonly`, `DeepRequired`, `Merge`, `ValueOf`, `UnreachableCaseError`, etc. Before writing any complicated derivative types, check ts-essentials first.
+
 ### Type Inference
 
 - **Do not add unnecessary type annotations** when the value is easily inferred, such as:
