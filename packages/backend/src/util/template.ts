@@ -182,7 +182,7 @@ export function objectTemplate<T>(objs: T): ObjectTemplate<T> {
       return objs.flatMap((item) => {
         // We have special handling for chat history, as we need to expand out
         // the given variable
-        if (isLibrettoChatHistory(item)) {
+        if (isChatHistory(item)) {
           return handleChatHistory(item, parameters);
         }
 
@@ -241,21 +241,21 @@ function objTemplateVariables(objs: unknown): readonly string[] {
 }
 
 /**
- * Defines the expected structure for a Libretto chat history placeholder.
+ * Defines the expected structure for a chat history placeholder.
  */
-interface LibrettoChatHistoryItem {
+interface ChatHistoryItem {
   [ROLE_KEY]: typeof CHAT_HISTORY;
   [key: string]: TemplateValue;
 }
 
 /**
- * Determines if this has a Libretto Chat History defined object.
+ * Determines if this has a Chat History defined object.
  * It follows an expected/exact setup where the role is chat_history and the
  * content is just the chat_history variable.
  * @param obj
- * @returns true if it follows the Libretto chat history structure
+ * @returns true if it follows the chat history structure
  */
-function isLibrettoChatHistory(objs: unknown): objs is LibrettoChatHistoryItem {
+function isChatHistory(objs: unknown): objs is ChatHistoryItem {
   if (typeof objs !== "object" || objs === null || Array.isArray(objs)) {
     return false;
   }
@@ -264,7 +264,7 @@ function isLibrettoChatHistory(objs: unknown): objs is LibrettoChatHistoryItem {
 }
 
 function handleChatHistory(
-  item: LibrettoChatHistoryItem,
+  item: ChatHistoryItem,
   params: TemplateParameters,
 ): ThreadMessage[] {
   const varsInChatHistory = objTemplateVariables(item);
