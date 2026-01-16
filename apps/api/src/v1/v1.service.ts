@@ -21,6 +21,7 @@ import {
   MessageRole,
   V1RunStatus,
 } from "@tambo-ai-cloud/core";
+import { sanitizeEvent } from "@tambo-ai-cloud/backend";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
@@ -660,9 +661,11 @@ export class V1Service {
 
   /**
    * Emit an AG-UI event to the SSE response.
+   * Events are sanitized before emission to prevent exposure of sensitive data.
    */
   private emitEvent(response: Response, event: BaseEvent): void {
-    response.write(`data: ${JSON.stringify(event)}\n\n`);
+    const sanitized = sanitizeEvent(event);
+    response.write(`data: ${JSON.stringify(sanitized)}\n\n`);
   }
 
   /**
