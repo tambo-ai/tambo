@@ -62,20 +62,3 @@ import { Rocket } from "lucide-react";
   href="/guides/build-custom-conversation-ui"
   icon={Rocket}
 />
-
-## How Threads Work
-
-Threads are created automatically when you send the first message, or you can create them explicitly with initial messages and system instructions. Once created, threads persist indefinitely within your project until you delete them through the dashboard or API.
-
-When a user sends a message, it's validated, assigned an ID, and stored in the thread. The AI response then streams back in real-time, with each chunk being persisted as it arrives. Any generated components are attached to the message, and the thread's status updates throughout the generation process.
-
-Threads can involve multiple users in collaborative scenarios. The storage layer tracks which user sent each message, and real-time updates ensure all participants see new messages as they arrive. This is useful for team collaboration, support handoffs, and shared workspaces.
-
-Conversations are isolated to your project. Threads from one project are never visible to another. Context keys provide additional organization and row-level security for multi-tenant applications.
-
-## Related Concepts
-
-- **[Generative Components](/concepts/generative-interfaces/generative-components)** - How components are generated and stored in messages
-- **[Interactable Components](/concepts/generative-interfaces/interactable-components)** - How pre-placed components sync state with storage
-- **[Component State](/concepts/generative-interfaces/component-state)** - How component state persists across thread renders
-- **[Additional Context](/concepts/additional-context)** - How context is accumulated and included in storage
