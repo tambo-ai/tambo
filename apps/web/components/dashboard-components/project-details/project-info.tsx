@@ -332,17 +332,17 @@ function ProjectInfoLoaded({
                   <h5 className="text-xs font-medium text-foreground mb-1">
                     Starter LLM calls remaining
                   </h5>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col items-start gap-2">
                     <p
                       className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
                     >
-                      {starterQuotaCopy}
+                      {remainingMessages ?? "—"}
                     </p>
                     <Link
                       href={settingsHref}
                       className="text-xs font-semibold underline"
                     >
-                      Add provider key
+                      Add API Key
                     </Link>
                   </div>
                 </>
