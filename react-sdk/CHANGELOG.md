@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.69.1](https://github.com/tambo-ai/tambo/compare/react-v0.69.0...react-v0.69.1) (2026-01-16)
+
+
+### Bug Fixes
+
+* Allow multiple messages in response stream ([#1801](https://github.com/tambo-ai/tambo/issues/1801)) ([2bd74cf](https://github.com/tambo-ai/tambo/commit/2bd74cf201499c62273e73a2aa8cc6a22f62d95b))
+
 ## [0.69.0](https://github.com/tambo-ai/tambo/compare/react-v0.68.0...react-v0.69.0) (2026-01-15)
 
 
