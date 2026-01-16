@@ -373,6 +373,12 @@ When working across multiple packages:
 - **Integration tests**: the only tests that stay in a `__tests__` folder, and the filename must describe the scenario (never just mirror another file's name).
 - **Fixtures & mocks**: keep shared helpers in a `__fixtures__` or `__mocks__` directory at the package's source root (e.g. `apps/web/__mocks__`), never nested inside feature folders.
 
+### Mocking
+
+- **Avoid over-mocking** - tests should exercise real code paths whenever possible. If you're mocking internal functions just to isolate a unit, you're probably testing implementation details rather than behavior.
+- **Only mock at system boundaries** - external APIs, databases, file systems, network calls, and other I/O with side effects.
+- **Don't mock what you own** - if a helper function is pure and fast, call it directly rather than mocking it. Mocking your own code couples tests to implementation.
+
 ### Pre-commit/PR Verification Checklist
 
 Run these commands before commits/PRs:
