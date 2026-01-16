@@ -7,13 +7,9 @@ Messages sent from your app to Tambo are processed by the Tambo agent, which you
 
 ## Custom Instructions
 
-Custom instructions define how your AI agent behaves and responds to users. Think of it as programming the agent's personality, expertise, and communication style.
+Custom instructions define how Tambo behaves and responds to users.
 
-### What Custom Instructions Do
-
-When you add custom instructions, you're customizing the agent's "system prompt": the foundational instructions that guide every response. This is where you define the agent's role (is it a support agent? a creative partner? a data analyst?), set the tone and personality (formal or casual? friendly or professional?), establish behavioral guidelines for handling different types of requests, and give your AI a name or identity to help users understand who they're talking to.
-
-### Example: Creative Writing Partner
+When you add custom instructions, you're customizing Tambo's "system prompt". This is where you define the agent's role (is it a support agent? a creative partner? a data analyst?), set the tone and personality (formal or casual? friendly or professional?), establish behavioral guidelines for handling different types of requests, and give your AI a name or identity to help users understand who they're talking to.
 
 Here's how you might configure custom instructions for a creative writing application:
 
@@ -28,21 +24,15 @@ You are a creative writing partner helping authors develop their stories. You're
 
 These instructions persist across all conversations in your project, ensuring consistent agent behavior. Users will experience the same personality and approach regardless of which thread they're in.
 
-### Tips for Writing Custom Instructions
-
-Be specific about the agent's expertise. For example, "You specialize in React and TypeScript" is better than "You're a coding assistant." Include behavioral guidelines that tell the agent how to handle edge cases or sensitive situations. Set expectations for response style: should responses be brief? detailed? include examples? And define boundaries around what the agent should refuse to do or redirect.
-
 ## LLM Configuration
 
-The LLM (Large Language Model) configuration determines which AI model powers your Tambo agent and how it behaves. You can change the provider, select specific models, and fine-tune parameters to match your application's needs.
+The LLM configuration determines which AI model powers your Tambo agent and how it behaves. You can change the provider, select specific models, and fine-tune parameters to match your application's needs.
 
 ### Choosing a Provider and Model
 
-Tambo offers a curated list of models from major providers including OpenAI (GPT-4o, GPT-4o mini, o1, and more), Anthropic (Claude 3.5 Sonnet, Claude 3.7 Opus, Claude 3 Haiku), Google (Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini 2.0 Flash), Groq (fast inference with Llama and other models), and Mistral (Mistral Large, Mistral Small, and specialized models). You can also use any OpenAI-compatible model by selecting the "OpenAI Compatible" provider and specifying a custom endpoint.
+Tambo integrates with major AI providers including OpenAI, Anthropic, Google, Groq, and Mistral. Each provider offers different models optimized for various use cases. See the [Models and Providers](/docs/models) page for a complete list of available providers and their capabilities. You can also use any OpenAI-compatible model by selecting the "OpenAI Compatible" provider and specifying a custom endpoint.
 
-### API Keys and Free Messages
-
-Each project starts with free messages to help you get started and test your configuration. Once you've used your free messages, you can add your own API key for the underlying LLM provider. This approach gives you no upfront cost to try Tambo with your project before committing, flexibility to switch to your own API key when you're ready to scale, and cost control by using your own billing and rate limits.
+Each project starts with free messages to help you get started and test your configuration. Once you've used your free messages, you can add your own API key for the underlying LLM provider.
 
 ### Custom Parameters
 
@@ -52,7 +42,7 @@ For detailed instructions on configuring LLM providers and parameters, see the [
 
 ## MCP Server Connection
 
-Model Context Protocol (MCP) servers extend your Tambo agent's capabilities by providing access to external tools, data sources, and services. You can connect MCP servers directly from your project settings page, making their capabilities available to all users of your application.
+Model Context Protocol servers extend your Tambo agent's capabilities by providing access to external tools, data sources, and services. You can connect MCP servers directly from your project settings page, making their capabilities available to all users of your application.
 
 Once connected, your agent can call tools to perform actions and retrieve data, access resources like files, documents, and databases, and use prompts for structured interactions. MCP connections are configured at the project level and shared across all users. This means you set it up once, and every conversation in your project has access to those capabilities.
 
@@ -62,14 +52,4 @@ To learn more about MCP, how it works, and what you can do with it, see the [Mod
 
 User authentication determines how Tambo identifies and isolates users in your application. Each user has their own threads and messages, kept separate from other users' data through secure token-based authentication.
 
-You can configure which OAuth provider you're using (Auth0, Clerk, Supabase, etc.), how Tambo verifies user tokens through JWT verification, and how your app's tokens are exchanged for Tambo tokens through the token exchange process. Tambo uses OAuth 2.0 Token Exchange to securely identify users without requiring you to manage separate authentication systems. Your app authenticates users with your provider, then exchanges that token with Tambo for API access.
-
-For complete details on how authentication works and how to integrate with your provider, see the [User Authentication concept page](/docs/concepts/user-authentication).
-
-## Related Guides
-
-Ready to configure your project? The [Configure Project Settings](/docs/guides/configure-agent/project-settings) guide walks you through creating projects and setting up basic configuration. The [Configure LLM Provider](/docs/guides/configure-agent/llm-provider) guide covers choosing models and configuring parameters. And the [Configure Agent Behavior](/docs/guides/configure-agent/agent-behavior) guide provides practical patterns for different use cases.
-
-## Related Concepts
-
-Learn more about injecting runtime context into conversations with [Additional Context](/docs/concepts/additional-context), registering custom tools for your agent to use with [Tools](/docs/concepts/tools), and building dynamic UI components with [Generative Interfaces](/docs/concepts/generative-interfaces).
+For more information on how authentication works and how to integrate with your provider, see the [User Authentication concept page](/docs/concepts/user-authentication).
