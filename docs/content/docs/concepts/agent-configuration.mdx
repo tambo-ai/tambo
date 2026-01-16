@@ -1,273 +1,75 @@
 ---
 title: Agent Configuration
-description: How Tambo controls agent behavior through Projects, configuration hierarchy, and system instructions
+description: Configure your Tambo agent's behavior, LLM provider, MCP servers, and authentication settings
 ---
 
-AI agents need two things that change at different rates: a stable identity (who they are, how they behave) and dynamic awareness (what's happening right now). Tambo's configuration system separates these concerns across three levels—project, thread, and message—each with different persistence and control models. This lets you define an agent's core persona once while injecting fresh context with every message.
+Messages sent from your app to Tambo are processed by the Tambo agent, which you can configure through your project settings page. You can add custom instructions to change Tambo's behavior and personality, configure the underlying LLM model and its options, connect MCP servers to extend capabilities, and set up user authentication.
 
-## The Problem This Solves
+## Custom Instructions
 
-Without a layered configuration system, you face two bad options: rigid agents that can't adapt to context, or chaotic agents where you must resend the entire persona and instructions with every message.
+Custom instructions define how your AI agent behaves and responds to users. Think of it as programming the agent's personality, expertise, and communication style.
 
-Consider a customer support agent. It needs to:
+### What Custom Instructions Do
 
-- **Stay consistent** in its role (support agent, helpful tone, company policies)
-- **Specialize** per conversation (returns, billing, technical issues)
-- **Stay aware** of current context (user's order history, current page, time of day)
+When you add custom instructions, you're customizing the agent's "system prompt": the foundational instructions that guide every response. This is where you define the agent's role (is it a support agent? a creative partner? a data analyst?), set the tone and personality (formal or casual? friendly or professional?), establish behavioral guidelines for handling different types of requests, and give your AI a name or identity to help users understand who they're talking to.
 
-These three requirements change at fundamentally different rates:
+### Example: Creative Writing Partner
 
-- The agent's **identity** never changes during normal operation
-- **Specialization** changes per conversation (one thread for returns, another for billing)
-- **Context awareness** changes with every message (order details, navigation state)
-
-If everything lives at one level, you either:
-- Hard-code everything upfront (can't adapt to user navigation or data)
-- Repeat everything per message (wasteful, error-prone, token-expensive)
-
-The three-level hierarchy solves this by matching configuration persistence to information stability. Static foundations at the project level, optional specialization at the thread level, ephemeral context at the message level.
-
-## Agent Behavior Components
-
-Before diving into the hierarchy, understand what you're configuring. Agent behavior in Tambo comes from four interconnected components:
-
-**Model + Instructions + Tools + Context**
-
-1. **Model** - The LLM provider and model (e.g., GPT-4, Claude Sonnet)
-2. **Instructions** - System prompts that guide agent behavior and persona
-3. **Tools** - Functions the agent can call to take actions or retrieve information
-4. **Context** - Additional information provided to the agent at runtime
-
-The configuration hierarchy gives you precise control over when and how each component is set. The model is chosen at the project level. Instructions span all three levels. Tools are registered at the project level. Context is injected at runtime via the message level.
-
-## The Configuration Hierarchy
-
-Think of configuration as layers of an onion, with different persistence at each layer:
-
-### 1. Project Level - The Core Identity
-
-Projects define who the agent is. This is the **static foundation** that persists across all conversations in your application:
-
-- **Agent persona**: "You are a technical support agent"
-- **Behavioral rules**: "Always confirm before taking destructive actions"
-- **Domain expertise**: "You specialize in React and TypeScript"
-- **Response style**: "Keep answers concise and include code examples"
-
-**Persistence**: Permanent (until you change project settings)
-
-**Control**: Developer/platform owner
-
-**Purpose**: The agent's identity and core capabilities
-
-**Example**: A code review bot's project configuration defines it as a "senior engineer focused on TypeScript best practices." This never changes during any conversation—it's the agent's fundamental nature.
-
-### 2. Thread Level - Optional Specialization
-
-Threads can optionally override project instructions for a specific conversation. This is the **middle layer** that lets you specialize the agent's behavior without changing its core identity:
-
-- **Conversation focus**: "For this conversation, focus on debugging memory leaks"
-- **Task-specific mode**: "You are helping migrate from JavaScript to TypeScript"
-- **User preference**: "Use a more technical tone with this user"
-
-**Persistence**: Conversation lifetime (fixed after thread creation)
-
-**Control**: End-user (if you enable `allowSystemPromptOverride`)
-
-**Purpose**: Specialization for a specific conversation
-
-**Example**: The same code review bot can specialize per thread—one thread for "focus on accessibility issues," another for "review API security patterns." The core persona (senior engineer) remains, but the lens changes.
-
-### 3. Message Level - Runtime Awareness
-
-Messages inject dynamic context that makes the agent aware of the current state. This is the **outer layer** that changes with every message:
-
-- **Current state**: "User is on the dashboard page"
-- **Dynamic data**: "User's timezone is PST, current time is 2:30 PM"
-- **Session info**: "User has three open support tickets"
-- **Environment**: "Code file currently open: app.tsx"
-
-**Persistence**: Single message only (ephemeral)
-
-**Control**: Your application code via [context helpers](/docs/concepts/additional-context)
-
-**Purpose**: Awareness of what's happening right now
-
-**Example**: As the user navigates your app, context helpers inject the current page, selected items, and relevant data. The agent's identity and specialization stay fixed, but it knows *where the user is* and *what they're doing*.
-
-## Configuration as Layers
-
-The mental model: inner layers are sticky and persistent, outer layers are fluid and ephemeral.
+Here's how you might configure custom instructions for a creative writing application:
 
 ```
-┌─────────────────────────────────────┐
-│   Message (Context)                 │  ← Ephemeral, changes every message
-│   ┌──────────────────────────────┐  │
-│   │  Thread (Specialization)     │  │  ← Semi-static, set at thread creation
-│   │  ┌────────────────────────┐  │  │
-│   │  │  Project (Identity)    │  │  │  ← Static, defines agent core
-│   │  │                        │  │  │
-│   │  └────────────────────────┘  │  │
-│   └──────────────────────────────┘  │
-└─────────────────────────────────────┘
+You are a creative writing partner helping authors develop their stories. You're imaginative, collaborative, and supportive. When users share ideas:
+- Ask thoughtful questions to deepen their concepts
+- Suggest creative alternatives and plot twists
+- Help brainstorm character motivations and arcs
+- Maintain an encouraging, enthusiastic tone
+- Avoid being prescriptive - guide, don't dictate
 ```
 
-Each layer builds on the previous:
-- **Project**: Who the agent is
-- **Thread**: What it's focusing on (optional)
-- **Message**: What it knows right now
+These instructions persist across all conversations in your project, ensuring consistent agent behavior. Users will experience the same personality and approach regardless of which thread they're in.
 
-The key insight: **thread instructions replace, message context adds**.
+### Tips for Writing Custom Instructions
 
-When you create a thread with custom instructions, it completely replaces the project's default instructions. But when you send a message with context, it augments (doesn't replace) the thread's instructions.
+Be specific about the agent's expertise. For example, "You specialize in React and TypeScript" is better than "You're a coding assistant." Include behavioral guidelines that tell the agent how to handle edge cases or sensitive situations. Set expectations for response style: should responses be brief? detailed? include examples? And define boundaries around what the agent should refuse to do or redirect.
 
-## How Instructions Combine
+## LLM Configuration
 
-The resolution logic determines what instructions the agent actually sees:
+The LLM (Large Language Model) configuration determines which AI model powers your Tambo agent and how it behaves. You can change the provider, select specific models, and fine-tune parameters to match your application's needs.
 
-### Thread Creation
+### Choosing a Provider and Model
 
-When a thread is created, Tambo determines the thread's system message:
+Tambo offers a curated list of models from major providers including OpenAI (GPT-4o, GPT-4o mini, o1, and more), Anthropic (Claude 3.5 Sonnet, Claude 3.7 Opus, Claude 3 Haiku), Google (Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini 2.0 Flash), Groq (fast inference with Llama and other models), and Mistral (Mistral Large, Mistral Small, and specialized models). You can also use any OpenAI-compatible model by selecting the "OpenAI Compatible" provider and specifying a custom endpoint.
 
-1. **Check for thread override**: If `allowSystemPromptOverride === true` AND `initialMessages` contains a system message → use that as the thread's system message
-2. **Else use project instructions**: If `project.customInstructions` exists → create a system message with project instructions
-3. **Else no system message**: Thread starts with no default instructions
+### API Keys and Free Messages
 
-This system message becomes the thread's permanent instruction set. It can't be changed later—to change it, you'd create a new thread.
+Each project starts with free messages to help you get started and test your configuration. Once you've used your free messages, you can add your own API key for the underlying LLM provider. This approach gives you no upfront cost to try Tambo with your project before committing, flexibility to switch to your own API key when you're ready to scale, and cost control by using your own billing and rate limits.
 
-### Runtime Augmentation
+### Custom Parameters
 
-At runtime, when you send a message to the thread, the LLM receives:
+If you need to adjust model-specific behavior, you can configure custom parameters. Temperature controls randomness in responses (0.0 = deterministic, 1.0 = creative), max tokens limits response length, top P controls diversity via nucleus sampling, and top K limits candidate tokens for each generation step. These parameters are stored as JSON and applied when threads are created. Different models support different parameters, so refer to your provider's documentation for available options.
 
-1. **Thread's system message** (from project or thread override) - The core instructions
-2. **Context helpers** - Additional system messages with runtime context
-3. **Conversation history** - Previous messages in the thread
-4. **Current user message** - What the user just said
+For detailed instructions on configuring LLM providers and parameters, see the [Configure LLM Provider guide](/docs/guides/configure-agent/llm-provider).
 
-The thread's system message is the foundation. Context helpers add awareness without changing the foundation.
+## MCP Server Connection
 
-**Example:**
+Model Context Protocol (MCP) servers extend your Tambo agent's capabilities by providing access to external tools, data sources, and services. You can connect MCP servers directly from your project settings page, making their capabilities available to all users of your application.
 
-```
-Thread created with project instructions:
-→ System message: "You are a helpful coding assistant."
+Once connected, your agent can call tools to perform actions and retrieve data, access resources like files, documents, and databases, and use prompts for structured interactions. MCP connections are configured at the project level and shared across all users. This means you set it up once, and every conversation in your project has access to those capabilities.
 
-Message sent with context helper:
-→ LLM receives:
-  1. "You are a helpful coding assistant." (thread system message)
-  2. "Current file: app.ts\nContents: ..." (context helper)
-  3. User: "Can you review this function?"
-```
+To learn more about MCP, how it works, and what you can do with it, see the [Model Context Protocol concept page](/docs/concepts/model-context-protocol).
 
-The agent knows *who it is* (coding assistant) and *what the user is looking at* (app.ts). The identity persists, the awareness updates.
+## User Authentication
 
-## The System Message Confusion
+User authentication determines how Tambo identifies and isolates users in your application. Each user has their own threads and messages, kept separate from other users' data through secure token-based authentication.
 
-One source of confusion: "system messages" appear at all three levels, but they serve fundamentally different purposes.
+You can configure which OAuth provider you're using (Auth0, Clerk, Supabase, etc.), how Tambo verifies user tokens through JWT verification, and how your app's tokens are exchanged for Tambo tokens through the token exchange process. Tambo uses OAuth 2.0 Token Exchange to securely identify users without requiring you to manage separate authentication systems. Your app authenticates users with your provider, then exchanges that token with Tambo for API access.
 
-From the LLM's perspective, they're all "system messages"—special messages that guide its behavior. But in Tambo's configuration model, they have different origins and purposes:
-
-### Project Custom Instructions → System Message
-
-When you set **Custom Instructions** in project settings, Tambo saves this as the first system message in newly created threads. This defines the agent's core persona.
-
-**Purpose**: "You are [persona]"
-
-**Example**: "You are a financial advisor specializing in retirement planning."
-
-**Persistence**: Saved to thread on creation, lasts for thread lifetime
-
-### Thread Override → Replaces System Message
-
-When `allowSystemPromptOverride` is enabled and you provide a system message in `initialMessages`, it **completely replaces** the project instructions for that thread.
-
-**Purpose**: "For this conversation, [specialization]"
-
-**Example**: "You are helping a 45-year-old client plan early retirement."
-
-**Persistence**: Saved to thread on creation, replaces project instructions
-
-### Message-Level System Messages → Adds Context
-
-When you use [context helpers](/docs/concepts/additional-context), they inject additional system messages at runtime that **augment** the thread's core instructions.
-
-**Purpose**: "Right now, [current facts]"
-
-**Example**: "Current time: 2:30 PM PST. User viewing: /retirement-calculator"
-
-**Persistence**: Only sent with this message, not saved to thread
-
-**Key distinction**: Project and thread instructions define *who the agent is*. Message-level system messages provide *what it knows right now*.
-
-They're all "system messages" in format, but different in purpose and persistence:
-- **Identity** (project/thread override): Who you are, how you behave
-- **Awareness** (message context): Where the user is, what they're doing
-
-## Projects as Organizational Units
-
-Now that you understand the configuration layers, let's address what **Projects** are and why they exist.
-
-A Project is Tambo's top-level organizational unit. Think of it as an isolated configuration environment for an agent. Each project represents a distinct agent configuration with its own:
-
-- Custom instructions (the default agent persona)
-- LLM provider and model selection
-- Model parameters (temperature, top_p, etc.)
-- Token and tool execution limits
-- Permission settings (whether threads can override instructions)
-
-### Why Projects Exist
-
-Projects solve several organizational needs:
-
-**Multi-tenant applications**: Each customer gets their own project with isolated configuration and data.
-
-**Environment separation**: Separate projects for development, staging, and production with different safety limits and model choices.
-
-**A/B testing**: Run multiple projects with different prompts, models, or parameters to test effectiveness.
-
-**Specialized agents**: One project for customer support, another for data analysis, another for code review—each with different personas and capabilities.
-
-### The Ownership Model
-
-Projects establish a security and control boundary:
-
-- **Project-level**: Platform/developer controls (your configuration)
-- **Thread-level**: Optional end-user control (if you enable overrides)
-- **Message-level**: Runtime/system controls (your code provides context)
-
-The `allowSystemPromptOverride` setting is critical—it determines whether end-users can change the agent's core behavior. When enabled, users can provide custom instructions that completely replace your project defaults.
-
-**Security implication**: Thread overrides give end-users significant control. If you enable this, users can instruct the agent to ignore your project instructions, change its tone, or focus on different tasks. Only enable overrides if your use case explicitly requires user-controlled agent behavior.
-
-### Configuration Scope
-
-Projects define *default* behavior. Every thread inherits project settings unless explicitly overridden (and overrides are only possible if you enable them). This means:
-
-- You set project instructions once, they apply to thousands of conversations
-- You change the model at the project level, all new threads use the new model
-- You adjust token limits, it affects all threads going forward
-
-This is why the hierarchy matters: common configuration at the project level, specialization at the thread level, dynamic awareness at the message level. Each level has different scope and persistence matching its purpose.
-
-## Terminology Mapping
-
-Different parts of the Tambo system use similar terminology. Here's how they map across the three levels:
-
-| Term | Location | Level | Purpose |
-|------|----------|-------|---------|
-| **Custom Instructions** | Project settings | Project | Default system message for all threads |
-| **System Message Override** | `initialMessages` | Thread | Replaces project instructions for this thread |
-| **System Messages** | Additional Context | Message | Runtime context augmentation |
-
-**Key distinction**: Project custom instructions and thread overrides define the core agent persona. Message-level system messages provide dynamic context without changing the core persona.
-
-## Related Concepts
-
-- [Additional Context](/docs/concepts/additional-context) - Runtime context injection system
-- [Tools](/docs/concepts/tools) - How to register and use agent tools
-- [Model Context Protocol](/docs/concepts/model-context-protocol) - Extending agent capabilities with MCP
+For complete details on how authentication works and how to integrate with your provider, see the [User Authentication concept page](/docs/concepts/user-authentication).
 
 ## Related Guides
 
-- [Configure Project Settings](/docs/guides/configure-agent/project-settings) - Step-by-step project setup
-- [Configure LLM Provider](/docs/guides/configure-agent/llm-provider) - Provider and model selection
-- [Configure Agent Behavior](/docs/guides/configure-agent/agent-behavior) - Practical configuration patterns
+Ready to configure your project? The [Configure Project Settings](/docs/guides/configure-agent/project-settings) guide walks you through creating projects and setting up basic configuration. The [Configure LLM Provider](/docs/guides/configure-agent/llm-provider) guide covers choosing models and configuring parameters. And the [Configure Agent Behavior](/docs/guides/configure-agent/agent-behavior) guide provides practical patterns for different use cases.
+
+## Related Concepts
+
+Learn more about injecting runtime context into conversations with [Additional Context](/docs/concepts/additional-context), registering custom tools for your agent to use with [Tools](/docs/concepts/tools), and building dynamic UI components with [Generative Interfaces](/docs/concepts/generative-interfaces).
