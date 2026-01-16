@@ -88,11 +88,11 @@ interface StubRouter {
 // ============================================================================
 
 /**
- * Returns the base URL for the tRPC API (apps/web at app.tambo.co).
+ * Returns the base URL for the Tambo Console API (apps/web at app.tambo.co).
  * Note: This is NOT the NestJS REST API at api.tambo.co.
  */
-export function getApiBaseUrl(): string {
-  return process.env.TAMBO_API_URL ?? "https://app.tambo.co";
+export function getConsoleBaseUrl(): string {
+  return process.env.TAMBO_CLI_CONSOLE_BASE_URL ?? "https://console.tambo.co";
 }
 
 export class ApiError extends Error {
@@ -122,7 +122,7 @@ export function isAuthError(error: unknown): boolean {
 const rawClient = createTRPCClient({
   links: [
     httpLink({
-      url: `${getApiBaseUrl()}/trpc`,
+      url: `${getConsoleBaseUrl()}/trpc`,
       transformer: superjson,
       headers() {
         const token = getEffectiveSessionToken();

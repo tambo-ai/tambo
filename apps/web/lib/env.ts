@@ -51,7 +51,7 @@ export const env = createEnv({
     // When unset, any verified email is allowed.
     ALLOWED_LOGIN_DOMAIN: z.string().optional().or(z.literal("")),
     // When set, redirects auth routes from this host to NEXT_PUBLIC_APP_URL.
-    // Used to redirect tambo.co/login -> app.tambo.co/login
+    // Used to redirect tambo.co/login -> console.tambo.co/login
     AUTH_REDIRECT_FROM_HOST: z.string().optional(),
   },
   /*

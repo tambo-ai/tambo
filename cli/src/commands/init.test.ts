@@ -200,7 +200,7 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
     },
   },
   // Note: This is the tRPC API (apps/web), not the NestJS API (api.tambo.co)
-  getApiBaseUrl: () => "https://app.tambo.co",
+  getConsoleBaseUrl: () => "https://console.tambo.co",
 }));
 
 // Mock the registry utilities to use memfs paths (same as add.test.ts)
