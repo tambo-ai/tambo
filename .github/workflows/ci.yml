@@ -48,5 +48,5 @@ jobs:
           API_KEY_SECRET: "dummy-api-key-secret"
           PROVIDER_KEY_SECRET: "dummy-provider-key-secret"
           NEXTAUTH_SECRET: "dummy-nextauth-secret"
-          NEXTAUTH_URL: "http://localhost:3000"
+          NEXTAUTH_URL: "http://localhost:8260"
           SKIP_ENV_VALIDATION: "true"

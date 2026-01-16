@@ -83,6 +83,7 @@ export {
    * TamboToolWithToolSchema should be removed in a future release.
    */
   type TamboToolBase as TamboTool,
+  type ToolAnnotations,
 } from "./model/component-metadata";
 export {
   GenerationStage,

@@ -1,3 +1,4 @@
+import type { ToolAnnotations as MCPToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { JSONSchema7 } from "json-schema";
@@ -28,6 +29,21 @@ export type SupportedSchema<Shape = unknown> =
   | StandardSchemaV1<Shape, Shape>
   | JSONSchema7;
 
+/**
+ * Annotations describing a tool's behavior, aligned with the MCP (Model Context Protocol)
+ * specification. These hints help clients understand how tools behave and can be used
+ * to optimize tool execution strategies.
+ * @see https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations
+ */
+export type ToolAnnotations = MCPToolAnnotations & {
+  /**
+   * Indicates that the tool is safe to be called repeatedly while a response is
+   * being streamed. This is typically used for read-only tools that do not
+   * cause side effects.
+   */
+  tamboStreamableHint?: boolean;
+};
+
 /** Extension of the ToolParameters interface from Tambo AI to include JSONSchema definition */
 export type ParameterSpec = TamboAI.ToolParameters & {
   schema?: JSONSchema7;
@@ -48,6 +64,10 @@ export interface ComponentContextToolMetadata
    * regardless of the project's global limit.
    */
   maxCalls?: number;
+  /**
+   * Annotations describing the tool's behavior. See {@link ToolAnnotations}.
+   */
+  annotations?: ToolAnnotations;
 }
 
 export interface ComponentContextTool {
@@ -149,27 +169,24 @@ export interface TamboTool<
    */
   maxCalls?: number;
   /**
-   * Optional properties describing tool behavior
+   * Annotations describing the tool's behavior, aligned with the MCP specification.
+   * Use `tamboStreamableHint: true` to enable streaming execution of partial tool calls.
+   * @see {@link ToolAnnotations}
+   * @example
+   * ```ts
+   * const setTextTool: TamboTool<{ text: string }> = {
+   *   name: "set_text",
+   *   description: "Set the displayed text",
+   *   annotations: {
+   *     tamboStreamableHint: true, // tool is safe for streaming calls
+   *   },
+   *   tool: ({ text }) => setText(text),
+   *   inputSchema: z.object({ text: z.string() }),
+   *   outputSchema: z.void(),
+   * };
+   * ```
    */
-  annotations?: {
-    /**
-     * An array indicating the intended audience(s) for this resource. Valid
-     * values are "user" and "assistant". For example, ["user", "assistant"]
-     * indicates content useful for both.
-     */
-    audience: ("user" | "assistant")[];
-    /**
-     * A number from 0.0 to 1.0 indicating the importance of this resource. A
-     * value of 1 means "most important" (effectively required), while 0 means
-     * "least important" (entirely optional).
-     */
-    priority: number;
-    /**
-     * An ISO 8601 formatted timestamp indicating when the resource was last
-     * modified (e.g., "2025-01-12T15:00:58Z").
-     */
-    lastModified: string;
-  };
+  annotations?: ToolAnnotations;
 
   /**
    * The function that implements the tool's logic. This function will be called
@@ -416,6 +433,8 @@ export interface TamboComponent {
   loadingComponent?: ComponentType<any>;
   /** The tools that are associated with the component */
   associatedTools?: (TamboTool | TamboToolWithToolSchema)[];
+  /** Annotations describing the component's behavior. */
+  annotations?: ToolAnnotations;
 }
 
 export interface RegisterToolsFn {

@@ -105,6 +105,7 @@ export function APIKeyList({
   const utils = api.useUtils();
   const lastCreateKeyRef = useRef<string | undefined>();
   const lastDeleteKeyRef = useRef<string | undefined>();
+  const hasAutoOpenedCreateRef = useRef(false);
 
   const {
     data: apiKeys,
@@ -196,13 +197,6 @@ export function APIKeyList({
     [generateApiKey, newKeyName, projectId, toast],
   );
 
-  // Auto-create first key if none exist
-  useEffect(() => {
-    if (!apiKeysLoading && apiKeys?.length === 0) {
-      handleCreateApiKey("first-tambo-key").catch(console.error);
-    }
-  }, [apiKeysLoading, apiKeys, handleCreateApiKey]);
-
   // When Tambo sends createKeyWithName, automatically create the key
   useEffect(() => {
     if (
@@ -272,6 +266,21 @@ export function APIKeyList({
   };
 
   const isLoading = apiKeysLoading || externalLoading;
+  const hasLoadedApiKeys = apiKeys !== undefined;
+  const hasNoKeys =
+    !!projectId &&
+    !isLoading &&
+    !apiKeysError &&
+    hasLoadedApiKeys &&
+    apiKeys.length === 0;
+
+  useEffect(() => {
+    if (hasNoKeys && !hasAutoOpenedCreateRef.current) {
+      hasAutoOpenedCreateRef.current = true;
+      setNewKeyName("My first API key");
+      setIsCreating(true);
+    }
+  }, [hasNoKeys]);
 
   // Show loading state
   if (isLoading) {

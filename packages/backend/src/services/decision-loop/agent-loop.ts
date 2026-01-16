@@ -11,6 +11,7 @@ import {
   prefetchAndCacheResources,
   ResourceFetcherMap,
 } from "../../util/resource-transformation";
+import { aguiContentToString } from "../agui/content-to-string";
 import { AgentClient } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
 
@@ -50,13 +51,24 @@ export async function* runAgentLoop(
   });
   for await (const event of stream) {
     const { message } = event;
+
+    const messageRole = toCoreMessageRole(message.role);
+    if (!messageRole) {
+      console.warn(
+        `Dropping AG-UI message with unsupported role '${message.role}' (id: '${message.id}')`,
+      );
+      // `@ag-ui/core` messages can include roles (like `developer`/`activity`) that
+      // aren't represented in `@tambo-ai-cloud/core`'s `MessageRole` enum.
+      continue;
+    }
+
     const toolCallId = getToolCallId(message);
     const toolCallRequest = getToolCallRequest(message);
     yield {
       id: message.id,
-      role: message.role as MessageRole,
+      role: messageRole,
       parentMessageId: message.parentMessageId,
-      message: message.content || "",
+      message: aguiContentToString(message.content),
       componentName: null,
       props: null,
       componentState: null,
@@ -68,6 +80,27 @@ export async function* runAgentLoop(
     };
   }
 }
+
+function toCoreMessageRole(role: Message["role"]): MessageRole | null {
+  switch (role) {
+    case "user": {
+      return MessageRole.User;
+    }
+    case "assistant": {
+      return MessageRole.Assistant;
+    }
+    case "system": {
+      return MessageRole.System;
+    }
+    case "tool": {
+      return MessageRole.Tool;
+    }
+    default: {
+      return null;
+    }
+  }
+}
+
 function getToolCallId(message: Message) {
   if (message.role === "assistant") {
     return message.toolCalls?.[0]?.id;

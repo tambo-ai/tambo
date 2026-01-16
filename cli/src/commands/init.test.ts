@@ -10,9 +10,10 @@ import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
 import {
   createBasicProject,
+  createNextProject,
   createProjectWithBothEnvFiles,
   createProjectWithEnv,
-  createProjectWithReactAndRegistry,
+  createProjectWithTamboSDKAndRegistry,
   createProjectWithTamboTs,
   createRegistryFiles,
 } from "../__fixtures__/mock-fs-setup.js";
@@ -21,6 +22,30 @@ import {
 jest.unstable_mockModule("fs", () => ({
   ...memfsFs,
   default: memfsFs,
+}));
+
+// Mock framework detection to return Next.js by default (most tests expect this)
+// Tests can override this by setting mockDetectedFramework before running
+let mockDetectedFramework: {
+  name: string;
+  displayName: string;
+  envPrefix: string | null;
+} | null = {
+  name: "next",
+  displayName: "Next.js",
+  envPrefix: "NEXT_PUBLIC_",
+};
+
+jest.unstable_mockModule("../utils/framework-detection.js", () => ({
+  detectFramework: () => mockDetectedFramework,
+  getTamboApiKeyEnvVar: () =>
+    mockDetectedFramework?.envPrefix
+      ? `${mockDetectedFramework.envPrefix}TAMBO_API_KEY`
+      : "TAMBO_API_KEY",
+  getEnvVarName: (baseName: string) =>
+    mockDetectedFramework?.envPrefix
+      ? `${mockDetectedFramework.envPrefix}${baseName}`
+      : baseName,
 }));
 
 // Mock child_process for npm install
@@ -174,7 +199,8 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
       },
     },
   },
-  getApiBaseUrl: () => "https://tambo.co",
+  // Note: This is the tRPC API (apps/web), not the NestJS API (api.tambo.co)
+  getConsoleBaseUrl: () => "https://console.tambo.co",
 }));
 
 // Mock the registry utilities to use memfs paths (same as add.test.ts)
@@ -269,6 +295,13 @@ describe("handleInit", () => {
   beforeEach(() => {
     // Reset memfs volume
     vol.reset();
+
+    // Reset framework detection mock to Next.js (most tests expect this)
+    mockDetectedFramework = {
+      name: "next",
+      displayName: "Next.js",
+      envPrefix: "NEXT_PUBLIC_",
+    };
 
     // Reset exec calls
     execSyncCalls = [];
@@ -374,7 +407,8 @@ describe("handleInit", () => {
 
   describe("basic init (without fullSend)", () => {
     beforeEach(() => {
-      vol.fromJSON(createBasicProject());
+      // Use Next.js project since tests check for NEXT_PUBLIC_TAMBO_API_KEY
+      vol.fromJSON(createNextProject());
     });
 
     it("should complete basic init with cloud choice", async () => {
@@ -528,7 +562,7 @@ describe("handleInit", () => {
   describe("full-send init", () => {
     beforeEach(() => {
       vol.fromJSON(
-        createProjectWithReactAndRegistry([
+        createProjectWithTamboSDKAndRegistry([
           "message-thread-full",
           "control-bar",
         ]),
@@ -715,6 +749,7 @@ describe("handleInit", () => {
 
   describe("getInstallationPath", () => {
     beforeEach(() => {
+      // Framework-agnostic test - doesn't check for env var prefix
       vol.fromJSON(createBasicProject());
     });
 
@@ -778,8 +813,9 @@ describe("handleInit", () => {
 
   describe("tambo.ts file creation", () => {
     beforeEach(() => {
+      // Use Next.js project since tests check for NEXT_PUBLIC_TAMBO_API_KEY in env files
       vol.fromJSON({
-        ...createBasicProject(),
+        ...createNextProject(),
         "/mock-project/src": null,
       });
     });
@@ -852,10 +888,10 @@ describe("handleInit", () => {
     });
 
     it("should create tambo.ts in correct path based on installPath", async () => {
-      // Setup: Remove src directory
+      // Setup: Remove src directory, use Next.js project for NEXT_PUBLIC_TAMBO_API_KEY
       vol.reset();
       vol.fromJSON({
-        ...createBasicProject(),
+        ...createNextProject(),
         ...createRegistryFiles(["message-thread-full"]),
       });
 
@@ -888,7 +924,8 @@ describe("handleInit", () => {
 
   describe("API key management", () => {
     beforeEach(() => {
-      vol.fromJSON(createBasicProject());
+      // Use Next.js project since tests check for NEXT_PUBLIC_TAMBO_API_KEY
+      vol.fromJSON(createNextProject());
     });
 
     it("should create .env.local when neither exists", async () => {
@@ -920,9 +957,9 @@ describe("handleInit", () => {
     });
 
     it("should use .env.local over .env when both exist", async () => {
-      // Setup: Project with both env files
+      // Setup: Next.js project with both env files (uses NEXT_PUBLIC_TAMBO_API_KEY)
       vol.fromJSON({
-        ...createBasicProject(),
+        ...createNextProject(),
         "/mock-project/.env": "SOME_OTHER_VAR=value\n",
         "/mock-project/.env.local": "NEXT_PUBLIC_TAMBO_API_KEY=existing\n",
       });
@@ -957,9 +994,9 @@ describe("handleInit", () => {
     });
 
     it("should append to existing .env file when key doesn't exist", async () => {
-      // Setup: Project with .env but no API key
+      // Setup: Next.js project with .env but no API key (uses NEXT_PUBLIC_TAMBO_API_KEY)
       vol.fromJSON({
-        ...createBasicProject(),
+        ...createNextProject(),
         "/mock-project/.env": "SOME_VAR=value\n",
       });
 
@@ -983,9 +1020,9 @@ describe("handleInit", () => {
     });
 
     it("should replace existing key when user confirms", async () => {
-      // Setup: Project with existing API key
+      // Setup: Next.js project with existing API key (uses NEXT_PUBLIC_TAMBO_API_KEY)
       vol.fromJSON({
-        ...createBasicProject(),
+        ...createNextProject(),
         "/mock-project/.env.local":
           "NEXT_PUBLIC_TAMBO_API_KEY=old-key\nOTHER_VAR=value\n",
       });
@@ -1042,7 +1079,8 @@ describe("handleInit", () => {
 
   describe("hosting choice flow", () => {
     beforeEach(() => {
-      vol.fromJSON(createBasicProject());
+      // Use Next.js project since tests check for NEXT_PUBLIC_TAMBO_API_KEY
+      vol.fromJSON(createNextProject());
     });
 
     it("should handle self-host path with API key paste", async () => {
@@ -1123,7 +1161,7 @@ describe("handleInit", () => {
   describe("full-send instructions", () => {
     beforeEach(() => {
       vol.fromJSON(
-        createProjectWithReactAndRegistry([
+        createProjectWithTamboSDKAndRegistry([
           "message-thread-full",
           "control-bar",
         ]),
@@ -1198,7 +1236,8 @@ describe("handleInit", () => {
 
   describe("options", () => {
     beforeEach(() => {
-      vol.fromJSON(createBasicProject());
+      // Use Next.js project since tests check for NEXT_PUBLIC_TAMBO_API_KEY
+      vol.fromJSON(createNextProject());
     });
 
     it("should respect --yes flag", async () => {
@@ -1228,7 +1267,9 @@ describe("handleInit", () => {
 
     it("should respect --legacyPeerDeps flag", async () => {
       // Setup: Switch to React project
-      vol.fromJSON(createProjectWithReactAndRegistry(["message-thread-full"]));
+      vol.fromJSON(
+        createProjectWithTamboSDKAndRegistry(["message-thread-full"]),
+      );
 
       // Set up device auth mock
       mockGeneratedApiKey = "test-key";

@@ -4,10 +4,10 @@
  */
 
 export type HelperFn = () =>
-  | any
+  | unknown
   | null
   | undefined
-  | Promise<any | null | undefined>;
+  | Promise<unknown | null | undefined>;
 
 /**
  * Resolve all helpers to AdditionalContext entries, skipping null/undefined and errors.
@@ -15,7 +15,7 @@ export type HelperFn = () =>
  */
 export async function resolveAdditionalContext(
   helpers: Record<string, HelperFn>,
-): Promise<{ name: string; context: any }[]> {
+): Promise<{ name: string; context: unknown }[]> {
   const entries = Object.entries(helpers);
   if (entries.length === 0) return [];
 
@@ -32,5 +32,5 @@ export async function resolveAdditionalContext(
     }),
   );
 
-  return results.filter(Boolean) as { name: string; context: any }[];
+  return results.filter(Boolean) as { name: string; context: unknown }[];
 }

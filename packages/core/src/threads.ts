@@ -292,6 +292,36 @@ export enum GenerationStage {
   CANCELLED = "CANCELLED",
 }
 
+/**
+ * V1 Run Status - streaming status of the current run.
+ *
+ * This is a simple lifecycle aligned with AG-UI's run model:
+ * - idle: No active SSE stream
+ * - waiting: RUN_STARTED emitted, waiting for first content (TTFB phase)
+ * - streaming: Actively receiving content
+ *
+ * Edge cases like cancellation, errors, and pending tool calls are tracked
+ * via separate fields on Thread, not as status values.
+ */
+export enum V1RunStatus {
+  /** No run is active */
+  IDLE = "idle",
+  /** RUN_STARTED emitted, waiting for first content */
+  WAITING = "waiting",
+  /** Actively receiving content */
+  STREAMING = "streaming",
+}
+
+/**
+ * V1 Run Error - error information from the last run.
+ */
+export interface V1RunError {
+  /** Error code (e.g., "RATE_LIMIT_EXCEEDED", "INTERNAL_ERROR") */
+  code?: string;
+  /** Human-readable error message */
+  message: string;
+}
+
 export interface Thread {
   /** Unique identifier for the thread */
   id: string;
@@ -303,12 +333,31 @@ export interface Thread {
   metadata?: Record<string, unknown>;
   /** Current stage of the generation process */
   generationStage: GenerationStage;
-  /** Message to display describing the current stage of the generation process */
-  statusMessage?: string;
   /** Timestamp when thread was created */
   createdAt: Date;
   /** Timestamp when thread was last updated */
   updatedAt: Date;
+
+  // ==========================================
+  // V1 API run lifecycle fields
+  // ==========================================
+
+  /** Status of the current run */
+  runStatus?: V1RunStatus;
+  /** ID of the currently active run, if any */
+  currentRunId?: string;
+  /** Human-readable status detail (e.g., "Fetching weather data...") */
+  statusMessage?: string;
+
+  /** Whether the last run was cancelled */
+  lastRunCancelled?: boolean;
+  /** Error information from the last run */
+  lastRunError?: V1RunError;
+
+  /** Tool call IDs awaiting client-side results */
+  pendingToolCallIds?: string[];
+  /** ID of the last completed run */
+  lastCompletedRunId?: string;
 }
 
 export interface Resource {

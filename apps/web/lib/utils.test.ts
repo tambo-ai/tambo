@@ -8,7 +8,7 @@ describe("utils", () => {
   });
 
   test("absoluteUrl uses siteConfig.url fallback", () => {
-    expect(absoluteUrl("/x")).toBe("http://localhost:3000/x");
+    expect(absoluteUrl("/x")).toBe("http://localhost:8260/x");
   });
 
   test("constructMetadata builds expected metadata", () => {
@@ -24,7 +24,7 @@ describe("utils", () => {
     // @ts-expect-error openGraph is present
     expect(meta.openGraph.title).toBe("Hello");
     // @ts-expect-error alternates exists
-    expect(meta.alternates.canonical).toBe("http://localhost:3000/a");
+    expect(meta.alternates.canonical).toBe("http://localhost:8260/a");
   });
 
   test("formatDate produces Today for same-day", () => {
