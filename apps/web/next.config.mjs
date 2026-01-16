@@ -15,24 +15,34 @@ const jiti = createJiti(fileURLToPath(import.meta.url));
 jiti.import("./lib/env").catch(console.error);
 
 // Auth redirect config: when AUTH_REDIRECT_FROM_HOST is set, redirect auth routes to NEXT_PUBLIC_APP_URL
+// Supports both bare host and host-with-port matching since Host headers may include ports
 const authRedirectFromHost = process.env.AUTH_REDIRECT_FROM_HOST;
 const authRedirectToUrl = process.env.NEXT_PUBLIC_APP_URL;
+const authRedirectHosts = authRedirectFromHost
+  ? authRedirectFromHost.includes(":")
+    ? [authRedirectFromHost]
+    : [
+        authRedirectFromHost,
+        `${authRedirectFromHost}:443`,
+        `${authRedirectFromHost}:80`,
+      ]
+  : [];
 const authRedirects =
-  authRedirectFromHost && authRedirectToUrl
-    ? [
+  authRedirectHosts.length > 0 && authRedirectToUrl
+    ? authRedirectHosts.flatMap((host) => [
         {
           source: "/login",
-          has: [{ type: "host", value: authRedirectFromHost }],
+          has: [{ type: "host", value: host }],
           destination: `${authRedirectToUrl}/login`,
           permanent: true,
         },
         {
           source: "/api/auth/:path*",
-          has: [{ type: "host", value: authRedirectFromHost }],
+          has: [{ type: "host", value: host }],
           destination: `${authRedirectToUrl}/api/auth/:path*`,
           permanent: true,
         },
-      ]
+      ])
     : [];
 
 /** @type {import('next').NextConfig} */
