@@ -208,7 +208,7 @@ export class AgentClient {
           // consumer to replace all the messages they've receieved with all of
           // these, but we don't yet have a way to do that
           const e = event as MessagesSnapshotEvent;
-          const lastMessage = getLastNonActivityMessage(e.messages);
+          const lastMessage = getLastMessage(e.messages);
           if (!lastMessage) {
             break;
           }
@@ -290,13 +290,6 @@ export class AgentClient {
         }
         case EventType.STATE_DELTA: {
           const _e = event as StateDeltaEvent;
-          break;
-        }
-
-        case EventType.ACTIVITY_SNAPSHOT:
-        case EventType.ACTIVITY_DELTA: {
-          // Activity events are currently ignored (we drop activity messages from
-          // the message stream to keep downstream message types stable).
           break;
         }
 
@@ -541,17 +534,8 @@ function invalidEvent(eventType: never) {
   console.error(`Invalid event type: ${eventType}`);
 }
 
-function getLastNonActivityMessage(
-  messages: AGUIMessage[],
-): NonActivityMessage | null {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    if (message.role !== "activity") {
-      return message;
-    }
-  }
-
-  return null;
+function getLastMessage(messages: AGUIMessage[]): AGUIMessage | null {
+  return messages.length > 0 ? messages[messages.length - 1] : null;
 }
 
 /** Convert ChatCompletionContentPart[] to string for AGUI messages */

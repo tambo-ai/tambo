@@ -297,7 +297,15 @@ export class V1Controller {
     response.flushHeaders();
 
     // Handle connection close
+    let shouldCancelOnClose = true;
+    response.on("finish", () => {
+      shouldCancelOnClose = false;
+    });
     response.on("close", () => {
+      if (!shouldCancelOnClose) {
+        return;
+      }
+
       void this.v1Service
         .cancelRun(thread.id, startResult.runId, "connection_closed")
         .catch((error: unknown) => {
@@ -392,7 +400,15 @@ export class V1Controller {
     response.flushHeaders();
 
     // Handle connection close
+    let shouldCancelOnClose = true;
+    response.on("finish", () => {
+      shouldCancelOnClose = false;
+    });
     response.on("close", () => {
+      if (!shouldCancelOnClose) {
+        return;
+      }
+
       void this.v1Service
         .cancelRun(threadId, startResult.runId, "connection_closed")
         .catch((error: unknown) => {

@@ -1,6 +1,6 @@
 import { and, eq, desc } from "drizzle-orm";
 import { V1RunStatus } from "@tambo-ai-cloud/core";
-import type { HydraDatabase } from "../types";
+import type { HydraDb } from "../types";
 import { threads, runs, messages, type RunRequestParams } from "../schema";
 
 /**
@@ -30,7 +30,7 @@ export type StartRunResult =
  * Get thread with message count for run validation.
  */
 export async function getThreadForRunStart(
-  db: HydraDatabase,
+  db: HydraDb,
   threadId: string,
 ): Promise<{
   thread: typeof threads.$inferSelect | null;
@@ -63,7 +63,7 @@ export async function getThreadForRunStart(
  * @returns true if lock was acquired, false if thread was not idle
  */
 export async function acquireRunLock(
-  db: HydraDatabase,
+  db: HydraDb,
   threadId: string,
 ): Promise<boolean> {
   const result = await db
@@ -88,7 +88,7 @@ export async function acquireRunLock(
  * Create a new run record in the runs table.
  */
 export async function createRun(
-  db: HydraDatabase,
+  db: HydraDb,
   input: StartRunInput,
 ): Promise<{ id: string }> {
   const [run] = await db
@@ -114,7 +114,7 @@ export async function createRun(
  * Set the current run ID on a thread.
  */
 export async function setCurrentRunId(
-  db: HydraDatabase,
+  db: HydraDb,
   threadId: string,
   runId: string,
 ): Promise<void> {
@@ -131,7 +131,7 @@ export async function setCurrentRunId(
  * Get a run by ID and thread ID.
  */
 export async function getRun(
-  db: HydraDatabase,
+  db: HydraDb,
   threadId: string,
   runId: string,
 ): Promise<typeof runs.$inferSelect | null> {
@@ -146,7 +146,7 @@ export async function getRun(
  * Mark a run as cancelled.
  */
 export async function markRunCancelled(
-  db: HydraDatabase,
+  db: HydraDb,
   runId: string,
 ): Promise<void> {
   await db
@@ -164,7 +164,7 @@ export async function markRunCancelled(
  * Used when a run completes or is cancelled.
  */
 export async function releaseRunLock(
-  db: HydraDatabase,
+  db: HydraDb,
   threadId: string,
   runId: string,
   options: {
@@ -188,10 +188,45 @@ export async function releaseRunLock(
 }
 
 /**
+ * Release a run lock only if `threads.currentRunId === runId`.
+ *
+ * Also updates thread run outcome fields (`lastCompletedRunId`, `lastRunCancelled`,
+ * `lastRunError`, and `pendingToolCallIds`) while clearing the current run.
+ *
+ * @returns true if the lock was released, false if the thread is no longer on this run
+ */
+export async function releaseRunLockIfCurrent(
+  db: HydraDb,
+  threadId: string,
+  runId: string,
+  options: {
+    wasCancelled?: boolean;
+    error?: { code?: string; message: string };
+    pendingToolCallIds?: string[];
+  } = {},
+): Promise<boolean> {
+  const result = await db
+    .update(threads)
+    .set({
+      runStatus: V1RunStatus.IDLE,
+      currentRunId: null,
+      lastRunCancelled: options.wasCancelled ?? null,
+      lastRunError: options.error ?? null,
+      pendingToolCallIds: options.pendingToolCallIds ?? null,
+      lastCompletedRunId: runId,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(threads.id, threadId), eq(threads.currentRunId, runId)))
+    .returning({ id: threads.id });
+
+  return result.length > 0;
+}
+
+/**
  * Update the run status (WAITING -> STREAMING).
  */
 export async function updateRunStatus(
-  db: HydraDatabase,
+  db: HydraDb,
   runId: string,
   status: V1RunStatus,
 ): Promise<void> {
@@ -211,7 +246,7 @@ export async function updateRunStatus(
  * Update the thread status (for run lifecycle).
  */
 export async function updateThreadRunStatus(
-  db: HydraDatabase,
+  db: HydraDb,
   threadId: string,
   status: V1RunStatus,
   statusMessage?: string,
@@ -230,7 +265,7 @@ export async function updateThreadRunStatus(
  * Mark a run as complete (success or error).
  */
 export async function completeRun(
-  db: HydraDatabase,
+  db: HydraDb,
   runId: string,
   options: {
     error?: { code: string; message: string };

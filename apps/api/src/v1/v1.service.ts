@@ -334,16 +334,10 @@ export class V1Service {
     threadId: string,
     dto: V1CreateRunDto,
   ): Promise<StartRunResult> {
-    // First, get the thread to check state
-    const thread = await this.db.query.threads.findFirst({
-      where: eq(schema.threads.id, threadId),
-      with: {
-        messages: {
-          limit: 1, // Just check if any messages exist
-          orderBy: [desc(schema.messages.createdAt)],
-        },
-      },
-    });
+    const { thread, hasMessages } = await operations.getThreadForRunStart(
+      this.db,
+      threadId,
+    );
 
     if (!thread) {
       return {
@@ -358,8 +352,6 @@ export class V1Service {
       };
     }
 
-    // If thread has messages, previousRunId is required
-    const hasMessages = thread.messages.length > 0;
     if (hasMessages && !dto.previousRunId) {
       return {
         success: false,
@@ -387,47 +379,14 @@ export class V1Service {
       };
     }
 
-    // Atomic conditional UPDATE to acquire the run lock
-    // This prevents race conditions when multiple requests try to start a run simultaneously
-    const updateResult = await this.db
-      .update(schema.threads)
-      .set({
-        runStatus: V1RunStatus.WAITING,
-        // Clear last run outcome fields when starting new run
-        statusMessage: null,
-        lastRunCancelled: null,
-        lastRunError: null,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(schema.threads.id, threadId),
-          eq(schema.threads.runStatus, V1RunStatus.IDLE),
-        ),
-      )
-      .returning({ id: schema.threads.id });
+    const runId = await this.db.transaction(async (tx) => {
+      const didAcquireLock = await operations.acquireRunLock(tx, threadId);
+      if (!didAcquireLock) {
+        return null;
+      }
 
-    if (updateResult.length === 0) {
-      // Thread's runStatus was not IDLE - concurrent run already active
-      return {
-        success: false,
-        error: new HttpException(
-          createProblemDetail(
-            V1ErrorCodes.CONCURRENT_RUN,
-            `A run is already active on thread ${threadId}`,
-            { threadId, currentRunId: thread.currentRunId },
-          ),
-          HttpStatus.CONFLICT,
-        ),
-      };
-    }
-
-    // Create the run record in the runs table
-    const [run] = await this.db
-      .insert(schema.runs)
-      .values({
+      const run = await operations.createRun(tx, {
         threadId,
-        status: V1RunStatus.WAITING,
         previousRunId: dto.previousRunId,
         model: dto.model,
         requestParams: {
@@ -436,21 +395,35 @@ export class V1Service {
           toolChoice: dto.toolChoice,
         },
         metadata: dto.runMetadata,
-      })
-      .returning({ id: schema.runs.id });
+      });
 
-    // Update thread with the current run ID
-    await this.db
-      .update(schema.threads)
-      .set({
-        currentRunId: run.id,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.threads.id, threadId));
+      await operations.setCurrentRunId(tx, threadId, run.id);
 
-    this.logger.log(`Started run ${run.id} on thread ${threadId}`);
+      return run.id;
+    });
 
-    return { success: true, runId: run.id, threadId };
+    if (runId === null) {
+      const { thread: latestThread } = await operations.getThreadForRunStart(
+        this.db,
+        threadId,
+      );
+
+      return {
+        success: false,
+        error: new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.CONCURRENT_RUN,
+            `A run is already active on thread ${threadId}`,
+            { threadId, currentRunId: latestThread?.currentRunId },
+          ),
+          HttpStatus.CONFLICT,
+        ),
+      };
+    }
+
+    this.logger.log(`Started run ${runId} on thread ${threadId}`);
+
+    return { success: true, runId, threadId };
   }
 
   /**
@@ -465,38 +438,33 @@ export class V1Service {
     runId: string,
     reason: "user_cancelled" | "connection_closed",
   ): Promise<{ runId: string; status: "cancelled" }> {
-    // Verify the run exists and belongs to this thread
-    const run = await this.db.query.runs.findFirst({
-      where: and(eq(schema.runs.id, runId), eq(schema.runs.threadId, threadId)),
-    });
-
+    const run = await operations.getRun(this.db, threadId, runId);
     if (!run) {
       throw new NotFoundException(
         `Run ${runId} not found on thread ${threadId}`,
       );
     }
 
-    // Mark the run as cancelled
-    await this.db
-      .update(schema.runs)
-      .set({
-        isCancelled: true,
-        completedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.runs.id, runId));
+    const didCancel = await this.db.transaction(async (tx) => {
+      const didReleaseLock = await operations.releaseRunLockIfCurrent(
+        tx,
+        threadId,
+        runId,
+        { wasCancelled: true },
+      );
+      if (!didReleaseLock) {
+        return false;
+      }
 
-    // Update thread state
-    await this.db
-      .update(schema.threads)
-      .set({
-        runStatus: V1RunStatus.IDLE,
-        currentRunId: null,
-        lastRunCancelled: true,
-        lastCompletedRunId: runId,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.threads.id, threadId));
+      await operations.markRunCancelled(tx, runId);
+      return true;
+    });
+
+    if (!didCancel) {
+      throw new NotFoundException(
+        `Run ${runId} not found on thread ${threadId}`,
+      );
+    }
 
     this.logger.log(
       `Cancelled run ${runId} on thread ${threadId} (reason: ${reason})`,
@@ -609,8 +577,20 @@ export class V1Service {
           await streamingPromise;
 
           // 6. Mark run as completed successfully
-          await operations.completeRun(this.db, runId);
-          await operations.releaseRunLock(this.db, threadId, runId);
+          const didReleaseLock = await this.db.transaction(async (tx) => {
+            await operations.completeRun(tx, runId);
+            return await operations.releaseRunLockIfCurrent(
+              tx,
+              threadId,
+              runId,
+            );
+          });
+
+          if (!didReleaseLock) {
+            this.logger.warn(
+              `Skipped releasing run lock for run ${runId} on thread ${threadId} (no longer current run)`,
+            );
+          }
 
           // 7. Emit RUN_FINISHED
           const runFinishedEvent: RunFinishedEvent = {
@@ -648,10 +628,23 @@ export class V1Service {
           };
 
           // Update run and thread with error
-          await operations.completeRun(this.db, runId, { error: errorInfo });
-          await operations.releaseRunLock(this.db, threadId, runId, {
-            error: errorInfo,
+          const didReleaseLock = await this.db.transaction(async (tx) => {
+            await operations.completeRun(tx, runId, { error: errorInfo });
+            return await operations.releaseRunLockIfCurrent(
+              tx,
+              threadId,
+              runId,
+              {
+                error: errorInfo,
+              },
+            );
           });
+
+          if (!didReleaseLock) {
+            this.logger.warn(
+              `Skipped releasing run lock for run ${runId} on thread ${threadId} after error (no longer current run)`,
+            );
+          }
 
           throw error;
         }
