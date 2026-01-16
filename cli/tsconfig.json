@@ -23,19 +23,16 @@
     "types": ["node", "jest"],
     "paths": {
       "@/*": ["src/*"],
-      "@/components/tambo/*": ["src/registry/*"],
-      "@/lib/*": ["src/lib/*"],
       "@tambo-ai/react": ["../react-sdk/src"],
-      "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"]
+      "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"],
+      "@tambo-ai/ui-registry/utils": ["../packages/ui-registry/src/utils"],
+      "@tambo-ai/ui-registry/lib/*": ["../packages/ui-registry/src/lib/*"],
+      "@tambo-ai/ui-registry/components/*": [
+        "../packages/ui-registry/src/components/*"
+      ]
     },
     "outDir": "./dist"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/types/*.d.ts",
-    "__tests__/**/*.ts",
-    "__tests__/**/*.tsx"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/types/*.d.ts"],
   "exclude": ["node_modules", "./dist"]
 }

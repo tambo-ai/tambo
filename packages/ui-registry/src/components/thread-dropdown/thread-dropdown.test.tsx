@@ -2,7 +2,7 @@
 import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { ThreadDropdown } from "../../../src/registry/thread-dropdown/thread-dropdown";
+import { ThreadDropdown } from "./thread-dropdown";
 import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
 
 // @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts

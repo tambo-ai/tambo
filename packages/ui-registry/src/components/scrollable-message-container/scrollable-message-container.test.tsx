@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { GenerationStage, useTambo } from "@tambo-ai/react";
 import { render } from "@testing-library/react";
 import React from "react";
-import { ScrollableMessageContainer } from "../../../src/registry/scrollable-message-container/scrollable-message-container";
+import { ScrollableMessageContainer } from "./scrollable-message-container";
 
 // @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 

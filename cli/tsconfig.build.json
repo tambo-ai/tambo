@@ -4,7 +4,6 @@
     "rootDir": "./src",
     "paths": {
       "@/*": ["src/*"],
-      "@/components/tambo/*": ["src/registry/*"],
       "@/lib/*": ["src/lib/*"]
     }
   },

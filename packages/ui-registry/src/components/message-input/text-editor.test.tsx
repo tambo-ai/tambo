@@ -1,6 +1,6 @@
 /// <reference types="@testing-library/jest-dom" />
 import { describe, expect, it } from "@jest/globals";
-import { getImageItems } from "../../../src/registry/message-input/text-editor";
+import { getImageItems } from "./text-editor";
 
 interface MockClipboardData {
   type: string;

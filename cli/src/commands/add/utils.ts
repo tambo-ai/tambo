@@ -12,12 +12,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Gets the base registry path (where all registry files are located)
+ * @returns The path to the registry root
+ */
+export function getRegistryBasePath(): string {
+  // From dist/commands/add/, registry is at dist/registry/
+  return path.join(__dirname, "../../registry");
+}
+
+/**
  * Gets the registry path for a component
  * @param componentName The name of the component
  * @returns The path to the component in the registry
  */
 export function getRegistryPath(componentName: string): string {
-  return path.join(__dirname, "../../../src/registry", componentName);
+  return path.join(getRegistryBasePath(), "components", componentName);
 }
 
 /**
@@ -61,11 +70,16 @@ interface ComponentInfo {
  * @returns An array of ComponentInfo objects
  */
 export function getComponentList(): ComponentInfo[] {
-  const registryPath = path.join(__dirname, "../../../src/registry");
+  const componentsPath = path.join(getRegistryBasePath(), "components");
+  if (!fs.existsSync(componentsPath)) {
+    return [];
+  }
+
   const components = fs
-    .readdirSync(registryPath)
-    .filter((file) => fs.statSync(path.join(registryPath, file)).isDirectory())
-    .filter((dir) => dir !== "config");
+    .readdirSync(componentsPath)
+    .filter((file) =>
+      fs.statSync(path.join(componentsPath, file)).isDirectory(),
+    );
 
   return components
     .map((componentName) => {
@@ -94,8 +108,8 @@ export function getTamboComponentInfo(): {
   allComponents: Set<string>;
 } {
   try {
-    const registryPath = path.join(__dirname, "../../../src/registry");
-    if (!fs.existsSync(registryPath)) {
+    const componentsPath = path.join(getRegistryBasePath(), "components");
+    if (!fs.existsSync(componentsPath)) {
       return {
         mainComponents: new Set(),
         supportComponents: new Set(),
@@ -108,10 +122,10 @@ export function getTamboComponentInfo(): {
 
     // First, add all components that have their own directories
     const directories = fs
-      .readdirSync(registryPath)
+      .readdirSync(componentsPath)
       .filter((file) => {
-        const fullPath = path.join(registryPath, file);
-        return fs.statSync(fullPath).isDirectory() && file !== "config";
+        const fullPath = path.join(componentsPath, file);
+        return fs.statSync(fullPath).isDirectory();
       })
       .filter((componentName) => componentExists(componentName));
 

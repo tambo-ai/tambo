@@ -33,7 +33,8 @@
   "scripts": {
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "peerDependencies": {
     "@tambo-ai/react": "*",
@@ -44,9 +45,15 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-config": "*",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "date-fns": "^4.0.0",
+    "diffable-html": "^6.0.1",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.0.2",
     "json-stringify-pretty-compact": "^4.0.0",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
@@ -54,6 +61,7 @@
     "react-markdown": "^10.1.0",
     "streamdown": "^1.6.10",
     "tailwind-merge": "^2.0.0",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   }
 }

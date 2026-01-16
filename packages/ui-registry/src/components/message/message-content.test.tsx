@@ -2,7 +2,7 @@
 import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import React from "react";
 import { render } from "@testing-library/react";
-import { Message, MessageContent } from "../../../src/registry/message/message";
+import { Message, MessageContent } from "./message";
 import { useTambo } from "@tambo-ai/react";
 import type { TamboThreadMessage } from "@tambo-ai/react";
 
@@ -502,7 +502,6 @@ describe("MessageContent rendering", () => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 class="lucide lucide-external-link w-3 h-3"
-                aria-hidden="true"
               >
                 <path d="M15 3h6v6">
                 </path>
