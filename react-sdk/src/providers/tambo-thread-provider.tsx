@@ -945,6 +945,9 @@ export const TamboThreadProvider: React.FC<
               }
             }
 
+            // Capture previous message ID before updating finalMessage
+            const previousMessageId = finalMessage.id;
+
             if (chunk.responseMessageDto.component?.componentName) {
               finalMessage = renderComponentIntoMessage(
                 chunk.responseMessageDto,
@@ -956,7 +959,7 @@ export const TamboThreadProvider: React.FC<
 
             // if we start getting a new message mid-stream, put the previous one on screen
             const isNewMessage =
-              chunk.responseMessageDto.id !== finalMessage.id;
+              chunk.responseMessageDto.id !== previousMessageId;
             if (isNewMessage) {
               await addThreadMessage(finalMessage, false);
             } else {
