@@ -28,6 +28,16 @@ import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
 import type { Response } from "express";
 import { createProblemDetail, V1ErrorCodes } from "./v1.errors";
 import { V1CreateRunDto } from "./dto/run.dto";
+import {
+  convertV1ComponentsToInternal,
+  convertV1ToolsToInternal,
+} from "./v1-tool-conversions";
+import { createAwaitingInputEvent, ToolCallTracker } from "./v1-client-tools";
+import {
+  extractToolResults,
+  hasPendingToolCalls,
+  validateToolResults,
+} from "./v1-tool-results";
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
 import { ThreadsService } from "../threads/threads.service";
 import type { MessageRequest } from "../threads/dto/message.dto";
@@ -379,6 +389,33 @@ export class V1Service {
       };
     }
 
+    // Validate tool results if thread has pending tool calls
+    if (hasPendingToolCalls(thread.pendingToolCallIds)) {
+      const toolResults = extractToolResults(dto.message);
+      const validation = validateToolResults(
+        toolResults,
+        thread.pendingToolCallIds,
+      );
+
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: new HttpException(
+            createProblemDetail(
+              V1ErrorCodes.INVALID_TOOL_RESULT,
+              validation.error.message,
+              {
+                code: validation.error.code,
+                missingToolCallIds: validation.error.missingToolCallIds,
+                extraToolCallIds: validation.error.extraToolCallIds,
+              },
+            ),
+            HttpStatus.BAD_REQUEST,
+          ),
+        };
+      }
+    }
+
     const runId = await this.db.transaction(async (tx) => {
       const didAcquireLock = await operations.acquireRunLock(tx, threadId);
       if (!didAcquireLock) {
@@ -544,17 +581,20 @@ export class V1Service {
           // advanceThread is fire-and-forget style - it resolves when streaming completes
           // but pushes to queue while running
           //
-          // TODO(Step 8): Convert V1 tools/components to internal format
+          // Convert V1 tools/components to internal format
           // V1 uses JSON Schemas (inputSchema, propsSchema) while internal uses
-          // parsed metadata (ToolParameters[], contextTools). Proper conversion
-          // needed when implementing client-side tool handling.
+          // parsed metadata (ToolParameters[], contextTools).
+          const availableComponents = convertV1ComponentsToInternal(
+            dto.availableComponents,
+          );
+          const clientTools = convertV1ToolsToInternal(dto.tools);
+
           const streamingPromise = this.threadsService.advanceThread(
             projectId,
             {
               messageToAppend,
-              // V1 tools/components format differs from internal - conversion needed
-              availableComponents: undefined,
-              clientTools: undefined,
+              availableComponents,
+              clientTools,
             },
             threadId,
             {}, // toolCallCounts - start fresh for V1 API
@@ -563,11 +603,15 @@ export class V1Service {
             contextKey,
           );
 
-          // 5. Consume queue and emit AG-UI events
+          // 5. Consume queue and emit AG-UI events, tracking tool calls
+          const toolCallTracker = new ToolCallTracker();
+
           for await (const item of queue) {
             // Emit all AG-UI events from this stream item
             if (item.aguiEvents) {
               for (const event of item.aguiEvents) {
+                // Track tool calls to detect pending client-side tools
+                toolCallTracker.processEvent(event);
                 this.emitEvent(response, event);
               }
             }
@@ -576,13 +620,31 @@ export class V1Service {
           // Wait for streaming to complete (should already be done since queue finished)
           await streamingPromise;
 
-          // 6. Mark run as completed successfully
+          // 6. Check for pending client-side tool calls
+          const pendingToolCalls = toolCallTracker.getPendingToolCalls();
+          const hasPendingTools = pendingToolCalls.length > 0;
+
+          if (hasPendingTools) {
+            // Emit awaiting_input event before RUN_FINISHED
+            this.logger.log(
+              `Run ${runId} has ${pendingToolCalls.length} pending client tool calls`,
+            );
+            const awaitingEvent = createAwaitingInputEvent(pendingToolCalls);
+            this.emitEvent(response, awaitingEvent);
+          }
+
+          // 7. Mark run as completed (with pending tool call info if applicable)
+          const pendingToolCallIds = hasPendingTools
+            ? toolCallTracker.getPendingToolCallIds()
+            : undefined;
+
           const didReleaseLock = await this.db.transaction(async (tx) => {
             await operations.completeRun(tx, runId);
             return await operations.releaseRunLockIfCurrent(
               tx,
               threadId,
               runId,
+              { pendingToolCallIds },
             );
           });
 
@@ -592,7 +654,7 @@ export class V1Service {
             );
           }
 
-          // 7. Emit RUN_FINISHED
+          // 8. Emit RUN_FINISHED
           const runFinishedEvent: RunFinishedEvent = {
             type: EventType.RUN_FINISHED,
             threadId,
