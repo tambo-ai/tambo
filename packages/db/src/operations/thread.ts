@@ -3,6 +3,7 @@ import {
   GenerationStage,
   MessageRole,
   UnsavedThreadMessage,
+  assertUnreachable,
   validateUnsavedThreadMessage,
 } from "@tambo-ai-cloud/core";
 import {
@@ -19,7 +20,6 @@ import {
   sql,
 } from "drizzle-orm";
 import { type SubqueryWithSelection } from "drizzle-orm/pg-core";
-import { UnreachableCaseError } from "ts-essentials";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -594,7 +594,7 @@ function getFieldFromSort(sortField: SortFieldKeys) {
       // should never happen because we handle these separately
       return schema.threads.createdAt;
     default:
-      throw new UnreachableCaseError(sortField);
+      assertUnreachable(sortField);
   }
 }
 
@@ -614,7 +614,7 @@ function getCountsField(
     case "errors":
       return countsSubquery.errorCount;
     default:
-      throw new UnreachableCaseError(sortField);
+      assertUnreachable(sortField);
   }
 }
 

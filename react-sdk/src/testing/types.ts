@@ -1,4 +1,4 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { DeepPartial } from "ts-essentials";
+import type { PartialDeep } from "type-fest";
 
-export type PartialTamboAI = DeepPartial<TamboAI>;
+export type PartialTamboAI = PartialDeep<TamboAI>;
