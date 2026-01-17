@@ -1,7 +1,6 @@
 import { Message } from "@ag-ui/core";
 import {
   AsyncQueue,
-  LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
@@ -14,6 +13,9 @@ import {
 import { aguiContentToString } from "../agui/content-to-string";
 import { AgentClient } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
+import type { DecisionStreamItem } from "./decision-loop-service";
+// Re-export DecisionStreamItem for consumers that import from this module
+export type { DecisionStreamItem } from "./decision-loop-service";
 
 /**
  * Run the agent loop for processing ThreadMessages and generating decisions.
@@ -38,7 +40,7 @@ export async function* runAgentLoop(
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   resourceFetchers: ResourceFetcherMap,
   //   customInstructions: string | undefined,
-): AsyncIterableIterator<LegacyComponentDecision> {
+): AsyncIterableIterator<DecisionStreamItem> {
   // Pre-fetch and cache all resources before passing to agent
   const messagesWithCachedResources = await prefetchAndCacheResources(
     messages,
@@ -64,19 +66,27 @@ export async function* runAgentLoop(
 
     const toolCallId = getToolCallId(message);
     const toolCallRequest = getToolCallRequest(message);
+
+    // Note: Agent client internally processes AG-UI events, but doesn't expose them
+    // in the AgentResponse. For now, we emit empty aguiEvents array.
+    // In the future, we could extend AgentClient to pass through raw events.
+
     yield {
-      id: message.id,
-      role: messageRole,
-      parentMessageId: message.parentMessageId,
-      message: aguiContentToString(message.content),
-      componentName: null,
-      props: null,
-      componentState: null,
-      statusMessage: "",
-      completionStatusMessage: "",
-      toolCallRequest: toolCallRequest,
-      toolCallId: toolCallId,
-      reasoning: message.reasoning,
+      decision: {
+        id: message.id,
+        role: messageRole,
+        parentMessageId: message.parentMessageId,
+        message: aguiContentToString(message.content),
+        componentName: null,
+        props: null,
+        componentState: null,
+        statusMessage: "",
+        completionStatusMessage: "",
+        toolCallRequest: toolCallRequest,
+        toolCallId: toolCallId,
+        reasoning: message.reasoning,
+      },
+      aguiEvents: [],
     };
   }
 }

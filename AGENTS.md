@@ -139,6 +139,7 @@ eval "$(mise activate)"   # Interactive shells only
 - Avoid default exports.
 - Don't create `index.ts` barrels for internal modules; import directly from source files. Exception: package entry points (e.g., `packages/core/src/index.ts`) are fine.
 - Don't re-export symbols for backwards compatibility. When moving a symbol, update all consumers to import from the new location.
+- **Never use dynamic `import()`** for regular imports, even for type imports. Use static imports at the top of the file. Dynamic imports are only appropriate for code splitting in specific scenarios (e.g., lazy-loaded routes).
 
 ## 3. TypeScript Standards
 
@@ -155,6 +156,10 @@ eval "$(mise activate)"   # Interactive shells only
 - **Use `as const`** to preserve literal types, especially for arrays that should be tuples.
 - **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
 - **Avoid `{}` type** - it means "any non-nullish value" (including primitives). Prefer `unknown` (truly unknown), `object` (any non-primitive object), or `Record<string, unknown>` / a specific object type for key-value objects.
+
+### ts-essentials Utility Types
+
+We use the `ts-essentials` package for advanced type manipulation. Most types do exactly what they sound like: `DeepPartial`, `DeepReadonly`, `DeepRequired`, `Merge`, `ValueOf`, `UnreachableCaseError`, etc. Before writing any complicated derivative types, check ts-essentials first.
 
 ### Type Inference
 
@@ -270,6 +275,7 @@ eval "$(mise activate)"   # Interactive shells only
 - Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
 - Don't denormalize FKs that can be derived from relationships (e.g., if `runs.threadId` exists and threads have `projectId`, don't add `runs.projectId`).
+- **Factor database operations into `packages/db/src/operations/`**. Services in `apps/api` should call operation functions rather than writing inline DB queries. This promotes reuse and keeps DB logic centralized. Export new operations from `packages/db/src/operations/index.ts`.
 
 Database commands (require `-w packages/db` flag from root):
 
@@ -366,6 +372,12 @@ When working across multiple packages:
 - **Unit tests**: live beside the file they cover (e.g. `foo.ts` has `foo.test.ts` in the same directory, not under `__tests__`).
 - **Integration tests**: the only tests that stay in a `__tests__` folder, and the filename must describe the scenario (never just mirror another file's name).
 - **Fixtures & mocks**: keep shared helpers in a `__fixtures__` or `__mocks__` directory at the package's source root (e.g. `apps/web/__mocks__`), never nested inside feature folders.
+
+### Mocking
+
+- **Avoid over-mocking** - tests should exercise real code paths whenever possible. If you're mocking internal functions just to isolate a unit, you're probably testing implementation details rather than behavior.
+- **Only mock at system boundaries** - external APIs, databases, file systems, network calls, and other I/O with side effects.
+- **Don't mock what you own** - if a helper function is pure and fast, call it directly rather than mocking it. Mocking your own code couples tests to implementation.
 
 ### Pre-commit/PR Verification Checklist
 

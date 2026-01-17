@@ -24,10 +24,8 @@ import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { StorageConfigService } from "../common/services/storage-config.service";
 import { ProjectsService } from "../projects/projects.service";
-import {
-  AdvanceThreadDto,
-  AdvanceThreadResponseDto,
-} from "./dto/advance-thread.dto";
+import { AdvanceThreadDto } from "./dto/advance-thread.dto";
+import { StreamQueueItem } from "./dto/stream-queue-item";
 import { ThreadsService } from "./threads.service";
 import {
   FreeLimitReachedError,
@@ -507,7 +505,7 @@ describe("ThreadsService.advanceThread initialization", () => {
   describe("Queue-based streaming behavior", () => {
     test("pushes messages to queue during streaming execution", async () => {
       const dto = makeDto({ withComponents: false, withClientTools: false });
-      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+      const queue = new AsyncQueue<StreamQueueItem>();
 
       // Mock generateStreamingResponse to push messages to the queue
       jest
@@ -516,28 +514,34 @@ describe("ThreadsService.advanceThread initialization", () => {
           async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
             // Simulate streaming multiple messages
             providedQueue.push({
-              responseMessageDto: {
-                id: "msg-1",
-                role: MessageRole.Assistant,
-                content: [{ type: ContentPartType.Text, text: "Hello" }],
-                threadId,
-                componentState: {},
-                createdAt: new Date(),
+              response: {
+                responseMessageDto: {
+                  id: "msg-1",
+                  role: MessageRole.Assistant,
+                  content: [{ type: ContentPartType.Text, text: "Hello" }],
+                  threadId,
+                  componentState: {},
+                  createdAt: new Date(),
+                },
+                generationStage: GenerationStage.STREAMING_RESPONSE,
+                mcpAccessToken: "token-1",
               },
-              generationStage: GenerationStage.STREAMING_RESPONSE,
-              mcpAccessToken: "token-1",
+              aguiEvents: [],
             });
             providedQueue.push({
-              responseMessageDto: {
-                id: "msg-2",
-                role: MessageRole.Assistant,
-                content: [{ type: ContentPartType.Text, text: "World" }],
-                threadId,
-                componentState: {},
-                createdAt: new Date(),
+              response: {
+                responseMessageDto: {
+                  id: "msg-2",
+                  role: MessageRole.Assistant,
+                  content: [{ type: ContentPartType.Text, text: "World" }],
+                  threadId,
+                  componentState: {},
+                  createdAt: new Date(),
+                },
+                generationStage: GenerationStage.COMPLETE,
+                mcpAccessToken: "token-1",
               },
-              generationStage: GenerationStage.COMPLETE,
-              mcpAccessToken: "token-1",
+              aguiEvents: [],
             });
           },
         );
@@ -564,33 +568,42 @@ describe("ThreadsService.advanceThread initialization", () => {
 
       // Verify we received both messages in order
       expect(messages).toHaveLength(2);
-      expect(messages[0].responseMessageDto.content[0].text).toBe("Hello");
-      expect(messages[0].generationStage).toBe(
+      expect(messages[0].response.responseMessageDto.content[0].text).toBe(
+        "Hello",
+      );
+      expect(messages[0].response.generationStage).toBe(
         GenerationStage.STREAMING_RESPONSE,
       );
-      expect(messages[1].responseMessageDto.content[0].text).toBe("World");
-      expect(messages[1].generationStage).toBe(GenerationStage.COMPLETE);
+      expect(messages[1].response.responseMessageDto.content[0].text).toBe(
+        "World",
+      );
+      expect(messages[1].response.generationStage).toBe(
+        GenerationStage.COMPLETE,
+      );
     });
 
     test("properly finishes queue on successful completion", async () => {
       const dto = makeDto({ withComponents: false, withClientTools: false });
-      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+      const queue = new AsyncQueue<StreamQueueItem>();
 
       jest
         .spyOn<any, any>(service, "generateStreamingResponse")
         .mockImplementation(
           async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
             providedQueue.push({
-              responseMessageDto: {
-                id: "msg-1",
-                role: MessageRole.Assistant,
-                content: [{ type: ContentPartType.Text, text: "Done" }],
-                threadId,
-                componentState: {},
-                createdAt: new Date(),
+              response: {
+                responseMessageDto: {
+                  id: "msg-1",
+                  role: MessageRole.Assistant,
+                  content: [{ type: ContentPartType.Text, text: "Done" }],
+                  threadId,
+                  componentState: {},
+                  createdAt: new Date(),
+                },
+                generationStage: GenerationStage.COMPLETE,
+                mcpAccessToken: "token-1",
               },
-              generationStage: GenerationStage.COMPLETE,
-              mcpAccessToken: "token-1",
+              aguiEvents: [],
             });
           },
         );
@@ -604,7 +617,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         queue,
       );
 
-      const messages: AdvanceThreadResponseDto[] = [];
+      const messages: StreamQueueItem[] = [];
       for await (const msg of queue) {
         messages.push(msg);
       }
@@ -615,7 +628,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       expect(messages).toHaveLength(1);
 
       // Try to iterate again - should complete immediately with no items
-      const secondIteration: AdvanceThreadResponseDto[] = [];
+      const secondIteration: StreamQueueItem[] = [];
       for await (const msg of queue) {
         secondIteration.push(msg);
       }
@@ -624,7 +637,7 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     test("properly fails queue on error", async () => {
       const dto = makeDto({ withComponents: false, withClientTools: false });
-      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+      const queue = new AsyncQueue<StreamQueueItem>();
       const testError = new Error("Test error during generation");
 
       jest
@@ -658,7 +671,7 @@ describe("ThreadsService.advanceThread initialization", () => {
 
     test("queue works with single final message", async () => {
       const dto = makeDto({ withComponents: false, withClientTools: false });
-      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+      const queue = new AsyncQueue<StreamQueueItem>();
 
       // Mock to push only one final message (similar to non-streaming behavior)
       jest
@@ -666,16 +679,21 @@ describe("ThreadsService.advanceThread initialization", () => {
         .mockImplementation(
           async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
             providedQueue.push({
-              responseMessageDto: {
-                id: "msg-final",
-                role: MessageRole.Assistant,
-                content: [{ type: ContentPartType.Text, text: "Final result" }],
-                threadId,
-                componentState: {},
-                createdAt: new Date(),
+              response: {
+                responseMessageDto: {
+                  id: "msg-final",
+                  role: MessageRole.Assistant,
+                  content: [
+                    { type: ContentPartType.Text, text: "Final result" },
+                  ],
+                  threadId,
+                  componentState: {},
+                  createdAt: new Date(),
+                },
+                generationStage: GenerationStage.COMPLETE,
+                mcpAccessToken: "token-1",
               },
-              generationStage: GenerationStage.COMPLETE,
-              mcpAccessToken: "token-1",
+              aguiEvents: [],
             });
           },
         );
@@ -690,7 +708,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       );
 
       // Consume from queue
-      const messages: AdvanceThreadResponseDto[] = [];
+      const messages: StreamQueueItem[] = [];
       for await (const msg of queue) {
         messages.push(msg);
       }
@@ -699,32 +717,37 @@ describe("ThreadsService.advanceThread initialization", () => {
 
       // Should receive exactly one message
       expect(messages).toHaveLength(1);
-      expect(messages[0].responseMessageDto.content[0].text).toBe(
+      expect(messages[0].response.responseMessageDto.content[0].text).toBe(
         "Final result",
       );
-      expect(messages[0].generationStage).toBe(GenerationStage.COMPLETE);
+      expect(messages[0].response.generationStage).toBe(
+        GenerationStage.COMPLETE,
+      );
     });
 
     test("queue receives messages with correct structure", async () => {
       const dto = makeDto({ withComponents: true, withClientTools: true });
-      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+      const queue = new AsyncQueue<StreamQueueItem>();
 
       jest
         .spyOn<any, any>(service, "generateStreamingResponse")
         .mockImplementation(
           async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
             providedQueue.push({
-              responseMessageDto: {
-                id: "msg-test",
-                role: MessageRole.Assistant,
-                content: [{ type: ContentPartType.Text, text: "Response" }],
-                threadId,
-                componentState: { someState: "value" },
-                createdAt: new Date(),
+              response: {
+                responseMessageDto: {
+                  id: "msg-test",
+                  role: MessageRole.Assistant,
+                  content: [{ type: ContentPartType.Text, text: "Response" }],
+                  threadId,
+                  componentState: { someState: "value" },
+                  createdAt: new Date(),
+                },
+                generationStage: GenerationStage.COMPLETE,
+                statusMessage: "Complete",
+                mcpAccessToken: "test-token",
               },
-              generationStage: GenerationStage.COMPLETE,
-              statusMessage: "Complete",
-              mcpAccessToken: "test-token",
+              aguiEvents: [],
             });
           },
         );
@@ -738,7 +761,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         queue,
       );
 
-      const messages: AdvanceThreadResponseDto[] = [];
+      const messages: StreamQueueItem[] = [];
       for await (const msg of queue) {
         messages.push(msg);
       }
@@ -747,22 +770,24 @@ describe("ThreadsService.advanceThread initialization", () => {
 
       // Verify message structure
       expect(messages[0]).toMatchObject({
-        responseMessageDto: expect.objectContaining({
-          id: expect.any(String),
-          role: MessageRole.Assistant,
-          content: expect.any(Array),
-          threadId: expect.any(String),
-          componentState: expect.any(Object),
-          createdAt: expect.any(Date),
+        response: expect.objectContaining({
+          responseMessageDto: expect.objectContaining({
+            id: expect.any(String),
+            role: MessageRole.Assistant,
+            content: expect.any(Array),
+            threadId: expect.any(String),
+            componentState: expect.any(Object),
+            createdAt: expect.any(Date),
+          }),
+          generationStage: expect.any(String),
+          mcpAccessToken: expect.any(String),
         }),
-        generationStage: expect.any(String),
-        mcpAccessToken: expect.any(String),
       });
     });
 
     test("includes mcpAccessToken when MCP servers are configured", async () => {
       const dto = makeDto();
-      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+      const queue = new AsyncQueue<StreamQueueItem>();
 
       // Mock that MCP servers exist for this project
       operations.projectHasMcpServers.mockResolvedValue(true);
@@ -773,17 +798,20 @@ describe("ThreadsService.advanceThread initialization", () => {
         .mockImplementation(
           async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
             providedQueue.push({
-              responseMessageDto: {
-                id: "msg-test",
-                role: MessageRole.Assistant,
-                content: [{ type: ContentPartType.Text, text: "Response" }],
-                threadId,
-                componentState: {},
-                createdAt: new Date(),
+              response: {
+                responseMessageDto: {
+                  id: "msg-test",
+                  role: MessageRole.Assistant,
+                  content: [{ type: ContentPartType.Text, text: "Response" }],
+                  threadId,
+                  componentState: {},
+                  createdAt: new Date(),
+                },
+                generationStage: GenerationStage.COMPLETE,
+                statusMessage: "Complete",
+                mcpAccessToken: "test-mcp-token",
               },
-              generationStage: GenerationStage.COMPLETE,
-              statusMessage: "Complete",
-              mcpAccessToken: "test-mcp-token",
+              aguiEvents: [],
             });
           },
         );
@@ -797,7 +825,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         queue,
       );
 
-      const messages: AdvanceThreadResponseDto[] = [];
+      const messages: StreamQueueItem[] = [];
       for await (const msg of queue) {
         messages.push(msg);
       }
@@ -805,14 +833,14 @@ describe("ThreadsService.advanceThread initialization", () => {
       await advancePromise;
 
       // Verify that mcpAccessToken is included
-      expect(messages[0]).toHaveProperty("mcpAccessToken");
-      expect(messages[0].mcpAccessToken).toBeDefined();
-      expect(typeof messages[0].mcpAccessToken).toBe("string");
+      expect(messages[0].response).toHaveProperty("mcpAccessToken");
+      expect(messages[0].response.mcpAccessToken).toBeDefined();
+      expect(typeof messages[0].response.mcpAccessToken).toBe("string");
     });
 
     test("does not include mcpAccessToken when no MCP servers are configured", async () => {
       const dto = makeDto();
-      const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+      const queue = new AsyncQueue<StreamQueueItem>();
 
       // Mock that NO MCP servers exist for this project
       operations.projectHasMcpServers.mockResolvedValue(false);
@@ -823,17 +851,20 @@ describe("ThreadsService.advanceThread initialization", () => {
         .mockImplementation(
           async (_p: any, _t: any, _db: any, _tb: any, providedQueue: any) => {
             providedQueue.push({
-              responseMessageDto: {
-                id: "msg-test",
-                role: MessageRole.Assistant,
-                content: [{ type: ContentPartType.Text, text: "Response" }],
-                threadId,
-                componentState: {},
-                createdAt: new Date(),
+              response: {
+                responseMessageDto: {
+                  id: "msg-test",
+                  role: MessageRole.Assistant,
+                  content: [{ type: ContentPartType.Text, text: "Response" }],
+                  threadId,
+                  componentState: {},
+                  createdAt: new Date(),
+                },
+                generationStage: GenerationStage.COMPLETE,
+                statusMessage: "Complete",
+                // No mcpAccessToken here
               },
-              generationStage: GenerationStage.COMPLETE,
-              statusMessage: "Complete",
-              // No mcpAccessToken here
+              aguiEvents: [],
             });
           },
         );
@@ -847,7 +878,7 @@ describe("ThreadsService.advanceThread initialization", () => {
         queue,
       );
 
-      const messages: AdvanceThreadResponseDto[] = [];
+      const messages: StreamQueueItem[] = [];
       for await (const msg of queue) {
         messages.push(msg);
       }
@@ -855,7 +886,7 @@ describe("ThreadsService.advanceThread initialization", () => {
       await advancePromise;
 
       // Verify that mcpAccessToken is NOT included
-      expect(messages[0]).not.toHaveProperty("mcpAccessToken");
+      expect(messages[0].response).not.toHaveProperty("mcpAccessToken");
     });
   });
 

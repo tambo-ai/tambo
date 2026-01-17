@@ -15,6 +15,7 @@ import {
 import { HydraDb } from "@tambo-ai-cloud/db";
 import { SQL } from "drizzle-orm";
 import { PgTable, PgTransaction } from "drizzle-orm/pg-core";
+import type { DecisionStreamItem } from "@tambo-ai-cloud/backend";
 import {
   addUserMessage,
   appendNewMessageToThread,
@@ -621,15 +622,20 @@ describe("Thread State", () => {
       id: string,
       message: string,
       tool?: { id: string; request: any },
-    ): LegacyComponentDecision {
+    ): DecisionStreamItem {
       return {
-        id,
-        message,
-        componentName: "test-component",
-        props: {},
-        componentState: {},
-        reasoning: ["because"],
-        ...(tool ? { toolCallId: tool.id, toolCallRequest: tool.request } : {}),
+        decision: {
+          id,
+          message,
+          componentName: "test-component",
+          props: {},
+          componentState: {},
+          reasoning: ["because"],
+          ...(tool
+            ? { toolCallId: tool.id, toolCallRequest: tool.request }
+            : {}),
+        },
+        aguiEvents: [],
       };
     }
 
@@ -662,35 +668,35 @@ describe("Thread State", () => {
 
       expect(result).toHaveLength(4);
       // Streaming chunks preserve tool call info and mark as not finished
-      expect(result[0].message).toBe("part1");
-      expect(result[0].toolCallRequest).toBeUndefined(); // No tool call in this chunk
-      expect(result[0].isToolCallFinished).toBe(false);
+      expect(result[0].decision.message).toBe("part1");
+      expect(result[0].decision.toolCallRequest).toBeUndefined(); // No tool call in this chunk
+      expect(result[0].decision.isToolCallFinished).toBe(false);
 
-      expect(result[1].message).toBe("part2");
-      expect(result[1].toolCallRequest).toBeDefined(); // Tool call info preserved
-      expect(result[1].toolCallRequest?.toolName).toBe("toolA");
-      expect(result[1].toolCallId).toBe("tc-1");
-      expect(result[1].toolCallRequest?.parameters).toEqual([]);
-      expect(result[1].isToolCallFinished).toBe(false); // Not finished yet
+      expect(result[1].decision.message).toBe("part2");
+      expect(result[1].decision.toolCallRequest).toBeDefined(); // Tool call info preserved
+      expect(result[1].decision.toolCallRequest?.toolName).toBe("toolA");
+      expect(result[1].decision.toolCallId).toBe("tc-1");
+      expect(result[1].decision.toolCallRequest?.parameters).toEqual([]);
+      expect(result[1].decision.isToolCallFinished).toBe(false); // Not finished yet
 
-      expect(result[2].message).toBe("part3");
-      expect(result[2].toolCallRequest).toBeDefined();
-      expect(result[2].toolCallRequest?.toolName).toBe("toolA");
-      expect(result[2].toolCallId).toBe("tc-1");
-      expect(result[2].toolCallRequest?.parameters).toEqual([
+      expect(result[2].decision.message).toBe("part3");
+      expect(result[2].decision.toolCallRequest).toBeDefined();
+      expect(result[2].decision.toolCallRequest?.toolName).toBe("toolA");
+      expect(result[2].decision.toolCallId).toBe("tc-1");
+      expect(result[2].decision.toolCallRequest?.parameters).toEqual([
         { parameterName: "param1", parameterValue: "value1" },
       ]);
-      expect(result[2].isToolCallFinished).toBe(false); // Not finished yet
+      expect(result[2].decision.isToolCallFinished).toBe(false); // Not finished yet
 
       // Final chunk has tool call info and is marked as finished
-      expect(result[3].message).toBe("part3");
-      expect(result[3].toolCallRequest).toBeDefined();
-      expect(result[3].toolCallRequest?.toolName).toBe("toolA");
-      expect(result[3].toolCallId).toBe("tc-1");
-      expect(result[3].toolCallRequest?.parameters).toEqual([
+      expect(result[3].decision.message).toBe("part3");
+      expect(result[3].decision.toolCallRequest).toBeDefined();
+      expect(result[3].decision.toolCallRequest?.toolName).toBe("toolA");
+      expect(result[3].decision.toolCallId).toBe("tc-1");
+      expect(result[3].decision.toolCallRequest?.parameters).toEqual([
         { parameterName: "param1", parameterValue: "value1" },
       ]);
-      expect(result[3].isToolCallFinished).toBe(true); // Finished
+      expect(result[3].decision.isToolCallFinished).toBe(true); // Finished
     });
 
     it("emits final chunk when message id changes, then continues streaming", async () => {
@@ -717,7 +723,7 @@ describe("Thread State", () => {
       // 3: b1 (streaming, no tool call)
       // 4: b2 (streaming, has tool call, not finished)
       // 5: b2 final (finished, has tool call)
-      expect(result.map((r: any) => r.message)).toEqual([
+      expect(result.map((r) => r.decision.message)).toEqual([
         "a1",
         "a2",
         "a2",
@@ -727,24 +733,24 @@ describe("Thread State", () => {
       ]);
 
       // Streaming chunks preserve tool call info
-      expect(result[1].toolCallRequest).toBeDefined();
-      expect(result[1].toolCallId).toBe("tc-a");
-      expect(result[1].isToolCallFinished).toBe(false);
+      expect(result[1].decision.toolCallRequest).toBeDefined();
+      expect(result[1].decision.toolCallId).toBe("tc-a");
+      expect(result[1].decision.isToolCallFinished).toBe(false);
 
       // Final chunk has tool call info and is marked finished
-      expect(result[2].toolCallRequest).toBeDefined();
-      expect(result[2].toolCallId).toBe("tc-a");
-      expect(result[2].isToolCallFinished).toBe(true);
+      expect(result[2].decision.toolCallRequest).toBeDefined();
+      expect(result[2].decision.toolCallId).toBe("tc-a");
+      expect(result[2].decision.isToolCallFinished).toBe(true);
 
       // Streaming chunks preserve tool call info
-      expect(result[4].toolCallRequest).toBeDefined();
-      expect(result[4].toolCallId).toBe("tc-b");
-      expect(result[4].isToolCallFinished).toBe(false);
+      expect(result[4].decision.toolCallRequest).toBeDefined();
+      expect(result[4].decision.toolCallId).toBe("tc-b");
+      expect(result[4].decision.isToolCallFinished).toBe(false);
 
       // Final chunk has tool call info and is marked finished
-      expect(result[5].toolCallRequest).toBeDefined();
-      expect(result[5].toolCallId).toBe("tc-b");
-      expect(result[5].isToolCallFinished).toBe(true);
+      expect(result[5].decision.toolCallRequest).toBeDefined();
+      expect(result[5].decision.toolCallId).toBe("tc-b");
+      expect(result[5].decision.isToolCallFinished).toBe(true);
     });
 
     it("should preserve tool call info in streaming chunks and mark completion status", async () => {
@@ -769,17 +775,17 @@ describe("Thread State", () => {
       const result = await collect(fixStreamedToolCalls(makeStream()));
 
       // Streaming chunks preserve tool call info and mark as not finished
-      const streamingChunk1 = result[0];
+      const streamingChunk1 = result[0].decision;
       expect(streamingChunk1.toolCallRequest).toBeUndefined(); // No tool call in this chunk
       expect(streamingChunk1.isToolCallFinished).toBe(false);
 
-      const streamingChunk2 = result[1];
+      const streamingChunk2 = result[1].decision;
       expect(streamingChunk2.toolCallRequest).toBeDefined(); // Tool call info preserved
       expect(streamingChunk2.toolCallRequest?.toolName).toBe("toolA");
       expect(streamingChunk2.toolCallId).toBe("tc-1");
       expect(streamingChunk2.isToolCallFinished).toBe(false); // Not finished yet
 
-      const streamingChunk3 = result[2];
+      const streamingChunk3 = result[2].decision;
       expect(streamingChunk3.toolCallRequest).toBeDefined(); // Tool call info preserved (updated)
       expect(streamingChunk3.toolCallRequest?.toolName).toBe("toolA");
       expect(streamingChunk3.toolCallRequest?.parameters).toEqual([
@@ -789,7 +795,7 @@ describe("Thread State", () => {
       expect(streamingChunk3.isToolCallFinished).toBe(false); // Not finished yet
 
       // Final chunk has tool call info and is marked as finished
-      const finalChunk = result[3];
+      const finalChunk = result[3].decision;
       expect(finalChunk.toolCallRequest).toBeDefined();
       expect(finalChunk.toolCallRequest?.toolName).toBe("toolA");
       expect(finalChunk.toolCallRequest?.parameters).toEqual([

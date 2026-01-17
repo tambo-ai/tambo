@@ -7,7 +7,7 @@ import {
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import { HydraDb, operations } from "@tambo-ai-cloud/db";
-import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
+import { StreamQueueItem } from "../dto/stream-queue-item";
 import { MessageRequest, ThreadMessageDto } from "../dto/message.dto";
 import { updateMessage } from "./messages";
 
@@ -229,7 +229,7 @@ export async function checkToolCallLimitViolation(
   perToolCounts?: Record<string, number>,
   // Optional tool limits metadata mapping: toolName -> { maxCalls?: number }
   toolLimits?: Record<string, { maxCalls?: number }>,
-): Promise<AdvanceThreadResponseDto | undefined> {
+): Promise<StreamQueueItem | undefined> {
   if (!newToolCallRequest) {
     // not a tool call
     return;
@@ -265,9 +265,12 @@ export async function checkToolCallLimitViolation(
   Sentry.captureMessage("Tool call limit reached", "warning");
 
   return {
-    responseMessageDto: errorThreadMessage,
-    generationStage: GenerationStage.COMPLETE,
-    statusMessage: "Tool call limit reached",
-    ...(mcpAccessToken && { mcpAccessToken }),
+    response: {
+      responseMessageDto: errorThreadMessage,
+      generationStage: GenerationStage.COMPLETE,
+      statusMessage: "Tool call limit reached",
+      ...(mcpAccessToken && { mcpAccessToken }),
+    },
+    aguiEvents: [], // Error condition, no AG-UI events
   };
 }

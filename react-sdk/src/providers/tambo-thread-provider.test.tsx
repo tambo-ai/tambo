@@ -903,6 +903,117 @@ describe("TamboThreadProvider", () => {
       expect(mockThreadsApi.advance).not.toHaveBeenCalled();
       expect(mockThreadsApi.advanceByID).not.toHaveBeenCalled();
     });
+
+    it("should handle multiple sequential messages during streaming (server tool scenario)", async () => {
+      // This test verifies the fix for the bug where the second message doesn't render
+      // during server tool response streaming. The scenario:
+      // 1. First message: "I will call the tool..." with statusMessage
+      // 2. Second message: The tool result response streaming in
+
+      // First message - tool announcement (server tools don't have componentName set during streaming)
+      const mockFirstMessage: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "msg-first",
+          content: [{ type: "text", text: "I will search the docs..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          component: {
+            componentName: "",
+            componentState: {},
+            message: "",
+            props: {},
+            statusMessage: "searching the Tambo docs...",
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      // Second message - tool result (different ID!)
+      const mockSecondMessageChunk1: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+        {
+          responseMessageDto: {
+            id: "msg-second",
+            content: [{ type: "text", text: "Here's what I found..." }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+
+      const mockSecondMessageChunk2: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+        {
+          responseMessageDto: {
+            id: "msg-second",
+            content: [
+              {
+                type: "text",
+                text: "Here's what I found in the documentation about that topic.",
+              },
+            ],
+            role: "assistant",
+            threadId: "test-thread-1",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockFirstMessage;
+          yield mockSecondMessageChunk1;
+          yield mockSecondMessageChunk2;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: createWrapper({ streaming: true }),
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Search the docs", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Thread should have 3 messages: user message + 2 assistant messages
+      expect(result.current.thread.messages).toHaveLength(3);
+
+      // Filter to assistant messages only
+      const assistantMessages = result.current.thread.messages.filter(
+        (m) => m.role === "assistant",
+      );
+      expect(assistantMessages).toHaveLength(2);
+
+      // First assistant message should have the tool status
+      const firstMsg = result.current.thread.messages.find(
+        (m) => m.id === "msg-first",
+      );
+      expect(firstMsg).toBeDefined();
+      expect(firstMsg?.content[0]?.text).toContain("search the docs");
+
+      // Second assistant message should have the final content
+      const secondMsg = result.current.thread.messages.find(
+        (m) => m.id === "msg-second",
+      );
+      expect(secondMsg).toBeDefined();
+      expect(secondMsg?.content[0]?.text).toContain(
+        "what I found in the documentation",
+      );
+
+      // Generation should be complete
+      expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
+    });
   });
 
   describe("error handling", () => {
