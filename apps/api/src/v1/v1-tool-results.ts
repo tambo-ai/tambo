@@ -64,6 +64,36 @@ export function extractToolResults(
   }));
 }
 
+export interface DedupeToolResultsResult {
+  toolResults: ExtractedToolResult[];
+  duplicateToolCallIds: string[];
+}
+
+export function dedupeToolResults(
+  toolResults: ExtractedToolResult[],
+): DedupeToolResultsResult {
+  const toolResultsById = new Map<string, ExtractedToolResult>();
+  const duplicateToolCallIds: string[] = [];
+  const duplicateIdSet = new Set<string>();
+
+  for (const result of toolResults) {
+    if (
+      toolResultsById.has(result.toolUseId) &&
+      !duplicateIdSet.has(result.toolUseId)
+    ) {
+      duplicateToolCallIds.push(result.toolUseId);
+      duplicateIdSet.add(result.toolUseId);
+    }
+
+    toolResultsById.set(result.toolUseId, result);
+  }
+
+  return {
+    toolResults: [...toolResultsById.values()],
+    duplicateToolCallIds,
+  };
+}
+
 /**
  * Validate that tool results match the expected pending tool call IDs.
  *

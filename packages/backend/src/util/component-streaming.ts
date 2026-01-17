@@ -1,6 +1,7 @@
 import { parse } from "partial-json";
 import { EventType, type BaseEvent } from "@ag-ui/core";
 import deepEqual from "fast-deep-equal";
+import type { Operation } from "fast-json-patch";
 
 /** Maximum size for accumulated JSON (10MB) */
 const MAX_JSON_SIZE = 10 * 1024 * 1024;
@@ -10,14 +11,7 @@ const MAX_JSON_SIZE = 10 * 1024 * 1024;
  */
 export type PropStreamingStatus = "started" | "streaming" | "done";
 
-/**
- * RFC 6902 JSON Patch operation.
- */
-export interface JsonPatchOperation {
-  op: "add" | "replace" | "remove";
-  path: string;
-  value?: unknown;
-}
+export type JsonPatchOperation = Operation;
 
 /**
  * Component streaming state tracker.
@@ -26,7 +20,7 @@ export interface JsonPatchOperation {
 export class ComponentStreamTracker {
   private componentId: string;
   private componentName: string;
-  private jsonChunks: string[] = [];
+  private accumulatedJson: string = "";
   private accumulatedJsonSize: number = 0;
   private previousProps: Record<string, unknown> = {};
   private streamingStatus: Record<string, PropStreamingStatus> = {};
@@ -60,15 +54,13 @@ export class ComponentStreamTracker {
       );
     }
 
-    // Accumulate JSON using array (more efficient than string concatenation)
-    this.jsonChunks.push(delta);
+    this.accumulatedJson += delta;
     this.accumulatedJsonSize += delta.length;
 
     // Try to parse incrementally
     let currentProps: Record<string, unknown>;
     try {
-      const accumulatedJson = this.jsonChunks.join("");
-      currentProps = parse(accumulatedJson) as Record<string, unknown>;
+      currentProps = parse(this.accumulatedJson) as Record<string, unknown>;
     } catch {
       // Can't parse yet, wait for more data
       return events;
@@ -112,8 +104,7 @@ export class ComponentStreamTracker {
       events.push(this.createPropsDeltaEvent(patches));
     }
 
-    // Update previous props (use JSON parse/stringify for simple deep clone)
-    this.previousProps = JSON.parse(JSON.stringify(currentProps));
+    this.previousProps = structuredClone(currentProps);
 
     return events;
   }
@@ -127,8 +118,15 @@ export class ComponentStreamTracker {
     // Parse final JSON - fail fast if unparseable
     let finalProps: Record<string, unknown>;
     try {
-      const accumulatedJson = this.jsonChunks.join("");
-      finalProps = parse(accumulatedJson) as Record<string, unknown>;
+      const parsed = JSON.parse(this.accumulatedJson) as unknown;
+      if (
+        typeof parsed !== "object" ||
+        parsed === null ||
+        Array.isArray(parsed)
+      ) {
+        throw new Error("final JSON is not an object");
+      }
+      finalProps = parsed as Record<string, unknown>;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown parse error";

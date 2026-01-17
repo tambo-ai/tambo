@@ -1,6 +1,7 @@
 import { ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
 import {
   convertToolResultsToMessages,
+  dedupeToolResults,
   extractToolResults,
   validateToolResults,
   hasPendingToolCalls,
@@ -79,6 +80,57 @@ describe("v1-tool-results", () => {
       const results = extractToolResults(message);
 
       expect(results).toHaveLength(0);
+    });
+  });
+
+  describe("dedupeToolResults", () => {
+    it("dedupes tool results and returns duplicate tool call IDs", () => {
+      const toolResults = [
+        {
+          toolUseId: "call_1",
+          content: [{ type: "text" as const, text: "result 1" }],
+          isError: false,
+        },
+        {
+          toolUseId: "call_1",
+          content: [{ type: "text" as const, text: "result 1 again" }],
+          isError: false,
+        },
+        {
+          toolUseId: "call_2",
+          content: [{ type: "text" as const, text: "result 2" }],
+          isError: false,
+        },
+        {
+          toolUseId: "call_2",
+          content: [{ type: "text" as const, text: "result 2 again" }],
+          isError: false,
+        },
+      ];
+
+      const result = dedupeToolResults(toolResults);
+
+      expect(result.toolResults).toHaveLength(2);
+      expect(result.toolResults.map((r) => r.toolUseId)).toEqual([
+        "call_1",
+        "call_2",
+      ]);
+      expect(result.duplicateToolCallIds).toEqual(["call_1", "call_2"]);
+    });
+
+    it("returns empty duplicate list when there are no duplicates", () => {
+      const toolResults = [
+        {
+          toolUseId: "call_1",
+          content: [{ type: "text" as const, text: "result 1" }],
+          isError: false,
+        },
+      ];
+
+      const result = dedupeToolResults(toolResults);
+
+      expect(result.toolResults).toHaveLength(1);
+      expect(result.duplicateToolCallIds).toEqual([]);
     });
   });
 

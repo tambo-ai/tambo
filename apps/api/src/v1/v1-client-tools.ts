@@ -27,20 +27,22 @@ export interface PendingToolCall {
  * Records which tool calls have started and which have received results.
  */
 export class ToolCallTracker {
+  private clientToolNames: ReadonlySet<string>;
   /** Tool calls that have started but not yet received results */
   private startedToolCalls: Map<
     string,
     { toolName: string; arguments: string }
   > = new Map();
 
-  /** Tool call IDs that have received results (system or UI tools) */
-  private completedToolCallIds: Set<string> = new Set();
-
   /** Accumulated argument chunks for each tool call (more efficient than string concat) */
   private toolCallArgumentChunks: Map<string, string[]> = new Map();
 
   /** Track accumulated size per tool call to enforce limits */
   private toolCallArgumentSizes: Map<string, number> = new Map();
+
+  constructor(clientToolNames: ReadonlySet<string>) {
+    this.clientToolNames = clientToolNames;
+  }
 
   /**
    * Process an AG-UI event and update tracking state.
@@ -49,6 +51,9 @@ export class ToolCallTracker {
     switch (event.type) {
       case EventType.TOOL_CALL_START: {
         const e = event as unknown as ToolCallStartEvent;
+        if (!this.clientToolNames.has(e.toolCallName)) {
+          break;
+        }
         this.startedToolCalls.set(e.toolCallId, {
           toolName: e.toolCallName,
           arguments: "",
@@ -61,6 +66,10 @@ export class ToolCallTracker {
       case EventType.TOOL_CALL_CHUNK: {
         const e = event as unknown as ToolCallArgsEvent;
         const chunks = this.toolCallArgumentChunks.get(e.toolCallId);
+
+        if (!chunks) {
+          break;
+        }
         const currentSize = this.toolCallArgumentSizes.get(e.toolCallId) ?? 0;
 
         // Fail fast if size limit exceeded - don't silently truncate
@@ -87,12 +96,17 @@ export class ToolCallTracker {
           const chunks = this.toolCallArgumentChunks.get(e.toolCallId) ?? [];
           toolCall.arguments = chunks.join("");
         }
+
+        // Free memory for completed args once we have the final string
+        this.toolCallArgumentChunks.delete(e.toolCallId);
+        this.toolCallArgumentSizes.delete(e.toolCallId);
         break;
       }
       case EventType.TOOL_CALL_RESULT: {
-        // Tool call has been handled (either system tool or UI tool)
         const e = event as unknown as ToolCallResultEvent;
-        this.completedToolCallIds.add(e.toolCallId);
+        this.startedToolCalls.delete(e.toolCallId);
+        this.toolCallArgumentChunks.delete(e.toolCallId);
+        this.toolCallArgumentSizes.delete(e.toolCallId);
         break;
       }
     }
@@ -106,13 +120,11 @@ export class ToolCallTracker {
     const pending: PendingToolCall[] = [];
 
     for (const [toolCallId, info] of this.startedToolCalls) {
-      if (!this.completedToolCallIds.has(toolCallId)) {
-        pending.push({
-          toolCallId,
-          toolName: info.toolName,
-          arguments: info.arguments,
-        });
-      }
+      pending.push({
+        toolCallId,
+        toolName: info.toolName,
+        arguments: info.arguments,
+      });
     }
 
     return pending;
@@ -122,12 +134,7 @@ export class ToolCallTracker {
    * Check if there are any pending tool calls.
    */
   hasPendingToolCalls(): boolean {
-    for (const toolCallId of this.startedToolCalls.keys()) {
-      if (!this.completedToolCallIds.has(toolCallId)) {
-        return true;
-      }
-    }
-    return false;
+    return this.startedToolCalls.size > 0;
   }
 
   /**

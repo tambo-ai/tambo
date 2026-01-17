@@ -4,9 +4,18 @@ import { ToolCallTracker, createAwaitingInputEvent } from "./v1-client-tools";
 describe("v1-client-tools", () => {
   describe("ToolCallTracker", () => {
     let tracker: ToolCallTracker;
+    const clientToolNames = new Set([
+      "get_weather",
+      "client_tool",
+      "test_tool",
+      "large_tool",
+      "tool_a",
+      "tool_b",
+      "tool_c",
+    ]);
 
     beforeEach(() => {
-      tracker = new ToolCallTracker();
+      tracker = new ToolCallTracker(clientToolNames);
     });
 
     describe("tracking tool calls", () => {
@@ -48,8 +57,7 @@ describe("v1-client-tools", () => {
         expect(pending[0].arguments).toBe('{"location":"NYC"}');
       });
 
-      it("does not track tool calls that receive a result (system tool)", () => {
-        // Simulate a system tool call flow with result
+      it("ignores tool calls that are not declared as client tools", () => {
         tracker.processEvent({
           type: EventType.TOOL_CALL_START,
           toolCallId: "call_456",

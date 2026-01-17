@@ -36,8 +36,8 @@ import {
 import { createAwaitingInputEvent, ToolCallTracker } from "./v1-client-tools";
 import {
   convertToolResultsToMessages,
+  dedupeToolResults,
   extractToolResults,
-  hasPendingToolCalls,
   validateToolResults,
 } from "./v1-tool-results";
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
@@ -391,35 +391,45 @@ export class V1Service {
       };
     }
 
-    // Extract and validate tool results if thread has pending tool calls
     const toolResultMessages: UnsavedThreadToolMessage[] = [];
-    if (hasPendingToolCalls(thread.pendingToolCallIds)) {
-      const toolResults = extractToolResults(dto.message);
-      const validation = validateToolResults(
-        toolResults,
-        thread.pendingToolCallIds,
-      );
+    const toolResults = extractToolResults(dto.message);
+    const { toolResults: dedupedToolResults, duplicateToolCallIds } =
+      dedupeToolResults(toolResults);
+    const pendingToolCallIds = thread.pendingToolCallIds ?? [];
+    const validation = validateToolResults(
+      dedupedToolResults,
+      pendingToolCallIds,
+    );
 
-      if (!validation.valid) {
-        return {
-          success: false,
-          error: new HttpException(
-            createProblemDetail(
-              V1ErrorCodes.INVALID_TOOL_RESULT,
-              validation.error.message,
-              {
-                code: validation.error.code,
-                missingToolCallIds: validation.error.missingToolCallIds,
-                extraToolCallIds: validation.error.extraToolCallIds,
-              },
-            ),
-            HttpStatus.BAD_REQUEST,
+    if (!validation.valid) {
+      return {
+        success: false,
+        error: new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_TOOL_RESULT,
+            validation.error.message,
+            {
+              code: validation.error.code,
+              missingToolCallIds: validation.error.missingToolCallIds,
+              extraToolCallIds: validation.error.extraToolCallIds,
+            },
           ),
-        };
-      }
+          HttpStatus.BAD_REQUEST,
+        ),
+      };
+    }
 
-      // Convert validated tool results to internal messages
-      toolResultMessages.push(...convertToolResultsToMessages(toolResults));
+    if (duplicateToolCallIds.length > 0) {
+      this.logger.warn(
+        `Dropping duplicate tool results for tool calls: ${duplicateToolCallIds.join(", ")}`,
+      );
+    }
+
+    // Convert validated tool results to internal messages
+    if (dedupedToolResults.length > 0) {
+      toolResultMessages.push(
+        ...convertToolResultsToMessages(dedupedToolResults),
+      );
     }
 
     const runId = await this.db.transaction(async (tx) => {
@@ -620,7 +630,8 @@ export class V1Service {
           );
 
           // 5. Consume queue and emit AG-UI events, tracking tool calls
-          const toolCallTracker = new ToolCallTracker();
+          const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
+          const toolCallTracker = new ToolCallTracker(clientToolNames);
 
           for await (const item of queue) {
             // Emit all AG-UI events from this stream item
