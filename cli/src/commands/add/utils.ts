@@ -12,7 +12,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Gets the base registry path (where all registry files are located)
+ * Gets the registry root path.
+ *
+ * This is the directory that contains the `components/` folder (and related
+ * registry directories like `lib/` and `styles/`).
+ *
+ * For local development, `TAMBO_REGISTRY_PATH` can be set to override registry
+ * resolution.
  * @returns The path to the registry root
  */
 export function getRegistryBasePath(): string {
