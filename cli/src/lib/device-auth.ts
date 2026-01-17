@@ -99,6 +99,7 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
 
     // Open browser with pre-filled code URL
     try {
+      // `wait: false` avoids blocking the CLI until the browser is closed.
       await open(verificationUriComplete, { wait: false });
       console.log(chalk.gray("   Browser opened for authentication\n"));
     } catch {
@@ -108,6 +109,12 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
         ),
       );
     }
+  } else {
+    console.log(
+      chalk.gray(
+        "   Running in non-interactive mode; not attempting to open a browser or copy to clipboard.\n",
+      ),
+    );
   }
 
   // Step 3: Poll for completion
