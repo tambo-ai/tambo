@@ -594,7 +594,7 @@ function getFieldFromSort(sortField: SortFieldKeys) {
       // should never happen because we handle these separately
       return schema.threads.createdAt;
     default:
-      return assertUnreachable(sortField);
+      assertUnreachable(sortField);
   }
 }
 
@@ -614,7 +614,7 @@ function getCountsField(
     case "errors":
       return countsSubquery.errorCount;
     default:
-      return assertUnreachable(sortField);
+      assertUnreachable(sortField);
   }
 }
 

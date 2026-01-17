@@ -1,7 +1,10 @@
 export class UnreachableCaseError extends Error {
+  readonly value: unknown;
+
   constructor(value: never) {
-    super(`Unreachable case: ${value}`);
+    super("Unreachable case encountered");
     this.name = "UnreachableCaseError";
+    this.value = value;
   }
 }
 
