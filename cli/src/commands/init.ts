@@ -550,7 +550,7 @@ async function handleHostingChoiceAndAuth(yes = false): Promise<boolean> {
   let hostingChoice: string;
 
   if (yes) {
-    // Auto-select cloud hosting in non-interactive mode
+    // Auto-select cloud hosting when defaults are requested
     console.log(chalk.blue("Using Cloud hosting (--yes flag provided)"));
     hostingChoice = "cloud";
   } else {
