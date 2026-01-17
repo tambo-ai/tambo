@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import type { JSONSchema7 } from "json-schema";
 import {
   AvailableComponentDto,
@@ -6,18 +7,39 @@ import {
 } from "../threads/dto/generate-component.dto";
 import type { V1AvailableComponentDto, V1ToolDto } from "./dto/tool.dto";
 
+const logger = new Logger("V1ToolConversions");
+
 /**
  * Extract the JSON Schema type as a string.
  * Handles both simple types and arrays of types.
+ *
+ * @param schema - The JSON Schema to extract type from
+ * @param propertyName - Name of the property (for logging)
+ * @returns The schema type as a string, defaults to "string" with warning if missing
  */
-function getSchemaType(schema: JSONSchema7 | undefined): string {
+function getSchemaType(
+  schema: JSONSchema7 | undefined,
+  propertyName?: string,
+): string {
   if (!schema?.type) {
-    return "string"; // Default to string if no type specified
+    const propContext = propertyName ? ` for property "${propertyName}"` : "";
+    logger.warn(
+      `JSON Schema${propContext} has no type specified, defaulting to "string". ` +
+        `Consider adding explicit type to the schema.`,
+    );
+    return "string";
   }
   if (Array.isArray(schema.type)) {
     // Filter out "null" and take the first non-null type
     const nonNullTypes = schema.type.filter((t) => t !== "null");
-    return nonNullTypes[0] ?? "string";
+    if (nonNullTypes.length === 0) {
+      const propContext = propertyName ? ` for property "${propertyName}"` : "";
+      logger.warn(
+        `JSON Schema${propContext} has only null type, defaulting to "string".`,
+      );
+      return "string";
+    }
+    return nonNullTypes[0];
   }
   return schema.type;
 }
@@ -32,7 +54,7 @@ function jsonSchemaPropertyToToolParameter(
 ): ToolParameters {
   const param = new ToolParameters();
   param.name = name;
-  param.type = getSchemaType(propSchema);
+  param.type = getSchemaType(propSchema, name);
   param.description = propSchema.description ?? "";
   param.isRequired = isRequired;
 
@@ -42,7 +64,7 @@ function jsonSchemaPropertyToToolParameter(
       ? propSchema.items[0]
       : propSchema.items;
     if (typeof itemsSchema === "object" && "type" in itemsSchema) {
-      param.items = { type: getSchemaType(itemsSchema) };
+      param.items = { type: getSchemaType(itemsSchema, `${name}.items`) };
     }
   }
 
@@ -140,9 +162,11 @@ export function convertV1ComponentToInternal(
   result.description = component.description;
   // V1 doesn't have component-specific contextTools, they're passed separately
   result.contextTools = [];
-  // Store the propsSchema - the internal system will use it for component generation
-  // The props field stores metadata about the component's props
-  result.props = component.propsSchema as unknown as typeof result.props;
+  // Store the propsSchema directly - the internal system accepts JSON Schema
+  // for props. The ComponentPropsMetadata type is `unknown` which accepts
+  // JSON Schema objects. The DTO class (ComponentPropsMetadataDto) is an empty
+  // marker class for Swagger documentation purposes.
+  result.props = component.propsSchema as AvailableComponentDto["props"];
   return result;
 }
 

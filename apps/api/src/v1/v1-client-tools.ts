@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import {
   EventType,
   type BaseEvent,
@@ -6,6 +7,8 @@ import {
   type ToolCallEndEvent,
   type ToolCallResultEvent,
 } from "@ag-ui/client";
+
+const logger = new Logger("ToolCallTracker");
 
 /** Maximum size for tool call arguments (1MB) */
 const MAX_ARGS_SIZE = 1024 * 1024;
@@ -67,9 +70,15 @@ export class ToolCallTracker {
         const e = event as unknown as ToolCallArgsEvent;
         const chunks = this.toolCallArgumentChunks.get(e.toolCallId);
 
+        // Warn if we receive args for an unknown tool call (likely a bug in event ordering)
         if (!chunks) {
+          logger.warn(
+            `Received TOOL_CALL_ARGS for unknown tool call ID "${e.toolCallId}". ` +
+              `This may indicate events arrived out of order or TOOL_CALL_START was missed.`,
+          );
           break;
         }
+
         const currentSize = this.toolCallArgumentSizes.get(e.toolCallId) ?? 0;
 
         // Fail fast if size limit exceeded - don't silently truncate
@@ -79,13 +88,11 @@ export class ToolCallTracker {
           );
         }
 
-        if (chunks) {
-          chunks.push(e.delta);
-          this.toolCallArgumentSizes.set(
-            e.toolCallId,
-            currentSize + e.delta.length,
-          );
-        }
+        chunks.push(e.delta);
+        this.toolCallArgumentSizes.set(
+          e.toolCallId,
+          currentSize + e.delta.length,
+        );
         break;
       }
       case EventType.TOOL_CALL_END: {

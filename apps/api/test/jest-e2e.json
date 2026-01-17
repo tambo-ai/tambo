@@ -5,5 +5,8 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^@tambo-ai-cloud/(.*)$": "<rootDir>/../../../packages/$1/src"
   }
 }
