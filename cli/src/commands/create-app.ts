@@ -213,7 +213,7 @@ export async function handleCreateApp(
         `git clone --depth 1 ${selectedTemplate.repository} ${
           appName === "." ? "." : appName
         }`,
-        { stdio: "ignore" },
+        { stdio: "ignore", allowNonInteractive: true },
       );
       cloneSpinner.succeed(
         `${selectedTemplate.name} template downloaded successfully`,
