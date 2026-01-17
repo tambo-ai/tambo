@@ -163,7 +163,7 @@ Prefer the `type-fest` package for advanced type manipulation: https://github.co
 
 Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `RequiredDeep`, `Merge`, `ValueOf`, `SetOptional`, etc. Before writing any complicated derivative types, check `type-fest` first.
 
-If you need `type-fest` in a workspace that doesn't already use it, add it to that workspace's `dependencies` as part of your change (don't assume it's globally available across all workspaces).
+`type-fest` is available repo-wide. If you reference `type-fest` types from a package's public exported types, ensure that package declares `type-fest` in its `dependencies`.
 
 ### Type Inference
 
