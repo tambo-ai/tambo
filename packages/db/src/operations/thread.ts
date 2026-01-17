@@ -593,7 +593,7 @@ function getFieldFromSort(sortField: SortFieldKeys) {
       // should never happen because we handle these separately
       return schema.threads.createdAt;
     default:
-      return unreachableSortField(sortField);
+      return assertUnreachable(sortField);
   }
 }
 
@@ -613,12 +613,19 @@ function getCountsField(
     case "errors":
       return countsSubquery.errorCount;
     default:
-      return unreachableSortField(sortField);
+      return assertUnreachable(sortField);
   }
 }
 
-function unreachableSortField(sortField: never): never {
-  throw new Error(`Unreachable sort field: ${sortField}`);
+class UnreachableCaseError extends Error {
+  constructor(value: never) {
+    super(`Unreachable case: ${value}`);
+    this.name = "UnreachableCaseError";
+  }
+}
+
+function assertUnreachable(value: never): never {
+  throw new UnreachableCaseError(value);
 }
 
 export async function countThreadsByProjectWithSearch(
