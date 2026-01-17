@@ -33,6 +33,12 @@ export class StorageConfigService {
       regionLength: s3Config.region.length,
       accessKeyLength: s3Config.accessKeyId.length,
       secretLength: s3Config.secretAccessKey.length,
+      // Check if OTHER env vars work
+      hasDatabaseUrl: !!this.configService.get<string>("DATABASE_URL"),
+      hasNodeEnv: !!this.configService.get<string>("NODE_ENV"),
+      nodeEnv: this.configService.get<string>("NODE_ENV"),
+      // List all S3-related keys from process.env
+      s3EnvKeys: Object.keys(process.env).filter((k) => k.includes("S3")),
     });
 
     this.bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
