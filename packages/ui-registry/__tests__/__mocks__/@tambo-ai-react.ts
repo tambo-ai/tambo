@@ -6,16 +6,9 @@
 import { jest } from "@jest/globals";
 import type { Mock } from "jest-mock";
 
-export enum GenerationStage {
-  IDLE = "IDLE",
-  CHOOSING_COMPONENT = "CHOOSING_COMPONENT",
-  FETCHING_CONTEXT = "FETCHING_CONTEXT",
-  HYDRATING_COMPONENT = "HYDRATING_COMPONENT",
-  STREAMING_RESPONSE = "STREAMING_RESPONSE",
-  COMPLETE = "COMPLETE",
-  ERROR = "ERROR",
-  CANCELLED = "CANCELLED",
-}
+const originalModule =
+  jest.requireActual<typeof import("@tambo-ai/react")>("@tambo-ai/react");
+export const { GenerationStage } = originalModule;
 
 export const useTambo: Mock = jest.fn().mockReturnValue({
   thread: {
