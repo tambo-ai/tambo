@@ -376,7 +376,12 @@ async function handleProjectAndApiKey(yes = false): Promise<boolean> {
     const shouldAutoCreate = yes || projects.length === 0;
 
     if (shouldAutoCreate) {
-      const projectName = path.basename(process.cwd());
+      const rawCwdName = path.basename(process.cwd());
+      const cwdName = rawCwdName.trim();
+
+      const isBadCwdName =
+        !cwdName || cwdName === "." || cwdName === ".." || cwdName === path.sep;
+      const defaultProjectName = isBadCwdName ? "tambo-project" : cwdName;
 
       if (projects.length === 0) {
         console.log(
@@ -384,10 +389,22 @@ async function handleProjectAndApiKey(yes = false): Promise<boolean> {
         );
       } else if (yes) {
         console.log(
-          chalk.gray(`\nAuto-creating project: ${projectName} (--yes flag)\n`),
+          chalk.gray(
+            `\nAuto-creating project: ${defaultProjectName} (--yes flag)\n`,
+          ),
         );
       }
 
+      if (yes && isBadCwdName) {
+        const rawCwdNameDisplay = rawCwdName ? `"${rawCwdName}"` : "<empty>";
+        console.log(
+          chalk.gray(
+            `\nAuto-derived project name from cwd was not usable (${rawCwdNameDisplay}); using "${defaultProjectName}" instead.\n`,
+          ),
+        );
+      }
+
+      let projectNameToCreate = defaultProjectName;
       if (!yes) {
         // Only prompt for name if not in auto mode
         const response = await interactivePrompt<{ projectName: string }>(
@@ -395,7 +412,7 @@ async function handleProjectAndApiKey(yes = false): Promise<boolean> {
             type: "input",
             name: "projectName",
             message: "Project name:",
-            default: projectName,
+            default: defaultProjectName,
             validate: (input: string) => {
               if (!input?.trim()) return "Project name is required";
               return true;
@@ -406,32 +423,20 @@ async function handleProjectAndApiKey(yes = false): Promise<boolean> {
           ),
         );
 
-        const createSpinner = ora("Creating project...").start();
-        try {
-          const project = await api.project.createProject2.mutate({
-            name: response.projectName.trim(),
-          });
-          createSpinner.succeed(`Created project: ${project.name}`);
-          selectedProjectId = project.id;
-          selectedProjectName = project.name;
-        } catch (error) {
-          createSpinner.fail("Failed to create project");
-          throw error;
-        }
-      } else {
-        // Auto-create with directory name
-        const createSpinner = ora("Creating project...").start();
-        try {
-          const project = await api.project.createProject2.mutate({
-            name: projectName,
-          });
-          createSpinner.succeed(`Created project: ${project.name}`);
-          selectedProjectId = project.id;
-          selectedProjectName = project.name;
-        } catch (error) {
-          createSpinner.fail("Failed to create project");
-          throw error;
-        }
+        projectNameToCreate = response.projectName.trim();
+      }
+
+      const createSpinner = ora("Creating project...").start();
+      try {
+        const project = await api.project.createProject2.mutate({
+          name: projectNameToCreate,
+        });
+        createSpinner.succeed(`Created project: ${project.name}`);
+        selectedProjectId = project.id;
+        selectedProjectName = project.name;
+      } catch (error) {
+        createSpinner.fail("Failed to create project");
+        throw error;
       }
     } else {
       // Let user select existing project or create new
