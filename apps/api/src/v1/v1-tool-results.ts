@@ -1,3 +1,8 @@
+import {
+  ContentPartType,
+  MessageRole,
+  type UnsavedThreadToolMessage,
+} from "@tambo-ai-cloud/core";
 import type { V1InputContent, V1InputMessageDto } from "./dto/message.dto";
 import type { V1ToolResultContentDto } from "./dto/content.dto";
 
@@ -126,4 +131,42 @@ export function hasPendingToolCalls(
     pendingToolCallIds !== undefined &&
     pendingToolCallIds.length > 0
   );
+}
+
+/**
+ * Convert extracted tool results to internal UnsavedThreadToolMessage format.
+ *
+ * Each tool result becomes a separate message with:
+ * - role: MessageRole.Tool
+ * - tool_call_id: the toolUseId from the tool result
+ * - content: converted from tool result content
+ *
+ * @param toolResults - Extracted tool results
+ * @returns Array of UnsavedThreadToolMessage for each tool result
+ */
+export function convertToolResultsToMessages(
+  toolResults: ExtractedToolResult[],
+): UnsavedThreadToolMessage[] {
+  return toolResults.map((result) => ({
+    role: MessageRole.Tool as const,
+    tool_call_id: result.toolUseId,
+    content: result.content.map((block) => {
+      switch (block.type) {
+        case "text":
+          return {
+            type: ContentPartType.Text,
+            text: block.text,
+          };
+        case "resource":
+          return {
+            type: ContentPartType.Resource,
+            resource: block.resource,
+          };
+        default:
+          throw new Error(
+            `Unknown content type in tool result: ${(block as { type: string }).type}`,
+          );
+      }
+    }),
+  }));
 }

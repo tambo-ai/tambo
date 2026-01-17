@@ -20,6 +20,7 @@ import {
   ContentPartType,
   MessageRole,
   V1RunStatus,
+  type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
 import { sanitizeEvent } from "@tambo-ai-cloud/backend";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
@@ -34,6 +35,7 @@ import {
 } from "./v1-tool-conversions";
 import { createAwaitingInputEvent, ToolCallTracker } from "./v1-client-tools";
 import {
+  convertToolResultsToMessages,
   extractToolResults,
   hasPendingToolCalls,
   validateToolResults,
@@ -389,7 +391,8 @@ export class V1Service {
       };
     }
 
-    // Validate tool results if thread has pending tool calls
+    // Extract and validate tool results if thread has pending tool calls
+    const toolResultMessages: UnsavedThreadToolMessage[] = [];
     if (hasPendingToolCalls(thread.pendingToolCallIds)) {
       const toolResults = extractToolResults(dto.message);
       const validation = validateToolResults(
@@ -414,12 +417,25 @@ export class V1Service {
           ),
         };
       }
+
+      // Convert validated tool results to internal messages
+      toolResultMessages.push(...convertToolResultsToMessages(toolResults));
     }
 
     const runId = await this.db.transaction(async (tx) => {
       const didAcquireLock = await operations.acquireRunLock(tx, threadId);
       if (!didAcquireLock) {
         return null;
+      }
+
+      // Save tool result messages to the thread (before creating the run)
+      for (const toolMessage of toolResultMessages) {
+        await operations.addMessage(tx, threadId, toolMessage);
+      }
+
+      // Clear pendingToolCallIds since we've processed the tool results
+      if (toolResultMessages.length > 0) {
+        await operations.clearPendingToolCalls(tx, threadId);
       }
 
       const run = await operations.createRun(tx, {
@@ -725,13 +741,22 @@ export class V1Service {
 
   /**
    * Convert V1 input message to internal MessageRequest format.
+   *
+   * Note: tool_result blocks are filtered out because they are processed
+   * separately in startRun and saved as Tool role messages before this
+   * conversion happens.
    */
   private convertV1MessageToInternal(
     message: V1CreateRunDto["message"],
   ): MessageRequest {
+    // Filter out tool_result blocks - they're already saved as separate Tool messages
+    const nonToolResultContent = message.content.filter(
+      (block) => block.type !== "tool_result",
+    );
+
     return {
       role: MessageRole.User,
-      content: message.content.map((block) => {
+      content: nonToolResultContent.map((block) => {
         switch (block.type) {
           case "text":
             return {
@@ -742,15 +767,6 @@ export class V1Service {
             return {
               type: ContentPartType.Resource,
               resource: block.resource,
-            };
-          case "tool_result":
-            // Tool results should be handled separately in processToolResults
-            // For now, convert to text representation
-            return {
-              type: ContentPartType.Text,
-              text: block.content
-                .map((c) => (c.type === "text" ? c.text : "[resource]"))
-                .join("\n"),
             };
           default:
             throw new Error(

@@ -196,6 +196,68 @@ describe("v1-client-tools", () => {
         const pending = tracker.getPendingToolCalls();
         expect(pending[0].arguments).toBe('{"data":"test"}');
       });
+
+      it("throws error when tool call arguments exceed 1MB limit", () => {
+        tracker.processEvent({
+          type: EventType.TOOL_CALL_START,
+          toolCallId: "call_large",
+          toolCallName: "large_tool",
+          timestamp: Date.now(),
+        } as unknown as BaseEvent);
+
+        // Send a chunk that exceeds the 1MB limit
+        const oversizedChunk = "x".repeat(1024 * 1024 + 1);
+
+        expect(() => {
+          tracker.processEvent({
+            type: EventType.TOOL_CALL_ARGS,
+            toolCallId: "call_large",
+            delta: oversizedChunk,
+            timestamp: Date.now(),
+          } as unknown as BaseEvent);
+        }).toThrow("Tool call call_large arguments exceed maximum size of");
+      });
+
+      it("throws error when accumulated arguments exceed 1MB limit", () => {
+        tracker.processEvent({
+          type: EventType.TOOL_CALL_START,
+          toolCallId: "call_large",
+          toolCallName: "large_tool",
+          timestamp: Date.now(),
+        } as unknown as BaseEvent);
+
+        // Send a chunk close to the limit
+        const nearLimitChunk = "x".repeat(1024 * 1024 - 100);
+        tracker.processEvent({
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "call_large",
+          delta: nearLimitChunk,
+          timestamp: Date.now(),
+        } as unknown as BaseEvent);
+
+        // This should throw as it exceeds the limit
+        expect(() => {
+          tracker.processEvent({
+            type: EventType.TOOL_CALL_ARGS,
+            toolCallId: "call_large",
+            delta: "y".repeat(200),
+            timestamp: Date.now(),
+          } as unknown as BaseEvent);
+        }).toThrow("Tool call call_large arguments exceed maximum size of");
+      });
+
+      it("gracefully handles TOOL_CALL_ARGS for unknown tool call ID", () => {
+        // Send args without a prior start event - should not crash
+        tracker.processEvent({
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "unknown_call",
+          delta: '{"data":"test"}',
+          timestamp: Date.now(),
+        } as unknown as BaseEvent);
+
+        // Should not crash and should not have any pending calls
+        expect(tracker.hasPendingToolCalls()).toBe(false);
+      });
     });
 
     describe("getPendingToolCallIds", () => {

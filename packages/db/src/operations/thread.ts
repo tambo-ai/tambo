@@ -422,6 +422,34 @@ export async function updateThreadGenerationStatus(
   return updated;
 }
 
+/**
+ * Clear pending tool call IDs from a thread.
+ * Used when tool results have been processed and the thread can continue.
+ *
+ * @param db - Database connection (can be a transaction)
+ * @param threadId - Thread to update
+ * @throws Error if thread not found
+ */
+export async function clearPendingToolCalls(
+  db: HydraDb,
+  threadId: string,
+): Promise<void> {
+  const [updated] = await db
+    .update(schema.threads)
+    .set({
+      pendingToolCallIds: null,
+      updatedAt: sql`now()`,
+    })
+    .where(eq(schema.threads.id, threadId))
+    .returning({ id: schema.threads.id });
+
+  if (!updated) {
+    throw new Error(
+      `Failed to clear pending tool calls: Thread ${threadId} not found`,
+    );
+  }
+}
+
 type SortFieldKeys =
   | "contextKey"
   | "threadId"

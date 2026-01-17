@@ -6,7 +6,9 @@ import {
   type ToolCallEndEvent,
   type ToolCallResultEvent,
 } from "@ag-ui/client";
-import type { Response } from "express";
+
+/** Maximum size for tool call arguments (1MB) */
+const MAX_ARGS_SIZE = 1024 * 1024;
 
 /**
  * Information about a pending tool call that needs client-side execution.
@@ -34,8 +36,11 @@ export class ToolCallTracker {
   /** Tool call IDs that have received results (system or UI tools) */
   private completedToolCallIds: Set<string> = new Set();
 
-  /** Accumulated arguments for each tool call */
-  private toolCallArguments: Map<string, string> = new Map();
+  /** Accumulated argument chunks for each tool call (more efficient than string concat) */
+  private toolCallArgumentChunks: Map<string, string[]> = new Map();
+
+  /** Track accumulated size per tool call to enforce limits */
+  private toolCallArgumentSizes: Map<string, number> = new Map();
 
   /**
    * Process an AG-UI event and update tracking state.
@@ -48,22 +53,39 @@ export class ToolCallTracker {
           toolName: e.toolCallName,
           arguments: "",
         });
-        this.toolCallArguments.set(e.toolCallId, "");
+        this.toolCallArgumentChunks.set(e.toolCallId, []);
+        this.toolCallArgumentSizes.set(e.toolCallId, 0);
         break;
       }
       case EventType.TOOL_CALL_ARGS:
       case EventType.TOOL_CALL_CHUNK: {
         const e = event as unknown as ToolCallArgsEvent;
-        const current = this.toolCallArguments.get(e.toolCallId) ?? "";
-        this.toolCallArguments.set(e.toolCallId, current + e.delta);
+        const chunks = this.toolCallArgumentChunks.get(e.toolCallId);
+        const currentSize = this.toolCallArgumentSizes.get(e.toolCallId) ?? 0;
+
+        // Fail fast if size limit exceeded - don't silently truncate
+        if (currentSize + e.delta.length > MAX_ARGS_SIZE) {
+          throw new Error(
+            `Tool call ${e.toolCallId} arguments exceed maximum size of ${MAX_ARGS_SIZE} bytes`,
+          );
+        }
+
+        if (chunks) {
+          chunks.push(e.delta);
+          this.toolCallArgumentSizes.set(
+            e.toolCallId,
+            currentSize + e.delta.length,
+          );
+        }
         break;
       }
       case EventType.TOOL_CALL_END: {
         const e = event as unknown as ToolCallEndEvent;
         const toolCall = this.startedToolCalls.get(e.toolCallId);
         if (toolCall) {
-          // Update arguments with accumulated value
-          toolCall.arguments = this.toolCallArguments.get(e.toolCallId) ?? "";
+          // Join accumulated chunks into final arguments string
+          const chunks = this.toolCallArgumentChunks.get(e.toolCallId) ?? [];
+          toolCall.arguments = chunks.join("");
         }
         break;
       }
@@ -134,20 +156,4 @@ export function createAwaitingInputEvent(
     },
     timestamp: Date.now(),
   } as BaseEvent;
-}
-
-/**
- * Emit the awaiting_input event to an SSE response.
- *
- * @param response - Express response object configured for SSE
- * @param pendingToolCalls - Array of pending tool calls
- * @param emitEvent - Function to emit events to the response
- */
-export function emitAwaitingInputEvent(
-  response: Response,
-  pendingToolCalls: PendingToolCall[],
-  emitEvent: (response: Response, event: BaseEvent) => void,
-): void {
-  const event = createAwaitingInputEvent(pendingToolCalls);
-  emitEvent(response, event);
 }

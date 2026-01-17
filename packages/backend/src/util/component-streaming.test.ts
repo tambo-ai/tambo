@@ -87,7 +87,10 @@ describe("component-streaming", () => {
     it("tracks streaming status correctly", () => {
       const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
 
+      // First delta: temperature is seen, starts as "started"
       tracker.processJsonDelta('{"temperature": 72');
+      // Second delta: location is seen as NEW property, so temperature becomes "done"
+      // but location starts as "started" (only "done" when next prop appears)
       const events = tracker.processJsonDelta(', "location": "NYC"}');
 
       const propsDeltaEvent = events.find(
@@ -102,7 +105,10 @@ describe("component-streaming", () => {
           value: { streamingStatus: Record<string, string> };
         }
       ).value;
-      expect(value.streamingStatus.location).toBe("done");
+      // temperature should be "done" because location was seen after it
+      expect(value.streamingStatus.temperature).toBe("done");
+      // location should be "started" because no property has been seen after it yet
+      expect(value.streamingStatus.location).toBe("started");
     });
 
     it("emits end event on finalize", () => {
@@ -254,6 +260,57 @@ describe("component-streaming", () => {
       // we test that the tracker handles the case correctly
       const events = tracker2.finalize();
       expect(events).toHaveLength(1);
+    });
+
+    it("throws error when JSON exceeds 10MB limit", () => {
+      const tracker = new ComponentStreamTracker(
+        "comp_large",
+        "LargeComponent",
+      );
+
+      // Send a chunk that exceeds the 10MB limit
+      const oversizedChunk = '{"data": "' + "x".repeat(10 * 1024 * 1024) + '"}';
+
+      expect(() => {
+        tracker.processJsonDelta(oversizedChunk);
+      }).toThrow(
+        "Component comp_large (LargeComponent) JSON exceeds maximum size of",
+      );
+    });
+
+    it("throws error when accumulated JSON exceeds 10MB limit", () => {
+      const tracker = new ComponentStreamTracker(
+        "comp_large",
+        "LargeComponent",
+      );
+
+      // Send a chunk close to the limit
+      const nearLimitChunk = '{"data": "' + "x".repeat(10 * 1024 * 1024 - 100);
+      tracker.processJsonDelta(nearLimitChunk);
+
+      // This should throw as it exceeds the limit
+      expect(() => {
+        tracker.processJsonDelta("y".repeat(200));
+      }).toThrow(
+        "Component comp_large (LargeComponent) JSON exceeds maximum size of",
+      );
+    });
+
+    it("throws error when finalize receives unparseable JSON", () => {
+      const tracker = new ComponentStreamTracker(
+        "comp_broken",
+        "BrokenComponent",
+      );
+
+      // Use JSON that partial-json cannot parse (starts with closing brace)
+      tracker.processJsonDelta("}{");
+
+      // Finalize should throw an error instead of silently falling back
+      expect(() => {
+        tracker.finalize();
+      }).toThrow(
+        "Component comp_broken (BrokenComponent) failed to parse final JSON:",
+      );
     });
   });
 });

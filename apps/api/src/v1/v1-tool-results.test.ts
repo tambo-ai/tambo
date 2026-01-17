@@ -1,4 +1,6 @@
+import { ContentPartType, MessageRole } from "@tambo-ai-cloud/core";
 import {
+  convertToolResultsToMessages,
   extractToolResults,
   validateToolResults,
   hasPendingToolCalls,
@@ -208,6 +210,117 @@ describe("v1-tool-results", () => {
 
     it("returns false for undefined", () => {
       expect(hasPendingToolCalls(undefined)).toBe(false);
+    });
+  });
+
+  describe("convertToolResultsToMessages", () => {
+    it("converts tool results to MessageRequest array with Tool role", () => {
+      const toolResults = [
+        {
+          toolUseId: "call_123",
+          content: [{ type: "text" as const, text: "Weather is sunny, 72°F" }],
+          isError: false,
+        },
+        {
+          toolUseId: "call_456",
+          content: [{ type: "text" as const, text: "Stock price: $150.00" }],
+          isError: false,
+        },
+      ];
+
+      const messages = convertToolResultsToMessages(toolResults);
+
+      expect(messages).toHaveLength(2);
+
+      expect(messages[0].role).toBe(MessageRole.Tool);
+      expect(messages[0].tool_call_id).toBe("call_123");
+      expect(messages[0].content).toEqual([
+        { type: ContentPartType.Text, text: "Weather is sunny, 72°F" },
+      ]);
+
+      expect(messages[1].role).toBe(MessageRole.Tool);
+      expect(messages[1].tool_call_id).toBe("call_456");
+      expect(messages[1].content).toEqual([
+        { type: ContentPartType.Text, text: "Stock price: $150.00" },
+      ]);
+    });
+
+    it("converts resource content in tool results", () => {
+      const toolResults = [
+        {
+          toolUseId: "call_resource",
+          content: [
+            {
+              type: "resource" as const,
+              resource: {
+                uri: "file://data.csv",
+                text: "a,b,c\n1,2,3",
+                mimeType: "text/csv",
+              },
+            },
+          ],
+          isError: false,
+        },
+      ];
+
+      const messages = convertToolResultsToMessages(toolResults);
+
+      expect(messages).toHaveLength(1);
+      expect(messages[0].role).toBe(MessageRole.Tool);
+      expect(messages[0].tool_call_id).toBe("call_resource");
+      expect(messages[0].content).toEqual([
+        {
+          type: ContentPartType.Resource,
+          resource: {
+            uri: "file://data.csv",
+            text: "a,b,c\n1,2,3",
+            mimeType: "text/csv",
+          },
+        },
+      ]);
+    });
+
+    it("handles mixed text and resource content", () => {
+      const toolResults = [
+        {
+          toolUseId: "call_mixed",
+          content: [
+            { type: "text" as const, text: "Processing complete:" },
+            {
+              type: "resource" as const,
+              resource: { uri: "file://output.json", text: '{"status":"ok"}' },
+            },
+          ],
+          isError: false,
+        },
+      ];
+
+      const messages = convertToolResultsToMessages(toolResults);
+
+      expect(messages).toHaveLength(1);
+      expect(messages[0].content).toHaveLength(2);
+      expect(messages[0].content[0].type).toBe(ContentPartType.Text);
+      expect(messages[0].content[1].type).toBe(ContentPartType.Resource);
+    });
+
+    it("returns empty array for empty input", () => {
+      const messages = convertToolResultsToMessages([]);
+
+      expect(messages).toHaveLength(0);
+    });
+
+    it("throws on unknown content type", () => {
+      const toolResults = [
+        {
+          toolUseId: "call_unknown",
+          content: [{ type: "unknown" as "text", text: "test" }],
+          isError: false,
+        },
+      ];
+
+      expect(() => convertToolResultsToMessages(toolResults)).toThrow(
+        "Unknown content type in tool result: unknown",
+      );
     });
   });
 });

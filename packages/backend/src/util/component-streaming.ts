@@ -1,5 +1,9 @@
 import { parse } from "partial-json";
 import { EventType, type BaseEvent } from "@ag-ui/core";
+import deepEqual from "fast-deep-equal";
+
+/** Maximum size for accumulated JSON (10MB) */
+const MAX_JSON_SIZE = 10 * 1024 * 1024;
 
 /**
  * Streaming status for component properties.
@@ -22,10 +26,15 @@ export interface JsonPatchOperation {
 export class ComponentStreamTracker {
   private componentId: string;
   private componentName: string;
-  private accumulatedJson: string = "";
+  private jsonChunks: string[] = [];
+  private accumulatedJsonSize: number = 0;
   private previousProps: Record<string, unknown> = {};
   private streamingStatus: Record<string, PropStreamingStatus> = {};
   private isStarted: boolean = false;
+  /** Set of property keys that have been seen, used to determine done-ness */
+  private seenPropertyKeys: Set<string> = new Set();
+  /** Properties that were seen in the last parse, used to detect new properties */
+  private previousPropertyKeys: Set<string> = new Set();
 
   constructor(componentId: string, componentName: string) {
     this.componentId = componentId;
@@ -44,13 +53,22 @@ export class ComponentStreamTracker {
       this.isStarted = true;
     }
 
-    // Accumulate JSON
-    this.accumulatedJson += delta;
+    // Fail fast if size limit exceeded - don't silently truncate
+    if (this.accumulatedJsonSize + delta.length > MAX_JSON_SIZE) {
+      throw new Error(
+        `Component ${this.componentId} (${this.componentName}) JSON exceeds maximum size of ${MAX_JSON_SIZE} bytes`,
+      );
+    }
+
+    // Accumulate JSON using array (more efficient than string concatenation)
+    this.jsonChunks.push(delta);
+    this.accumulatedJsonSize += delta.length;
 
     // Try to parse incrementally
     let currentProps: Record<string, unknown>;
     try {
-      currentProps = parse(this.accumulatedJson) as Record<string, unknown>;
+      const accumulatedJson = this.jsonChunks.join("");
+      currentProps = parse(accumulatedJson) as Record<string, unknown>;
     } catch {
       // Can't parse yet, wait for more data
       return events;
@@ -62,14 +80,31 @@ export class ComponentStreamTracker {
     }
 
     // Detect newly completed or changed properties
-    const { patches, statusUpdates } = this.detectPropertyChanges(
-      this.previousProps,
-      currentProps,
-    );
+    const { patches, statusUpdates, newPropertyKeys } =
+      this.detectPropertyChanges(this.previousProps, currentProps);
 
-    // Update streaming status
+    // Mark previous properties as "done" when new properties appear
+    // (A property is only done when we move on to parsing a new property)
+    if (newPropertyKeys.length > 0) {
+      for (const key of this.previousPropertyKeys) {
+        if (
+          this.streamingStatus[key] !== "done" &&
+          !newPropertyKeys.includes(key)
+        ) {
+          this.streamingStatus[key] = "done";
+        }
+      }
+    }
+
+    // Update streaming status for current properties
     for (const [key, status] of Object.entries(statusUpdates)) {
       this.streamingStatus[key] = status;
+    }
+
+    // Update tracking of seen properties
+    this.previousPropertyKeys = new Set(Object.keys(currentProps));
+    for (const key of this.previousPropertyKeys) {
+      this.seenPropertyKeys.add(key);
     }
 
     // Emit props_delta event if there are changes
@@ -77,8 +112,8 @@ export class ComponentStreamTracker {
       events.push(this.createPropsDeltaEvent(patches));
     }
 
-    // Update previous props
-    this.previousProps = structuredClone(currentProps);
+    // Update previous props (use JSON parse/stringify for simple deep clone)
+    this.previousProps = JSON.parse(JSON.stringify(currentProps));
 
     return events;
   }
@@ -89,13 +124,17 @@ export class ComponentStreamTracker {
   finalize(): BaseEvent[] {
     const events: BaseEvent[] = [];
 
-    // Parse final JSON
-    let finalProps: Record<string, unknown> = {};
+    // Parse final JSON - fail fast if unparseable
+    let finalProps: Record<string, unknown>;
     try {
-      finalProps = parse(this.accumulatedJson) as Record<string, unknown>;
-    } catch {
-      // Use what we have
-      finalProps = this.previousProps;
+      const accumulatedJson = this.jsonChunks.join("");
+      finalProps = parse(accumulatedJson) as Record<string, unknown>;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown parse error";
+      throw new Error(
+        `Component ${this.componentId} (${this.componentName}) failed to parse final JSON: ${errorMessage}`,
+      );
     }
 
     // Mark all properties as done
@@ -111,6 +150,12 @@ export class ComponentStreamTracker {
 
   /**
    * Detect property changes between previous and current props.
+   *
+   * Property "done-ness" logic:
+   * - A property starts as "started" when first seen
+   * - A property becomes "streaming" when its value changes
+   * - A property becomes "done" ONLY when a NEW property is first seen
+   *   (not based on whether the value is a primitive or complex type)
    */
   private detectPropertyChanges(
     previousProps: Record<string, unknown>,
@@ -118,26 +163,32 @@ export class ComponentStreamTracker {
   ): {
     patches: JsonPatchOperation[];
     statusUpdates: Record<string, PropStreamingStatus>;
+    newPropertyKeys: string[];
   } {
     const patches: JsonPatchOperation[] = [];
     const statusUpdates: Record<string, PropStreamingStatus> = {};
+    const newPropertyKeys: string[] = [];
 
     // Check for new or changed properties
     for (const [key, value] of Object.entries(currentProps)) {
       const prevValue = previousProps[key];
-      const currentStatus = this.streamingStatus[key];
 
-      if (!(key in previousProps)) {
-        // New property
+      if (!this.seenPropertyKeys.has(key)) {
+        // Truly new property (never seen before)
         patches.push({ op: "add", path: `/${key}`, value });
-        statusUpdates[key] = this.isValueComplete(value) ? "done" : "started";
-      } else if (!this.deepEqual(prevValue, value)) {
+        statusUpdates[key] = "started";
+        newPropertyKeys.push(key);
+      } else if (!(key in previousProps)) {
+        // Property was seen before but not in previous props (edge case)
+        patches.push({ op: "add", path: `/${key}`, value });
+        statusUpdates[key] = "streaming";
+      } else if (!deepEqual(prevValue, value)) {
         // Property changed
         patches.push({ op: "replace", path: `/${key}`, value });
-        statusUpdates[key] = this.isValueComplete(value) ? "done" : "streaming";
-      } else if (currentStatus === "streaming" && this.isValueComplete(value)) {
-        // Value completed
-        statusUpdates[key] = "done";
+        // Keep status as "streaming" - it will become "done" when a new prop appears
+        if (this.streamingStatus[key] !== "done") {
+          statusUpdates[key] = "streaming";
+        }
       }
     }
 
@@ -149,51 +200,7 @@ export class ComponentStreamTracker {
       }
     }
 
-    return { patches, statusUpdates };
-  }
-
-  /**
-   * Check if a value is complete (not being streamed).
-   * Strings are considered incomplete if they look like they might be truncated.
-   */
-  private isValueComplete(value: unknown): boolean {
-    // Primitive values are always complete
-    if (typeof value !== "object" || value === null) {
-      return true;
-    }
-
-    // Arrays are complete if all elements are complete
-    if (Array.isArray(value)) {
-      return value.every((v) => this.isValueComplete(v));
-    }
-
-    // Objects are complete if all values are complete
-    return Object.values(value).every((v) => this.isValueComplete(v));
-  }
-
-  /**
-   * Deep equality check for JSON values.
-   */
-  private deepEqual(a: unknown, b: unknown): boolean {
-    if (a === b) return true;
-    if (typeof a !== typeof b) return false;
-    if (a === null || b === null) return a === b;
-    if (typeof a !== "object") return a === b;
-
-    if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false;
-      return a.every((val, i) => this.deepEqual(val, b[i]));
-    }
-
-    if (Array.isArray(a) || Array.isArray(b)) return false;
-
-    const aObj = a as Record<string, unknown>;
-    const bObj = b as Record<string, unknown>;
-    const aKeys = Object.keys(aObj);
-    const bKeys = Object.keys(bObj);
-
-    if (aKeys.length !== bKeys.length) return false;
-    return aKeys.every((key) => this.deepEqual(aObj[key], bObj[key]));
+    return { patches, statusUpdates, newPropertyKeys };
   }
 
   /**
