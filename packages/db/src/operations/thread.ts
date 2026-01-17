@@ -3,6 +3,7 @@ import {
   GenerationStage,
   MessageRole,
   UnsavedThreadMessage,
+  assertUnreachable,
   validateUnsavedThreadMessage,
 } from "@tambo-ai-cloud/core";
 import {
@@ -615,17 +616,6 @@ function getCountsField(
     default:
       return assertUnreachable(sortField);
   }
-}
-
-class UnreachableCaseError extends Error {
-  constructor(value: never) {
-    super(`Unreachable case: ${value}`);
-    this.name = "UnreachableCaseError";
-  }
-}
-
-function assertUnreachable(value: never): never {
-  throw new UnreachableCaseError(value);
 }
 
 export async function countThreadsByProjectWithSearch(
