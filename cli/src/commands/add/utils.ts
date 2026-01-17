@@ -18,7 +18,15 @@ const __dirname = path.dirname(__filename);
 export function getRegistryBasePath(): string {
   const envPath = process.env.TAMBO_REGISTRY_PATH;
   if (envPath) {
-    return envPath;
+    const resolvedEnvPath = path.resolve(envPath);
+    const componentsDir = path.join(resolvedEnvPath, "components");
+    if (!fs.existsSync(componentsDir)) {
+      throw new Error(
+        `Invalid TAMBO_REGISTRY_PATH: expected a registry root containing a 'components' directory at "${componentsDir}"`,
+      );
+    }
+
+    return resolvedEnvPath;
   }
 
   // When running the compiled CLI (from dist/commands/add), registry is at dist/registry/
@@ -47,7 +55,7 @@ export function getRegistryBasePath(): string {
   }
 
   throw new Error(
-    "Registry not found. Set TAMBO_REGISTRY_PATH or rebuild the CLI to generate dist/registry.",
+    "Registry not found. The CLI looked for the registry in dist/registry and packages/ui-registry/src. Set TAMBO_REGISTRY_PATH to the registry root, or rebuild the CLI to generate dist/registry.",
   );
 }
 
