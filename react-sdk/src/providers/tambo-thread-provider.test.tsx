@@ -9,7 +9,6 @@ import {
   TamboThreadMessage,
 } from "../model/generate-component-response";
 import { serializeRegistry } from "../testing/tools";
-import type { PartialTamboAI } from "../testing/types";
 import {
   TamboClientContext,
   useTamboClient,
@@ -35,9 +34,17 @@ jest.mock("./tambo-client-provider", () => {
     TamboClientContext: React.createContext(undefined),
   };
 });
-jest.mock("@tambo-ai/typescript-sdk", () => ({
-  advanceStream: jest.fn(),
-}));
+jest.mock("@tambo-ai/typescript-sdk", () => {
+  const actual = jest.requireActual<typeof import("@tambo-ai/typescript-sdk")>(
+    "@tambo-ai/typescript-sdk",
+  );
+
+  return {
+    __esModule: true,
+    ...actual,
+    advanceStream: jest.fn(),
+  };
+});
 
 // Mock the getCustomContext
 jest.mock("../util/registry", () => ({
@@ -61,8 +68,8 @@ const createMockMessage = (
 });
 
 const createMockThread = (
-  overrides: Partial<TamboAI.Beta.Threads.Thread> = {},
-) => ({
+  overrides: Partial<TamboAI.Beta.Threads.ThreadRetrieveResponse> = {},
+): TamboAI.Beta.Threads.ThreadRetrieveResponse => ({
   id: "test-thread-1",
   messages: [],
   createdAt: "2024-01-01T00:00:00Z",
@@ -92,33 +99,9 @@ const createMockAdvanceResponse = (
 describe("TamboThreadProvider", () => {
   const mockThread = createMockThread();
 
-  const mockThreadsApi = {
-    messages: {
-      create: jest.fn(),
-    },
-    retrieve: jest.fn(),
-    advance: jest.fn(),
-    advanceByID: jest.fn(),
-    generateName: jest.fn(),
-  } satisfies NonNullable<
-    PartialTamboAI["beta"]
-  >["threads"] as unknown as TamboAI.Beta.Threads;
-
-  const mockProjectsApi = {
-    getCurrent: jest.fn(),
-  } satisfies NonNullable<
-    PartialTamboAI["beta"]
-  >["projects"] as unknown as TamboAI.Beta.Projects;
-
-  const mockBeta = {
-    threads: mockThreadsApi,
-    projects: mockProjectsApi,
-  } satisfies PartialTamboAI["beta"];
-
-  const mockTamboAI = {
-    apiKey: "",
-    beta: mockBeta,
-  } satisfies PartialTamboAI as unknown as TamboAI;
+  let mockTamboAI: TamboAI;
+  let mockThreadsApi: TamboAI.Beta.Threads;
+  let mockProjectsApi: TamboAI.Beta.Projects;
 
   let mockQueryClient: {
     invalidateQueries: jest.Mock;
@@ -214,8 +197,22 @@ describe("TamboThreadProvider", () => {
   // Default wrapper for most tests
   const Wrapper = createWrapper();
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockTamboAI = new TamboAI({
+      apiKey: "",
+      fetch: () => {
+        throw new Error("Unexpected network call in test");
+      },
+    });
+
+    mockThreadsApi = mockTamboAI.beta.threads;
+    mockProjectsApi = mockTamboAI.beta.projects;
 
     // Setup mock query client
     mockQueryClient = {
@@ -226,21 +223,21 @@ describe("TamboThreadProvider", () => {
       .mocked(useTamboQueryClient)
       .mockReturnValue(mockQueryClient as unknown as QueryClient);
 
-    jest.mocked(mockThreadsApi.retrieve).mockResolvedValue(mockThread);
+    jest.spyOn(mockThreadsApi, "retrieve").mockResolvedValue(mockThread);
     jest
-      .mocked(mockThreadsApi.messages.create)
+      .spyOn(mockThreadsApi.messages, "create")
       .mockResolvedValue(createMockMessage());
     jest
-      .mocked(mockThreadsApi.advance)
+      .spyOn(mockThreadsApi, "advance")
       .mockResolvedValue(createMockAdvanceResponse());
     jest
-      .mocked(mockThreadsApi.advanceByID)
+      .spyOn(mockThreadsApi, "advanceByID")
       .mockResolvedValue(createMockAdvanceResponse());
-    jest.mocked(mockThreadsApi.generateName).mockResolvedValue({
+    jest.spyOn(mockThreadsApi, "generateName").mockResolvedValue({
       ...mockThread,
       name: "Generated Thread Name",
     });
-    jest.mocked(mockProjectsApi.getCurrent).mockResolvedValue({
+    jest.spyOn(mockProjectsApi, "getCurrent").mockResolvedValue({
       id: "test-project-id",
       name: "Test Project",
       isTokenRequired: false,
