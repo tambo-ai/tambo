@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 /**
  * Copies the component registry from packages/ui-registry/src/ to cli/dist/registry/
  * This script runs as part of the CLI build process.
