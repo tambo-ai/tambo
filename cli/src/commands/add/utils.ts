@@ -16,8 +16,39 @@ const __dirname = path.dirname(__filename);
  * @returns The path to the registry root
  */
 export function getRegistryBasePath(): string {
-  // From dist/commands/add/, registry is at dist/registry/
-  return path.join(__dirname, "../../registry");
+  const envPath = process.env.TAMBO_REGISTRY_PATH;
+  if (envPath) {
+    return envPath;
+  }
+
+  // When running the compiled CLI (from dist/commands/add), registry is at dist/registry/
+  const distRegistryPath = path.join(__dirname, "../../registry");
+  if (fs.existsSync(distRegistryPath)) {
+    return distRegistryPath;
+  }
+
+  // When running the TS source directly (from src/commands/add), registry is at dist/registry/
+  const distRegistryPathFromSrc = path.join(
+    __dirname,
+    "../../../dist/registry",
+  );
+  if (fs.existsSync(distRegistryPathFromSrc)) {
+    return distRegistryPathFromSrc;
+  }
+
+  // Monorepo dev fallback.
+  const cliRoot = path.resolve(__dirname, "../../..");
+  const uiRegistrySrcPath = path.resolve(
+    cliRoot,
+    "../packages/ui-registry/src",
+  );
+  if (fs.existsSync(uiRegistrySrcPath)) {
+    return uiRegistrySrcPath;
+  }
+
+  throw new Error(
+    "Registry not found. Set TAMBO_REGISTRY_PATH or rebuild the CLI to generate dist/registry.",
+  );
 }
 
 /**
