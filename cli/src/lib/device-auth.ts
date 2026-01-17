@@ -81,6 +81,11 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   console.log(chalk.cyan("\n📱 Please authorize this device:\n"));
   console.log(chalk.white(`   Visit: ${chalk.bold(verificationUri)}`));
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
+  console.log(
+    chalk.white(
+      `   Or open directly: ${chalk.cyan(verificationUriComplete)}\n`,
+    ),
+  );
 
   // Copy code to clipboard
   try {

@@ -296,10 +296,11 @@ export async function getInstallationPath(yes = false): Promise<string> {
 
 /**
  * Handles the authentication flow with Tambo using device auth
+ * @param yes Whether to auto-answer yes to prompts
  * @returns Promise<boolean> Returns true if authentication was successful
  * @throws AuthenticationError
  */
-async function handleAuthentication(): Promise<boolean> {
+async function handleAuthentication(yes = false): Promise<boolean> {
   try {
     console.log(chalk.cyan("\nStep 1: Authentication"));
 
@@ -319,7 +320,7 @@ async function handleAuthentication(): Promise<boolean> {
 
       if (isValid) {
         console.log(chalk.green("\n✔ Already authenticated"));
-        return await handleProjectAndApiKey();
+        return await handleProjectAndApiKey(yes);
       }
       // Session was invalid on server - token already cleared by verifySession
       console.log(chalk.yellow("\n⚠ Session expired, please re-authenticate"));
@@ -335,7 +336,7 @@ async function handleAuthentication(): Promise<boolean> {
     );
 
     // After auth, select/create project and generate API key
-    return await handleProjectAndApiKey();
+    return await handleProjectAndApiKey(yes);
   } catch (error) {
     if (error instanceof DeviceAuthError) {
       console.error(chalk.red(`\n✖ Authentication failed`));
@@ -351,8 +352,9 @@ async function handleAuthentication(): Promise<boolean> {
 
 /**
  * Handles project selection/creation and API key generation after device auth
+ * @param yes Whether to auto-answer yes (creates new project with current directory name)
  */
-async function handleProjectAndApiKey(): Promise<boolean> {
+async function handleProjectAndApiKey(yes = false): Promise<boolean> {
   try {
     console.log(chalk.cyan("\nStep 2: Project Setup"));
 
@@ -370,37 +372,66 @@ async function handleProjectAndApiKey(): Promise<boolean> {
     let selectedProjectId: string;
     let selectedProjectName: string;
 
-    if (projects.length === 0) {
-      // No projects, create one
-      console.log(
-        chalk.gray("\nNo existing projects found. Creating one...\n"),
-      );
+    // Auto-create project with current directory name when --yes is provided
+    const shouldAutoCreate = yes || projects.length === 0;
 
-      const { projectName } = await interactivePrompt<{ projectName: string }>(
-        {
-          type: "input",
-          name: "projectName",
-          message: "Project name:",
-          default: path.basename(process.cwd()),
-          validate: (input: string) => {
-            if (!input?.trim()) return "Project name is required";
-            return true;
+    if (shouldAutoCreate) {
+      const projectName = path.basename(process.cwd());
+
+      if (projects.length === 0) {
+        console.log(
+          chalk.gray("\nNo existing projects found. Creating one...\n"),
+        );
+      } else if (yes) {
+        console.log(
+          chalk.gray(`\nAuto-creating project: ${projectName} (--yes flag)\n`),
+        );
+      }
+
+      if (!yes) {
+        // Only prompt for name if not in auto mode
+        const response = await interactivePrompt<{ projectName: string }>(
+          {
+            type: "input",
+            name: "projectName",
+            message: "Project name:",
+            default: projectName,
+            validate: (input: string) => {
+              if (!input?.trim()) return "Project name is required";
+              return true;
+            },
           },
-        },
-        chalk.yellow("Cannot prompt for project name in non-interactive mode."),
-      );
+          chalk.yellow(
+            "Cannot prompt for project name in non-interactive mode.",
+          ),
+        );
 
-      const createSpinner = ora("Creating project...").start();
-      try {
-        const project = await api.project.createProject2.mutate({
-          name: projectName.trim(),
-        });
-        createSpinner.succeed(`Created project: ${project.name}`);
-        selectedProjectId = project.id;
-        selectedProjectName = project.name;
-      } catch (error) {
-        createSpinner.fail("Failed to create project");
-        throw error;
+        const createSpinner = ora("Creating project...").start();
+        try {
+          const project = await api.project.createProject2.mutate({
+            name: response.projectName.trim(),
+          });
+          createSpinner.succeed(`Created project: ${project.name}`);
+          selectedProjectId = project.id;
+          selectedProjectName = project.name;
+        } catch (error) {
+          createSpinner.fail("Failed to create project");
+          throw error;
+        }
+      } else {
+        // Auto-create with directory name
+        const createSpinner = ora("Creating project...").start();
+        try {
+          const project = await api.project.createProject2.mutate({
+            name: projectName,
+          });
+          createSpinner.succeed(`Created project: ${project.name}`);
+          selectedProjectId = project.id;
+          selectedProjectName = project.name;
+        } catch (error) {
+          createSpinner.fail("Failed to create project");
+          throw error;
+        }
       }
     } else {
       // Let user select existing project or create new
@@ -508,29 +539,39 @@ async function handleProjectAndApiKey(): Promise<boolean> {
 
 /**
  * Guides the user through choosing hosting mode and finishing auth/setup
+ * @param yes Whether to auto-answer yes (defaults to cloud hosting)
  */
-async function handleHostingChoiceAndAuth(): Promise<boolean> {
-  const { hostingChoice } = await interactivePrompt<{
-    hostingChoice: string;
-  }>(
-    {
-      type: "select",
-      name: "hostingChoice",
-      message: "Choose where to connect your app:",
-      choices: [
-        { name: "Cloud (time: 1 minute) — recommended", value: "cloud" },
-        { name: "Self-host (time: 5-10 minutes)", value: "self" },
-      ],
-      default: "cloud",
-    },
-    chalk.yellow(
-      `Cannot prompt for hosting choice in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
-    ),
-  );
+async function handleHostingChoiceAndAuth(yes = false): Promise<boolean> {
+  let hostingChoice: string;
+
+  if (yes) {
+    // Auto-select cloud hosting in non-interactive mode
+    console.log(chalk.blue("Using Cloud hosting (--yes flag provided)"));
+    hostingChoice = "cloud";
+  } else {
+    const response = await interactivePrompt<{
+      hostingChoice: string;
+    }>(
+      {
+        type: "select",
+        name: "hostingChoice",
+        message: "Choose where to connect your app:",
+        choices: [
+          { name: "Cloud (time: 1 minute) — recommended", value: "cloud" },
+          { name: "Self-host (time: 5-10 minutes)", value: "self" },
+        ],
+        default: "cloud",
+      },
+      chalk.yellow(
+        `Cannot prompt for hosting choice in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
+      ),
+    );
+    hostingChoice = response.hostingChoice;
+  }
 
   if (hostingChoice === "cloud") {
     console.log(chalk.blue("\nInitializing tambo Cloud connection..."));
-    return await handleAuthentication();
+    return await handleAuthentication(yes);
   }
 
   // Self-host path
@@ -584,7 +625,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
 
   if (apiKeyOrCloud === "cloud") {
     console.log(chalk.blue("\nSwitching to Cloud setup..."));
-    return await handleAuthentication();
+    return await handleAuthentication(yes);
   }
 
   const { apiKey } = await interactivePrompt<{ apiKey: string }>(
@@ -622,7 +663,7 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
   // Get installation path preference first
   const installPath = await getInstallationPath(options.yes);
 
-  const authSuccess = await handleHostingChoiceAndAuth();
+  const authSuccess = await handleHostingChoiceAndAuth(options.yes);
   if (!authSuccess) return;
 
   // Create tambo.ts file
@@ -873,7 +914,7 @@ export async function handleInit({
       ),
     );
 
-    const authSuccess = await handleHostingChoiceAndAuth();
+    const authSuccess = await handleHostingChoiceAndAuth(yes);
     if (!authSuccess) return;
 
     await handleAgentDocsUpdate({ yes, skipAgentDocs });
