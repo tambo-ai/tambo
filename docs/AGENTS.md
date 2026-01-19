@@ -99,7 +99,22 @@ In general, try to fit changes into the following categories. If you can't find 
    - Integration: Adding Tambo to existing projects
    - Component basics: Understanding registration patterns
 
-2. **Concepts** - Core architectural understanding (components, threads, tools, context)
+2. **Guides** - Goal-oriented how-to guides organized by user journey
+   - **Getting Your First Components Working**: Quick wins for new users
+     - Make Tambo Generate Components for You
+     - Let Users Edit Components Through Chat
+     - Give Tambo Access to Your Functions
+     - Connect External Data Sources
+   - **Building Complete Interfaces**: Creating production UIs
+     - Build a Custom Chat Interface
+     - Customize How MCP Features Display
+     - Control What Components AI Can See
+   - **Adding Intelligence & Context**: Making AI smarter
+     - Configure AI Personality and Behavior (project settings, LLM provider, agent behavior)
+     - Give AI Access to User-Specific Data (context helpers, attachments, resources, thread instructions)
+     - Add User Authentication (Auth.js, Auth0, Clerk, Supabase, Neon, WorkOS, Better Auth)
+
+3. **Concepts** - Core architectural understanding (components, threads, tools, context)
    - Components: Registration, schemas, lifecycle, interactables
    - Message Threads: Sending messages, responses, history management, status tracking
    - Tools: Function calling, schemas, orchestration
@@ -107,30 +122,30 @@ In general, try to fit changes into the following categories. If you can't find 
    - User Authentication: OAuth providers, session management, context keys
    - Additional Context: Configuration, custom helpers, context attachments, dynamic control, system messages (thread-level instructions), resources (local and MCP, @ mention syntax, user-controlled context inclusion)
 
-3. **Best Practices** - Guidance for production implementations
+4. **Best Practices** - Guidance for production implementations
    - Component data props optimization
    - Performance considerations
    - Error handling patterns
    - Security best practices
 
-4. **API Reference** - Technical specifications
+5. **API Reference** - Technical specifications
    - React hooks: Complete signatures, parameters, return values
    - TypeScript interfaces and types
    - Provider configurations
 
-5. **CLI** - Command-line tooling documentation
+6. **CLI** - Command-line tooling documentation
    - Commands: add, create-app, init, list, migrate, update, upgrade
    - Configuration: Project setup, customization options
    - Workflows: Development patterns, component management
    - Global options: Flags and environment variables
 
-6. **Models** - Configuration and customization
+7. **Models** - Configuration and customization
    - Custom LLM parameters: Temperature, max tokens, model selection
    - Labels: Organizing and categorizing interactions
    - Reasoning Models: Advanced thinking/reasoning capabilities for OpenAI and Gemini models
    - Provider-specific configurations
 
-7. **Examples & Templates** - Real-world implementations
+8. **Examples & Templates** - Real-world implementations
    - Chat starter applications
    - Integration examples (Supabase MCP client)
    - Use case demonstrations

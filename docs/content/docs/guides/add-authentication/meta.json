@@ -1,6 +1,7 @@
 {
   "title": "Add User Authentication",
   "pages": [
+    "index",
     "nextauth",
     "auth0",
     "clerk",

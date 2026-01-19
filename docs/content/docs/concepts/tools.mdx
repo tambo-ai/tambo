@@ -3,7 +3,7 @@ title: Tools
 description: How function calling transforms natural language interfaces from conversations into operating systems
 ---
 
-Tools are functions that allow Tambo to take actions in response to natural language. When a user asks "What's the weather in San Francisco?", Tambo can use a registered tool that calls a weather API, retrieves current data, and use that data to populate a `WeatherDisplay` component.
+Tools are functions that allow Tambo to take actions in response to natural language. When a user asks "What's the weather in San Francisco?", Tambo can use a registered tool that calls a weather API to retrieve current data, and then use that data in the response or to populate a Generative Component.
 
 ## Tambo's Approaches for Enabling Tools
 
@@ -37,7 +37,7 @@ import { Wrench } from "lucide-react";
 <LearnMore
   title="Register Tools"
   description="Step-by-step guide for adding custom tools to your application"
-  href="/guides/register-tools"
+  href="/guides/take-actions/register-tools"
   icon={Wrench}
 />
 

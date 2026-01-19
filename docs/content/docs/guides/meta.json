@@ -1,15 +1,11 @@
 {
   "title": "Guides",
   "pages": [
-    "configure-agent",
-    "register-generative-components",
-    "register-interactable-components",
-    "customize-interactables-context",
-    "build-custom-conversation-ui",
-    "register-tools",
-    "connect-mcp-servers",
-    "customize-mcp-ui",
-    "enable-user-authentication",
-    "add-additional-context"
+    "setup-project",
+    "enable-generative-ui",
+    "build-interfaces",
+    "give-context",
+    "take-actions",
+    "add-authentication"
   ]
 }

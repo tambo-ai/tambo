@@ -1,0 +1,61 @@
+---
+title: Create a Tambo Project
+description: Set up a new Tambo project in the dashboard and get your API key to start building AI-powered applications.
+---
+
+Learn how to create a new Tambo project through the dashboard to start building AI-powered applications.
+
+## Step 1: Sign Up or Log In
+
+Go to [tambo.co](https://tambo.co) and create an account or log in to your existing account.
+
+## Step 2: Create a New Project
+
+1. Click "New Project" or "Create Project" in the dashboard
+2. Enter a project name (e.g., "My Chat App")
+3. Optionally add a description to help you remember the project's purpose
+
+## Step 3: Get Your API Key
+
+1. Navigate to your project settings
+2. Find the "API Keys" section
+3. Copy your project API key
+4. Store it securely (never commit to version control)
+
+<Callout type="warn" title="Keep your API key secure">
+  Never commit your API key to version control or expose it in client-side code. Always use environment variables.
+</Callout>
+
+## Step 4: Add to Your Application
+
+Add the API key to your environment variables:
+
+```bash title=".env.local"
+NEXT_PUBLIC_TAMBO_PROJECT_KEY=your_api_key_here
+```
+
+Then pass it to TamboProvider in your application:
+
+```tsx title="app/layout.tsx"
+import { TamboProvider } from "@tambo-ai/react";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <TamboProvider projectKey={process.env.NEXT_PUBLIC_TAMBO_PROJECT_KEY}>
+          {children}
+        </TamboProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Next Steps
+
+Now that you have your project set up, you can:
+
+- [Configure the Tambo Agent](/docs/guides/setup-project/configure-agent) to customize agent behavior and settings
+- [Give Tambo Components to Generate](/docs/guides/enable-generative-ui/register-components) to enable AI-generated UI
+- [Build a Custom Chat Interface](/docs/guides/build-interfaces/build-chat-interface) to create your conversation UI
