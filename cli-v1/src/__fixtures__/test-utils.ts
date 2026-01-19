@@ -12,7 +12,9 @@ export class ProcessExitError extends Error {
   }
 }
 
-export async function captureStdout(fn: () => void | Promise<void>): Promise<string> {
+export async function captureStdout(
+  fn: () => void | Promise<void>,
+): Promise<string> {
   const originalLog = console.log;
   const logs: string[] = [];
   console.log = (...args: unknown[]) => {
@@ -49,14 +51,18 @@ export function mockFs(files: Record<string, string>): MockFsResult {
   const readSpy = jest.spyOn(fs, "readFileSync").mockImplementation((path) => {
     const value = fileMap.get(String(path));
     if (typeof value === "undefined") {
-      throw new Error(`ENOENT: no such file or directory, open '${String(path)}'`);
+      throw new Error(
+        `ENOENT: no such file or directory, open '${String(path)}'`,
+      );
     }
     return value;
   });
 
-  const writeSpy = jest.spyOn(fs, "writeFileSync").mockImplementation((path, data) => {
-    fileMap.set(String(path), String(data));
-  });
+  const writeSpy = jest
+    .spyOn(fs, "writeFileSync")
+    .mockImplementation((path, data) => {
+      fileMap.set(String(path), String(data));
+    });
 
   return {
     existsSpy,
@@ -82,20 +88,29 @@ export function setIsTTY(value: boolean): void {
   });
 }
 
-export function withArgs<T extends Record<string, unknown>>(args: T): T & { _: string[] } {
+export function withArgs<T extends Record<string, unknown>>(
+  args: T,
+): T & { _: string[] } {
   return { _: [], ...args };
 }
 
-export function makeContext<T extends Record<string, unknown>>(args: T & { _: string[] }) {
+export function makeContext<T extends Record<string, unknown>>(
+  args: T & { _: string[] },
+) {
   return { rawArgs: [], args, cmd: {} };
 }
 
 export function getSubcommand(
   command: { subCommands?: unknown },
-  name: string
-): { run?: (ctx: { args: Record<string, unknown> }) => Promise<void> } | undefined {
+  name: string,
+):
+  | { run?: (ctx: { args: Record<string, unknown> }) => Promise<void> }
+  | undefined {
   const subCommands = command.subCommands as
-    | Record<string, { run?: (ctx: { args: Record<string, unknown> }) => Promise<void> }>
+    | Record<
+        string,
+        { run?: (ctx: { args: Record<string, unknown> }) => Promise<void> }
+      >
     | undefined;
   return subCommands?.[name];
 }

@@ -1,7 +1,7 @@
 ---
 name: add-agent-component
 description: Add an existing generative UI component from the Tambo registry
-argument-hint: {component name}
+argument-hint: { component name }
 ---
 
 # /add-agent-component {name}
@@ -78,14 +78,14 @@ npm run tambo components installed --json
 
 Common components in the registry:
 
-| Component | Purpose |
-|-----------|---------|
-| `message-thread` | Chat message display |
-| `message-input` | Chat input with submit |
-| `control-bar` | Assistant controls |
-| `form` | Dynamic form generation |
-| `graph` | Data visualization |
-| `map` | Location display |
+| Component        | Purpose                 |
+| ---------------- | ----------------------- |
+| `message-thread` | Chat message display    |
+| `message-input`  | Chat input with submit  |
+| `control-bar`    | Assistant controls      |
+| `form`           | Dynamic form generation |
+| `graph`          | Data visualization      |
+| `map`            | Location display        |
 
 Run `npm run tambo components available --json` for full list.
 
@@ -105,6 +105,7 @@ npm run tambo components installed --json
 ```
 
 Output:
+
 ```
 Installed message-thread to src/components/tambo/message-thread.tsx
 Added to component registry in src/components/lib/tambo.ts

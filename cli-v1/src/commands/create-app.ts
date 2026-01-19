@@ -20,7 +20,10 @@ import {
   validatePackageManager,
 } from "../utils/package-manager.js";
 import { isTTY } from "../utils/tty.js";
-import { handlePromptError, NonInteractiveError } from "../utils/interactive.js";
+import {
+  handlePromptError,
+  NonInteractiveError,
+} from "../utils/interactive.js";
 
 interface Template {
   name: string;
@@ -67,7 +70,7 @@ function updatePackageJson(targetDir: string, appName: string): void {
 
   try {
     const packageJson = JSON.parse(
-      fs.readFileSync(packageJsonPath, "utf-8")
+      fs.readFileSync(packageJsonPath, "utf-8"),
     ) as Record<string, unknown>;
     packageJson.name = appName;
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
@@ -86,7 +89,9 @@ function safeRemoveGitFolder(gitFolder: string): void {
   try {
     fs.rmSync(gitFolder, { recursive: true, force: true });
   } catch (error) {
-    throw new Error(`Failed to remove .git folder: ${getSafeErrorMessage(error)}`);
+    throw new Error(
+      `Failed to remove .git folder: ${getSafeErrorMessage(error)}`,
+    );
   }
 }
 
@@ -119,7 +124,7 @@ async function promptForAppName(
 
   if (!isInteractive) {
     throw new NonInteractiveError(
-      "App name required. Use --name <app-name> to specify the app name."
+      "App name required. Use --name <app-name> to specify the app name.",
     );
   }
 
@@ -153,7 +158,7 @@ async function promptForTemplate(
   if (!isInteractive) {
     throw new NonInteractiveError(
       "Template required. Use --template <name> to specify. Available: " +
-      Object.keys(templates).join(", ")
+        Object.keys(templates).join(", "),
     );
   }
 
@@ -204,7 +209,11 @@ function validateTargetDirectory(
   targetDir: string,
   result: CreateAppResult,
 ): boolean {
-  if (appName === "." && fs.existsSync(targetDir) && fs.readdirSync(targetDir).length > 0) {
+  if (
+    appName === "." &&
+    fs.existsSync(targetDir) &&
+    fs.readdirSync(targetDir).length > 0
+  ) {
     result.errors.push("Current directory is not empty");
     return false;
   }
@@ -228,16 +237,21 @@ function cloneTemplate(
     fs.mkdirSync(targetDir, { recursive: true });
   }
 
-  const cloneSpinner = jsonMode || !isInteractive
-    ? null
-    : ora(`Downloading ${template.name} template...`).start();
+  const cloneSpinner =
+    jsonMode || !isInteractive
+      ? null
+      : ora(`Downloading ${template.name} template...`).start();
 
   try {
     // Use execFileSync with argument array to prevent shell injection
     const cloneTarget = appName === "." ? "." : appName;
-    execFileSync("git", ["clone", "--depth", "1", template.repository, cloneTarget], {
-      stdio: "ignore",
-    });
+    execFileSync(
+      "git",
+      ["clone", "--depth", "1", template.repository, cloneTarget],
+      {
+        stdio: "ignore",
+      },
+    );
     cloneSpinner?.succeed(`Downloaded ${template.name} template`);
   } catch (error) {
     cloneSpinner?.fail("Failed to download template");
@@ -247,7 +261,8 @@ function cloneTemplate(
   const gitFolder = path.join(targetDir, ".git");
   safeRemoveGitFolder(gitFolder);
 
-  const packageJsonName = appName !== "." ? appName : path.basename(process.cwd());
+  const packageJsonName =
+    appName !== "." ? appName : path.basename(process.cwd());
   updatePackageJson(targetDir, packageJsonName);
 }
 
@@ -257,9 +272,10 @@ function initializeGitRepo(
   jsonMode: boolean,
   isInteractive: boolean,
 ): void {
-  const gitSpinner = jsonMode || !isInteractive
-    ? null
-    : ora("Initializing git repository...").start();
+  const gitSpinner =
+    jsonMode || !isInteractive
+      ? null
+      : ora("Initializing git repository...").start();
 
   try {
     // Use execFileSync with argument arrays to prevent shell injection
@@ -271,7 +287,9 @@ function initializeGitRepo(
     result.gitInitialized = true;
   } catch (error) {
     gitSpinner?.fail("Failed to initialize git repository");
-    result.warnings.push(`Git initialization failed: ${getSafeErrorMessage(error)}`);
+    result.warnings.push(
+      `Git initialization failed: ${getSafeErrorMessage(error)}`,
+    );
   }
 }
 
@@ -285,9 +303,10 @@ function installDependencies(
   validatePackageManager(pm);
   const installCmd = getInstallCommand(pm);
 
-  const installSpinner = jsonMode || !isInteractive
-    ? null
-    : ora(`Installing dependencies using ${pm}...`).start();
+  const installSpinner =
+    jsonMode || !isInteractive
+      ? null
+      : ora(`Installing dependencies using ${pm}...`).start();
 
   try {
     execFileSync(pm, [installCmd], { stdio: "ignore" });
@@ -295,7 +314,9 @@ function installDependencies(
     result.depsInstalled = true;
   } catch (error) {
     installSpinner?.fail("Failed to install dependencies");
-    throw new Error(`Failed to install dependencies: ${getSafeErrorMessage(error)}`);
+    throw new Error(
+      `Failed to install dependencies: ${getSafeErrorMessage(error)}`,
+    );
   }
 }
 
@@ -306,13 +327,25 @@ function buildSuggestedCommands(
   const commands: CommandSuggestion[] = [];
 
   if (appName !== ".") {
-    commands.push({ command: `cd ${appName}`, description: "Navigate to your new app" });
+    commands.push({
+      command: `cd ${appName}`,
+      description: "Navigate to your new app",
+    });
   }
   if (!depsInstalled) {
-    commands.push({ command: "npm install", description: "Install dependencies" });
+    commands.push({
+      command: "npm install",
+      description: "Install dependencies",
+    });
   }
-  commands.push({ command: "tambov1 init", description: "Complete Tambo setup" });
-  commands.push({ command: "npm run dev", description: "Start development server" });
+  commands.push({
+    command: "tambov1 init",
+    description: "Complete Tambo setup",
+  });
+  commands.push({
+    command: "npm run dev",
+    description: "Start development server",
+  });
 
   return commands;
 }
@@ -443,7 +476,9 @@ export const createApp = defineCommand({
           });
         } else {
           out.error(error.message);
-          out.info("Run with --name and --template flags, or in an interactive terminal.");
+          out.info(
+            "Run with --name and --template flags, or in an interactive terminal.",
+          );
         }
         process.exit(1);
       }
@@ -458,12 +493,15 @@ export const createApp = defineCommand({
 
     const template = templates[templateKey];
     if (!template) {
-      result.errors.push(`Template "${templateKey}" not found. Available: ${Object.keys(templates).join(", ")}`);
+      result.errors.push(
+        `Template "${templateKey}" not found. Available: ${Object.keys(templates).join(", ")}`,
+      );
       out.json(result);
       process.exit(1);
     }
 
-    const targetDir = appName === "." ? process.cwd() : path.join(process.cwd(), appName);
+    const targetDir =
+      appName === "." ? process.cwd() : path.join(process.cwd(), appName);
 
     // Display header
     if (!jsonMode) {
@@ -491,7 +529,12 @@ export const createApp = defineCommand({
     if (isInteractive && installDeps === undefined) {
       try {
         const response = await inquirer.prompt([
-          { type: "confirm", name: "installDeps", message: "Install dependencies?", default: true },
+          {
+            type: "confirm",
+            name: "installDeps",
+            message: "Install dependencies?",
+            default: true,
+          },
         ]);
         installDeps = response.installDeps;
       } catch (error) {
@@ -502,7 +545,12 @@ export const createApp = defineCommand({
     if (isInteractive && initGit === undefined) {
       try {
         const response = await inquirer.prompt([
-          { type: "confirm", name: "initGit", message: "Initialize git repository?", default: false },
+          {
+            type: "confirm",
+            name: "initGit",
+            message: "Initialize git repository?",
+            default: false,
+          },
         ]);
         initGit = response.initGit;
       } catch (error) {
@@ -536,7 +584,10 @@ export const createApp = defineCommand({
 
       // Set success state
       result.success = true;
-      result.suggestedCommands = buildSuggestedCommands(appName, result.depsInstalled);
+      result.suggestedCommands = buildSuggestedCommands(
+        appName,
+        result.depsInstalled,
+      );
       result.filesCreated = [
         targetDir,
         path.join(targetDir, "package.json"),

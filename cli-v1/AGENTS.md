@@ -45,6 +45,7 @@ Doc-first approach: write docs before code (see ../docs/AGENTS.md).
 
 **Non-interactive safety (CRITICAL):**
 Commands using `inquirer.prompt` MUST have tests verifying:
+
 - `inquirer.prompt` never called when `isTTY()` is false
 - Returns guidance JSON instead of hanging when args missing
 - Completes successfully when all required args provided
@@ -53,6 +54,7 @@ See `src/__tests__/non-interactive-safety.test.ts` for required tests.
 Canonical examples: `init.test.ts`, `create-app.test.ts`
 
 **Patterns:**
+
 - Use `memfs` for filesystem mocking
 - Mock external deps: `child_process`, `inquirer`, network calls
 - Test both success and error cases

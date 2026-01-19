@@ -14,16 +14,16 @@ Step-by-step checklist for converting existing React components to generative UI
 - [ ] Create Zod schema file or add to component file
 - [ ] Convert each prop to Zod type:
 
-| TypeScript | Zod |
-|------------|-----|
-| `string` | `z.string()` |
-| `number` | `z.number()` |
-| `boolean` | `z.boolean()` |
-| `"a" \| "b"` | `z.enum(["a", "b"])` |
-| `string[]` | `z.array(z.string())` |
-| `{ x: number }` | `z.object({ x: z.number() })` |
-| `T \| undefined` | `z.X().optional()` |
-| `T \| null` | `z.X().nullable()` |
+| TypeScript       | Zod                           |
+| ---------------- | ----------------------------- |
+| `string`         | `z.string()`                  |
+| `number`         | `z.number()`                  |
+| `boolean`        | `z.boolean()`                 |
+| `"a" \| "b"`     | `z.enum(["a", "b"])`          |
+| `string[]`       | `z.array(z.string())`         |
+| `{ x: number }`  | `z.object({ x: z.number() })` |
+| `T \| undefined` | `z.X().optional()`            |
+| `T \| null`      | `z.X().nullable()`            |
 
 - [ ] Add `.describe()` to every field
 - [ ] Add `.default()` for optional fields with sensible defaults
@@ -33,9 +33,9 @@ Step-by-step checklist for converting existing React components to generative UI
 ```tsx
 // Before
 interface CardProps {
-  title: string
-  value?: number
-  status: "active" | "inactive"
+  title: string;
+  value?: number;
+  status: "active" | "inactive";
 }
 
 // After
@@ -43,7 +43,7 @@ export const cardSchema = z.object({
   title: z.string().describe("Card title displayed at top"),
   value: z.number().optional().describe("Numeric value to display"),
   status: z.enum(["active", "inactive"]).describe("Current status"),
-})
+});
 ```
 
 ## Type Derivation
@@ -54,12 +54,12 @@ export const cardSchema = z.object({
 ```tsx
 // Remove this
 interface CardProps {
-  title: string
+  title: string;
   // ...
 }
 
 // Add this
-type CardProps = z.infer<typeof cardSchema>
+type CardProps = z.infer<typeof cardSchema>;
 ```
 
 ## Component Updates
@@ -82,9 +82,7 @@ export function Card({
 
 ```tsx
 // Wrap content
-<div className="max-w-md">
-  {/* existing content */}
-</div>
+<div className="max-w-md">{/* existing content */}</div>
 ```
 
 - [ ] Ensure responsive at small sizes (test at 300px width)
@@ -107,10 +105,14 @@ export function Card({
 
 ```tsx
 // Before
-{user.profile.name}
+{
+  user.profile.name;
+}
 
 // After
-{user?.profile?.name ?? "Unknown"}
+{
+  user?.profile?.name ?? "Unknown";
+}
 ```
 
 - [ ] Handle empty arrays
@@ -134,7 +136,7 @@ export function CardSkeleton() {
       <div className="h-5 w-32 bg-muted rounded" />
       <div className="mt-2 h-4 w-48 bg-muted rounded" />
     </div>
-  )
+  );
 }
 ```
 
@@ -165,7 +167,7 @@ src/components/tambo/card.tsx
 - [ ] Add import to `src/components/lib/tambo.ts`
 
 ```tsx
-import { Card, cardSchema, CardSkeleton } from "../tambo/card"
+import { Card, cardSchema, CardSkeleton } from "../tambo/card";
 ```
 
 - [ ] Add to componentRegistry
@@ -189,10 +191,10 @@ import { Card, cardSchema, CardSkeleton } from "../tambo/card"
 
 ```tsx
 // Before
-import { Card } from "@/components/card"
+import { Card } from "@/components/card";
 
 // After
-import { Card } from "@/components/tambo/card"
+import { Card } from "@/components/tambo/card";
 ```
 
 ## Testing
@@ -215,30 +217,38 @@ import { Card } from "@/components/tambo/card"
 ```tsx
 // Complete converted component structure
 
-import { z } from "zod"
+import { z } from "zod";
 
 // Schema
 export const myComponentSchema = z.object({
   title: z.string().describe("Main title"),
   items: z.array(z.string()).describe("List items"),
   showBorder: z.boolean().default(true).describe("Show border"),
-})
+});
 
 // Type
-type MyComponentProps = z.infer<typeof myComponentSchema>
+type MyComponentProps = z.infer<typeof myComponentSchema>;
 
 // Component
-export function MyComponent({ title, items, showBorder = true }: MyComponentProps) {
+export function MyComponent({
+  title,
+  items,
+  showBorder = true,
+}: MyComponentProps) {
   return (
     <div className={`max-w-md p-4 rounded-lg ${showBorder ? "border" : ""}`}>
       <h3>{title ?? "Loading..."}</h3>
       {items?.length > 0 ? (
-        <ul>{items.map((item, i) => <li key={i}>{item}</li>)}</ul>
+        <ul>
+          {items.map((item, i) => (
+            <li key={i}>{item}</li>
+          ))}
+        </ul>
       ) : (
         <p className="text-muted-foreground">No items</p>
       )}
     </div>
-  )
+  );
 }
 
 // Skeleton
@@ -251,6 +261,6 @@ export function MyComponentSkeleton() {
         <div className="h-4 w-3/4 bg-muted rounded" />
       </div>
     </div>
-  )
+  );
 }
 ```

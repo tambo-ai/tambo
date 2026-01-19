@@ -160,7 +160,7 @@ export function summary(opts: {
 
   console.log(`  ${chalk.bold("Operation:")} ${opts.operation}`);
   console.log(
-    `  ${chalk.bold("Status:")} ${opts.success ? chalk.green("SUCCESS") : chalk.red("FAILED")}`
+    `  ${chalk.bold("Status:")} ${opts.success ? chalk.green("SUCCESS") : chalk.red("FAILED")}`,
   );
 
   console.log();
@@ -188,12 +188,16 @@ export function fileChanges(changes: {
 
   if (changes.created.length > 0) {
     console.log(chalk.green("  Created:"));
-    changes.created.forEach((file) => console.log(chalk.green(`    + ${file}`)));
+    changes.created.forEach((file) =>
+      console.log(chalk.green(`    + ${file}`)),
+    );
   }
 
   if (changes.modified.length > 0) {
     console.log(chalk.yellow("  Modified:"));
-    changes.modified.forEach((file) => console.log(chalk.yellow(`    ~ ${file}`)));
+    changes.modified.forEach((file) =>
+      console.log(chalk.yellow(`    ~ ${file}`)),
+    );
   }
 
   if (changes.deleted.length > 0) {
@@ -201,7 +205,11 @@ export function fileChanges(changes: {
     changes.deleted.forEach((file) => console.log(chalk.red(`    - ${file}`)));
   }
 
-  if (changes.created.length === 0 && changes.modified.length === 0 && changes.deleted.length === 0) {
+  if (
+    changes.created.length === 0 &&
+    changes.modified.length === 0 &&
+    changes.deleted.length === 0
+  ) {
     console.log(chalk.dim("  No file changes"));
   }
 

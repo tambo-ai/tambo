@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: string) => boolean>();
 const mockReadFileSync = jest.fn<(p: unknown) => string>();
@@ -16,9 +23,9 @@ const mockOra = jest.fn(() => ({
   fail: mockOraFail,
 }));
 
-const mockUpdateImportPaths = jest.fn<(content: string, subdir: string) => string>(
-  (content) => content,
-);
+const mockUpdateImportPaths = jest.fn<
+  (content: string, subdir: string) => string
+>((content) => content);
 
 jest.unstable_mockModule("fs", () => ({
   default: {
@@ -94,7 +101,9 @@ describe("upgrade/utils", () => {
 
     it('returns "analytics" when README contains Analytics Template', async () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue("# My App\n\nBased on Analytics Template");
+      mockReadFileSync.mockReturnValue(
+        "# My App\n\nBased on Analytics Template",
+      );
 
       const result = await detectTemplate();
 
@@ -162,7 +171,9 @@ describe("upgrade/utils", () => {
     it("uses global fetch when available", async () => {
       const mockResponse = { ok: true, json: async () => ({}) };
       const originalFetch = globalThis.fetch;
-      globalThis.fetch = jest.fn<typeof fetch>().mockResolvedValue(mockResponse as Response);
+      globalThis.fetch = jest
+        .fn<typeof fetch>()
+        .mockResolvedValue(mockResponse as Response);
 
       const result = await safeFetch("https://example.com");
 

@@ -105,7 +105,9 @@ export const install = defineCommand({
     };
 
     if (!args.json) {
-      out.header(args["dry-run"] ? "INSTALL COMPONENTS (DRY RUN)" : "INSTALL COMPONENTS");
+      out.header(
+        args["dry-run"] ? "INSTALL COMPONENTS (DRY RUN)" : "INSTALL COMPONENTS",
+      );
       out.keyValue("Requested components", componentNames.join(", "));
       if (args["dry-run"]) {
         out.info("Dry run mode - no changes will be made");
@@ -121,7 +123,9 @@ export const install = defineCommand({
     // Validate component names
     const availableComponents = getComponentList();
     const availableNames = new Set(availableComponents.map((c) => c.name));
-    const invalidComponents = componentNames.filter((c) => !availableNames.has(c));
+    const invalidComponents = componentNames.filter(
+      (c) => !availableNames.has(c),
+    );
 
     if (invalidComponents.length > 0) {
       if (!args.json) {
@@ -147,8 +151,15 @@ export const install = defineCommand({
 
     // Check for legacy components
     if (!isExplicitPrefix) {
-      const legacyPath = getLegacyComponentDirectoryPath(projectRoot, installPath);
-      const newPath = getComponentDirectoryPath(projectRoot, installPath, false);
+      const legacyPath = getLegacyComponentDirectoryPath(
+        projectRoot,
+        installPath,
+      );
+      const newPath = getComponentDirectoryPath(
+        projectRoot,
+        installPath,
+        false,
+      );
       const knownTamboComponents = getKnownComponentNames();
 
       const hasTamboComponentsInLegacy =
@@ -165,7 +176,7 @@ export const install = defineCommand({
 
       if (hasTamboComponentsInLegacy && !hasNewComponents) {
         out.warning(
-          `Found existing components in ${LEGACY_COMPONENT_SUBDIR}/. Using same location for compatibility.`
+          `Found existing components in ${LEGACY_COMPONENT_SUBDIR}/. Using same location for compatibility.`,
         );
         out.explanation([
           `Components will be installed to ${LEGACY_COMPONENT_SUBDIR}/ to match existing setup.`,
@@ -176,7 +187,7 @@ export const install = defineCommand({
         isExplicitPrefix = true;
       } else if (hasTamboComponentsInLegacy && hasNewComponents) {
         out.warning(
-          `Found components in both ${LEGACY_COMPONENT_SUBDIR}/ and ${COMPONENT_SUBDIR}/ locations.`
+          `Found components in both ${LEGACY_COMPONENT_SUBDIR}/ and ${COMPONENT_SUBDIR}/ locations.`,
         );
         out.explanation([
           "This can cause import path issues between components.",
@@ -185,7 +196,11 @@ export const install = defineCommand({
       }
     }
 
-    const finalPath = getComponentDirectoryPath(projectRoot, installPath, isExplicitPrefix);
+    const finalPath = getComponentDirectoryPath(
+      projectRoot,
+      installPath,
+      isExplicitPrefix,
+    );
     if (!args.json) {
       out.keyValue("Installation directory", finalPath);
     }
@@ -204,7 +219,9 @@ export const install = defineCommand({
       } catch (error) {
         const safeMessage = getSafeErrorMessage(error);
         if (!args.json) {
-          out.error(`Failed to resolve dependencies for ${componentName}: ${safeMessage}`);
+          out.error(
+            `Failed to resolve dependencies for ${componentName}: ${safeMessage}`,
+          );
         }
         result.errors.push(`Dependency resolution failed: ${safeMessage}`);
         // Abort early - can't continue install with incomplete dependencies
@@ -219,11 +236,13 @@ export const install = defineCommand({
     result.dependenciesResolved = components;
 
     if (!args.json) {
-      out.success(`Resolved ${components.length} component(s) including dependencies`);
+      out.success(
+        `Resolved ${components.length} component(s) including dependencies`,
+      );
       components.forEach((comp) => {
         const isRequested = componentNames.includes(comp);
         console.log(
-          `  ${isRequested ? chalk.green("•") : chalk.dim("•")} ${comp}${isRequested ? "" : chalk.dim(" (dependency)")}`
+          `  ${isRequested ? chalk.green("•") : chalk.dim("•")} ${comp}${isRequested ? "" : chalk.dim(" (dependency)")}`,
         );
       });
     }
@@ -237,7 +256,7 @@ export const install = defineCommand({
         projectRoot,
         installPath,
         comp,
-        isExplicitPrefix
+        isExplicitPrefix,
       );
 
       if (fs.existsSync(newPath) || (legacyPath && fs.existsSync(legacyPath))) {
@@ -290,11 +309,15 @@ export const install = defineCommand({
 
     if (!args.json) {
       out.info(`Components to install: ${newComponents.length}`);
-      newComponents.forEach((comp) => console.log(`  ${chalk.green("+")} ${comp}`));
+      newComponents.forEach((comp) =>
+        console.log(`  ${chalk.green("+")} ${comp}`),
+      );
 
       if (existingComponents.length > 0) {
         out.info(`Already installed: ${existingComponents.length}`);
-        existingComponents.forEach((comp) => console.log(`  ${chalk.dim("✓")} ${comp}`));
+        existingComponents.forEach((comp) =>
+          console.log(`  ${chalk.dim("✓")} ${comp}`),
+        );
       }
     }
 
@@ -446,12 +469,16 @@ function printAvailableComponents(): void {
   const components = getComponentList();
   components.sort((a, b) => a.name.localeCompare(b.name));
 
-  console.log(chalk.dim("  These components can be installed with: tambov1 install <name>"));
+  console.log(
+    chalk.dim(
+      "  These components can be installed with: tambov1 install <name>",
+    ),
+  );
   console.log();
 
   components.forEach((component) => {
     console.log(
-      `  ${chalk.bold.cyan(component.name.padEnd(30))} ${chalk.dim(component.description)}`
+      `  ${chalk.bold.cyan(component.name.padEnd(30))} ${chalk.dim(component.description)}`,
     );
   });
 

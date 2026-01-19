@@ -156,14 +156,23 @@ export function getGlobalsCssLocations(): CssLocation {
     case "next":
       return {
         searchPaths: hasSrcDir
-          ? ["src/app/globals.css", "src/styles/globals.css", "app/globals.css", "styles/globals.css"]
+          ? [
+              "src/app/globals.css",
+              "src/styles/globals.css",
+              "app/globals.css",
+              "styles/globals.css",
+            ]
           : ["app/globals.css", "styles/globals.css"],
         defaultPath: hasSrcDir ? "src/app/globals.css" : "app/globals.css",
       };
 
     case "remix":
       return {
-        searchPaths: ["app/tailwind.css", "app/styles/tailwind.css", "app/root.css"],
+        searchPaths: [
+          "app/tailwind.css",
+          "app/styles/tailwind.css",
+          "app/root.css",
+        ],
         defaultPath: "app/tailwind.css",
       };
 
@@ -175,14 +184,23 @@ export function getGlobalsCssLocations(): CssLocation {
 
     case "astro":
       return {
-        searchPaths: ["src/styles/global.css", "src/styles/globals.css", "src/global.css"],
+        searchPaths: [
+          "src/styles/global.css",
+          "src/styles/globals.css",
+          "src/global.css",
+        ],
         defaultPath: "src/styles/global.css",
       };
 
     case "vite":
       return {
         searchPaths: hasSrcDir
-          ? ["src/index.css", "src/App.css", "src/styles/globals.css", "index.css"]
+          ? [
+              "src/index.css",
+              "src/App.css",
+              "src/styles/globals.css",
+              "index.css",
+            ]
           : ["index.css", "src/index.css"],
         defaultPath: hasSrcDir ? "src/index.css" : "index.css",
       };
@@ -197,7 +215,12 @@ export function getGlobalsCssLocations(): CssLocation {
       // Generic fallback
       return {
         searchPaths: hasSrcDir
-          ? ["src/index.css", "src/globals.css", "src/styles/globals.css", "index.css"]
+          ? [
+              "src/index.css",
+              "src/globals.css",
+              "src/styles/globals.css",
+              "index.css",
+            ]
           : ["index.css", "styles/globals.css"],
         defaultPath: hasSrcDir ? "src/index.css" : "index.css",
       };

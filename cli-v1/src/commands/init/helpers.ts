@@ -13,17 +13,27 @@ import { DeviceAuthError, runDeviceAuthFlow } from "../../lib/device-auth.js";
 import { findTamboApiKey } from "../../utils/dotenv-utils.js";
 import { writeApiKeyToEnv } from "../../utils/env-helpers.js";
 import { getSafeErrorMessage } from "../../utils/error-helpers.js";
-import { handlePromptError, NonInteractiveError } from "../../utils/interactive.js";
+import {
+  handlePromptError,
+  NonInteractiveError,
+} from "../../utils/interactive.js";
 import { out } from "../../utils/output.js";
 import { getLibDirectory } from "../../utils/path-utils.js";
-import { detectPackageManager, getInstallCommand } from "../../utils/package-manager.js";
+import {
+  detectPackageManager,
+  getInstallCommand,
+} from "../../utils/package-manager.js";
 import { detectProjectStatus } from "../../utils/project-detection.js";
 import { isTTY } from "../../utils/tty.js";
 import { tamboTsTemplate } from "../../templates/tambo-ts.js";
 import { installSkill } from "../shared/skill-install.js";
 import type { InitResult } from "./types.js";
 
-export function checkApiKey(jsonMode: boolean): { found: boolean; file?: string; keyName?: string } {
+export function checkApiKey(jsonMode: boolean): {
+  found: boolean;
+  file?: string;
+  keyName?: string;
+} {
   const envFiles = [".env.local", ".env"];
 
   for (const file of envFiles) {
@@ -115,14 +125,19 @@ export async function createProjectAndApiKey(
   }
 
   if (dryRun) {
-    result.warnings.push("Dry run: skipped project creation and API key generation");
+    result.warnings.push(
+      "Dry run: skipped project creation and API key generation",
+    );
     return;
   }
 
-  const createSpinner = jsonMode || !isTTY() ? null : ora("Creating project...").start();
+  const createSpinner =
+    jsonMode || !isTTY() ? null : ora("Creating project...").start();
 
   try {
-    const project = await api.project.createProject2.mutate({ name: projectName });
+    const project = await api.project.createProject2.mutate({
+      name: projectName,
+    });
     createSpinner?.succeed(`Created project: ${project.name}`);
     result.projectName = project.name;
     result.projectCreated = true;
@@ -138,9 +153,8 @@ export async function createProjectAndApiKey(
       minute: "2-digit",
     });
 
-    const keySpinner = jsonMode || !isTTY()
-      ? null
-      : ora("Generating API key...").start();
+    const keySpinner =
+      jsonMode || !isTTY() ? null : ora("Generating API key...").start();
     const keyResult = await api.project.generateApiKey.mutate({
       projectId: project.id,
       name: `CLI Key (${timestamp})`,
@@ -221,9 +235,10 @@ export async function installTamboReact(
     return;
   }
 
-  const spinner = jsonMode || !isInteractive
-    ? null
-    : ora("Installing @tambo-ai/react...").start();
+  const spinner =
+    jsonMode || !isInteractive
+      ? null
+      : ora("Installing @tambo-ai/react...").start();
 
   try {
     const installArgs = getInstallArgs();
@@ -267,7 +282,7 @@ export async function promptForProjectName(
 
   if (!isInteractive) {
     throw new NonInteractiveError(
-      "Project name required. Use --project-name <name> to specify."
+      "Project name required. Use --project-name <name> to specify.",
     );
   }
 
@@ -325,7 +340,9 @@ export function createTamboConfigFile(
       out.success(`Created tambo.ts at ${tamboTsPath}`);
     }
   } catch (error) {
-    result.errors.push(`Failed to create tambo.ts: ${getSafeErrorMessage(error)}`);
+    result.errors.push(
+      `Failed to create tambo.ts: ${getSafeErrorMessage(error)}`,
+    );
   }
 }
 
@@ -352,7 +369,9 @@ export async function createAgentDocs(
       out.success("Tambo skill installed");
     }
   } catch (error) {
-    result.warnings.push(`Skill installation failed: ${getSafeErrorMessage(error)}`);
+    result.warnings.push(
+      `Skill installation failed: ${getSafeErrorMessage(error)}`,
+    );
   }
 }
 
@@ -391,7 +410,8 @@ export function outputInitResults(result: InitResult, jsonMode: boolean): void {
       envFile: result.envFile,
       tamboTsCreated: result.tamboTsCreated,
       skillInstalled: result.skillInstalled,
-      warnings: result.warnings.length > 0 ? result.warnings.join("; ") : "none",
+      warnings:
+        result.warnings.length > 0 ? result.warnings.join("; ") : "none",
     },
     nextCommands: result.suggestedCommands,
   });
@@ -413,7 +433,7 @@ export async function getInstallationPath(yes = false): Promise<string> {
   // In non-interactive mode without --yes, fail fast with guidance
   if (!isTTY()) {
     throw new NonInteractiveError(
-      "Component path required. Use --prefix <path> or --yes to use defaults."
+      "Component path required. Use --prefix <path> or --yes to use defaults.",
     );
   }
 

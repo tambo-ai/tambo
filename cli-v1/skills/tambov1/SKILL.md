@@ -53,6 +53,7 @@ npm run tambo <command> --json  # Machine-readable output
 ## Tool Safety Rules
 
 **Additive operations (proceed without prompting):**
+
 - `npm run tambo install <component>`
 - `npm run tambo status`
 - `npm run tambo components available`
@@ -63,6 +64,7 @@ npm run tambo <command> --json  # Machine-readable output
 - Adding code to existing files
 
 **Destructive operations (ALWAYS ask user first):**
+
 - Deleting files
 - Removing code from files
 - `npm run tambo update --force` (overwrites local changes)
@@ -82,6 +84,7 @@ npm run tambo status --json
 ```
 
 **If not set up**, guide through:
+
 1. Missing auth → `npm run tambo auth login`
 2. Missing project → `npm run tambo project create --name "{infer from package.json}"`
 3. Missing config → `npm run tambo init config`
@@ -97,10 +100,12 @@ Only proceed after prerequisites are met.
 Tambo components use **Tailwind CSS by default** (recommended). Detect styling system by reading files:
 
 **Check for Tailwind:**
+
 - Read `package.json` → look for `tailwindcss` in dependencies/devDependencies
 - Glob for `tailwind.config.*` in project root
 
 **Check for other systems:**
+
 - Read `package.json` → look for `styled-components`, `@emotion/styled`, `sass`
 - Glob for `*.module.css` files → CSS Modules
 - Glob for `*.scss` or `*.sass` files → Sass
@@ -124,6 +129,7 @@ Tambo components use **Tailwind CSS by default** (recommended). Detect styling s
 Initialize generative UI in a new or existing React/Next.js project.
 
 ### Triggers
+
 - "add AI assistant", "add copilot", "add chat to my app"
 - "set up generative UI", "initialize tambo"
 - "AI-powered UI", "assistant interface"
@@ -135,6 +141,7 @@ npm run tambo status --json
 ```
 
 Returns:
+
 ```json
 {
   "authenticated": true,
@@ -156,33 +163,37 @@ npm run dev
 ### Existing Project
 
 **Step 1: Authenticate**
+
 ```bash
 npm run tambo auth login
 ```
 
 **Step 2: Create or select project**
+
 ```bash
 npm run tambo project list --json
 npm run tambo project create --name "my-app" --json
 ```
 
 **Step 3: Initialize**
+
 ```bash
 npm run tambo init --yes
 ```
 
 **Step 4: Install components**
+
 ```bash
 npm run tambo install message-thread message-input control-bar
 ```
 
 ### Files Created
 
-| File | Purpose |
-|------|---------|
-| `src/components/lib/tambo.ts` | Component and tool registry |
-| `.env.local` | API key (`TAMBO_API_KEY=...`) |
-| `src/components/tambo/` | Installed UI components |
+| File                          | Purpose                       |
+| ----------------------------- | ----------------------------- |
+| `src/components/lib/tambo.ts` | Component and tool registry   |
+| `.env.local`                  | API key (`TAMBO_API_KEY=...`) |
+| `src/components/tambo/`       | Installed UI components       |
 
 ---
 
@@ -191,6 +202,7 @@ npm run tambo install message-thread message-input control-bar
 Create a new generative UI component from scratch.
 
 ### Triggers
+
 - "create a component the AI can render"
 - "make a generative UI component"
 - "build a component for the assistant"
@@ -204,15 +216,15 @@ See `commands/create-agent-component.md` for the full workflow.
 **Step 1: Create component file** at `src/components/tambo/<name>.tsx`:
 
 ```tsx
-import { z } from "zod"
+import { z } from "zod";
 
 export const dataCardSchema = z.object({
   title: z.string().describe("Card title"),
   value: z.number().describe("Primary metric value"),
   trend: z.enum(["up", "down", "flat"]).describe("Direction of change"),
-})
+});
 
-type DataCardProps = z.infer<typeof dataCardSchema>
+type DataCardProps = z.infer<typeof dataCardSchema>;
 
 export function DataCard({ title, value, trend }: DataCardProps) {
   return (
@@ -220,7 +232,7 @@ export function DataCard({ title, value, trend }: DataCardProps) {
       <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
       <div className="mt-1 text-2xl font-semibold">{value}</div>
     </div>
-  )
+  );
 }
 ```
 
@@ -242,6 +254,7 @@ export function DataCard({ title, value, trend }: DataCardProps) {
 Add an existing component from the registry.
 
 ### Triggers
+
 - "add message thread", "install the chat component"
 - "add a component to my assistant"
 
@@ -269,6 +282,7 @@ npm run tambo components installed --json
 Convert an existing React component to be AI-renderable.
 
 ### Triggers
+
 - "make this component work with the AI"
 - "convert this to generative UI"
 - "AI should be able to render this"
@@ -293,6 +307,7 @@ See `commands/convert-agent-component.md` and `references/CONVERSION-CHECKLIST.m
 Sync with registry updates or modify based on feedback.
 
 ### Triggers
+
 - "update the chat component"
 - "make it more rounded", "add timestamps"
 - "sync with latest"
@@ -318,6 +333,7 @@ npm run tambo update message-thread
 Validate a component follows generative UI best practices.
 
 ### Triggers
+
 - "review this component for the AI"
 - "check if this works with streaming"
 - "validate the schema"
@@ -328,14 +344,14 @@ See `commands/review-agent-component.md`.
 
 ### Review Checklist
 
-| Check | What to Validate |
-|-------|------------------|
-| **Scaling** | Fits in chat bubble, responsive, max-width constraints |
-| **Schema** | Zod with `.describe()`, proper defaults, optional handling |
-| **Streaming** | Handles partial props, loading states, `useTamboComponentState` |
-| **Accessibility** | ARIA labels, keyboard nav, semantic HTML |
-| **Errors** | Graceful fallbacks for missing/invalid props |
-| **Description** | Clear trigger words in registration |
+| Check             | What to Validate                                                |
+| ----------------- | --------------------------------------------------------------- |
+| **Scaling**       | Fits in chat bubble, responsive, max-width constraints          |
+| **Schema**        | Zod with `.describe()`, proper defaults, optional handling      |
+| **Streaming**     | Handles partial props, loading states, `useTamboComponentState` |
+| **Accessibility** | ARIA labels, keyboard nav, semantic HTML                        |
+| **Errors**        | Graceful fallbacks for missing/invalid props                    |
+| **Description**   | Clear trigger words in registration                             |
 
 ---
 
@@ -344,6 +360,7 @@ See `commands/review-agent-component.md`.
 Handle API keys, project settings, and authentication.
 
 ### Triggers
+
 - "API key", "project settings", "auth issues"
 
 ### Commands
@@ -363,6 +380,7 @@ npm run tambo project api-key --json
 ### API Key
 
 Goes in `.env.local`:
+
 ```
 TAMBO_API_KEY=tb_xxxxxxxxxxxx
 ```
@@ -374,6 +392,7 @@ TAMBO_API_KEY=tb_xxxxxxxxxxxx
 Extend AI capabilities with local tools and MCP servers.
 
 ### Triggers
+
 - "add a tool the AI can call"
 - "connect MCP server", "model context protocol"
 - "give AI access to APIs", "tool calling"
@@ -383,7 +402,7 @@ Extend AI capabilities with local tools and MCP servers.
 Add tools AI can call in `src/components/lib/tambo.ts`:
 
 ```tsx
-import { z } from "zod"
+import { z } from "zod";
 
 const searchTool = {
   name: "search",
@@ -392,21 +411,22 @@ const searchTool = {
     query: z.string().describe("Search query"),
   }),
   handler: async ({ query }) => {
-    const results = await searchKnowledgeBase(query)
-    return { results }
+    const results = await searchKnowledgeBase(query);
+    return { results };
   },
-}
+};
 
 // Add to config
 export const tamboConfig = {
   // ... component registry
   tools: [searchTool],
-}
+};
 ```
 
 ### MCP Integration
 
 See `references/TOOLS-MCP-GUIDE.md` for:
+
 - Creating local tools
 - Connecting MCP servers
 - Handling elicitations
@@ -419,33 +439,37 @@ See `references/TOOLS-MCP-GUIDE.md` for:
 Build components that AI can update after initial render.
 
 ### Triggers
+
 - "component AI can update", "AI-editable component"
 - "live updates from AI", "interactable UI"
 
 ### Quick Pattern
 
 ```tsx
-import { useTamboComponentState } from "@tambo-ai/react"
+import { useTamboComponentState } from "@tambo-ai/react";
 
 export function LiveList({ title, initialItems }: Props) {
   const [items, setItems, { isPending }] = useTamboComponentState(
-    "live-list-items",  // Unique key - REQUIRED
-    initialItems
-  )
+    "live-list-items", // Unique key - REQUIRED
+    initialItems,
+  );
 
   return (
     <div className="max-w-md p-4 rounded-lg border">
       <h3>{title}</h3>
       {isPending && <span className="animate-pulse">Updating...</span>}
       <ul>
-        {items.map((item, i) => <li key={i}>{item}</li>)}
+        {items.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
       </ul>
     </div>
-  )
+  );
 }
 ```
 
 See `references/INTERACTABLE-GUIDE.md` for:
+
 - Key uniqueness requirements
 - Pending state handling
 - User + AI collaborative editing
@@ -454,32 +478,36 @@ See `references/INTERACTABLE-GUIDE.md` for:
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| Check status | `npm run tambo status --json` |
-| Initialize | `npm run tambo init --yes` |
-| Install component | `npm run tambo install <name>` |
-| List installed | `npm run tambo components installed --json` |
-| List available | `npm run tambo components available --json` |
-| Update component | `npm run tambo update <name>` |
-| Login | `npm run tambo auth login` |
+| Task              | Command                                     |
+| ----------------- | ------------------------------------------- |
+| Check status      | `npm run tambo status --json`               |
+| Initialize        | `npm run tambo init --yes`                  |
+| Install component | `npm run tambo install <name>`              |
+| List installed    | `npm run tambo components installed --json` |
+| List available    | `npm run tambo components available --json` |
+| Update component  | `npm run tambo update <name>`               |
+| Login             | `npm run tambo auth login`                  |
 
 ## Troubleshooting
 
 ### "Not authenticated"
+
 ```bash
 npm run tambo auth login
 ```
 
 ### "No project selected"
+
 ```bash
 npm run tambo project create --name "my-app"
 ```
 
 ### "Component not found"
+
 ```bash
 npm run tambo components available --json
 ```
 
 ### Need more help
+
 Fetch: https://docs.tambo.co/llms.txt

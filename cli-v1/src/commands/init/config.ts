@@ -78,7 +78,11 @@ export const configCommand = defineCommand({
     const isExplicitPrefix = args.prefix !== "src/components";
 
     try {
-      const libDir = getLibDirectory(projectRoot, args.prefix, isExplicitPrefix);
+      const libDir = getLibDirectory(
+        projectRoot,
+        args.prefix,
+        isExplicitPrefix,
+      );
       fs.mkdirSync(libDir, { recursive: true });
       const tamboTsPath = path.join(libDir, "tambo.ts");
       result.tamboTsPath = tamboTsPath;
@@ -125,11 +129,15 @@ export const configCommand = defineCommand({
         details: {
           "API key found": result.apiKeyFound,
           "tambo.ts created": result.tamboTsCreated,
-          warnings: result.warnings.length > 0 ? result.warnings.join("; ") : "none",
+          warnings:
+            result.warnings.length > 0 ? result.warnings.join("; ") : "none",
         },
         nextCommands: [
           { command: "tambov1 init skill", description: "Install tambo skill" },
-          { command: "tambov1 install message-thread-full", description: "Install a UI component" },
+          {
+            command: "tambov1 install message-thread-full",
+            description: "Install a UI component",
+          },
         ],
       });
     }

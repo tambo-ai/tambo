@@ -2,7 +2,14 @@
  * Tests for full-send alias command (DEPRECATED).
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import { captureStdout, withArgs } from "../__fixtures__/test-utils.js";
 

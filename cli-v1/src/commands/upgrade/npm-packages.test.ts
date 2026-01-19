@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 const mockReadFileSync = jest.fn<(p: unknown) => string>();
@@ -17,10 +24,10 @@ const mockOra = jest.fn(() => ({
   text: "",
 }));
 
-const mockExecFileSync = jest.fn<
-  (cmd: string, args?: string[], opts?: unknown) => Buffer | string
->();
-const mockDetectPackageManager = jest.fn<() => "npm" | "pnpm" | "yarn" | "bun">();
+const mockExecFileSync =
+  jest.fn<(cmd: string, args?: string[], opts?: unknown) => Buffer | string>();
+const mockDetectPackageManager =
+  jest.fn<() => "npm" | "pnpm" | "yarn" | "bun">();
 const mockGetInstallCommand = jest.fn<() => string>();
 const mockGetPackageRunnerArgs = jest.fn<() => [string, string[]]>();
 

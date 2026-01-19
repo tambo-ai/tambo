@@ -2,7 +2,14 @@
  * Tests for project command behavior and JSON output.
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -13,17 +20,25 @@ import {
   withArgs,
 } from "../__fixtures__/test-utils.js";
 
-const mockRequireAuthentication = jest.fn<
-  (args: { json: boolean }, result: { errors: string[]; authenticated?: boolean }) => Promise<boolean>
->();
-const mockWriteApiKeyToEnv = jest.fn<
-  (apiKey: string, options: { jsonMode: boolean }) => { envFile: string }
->();
+const mockRequireAuthentication =
+  jest.fn<
+    (
+      args: { json: boolean },
+      result: { errors: string[]; authenticated?: boolean },
+    ) => Promise<boolean>
+  >();
+const mockWriteApiKeyToEnv =
+  jest.fn<
+    (apiKey: string, options: { jsonMode: boolean }) => { envFile: string }
+  >();
 
 const mockApi = {
   project: {
     getUserProjects: {
-      query: jest.fn<() => Promise<Array<{ id: string; name: string; createdAt: Date }>>>(),
+      query:
+        jest.fn<
+          () => Promise<Array<{ id: string; name: string; createdAt: Date }>>
+        >(),
     },
     createProject2: {
       mutate: jest.fn<() => Promise<{ id: string; name: string }>>(),
@@ -48,7 +63,11 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
 
 jest.unstable_mockModule("ora", () => ({
   default: jest.fn(() => ({
-    start: jest.fn(() => ({ succeed: jest.fn(), fail: jest.fn(), stop: jest.fn() })),
+    start: jest.fn(() => ({
+      succeed: jest.fn(),
+      fail: jest.fn(),
+      stop: jest.fn(),
+    })),
   })),
 }));
 
@@ -75,8 +94,10 @@ describe("project command", () => {
 
     await expect(
       Promise.resolve(
-        getSubcommand(project, "list")?.run?.({ args: withArgs({ json: true }) })
-      )
+        getSubcommand(project, "list")?.run?.({
+          args: withArgs({ json: true }),
+        }),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -88,7 +109,9 @@ describe("project command", () => {
     ]);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(project, "list")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(project, "list")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -101,7 +124,9 @@ describe("project command", () => {
     mockApi.project.getUserProjects.query.mockResolvedValue([]);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(project, "list")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(project, "list")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -113,7 +138,9 @@ describe("project command", () => {
     mockApi.project.getUserProjects.query.mockResolvedValue([]);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(project, "list")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(project, "list")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -138,14 +165,18 @@ describe("project command", () => {
   });
 
   it("creates project with cwd name by default", async () => {
-    const cwdSpy = jest.spyOn(process, "cwd").mockReturnValue("/tmp/sample-project");
+    const cwdSpy = jest
+      .spyOn(process, "cwd")
+      .mockReturnValue("/tmp/sample-project");
     mockApi.project.createProject2.mutate.mockResolvedValue({
       id: "p2",
       name: "sample-project",
     });
 
     const output = await captureStdout(async () => {
-      await getSubcommand(project, "create")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(project, "create")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -154,7 +185,9 @@ describe("project command", () => {
   });
 
   it("generates API key and does not include key in json output", async () => {
-    mockApi.project.generateApiKey.mutate.mockResolvedValue({ apiKey: "secret" });
+    mockApi.project.generateApiKey.mutate.mockResolvedValue({
+      apiKey: "secret",
+    });
     mockWriteApiKeyToEnv.mockReturnValue({ envFile: ".env.local" });
 
     const output = await captureStdout(async () => {
@@ -170,7 +203,9 @@ describe("project command", () => {
   });
 
   it("respects --no-save for api-key generation", async () => {
-    mockApi.project.generateApiKey.mutate.mockResolvedValue({ apiKey: "secret" });
+    mockApi.project.generateApiKey.mutate.mockResolvedValue({
+      apiKey: "secret",
+    });
 
     const output = await captureStdout(async () => {
       await getSubcommand(project, "api-key")?.run?.({
@@ -190,7 +225,9 @@ describe("project command", () => {
       mockApi.project.getUserProjects.query.mockResolvedValue([]);
 
       await captureStdout(async () => {
-        await getSubcommand(project, "list")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(project, "list")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -201,17 +238,23 @@ describe("project command", () => {
       ]);
 
       await captureStdout(async () => {
-        await getSubcommand(project, "list")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(project, "list")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
     it("handles list error in non-JSON mode", async () => {
-      mockApi.project.getUserProjects.query.mockRejectedValue(new Error("Network error"));
+      mockApi.project.getUserProjects.query.mockRejectedValue(
+        new Error("Network error"),
+      );
 
       await expect(
         Promise.resolve(
-          getSubcommand(project, "list")?.run?.({ args: withArgs({ json: false }) })
-        )
+          getSubcommand(project, "list")?.run?.({
+            args: withArgs({ json: false }),
+          }),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
 
@@ -229,19 +272,23 @@ describe("project command", () => {
     });
 
     it("handles create error in non-JSON mode", async () => {
-      mockApi.project.createProject2.mutate.mockRejectedValue(new Error("Create failed"));
+      mockApi.project.createProject2.mutate.mockRejectedValue(
+        new Error("Create failed"),
+      );
 
       await expect(
         Promise.resolve(
           getSubcommand(project, "create")?.run?.({
             args: withArgs({ json: false, name: "My Project" }),
-          })
-        )
+          }),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
 
     it("runs api-key with save in non-JSON mode", async () => {
-      mockApi.project.generateApiKey.mutate.mockResolvedValue({ apiKey: "secret123" });
+      mockApi.project.generateApiKey.mutate.mockResolvedValue({
+        apiKey: "secret123",
+      });
       mockWriteApiKeyToEnv.mockReturnValue({ envFile: ".env.local" });
 
       await captureStdout(async () => {
@@ -252,7 +299,9 @@ describe("project command", () => {
     });
 
     it("runs api-key with --no-save in non-JSON mode", async () => {
-      mockApi.project.generateApiKey.mutate.mockResolvedValue({ apiKey: "secret123" });
+      mockApi.project.generateApiKey.mutate.mockResolvedValue({
+        apiKey: "secret123",
+      });
 
       await captureStdout(async () => {
         await getSubcommand(project, "api-key")?.run?.({
@@ -262,14 +311,16 @@ describe("project command", () => {
     });
 
     it("handles api-key error in non-JSON mode", async () => {
-      mockApi.project.generateApiKey.mutate.mockRejectedValue(new Error("Key gen failed"));
+      mockApi.project.generateApiKey.mutate.mockRejectedValue(
+        new Error("Key gen failed"),
+      );
 
       await expect(
         Promise.resolve(
           getSubcommand(project, "api-key")?.run?.({
             args: withArgs({ json: false, projectId: "p1", "no-save": false }),
-          })
-        )
+          }),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
   });

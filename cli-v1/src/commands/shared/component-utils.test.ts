@@ -1,11 +1,19 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 const mockReadFileSync = jest.fn<(p: unknown, encoding?: unknown) => string>();
 
 const mockGetConfigPath = jest.fn<(name: string) => string>();
 const mockConfirmAction = jest.fn<() => Promise<boolean>>();
-const mockMigrateComponentsDuringUpgrade = jest.fn<(components: string[], installPath: string) => Promise<void>>();
+const mockMigrateComponentsDuringUpgrade =
+  jest.fn<(components: string[], installPath: string) => Promise<void>>();
 
 jest.unstable_mockModule("fs", () => ({
   default: {
@@ -51,7 +59,12 @@ describe("component-utils", () => {
     it("returns null when component not found with explicit prefix", () => {
       mockExistsSync.mockReturnValue(false);
 
-      const result = findComponentLocation("button", projectRoot, "src/custom", true);
+      const result = findComponentLocation(
+        "button",
+        projectRoot,
+        "src/custom",
+        true,
+      );
 
       expect(result).toBeNull();
     });
@@ -59,7 +72,12 @@ describe("component-utils", () => {
     it("returns location when component found with explicit prefix", () => {
       mockExistsSync.mockReturnValue(true);
 
-      const result = findComponentLocation("button", projectRoot, "src/custom", true);
+      const result = findComponentLocation(
+        "button",
+        projectRoot,
+        "src/custom",
+        true,
+      );
 
       expect(result).not.toBeNull();
       expect(result?.componentPath).toContain("button.tsx");
@@ -95,7 +113,12 @@ describe("component-utils", () => {
     it("returns null when component not found in either location", () => {
       mockExistsSync.mockReturnValue(false);
 
-      const result = findComponentLocation("missing", projectRoot, "src", false);
+      const result = findComponentLocation(
+        "missing",
+        projectRoot,
+        "src",
+        false,
+      );
 
       expect(result).toBeNull();
     });
@@ -140,12 +163,11 @@ describe("component-utils", () => {
         // Button is in ui (legacy)
         if (pathStr.includes("button") && pathStr.includes("/ui/")) return true;
         // Input is in tambo (new)
-        if (pathStr.includes("input") && pathStr.includes("/tambo/")) return true;
+        if (pathStr.includes("input") && pathStr.includes("/tambo/"))
+          return true;
         return false;
       });
-      mockReadFileSync.mockReturnValue(
-        JSON.stringify({ requires: ["input"] }),
-      );
+      mockReadFileSync.mockReturnValue(JSON.stringify({ requires: ["input"] }));
 
       const result = await detectCrossLocationDependencies(
         [{ name: "button", installPath: "src" }],
@@ -168,7 +190,8 @@ describe("component-utils", () => {
         const pathStr = String(p);
         if (pathStr.includes("config.json")) return true;
         // Card is in tambo
-        if (pathStr.includes("card") && pathStr.includes("/tambo/")) return true;
+        if (pathStr.includes("card") && pathStr.includes("/tambo/"))
+          return true;
         // Helper is in ui (legacy)
         if (pathStr.includes("helper") && pathStr.includes("/ui/")) return true;
         return false;
@@ -217,7 +240,8 @@ describe("component-utils", () => {
 
       // Should be deduplicated
       expect(
-        result.filter((i) => i.main === "main" && i.dependency === "dep").length,
+        result.filter((i) => i.main === "main" && i.dependency === "dep")
+          .length,
       ).toBeLessThanOrEqual(1);
     });
 
@@ -286,7 +310,10 @@ describe("component-utils", () => {
       );
 
       expect(result).toBe(true);
-      expect(mockMigrateComponentsDuringUpgrade).toHaveBeenCalledWith(["card"], "src");
+      expect(mockMigrateComponentsDuringUpgrade).toHaveBeenCalledWith(
+        ["card"],
+        "src",
+      );
     });
 
     it("warns about mixed locations when user declines migration", async () => {

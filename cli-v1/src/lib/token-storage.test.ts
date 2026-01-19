@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 const mockMkdirSync = jest.fn();
@@ -161,7 +168,10 @@ describe("token-storage", () => {
     it("returns null and warns for missing sessionToken", () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
-        JSON.stringify({ expiresAt: validToken.expiresAt, user: validToken.user }),
+        JSON.stringify({
+          expiresAt: validToken.expiresAt,
+          user: validToken.user,
+        }),
       );
 
       const result = loadToken();
@@ -175,7 +185,10 @@ describe("token-storage", () => {
     it("returns null and warns for missing user", () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(
-        JSON.stringify({ sessionToken: "token", expiresAt: validToken.expiresAt }),
+        JSON.stringify({
+          sessionToken: "token",
+          expiresAt: validToken.expiresAt,
+        }),
       );
 
       const result = loadToken();
@@ -281,7 +294,9 @@ describe("token-storage", () => {
 
       clearToken();
 
-      expect(mockUnlinkSync).toHaveBeenCalledWith(expect.stringContaining("auth.json"));
+      expect(mockUnlinkSync).toHaveBeenCalledWith(
+        expect.stringContaining("auth.json"),
+      );
     });
 
     it("does nothing when token file does not exist", () => {

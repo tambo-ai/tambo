@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import postcss from "postcss";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();

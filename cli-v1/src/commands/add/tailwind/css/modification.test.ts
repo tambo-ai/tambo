@@ -190,7 +190,9 @@ describe("addCustomVariants", () => {
     const result = root.toString();
     expect(result).toContain("@custom-variant dark (&:is(.dark *))");
     // Should be at the beginning
-    expect(result.indexOf("@custom-variant")).toBeLessThan(result.indexOf(":root"));
+    expect(result.indexOf("@custom-variant")).toBeLessThan(
+      result.indexOf(":root"),
+    );
   });
 });
 

@@ -84,11 +84,19 @@ export const update = defineCommand({
           "  tambov1 update foo bar         Update specific components",
         ]);
         out.nextCommands([
-          { command: "tambov1 update --all", description: "Update all installed components" },
-          { command: "tambov1 components installed", description: "List installed components first" },
+          {
+            command: "tambov1 update --all",
+            description: "Update all installed components",
+          },
+          {
+            command: "tambov1 components installed",
+            description: "List installed components first",
+          },
         ]);
       } else {
-        result.errors.push("No components specified. Use --all or provide component names.");
+        result.errors.push(
+          "No components specified. Use --all or provide component names.",
+        );
         out.json(result);
       }
       process.exit(1);
@@ -113,10 +121,14 @@ export const update = defineCommand({
     if (args.all) {
       const installPath = args.prefix ?? "src/components";
       const isExplicitPrefix = !!args.prefix;
-      actualComponentNames = await getInstalledComponents(installPath, isExplicitPrefix);
+      actualComponentNames = await getInstalledComponents(
+        installPath,
+        isExplicitPrefix,
+      );
     }
 
-    const spinner = args.json || !isTTY() ? null : ora("Updating components...").start();
+    const spinner =
+      args.json || !isTTY() ? null : ora("Updating components...").start();
 
     try {
       await handleUpdateComponents(componentNames, {
@@ -138,10 +150,15 @@ export const update = defineCommand({
           success: true,
           details: {
             mode: args.all ? "all installed" : "specific",
-            components: args.all ? actualComponentNames.join(", ") : componentNames.join(", "),
+            components: args.all
+              ? actualComponentNames.join(", ")
+              : componentNames.join(", "),
           },
           nextCommands: [
-            { command: "tambov1 components installed", description: "View installed components" },
+            {
+              command: "tambov1 components installed",
+              description: "View installed components",
+            },
             { command: "npm run dev", description: "Test your app" },
             { command: "npm run build", description: "Verify build works" },
           ],
@@ -160,8 +177,14 @@ export const update = defineCommand({
       } else {
         out.error(`Update failed: ${error}`);
         out.nextCommands([
-          { command: "tambov1 update --all --legacy-peer-deps", description: "Retry with legacy peer deps" },
-          { command: "tambov1 components installed", description: "Check installed components" },
+          {
+            command: "tambov1 update --all --legacy-peer-deps",
+            description: "Retry with legacy peer deps",
+          },
+          {
+            command: "tambov1 components installed",
+            description: "Check installed components",
+          },
         ]);
       }
       process.exit(1);

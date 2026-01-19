@@ -34,7 +34,7 @@ export interface AuthenticatableResult {
  */
 export async function requireAuthentication(
   args: { json: boolean },
-  result: AuthenticatableResult
+  result: AuthenticatableResult,
 ): Promise<boolean> {
   if (!isTokenValid()) {
     result.errors.push("Not authenticated");
@@ -46,7 +46,8 @@ export async function requireAuthentication(
     return false;
   }
 
-  const spinner = args.json || !isTTY() ? null : ora("Verifying session...").start();
+  const spinner =
+    args.json || !isTTY() ? null : ora("Verifying session...").start();
   const isValid = await verifySession();
   spinner?.stop();
 
@@ -55,7 +56,9 @@ export async function requireAuthentication(
     if (args.json) {
       out.json(result);
     } else {
-      out.error("Session expired. Run 'tambov1 auth login' to re-authenticate.");
+      out.error(
+        "Session expired. Run 'tambov1 auth login' to re-authenticate.",
+      );
     }
     return false;
   }

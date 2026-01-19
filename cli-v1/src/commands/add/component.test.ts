@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 const mockReadFileSync = jest.fn<(p: unknown, encoding?: unknown) => string>();
@@ -27,7 +34,8 @@ jest.unstable_mockModule("../../utils/interactive.js", () => ({
   isInteractive: jest.fn(() => false),
 }));
 
-const mockDetectPackageManager = jest.fn<() => "npm" | "yarn" | "pnpm" | "bun">();
+const mockDetectPackageManager =
+  jest.fn<() => "npm" | "yarn" | "pnpm" | "bun">();
 const mockGetInstallCommand = jest.fn<() => string>();
 const mockGetDevFlag = jest.fn<() => string>();
 jest.unstable_mockModule("../../utils/package-manager.js", () => ({
@@ -36,14 +44,21 @@ jest.unstable_mockModule("../../utils/package-manager.js", () => ({
   getDevFlag: mockGetDevFlag,
 }));
 
-const mockGetComponentDirectoryPath = jest.fn<(projectRoot: string, installPath: string, isExplicit: boolean) => string>();
-const mockGetLibDirectory = jest.fn<(projectRoot: string, installPath: string, isExplicit: boolean) => string>();
+const mockGetComponentDirectoryPath =
+  jest.fn<
+    (projectRoot: string, installPath: string, isExplicit: boolean) => string
+  >();
+const mockGetLibDirectory =
+  jest.fn<
+    (projectRoot: string, installPath: string, isExplicit: boolean) => string
+  >();
 jest.unstable_mockModule("../../utils/path-utils.js", () => ({
   getComponentDirectoryPath: mockGetComponentDirectoryPath,
   getLibDirectory: mockGetLibDirectory,
 }));
 
-const mockUpdateImportPaths = jest.fn<(content: string, location: string) => string>();
+const mockUpdateImportPaths =
+  jest.fn<(content: string, location: string) => string>();
 jest.unstable_mockModule("../migrate-core.js", () => ({
   updateImportPaths: mockUpdateImportPaths,
 }));
@@ -100,7 +115,10 @@ describe("add/component", () => {
           dependencies: ["react"],
           devDependencies: [],
           files: [
-            { name: "button.tsx", content: "export const Button = () => null;" },
+            {
+              name: "button.tsx",
+              content: "export const Button = () => null;",
+            },
           ],
         });
       }
@@ -132,7 +150,10 @@ describe("add/component", () => {
         return true;
       });
 
-      await installComponents(["button"], { silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockMkdirSync).toHaveBeenCalledWith("/project/src/tambo", {
         recursive: true,
@@ -147,7 +168,10 @@ describe("add/component", () => {
         return true;
       });
 
-      await installComponents(["button"], { silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockMkdirSync).toHaveBeenCalledWith("/project/src/lib", {
         recursive: true,
@@ -162,7 +186,10 @@ describe("add/component", () => {
         return true;
       });
 
-      await installComponents(["button"], { silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         "/project/src/lib/utils.ts",
@@ -181,7 +208,12 @@ describe("add/component", () => {
             name: "button",
             dependencies: ["react", "framer-motion"],
             devDependencies: [],
-            files: [{ name: "button.tsx", content: "export const Button = () => null;" }],
+            files: [
+              {
+                name: "button.tsx",
+                content: "export const Button = () => null;",
+              },
+            ],
           });
         }
         return "";
@@ -192,7 +224,11 @@ describe("add/component", () => {
         return true;
       });
 
-      await installComponents(["button"], { yes: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        yes: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockExecFileSync).toHaveBeenCalledWith(
         "npm",
@@ -212,7 +248,12 @@ describe("add/component", () => {
             name: "button",
             dependencies: [],
             devDependencies: ["@types/react"],
-            files: [{ name: "button.tsx", content: "export const Button = () => null;" }],
+            files: [
+              {
+                name: "button.tsx",
+                content: "export const Button = () => null;",
+              },
+            ],
           });
         }
         return "";
@@ -223,7 +264,11 @@ describe("add/component", () => {
         return true;
       });
 
-      await installComponents(["button"], { yes: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        yes: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockExecFileSync).toHaveBeenCalledWith(
         "npm",
@@ -236,14 +281,22 @@ describe("add/component", () => {
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         if (path.includes("config.json")) {
           return JSON.stringify({
             name: "button",
             dependencies: ["react"],
             devDependencies: [],
-            files: [{ name: "button.tsx", content: "export const Button = () => null;" }],
+            files: [
+              {
+                name: "button.tsx",
+                content: "export const Button = () => null;",
+              },
+            ],
           });
         }
         return "";
@@ -254,7 +307,11 @@ describe("add/component", () => {
         return true;
       });
 
-      await installComponents(["button"], { yes: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        yes: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       // Should not install react since it's already installed
       const prodDepCalls = mockExecFileSync.mock.calls.filter(
@@ -266,26 +323,39 @@ describe("add/component", () => {
     it("copies component files", async () => {
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
-        if (path.includes("button.tsx") && path.includes("/project")) return false;
+        if (path.includes("button.tsx") && path.includes("/project"))
+          return false;
         return true;
       });
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         if (path.includes("config.json")) {
           return JSON.stringify({
             name: "button",
             dependencies: [],
             devDependencies: [],
-            files: [{ name: "button.tsx", content: "export const Button = () => null;" }],
+            files: [
+              {
+                name: "button.tsx",
+                content: "export const Button = () => null;",
+              },
+            ],
           });
         }
         return "export const Button = () => null;";
       });
 
-      await installComponents(["button"], { yes: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        yes: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         expect.stringContaining("button.tsx"),
@@ -297,11 +367,15 @@ describe("add/component", () => {
       // All files exist
       mockExistsSync.mockReturnValue(true);
 
-      await installComponents(["button"], { yes: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        yes: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       // Should not write component file since it exists
-      const componentWriteCalls = mockWriteFileSync.mock.calls.filter(
-        (call) => String(call[0]).includes("button.tsx"),
+      const componentWriteCalls = mockWriteFileSync.mock.calls.filter((call) =>
+        String(call[0]).includes("button.tsx"),
       );
       expect(componentWriteCalls.length).toBe(0);
     });
@@ -312,20 +386,32 @@ describe("add/component", () => {
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         if (path.includes("config.json")) {
           return JSON.stringify({
             name: "button",
             dependencies: [],
             devDependencies: [],
-            files: [{ name: "button.tsx", content: "export const Button = () => null;" }],
+            files: [
+              {
+                name: "button.tsx",
+                content: "export const Button = () => null;",
+              },
+            ],
           });
         }
         return "export const Button = () => null;";
       });
 
-      await installComponents(["button"], { forceUpdate: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        forceUpdate: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         expect.stringContaining("button.tsx"),
@@ -336,26 +422,39 @@ describe("add/component", () => {
     it("updates import paths for tsx files", async () => {
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
-        if (path.includes("button.tsx") && path.includes("/project")) return false;
+        if (path.includes("button.tsx") && path.includes("/project"))
+          return false;
         return true;
       });
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         if (path.includes("config.json")) {
           return JSON.stringify({
             name: "button",
             dependencies: [],
             devDependencies: [],
-            files: [{ name: "button.tsx", content: "export const Button = () => null;" }],
+            files: [
+              {
+                name: "button.tsx",
+                content: "export const Button = () => null;",
+              },
+            ],
           });
         }
         return "export const Button = () => null;";
       });
 
-      await installComponents(["button"], { yes: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        yes: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockUpdateImportPaths).toHaveBeenCalled();
     });
@@ -365,13 +464,21 @@ describe("add/component", () => {
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         return JSON.stringify({
           name: path.includes("card") ? "card" : "button",
           dependencies: [],
           devDependencies: [],
-          files: [{ name: path.includes("card") ? "card.tsx" : "button.tsx", content: "export default null;" }],
+          files: [
+            {
+              name: path.includes("card") ? "card.tsx" : "button.tsx",
+              content: "export default null;",
+            },
+          ],
         });
       });
       mockExistsSync.mockImplementation((p) => {
@@ -380,7 +487,11 @@ describe("add/component", () => {
         return true;
       });
 
-      await installComponents(["button", "card"], { yes: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button", "card"], {
+        yes: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       expect(mockWriteFileSync).toHaveBeenCalledWith(
         expect.stringContaining("button.tsx"),
@@ -391,20 +502,29 @@ describe("add/component", () => {
     it("logs installation message when not silent", async () => {
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
-        if (path.includes("button.tsx") && path.includes("/project")) return false;
+        if (path.includes("button.tsx") && path.includes("/project"))
+          return false;
         return true;
       });
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         if (path.includes("config.json")) {
           return JSON.stringify({
             name: "button",
             dependencies: [],
             devDependencies: [],
-            files: [{ name: "button.tsx", content: "export const Button = () => null;" }],
+            files: [
+              {
+                name: "button.tsx",
+                content: "export const Button = () => null;",
+              },
+            ],
           });
         }
         return "export const Button = () => null;";
@@ -443,7 +563,11 @@ describe("add/component", () => {
       });
 
       await expect(
-        installComponents(["button"], { yes: true, silent: true, skipAgentDocs: true }),
+        installComponents(["button"], {
+          yes: true,
+          silent: true,
+          skipAgentDocs: true,
+        }),
       ).rejects.toThrow(/Failed to install dependencies/);
     });
 
@@ -456,7 +580,10 @@ describe("add/component", () => {
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         if (path.includes("config.json")) {
           return JSON.stringify({
@@ -523,7 +650,10 @@ describe("add/component", () => {
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         if (path.includes("config.json")) {
           return JSON.stringify({
@@ -540,16 +670,22 @@ describe("add/component", () => {
       });
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
-        if (path.includes("button.tsx") && path.includes("/project")) return false;
-        if (path.includes("helper.ts") && path.includes("/project")) return false;
+        if (path.includes("button.tsx") && path.includes("/project"))
+          return false;
+        if (path.includes("helper.ts") && path.includes("/project"))
+          return false;
         return true;
       });
 
-      await installComponents(["button"], { yes: true, silent: true, skipAgentDocs: true });
+      await installComponents(["button"], {
+        yes: true,
+        silent: true,
+        skipAgentDocs: true,
+      });
 
       // lib file should be written to lib directory
-      const libFileCalls = mockWriteFileSync.mock.calls.filter(
-        (call) => String(call[0]).includes("helper.ts"),
+      const libFileCalls = mockWriteFileSync.mock.calls.filter((call) =>
+        String(call[0]).includes("helper.ts"),
       );
       expect(libFileCalls.length).toBe(1);
     });
@@ -557,13 +693,17 @@ describe("add/component", () => {
     it("calls installSkill when not skipped", async () => {
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
-        if (path.includes("button.tsx") && path.includes("/project")) return false;
+        if (path.includes("button.tsx") && path.includes("/project"))
+          return false;
         return true;
       });
       mockReadFileSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("package.json")) {
-          return JSON.stringify({ dependencies: { react: "^18" }, devDependencies: { tailwindcss: "^3" } });
+          return JSON.stringify({
+            dependencies: { react: "^18" },
+            devDependencies: { tailwindcss: "^3" },
+          });
         }
         if (path.includes("config.json")) {
           return JSON.stringify({

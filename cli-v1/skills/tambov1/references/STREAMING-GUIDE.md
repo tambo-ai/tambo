@@ -5,6 +5,7 @@ How to build components that handle streaming data and AI updates.
 ## Why Streaming Matters
 
 When AI generates component props, data arrives incrementally:
+
 1. First, partial data streams in
 2. Component must render without crashing
 3. Final complete data arrives
@@ -21,7 +22,9 @@ export function DataCard({ title, value, items }: DataCardProps) {
   return (
     <div className="max-w-md p-4 rounded-lg border">
       {/* Handle missing title */}
-      <h3>{title ?? <span className="bg-muted animate-pulse w-24 h-5 rounded" />}</h3>
+      <h3>
+        {title ?? <span className="bg-muted animate-pulse w-24 h-5 rounded" />}
+      </h3>
 
       {/* Handle missing value */}
       <p className="text-2xl font-bold">
@@ -38,7 +41,7 @@ export function DataCard({ title, value, items }: DataCardProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -47,13 +50,13 @@ export function DataCard({ title, value, items }: DataCardProps) {
 AI updates component state via `useTamboComponentState`.
 
 ```tsx
-import { useTamboComponentState } from "@tambo-ai/react"
+import { useTamboComponentState } from "@tambo-ai/react";
 
 export function LiveList({ title, initialItems }: LiveListProps) {
   const [items, setItems, { isPending }] = useTamboComponentState(
-    "live-list-items",  // Unique key - REQUIRED
-    initialItems
-  )
+    "live-list-items", // Unique key - REQUIRED
+    initialItems,
+  );
 
   return (
     <div className="max-w-md p-4 rounded-lg border">
@@ -67,18 +70,20 @@ export function LiveList({ title, initialItems }: LiveListProps) {
       </div>
       <ul className="mt-2 space-y-1">
         {items.map((item, i) => (
-          <li key={i} className="text-sm">{item}</li>
+          <li key={i} className="text-sm">
+            {item}
+          </li>
         ))}
       </ul>
     </div>
-  )
+  );
 }
 ```
 
 ## useTamboComponentState API
 
 ```tsx
-const [state, setState, options] = useTamboComponentState(key, initialValue)
+const [state, setState, options] = useTamboComponentState(key, initialValue);
 ```
 
 - **`key`** - Unique string identifying this state. Must be unique across all components.
@@ -93,20 +98,20 @@ The key MUST be unique. If two components use the same key, they'll share state 
 
 ```tsx
 // Good - unique keys
-useTamboComponentState("user-profile-data", userData)
-useTamboComponentState("chat-messages", messages)
-useTamboComponentState("dashboard-metrics", metrics)
+useTamboComponentState("user-profile-data", userData);
+useTamboComponentState("chat-messages", messages);
+useTamboComponentState("dashboard-metrics", metrics);
 
 // Bad - collision risk
-useTamboComponentState("data", userData)
-useTamboComponentState("items", messages)
+useTamboComponentState("data", userData);
+useTamboComponentState("items", messages);
 ```
 
 Pattern for dynamic keys:
 
 ```tsx
 // Include instance ID for multiple instances
-useTamboComponentState(`chart-${chartId}`, chartData)
+useTamboComponentState(`chart-${chartId}`, chartData);
 ```
 
 ## Loading Skeletons
@@ -163,22 +168,20 @@ During streaming, any field might be undefined:
 
 ```tsx
 interface CardProps {
-  title: string
-  value: number
-  items: string[]
+  title: string;
+  value: number;
+  items: string[];
 }
 
 export function Card({ title, value, items }: CardProps) {
   // Title might be streaming
-  const displayTitle = title || "Loading..."
+  const displayTitle = title || "Loading...";
 
   // Value might not exist yet
-  const displayValue = value !== undefined
-    ? value.toLocaleString()
-    : "—"
+  const displayValue = value !== undefined ? value.toLocaleString() : "—";
 
   // Items might be undefined or partial
-  const displayItems = items ?? []
+  const displayItems = items ?? [];
 
   return (
     <div className="max-w-md p-4 rounded-lg border">
@@ -194,7 +197,7 @@ export function Card({ title, value, items }: CardProps) {
         <p className="text-muted-foreground">No items yet</p>
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -239,14 +242,14 @@ export function DataComponent({ data, error }: Props) {
           Failed to load data. {error.message}
         </p>
       </div>
-    )
+    );
   }
 
   if (!data) {
-    return <DataComponentSkeleton />
+    return <DataComponentSkeleton />;
   }
 
-  return <ActualContent data={data} />
+  return <ActualContent data={data} />;
 }
 ```
 
@@ -256,16 +259,14 @@ Test with partial data:
 
 ```tsx
 // Test with empty/partial props
-render(<MyComponent title={undefined} items={[]} />)
+render(<MyComponent title={undefined} items={[]} />);
 
 // Test with streaming state
-const { result } = renderHook(() =>
-  useTamboComponentState("test-key", [])
-)
+const { result } = renderHook(() => useTamboComponentState("test-key", []));
 
 act(() => {
-  result.current[1](["item1"])  // Simulate AI update
-})
+  result.current[1](["item1"]); // Simulate AI update
+});
 
-expect(result.current[0]).toEqual(["item1"])
+expect(result.current[0]).toEqual(["item1"]);
 ```

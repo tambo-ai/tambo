@@ -7,7 +7,14 @@
 
 import fs from "fs";
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -17,14 +24,18 @@ import {
   withArgs,
 } from "../__fixtures__/test-utils.js";
 
-const mockRequirePackageJson = jest.fn<
-  (args: { json: boolean }, result: { errors: string[] }) => boolean
->();
-const mockUpgradeNpmPackages = jest.fn<(options: Record<string, unknown>) => Promise<boolean>>();
+const mockRequirePackageJson =
+  jest.fn<(args: { json: boolean }, result: { errors: string[] }) => boolean>();
+const mockUpgradeNpmPackages =
+  jest.fn<(options: Record<string, unknown>) => Promise<boolean>>();
 const mockUpgradeSkill = jest.fn<
-  (options: Record<string, unknown>) => Promise<{ success: boolean; result?: { targetPath: string; filesInstalled: string[] } }>
+  (options: Record<string, unknown>) => Promise<{
+    success: boolean;
+    result?: { targetPath: string; filesInstalled: string[] };
+  }>
 >();
-const mockUpgradeComponents = jest.fn<(options: Record<string, unknown>) => Promise<boolean>>();
+const mockUpgradeComponents =
+  jest.fn<(options: Record<string, unknown>) => Promise<boolean>>();
 
 // CRITICAL: Track inquirer.prompt calls to ensure non-interactive safety
 const mockInquirerPrompt = jest.fn<() => Promise<Record<string, unknown>>>();
@@ -68,12 +79,17 @@ describe("upgrade command", () => {
     mockUpgradeNpmPackages.mockResolvedValue(true);
     mockUpgradeSkill.mockResolvedValue({
       success: true,
-      result: { targetPath: "src/components/tambo", filesInstalled: ["SKILL.md"] },
+      result: {
+        targetPath: "src/components/tambo",
+        filesInstalled: ["SKILL.md"],
+      },
     });
     mockUpgradeComponents.mockResolvedValue(true);
-    jest.spyOn(fs, "readFileSync").mockReturnValue(
-      JSON.stringify({ dependencies: { "@tambo-ai/react": "^1.0.0" } })
-    );
+    jest
+      .spyOn(fs, "readFileSync")
+      .mockReturnValue(
+        JSON.stringify({ dependencies: { "@tambo-ai/react": "^1.0.0" } }),
+      );
   });
 
   afterEach(() => {
@@ -84,7 +100,9 @@ describe("upgrade command", () => {
 
   it("upgrades packages successfully", async () => {
     const output = await captureStdout(async () => {
-      await getSubcommand(upgrade, "packages")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(upgrade, "packages")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -93,7 +111,9 @@ describe("upgrade command", () => {
 
   it("upgrades components successfully", async () => {
     const output = await captureStdout(async () => {
-      await getSubcommand(upgrade, "components")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(upgrade, "components")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -102,7 +122,9 @@ describe("upgrade command", () => {
 
   it("upgrades agent docs successfully", async () => {
     const output = await captureStdout(async () => {
-      await getSubcommand(upgrade, "skill")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(upgrade, "skill")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -126,7 +148,9 @@ describe("upgrade command", () => {
     setIsTTY(true);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(upgrade, "packages")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(upgrade, "packages")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -137,7 +161,9 @@ describe("upgrade command", () => {
     setIsTTY(false);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(upgrade, "packages")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(upgrade, "packages")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -158,12 +184,14 @@ describe("upgrade command", () => {
   });
 
   it("warns when no tambo dependency found", async () => {
-    jest.spyOn(fs, "readFileSync").mockReturnValue(
-      JSON.stringify({ dependencies: {} })
-    );
+    jest
+      .spyOn(fs, "readFileSync")
+      .mockReturnValue(JSON.stringify({ dependencies: {} }));
 
     const output = await captureStdout(async () => {
-      await getSubcommand(upgrade, "packages")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(upgrade, "packages")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -183,7 +211,11 @@ describe("upgrade command", () => {
     it("runs components in non-JSON mode", async () => {
       await captureStdout(async () => {
         await getSubcommand(upgrade, "components")?.run?.({
-          args: withArgs({ json: false, prefix: "src/components", "legacy-peer-deps": false }),
+          args: withArgs({
+            json: false,
+            prefix: "src/components",
+            "legacy-peer-deps": false,
+          }),
         });
       });
     });
@@ -288,13 +320,13 @@ describe("upgrade command", () => {
 
       // Verify all underlying functions received yes: true
       expect(mockUpgradeNpmPackages).toHaveBeenCalledWith(
-        expect.objectContaining({ yes: true })
+        expect.objectContaining({ yes: true }),
       );
       expect(mockUpgradeSkill).toHaveBeenCalledWith(
-        expect.objectContaining({ yes: true })
+        expect.objectContaining({ yes: true }),
       );
       expect(mockUpgradeComponents).toHaveBeenCalledWith(
-        expect.objectContaining({ yes: true })
+        expect.objectContaining({ yes: true }),
       );
     });
   });

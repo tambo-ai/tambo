@@ -2,7 +2,14 @@
  * Tests for env file helpers.
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import { mockFs } from "../__fixtures__/test-utils.js";
 
@@ -72,7 +79,10 @@ describe("writeApiKeyToEnv", () => {
   it("updates existing file and warns about overwriting keys", () => {
     const { writeSpy } = mockFs({ ".env.local": "TAMBO_API_KEY=old\n" });
     const onFileModified = jest.fn();
-    mockFindTamboApiKey.mockReturnValue({ keyName: "TAMBO_API_KEY", value: "old" });
+    mockFindTamboApiKey.mockReturnValue({
+      keyName: "TAMBO_API_KEY",
+      value: "old",
+    });
     mockSetTamboApiKey.mockReturnValue("TAMBO_API_KEY=new\n");
 
     const result = writeApiKeyToEnv("new", {
@@ -83,7 +93,7 @@ describe("writeApiKeyToEnv", () => {
     expect(result.modified).toBe(true);
     expect(onFileModified).toHaveBeenCalledWith(".env.local");
     expect(warningSpy).toHaveBeenCalledWith(
-      "Existing API key found (TAMBO_API_KEY). Overwriting..."
+      "Existing API key found (TAMBO_API_KEY). Overwriting...",
     );
     expect(writeSpy).toHaveBeenCalledWith(".env.local", "TAMBO_API_KEY=new\n");
   });
@@ -108,7 +118,7 @@ describe("writeApiKeyToEnv", () => {
     expect(infoSpy).toHaveBeenCalledWith("Detected Next.js project");
     expect(writeSpy).toHaveBeenCalledWith(
       ".env.local",
-      "# Environment Variables\nNEXT_PUBLIC_TAMBO_API_KEY=key-xyz\n"
+      "# Environment Variables\nNEXT_PUBLIC_TAMBO_API_KEY=key-xyz\n",
     );
   });
 });

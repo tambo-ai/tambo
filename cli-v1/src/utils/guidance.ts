@@ -71,7 +71,8 @@ export function buildInitGuidance(
     });
     commands.push({
       command: "tambov1 project api-key <project-id>",
-      description: "Generate and save API key (use project ID from previous step)",
+      description:
+        "Generate and save API key (use project ID from previous step)",
       needed: true,
     });
   }

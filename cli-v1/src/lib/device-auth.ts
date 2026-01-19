@@ -98,10 +98,13 @@ function createPollState(interval: number): PollState {
 /**
  * Calculate the next poll interval with exponential backoff
  */
-function calculateBackoffInterval(basePollInterval: number, errorCount: number): number {
+function calculateBackoffInterval(
+  basePollInterval: number,
+  errorCount: number,
+): number {
   return Math.min(
     basePollInterval * Math.pow(BACKOFF_MULTIPLIER, errorCount),
-    MAX_POLL_INTERVAL_MS
+    MAX_POLL_INTERVAL_MS,
   );
 }
 
@@ -130,7 +133,9 @@ function displayAuthInstructions(
   console.log(chalk.white(`   Visit: ${chalk.bold(verificationUri)}`));
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
   console.log(
-    chalk.white(`   Or open directly: ${chalk.cyan(verificationUriComplete)}\n`),
+    chalk.white(
+      `   Or open directly: ${chalk.cyan(verificationUriComplete)}\n`,
+    ),
   );
 }
 
@@ -211,12 +216,21 @@ async function fetchUserAndSaveToken(
   }
 }
 
-function handleRateLimitError(state: PollState, spinner: ReturnType<typeof ora>): void {
-  state.pollIntervalMs = Math.min(state.pollIntervalMs * BACKOFF_MULTIPLIER, MAX_POLL_INTERVAL_MS);
+function handleRateLimitError(
+  state: PollState,
+  spinner: ReturnType<typeof ora>,
+): void {
+  state.pollIntervalMs = Math.min(
+    state.pollIntervalMs * BACKOFF_MULTIPLIER,
+    MAX_POLL_INTERVAL_MS,
+  );
   spinner.text = `Waiting for authorization... (slowing down)`;
 }
 
-function handleRetryableError(state: PollState, spinner: ReturnType<typeof ora>): void {
+function handleRetryableError(
+  state: PollState,
+  spinner: ReturnType<typeof ora>,
+): void {
   state.consecutiveErrors++;
 
   if (state.consecutiveErrors >= state.maxConsecutiveErrors) {
@@ -227,7 +241,10 @@ function handleRetryableError(state: PollState, spinner: ReturnType<typeof ora>)
     );
   }
 
-  state.pollIntervalMs = calculateBackoffInterval(state.basePollInterval, state.consecutiveErrors);
+  state.pollIntervalMs = calculateBackoffInterval(
+    state.basePollInterval,
+    state.consecutiveErrors,
+  );
   spinner.text = `Waiting for authorization... (retrying after error, attempt ${state.consecutiveErrors}/${state.maxConsecutiveErrors})`;
 }
 
@@ -237,7 +254,11 @@ function handleApiError(
   spinner: ReturnType<typeof ora>,
 ): void {
   // Non-retryable client errors (4xx) - fail fast
-  if (error.statusCode !== undefined && error.statusCode >= 400 && error.statusCode < 500) {
+  if (
+    error.statusCode !== undefined &&
+    error.statusCode >= 400 &&
+    error.statusCode < 500
+  ) {
     if (error.code === "INVALID_DEVICE_CODE" || error.statusCode === 404) {
       spinner.fail(chalk.red("Invalid device code"));
       throw new DeviceAuthError("Invalid device code", error.code);
@@ -263,14 +284,20 @@ function handleApiError(
 
     // Other 4xx errors - fail fast
     spinner.fail(chalk.red(`Server error: ${error.message}`));
-    throw new DeviceAuthError(`Server rejected request: ${error.message}`, error.code);
+    throw new DeviceAuthError(
+      `Server rejected request: ${error.message}`,
+      error.code,
+    );
   }
 
   // Retryable errors (5xx, network) - backoff and retry
   handleRetryableError(state, spinner);
 }
 
-function handleUnknownError(state: PollState, spinner: ReturnType<typeof ora>): void {
+function handleUnknownError(
+  state: PollState,
+  spinner: ReturnType<typeof ora>,
+): void {
   state.consecutiveErrors++;
   if (state.consecutiveErrors >= state.maxConsecutiveErrors) {
     spinner.fail(chalk.red("Connection lost"));
@@ -279,7 +306,10 @@ function handleUnknownError(state: PollState, spinner: ReturnType<typeof ora>): 
       "CONNECTION_ERROR",
     );
   }
-  state.pollIntervalMs = calculateBackoffInterval(state.basePollInterval, state.consecutiveErrors);
+  state.pollIntervalMs = calculateBackoffInterval(
+    state.basePollInterval,
+    state.consecutiveErrors,
+  );
   spinner.text = `Waiting for authorization... (connection issue, retrying)`;
 }
 
@@ -301,14 +331,23 @@ function handleUnknownError(state: PollState, spinner: ReturnType<typeof ora>): 
 export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   // Step 1: Initiate the device auth flow
   const initResponse = await initiateDeviceAuth();
-  const { deviceCode, userCode, verificationUri, verificationUriComplete, interval } = initResponse;
+  const {
+    deviceCode,
+    userCode,
+    verificationUri,
+    verificationUriComplete,
+    interval,
+  } = initResponse;
 
   // Step 2: Display instructions and attempt to help user
   displayAuthInstructions(userCode, verificationUri, verificationUriComplete);
   await attemptClipboardAndBrowser(userCode, verificationUriComplete);
 
   // Step 3: Poll for completion
-  const spinner = ora({ text: "Waiting for authorization...", color: "cyan" }).start();
+  const spinner = ora({
+    text: "Waiting for authorization...",
+    color: "cyan",
+  }).start();
   const state = createPollState(interval);
 
   while (state.attempts < state.maxAttempts) {
@@ -326,7 +365,9 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
         spinner.succeed(chalk.green("Authentication successful!"));
 
         if (!pollResponse.sessionToken) {
-          throw new DeviceAuthError("Authentication completed but no session token received");
+          throw new DeviceAuthError(
+            "Authentication completed but no session token received",
+          );
         }
 
         if (!pollResponse.expiresAt) {
@@ -337,16 +378,25 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
         }
 
         // Step 4: Fetch user info and save token
-        return await fetchUserAndSaveToken(pollResponse.sessionToken, pollResponse.expiresAt);
+        return await fetchUserAndSaveToken(
+          pollResponse.sessionToken,
+          pollResponse.expiresAt,
+        );
       }
 
       if (pollResponse.status === "expired") {
         spinner.fail(chalk.red("Code expired"));
-        throw new DeviceAuthError("Device code expired. Please try again.", "CODE_EXPIRED");
+        throw new DeviceAuthError(
+          "Device code expired. Please try again.",
+          "CODE_EXPIRED",
+        );
       }
 
       // Status is "pending", continue polling
-      const minsRemaining = Math.floor((state.maxAttempts - state.attempts) * (state.basePollInterval / 1000 / 60));
+      const minsRemaining = Math.floor(
+        (state.maxAttempts - state.attempts) *
+          (state.basePollInterval / 1000 / 60),
+      );
       spinner.text = `Waiting for authorization... (${minsRemaining} min remaining)`;
     } catch (error) {
       if (error instanceof DeviceAuthError) {
@@ -364,7 +414,10 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   }
 
   spinner.fail(chalk.red("Authentication timed out"));
-  throw new DeviceAuthError("Authentication timed out. Please try again.", "TIMEOUT");
+  throw new DeviceAuthError(
+    "Authentication timed out. Please try again.",
+    "TIMEOUT",
+  );
 }
 
 /**

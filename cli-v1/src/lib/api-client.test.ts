@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 // Mock token-storage before importing api-client
 const mockGetEffectiveSessionToken = jest.fn<() => string | null>();
@@ -39,7 +46,8 @@ jest.unstable_mockModule("@trpc/client", () => ({
   TRPCClientError: mockTRPCClientError,
 }));
 
-const { getConsoleBaseUrl, ApiError, isAuthError } = await import("./api-client.js");
+const { getConsoleBaseUrl, ApiError, isAuthError } =
+  await import("./api-client.js");
 
 describe("api-client", () => {
   const originalEnv = process.env;

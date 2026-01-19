@@ -10,11 +10,11 @@ import { mockFs } from "../__fixtures__/test-utils.js";
 
 const mockIsTokenValid = jest.fn<() => boolean>();
 const mockVerifySession = jest.fn<() => Promise<boolean>>();
-const mockFindTamboApiKey = jest.fn<
-  (content: string) => { keyName: string; value: string } | null
->();
+const mockFindTamboApiKey =
+  jest.fn<(content: string) => { keyName: string; value: string } | null>();
 const mockGetLibDirectory = jest.fn<() => string>(() => "/tmp/lib");
-const mockDetectPackageManager = jest.fn<() => "npm" | "pnpm" | "yarn" | "bun">();
+const mockDetectPackageManager =
+  jest.fn<() => "npm" | "pnpm" | "yarn" | "bun">();
 
 jest.unstable_mockModule("../lib/device-auth.js", () => ({
   isTokenValid: mockIsTokenValid,
@@ -25,7 +25,9 @@ jest.unstable_mockModule("./dotenv-utils.js", () => ({
   findTamboApiKey: mockFindTamboApiKey,
 }));
 
-const mockGetComponentDirectoryPath = jest.fn<() => string>(() => "/tmp/components/tambo");
+const mockGetComponentDirectoryPath = jest.fn<() => string>(
+  () => "/tmp/components/tambo",
+);
 jest.unstable_mockModule("./path-utils.js", () => ({
   getLibDirectory: mockGetLibDirectory,
   getComponentDirectoryPath: mockGetComponentDirectoryPath,
@@ -41,7 +43,10 @@ describe("detectProjectStatus", () => {
   it("detects project status from files", async () => {
     mockIsTokenValid.mockReturnValue(true);
     mockVerifySession.mockResolvedValue(true);
-    mockFindTamboApiKey.mockReturnValue({ keyName: "TAMBO_API_KEY", value: "key" });
+    mockFindTamboApiKey.mockReturnValue({
+      keyName: "TAMBO_API_KEY",
+      value: "key",
+    });
     mockDetectPackageManager.mockReturnValue("npm");
 
     const cwd = process.cwd();

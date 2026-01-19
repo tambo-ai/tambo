@@ -2,7 +2,14 @@
  * Tests for init command behavior and JSON output.
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -15,23 +22,26 @@ import {
 } from "../../__fixtures__/test-utils.js";
 import type { ProjectStatus } from "../../utils/project-detection.js";
 
-const mockRequirePackageJson = jest.fn<
-  (args: { json: boolean }, result: { errors: string[] }) => boolean
->();
+const mockRequirePackageJson =
+  jest.fn<(args: { json: boolean }, result: { errors: string[] }) => boolean>();
 const mockDetectProjectStatus = jest.fn<() => Promise<ProjectStatus>>();
 const mockBuildInitGuidance = jest.fn();
 const mockInstallSkill = jest.fn<() => Promise<void>>();
 const mockWriteApiKeyToEnv = jest.fn<
-  (apiKey: string, options: { jsonMode: boolean; onFileCreated?: (file: string) => void }) => {
+  (
+    apiKey: string,
+    options: { jsonMode: boolean; onFileCreated?: (file: string) => void },
+  ) => {
     envFile: string;
     created: boolean;
     modified: boolean;
   }
 >();
 const mockGetLibDirectory = jest.fn<() => string>(() => "/tmp/lib");
-const mockRunDeviceAuthFlow = jest.fn<
-  () => Promise<{ user: { id: string; email?: string; name?: string } }>
->();
+const mockRunDeviceAuthFlow =
+  jest.fn<
+    () => Promise<{ user: { id: string; email?: string; name?: string } }>
+  >();
 const mockApi = {
   project: {
     createProject2: {
@@ -43,7 +53,8 @@ const mockApi = {
   },
 };
 const mockExecFileSync = jest.fn();
-const mockDetectPackageManager = jest.fn<() => "npm" | "pnpm" | "yarn" | "bun">();
+const mockDetectPackageManager =
+  jest.fn<() => "npm" | "pnpm" | "yarn" | "bun">();
 const mockGetInstallCommand = jest.fn<() => string>();
 
 jest.unstable_mockModule("../../utils/project-helpers.js", () => ({
@@ -138,8 +149,13 @@ describe("init command", () => {
       options.onFileCreated?.(".env.local");
       return { envFile: ".env.local", created: true, modified: false };
     });
-    mockRunDeviceAuthFlow.mockResolvedValue({ user: { id: "u1", email: "u@e.com" } });
-    mockApi.project.createProject2.mutate.mockResolvedValue({ id: "p1", name: "proj" });
+    mockRunDeviceAuthFlow.mockResolvedValue({
+      user: { id: "u1", email: "u@e.com" },
+    });
+    mockApi.project.createProject2.mutate.mockResolvedValue({
+      id: "p1",
+      name: "proj",
+    });
     mockApi.project.generateApiKey.mutate.mockResolvedValue({ apiKey: "key" });
     mockDetectPackageManager.mockReturnValue("npm");
     mockGetInstallCommand.mockReturnValue("install");
@@ -164,8 +180,8 @@ describe("init command", () => {
             "project-name": "proj",
             "skip-agent-docs": false,
             "dry-run": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -189,8 +205,8 @@ describe("init command", () => {
             "project-name": "proj",
             "skip-agent-docs": false,
             "dry-run": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -218,8 +234,8 @@ describe("init command", () => {
             "project-name": "proj",
             "skip-agent-docs": true,
             "dry-run": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -243,10 +259,10 @@ describe("init command", () => {
               "project-name": "proj",
               "skip-agent-docs": false,
               "dry-run": false,
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -275,8 +291,8 @@ describe("init command", () => {
             "project-name": "proj",
             "skip-agent-docs": false,
             "dry-run": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -309,8 +325,8 @@ describe("init command", () => {
             "project-name": "proj",
             "skip-agent-docs": false,
             "dry-run": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -342,8 +358,8 @@ describe("init command", () => {
             "project-name": "proj",
             "skip-agent-docs": true,
             "dry-run": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -366,8 +382,8 @@ describe("init command", () => {
             "project-name": "proj",
             "skip-agent-docs": false,
             "dry-run": true,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -392,10 +408,10 @@ describe("init command", () => {
               "project-name": "",
               "skip-agent-docs": false,
               "dry-run": false,
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -424,8 +440,8 @@ describe("init command", () => {
             "project-name": "proj",
             "skip-agent-docs": true,
             "dry-run": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -449,8 +465,8 @@ describe("init command", () => {
               "project-name": "proj",
               "skip-agent-docs": false,
               "dry-run": false,
-            })
-          )
+            }),
+          ),
         );
       });
 
@@ -471,8 +487,8 @@ describe("init command", () => {
               "project-name": "proj",
               "skip-agent-docs": false,
               "dry-run": false,
-            })
-          )
+            }),
+          ),
         );
       });
 
@@ -492,8 +508,8 @@ describe("init command", () => {
               "project-name": "",
               "skip-agent-docs": false,
               "dry-run": false,
-            })
-          )
+            }),
+          ),
         );
       });
 
@@ -521,8 +537,8 @@ describe("init command", () => {
               "project-name": "proj",
               "skip-agent-docs": false,
               "dry-run": false,
-            })
-          )
+            }),
+          ),
         );
       });
     });
@@ -540,8 +556,8 @@ describe("init command", () => {
               "project-name": "proj",
               "skip-agent-docs": false,
               "dry-run": true,
-            })
-          )
+            }),
+          ),
         );
       });
     });
@@ -560,8 +576,8 @@ describe("init command", () => {
               "project-name": "proj",
               "skip-agent-docs": true,
               "dry-run": false,
-            })
-          )
+            }),
+          ),
         );
       });
     });
@@ -589,8 +605,8 @@ describe("init command", () => {
               "project-name": "proj",
               "skip-agent-docs": true,
               "dry-run": false,
-            })
-          )
+            }),
+          ),
         );
       });
     });

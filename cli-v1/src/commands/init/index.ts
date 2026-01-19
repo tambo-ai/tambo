@@ -75,7 +75,11 @@ export const init = defineCommand({
     // citty calls parent run even when subcommand matches
     const rawArgs = process.argv.slice(2);
     const initIndex = rawArgs.indexOf("init");
-    if (initIndex !== -1 && (rawArgs[initIndex + 1] === "config" || rawArgs[initIndex + 1] === "skill")) {
+    if (
+      initIndex !== -1 &&
+      (rawArgs[initIndex + 1] === "config" ||
+        rawArgs[initIndex + 1] === "skill")
+    ) {
       return;
     }
 
@@ -139,7 +143,10 @@ export const init = defineCommand({
       exitOnError(result, jsonMode);
 
       // Get project name and create project
-      const projectName = await promptForProjectName(args["project-name"], isInteractive);
+      const projectName = await promptForProjectName(
+        args["project-name"],
+        isInteractive,
+      );
 
       if (!projectName) {
         result.errors.push("Project name is required to create a project");
@@ -158,7 +165,13 @@ export const init = defineCommand({
     createTamboConfigFile(result, projectRoot, args.prefix, jsonMode, isDryRun);
 
     // Step 4: Create agent docs
-    await createAgentDocs(result, args.prefix, jsonMode, isDryRun, args["skip-agent-docs"]);
+    await createAgentDocs(
+      result,
+      args.prefix,
+      jsonMode,
+      isDryRun,
+      args["skip-agent-docs"],
+    );
 
     // Output results
     outputInitResults(result, jsonMode);

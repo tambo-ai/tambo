@@ -5,7 +5,14 @@
 import fs from "fs";
 import path from "path";
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -17,30 +24,33 @@ import {
   withArgs,
 } from "../__fixtures__/test-utils.js";
 
-const mockRequirePackageJson = jest.fn<
-  (args: { json: boolean }, result: { errors: string[] }) => boolean
->();
-const mockResolveComponentDependencies = jest.fn<(name: string) => Promise<string[]>>();
-const mockGetComponentDirectoryPath = jest.fn<
-  (root: string, prefix: string, isExplicitPrefix: boolean) => string
->();
-const mockGetLegacyComponentDirectoryPath = jest.fn<
-  (root: string, prefix: string) => string
->();
-const mockResolveComponentPaths = jest.fn<
-  (
-    root: string,
-    installPath: string,
-    componentName: string,
-    isExplicitPrefix: boolean
-  ) => { newPath: string; legacyPath?: string }
->();
-const mockInstallComponents = jest.fn<
-  (components: string[], options: Record<string, unknown>) => Promise<void>
->();
+const mockRequirePackageJson =
+  jest.fn<(args: { json: boolean }, result: { errors: string[] }) => boolean>();
+const mockResolveComponentDependencies =
+  jest.fn<(name: string) => Promise<string[]>>();
+const mockGetComponentDirectoryPath =
+  jest.fn<
+    (root: string, prefix: string, isExplicitPrefix: boolean) => string
+  >();
+const mockGetLegacyComponentDirectoryPath =
+  jest.fn<(root: string, prefix: string) => string>();
+const mockResolveComponentPaths =
+  jest.fn<
+    (
+      root: string,
+      installPath: string,
+      componentName: string,
+      isExplicitPrefix: boolean,
+    ) => { newPath: string; legacyPath?: string }
+  >();
+const mockInstallComponents =
+  jest.fn<
+    (components: string[], options: Record<string, unknown>) => Promise<void>
+  >();
 const mockSetupTailwind = jest.fn<(root: string) => Promise<void>>();
 const mockGetKnownComponentNames = jest.fn<() => Set<string>>();
-const mockGetComponentList = jest.fn<() => Array<{ name: string; description: string }>>();
+const mockGetComponentList =
+  jest.fn<() => Array<{ name: string; description: string }>>();
 
 jest.unstable_mockModule("../utils/project-helpers.js", () => ({
   requirePackageJson: mockRequirePackageJson,
@@ -88,7 +98,9 @@ describe("install command", () => {
       { name: "message-thread-full", description: "Thread UI" },
       { name: "message-input", description: "Input UI" },
     ]);
-    mockGetKnownComponentNames.mockReturnValue(new Set(["message-thread-full"]));
+    mockGetKnownComponentNames.mockReturnValue(
+      new Set(["message-thread-full"]),
+    );
     mockResolveComponentDependencies.mockResolvedValue(["message-thread-full"]);
     mockGetComponentDirectoryPath.mockReturnValue("/tmp/components/tambo");
     mockGetLegacyComponentDirectoryPath.mockReturnValue("/tmp/components/ui");
@@ -96,7 +108,7 @@ describe("install command", () => {
       (_root: string, _installPath: string, comp: string) => ({
         newPath: `/tmp/components/tambo/${comp}.tsx`,
         legacyPath: undefined,
-      })
+      }),
     );
     jest
       .spyOn(fs, "readdirSync")
@@ -124,10 +136,10 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": false,
               "skip-tailwind": false,
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -148,10 +160,10 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": false,
               "skip-tailwind": false,
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -172,8 +184,8 @@ describe("install command", () => {
             "skip-agent-docs": false,
             "dry-run": true,
             "skip-tailwind": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -197,8 +209,8 @@ describe("install command", () => {
             "skip-agent-docs": false,
             "dry-run": false,
             "skip-tailwind": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -222,8 +234,8 @@ describe("install command", () => {
             "skip-agent-docs": false,
             "dry-run": false,
             "skip-tailwind": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -247,18 +259,14 @@ describe("install command", () => {
       (_root: string, installPath: string, comp: string) => ({
         newPath: `/tmp/components/${installPath}/${comp}.tsx`,
         legacyPath: undefined,
-      })
+      }),
     );
-    jest
-      .spyOn(fs, "readdirSync")
-      .mockImplementation(
-        ((dir) => {
-          if (String(dir).includes("/tmp/components/ui")) {
-            return ["message-thread-full.tsx"];
-          }
-          return [];
-        }) as typeof fs.readdirSync
-      );
+    jest.spyOn(fs, "readdirSync").mockImplementation(((dir) => {
+      if (String(dir).includes("/tmp/components/ui")) {
+        return ["message-thread-full.tsx"];
+      }
+      return [];
+    }) as typeof fs.readdirSync);
 
     await install.run?.(
       makeContext(
@@ -270,8 +278,8 @@ describe("install command", () => {
           "skip-agent-docs": false,
           "dry-run": false,
           "skip-tailwind": false,
-        })
-      )
+        }),
+      ),
     );
 
     expect(mockInstallComponents).toHaveBeenCalledWith(
@@ -279,7 +287,7 @@ describe("install command", () => {
       expect.objectContaining({
         baseInstallPath: "src/components",
         installPath: path.join("src/components", "ui"),
-      })
+      }),
     );
   });
 
@@ -299,8 +307,8 @@ describe("install command", () => {
             "skip-agent-docs": false,
             "dry-run": false,
             "skip-tailwind": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -324,8 +332,8 @@ describe("install command", () => {
             "skip-agent-docs": false,
             "dry-run": false,
             "skip-tailwind": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -336,7 +344,9 @@ describe("install command", () => {
   // Non-JSON output tests - lightweight, verify commands run without crashing
   describe("non-JSON output", () => {
     it("runs with invalid components", async () => {
-      mockGetComponentList.mockReturnValue([{ name: "known", description: "" }]);
+      mockGetComponentList.mockReturnValue([
+        { name: "known", description: "" },
+      ]);
 
       await expect(
         Promise.resolve(
@@ -350,16 +360,18 @@ describe("install command", () => {
                 "skip-agent-docs": false,
                 "dry-run": false,
                 "skip-tailwind": false,
-              })
-            )
-          )
-        )
+              }),
+            ),
+          ),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
 
     it("runs dry-run in non-JSON mode", async () => {
       mockFs({});
-      mockResolveComponentDependencies.mockResolvedValue(["message-thread-full"]);
+      mockResolveComponentDependencies.mockResolvedValue([
+        "message-thread-full",
+      ]);
 
       await captureStdout(async () => {
         await install.run?.(
@@ -372,8 +384,8 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": true,
               "skip-tailwind": false,
-            })
-          )
+            }),
+          ),
         );
       });
     });
@@ -392,8 +404,8 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": false,
               "skip-tailwind": false,
-            })
-          )
+            }),
+          ),
         );
       });
     });
@@ -401,7 +413,9 @@ describe("install command", () => {
     it("runs successful install in non-JSON mode", async () => {
       setIsTTY(true);
       mockFs({});
-      mockResolveComponentDependencies.mockResolvedValue(["message-thread-full"]);
+      mockResolveComponentDependencies.mockResolvedValue([
+        "message-thread-full",
+      ]);
 
       await captureStdout(async () => {
         await install.run?.(
@@ -414,15 +428,17 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": false,
               "skip-tailwind": false,
-            })
-          )
+            }),
+          ),
         );
       });
     });
 
     it("runs with skip-tailwind in non-JSON mode", async () => {
       mockFs({});
-      mockResolveComponentDependencies.mockResolvedValue(["message-thread-full"]);
+      mockResolveComponentDependencies.mockResolvedValue([
+        "message-thread-full",
+      ]);
 
       await captureStdout(async () => {
         await install.run?.(
@@ -435,15 +451,17 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": false,
               "skip-tailwind": true,
-            })
-          )
+            }),
+          ),
         );
       });
     });
 
     it("handles install failure in non-JSON mode", async () => {
       mockFs({});
-      mockResolveComponentDependencies.mockResolvedValue(["message-thread-full"]);
+      mockResolveComponentDependencies.mockResolvedValue([
+        "message-thread-full",
+      ]);
       mockInstallComponents.mockRejectedValue(new Error("Install failed"));
 
       await expect(
@@ -458,16 +476,18 @@ describe("install command", () => {
                 "skip-agent-docs": false,
                 "dry-run": false,
                 "skip-tailwind": false,
-              })
-            )
-          )
-        )
+              }),
+            ),
+          ),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
 
     it("handles tailwind setup error in non-JSON mode", async () => {
       mockFs({});
-      mockResolveComponentDependencies.mockResolvedValue(["message-thread-full"]);
+      mockResolveComponentDependencies.mockResolvedValue([
+        "message-thread-full",
+      ]);
       mockSetupTailwind.mockRejectedValue(new Error("Tailwind error"));
 
       await captureStdout(async () => {
@@ -481,15 +501,17 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": false,
               "skip-tailwind": false,
-            })
-          )
+            }),
+          ),
         );
       });
     });
 
     it("handles dependency resolution failure in non-JSON mode", async () => {
       mockFs({});
-      mockResolveComponentDependencies.mockRejectedValue(new Error("Dep resolution failed"));
+      mockResolveComponentDependencies.mockRejectedValue(
+        new Error("Dep resolution failed"),
+      );
 
       await expect(
         Promise.resolve(
@@ -503,10 +525,10 @@ describe("install command", () => {
                 "skip-agent-docs": false,
                 "dry-run": false,
                 "skip-tailwind": false,
-              })
-            )
-          )
-        )
+              }),
+            ),
+          ),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
 
@@ -516,19 +538,15 @@ describe("install command", () => {
         "/tmp/components/tambo/other.tsx": "",
       });
       mockResolveComponentDependencies.mockResolvedValue(["message-input"]);
-      jest
-        .spyOn(fs, "readdirSync")
-        .mockImplementation(
-          ((dir) => {
-            if (String(dir).includes("/tmp/components/ui")) {
-              return ["message-thread-full.tsx"];
-            }
-            if (String(dir).includes("/tmp/components/tambo")) {
-              return ["other.tsx"];
-            }
-            return [];
-          }) as typeof fs.readdirSync
-        );
+      jest.spyOn(fs, "readdirSync").mockImplementation(((dir) => {
+        if (String(dir).includes("/tmp/components/ui")) {
+          return ["message-thread-full.tsx"];
+        }
+        if (String(dir).includes("/tmp/components/tambo")) {
+          return ["other.tsx"];
+        }
+        return [];
+      }) as typeof fs.readdirSync);
 
       await captureStdout(async () => {
         await install.run?.(
@@ -541,15 +559,17 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": false,
               "skip-tailwind": true,
-            })
-          )
+            }),
+          ),
         );
       });
     });
 
     it("runs with explicit prefix in non-JSON mode", async () => {
       mockFs({});
-      mockResolveComponentDependencies.mockResolvedValue(["message-thread-full"]);
+      mockResolveComponentDependencies.mockResolvedValue([
+        "message-thread-full",
+      ]);
       mockGetComponentDirectoryPath.mockReturnValue("/tmp/custom/path");
 
       await captureStdout(async () => {
@@ -563,8 +583,8 @@ describe("install command", () => {
               "skip-agent-docs": false,
               "dry-run": false,
               "skip-tailwind": true,
-            })
-          )
+            }),
+          ),
         );
       });
     });

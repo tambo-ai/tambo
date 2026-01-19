@@ -2,7 +2,14 @@
  * Tests for update command behavior and JSON output.
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -13,15 +20,14 @@ import {
   withArgs,
 } from "../__fixtures__/test-utils.js";
 
-const mockRequirePackageJson = jest.fn<
-  (args: { json: boolean }, result: { errors: string[] }) => boolean
->();
-const mockHandleUpdateComponents = jest.fn<
-  (components: string[], options: Record<string, unknown>) => Promise<void>
->();
-const mockGetInstalledComponents = jest.fn<
-  (prefix: string, isExplicitPrefix: boolean) => Promise<string[]>
->();
+const mockRequirePackageJson =
+  jest.fn<(args: { json: boolean }, result: { errors: string[] }) => boolean>();
+const mockHandleUpdateComponents =
+  jest.fn<
+    (components: string[], options: Record<string, unknown>) => Promise<void>
+  >();
+const mockGetInstalledComponents =
+  jest.fn<(prefix: string, isExplicitPrefix: boolean) => Promise<string[]>>();
 
 jest.unstable_mockModule("../utils/project-helpers.js", () => ({
   requirePackageJson: mockRequirePackageJson,
@@ -67,14 +73,14 @@ describe("update command", () => {
           makeContext(
             withArgs({
               json: true,
-            all: false,
-            components: "",
-            prefix: "src/components",
-            "legacy-peer-deps": false,
-            })
-          )
-        )
-      )
+              all: false,
+              components: "",
+              prefix: "src/components",
+              "legacy-peer-deps": false,
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -90,8 +96,8 @@ describe("update command", () => {
             all: false,
             prefix: "src/components",
             "legacy-peer-deps": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -110,8 +116,8 @@ describe("update command", () => {
             components: "installed",
             prefix: "src/components",
             "legacy-peer-deps": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -129,14 +135,14 @@ describe("update command", () => {
           makeContext(
             withArgs({
               json: true,
-            all: true,
-            components: "installed",
-            prefix: "src/components",
-            "legacy-peer-deps": false,
-            })
-          )
-        )
-      )
+              all: true,
+              components: "installed",
+              prefix: "src/components",
+              "legacy-peer-deps": false,
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -154,8 +160,8 @@ describe("update command", () => {
             components: "installed",
             prefix: "src/components",
             "legacy-peer-deps": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -175,8 +181,8 @@ describe("update command", () => {
             components: "installed",
             prefix: "src/components",
             "legacy-peer-deps": false,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);

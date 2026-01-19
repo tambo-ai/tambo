@@ -65,7 +65,8 @@ const listCommand = defineCommand({
     }
 
     // Fetch projects
-    const fetchSpinner = args.json || !isTTY() ? null : ora("Fetching projects...").start();
+    const fetchSpinner =
+      args.json || !isTTY() ? null : ora("Fetching projects...").start();
 
     try {
       const projects = await api.project.getUserProjects.query({});
@@ -172,7 +173,8 @@ const createCommand = defineCommand({
     }
 
     // Create project
-    const createSpinner = args.json || !isTTY() ? null : ora("Creating project...").start();
+    const createSpinner =
+      args.json || !isTTY() ? null : ora("Creating project...").start();
 
     try {
       const project = await api.project.createProject2.mutate({
@@ -275,7 +277,8 @@ const apiKeyCommand = defineCommand({
       minute: "2-digit",
     });
 
-    const keySpinner = args.json || !isTTY() ? null : ora("Generating API key...").start();
+    const keySpinner =
+      args.json || !isTTY() ? null : ora("Generating API key...").start();
 
     try {
       const keyResult = await api.project.generateApiKey.mutate({
@@ -290,7 +293,9 @@ const apiKeyCommand = defineCommand({
 
       // Save to .env unless --no-save
       if (!args["no-save"]) {
-        const envResult = writeApiKeyToEnv(keyResult.apiKey, { jsonMode: args.json });
+        const envResult = writeApiKeyToEnv(keyResult.apiKey, {
+          jsonMode: args.json,
+        });
         result.envFile = envResult.envFile;
       }
 

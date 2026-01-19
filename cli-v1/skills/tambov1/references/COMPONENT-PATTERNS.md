@@ -5,7 +5,7 @@ Patterns for building generative UI components that AI assistants render.
 ## Basic Component Structure
 
 ```tsx
-import { z } from "zod"
+import { z } from "zod";
 
 // 1. Define schema with descriptions
 export const myComponentSchema = z.object({
@@ -13,18 +13,23 @@ export const myComponentSchema = z.object({
   showIcon: z.boolean().default(true).describe("Whether to show the icon"),
   size: z.enum(["sm", "md", "lg"]).default("md").describe("Component size"),
   items: z.array(z.string()).describe("List of items to display"),
-})
+});
 
 // 2. Derive TypeScript type from schema
-type MyComponentProps = z.infer<typeof myComponentSchema>
+type MyComponentProps = z.infer<typeof myComponentSchema>;
 
 // 3. Implement component
-export function MyComponent({ title, showIcon = true, size = "md", items }: MyComponentProps) {
+export function MyComponent({
+  title,
+  showIcon = true,
+  size = "md",
+  items,
+}: MyComponentProps) {
   const sizeClasses = {
     sm: "text-sm p-2",
     md: "text-base p-4",
     lg: "text-lg p-6",
-  }
+  };
 
   return (
     <div className={`rounded-lg border max-w-md ${sizeClasses[size]}`}>
@@ -38,7 +43,7 @@ export function MyComponent({ title, showIcon = true, size = "md", items }: MyCo
         ))}
       </ul>
     </div>
-  )
+  );
 }
 
 // 4. Loading skeleton
@@ -51,24 +56,29 @@ export function MyComponentSkeleton() {
         <div className="h-4 w-3/4 bg-muted rounded" />
       </div>
     </div>
-  )
+  );
 }
 ```
 
 ## Registration in tambo.ts
 
 ```tsx
-import { MyComponent, myComponentSchema, MyComponentSkeleton } from "../tambo/my-component"
+import {
+  MyComponent,
+  myComponentSchema,
+  MyComponentSkeleton,
+} from "../tambo/my-component";
 
 export const componentRegistry = [
   {
     name: "MyComponent",
-    description: "Clear description of what this shows and when AI should use it. Include trigger phrases.",
+    description:
+      "Clear description of what this shows and when AI should use it. Include trigger phrases.",
     component: MyComponent,
     propsSchema: myComponentSchema,
     loadingComponent: MyComponentSkeleton,
   },
-]
+];
 ```
 
 ## Streaming State Components
@@ -76,19 +86,29 @@ export const componentRegistry = [
 For components where AI updates state after initial render:
 
 ```tsx
-import { useTamboComponentState } from "@tambo-ai/react"
+import { useTamboComponentState } from "@tambo-ai/react";
 
-export function StreamingList({ title, initialItems }: { title: string; initialItems: string[] }) {
+export function StreamingList({
+  title,
+  initialItems,
+}: {
+  title: string;
+  initialItems: string[];
+}) {
   const [items, setItems, { isPending }] = useTamboComponentState(
-    "list-items",  // Must be unique
-    initialItems
-  )
+    "list-items", // Must be unique
+    initialItems,
+  );
 
   return (
     <div className="max-w-md p-4 rounded-lg border">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">{title}</h3>
-        {isPending && <span className="text-xs text-muted-foreground animate-pulse">Updating...</span>}
+        {isPending && (
+          <span className="text-xs text-muted-foreground animate-pulse">
+            Updating...
+          </span>
+        )}
       </div>
       <ul className="mt-2 space-y-1">
         {items.map((item, i) => (
@@ -96,7 +116,7 @@ export function StreamingList({ title, initialItems }: { title: string; initialI
         ))}
       </ul>
     </div>
-  )
+  );
 }
 ```
 
@@ -105,7 +125,7 @@ export function StreamingList({ title, initialItems }: { title: string; initialI
 Components that work with AI tools:
 
 ```tsx
-import { defineTool } from "@tambo-ai/react"
+import { defineTool } from "@tambo-ai/react";
 
 // 1. Define the tool
 export const fetchDataTool = defineTool({
@@ -116,15 +136,15 @@ export const fetchDataTool = defineTool({
     limit: z.number().default(10),
   }),
   tool: async ({ query, limit }) => {
-    const results = await api.search(query, limit)
-    return { results }
+    const results = await api.search(query, limit);
+    return { results };
   },
-})
+});
 
 // 2. Associate tool with component in tambo.ts
 export const toolAssociations = {
   Dashboard: ["fetchData"],
-}
+};
 ```
 
 ## Chat-Friendly Sizing
@@ -162,17 +182,16 @@ export function DataCard({ title, value, items }: DataCardProps) {
       ))}
 
       {/* Empty state */}
-      {items?.length === 0 && (
-        <p className="text-muted-foreground">No items</p>
-      )}
+      {items?.length === 0 && <p className="text-muted-foreground">No items</p>}
     </div>
-  )
+  );
 }
 ```
 
 ## Common Patterns
 
 ### Card with Status
+
 ```tsx
 const statusColors = {
   success: "text-green-600 bg-green-50",
@@ -186,16 +205,19 @@ const statusColors = {
 ```
 
 ### Metric with Trend
+
 ```tsx
 <div className="flex items-baseline gap-2">
   <span className="text-2xl font-bold">{value}</span>
   <span className={change >= 0 ? "text-green-600" : "text-red-600"}>
-    {change >= 0 ? "+" : ""}{change}%
+    {change >= 0 ? "+" : ""}
+    {change}%
   </span>
 </div>
 ```
 
 ### List with Actions
+
 ```tsx
 <ul className="divide-y">
   {items.map((item) => (
@@ -210,6 +232,7 @@ const statusColors = {
 ```
 
 ### Collapsible Section
+
 ```tsx
 const [open, setOpen] = useState(false)
 

@@ -2,11 +2,21 @@
  * Tests for project validation helpers.
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import { mockFs } from "../__fixtures__/test-utils.js";
 import { out } from "./output.js";
-import { requirePackageJson, requireValidPackageJson } from "./project-helpers.js";
+import {
+  requirePackageJson,
+  requireValidPackageJson,
+} from "./project-helpers.js";
 
 describe("project helpers", () => {
   let jsonSpy: jest.SpiedFunction<typeof out.json>;
@@ -16,7 +26,9 @@ describe("project helpers", () => {
   beforeEach(() => {
     jsonSpy = jest.spyOn(out, "json").mockImplementation(() => undefined);
     errorSpy = jest.spyOn(out, "error").mockImplementation(() => undefined);
-    explanationSpy = jest.spyOn(out, "explanation").mockImplementation(() => undefined);
+    explanationSpy = jest
+      .spyOn(out, "explanation")
+      .mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -37,7 +49,7 @@ describe("project helpers", () => {
     expect(requirePackageJson({ json: false }, result)).toBe(false);
     expect(result.errors).toContain("No package.json found");
     expect(errorSpy).toHaveBeenCalledWith(
-      "No package.json found. Run this command in your project root."
+      "No package.json found. Run this command in your project root.",
     );
   });
 
@@ -50,7 +62,7 @@ describe("project helpers", () => {
   });
 
   it("returns true when package.json is valid JSON", () => {
-    mockFs({ "package.json": "{\"name\":\"demo\"}" });
+    mockFs({ "package.json": '{"name":"demo"}' });
     const result = { errors: [] as string[] };
 
     expect(requireValidPackageJson({ json: false }, result)).toBe(true);
@@ -62,7 +74,9 @@ describe("project helpers", () => {
 
     expect(requireValidPackageJson({ json: false }, result)).toBe(false);
     expect(result.errors).toContain("Invalid project - no package.json found");
-    expect(errorSpy).toHaveBeenCalledWith("No valid package.json found in current directory");
+    expect(errorSpy).toHaveBeenCalledWith(
+      "No valid package.json found in current directory",
+    );
     expect(explanationSpy).toHaveBeenCalled();
   });
 
@@ -71,7 +85,7 @@ describe("project helpers", () => {
     const result = { errors: [] as string[] };
 
     expect(
-      requireValidPackageJson({ json: false }, result, ["Custom explanation"])
+      requireValidPackageJson({ json: false }, result, ["Custom explanation"]),
     ).toBe(false);
     expect(explanationSpy).toHaveBeenCalledWith(["Custom explanation"]);
   });

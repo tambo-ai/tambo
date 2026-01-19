@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 const mockReadFileSync = jest.fn<(p: unknown, encoding?: unknown) => string>();
@@ -39,10 +46,12 @@ describe("tailwind/version/detection", () => {
 
     it("returns null when tailwindcss is not in dependencies", () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        dependencies: { react: "^18.0.0" },
-        devDependencies: {},
-      }));
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          dependencies: { react: "^18.0.0" },
+          devDependencies: {},
+        }),
+      );
 
       const result = detectTailwindVersion("/project");
 
@@ -51,9 +60,11 @@ describe("tailwind/version/detection", () => {
 
     it("returns version from dependencies", () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        dependencies: { tailwindcss: "^3.4.0" },
-      }));
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          dependencies: { tailwindcss: "^3.4.0" },
+        }),
+      );
 
       const result = detectTailwindVersion("/project");
 
@@ -62,9 +73,11 @@ describe("tailwind/version/detection", () => {
 
     it("returns version from devDependencies", () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        devDependencies: { tailwindcss: "^4.0.0" },
-      }));
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          devDependencies: { tailwindcss: "^4.0.0" },
+        }),
+      );
 
       const result = detectTailwindVersion("/project");
 
@@ -73,9 +86,11 @@ describe("tailwind/version/detection", () => {
 
     it("handles version with caret (^)", () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        dependencies: { tailwindcss: "^3.3.2" },
-      }));
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          dependencies: { tailwindcss: "^3.3.2" },
+        }),
+      );
 
       const result = detectTailwindVersion("/project");
 
@@ -84,9 +99,11 @@ describe("tailwind/version/detection", () => {
 
     it("handles version with tilde (~)", () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        dependencies: { tailwindcss: "~3.3.0" },
-      }));
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          dependencies: { tailwindcss: "~3.3.0" },
+        }),
+      );
 
       const result = detectTailwindVersion("/project");
 
@@ -95,9 +112,11 @@ describe("tailwind/version/detection", () => {
 
     it("handles exact version", () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        dependencies: { tailwindcss: "4.0.0" },
-      }));
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          dependencies: { tailwindcss: "4.0.0" },
+        }),
+      );
 
       const result = detectTailwindVersion("/project");
 
@@ -116,9 +135,11 @@ describe("tailwind/version/detection", () => {
 
     it("handles version with prerelease tags", () => {
       mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        dependencies: { tailwindcss: "4.0.0-beta.1" },
-      }));
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          dependencies: { tailwindcss: "4.0.0-beta.1" },
+        }),
+      );
 
       const result = detectTailwindVersion("/project");
 

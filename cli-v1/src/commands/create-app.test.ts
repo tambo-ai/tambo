@@ -4,7 +4,14 @@
 
 import fs from "fs";
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -32,7 +39,8 @@ jest.unstable_mockModule("../utils/package-manager.js", () => ({
   validatePackageManager: mockValidatePackageManager,
 }));
 
-const mockInquirerPrompt = jest.fn<() => Promise<{ appName: string; templateKey: string }>>();
+const mockInquirerPrompt =
+  jest.fn<() => Promise<{ appName: string; templateKey: string }>>();
 jest.unstable_mockModule("inquirer", () => ({
   default: {
     prompt: mockInquirerPrompt,
@@ -71,7 +79,7 @@ describe("create-app command", () => {
           "no-install-deps": false,
           "init-git": false,
           "dry-run": false,
-        })
+        }),
       ) as unknown as CreateAppContext;
       await createApp.run?.(context);
     });
@@ -95,8 +103,8 @@ describe("create-app command", () => {
             "no-install-deps": false,
             "init-git": false,
             "dry-run": true,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -123,10 +131,10 @@ describe("create-app command", () => {
               "no-install-deps": false,
               "init-git": false,
               "dry-run": false,
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -147,10 +155,10 @@ describe("create-app command", () => {
               "no-install-deps": false,
               "init-git": false,
               "dry-run": false,
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -171,10 +179,10 @@ describe("create-app command", () => {
               "no-install-deps": false,
               "init-git": false,
               "dry-run": false,
-            })
-          )
-        )
-      )
+            }),
+          ),
+        ),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -194,8 +202,8 @@ describe("create-app command", () => {
             "no-install-deps": false,
             "init-git": false,
             "dry-run": true,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -218,8 +226,8 @@ describe("create-app command", () => {
             "no-install-deps": true,
             "init-git": false,
             "dry-run": true,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -241,8 +249,8 @@ describe("create-app command", () => {
             "no-install-deps": true,
             "init-git": true,
             "dry-run": true,
-          })
-        )
+          }),
+        ),
       );
     });
     const result = JSON.parse(output);
@@ -266,8 +274,8 @@ describe("create-app command", () => {
               "no-install-deps": true,
               "init-git": false,
               "dry-run": true,
-            })
-          )
+            }),
+          ),
         );
       });
 
@@ -286,7 +294,7 @@ describe("create-app command", () => {
             "no-install-deps": false,
             "init-git": false,
             "dry-run": false,
-          })
+          }),
         ) as unknown as CreateAppContext;
         await createApp.run?.(context);
       });
@@ -306,7 +314,7 @@ describe("create-app command", () => {
             "no-install-deps": false,
             "init-git": false,
             "dry-run": false,
-          })
+          }),
         ) as unknown as CreateAppContext;
         await createApp.run?.(context);
       });
@@ -332,8 +340,8 @@ describe("create-app command", () => {
               "no-install-deps": true,
               "init-git": false,
               "dry-run": true,
-            })
-          )
+            }),
+          ),
         );
       });
 
@@ -359,8 +367,8 @@ describe("create-app command", () => {
               "no-install-deps": false,
               "init-git": false,
               "dry-run": true,
-            })
-          )
+            }),
+          ),
         );
       });
     });
@@ -380,12 +388,11 @@ describe("create-app command", () => {
                 "no-install-deps": false,
                 "init-git": false,
                 "dry-run": false,
-              })
-            )
-          )
-        )
+              }),
+            ),
+          ),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
   });
-
 });

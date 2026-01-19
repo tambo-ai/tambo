@@ -11,7 +11,7 @@
  * See references/STYLING-GUIDE.md for conversion patterns.
  */
 
-import { z } from "zod"
+import { z } from "zod";
 // Uncomment for AI-updateable state:
 // import { useTamboComponentState } from "@tambo-ai/react"
 
@@ -37,20 +37,20 @@ export const myComponentSchema = z.object({
         id: z.string(),
         label: z.string(),
         value: z.number().optional(),
-      })
+      }),
     )
     .describe("List of items to display"),
 
   // Optional fields
   subtitle: z.string().optional().describe("Secondary text below title"),
   showBorder: z.boolean().default(true).describe("Whether to show border"),
-})
+});
 
 // =============================================================================
 // TYPE
 // =============================================================================
 
-type MyComponentProps = z.infer<typeof myComponentSchema>
+type MyComponentProps = z.infer<typeof myComponentSchema>;
 
 // =============================================================================
 // COMPONENT
@@ -67,7 +67,7 @@ export function MyComponent({
     default: "bg-card",
     outline: "bg-transparent border-2",
     ghost: "bg-transparent",
-  }
+  };
 
   return (
     <div
@@ -106,7 +106,7 @@ export function MyComponent({
         <p className="text-sm italic text-muted-foreground">No items</p>
       )}
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -126,7 +126,7 @@ export function MyComponentSkeleton() {
         <div className="h-4 w-5/6 rounded bg-muted" />
       </div>
     </div>
-  )
+  );
 }
 
 // =============================================================================

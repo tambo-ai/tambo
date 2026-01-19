@@ -1,7 +1,7 @@
 ---
 name: review-agent-component
 description: Review a component for generative UI best practices - scaling, schema, streaming, accessibility
-argument-hint: {file path}
+argument-hint: { file path }
 ---
 
 # /review-agent-component {file}
@@ -19,6 +19,7 @@ Review a component to ensure it follows generative UI best practices.
 Components render inside chat messages. Verify:
 
 - [ ] **Max-width constraint** - Won't stretch full viewport
+
   ```tsx
   // Good
   <div className="max-w-md">
@@ -30,6 +31,7 @@ Components render inside chat messages. Verify:
 - [ ] **Responsive at small sizes** - Works at 300px width
 - [ ] **No fixed heights** that break with variable content
 - [ ] **Text truncation** for long content
+
   ```tsx
   <p className="truncate">
   ```
@@ -42,37 +44,41 @@ Components render inside chat messages. Verify:
 ### 2. Schema Design
 
 - [ ] **Zod schema exists** with exported name
+
   ```tsx
   export const myComponentSchema = z.object({...})
   ```
 
 - [ ] **`.describe()` on ALL fields** - AI needs this
+
   ```tsx
   // Good
-  title: z.string().describe("Main heading text")
+  title: z.string().describe("Main heading text");
 
   // Bad
-  title: z.string()
+  title: z.string();
   ```
 
 - [ ] **Proper defaults** for optional fields
+
   ```tsx
-  showIcon: z.boolean().default(true).describe("...")
+  showIcon: z.boolean().default(true).describe("...");
   ```
 
 - [ ] **Enums over strings** where possible
+
   ```tsx
   // Good
-  status: z.enum(["active", "pending", "done"])
+  status: z.enum(["active", "pending", "done"]);
 
   // Avoid
-  status: z.string()
+  status: z.string();
   ```
 
 - [ ] **Shallow nesting** - Max 2 levels deep
 - [ ] **Types derived from schema**
   ```tsx
-  type Props = z.infer<typeof myComponentSchema>
+  type Props = z.infer<typeof myComponentSchema>;
   ```
 
 ### 3. Streaming Support
@@ -80,11 +86,13 @@ Components render inside chat messages. Verify:
 For components with `useTamboComponentState`:
 
 - [ ] **Unique key** for state
+
   ```tsx
-  const [data, setData] = useTamboComponentState("unique-key", initial)
+  const [data, setData] = useTamboComponentState("unique-key", initial);
   ```
 
 - [ ] **Loading indicator** when `isPending`
+
   ```tsx
   const [data, setData, { isPending }] = useTamboComponentState(...)
   {isPending && <Spinner />}
@@ -95,18 +103,22 @@ For components with `useTamboComponentState`:
 For all components:
 
 - [ ] **Loading skeleton exists**
+
   ```tsx
   export function MyComponentSkeleton() {...}
   ```
 
 - [ ] **Skeleton registered**
   ```tsx
-  { loadingComponent: MyComponentSkeleton }
+  {
+    loadingComponent: MyComponentSkeleton;
+  }
   ```
 
 ### 4. Accessibility
 
 - [ ] **Semantic HTML** - Uses proper elements
+
   ```tsx
   // Good
   <button>, <nav>, <article>, <main>
@@ -116,6 +128,7 @@ For all components:
   ```
 
 - [ ] **ARIA labels** for icon buttons
+
   ```tsx
   <button aria-label="Close dialog">
     <XIcon />
@@ -129,6 +142,7 @@ For all components:
 ### 5. Error Handling
 
 - [ ] **Handles undefined props** gracefully
+
   ```tsx
   // Good
   {items?.map(...)}
@@ -138,25 +152,31 @@ For all components:
   ```
 
 - [ ] **Empty states** for no data
+
   ```tsx
-  {items.length === 0 && <EmptyState />}
+  {
+    items.length === 0 && <EmptyState />;
+  }
   ```
 
 - [ ] **Fallback values** for display
   ```tsx
-  {title || "Untitled"}
+  {
+    title || "Untitled";
+  }
   ```
 
 ### 6. Registration
 
 - [ ] **Registered in tambo.ts**
 - [ ] **Description has trigger words**
+
   ```tsx
   // Good
-  description: "Shows weather for a location. Use when user asks about weather, forecast, temperature."
+  description: "Shows weather for a location. Use when user asks about weather, forecast, temperature.";
 
   // Bad
-  description: "A weather component."
+  description: "A weather component.";
   ```
 
 - [ ] **Description matches behavior**
@@ -186,20 +206,21 @@ After review, report:
 For common issues, suggest fixes:
 
 **Missing descriptions:**
+
 ```tsx
 // Add .describe() to these fields:
-title: z.string().describe("...")
+title: z.string().describe("...");
 ```
 
 **No max-width:**
+
 ```tsx
 // Wrap in constrained container:
-<div className="max-w-md">
-  {/* existing content */}
-</div>
+<div className="max-w-md">{/* existing content */}</div>
 ```
 
 **No loading skeleton:**
+
 ```tsx
 // Add skeleton component:
 export function MyComponentSkeleton() {
@@ -207,6 +228,6 @@ export function MyComponentSkeleton() {
     <div className="animate-pulse">
       {/* Match structure of real component */}
     </div>
-  )
+  );
 }
 ```

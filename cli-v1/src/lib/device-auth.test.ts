@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockOraStart = jest.fn();
 const mockOraSucceed = jest.fn();
@@ -23,7 +30,8 @@ jest.unstable_mockModule("clipboardy", () => ({
   },
 }));
 
-const mockOpen = jest.fn<(url: string, opts: { wait: boolean }) => Promise<void>>();
+const mockOpen =
+  jest.fn<(url: string, opts: { wait: boolean }) => Promise<void>>();
 jest.unstable_mockModule("open", () => ({
   default: mockOpen,
 }));
@@ -273,7 +281,9 @@ describe("device-auth", () => {
         new MockApiError("Unauthorized", "UNAUTHORIZED", 401),
       );
 
-      await expect(runDeviceAuthFlow()).rejects.toThrow(/Authentication failed/);
+      await expect(runDeviceAuthFlow()).rejects.toThrow(
+        /Authentication failed/,
+      );
     }, 10000);
 
     it("throws on user info fetch failure", async () => {
@@ -291,7 +301,9 @@ describe("device-auth", () => {
       });
       mockApiUserGetUser.mockRejectedValue(new Error("User fetch failed"));
 
-      await expect(runDeviceAuthFlow()).rejects.toThrow(/Failed to fetch user info/);
+      await expect(runDeviceAuthFlow()).rejects.toThrow(
+        /Failed to fetch user info/,
+      );
     }, 10000);
   });
 

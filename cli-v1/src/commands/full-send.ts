@@ -22,7 +22,7 @@ export const fullSend = defineCommand({
     if (!context.args.json) {
       console.log(
         chalk.yellow("⚠️  DEPRECATED:") +
-          " 'full-send' is deprecated. Please use 'tambov1 init' instead.\n"
+          " 'full-send' is deprecated. Please use 'tambov1 init' instead.\n",
       );
     }
 

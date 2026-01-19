@@ -15,7 +15,7 @@ describe("getSafeErrorMessage", () => {
 
   it("redacts unix-style paths in error messages", () => {
     const message = getSafeErrorMessage(
-      new Error("Failed at /Users/test/project/src/index.ts:12:3")
+      new Error("Failed at /Users/test/project/src/index.ts:12:3"),
     );
 
     expect(message).toBe("Failed at [path]/index.ts:12:3");
@@ -23,7 +23,7 @@ describe("getSafeErrorMessage", () => {
 
   it("redacts windows-style paths in error messages", () => {
     const message = getSafeErrorMessage(
-      new Error("Failed at C:\\Users\\test\\project\\src\\index.ts:12:3")
+      new Error("Failed at C:\\Users\\test\\project\\src\\index.ts:12:3"),
     );
 
     expect(message).toBe("Failed at [path]/index.ts:12:3");

@@ -7,10 +7,10 @@ Give AI additional context to improve responses and component generation.
 Attach data to messages so AI has relevant context:
 
 ```tsx
-import { useTambo } from "@tambo-ai/react"
+import { useTambo } from "@tambo-ai/react";
 
 function ChatWithContext() {
-  const { sendMessage, attachContext } = useTambo()
+  const { sendMessage, attachContext } = useTambo();
 
   const handleSendWithContext = async (message: string) => {
     // Attach current page data
@@ -21,10 +21,10 @@ function ChatWithContext() {
         selectedItems: getSelectedItems(),
         userPreferences: getUserPrefs(),
       },
-    })
+    });
 
-    await sendMessage(message)
-  }
+    await sendMessage(message);
+  };
 }
 ```
 
@@ -39,7 +39,7 @@ const tamboConfig = {
     appVersion: "2.1.0",
     features: ["analytics", "reports", "exports"],
   },
-}
+};
 ```
 
 ### Dynamic Context (Per-Message)
@@ -49,7 +49,7 @@ const tamboConfig = {
 attachContext({
   type: "selection",
   data: { selectedRows: table.getSelectedRows() },
-})
+});
 ```
 
 ### User Context
@@ -63,7 +63,7 @@ attachContext({
     role: user.role,
     permissions: user.permissions,
   },
-})
+});
 ```
 
 ## Custom Context Helpers
@@ -83,7 +83,7 @@ export function getPageContext() {
         height: window.innerHeight,
       },
     },
-  }
+  };
 }
 
 export function getSelectionContext(selection: Selection) {
@@ -94,15 +94,15 @@ export function getSelectionContext(selection: Selection) {
       items: selection.items.slice(0, 10), // Limit for token efficiency
       hasMore: selection.items.length > 10,
     },
-  }
+  };
 }
 ```
 
 Usage:
 
 ```tsx
-attachContext(getPageContext())
-attachContext(getSelectionContext(currentSelection))
+attachContext(getPageContext());
+attachContext(getSelectionContext(currentSelection));
 ```
 
 ## Image Attachments
@@ -110,27 +110,27 @@ attachContext(getSelectionContext(currentSelection))
 Attach images for AI to analyze:
 
 ```tsx
-const { attachImage } = useTambo()
+const { attachImage } = useTambo();
 
 // From file input
 const handleFileSelect = (file: File) => {
   attachImage({
     file,
     description: "User uploaded image",
-  })
-}
+  });
+};
 
 // From URL
 attachImage({
   url: "https://example.com/chart.png",
   description: "Current sales chart",
-})
+});
 
 // From canvas/screenshot
 attachImage({
   dataUrl: canvas.toDataURL(),
   description: "Current diagram state",
-})
+});
 ```
 
 ## Best Practices
@@ -146,13 +146,13 @@ attachContext({
     dateRange: "last-30-days",
     filters: activeFilters,
   },
-})
+});
 
 // Bad - too much irrelevant data
 attachContext({
   type: "everything",
   data: entireAppState, // Don't dump entire state
-})
+});
 ```
 
 ### 2. Limit Token Usage
@@ -160,25 +160,25 @@ attachContext({
 ```tsx
 // Truncate large data
 const context = {
-  items: items.slice(0, 20),       // Limit array size
-  summary: text.slice(0, 500),     // Limit text length
-  hasMore: items.length > 20,      // Indicate truncation
-}
+  items: items.slice(0, 20), // Limit array size
+  summary: text.slice(0, 500), // Limit text length
+  hasMore: items.length > 20, // Indicate truncation
+};
 ```
 
 ### 3. Use Types for Structure
 
 ```tsx
 interface DashboardContext {
-  type: "dashboard"
+  type: "dashboard";
   data: {
-    currentView: "overview" | "detail" | "comparison"
-    selectedMetrics: string[]
-    dateRange: { start: string; end: string }
-  }
+    currentView: "overview" | "detail" | "comparison";
+    selectedMetrics: string[];
+    dateRange: { start: string; end: string };
+  };
 }
 
-attachContext(dashboardContext satisfies DashboardContext)
+attachContext(dashboardContext satisfies DashboardContext);
 ```
 
 ## Component State as Context
@@ -186,22 +186,18 @@ attachContext(dashboardContext satisfies DashboardContext)
 Components can expose state to context for follow-ups:
 
 ```tsx
-import { useTamboComponentContext } from "@tambo-ai/react"
+import { useTamboComponentContext } from "@tambo-ai/react";
 
 export function DataTable({ data, columns }: DataTableProps) {
-  const [selectedRows, setSelectedRows] = useState<Row[]>([])
+  const [selectedRows, setSelectedRows] = useState<Row[]>([]);
 
   // Expose selection to AI context
   useTamboComponentContext("data-table-selection", {
     selectedCount: selectedRows.length,
     selectedIds: selectedRows.map((r) => r.id),
-  })
+  });
 
-  return (
-    <table>
-      {/* ... */}
-    </table>
-  )
+  return <table>{/* ... */}</table>;
 }
 ```
 
@@ -226,7 +222,7 @@ const tamboConfig = {
         Current date: ${new Date().toISOString()}`,
     },
   ],
-}
+};
 ```
 
 ## Context in Component Descriptions

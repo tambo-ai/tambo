@@ -29,14 +29,16 @@ export interface ProjectValidatableResult {
  */
 export function requirePackageJson(
   args: { json: boolean },
-  result: ProjectValidatableResult
+  result: ProjectValidatableResult,
 ): boolean {
   if (!fs.existsSync("package.json")) {
     result.errors.push("No package.json found");
     if (args.json) {
       out.json(result);
     } else {
-      out.error("No package.json found. Run this command in your project root.");
+      out.error(
+        "No package.json found. Run this command in your project root.",
+      );
     }
     return false;
   }
@@ -60,7 +62,7 @@ export function requirePackageJson(
 export function requireValidPackageJson(
   args: { json: boolean },
   result: ProjectValidatableResult,
-  explanation?: string[]
+  explanation?: string[],
 ): boolean {
   try {
     JSON.parse(fs.readFileSync("package.json", "utf8"));

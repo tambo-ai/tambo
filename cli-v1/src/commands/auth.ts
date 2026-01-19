@@ -97,8 +97,14 @@ const status = defineCommand({
     if (!hasToken || !isTokenValid()) {
       result.authenticated = false;
       result.suggestedCommands = [
-        { command: "tambov1 auth login", description: "Authenticate via browser" },
-        { command: "tambov1 init", description: "Set up Tambo (will prompt for auth)" },
+        {
+          command: "tambov1 auth login",
+          description: "Authenticate via browser",
+        },
+        {
+          command: "tambov1 init",
+          description: "Set up Tambo (will prompt for auth)",
+        },
       ];
       if (!args.json) {
         out.subheader("STATUS: NOT AUTHENTICATED");
@@ -127,7 +133,10 @@ const status = defineCommand({
     if (!isValid) {
       result.authenticated = false;
       result.suggestedCommands = [
-        { command: "tambov1 auth login", description: "Authenticate via browser" },
+        {
+          command: "tambov1 auth login",
+          description: "Authenticate via browser",
+        },
       ];
       if (!args.json) {
         out.subheader("STATUS: SESSION INVALID");
@@ -153,8 +162,14 @@ const status = defineCommand({
 
     result.suggestedCommands = [
       { command: "tambov1 init", description: "Set up Tambo in your project" },
-      { command: "tambov1 auth sessions", description: "View active CLI sessions" },
-      { command: "tambov1 auth logout", description: "Clear stored credentials" },
+      {
+        command: "tambov1 auth sessions",
+        description: "View active CLI sessions",
+      },
+      {
+        command: "tambov1 auth logout",
+        description: "Clear stored credentials",
+      },
     ];
 
     if (args.json) {
@@ -174,7 +189,10 @@ const status = defineCommand({
 
     if (tokenData?.expiresAt) {
       const expiresAt = new Date(tokenData.expiresAt);
-      out.keyValue("Expires", formatDistanceToNow(expiresAt, { addSuffix: true }));
+      out.keyValue(
+        "Expires",
+        formatDistanceToNow(expiresAt, { addSuffix: true }),
+      );
     }
 
     out.keyValue("Token storage", result.tokenPath);
@@ -221,8 +239,14 @@ const login = defineCommand({
       result.success = true;
       result.authenticated = true;
       result.suggestedCommands = [
-        { command: "tambov1 auth logout", description: "Log out first to re-authenticate" },
-        { command: "tambov1 init", description: "Set up Tambo in your project" },
+        {
+          command: "tambov1 auth logout",
+          description: "Log out first to re-authenticate",
+        },
+        {
+          command: "tambov1 init",
+          description: "Set up Tambo in your project",
+        },
       ];
       if (user) {
         result.user = {
@@ -232,7 +256,9 @@ const login = defineCommand({
         };
       }
       if (!args.json) {
-        out.warning(`Already authenticated${user?.email ? ` as ${user.email}` : ""}.`);
+        out.warning(
+          `Already authenticated${user?.email ? ` as ${user.email}` : ""}.`,
+        );
         out.explanation([
           "To re-authenticate, first run: tambov1 auth logout",
           "Then run: tambov1 auth login",
@@ -256,13 +282,21 @@ const login = defineCommand({
         result.userCode = initResponse.userCode;
         result.expiresIn = initResponse.expiresIn;
         result.suggestedCommands = [
-          { command: "tambov1 auth status", description: "Check if authentication completed" },
+          {
+            command: "tambov1 auth status",
+            description: "Check if authentication completed",
+          },
         ];
 
         if (!args.json) {
           out.subheader("DEVICE AUTHENTICATION INITIATED");
-          out.info("Authentication started but not waiting for completion (--no-wait mode).");
-          out.keyValue("Verification URL", initResponse.verificationUriComplete);
+          out.info(
+            "Authentication started but not waiting for completion (--no-wait mode).",
+          );
+          out.keyValue(
+            "Verification URL",
+            initResponse.verificationUriComplete,
+          );
           out.keyValue("User Code", initResponse.userCode);
           out.keyValue("Expires In", `${initResponse.expiresIn} seconds`);
           out.explanation([
@@ -308,8 +342,14 @@ const login = defineCommand({
         name: authResult.user.name ?? undefined,
       };
       result.suggestedCommands = [
-        { command: "tambov1 init", description: "Set up Tambo in your project" },
-        { command: "tambov1 auth status", description: "Check authentication status" },
+        {
+          command: "tambov1 init",
+          description: "Set up Tambo in your project",
+        },
+        {
+          command: "tambov1 auth status",
+          description: "Check authentication status",
+        },
       ];
 
       if (!args.json) {
@@ -325,7 +365,10 @@ const login = defineCommand({
       const safeMessage = getSafeErrorMessage(error);
       result.errors.push(safeMessage);
       result.suggestedCommands = [
-        { command: "tambov1 auth login", description: "Try authenticating again" },
+        {
+          command: "tambov1 auth login",
+          description: "Try authenticating again",
+        },
       ];
       if (!args.json) {
         out.error("Authentication failed");
@@ -367,7 +410,10 @@ const logout = defineCommand({
     }
 
     result.suggestedCommands = [
-      { command: "tambov1 auth login", description: "Authenticate via browser" },
+      {
+        command: "tambov1 auth login",
+        description: "Authenticate via browser",
+      },
     ];
 
     if (!hasStoredToken()) {
@@ -425,7 +471,10 @@ const sessions = defineCommand({
 
     if (!hasStoredToken() || !isTokenValid()) {
       result.suggestedCommands = [
-        { command: "tambov1 auth login", description: "Authenticate via browser" },
+        {
+          command: "tambov1 auth login",
+          description: "Authenticate via browser",
+        },
       ];
       if (!args.json) {
         out.warning("Not authenticated.");
@@ -440,7 +489,8 @@ const sessions = defineCommand({
 
     result.authenticated = true;
 
-    const spinner = args.json || !isTTY() ? null : ora("Fetching sessions...").start();
+    const spinner =
+      args.json || !isTTY() ? null : ora("Fetching sessions...").start();
 
     try {
       const sessionList = await api.deviceAuth.listSessions.query();
@@ -473,12 +523,18 @@ const sessions = defineCommand({
 
       sessionList.forEach((session, index) => {
         const createdAt = new Date(session.createdAt);
-        const expiresAt = session.expiresAt ? new Date(session.expiresAt) : null;
+        const expiresAt = session.expiresAt
+          ? new Date(session.expiresAt)
+          : null;
 
         console.log(chalk.bold(`  Session ${index + 1}:`));
         console.log(`    ID: ${session.id.slice(0, 16)}...`);
-        console.log(`    Created: ${formatDistanceToNow(createdAt, { addSuffix: true })}`);
-        console.log(`    Expires: ${expiresAt ? formatDistanceToNow(expiresAt, { addSuffix: true }) : "Never"}`);
+        console.log(
+          `    Created: ${formatDistanceToNow(createdAt, { addSuffix: true })}`,
+        );
+        console.log(
+          `    Expires: ${expiresAt ? formatDistanceToNow(expiresAt, { addSuffix: true }) : "Never"}`,
+        );
         console.log();
       });
 
@@ -499,7 +555,10 @@ const sessions = defineCommand({
         const safeMessage = getSafeErrorMessage(error);
         result.errors.push(safeMessage);
         result.suggestedCommands = [
-          { command: "tambov1 auth status", description: "Check authentication status" },
+          {
+            command: "tambov1 auth status",
+            description: "Check authentication status",
+          },
         ];
         if (!args.json) {
           out.error(`Error: ${safeMessage}`);
@@ -544,7 +603,10 @@ const revokeSession = defineCommand({
 
     if (!hasStoredToken() || !isTokenValid()) {
       result.suggestedCommands = [
-        { command: "tambov1 auth login", description: "Authenticate via browser" },
+        {
+          command: "tambov1 auth login",
+          description: "Authenticate via browser",
+        },
       ];
       if (!args.json) {
         out.warning("Not authenticated.");
@@ -570,7 +632,9 @@ const revokeSession = defineCommand({
         out.info("In non-interactive mode, use --all to revoke all sessions.");
         out.nextCommands(result.suggestedCommands);
       } else {
-        result.errors.push("Use --all flag to revoke sessions in non-interactive mode");
+        result.errors.push(
+          "Use --all flag to revoke sessions in non-interactive mode",
+        );
         out.json(result);
       }
       return;
@@ -578,10 +642,13 @@ const revokeSession = defineCommand({
 
     if (!args.json) {
       out.warning("Revoking ALL sessions including this one.");
-      out.explanation(["You will need to re-authenticate after this operation."]);
+      out.explanation([
+        "You will need to re-authenticate after this operation.",
+      ]);
     }
 
-    const spinner = args.json || !isTTY() ? null : ora("Revoking all sessions...").start();
+    const spinner =
+      args.json || !isTTY() ? null : ora("Revoking all sessions...").start();
 
     try {
       const revokeResult = await api.deviceAuth.revokeAllSessions.mutate();
@@ -589,7 +656,10 @@ const revokeSession = defineCommand({
 
       result.success = true;
       result.suggestedCommands = [
-        { command: "tambov1 auth login", description: "Authenticate via browser" },
+        {
+          command: "tambov1 auth login",
+          description: "Authenticate via browser",
+        },
       ];
 
       if (revokeResult.revokedCount === 0) {
@@ -614,7 +684,10 @@ const revokeSession = defineCommand({
       const safeMessage = getSafeErrorMessage(error);
       result.errors.push(safeMessage);
       result.suggestedCommands = [
-        { command: "tambov1 auth sessions", description: "Check active sessions" },
+        {
+          command: "tambov1 auth sessions",
+          description: "Check active sessions",
+        },
       ];
 
       if (!args.json) {

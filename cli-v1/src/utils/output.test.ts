@@ -4,7 +4,14 @@
 
 import chalk from "chalk";
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 const THICK_SEPARATOR = "═".repeat(60);
 const SEPARATOR = "─".repeat(60);
@@ -65,13 +72,13 @@ describe("output helpers (TTY)", () => {
 
     expect(logSpy).toHaveBeenCalled();
     expect(normalizeOutput(logSpy.mock.calls[1][0])).toBe(
-      normalizeOutput(chalk.bold.cyan(THICK_SEPARATOR))
+      normalizeOutput(chalk.bold.cyan(THICK_SEPARATOR)),
     );
     expect(normalizeOutput(logSpy.mock.calls[2][0])).toBe(
-      normalizeOutput(chalk.bold.cyan("  AUTH STATUS"))
+      normalizeOutput(chalk.bold.cyan("  AUTH STATUS")),
     );
     expect(normalizeOutput(logSpy.mock.calls[3][0])).toBe(
-      normalizeOutput(chalk.bold.cyan(THICK_SEPARATOR))
+      normalizeOutput(chalk.bold.cyan(THICK_SEPARATOR)),
     );
   });
 
@@ -81,10 +88,10 @@ describe("output helpers (TTY)", () => {
     subheader("Details");
 
     expect(normalizeOutput(logSpy.mock.calls[1][0])).toBe(
-      normalizeOutput(chalk.bold.yellow("▶ Details"))
+      normalizeOutput(chalk.bold.yellow("▶ Details")),
     );
     expect(normalizeOutput(logSpy.mock.calls[2][0])).toBe(
-      normalizeOutput(chalk.dim(SEPARATOR))
+      normalizeOutput(chalk.dim(SEPARATOR)),
     );
   });
 
@@ -95,10 +102,10 @@ describe("output helpers (TTY)", () => {
     keyValue("API key", undefined);
 
     expect(normalizeOutput(logSpy.mock.calls[0][0])).toBe(
-      normalizeOutput(`  ${chalk.bold("Token:")} abc`)
+      normalizeOutput(`  ${chalk.bold("Token:")} abc`),
     );
     expect(normalizeOutput(logSpy.mock.calls[1][0])).toBe(
-      normalizeOutput(`  ${chalk.bold("API key:")} ${chalk.dim("(not set)")}`)
+      normalizeOutput(`  ${chalk.bold("API key:")} ${chalk.dim("(not set)")}`),
     );
   });
 
@@ -111,16 +118,16 @@ describe("output helpers (TTY)", () => {
     error("Oops");
 
     expect(normalizeOutput(logSpy.mock.calls[0][0])).toBe(
-      normalizeOutput(chalk.green("✓ Saved"))
+      normalizeOutput(chalk.green("✓ Saved")),
     );
     expect(normalizeOutput(logSpy.mock.calls[1][0])).toBe(
-      normalizeOutput(chalk.blue("ℹ Info"))
+      normalizeOutput(chalk.blue("ℹ Info")),
     );
     expect(normalizeOutput(logSpy.mock.calls[2][0])).toBe(
-      normalizeOutput(chalk.yellow("⚠ Warn"))
+      normalizeOutput(chalk.yellow("⚠ Warn")),
     );
     expect(normalizeOutput(logSpy.mock.calls[3][0])).toBe(
-      normalizeOutput(chalk.red("✗ Oops"))
+      normalizeOutput(chalk.red("✗ Oops")),
     );
   });
 
@@ -130,10 +137,10 @@ describe("output helpers (TTY)", () => {
     explanation(["First", "Second"]);
 
     expect(normalizeOutput(logSpy.mock.calls[0][0])).toBe(
-      normalizeOutput(chalk.dim("  │ First"))
+      normalizeOutput(chalk.dim("  │ First")),
     );
     expect(normalizeOutput(logSpy.mock.calls[1][0])).toBe(
-      normalizeOutput(chalk.dim("  │ Second"))
+      normalizeOutput(chalk.dim("  │ Second")),
     );
   });
 
@@ -150,16 +157,18 @@ describe("output helpers (TTY)", () => {
     ]);
 
     expect(normalizeOutput(logSpy.mock.calls[1][0])).toBe(
-      normalizeOutput(chalk.bold.yellow("▶ SUGGESTED NEXT COMMANDS"))
+      normalizeOutput(chalk.bold.yellow("▶ SUGGESTED NEXT COMMANDS")),
     );
     expect(
-      logSpy.mock.calls.map((call) => normalizeOutput(String(call[0])))
+      logSpy.mock.calls.map((call) => normalizeOutput(String(call[0]))),
     ).toEqual(
       expect.arrayContaining([
         normalizeOutput(chalk.bold.white("  1. Init")),
         normalizeOutput(chalk.cyan("     $ tambov1 init")),
-        normalizeOutput(chalk.dim("     Example: tambov1 init --skip-agent-docs")),
-      ])
+        normalizeOutput(
+          chalk.dim("     Example: tambov1 init --skip-agent-docs"),
+        ),
+      ]),
     );
   });
 
@@ -182,16 +191,16 @@ describe("output helpers (TTY)", () => {
     });
 
     expect(normalizeOutput(logSpy.mock.calls[1][0])).toBe(
-      normalizeOutput(chalk.bold.yellow("▶ OPERATION SUMMARY"))
+      normalizeOutput(chalk.bold.yellow("▶ OPERATION SUMMARY")),
     );
     expect(
-      logSpy.mock.calls.map((call) => normalizeOutput(String(call[0])))
+      logSpy.mock.calls.map((call) => normalizeOutput(String(call[0]))),
     ).toEqual(
       expect.arrayContaining([
         normalizeOutput(`  ${chalk.bold("Operation:")} install`),
         normalizeOutput(`  ${chalk.bold("Status:")} ${chalk.green("SUCCESS")}`),
         "    created: 2",
-      ])
+      ]),
     );
   });
 
@@ -205,21 +214,23 @@ describe("output helpers (TTY)", () => {
     });
 
     expect(
-      logSpy.mock.calls.map((call) => normalizeOutput(String(call[0])))
+      logSpy.mock.calls.map((call) => normalizeOutput(String(call[0]))),
     ).toEqual(
       expect.arrayContaining([
         normalizeOutput(chalk.green("  Created:")),
         normalizeOutput(chalk.yellow("  Modified:")),
         normalizeOutput(chalk.red("  Deleted:")),
-      ])
+      ]),
     );
 
     logSpy.mockClear();
 
     fileChanges({ created: [], modified: [], deleted: [] });
     expect(
-      logSpy.mock.calls.map((call) => normalizeOutput(String(call[0])))
-    ).toEqual(expect.arrayContaining([normalizeOutput(chalk.dim("  No file changes"))]));
+      logSpy.mock.calls.map((call) => normalizeOutput(String(call[0]))),
+    ).toEqual(
+      expect.arrayContaining([normalizeOutput(chalk.dim("  No file changes"))]),
+    );
   });
 });
 
@@ -253,7 +264,7 @@ describe("output helpers (non-TTY)", () => {
         expect.arrayContaining(["> Section"]),
         expect.arrayContaining(["OK Saved"]),
         expect.arrayContaining(["WARN Heads up"]),
-      ])
+      ]),
     );
   });
 });

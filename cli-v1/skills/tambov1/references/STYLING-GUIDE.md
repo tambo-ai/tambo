@@ -5,6 +5,7 @@ Tambo components use Tailwind CSS by default. This guide covers using Tailwind o
 ## Default: Tailwind CSS (Recommended)
 
 Tambo's registry components are built with Tailwind. Benefits:
+
 - Consistent with shadcn/ui ecosystem
 - Utility-first scales well in chat contexts
 - Easy to customize via config
@@ -13,6 +14,7 @@ Tambo's registry components are built with Tailwind. Benefits:
 ### Check if Tailwind is Installed
 
 **AGENT:** Detect by reading files (don't use bash):
+
 - Read `package.json` → look for `tailwindcss` in dependencies/devDependencies
 - Glob for `tailwind.config.*` in project root
 
@@ -24,6 +26,7 @@ npx tailwindcss init -p
 ```
 
 Configure `tailwind.config.js`:
+
 ```js
 module.exports = {
   content: [
@@ -34,10 +37,11 @@ module.exports = {
     extend: {},
   },
   plugins: [],
-}
+};
 ```
 
 Add to your CSS:
+
 ```css
 @tailwind base;
 @tailwind components;
@@ -52,14 +56,14 @@ Tambo components can be adapted to any CSS approach. The core functionality (sch
 
 **AGENT:** During setup, detect by reading files:
 
-| How to Detect | Styling System |
-|---------------|----------------|
-| Glob for `*.module.css` files | CSS Modules |
+| How to Detect                               | Styling System    |
+| ------------------------------------------- | ----------------- |
+| Glob for `*.module.css` files               | CSS Modules       |
 | Read `package.json` for `styled-components` | styled-components |
-| Read `package.json` for `@emotion/styled` | Emotion |
-| Glob for `*.scss` or `*.sass` files | Sass/SCSS |
-| Read `package.json` for `sass` | Sass/SCSS |
-| None of the above | Consider Tailwind |
+| Read `package.json` for `@emotion/styled`   | Emotion           |
+| Glob for `*.scss` or `*.sass` files         | Sass/SCSS         |
+| Read `package.json` for `sass`              | Sass/SCSS         |
+| None of the above                           | Consider Tailwind |
 
 ### Adapting Components
 
@@ -72,6 +76,7 @@ When installing Tambo components with a non-Tailwind system:
 ### Conversion Examples
 
 **Original (Tailwind):**
+
 ```tsx
 <div className="max-w-md p-4 rounded-lg border bg-card">
   <h3 className="text-lg font-semibold">{title}</h3>
@@ -80,13 +85,14 @@ When installing Tambo components with a non-Tailwind system:
 ```
 
 **CSS Modules:**
+
 ```tsx
-import styles from './MyComponent.module.css'
+import styles from "./MyComponent.module.css";
 
 <div className={styles.container}>
   <h3 className={styles.title}>{title}</h3>
   <p className={styles.subtitle}>{subtitle}</p>
-</div>
+</div>;
 ```
 
 ```css
@@ -109,6 +115,7 @@ import styles from './MyComponent.module.css'
 ```
 
 **styled-components:**
+
 ```tsx
 import styled from 'styled-components'
 
@@ -137,6 +144,7 @@ const Subtitle = styled.p`
 ```
 
 **Vanilla CSS:**
+
 ```tsx
 <div className="tambo-card">
   <h3 className="tambo-card__title">{title}</h3>
@@ -164,25 +172,25 @@ const Subtitle = styled.p`
 
 ## Common Tailwind → CSS Mappings
 
-| Tailwind | CSS |
-|----------|-----|
-| `p-4` | `padding: 1rem` |
-| `m-2` | `margin: 0.5rem` |
-| `rounded-lg` | `border-radius: 0.5rem` |
-| `border` | `border: 1px solid` |
-| `text-sm` | `font-size: 0.875rem` |
-| `text-lg` | `font-size: 1.125rem` |
-| `font-semibold` | `font-weight: 600` |
-| `font-bold` | `font-weight: 700` |
-| `max-w-md` | `max-width: 28rem` |
-| `max-w-sm` | `max-width: 24rem` |
-| `space-y-2` | `> * + * { margin-top: 0.5rem }` |
-| `flex` | `display: flex` |
-| `items-center` | `align-items: center` |
-| `justify-between` | `justify-content: space-between` |
-| `gap-2` | `gap: 0.5rem` |
-| `animate-pulse` | `animation: pulse 2s infinite` |
-| `bg-muted` | `background: var(--muted)` |
+| Tailwind                | CSS                              |
+| ----------------------- | -------------------------------- |
+| `p-4`                   | `padding: 1rem`                  |
+| `m-2`                   | `margin: 0.5rem`                 |
+| `rounded-lg`            | `border-radius: 0.5rem`          |
+| `border`                | `border: 1px solid`              |
+| `text-sm`               | `font-size: 0.875rem`            |
+| `text-lg`               | `font-size: 1.125rem`            |
+| `font-semibold`         | `font-weight: 600`               |
+| `font-bold`             | `font-weight: 700`               |
+| `max-w-md`              | `max-width: 28rem`               |
+| `max-w-sm`              | `max-width: 24rem`               |
+| `space-y-2`             | `> * + * { margin-top: 0.5rem }` |
+| `flex`                  | `display: flex`                  |
+| `items-center`          | `align-items: center`            |
+| `justify-between`       | `justify-content: space-between` |
+| `gap-2`                 | `gap: 0.5rem`                    |
+| `animate-pulse`         | `animation: pulse 2s infinite`   |
+| `bg-muted`              | `background: var(--muted)`       |
 | `text-muted-foreground` | `color: var(--muted-foreground)` |
 
 ## Setup Flow Decision
@@ -214,6 +222,7 @@ Regardless of CSS system, components must:
 4. **Use semantic colors** - Support light/dark themes via CSS variables
 
 Example CSS variables for theming:
+
 ```css
 :root {
   --background: #ffffff;
@@ -242,6 +251,7 @@ When AI creates new components via `/create-agent-component`:
 - **If other system:** Generate with placeholder classes and note to convert
 
 Example output for non-Tailwind:
+
 ```tsx
 // NOTE: Replace className values with your CSS system
 // Current classes are Tailwind utilities that need conversion
@@ -256,6 +266,6 @@ export function DataCard({ title, value }: DataCardProps) {
         {title}
       </h3>
     </div>
-  )
+  );
 }
 ```

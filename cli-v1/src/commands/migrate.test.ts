@@ -2,7 +2,14 @@
  * Tests for migrate command behavior and JSON output.
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -13,10 +20,10 @@ import {
   withArgs,
 } from "../__fixtures__/test-utils.js";
 
-const mockRequirePackageJson = jest.fn<
-  (args: { json: boolean }, result: { errors: string[] }) => boolean
->();
-const mockHandleMigrate = jest.fn<(options: Record<string, unknown>) => Promise<void>>();
+const mockRequirePackageJson =
+  jest.fn<(args: { json: boolean }, result: { errors: string[] }) => boolean>();
+const mockHandleMigrate =
+  jest.fn<(options: Record<string, unknown>) => Promise<void>>();
 
 jest.unstable_mockModule("../utils/project-helpers.js", () => ({
   requirePackageJson: mockRequirePackageJson,
@@ -46,7 +53,9 @@ describe("migrate command", () => {
 
   it("runs migration in json mode", async () => {
     const output = await captureStdout(async () => {
-      await migrate.run?.(makeContext(withArgs({ json: true, "dry-run": false })));
+      await migrate.run?.(
+        makeContext(withArgs({ json: true, "dry-run": false })),
+      );
     });
     const result = JSON.parse(output);
 
@@ -56,7 +65,9 @@ describe("migrate command", () => {
 
   it("supports dry-run mode", async () => {
     const output = await captureStdout(async () => {
-      await migrate.run?.(makeContext(withArgs({ json: true, "dry-run": true })));
+      await migrate.run?.(
+        makeContext(withArgs({ json: true, "dry-run": true })),
+      );
     });
     const result = JSON.parse(output);
 
@@ -69,8 +80,8 @@ describe("migrate command", () => {
 
     await expect(
       Promise.resolve(
-        migrate.run?.(makeContext(withArgs({ json: true, "dry-run": false })))
-      )
+        migrate.run?.(makeContext(withArgs({ json: true, "dry-run": false }))),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -80,7 +91,9 @@ describe("migrate command", () => {
     setIsTTY(true);
 
     const output = await captureStdout(async () => {
-      await migrate.run?.(makeContext(withArgs({ json: true, "dry-run": false })));
+      await migrate.run?.(
+        makeContext(withArgs({ json: true, "dry-run": false })),
+      );
     });
     const result = JSON.parse(output);
 
@@ -91,7 +104,9 @@ describe("migrate command", () => {
     setIsTTY(false);
 
     const output = await captureStdout(async () => {
-      await migrate.run?.(makeContext(withArgs({ json: true, "dry-run": false })));
+      await migrate.run?.(
+        makeContext(withArgs({ json: true, "dry-run": false })),
+      );
     });
     const result = JSON.parse(output);
 
@@ -103,8 +118,8 @@ describe("migrate command", () => {
 
     await expect(
       Promise.resolve(
-        migrate.run?.(makeContext(withArgs({ json: false, "dry-run": false })))
-      )
+        migrate.run?.(makeContext(withArgs({ json: false, "dry-run": false }))),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -114,13 +129,17 @@ describe("migrate command", () => {
   describe("non-JSON output", () => {
     it("runs migration in non-JSON mode", async () => {
       await captureStdout(async () => {
-        await migrate.run?.(makeContext(withArgs({ json: false, "dry-run": false })));
+        await migrate.run?.(
+          makeContext(withArgs({ json: false, "dry-run": false })),
+        );
       });
     });
 
     it("runs dry-run in non-JSON mode", async () => {
       await captureStdout(async () => {
-        await migrate.run?.(makeContext(withArgs({ json: false, "dry-run": true })));
+        await migrate.run?.(
+          makeContext(withArgs({ json: false, "dry-run": true })),
+        );
       });
     });
 
@@ -129,8 +148,10 @@ describe("migrate command", () => {
 
       await expect(
         Promise.resolve(
-          migrate.run?.(makeContext(withArgs({ json: false, "dry-run": false })))
-        )
+          migrate.run?.(
+            makeContext(withArgs({ json: false, "dry-run": false })),
+          ),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
   });

@@ -8,7 +8,10 @@ import semver from "semver";
 import type { Config } from "tailwindcss";
 import { Project, ScriptKind } from "ts-morph";
 import { fileURLToPath } from "url";
-import { detectFramework, findOrGetGlobalsCssPath } from "../../utils/framework-detection.js";
+import {
+  detectFramework,
+  findOrGetGlobalsCssPath,
+} from "../../utils/framework-detection.js";
 import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
 import { parseConfigObject } from "./tailwind/config/parsing.js";
 import { showChangesSummary, showCssDiff } from "./tailwind/css/diff-viewer.js";
@@ -58,7 +61,9 @@ export async function setupTailwindAndGlobals(projectRoot: string) {
   // Detect framework for proper CSS path
   const framework = detectFramework();
   if (framework) {
-    console.log(`${chalk.blue("ℹ")} Detected framework: ${framework.displayName}`);
+    console.log(
+      `${chalk.blue("ℹ")} Detected framework: ${framework.displayName}`,
+    );
   }
 
   // Find existing globals.css or get the default path for this framework

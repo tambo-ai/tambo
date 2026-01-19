@@ -59,16 +59,17 @@ export function addVariables(
     for (const node of root.nodes) {
       // Insert after @import and @theme/@custom-variant at-rules
       if (node.type === "atrule") {
-        const name = (node).name;
-        if (name === "import" || name === "theme" || name === "custom-variant") {
+        const name = node.name;
+        if (
+          name === "import" ||
+          name === "theme" ||
+          name === "custom-variant"
+        ) {
           insertAfter = node;
         }
       }
       // Insert after top-level :root
-      if (
-        node.type === "rule" &&
-        (node).selector === ":root"
-      ) {
+      if (node.type === "rule" && node.selector === ":root") {
         insertAfter = node;
       }
     }
@@ -79,10 +80,7 @@ export function addVariables(
       // Fallback: insert after @import if found, otherwise at end
       let lastImport: postcss.ChildNode | null = null;
       for (const node of root.nodes) {
-        if (
-          node.type === "atrule" &&
-          (node).name === "import"
-        ) {
+        if (node.type === "atrule" && node.name === "import") {
           lastImport = node;
         }
       }

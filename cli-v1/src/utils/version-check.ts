@@ -34,7 +34,9 @@ function readCache(cachePath: string): VersionCache | null {
   }
 
   try {
-    const payload = JSON.parse(fs.readFileSync(cachePath, "utf-8")) as VersionCache;
+    const payload = JSON.parse(
+      fs.readFileSync(cachePath, "utf-8"),
+    ) as VersionCache;
     if (!payload.checkedAt || !payload.latestVersion) {
       return null;
     }
@@ -57,7 +59,7 @@ function warnIfOutdated(latestVersion: string): void {
   }
 
   out.warning(
-    `A newer version of tambov1 is available (${latestVersion} > ${currentVersion}).`
+    `A newer version of tambov1 is available (${latestVersion} > ${currentVersion}).`,
   );
   out.info("To upgrade, run: npx tambov1@latest");
 }
@@ -87,7 +89,10 @@ export async function checkLatestVersion(): Promise<void> {
       return;
     }
 
-    writeCache(cachePath, { checkedAt: new Date().toISOString(), latestVersion });
+    writeCache(cachePath, {
+      checkedAt: new Date().toISOString(),
+      latestVersion,
+    });
     warnIfOutdated(latestVersion);
   } catch {
     // Best-effort check; ignore network/cache failures.

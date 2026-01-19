@@ -54,7 +54,7 @@ export interface WriteApiKeyOptions {
  */
 export function writeApiKeyToEnv(
   apiKey: string,
-  options: WriteApiKeyOptions
+  options: WriteApiKeyOptions,
 ): WriteApiKeyResult {
   const { jsonMode, onFileCreated, onFileModified } = options;
 
@@ -82,7 +82,7 @@ export function writeApiKeyToEnv(
     // Create new env file
     fs.writeFileSync(
       targetEnvFile,
-      `# Environment Variables\n${envVarName}=${apiKey.trim()}\n`
+      `# Environment Variables\n${envVarName}=${apiKey.trim()}\n`,
     );
     result.created = true;
     onFileCreated?.(targetEnvFile);
@@ -96,10 +96,16 @@ export function writeApiKeyToEnv(
     const existingKey = findTamboApiKey(existingContent);
 
     if (existingKey && !jsonMode) {
-      out.warning(`Existing API key found (${existingKey.keyName}). Overwriting...`);
+      out.warning(
+        `Existing API key found (${existingKey.keyName}). Overwriting...`,
+      );
     }
 
-    const updatedContent = setTamboApiKey(existingContent, envVarName, apiKey.trim());
+    const updatedContent = setTamboApiKey(
+      existingContent,
+      envVarName,
+      apiKey.trim(),
+    );
     fs.writeFileSync(targetEnvFile, updatedContent);
     result.modified = true;
     onFileModified?.(targetEnvFile);

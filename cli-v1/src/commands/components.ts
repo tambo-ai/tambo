@@ -82,7 +82,11 @@ const installedCommand = defineCommand({
         const name = file.replace(".tsx", "");
         const fullPath = path.join(newPath, file);
         if (knownTamboComponents.has(name)) {
-          result.tamboComponents.push({ name, path: fullPath, location: "new" });
+          result.tamboComponents.push({
+            name,
+            path: fullPath,
+            location: "new",
+          });
         } else {
           result.customComponents.push({ name, path: fullPath });
         }
@@ -91,16 +95,26 @@ const installedCommand = defineCommand({
 
     // Scan legacy location
     if (fs.existsSync(legacyPath)) {
-      const files = fs.readdirSync(legacyPath).filter((f) => f.endsWith(".tsx"));
+      const files = fs
+        .readdirSync(legacyPath)
+        .filter((f) => f.endsWith(".tsx"));
       for (const file of files) {
         const name = file.replace(".tsx", "");
         const fullPath = path.join(legacyPath, file);
-        const alreadyFound = result.tamboComponents.some((c) => c.name === name);
+        const alreadyFound = result.tamboComponents.some(
+          (c) => c.name === name,
+        );
         if (!alreadyFound) {
           if (knownTamboComponents.has(name)) {
-            result.tamboComponents.push({ name, path: fullPath, location: "legacy" });
+            result.tamboComponents.push({
+              name,
+              path: fullPath,
+              location: "legacy",
+            });
           } else {
-            const customAlreadyFound = result.customComponents.some((c) => c.name === name);
+            const customAlreadyFound = result.customComponents.some(
+              (c) => c.name === name,
+            );
             if (!customAlreadyFound) {
               result.customComponents.push({ name, path: fullPath });
             }
@@ -122,10 +136,13 @@ const installedCommand = defineCommand({
       result.tamboComponents
         .sort((a, b) => a.name.localeCompare(b.name))
         .forEach((comp) => {
-          const locationBadge = comp.location === "legacy"
-            ? chalk.yellow(" [legacy]")
-            : chalk.green(" [tambo/]");
-          console.log(`  ${chalk.cyan("•")} ${chalk.bold(comp.name)}${locationBadge}`);
+          const locationBadge =
+            comp.location === "legacy"
+              ? chalk.yellow(" [legacy]")
+              : chalk.green(" [tambo/]");
+          console.log(
+            `  ${chalk.cyan("•")} ${chalk.bold(comp.name)}${locationBadge}`,
+          );
           if (args.prefix !== "src/components") {
             console.log(chalk.dim(`    ${comp.path}`));
           }
@@ -145,14 +162,24 @@ const installedCommand = defineCommand({
     }
 
     // Check for legacy components
-    const legacyComponents = result.tamboComponents.filter((c) => c.location === "legacy");
+    const legacyComponents = result.tamboComponents.filter(
+      (c) => c.location === "legacy",
+    );
     if (legacyComponents.length > 0) {
-      out.warning(`${legacyComponents.length} component(s) in legacy ui/ location. Run 'tambov1 migrate' to fix.`);
+      out.warning(
+        `${legacyComponents.length} component(s) in legacy ui/ location. Run 'tambov1 migrate' to fix.`,
+      );
     }
 
     out.nextCommands([
-      { command: "tambov1 components available", description: "See components you can install" },
-      { command: "tambov1 update --all", description: "Update all installed components" },
+      {
+        command: "tambov1 components available",
+        description: "See components you can install",
+      },
+      {
+        command: "tambov1 update --all",
+        description: "Update all installed components",
+      },
     ]);
   },
 });
@@ -205,7 +232,11 @@ const availableCommand = defineCommand({
     // Get installed components to mark them
     const projectRoot = process.cwd();
     const newPath = path.join(projectRoot, args.prefix, COMPONENT_SUBDIR);
-    const legacyPath = path.join(projectRoot, args.prefix, LEGACY_COMPONENT_SUBDIR);
+    const legacyPath = path.join(
+      projectRoot,
+      args.prefix,
+      LEGACY_COMPONENT_SUBDIR,
+    );
 
     const installedNames = new Set<string>();
 
@@ -241,7 +272,9 @@ const availableCommand = defineCommand({
     out.subheader(`NOT INSTALLED (${notInstalled.length})`);
     if (notInstalled.length > 0) {
       notInstalled.forEach((comp) => {
-        console.log(`  ${chalk.green("+")} ${chalk.bold(comp.name.padEnd(30))} ${chalk.dim(comp.description)}`);
+        console.log(
+          `  ${chalk.green("+")} ${chalk.bold(comp.name.padEnd(30))} ${chalk.dim(comp.description)}`,
+        );
       });
     } else {
       out.info("All components are installed!");
@@ -250,14 +283,22 @@ const availableCommand = defineCommand({
     if (installed.length > 0) {
       out.subheader(`ALREADY INSTALLED (${installed.length})`);
       installed.forEach((comp) => {
-        console.log(`  ${chalk.dim("✓")} ${chalk.dim(comp.name.padEnd(30))} ${chalk.dim(comp.description)}`);
+        console.log(
+          `  ${chalk.dim("✓")} ${chalk.dim(comp.name.padEnd(30))} ${chalk.dim(comp.description)}`,
+        );
       });
     }
 
     if (notInstalled.length > 0) {
       out.nextCommands([
-        { command: `tambov1 install ${notInstalled[0].name}`, description: "Install a component" },
-        { command: `tambov1 components deps ${notInstalled[0].name}`, description: "Check dependencies first" },
+        {
+          command: `tambov1 install ${notInstalled[0].name}`,
+          description: "Install a component",
+        },
+        {
+          command: `tambov1 components deps ${notInstalled[0].name}`,
+          description: "Check dependencies first",
+        },
       ]);
     }
   },
@@ -312,7 +353,10 @@ const depsCommand = defineCommand({
       if (!args.json) {
         out.error(`Component "${args.component}" not found in registry.`);
         out.nextCommands([
-          { command: "tambov1 components available", description: "List available components" },
+          {
+            command: "tambov1 components available",
+            description: "List available components",
+          },
         ]);
       }
       result.errors.push(`Component "${args.component}" not found`);
@@ -337,14 +381,22 @@ const depsCommand = defineCommand({
         deps.forEach((dep, i) => {
           const isTarget = dep === args.component;
           const marker = isTarget ? chalk.cyan("→") : chalk.dim("•");
-          const label = isTarget ? chalk.bold(dep) : chalk.dim(dep + " (dependency)");
+          const label = isTarget
+            ? chalk.bold(dep)
+            : chalk.dim(dep + " (dependency)");
           console.log(`  ${i + 1}. ${marker} ${label}`);
         });
       }
 
       out.nextCommands([
-        { command: `tambov1 install ${args.component}`, description: "Install this component and its dependencies" },
-        { command: `tambov1 install ${args.component} --dry-run`, description: "Preview installation" },
+        {
+          command: `tambov1 install ${args.component}`,
+          description: "Install this component and its dependencies",
+        },
+        {
+          command: `tambov1 install ${args.component} --dry-run`,
+          description: "Preview installation",
+        },
       ]);
     } catch (error) {
       if (!args.json) {
@@ -386,7 +438,7 @@ export const list = defineCommand({
     if (!context.args.json) {
       console.log(
         chalk.yellow("⚠️  DEPRECATED:") +
-          " 'list' is deprecated. Please use 'tambov1 components installed' instead.\n"
+          " 'list' is deprecated. Please use 'tambov1 components installed' instead.\n",
       );
     }
 

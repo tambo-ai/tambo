@@ -50,7 +50,9 @@ function listFilesRecursive(dir: string, base = ""): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const relativePath = base ? path.join(base, entry.name) : entry.name;
     if (entry.isDirectory()) {
-      files.push(...listFilesRecursive(path.join(dir, entry.name), relativePath));
+      files.push(
+        ...listFilesRecursive(path.join(dir, entry.name), relativePath),
+      );
     } else {
       files.push(relativePath);
     }

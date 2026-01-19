@@ -5,7 +5,14 @@
 import fs from "fs";
 import path from "path";
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -18,8 +25,10 @@ import {
 } from "../__fixtures__/test-utils.js";
 
 const mockGetKnownComponentNames = jest.fn<() => Set<string>>();
-const mockGetComponentList = jest.fn<() => Array<{ name: string; description: string }>>();
-const mockResolveComponentDependencies = jest.fn<(name: string) => Promise<string[]>>();
+const mockGetComponentList =
+  jest.fn<() => Array<{ name: string; description: string }>>();
+const mockResolveComponentDependencies =
+  jest.fn<(name: string) => Promise<string[]>>();
 
 jest.unstable_mockModule("../constants/paths.js", () => ({
   COMPONENT_SUBDIR: "tambo",
@@ -43,7 +52,9 @@ describe("components command", () => {
 
   beforeEach(() => {
     exitSpy = mockProcessExit();
-    mockGetKnownComponentNames.mockReturnValue(new Set(["message-thread-full"]));
+    mockGetKnownComponentNames.mockReturnValue(
+      new Set(["message-thread-full"]),
+    );
     mockGetComponentList.mockReturnValue([
       { name: "message-thread-full", description: "Thread UI" },
       { name: "message-input", description: "Input UI" },
@@ -67,9 +78,10 @@ describe("components command", () => {
     });
     jest
       .spyOn(fs, "readdirSync")
-      .mockImplementation(
-        ((_dir) => ["message-thread-full.tsx", "custom.tsx"]) as typeof fs.readdirSync
-      );
+      .mockImplementation(((_dir) => [
+        "message-thread-full.tsx",
+        "custom.tsx",
+      ]) as typeof fs.readdirSync);
 
     const output = await captureStdout(async () => {
       await getSubcommand(components, "installed")?.run?.({
@@ -92,7 +104,9 @@ describe("components command", () => {
     });
     jest
       .spyOn(fs, "readdirSync")
-      .mockImplementation(((_dir) => ["message-thread-full.tsx"]) as typeof fs.readdirSync);
+      .mockImplementation(((_dir) => [
+        "message-thread-full.tsx",
+      ]) as typeof fs.readdirSync);
 
     const output = await captureStdout(async () => {
       await getSubcommand(components, "available")?.run?.({
@@ -101,7 +115,9 @@ describe("components command", () => {
     });
     const result = JSON.parse(output);
 
-    const installed = result.components.find((c: { name: string }) => c.name === "message-thread-full");
+    const installed = result.components.find(
+      (c: { name: string }) => c.name === "message-thread-full",
+    );
     expect(installed.installed).toBe(true);
   });
 
@@ -112,8 +128,8 @@ describe("components command", () => {
       Promise.resolve(
         getSubcommand(components, "deps")?.run?.({
           args: withArgs({ json: true, component: "nope" }),
-        })
-      )
+        }),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -133,7 +149,10 @@ describe("components command", () => {
     const result = JSON.parse(output);
 
     expect(result.success).toBe(true);
-    expect(result.dependencies).toEqual(["message-thread-full", "message-input"]);
+    expect(result.dependencies).toEqual([
+      "message-thread-full",
+      "message-input",
+    ]);
   });
 
   it("runs in TTY mode", async () => {
@@ -173,13 +192,16 @@ describe("components command", () => {
         [path.join(base, "tambo", "custom.tsx")]: "",
       });
       jest.spyOn(fs, "existsSync").mockImplementation((filePath) => {
-        return String(filePath).includes(path.join("src", "components", "tambo"));
+        return String(filePath).includes(
+          path.join("src", "components", "tambo"),
+        );
       });
       jest
         .spyOn(fs, "readdirSync")
-        .mockImplementation(
-          ((_dir) => ["message-thread-full.tsx", "custom.tsx"]) as typeof fs.readdirSync
-        );
+        .mockImplementation(((_dir) => [
+          "message-thread-full.tsx",
+          "custom.tsx",
+        ]) as typeof fs.readdirSync);
 
       const output = await captureStdout(async () => {
         await getSubcommand(components, "installed")?.run?.({
@@ -197,9 +219,9 @@ describe("components command", () => {
       });
       jest
         .spyOn(fs, "readdirSync")
-        .mockImplementation(
-          ((_dir) => ["message-thread-full.tsx"]) as typeof fs.readdirSync
-        );
+        .mockImplementation(((_dir) => [
+          "message-thread-full.tsx",
+        ]) as typeof fs.readdirSync);
 
       const output = await captureStdout(async () => {
         await getSubcommand(components, "installed")?.run?.({
@@ -226,13 +248,15 @@ describe("components command", () => {
 
     it("displays already installed components in available command", async () => {
       jest.spyOn(fs, "existsSync").mockImplementation((filePath) => {
-        return String(filePath).includes(path.join("src", "components", "tambo"));
+        return String(filePath).includes(
+          path.join("src", "components", "tambo"),
+        );
       });
       jest
         .spyOn(fs, "readdirSync")
-        .mockImplementation(
-          ((_dir) => ["message-thread-full.tsx"]) as typeof fs.readdirSync
-        );
+        .mockImplementation(((_dir) => [
+          "message-thread-full.tsx",
+        ]) as typeof fs.readdirSync);
 
       const output = await captureStdout(async () => {
         await getSubcommand(components, "available")?.run?.({
@@ -244,7 +268,9 @@ describe("components command", () => {
     });
 
     it("displays deps in non-JSON mode with standalone component", async () => {
-      mockResolveComponentDependencies.mockResolvedValue(["message-thread-full"]);
+      mockResolveComponentDependencies.mockResolvedValue([
+        "message-thread-full",
+      ]);
 
       const output = await captureStdout(async () => {
         await getSubcommand(components, "deps")?.run?.({
@@ -273,28 +299,32 @@ describe("components command", () => {
     });
 
     it("displays error for unknown component in deps non-JSON mode", async () => {
-      mockGetComponentList.mockReturnValue([{ name: "known", description: "" }]);
+      mockGetComponentList.mockReturnValue([
+        { name: "known", description: "" },
+      ]);
 
       await expect(
         Promise.resolve(
           getSubcommand(components, "deps")?.run?.({
             args: withArgs({ json: false, component: "nope" }),
-          })
-        )
+          }),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
 
       expect(exitSpy).toHaveBeenCalledWith(1);
     });
 
     it("handles error during dependency resolution in non-JSON mode", async () => {
-      mockResolveComponentDependencies.mockRejectedValue(new Error("Resolution failed"));
+      mockResolveComponentDependencies.mockRejectedValue(
+        new Error("Resolution failed"),
+      );
 
       await expect(
         Promise.resolve(
           getSubcommand(components, "deps")?.run?.({
             args: withArgs({ json: false, component: "message-thread-full" }),
-          })
-        )
+          }),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
 
       expect(exitSpy).toHaveBeenCalledWith(1);
@@ -313,15 +343,17 @@ describe("components command", () => {
     });
 
     it("shows component paths when using custom prefix", async () => {
-      mockGetKnownComponentNames.mockReturnValue(new Set(["message-thread-full"]));
+      mockGetKnownComponentNames.mockReturnValue(
+        new Set(["message-thread-full"]),
+      );
       jest.spyOn(fs, "existsSync").mockImplementation((filePath) => {
         return String(filePath).includes(path.join("custom", "path", "tambo"));
       });
       jest
         .spyOn(fs, "readdirSync")
-        .mockImplementation(
-          ((_dir) => ["message-thread-full.tsx"]) as typeof fs.readdirSync
-        );
+        .mockImplementation(((_dir) => [
+          "message-thread-full.tsx",
+        ]) as typeof fs.readdirSync);
 
       const output = await captureStdout(async () => {
         await getSubcommand(components, "installed")?.run?.({

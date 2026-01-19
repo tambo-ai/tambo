@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 const mockReaddirSync = jest.fn<(p: unknown) => string[]>();
@@ -8,7 +15,8 @@ const mockMkdirSync = jest.fn();
 const mockRmdirSync = jest.fn();
 const mockUnlinkSync = jest.fn();
 
-const mockInteractivePrompt = jest.fn<() => Promise<{ proceed?: boolean; confirm?: boolean }>>();
+const mockInteractivePrompt =
+  jest.fn<() => Promise<{ proceed?: boolean; confirm?: boolean }>>();
 const mockOraStart = jest.fn();
 const mockOraSucceed = jest.fn();
 const mockOraFail = jest.fn();
@@ -19,11 +27,13 @@ const mockOra = jest.fn(() => ({
 }));
 
 const mockGetInstallationPath = jest.fn<() => Promise<string>>();
-const mockGetTamboComponentInfo = jest.fn<() => {
-  mainComponents: Set<string>;
-  supportComponents: Set<string>;
-  allComponents: Set<string>;
-}>();
+const mockGetTamboComponentInfo = jest.fn<
+  () => {
+    mainComponents: Set<string>;
+    supportComponents: Set<string>;
+    allComponents: Set<string>;
+  }
+>();
 
 jest.unstable_mockModule("fs", () => ({
   default: {
@@ -77,7 +87,11 @@ describe("migrate-core", () => {
     mockGetTamboComponentInfo.mockReturnValue({
       mainComponents: new Set(["message-input", "thread-list"]),
       supportComponents: new Set(["message-renderer"]),
-      allComponents: new Set(["message-input", "thread-list", "message-renderer"]),
+      allComponents: new Set([
+        "message-input",
+        "thread-list",
+        "message-renderer",
+      ]),
     });
   });
 
@@ -102,7 +116,9 @@ import { Input } from "@/components/tambo/input";`);
 
       const result = updateImportPaths(content, "tambo");
 
-      expect(result).toBe(`import { Component } from "@/components/tambo/component";`);
+      expect(result).toBe(
+        `import { Component } from "@/components/tambo/component";`,
+      );
     });
 
     it("updates tambo/ imports to ui/ when targetLocation is ui", () => {
@@ -183,9 +199,15 @@ import { Input } from "@/components/ui/input";`;
       await handleMigrate({ yes: true });
 
       // Should show categorized components in output
-      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining("Tambo components"));
-      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining("Tambo support components"));
-      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining("Custom components"));
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining("Tambo components"),
+      );
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining("Tambo support components"),
+      );
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining("Custom components"),
+      );
     });
 
     it("shows dry-run output without modifying files", async () => {
@@ -215,7 +237,9 @@ import { Input } from "@/components/ui/input";`;
       await handleMigrate({ yes: false });
 
       expect(mockInteractivePrompt).toHaveBeenCalled();
-      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining("cancelled"));
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining("cancelled"),
+      );
     });
 
     it("proceeds with migration when user confirms", async () => {
@@ -226,7 +250,9 @@ import { Input } from "@/components/ui/input";`;
       });
       mockReaddirSync.mockReturnValue(["message-input.tsx"]);
       mockInteractivePrompt.mockResolvedValue({ confirm: true });
-      mockReadFileSync.mockReturnValue('import { x } from "@/components/ui/x";');
+      mockReadFileSync.mockReturnValue(
+        'import { x } from "@/components/ui/x";',
+      );
 
       await handleMigrate({ yes: false });
 
@@ -245,7 +271,9 @@ import { Input } from "@/components/ui/input";`;
 
       await handleMigrate({ yes: false });
 
-      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining("cancelled"));
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining("cancelled"),
+      );
       expect(mockMkdirSync).not.toHaveBeenCalled();
     });
 
@@ -255,7 +283,9 @@ import { Input } from "@/components/ui/input";`;
         return pathStr.includes("/ui") || pathStr.endsWith("/ui");
       });
       mockReaddirSync.mockReturnValue(["message-input.tsx"]);
-      mockReadFileSync.mockReturnValue('import { Button } from "@/components/ui/button";');
+      mockReadFileSync.mockReturnValue(
+        'import { Button } from "@/components/ui/button";',
+      );
 
       await handleMigrate({ yes: true });
 
@@ -368,7 +398,9 @@ import { Input } from "@/components/ui/input";`;
 
       await handleMigrate({ yes: true });
 
-      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining("Next steps"));
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        expect.stringContaining("Next steps"),
+      );
     });
 
     it("reports custom components that remain in legacy location", async () => {

@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 const mockReadFileSync = jest.fn<(p: unknown, encoding?: unknown) => string>();
@@ -6,7 +13,8 @@ const mockReadFileSync = jest.fn<(p: unknown, encoding?: unknown) => string>();
 const mockIsInteractive = jest.fn<() => boolean>();
 const mockUpgradeComponents = jest.fn<(options: unknown) => Promise<boolean>>();
 const mockUpgradeSkill = jest.fn<(options: unknown) => Promise<boolean>>();
-const mockUpgradeNpmPackages = jest.fn<(options: unknown) => Promise<boolean>>();
+const mockUpgradeNpmPackages =
+  jest.fn<(options: unknown) => Promise<boolean>>();
 const mockDetectTemplate = jest.fn<() => Promise<string | null>>();
 const mockGenerateAiUpgradePrompts = jest.fn<() => string[]>();
 

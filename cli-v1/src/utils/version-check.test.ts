@@ -4,7 +4,14 @@
 
 import fs from "fs";
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import { mockFs } from "../__fixtures__/test-utils.js";
 
@@ -74,13 +81,15 @@ describe("checkLatestVersion", () => {
     });
     jest.spyOn(fs, "mkdirSync").mockImplementation(() => undefined);
     const mockFetch = jest.fn<typeof fetch>();
-    mockFetch.mockResolvedValue(new Response(JSON.stringify({ version: "0.2.0" })));
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ version: "0.2.0" })),
+    );
     global.fetch = mockFetch;
 
     await checkLatestVersion();
 
     expect(global.fetch).toHaveBeenCalled();
-    expect(fsMocks.getFile(cachePath)).toContain("\"latestVersion\": \"0.2.0\"");
+    expect(fsMocks.getFile(cachePath)).toContain('"latestVersion": "0.2.0"');
     expect(warningSpy).toHaveBeenCalled();
   });
 

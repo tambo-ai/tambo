@@ -2,7 +2,14 @@
  * Tests for auth command behavior and JSON output.
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 import {
   captureStdout,
@@ -17,22 +24,36 @@ const mockApi = {
   deviceAuth: {
     initiate: {
       mutate: jest.fn<
-        () => Promise<{ verificationUriComplete: string; userCode: string; expiresIn: number }>
+        () => Promise<{
+          verificationUriComplete: string;
+          userCode: string;
+          expiresIn: number;
+        }>
       >(),
     },
     listSessions: {
-      query: jest.fn<() => Promise<Array<{ id: string; createdAt: Date; expiresAt: Date | null }>>>(),
+      query:
+        jest.fn<
+          () => Promise<
+            Array<{ id: string; createdAt: Date; expiresAt: Date | null }>
+          >
+        >(),
     },
-    revokeAllSessions: { mutate: jest.fn<() => Promise<{ revokedCount: number }>>() },
+    revokeAllSessions: {
+      mutate: jest.fn<() => Promise<{ revokedCount: number }>>(),
+    },
   },
 };
-const mockGetConsoleBaseUrl = jest.fn<() => string>(() => "https://console.tambo.co");
+const mockGetConsoleBaseUrl = jest.fn<() => string>(
+  () => "https://console.tambo.co",
+);
 const mockIsAuthError = jest.fn<(error: unknown) => boolean>();
 const mockVerifySession = jest.fn<() => Promise<boolean>>();
 
-const mockRunDeviceAuthFlow = jest.fn<
-  () => Promise<{ user: { id: string; email?: string; name?: string } }>
->();
+const mockRunDeviceAuthFlow =
+  jest.fn<
+    () => Promise<{ user: { id: string; email?: string; name?: string } }>
+  >();
 
 const mockClearToken = jest.fn<() => void>();
 const mockGetCurrentUser =
@@ -42,7 +63,11 @@ const mockHasStoredToken = jest.fn<() => boolean>();
 const mockIsTokenValid = jest.fn<() => boolean>();
 const mockLoadToken = jest.fn<() => { expiresAt?: string } | null>();
 
-const mockOraStart = jest.fn(() => ({ stop: jest.fn(), fail: jest.fn(), succeed: jest.fn() }));
+const mockOraStart = jest.fn(() => ({
+  stop: jest.fn(),
+  fail: jest.fn(),
+  succeed: jest.fn(),
+}));
 
 jest.unstable_mockModule("../lib/api-client.js", () => ({
   api: mockApi,
@@ -91,7 +116,9 @@ describe("auth command", () => {
 
   it("returns not authenticated status", async () => {
     const output = await captureStdout(async () => {
-      await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(auth, "status")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -104,7 +131,9 @@ describe("auth command", () => {
     setIsTTY(true);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(auth, "status")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -115,7 +144,9 @@ describe("auth command", () => {
     setIsTTY(false);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(auth, "status")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -128,13 +159,17 @@ describe("auth command", () => {
     mockVerifySession.mockResolvedValue(false);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(auth, "status")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
     expect(result.authenticated).toBe(false);
     expect(result.suggestedCommands).toEqual(
-      expect.arrayContaining([expect.objectContaining({ command: "tambov1 auth login" })])
+      expect.arrayContaining([
+        expect.objectContaining({ command: "tambov1 auth login" }),
+      ]),
     );
   });
 
@@ -143,10 +178,15 @@ describe("auth command", () => {
     mockIsTokenValid.mockReturnValue(true);
     mockVerifySession.mockResolvedValue(true);
     mockLoadToken.mockReturnValue({ expiresAt: "2025-01-01T00:00:00Z" });
-    mockGetCurrentUser.mockReturnValue({ id: "user-1", email: "user@test.com" });
+    mockGetCurrentUser.mockReturnValue({
+      id: "user-1",
+      email: "user@test.com",
+    });
 
     const output = await captureStdout(async () => {
-      await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(auth, "status")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -157,7 +197,10 @@ describe("auth command", () => {
   it("returns already authenticated for login", async () => {
     mockHasStoredToken.mockReturnValue(true);
     mockIsTokenValid.mockReturnValue(true);
-    mockGetCurrentUser.mockReturnValue({ id: "user-1", email: "user@test.com" });
+    mockGetCurrentUser.mockReturnValue({
+      id: "user-1",
+      email: "user@test.com",
+    });
 
     const output = await captureStdout(async () => {
       await getSubcommand(auth, "login")?.run?.({
@@ -212,8 +255,8 @@ describe("auth command", () => {
       Promise.resolve(
         getSubcommand(auth, "login")?.run?.({
           args: withArgs({ json: true, "no-wait": false }),
-        })
-      )
+        }),
+      ),
     ).rejects.toBeInstanceOf(ProcessExitError);
 
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -221,10 +264,15 @@ describe("auth command", () => {
 
   it("logs out and clears token", async () => {
     mockHasStoredToken.mockReturnValue(true);
-    mockGetCurrentUser.mockReturnValue({ id: "user-1", email: "user@test.com" });
+    mockGetCurrentUser.mockReturnValue({
+      id: "user-1",
+      email: "user@test.com",
+    });
 
     const output = await captureStdout(async () => {
-      await getSubcommand(auth, "logout")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(auth, "logout")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -240,7 +288,9 @@ describe("auth command", () => {
     ]);
 
     const output = await captureStdout(async () => {
-      await getSubcommand(auth, "sessions")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(auth, "sessions")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -252,10 +302,14 @@ describe("auth command", () => {
     mockHasStoredToken.mockReturnValue(true);
     mockIsTokenValid.mockReturnValue(true);
     mockIsAuthError.mockReturnValue(true);
-    mockApi.deviceAuth.listSessions.query.mockRejectedValue(new Error("expired"));
+    mockApi.deviceAuth.listSessions.query.mockRejectedValue(
+      new Error("expired"),
+    );
 
     const output = await captureStdout(async () => {
-      await getSubcommand(auth, "sessions")?.run?.({ args: withArgs({ json: true }) });
+      await getSubcommand(auth, "sessions")?.run?.({
+        args: withArgs({ json: true }),
+      });
     });
     const result = JSON.parse(output);
 
@@ -266,7 +320,9 @@ describe("auth command", () => {
   it("revokes sessions when --all is provided", async () => {
     mockHasStoredToken.mockReturnValue(true);
     mockIsTokenValid.mockReturnValue(true);
-    mockApi.deviceAuth.revokeAllSessions.mutate.mockResolvedValue({ revokedCount: 2 });
+    mockApi.deviceAuth.revokeAllSessions.mutate.mockResolvedValue({
+      revokedCount: 2,
+    });
 
     const output = await captureStdout(async () => {
       await getSubcommand(auth, "revoke-session")?.run?.({
@@ -290,14 +346,18 @@ describe("auth command", () => {
     });
     const result = JSON.parse(output);
 
-    expect(result.errors).toContain("Use --all flag to revoke sessions in non-interactive mode");
+    expect(result.errors).toContain(
+      "Use --all flag to revoke sessions in non-interactive mode",
+    );
   });
 
   // Non-JSON output tests - lightweight, just verify commands run without crashing
   describe("non-JSON output", () => {
     it("runs status when not authenticated", async () => {
       await captureStdout(async () => {
-        await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "status")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -306,7 +366,9 @@ describe("auth command", () => {
       mockIsTokenValid.mockReturnValue(false);
 
       await captureStdout(async () => {
-        await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "status")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -316,7 +378,9 @@ describe("auth command", () => {
       mockVerifySession.mockResolvedValue(false);
 
       await captureStdout(async () => {
-        await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "status")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -324,18 +388,29 @@ describe("auth command", () => {
       mockHasStoredToken.mockReturnValue(true);
       mockIsTokenValid.mockReturnValue(true);
       mockVerifySession.mockResolvedValue(true);
-      mockLoadToken.mockReturnValue({ expiresAt: new Date(Date.now() + 86400000).toISOString() });
-      mockGetCurrentUser.mockReturnValue({ id: "user-1", email: "user@test.com", name: "Test User" });
+      mockLoadToken.mockReturnValue({
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      });
+      mockGetCurrentUser.mockReturnValue({
+        id: "user-1",
+        email: "user@test.com",
+        name: "Test User",
+      });
 
       await captureStdout(async () => {
-        await getSubcommand(auth, "status")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "status")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
     it("runs login when already authenticated", async () => {
       mockHasStoredToken.mockReturnValue(true);
       mockIsTokenValid.mockReturnValue(true);
-      mockGetCurrentUser.mockReturnValue({ id: "user-1", email: "user@test.com" });
+      mockGetCurrentUser.mockReturnValue({
+        id: "user-1",
+        email: "user@test.com",
+      });
 
       await captureStdout(async () => {
         await getSubcommand(auth, "login")?.run?.({
@@ -359,14 +434,16 @@ describe("auth command", () => {
     });
 
     it("exits on --no-wait initiation error", async () => {
-      mockApi.deviceAuth.initiate.mutate.mockRejectedValue(new Error("Network failure"));
+      mockApi.deviceAuth.initiate.mutate.mockRejectedValue(
+        new Error("Network failure"),
+      );
 
       await expect(
         Promise.resolve(
           getSubcommand(auth, "login")?.run?.({
             args: withArgs({ json: false, "no-wait": true }),
-          })
-        )
+          }),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
 
@@ -389,29 +466,38 @@ describe("auth command", () => {
         Promise.resolve(
           getSubcommand(auth, "login")?.run?.({
             args: withArgs({ json: false, "no-wait": false }),
-          })
-        )
+          }),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
 
     it("runs logout when authenticated", async () => {
       mockHasStoredToken.mockReturnValue(true);
-      mockGetCurrentUser.mockReturnValue({ id: "user-1", email: "user@test.com" });
+      mockGetCurrentUser.mockReturnValue({
+        id: "user-1",
+        email: "user@test.com",
+      });
 
       await captureStdout(async () => {
-        await getSubcommand(auth, "logout")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "logout")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
     it("runs logout when not authenticated", async () => {
       await captureStdout(async () => {
-        await getSubcommand(auth, "logout")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "logout")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
     it("runs sessions when not authenticated", async () => {
       await captureStdout(async () => {
-        await getSubcommand(auth, "sessions")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "sessions")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -419,11 +505,17 @@ describe("auth command", () => {
       mockHasStoredToken.mockReturnValue(true);
       mockIsTokenValid.mockReturnValue(true);
       mockApi.deviceAuth.listSessions.query.mockResolvedValue([
-        { id: "session-123456789abcdef", createdAt: new Date("2024-01-01"), expiresAt: new Date("2025-01-01") },
+        {
+          id: "session-123456789abcdef",
+          createdAt: new Date("2024-01-01"),
+          expiresAt: new Date("2025-01-01"),
+        },
       ]);
 
       await captureStdout(async () => {
-        await getSubcommand(auth, "sessions")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "sessions")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -433,7 +525,9 @@ describe("auth command", () => {
       mockApi.deviceAuth.listSessions.query.mockResolvedValue([]);
 
       await captureStdout(async () => {
-        await getSubcommand(auth, "sessions")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "sessions")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -441,10 +535,14 @@ describe("auth command", () => {
       mockHasStoredToken.mockReturnValue(true);
       mockIsTokenValid.mockReturnValue(true);
       mockIsAuthError.mockReturnValue(true);
-      mockApi.deviceAuth.listSessions.query.mockRejectedValue(new Error("expired"));
+      mockApi.deviceAuth.listSessions.query.mockRejectedValue(
+        new Error("expired"),
+      );
 
       await captureStdout(async () => {
-        await getSubcommand(auth, "sessions")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "sessions")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -452,10 +550,14 @@ describe("auth command", () => {
       mockHasStoredToken.mockReturnValue(true);
       mockIsTokenValid.mockReturnValue(true);
       mockIsAuthError.mockReturnValue(false);
-      mockApi.deviceAuth.listSessions.query.mockRejectedValue(new Error("Network error"));
+      mockApi.deviceAuth.listSessions.query.mockRejectedValue(
+        new Error("Network error"),
+      );
 
       await captureStdout(async () => {
-        await getSubcommand(auth, "sessions")?.run?.({ args: withArgs({ json: false }) });
+        await getSubcommand(auth, "sessions")?.run?.({
+          args: withArgs({ json: false }),
+        });
       });
     });
 
@@ -481,7 +583,9 @@ describe("auth command", () => {
     it("runs revoke-session success", async () => {
       mockHasStoredToken.mockReturnValue(true);
       mockIsTokenValid.mockReturnValue(true);
-      mockApi.deviceAuth.revokeAllSessions.mutate.mockResolvedValue({ revokedCount: 2 });
+      mockApi.deviceAuth.revokeAllSessions.mutate.mockResolvedValue({
+        revokedCount: 2,
+      });
 
       await captureStdout(async () => {
         await getSubcommand(auth, "revoke-session")?.run?.({
@@ -493,7 +597,9 @@ describe("auth command", () => {
     it("runs revoke-session with zero revoked", async () => {
       mockHasStoredToken.mockReturnValue(true);
       mockIsTokenValid.mockReturnValue(true);
-      mockApi.deviceAuth.revokeAllSessions.mutate.mockResolvedValue({ revokedCount: 0 });
+      mockApi.deviceAuth.revokeAllSessions.mutate.mockResolvedValue({
+        revokedCount: 0,
+      });
 
       await captureStdout(async () => {
         await getSubcommand(auth, "revoke-session")?.run?.({
@@ -505,14 +611,16 @@ describe("auth command", () => {
     it("exits on revoke-session error", async () => {
       mockHasStoredToken.mockReturnValue(true);
       mockIsTokenValid.mockReturnValue(true);
-      mockApi.deviceAuth.revokeAllSessions.mutate.mockRejectedValue(new Error("Server error"));
+      mockApi.deviceAuth.revokeAllSessions.mutate.mockRejectedValue(
+        new Error("Server error"),
+      );
 
       await expect(
         Promise.resolve(
           getSubcommand(auth, "revoke-session")?.run?.({
             args: withArgs({ json: false, all: true }),
-          })
-        )
+          }),
+        ),
       ).rejects.toBeInstanceOf(ProcessExitError);
     });
   });

@@ -1,7 +1,7 @@
 ---
 name: convert-agent-component
 description: Convert an existing React component to be AI-renderable as generative UI
-argument-hint: {file path}
+argument-hint: { file path }
 ---
 
 # /convert-agent-component {file}
@@ -17,6 +17,7 @@ Convert an existing React component to work with generative UI.
 ### 1. Read Existing Component
 
 Read the file to understand:
+
 - Current props interface
 - Component structure
 - Dependencies
@@ -26,32 +27,41 @@ Read the file to understand:
 Convert TypeScript props to Zod schema with descriptions:
 
 **Before (TypeScript interface):**
+
 ```tsx
 interface DashboardCardProps {
-  title: string
-  value: number
-  trend?: "up" | "down"
-  showChart?: boolean
+  title: string;
+  value: number;
+  trend?: "up" | "down";
+  showChart?: boolean;
 }
 ```
 
 **After (Zod schema):**
+
 ```tsx
-import { z } from "zod"
+import { z } from "zod";
 
 export const dashboardCardSchema = z.object({
   title: z.string().describe("Card title displayed at top"),
   value: z.number().describe("Primary metric value"),
-  trend: z.enum(["up", "down"]).optional().describe("Trend direction indicator"),
-  showChart: z.boolean().default(false).describe("Whether to show sparkline chart"),
-})
+  trend: z
+    .enum(["up", "down"])
+    .optional()
+    .describe("Trend direction indicator"),
+  showChart: z
+    .boolean()
+    .default(false)
+    .describe("Whether to show sparkline chart"),
+});
 
-type DashboardCardProps = z.infer<typeof dashboardCardSchema>
+type DashboardCardProps = z.infer<typeof dashboardCardSchema>;
 ```
 
 ### 3. Update Component
 
 Ensure component:
+
 - Uses derived type from schema
 - Has sensible defaults
 - Handles partial/missing data gracefully
@@ -66,7 +76,7 @@ export function DashboardCardSkeleton() {
       <div className="h-4 w-24 bg-muted rounded" />
       <div className="h-8 w-16 bg-muted rounded mt-2" />
     </div>
-  )
+  );
 }
 ```
 
@@ -103,10 +113,10 @@ Find and update all imports of the moved component:
 
 ```tsx
 // Before
-import { DashboardCard } from "@/components/dashboard-card"
+import { DashboardCard } from "@/components/dashboard-card";
 
 // After
-import { DashboardCard } from "@/components/tambo/dashboard-card"
+import { DashboardCard } from "@/components/tambo/dashboard-card";
 ```
 
 ### 8. Review
@@ -118,6 +128,7 @@ Run `/review-agent-component src/components/tambo/dashboard-card.tsx` to validat
 See `references/CONVERSION-CHECKLIST.md` for detailed checklist.
 
 Quick checks:
+
 - [ ] Zod schema with `.describe()` on all fields
 - [ ] Types derived from schema
 - [ ] Defaults for optional props
@@ -130,13 +141,17 @@ Quick checks:
 ## Common Issues
 
 ### Complex nested props
+
 Flatten where possible. AI generates better with shallow schemas.
 
 ### External dependencies
+
 Keep dependencies minimal. If component needs heavy libs, consider lazy loading.
 
 ### Fixed dimensions
+
 Use responsive sizing. Component should work at various widths.
 
 ### Missing error states
+
 Add fallbacks for undefined/null values.

@@ -1,7 +1,7 @@
 ---
 name: create-agent-component
 description: Create a new generative UI component that AI assistants can render by generating props
-argument-hint: {component description}
+argument-hint: { component description }
 ---
 
 # /create-agent-component {description}
@@ -35,6 +35,7 @@ If not set up, guide through setup first.
 ### 3. Determine Component Details
 
 From the description, determine:
+
 - **Name:** PascalCase component name (e.g., `WeatherCard`)
 - **File:** kebab-case filename (e.g., `weather-card.tsx`)
 - **Props:** What data the AI will generate
@@ -107,37 +108,41 @@ Input: `/create-agent-component a card showing a stock price with ticker, price,
 Creates `src/components/tambo/stock-card.tsx`:
 
 ```tsx
-import { z } from "zod"
+import { z } from "zod";
 
 export const stockCardSchema = z.object({
   ticker: z.string().describe("Stock ticker symbol, e.g., AAPL"),
   price: z.number().describe("Current stock price in USD"),
   change: z.number().describe("Percent change from previous close"),
   direction: z.enum(["up", "down", "flat"]).describe("Price direction"),
-})
+});
 
-type StockCardProps = z.infer<typeof stockCardSchema>
+type StockCardProps = z.infer<typeof stockCardSchema>;
 
-export function StockCard({ ticker, price, change, direction }: StockCardProps) {
+export function StockCard({
+  ticker,
+  price,
+  change,
+  direction,
+}: StockCardProps) {
   const colors = {
     up: "text-green-600",
     down: "text-red-600",
     flat: "text-gray-600",
-  }
+  };
 
   return (
     <div className="p-4 rounded-lg border bg-card">
       <div className="flex justify-between items-start">
         <span className="font-mono font-semibold">{ticker}</span>
         <span className={colors[direction]}>
-          {change > 0 ? "+" : ""}{change.toFixed(2)}%
+          {change > 0 ? "+" : ""}
+          {change.toFixed(2)}%
         </span>
       </div>
-      <div className="mt-2 text-2xl font-bold">
-        ${price.toFixed(2)}
-      </div>
+      <div className="mt-2 text-2xl font-bold">${price.toFixed(2)}</div>
     </div>
-  )
+  );
 }
 ```
 

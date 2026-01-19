@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 
@@ -13,22 +20,45 @@ const mockOra = jest.fn(() => ({
   info: mockOraInfo,
 }));
 
-const mockInteractivePrompt = jest.fn<() => Promise<{ selectedComponents: string[] }>>();
+const mockInteractivePrompt =
+  jest.fn<() => Promise<{ selectedComponents: string[] }>>();
 const mockGetInstallationPath = jest.fn<() => Promise<string>>();
 const mockGetInstalledComponents = jest.fn<() => Promise<string[]>>();
-const mockInstallComponents = jest.fn<(components: string[], options: unknown) => Promise<void>>();
+const mockInstallComponents =
+  jest.fn<(components: string[], options: unknown) => Promise<void>>();
 const mockSetupTailwindAndGlobals = jest.fn<() => Promise<void>>();
 const mockConfirmAction = jest.fn<() => Promise<boolean>>();
 const mockMigrateComponentsDuringUpgrade = jest.fn<() => Promise<void>>();
-const mockFindComponentLocation = jest.fn<(name: string, root: string, path: string, explicit: boolean) => { componentPath: string; installPath: string; needsCreation?: boolean } | null>();
-const mockDetectCrossLocationDependencies = jest.fn<() => Promise<Array<{
-  main: string;
-  mainLocation: "ui" | "tambo";
-  dependency: string;
-  depLocation: "ui" | "tambo";
-}>>>();
+const mockFindComponentLocation = jest.fn<
+  (
+    name: string,
+    root: string,
+    path: string,
+    explicit: boolean,
+  ) => {
+    componentPath: string;
+    installPath: string;
+    needsCreation?: boolean;
+  } | null
+>();
+const mockDetectCrossLocationDependencies = jest.fn<
+  () => Promise<
+    Array<{
+      main: string;
+      mainLocation: "ui" | "tambo";
+      dependency: string;
+      depLocation: "ui" | "tambo";
+    }>
+  >
+>();
 const mockHandleDependencyInconsistencies = jest.fn<() => Promise<boolean>>();
-const mockResolveDependenciesForComponents = jest.fn<(components: unknown, installed: Set<string>) => Promise<{ existingDependencies: string[]; newDependencies: string[] }>>();
+const mockResolveDependenciesForComponents =
+  jest.fn<
+    (
+      components: unknown,
+      installed: Set<string>,
+    ) => Promise<{ existingDependencies: string[]; newDependencies: string[] }>
+  >();
 const mockDisplayDependencyInfo = jest.fn();
 const mockExpandComponentsWithDependencies = jest.fn();
 
@@ -99,7 +129,9 @@ describe("upgrade/components", () => {
       existingDependencies: [],
       newDependencies: [],
     });
-    mockExpandComponentsWithDependencies.mockImplementation((components) => components);
+    mockExpandComponentsWithDependencies.mockImplementation(
+      (components) => components,
+    );
     mockDetectCrossLocationDependencies.mockResolvedValue([]);
   });
 
@@ -161,7 +193,9 @@ describe("upgrade/components", () => {
         componentPath: "/project/src/tambo/component.tsx",
         installPath: "src",
       });
-      mockInteractivePrompt.mockResolvedValue({ selectedComponents: ["button"] });
+      mockInteractivePrompt.mockResolvedValue({
+        selectedComponents: ["button"],
+      });
       mockConfirmAction.mockResolvedValue(true);
       mockInstallComponents.mockResolvedValue(undefined);
       mockSetupTailwindAndGlobals.mockResolvedValue(undefined);
@@ -194,7 +228,10 @@ describe("upgrade/components", () => {
       mockGetInstalledComponents.mockResolvedValue(["button", "missing"]);
       mockFindComponentLocation.mockImplementation((name) => {
         if (name === "button") {
-          return { componentPath: "/project/src/tambo/button.tsx", installPath: "src" };
+          return {
+            componentPath: "/project/src/tambo/button.tsx",
+            installPath: "src",
+          };
         }
         return null;
       });
@@ -261,12 +298,24 @@ describe("upgrade/components", () => {
       mockGetInstalledComponents.mockResolvedValue(["button", "card"]);
       mockFindComponentLocation.mockImplementation((name) => {
         if (name === "button") {
-          return { componentPath: "/project/src/tambo/button.tsx", installPath: "src", needsCreation: true };
+          return {
+            componentPath: "/project/src/tambo/button.tsx",
+            installPath: "src",
+            needsCreation: true,
+          };
         }
-        return { componentPath: "/project/src/tambo/card.tsx", installPath: "src" };
+        return {
+          componentPath: "/project/src/tambo/card.tsx",
+          installPath: "src",
+        };
       });
       mockDetectCrossLocationDependencies.mockResolvedValue([
-        { main: "card", mainLocation: "tambo", dependency: "button", depLocation: "ui" },
+        {
+          main: "card",
+          mainLocation: "tambo",
+          dependency: "button",
+          depLocation: "ui",
+        },
       ]);
       mockHandleDependencyInconsistencies.mockResolvedValue(true);
       mockInstallComponents.mockResolvedValue(undefined);

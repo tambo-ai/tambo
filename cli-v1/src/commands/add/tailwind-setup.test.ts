@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockExistsSync = jest.fn<(p: unknown) => boolean>();
 const mockReadFileSync = jest.fn<(p: unknown, encoding?: unknown) => string>();
@@ -24,7 +31,8 @@ jest.unstable_mockModule("fs", () => ({
   unlinkSync: mockUnlinkSync,
 }));
 
-const mockDetectTailwindVersion = jest.fn<(projectRoot: string) => string | null>();
+const mockDetectTailwindVersion =
+  jest.fn<(projectRoot: string) => string | null>();
 jest.unstable_mockModule("./tailwind/version/detection.js", () => ({
   detectTailwindVersion: mockDetectTailwindVersion,
 }));
@@ -43,7 +51,8 @@ jest.unstable_mockModule("../../utils/interactive.js", () => ({
   interactivePrompt: mockInteractivePrompt,
 }));
 
-const mockParseConfigObject = jest.fn<(config: string, source: string) => Record<string, unknown>>();
+const mockParseConfigObject =
+  jest.fn<(config: string, source: string) => Record<string, unknown>>();
 jest.unstable_mockModule("./tailwind/config/parsing.js", () => ({
   parseConfigObject: mockParseConfigObject,
 }));
@@ -56,18 +65,22 @@ jest.unstable_mockModule("./tailwind/css/diff-viewer.js", () => ({
 }));
 
 const mockExtractUtilitiesFromLayer = jest.fn<() => Array<unknown>>();
-const mockExtractV4Configuration = jest.fn<() => {
-  variables: Map<string, string>;
-  darkVariables: Map<string, string>;
-  themeVars: Map<string, string>;
-  variants: Map<string, string>;
-  customVariants: Map<string, string>;
-  utilities: Map<string, string>;
-}>();
-const mockGetTailwindVariables = jest.fn<() => {
-  rootVars: Map<string, string>;
-  darkVars: Map<string, string>;
-}>();
+const mockExtractV4Configuration = jest.fn<
+  () => {
+    variables: Map<string, string>;
+    darkVariables: Map<string, string>;
+    themeVars: Map<string, string>;
+    variants: Map<string, string>;
+    customVariants: Map<string, string>;
+    utilities: Map<string, string>;
+  }
+>();
+const mockGetTailwindVariables = jest.fn<
+  () => {
+    rootVars: Map<string, string>;
+    darkVars: Map<string, string>;
+  }
+>();
 jest.unstable_mockModule("./tailwind/css/extraction.js", () => ({
   extractUtilitiesFromLayer: mockExtractUtilitiesFromLayer,
   extractV4Configuration: mockExtractV4Configuration,
@@ -112,7 +125,11 @@ describe("tailwind-setup", () => {
     mockDetectTailwindVersion.mockReturnValue("3.4.0");
     mockDetectFramework.mockReturnValue({ displayName: "Next.js" });
     mockFindOrGetGlobalsCssPath.mockReturnValue("src/styles/globals.css");
-    mockInteractivePrompt.mockResolvedValue({ proceedWithCss: true, showDetailedDiff: false, proceedWithWrite: true });
+    mockInteractivePrompt.mockResolvedValue({
+      proceedWithCss: true,
+      showDetailedDiff: false,
+      proceedWithWrite: true,
+    });
     mockGetTailwindVariables.mockReturnValue({
       rootVars: new Map([["--primary", "blue"]]),
       darkVars: new Map([["--primary", "lightblue"]]),
@@ -175,16 +192,16 @@ describe("tailwind-setup", () => {
 
       await setupTailwindAndGlobals("/project");
 
-      expect(mockMkdirSync).toHaveBeenCalledWith(
-        expect.any(String),
-        { recursive: true },
-      );
+      expect(mockMkdirSync).toHaveBeenCalledWith(expect.any(String), {
+        recursive: true,
+      });
     });
 
     it("creates globals.css from template if not exists", async () => {
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
-        if (path.includes("globals.css") && path.includes("/project")) return false;
+        if (path.includes("globals.css") && path.includes("/project"))
+          return false;
         return true;
       });
 
@@ -200,7 +217,8 @@ describe("tailwind-setup", () => {
       mockDetectTailwindVersion.mockReturnValue("4.0.0");
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
-        if (path.includes("globals.css") && path.includes("/project")) return false;
+        if (path.includes("globals.css") && path.includes("/project"))
+          return false;
         return true;
       });
 
@@ -216,7 +234,8 @@ describe("tailwind-setup", () => {
       mockDetectTailwindVersion.mockReturnValue("3.4.0");
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
-        if (path.includes("globals.css") && path.includes("/project")) return false;
+        if (path.includes("globals.css") && path.includes("/project"))
+          return false;
         return true;
       });
 
@@ -233,7 +252,8 @@ describe("tailwind-setup", () => {
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("tailwind.config")) return false;
-        if (path.includes("globals.css") && path.includes("/project")) return false;
+        if (path.includes("globals.css") && path.includes("/project"))
+          return false;
         return true;
       });
 
@@ -253,7 +273,8 @@ describe("tailwind-setup", () => {
       mockExistsSync.mockImplementation((p) => {
         const path = String(p);
         if (path.includes("tailwind.config")) return false;
-        if (path.includes("globals.css") && path.includes("/project")) return false;
+        if (path.includes("globals.css") && path.includes("/project"))
+          return false;
         return true;
       });
 
@@ -315,7 +336,9 @@ describe("tailwind-setup", () => {
       await setupTailwindAndGlobals("/project");
 
       expect(mockConsoleLog).toHaveBeenCalledWith(
-        expect.stringContaining("All required CSS variables are already present"),
+        expect.stringContaining(
+          "All required CSS variables are already present",
+        ),
       );
     });
 
@@ -326,7 +349,7 @@ describe("tailwind-setup", () => {
       mockInteractivePrompt.mockResolvedValue({
         proceedWithCss: true,
         showDetailedDiff: false,
-        proceedWithWrite: true
+        proceedWithWrite: true,
       });
       mockCssVariableExists.mockReturnValue(false);
 
@@ -345,7 +368,7 @@ describe("tailwind-setup", () => {
       mockInteractivePrompt.mockResolvedValue({
         proceedWithCss: true,
         showDetailedDiff: false,
-        proceedWithWrite: true
+        proceedWithWrite: true,
       });
       mockCssVariableExists.mockReturnValue(false);
 
@@ -417,7 +440,7 @@ describe("tailwind-setup", () => {
       mockInteractivePrompt.mockResolvedValue({
         proceedWithCss: true,
         showDetailedDiff: false,
-        proceedWithWrite: true
+        proceedWithWrite: true,
       });
 
       await setupTailwindAndGlobals("/project");
@@ -436,7 +459,7 @@ describe("tailwind-setup", () => {
       mockInteractivePrompt.mockResolvedValue({
         proceedWithCss: true,
         showDetailedDiff: false,
-        proceedWithWrite: true
+        proceedWithWrite: true,
       });
 
       await setupTailwindAndGlobals("/project");

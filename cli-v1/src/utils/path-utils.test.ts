@@ -34,9 +34,7 @@ describe("path-utils", () => {
           "src/deep/nested/path",
           true,
         );
-        expect(result).toBe(
-          path.resolve(projectRoot, "src/deep/nested/path"),
-        );
+        expect(result).toBe(path.resolve(projectRoot, "src/deep/nested/path"));
       });
     });
 
@@ -82,7 +80,9 @@ describe("path-utils", () => {
         "/project/components",
         "message-input",
       );
-      expect(result).toBe(path.join("/project/components", "message-input.tsx"));
+      expect(result).toBe(
+        path.join("/project/components", "message-input.tsx"),
+      );
     });
   });
 
@@ -130,12 +130,7 @@ describe("path-utils", () => {
 
   describe("resolveComponentPaths", () => {
     it("returns new and legacy paths when not explicit prefix", () => {
-      const result = resolveComponentPaths(
-        projectRoot,
-        "src",
-        "button",
-        false,
-      );
+      const result = resolveComponentPaths(projectRoot, "src", "button", false);
 
       expect(result.newPath).toBe(
         path.join(projectRoot, "src", "tambo", "button.tsx"),

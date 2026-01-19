@@ -33,7 +33,9 @@ function checkTamboDep(jsonMode: boolean): boolean {
       packageJson.dependencies.tambo);
 
   if (!hasTamboDep && !jsonMode) {
-    out.warning("This doesn't appear to be a Tambo project (no @tambo-ai/react dependency).");
+    out.warning(
+      "This doesn't appear to be a Tambo project (no @tambo-ai/react dependency).",
+    );
   }
   return hasTamboDep;
 }
@@ -80,7 +82,8 @@ const packagesCommand = defineCommand({
 
     checkTamboDep(args.json);
 
-    const spinner = args.json || !isTTY() ? null : ora("Upgrading npm packages...").start();
+    const spinner =
+      args.json || !isTTY() ? null : ora("Upgrading npm packages...").start();
 
     try {
       const success = await upgradeNpmPackages({
@@ -109,7 +112,10 @@ const packagesCommand = defineCommand({
         success: true,
         details: {},
         nextCommands: [
-          { command: "tambov1 upgrade components", description: "Upgrade installed components" },
+          {
+            command: "tambov1 upgrade components",
+            description: "Upgrade installed components",
+          },
           { command: "npm run build", description: "Verify build works" },
         ],
       });
@@ -163,7 +169,10 @@ const componentsCommand = defineCommand({
       process.exit(1);
     }
 
-    const spinner = args.json || !isTTY() ? null : ora("Upgrading Tambo components...").start();
+    const spinner =
+      args.json || !isTTY()
+        ? null
+        : ora("Upgrading Tambo components...").start();
 
     try {
       const success = await upgradeComponents({
@@ -193,7 +202,10 @@ const componentsCommand = defineCommand({
         success: true,
         details: {},
         nextCommands: [
-          { command: "tambov1 upgrade skill", description: "Install tambo skill" },
+          {
+            command: "tambov1 upgrade skill",
+            description: "Install tambo skill",
+          },
           { command: "npm run dev", description: "Test your app" },
         ],
       });
@@ -244,7 +256,8 @@ const skillCommand = defineCommand({
       process.exit(1);
     }
 
-    const spinner = args.json || !isTTY() ? null : ora("Installing tambo skill...").start();
+    const spinner =
+      args.json || !isTTY() ? null : ora("Installing tambo skill...").start();
 
     try {
       const upgradeResult = await upgradeSkill({
@@ -283,7 +296,10 @@ const skillCommand = defineCommand({
         success: true,
         details,
         nextCommands: [
-          { command: "tambov1 upgrade packages", description: "Upgrade npm packages" },
+          {
+            command: "tambov1 upgrade packages",
+            description: "Upgrade npm packages",
+          },
         ],
       });
     }
@@ -345,7 +361,9 @@ const allCommand = defineCommand({
         "This will upgrade:",
         "• npm packages (@tambo-ai/react, etc.)",
         "• Installed Tambo components",
-        args["skip-agent-docs"] ? "• Tambo skill (skipped)" : "• Tambo skill for AI agents",
+        args["skip-agent-docs"]
+          ? "• Tambo skill (skipped)"
+          : "• Tambo skill for AI agents",
       ]);
     }
 
@@ -357,7 +375,8 @@ const allCommand = defineCommand({
 
     // 1. Packages
     if (!args.json) out.subheader("1. NPM PACKAGES");
-    const pkgSpinner = args.json || !isTTY() ? null : ora("Upgrading npm packages...").start();
+    const pkgSpinner =
+      args.json || !isTTY() ? null : ora("Upgrading npm packages...").start();
 
     try {
       const pkgSuccess = await upgradeNpmPackages({
@@ -380,7 +399,8 @@ const allCommand = defineCommand({
     // 2. Skill
     if (!args["skip-agent-docs"]) {
       if (!args.json) out.subheader("2. SKILL");
-      const skillSpinner = args.json || !isTTY() ? null : ora("Installing tambo skill...").start();
+      const skillSpinner =
+        args.json || !isTTY() ? null : ora("Installing tambo skill...").start();
 
       try {
         const skillResult = await upgradeSkill({
@@ -403,7 +423,8 @@ const allCommand = defineCommand({
 
     // 3. Components
     if (!args.json) out.subheader("3. COMPONENTS");
-    const compSpinner = args.json || !isTTY() ? null : ora("Upgrading components...").start();
+    const compSpinner =
+      args.json || !isTTY() ? null : ora("Upgrading components...").start();
 
     try {
       const compSuccess = await upgradeComponents({

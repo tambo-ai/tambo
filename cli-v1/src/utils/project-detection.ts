@@ -4,7 +4,10 @@ import path from "path";
 import { isTokenValid, verifySession } from "../lib/device-auth.js";
 import { findTamboApiKey } from "./dotenv-utils.js";
 
-import { detectPackageManager, type PackageManager } from "./package-manager.js";
+import {
+  detectPackageManager,
+  type PackageManager,
+} from "./package-manager.js";
 import { getComponentDirectoryPath, getLibDirectory } from "./path-utils.js";
 
 export interface ProjectStatus {

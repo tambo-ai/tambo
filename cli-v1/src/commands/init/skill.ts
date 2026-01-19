@@ -86,8 +86,14 @@ export const skillCommand = defineCommand({
           "skill installed": result.skillInstalled,
         },
         nextCommands: [
-          { command: "tambov1 init config", description: "Create tambo.ts configuration" },
-          { command: "tambov1 install message-thread-full", description: "Install a UI component" },
+          {
+            command: "tambov1 init config",
+            description: "Create tambo.ts configuration",
+          },
+          {
+            command: "tambov1 install message-thread-full",
+            description: "Install a UI component",
+          },
         ],
       });
     }

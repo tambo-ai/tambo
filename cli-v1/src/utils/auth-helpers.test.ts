@@ -2,7 +2,14 @@
  * Tests for authentication helper behavior.
  */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 
 const mockIsTokenValid = jest.fn<() => boolean>();
 const mockVerifySession = jest.fn<() => Promise<boolean>>();
@@ -55,7 +62,7 @@ describe("requireAuthentication", () => {
 
     expect(isValid).toBe(false);
     expect(errorSpy).toHaveBeenCalledWith(
-      "Not authenticated. Run 'tambov1 auth login' first."
+      "Not authenticated. Run 'tambov1 auth login' first.",
     );
   });
 

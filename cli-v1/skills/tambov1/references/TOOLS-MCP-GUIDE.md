@@ -9,14 +9,14 @@ Give AI the ability to call functions and get results back.
 ### Creating a Local Tool
 
 ```tsx
-import { z } from "zod"
-import { useTamboTools } from "@tambo-ai/react"
+import { z } from "zod";
+import { useTamboTools } from "@tambo-ai/react";
 
 // Define tool schema
 const searchToolSchema = z.object({
   query: z.string().describe("Search query"),
   limit: z.number().default(10).describe("Max results to return"),
-})
+});
 
 // Create tool definition
 const searchTool = {
@@ -25,10 +25,10 @@ const searchTool = {
   schema: searchToolSchema,
   handler: async ({ query, limit }) => {
     // Your implementation
-    const results = await searchKnowledgeBase(query, limit)
-    return { results }
+    const results = await searchKnowledgeBase(query, limit);
+    return { results };
   },
-}
+};
 ```
 
 ### Registering Tools
@@ -36,19 +36,19 @@ const searchTool = {
 In your tambo.ts config:
 
 ```tsx
-import { searchTool, calculateTool } from "./tools"
+import { searchTool, calculateTool } from "./tools";
 
 export const tamboConfig = {
   // ... component registry
   tools: [searchTool, calculateTool],
-}
+};
 ```
 
 Or dynamically with hook:
 
 ```tsx
 function MyComponent() {
-  const { registerTool } = useTamboTools()
+  const { registerTool } = useTamboTools();
 
   useEffect(() => {
     registerTool({
@@ -56,10 +56,10 @@ function MyComponent() {
       description: "Get info about the currently logged-in user",
       schema: z.object({}),
       handler: async () => {
-        return { user: currentUser }
+        return { user: currentUser };
       },
-    })
-  }, [])
+    });
+  }, []);
 }
 ```
 
@@ -91,16 +91,16 @@ export const tamboConfig = {
       },
     ],
   },
-}
+};
 ```
 
 ### MCP Server Types
 
-| Transport | Use Case |
-|-----------|----------|
-| `stdio` | Local process communication |
-| `sse` | Server-sent events over HTTP |
-| `websocket` | Real-time bidirectional |
+| Transport   | Use Case                     |
+| ----------- | ---------------------------- |
+| `stdio`     | Local process communication  |
+| `sse`       | Server-sent events over HTTP |
+| `websocket` | Real-time bidirectional      |
 
 ### Local Resources
 
@@ -116,7 +116,7 @@ const tamboConfig = {
       content: () => fetchApiDocs(),
     },
   ],
-}
+};
 ```
 
 ## Elicitations
@@ -124,10 +124,10 @@ const tamboConfig = {
 Handle AI requests for user input:
 
 ```tsx
-import { useTamboElicitation } from "@tambo-ai/react"
+import { useTamboElicitation } from "@tambo-ai/react";
 
 function ChatInterface() {
-  const { elicitation, respond } = useTamboElicitation()
+  const { elicitation, respond } = useTamboElicitation();
 
   if (elicitation) {
     return (
@@ -136,23 +136,24 @@ function ChatInterface() {
         schema={elicitation.schema}
         onSubmit={(data) => respond(data)}
       />
-    )
+    );
   }
 
-  return <NormalChat />
+  return <NormalChat />;
 }
 ```
 
 ## Tool vs Component Decision
 
-| Use Tool When | Use Component When |
-|---------------|-------------------|
-| Fetching data | Displaying data |
-| Performing actions | Interactive UI |
-| Need return value | Visual feedback |
-| Background operation | User sees result |
+| Use Tool When        | Use Component When |
+| -------------------- | ------------------ |
+| Fetching data        | Displaying data    |
+| Performing actions   | Interactive UI     |
+| Need return value    | Visual feedback    |
+| Background operation | User sees result   |
 
 Example flow:
+
 1. AI calls `searchTool` → gets results
 2. AI renders `SearchResults` component → user sees results
 
@@ -169,10 +170,10 @@ const weatherTool = {
     location: z.string().describe("City name"),
   }),
   handler: async ({ location }) => {
-    const weather = await fetchWeather(location)
-    return weather
+    const weather = await fetchWeather(location);
+    return weather;
   },
-}
+};
 
 // Component displays it
 export function WeatherCard({ location, temp, condition }: WeatherCardProps) {
@@ -182,7 +183,7 @@ export function WeatherCard({ location, temp, condition }: WeatherCardProps) {
       <p className="text-3xl">{temp}°</p>
       <p className="text-muted-foreground">{condition}</p>
     </div>
-  )
+  );
 }
 ```
 
@@ -200,10 +201,10 @@ const deleteItemTool = {
   }),
   handler: async ({ itemId, confirmed }) => {
     if (!confirmed) {
-      return { error: "User must confirm deletion" }
+      return { error: "User must confirm deletion" };
     }
-    await deleteItem(itemId)
-    return { success: true, deleted: itemId }
+    await deleteItem(itemId);
+    return { success: true, deleted: itemId };
   },
-}
+};
 ```

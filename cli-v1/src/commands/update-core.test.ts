@@ -1,4 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  expect,
+  it,
+  jest,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 
 const mockOraStart = jest.fn();
 const mockOraSucceed = jest.fn();
@@ -12,14 +19,31 @@ const mockOra = jest.fn(() => ({
 const mockGetInstalledComponents = jest.fn<() => Promise<string[]>>();
 const mockComponentExists = jest.fn<(name: string) => boolean>();
 const mockGetInstallationPath = jest.fn<() => Promise<string>>();
-const mockInstallComponents = jest.fn<(components: string[], options: unknown) => Promise<void>>();
+const mockInstallComponents =
+  jest.fn<(components: string[], options: unknown) => Promise<void>>();
 const mockSetupTailwindAndGlobals = jest.fn<() => Promise<void>>();
 const mockInteractivePrompt = jest.fn<() => Promise<{ confirm: boolean }>>();
-const mockResolveDependenciesForComponents = jest.fn<() => Promise<{ existingDependencies: string[]; newDependencies: string[] }>>();
+const mockResolveDependenciesForComponents =
+  jest.fn<
+    () => Promise<{ existingDependencies: string[]; newDependencies: string[] }>
+  >();
 const mockDisplayDependencyInfo = jest.fn();
-const mockExpandComponentsWithDependencies = jest.fn<(components: unknown[]) => Promise<unknown[]>>();
-const mockFindComponentLocation = jest.fn<(name: string, projectRoot: string, installPath: string, isExplicitPrefix: boolean) => { componentPath: string; installPath: string; needsCreation?: boolean } | null>();
-const mockDetectCrossLocationDependencies = jest.fn<() => Promise<Array<unknown>>>();
+const mockExpandComponentsWithDependencies =
+  jest.fn<(components: unknown[]) => Promise<unknown[]>>();
+const mockFindComponentLocation = jest.fn<
+  (
+    name: string,
+    projectRoot: string,
+    installPath: string,
+    isExplicitPrefix: boolean,
+  ) => {
+    componentPath: string;
+    installPath: string;
+    needsCreation?: boolean;
+  } | null
+>();
+const mockDetectCrossLocationDependencies =
+  jest.fn<() => Promise<Array<unknown>>>();
 const mockHandleDependencyInconsistencies = jest.fn<() => Promise<boolean>>();
 const mockGetLegacyComponentDirectoryPath = jest.fn<() => string>();
 
@@ -95,8 +119,8 @@ describe("update-core", () => {
       existingDependencies: [],
       newDependencies: [],
     });
-    mockExpandComponentsWithDependencies.mockImplementation((components) =>
-      Promise.resolve(components),
+    mockExpandComponentsWithDependencies.mockImplementation(async (components) =>
+      await Promise.resolve(components),
     );
     mockDetectCrossLocationDependencies.mockResolvedValue([]);
     mockHandleDependencyInconsistencies.mockResolvedValue(false);
@@ -269,7 +293,12 @@ describe("update-core", () => {
       ]);
 
       mockDetectCrossLocationDependencies.mockResolvedValue([
-        { main: "card", mainLocation: "tambo", dependency: "button", depLocation: "ui" },
+        {
+          main: "card",
+          mainLocation: "tambo",
+          dependency: "button",
+          depLocation: "ui",
+        },
       ]);
 
       await handleUpdateComponents(["button", "card"], { yes: true });
@@ -291,7 +320,10 @@ describe("update-core", () => {
     });
 
     it("uses custom prefix when provided", async () => {
-      await handleUpdateComponents(["button"], { yes: true, prefix: "custom/path" });
+      await handleUpdateComponents(["button"], {
+        yes: true,
+        prefix: "custom/path",
+      });
 
       expect(mockFindComponentLocation).toHaveBeenCalledWith(
         "button",

@@ -1,6 +1,10 @@
 import { describe, expect, it, beforeEach, afterEach } from "@jest/globals";
 import { mockFs, resetMocks } from "../__fixtures__/test-utils.js";
-import { detectFramework, getGlobalsCssLocations, findOrGetGlobalsCssPath } from "./framework-detection.js";
+import {
+  detectFramework,
+  getGlobalsCssLocations,
+  findOrGetGlobalsCssPath,
+} from "./framework-detection.js";
 
 describe("framework-detection", () => {
   beforeEach(() => {
@@ -54,7 +58,9 @@ describe("framework-detection", () => {
 
     it("detects Remix by package", () => {
       mockFs({
-        "package.json": JSON.stringify({ dependencies: { "@remix-run/react": "^2.0.0" } }),
+        "package.json": JSON.stringify({
+          dependencies: { "@remix-run/react": "^2.0.0" },
+        }),
       });
 
       const result = detectFramework();
@@ -64,7 +70,9 @@ describe("framework-detection", () => {
 
     it("detects Remix by @remix-run/node package", () => {
       mockFs({
-        "package.json": JSON.stringify({ dependencies: { "@remix-run/node": "^2.0.0" } }),
+        "package.json": JSON.stringify({
+          dependencies: { "@remix-run/node": "^2.0.0" },
+        }),
       });
 
       const result = detectFramework();
@@ -73,7 +81,9 @@ describe("framework-detection", () => {
 
     it("detects React Router 7 by package and config", () => {
       mockFs({
-        "package.json": JSON.stringify({ dependencies: { "react-router": "^7.0.0" } }),
+        "package.json": JSON.stringify({
+          dependencies: { "react-router": "^7.0.0" },
+        }),
         "react-router.config.ts": "export default {}",
       });
 
@@ -84,7 +94,9 @@ describe("framework-detection", () => {
 
     it("does not detect React Router 7 without config file", () => {
       mockFs({
-        "package.json": JSON.stringify({ dependencies: { "react-router": "^7.0.0" } }),
+        "package.json": JSON.stringify({
+          dependencies: { "react-router": "^7.0.0" },
+        }),
       });
 
       // React Router without config falls through - it's just react-router as library
@@ -104,7 +116,9 @@ describe("framework-detection", () => {
 
     it("detects Create React App by react-scripts", () => {
       mockFs({
-        "package.json": JSON.stringify({ dependencies: { "react-scripts": "^5.0.0" } }),
+        "package.json": JSON.stringify({
+          dependencies: { "react-scripts": "^5.0.0" },
+        }),
       });
 
       const result = detectFramework();
@@ -180,7 +194,9 @@ describe("framework-detection", () => {
 
     it("returns Remix paths", () => {
       mockFs({
-        "package.json": JSON.stringify({ dependencies: { "@remix-run/react": "^2.0.0" } }),
+        "package.json": JSON.stringify({
+          dependencies: { "@remix-run/react": "^2.0.0" },
+        }),
       });
 
       const locations = getGlobalsCssLocations();
@@ -198,7 +214,9 @@ describe("framework-detection", () => {
 
     it("returns React Router 7 paths", () => {
       mockFs({
-        "package.json": JSON.stringify({ dependencies: { "react-router": "^7.0.0" } }),
+        "package.json": JSON.stringify({
+          dependencies: { "react-router": "^7.0.0" },
+        }),
         "react-router.config.ts": "export default {}",
       });
 
