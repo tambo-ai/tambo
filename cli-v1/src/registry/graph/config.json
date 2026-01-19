@@ -2,7 +2,12 @@
   "name": "graph",
   "description": "Visualizes and interacts with graph-based data structures",
   "componentName": "Graph",
-  "dependencies": ["class-variance-authority", "recharts", "@tambo-ai/react", "zod"],
+  "dependencies": [
+    "class-variance-authority",
+    "recharts",
+    "@tambo-ai/react",
+    "zod"
+  ],
   "devDependencies": [],
   "requires": [],
   "files": [

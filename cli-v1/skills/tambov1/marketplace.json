@@ -23,12 +23,7 @@
     "ai-tools",
     "context-attachments"
   ],
-  "platforms": [
-    "claude",
-    "codex",
-    "gemini",
-    "chatgpt"
-  ],
+  "platforms": ["claude", "codex", "gemini", "chatgpt"],
   "commands": [
     {
       "name": "create-agent-component",
@@ -61,7 +56,5 @@
     "INTERACTABLE-GUIDE.md",
     "CONTEXT-GUIDE.md"
   ],
-  "assets": [
-    "component-template.tsx"
-  ]
+  "assets": ["component-template.tsx"]
 }

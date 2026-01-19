@@ -119,8 +119,8 @@ describe("update-core", () => {
       existingDependencies: [],
       newDependencies: [],
     });
-    mockExpandComponentsWithDependencies.mockImplementation(async (components) =>
-      await Promise.resolve(components),
+    mockExpandComponentsWithDependencies.mockImplementation(
+      async (components) => await Promise.resolve(components),
     );
     mockDetectCrossLocationDependencies.mockResolvedValue([]);
     mockHandleDependencyInconsistencies.mockResolvedValue(false);
