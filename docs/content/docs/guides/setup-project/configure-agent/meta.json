@@ -1,4 +1,4 @@
 {
-  "title": "Configure Agent",
+  "title": "Configure the Tambo Agent",
   "pages": ["index", "project-settings", "llm-provider", "agent-behavior"]
 }
