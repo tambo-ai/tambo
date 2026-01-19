@@ -42,6 +42,7 @@
     "showcase",
     "docs",
     "cli",
+    "cli-v1",
     "create-tambo-app",
     "packages/*",
     "apps/*"
