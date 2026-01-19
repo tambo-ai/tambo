@@ -58,5 +58,9 @@ export default defineConfig([
       },
     },
   },
-  globalIgnores(["examples/**"]),
+  globalIgnores([
+    "examples/**",
+    "**/skills/**/assets/**",
+    "**/eslint.config.mjs",
+  ]),
 ]);

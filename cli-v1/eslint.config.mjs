@@ -3,7 +3,7 @@ import config from "@tambo-ai/eslint-config/base";
 export default [
   ...config,
   {
-    ignores: ["dist/**", "eslint.config.mjs"],
+    ignores: ["dist/**", "eslint.config.mjs", "skills/**"],
   },
   {
     languageOptions: {
