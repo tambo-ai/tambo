@@ -6,6 +6,7 @@
     "build-interfaces",
     "give-context",
     "take-actions",
-    "add-authentication"
+    "add-authentication",
+    "connect-mcp-servers"
   ]
 }
