@@ -1,0 +1,47 @@
+{
+  "name": "message-input",
+  "description": "Composes and sends messages in a conversation",
+  "componentName": "MessageInput",
+  "dependencies": [
+    "class-variance-authority",
+    "@radix-ui/react-popover",
+    "@tambo-ai/react",
+    "@tiptap/extension-document",
+    "@tiptap/extension-hard-break",
+    "@tiptap/extension-mention",
+    "@tiptap/extension-paragraph",
+    "@tiptap/extension-placeholder",
+    "@tiptap/extension-text",
+    "@tiptap/react",
+    "@tiptap/suggestion",
+    "lucide-react",
+    "react-dom",
+    "framer-motion",
+    "streamdown",
+    "use-debounce"
+  ],
+  "devDependencies": [],
+  "requires": ["elicitation-ui", "mcp-components"],
+  "files": [
+    {
+      "name": "message-input.tsx",
+      "content": "src/registry/message-input/message-input.tsx"
+    },
+    {
+      "name": "text-editor.tsx",
+      "content": "src/registry/message-input/text-editor.tsx"
+    },
+    {
+      "name": "mcp-config-modal.tsx",
+      "content": "src/registry/message-input/mcp-config-modal.tsx"
+    },
+    {
+      "name": "suggestions-tooltip.tsx",
+      "content": "src/registry/message-suggestions/suggestions-tooltip.tsx"
+    },
+    {
+      "name": "dictation-button.tsx",
+      "content": "src/registry/message-input/dictation-button.tsx"
+    }
+  ]
+}

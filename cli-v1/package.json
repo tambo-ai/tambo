@@ -1,0 +1,80 @@
+{
+  "name": "tambov1",
+  "version": "0.1.0",
+  "description": "Tambo non-interactive CLI for coding agents",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "cli-v1"
+  },
+  "homepage": "https://tambo.co",
+  "module": "./dist/cli.js",
+  "main": "./dist/cli.js",
+  "bin": {
+    "tambov1": "./dist/cli.js"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/cli.js",
+      "types": "./dist/cli.d.ts"
+    }
+  },
+  "files": [
+    "src",
+    "dist",
+    "LICENSE",
+    "!**/*.test.*",
+    "!**/__tests__/**"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup && node -e \"const fs=require('fs'); const p='dist/cli.js'; let c=fs.readFileSync(p,'utf8'); c=c.replace(/^#!.*\\n/gm,''); fs.writeFileSync(p,'#!/usr/bin/env node\\n'+c);\"",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit -p tsconfig.typecheck.json",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "clean": "rimraf dist",
+    "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@tambo-ai/react": "*",
+    "@tambo-ai/typescript-sdk": "^0.80.0",
+    "@trpc/client": "^11.7.2",
+    "@trpc/server": "^11.7.2",
+    "chalk": "^5.6.0",
+    "citty": "^0.1.6",
+    "cli-table3": "^0.6.5",
+    "clipboardy": "^5.0.2",
+    "date-fns": "^4.1.0",
+    "deepmerge": "^4.3.1",
+    "diff": "^8.0.3",
+    "dotenv": "^17.2.3",
+    "env-paths": "^3.0.0",
+    "fast-equals": "^5.3.3",
+    "inquirer": "^13.1.0",
+    "open": "^11.0.0",
+    "ora": "^9.0.0",
+    "postcss": "^8.5.3",
+    "react-markdown": "^10.1.0",
+    "rehype-harden": "^1.1.7",
+    "sanitize-html": "^2.17.0",
+    "semver": "^7.7.3",
+    "streamdown": "^1.6.10",
+    "superjson": "^2.2.6",
+    "ts-morph": "^27.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.5",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "@types/semver": "^7.7.1",
+    "tsup": "^8.4.0",
+    "typescript": "^5.9.3"
+  }
+}

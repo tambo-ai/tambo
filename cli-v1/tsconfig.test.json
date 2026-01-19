@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "tambo/*": ["../cli/src/*"],
+      "@/components/tambo/*": [
+        "../cli/src/registry/*",
+        "../cli/src/registry/message/*",
+        "../cli/src/registry/message-input/*",
+        "../cli/src/registry/message-suggestions/*",
+        "../cli/src/registry/message-thread-full/*",
+        "../cli/src/registry/message-thread-panel/*",
+        "../cli/src/registry/message-thread-collapsible/*"
+      ],
+      "@/lib/*": ["../cli/src/registry/lib/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

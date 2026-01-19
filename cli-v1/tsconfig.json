@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "tambo/lib/*": ["../cli/src/lib/*"],
+      "tambo/commands/*": ["../cli/src/commands/*"],
+      "tambo/utils/*": ["../cli/src/utils/*"],
+      "tambo/constants/*": ["../cli/src/constants/*"],
+      "tambo/templates/*": ["../cli/src/templates/*"]
+    }
+  },
+  "include": ["src/**/*", "jest.config.ts", "tsup.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

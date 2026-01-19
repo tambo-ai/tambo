@@ -1,0 +1,25 @@
+{
+  "name": "message-thread-panel",
+  "description": "Displays a message thread in a side panel or modal context",
+  "componentName": "MessageThreadPanel",
+  "dependencies": ["@tambo-ai/react", "class-variance-authority"],
+  "devDependencies": [],
+  "requires": [
+    "thread-content",
+    "message-input",
+    "message-suggestions",
+    "thread-history",
+    "message",
+    "scrollable-message-container"
+  ],
+  "files": [
+    {
+      "name": "message-thread-panel.tsx",
+      "content": "src/registry/message-thread-panel/message-thread-panel.tsx"
+    },
+    {
+      "name": "lib/thread-hooks.ts",
+      "content": "src/registry/lib/thread-hooks.ts"
+    }
+  ]
+}

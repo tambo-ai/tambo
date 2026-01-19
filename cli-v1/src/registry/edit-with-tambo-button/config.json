@@ -1,0 +1,19 @@
+{
+  "name": "edit-with-tambo-button",
+  "description": "Inline AI editor button with floating popover for interactable components",
+  "componentName": "EditWithTamboButton",
+  "dependencies": [
+    "@tambo-ai/react",
+    "lucide-react",
+    "@radix-ui/react-popover",
+    "@radix-ui/react-tooltip"
+  ],
+  "devDependencies": [],
+  "requires": ["message-suggestions"],
+  "files": [
+    {
+      "name": "edit-with-tambo-button.tsx",
+      "content": "src/registry/edit-with-tambo-button/edit-with-tambo-button.tsx"
+    }
+  ]
+}

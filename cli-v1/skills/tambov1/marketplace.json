@@ -1,0 +1,67 @@
+{
+  "name": "tambov1",
+  "version": "1.0.0",
+  "description": "Build generative UI - React components that AI assistants render by generating props",
+  "author": "tambo-ai",
+  "repository": "https://github.com/tambo-ai/tambo",
+  "homepage": "https://docs.tambo.co",
+  "license": "MIT",
+  "keywords": [
+    "generative-ui",
+    "ai-assistant",
+    "copilot",
+    "react",
+    "agent-ui",
+    "chat-interface",
+    "ai-components",
+    "streaming-ui",
+    "tambo",
+    "mcp",
+    "model-context-protocol",
+    "tool-calling",
+    "interactable",
+    "ai-tools",
+    "context-attachments"
+  ],
+  "platforms": [
+    "claude",
+    "codex",
+    "gemini",
+    "chatgpt"
+  ],
+  "commands": [
+    {
+      "name": "create-agent-component",
+      "description": "Create a new generative UI component",
+      "argumentHint": "{component description}"
+    },
+    {
+      "name": "add-agent-component",
+      "description": "Add existing component from registry",
+      "argumentHint": "{component name}"
+    },
+    {
+      "name": "convert-agent-component",
+      "description": "Convert existing component to generative UI",
+      "argumentHint": "{file path}"
+    },
+    {
+      "name": "review-agent-component",
+      "description": "Review component for gen-ui best practices",
+      "argumentHint": "{file path}"
+    }
+  ],
+  "references": [
+    "COMPONENT-PATTERNS.md",
+    "SCHEMA-PATTERNS.md",
+    "STREAMING-GUIDE.md",
+    "CONVERSION-CHECKLIST.md",
+    "STYLING-GUIDE.md",
+    "TOOLS-MCP-GUIDE.md",
+    "INTERACTABLE-GUIDE.md",
+    "CONTEXT-GUIDE.md"
+  ],
+  "assets": [
+    "component-template.tsx"
+  ]
+}

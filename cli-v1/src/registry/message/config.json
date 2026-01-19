@@ -1,0 +1,31 @@
+{
+  "name": "message",
+  "description": "Displays individual messages in a conversation with markdown support",
+  "componentName": "Message",
+  "dependencies": [
+    "class-variance-authority",
+    "streamdown",
+    "lucide-react",
+    "highlight.js",
+    "@tambo-ai/react",
+    "@tambo-ai/typescript-sdk",
+    "dompurify",
+    "json-stringify-pretty-compact"
+  ],
+  "devDependencies": [],
+  "requires": [],
+  "files": [
+    {
+      "name": "message.tsx",
+      "content": "src/registry/message/message.tsx"
+    },
+    {
+      "name": "markdown-components.tsx",
+      "content": "src/registry/message/markdown-components.tsx"
+    },
+    {
+      "name": "lib/thread-hooks.ts",
+      "content": "src/registry/lib/thread-hooks.ts"
+    }
+  ]
+}

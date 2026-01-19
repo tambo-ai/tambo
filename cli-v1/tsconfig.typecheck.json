@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "..",
+    "paths": {
+      "tambo/lib/*": ["../cli/src/lib/*"],
+      "tambo/commands/*": ["../cli/src/commands/*"],
+      "tambo/utils/*": ["../cli/src/utils/*"],
+      "tambo/constants/*": ["../cli/src/constants/*"],
+      "tambo/templates/*": ["../cli/src/templates/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "src/registry/**/*"]
+}
