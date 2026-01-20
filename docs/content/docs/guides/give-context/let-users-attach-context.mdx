@@ -1,12 +1,12 @@
 ---
-title: Use Context Attachments
-description: Stage temporary context that's automatically included in the next message
+title: Let Users Attach Context
+description: Stage temporary context that users explicitly add to messages
 ---
 
 import LearnMore from "@/components/learn-more";
 import { BookOpen } from "lucide-react";
 
-This guide shows you how to use context attachments to stage temporary context that users explicitly add. Context attachments are perfect for including file contents, selected text, or other temporary context that should be cleared after the message is sent.
+Use context attachments to let users explicitly stage temporary context—like file contents, selected text, or specific elements—that's automatically included in the next message and then cleared.
 
 <LearnMore
   title="Understanding Context Attachments"
@@ -14,6 +14,21 @@ This guide shows you how to use context attachments to stage temporary context t
   href="/concepts/additional-context/context-attachments"
   icon={BookOpen}
 />
+
+## When to Use This
+
+Context attachments are perfect when:
+
+- ✅ Users should explicitly choose what context to include
+- ✅ Context is temporary and relevant to a single message
+- ✅ Users need to attach files, selections, or specific elements
+- ✅ You want to show staged context before sending
+- ✅ Context should be cleared after the message is sent
+
+**Don't use context attachments for:**
+- ❌ Automatic ambient context (use [Context Helpers](/guides/give-context/make-ai-aware-of-state))
+- ❌ @ mentionable documentation (use [Resources](/guides/give-context/make-context-referenceable))
+- ❌ Persistent conversation instructions (use [Thread Instructions](/guides/give-context/shape-conversation-behavior))
 
 ## Prerequisites
 
@@ -291,9 +306,23 @@ function ContextStagingDemo({ files }) {
 
 ## Next Steps
 
-<LearnMore
-  title="Understanding Context Layers"
-  description="Learn how context attachments combine with other context methods"
-  href="/concepts/additional-context"
-  icon={BookOpen}
-/>
+<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem", marginTop: "1.5rem" }}>
+  <LearnMore
+    title="Make AI Aware of State"
+    description="Automatic ambient context with context helpers"
+    href="/guides/give-context/make-ai-aware-of-state"
+    icon={BookOpen}
+  />
+  <LearnMore
+    title="Make Context Referenceable"
+    description="Let users @ mention documentation and data"
+    href="/guides/give-context/make-context-referenceable"
+    icon={BookOpen}
+  />
+  <LearnMore
+    title="Additional Context Concepts"
+    description="Understand how context layers work together"
+    href="/concepts/additional-context"
+    icon={BookOpen}
+  />
+</div>

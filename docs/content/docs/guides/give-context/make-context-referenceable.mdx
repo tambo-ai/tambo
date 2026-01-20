@@ -1,12 +1,12 @@
 ---
-title: Add Local Resources
-description: Register local resources that users can reference in messages
+title: Make Context Referenceable
+description: Register resources that users can @ mention in messages
 ---
 
 import LearnMore from "@/components/learn-more";
 import { BookOpen } from "lucide-react";
 
-This guide shows you how to register local resources in your Tambo application. Resources allow users to explicitly reference documentation, files, or other content in their messages using @ mentions.
+Use resources to give users a library of documentation, files, or knowledge that they can explicitly reference in their messages using @ mentions.
 
 <LearnMore
   title="Understanding Resources"
@@ -14,6 +14,21 @@ This guide shows you how to register local resources in your Tambo application. 
   href="/concepts/additional-context/resources"
   icon={BookOpen}
 />
+
+## When to Use This
+
+Resources are perfect when:
+
+- ✅ Users should be able to @ mention documentation or data
+- ✅ You have a library of referenceable content (docs, guides, files)
+- ✅ Context is discoverable through search
+- ✅ Users explicitly control when to include specific resources
+
+**Don't use resources for:**
+- ❌ Automatic ambient context (use [Context Helpers](/guides/give-context/make-ai-aware-of-state))
+- ❌ Temporary user-selected files (use [Context Attachments](/guides/give-context/let-users-attach-context))
+
+**For server-side integrations** with databases, file systems, or external APIs, consider using [MCP servers](/concepts/model-context-protocol) instead. MCP servers provide additional capabilities like tools, prompts, and sampling.
 
 ## Prerequisites
 
@@ -278,18 +293,6 @@ const getResource = async (uri: string): Promise<ReadResourceResult> => {
   };
 };
 ```
-
-## When to Use Local Resources
-
-**Use local resources when you need to:**
-
-- Provide documentation or reference material to the AI
-- Share configuration data or settings
-- Make user-uploaded content available for context
-- Expose application state as readable context
-- Provide dynamic content that changes based on search
-
-**For server-side integrations** with databases, file systems, or external APIs, consider using [MCP servers](/concepts/model-context-protocol) instead. MCP servers provide additional capabilities like tools, prompts, and sampling.
 
 ## Resource URIs and Prefixing
 

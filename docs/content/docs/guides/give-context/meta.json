@@ -1,4 +1,8 @@
 {
   "title": "Give Tambo Extra Context",
-  "pages": ["...add-user-data"]
+  "pages": [
+    "make-ai-aware-of-state",
+    "let-users-attach-context",
+    "make-context-referenceable"
+  ]
 }
