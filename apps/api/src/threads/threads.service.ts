@@ -1022,15 +1022,13 @@ export class ThreadsService {
       );
 
       // Track user messages (not tool responses)
+      // Use contextKey (user identifier) if available, otherwise use thread.id
+      // to maintain per-thread identity for anonymous users
       if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
-        this.analytics.capture(
-          contextKey ?? TAMBO_ANON_CONTEXT_KEY,
-          "message_sent",
-          {
-            projectId,
-            threadId: thread.id,
-          },
-        );
+        this.analytics.capture(contextKey ?? thread.id, "message_sent", {
+          projectId,
+          threadId: thread.id,
+        });
       }
 
       // Use the shared method to create the TamboBackend instance

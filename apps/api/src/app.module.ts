@@ -16,8 +16,8 @@ import {
   TransactionProvider,
 } from "./common/middleware/db-transaction-middleware";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
+import { AnalyticsModule } from "./common/analytics.module";
 import { AuthService } from "./common/services/auth.service";
-import { AnalyticsService } from "./common/services/analytics.service";
 import { EmailService } from "./common/services/email.service";
 import { StorageConfigService } from "./common/services/storage-config.service";
 import { ConfigServiceSingleton } from "./config.service";
@@ -41,6 +41,7 @@ export class GlobalModule {}
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    AnalyticsModule,
     LoggerModule,
     OAuthModule,
     ProjectsModule,
@@ -54,7 +55,7 @@ export class GlobalModule {}
     V1Module,
   ],
   controllers: [AppController],
-  providers: [AppService, AnalyticsService, EmailService, AuthService],
+  providers: [AppService, EmailService, AuthService],
 })
 export class AppModule implements OnModuleInit {
   constructor(private configService: ConfigService) {}
