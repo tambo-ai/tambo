@@ -31,7 +31,7 @@ const COMPONENT_TOOL_PREFIX = "show_component_";
  */
 export type PropStreamingStatus = "started" | "streaming" | "done";
 
-export type JsonPatchOperation = Operation;
+type JsonPatchOperation = Operation;
 
 /**
  * Build a single-segment JSON Pointer path for a top-level prop key.
