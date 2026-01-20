@@ -179,7 +179,6 @@ export const toolsRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { contextKey, toolProviderId } = input;
-      const saveAuthUrl = `${getBaseUrl()}/oauth/callback`;
 
       const db = ctx.db;
       const toolProvider = await db.query.toolProviders.findFirst({
@@ -199,7 +198,6 @@ export const toolsRouter = createTRPCRouter({
       await operations.ensureProjectAccess(ctx.db, projectId, ctx.user.id);
 
       if (!url) {
-        // cannot happen due to validation in the query
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Tool provider missing MCP URL",
@@ -215,7 +213,7 @@ export const toolsRouter = createTRPCRouter({
         db,
         toolProviderUserContextId,
         {
-          baseUrl: saveAuthUrl,
+          baseUrl: getBaseUrl(),
           serverUrl: url,
         },
       );
