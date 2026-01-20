@@ -17,6 +17,7 @@ import {
 } from "./common/middleware/db-transaction-middleware";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
 import { AuthService } from "./common/services/auth.service";
+import { AnalyticsService } from "./common/services/analytics.service";
 import { EmailService } from "./common/services/email.service";
 import { StorageConfigService } from "./common/services/storage-config.service";
 import { ConfigServiceSingleton } from "./config.service";
@@ -53,7 +54,7 @@ export class GlobalModule {}
     V1Module,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService, AuthService],
+  providers: [AppService, AnalyticsService, EmailService, AuthService],
 })
 export class AppModule implements OnModuleInit {
   constructor(private configService: ConfigService) {}
