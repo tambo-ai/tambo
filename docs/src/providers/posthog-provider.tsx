@@ -47,5 +47,8 @@ export function PostHogRootProvider({
 }: {
   children: React.ReactNode;
 }) {
+  if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+    return <>{children}</>;
+  }
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
 }
