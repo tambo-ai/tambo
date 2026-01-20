@@ -422,31 +422,53 @@ export async function updateThreadGenerationStatus(
   return updated;
 }
 
+export class PendingToolCallStateMismatchError extends Error {
+  constructor(threadId: string) {
+    super(
+      `Failed to clear pending tool calls: Thread ${threadId} not found or state mismatch`,
+    );
+    this.name = "PendingToolCallStateMismatchError";
+  }
+}
+
 /**
  * Clear pending tool call IDs from a thread.
  * Used when tool results have been processed and the thread can continue.
  *
  * @param db - Database connection (can be a transaction)
  * @param threadId - Thread to update
- * @throws Error if thread not found
+ * @param opts - Optional optimistic concurrency guard
+ * @throws Error if thread not found or state mismatch
  */
 export async function clearPendingToolCalls(
   db: HydraDb,
   threadId: string,
+  opts?: {
+    expectedPendingToolCallIds: string[] | null;
+  },
 ): Promise<void> {
+  const whereConditions = [eq(schema.threads.id, threadId)];
+  if (opts) {
+    if (opts.expectedPendingToolCallIds === null) {
+      whereConditions.push(isNull(schema.threads.pendingToolCallIds));
+    } else {
+      whereConditions.push(
+        eq(schema.threads.pendingToolCallIds, opts.expectedPendingToolCallIds),
+      );
+    }
+  }
+
   const [updated] = await db
     .update(schema.threads)
     .set({
       pendingToolCallIds: null,
       updatedAt: sql`now()`,
     })
-    .where(eq(schema.threads.id, threadId))
+    .where(and(...whereConditions))
     .returning({ id: schema.threads.id });
 
   if (!updated) {
-    throw new Error(
-      `Failed to clear pending tool calls: Thread ${threadId} not found`,
-    );
+    throw new PendingToolCallStateMismatchError(threadId);
   }
 }
 

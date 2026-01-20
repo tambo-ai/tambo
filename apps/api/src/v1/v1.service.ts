@@ -435,38 +435,58 @@ export class V1Service {
       );
     }
 
-    const runId = await this.db.transaction(async (tx) => {
-      const didAcquireLock = await operations.acquireRunLock(tx, threadId);
-      if (!didAcquireLock) {
-        return null;
-      }
+    let runId: string | null;
+    try {
+      runId = await this.db.transaction(async (tx) => {
+        const didAcquireLock = await operations.acquireRunLock(tx, threadId);
+        if (!didAcquireLock) {
+          return null;
+        }
 
-      // Save tool result messages to the thread (before creating the run)
-      for (const toolMessage of toolResultMessages) {
-        await operations.addMessage(tx, threadId, toolMessage);
-      }
+        // Save tool result messages to the thread (before creating the run)
+        for (const toolMessage of toolResultMessages) {
+          await operations.addMessage(tx, threadId, toolMessage);
+        }
 
-      // Clear pendingToolCallIds since we've processed the tool results
-      if (toolResultMessages.length > 0) {
-        await operations.clearPendingToolCalls(tx, threadId);
-      }
+        // Clear pendingToolCallIds since we've processed the tool results
+        if (toolResultMessages.length > 0) {
+          await operations.clearPendingToolCalls(tx, threadId, {
+            expectedPendingToolCallIds: thread.pendingToolCallIds ?? null,
+          });
+        }
 
-      const run = await operations.createRun(tx, {
-        threadId,
-        previousRunId: dto.previousRunId,
-        model: dto.model,
-        requestParams: {
-          maxTokens: dto.maxTokens,
-          temperature: dto.temperature,
-          toolChoice: dto.toolChoice,
-        },
-        metadata: dto.runMetadata,
+        const run = await operations.createRun(tx, {
+          threadId,
+          previousRunId: dto.previousRunId,
+          model: dto.model,
+          requestParams: {
+            maxTokens: dto.maxTokens,
+            temperature: dto.temperature,
+            toolChoice: dto.toolChoice,
+          },
+          metadata: dto.runMetadata,
+        });
+
+        await operations.setCurrentRunId(tx, threadId, run.id);
+
+        return run.id;
       });
-
-      await operations.setCurrentRunId(tx, threadId, run.id);
-
-      return run.id;
-    });
+    } catch (error) {
+      if (error instanceof operations.PendingToolCallStateMismatchError) {
+        return {
+          success: false,
+          error: new HttpException(
+            createProblemDetail(
+              V1ErrorCodes.CONCURRENT_RUN,
+              "Thread pending tool call state changed; please retry",
+              { threadId },
+            ),
+            HttpStatus.CONFLICT,
+          ),
+        };
+      }
+      throw error;
+    }
 
     if (runId === null) {
       const { thread: latestThread } = await operations.getThreadForRunStart(
