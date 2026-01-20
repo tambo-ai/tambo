@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.129.1](https://github.com/tambo-ai/tambo/compare/api-v0.129.0...api-v0.129.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* add back AdvanceThreadDto so it is codegened ([#1848](https://github.com/tambo-ai/tambo/issues/1848)) ([5e2caf7](https://github.com/tambo-ai/tambo/commit/5e2caf7915e5376d3f8312185cf23607ce7d75d8))
+
 ## [0.129.0](https://github.com/tambo-ai/tambo/compare/api-v0.128.0...api-v0.129.0) (2026-01-20)
 
 
