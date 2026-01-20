@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { siteConfig } from "@/lib/config";
 import { track } from "@vercel/analytics";
 import { BookOpen, Bug, Calendar, LogOut, MessageSquare } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { useSignOut } from "@/hooks/nextauth";
 
 interface UserProfileDropdownProps {
   user:
@@ -29,6 +29,7 @@ interface UserProfileDropdownProps {
 
 export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
   const { toast } = useToast();
+  const signOut = useSignOut();
 
   const handleLogout = async () => {
     try {
