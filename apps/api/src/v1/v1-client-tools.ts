@@ -36,12 +36,20 @@ export interface PendingToolCall {
  * This is used to determine whether a V1 run should emit
  * `tambo.run.awaiting_input`.
  *
+ * Instances are intended to be used for a single streamed run only and should
+ * not be reused across requests.
+ *
  * Tool calls not present in the client tool allowlist are ignored.
  *
  * Pending tool calls remain pending until TOOL_CALL_RESULT is received. In the
  * V1 client-tool pause flow, TOOL_CALL_RESULT generally will not be sent by the
  * server for client tools (the tool completes out-of-band via a follow-up
  * request).
+ *
+ * This tracker treats any allow-listed tool that has started but has not
+ * produced a TOOL_CALL_RESULT as pending. It does not attempt to distinguish
+ * between an intentional client-tool pause and a tool call that is stuck due to
+ * a misconfiguration.
  */
 export class ClientToolCallTracker {
   private readonly clientToolNames: ReadonlySet<string>;
@@ -174,6 +182,8 @@ export class ClientToolCallTracker {
 }
 
 export type AwaitingInputEvent = CustomEvent & {
+  // NOTE: if `CustomEvent` gains additional required fields upstream, this type
+  // and `createAwaitingInputEvent` should be updated accordingly.
   name: "tambo.run.awaiting_input";
   value: {
     pendingToolCalls: PendingToolCall[];

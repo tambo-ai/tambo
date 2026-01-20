@@ -281,6 +281,8 @@ export function tryExtractComponentName(toolName: string): string | undefined {
 /**
  * Extract component name from tool name.
  *
+ * Prefer {@link tryExtractComponentName} for unvalidated names.
+ *
  * Callers must guard with {@link isComponentTool} before calling this; this
  * will throw if the name is not a valid component tool name.
  */

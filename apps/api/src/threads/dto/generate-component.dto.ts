@@ -12,6 +12,7 @@ export class AvailableComponentDto implements AvailableComponent {
   description!: string;
   contextTools!: ComponentContextToolMetadataDto[];
   @ApiProperty({
+    description: "JSON Schema for the component's props",
     type: "object",
     additionalProperties: true,
   })
