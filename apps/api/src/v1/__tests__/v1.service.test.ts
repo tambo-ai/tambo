@@ -1,8 +1,14 @@
-import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import {
   V1RunStatus,
   ContentPartType,
   GenerationStage,
+  MessageRole,
 } from "@tambo-ai-cloud/core";
 import { V1Service } from "../v1.service";
 import {
@@ -25,6 +31,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     updateRunStatus: jest.fn(),
     updateThreadRunStatus: jest.fn(),
     completeRun: jest.fn(),
+    updateMessage: jest.fn(),
   },
   schema: {
     threads: {
@@ -883,6 +890,217 @@ describe("V1Service", () => {
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.releaseRunLockIfCurrent).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Component State", () => {
+    const mockMessageWithComponent = {
+      id: "msg_123",
+      threadId: "thr_123",
+      role: MessageRole.Assistant,
+      content: [
+        {
+          type: "component",
+          id: "comp_123",
+          name: "DataTable",
+          props: { title: "Users" },
+        },
+      ],
+      componentState: { loading: false, rows: [] },
+      createdAt: new Date(),
+      toolCallRequest: null,
+      reasoning: null,
+      reasoningDurationMS: null,
+      parentMessageId: null,
+      componentDecision: null,
+      tokenUsage: null,
+      llmModel: null,
+      llmModelLabel: null,
+      mcpToolCallRequest: null,
+      mcpToolResponses: null,
+      finishReason: null,
+      additionalContext: null,
+      error: null,
+      metadata: null,
+      isCancelled: false,
+      llmRunId: null,
+      updatedAt: new Date(),
+      actionType: null,
+      toolCallId: null,
+    };
+
+    describe("updateComponentState", () => {
+      it("should throw NotFoundException when thread not found", async () => {
+        mockDb.query.threads.findFirst.mockResolvedValue(null);
+
+        await expect(
+          service.updateComponentState("thr_nonexistent", "comp_123", {
+            state: { loading: true },
+          }),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it("should throw ConflictException when thread has active run", async () => {
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.STREAMING,
+        });
+
+        const promise = service.updateComponentState("thr_123", "comp_123", {
+          state: { loading: true },
+        });
+
+        await expect(promise).rejects.toThrow(ConflictException);
+
+        try {
+          await promise;
+        } catch (error: unknown) {
+          if (error instanceof ConflictException) {
+            const response = error.getResponse() as {
+              detail?: string;
+              type?: string;
+            };
+            expect(response.detail).toContain(
+              "Cannot update component state while a run is active",
+            );
+            expect(response.type).toContain("run_active");
+          }
+        }
+      });
+
+      it("should throw NotFoundException when component not found", async () => {
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.IDLE,
+        });
+        mockDb.query.messages.findFirst.mockResolvedValue(null);
+
+        await expect(
+          service.updateComponentState("thr_123", "comp_nonexistent", {
+            state: { loading: true },
+          }),
+        ).rejects.toThrow("Component comp_nonexistent not found");
+      });
+
+      it("should update state with full replacement", async () => {
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.IDLE,
+        });
+        mockDb.query.messages.findFirst.mockResolvedValue(
+          mockMessageWithComponent as any,
+        );
+        mockOperations.updateMessage.mockResolvedValue(
+          mockMessageWithComponent as any,
+        );
+
+        const result = await service.updateComponentState(
+          "thr_123",
+          "comp_123",
+          {
+            state: { loading: true, rows: [{ id: 1 }] },
+          },
+        );
+
+        expect(result.state).toEqual({ loading: true, rows: [{ id: 1 }] });
+        expect(mockOperations.updateMessage).toHaveBeenCalledWith(
+          mockDb,
+          "msg_123",
+          {
+            componentState: { loading: true, rows: [{ id: 1 }] },
+          },
+        );
+      });
+
+      it("should update state with JSON Patch", async () => {
+        // Mock message with initial state: { loading: false, rows: [] }
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.IDLE,
+        });
+        // findMessageWithComponent is called once in updateComponentState,
+        // then again inside getComponentState
+        mockDb.query.messages.findFirst.mockResolvedValue(
+          mockMessageWithComponent as any,
+        );
+        mockOperations.updateMessage.mockResolvedValue(
+          mockMessageWithComponent as any,
+        );
+
+        const result = await service.updateComponentState(
+          "thr_123",
+          "comp_123",
+          {
+            patch: [
+              { op: "replace", path: "/loading", value: true },
+              { op: "add", path: "/rows/-", value: { id: 1, name: "Alice" } },
+            ],
+          },
+        );
+
+        expect(result.state).toEqual({
+          loading: true,
+          rows: [{ id: 1, name: "Alice" }],
+        });
+        expect(mockOperations.updateMessage).toHaveBeenCalled();
+      });
+
+      it("should throw BadRequestException for invalid JSON Patch", async () => {
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.IDLE,
+        });
+        mockDb.query.messages.findFirst.mockResolvedValue(
+          mockMessageWithComponent as any,
+        );
+
+        await expect(
+          service.updateComponentState("thr_123", "comp_123", {
+            patch: [{ op: "replace", path: "/nonexistent", value: true }],
+          }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it("should throw BadRequestException when neither state nor patch provided", async () => {
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.IDLE,
+        });
+        mockDb.query.messages.findFirst.mockResolvedValue(
+          mockMessageWithComponent as any,
+        );
+
+        await expect(
+          service.updateComponentState("thr_123", "comp_123", {}),
+        ).rejects.toThrow("Either 'state' or 'patch' must be provided");
+      });
+
+      it("should handle empty state in component", async () => {
+        const messageWithNoState = {
+          ...mockMessageWithComponent,
+          componentState: null,
+        };
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.IDLE,
+        });
+        mockDb.query.messages.findFirst.mockResolvedValue(
+          messageWithNoState as any,
+        );
+        mockOperations.updateMessage.mockResolvedValue(
+          messageWithNoState as any,
+        );
+
+        const result = await service.updateComponentState(
+          "thr_123",
+          "comp_123",
+          {
+            state: { loading: true },
+          },
+        );
+
+        expect(result.state).toEqual({ loading: true });
+      });
     });
   });
 });

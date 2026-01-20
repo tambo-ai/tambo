@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
@@ -25,9 +26,18 @@ import {
 import { sanitizeEvent } from "@tambo-ai-cloud/backend";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
-import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
 import type { Response } from "express";
+import {
+  applyPatch,
+  type Operation,
+  validate as validateJsonPatch,
+} from "fast-json-patch";
 import { createProblemDetail, V1ErrorCodes } from "./v1.errors";
+import {
+  UpdateComponentStateDto,
+  UpdateComponentStateResponseDto,
+} from "./dto/component-state.dto";
 import { V1CreateRunDto } from "./dto/run.dto";
 import {
   convertV1ComponentsToInternal,
@@ -830,5 +840,168 @@ export class V1Service {
         }
       }),
     };
+  }
+
+  // ==========================================
+  // Component state operations
+  // ==========================================
+
+  /**
+   * Update component state in a thread.
+   * Supports both full replacement and JSON Patch operations.
+   *
+   * Constraints:
+   * - Thread must be idle (no active run)
+   * - Component must exist in the thread
+   * - Either state (full replacement) or patch (JSON Patch) must be provided
+   *
+   * @param threadId - Thread containing the component
+   * @param componentId - Component ID to update
+   * @param dto - Update request (state or patch)
+   * @returns Updated component state
+   */
+  async updateComponentState(
+    threadId: string,
+    componentId: string,
+    dto: UpdateComponentStateDto,
+  ): Promise<UpdateComponentStateResponseDto> {
+    // 1. Check thread is idle (inline auth check)
+    const thread = await this.db.query.threads.findFirst({
+      where: eq(schema.threads.id, threadId),
+      columns: {
+        id: true,
+        runStatus: true,
+      },
+    });
+
+    if (!thread) {
+      throw new NotFoundException(`Thread ${threadId} not found`);
+    }
+
+    if (thread.runStatus !== V1RunStatus.IDLE) {
+      throw new ConflictException(
+        createProblemDetail(
+          V1ErrorCodes.RUN_ACTIVE,
+          "Cannot update component state while a run is active",
+          { threadId, runStatus: thread.runStatus },
+        ),
+      );
+    }
+
+    // 2. Verify component exists in thread by searching content array for component blocks
+    const message = await this.findMessageWithComponent(threadId, componentId);
+
+    if (!message) {
+      throw new NotFoundException(
+        `Component ${componentId} not found in thread ${threadId}`,
+      );
+    }
+
+    // 3. Get current state
+    const currentState = await this.getComponentState(threadId, componentId);
+
+    // 4. Apply update (full replacement or JSON Patch)
+    let newState: Record<string, unknown>;
+
+    if (dto.patch !== undefined) {
+      // JSON Patch mode
+      const validation = validateJsonPatch(
+        dto.patch as Operation[],
+        currentState,
+      );
+      if (validation) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_JSON_PATCH,
+            `Invalid JSON Patch: ${validation.message}`,
+            { errors: validation },
+          ),
+        );
+      }
+
+      const patchResult = applyPatch(currentState, dto.patch as Operation[]);
+      newState = patchResult.newDocument;
+    } else if (dto.state !== undefined && dto.state !== null) {
+      // Full replacement mode
+      newState = dto.state;
+    } else {
+      throw new BadRequestException(
+        "Either 'state' or 'patch' must be provided",
+      );
+    }
+
+    // 5. Persist the new state
+    await this.persistComponentState(message.id, newState);
+
+    return { state: newState };
+  }
+
+  /**
+   * Find a message containing a component with the given ID.
+   *
+   * Searches the content array in messages for component blocks matching the ID.
+   * This aligns with the V1 API model where components are content blocks.
+   *
+   * @param threadId - Thread to search
+   * @param componentId - Component ID to find
+   * @returns Message containing the component, or undefined if not found
+   */
+  private async findMessageWithComponent(
+    threadId: string,
+    componentId: string,
+  ): Promise<typeof schema.messages.$inferSelect | undefined> {
+    // Search for messages with component blocks in content array
+    // The content is JSONB, so we use the @> operator to check if it contains
+    // a component block with the matching ID
+    const message = await this.db.query.messages.findFirst({
+      where: and(
+        eq(schema.messages.threadId, threadId),
+        sql`content @> ${JSON.stringify([{ type: "component", id: componentId }])}::jsonb`,
+      ),
+    });
+
+    return message;
+  }
+
+  /**
+   * Get current component state from the message.
+   *
+   * @param threadId - Thread containing the component
+   * @param componentId - Component ID
+   * @returns Current state object (empty object if no state exists)
+   */
+  private async getComponentState(
+    threadId: string,
+    componentId: string,
+  ): Promise<Record<string, unknown>> {
+    const message = await this.findMessageWithComponent(threadId, componentId);
+
+    if (!message) {
+      throw new NotFoundException(
+        `Component ${componentId} not found in thread ${threadId}`,
+      );
+    }
+
+    // Extract state from componentState field
+    // componentState is the internal storage for component state
+    return (message.componentState as Record<string, unknown>) ?? {};
+  }
+
+  /**
+   * Persist component state to the database.
+   *
+   * Uses full replacement of componentState field for simplicity.
+   * For JSON Patch mode, we already applied the patch in-memory before calling this.
+   *
+   * @param messageId - Message ID containing the component
+   * @param newState - New complete state to persist
+   */
+  private async persistComponentState(
+    messageId: string,
+    newState: Record<string, unknown>,
+  ): Promise<void> {
+    await operations.updateMessage(this.db, messageId, {
+      componentState: newState,
+    });
   }
 }
