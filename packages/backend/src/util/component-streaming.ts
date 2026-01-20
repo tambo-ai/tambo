@@ -9,6 +9,15 @@ const MAX_JSON_SIZE = 10 * 1024 * 1024;
 const COMPONENT_TOOL_PREFIX = "show_component_";
 
 /**
+ * Component streaming utilities.
+ *
+ * `tambo.component.props_delta` uses RFC 6902 JSON Patch operations, where
+ * operation paths are RFC 6901 JSON Pointers. Prop keys are always escaped via
+ * `escapePathComponent` from `fast-json-patch` so `~` becomes `~0` and `/`
+ * becomes `~1`.
+ */
+
+/**
  * Streaming status for component properties.
  */
 export type PropStreamingStatus = "started" | "streaming" | "done";
@@ -80,6 +89,9 @@ export class ComponentStreamTracker {
     // Try to parse incrementally
     let currentProps: Record<string, unknown>;
     try {
+      // IMPORTANT: `parse()` must return a fresh object tree on each call.
+      // This tracker relies on treating `previousProps` as an immutable
+      // snapshot without deep-cloning on every delta.
       currentProps = parse(this.accumulatedJson) as Record<string, unknown>;
     } catch {
       // Can't parse yet, wait for more data

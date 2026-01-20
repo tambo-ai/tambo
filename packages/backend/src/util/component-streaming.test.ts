@@ -159,6 +159,27 @@ describe("component-streaming", () => {
       });
     });
 
+    it("handles empty-string keys in JSON Pointer paths", () => {
+      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+
+      const events = tracker.processJsonDelta('{"": 1}');
+      const propsDeltaEvent = events.find(
+        (e) =>
+          (e as unknown as { name: string }).name ===
+          "tambo.component.props_delta",
+      );
+
+      expect(propsDeltaEvent).toBeDefined();
+      expect(
+        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
+          .patch,
+      ).toContainEqual({
+        op: "add",
+        path: "/",
+        value: 1,
+      });
+    });
+
     it("tracks streaming status correctly", () => {
       const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
 
