@@ -329,219 +329,99 @@ Created `apps/api/src/v1/v1.service.ts` with:
 
 ---
 
-### Phase 3: Run Streaming & Tools
+### Phase 3: Run Streaming & Tools ✅ COMPLETED
 
-**Scope:** SSE streaming endpoints, tool call handling, atomic concurrency control.
+**Scope:** SSE streaming endpoints, tool call handling, atomic concurrency control, component streaming, tool format conversion.
 
-#### 3.1 Atomic Run Start (In Service, Not Guard)
+**Status:** Completed 2025-01-17. PR #1792 (streaming foundation) + PR #1813 (tools & component streaming).
 
-```typescript
-// apps/api/src/v1/v1.service.ts
-async startRun(
-  threadId: string,
-): Promise<{ success: true; runId: string } | { success: false; error: HttpException }> {
-  const runId = uuidv7();
+#### 3.1 Atomic Run Start (In Service, Not Guard) ✅
 
-  // Atomic conditional UPDATE - prevents race condition
-  // Clear last run outcome fields when starting new run
-  const result = await this.db
-    .update(threads)
-    .set({
-      runStatus: V1RunStatus.WAITING,
-      currentRunId: runId,
-      statusMessage: null,
-      lastRunCancelled: null,
-      lastRunError: null,
-      updatedAt: new Date(),
-    })
-    .where(and(eq(threads.id, threadId), eq(threads.runStatus, V1RunStatus.IDLE)))
-    .returning({ id: threads.id });
+Implemented via `operations.acquireRunLock()` which performs atomic conditional UPDATE preventing race conditions.
 
-  if (result.length === 0) {
-    return {
-      success: false,
-      error: new HttpException(
-        createProblemDetail("CONCURRENT_RUN", "A run is already active on this thread"),
-        HttpStatus.CONFLICT,
-      ),
-    };
-  }
+#### 3.2 Run Endpoints ✅
 
-  return { success: true, runId };
-}
-```
+Implemented in PR #1792:
 
-#### 3.2 Run Endpoints
+- `POST /v1/threads/runs` - Create thread with run (SSE)
+- `POST /v1/threads/:threadId/runs` - Create run on existing thread (SSE)
+- `DELETE /v1/threads/:threadId/runs/:runId` - Cancel run
 
-```typescript
-// In v1.controller.ts
-@Post("threads/runs")
-@ApiOperation({ summary: "Create thread with run (SSE)" })
-@ApiProduces("text/event-stream")
-async createThreadWithRun(
-  @Req() request: Request,
-  @Body() dto: CreateThreadWithRunDto,
-  @Res() response: Response,
-): Promise<void> {
-  const { projectId, contextKey } = extractContextInfo(request);
+#### 3.3 SSE Event Emission ✅
 
-  // Create thread first
-  const thread = await this.v1Service.createThread(projectId, contextKey, dto.thread ?? {});
+Simple `emitEvent()` helper with `sanitizeEvent()` for security. Events pass through the existing `StreamQueueItem` infrastructure.
 
-  // Start run (handles concurrency atomically)
-  const startResult = await this.v1Service.startRun(thread.id);
-  if (!startResult.success) {
-    throw startResult.error;
-  }
+#### 3.4 Tool Call Handling ✅
 
-  // Set SSE headers and stream
-  response.setHeader("Content-Type", "text/event-stream");
-  response.setHeader("Cache-Control", "no-cache");
-  response.setHeader("Connection", "keep-alive");
-  response.flushHeaders();
+**Implementation differs from original plan:** Instead of a separate `processToolResults()` method, tool results are validated and processed inline within `startRun()`. This is simpler and follows fail-fast principles.
 
-  // Handle connection close
-  response.on("close", () => {
-    this.v1Service.cancelRun(thread.id, startResult.runId, "connection_closed");
-  });
+**Files created:**
 
-  try {
-    await this.v1Service.executeRun(response, thread.id, startResult.runId, dto);
-  } catch (error) {
-    // Emit error event if headers already sent
-    if (response.headersSent) {
-      const errorEvent = { type: "error", error: { message: error.message } };
-      response.write(`data: ${JSON.stringify(errorEvent)}\n\n`);
-    }
-    throw error;
-  } finally {
-    response.end();
-  }
-}
+- `apps/api/src/v1/v1-client-tools.ts` - `ToolCallTracker` class detects client-side tools (those without TOOL_CALL_RESULT events)
+- `apps/api/src/v1/v1-tool-results.ts` - `extractToolResults()`, `validateToolResults()`, `convertToolResultsToMessages()`
 
-@Post("threads/:threadId/runs")
-@UseGuards(ThreadInProjectGuard)
-@ApiOperation({ summary: "Create run on existing thread (SSE)" })
-@ApiProduces("text/event-stream")
-async createRun(
-  @Param("threadId") threadId: string,
-  @Body() dto: CreateRunDto,
-  @Res() response: Response,
-): Promise<void> {
-  // Start run (handles concurrency atomically)
-  const startResult = await this.v1Service.startRun(threadId);
-  if (!startResult.success) {
-    throw startResult.error;
-  }
+**Flow:**
 
-  // Same SSE setup as above...
-}
+1. During streaming, `ToolCallTracker.processEvent()` tracks all tool calls
+2. After streaming completes, `getPendingToolCalls()` returns tools without results (client-side tools)
+3. If pending tools exist, emit `tambo.run.awaiting_input` custom event
+4. On next run with `previousRunId`, `validateToolResults()` ensures ALL pending tools have results (fail-fast, not partial)
+5. Tool result messages are saved within the run transaction before the run starts
 
-@Delete("threads/:threadId/runs/:runId")
-@UseGuards(ThreadInProjectGuard)
-@ApiOperation({ summary: "Cancel run" })
-async cancelRun(
-  @Param("threadId") threadId: string,
-  @Param("runId") runId: string,
-): Promise<CancelRunResponseDto> {
-  return this.v1Service.cancelRun(threadId, runId, "user_cancelled");
-}
-```
+**Design decision:** No idempotency - submitting the same results twice will fail because `pendingToolCallIds` is cleared after processing. This is intentional fail-fast behavior.
 
-#### 3.3 SSE Event Emission (Simple Functions, Not Service)
+#### 3.5 Tool & Component Format Conversion ✅
 
-```typescript
-// apps/api/src/v1/v1.service.ts
+**Files created:**
 
-// Simple helper function - no class needed
-private emit(response: Response, event: unknown): void {
-  response.write(`data: ${JSON.stringify(event)}\n\n`);
-}
+- `apps/api/src/v1/v1-tool-conversions.ts` - Converts V1 JSON Schema format to internal format
 
-async executeRun(
-  response: Response,
-  threadId: string,
-  runId: string,
-  dto: CreateRunDto,
-): Promise<void> {
-  // Emit RUN_STARTED
-  this.emit(response, {
-    type: "RUN_STARTED",
-    threadId,
-    runId,
-    timestamp: Date.now(),
-  });
+**Key functions:**
 
-  // ... streaming logic using this.emit() directly ...
+- `convertV1ToolsToInternal()` - V1 `inputSchema` (JSON Schema) → internal `ToolParameters[]`
+- `convertV1ComponentsToInternal()` - V1 `propsSchema` (JSON Schema) → internal component format
 
-  // Emit RUN_FINISHED
-  this.emit(response, {
-    type: "RUN_FINISHED",
-    threadId,
-    runId,
-    timestamp: Date.now(),
-  });
-}
-```
+#### 3.6 Component Streaming ✅
 
-#### 3.4 Tool Call Handling
+**Files created:**
 
-```typescript
-// In v1.service.ts
-async processToolResults(
-  threadId: string,
-  previousRunId: string,
-  toolResults: ToolResultContentDto[],
-): Promise<{ accepted: string[]; stillPending: string[] }> {
-  return await this.db.transaction(async (tx) => {
-    const thread = await tx.query.threads.findFirst({
-      where: eq(threads.id, threadId),
-    });
+- `packages/backend/src/util/component-streaming.ts` - `ComponentStreamTracker` for incremental JSON parsing
 
-    // Validate previousRunId matches lastCompletedRunId
-    if (thread?.lastCompletedRunId !== previousRunId) {
-      throw new BadRequestException("Invalid previousRunId");
-    }
+**Events emitted:**
 
-    const pending = new Set(thread.pendingToolCallIds ?? []);
-    const accepted: string[] = [];
+- `tambo.component.start` - On first delta, includes componentId and name
+- `tambo.component.props_delta` - RFC 6902 JSON Patch operations with streaming status per property
+- `tambo.component.end` - Final props on tool call completion
 
-    for (const result of toolResults) {
-      if (!pending.has(result.toolUseId)) {
-        throw new BadRequestException(`Unknown or already processed toolUseId: ${result.toolUseId}`);
-      }
+**Integration:** Hooked into `ai-sdk-client.ts` `handleStreamingResponse()` for tools matching `show_component_*` pattern.
 
-      pending.delete(result.toolUseId);
-      accepted.push(result.toolUseId);
-    }
+**Property streaming status logic:**
 
-    // Thread stays idle - a new run will be started to process the results
-    await tx.update(threads).set({
-      pendingToolCallIds: pending.size > 0 ? Array.from(pending) : null,
-    }).where(eq(threads.id, threadId));
+- `started` - Property first seen
+- `streaming` - Property value is changing
+- `done` - A NEW property was seen after this one (not based on value type)
 
-    return { accepted, stillPending: Array.from(pending) };
-  });
-}
-```
+**Tasks:** ✅ All completed
 
-**Tasks:**
+- [x] Add `startRun()` method to service with atomic locking
+- [x] Add run creation endpoints to controller
+- [x] Add run cancellation endpoint
+- [x] Implement `executeRun()` with AG-UI event emission
+- [x] Implement tool call handling (server-side MCP, client-side awaiting_input)
+- [x] Implement tool result validation inline in `startRun()` (changed from separate method)
+- [x] Add connection close handling
+- [x] Add tool/component format conversion
+- [x] Add component streaming events
+- [x] Write unit tests for all new modules (64 tests)
+- [x] Write e2e tests for streaming and tool calls
 
-- [ ] Add `startRun()` method to service with atomic locking
-- [ ] Add run creation endpoints to controller
-- [ ] Add run cancellation endpoint
-- [ ] Implement `executeRun()` with AG-UI event emission
-- [ ] Implement tool call handling (server-side MCP, client-side awaiting_input)
-- [ ] Implement `processToolResults()` with idempotency
-- [ ] Add connection close handling
-- [ ] Write integration tests for streaming and tool calls
-
-**Success criteria:**
+**Success criteria:** ✅ Met
 
 - SSE streaming works with AG-UI events
 - Concurrent runs rejected with 409 (tested with parallel requests)
 - Connection drop cancels run
-- Tool results processed idempotently
+- Tool results validated with fail-fast behavior (all required, no extras)
+- Component props stream incrementally with JSON Patch
 
 ---
 
