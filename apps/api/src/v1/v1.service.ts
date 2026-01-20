@@ -435,6 +435,14 @@ export class V1Service {
       );
     }
 
+    // Capture expected pending tool call IDs from the thread snapshot we read before
+    // acquiring the run lock. This snapshot is the only concurrency key used for
+    // tool result application.
+    // Any change between this snapshot and the clear is
+    // treated as a concurrency conflict that requires client retry.
+    // Note: pendingToolCallIds should only be modified by the V1 run / tool-result flow.
+    const snapshotPendingToolCallIds = thread.pendingToolCallIds ?? null;
+
     let runId: string | null;
     try {
       runId = await this.db.transaction(async (tx) => {
@@ -450,9 +458,11 @@ export class V1Service {
 
         // Clear pendingToolCallIds since we've processed the tool results
         if (toolResultMessages.length > 0) {
-          await operations.clearPendingToolCalls(tx, threadId, {
-            expectedPendingToolCallIds: thread.pendingToolCallIds ?? null,
-          });
+          await operations.clearPendingToolCalls(
+            tx,
+            threadId,
+            snapshotPendingToolCallIds,
+          );
         }
 
         const run = await operations.createRun(tx, {
@@ -473,6 +483,17 @@ export class V1Service {
       });
     } catch (error) {
       if (error instanceof operations.PendingToolCallStateMismatchError) {
+        const mismatchContext = "v1.apply_tool_results";
+        const snapshotPendingToolCallIdsCount =
+          snapshotPendingToolCallIds?.length ?? 0;
+
+        // Keep warning logs low-cardinality and avoid emitting tool-call IDs.
+        this.logger.warn(
+          `Thread ${threadId} pending tool call state mismatch ` +
+            `(previousRunId=${dto.previousRunId ?? null}) ` +
+            `mismatchContext=${mismatchContext} ` +
+            `snapshotPendingToolCallIdsCount=${snapshotPendingToolCallIdsCount}`,
+        );
         return {
           success: false,
           error: new HttpException(
