@@ -11,22 +11,28 @@ import { invalidateLlmSettingsCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**
- * Zod schema for the `fetchAvailableLlmModels` function.
- * Returns all available LLM providers and their models with IDs.
+ * Input schema for the `fetchAvailableLlmModels` function.
+ * No arguments required.
  */
-export const fetchAvailableLlmModelsSchema = z
-  .function()
-  .args()
-  .returns(llmProviderConfigSchema);
+export const fetchAvailableLlmModelsInputSchema = z.object({});
 
 /**
- * Zod schema for the `fetchProjectLlmSettings` function.
- * Defines the argument as a project ID string and the return type as an object containing LLM settings.
+ * Output schema for the `fetchAvailableLlmModels` function.
+ * Returns all available LLM providers and their models with IDs.
  */
-export const fetchProjectLlmSettingsSchema = z
-  .function()
-  .args(getProjectLlmSettingsInput)
-  .returns(projectLlmSettingsSchema);
+export const fetchAvailableLlmModelsOutputSchema = llmProviderConfigSchema;
+
+/**
+ * Input schema for the `fetchProjectLlmSettings` function.
+ * Requires a project ID string.
+ */
+export const fetchProjectLlmSettingsInputSchema = getProjectLlmSettingsInput;
+
+/**
+ * Output schema for the `fetchProjectLlmSettings` function.
+ * Returns LLM settings.
+ */
+export const fetchProjectLlmSettingsOutputSchema = projectLlmSettingsSchema;
 
 /**
  * Tool-specific input schema for updateProjectLlmSettings.
@@ -34,25 +40,16 @@ export const fetchProjectLlmSettingsSchema = z
  * nested z.record() is not supported in Vercel AI SDK tool schemas.
  * The actual validation happens in the tRPC layer.
  */
-const updateProjectLlmSettingsToolInput = updateProjectLlmSettingsInput.extend({
-  customLlmParameters: z
-    .any()
-    .nullable()
-    .optional()
-    .describe(
-      'Custom LLM parameters. Structure: { "providerName": { "modelName": { "parameterName": parameterValue } } }',
-    ),
-});
-
-/**
- * Zod schema for the `updateProjectLlmSettings` function.
- * Defines arguments as the project ID string and an LLM settings object,
- * and the return type as an object representing the updated LLM settings.
- */
-export const updateProjectLlmSettingsSchema = z
-  .function()
-  .args(updateProjectLlmSettingsToolInput)
-  .returns(updateProjectLlmSettingsOutputSchema);
+export const updateProjectLlmSettingsInputSchema =
+  updateProjectLlmSettingsInput.extend({
+    customLlmParameters: z
+      .any()
+      .nullable()
+      .optional()
+      .describe(
+        'Custom LLM parameters. Structure: { "providerName": { "modelName": { "parameterName": parameterValue } } }',
+      ),
+  });
 
 /**
  * Register LLM provider settings management tools
@@ -74,7 +71,8 @@ export function registerLlmTools(
     tool: async () => {
       return await ctx.trpcClient.llm.getLlmProviderConfig.query();
     },
-    toolSchema: fetchAvailableLlmModelsSchema,
+    inputSchema: fetchAvailableLlmModelsInputSchema,
+    outputSchema: fetchAvailableLlmModelsOutputSchema,
   });
 
   /**
@@ -91,7 +89,8 @@ export function registerLlmTools(
     tool: async (params: { projectId: string }) => {
       return await ctx.trpcClient.project.getProjectLlmSettings.query(params);
     },
-    toolSchema: fetchProjectLlmSettingsSchema,
+    inputSchema: fetchProjectLlmSettingsInputSchema,
+    outputSchema: fetchProjectLlmSettingsOutputSchema,
   });
 
   /**
@@ -153,6 +152,7 @@ export function registerLlmTools(
 
       return result;
     },
-    toolSchema: updateProjectLlmSettingsSchema,
+    inputSchema: updateProjectLlmSettingsInputSchema,
+    outputSchema: updateProjectLlmSettingsOutputSchema,
   });
 }

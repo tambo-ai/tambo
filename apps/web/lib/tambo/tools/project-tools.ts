@@ -11,59 +11,76 @@ import { invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**
- * Zod schema for the `fetchAllProjects` function.
- * Defines no arguments and the return type as an object with a `projects` property, which is an array of project details.
+ * Input schema for the `fetchAllProjects` function.
+ * No arguments required.
  */
-export const fetchAllProjectsSchema = z
-  .function()
-  .args()
-  .returns(z.object({ projects: z.array(projectTableSchema) }));
+export const fetchAllProjectsInputSchema = z.object({});
 
 /**
- * Zod schema for the `fetchProjectById` function.
- * Defines the argument as a project ID string and the return type as an object containing detailed project information.
+ * Output schema for the `fetchAllProjects` function.
+ * Returns an object with a `projects` property containing an array of project details.
  */
-export const fetchProjectByIdSchema = z
-  .function()
-  .args(
-    z
-      .object({
-        projectId: getProjectByIdInput,
-      })
-      .describe("Arguments for fetching a specific project"),
-  )
-  .returns(projectDetailSchema);
+export const fetchAllProjectsOutputSchema = z.object({
+  projects: z.array(projectTableSchema),
+});
 
 /**
- * Zod schema for the `createProject` function.
- * Defines the argument as the project name string and the return type as an object representing the newly created project (id, name, userId).
+ * Input schema for the `fetchProjectById` function.
+ * Requires a project ID string.
  */
-export const createProjectSchema = z
-  .function()
-  .args(createProjectInput)
-  .returns(createProjectOutputSchema);
+export const fetchProjectByIdInputSchema = z
+  .object({
+    projectId: getProjectByIdInput,
+  })
+  .describe("Arguments for fetching a specific project");
 
 /**
- * Zod schema for the `removeProject` function.
- * Defines the argument as the project ID string and the return type as an object indicating success (e.g., `{ success: true }`).
+ * Output schema for the `fetchProjectById` function.
+ * Returns detailed project information.
  */
-export const removeProjectSchema = z
-  .function()
-  .args(removeProjectInput)
-  .returns(z.object({ success: z.boolean() }));
+export const fetchProjectByIdOutputSchema = projectDetailSchema;
 
 /**
- * Zod schema for the `fetchProjectCount` function.
- * Defines no arguments and returns the count of projects for the current user.
+ * Input schema for the `createProject` function.
+ * Requires the project name.
  */
-export const fetchProjectCountSchema = z
-  .function()
-  .args()
-  .returns(
-    z.object({
-      count: z.number(),
-    }),
-  );
+export const createProjectInputSchema = z.object({
+  projectName: createProjectInput,
+});
+
+/**
+ * Output schema for the `createProject` function.
+ * Returns the newly created project (id, name, userId).
+ */
+export const createProjectOutputSchema_ = createProjectOutputSchema;
+
+/**
+ * Input schema for the `removeProject` function.
+ * Requires the project ID.
+ */
+export const removeProjectInputSchema = z.object({
+  projectId: removeProjectInput,
+});
+
+/**
+ * Output schema for the `removeProject` function.
+ * Returns an object indicating success.
+ */
+export const removeProjectOutputSchema = z.object({ success: z.boolean() });
+
+/**
+ * Input schema for the `fetchProjectCount` function.
+ * No arguments required.
+ */
+export const fetchProjectCountInputSchema = z.object({});
+
+/**
+ * Output schema for the `fetchProjectCount` function.
+ * Returns the count of projects for the current user.
+ */
+export const fetchProjectCountOutputSchema = z.object({
+  count: z.number(),
+});
 
 /**
  * Register project management tools
@@ -83,7 +100,8 @@ export function registerProjectTools(
       const projects = await ctx.trpcClient.project.getUserProjects.query();
       return { projects };
     },
-    toolSchema: fetchAllProjectsSchema,
+    inputSchema: fetchAllProjectsInputSchema,
+    outputSchema: fetchAllProjectsOutputSchema,
   });
 
   /**
@@ -101,46 +119,52 @@ export function registerProjectTools(
         params.projectId,
       );
     },
-    toolSchema: fetchProjectByIdSchema,
+    inputSchema: fetchProjectByIdInputSchema,
+    outputSchema: fetchProjectByIdOutputSchema,
   });
 
   /**
    * Registers a tool to create a new project.
-   * @param {string} projectName - The name for the new project
+   * @param {Object} params - Parameters object
+   * @param {string} params.projectName - The name for the new project
    * @returns {Object} Created project details with ID, name, and user ID
    */
   registerTool({
     name: "createProject",
     description: "create a new project",
-    tool: async (projectName: string) => {
-      const result =
-        await ctx.trpcClient.project.createProject.mutate(projectName);
+    tool: async (params: { projectName: string }) => {
+      const result = await ctx.trpcClient.project.createProject.mutate(
+        params.projectName,
+      );
 
       // Invalidate the project cache to refresh the component
       await invalidateProjectCache(ctx);
 
       return result;
     },
-    toolSchema: createProjectSchema,
+    inputSchema: createProjectInputSchema,
+    outputSchema: createProjectOutputSchema_,
   });
 
   /**
    * Registers a tool to remove/delete a project.
-   * @param {string} projectId - The ID of the project to remove
+   * @param {Object} params - Parameters object
+   * @param {string} params.projectId - The ID of the project to remove
    * @returns {Object} Success status indicating the project was deleted
    */
   registerTool({
     name: "removeProject",
     description: "remove a project",
-    tool: async (projectId: string) => {
-      await ctx.trpcClient.project.removeProject.mutate(projectId);
+    tool: async (params: { projectId: string }) => {
+      await ctx.trpcClient.project.removeProject.mutate(params.projectId);
 
       // Invalidate the project cache to refresh the component
       await invalidateProjectCache(ctx);
 
       return { success: true };
     },
-    toolSchema: removeProjectSchema,
+    inputSchema: removeProjectInputSchema,
+    outputSchema: removeProjectOutputSchema,
   });
 
   /**
@@ -155,6 +179,7 @@ export function registerProjectTools(
       const projects = await ctx.trpcClient.project.getUserProjects.query();
       return { count: projects.length };
     },
-    toolSchema: fetchProjectCountSchema,
+    inputSchema: fetchProjectCountInputSchema,
+    outputSchema: fetchProjectCountOutputSchema,
   });
 }

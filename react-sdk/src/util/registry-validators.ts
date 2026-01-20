@@ -1,17 +1,11 @@
 import type { JSONSchema7 } from "json-schema";
-import type {
-  TamboComponent,
-  TamboTool,
-  TamboToolWithToolSchema,
-} from "../model/component-metadata";
+import type { TamboComponent, TamboTool } from "../model/component-metadata";
 import {
   assertNoRecordSchema,
-  getZodFunctionArgs,
   isStandardSchema,
   looksLikeJSONSchema,
   schemaToJsonSchema,
 } from "../schema";
-import { isZodFunctionSchema } from "../schema/zod";
 import { assertValidName } from "./validate-component-name";
 
 /**
@@ -60,28 +54,26 @@ function assertObjectSchema(schema: unknown, context: string): void {
  * Throws an error if the tool is invalid.
  * @param tool - The tool to validate
  */
-export function validateTool(tool: TamboTool | TamboToolWithToolSchema): void {
+export function validateTool(tool: TamboTool): void {
   // Validate tool name
   assertValidName(tool.name, "tool");
 
-  // Validate tool schemas
-  // 1. check inputSchema
-  if ("inputSchema" in tool && tool.inputSchema) {
-    // inputSchema must be an object schema
+  // Check for deprecated toolSchema - throw error with migration instructions
+  if ("toolSchema" in tool) {
+    throw new Error(
+      `Tool "${tool.name}" uses deprecated "toolSchema" property. ` +
+        `Migrate to "inputSchema" and "outputSchema" properties. ` +
+        `See migration guide: https://tambo.ai/docs/migration/toolschema`,
+    );
+  }
+
+  // Validate tool schemas - inputSchema must be an object schema
+  if (tool.inputSchema) {
     assertObjectSchema(tool.inputSchema, `inputSchema of tool "${tool.name}"`);
     assertNoRecordSchema(
       tool.inputSchema,
       `inputSchema of tool "${tool.name}"`,
     );
-  }
-  // 2. check deprecated toolSchema
-  else if ("toolSchema" in tool && tool.toolSchema) {
-    let inputSchema = tool.toolSchema;
-    // toolSchema may sometimes be a zod function schema, extract args if so
-    if (isZodFunctionSchema(tool.toolSchema)) {
-      inputSchema = getZodFunctionArgs(tool.toolSchema);
-    }
-    assertNoRecordSchema(inputSchema, `toolSchema of tool "${tool.name}"`);
   }
 
   // Validate maxCalls if provided - must be a positive integer

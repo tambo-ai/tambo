@@ -46,7 +46,7 @@ export const updateProjectAgentSettingsInput = z.object({
 });
 
 // Input schema for tools (uses unknown for compatibility)
-export const updateProjectAgentSettingsToolInput = z.object({
+export const updateProjectAgentSettingsInputSchema = z.object({
   projectId: z
     .string()
     .describe("The complete project ID (e.g., 'p_u2tgQg5U.43bbdf')"),

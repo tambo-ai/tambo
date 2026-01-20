@@ -309,14 +309,14 @@ const tools: TamboTool[] = [
   {
     name: "getImageData",
     description: "Fetches image data with metadata",
-    tool: async (imageId: string) => {
-      const data = await fetchImageData(imageId);
+    tool: async (params: { imageId: string }) => {
+      const data = await fetchImageData(params.imageId);
       return { url: data.imageUrl, description: data.description };
     },
-    toolSchema: z.function({
-      input: z.string(),
-      output: z.object({ url: z.string(), description: z.string() }),
+    inputSchema: z.object({
+      imageId: z.string(),
     }),
+    outputSchema: z.object({ url: z.string(), description: z.string() }),
     transformToContent: (result) => [
       { type: "text", text: result.description },
       { type: "image_url", image_url: { url: result.url } },

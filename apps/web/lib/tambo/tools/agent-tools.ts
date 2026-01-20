@@ -1,20 +1,10 @@
 import {
+  updateProjectAgentSettingsInputSchema,
   updateProjectAgentSettingsOutputSchema,
-  updateProjectAgentSettingsToolInput,
 } from "@/lib/schemas/agent";
 import { AgentProviderType, AiProviderType } from "@tambo-ai-cloud/core";
-import { z } from "zod/v3";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
-
-/**
- * Zod schema for the `updateProjectAgentSettings` function.
- * Defines arguments as an object containing agent settings and returns updated settings.
- */
-export const updateProjectAgentSettingsSchema = z
-  .function()
-  .args(updateProjectAgentSettingsToolInput)
-  .returns(updateProjectAgentSettingsOutputSchema);
 
 /**
  * Register agent-specific settings management tools
@@ -59,6 +49,7 @@ export function registerAgentTools(
 
       return result;
     },
-    toolSchema: updateProjectAgentSettingsSchema,
+    inputSchema: updateProjectAgentSettingsInputSchema,
+    outputSchema: updateProjectAgentSettingsOutputSchema,
   });
 }

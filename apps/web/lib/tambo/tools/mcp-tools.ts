@@ -24,14 +24,16 @@ const mcpServerToolSchema = mcpServerSchema.extend({
 });
 
 /**
- * Zod schema for the `fetchProjectMcpServers` function.
- * Defines the argument as a project ID string and the return type as an array of MCP server objects.
- * The schema's return type is an array of MCP server objects.
+ * Input schema for the `fetchProjectMcpServers` function.
+ * Requires a project ID string.
  */
-export const fetchProjectMcpServersSchema = z
-  .function()
-  .args(listMcpServersInput)
-  .returns(z.array(mcpServerToolSchema));
+export const fetchProjectMcpServersInputSchema = listMcpServersInput;
+
+/**
+ * Output schema for the `fetchProjectMcpServers` function.
+ * Returns an array of MCP server objects.
+ */
+export const fetchProjectMcpServersOutputSchema = z.array(mcpServerToolSchema);
 
 /**
  * Tool-specific input schema for updateMcpServer.
@@ -55,13 +57,16 @@ const mcpServerDetailToolSchema = mcpServerDetailSchema.extend({
 });
 
 /**
- * Zod schema for the `updateMcpServer` function.
- * Defines the argument as an object containing parameters for updating an MCP server
+ * Input schema for the `updateMcpServer` function.
+ * Contains parameters for updating an MCP server.
  */
-export const updateMcpServerSchema = z
-  .function()
-  .args(updateMcpServerToolInput)
-  .returns(mcpServerDetailToolSchema);
+export const updateMcpServerInputSchema = updateMcpServerToolInput;
+
+/**
+ * Output schema for the `updateMcpServer` function.
+ * Returns updated MCP server details.
+ */
+export const updateMcpServerOutputSchema = mcpServerDetailToolSchema;
 
 /**
  * Tool-specific output schema for inspect MCP server.
@@ -82,14 +87,16 @@ const inspectMcpServerToolOutputSchema = inspectMcpServerOutputSchema.extend({
 });
 
 /**
- * Zod schema for the `getMcpServerTools` function.
- * Defines the argument as an object containing the project ID and server ID,
- * and the return type as an object containing available tools and server information.
+ * Input schema for the `getMcpServerTools` function.
+ * Contains the project ID and server ID.
  */
-export const getMcpServerToolsSchema = z
-  .function()
-  .args(inspectMcpServerInput)
-  .returns(inspectMcpServerToolOutputSchema);
+export const getMcpServerToolsInputSchema = inspectMcpServerInput;
+
+/**
+ * Output schema for the `getMcpServerTools` function.
+ * Returns available tools and server information.
+ */
+export const getMcpServerToolsOutputSchema = inspectMcpServerToolOutputSchema;
 
 /**
  * Register MCP server management tools
@@ -113,7 +120,8 @@ export function registerMcpTools(
     tool: async (params: { projectId: string }) => {
       return await ctx.trpcClient.tools.listMcpServers.query(params);
     },
-    toolSchema: fetchProjectMcpServersSchema,
+    inputSchema: fetchProjectMcpServersInputSchema,
+    outputSchema: fetchProjectMcpServersOutputSchema,
   });
 
   /**
@@ -144,7 +152,8 @@ export function registerMcpTools(
 
       return result;
     },
-    toolSchema: updateMcpServerSchema,
+    inputSchema: updateMcpServerInputSchema,
+    outputSchema: updateMcpServerOutputSchema,
   });
 
   /**
@@ -161,6 +170,7 @@ export function registerMcpTools(
     tool: async (params: { projectId: string; serverId: string }) => {
       return await ctx.trpcClient.tools.inspectMcpServer.query(params);
     },
-    toolSchema: getMcpServerToolsSchema,
+    inputSchema: getMcpServerToolsInputSchema,
+    outputSchema: getMcpServerToolsOutputSchema,
   });
 }

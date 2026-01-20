@@ -11,10 +11,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  TamboTool,
-  TamboToolWithToolSchema,
-} from "../model/component-metadata";
+import { TamboTool } from "../model/component-metadata";
 import {
   GenerationStage,
   isIdleStage,
@@ -1296,7 +1293,7 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
 async function convertToolResponse(toolCallResponse: {
   result: unknown;
   error?: string;
-  tamboTool?: TamboTool | TamboToolWithToolSchema;
+  tamboTool?: TamboTool;
 }): Promise<TamboAI.Beta.Threads.ChatCompletionContentPart[]> {
   // If the tool call errored, surface that as text so the model reliably sees the error
   if (toolCallResponse.error) {

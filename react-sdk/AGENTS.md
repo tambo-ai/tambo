@@ -54,11 +54,14 @@ const tools: TamboTool[] = [
   {
     name: "toolName",
     description: "Tool description for AI",
-    tool: async (args) => {
+    tool: async (params) => {
       // Tool implementation
       return result;
     },
-    toolSchema: zodSchema, // Zod function schema
+    inputSchema: z.object({
+      // Input parameters schema
+    }),
+    outputSchema: z.any(), // Output schema
     // Optional: Transform tool response to content parts
     transformToContent: (result) => [
       { type: "text", text: result.text },

@@ -16,7 +16,6 @@ import type {
   TamboComponent,
   TamboTool,
   TamboToolRegistry,
-  TamboToolWithToolSchema,
 } from "../model/component-metadata";
 import type {
   McpServerInfo,
@@ -47,10 +46,7 @@ export interface TamboRegistryContext {
   registerComponent: (options: TamboComponent) => void;
   registerTool: RegisterToolFn;
   registerTools: RegisterToolsFn;
-  addToolAssociation: (
-    componentName: string,
-    tool: TamboTool | TamboToolWithToolSchema,
-  ) => void;
+  addToolAssociation: (componentName: string, tool: TamboTool) => void;
   registerMcpServer: (info: McpServerInfo) => void;
   registerMcpServers: (infos: McpServerInfo[]) => void;
   registerResource: (resource: ListResourceItem) => void;
@@ -111,7 +107,7 @@ export interface TamboRegistryProviderProps {
   /** The components to register */
   components?: TamboComponent[];
   /** The tools to register */
-  tools?: (TamboTool | TamboToolWithToolSchema)[];
+  tools?: TamboTool[];
   /** The MCP servers to register */
   mcpServers?: (McpServerInfo | string)[];
   /** The static resources to register */
@@ -188,7 +184,7 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const registerTool = useCallback(
-    (tool: TamboTool | TamboToolWithToolSchema, warnOnOverwrite = true) => {
+    (tool: TamboTool, warnOnOverwrite = true) => {
       validateTool(tool);
 
       setToolRegistry((prev) => {
@@ -205,10 +201,7 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const registerTools = useCallback(
-    (
-      tools: (TamboTool | TamboToolWithToolSchema)[],
-      warnOnOverwrite = true,
-    ) => {
+    (tools: TamboTool[], warnOnOverwrite = true) => {
       tools.forEach((tool) => registerTool(tool, warnOnOverwrite));
     },
     [registerTool],
@@ -228,7 +221,7 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const addToolAssociation = useCallback(
-    (componentName: string, tool: TamboTool | TamboToolWithToolSchema) => {
+    (componentName: string, tool: TamboTool) => {
       validateToolAssociation(
         componentName,
         tool.name,
