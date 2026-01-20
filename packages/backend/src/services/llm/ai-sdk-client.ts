@@ -53,6 +53,10 @@ import {
 } from "./llm-client";
 import { generateMessageId } from "./message-id-generator";
 import { limitTokens } from "./token-limiter";
+import {
+  ComponentStreamTracker,
+  tryExtractComponentName,
+} from "../../util/component-streaming";
 
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
@@ -424,7 +428,12 @@ export class AISdkClient implements LLMClient {
 
     // Track message ID for AG-UI events
     let textMessageId: string | undefined;
+    // Local mutable accumulator for tool call args deltas (reset per tool call);
+    // do not reuse outside this scope.
     let toolCallArgDeltas: string[] = [];
+
+    // Track component streaming for UI tools (show_component_*)
+    let componentTracker: ComponentStreamTracker | undefined;
 
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
@@ -462,15 +471,37 @@ export class AISdkClient implements LLMClient {
             } as TextMessageEndEvent);
           }
           break;
-        case "tool-input-start":
+        case "tool-input-start": {
           accumulatedToolCall.name = delta.toolName;
           accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
           toolCallArgDeltas = [];
+
+          // Initialize component tracker for UI tools
+          // Component streaming is only emitted for valid `show_component_*` tool names.
+          const componentName = tryExtractComponentName(delta.toolName);
+          if (componentName) {
+            const componentId = generateMessageId();
+            componentTracker = new ComponentStreamTracker(
+              componentId,
+              componentName,
+            );
+          } else {
+            componentTracker = undefined;
+          }
           break;
+        }
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
-          toolCallArgDeltas = [...toolCallArgDeltas, delta.delta];
+          toolCallArgDeltas.push(delta.delta);
+
+          // Emit component streaming events for UI tools
+          if (componentTracker) {
+            const componentEvents = componentTracker.processJsonDelta(
+              delta.delta,
+            );
+            aguiEvents.push(...componentEvents);
+          }
           break;
         case "tool-input-end":
           break;
@@ -499,6 +530,13 @@ export class AISdkClient implements LLMClient {
               toolCallId: delta.toolCallId,
               timestamp: Date.now(),
             } as ToolCallEndEvent);
+
+            // Finalize component tracker and emit end event
+            if (componentTracker) {
+              const endEvents = componentTracker.finalize();
+              aguiEvents.push(...endEvents);
+              componentTracker = undefined;
+            }
           }
 
           toolCallArgDeltas = [];
