@@ -47,7 +47,7 @@
     "langfuse": "^3.38.6",
     "mime-types": "^3.0.2",
     "nanoid": "^3.3.11",
-    "openai": "^6.15.0",
+    "openai": "^6.16.0",
     "partial-json": "^0.1.7",
     "rxjs": "7.8.1",
     "zod": "^3.25.76",
