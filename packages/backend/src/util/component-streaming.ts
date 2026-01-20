@@ -16,6 +16,11 @@ const COMPONENT_TOOL_PREFIX = "show_component_";
  * `escapePathComponent` from `fast-json-patch` so `~` becomes `~0` and `/`
  * becomes `~1`.
  *
+ * This module also relies on the incremental JSON parser returning a fresh,
+ * plain-object snapshot on each parse. If that ever changes (parser swap,
+ * pooling, in-place mutation), this tracker must reintroduce a cloning
+ * strategy.
+ *
  * Consumers are expected to apply patches in-order to the same canonical props
  * tree, and avoid out-of-band mutations that would invalidate JSON Pointer
  * paths.
@@ -38,6 +43,9 @@ export type JsonPatchOperation = Operation;
  *
  * This helper is the only supported way to build JSON Patch paths in this
  * module.
+ *
+ * If nested paths ever become necessary, extend this helper to accept multiple
+ * path segments rather than concatenating raw strings.
  */
 function createJsonPatchPath(key: string): string {
   return `/${escapePathComponent(key)}`;
