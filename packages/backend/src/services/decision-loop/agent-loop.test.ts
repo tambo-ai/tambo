@@ -1,7 +1,6 @@
 import {
   AsyncQueue,
   ChatCompletionContentPart,
-  LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
   ThreadUserMessage,
@@ -14,7 +13,7 @@ import {
   AgentResponseType,
 } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
-import { runAgentLoop } from "./agent-loop";
+import { DecisionStreamItem, runAgentLoop } from "./agent-loop";
 
 // Mock the agent client
 const createMockAgentClient = (): AgentClient => {
@@ -118,7 +117,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -161,7 +160,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -232,7 +231,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -282,7 +281,7 @@ describe("runAgentLoop", () => {
       // Mock console.warn to avoid test output
       const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -327,7 +326,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -381,7 +380,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -422,7 +421,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -567,7 +566,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -606,7 +605,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -643,7 +642,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,
@@ -680,7 +679,7 @@ describe("runAgentLoop", () => {
         },
       } as AsyncIterableIterator<AgentResponse>);
 
-      const results: LegacyComponentDecision[] = [];
+      const results: DecisionStreamItem[] = [];
       const queue = new AsyncQueue<EventHandlerParams>();
       for await (const result of runAgentLoop(
         mockAgentClient,

@@ -36,6 +36,7 @@ coverage
 *.code*
 .claude/settings.local.json
 .plans/
+.playwright-mcp/
 
 # misc
 .DS_Store

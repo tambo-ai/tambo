@@ -1,3 +1,4 @@
+import type { BaseEvent } from "@ag-ui/core";
 import { ThreadMessage } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { JSONSchema } from "openai/lib/jsonschema";
@@ -57,7 +58,7 @@ export interface LLMClient {
   chainId: string;
   complete(
     params: StreamingCompleteParams,
-  ): Promise<AsyncIterableIterator<Partial<LLMResponse>>>;
+  ): Promise<AsyncIterableIterator<LLMStreamItem>>;
   complete(params: CompleteParams): Promise<LLMResponse>;
 }
 
@@ -81,6 +82,30 @@ interface LLMResponseExtras {
 export type LLMResponse = Omit<LLMChatCompletionChoice, "finish_reason"> &
   LLMResponseExtras;
 
+/**
+ * Extended stream item that includes both the LLM response and AG-UI events.
+ * This allows consumers to either:
+ * - Use the llmResponse for backwards-compatible behavior
+ * - Use the aguiEvents for V1 API streaming
+ */
+export interface LLMStreamItem {
+  /**
+   * The traditional LLM response chunk (backwards compatible)
+   */
+  llmResponse: Partial<LLMResponse>;
+
+  /**
+   * AG-UI events generated from this streaming delta.
+   * May contain 0-N events depending on the delta type.
+   *
+   * Events include:
+   * - TextMessageStartEvent, TextMessageContentEvent, TextMessageEndEvent
+   * - ToolCallStartEvent, ToolCallArgsEvent, ToolCallEndEvent
+   * - ThinkingTextMessageStartEvent, ThinkingTextMessageContentEvent, etc.
+   */
+  aguiEvents: BaseEvent[];
+}
+
 /** Get the string response from the LLM response */
 export function getLLMResponseMessage(response: Partial<LLMResponse>) {
   return response.message?.content ?? "";
@@ -89,4 +114,14 @@ export function getLLMResponseMessage(response: Partial<LLMResponse>) {
 /** Get the tool call id from the LLM response */
 export function getLLMResponseToolCallId(response: Partial<LLMResponse>) {
   return response.message?.tool_calls?.[0]?.id;
+}
+
+/**
+ * Helper to get the LLM response from a stream item.
+ * Use this when migrating from direct LLMResponse to LLMStreamItem.
+ */
+export function getStreamItemResponse(
+  item: LLMStreamItem,
+): Partial<LLMResponse> {
+  return item.llmResponse;
 }

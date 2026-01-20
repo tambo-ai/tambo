@@ -2,7 +2,6 @@ import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { DeepPartial } from "ts-essentials";
 import { z } from "zod/v4";
 import { TamboComponent } from "../model/component-metadata";
 import {
@@ -20,8 +19,6 @@ import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "./tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "./tambo-thread-provider";
 
-type PartialTamboAI = DeepPartial<TamboAI>;
-
 // Mock crypto.randomUUID
 Object.defineProperty(global, "crypto", {
   value: {
@@ -37,9 +34,17 @@ jest.mock("./tambo-client-provider", () => {
     TamboClientContext: React.createContext(undefined),
   };
 });
-jest.mock("@tambo-ai/typescript-sdk", () => ({
-  advanceStream: jest.fn(),
-}));
+jest.mock("@tambo-ai/typescript-sdk", () => {
+  const actual = jest.requireActual<typeof import("@tambo-ai/typescript-sdk")>(
+    "@tambo-ai/typescript-sdk",
+  );
+
+  return {
+    __esModule: true,
+    ...actual,
+    advanceStream: jest.fn(),
+  };
+});
 
 // Mock the getCustomContext
 jest.mock("../util/registry", () => ({
@@ -63,8 +68,8 @@ const createMockMessage = (
 });
 
 const createMockThread = (
-  overrides: Partial<TamboAI.Beta.Threads.Thread> = {},
-) => ({
+  overrides: Partial<TamboAI.Beta.Threads.ThreadRetrieveResponse> = {},
+): TamboAI.Beta.Threads.ThreadRetrieveResponse => ({
   id: "test-thread-1",
   messages: [],
   createdAt: "2024-01-01T00:00:00Z",
@@ -94,33 +99,9 @@ const createMockAdvanceResponse = (
 describe("TamboThreadProvider", () => {
   const mockThread = createMockThread();
 
-  const mockThreadsApi = {
-    messages: {
-      create: jest.fn(),
-    },
-    retrieve: jest.fn(),
-    advance: jest.fn(),
-    advanceByID: jest.fn(),
-    generateName: jest.fn(),
-  } satisfies DeepPartial<
-    TamboAI["beta"]["threads"]
-  > as unknown as TamboAI.Beta.Threads;
-
-  const mockProjectsApi = {
-    getCurrent: jest.fn(),
-  } satisfies DeepPartial<
-    TamboAI["beta"]["projects"]
-  > as unknown as TamboAI.Beta.Projects;
-
-  const mockBeta = {
-    threads: mockThreadsApi,
-    projects: mockProjectsApi,
-  } satisfies PartialTamboAI["beta"];
-
-  const mockTamboAI = {
-    apiKey: "",
-    beta: mockBeta,
-  } satisfies PartialTamboAI as unknown as TamboAI;
+  let mockTamboAI: TamboAI;
+  let mockThreadsApi: TamboAI.Beta.Threads;
+  let mockProjectsApi: TamboAI.Beta.Projects;
 
   let mockQueryClient: {
     invalidateQueries: jest.Mock;
@@ -149,39 +130,89 @@ describe("TamboThreadProvider", () => {
     },
   ];
 
-  // Use helpers that explicitly return null so they don't appear in additionalContext
-  const Wrapper = ({ children }: { children: React.ReactNode }) => {
-    const client = useTamboClient();
-    const queryClient = useTamboQueryClient();
+  /**
+   * Creates a test wrapper component with configurable options.
+   * Reduces duplication across tests by centralizing provider setup.
+   * @param options - Configuration options for the wrapper
+   * @param options.components - The Tambo components to register
+   * @param options.streaming - Whether to enable streaming responses
+   * @param options.onCallUnregisteredTool - Handler for unregistered tool calls
+   * @param options.autoGenerateThreadName - Whether to auto-generate thread names
+   * @param options.autoGenerateNameThreshold - Token threshold for auto-generating names
+   * @returns A React component that wraps children with the necessary providers
+   */
+  const createWrapper = ({
+    components = mockRegistry,
+    streaming = false,
+    onCallUnregisteredTool,
+    autoGenerateThreadName,
+    autoGenerateNameThreshold,
+  }: {
+    components?: TamboComponent[];
+    streaming?: boolean;
+    onCallUnregisteredTool?: (
+      toolName: string,
+      parameters: TamboAI.ToolCallRequest["parameters"],
+    ) => Promise<string>;
+    autoGenerateThreadName?: boolean;
+    autoGenerateNameThreshold?: number;
+  } = {}) =>
+    function TestWrapper({ children }: { children: React.ReactNode }) {
+      const client = useTamboClient();
+      const queryClient = useTamboQueryClient();
 
-    return (
-      <TamboClientContext.Provider
-        value={{
-          client,
-          queryClient,
-          isUpdatingToken: false,
-        }}
-      >
-        <TamboRegistryProvider components={mockRegistry}>
-          <TamboContextHelpersProvider
-            contextHelpers={{
-              currentTimeContextHelper: () => null,
-              currentPageContextHelper: () => null,
-            }}
+      return (
+        <TamboClientContext.Provider
+          value={{
+            client,
+            queryClient,
+            isUpdatingToken: false,
+          }}
+        >
+          <TamboRegistryProvider
+            components={components}
+            onCallUnregisteredTool={onCallUnregisteredTool}
           >
-            <TamboMcpTokenProvider>
-              <TamboThreadProvider streaming={false}>
-                {children}
-              </TamboThreadProvider>
-            </TamboMcpTokenProvider>
-          </TamboContextHelpersProvider>
-        </TamboRegistryProvider>
-      </TamboClientContext.Provider>
-    );
-  };
+            <TamboContextHelpersProvider
+              contextHelpers={{
+                currentTimeContextHelper: () => null,
+                currentPageContextHelper: () => null,
+              }}
+            >
+              <TamboMcpTokenProvider>
+                <TamboThreadProvider
+                  streaming={streaming}
+                  autoGenerateThreadName={autoGenerateThreadName}
+                  autoGenerateNameThreshold={autoGenerateNameThreshold}
+                >
+                  {children}
+                </TamboThreadProvider>
+              </TamboMcpTokenProvider>
+            </TamboContextHelpersProvider>
+          </TamboRegistryProvider>
+        </TamboClientContext.Provider>
+      );
+    };
+
+  // Default wrapper for most tests
+  const Wrapper = createWrapper();
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockTamboAI = new TamboAI({
+      apiKey: "",
+      fetch: () => {
+        throw new Error("Unexpected network call in test");
+      },
+    });
+
+    mockThreadsApi = mockTamboAI.beta.threads;
+    mockProjectsApi = mockTamboAI.beta.projects;
 
     // Setup mock query client
     mockQueryClient = {
@@ -192,21 +223,21 @@ describe("TamboThreadProvider", () => {
       .mocked(useTamboQueryClient)
       .mockReturnValue(mockQueryClient as unknown as QueryClient);
 
-    jest.mocked(mockThreadsApi.retrieve).mockResolvedValue(mockThread);
+    jest.spyOn(mockThreadsApi, "retrieve").mockResolvedValue(mockThread);
     jest
-      .mocked(mockThreadsApi.messages.create)
+      .spyOn(mockThreadsApi.messages, "create")
       .mockResolvedValue(createMockMessage());
     jest
-      .mocked(mockThreadsApi.advance)
+      .spyOn(mockThreadsApi, "advance")
       .mockResolvedValue(createMockAdvanceResponse());
     jest
-      .mocked(mockThreadsApi.advanceByID)
+      .spyOn(mockThreadsApi, "advanceByID")
       .mockResolvedValue(createMockAdvanceResponse());
-    jest.mocked(mockThreadsApi.generateName).mockResolvedValue({
+    jest.spyOn(mockThreadsApi, "generateName").mockResolvedValue({
       ...mockThread,
       name: "Generated Thread Name",
     });
-    jest.mocked(mockProjectsApi.getCurrent).mockResolvedValue({
+    jest.spyOn(mockProjectsApi, "getCurrent").mockResolvedValue({
       id: "test-project-id",
       name: "Test Project",
       isTokenRequired: false,
@@ -440,43 +471,6 @@ describe("TamboThreadProvider", () => {
       .fn()
       .mockResolvedValue("unregistered-tool-result");
 
-    const WrapperWithUnregisteredTool = ({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) => {
-      const client = useTamboClient();
-      const queryClient = useTamboQueryClient();
-
-      return (
-        <TamboClientContext.Provider
-          value={{
-            client,
-            queryClient,
-            isUpdatingToken: false,
-          }}
-        >
-          <TamboRegistryProvider
-            components={mockRegistry}
-            onCallUnregisteredTool={mockOnCallUnregisteredTool}
-          >
-            <TamboContextHelpersProvider
-              contextHelpers={{
-                currentTimeContextHelper: () => null,
-                currentPageContextHelper: () => null,
-              }}
-            >
-              <TamboMcpTokenProvider>
-                <TamboThreadProvider streaming={false}>
-                  {children}
-                </TamboThreadProvider>
-              </TamboMcpTokenProvider>
-            </TamboContextHelpersProvider>
-          </TamboRegistryProvider>
-        </TamboClientContext.Provider>
-      );
-    };
-
     const mockUnregisteredToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse =
       {
         responseMessageDto: {
@@ -514,7 +508,9 @@ describe("TamboThreadProvider", () => {
       });
 
     const { result } = renderHook(() => useTamboThread(), {
-      wrapper: WrapperWithUnregisteredTool,
+      wrapper: createWrapper({
+        onCallUnregisteredTool: mockOnCallUnregisteredTool,
+      }),
     });
 
     await act(async () => {
@@ -583,41 +579,6 @@ describe("TamboThreadProvider", () => {
 
   describe("streaming behavior", () => {
     it("should call advanceStream when streamResponse=true", async () => {
-      // Use wrapper with streaming=true to show that explicit streamResponse=true works
-      const WrapperWithStreaming = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={true}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "stream-response",
@@ -641,7 +602,7 @@ describe("TamboThreadProvider", () => {
       jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
 
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithStreaming,
+        wrapper: createWrapper({ streaming: true }),
       });
 
       await act(async () => {
@@ -684,42 +645,8 @@ describe("TamboThreadProvider", () => {
 
     it("should call advanceById when streamResponse=false for existing thread", async () => {
       // Use wrapper with streaming=true to show that explicit streamResponse=false overrides provider setting
-      const WrapperWithStreaming = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={true}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithStreaming,
+        wrapper: createWrapper({ streaming: true }),
       });
 
       await act(async () => {
@@ -758,42 +685,8 @@ describe("TamboThreadProvider", () => {
 
     it("should call advanceById when streamResponse is undefined and provider streaming=false", async () => {
       // Use wrapper with streaming=false to test that undefined streamResponse respects provider setting
-      const WrapperWithoutStreaming = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={false}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithoutStreaming,
+        wrapper: createWrapper({ streaming: false }),
       });
 
       await act(async () => {
@@ -831,39 +724,6 @@ describe("TamboThreadProvider", () => {
     });
 
     it("should call advanceStream when streamResponse is undefined and provider streaming=true (default)", async () => {
-      // Use wrapper with streaming=true (default) to test that undefined streamResponse respects provider setting
-      const WrapperWithDefaultStreaming = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider>{children}</TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "stream-response",
@@ -887,7 +747,7 @@ describe("TamboThreadProvider", () => {
       jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
 
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithDefaultStreaming,
+        wrapper: createWrapper({ streaming: true }),
       });
 
       await act(async () => {
@@ -930,42 +790,8 @@ describe("TamboThreadProvider", () => {
 
     it("should call advance when streamResponse=false for placeholder thread", async () => {
       // Use wrapper with streaming=true to show that explicit streamResponse=false overrides provider setting
-      const WrapperWithStreaming = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={true}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithStreaming,
+        wrapper: createWrapper({ streaming: true }),
       });
 
       // Start with placeholder thread (which is the default state)
@@ -1006,41 +832,6 @@ describe("TamboThreadProvider", () => {
     });
 
     it("should call advanceStream when streamResponse=true for placeholder thread", async () => {
-      // Use wrapper with streaming=false to show that explicit streamResponse=true overrides provider setting
-      const WrapperWithoutStreaming = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={false}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const mockStreamResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "stream-response",
@@ -1064,7 +855,7 @@ describe("TamboThreadProvider", () => {
       jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
 
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithoutStreaming,
+        wrapper: createWrapper({ streaming: false }),
       });
 
       // Start with placeholder thread (which is the default state)
@@ -1106,6 +897,117 @@ describe("TamboThreadProvider", () => {
       // Should not call advance or advanceById
       expect(mockThreadsApi.advance).not.toHaveBeenCalled();
       expect(mockThreadsApi.advanceByID).not.toHaveBeenCalled();
+    });
+
+    it("should handle multiple sequential messages during streaming (server tool scenario)", async () => {
+      // This test verifies the fix for the bug where the second message doesn't render
+      // during server tool response streaming. The scenario:
+      // 1. First message: "I will call the tool..." with statusMessage
+      // 2. Second message: The tool result response streaming in
+
+      // First message - tool announcement (server tools don't have componentName set during streaming)
+      const mockFirstMessage: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "msg-first",
+          content: [{ type: "text", text: "I will search the docs..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          component: {
+            componentName: "",
+            componentState: {},
+            message: "",
+            props: {},
+            statusMessage: "searching the Tambo docs...",
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      // Second message - tool result (different ID!)
+      const mockSecondMessageChunk1: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+        {
+          responseMessageDto: {
+            id: "msg-second",
+            content: [{ type: "text", text: "Here's what I found..." }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+
+      const mockSecondMessageChunk2: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+        {
+          responseMessageDto: {
+            id: "msg-second",
+            content: [
+              {
+                type: "text",
+                text: "Here's what I found in the documentation about that topic.",
+              },
+            ],
+            role: "assistant",
+            threadId: "test-thread-1",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockFirstMessage;
+          yield mockSecondMessageChunk1;
+          yield mockSecondMessageChunk2;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValue(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: createWrapper({ streaming: true }),
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Search the docs", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Thread should have 3 messages: user message + 2 assistant messages
+      expect(result.current.thread.messages).toHaveLength(3);
+
+      // Filter to assistant messages only
+      const assistantMessages = result.current.thread.messages.filter(
+        (m) => m.role === "assistant",
+      );
+      expect(assistantMessages).toHaveLength(2);
+
+      // First assistant message should have the tool status
+      const firstMsg = result.current.thread.messages.find(
+        (m) => m.id === "msg-first",
+      );
+      expect(firstMsg).toBeDefined();
+      expect(firstMsg?.content[0]?.text).toContain("search the docs");
+
+      // Second assistant message should have the final content
+      const secondMsg = result.current.thread.messages.find(
+        (m) => m.id === "msg-second",
+      );
+      expect(secondMsg).toBeDefined();
+      expect(secondMsg?.content[0]?.text).toContain(
+        "what I found in the documentation",
+      );
+
+      // Generation should be complete
+      expect(result.current.generationStage).toBe(GenerationStage.COMPLETE);
     });
   });
 
@@ -1302,40 +1204,6 @@ describe("TamboThreadProvider", () => {
         },
       ];
 
-      const WrapperWithCustomTool = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={customToolRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={false}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const mockToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "tool-call-1",
@@ -1370,7 +1238,7 @@ describe("TamboThreadProvider", () => {
         });
 
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithCustomTool,
+        wrapper: createWrapper({ components: customToolRegistry }),
       });
 
       await act(async () => {
@@ -1435,40 +1303,6 @@ describe("TamboThreadProvider", () => {
         },
       ];
 
-      const WrapperWithAsyncTool = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={customToolRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={true}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const mockToolCallChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "tool-call-chunk",
@@ -1518,7 +1352,10 @@ describe("TamboThreadProvider", () => {
         });
 
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithAsyncTool,
+        wrapper: createWrapper({
+          components: customToolRegistry,
+          streaming: true,
+        }),
       });
 
       await act(async () => {
@@ -1579,40 +1416,6 @@ describe("TamboThreadProvider", () => {
         },
       ];
 
-      const WrapperWithoutTransform = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={toolWithoutTransform}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={false}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const mockToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "tool-call-1",
@@ -1647,7 +1450,7 @@ describe("TamboThreadProvider", () => {
         });
 
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithoutTransform,
+        wrapper: createWrapper({ components: toolWithoutTransform }),
       });
 
       await act(async () => {
@@ -1708,40 +1511,6 @@ describe("TamboThreadProvider", () => {
         },
       ];
 
-      const WrapperWithErrorTool = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={toolWithTransform}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider streaming={false}>
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const mockToolCallResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
         responseMessageDto: {
           id: "tool-call-1",
@@ -1776,7 +1545,7 @@ describe("TamboThreadProvider", () => {
         });
 
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithErrorTool,
+        wrapper: createWrapper({ components: toolWithTransform }),
       });
 
       await act(async () => {
@@ -1812,47 +1581,372 @@ describe("TamboThreadProvider", () => {
     });
   });
 
-  describe("auto-generate thread name", () => {
-    it("should auto-generate thread name after reaching threshold", async () => {
-      const WrapperWithAutoGenerate = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
+  describe("tamboStreamableHint streaming behavior", () => {
+    it("should call streamable tool during streaming when tamboStreamableHint is true", async () => {
+      const streamableToolFn = jest
+        .fn()
+        .mockResolvedValue({ data: "streamed" });
 
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider
-                    streaming={false}
-                    autoGenerateNameThreshold={2}
-                  >
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "streamable-tool",
+              tool: streamableToolFn,
+              description: "Tool safe for streaming",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              annotations: { tamboStreamableHint: true },
+            },
+          ],
+        },
+      ];
+
+      // First chunk initializes finalMessage
+      const mockInitialChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "initial-chunk",
+          content: [{ type: "text", text: "Starting..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
       };
 
+      // Second chunk has the tool call - this triggers streaming tool handling
+      const mockToolCallChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "initial-chunk", // Same ID as initial - it's an update
+          content: [{ type: "text", text: "Streaming..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          component: {
+            componentName: "",
+            componentState: {},
+            message: "",
+            props: {},
+            toolCallRequest: {
+              toolName: "streamable-tool",
+              parameters: [
+                { parameterName: "input", parameterValue: "stream-test" },
+              ],
+            },
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockFinalChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "initial-chunk",
+          content: [{ type: "text", text: "Complete" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockInitialChunk;
+          yield mockToolCallChunk;
+          yield mockFinalChunk;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValueOnce(mockAsyncIterator);
+
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithAutoGenerate,
+        wrapper: createWrapper({
+          components: customToolRegistry,
+          streaming: true,
+        }),
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Test streamable tool", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Streamable tool should be called during streaming
+      expect(streamableToolFn).toHaveBeenCalledWith({ input: "stream-test" });
+    });
+
+    it("should NOT call non-streamable tool during streaming", async () => {
+      const nonStreamableToolFn = jest
+        .fn()
+        .mockResolvedValue({ data: "result" });
+
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "non-streamable-tool",
+              tool: nonStreamableToolFn,
+              description: "Tool not safe for streaming",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              // No tamboStreamableHint - defaults to false
+            },
+          ],
+        },
+      ];
+
+      // First chunk initializes finalMessage
+      const mockInitialChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Starting..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      // Second chunk has the tool call - but tool is NOT streamable
+      const mockToolCallChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Streaming..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          component: {
+            componentName: "",
+            componentState: {},
+            message: "",
+            props: {},
+            toolCallRequest: {
+              toolName: "non-streamable-tool",
+              parameters: [{ parameterName: "input", parameterValue: "test" }],
+            },
+          },
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockFinalChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Complete" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockInitialChunk;
+          yield mockToolCallChunk;
+          yield mockFinalChunk;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValueOnce(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: createWrapper({
+          components: customToolRegistry,
+          streaming: true,
+        }),
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Test non-streamable tool", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Non-streamable tool should NOT be called during the streaming chunk phase
+      // (it would only be called when generationStage is COMPLETE with a toolCallRequest)
+      expect(nonStreamableToolFn).not.toHaveBeenCalled();
+    });
+
+    it("should only call streamable tools during streaming when mixed", async () => {
+      const streamableToolFn = jest
+        .fn()
+        .mockResolvedValue({ data: "streamed" });
+      const nonStreamableToolFn = jest
+        .fn()
+        .mockResolvedValue({ data: "not-streamed" });
+
+      const customToolRegistry: TamboComponent[] = [
+        {
+          name: "TestComponent",
+          component: () => <div>Test</div>,
+          description: "Test",
+          propsSchema: z.object({ test: z.string() }),
+          associatedTools: [
+            {
+              name: "streamable-tool",
+              tool: streamableToolFn,
+              description: "Tool safe for streaming",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              annotations: { tamboStreamableHint: true },
+            },
+            {
+              name: "non-streamable-tool",
+              tool: nonStreamableToolFn,
+              description: "Tool not safe for streaming",
+              inputSchema: z.object({ input: z.string() }),
+              outputSchema: z.object({ data: z.string() }),
+              annotations: { tamboStreamableHint: false },
+            },
+          ],
+        },
+      ];
+
+      // First chunk initializes finalMessage
+      const mockInitialChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Starting..." }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.STREAMING_RESPONSE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      // Second chunk calls the streamable tool
+      const mockStreamableToolChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+        {
+          responseMessageDto: {
+            id: "streaming-chunk",
+            content: [{ type: "text", text: "Calling streamable..." }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            component: {
+              componentName: "",
+              componentState: {},
+              message: "",
+              props: {},
+              toolCallRequest: {
+                toolName: "streamable-tool",
+                parameters: [
+                  { parameterName: "input", parameterValue: "streamed-input" },
+                ],
+              },
+            },
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+
+      // Third chunk calls the non-streamable tool
+      const mockNonStreamableToolChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse =
+        {
+          responseMessageDto: {
+            id: "streaming-chunk",
+            content: [{ type: "text", text: "Calling non-streamable..." }],
+            role: "assistant",
+            threadId: "test-thread-1",
+            component: {
+              componentName: "",
+              componentState: {},
+              message: "",
+              props: {},
+              toolCallRequest: {
+                toolName: "non-streamable-tool",
+                parameters: [
+                  {
+                    parameterName: "input",
+                    parameterValue: "non-streamed-input",
+                  },
+                ],
+              },
+            },
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          mcpAccessToken: "test-mcp-access-token",
+        };
+
+      const mockFinalChunk: TamboAI.Beta.Threads.ThreadAdvanceResponse = {
+        responseMessageDto: {
+          id: "streaming-chunk",
+          content: [{ type: "text", text: "Complete" }],
+          role: "assistant",
+          threadId: "test-thread-1",
+          componentState: {},
+          createdAt: new Date().toISOString(),
+        },
+        generationStage: GenerationStage.COMPLETE,
+        mcpAccessToken: "test-mcp-access-token",
+      };
+
+      const mockAsyncIterator = {
+        [Symbol.asyncIterator]: async function* () {
+          yield mockInitialChunk;
+          yield mockStreamableToolChunk;
+          yield mockNonStreamableToolChunk;
+          yield mockFinalChunk;
+        },
+      };
+
+      jest.mocked(advanceStream).mockResolvedValueOnce(mockAsyncIterator);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: createWrapper({
+          components: customToolRegistry,
+          streaming: true,
+        }),
+      });
+
+      await act(async () => {
+        await result.current.sendThreadMessage("Test mixed tools", {
+          threadId: "test-thread-1",
+          streamResponse: true,
+        });
+      });
+
+      // Only the streamable tool should be called during streaming
+      expect(streamableToolFn).toHaveBeenCalledWith({
+        input: "streamed-input",
+      });
+      expect(nonStreamableToolFn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("auto-generate thread name", () => {
+    it("should auto-generate thread name after reaching threshold", async () => {
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: createWrapper({ autoGenerateNameThreshold: 2 }),
       });
 
       const existingThread = createMockThread({
@@ -1907,46 +2001,11 @@ describe("TamboThreadProvider", () => {
     });
 
     it("should NOT auto-generate when autoGenerateThreadName is false", async () => {
-      const WrapperWithDisabled = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider
-                    streaming={false}
-                    autoGenerateThreadName={false}
-                    autoGenerateNameThreshold={2}
-                  >
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithDisabled,
+        wrapper: createWrapper({
+          autoGenerateThreadName: false,
+          autoGenerateNameThreshold: 2,
+        }),
       });
 
       const existingThread = createMockThread({
@@ -1993,45 +2052,8 @@ describe("TamboThreadProvider", () => {
     });
 
     it("should NOT auto-generate when thread already has a name", async () => {
-      const WrapperWithAutoGenerate = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider
-                    streaming={false}
-                    autoGenerateNameThreshold={2}
-                  >
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithAutoGenerate,
+        wrapper: createWrapper({ autoGenerateNameThreshold: 2 }),
       });
 
       const threadWithName = createMockThread({
@@ -2085,45 +2107,8 @@ describe("TamboThreadProvider", () => {
     });
 
     it("should NOT auto-generate for placeholder thread", async () => {
-      const WrapperWithAutoGenerate = ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const client = useTamboClient();
-        const queryClient = useTamboQueryClient();
-
-        return (
-          <TamboClientContext.Provider
-            value={{
-              client,
-              queryClient,
-              isUpdatingToken: false,
-            }}
-          >
-            <TamboRegistryProvider components={mockRegistry}>
-              <TamboContextHelpersProvider
-                contextHelpers={{
-                  currentTimeContextHelper: () => null,
-                  currentPageContextHelper: () => null,
-                }}
-              >
-                <TamboMcpTokenProvider>
-                  <TamboThreadProvider
-                    streaming={false}
-                    autoGenerateNameThreshold={2}
-                  >
-                    {children}
-                  </TamboThreadProvider>
-                </TamboMcpTokenProvider>
-              </TamboContextHelpersProvider>
-            </TamboRegistryProvider>
-          </TamboClientContext.Provider>
-        );
-      };
-
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: WrapperWithAutoGenerate,
+        wrapper: createWrapper({ autoGenerateNameThreshold: 2 }),
       });
 
       // Stay on placeholder thread

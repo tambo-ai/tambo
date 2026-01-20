@@ -1,0 +1,59 @@
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { S3Client } from "@aws-sdk/client-s3";
+import { createS3Client, isS3Configured } from "@tambo-ai-cloud/backend";
+
+/**
+ * Centralized S3 storage configuration service.
+ * Provides a single source of truth for S3 client initialization
+ * and storage-related configuration across the API.
+ */
+@Injectable()
+export class StorageConfigService {
+  readonly s3Client: S3Client | undefined;
+  readonly bucket: string;
+  readonly signingSecret: string;
+
+  constructor(private readonly configService: ConfigService) {
+    const s3Config = {
+      endpoint: this.configService.get<string>("S3_ENDPOINT") ?? "",
+      region: this.configService.get<string>("S3_REGION") ?? "us-east-1",
+      accessKeyId: this.configService.get<string>("S3_ACCESS_KEY_ID") ?? "",
+      secretAccessKey:
+        this.configService.get<string>("S3_SECRET_ACCESS_KEY") ?? "",
+    };
+
+    // DEBUG: Remove after troubleshooting
+    console.log("S3 Config check:", {
+      hasEndpoint: !!s3Config.endpoint,
+      hasRegion: !!s3Config.region,
+      hasAccessKey: !!s3Config.accessKeyId,
+      hasSecret: !!s3Config.secretAccessKey,
+      endpointLength: s3Config.endpoint.length,
+      regionLength: s3Config.region.length,
+      accessKeyLength: s3Config.accessKeyId.length,
+      secretLength: s3Config.secretAccessKey.length,
+      // Check if OTHER env vars work
+      hasDatabaseUrl: !!this.configService.get<string>("DATABASE_URL"),
+      hasNodeEnv: !!this.configService.get<string>("NODE_ENV"),
+      nodeEnv: this.configService.get<string>("NODE_ENV"),
+      // List all S3-related keys from process.env
+      s3EnvKeys: Object.keys(process.env).filter((k) => k.includes("S3")),
+    });
+
+    this.bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
+    this.signingSecret = this.configService.get<string>("API_KEY_SECRET") ?? "";
+
+    if (isS3Configured(s3Config)) {
+      this.s3Client = createS3Client(s3Config);
+    }
+  }
+
+  /**
+   * Check if storage is fully configured for attachment operations.
+   * Requires both S3 client and signing secret to be available.
+   */
+  hasStorageConfig(): boolean {
+    return this.s3Client !== undefined && this.signingSecret.length > 0;
+  }
+}

@@ -1,3 +1,4 @@
+import type { BaseEvent } from "@ag-ui/core";
 import {
   ContentPartType,
   getToolName,
@@ -29,6 +30,25 @@ import {
 } from "../tool/tool-service";
 
 /**
+ * Compound type for decision loop output that includes both the traditional
+ * LegacyComponentDecision (for backwards compatibility) and AG-UI events
+ * (for V1 API streaming).
+ */
+export interface DecisionStreamItem {
+  /**
+   * The traditional component decision object containing message, component,
+   * props, tool call info, and reasoning.
+   */
+  decision: LegacyComponentDecision;
+
+  /**
+   * AG-UI events generated from the current streaming delta.
+   * May contain 0-N events depending on the delta type.
+   */
+  aguiEvents: BaseEvent[];
+}
+
+/**
  * Run the decision loop for processing ThreadMessages and generating component
  * decisions.
  *
@@ -58,7 +78,7 @@ export async function* runDecisionLoop(
   customInstructions: string | undefined,
   forceToolChoice: string | undefined,
   resourceFetchers: ResourceFetcherMap,
-): AsyncIterableIterator<LegacyComponentDecision> {
+): AsyncIterableIterator<DecisionStreamItem> {
   const componentTools = strictTools.filter((tool) =>
     isUiToolName(getToolName(tool)),
   );
@@ -136,10 +156,11 @@ export async function* runDecisionLoop(
 
   let accumulatedDecision = initialDecision;
 
-  for await (const chunk of responseStream) {
+  for await (const streamItem of responseStream) {
     try {
-      const message = getLLMResponseMessage(chunk);
-      const toolCall = chunk.message?.tool_calls?.[0];
+      const llmResponse = streamItem.llmResponse;
+      const message = getLLMResponseMessage(llmResponse);
+      const toolCall = llmResponse.message?.tool_calls?.[0];
 
       // Check if this is a UI tool call
       const isUITool =
@@ -199,11 +220,13 @@ export async function* runDecisionLoop(
           : "",
         props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
-        toolCallId: toolCall ? getLLMResponseToolCallId(chunk) : undefined,
+        toolCallId: toolCall
+          ? getLLMResponseToolCallId(llmResponse)
+          : undefined,
         statusMessage,
         completionStatusMessage,
-        reasoning: chunk.reasoning ?? undefined,
-        reasoningDurationMS: chunk.reasoningDurationMS ?? undefined,
+        reasoning: llmResponse.reasoning ?? undefined,
+        reasoningDurationMS: llmResponse.reasoningDurationMS ?? undefined,
       };
 
       accumulatedDecision = {
@@ -211,7 +234,10 @@ export async function* runDecisionLoop(
         ...parsedChunk,
       };
 
-      yield accumulatedDecision;
+      yield {
+        decision: accumulatedDecision,
+        aguiEvents: streamItem.aguiEvents,
+      };
     } catch (e) {
       console.error("Error parsing stream chunk:", e);
     }

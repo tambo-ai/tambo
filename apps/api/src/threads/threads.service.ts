@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nestjs";
 import {
   convertMetadataToTools,
   createTamboBackend,
+  DecisionStreamItem,
   generateChainId,
   getToolsFromSources,
   ITamboBackend,
@@ -41,16 +42,15 @@ import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
+import { StorageConfigService } from "../common/services/storage-config.service";
 import {
   createResourceFetcherMap,
   getSystemTools,
   getThreadMCPClients,
 } from "../common/systemTools";
 import { ProjectsService } from "../projects/projects.service";
-import {
-  AdvanceThreadDto,
-  AdvanceThreadResponseDto,
-} from "./dto/advance-thread.dto";
+import { AdvanceThreadDto } from "./dto/advance-thread.dto";
+import type { StreamQueueItem } from "./dto/stream-queue-item";
 import { ComponentDecisionV2Dto } from "./dto/component-decision.dto";
 import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
@@ -85,6 +85,7 @@ import {
   DEFAULT_MAX_TOTAL_TOOL_CALLS,
   updateToolCallCounts,
 } from "./util/tool-call-tracking";
+import { createAttachmentFetcher } from "./util/attachment-fetcher";
 
 const TAMBO_ANON_CONTEXT_KEY = "tambo:anon-user";
 @Injectable()
@@ -99,6 +100,7 @@ export class ThreadsService {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
+    private readonly storageConfig: StorageConfigService,
   ) {}
 
   getDb() {
@@ -906,7 +908,7 @@ export class ThreadsService {
     unresolvedThreadId?: string,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
-    queue?: AsyncQueue<AdvanceThreadResponseDto>,
+    queue?: AsyncQueue<StreamQueueItem>,
     contextKey?: string,
   ): Promise<void> {
     await Sentry.startSpan(
@@ -939,11 +941,11 @@ export class ThreadsService {
     unresolvedThreadId?: string,
     toolCallCounts: Record<string, number> = {},
     cachedSystemTools?: McpToolRegistry,
-    queue?: AsyncQueue<AdvanceThreadResponseDto>,
+    queue?: AsyncQueue<StreamQueueItem>,
     contextKey?: string,
   ): Promise<void> {
     const db = this.getDb();
-    queue = queue ?? new AsyncQueue<AdvanceThreadResponseDto>();
+    queue = queue ?? new AsyncQueue<StreamQueueItem>();
 
     try {
       // Add breadcrumb for thread advancement
@@ -993,16 +995,18 @@ export class ThreadsService {
           `Ignoring tool response due to cancellation for thread ${thread.id}`,
         );
         queue.push({
-          responseMessageDto: {
-            id: "",
-            role: MessageRole.Assistant,
-            content: [],
-            threadId: thread.id,
-            componentState: {},
-            createdAt: new Date(),
+          response: {
+            responseMessageDto: {
+              id: "",
+              role: MessageRole.Assistant,
+              content: [],
+              threadId: thread.id,
+              componentState: {},
+              createdAt: new Date(),
+            },
+            generationStage: GenerationStage.COMPLETE,
+            statusMessage: "",
           },
-          generationStage: GenerationStage.COMPLETE,
-          statusMessage: "",
         });
         return;
       }
@@ -1115,7 +1119,7 @@ export class ThreadsService {
     projectId: string,
     threadId: string,
     toolCallCounts: Record<string, number>,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
+    queue: AsyncQueue<StreamQueueItem>,
   ): Promise<void> {
     await Sentry.startSpan(
       {
@@ -1154,7 +1158,7 @@ export class ThreadsService {
     projectId: string,
     threadId: string,
     toolCallCounts: Record<string, number>,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
+    queue: AsyncQueue<StreamQueueItem>,
   ): Promise<void> {
     try {
       // Add breadcrumb for tool call
@@ -1210,7 +1214,7 @@ export class ThreadsService {
     threadId: string,
     db: HydraDatabase,
     tamboBackend: ITamboBackend,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
+    queue: AsyncQueue<StreamQueueItem>,
     messages: ThreadMessage[],
     userMessage: ThreadMessage,
     advanceRequestDto: AdvanceThreadDto,
@@ -1263,7 +1267,7 @@ export class ThreadsService {
     threadId: string,
     db: HydraDatabase,
     tamboBackend: ITamboBackend,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
+    queue: AsyncQueue<StreamQueueItem>,
     messages: ThreadMessage[],
     userMessage: ThreadMessage,
     advanceRequestDto: AdvanceThreadDto,
@@ -1340,8 +1344,16 @@ export class ThreadsService {
           },
         });
 
-        // Build resource fetchers from MCP clients
+        // Build resource fetchers from MCP clients and add attachment fetcher
         const resourceFetchers = createResourceFetcherMap(mcpClients);
+        if (this.storageConfig.hasStorageConfig()) {
+          resourceFetchers["attachment"] = createAttachmentFetcher(
+            this.storageConfig.s3Client!,
+            this.storageConfig.bucket,
+            projectId,
+            this.storageConfig.signingSecret,
+          );
+        }
 
         const messageStream = await tamboBackend.runDecisionLoop({
           messages,
@@ -1414,11 +1426,22 @@ export class ThreadsService {
         },
       });
 
+      // Build resource fetchers from MCP clients and add attachment fetcher
+      const resourceFetchers = createResourceFetcherMap(mcpClients);
+      if (this.storageConfig.hasStorageConfig()) {
+        resourceFetchers["attachment"] = createAttachmentFetcher(
+          this.storageConfig.s3Client!,
+          this.storageConfig.bucket,
+          projectId,
+          this.storageConfig.signingSecret,
+        );
+      }
+
       const streamedResponseMessages = await tamboBackend.runDecisionLoop({
         messages,
         strictTools,
         forceToolChoice: advanceRequestDto.forceToolChoice,
-        resourceFetchers: createResourceFetcherMap(mcpClients),
+        resourceFetchers,
       });
 
       decisionLoopSpan.end();
@@ -1474,8 +1497,8 @@ export class ThreadsService {
   private async handleAdvanceThreadStream(
     projectId: string,
     threadId: string,
-    stream: AsyncIterableIterator<LegacyComponentDecision>,
-    queue: AsyncQueue<AdvanceThreadResponseDto>,
+    stream: AsyncIterableIterator<DecisionStreamItem>,
+    queue: AsyncQueue<StreamQueueItem>,
     threadMessages: ThreadMessage[],
     userMessage: ThreadMessage,
     allTools: McpToolRegistry,
@@ -1533,17 +1556,19 @@ export class ThreadsService {
         });
 
         queue.push({
-          responseMessageDto: {
-            id: "",
-            role: MessageRole.Assistant,
-            content: [{ type: ContentPartType.Text, text: "" }],
-            componentState: {},
-            threadId: threadId,
-            createdAt: new Date(),
+          response: {
+            responseMessageDto: {
+              id: "",
+              role: MessageRole.Assistant,
+              content: [{ type: ContentPartType.Text, text: "" }],
+              componentState: {},
+              threadId: threadId,
+              createdAt: new Date(),
+            },
+            generationStage: GenerationStage.CANCELLED,
+            statusMessage: "Thread cancelled",
+            ...(mcpAccessToken && { mcpAccessToken }),
           },
-          generationStage: GenerationStage.CANCELLED,
-          statusMessage: "Thread cancelled",
-          ...(mcpAccessToken && { mcpAccessToken }),
         });
         ttfbSpan.end();
         ttfbEnded = true;
@@ -1571,7 +1596,8 @@ export class ThreadsService {
       );
 
       let currentLegacyDecisionId: string | undefined = undefined;
-      for await (const legacyDecision of fixStreamedToolCalls(stream)) {
+      for await (const streamItem of fixStreamedToolCalls(stream)) {
+        const legacyDecision = streamItem.decision;
         if (
           !currentThreadMessage ||
           currentLegacyDecisionId !== legacyDecision.id
@@ -1661,16 +1687,19 @@ export class ThreadsService {
           ...messageWithoutToolCall
         } = currentThreadMessage;
         queue.push({
-          responseMessageDto: {
-            ...messageWithoutToolCall,
-            content: convertContentPartToDto(messageWithoutToolCall.content),
-            componentState: messageWithoutToolCall.componentState ?? {},
-            component:
-              messageWithoutToolCall.component as ComponentDecisionV2Dto,
+          response: {
+            responseMessageDto: {
+              ...messageWithoutToolCall,
+              content: convertContentPartToDto(messageWithoutToolCall.content),
+              componentState: messageWithoutToolCall.componentState ?? {},
+              component:
+                messageWithoutToolCall.component as ComponentDecisionV2Dto,
+            },
+            generationStage: GenerationStage.STREAMING_RESPONSE,
+            statusMessage: `Streaming response...`,
+            ...(mcpAccessToken && { mcpAccessToken }),
           },
-          generationStage: GenerationStage.STREAMING_RESPONSE,
-          statusMessage: `Streaming response...`,
-          ...(mcpAccessToken && { mcpAccessToken }),
+          aguiEvents: streamItem.aguiEvents,
         });
 
         finalThreadMessage = currentThreadMessage;
@@ -1752,20 +1781,22 @@ export class ThreadsService {
         // Yield a "final" version of the tool call request, because we need
         // actionType to be set, but hide the toplevel tool call request because
         // we are handling it server side
-        const finalThreadMessageDto: AdvanceThreadResponseDto = {
-          responseMessageDto: {
-            ...finalThreadMessage,
-            content: convertContentPartToDto(finalThreadMessage.content),
-            componentState: finalThreadMessage.componentState ?? {},
-            toolCallRequest: undefined,
-            tool_call_id: undefined,
-            component: finalThreadMessage.component as ComponentDecisionV2Dto,
+        queue.push({
+          response: {
+            responseMessageDto: {
+              ...finalThreadMessage,
+              content: convertContentPartToDto(finalThreadMessage.content),
+              componentState: finalThreadMessage.componentState ?? {},
+              toolCallRequest: undefined,
+              tool_call_id: undefined,
+              component: finalThreadMessage.component as ComponentDecisionV2Dto,
+            },
+            generationStage: resultingGenerationStage,
+            statusMessage: resultingStatusMessage,
+            ...(mcpAccessToken && { mcpAccessToken }),
           },
-          generationStage: resultingGenerationStage,
-          statusMessage: resultingStatusMessage,
-          ...(mcpAccessToken && { mcpAccessToken }),
-        };
-        queue.push(finalThreadMessageDto);
+          aguiEvents: [], // System tool call handling, no AG-UI events
+        });
 
         const toolCallId = finalThreadMessage.tool_call_id;
 
@@ -1805,16 +1836,18 @@ export class ThreadsService {
           ...messageWithoutToolCall
         } = finalThreadMessage;
         queue.push({
-          responseMessageDto: {
-            ...messageWithoutToolCall,
-            content: convertContentPartToDto(messageWithoutToolCall.content),
-            componentState: messageWithoutToolCall.componentState ?? {},
-            component:
-              messageWithoutToolCall.component as ComponentDecisionV2Dto,
+          response: {
+            responseMessageDto: {
+              ...messageWithoutToolCall,
+              content: convertContentPartToDto(messageWithoutToolCall.content),
+              componentState: messageWithoutToolCall.componentState ?? {},
+              component:
+                messageWithoutToolCall.component as ComponentDecisionV2Dto,
+            },
+            generationStage: resultingGenerationStage,
+            statusMessage: resultingStatusMessage,
+            ...(mcpAccessToken && { mcpAccessToken }),
           },
-          generationStage: resultingGenerationStage,
-          statusMessage: resultingStatusMessage,
-          ...(mcpAccessToken && { mcpAccessToken }),
         });
 
         // `tool_call_id` can be missing in edge cases, but UI tools should never be client-invokable.
@@ -1872,15 +1905,18 @@ export class ThreadsService {
 
       // We only yield the final response with the tool call request and tool call id set if we did not call a system tool
       queue.push({
-        responseMessageDto: {
-          ...finalThreadMessage,
-          content: convertContentPartToDto(finalThreadMessage.content),
-          componentState: finalThreadMessage.componentState ?? {},
-          component: finalThreadMessage.component as ComponentDecisionV2Dto,
+        response: {
+          responseMessageDto: {
+            ...finalThreadMessage,
+            content: convertContentPartToDto(finalThreadMessage.content),
+            componentState: finalThreadMessage.componentState ?? {},
+            component: finalThreadMessage.component as ComponentDecisionV2Dto,
+          },
+          generationStage: resultingGenerationStage,
+          statusMessage: resultingStatusMessage,
+          ...(mcpAccessToken && { mcpAccessToken }),
         },
-        generationStage: resultingGenerationStage,
-        statusMessage: resultingStatusMessage,
-        ...(mcpAccessToken && { mcpAccessToken }),
+        aguiEvents: [], // Final response after tool call, no more AG-UI events
       });
     } catch (error) {
       // Capture streaming errors with full context
@@ -2157,7 +2193,7 @@ async function syncThreadStatus(
   currentThreadMessage: ThreadMessage,
   mcpAccessToken: string | undefined,
   logger?: Logger,
-): Promise<AdvanceThreadResponseDto | undefined> {
+): Promise<StreamQueueItem | undefined> {
   return await Sentry.startSpan(
     {
       name: "syncThreadStatus",
@@ -2166,7 +2202,7 @@ async function syncThreadStatus(
         threadId,
       },
     },
-    async (): Promise<AdvanceThreadResponseDto | undefined> => {
+    async (): Promise<StreamQueueItem | undefined> => {
       // Update db message on interval
       const isCancelled = await checkCancellationStatus(
         db,
@@ -2178,15 +2214,19 @@ async function syncThreadStatus(
 
       if (isCancelled) {
         return {
-          responseMessageDto: {
-            ...currentThreadMessage,
-            content: convertContentPartToDto(currentThreadMessage.content),
-            componentState: currentThreadMessage.componentState ?? {},
-            component: currentThreadMessage.component as ComponentDecisionV2Dto,
+          response: {
+            responseMessageDto: {
+              ...currentThreadMessage,
+              content: convertContentPartToDto(currentThreadMessage.content),
+              componentState: currentThreadMessage.componentState ?? {},
+              component:
+                currentThreadMessage.component as ComponentDecisionV2Dto,
+            },
+            generationStage: GenerationStage.CANCELLED,
+            statusMessage: "cancelled",
+            ...(mcpAccessToken && { mcpAccessToken }),
           },
-          generationStage: GenerationStage.CANCELLED,
-          statusMessage: "cancelled",
-          ...(mcpAccessToken && { mcpAccessToken }),
+          aguiEvents: [], // Cancellation, no AG-UI events
         };
       }
 

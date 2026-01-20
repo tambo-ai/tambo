@@ -766,14 +766,7 @@ export const TamboThreadProvider: React.FC<
     ): Promise<TamboThreadMessage> => {
       if (ignoreResponseRef.current) {
         setIgnoreResponse(false);
-        return {
-          threadId: threadId,
-          content: [{ type: "text", text: "" }],
-          role: "assistant",
-          createdAt: new Date().toISOString(),
-          id: crypto.randomUUID(),
-          componentState: {},
-        };
+        return createEmptyMessage(threadId);
       }
       let finalMessage: Readonly<TamboThreadMessage> | undefined;
       let hasSetThreadId = false;
@@ -800,13 +793,7 @@ export const TamboThreadProvider: React.FC<
         }
 
         if (chunk.responseMessageDto.toolCallRequest) {
-          // Increment tool call count for this tool
           const toolName = chunk.responseMessageDto.toolCallRequest.toolName;
-          if (toolName && params.toolCallCounts) {
-            params.toolCallCounts[toolName] =
-              (params.toolCallCounts[toolName] ?? 0) + 1;
-          }
-
           updateThreadStatus(
             chunk.responseMessageDto.threadId,
             GenerationStage.FETCHING_CONTEXT,
@@ -821,28 +808,30 @@ export const TamboThreadProvider: React.FC<
           );
 
           const toolCallResponse = await handleToolCall(
-            chunk.responseMessageDto,
+            chunk.responseMessageDto.toolCallRequest,
             toolRegistry,
             onCallUnregisteredTool,
           );
           if (ignoreResponseRef.current) {
             setIgnoreResponse(false);
-            {
-              return {
-                threadId: threadId,
-                content: [{ type: "text", text: "" }],
-                role: "assistant",
-                createdAt: new Date().toISOString(),
-                id: crypto.randomUUID(),
-                componentState: {},
-              };
-            }
+            return createEmptyMessage(threadId);
           }
+
           const contentParts = await convertToolResponse(toolCallResponse);
 
           const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
             {
               ...params,
+              // Exclude initialMessages from tool response since thread already exists
+              initialMessages: undefined,
+              ...(toolName
+                ? {
+                    toolCallCounts: {
+                      ...(params.toolCallCounts ?? {}),
+                      [toolName]: (params.toolCallCounts?.[toolName] ?? 0) + 1,
+                    },
+                  }
+                : {}),
               messageToAppend: {
                 content: contentParts,
                 role: "tool",
@@ -896,16 +885,7 @@ export const TamboThreadProvider: React.FC<
         } else {
           if (ignoreResponseRef.current) {
             setIgnoreResponse(false);
-            return (
-              finalMessage ?? {
-                threadId: threadId,
-                content: [{ type: "text", text: "" }],
-                role: "assistant",
-                createdAt: new Date().toISOString(),
-                id: crypto.randomUUID(),
-                componentState: {},
-              }
-            );
+            return finalMessage ?? createEmptyMessage(threadId);
           }
           if (
             !hasSetThreadId &&
@@ -941,17 +921,45 @@ export const TamboThreadProvider: React.FC<
               : chunk.responseMessageDto;
             await addThreadMessage(finalMessage, false);
           } else {
+            // Handle streaming tool calls
+            if (chunk.responseMessageDto.component?.toolCallRequest) {
+              const { toolName } =
+                chunk.responseMessageDto.component.toolCallRequest;
+              const tool = toolName ? toolRegistry[toolName] : undefined;
+
+              // if there is a tool call request on a component in a streaming chunk, and the tool
+              // is marked as streamable by the correct annotation, handle it
+              const isStreamable =
+                tool?.annotations?.tamboStreamableHint ?? false;
+
+              if (isStreamable) {
+                // We're not paying attention to the tool call response here - we only want the
+                // final tool call which is handled by the presence of a toolCallRequest on the
+                // top-level responseMessageDto
+                // see above: `if (chunk.responseMessageDto.toolCallRequest) { ... }`
+                void (await handleToolCall(
+                  chunk.responseMessageDto.component.toolCallRequest,
+                  toolRegistry,
+                  onCallUnregisteredTool,
+                ));
+              }
+            }
+
+            // Capture previous message ID before updating finalMessage
+            const previousMessageId = finalMessage.id;
+
+            if (chunk.responseMessageDto.component?.componentName) {
+              finalMessage = renderComponentIntoMessage(
+                chunk.responseMessageDto,
+                componentList,
+              );
+            } else {
+              finalMessage = chunk.responseMessageDto;
+            }
+
             // if we start getting a new message mid-stream, put the previous one on screen
             const isNewMessage =
-              chunk.responseMessageDto.id !== finalMessage.id;
-
-            finalMessage = chunk.responseMessageDto.component?.componentName
-              ? renderComponentIntoMessage(
-                  chunk.responseMessageDto,
-                  componentList,
-                )
-              : chunk.responseMessageDto;
-
+              chunk.responseMessageDto.id !== previousMessageId;
             if (isNewMessage) {
               await addThreadMessage(finalMessage, false);
             } else {
@@ -968,12 +976,8 @@ export const TamboThreadProvider: React.FC<
 
       return (
         finalMessage ?? {
-          threadId: "",
-          content: [{ type: "text", text: `Error processing stream` }],
-          role: "assistant",
-          createdAt: new Date().toISOString(),
-          id: crypto.randomUUID(),
-          componentState: {},
+          ...createEmptyMessage(completedThreadId),
+          content: [{ type: "text", text: "Error processing stream" }],
         }
       );
     },
@@ -1153,7 +1157,7 @@ export const TamboThreadProvider: React.FC<
 
           updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
           const toolCallResponse = await handleToolCall(
-            advanceResponse.responseMessageDto,
+            advanceResponse.responseMessageDto.toolCallRequest,
             toolRegistry,
             onCallUnregisteredTool,
           );
@@ -1370,4 +1374,20 @@ async function convertToolResponse(toolCallResponse: {
 
   // Default fallback to stringified text
   return [{ type: "text", text: toText(toolCallResponse.result) }];
+}
+
+/**
+ * Create a placeholder/cancelled message with default values
+ * @param threadId - ID of the thread the message belongs to
+ * @returns An empty TamboThreadMessage
+ */
+function createEmptyMessage(threadId: string): TamboThreadMessage {
+  return {
+    threadId,
+    content: [{ type: "text", text: "" }],
+    role: "assistant",
+    createdAt: new Date().toISOString(),
+    id: crypto.randomUUID(),
+    componentState: {},
+  };
 }

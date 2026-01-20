@@ -45,20 +45,42 @@ import {
   Square,
   X,
 } from "lucide-react";
-import dynamic from "next/dynamic";
-import Image from "next/image";
 import * as React from "react";
 import { useDebounce } from "use-debounce";
 import {
+  getImageItems,
   TextEditor,
   type PromptItem,
   type ResourceItem,
   type TamboEditor,
 } from "./text-editor";
+
+// Lazy load DictationButton for code splitting (framework-agnostic alternative to next/dynamic)
 // eslint-disable-next-line @typescript-eslint/promise-function-async
-const DictationButton = dynamic(() => import("./dictation-button"), {
-  ssr: false,
-});
+const LazyDictationButton = React.lazy(() => import("./dictation-button"));
+
+/**
+ * Wrapper component that includes Suspense boundary for the lazy-loaded DictationButton.
+ * This ensures the component can be safely used without requiring consumers to add their own Suspense.
+ * Also handles SSR by only rendering on the client (DictationButton uses Web Audio APIs).
+ */
+const DictationButton = () => {
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
+
+  return (
+    <React.Suspense fallback={null}>
+      <LazyDictationButton />
+    </React.Suspense>
+  );
+};
 
 /**
  * Provider interface for searching resources (for "@" mentions).
@@ -404,6 +426,30 @@ const MessageInput = React.forwardRef<HTMLFormElement, MessageInputProps>(
 );
 MessageInput.displayName = "MessageInput";
 
+const STORAGE_KEY = "tambo.components.messageInput.draft";
+
+const getStorageKey = (key: string) => `${STORAGE_KEY}.${key}`;
+
+const storeValueInSessionStorage = (key: string, value?: string) => {
+  const storageKey = getStorageKey(key);
+  if (value === undefined) {
+    sessionStorage.removeItem(storageKey);
+    return;
+  }
+
+  sessionStorage.setItem(storageKey, JSON.stringify({ rawQuery: value }));
+};
+
+const getValueFromSessionStorage = (key: string): string => {
+  const storedValue = sessionStorage.getItem(getStorageKey(key)) ?? "";
+  try {
+    const parsed = JSON.parse(storedValue);
+    return parsed.rawQuery ?? "";
+  } catch {
+    return "";
+  }
+};
+
 /**
  * Internal MessageInput component that uses the TamboThreadInput context
  */
@@ -421,7 +467,7 @@ const MessageInputInternal = React.forwardRef<
     addImages,
     removeImage,
   } = useTamboThreadInput();
-  const { cancel } = useTamboThread();
+  const { cancel, thread } = useTamboThread();
   const [displayValue, setDisplayValue] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [imageError, setImageError] = React.useState<string | null>(null);
@@ -434,11 +480,19 @@ const MessageInputInternal = React.forwardRef<
   const { elicitation, resolveElicitation } = useTamboElicitationContext();
 
   React.useEffect(() => {
+    // On mount, load any stored draft value, but only if current value is empty
+    const storedValue = getValueFromSessionStorage(thread.id);
+    if (!storedValue) return;
+    setValue((value) => value ?? storedValue);
+  }, [setValue, thread.id]);
+
+  React.useEffect(() => {
     setDisplayValue(value);
+    storeValueInSessionStorage(thread.id, value);
     if (value && editorRef.current) {
       editorRef.current.focus();
     }
-  }, [value]);
+  }, [value, thread.id]);
 
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
@@ -449,6 +503,7 @@ const MessageInputInternal = React.forwardRef<
       setSubmitError(null);
       setImageError(null);
       setDisplayValue("");
+      storeValueInSessionStorage(thread.id);
       setIsSubmitting(true);
 
       // Extract resource names directly from editor at submit time to ensure we have the latest
@@ -504,6 +559,7 @@ const MessageInputInternal = React.forwardRef<
       images,
       removeImage,
       editorRef,
+      thread.id,
     ],
   );
 
@@ -896,11 +952,7 @@ const MessageInputPlainTextarea = ({
   };
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const items = Array.from(e.clipboardData.items);
-    const imageItems = items.filter((item) => item.type.startsWith("image/"));
-
-    // Allow default paste if there is text, even when images exist
-    const hasText = e.clipboardData.getData("text/plain").length > 0;
+    const { imageItems, hasText } = getImageItems(e.clipboardData);
 
     if (imageItems.length === 0) {
       return; // Allow default text paste
@@ -918,15 +970,12 @@ const MessageInputPlainTextarea = ({
     setImageError(null);
 
     for (const item of imageItems) {
-      const file = item.getAsFile();
-      if (file) {
-        try {
-          // Mark this file as pasted so we can show "Image 1", "Image 2", etc.
-          file[IS_PASTED_IMAGE] = true;
-          await addImage(file);
-        } catch (error) {
-          console.error("Failed to add pasted image:", error);
-        }
+      try {
+        // Mark this image as pasted so we can show "Image 1", "Image 2", etc.
+        item[IS_PASTED_IMAGE] = true;
+        await addImage(item);
+      } catch (error) {
+        console.error("Failed to add pasted image:", error);
       }
     }
   };
@@ -1379,12 +1428,12 @@ const ImageContextBadge: React.FC<ImageContextBadgeProps> = ({
           )}
         >
           <div className="relative w-full h-full">
-            <Image
+            <img
               src={image.dataUrl}
               alt={displayName}
-              fill
-              unoptimized
-              className="object-cover"
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">

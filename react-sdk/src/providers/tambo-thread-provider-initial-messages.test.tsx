@@ -1,7 +1,7 @@
-import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
+import { advanceStream } from "@tambo-ai/typescript-sdk";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { DeepPartial } from "ts-essentials";
+import { TamboTool } from "..";
 import {
   GenerationStage,
   TamboThreadMessage,
@@ -15,8 +15,7 @@ import { TamboContextHelpersProvider } from "./tambo-context-helpers-provider";
 import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "./tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "./tambo-thread-provider";
-
-type PartialTamboAI = DeepPartial<TamboAI>;
+import type { PartialTamboAI } from "../testing/types";
 
 // Mock crypto.randomUUID
 Object.defineProperty(global, "crypto", {
@@ -51,7 +50,10 @@ const createMockMessage = (
 });
 
 // Test wrapper
-const createWrapper = (initialMessages: TamboThreadMessage[] = []) => {
+const createWrapper = (
+  initialMessages: TamboThreadMessage[] = [],
+  tools: TamboTool[] = [],
+) => {
   const TestWrapper = ({ children }: { children: React.ReactNode }) => {
     const client = useTamboClient();
     const queryClient = useTamboQueryClient();
@@ -64,7 +66,7 @@ const createWrapper = (initialMessages: TamboThreadMessage[] = []) => {
           isUpdatingToken: false,
         }}
       >
-        <TamboRegistryProvider components={[]} tools={[]}>
+        <TamboRegistryProvider components={[]} tools={tools}>
           <TamboContextHelpersProvider>
             <TamboMcpTokenProvider>
               <TamboThreadProvider
@@ -246,5 +248,105 @@ describe("TamboThreadProvider with initial messages", () => {
     expect(result.current.thread.messages[0].content[0].text).toBe(
       "You are a helpful assistant.",
     );
+  });
+
+  it("should not include initial messages in tool response when first message triggers a tool", async () => {
+    const initialMessages: TamboThreadMessage[] = [
+      createMockMessage({
+        id: "initial-1",
+        role: "system",
+        content: [{ type: "text", text: "You are a helpful assistant." }],
+      }),
+    ];
+
+    // Create a test tool with JSON schema format
+    const testTool = {
+      name: "testTool",
+      description: "A test tool",
+      tool: jest.fn().mockResolvedValue({ result: "success" }),
+      inputSchema: {
+        type: "object" as const,
+        properties: {},
+      },
+      outputSchema: {
+        type: "object" as const,
+        properties: {
+          result: { type: "string" as const },
+        },
+      },
+    };
+
+    // Mock advanceStream to simulate a tool call on first message
+    let advanceStreamCallCount = 0;
+    (advanceStream as jest.Mock).mockImplementation(async function* () {
+      advanceStreamCallCount++;
+
+      if (advanceStreamCallCount === 1) {
+        // First call: user message triggers a tool
+        yield {
+          responseMessageDto: {
+            id: "response-1",
+            role: "assistant",
+            content: [],
+            threadId: "new-thread-id",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+            tool_call_id: "tool-call-1",
+            toolCallRequest: {
+              toolName: "testTool",
+              args: {},
+            },
+          },
+          generationStage: GenerationStage.FETCHING_CONTEXT,
+        };
+      } else {
+        // Second call: tool response should NOT have initialMessages
+        yield {
+          responseMessageDto: {
+            id: "response-2",
+            role: "assistant",
+            content: [{ type: "text", text: "Tool executed successfully" }],
+            threadId: "new-thread-id",
+            componentState: {},
+            createdAt: new Date().toISOString(),
+          },
+          generationStage: GenerationStage.COMPLETE,
+        };
+      }
+    });
+
+    const { result } = renderHook(() => useTamboThread(), {
+      wrapper: createWrapper(initialMessages, [testTool]),
+    });
+
+    await act(async () => {
+      await result.current.sendThreadMessage("Test message that triggers tool");
+    });
+
+    // First call should have initialMessages
+    expect(advanceStream).toHaveBeenNthCalledWith(
+      1,
+      mockClient,
+      expect.objectContaining({
+        initialMessages: expect.any(Array),
+      }),
+      undefined,
+    );
+
+    // Second call (tool response) should NOT have initialMessages
+    expect(advanceStream).toHaveBeenNthCalledWith(
+      2,
+      mockClient,
+      expect.objectContaining({
+        messageToAppend: expect.objectContaining({
+          role: "tool",
+        }),
+      }),
+      "new-thread-id",
+    );
+
+    // Verify that the second call does NOT contain initialMessages
+    const secondCallParams = (advanceStream as jest.Mock).mock.calls[1][1];
+    expect(secondCallParams.initialMessages).toBeUndefined();
   });
 });

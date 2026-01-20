@@ -29,6 +29,7 @@ import {
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
+import { aguiContentToString } from "../agui/content-to-string";
 import { EventHandlerParams, runStreamingAgent } from "./async-adapters";
 import { CompleteParams, LLMResponse } from "./llm-client";
 import { generateMessageId } from "./message-id-generator";
@@ -43,7 +44,9 @@ interface WithReasoning {
   parentMessageId?: string;
 }
 
-export type AgentMessage = AGUIMessage & WithReasoning;
+type NonActivityMessage = Exclude<AGUIMessage, { role: "activity" }>;
+
+export type AgentMessage = NonActivityMessage & WithReasoning;
 
 export interface AgentResponse {
   type: AgentResponseType;
@@ -205,13 +208,18 @@ export class AgentClient {
           // consumer to replace all the messages they've receieved with all of
           // these, but we don't yet have a way to do that
           const e = event as MessagesSnapshotEvent;
-          currentMessage = e.messages[e.messages.length - 1];
+          const lastMessage = getLastMessage(e.messages);
+          if (!lastMessage) {
+            break;
+          }
+
+          currentMessage = lastMessage;
           switch (currentMessage.role) {
             case "assistant": {
               yield {
                 type: AgentResponseType.MESSAGE,
                 message: {
-                  content: currentMessage.content,
+                  content: aguiContentToString(currentMessage.content),
                   role: currentMessage.role,
                   id: currentMessage.id,
                 },
@@ -253,16 +261,18 @@ export class AgentClient {
           // we don't support "runs" yet, but "finished" may be a point to emit the final response
           const e = event as RunFinishedEvent;
           if (e.result) {
-            currentMessage = {
-              ...createNewMessage(MessageRole.Assistant, generateMessageId()),
+            const finishedMessage: AgentMessage = {
+              ...createNewMessage("assistant", generateMessageId()),
               content:
                 typeof e.result === "string"
                   ? e.result
                   : JSON.stringify(e.result),
             };
+
+            currentMessage = finishedMessage;
             yield {
               type: AgentResponseType.MESSAGE,
-              message: currentMessage,
+              message: finishedMessage,
               complete: true,
             };
           }
@@ -282,16 +292,17 @@ export class AgentClient {
           const _e = event as StateDeltaEvent;
           break;
         }
+
         case EventType.TOOL_CALL_START: {
           const e = event as ToolCallStartEvent;
           const messageId = e.parentMessageId ?? generateMessageId();
 
           // Start a new message if the current message is not the one that is suposed to hold the tool
           if (!currentMessage || currentMessage.id !== messageId) {
-            currentMessage = createNewMessage(MessageRole.Assistant, messageId);
+            currentMessage = createNewMessage("assistant", messageId);
           }
           // Also makes sure that types resolve correctly
-          if (currentMessage.role !== MessageRole.Assistant) {
+          if (currentMessage.role !== "assistant") {
             throw new Error("Current message is not an assistant message");
           }
           currentToolCalls = [
@@ -340,12 +351,9 @@ export class AgentClient {
           // TOOL_CALL_RESULT event?
           if (!currentMessage) {
             // should never happen, we should have a message by now
-            currentMessage = createNewMessage(
-              MessageRole.Assistant,
-              generateMessageId(),
-            );
+            currentMessage = createNewMessage("assistant", generateMessageId());
           }
-          if (currentMessage.role === MessageRole.Assistant) {
+          if (currentMessage.role === "assistant") {
             // we replace whatever tool calls we had before with the new one,
             // because they are partial/incomplete
             currentMessage = {
@@ -372,12 +380,9 @@ export class AgentClient {
           // TOOL_CALL_RESULT event?
           if (!currentMessage) {
             // should never happen, we should have a message by now
-            currentMessage = createNewMessage(
-              MessageRole.Assistant,
-              generateMessageId(),
-            );
+            currentMessage = createNewMessage("assistant", generateMessageId());
           }
-          if (currentMessage.role === MessageRole.Assistant) {
+          if (currentMessage.role === "assistant") {
             currentMessage = {
               ...currentMessage,
               toolCalls: currentToolCalls,
@@ -396,9 +401,9 @@ export class AgentClient {
           );
           const messageId = e.messageId;
           currentMessage = {
-            ...createNewMessage(MessageRole.Tool, messageId),
+            ...createNewMessage("tool", messageId),
             content: e.content,
-            role: MessageRole.Tool,
+            role: "tool",
             toolCallId: e.toolCallId,
           };
           // this is going to look a lot like the TOOL_CALL_END event, but with a different message id,
@@ -413,7 +418,7 @@ export class AgentClient {
         }
         case EventType.TEXT_MESSAGE_START: {
           const e = event as TextMessageStartEvent;
-          currentMessage = createNewMessage(e.role as MessageRole, e.messageId);
+          currentMessage = createNewMessage(e.role, e.messageId);
           yield {
             type: AgentResponseType.MESSAGE,
             message: currentMessage,
@@ -427,14 +432,16 @@ export class AgentClient {
           if (!currentMessage) {
             throw new Error("No current message");
           }
-          currentMessage = {
-            // this hacky cast works around a TS type ambiguity
+
+          const currentContent = aguiContentToString(currentMessage.content);
+          const updatedMessage: AgentMessage = {
             ...(currentMessage as unknown as AgentMessage),
-            content: currentMessage.content + e.delta,
+            content: currentContent + e.delta,
           };
+          currentMessage = updatedMessage;
           yield {
             type: AgentResponseType.MESSAGE,
-            message: currentMessage,
+            message: updatedMessage,
           };
           break;
         }
@@ -454,10 +461,7 @@ export class AgentClient {
         }
         case EventType.THINKING_START: {
           if (!currentMessage) {
-            currentMessage = createNewMessage(
-              MessageRole.Assistant,
-              generateMessageId(),
-            );
+            currentMessage = createNewMessage("assistant", generateMessageId());
           }
           currentMessage = {
             ...currentMessage,
@@ -474,10 +478,7 @@ export class AgentClient {
         }
         case EventType.THINKING_TEXT_MESSAGE_START: {
           if (!currentMessage) {
-            currentMessage = createNewMessage(
-              MessageRole.Assistant,
-              generateMessageId(),
-            );
+            currentMessage = createNewMessage("assistant", generateMessageId());
           }
           // just start a new reasoning string on the current message
           currentMessage = {
@@ -514,6 +515,11 @@ export class AgentClient {
         case EventType.THINKING_TEXT_MESSAGE_END: {
           break;
         }
+        case EventType.ACTIVITY_SNAPSHOT:
+        case EventType.ACTIVITY_DELTA: {
+          // We don't support activity events yet
+          break;
+        }
         default: {
           invalidEvent(event.type);
         }
@@ -531,6 +537,16 @@ export class AgentClient {
 
 function invalidEvent(eventType: never) {
   console.error(`Invalid event type: ${eventType}`);
+}
+
+function getLastMessage(messages: AGUIMessage[]): NonActivityMessage | null {
+  // Filter out activity messages and get the last non-activity message
+  const nonActivityMessages = messages.filter(
+    (m): m is NonActivityMessage => m.role !== "activity",
+  );
+  return nonActivityMessages.length > 0
+    ? nonActivityMessages[nonActivityMessages.length - 1]
+    : null;
 }
 
 /** Convert ChatCompletionContentPart[] to string for AGUI messages */
@@ -573,10 +589,10 @@ function convertToolCallRequestToAGUI(
 }
 
 function createNewMessage(
-  role: "system" | "user" | "assistant" | "tool" | "developer",
+  role: NonActivityMessage["role"],
   id: string,
 ): AgentMessage {
-  if (role === MessageRole.Tool) {
+  if (role === "tool") {
     return {
       id: id,
       role: role,

@@ -69,7 +69,7 @@ In general, the process is as follows for any repo:
   1. Grab the OpenAPI spec from your local build:
 
      ```
-     curl http://localhost:3001/api-json | jq -S . | pbcopy
+     curl http://localhost:8261/api-json | jq -S . | pbcopy
      ```
 
      (On Mac, `pbcopy` is used to copy the output to the clipboard)

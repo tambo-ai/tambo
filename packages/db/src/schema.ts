@@ -16,10 +16,13 @@ import {
   SessionSource,
   ToolCallRequest,
   ToolProviderType,
+  V1RunError,
+  V1RunStatus,
   type CustomLlmParameters,
 } from "@tambo-ai-cloud/core";
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   foreignKey,
   index,
@@ -41,6 +44,12 @@ export const projectApiKeyVariable = sql`current_setting('request.apikey.project
 export const projectApiKeyRole = pgRole("project_api_key", {
   inherit: true,
 });
+
+/** Anon role for unauthenticated requests (e.g., device auth initiation/polling)
+ * Note: Role is created via custom migration 0083_add-anon-role.sql.
+ * See that migration for details on why we use pgRole() with no options here.
+ */
+export const anonRole = pgRole("anon").existing();
 
 // User schema for NextAuth adapter tables
 export const authSchema = pgSchema("auth");
@@ -204,8 +213,29 @@ export const deviceAuthCodes = pgTable(
     index("device_auth_codes_device_code_idx").on(table.deviceCode),
     index("device_auth_codes_user_code_idx").on(table.userCode),
     index("device_auth_codes_expires_at_idx").on(table.expiresAt),
+    // Anon role policies for device auth flow (CLI initiation + polling)
+    pgPolicy("device_auth_anon_insert", {
+      to: anonRole,
+      for: "insert",
+      withCheck: sql`true`,
+    }),
+    pgPolicy("device_auth_anon_select", {
+      to: anonRole,
+      for: "select",
+      using: sql`true`,
+    }),
+    pgPolicy("device_auth_anon_update", {
+      to: anonRole,
+      for: "update",
+      using: sql`true`,
+    }),
+    // Authenticated role can also manage device auth codes (for verify flow)
+    pgPolicy("device_auth_authenticated_all", {
+      to: authenticatedRole,
+      using: sql`true`,
+    }),
   ],
-);
+).enableRLS();
 
 export type DBDeviceAuthCode = typeof deviceAuthCodes.$inferSelect;
 
@@ -532,13 +562,33 @@ export const threads = pgTable(
     })
       .default(GenerationStage.IDLE)
       .notNull(),
-    statusMessage: text("status_message"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+
+    // ==========================================
+    // V1 API run lifecycle fields
+    // ==========================================
+
+    // Current run lifecycle (only relevant while runStatus !== "idle")
+    runStatus: text("run_status", {
+      enum: Object.values<string>(V1RunStatus) as [V1RunStatus],
+    })
+      .default(V1RunStatus.IDLE)
+      .notNull(),
+    currentRunId: text("current_run_id"),
+    statusMessage: text("status_message"), // Human-readable detail (e.g., "Fetching weather data...")
+
+    // Last run outcome (cleared when next run starts)
+    lastRunCancelled: boolean("last_run_cancelled"),
+    lastRunError: customJsonb<V1RunError>("last_run_error"),
+
+    // Next run requirements
+    pendingToolCallIds: customJsonb<string[]>("pending_tool_call_ids"),
+    lastCompletedRunId: text("last_completed_run_id"),
   }),
   (table) => {
     return [
@@ -552,10 +602,99 @@ export const threads = pgTable(
       index("threads_project_updated_idx").on(table.projectId, table.updatedAt),
       // Stand-alone index on updated_at to aid generic recency queries.
       index("threads_updated_at_idx").on(table.updatedAt),
+      // Note: threads.current_run_id -> runs.id FK is added via migration SQL
+      // to avoid circular type inference issues between threads and runs tables
     ];
   },
 );
 export type DBThread = typeof threads.$inferSelect;
+
+/**
+ * Run request parameters stored for auditing/debugging.
+ * Only model is a separate column; other parameters are bundled here.
+ */
+export interface RunRequestParams {
+  maxTokens?: number;
+  temperature?: number;
+  toolChoice?: string | { name: string };
+  [key: string]: unknown;
+}
+
+/**
+ * Runs table for tracking individual generation runs within a thread.
+ * Each run represents a single request/response cycle, including tool calls.
+ */
+export const runs = pgTable(
+  "runs",
+  ({ text, timestamp, boolean }) => ({
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .unique()
+      .default(sql`generate_custom_id('run_')`),
+    threadId: text("thread_id")
+      .references(() => threads.id, { onDelete: "cascade" })
+      .notNull(),
+
+    // Run status lifecycle
+    status: text("status", {
+      enum: Object.values<string>(V1RunStatus) as [V1RunStatus],
+    })
+      .default(V1RunStatus.WAITING)
+      .notNull(),
+    statusMessage: text("status_message"), // "Fetching weather data..."
+
+    // Error tracking (populated when status indicates failure)
+    errorCode: text("error_code"),
+    errorMessage: text("error_message"),
+
+    // Tool call state
+    pendingToolCallIds: customJsonb<string[]>("pending_tool_call_ids"),
+
+    // Continuation chain (self-reference for run chains)
+    previousRunId: text("previous_run_id"),
+
+    // Request parameters (for auditing/replay)
+    model: text("model"),
+    requestParams: customJsonb<RunRequestParams>("request_params"),
+
+    // Metadata
+    metadata: customJsonb<Record<string, unknown>>("metadata"),
+
+    // Whether this run was cancelled
+    isCancelled: boolean("is_cancelled").default(false).notNull(),
+
+    // Timestamps
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }), // First content received
+    completedAt: timestamp("completed_at", { withTimezone: true }), // Run finished
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (table) => [
+    index("runs_thread_id_idx").on(table.threadId),
+    index("runs_status_idx").on(table.status),
+    index("runs_created_at_idx").on(table.createdAt),
+  ],
+);
+
+export type DBRun = typeof runs.$inferSelect;
+
+export const runRelations = relations(runs, ({ one }) => ({
+  thread: one(threads, {
+    fields: [runs.threadId],
+    references: [threads.id],
+  }),
+  previousRun: one(runs, {
+    fields: [runs.previousRunId],
+    references: [runs.id],
+    relationName: "runChain",
+  }),
+}));
+
 export const messages = pgTable(
   "messages",
   ({ text, timestamp, boolean }) => ({
@@ -638,6 +777,7 @@ export const threadRelations = relations(threads, ({ one, many }) => ({
     references: [projects.id],
   }),
   messages: many(messages),
+  runs: many(runs),
 }));
 export type DBThreadWithMessages = DBThread & {
   messages: DBMessageWithSuggestions[];

@@ -31,6 +31,7 @@ import { MessageSuggestions } from "./components/message-suggestions";
 import { ThreadList } from "./components/thread-list";
 import { ThreadMessageInput } from "./components/thread-message-input";
 import { WeatherDay } from "./components/weather-day";
+import { StreamingTools } from "./features/streaming-tools";
 import { wrapApiCall } from "./utils/apiWrapper";
 
 export default function SmokePage() {
@@ -452,6 +453,7 @@ export default function SmokePage() {
               />
             </div>
           </Card>
+          <StreamingTools />
           <div>
             <p>Thread ID: &apos;{thread.id}&apos;</p>
           </div>

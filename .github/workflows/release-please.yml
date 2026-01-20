@@ -49,17 +49,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Setup npm registry
+        uses: actions/setup-node@v6
         with:
-          node-version: "22"
-          cache: "npm"
           registry-url: "https://registry.npmjs.org"
-
-      - name: Pin NPM version
-        run: npm install -g npm@11.7.0
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Build
         run: npx turbo build --filter=@tambo-ai/react
@@ -81,17 +77,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Setup npm registry
+        uses: actions/setup-node@v6
         with:
-          node-version: "22"
-          cache: "npm"
           registry-url: "https://registry.npmjs.org"
-
-      - name: Pin NPM version
-        run: npm install -g npm@11.7.0
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Build
         run: npx turbo build --filter=tambo
@@ -113,17 +105,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
+      - name: Setup npm registry
+        uses: actions/setup-node@v6
         with:
-          node-version: "22"
-          cache: "npm"
           registry-url: "https://registry.npmjs.org"
-
-      - name: Pin NPM version
-        run: npm install -g npm@11.7.0
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Build
         run: npx turbo build --filter=create-tambo-app
