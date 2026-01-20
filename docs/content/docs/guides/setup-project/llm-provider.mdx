@@ -1,0 +1,161 @@
+---
+title: Configure LLM Provider
+description: Step-by-step guide to selecting and configuring LLM providers and models
+---
+
+This guide walks you through configuring LLM providers and models for your Tambo project, including provider-specific settings and parameter tuning patterns.
+
+## Prerequisites
+
+- A configured Tambo Cloud project (see [Configure Project Settings](/docs/guides/setup-project/project-settings))
+- API keys for your chosen provider(s)
+
+## Step 1: Select a Provider
+
+Tambo supports multiple LLM providers:
+
+- **OpenAI** - GPT-4, GPT-4 Turbo, GPT-3.5 models
+- **Anthropic** - Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+- **Google** - Gemini 1.5 Pro, Gemini 1.5 Flash
+- **Groq** - Fast inference for Llama, Mixtral models
+- **Mistral** - Mistral Large, Mistral Medium
+- **OpenAI-Compatible** - Any provider with OpenAI API compatibility
+
+Navigate to your project's LLM Configuration section in the Tambo Cloud dashboard and select your provider from the dropdown.
+
+For detailed provider capabilities and comparison, see the [Provider Reference](/docs/reference/providers).
+
+## Step 2: Add API Keys
+
+Generate an API key from your provider's dashboard:
+
+- **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **Anthropic**: [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+- **Google AI Studio**: [makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
+- **Groq**: [console.groq.com/keys](https://console.groq.com/keys)
+- **Mistral**: [console.mistral.ai/api-keys](https://console.mistral.ai/api-keys)
+
+In your project's LLM Configuration:
+
+1. Find **API Key** field
+2. Paste your API key exactly as provided
+3. Click **Save** to store securely
+
+## Step 3: Select a Model
+
+Choose a model based on your requirements:
+
+### Selection Criteria
+
+- **Capability** - More capable models handle complex tasks better
+- **Cost** - Larger models cost more per token
+- **Speed** - Smaller models respond faster
+- **Context Window** - Some models support larger inputs
+
+## Step 4: Configure Custom Parameters
+
+Parameters control how your model behaves. Configure these in the Custom Parameters section of your project settings.
+
+### Parameter Structure
+
+Parameters are organized by provider and model:
+
+```json
+{
+  "openai": {
+    "gpt-4o": {
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "max_tokens": 2000
+    }
+  },
+  "anthropic": {
+    "claude-3-5-sonnet-20241022": {
+      "temperature": 0.8,
+      "max_tokens": 4000
+    }
+  }
+}
+```
+
+### Common Parameter Patterns
+
+**Consistent, Focused Responses** (e.g., customer support, professional advice):
+
+- Temperature: 0.3-0.5
+- Top P: 0.8
+- Use case: When you need predictable, professional responses
+
+**Balanced General-Purpose** (e.g., Q&A, tutoring, general assistant):
+
+- Temperature: 0.7
+- Top P: 0.9
+- Use case: Default for most applications
+
+**Creative, Varied Output** (e.g., creative writing, brainstorming):
+
+- Temperature: 0.9-1.0
+- Top P: 0.95
+- Presence Penalty: 0.3
+- Use case: When you want diverse, imaginative responses
+
+### Parameter Reference
+
+Quick reference of what each parameter does:
+
+- **temperature** (0-2): Controls randomness. Lower = focused, higher = creative
+- **max_tokens**: Maximum response length in tokens
+- **top_p** (0-1): Alternative to temperature for sampling diversity
+- **top_k**: Limits sampling to top K tokens (not supported by all providers)
+- **frequency_penalty** (0-2): Reduces word repetition based on frequency
+- **presence_penalty** (0-2): Encourages topic diversity
+- **reasoningEffort** (for o1 models): `"low"`, `"medium"`, or `"high"` reasoning depth
+
+For detailed behavior tuning patterns, see [Configure Agent Behavior](/docs/guides/setup-project/agent-behavior).
+
+## Advanced: Custom OpenAI-Compatible Endpoints
+
+For self-hosted models or alternative providers:
+
+1. Select **openai-compatible** as your provider
+2. Enter **Custom Base URL** (e.g., `https://api.together.xyz/v1`)
+3. Enter **Custom Model Name** (e.g., `meta-llama/Llama-3-70b-chat-hf`)
+4. Add your API key if required
+5. Click **Save**
+
+Your endpoint must implement OpenAI API format with `/v1/chat/completions` support.
+
+## Verify Your Configuration
+
+After setup, test your configuration:
+
+1. Navigate to **Test** or **Playground** in your project
+2. Send a simple message: `"Hello, can you hear me?"`
+3. Verify you receive a response
+
+Test with real use cases to validate:
+
+- Custom instructions are followed
+- Parameters produce expected behavior
+- Tools work correctly (if configured)
+- Context is included properly
+
+## Troubleshooting
+
+**Invalid API Key** - Verify key is correct, hasn't been revoked, and belongs to the right provider account
+
+**Model not found** - Check model name matches provider's list; some models require special access
+
+**Connection errors** - Verify endpoint URL uses HTTPS and is accessible; check firewall rules for custom endpoints
+
+**Inconsistent responses** - High temperature (&gt;1.0) causes variability; reduce for consistency
+
+**Responses too short** - Increase `max_tokens` parameter; check project token limits
+
+For detailed configuration patterns and behavior tuning, see [Configure Agent Behavior](/docs/guides/setup-project/agent-behavior).
+
+## Next Steps
+
+- [Configure Agent Behavior](/docs/guides/setup-project/agent-behavior) - Practical configuration patterns
+- [Provider Reference](/docs/reference/providers) - Detailed provider capabilities
+- [Agent Configuration Concepts](/docs/concepts/agent-configuration) - Understanding the system
