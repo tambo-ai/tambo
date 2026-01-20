@@ -67,6 +67,7 @@ interface ProviderConfig {
   apiKey?: string;
   baseURL?: string;
   headers?: Record<string, string>;
+  providerName?: string;
   [key: string]: unknown;
 }
 
@@ -83,9 +84,10 @@ const PROVIDER_FACTORIES: Record<string, ProviderFactory> = {
   mistral: createMistral,
   google: createGoogleGenerativeAI,
   groq: createGroq,
+  // Cerebras uses openai-compatible provider with custom base URL (see getModelInstance)
   "openai-compatible": (config) =>
     createOpenAICompatible({
-      name: "openai-compatible",
+      name: config?.providerName || "openai-compatible",
       baseURL: config?.baseURL || "",
       apiKey: config?.apiKey,
       ...config,
@@ -114,6 +116,9 @@ function getProviderFromModel(
       return "groq";
     case "gemini":
       return "google";
+    case "cerebras":
+      // Cerebras uses openai-compatible provider with custom base URL
+      return "openai-compatible";
     default:
       // Fallback to OpenAI for unknown providers
       return "openai";
@@ -325,8 +330,15 @@ export class AISdkClient implements LLMClient {
       config.apiKey = this.apiKey;
     }
 
-    if (providerKey === "openai-compatible" && this.baseURL) {
-      config.baseURL = this.baseURL;
+    // Handle openai-compatible providers (including Cerebras)
+    if (providerKey === "openai-compatible") {
+      if (this.provider === "cerebras") {
+        // Cerebras uses openai-compatible with their API endpoint
+        config.baseURL = "https://api.cerebras.ai/v1";
+        config.providerName = "cerebras";
+      } else if (this.baseURL) {
+        config.baseURL = this.baseURL;
+      }
     }
 
     // Create the configured provider instance
