@@ -2,7 +2,6 @@ import {
   updateProjectAgentSettingsInputSchema,
   updateProjectAgentSettingsOutputSchema,
 } from "@/lib/schemas/agent";
-import { AgentProviderType, AiProviderType } from "@tambo-ai-cloud/core";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 
@@ -16,34 +15,39 @@ export function registerAgentTools(
   /**
    * Registers a tool to update agent settings for a project.
    * Updates the provider type (LLM or AGENT) and agent-specific configurations.
-   * @param {Object} params - Parameters object
-   * @param {string} params.projectId - The complete project ID
-   * @param {AiProviderType} params.providerType - The provider type (LLM or AGENT)
-   * @param {AgentProviderType} params.agentProviderType - The agent provider type (optional)
-   * @param {string} params.agentUrl - The agent URL (optional)
-   * @param {string} params.agentName - The agent name (optional)
-   * @param {Record<string, string>} params.agentHeaders - Custom headers for agent requests (optional)
-   * @returns {Object} Updated agent settings
+   * @returns Updated agent settings
    */
   registerTool({
     name: "updateProjectAgentSettings",
     description:
       "Updates agent settings for a project, including provider type and agent-specific configurations. Requires complete project ID.",
-    tool: async (params: {
-      projectId: string;
-      providerType: AiProviderType;
-      agentProviderType?: AgentProviderType | null;
-      agentUrl?: string | null;
-      agentName?: string | null;
-      agentHeaders?: Record<string, string> | null;
+    tool: async ({
+      projectId,
+      providerType,
+      agentProviderType,
+      agentUrl,
+      agentName,
+      agentHeaders,
     }) => {
       const result =
-        await ctx.trpcClient.project.updateProjectAgentSettings.mutate(params);
+        await ctx.trpcClient.project.updateProjectAgentSettings.mutate({
+          projectId,
+          providerType,
+          agentProviderType,
+          agentUrl,
+          agentName,
+          // Cast from unknown (tool schema) to Record<string, string> (tRPC expects)
+          // Validation happens server-side
+          agentHeaders: agentHeaders as
+            | Record<string, string>
+            | null
+            | undefined,
+        });
 
       // Invalidate all caches that display agent settings (shown in LLM settings view)
       await Promise.all([
-        invalidateLlmSettingsCache(ctx, params.projectId),
-        ctx.utils.project.getProjectById.invalidate(params.projectId),
+        invalidateLlmSettingsCache(ctx, projectId),
+        ctx.utils.project.getProjectById.invalidate(projectId),
         invalidateProjectCache(ctx),
       ]);
 

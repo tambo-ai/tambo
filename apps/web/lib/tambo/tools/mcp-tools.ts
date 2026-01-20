@@ -6,7 +6,6 @@ import {
   mcpServerSchema,
   updateMcpServerInput,
 } from "@/lib/schemas/mcp";
-import { MCPTransport } from "@tambo-ai-cloud/core";
 import { z } from "zod/v3";
 import { invalidateMcpServersCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
@@ -117,7 +116,7 @@ export function registerMcpTools(
     name: "fetchProjectMcpServers",
     description:
       "Fetches all MCP servers for a project. Returns an array of servers with their IDs, URLs, headers, and auth status. MUST be called before deleting a server to get the correct server ID - never guess or use the URL as the ID.",
-    tool: async (params: { projectId: string }) => {
+    tool: async (params) => {
       return await ctx.trpcClient.tools.listMcpServers.query(params);
     },
     inputSchema: fetchProjectMcpServersInputSchema,
@@ -137,14 +136,7 @@ export function registerMcpTools(
   registerTool({
     name: "updateMcpServer",
     description: "Updates an existing MCP server for a project.",
-    tool: async (params: {
-      projectId: string;
-      serverId: string;
-      url: string;
-      serverKey: string;
-      customHeaders: Record<string, string>;
-      mcpTransport: MCPTransport;
-    }) => {
+    tool: async (params) => {
       const result = await ctx.trpcClient.tools.updateMcpServer.mutate(params);
 
       // Invalidate the mcp server cache to refresh the component
@@ -167,7 +159,7 @@ export function registerMcpTools(
   registerTool({
     name: "getMcpServerTools",
     description: "Gets the tools for an MCP server for a project.",
-    tool: async (params: { projectId: string; serverId: string }) => {
+    tool: async (params) => {
       return await ctx.trpcClient.tools.inspectMcpServer.query(params);
     },
     inputSchema: getMcpServerToolsInputSchema,

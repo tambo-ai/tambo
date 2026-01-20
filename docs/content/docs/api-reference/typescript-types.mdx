@@ -63,7 +63,7 @@ inputSchema: z.ZodObject | JSONSchema7;
 inputSchema: z.object({
   city: z.string().describe("The city name"),
   units: z.enum(["celsius", "fahrenheit"]).optional(),
-})
+});
 ```
 
 #### outputSchema
@@ -80,7 +80,7 @@ outputSchema: z.ZodTypeAny | JSONSchema7;
 outputSchema: z.object({
   temperature: z.number(),
   condition: z.string(),
-})
+});
 ```
 
 #### transformToContent (optional)

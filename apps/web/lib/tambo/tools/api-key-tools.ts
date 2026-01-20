@@ -32,7 +32,7 @@ export function registerApiKeyTools(
   registerTool({
     name: "fetchProjectApiKeys",
     description: "get all api keys for the current project",
-    tool: async (params: { projectId: string }) => {
+    tool: async (params) => {
       return await ctx.trpcClient.project.getApiKeys.query(params.projectId);
     },
     inputSchema: fetchProjectApiKeysInputSchema,

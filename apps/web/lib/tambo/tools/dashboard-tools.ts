@@ -65,7 +65,7 @@ export function registerDashboardTools(
     name: "fetchTotalMessageUsage",
     description:
       "Fetches total message usage statistics with period filtering. Period can be 'all time', 'per month', or 'per week'.",
-    tool: async (params: { period?: string }) => {
+    tool: async (params) => {
       // Use 'all time' as default if period is not provided or invalid
       const validPeriod = params.period || "all time";
       const result = await ctx.trpcClient.project.getTotalMessageUsage.query({
@@ -90,7 +90,7 @@ export function registerDashboardTools(
     name: "fetchTotalUsers",
     description:
       "Fetches total user count statistics with period filtering. Period can be 'all time', 'per month', or 'per week'.",
-    tool: async (params: { period?: string }) => {
+    tool: async (params) => {
       // Use 'all time' as default if period is not provided or invalid
       const validPeriod = params.period || "all time";
       const result = await ctx.trpcClient.project.getTotalUsers.query({

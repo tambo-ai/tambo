@@ -240,8 +240,8 @@ export type TamboToolUnknown = Omit<
   "tool" | "inputSchema" | "outputSchema"
 > & {
   tool: (...args: unknown[]) => MaybeAsync<unknown>;
-  inputSchema: unknown;
-  outputSchema: unknown;
+  inputSchema: SupportedSchema;
+  outputSchema: SupportedSchema;
 };
 
 /**

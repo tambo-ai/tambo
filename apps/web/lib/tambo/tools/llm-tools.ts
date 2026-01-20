@@ -5,7 +5,6 @@ import {
   updateProjectLlmSettingsInput,
   updateProjectLlmSettingsOutputSchema,
 } from "@/lib/schemas/llm";
-import type { CustomLlmParameters } from "@tambo-ai-cloud/core";
 import { z } from "zod/v3";
 import { invalidateLlmSettingsCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
@@ -86,7 +85,7 @@ export function registerLlmTools(
     name: "fetchProjectLlmSettings",
     description:
       "Fetches LLM configuration settings for a project. Requires the complete project ID.",
-    tool: async (params: { projectId: string }) => {
+    tool: async (params) => {
       return await ctx.trpcClient.project.getProjectLlmSettings.query(params);
     },
     inputSchema: fetchProjectLlmSettingsInputSchema,
@@ -111,15 +110,7 @@ export function registerLlmTools(
     name: "updateProjectLlmSettings",
     description:
       'Updates LLM configuration settings for a project, including provider, model, and custom LLM parameters. For customLlmParameters, use the structure: { "providerName": { "modelName": { "parameterName": parameterValue } } }. Example: { "openai": { "gpt-5-2025-08-07": { "reasoningEffort": "high" } } }. IMPORTANT: After this tool completes, show a NEW ProviderKeySection component to display the updated settings. The component will automatically fetch the latest data.',
-    tool: async (params: {
-      projectId: string;
-      defaultLlmProviderName?: string;
-      defaultLlmModelName?: string | null;
-      customLlmModelName?: string | null;
-      customLlmBaseURL?: string | null;
-      maxInputTokens?: number | null;
-      customLlmParameters?: CustomLlmParameters | null;
-    }) => {
+    tool: async (params) => {
       const result =
         await ctx.trpcClient.project.updateProjectLlmSettings.mutate({
           projectId: params.projectId,

@@ -24,7 +24,7 @@ import {
 } from "@/lib/schemas/oauth";
 import {
   createProjectInput,
-  createProjectOutputSchema,
+  createdProjectSchema,
   getProjectByIdInput,
   getTotalMessageUsageInput,
   getTotalUsersInput,
@@ -35,7 +35,7 @@ import {
   totalMessageUsageSchema,
   totalUsersSchema,
   updateProjectInput,
-  updateProjectOutputSchema,
+  updatedProjectSchema,
 } from "@/lib/schemas/project";
 import { validateSafeURL } from "@/lib/urlSecurity";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
@@ -368,7 +368,7 @@ export const projectRouter = createTRPCRouter({
 
   createProject: protectedProcedure
     .input(createProjectInput)
-    .output(createProjectOutputSchema)
+    .output(createdProjectSchema)
     .mutation(async ({ ctx, input }) => {
       return await operations.createProject(ctx.db, {
         name: input,
@@ -496,7 +496,7 @@ export const projectRouter = createTRPCRouter({
 
   updateProject: protectedProcedure
     .input(updateProjectInput)
-    .output(updateProjectOutputSchema)
+    .output(updatedProjectSchema)
     .mutation(async ({ ctx, input }) => {
       const {
         projectId,
