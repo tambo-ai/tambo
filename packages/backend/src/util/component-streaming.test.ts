@@ -30,16 +30,12 @@ describe("component-streaming", () => {
       );
     });
 
-    it("throws for prefix-only tool name", () => {
-      expect(() => extractComponentName("show_component_")).toThrow(
-        "Expected component name to be non-empty",
-      );
+    it("returns empty string for prefix-only tool name", () => {
+      expect(extractComponentName("show_component_")).toBe("");
     });
 
-    it("throws for non-component tool name", () => {
-      expect(() => extractComponentName("get_weather")).toThrow(
-        "Expected tool name to start with",
-      );
+    it("returns original string for non-component tool name", () => {
+      expect(extractComponentName("get_weather")).toBe("get_weather");
     });
   });
 

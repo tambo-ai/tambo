@@ -266,18 +266,8 @@ export function isComponentTool(toolName: string): boolean {
  */
 export function extractComponentName(toolName: string): string {
   if (!toolName.startsWith(COMPONENT_TOOL_PREFIX)) {
-    throw new Error(
-      `Expected tool name to start with "${COMPONENT_TOOL_PREFIX}", got "${toolName}"`,
-    );
+    return toolName;
   }
 
-  const componentName = toolName.slice(COMPONENT_TOOL_PREFIX.length);
-
-  if (componentName.length === 0) {
-    throw new Error(
-      `Expected component name to be non-empty for tool "${toolName}"`,
-    );
-  }
-
-  return componentName;
+  return toolName.slice(COMPONENT_TOOL_PREFIX.length);
 }
