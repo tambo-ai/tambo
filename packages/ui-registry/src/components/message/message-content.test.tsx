@@ -477,7 +477,6 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       // Regular links should render as <a> tags with external link icon
-      // Note: lucide-react includes aria-hidden="true" on SVGs
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
         <div class="space-y-4 whitespace-normal">
           <p class="my-0">
@@ -502,7 +501,6 @@ describe("MessageContent rendering", () => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 class="lucide lucide-external-link w-3 h-3"
-                aria-hidden="true"
               >
                 <path d="M15 3h6v6">
                 </path>
