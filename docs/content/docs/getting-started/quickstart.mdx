@@ -249,7 +249,7 @@ In `src/lib/tambo.ts` add the following entry to the 'tools' array:
       "eggs",
       "bread",
     ],
-    toolSchema: z.function().returns(z.array(z.string())),
+    outputSchema: z.array(z.string()),
   },
 ```
 

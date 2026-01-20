@@ -45,17 +45,13 @@ export const weatherTool: TamboTool = {
   // Clear description of what the tool does and when to use it
   description: "Fetch current weather information for a specified city",
   tool: getWeather,
-  toolSchema: z
-    .function()
-    // Use .describe() to explain each parameter
-    .args(z.string().describe("The city to fetch weather for"))
-    .returns(
-      z.object({
-        location: z.object({
-          name: z.string(),
-        }),
-      }),
-    ),
+  // Use .describe() to explain each parameter
+  inputSchema: z.string().describe("The city to fetch weather for"),
+  outputSchema: z.object({
+    location: z.object({
+      name: z.string(),
+    }),
+  }),
 };
 ```
 
@@ -92,17 +88,13 @@ export const productTool: TamboTool = {
   name: "get_product",
   description: "Fetch product information with image",
   tool: getProductImage,
-  toolSchema: z
-    .function()
-    .args(z.string().describe("Product ID"))
-    .returns(
-      z.object({
-        name: z.string(),
-        description: z.string(),
-        imageUrl: z.string(),
-        price: z.number(),
-      }),
-    ),
+  inputSchema: z.string().describe("Product ID"),
+  outputSchema: z.object({
+    name: z.string(),
+    description: z.string(),
+    imageUrl: z.string(),
+    price: z.number(),
+  }),
   transformToContent: (result) => [
     {
       type: "text",
