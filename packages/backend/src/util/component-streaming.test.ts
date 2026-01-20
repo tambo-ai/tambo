@@ -136,6 +136,29 @@ describe("component-streaming", () => {
       });
     });
 
+    it("escapes JSON Pointer segments in replace patches", () => {
+      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+
+      tracker.processJsonDelta('{"foo/bar": "Hel');
+      const events = tracker.processJsonDelta('lo"}');
+
+      const propsDeltaEvent = events.find(
+        (e) =>
+          (e as unknown as { name: string }).name ===
+          "tambo.component.props_delta",
+      );
+
+      expect(propsDeltaEvent).toBeDefined();
+      expect(
+        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
+          .patch,
+      ).toContainEqual({
+        op: "replace",
+        path: "/foo~1bar",
+        value: "Hello",
+      });
+    });
+
     it("tracks streaming status correctly", () => {
       const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
 

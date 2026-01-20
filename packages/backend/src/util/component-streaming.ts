@@ -15,6 +15,12 @@ export type PropStreamingStatus = "started" | "streaming" | "done";
 
 export type JsonPatchOperation = Operation;
 
+/**
+ * Build a single-segment JSON Pointer path for a top-level prop key.
+ *
+ * Note: the `key` here is a literal object key, not an already-encoded JSON
+ * Pointer. We must escape it per RFC 6901 so keys can safely contain `/` or `~`.
+ */
 function createJsonPatchPath(key: string): string {
   return `/${escapePathComponent(key)}`;
 }
@@ -22,6 +28,11 @@ function createJsonPatchPath(key: string): string {
 /**
  * Component streaming state tracker.
  * Tracks incremental JSON parsing and property completion.
+ *
+ * Performance note: this runs on every tool-input delta. Avoid full deep clones
+ * (`structuredClone`, JSON stringify, etc.) of the parsed props tree on each
+ * delta. `partial-json` returns a fresh plain object per parse, and we treat
+ * those values as immutable snapshots.
  */
 export class ComponentStreamTracker {
   private componentId: string;
