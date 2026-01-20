@@ -11,8 +11,6 @@ const templateExpressionVarName = /{([a-zA-Z0-9_[\].]+)}/g;
  * to avoid substitutions, then replace it again with `{foo}` */
 const unescapeVariableExpression = /\\{([a-zA-Z0-9_[\].]+)\\}/g;
 // We have a special keyword that we use to expand out an array for a chat_history argument
-const CHAT_HISTORY = "chat_history";
-const ROLE_KEY = "role";
 
 type primitive = string | number | boolean | null | undefined;
 
@@ -180,12 +178,6 @@ export function objectTemplate<T>(objs: T): ObjectTemplate<T> {
     }
     if (Array.isArray(objs)) {
       return objs.flatMap((item) => {
-        // We have special handling for chat history, as we need to expand out
-        // the given variable
-        if (isLibrettoChatHistory(item)) {
-          return handleChatHistory(item, parameters);
-        }
-
         return objectTemplate(item)[formatProp](parameters);
       }) as T;
     }
@@ -238,68 +230,4 @@ function objTemplateVariables(objs: unknown): readonly string[] {
       return objTemplateVariables(value);
     },
   );
-}
-
-/**
- * Defines the expected structure for a Libretto chat history placeholder.
- */
-interface LibrettoChatHistoryItem {
-  [ROLE_KEY]: typeof CHAT_HISTORY;
-  [key: string]: TemplateValue;
-}
-
-/**
- * Determines if this has a Libretto Chat History defined object.
- * It follows an expected/exact setup where the role is chat_history and the
- * content is just the chat_history variable.
- * @param obj
- * @returns true if it follows the Libretto chat history structure
- */
-function isLibrettoChatHistory(objs: unknown): objs is LibrettoChatHistoryItem {
-  if (typeof objs !== "object" || objs === null || Array.isArray(objs)) {
-    return false;
-  }
-  const record = objs as Record<string, unknown>;
-  return record[ROLE_KEY] === CHAT_HISTORY;
-}
-
-function handleChatHistory(
-  item: LibrettoChatHistoryItem,
-  params: TemplateParameters,
-): ThreadMessage[] {
-  const varsInChatHistory = objTemplateVariables(item);
-
-  if (varsInChatHistory.length === 0) {
-    throw new Error(
-      `Expected to find a variable in the content of the chat_history role, but none was found`,
-    );
-  }
-
-  const allHistory = varsInChatHistory.flatMap((varName) => {
-    const value = params[varName];
-    if (value === undefined) {
-      throw new Error(
-        `No value was found in 'templateParams' for the variable '${varName}'. Ensure you have a corresponding entry in 'templateParams'.`,
-      );
-    }
-
-    if (!Array.isArray(value)) {
-      throw new Error(
-        `Expected value for variable '${varName}' to be an array of ThreadMessage, but got ${typeof value}`,
-      );
-    }
-
-    // Validate each element matches ThreadMessage structure
-    for (const msg of value) {
-      if (typeof msg !== "object" || msg === null || !("role" in msg)) {
-        throw new Error(
-          `Expected each element in '${varName}' to be a ThreadMessage, but found an invalid object.`,
-        );
-      }
-    }
-
-    return value as ThreadMessage[];
-  });
-
-  return allHistory;
 }

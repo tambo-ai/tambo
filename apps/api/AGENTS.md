@@ -102,6 +102,7 @@ apps/api/src
   - Missing required fields in data (e.g., componentDecision without componentName)
   - Null returns from database operations
   - Context fallback behavior (e.g., query param vs bearer token precedence)
+- **Testing HttpException responses** - When testing methods that return `HttpException`, error details are in `getResponse()`, not `message`. Use `error.getResponse()` to access response body fields like `type` and `detail`.
 - Always run `npm run test:cov` when adding meaningful logic to keep a coverage baseline; document gaps if coverage dips.
 
 ## Development Workflow

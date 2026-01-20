@@ -1,4 +1,5 @@
 import { Logger } from "@nestjs/common";
+import type { DecisionStreamItem } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ContentPartType,
@@ -119,21 +120,26 @@ function isThreadProcessing(generationStage: GenerationStage) {
  * change with each message.
  */
 export async function* fixStreamedToolCalls(
-  stream: AsyncIterableIterator<LegacyComponentDecision>,
-): AsyncIterableIterator<LegacyComponentDecision> {
+  stream: AsyncIterableIterator<DecisionStreamItem>,
+): AsyncIterableIterator<DecisionStreamItem> {
   let currentDecisionId: string | undefined = undefined;
   let currentToolCallRequest: ToolCallRequest | undefined = undefined;
   let currentToolCallId: string | undefined = undefined;
   let currentDecision: LegacyComponentDecision | undefined = undefined;
 
-  for await (const chunk of stream) {
+  for await (const streamItem of stream) {
+    const chunk = streamItem.decision;
+
     if (currentDecision?.id && currentDecisionId !== chunk.id) {
       // we're on to a new chunk, so if we have a previous tool call request, emit it
       yield {
-        ...currentDecision,
-        toolCallRequest: currentToolCallRequest,
-        toolCallId: currentToolCallId,
-        isToolCallFinished: true,
+        decision: {
+          ...currentDecision,
+          toolCallRequest: currentToolCallRequest,
+          toolCallId: currentToolCallId,
+          isToolCallFinished: true,
+        },
+        aguiEvents: [], // No AG-UI events for this synthetic transition chunk
       };
       // and clear the current tool call request and id
       currentToolCallRequest = undefined;
@@ -146,16 +152,22 @@ export async function* fixStreamedToolCalls(
     currentDecisionId = chunk.id;
     currentToolCallId = chunk.toolCallId;
     currentToolCallRequest = toolCallRequest;
-    yield { ...chunk, isToolCallFinished: false };
+    yield {
+      decision: { ...chunk, isToolCallFinished: false },
+      aguiEvents: streamItem.aguiEvents,
+    };
   }
 
   // account for the last iteration
   if (currentDecision) {
     yield {
-      ...currentDecision,
-      toolCallRequest: currentToolCallRequest,
-      toolCallId: currentToolCallId,
-      isToolCallFinished: true,
+      decision: {
+        ...currentDecision,
+        toolCallRequest: currentToolCallRequest,
+        toolCallId: currentToolCallId,
+        isToolCallFinished: true,
+      },
+      aguiEvents: [], // No AG-UI events for this synthetic final chunk
     };
   }
 }
