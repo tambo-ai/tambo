@@ -15,6 +15,10 @@ const COMPONENT_TOOL_PREFIX = "show_component_";
  * operation paths are RFC 6901 JSON Pointers. Prop keys are always escaped via
  * `escapePathComponent` from `fast-json-patch` so `~` becomes `~0` and `/`
  * becomes `~1`.
+ *
+ * Consumers are expected to apply patches in-order to the same canonical props
+ * tree, and avoid out-of-band mutations that would invalidate JSON Pointer
+ * paths.
  */
 
 /**
@@ -29,6 +33,11 @@ export type JsonPatchOperation = Operation;
  *
  * Note: the `key` here is a literal object key, not an already-encoded JSON
  * Pointer. We must escape it per RFC 6901 so keys can safely contain `/` or `~`.
+ * An empty-string key intentionally becomes `/` (RFC 6901), and is covered by
+ * unit tests.
+ *
+ * This helper is the only supported way to build JSON Patch paths in this
+ * module.
  */
 function createJsonPatchPath(key: string): string {
   return `/${escapePathComponent(key)}`;
@@ -136,6 +145,9 @@ export class ComponentStreamTracker {
       events.push(this.createPropsDeltaEvent(patches));
     }
 
+    // Treat parsed props as immutable snapshots; do not mutate `currentProps`
+    // or `previousProps`. If we ever need to change parsers (or mutate props),
+    // revisit this assignment and the performance tradeoffs of cloning.
     this.previousProps = currentProps;
 
     return events;

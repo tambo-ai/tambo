@@ -1,4 +1,5 @@
 import { EventType } from "@ag-ui/core";
+import { parse as parsePartialJson } from "partial-json";
 import {
   ComponentStreamTracker,
   isComponentTool,
@@ -7,6 +8,14 @@ import {
 } from "./component-streaming";
 
 describe("component-streaming", () => {
+  it("partial-json parse returns fresh objects for identical input", () => {
+    const first = parsePartialJson('{"a": 1}') as { a: number };
+    const second = parsePartialJson('{"a": 1}') as { a: number };
+
+    expect(first).not.toBe(second);
+    expect(first).toEqual(second);
+  });
+
   describe("isComponentTool", () => {
     it("returns true for component tools", () => {
       expect(isComponentTool("show_component_WeatherCard")).toBe(true);
