@@ -31,7 +31,8 @@ import {
   Menu,
   MessageSquare,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useSignOut } from "@/hooks/nextauth";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 
@@ -41,6 +42,7 @@ export function MobileDashboardNavigation() {
   const router = useRouter();
   const params = useParams();
   const { togglePanel } = useMessageThreadPanel();
+  const signOut = useSignOut();
 
   const projectId = params?.projectId as string | null;
 
