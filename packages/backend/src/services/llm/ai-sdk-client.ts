@@ -55,8 +55,7 @@ import { generateMessageId } from "./message-id-generator";
 import { limitTokens } from "./token-limiter";
 import {
   ComponentStreamTracker,
-  isComponentTool,
-  extractComponentName,
+  tryExtractComponentName,
 } from "../../util/component-streaming";
 
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
@@ -429,6 +428,8 @@ export class AISdkClient implements LLMClient {
 
     // Track message ID for AG-UI events
     let textMessageId: string | undefined;
+    // Local mutable accumulator for tool call args deltas (reset per tool call);
+    // do not reuse outside this scope.
     let toolCallArgDeltas: string[] = [];
 
     // Track component streaming for UI tools (show_component_*)
@@ -470,16 +471,16 @@ export class AISdkClient implements LLMClient {
             } as TextMessageEndEvent);
           }
           break;
-        case "tool-input-start":
+        case "tool-input-start": {
           accumulatedToolCall.name = delta.toolName;
           accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
           toolCallArgDeltas = [];
 
           // Initialize component tracker for UI tools
-          if (isComponentTool(delta.toolName)) {
+          const componentName = tryExtractComponentName(delta.toolName);
+          if (componentName) {
             const componentId = generateMessageId();
-            const componentName = extractComponentName(delta.toolName);
             componentTracker = new ComponentStreamTracker(
               componentId,
               componentName,
@@ -488,6 +489,7 @@ export class AISdkClient implements LLMClient {
             componentTracker = undefined;
           }
           break;
+        }
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
           toolCallArgDeltas.push(delta.delta);

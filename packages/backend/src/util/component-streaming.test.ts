@@ -2,6 +2,7 @@ import { EventType } from "@ag-ui/core";
 import {
   ComponentStreamTracker,
   isComponentTool,
+  tryExtractComponentName,
   extractComponentName,
 } from "./component-streaming";
 
@@ -30,12 +31,29 @@ describe("component-streaming", () => {
       );
     });
 
-    it("returns empty string for prefix-only tool name", () => {
-      expect(extractComponentName("show_component_")).toBe("");
+    it("throws for prefix-only tool name", () => {
+      expect(() => extractComponentName("show_component_")).toThrow(
+        "Invalid component tool name",
+      );
     });
 
-    it("returns original string for non-component tool name", () => {
-      expect(extractComponentName("get_weather")).toBe("get_weather");
+    it("throws for non-component tool name", () => {
+      expect(() => extractComponentName("get_weather")).toThrow(
+        "Invalid component tool name",
+      );
+    });
+  });
+
+  describe("tryExtractComponentName", () => {
+    it("returns the component name for valid component tools", () => {
+      expect(tryExtractComponentName("show_component_WeatherCard")).toBe(
+        "WeatherCard",
+      );
+    });
+
+    it("returns undefined for invalid tool names", () => {
+      expect(tryExtractComponentName("show_component_")).toBeUndefined();
+      expect(tryExtractComponentName("get_weather")).toBeUndefined();
     });
   });
 

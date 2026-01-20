@@ -9,7 +9,7 @@ import {
   type ToolCallResultEvent,
 } from "@ag-ui/client";
 
-const logger = new Logger("ToolCallTracker");
+const logger = new Logger("ClientToolCallTracker");
 
 /** Maximum size for tool call arguments (1MB) */
 const MAX_ARGS_SIZE = 1024 * 1024;
@@ -22,16 +22,28 @@ export interface PendingToolCall {
   toolCallId: string;
   /** Name of the tool being called */
   toolName: string;
-  /** Arguments passed to the tool (as JSON string) */
+  /**
+   * Arguments passed to the tool (as JSON string).
+   *
+   * Note: arguments are populated when TOOL_CALL_END is received.
+   */
   arguments: string;
 }
 
 /**
  * Tracks client-executable tool call state during streaming.
  *
+ * This is used to determine whether a V1 run should emit
+ * `tambo.run.awaiting_input`.
+ *
  * Tool calls not present in the client tool allowlist are ignored.
+ *
+ * Pending tool calls remain pending until TOOL_CALL_RESULT is received. In the
+ * V1 client-tool pause flow, TOOL_CALL_RESULT generally will not be sent by the
+ * server for client tools (the tool completes out-of-band via a follow-up
+ * request).
  */
-export class ToolCallTracker {
+export class ClientToolCallTracker {
   private readonly clientToolNames: ReadonlySet<string>;
 
   /**
@@ -161,10 +173,7 @@ export class ToolCallTracker {
   }
 }
 
-export type AwaitingInputEvent = Pick<
-  CustomEvent,
-  "type" | "name" | "value" | "timestamp"
-> & {
+export type AwaitingInputEvent = CustomEvent & {
   name: "tambo.run.awaiting_input";
   value: {
     pendingToolCalls: PendingToolCall[];

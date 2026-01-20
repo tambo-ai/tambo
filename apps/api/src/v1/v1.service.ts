@@ -33,7 +33,10 @@ import {
   convertV1ComponentsToInternal,
   convertV1ToolsToInternal,
 } from "./v1-tool-conversions";
-import { createAwaitingInputEvent, ToolCallTracker } from "./v1-client-tools";
+import {
+  createAwaitingInputEvent,
+  ClientToolCallTracker,
+} from "./v1-client-tools";
 import {
   convertToolResultsToMessages,
   dedupeToolResults,
@@ -631,7 +634,7 @@ export class V1Service {
 
           // 5. Consume queue and emit AG-UI events, tracking tool calls
           const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
-          const toolCallTracker = new ToolCallTracker(clientToolNames);
+          const toolCallTracker = new ClientToolCallTracker(clientToolNames);
 
           for await (const item of queue) {
             // Emit all AG-UI events from this stream item

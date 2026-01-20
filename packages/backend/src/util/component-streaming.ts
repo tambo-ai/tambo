@@ -253,6 +253,9 @@ export class ComponentStreamTracker {
 
 /**
  * Check if a tool name is a component tool.
+ *
+ * A component tool must start with the component prefix and have a non-empty
+ * component name suffix.
  */
 export function isComponentTool(toolName: string): boolean {
   return (
@@ -262,12 +265,31 @@ export function isComponentTool(toolName: string): boolean {
 }
 
 /**
- * Extract component name from tool name.
+ * Try to extract component name from tool name.
+ *
+ * @returns The extracted component name, or undefined if the tool name is not a
+ * valid component tool name.
  */
-export function extractComponentName(toolName: string): string {
-  if (!toolName.startsWith(COMPONENT_TOOL_PREFIX)) {
-    return toolName;
+export function tryExtractComponentName(toolName: string): string | undefined {
+  if (!isComponentTool(toolName)) {
+    return undefined;
   }
 
   return toolName.slice(COMPONENT_TOOL_PREFIX.length);
+}
+
+/**
+ * Extract component name from tool name.
+ *
+ * Callers must guard with {@link isComponentTool} before calling this; this
+ * will throw if the name is not a valid component tool name.
+ */
+export function extractComponentName(toolName: string): string {
+  const componentName = tryExtractComponentName(toolName);
+
+  if (!componentName) {
+    throw new Error(`Invalid component tool name: ${toolName}`);
+  }
+
+  return componentName;
 }

@@ -1,13 +1,13 @@
 import { EventType, type BaseEvent } from "@ag-ui/client";
 import {
-  ToolCallTracker,
+  ClientToolCallTracker,
   createAwaitingInputEvent,
   type AwaitingInputEvent,
 } from "./v1-client-tools";
 
 describe("v1-client-tools", () => {
-  describe("ToolCallTracker", () => {
-    let tracker: ToolCallTracker;
+  describe("ClientToolCallTracker", () => {
+    let tracker: ClientToolCallTracker;
     const clientToolNames = new Set([
       "get_weather",
       "client_tool",
@@ -19,7 +19,7 @@ describe("v1-client-tools", () => {
     ]);
 
     beforeEach(() => {
-      tracker = new ToolCallTracker(clientToolNames);
+      tracker = new ClientToolCallTracker(clientToolNames);
     });
 
     describe("tracking tool calls", () => {
