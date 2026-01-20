@@ -163,10 +163,8 @@ export function convertV1ComponentToInternal(
   // V1 doesn't have component-specific contextTools, they're passed separately
   result.contextTools = [];
   // Store the propsSchema directly - the internal system accepts JSON Schema
-  // for props. The ComponentPropsMetadata type is `unknown` which accepts
-  // JSON Schema objects. The DTO class (ComponentPropsMetadataDto) is an empty
-  // marker class for Swagger documentation purposes.
-  result.props = component.propsSchema as AvailableComponentDto["props"];
+  // for props.
+  result.props = component.propsSchema;
   return result;
 }
 

@@ -1,5 +1,9 @@
 import { EventType, type BaseEvent } from "@ag-ui/client";
-import { ToolCallTracker, createAwaitingInputEvent } from "./v1-client-tools";
+import {
+  ToolCallTracker,
+  createAwaitingInputEvent,
+  type AwaitingInputEvent,
+} from "./v1-client-tools";
 
 describe("v1-client-tools", () => {
   describe("ToolCallTracker", () => {
@@ -341,13 +345,12 @@ describe("v1-client-tools", () => {
         },
       ];
 
-      const event = createAwaitingInputEvent(pendingToolCalls);
+      const event: AwaitingInputEvent =
+        createAwaitingInputEvent(pendingToolCalls);
 
       expect(event.type).toBe(EventType.CUSTOM);
-      expect((event as unknown as { name: string }).name).toBe(
-        "tambo.run.awaiting_input",
-      );
-      expect((event as unknown as { value: unknown }).value).toEqual({
+      expect(event.name).toBe("tambo.run.awaiting_input");
+      expect(event.value).toEqual({
         pendingToolCalls: [
           {
             toolCallId: "call_123",
@@ -369,10 +372,7 @@ describe("v1-client-tools", () => {
       const event = createAwaitingInputEvent([]);
 
       expect(event.type).toBe(EventType.CUSTOM);
-      expect(
-        (event as unknown as { value: { pendingToolCalls: unknown[] } }).value
-          .pendingToolCalls,
-      ).toEqual([]);
+      expect(event.value.pendingToolCalls).toEqual([]);
     });
   });
 });

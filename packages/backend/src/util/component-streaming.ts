@@ -6,6 +6,8 @@ import type { Operation } from "fast-json-patch";
 /** Maximum size for accumulated JSON (10MB) */
 const MAX_JSON_SIZE = 10 * 1024 * 1024;
 
+const COMPONENT_TOOL_PREFIX = "show_component_";
+
 /**
  * Streaming status for component properties.
  */
@@ -253,12 +255,29 @@ export class ComponentStreamTracker {
  * Check if a tool name is a component tool.
  */
 export function isComponentTool(toolName: string): boolean {
-  return toolName.startsWith("show_component_");
+  return (
+    toolName.startsWith(COMPONENT_TOOL_PREFIX) &&
+    toolName.length > COMPONENT_TOOL_PREFIX.length
+  );
 }
 
 /**
  * Extract component name from tool name.
  */
 export function extractComponentName(toolName: string): string {
-  return toolName.replace("show_component_", "");
+  if (!toolName.startsWith(COMPONENT_TOOL_PREFIX)) {
+    throw new Error(
+      `Expected tool name to start with "${COMPONENT_TOOL_PREFIX}", got "${toolName}"`,
+    );
+  }
+
+  const componentName = toolName.slice(COMPONENT_TOOL_PREFIX.length);
+
+  if (componentName.length === 0) {
+    throw new Error(
+      `Expected component name to be non-empty for tool "${toolName}"`,
+    );
+  }
+
+  return componentName;
 }

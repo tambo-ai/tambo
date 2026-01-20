@@ -10,7 +10,7 @@ describe("component-streaming", () => {
     it("returns true for component tools", () => {
       expect(isComponentTool("show_component_WeatherCard")).toBe(true);
       expect(isComponentTool("show_component_StockChart")).toBe(true);
-      expect(isComponentTool("show_component_")).toBe(true);
+      expect(isComponentTool("show_component_")).toBe(false);
     });
 
     it("returns false for non-component tools", () => {
@@ -30,8 +30,16 @@ describe("component-streaming", () => {
       );
     });
 
-    it("returns empty string for prefix-only tool name", () => {
-      expect(extractComponentName("show_component_")).toBe("");
+    it("throws for prefix-only tool name", () => {
+      expect(() => extractComponentName("show_component_")).toThrow(
+        "Expected component name to be non-empty",
+      );
+    });
+
+    it("throws for non-component tool name", () => {
+      expect(() => extractComponentName("get_weather")).toThrow(
+        "Expected tool name to start with",
+      );
     });
   });
 

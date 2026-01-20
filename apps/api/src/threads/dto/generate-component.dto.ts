@@ -2,11 +2,9 @@ import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import {
   AvailableComponent,
   ComponentContextToolMetadata,
+  type ComponentPropsMetadata,
 } from "@tambo-ai-cloud/backend";
 import { JSONSchema7 } from "json-schema";
-
-@ApiSchema({ name: "ComponentPropsMetadata" })
-export class ComponentPropsMetadataDto {}
 
 @ApiSchema({ name: "AvailableComponent" })
 export class AvailableComponentDto implements AvailableComponent {
@@ -17,7 +15,7 @@ export class AvailableComponentDto implements AvailableComponent {
     type: "object",
     additionalProperties: true,
   })
-  props!: ComponentPropsMetadataDto;
+  props!: ComponentPropsMetadata;
 }
 
 export class ToolParameters {

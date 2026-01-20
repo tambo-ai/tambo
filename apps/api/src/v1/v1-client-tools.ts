@@ -2,6 +2,7 @@ import { Logger } from "@nestjs/common";
 import {
   EventType,
   type BaseEvent,
+  type CustomEvent,
   type ToolCallStartEvent,
   type ToolCallArgsEvent,
   type ToolCallEndEvent,
@@ -26,13 +27,15 @@ export interface PendingToolCall {
 }
 
 /**
- * Tracks tool call state during streaming.
- * Records which tool calls have started and which have received results.
+ * Tracks client-executable tool call state during streaming.
+ *
+ * Tool calls not present in the client tool allowlist are ignored.
  */
 export class ToolCallTracker {
-  private clientToolNames: ReadonlySet<string>;
-  /** Tool calls that have started but not yet received results */
-  private startedToolCalls: Map<
+  private readonly clientToolNames: ReadonlySet<string>;
+
+  /** Client tool calls that have started but have not yet been completed server-side */
+  private pendingClientToolCalls: Map<
     string,
     { toolName: string; arguments: string }
   > = new Map();
@@ -57,7 +60,7 @@ export class ToolCallTracker {
         if (!this.clientToolNames.has(e.toolCallName)) {
           break;
         }
-        this.startedToolCalls.set(e.toolCallId, {
+        this.pendingClientToolCalls.set(e.toolCallId, {
           toolName: e.toolCallName,
           arguments: "",
         });
@@ -97,7 +100,7 @@ export class ToolCallTracker {
       }
       case EventType.TOOL_CALL_END: {
         const e = event as unknown as ToolCallEndEvent;
-        const toolCall = this.startedToolCalls.get(e.toolCallId);
+        const toolCall = this.pendingClientToolCalls.get(e.toolCallId);
         if (toolCall) {
           // Join accumulated chunks into final arguments string
           const chunks = this.toolCallArgumentChunks.get(e.toolCallId) ?? [];
@@ -111,7 +114,13 @@ export class ToolCallTracker {
       }
       case EventType.TOOL_CALL_RESULT: {
         const e = event as unknown as ToolCallResultEvent;
-        this.startedToolCalls.delete(e.toolCallId);
+
+        // Only delete if this is a client tool call we were tracking.
+        if (!this.pendingClientToolCalls.has(e.toolCallId)) {
+          break;
+        }
+
+        this.pendingClientToolCalls.delete(e.toolCallId);
         this.toolCallArgumentChunks.delete(e.toolCallId);
         this.toolCallArgumentSizes.delete(e.toolCallId);
         break;
@@ -126,7 +135,7 @@ export class ToolCallTracker {
   getPendingToolCalls(): PendingToolCall[] {
     const pending: PendingToolCall[] = [];
 
-    for (const [toolCallId, info] of this.startedToolCalls) {
+    for (const [toolCallId, info] of this.pendingClientToolCalls) {
       pending.push({
         toolCallId,
         toolName: info.toolName,
@@ -141,7 +150,7 @@ export class ToolCallTracker {
    * Check if there are any pending tool calls.
    */
   hasPendingToolCalls(): boolean {
-    return this.startedToolCalls.size > 0;
+    return this.pendingClientToolCalls.size > 0;
   }
 
   /**
@@ -152,12 +161,19 @@ export class ToolCallTracker {
   }
 }
 
+export type AwaitingInputEvent = CustomEvent & {
+  name: "tambo.run.awaiting_input";
+  value: {
+    pendingToolCalls: PendingToolCall[];
+  };
+};
+
 /**
  * Create the tambo.run.awaiting_input event payload.
  */
 export function createAwaitingInputEvent(
   pendingToolCalls: PendingToolCall[],
-): BaseEvent {
+): AwaitingInputEvent {
   return {
     type: EventType.CUSTOM,
     name: "tambo.run.awaiting_input",
@@ -169,5 +185,5 @@ export function createAwaitingInputEvent(
       })),
     },
     timestamp: Date.now(),
-  } as BaseEvent;
+  };
 }

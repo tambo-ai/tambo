@@ -490,7 +490,7 @@ export class AISdkClient implements LLMClient {
           break;
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
-          toolCallArgDeltas = [...toolCallArgDeltas, delta.delta];
+          toolCallArgDeltas.push(delta.delta);
 
           // Emit component streaming events for UI tools
           if (componentTracker) {
