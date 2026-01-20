@@ -6,6 +6,9 @@ import {
 } from "@tambo-ai-cloud/backend";
 import { JSONSchema7 } from "json-schema";
 
+@ApiSchema({ name: "ComponentPropsMetadata" })
+export class ComponentPropsMetadataDto {}
+
 @ApiSchema({ name: "AvailableComponent" })
 export class AvailableComponentDto implements AvailableComponent {
   name!: string;

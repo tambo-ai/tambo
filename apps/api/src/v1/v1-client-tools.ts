@@ -34,7 +34,13 @@ export interface PendingToolCall {
 export class ToolCallTracker {
   private readonly clientToolNames: ReadonlySet<string>;
 
-  /** Client tool calls that have started but have not yet been completed server-side */
+  /**
+   * Client tool calls (names in `clientToolNames`) that have started and have
+   * not yet emitted a TOOL_CALL_RESULT event.
+   *
+   * Note: TOOL_CALL_END indicates argument streaming is complete but does not
+   * remove the call from this map.
+   */
   private pendingClientToolCalls: Map<
     string,
     { toolName: string; arguments: string }
@@ -114,12 +120,6 @@ export class ToolCallTracker {
       }
       case EventType.TOOL_CALL_RESULT: {
         const e = event as unknown as ToolCallResultEvent;
-
-        // Only delete if this is a client tool call we were tracking.
-        if (!this.pendingClientToolCalls.has(e.toolCallId)) {
-          break;
-        }
-
         this.pendingClientToolCalls.delete(e.toolCallId);
         this.toolCallArgumentChunks.delete(e.toolCallId);
         this.toolCallArgumentSizes.delete(e.toolCallId);
@@ -161,7 +161,10 @@ export class ToolCallTracker {
   }
 }
 
-export type AwaitingInputEvent = CustomEvent & {
+export type AwaitingInputEvent = Pick<
+  CustomEvent,
+  "type" | "name" | "value" | "timestamp"
+> & {
   name: "tambo.run.awaiting_input";
   value: {
     pendingToolCalls: PendingToolCall[];
