@@ -48,6 +48,12 @@ const config = {
         destination: "/guides/register-tools",
         permanent: true,
       },
+      // Models reorganization
+      {
+        source: "/models/custom-llm-parameters",
+        destination: "/guides/setup-project/llm-provider",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
