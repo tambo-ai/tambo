@@ -1,7 +1,7 @@
 import { parse } from "partial-json";
 import { EventType, type BaseEvent } from "@ag-ui/core";
 import deepEqual from "fast-deep-equal";
-import type { Operation } from "fast-json-patch";
+import { escapePathComponent, type Operation } from "fast-json-patch";
 
 /** Maximum size for accumulated JSON (10MB) */
 const MAX_JSON_SIZE = 10 * 1024 * 1024;
@@ -15,6 +15,10 @@ export type PropStreamingStatus = "started" | "streaming" | "done";
 
 export type JsonPatchOperation = Operation;
 
+function createJsonPatchPath(key: string): string {
+  return `/${escapePathComponent(key)}`;
+}
+
 /**
  * Component streaming state tracker.
  * Tracks incremental JSON parsing and property completion.
@@ -24,6 +28,9 @@ export class ComponentStreamTracker {
   private componentName: string;
   private accumulatedJson: string = "";
   private accumulatedJsonSize: number = 0;
+  // `partial-json` parses into plain objects. It also returns a fresh object on
+  // each parse, so we can treat these values as immutable snapshots and avoid a
+  // deep clone on every delta.
   private previousProps: Record<string, unknown> = {};
   private streamingStatus: Record<string, PropStreamingStatus> = {};
   private isStarted: boolean = false;
@@ -106,7 +113,7 @@ export class ComponentStreamTracker {
       events.push(this.createPropsDeltaEvent(patches));
     }
 
-    this.previousProps = structuredClone(currentProps);
+    this.previousProps = currentProps;
 
     return events;
   }
@@ -172,19 +179,20 @@ export class ComponentStreamTracker {
     // Check for new or changed properties
     for (const [key, value] of Object.entries(currentProps)) {
       const prevValue = previousProps[key];
+      const path = createJsonPatchPath(key);
 
       if (!this.seenPropertyKeys.has(key)) {
         // Truly new property (never seen before)
-        patches.push({ op: "add", path: `/${key}`, value });
+        patches.push({ op: "add", path, value });
         statusUpdates[key] = "started";
         newPropertyKeys.push(key);
       } else if (!(key in previousProps)) {
         // Property was seen before but not in previous props (edge case)
-        patches.push({ op: "add", path: `/${key}`, value });
+        patches.push({ op: "add", path, value });
         statusUpdates[key] = "streaming";
       } else if (!deepEqual(prevValue, value)) {
         // Property changed
-        patches.push({ op: "replace", path: `/${key}`, value });
+        patches.push({ op: "replace", path, value });
         // Keep status as "streaming" - it will become "done" when a new prop appears
         if (this.streamingStatus[key] !== "done") {
           statusUpdates[key] = "streaming";
@@ -195,7 +203,7 @@ export class ComponentStreamTracker {
     // Check for removed properties (unlikely in streaming but handle it)
     for (const key of Object.keys(previousProps)) {
       if (!(key in currentProps)) {
-        patches.push({ op: "remove", path: `/${key}` });
+        patches.push({ op: "remove", path: createJsonPatchPath(key) });
         delete this.streamingStatus[key];
       }
     }

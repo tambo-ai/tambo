@@ -106,6 +106,36 @@ describe("component-streaming", () => {
       });
     });
 
+    it("escapes JSON Pointer segments in patch paths", () => {
+      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+
+      const events = tracker.processJsonDelta('{"foo/bar": 1, "til~de": 2}');
+
+      const propsDeltaEvent = events.find(
+        (e) =>
+          (e as unknown as { name: string }).name ===
+          "tambo.component.props_delta",
+      );
+
+      expect(propsDeltaEvent).toBeDefined();
+      expect(
+        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
+          .patch,
+      ).toContainEqual({
+        op: "add",
+        path: "/foo~1bar",
+        value: 1,
+      });
+      expect(
+        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
+          .patch,
+      ).toContainEqual({
+        op: "add",
+        path: "/til~0de",
+        value: 2,
+      });
+    });
+
     it("tracks streaming status correctly", () => {
       const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
 
