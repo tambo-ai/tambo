@@ -5,10 +5,10 @@ declare module "next-auth" {
     id: string;
     idToken: string;
   }
-  interface Session {
-    user: {
+  interface Session extends DefaultSession {
+    user: DefaultSession["user"] & {
       id: string;
-    } & DefaultSession["user"];
+    };
   }
 }
 
