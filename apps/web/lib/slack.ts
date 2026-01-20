@@ -12,22 +12,29 @@ export async function callSlackAPI<T>(
   endpoint: string,
   body: Record<string, unknown>,
 ): Promise<T> {
-  const response = await fetch(`${SLACK_API_BASE}/${endpoint}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${env.SLACK_OAUTH_TOKEN}`,
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    if (!env.SLACK_OAUTH_TOKEN || env.SLACK_OAUTH_TOKEN.trim() === "") {
+      throw new Error("SLACK_OAUTH_TOKEN environment variable is not set");
+    }
+    const response = await fetch(`${SLACK_API_BASE}/${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.SLACK_OAUTH_TOKEN}`,
+      },
+      body: JSON.stringify(body),
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  if (!data.ok) {
-    throw new Error((data as SlackAPIError).error);
+    if (!data.ok) {
+      throw new Error((data as SlackAPIError).error);
+    }
+
+    return data as T;
+  } catch (error) {
+    throw new Error(`Slack API call failed: ${error}`);
   }
-
-  return data as T;
 }
 
 interface CreateChannelResult {
