@@ -41,6 +41,9 @@ export type JsonPatchOperation = Operation;
  * An empty-string key intentionally becomes `/` (RFC 6901), and is covered by
  * unit tests.
  *
+ * Callers must pass raw object keys here; never pass pre-escaped JSON Pointer
+ * segments.
+ *
  * This helper is the only supported way to build JSON Patch paths in this
  * module.
  *
@@ -68,7 +71,7 @@ export class ComponentStreamTracker {
   // `partial-json` parses into plain objects. It also returns a fresh object on
   // each parse, so we can treat these values as immutable snapshots and avoid a
   // deep clone on every delta.
-  private previousProps: Record<string, unknown> = {};
+  private previousProps: Readonly<Record<string, unknown>> = {};
   private streamingStatus: Record<string, PropStreamingStatus> = {};
   private isStarted: boolean = false;
   /** Set of property keys that have been seen, used to determine done-ness */
@@ -104,12 +107,14 @@ export class ComponentStreamTracker {
     this.accumulatedJsonSize += delta.length;
 
     // Try to parse incrementally
-    let currentProps: Record<string, unknown>;
+    let currentProps: Readonly<Record<string, unknown>>;
     try {
       // IMPORTANT: `parse()` must return a fresh object tree on each call.
       // This tracker relies on treating `previousProps` as an immutable
       // snapshot without deep-cloning on every delta.
-      currentProps = parse(this.accumulatedJson) as Record<string, unknown>;
+      currentProps = parse(this.accumulatedJson) as Readonly<
+        Record<string, unknown>
+      >;
     } catch {
       // Can't parse yet, wait for more data
       return events;
@@ -208,8 +213,8 @@ export class ComponentStreamTracker {
    *   (not based on whether the value is a primitive or complex type)
    */
   private detectPropertyChanges(
-    previousProps: Record<string, unknown>,
-    currentProps: Record<string, unknown>,
+    previousProps: Readonly<Record<string, unknown>>,
+    currentProps: Readonly<Record<string, unknown>>,
   ): {
     patches: JsonPatchOperation[];
     statusUpdates: Record<string, PropStreamingStatus>;
