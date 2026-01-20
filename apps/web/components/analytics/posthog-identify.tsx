@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 /**
  * Client component that identifies users in PostHog when they log in.
- * Resets identity when they log out for accurate analytics attribution.
+ * Only handles identification - reset is handled by useSignOut hook on logout.
  * Gracefully skips if PostHog is not configured.
  */
 export function PostHogIdentify() {
@@ -17,14 +17,16 @@ export function PostHogIdentify() {
     // Skip if PostHog is not configured
     if (!env.NEXT_PUBLIC_POSTHOG_KEY) return;
 
+    // Only identify when fully authenticated with a user ID
     if (status === "authenticated" && session?.user?.id) {
       posthog.identify(session.user.id, {
         email: session.user.email ?? undefined,
         name: session.user.name ?? undefined,
       });
-    } else if (status === "unauthenticated") {
-      posthog.reset();
     }
+    // Note: reset() is intentionally NOT called here on unauthenticated status
+    // because that would reset during normal session loading/transitions.
+    // Reset is handled by useSignOut hook on explicit logout.
   }, [session, status]);
 
   return null;
