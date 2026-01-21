@@ -4,7 +4,7 @@ import {
   MessageInputTextarea,
   type MessageInputTextareaProps,
   type ResourceProvider,
-} from "@/components/ui/tambo/message-input";
+} from "@tambo-ai/ui-registry/components/message-input";
 import { useInteractablesResourceProvider } from "@/hooks/use-interactables-resource-provider";
 import * as React from "react";
 

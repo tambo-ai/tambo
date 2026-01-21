@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
+import { MessageThreadCollapsible } from "@tambo-ai/ui-registry/components/message-thread-collapsible";
 import { source } from "@/lib/source";
 import { getLLMText } from "@/lib/get-llm-text";
 import { getMDXComponents } from "@/mdx-components";

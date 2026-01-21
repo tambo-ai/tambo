@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { MessageGenerationStage } from "@/components/ui/tambo/message-generation-stage";
+import { MessageGenerationStage } from "@tambo-ai/ui-registry/components/message-suggestions";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";

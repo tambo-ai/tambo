@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   // We need to disable reactStrictMode because react-leaflet uses a global
   // that doesn't work with strict mode.
   reactStrictMode: false,
+  transpilePackages: ["@tambo-ai/ui-registry"],
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
