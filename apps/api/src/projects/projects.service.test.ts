@@ -11,13 +11,17 @@ import { createTestingModule } from "../test/utils/create-testing-module";
 import { resolveRequestScopedProvider } from "../test/utils/resolve-request-scoped-provider";
 import { ProjectsService } from "./projects.service";
 
-let mockedOperations: {
-  createApiKey: jest.Mock;
-  createProject: jest.Mock;
-  getApiKeys: jest.Mock;
-  getProjectApiKeyId: jest.Mock;
-  updateApiKeyLastUsed: jest.Mock;
+type MockedDbOperations = {
+  readonly createApiKey: jest.Mock;
+  readonly createProject: jest.Mock;
+  readonly getApiKeys: jest.Mock;
+  readonly getProjectApiKeyId: jest.Mock;
+  readonly updateApiKeyLastUsed: jest.Mock;
 };
+
+const getMockedDbOperations = (): MockedDbOperations =>
+  (jest.requireMock("@tambo-ai-cloud/db"))
+    .operations;
 
 const createMockConfigService = () =>
   ({
@@ -32,13 +36,13 @@ const createMockAnalyticsService = () =>
 jest.mock("@tambo-ai-cloud/db", () => {
   const actual = jest.requireActual("@tambo-ai-cloud/db");
 
-  mockedOperations = {
+  const mockedOperations = {
     createApiKey: jest.fn(),
     createProject: jest.fn(),
     getApiKeys: jest.fn(),
     getProjectApiKeyId: jest.fn(),
     updateApiKeyLastUsed: jest.fn(),
-  };
+  } satisfies MockedDbOperations;
 
   return {
     ...actual,
@@ -60,12 +64,14 @@ class ExampleRequestScopedService {
 
 describe("ProjectsService", () => {
   let mockDb: HydraDatabase;
+  let mockedOperations: MockedDbOperations;
   let mockConfigService: ReturnType<typeof createMockConfigService>;
   let mockAnalyticsService: ReturnType<typeof createMockAnalyticsService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockDb = {} as HydraDatabase;
+    mockedOperations = getMockedDbOperations();
     mockConfigService = createMockConfigService();
     mockAnalyticsService = createMockAnalyticsService();
 
