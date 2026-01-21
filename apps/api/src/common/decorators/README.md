@@ -162,4 +162,3 @@ To migrate existing discriminated unions:
 
 - `api-discriminated-union.decorator.ts` - Implementation
 - `api-discriminated-union.decorator.test.ts` - Test suite
-- `api-discriminated-union.example.ts` - Before/after examples
