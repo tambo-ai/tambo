@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.131.0](https://github.com/tambo-ai/tambo/compare/api-v0.130.0...api-v0.131.0) (2026-01-21)
+
+
+### Features
+
+* **api:** add Swagger documentation for SSE event streams ([#1865](https://github.com/tambo-ai/tambo/issues/1865)) ([34645f7](https://github.com/tambo-ai/tambo/commit/34645f70a661f4a6e7c404e6dc95073cdf07eb4f))
+
+
+### Miscellaneous Chores
+
+* **api:** add NestJS testing helpers ([#1777](https://github.com/tambo-ai/tambo/issues/1777)) ([0331a9f](https://github.com/tambo-ai/tambo/commit/0331a9f0346f718d7cbaad6b3819b43289557eb9))
+
 ## [0.130.0](https://github.com/tambo-ai/tambo/compare/api-v0.129.1...api-v0.130.0) (2026-01-21)
 
 
