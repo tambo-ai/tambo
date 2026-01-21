@@ -1,4 +1,4 @@
 {
-  "title": "Providers",
-  "pages": ["openai", "anthropic", "google", "groq", "mistral"]
+  "title": "LLM Providers",
+  "pages": ["openai", "anthropic", "google", "groq", "mistral", "cerebras"]
 }
