@@ -180,12 +180,14 @@ The prefix ensures resources from different servers remain distinct even if they
 How resources are processed depends on the connection type:
 
 **Server-side resources:**
+
 - The resource reference is sent to Tambo's API
 - The server fetches resource content from the MCP server
 - Content is injected into the prompt server-side
 - Better for resources requiring server authentication or large content
 
 **Client-side resources:**
+
 - The resource is fetched in the browser
 - Full content is injected into the prompt client-side
 - The complete content is sent to Tambo's API
@@ -225,6 +227,7 @@ When an MCP server requests elicitation:
 7. The tool receives the response and continues execution
 
 The elicitation UI automatically:
+
 - Renders appropriate input fields based on the schema
 - Validates user input according to constraints
 - Handles the response flow back to the MCP server
@@ -232,6 +235,7 @@ The elicitation UI automatically:
 ### Form Field Types
 
 Elicitations support various input types:
+
 - **Text fields** for string input
 - **Number fields** for numeric input
 - **Checkboxes** for boolean values
@@ -241,6 +245,7 @@ Elicitations support various input types:
 ### Response Actions
 
 Users can respond to elicitations in three ways:
+
 - **Accept** - Provide the requested input and continue
 - **Decline** - Skip providing input but let the tool continue
 - **Cancel** - Abort the entire operation
@@ -349,13 +354,13 @@ Sampling currently only works with server-side MCP connections. Client-side MCP 
 
 ## Feature Support Summary
 
-| Feature | Server-side | Client-side | Description |
-|---------|------------|-------------|-------------|
-| **Tools** | ✅ Supported | ✅ Supported | Call functions to perform actions and retrieve data |
-| **Prompts** | ✅ Supported | ✅ Supported | Insert predefined message templates |
-| **Resources** | ✅ Supported | ✅ Supported | Reference external data sources in conversations |
-| **Elicitations** | ✅ Supported | ✅ Supported | Request user input during tool execution |
-| **Sampling** | ✅ Supported | ❌ Not supported | Allow MCP servers to request LLM completions |
+| Feature          | Server-side  | Client-side      | Description                                         |
+| ---------------- | ------------ | ---------------- | --------------------------------------------------- |
+| **Tools**        | ✅ Supported | ✅ Supported     | Call functions to perform actions and retrieve data |
+| **Prompts**      | ✅ Supported | ✅ Supported     | Insert predefined message templates                 |
+| **Resources**    | ✅ Supported | ✅ Supported     | Reference external data sources in conversations    |
+| **Elicitations** | ✅ Supported | ✅ Supported     | Request user input during tool execution            |
+| **Sampling**     | ✅ Supported | ❌ Not supported | Allow MCP servers to request LLM completions        |
 
 ## What's Next
 

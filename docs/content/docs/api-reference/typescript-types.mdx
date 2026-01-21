@@ -59,7 +59,7 @@ inputSchema?: z.ZodTypeAny | JSONSchemaLite;
 **Example:**
 
 ```typescript
-inputSchema: z.string().describe("The city name")
+inputSchema: z.string().describe("The city name");
 ```
 
 #### outputSchema (optional)
@@ -73,7 +73,7 @@ outputSchema?: z.ZodTypeAny | JSONSchemaLite;
 **Example:**
 
 ```typescript
-outputSchema: z.object({ temperature: z.number(), condition: z.string() })
+outputSchema: z.object({ temperature: z.number(), condition: z.string() });
 ```
 
 #### transformToContent (optional)

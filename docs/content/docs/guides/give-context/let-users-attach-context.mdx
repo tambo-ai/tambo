@@ -26,6 +26,7 @@ Context attachments are perfect when:
 - ✅ Context should be cleared after the message is sent
 
 **Don't use context attachments for:**
+
 - ❌ Automatic ambient context (use [Context Helpers](/guides/give-context/make-ai-aware-of-state))
 - ❌ @ mentionable documentation (use [Resources](/guides/give-context/make-context-referenceable))
 
@@ -105,8 +106,7 @@ Show users which context has been staged:
 
 ```tsx
 function StagedContextDisplay() {
-  const { attachments, removeContextAttachment } =
-    useTamboContextAttachment();
+  const { attachments, removeContextAttachment } = useTamboContextAttachment();
 
   if (attachments.length === 0) return null;
 
@@ -195,9 +195,7 @@ function TextSelectionHandler() {
   };
 
   return (
-    <button onClick={handleTextSelection}>
-      Add Selection to Context
-    </button>
+    <button onClick={handleTextSelection}>Add Selection to Context</button>
   );
 }
 ```
@@ -243,9 +241,7 @@ To manually clear before sending:
 ```tsx
 const { clearContextAttachments } = useTamboContextAttachment();
 
-<button onClick={clearContextAttachments}>
-  Clear All Staged Context
-</button>;
+<button onClick={clearContextAttachments}>Clear All Staged Context</button>;
 ```
 
 ## Complete Example
@@ -305,7 +301,14 @@ function ContextStagingDemo({ files }) {
 
 ## Next Steps
 
-<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem", marginTop: "1.5rem" }}>
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "1rem",
+    marginTop: "1.5rem",
+  }}
+>
   <LearnMore
     title="Make AI Aware of State"
     description="Automatic ambient context with context helpers"

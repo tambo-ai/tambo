@@ -83,24 +83,26 @@ sequenceDiagram
 
 ### Comparison
 
-| Feature | Server-side (Recommended) | Client-side |
-|---------|--------------------------|-------------|
-| **Performance** | Fast (direct server connection) | Slower (browser proxies requests) |
-| **Authentication** | OAuth + API keys supported | Browser session only |
-| **Local servers** | No (must be internet-accessible) | Yes (can connect to localhost) |
-| **Sharing** | Shared across all users | Per-user connections |
-| **Configuration** | Tambo dashboard | React application code |
-| **Best for** | Production, shared services | Development, local tools |
+| Feature            | Server-side (Recommended)        | Client-side                       |
+| ------------------ | -------------------------------- | --------------------------------- |
+| **Performance**    | Fast (direct server connection)  | Slower (browser proxies requests) |
+| **Authentication** | OAuth + API keys supported       | Browser session only              |
+| **Local servers**  | No (must be internet-accessible) | Yes (can connect to localhost)    |
+| **Sharing**        | Shared across all users          | Per-user connections              |
+| **Configuration**  | Tambo dashboard                  | React application code            |
+| **Best for**       | Production, shared services      | Development, local tools          |
 
 ### When to Use Each
 
 **Choose server-side when:**
+
 - You need OAuth authentication
 - Performance is critical
 - The MCP server should be shared across users
 - You want centralized management of connections
 
 **Choose client-side when:**
+
 - Connecting to local development servers
 - The MCP server is already accessible from the browser
 - Each user needs their own connection
@@ -169,6 +171,7 @@ Tambo **always prefixes** MCP capabilities with a `serverKey` to identify which 
 If you don't specify `serverKey`, Tambo derives one from the server URL hostname (e.g., `https://mcp.linear.app/mcp` becomes `linear`). For predictable behavior across environments, set `serverKey` explicitly.
 
 **Naming guidelines:**
+
 - Avoid `:` and `__` in the `serverKey` (used as separators)
 - Prefer letters, numbers, `_`, and `-`
 - Use environment-specific keys in multi-environment setups (e.g., `linear-staging`)

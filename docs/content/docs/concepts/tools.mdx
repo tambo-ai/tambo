@@ -20,7 +20,9 @@ export const weatherTool: TamboTool = {
   name: "getWeather",
   description: "A tool to get the current weather conditions of a city",
   tool: getWeather,
-  inputSchema: z.string().describe("The city name to get weather information for"),
+  inputSchema: z
+    .string()
+    .describe("The city name to get weather information for"),
   outputSchema: z.string(),
 };
 

@@ -19,6 +19,7 @@ The AI needs to know where the user is, what they're looking at, and their curre
 Context helpers run automatically with every message, providing ambient information without requiring explicit code in your components.
 
 **Examples:**
+
 - Current page URL and title
 - User session data (ID, role, permissions)
 - Time and timezone
@@ -41,6 +42,7 @@ Users should be able to explicitly include files, selections, or specific items 
 Context attachments are temporary, user-driven context that's staged before sending a message and automatically cleared afterward.
 
 **Examples:**
+
 - File uploads
 - Text selections
 - Canvas or workspace elements
@@ -63,6 +65,7 @@ Users should be able to @ mention documentation, data sources, or knowledge base
 Resources are discoverable, referenceable content that users can explicitly include by @ mentioning them.
 
 **Examples:**
+
 - Documentation and guides
 - Database records
 - API responses
@@ -130,6 +133,7 @@ function FileUploader() {
 ```
 
 **Together, these provide:**
+
 - **Context helpers**: Automatic environment data (session, page, time)
 - **Context attachments**: User-selected temporary context (files, selections)
 - **Resources**: Referenceable documentation and knowledge

@@ -26,6 +26,7 @@ Context helpers are perfect when:
 - ✅ Data changes based on navigation or app state
 
 **Don't use context helpers for:**
+
 - ❌ User-selected files or text (use [Context Attachments](/guides/give-context/let-users-attach-context))
 - ❌ @ mentionable documentation (use [Resources](/guides/give-context/make-context-referenceable))
 
@@ -283,9 +284,9 @@ For runtime control over context helpers, use the `useTamboContextHelpers` hook:
 import { useTamboContextHelpers } from "@tambo-ai/react";
 
 const {
-  getContextHelpers,     // Get current map of helpers
-  addContextHelper,      // Add or replace a helper
-  removeContextHelper,   // Remove a helper
+  getContextHelpers, // Get current map of helpers
+  addContextHelper, // Add or replace a helper
+  removeContextHelper, // Remove a helper
 } = useTamboContextHelpers();
 ```
 
@@ -424,11 +425,13 @@ export default function DashboardPage() {
 ```
 
 **When to use this pattern:**
+
 - You don't want to configure helpers at the root
 - You need different helpers for different pages
 - You want to experiment with helpers on specific routes
 
 **Important notes:**
+
 - You still need `TamboProvider` higher in the component tree
 - If the same key is registered in multiple places, the most recently mounted registration takes effect
 - Helpers are only active while the provider is mounted
@@ -448,10 +451,10 @@ const slowHelper = async () => ({
 // ✅ Fast - uses cached data
 const cachedData = new Map();
 const fastHelper = async () => {
-  if (!cachedData.has('key')) {
-    cachedData.set('key', await fetchExpensiveData());
+  if (!cachedData.has("key")) {
+    cachedData.set("key", await fetchExpensiveData());
   }
-  return cachedData.get('key');
+  return cachedData.get("key");
 };
 ```
 
@@ -511,7 +514,7 @@ Include all hook methods in dependencies:
 useEffect(() => {
   addContextHelper("key", helperFunction);
   return () => removeContextHelper("key");
-}, [addContextHelper, removeContextHelper, /* other deps */]);
+}, [addContextHelper, removeContextHelper /* other deps */]);
 ```
 
 ### 6. Namespace Keys
@@ -636,7 +639,14 @@ function ProjectManager() {
 
 ## Next Steps
 
-<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem", marginTop: "1.5rem" }}>
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "1rem",
+    marginTop: "1.5rem",
+  }}
+>
   <LearnMore
     title="Let Users Attach Context"
     description="User-driven temporary context with files and selections"

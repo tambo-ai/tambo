@@ -151,9 +151,10 @@ function CustomResourceSelector() {
     return null;
   }
 
-  const filteredResources = resources.filter((entry) =>
-    entry.resource.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    entry.resource.uri.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredResources = resources.filter(
+    (entry) =>
+      entry.resource.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.resource.uri.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -169,7 +170,9 @@ function CustomResourceSelector() {
           <li key={entry.resource.uri}>
             <button onClick={() => handleResourceSelect(entry.resource.uri)}>
               <strong>{entry.resource.name || entry.resource.uri}</strong>
-              {entry.resource.description && <p>{entry.resource.description}</p>}
+              {entry.resource.description && (
+                <p>{entry.resource.description}</p>
+              )}
               <small>From: {entry.server.name}</small>
             </button>
           </li>
@@ -220,7 +223,9 @@ function ResourcePreview({ resourceUri }: { resourceUri: string }) {
         <div key={idx}>
           {content.mimeType && <small>Type: {content.mimeType}</small>}
           {content.text && <pre>{content.text}</pre>}
-          {content.blob && <div>Binary content ({content.blob.length} bytes)</div>}
+          {content.blob && (
+            <div>Binary content ({content.blob.length} bytes)</div>
+          )}
         </div>
       ))}
     </div>
@@ -249,7 +254,9 @@ function ChatInterface() {
         onChange={(e) => setInputValue(e.target.value)}
         placeholder="Type your message..."
       />
-      <button onClick={() => setShowResources(!showResources)}>@ Resources</button>
+      <button onClick={() => setShowResources(!showResources)}>
+        @ Resources
+      </button>
       {showResources && <ResourceInserter onInsert={handleResourceInsert} />}
     </div>
   );
@@ -339,7 +346,7 @@ function renderField(
   fieldName: string,
   fieldSchema: any,
   formData: Record<string, unknown>,
-  setFormData: (data: Record<string, unknown>) => void
+  setFormData: (data: Record<string, unknown>) => void,
 ) {
   const value = formData[fieldName] ?? "";
 
@@ -383,7 +390,10 @@ function renderField(
   // Enum field
   if (fieldSchema.enum) {
     return (
-      <select value={String(value)} onChange={(e) => handleChange(e.target.value)}>
+      <select
+        value={String(value)}
+        onChange={(e) => handleChange(e.target.value)}
+      >
         <option value="">Select...</option>
         {fieldSchema.enum.map((option: string) => (
           <option key={option} value={option}>
@@ -458,7 +468,10 @@ Here's a complete example integrating all MCP UI customizations:
 
 ```tsx
 import { useState } from "react";
-import { useTamboMcpPromptList, useTamboMcpResourceList } from "@tambo-ai/react/mcp";
+import {
+  useTamboMcpPromptList,
+  useTamboMcpResourceList,
+} from "@tambo-ai/react/mcp";
 
 function MCPEnabledChatInput() {
   const [message, setMessage] = useState("");
@@ -481,7 +494,9 @@ function MCPEnabledChatInput() {
 
       <div className="toolbar">
         {hasPrompts && (
-          <button onClick={() => setShowPrompts(!showPrompts)}>📄 Prompts</button>
+          <button onClick={() => setShowPrompts(!showPrompts)}>
+            📄 Prompts
+          </button>
         )}
         {hasResources && (
           <button onClick={() => setShowResources(!showResources)}>

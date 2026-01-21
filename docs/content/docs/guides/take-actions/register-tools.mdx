@@ -191,7 +191,9 @@ export const dashboardTool: TamboTool = {
   tool: updateDashboard,
   inputSchema: z.object({
     title: z.string().optional(),
-    metrics: z.array(z.object({ name: z.string(), value: z.number() })).optional(),
+    metrics: z
+      .array(z.object({ name: z.string(), value: z.number() }))
+      .optional(),
     timeRange: z.string().optional(),
   }),
   outputSchema: z.void(),
