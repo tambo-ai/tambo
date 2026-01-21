@@ -1,9 +1,19 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "..",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^@tambo-ai-cloud/backend$": "<rootDir>/../../packages/backend/src",
+    "^@tambo-ai-cloud/core$": "<rootDir>/../../packages/core/src",
+    "^@tambo-ai-cloud/db$": "<rootDir>/../../packages/db/src",
+    "^@tambo-ai-cloud/testing$": "<rootDir>/../../packages/testing/src"
+  },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!(superjson|copy-anything|is-what|drizzle-orm|uuid)/)"
+  ]
 }
