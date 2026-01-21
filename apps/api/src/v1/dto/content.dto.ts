@@ -1,4 +1,9 @@
-import { ApiProperty, ApiSchema } from "@nestjs/swagger";
+import {
+  ApiProperty,
+  ApiSchema,
+  ApiExtraModels,
+  getSchemaPath,
+} from "@nestjs/swagger";
 import {
   ValidateNested,
   IsArray,
@@ -107,6 +112,7 @@ export class V1ToolUseContentDto {
  * Tool result content block - represents the result of a tool call.
  */
 @ApiSchema({ name: "ToolResultContent" })
+@ApiExtraModels(V1TextContentDto, V1ResourceContentDto)
 export class V1ToolResultContentDto {
   @ApiProperty({
     description: "Content block type identifier",
@@ -126,7 +132,20 @@ export class V1ToolResultContentDto {
 
   @ApiProperty({
     description: "Result content (text or resource blocks)",
-    type: [Object],
+    type: "array",
+    items: {
+      oneOf: [
+        { $ref: getSchemaPath(V1TextContentDto) },
+        { $ref: getSchemaPath(V1ResourceContentDto) },
+      ],
+      discriminator: {
+        propertyName: "type",
+        mapping: {
+          text: getSchemaPath(V1TextContentDto),
+          resource: getSchemaPath(V1ResourceContentDto),
+        },
+      },
+    },
   })
   @IsArray()
   @ValidateNested({ each: true })

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.130.0](https://github.com/tambo-ai/tambo/compare/api-v0.129.1...api-v0.130.0) (2026-01-21)
+
+
+### Features
+
+* **api:** PostHog backend analytics service (Phase 2) ([#1845](https://github.com/tambo-ai/tambo/issues/1845)) ([488a7f6](https://github.com/tambo-ai/tambo/commit/488a7f6cb0af5e407fd269ae96efc3741259dee2))
+
+
+### Bug Fixes
+
+* **api:** add S3 env vars to turbo.json and remove debug logging ([#1846](https://github.com/tambo-ai/tambo/issues/1846)) ([e744e0a](https://github.com/tambo-ai/tambo/commit/e744e0a83cc32b0edf910bb7b71bfeea4be24baa))
+* **api:** expose discriminated unions in OpenAPI schema for v1 DTOs ([#1859](https://github.com/tambo-ai/tambo/issues/1859)) ([d90bd36](https://github.com/tambo-ai/tambo/commit/d90bd36fac461c7d76126e59506a1f311075f902))
+
+
+### Tests
+
+* **api:** add unit tests for CorrelationLoggerService ([#1853](https://github.com/tambo-ai/tambo/issues/1853)) ([a6d7100](https://github.com/tambo-ai/tambo/commit/a6d710040532312e97eebe4ba46bb4cf76737116))
+
 ## [0.129.1](https://github.com/tambo-ai/tambo/compare/api-v0.129.0...api-v0.129.1) (2026-01-20)
 
 

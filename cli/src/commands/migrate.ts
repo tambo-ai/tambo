@@ -22,6 +22,7 @@ interface MigrateOptions {
 
 /**
  * Updates import paths in a file between ui/ and tambo/ locations
+ * Also transforms @tambo-ai/ui-registry/* imports to user project paths
  * @param content File content to update
  * @param targetLocation Target location: 'tambo' (default) or 'ui'
  */
@@ -29,19 +30,39 @@ export function updateImportPaths(
   content: string,
   targetLocation: "tambo" | "ui" = "tambo",
 ): string {
+  let result = content;
+
+  // Transform @tambo-ai/ui-registry imports to user project paths
+  // These are the imports used in the centralized ui-registry package
+  const componentSubdir =
+    targetLocation === "tambo" ? COMPONENT_SUBDIR : LEGACY_COMPONENT_SUBDIR;
+
+  // @tambo-ai/ui-registry/utils -> @/lib/utils
+  result = result.replace(/@tambo-ai\/ui-registry\/utils/g, "@/lib/utils");
+
+  // @tambo-ai/ui-registry/lib/* -> @/lib/*
+  result = result.replace(/@tambo-ai\/ui-registry\/lib\//g, "@/lib/");
+
+  // @tambo-ai/ui-registry/components/* -> @/components/tambo/* (or ui/)
+  result = result.replace(
+    /@tambo-ai\/ui-registry\/components\//g,
+    `@/components/${componentSubdir}/`,
+  );
+
+  // Also handle legacy @/components/ui/ -> @/components/tambo/ transformations
   if (targetLocation === "tambo") {
-    // Update imports from @/components/ui/ to @/components/tambo/
-    return content.replace(
+    result = result.replace(
       /@\/components\/ui\//g,
       `@/components/${COMPONENT_SUBDIR}/`,
     );
   } else {
-    // Update imports from @/components/tambo/ to @/components/ui/
-    return content.replace(
+    result = result.replace(
       new RegExp(`@/components/${COMPONENT_SUBDIR}/`, "g"),
       `@/components/${LEGACY_COMPONENT_SUBDIR}/`,
     );
   }
+
+  return result;
 }
 
 /**

@@ -12,6 +12,9 @@ export async function callSlackAPI<T>(
   endpoint: string,
   body: Record<string, unknown>,
 ): Promise<T> {
+  if (!env.SLACK_OAUTH_TOKEN) {
+    throw new Error("SLACK_OAUTH_TOKEN environment variable is not set");
+  }
   const response = await fetch(`${SLACK_API_BASE}/${endpoint}`, {
     method: "POST",
     headers: {

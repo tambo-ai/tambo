@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { type HydraDatabase, operations } from "@tambo-ai-cloud/db";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { AnalyticsService } from "../common/services/analytics.service";
 import { APIKeyResponse } from "./dto/api-key-response.dto";
 import {
   ProjectResponse,
@@ -18,6 +19,7 @@ export class ProjectsService {
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
     private readonly config: ConfigService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   getDb() {
@@ -184,12 +186,24 @@ export class ProjectsService {
     userId: string,
     name: string,
   ): Promise<string> {
+    // Check if this is the first API key for the project
+    const existingKeys = await operations.getApiKeys(this.getDb(), projectId);
+    const isFirstKey = existingKeys.length === 0;
+
     const apiKeySecret = this.config.getOrThrow("API_KEY_SECRET");
-    return await operations.createApiKey(this.getDb(), apiKeySecret, {
+    const apiKey = await operations.createApiKey(this.getDb(), apiKeySecret, {
       projectId,
       userId,
       name,
     });
+
+    // Track API key generation
+    this.analytics.capture(userId, "api_key_generated", {
+      projectId,
+      isFirstKey,
+    });
+
+    return apiKey;
   }
 
   async findAllApiKeys(projectId: string): Promise<APIKeyResponse[]> {

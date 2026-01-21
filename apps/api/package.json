@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai-cloud/api",
-  "version": "0.129.1",
+  "version": "0.130.0",
   "description": "",
   "author": "",
   "private": true,
@@ -61,6 +61,7 @@
     "mime-types": "^3.0.2",
     "nanoid": "^3.3.11",
     "openai": "^6.16.0",
+    "posthog-node": "^5.21.2",
     "react-fast-compare": "^3.2.2",
     "reflect-metadata": "^0.2.0",
     "resend": "^6.7.0",

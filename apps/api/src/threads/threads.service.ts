@@ -41,6 +41,7 @@ import OpenAI from "openai";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
+import { AnalyticsService } from "../common/services/analytics.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
 import { StorageConfigService } from "../common/services/storage-config.service";
 import {
@@ -101,6 +102,7 @@ export class ThreadsService {
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
     private readonly storageConfig: StorageConfigService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   getDb() {
@@ -1018,6 +1020,19 @@ export class ThreadsService {
         advanceRequestDto.messageToAppend,
         this.logger,
       );
+
+      // Track user messages (not tool responses)
+      // Use contextKey (user identifier) if available, otherwise use TAMBO_ANON_CONTEXT_KEY
+      if (advanceRequestDto.messageToAppend.role === MessageRole.User) {
+        this.analytics.capture(
+          contextKey ?? TAMBO_ANON_CONTEXT_KEY,
+          "message_sent",
+          {
+            projectId,
+            threadId: thread.id,
+          },
+        );
+      }
 
       // Use the shared method to create the TamboBackend instance
       const tamboBackend = await this.createTamboBackendForThread(
