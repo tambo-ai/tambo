@@ -61,7 +61,11 @@ describe("deriveServerKey", () => {
     });
 
     it("handles IP addresses", () => {
-      expect(deriveServerKey("http://127.0.0.1")).toBe("0");
+      expect(deriveServerKey("http://127.0.0.1")).toBe("127_0_0_1");
+    });
+
+    it("handles other IPv4 addresses", () => {
+      expect(deriveServerKey("http://255.255.255.254")).toBe("255_255_255_254");
     });
 
     it("handles URLs with ports", () => {
