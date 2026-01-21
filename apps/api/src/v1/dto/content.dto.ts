@@ -1,12 +1,6 @@
-import {
-  ApiProperty,
-  ApiSchema,
-  ApiExtraModels,
-  getSchemaPath,
-} from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import {
   ValidateNested,
-  IsArray,
   IsBoolean,
   IsOptional,
   IsString,
@@ -16,6 +10,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ResourceDto } from "../../threads/dto/message.dto";
+import { ApiDiscriminatedUnion } from "../../common/decorators/api-discriminated-union.decorator";
 
 /**
  * Union type for all content block types.
@@ -112,7 +107,6 @@ export class V1ToolUseContentDto {
  * Tool result content block - represents the result of a tool call.
  */
 @ApiSchema({ name: "ToolResultContent" })
-@ApiExtraModels(V1TextContentDto, V1ResourceContentDto)
 export class V1ToolResultContentDto {
   @ApiProperty({
     description: "Content block type identifier",
@@ -130,34 +124,13 @@ export class V1ToolResultContentDto {
   @IsNotEmpty()
   toolUseId!: string;
 
-  @ApiProperty({
+  @ApiDiscriminatedUnion({
+    types: [
+      { dto: V1TextContentDto, name: "text" },
+      { dto: V1ResourceContentDto, name: "resource" },
+    ],
     description: "Result content (text or resource blocks)",
-    type: "array",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(V1TextContentDto) },
-        { $ref: getSchemaPath(V1ResourceContentDto) },
-      ],
-      discriminator: {
-        propertyName: "type",
-        mapping: {
-          text: getSchemaPath(V1TextContentDto),
-          resource: getSchemaPath(V1ResourceContentDto),
-        },
-      },
-    },
-  })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => Object, {
-    discriminator: {
-      property: "type",
-      subTypes: [
-        { value: V1TextContentDto, name: "text" },
-        { value: V1ResourceContentDto, name: "resource" },
-      ],
-    },
-    keepDiscriminatorProperty: true,
+    isArray: true,
   })
   content!: (V1TextContentDto | V1ResourceContentDto)[];
 
@@ -214,21 +187,3 @@ export class V1ComponentContentDto {
   @IsObject()
   state?: Record<string, unknown>;
 }
-
-/**
- * Helper for discriminated union validation in nested arrays.
- * Used with @Type() decorator to properly validate content blocks.
- */
-export const v1ContentBlockDiscriminator = {
-  discriminator: {
-    property: "type",
-    subTypes: [
-      { value: V1TextContentDto, name: "text" },
-      { value: V1ResourceContentDto, name: "resource" },
-      { value: V1ToolUseContentDto, name: "tool_use" },
-      { value: V1ToolResultContentDto, name: "tool_result" },
-      { value: V1ComponentContentDto, name: "component" },
-    ],
-  },
-  keepDiscriminatorProperty: true,
-};
