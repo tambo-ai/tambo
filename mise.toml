@@ -1,0 +1,27 @@
+[tools]
+cspell = "9.4.0"
+gh = "2.83.2"
+jq = "1.8.1"
+shellcheck = "0.11.0"
+
+[tools."npm:corepack"]
+# Use Corepack to manage package managers like npm, yarn, and pnpm
+version = "0.34.5"
+# Enable corepack for all package managers (npm doesn't enable by default)
+postinstall = "corepack enable && corepack enable npm"
+
+[settings]
+# Enable reading .node-version files for node version management
+idiomatic_version_file_enable_tools = ["node"]
+# Disable package managers that might've been installed by mise at a higher
+# level; corepack will handle installing the correct version
+disable_tools = ["npm", "pnpm", "yarn"]
+
+[env]
+# Add node_modules/.bin to PATH for local package binaries
+_.path = ["{{config_root}}/node_modules/.bin"]
+
+# Disable telemetry for various tools
+TURBO_TELEMETRY_DISABLED = 1
+NEXT_TELEMETRY_DISABLED = 1
+DO_NOT_TRACK = 1

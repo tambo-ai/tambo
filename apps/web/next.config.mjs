@@ -14,10 +14,42 @@ const jiti = createJiti(fileURLToPath(import.meta.url));
 // Import env here to validate the environment variables during build. Using jiti we can import .ts files :)
 jiti.import("./lib/env").catch(console.error);
 
+// Auth redirect config: when AUTH_REDIRECT_FROM_HOST is set, redirect auth routes to NEXT_PUBLIC_APP_URL
+// Supports both bare host and host-with-port matching since Host headers may include ports
+const authRedirectFromHost = process.env.AUTH_REDIRECT_FROM_HOST;
+const authRedirectToUrl = process.env.NEXT_PUBLIC_APP_URL;
+const authRedirectHosts = authRedirectFromHost
+  ? authRedirectFromHost.includes(":")
+    ? [authRedirectFromHost]
+    : [
+        authRedirectFromHost,
+        `${authRedirectFromHost}:443`,
+        `${authRedirectFromHost}:80`,
+      ]
+  : [];
+const authRedirects =
+  authRedirectHosts.length > 0 && authRedirectToUrl
+    ? authRedirectHosts.flatMap((host) => [
+        {
+          source: "/login",
+          has: [{ type: "host", value: host }],
+          destination: `${authRedirectToUrl}/login`,
+          permanent: true,
+        },
+        {
+          source: "/api/auth/:path*",
+          has: [{ type: "host", value: host }],
+          destination: `${authRedirectToUrl}/api/auth/:path*`,
+          permanent: true,
+        },
+      ])
+    : [];
+
 /** @type {import('next').NextConfig} */
 const config = {
   redirects: () => {
     return [
+      ...authRedirects,
       {
         source: "/docs",
         destination:
@@ -196,12 +228,16 @@ export default withSentryConfig(withNextra(config), {
   // side errors will fail.
   tunnelRoute: "/monitoring",
 
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-
   // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
   // See the following for more information:
   // https://docs.sentry.io/product/crons/
   // https://vercel.com/docs/cron-jobs
   automaticVercelMonitors: true,
+
+  webpack: {
+    treeshake: {
+      // Automatically tree-shake Sentry logger statements to reduce bundle size
+      removeDebugLogging: true,
+    },
+  },
 });

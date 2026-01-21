@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import { Check, Copy, ExternalLink } from "lucide-react";
+import { Check, Copy, ExternalLink, X } from "lucide-react";
 import * as React from "react";
 
 /**
@@ -84,13 +84,38 @@ const CodeHeader = ({
   code?: string;
 }) => {
   const [copied, setCopied] = React.useState(false);
+  const [error, setError] = React.useState(false);
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = async () => {
     if (!code) return;
-    void navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+    // Clear any existing timeout to prevent race conditions
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setError(false);
+    } catch (err) {
+      console.error("Failed to copy code to clipboard:", err);
+      setError(true);
+    }
+    timeoutRef.current = setTimeout(() => setError(false), 2000);
   };
+
+  const Icon = React.useMemo(() => {
+    if (error) {
+      return <X className="size-4 text-red-500" />;
+    }
+    if (copied) {
+      return <Check className="size-4 text-green-500" />;
+    }
+    return <Copy className="size-4" />;
+  }, [copied, error]);
 
   return (
     <div className="flex items-center justify-between gap-4 rounded-t-md bg-container px-4 py-2 text-sm font-semibold text-foreground">
@@ -98,13 +123,9 @@ const CodeHeader = ({
       <button
         onClick={copyToClipboard}
         className="p-1 rounded-md hover:bg-backdrop transition-colors cursor-pointer"
-        title="Copy code"
+        title={error ? "Failed to copy" : "Copy code"}
       >
-        {!copied ? (
-          <Copy className="h-4 w-4" />
-        ) : (
-          <Check className="h-4 w-4 text-green-500" />
-        )}
+        {Icon}
       </button>
     </div>
   );
@@ -141,7 +162,7 @@ export const createMarkdownComponents = (): Record<
             className={cn(
               "overflow-x-auto rounded-b-md bg-background",
               "[&::-webkit-scrollbar]:w-[6px]",
-              "[&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-md",
+              "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-thumb]:rounded-md",
               "[&::-webkit-scrollbar:horizontal]:h-[4px]",
             )}
           >

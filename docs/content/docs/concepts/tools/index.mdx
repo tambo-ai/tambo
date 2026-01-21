@@ -15,10 +15,10 @@ export const tools: TamboTool[] = [
     name: "getWeather",
     description: "A tool to get the current weather conditions of a city",
     tool: getWeather,
-    toolSchema: z
-      .function()
-      .args(z.string().describe("The city name to get weather information for"))
-      .returns(z.string()),
+    inputSchema: z
+      .string()
+      .describe("The city name to get weather information for"),
+    outputSchema: z.string(),
   },
 ];
 
@@ -26,3 +26,5 @@ export const tools: TamboTool[] = [
   <App />
 </TamboProvider>;
 ```
+
+For tools that update UI state without side effects, you can enable real-time streaming with `annotations.tamboStreamableHint`. This allows the tool to be called with partial arguments as they stream in, providing instant feedback. See [Adding Local Tools](/concepts/tools/adding-tools#read-only-tools-for-real-time-streaming) for details.

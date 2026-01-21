@@ -41,7 +41,6 @@ export {
   useTamboThreadInput,
   type ContextAttachment,
   type ContextAttachmentState,
-  type ContextHelperData,
   type RegisterToolFn,
   type RegisterToolsFn,
   type TamboComponent,
@@ -84,6 +83,7 @@ export {
    * TamboToolWithToolSchema should be removed in a future release.
    */
   type TamboToolBase as TamboTool,
+  type ToolAnnotations,
 } from "./model/component-metadata";
 export {
   GenerationStage,

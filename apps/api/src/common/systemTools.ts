@@ -83,7 +83,7 @@ type ThreadMcpClient = {
  * sessionId.
  *
  * If no threadId is provided, then the MCP clients will not be associated with
- * any thread, and the elicitationa and sampling handlers will not be registered.
+ * any thread, and the elicitations and sampling handlers will not be registered.
  */
 export async function getThreadMCPClients(
   db: HydraDb,
@@ -332,7 +332,7 @@ async function getAuthProvider(
   }
 
   const authProvider = new OAuthLocalProvider(db, context.id, {
-    baseUrl: env.VERCEL_URL ?? "http://localhost:3000",
+    baseUrl: env.VERCEL_URL ?? "http://localhost:8260",
     serverUrl: mcpServer.url,
     clientInformation: client.sessionInfo.clientInformation,
     sessionId: client.sessionId,

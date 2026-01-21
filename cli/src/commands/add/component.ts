@@ -1,9 +1,13 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
 import { execFileSync } from "../../utils/interactive.js";
+import {
+  detectPackageManager,
+  getDevFlag,
+  getInstallCommand,
+} from "../../utils/package-manager.js";
 import {
   getComponentDirectoryPath,
   getLibDirectory,
@@ -11,11 +15,12 @@ import {
 import { updateImportPaths } from "../migrate.js";
 import { handleAgentDocsUpdate } from "../shared/agent-docs.js";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
-import { componentExists, getConfigPath, getRegistryPath } from "./utils.js";
-
-// Get the current file URL and convert it to a path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import {
+  componentExists,
+  getConfigPath,
+  getRegistryBasePath,
+  getRegistryPath,
+} from "./utils.js";
 
 /**
  * Installs multiple components and their dependencies
@@ -110,9 +115,16 @@ export function cn(...inputs: ClassValue[]) {
 
   // 4. Install all dependencies at once
   if (prodDeps.length > 0 || devDeps.length > 0) {
+    const pm = detectPackageManager();
+    const installCmd = getInstallCommand(pm);
+    const devFlag = getDevFlag(pm);
+    // --legacy-peer-deps is npm-specific
+    const legacyPeerDepsFlag =
+      options.legacyPeerDeps && pm === "npm" ? ["--legacy-peer-deps"] : [];
+
     if (!options.silent) {
       console.log(
-        `${chalk.green("✔")} Installing dependencies for ${componentNames.join(", ")}...`,
+        `${chalk.green("✔")} Installing dependencies for ${componentNames.join(", ")} using ${pm}...`,
       );
     }
 
@@ -120,25 +132,16 @@ export function cn(...inputs: ClassValue[]) {
       const allowNonInteractive = Boolean(options.yes);
 
       if (prodDeps.length > 0) {
-        const args = [
-          "install",
-          ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
-          ...prodDeps,
-        ];
-        execFileSync("npm", args, {
+        const args = [installCmd, ...legacyPeerDepsFlag, ...prodDeps];
+        execFileSync(pm, args, {
           stdio: "inherit",
           encoding: "utf-8",
           allowNonInteractive,
         });
       }
       if (devDeps.length > 0) {
-        const args = [
-          "install",
-          "-D",
-          ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
-          ...devDeps,
-        ];
-        execFileSync("npm", args, {
+        const args = [installCmd, devFlag, ...legacyPeerDepsFlag, ...devDeps];
+        execFileSync(pm, args, {
           stdio: "inherit",
           encoding: "utf-8",
           allowNonInteractive,
@@ -189,18 +192,24 @@ export function cn(...inputs: ClassValue[]) {
         if (fs.existsSync(sourcePath)) {
           fileContent = fs.readFileSync(sourcePath, "utf-8");
         } else {
-          // Check if content looks like a path to a file in registry
-          if (file.content.startsWith("src/registry/")) {
-            // Get the registry root path
-            const registryRoot = path.join(__dirname, "../../../");
-            const contentPath = path.join(registryRoot, file.content);
+          // Try to resolve content path from registry base
+          // Handle both old format (src/registry/...) and new format (lib/..., components/...)
+          // Strip leading "src/registry/" prefix using path operations for cross-platform safety
+          let contentRelativePath = file.content;
+          const parts = contentRelativePath.split(path.sep);
+          if (parts[0] === "src" && parts[1] === "registry") {
+            contentRelativePath = parts.slice(2).join(path.sep);
+          }
 
-            if (fs.existsSync(contentPath)) {
-              fileContent = fs.readFileSync(contentPath, "utf-8");
-            } else {
-              console.error(`Cannot find referenced file: ${contentPath}`);
-            }
+          const contentPath = path.join(
+            getRegistryBasePath(),
+            contentRelativePath,
+          );
+
+          if (fs.existsSync(contentPath)) {
+            fileContent = fs.readFileSync(contentPath, "utf-8");
           } else {
+            // If still not found, try treating file.content as literal content
             fileContent = file.content;
           }
         }

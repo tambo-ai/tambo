@@ -190,6 +190,7 @@ export function captureConsoleOutput(): {
 
 /**
  * Creates a basic project structure with just package.json
+ * Framework-agnostic - no framework dependencies included
  */
 export function createBasicProject(): Record<string, string | null> {
   return {
@@ -201,52 +202,90 @@ export function createBasicProject(): Record<string, string | null> {
 }
 
 /**
- * Creates a project with React dependency and src directory
+ * Creates a basic Next.js project structure
+ * Use this when testing Next.js-specific behavior (e.g., env var prefix detection)
  */
-export function createProjectWithReact(): Record<string, string | null> {
+export function createNextProject(): Record<string, string | null> {
   return {
     "/mock-project/package.json": JSON.stringify({
       name: "test-project",
-      dependencies: { "@tambo-ai/react": "^1.0.0" },
+      dependencies: {
+        next: "^16.0.0",
+      },
+    }),
+  };
+}
+
+/**
+ * Creates a project with Tambo SDK dependency and src directory
+ * Framework-agnostic - no framework dependencies included
+ */
+export function createProjectWithTamboSDK(): Record<string, string | null> {
+  return {
+    "/mock-project/package.json": JSON.stringify({
+      name: "test-project",
+      dependencies: {
+        "@tambo-ai/react": "^1.0.0",
+      },
     }),
     "/mock-project/src": null,
   };
 }
 
 /**
- * Creates a project with existing API key in .env.local
+ * Creates a Next.js project with Tambo SDK dependency and src directory
+ * Use this when testing Next.js-specific behavior (e.g., env var prefix detection)
+ */
+export function createNextProjectWithTamboSDK(): Record<string, string | null> {
+  return {
+    "/mock-project/package.json": JSON.stringify({
+      name: "test-project",
+      dependencies: {
+        next: "^14.0.0",
+        "@tambo-ai/react": "^1.0.0",
+      },
+    }),
+    "/mock-project/src": null,
+  };
+}
+
+/**
+ * Creates a Next.js project with existing API key in .env.local
+ * Uses Next.js because it references NEXT_PUBLIC_TAMBO_API_KEY
  */
 export function createProjectWithEnv(
   key: string,
 ): Record<string, string | null> {
   return {
-    ...createBasicProject(),
+    ...createNextProject(),
     "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${key}\n`,
   };
 }
 
 /**
- * Creates a project with both .env and .env.local files
+ * Creates a Next.js project with both .env and .env.local files
+ * Uses Next.js because it references NEXT_PUBLIC_TAMBO_API_KEY
  */
 export function createProjectWithBothEnvFiles(
   localKey: string,
   envKey: string,
 ): Record<string, string | null> {
   return {
-    ...createBasicProject(),
+    ...createNextProject(),
     "/mock-project/.env": `NEXT_PUBLIC_TAMBO_API_KEY=${envKey}\n`,
     "/mock-project/.env.local": `NEXT_PUBLIC_TAMBO_API_KEY=${localKey}\n`,
   };
 }
 
 /**
- * Creates a project with existing tambo.ts file
+ * Creates a Next.js project with existing tambo.ts file
+ * Uses Next.js because this is typically used for init tests that expect NEXT_PUBLIC_TAMBO_API_KEY
  */
 export function createProjectWithTamboTs(
   content?: string,
 ): Record<string, string | null> {
   return {
-    ...createBasicProject(),
+    ...createNextProject(),
     "/mock-project/src": null,
     "/mock-project/src/lib/tambo.ts":
       content ?? "export const components: TamboComponent[] = [];",
@@ -268,10 +307,10 @@ export function createRegistryFiles(
 ): Record<string, string | null> {
   const registry: Record<string, string | null> = {
     "/mock-project/cli/dist/commands/add/utils.js": "// Utils placeholder",
-    // Add Tailwind config files to the registry mock
-    "/mock-project/cli/src/registry/config/tailwind.config.ts": `import type { Config } from "tailwindcss";\nconst config: Config = { darkMode: "class", content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"], };\nexport default config;`,
-    "/mock-project/cli/src/registry/config/globals-v3.css": `@import "tailwindcss";\n\nbody {\n  background: var(--background);\n  color: var(--foreground);\n  font-family: Arial, Helvetica, sans-serif;\n}\n\n@layer base {\n  :root {\n    --background: 0 0% 100%;\n    --foreground: 222.2 84% 4.9%;\n    --card: 0 0% 100%;\n    --card-foreground: 222.2 84% 4.9%;\n    --popover: 0 0% 100%;\n    --popover-foreground: 222.2 84% 4.9%;\n    --primary: 222.2 47.4% 11.2%;\n    --primary-foreground: 210 40% 98%;\n    --secondary: 210 40% 96.1%;\n    --secondary-foreground: 222.2 47.4% 11.2%;\n    --muted: 210 40% 96.1%;\n    --muted-foreground: 215.4 16.3% 46.9%;\n    --accent: 210 40% 96.1%;\n    --accent-foreground: 222.2 47.4% 11.2%;\n    --destructive: 0 84.2% 60.2%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 214.3 31.8% 91.4%;\n    --input: 214.3 31.8% 91.4%;\n    --ring: 222.2 84% 4.9%;\n    --radius: 0.5rem;\n  }\n\n  .dark {\n    --background: 222.2 47.4% 11.2%;\n    --foreground: 210 40% 98%;\n    --card: 222.2 47.4% 11.2%;\n    --card-foreground: 210 40% 98%;\n    --popover: 222.2 47.4% 11.2%;\n    --popover-foreground: 210 40% 98%;\n    --primary: 210 40% 98%;\n    --primary-foreground: 222.2 47.4% 11.2%;\n    --secondary: 217.2 32.6% 17.5%;\n    --secondary-foreground: 210 40% 98%;\n    --muted: 217.2 32.6% 17.5%;\n    --muted-foreground: 215 20.2% 65.1%;\n    --accent: 217.2 32.6% 17.5%;\n    --accent-foreground: 210 40% 98%;\n    --destructive: 0 62.8% 30.6%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 217.2 32.6% 17.5%;\n    --input: 217.2 32.6% 17.5%;\n    --ring: 212.7 26.8% 83.9%;\n  }\n}\n`,
-    "/mock-project/cli/src/registry/config/globals-v4.css": `@import "tailwindcss";\n\n@theme inline {\n  --background: 0 0% 100%;\n  --foreground: 222.2 84% 4.9%;\n  --card: 0 0% 100%;\n  --card-foreground: 222.2 84% 4.9%;\n  --popover: 0 0% 100%;\n  --popover-foreground: 222.2 84% 4.9%;\n  --primary: 222.2 47.4% 11.2%;\n  --primary-foreground: 210 40% 98%;\n  --secondary: 210 40% 96.1%;\n  --secondary-foreground: 222.2 47.4% 11.2%;\n  --muted: 210 40% 96.1%;\n  --muted-foreground: 215.4 16.3% 46.9%;\n  --accent: 210 40% 96.1%;\n  --accent-foreground: 222.2 47.4% 11.2%;\n  --destructive: 0 84.2% 60.2%;\n  --destructive-foreground: 210 40% 98%;\n  --border: 214.3 31.8% 91.4%;\n  --input: 214.3 31.8% 91.4%;\n  --ring: 222.2 84% 4.9%;\n  --radius: 0.5rem;\n\n  @media (prefers-color-scheme: dark) {\n    --background: 222.2 47.4% 11.2%;\n    --foreground: 210 40% 98%;\n    --card: 222.2 47.4% 11.2%;\n    --card-foreground: 210 40% 98%;\n    --popover: 222.2 47.4% 11.2%;\n    --popover-foreground: 210 40% 98%;\n    --primary: 210 40% 98%;\n    --primary-foreground: 222.2 47.4% 11.2%;\n    --secondary: 217.2 32.6% 17.5%;\n    --secondary-foreground: 210 40% 98%;\n    --muted: 217.2 32.6% 17.5%;\n    --muted-foreground: 215 20.2% 65.1%;\n    --accent: 217.2 32.6% 17.5%;\n    --accent-foreground: 210 40% 98%;\n    --destructive: 0 62.8% 30.6%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 217.2 32.6% 17.5%;\n    --input: 217.2 32.6% 17.5%;\n    --ring: 212.7 26.8% 83.9%;\n  }\n}\n\n@custom-variant light {\n  @media (prefers-color-scheme: light) {\n    &:root {\n      @apply light;\n    }\n  }\n}\n\n@custom-variant dark {\n  @media (prefers-color-scheme: dark) {\n    &:root {\n      @apply dark;\n    }\n  }\n}\n\n@tailwind base;\n@tailwind components;\n@tailwind utilities;\n`,
+    // Add Tailwind config files to the registry mock (now in styles/ directory)
+    "/mock-project/cli/dist/registry/styles/tailwind.config.ts": `import type { Config } from "tailwindcss";\nconst config: Config = { darkMode: "class", content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"], };\nexport default config;`,
+    "/mock-project/cli/dist/registry/styles/globals-v3.css": `@import "tailwindcss";\n\nbody {\n  background: var(--background);\n  color: var(--foreground);\n  font-family: Arial, Helvetica, sans-serif;\n}\n\n@layer base {\n  :root {\n    --background: 0 0% 100%;\n    --foreground: 222.2 84% 4.9%;\n    --card: 0 0% 100%;\n    --card-foreground: 222.2 84% 4.9%;\n    --popover: 0 0% 100%;\n    --popover-foreground: 222.2 84% 4.9%;\n    --primary: 222.2 47.4% 11.2%;\n    --primary-foreground: 210 40% 98%;\n    --secondary: 210 40% 96.1%;\n    --secondary-foreground: 222.2 47.4% 11.2%;\n    --muted: 210 40% 96.1%;\n    --muted-foreground: 215.4 16.3% 46.9%;\n    --accent: 210 40% 96.1%;\n    --accent-foreground: 222.2 47.4% 11.2%;\n    --destructive: 0 84.2% 60.2%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 214.3 31.8% 91.4%;\n    --input: 214.3 31.8% 91.4%;\n    --ring: 222.2 84% 4.9%;\n    --radius: 0.5rem;\n  }\n\n  .dark {\n    --background: 222.2 47.4% 11.2%;\n    --foreground: 210 40% 98%;\n    --card: 222.2 47.4% 11.2%;\n    --card-foreground: 210 40% 98%;\n    --popover: 222.2 47.4% 11.2%;\n    --popover-foreground: 210 40% 98%;\n    --primary: 210 40% 98%;\n    --primary-foreground: 222.2 47.4% 11.2%;\n    --secondary: 217.2 32.6% 17.5%;\n    --secondary-foreground: 210 40% 98%;\n    --muted: 217.2 32.6% 17.5%;\n    --muted-foreground: 215 20.2% 65.1%;\n    --accent: 217.2 32.6% 17.5%;\n    --accent-foreground: 210 40% 98%;\n    --destructive: 0 62.8% 30.6%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 217.2 32.6% 17.5%;\n    --input: 217.2 32.6% 17.5%;\n    --ring: 212.7 26.8% 83.9%;\n  }\n}\n`,
+    "/mock-project/cli/dist/registry/styles/globals-v4.css": `@import "tailwindcss";\n\n@theme inline {\n  --background: 0 0% 100%;\n  --foreground: 222.2 84% 4.9%;\n  --card: 0 0% 100%;\n  --card-foreground: 222.2 84% 4.9%;\n  --popover: 0 0% 100%;\n  --popover-foreground: 222.2 84% 4.9%;\n  --primary: 222.2 47.4% 11.2%;\n  --primary-foreground: 210 40% 98%;\n  --secondary: 210 40% 96.1%;\n  --secondary-foreground: 222.2 47.4% 11.2%;\n  --muted: 210 40% 96.1%;\n  --muted-foreground: 215.4 16.3% 46.9%;\n  --accent: 210 40% 96.1%;\n  --accent-foreground: 222.2 47.4% 11.2%;\n  --destructive: 0 84.2% 60.2%;\n  --destructive-foreground: 210 40% 98%;\n  --border: 214.3 31.8% 91.4%;\n  --input: 214.3 31.8% 91.4%;\n  --ring: 222.2 84% 4.9%;\n  --radius: 0.5rem;\n\n  @media (prefers-color-scheme: dark) {\n    --background: 222.2 47.4% 11.2%;\n    --foreground: 210 40% 98%;\n    --card: 222.2 47.4% 11.2%;\n    --card-foreground: 210 40% 98%;\n    --popover: 222.2 47.4% 11.2%;\n    --popover-foreground: 210 40% 98%;\n    --primary: 210 40% 98%;\n    --primary-foreground: 222.2 47.4% 11.2%;\n    --secondary: 217.2 32.6% 17.5%;\n    --secondary-foreground: 210 40% 98%;\n    --muted: 217.2 32.6% 17.5%;\n    --muted-foreground: 215 20.2% 65.1%;\n    --accent: 217.2 32.6% 17.5%;\n    --accent-foreground: 210 40% 98%;\n    --destructive: 0 62.8% 30.6%;\n    --destructive-foreground: 210 40% 98%;\n    --border: 217.2 32.6% 17.5%;\n    --input: 217.2 32.6% 17.5%;\n    --ring: 212.7 26.8% 83.9%;\n  }\n}\n\n@custom-variant light {\n  @media (prefers-color-scheme: light) {\n    &:root {\n      @apply light;\n    }\n  }\n}\n\n@custom-variant dark {\n  @media (prefers-color-scheme: dark) {\n    &:root {\n      @apply dark;\n    }\n  }\n}\n\n@tailwind base;\n@tailwind components;\n@tailwind utilities;\n`,
   };
 
   // Component configs - simplified versions for testing
@@ -349,43 +388,45 @@ export function createRegistryFiles(
           .split("-")
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join("") || componentName;
-      registry[`/mock-project/cli/src/registry/${componentName}/config.json`] =
-        JSON.stringify({
-          name: componentName,
-          description: `Test component ${componentName}`,
-          componentName: componentNamePascal,
-          dependencies: ["@tambo-ai/react"],
-          devDependencies: [],
-          requires: [],
-          files: [
-            {
-              name: `${componentName}.tsx`,
-              content: `export const ${componentNamePascal} = () => <div>${componentNamePascal}</div>;`,
-            },
-          ],
-        });
       registry[
-        `/mock-project/cli/src/registry/${componentName}/${componentName}.tsx`
+        `/mock-project/cli/dist/registry/components/${componentName}/config.json`
+      ] = JSON.stringify({
+        name: componentName,
+        description: `Test component ${componentName}`,
+        componentName: componentNamePascal,
+        dependencies: ["@tambo-ai/react"],
+        devDependencies: [],
+        requires: [],
+        files: [
+          {
+            name: `${componentName}.tsx`,
+            content: `export const ${componentNamePascal} = () => <div>${componentNamePascal}</div>;`,
+          },
+        ],
+      });
+      registry[
+        `/mock-project/cli/dist/registry/components/${componentName}/${componentName}.tsx`
       ] =
         `export const ${componentNamePascal} = () => <div>${componentNamePascal}</div>;`;
     } else {
-      registry[`/mock-project/cli/src/registry/${componentName}/config.json`] =
-        JSON.stringify({
-          name: componentName,
-          description: config.description,
-          componentName: config.componentName,
-          dependencies: config.dependencies,
-          devDependencies: [],
-          requires: config.requires,
-          files: config.files.map((fileName) => ({
-            name: fileName,
-            content: `export const ${config.componentName} = () => <div>${config.componentName}</div>;`,
-          })),
-        });
+      registry[
+        `/mock-project/cli/dist/registry/components/${componentName}/config.json`
+      ] = JSON.stringify({
+        name: componentName,
+        description: config.description,
+        componentName: config.componentName,
+        dependencies: config.dependencies,
+        devDependencies: [],
+        requires: config.requires,
+        files: config.files.map((fileName) => ({
+          name: fileName,
+          content: `export const ${config.componentName} = () => <div>${config.componentName}</div>;`,
+        })),
+      });
       // Add component file
       config.files.forEach((fileName) => {
         registry[
-          `/mock-project/cli/src/registry/${componentName}/${fileName}`
+          `/mock-project/cli/dist/registry/components/${componentName}/${fileName}`
         ] =
           `export const ${config.componentName} = () => <div>${config.componentName}</div>;`;
       });
@@ -401,10 +442,10 @@ export function createRegistryFiles(
 }
 
 /**
- * Creates a project with React dependency, src directory, and registry files
- * This is the most common setup for full-send tests
+ * Creates a Next.js project with Tambo SDK, src directory, and registry files
+ * This is the most common setup for full-send tests that expect NEXT_PUBLIC_TAMBO_API_KEY
  */
-export function createProjectWithReactAndRegistry(
+export function createProjectWithTamboSDKAndRegistry(
   components: string[] = [
     "message-thread-full",
     "message-thread-panel",
@@ -413,7 +454,7 @@ export function createProjectWithReactAndRegistry(
   ],
 ): Record<string, string | null> {
   return {
-    ...createProjectWithReact(),
+    ...createNextProjectWithTamboSDK(),
     ...createRegistryFiles(components),
   };
 }

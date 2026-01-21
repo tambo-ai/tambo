@@ -14,6 +14,10 @@
 </p>
 
 <p align="center">
+  <a href="https://trendshift.io/repositories/15734" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/15734" alt="tambo-ai/tambo | Trendshift" width="250" height="55" /></a>
+</p>
+
+<p align="center">
   <a href="https://docs.tambo.co">Documentation</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
@@ -179,20 +183,18 @@ Docs: [threads and messages](https://docs.tambo.co/concepts/message-threads), [s
 Connect to Linear, Slack, databases, or your own MCP servers. Tambo supports the full MCP protocol: tools, prompts, elicitations, and sampling.
 
 ```tsx
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
     name: "filesystem",
-    url: "http://localhost:3001/mcp",
+    url: "http://localhost:8261/mcp",
     transport: MCPTransport.HTTP,
   },
 ];
 
 <TamboProvider components={components} mcpServers={mcpServers}>
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>;
 ```
 
@@ -266,7 +268,7 @@ Docs: [additional context](https://docs.tambo.co/concepts/additional-context), [
 
 ### Supported LLM Providers
 
-OpenAI, Anthropic, Google Gemini, Mistral, Groq, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/models). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
+OpenAI, Anthropic, Cerebras, Google Gemini, Mistral, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/models). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
 
 ## How Tambo Compares
 

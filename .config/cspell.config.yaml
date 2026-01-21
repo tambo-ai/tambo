@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json
+version: "0.2"
+dictionaryDefinitions:
+  - name: "tambo-dictionary"
+    path: "./dict/tambo.txt"
+    addWords: true
+dictionaries: ["tambo-dictionary"]
+ignorePaths:
+  - node_modules
+  - dist
+  - esm
+  - .next
+  - coverage
+  - package-lock.json

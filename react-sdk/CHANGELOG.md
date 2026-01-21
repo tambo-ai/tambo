@@ -1,5 +1,70 @@
 # Changelog
 
+## [0.69.1](https://github.com/tambo-ai/tambo/compare/react-v0.69.0...react-v0.69.1) (2026-01-16)
+
+
+### Bug Fixes
+
+* Allow multiple messages in response stream ([#1801](https://github.com/tambo-ai/tambo/issues/1801)) ([2bd74cf](https://github.com/tambo-ai/tambo/commit/2bd74cf201499c62273e73a2aa8cc6a22f62d95b))
+
+## [0.69.0](https://github.com/tambo-ai/tambo/compare/react-v0.68.0...react-v0.69.0) (2026-01-15)
+
+
+### Features
+
+* **react-sdk:** Add streaming hint to enable tool streaming on the client ([#1685](https://github.com/tambo-ai/tambo/issues/1685)) ([c38f046](https://github.com/tambo-ai/tambo/commit/c38f046fda8a5ba2a3287ceab65ca10432be48fa))
+* **showcase/message-input:** persist user input via session storage … ([#1259](https://github.com/tambo-ai/tambo/issues/1259)) ([0130917](https://github.com/tambo-ai/tambo/commit/013091741d78dfd3ae81ea6255bba26d1fd7786b))
+
+
+### Bug Fixes
+
+* don't send initialMessages on toolresponse ([#1783](https://github.com/tambo-ai/tambo/issues/1783)) ([16cb197](https://github.com/tambo-ai/tambo/commit/16cb19798ede07625b97701ce078552d03f76e55))
+* **react-sdk:** replace any types with unknown in context helpers ([#1733](https://github.com/tambo-ai/tambo/issues/1733)) ([bfcf7cd](https://github.com/tambo-ai/tambo/commit/bfcf7cd873b387af02d9023fc000d153a7ff50fb))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.1 to 22.19.5 ([#1746](https://github.com/tambo-ai/tambo/issues/1746)) ([aa0ca84](https://github.com/tambo-ai/tambo/commit/aa0ca84eb3e5cc582290e6aa0df6672f4b404969))
+* **deps-dev:** bump the eslint group with 2 updates ([#1739](https://github.com/tambo-ai/tambo/issues/1739)) ([c9818e2](https://github.com/tambo-ai/tambo/commit/c9818e2254c8a33bd1096d82846f2a4f09961923))
+
+
+### Documentation
+
+* update all port references from 3000/3001 to new ports ([#1725](https://github.com/tambo-ai/tambo/issues/1725)) ([db075e5](https://github.com/tambo-ai/tambo/commit/db075e5cb4cc2090ee5b372518f2a39980c153a0))
+
+
+### Tests
+
+* **react-sdk:** add test for is-promise.ts ([#1731](https://github.com/tambo-ai/tambo/issues/1731)) ([8ebad70](https://github.com/tambo-ai/tambo/commit/8ebad70e75b489cb460667677550950735a642d6))
+* **react-sdk:** add tests for resource-validators.ts ([#1748](https://github.com/tambo-ai/tambo/issues/1748)) ([02f0471](https://github.com/tambo-ai/tambo/commit/02f04711f0aa6144e8ceae204c3ca19f142f353e))
+* **react-sdk:** add tests for validate-component-name.ts-1657 ([#1764](https://github.com/tambo-ai/tambo/issues/1764)) ([c543064](https://github.com/tambo-ai/tambo/commit/c543064c9988a377107124d7cde931f57165b7cf))
+
+## [0.68.0](https://github.com/tambo-ai/tambo/compare/react-v0.67.1...react-v0.68.0) (2025-12-18)
+
+
+### Features
+
+* **react-sdk:** add tools to update interactable component state ([#1580](https://github.com/tambo-ai/tambo/issues/1580)) ([d29c79e](https://github.com/tambo-ai/tambo/commit/d29c79e4a08683a42549985eed1363d8c981e767))
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+
+## [0.67.1](https://github.com/tambo-ai/tambo/compare/react-v0.67.0...react-v0.67.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **react-sdk:** propagate resources stuff from TamboProvider -&gt; registry ([#1568](https://github.com/tambo-ai/tambo/issues/1568)) ([03ed3c2](https://github.com/tambo-ai/tambo/commit/03ed3c281070ed91a7e44415f4924b0bb497b295))
+* **react-sdk:** update tests and components for contextKey refactor ([#1575](https://github.com/tambo-ai/tambo/issues/1575)) ([2e0ddcc](https://github.com/tambo-ai/tambo/commit/2e0ddccac6d946a82e461398a414e74a8993cb5f))
+
+
+### Miscellaneous Chores
+
+* add LICENSE files across workspaces ([#1532](https://github.com/tambo-ai/tambo/issues/1532)) ([6e41be5](https://github.com/tambo-ai/tambo/commit/6e41be55b85be629f9b23d5688d058ccd2bd57f8))
+* **deps-dev:** bump the eslint group with 5 updates ([#1541](https://github.com/tambo-ai/tambo/issues/1541)) ([6329a46](https://github.com/tambo-ai/tambo/commit/6329a461e8b9f036e111e24890c27a98925f4d15))
+
 ## [0.67.0](https://github.com/tambo-ai/tambo/compare/react-v0.66.2...react-v0.67.0) (2025-12-15)
 
 

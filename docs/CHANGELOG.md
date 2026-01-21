@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.23.0](https://github.com/tambo-ai/tambo/compare/docs-v1.22.0...docs-v1.23.0) (2026-01-21)
+
+
+### Features
+
+* **analytics:** PostHog cross-subdomain tracking (Phase 1) ([#1842](https://github.com/tambo-ai/tambo/issues/1842)) ([ed80eb0](https://github.com/tambo-ai/tambo/commit/ed80eb0c6a6d15a4be844ff895f983788a6d9fba))
+* **docs:** Implement middleware to serve markdown when `Accept` prefers ([#1766](https://github.com/tambo-ai/tambo/issues/1766)) ([286ccd3](https://github.com/tambo-ai/tambo/commit/286ccd39040f08e2dc4972c9e8bb8038ae54b4d4))
+* **models:** add Cerebras AI provider support ([#1795](https://github.com/tambo-ai/tambo/issues/1795)) ([21650bb](https://github.com/tambo-ai/tambo/commit/21650bbd3f706f4a1cf04ae5b42536edb57ff8ce))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the small-safe-packages group with 8 updates ([#1831](https://github.com/tambo-ai/tambo/issues/1831)) ([a5965b4](https://github.com/tambo-ai/tambo/commit/a5965b4f9d1cf502eaf185cc8b1e26a93f847de0))
+
+## [1.22.0](https://github.com/tambo-ai/tambo/compare/docs-v1.21.1...docs-v1.22.0) (2026-01-07)
+
+
+### Features
+
+* **api:** remove non-streaming advance thread endpoints ([#1648](https://github.com/tambo-ai/tambo/issues/1648)) ([3802c8d](https://github.com/tambo-ai/tambo/commit/3802c8deb24e8b72140656418b5e5f0549bbf228))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump framer-motion from 12.23.24 to 12.23.26 ([#1644](https://github.com/tambo-ai/tambo/issues/1644)) ([34cc795](https://github.com/tambo-ai/tambo/commit/34cc795100121f8b1a4469b9a34a3113ba7bd424))
+* **deps:** bump posthog-js from 1.310.1 to 1.311.0 in the small-safe-packages group across 1 directory ([#1636](https://github.com/tambo-ai/tambo/issues/1636)) ([67d8ba3](https://github.com/tambo-ai/tambo/commit/67d8ba3fdbf22a25e91d0ed624e4ca7272f6b2dd))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1629](https://github.com/tambo-ai/tambo/issues/1629)) ([7655ca7](https://github.com/tambo-ai/tambo/commit/7655ca77bfa5843e30c0d1447cc705c572c5fe41))
+* **deps:** bump the small-safe-packages group with 2 updates ([#1641](https://github.com/tambo-ai/tambo/issues/1641)) ([154b264](https://github.com/tambo-ai/tambo/commit/154b2647a3ba3ee836a521d4a23a20e80d68e497))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1614](https://github.com/tambo-ai/tambo/issues/1614)) ([0f9843b](https://github.com/tambo-ai/tambo/commit/0f9843beae591605144054a7b17f1c9ad9830857))
+
 ## [1.21.1](https://github.com/tambo-ai/tambo/compare/docs-v1.21.0...docs-v1.21.1) (2025-12-17)
 
 

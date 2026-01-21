@@ -1,5 +1,6 @@
 import type { LlmProviderConfig } from "../llm-config-types";
 import { anthropicModels } from "./models/anthropic";
+import { cerebrasModels } from "./models/cerebras";
 import { geminiModels } from "./models/gemini";
 import { mistralModels } from "./models/mistral";
 import { openaiModels } from "./models/openai";
@@ -53,6 +54,13 @@ export const llmProviderConfig: LlmProviderConfig = {
     docLinkRoot: "https://docs.tokenjs.ai/providers/openai-compatible",
     isCustomProvider: true,
     requiresBaseUrl: true,
+  },
+  cerebras: {
+    apiName: "cerebras",
+    displayName: "Cerebras",
+    docLinkRoot: "https://inference-docs.cerebras.ai/",
+    apiKeyLink: "https://cloud.cerebras.ai/",
+    models: cerebrasModels,
   },
 };
 // Not using Groq for now because it is still giving some issues.

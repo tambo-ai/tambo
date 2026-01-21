@@ -7,7 +7,7 @@ export const siteConfig = {
   name: "tambo-ai",
   description:
     "An open-source AI orchestration framework for your React front end.",
-  url: env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  url: env.NEXT_PUBLIC_APP_URL || "http://localhost:8260",
   keywords: [
     "AI-Powered React Components",
     "Contextual UI Generation",
@@ -39,6 +39,7 @@ export const siteConfig = {
     twitter: "https://x.com/tambo_ai",
     discord: "https://discord.gg/dJNvPEHth6",
     github: "https://github.com/tambo-ai/tambo",
+    docs: process.env.NEXT_PUBLIC_DOCS_URL || "/docs",
   },
   metadata: {
     title: "Add React UI to your AI agent/copilot | tambo-ai",

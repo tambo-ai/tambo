@@ -61,7 +61,8 @@ export default function DictationButton() {
           <button
             type="button"
             onClick={handleStopRecording}
-            className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
+            aria-label="Stop dictation"
+            className="p-2 rounded-md cursor-pointer hover:bg-muted"
           >
             <Square className="h-4 w-4 text-red-500 fill-current animate-pulse" />
           </button>
@@ -71,7 +72,8 @@ export default function DictationButton() {
           <button
             type="button"
             onClick={handleStartRecording}
-            className="p-2 rounded-md cursor-pointer hover:bg-gray-100"
+            aria-label="Start dictation"
+            className="p-2 rounded-md cursor-pointer hover:bg-muted"
           >
             <Mic className="h-5 w-5" />
           </button>

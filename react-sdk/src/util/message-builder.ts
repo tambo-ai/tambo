@@ -1,3 +1,4 @@
+import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { StagedImage } from "../hooks/use-message-images";
 
@@ -26,11 +27,13 @@ const RESOURCE_REFERENCE_PATTERN = /@([a-zA-Z0-9-]+):(\S+)/g;
  * - The backend routes resources based on the thread's MCP server configuration, not client-side keys
  * @param text - Text potentially containing resource references
  * @param resourceNames - Map of full resource IDs (serverKey:uri) to their display names
+ * @param resourceContent - Optional map of prefixed URIs to resolved content (for client-side resources)
  * @returns Array of content parts in order (text and resource parts interleaved)
  */
 function parseResourceReferences(
   text: string,
   resourceNames: Record<string, string>,
+  resourceContent?: Map<string, ReadResourceResult>,
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
   const parts: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
@@ -59,6 +62,22 @@ function parseResourceReferences(
     if (name) {
       resource.name = name;
     }
+
+    // Include resolved content for client-side resources (MCP and registry)
+    // Server-side resources won't be in the map - backend resolves them by URI
+    const resolvedContent = resourceContent?.get(fullId);
+    if (resolvedContent?.contents?.[0]) {
+      const content = resolvedContent.contents[0];
+      if ("text" in content && content.text) {
+        resource.text = content.text;
+      } else if ("blob" in content && content.blob) {
+        resource.blob = content.blob;
+      }
+      if ("mimeType" in content && content.mimeType) {
+        resource.mimeType = content.mimeType;
+      }
+    }
+
     parts.push({ type: "resource", resource });
 
     if (match.index !== undefined) {
@@ -90,12 +109,14 @@ function parseResourceReferences(
  * @param text - The text content, may include \@serverKey:uri resource references
  * @param images - Array of staged images
  * @param resourceNames - Map of resource IDs (serverKey:uri) to their display names
+ * @param resourceContent - Optional map of prefixed URIs to resolved content (for client-side resources)
  * @returns Array of message content parts
  */
 export function buildMessageContent(
   text: string,
   images: StagedImage[],
   resourceNames: Record<string, string> = {},
+  resourceContent?: Map<string, ReadResourceResult>,
 ): TamboAI.Beta.Threads.ChatCompletionContentPart[] {
   const content: TamboAI.Beta.Threads.ChatCompletionContentPart[] = [];
 
@@ -105,7 +126,7 @@ export function buildMessageContent(
     // Parse resource references from the original text so that all
     // user-visible whitespace (including leading/trailing spaces and
     // internal spacing) is preserved in the resulting content parts.
-    const parts = parseResourceReferences(text, resourceNames);
+    const parts = parseResourceReferences(text, resourceNames, resourceContent);
     content.push(...parts);
   }
 

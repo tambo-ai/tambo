@@ -24,7 +24,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/typescript-config": "*",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.15.32",
+    "@types/node": "^22.19.5",
     "jest": "^30.2.0",
     "prettier-2": "npm:prettier@^2",
     "ts-jest": "^29.4.6",
@@ -33,13 +33,6 @@
   "dependencies": {
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
-    "openai": "^6.4.0"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10"
-  },
-  "volta": {
-    "extends": "../../package.json"
+    "openai": "^6.16.0"
   }
 }

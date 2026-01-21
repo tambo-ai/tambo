@@ -58,7 +58,7 @@ const components: TamboComponent[] = [{
 - **No AI Expertise Needed** - If you can write React, you can build generative UIs. Use your existing design system and components.
 - **MCP-Native** - Built-in support for Model Context Protocol means plug-and-play integrations with any MCP server. Your own, or external servers with Linear, Slack.
 - **Pre-built UI Primitives** - Copy/paste production-ready components for forms, charts, maps, messaging, and more. Customize everything.
-- **Bring Your Own LLM** - Works with OpenAI, Anthropic, Google, Mistral, or any OpenAI-compatible provider. Not locked into one vendor.
+- **Bring Your Own LLM** - Works with OpenAI, Anthropic, Cerebras, Google, Mistral, or any OpenAI-compatible provider. Not locked into one vendor.
 - **Truly Open Source** - MIT licensed React SDK and backend. Self-host with full control, or use Tambo Cloud for zero-config deployment.
 
 ## How Tambo Works
@@ -200,20 +200,18 @@ import { MessageCircleMore } from "lucide-react";
 Connect pre-built integrations (Linear, Slack, databases) or your own custom MCP servers:
 
 ```tsx
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
     name: "filesystem",
-    url: "http://localhost:3001/mcp",
+    url: "http://localhost:8261/mcp",
     transport: MCPTransport.HTTP,
   },
 ];
 
 <TamboProvider components={components} mcpServers={mcpServers}>
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>;
 ```
 
@@ -243,7 +241,7 @@ const mcpServers = [
 - **State Management** - AI-integrated state hooks to persist user input and component state
 - **Suggested Actions** - Generate contextual suggestions to guide users
 - **Tool Orchestration** - Automatic tool call coordination during response generation
-- **Model Flexibility** - Works with OpenAI, Anthropic, Google, Mistral, and custom providers
+- **Model Flexibility** - Works with OpenAI, Anthropic, Cerebras, Google, Mistral, and custom providers
 
 ## Pre-built UI Components
 

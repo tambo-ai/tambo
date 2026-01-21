@@ -82,7 +82,7 @@ export function useTamboVoice() {
     startRecording,
     stopRecording,
     isRecording,
-    mediaAccessError: mediaAccessError ?? null,
+    mediaAccessError: mediaAccessError === "" ? null : mediaAccessError,
     isTranscribing: transcriptionMutation.isPending,
     transcript,
     transcriptionError: transcriptionMutation.error?.message ?? null,

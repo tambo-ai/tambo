@@ -11,10 +11,24 @@ const templateExpressionVarName = /{([a-zA-Z0-9_[\].]+)}/g;
  * to avoid substitutions, then replace it again with `{foo}` */
 const unescapeVariableExpression = /\\{([a-zA-Z0-9_[\].]+)\\}/g;
 // We have a special keyword that we use to expand out an array for a chat_history argument
-const CHAT_HISTORY = "chat_history";
-const ROLE_KEY = "role";
 
 type primitive = string | number | boolean | null | undefined;
+
+/**
+ * A recursive type representing an object that can be templated.
+ */
+export type TemplateValue =
+  | primitive
+  | { [key: string]: TemplateValue }
+  | TemplateValue[];
+
+/**
+ * Parameters passed to format a template.
+ */
+export type TemplateParameters = Record<
+  string,
+  string | ThreadMessage[] | undefined
+>;
 /**
  * An alternative to template literals that allows for capturing the name of the
  * variables involved, and doing variable substitution at a later time.
@@ -63,9 +77,7 @@ export function f(
     ),
   );
   return {
-    [formatProp]: (
-      parameters: Record<string, string | ThreadMessage[] | undefined>,
-    ) => {
+    [formatProp]: (parameters: TemplateParameters) => {
       return str
         .replace(templateExpressionVarName, (match, variableName) => {
           if (parameters[variableName] === undefined) {
@@ -93,7 +105,7 @@ const variablesProp = Symbol("variables");
 
 export function formatTemplate<T>(
   o: ObjectTemplate<T>,
-  parameters: Record<string, string | ThreadMessage[]>,
+  parameters: TemplateParameters,
 ): T {
   const format = o[formatProp];
   return format(parameters);
@@ -116,7 +128,7 @@ export interface ObjectTemplate_<T> {
   /**
    * A function that takes a dictionary of variable names to values, and returns the formatted object
    */
-  [formatProp]: (parameters: Record<string, string | ThreadMessage[]>) => T;
+  [formatProp]: (parameters: TemplateParameters) => T;
   /**
    * The names of the variables used in the template
    */
@@ -157,7 +169,7 @@ export type ObjectTemplate<T> = T extends string
 export function objectTemplate<T>(objs: T): ObjectTemplate<T> {
   const variables = objTemplateVariables(objs);
 
-  function format(parameters: Record<string, string | ThreadMessage[]>): T {
+  function format(parameters: TemplateParameters): T {
     if (objs === undefined || objs === null || typeof objs == "number") {
       return objs;
     }
@@ -166,12 +178,6 @@ export function objectTemplate<T>(objs: T): ObjectTemplate<T> {
     }
     if (Array.isArray(objs)) {
       return objs.flatMap((item) => {
-        // We have special handling for chat history, as we need to expand out
-        // the given variable
-        if (isLibrettoChatHistory(item)) {
-          return handleChatHistory(item, parameters);
-        }
-
         return objectTemplate(item)[formatProp](parameters);
       }) as T;
     }
@@ -216,59 +222,12 @@ function objTemplateVariables(objs: unknown): readonly string[] {
   if (Array.isArray(objs)) {
     return objs.flatMap((item) => objTemplateVariables(item));
   }
-  return Object.entries(objs).flatMap(([, value]): readonly string[] => {
-    if (typeof value == "string") {
-      return f(value)[variablesProp];
-    }
-    return objTemplateVariables(value);
-  });
-}
-
-/**
- * Determines if this has a Libretto Chat History defined object.
- * It follows an expected/exact setup where the role is chat_history and the
- * content is just the chat_history variable.
- * @param obj
- * @returns true if it's the Libretto chat history setup
- */
-function isLibrettoChatHistory(objs: unknown): boolean {
-  if (objs === undefined || objs === null || typeof objs == "number") {
-    return false;
-  }
-  if (typeof objs == "string") {
-    return false;
-  }
-
-  if (Array.isArray(objs)) {
-    return false;
-  }
-
-  // An object, check role being chat_history
-  if (typeof objs === "object" && ROLE_KEY in objs) {
-    return objs[ROLE_KEY] === CHAT_HISTORY;
-  }
-
-  return false;
-}
-
-function handleChatHistory(item: any, params: any): any[] {
-  const varsInChatHistory = objTemplateVariables(item);
-
-  if (varsInChatHistory.length === 0) {
-    throw new Error(
-      `Expected to find a variable in the content of the chat_history role, but none was found`,
-    );
-  }
-
-  const allHistory = varsInChatHistory.flatMap((varName) => {
-    const value = params[varName];
-    if (!value) {
-      throw new Error(
-        `No value was found in 'templateParams' for the variable '${varName}'. Ensure you have a corresponding entry in 'templateParams'.`,
-      );
-    }
-    return value;
-  });
-
-  return allHistory;
+  return Object.entries(objs as Record<string, unknown>).flatMap(
+    ([, value]): readonly string[] => {
+      if (typeof value == "string") {
+        return f(value)[variablesProp];
+      }
+      return objTemplateVariables(value);
+    },
+  );
 }

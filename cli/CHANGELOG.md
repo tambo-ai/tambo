@@ -1,5 +1,75 @@
 # Changelog
 
+## [0.47.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.46.1...tambo-v0.47.0) (2026-01-16)
+
+
+### Features
+
+* **ui:** add aria-labels to dictation button ([#1715](https://github.com/tambo-ai/tambo/issues/1715)) ([001e75b](https://github.com/tambo-ai/tambo/commit/001e75b03a969b228621c7b3f8c51a8952116954))
+* **web,cli:** redirect auth from tambo.co to app.tambo.co ([#1791](https://github.com/tambo-ai/tambo/issues/1791)) ([2d2b975](https://github.com/tambo-ai/tambo/commit/2d2b9750b6b1346b08949e2925ac1af774b9ea9c))
+
+
+### Bug Fixes
+
+* **cli:** add GenerationStage enum to components and Jest mock ([#1728](https://github.com/tambo-ai/tambo/issues/1728)) ([5b0eaf4](https://github.com/tambo-ai/tambo/commit/5b0eaf48ccf0cc80ff426457ca1b6121da4b6dad))
+* **message-input:** clean up paste handling ([#1732](https://github.com/tambo-ai/tambo/issues/1732)) ([29fd5c9](https://github.com/tambo-ai/tambo/commit/29fd5c9df7e7cb9ff4b3166a7f6194a0a88e228b))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump diff from 8.0.2 to 8.0.3 ([#1780](https://github.com/tambo-ai/tambo/issues/1780)) ([86f03a5](https://github.com/tambo-ai/tambo/commit/86f03a500044ca24b64539e2f475ce6a511106f2))
+
+## [0.46.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.46.0...tambo-v0.46.1) (2026-01-14)
+
+
+### Bug Fixes
+
+* **cli:** add missing date-fns dependency ([#1761](https://github.com/tambo-ai/tambo/issues/1761)) ([e502652](https://github.com/tambo-ai/tambo/commit/e502652120a4cbc09cc435b5690860dac6dffdbe))
+* **cli:** add missing postcss dependency ([#1763](https://github.com/tambo-ai/tambo/issues/1763)) ([3690ae7](https://github.com/tambo-ai/tambo/commit/3690ae717f653ca582e8b223d076d68015bf79e0))
+
+## [0.46.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.45.0...tambo-v0.46.0) (2026-01-13)
+
+
+### Features
+
+* **cli:** add framework detection for automatic env var prefix selection ([#1734](https://github.com/tambo-ai/tambo/issues/1734)) ([5445ab2](https://github.com/tambo-ai/tambo/commit/5445ab22ab63722091cd87ed62cc0f212f8e9595))
+* **cli:** Detect and use project's package manager (pnpm/yarn/npm) ([#1684](https://github.com/tambo-ai/tambo/issues/1684)) ([473a872](https://github.com/tambo-ai/tambo/commit/473a87208b53486851f51aa0b4cf5d6a20243f9a))
+* **db:** add anon role and RLS policies for device auth flow ([#1647](https://github.com/tambo-ai/tambo/issues/1647)) ([5e19a04](https://github.com/tambo-ai/tambo/commit/5e19a04a31fe95e3f43cbac253d78f51b35e3c8e))
+* **showcase/message-input:** persist user input via session storage … ([#1259](https://github.com/tambo-ai/tambo/issues/1259)) ([0130917](https://github.com/tambo-ai/tambo/commit/013091741d78dfd3ae81ea6255bba26d1fd7786b))
+
+
+### Bug Fixes
+
+* **ui:** Error handling for clipboard operations in markdown-components [#1698](https://github.com/tambo-ai/tambo/issues/1698) ([#1726](https://github.com/tambo-ai/tambo/issues/1726)) ([dd34f5c](https://github.com/tambo-ai/tambo/commit/dd34f5c32b2bad92a16f62f0f66499623a323880))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.1 to 22.19.5 ([#1746](https://github.com/tambo-ai/tambo/issues/1746)) ([aa0ca84](https://github.com/tambo-ai/tambo/commit/aa0ca84eb3e5cc582290e6aa0df6672f4b404969))
+* **deps:** bump clipboardy from 5.0.1 to 5.0.2 ([#1696](https://github.com/tambo-ai/tambo/issues/1696)) ([7e08037](https://github.com/tambo-ai/tambo/commit/7e0803777a3034b608f85d54731899fd5b7acfc6))
+* **deps:** bump inquirer from 13.0.2 to 13.1.0 ([#1694](https://github.com/tambo-ai/tambo/issues/1694)) ([e33615e](https://github.com/tambo-ai/tambo/commit/e33615eda60386ae34c0368a905639559f624e99))
+* **test:** bump coverage thresholds (2026-01-12) ([#1729](https://github.com/tambo-ai/tambo/issues/1729)) ([5a54f2f](https://github.com/tambo-ai/tambo/commit/5a54f2f80c1167c2458ca5d49705b4b45e99825f))
+
+
+### Code Refactoring
+
+* **cli:** make registry components framework-agnostic ([#1737](https://github.com/tambo-ai/tambo/issues/1737)) ([2a35797](https://github.com/tambo-ai/tambo/commit/2a35797333c64f328b8794bf38d6246f1fe43a09))
+* **cli:** remove unused children prop from MessageThreadPanel ([#1750](https://github.com/tambo-ai/tambo/issues/1750)) ([b6f0e34](https://github.com/tambo-ai/tambo/commit/b6f0e348c2c1174cecc01834e85125e0b2558b55))
+
+## [0.45.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.44.1...tambo-v0.45.0) (2025-12-18)
+
+
+### Features
+
+* **showcase:** add dark mode to showcase and fix css ([#1527](https://github.com/tambo-ai/tambo/issues/1527)) ([6fa757d](https://github.com/tambo-ai/tambo/commit/6fa757ddbadbbaa5fb243207c0ae12ef5520d4a6))
+
+
+### Bug Fixes
+
+* **react-sdk:** fetch client-side MCP resource content before sending ([#1574](https://github.com/tambo-ai/tambo/issues/1574)) ([bb2e987](https://github.com/tambo-ai/tambo/commit/bb2e9877c2688878b51b913d5ba79ddf79c26814))
+* **resources:** Use default streamdown configuration, drop explicit `rehype-harden` configuration ([#1593](https://github.com/tambo-ai/tambo/issues/1593)) ([55801f8](https://github.com/tambo-ai/tambo/commit/55801f87a93d9fa8e96b451bff2ed3347516f8e5))
+* thread stuck in loading state after tool call failures/refresh ([#1579](https://github.com/tambo-ai/tambo/issues/1579)) ([e138b40](https://github.com/tambo-ai/tambo/commit/e138b40dcffc5e6b87f5aa1d31bfcec29e40878f))
+
 ## [0.44.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.44.0...tambo-v0.44.1) (2025-12-17)
 
 

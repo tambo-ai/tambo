@@ -7,6 +7,7 @@ import { SidebarLink } from "./sidebar-link";
 import { useMobile } from "@/providers/mobile-provider";
 import { Icons } from "./icons";
 import Link from "next/link";
+import { ThemeToggle } from "./theme-toggle";
 
 interface SidebarProps {
   className?: string;
@@ -130,7 +131,10 @@ export function Sidebar({ className }: SidebarProps) {
             </div>
           </nav>
         </div>
-        <div className="pt-4 mt-auto border-t border-border/40">
+        <div className="pt-4 mt-auto border-t border-border/40 space-y-3">
+          <div className="px-3">
+            <ThemeToggle />
+          </div>
           <p className="text-sm text-muted-foreground px-3">
             Fractal Dynamics Inc © {new Date().getFullYear()}
           </p>

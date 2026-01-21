@@ -56,12 +56,19 @@ export async function generateSuggestions(
   }
 
   // Create a suggestion-specific LLMClient which ensures faster response times by using a lighter model for suggestions
+  // Use the OpenAI API key from environment variable (suggestions always use OpenAI)
+  const openaiApiKey =
+    process.env.OPENAI_API_KEY ?? process.env.FALLBACK_OPENAI_API_KEY;
+  if (!openaiApiKey) {
+    throw new Error(
+      "OpenAI API key required for suggestions. Set OPENAI_API_KEY or FALLBACK_OPENAI_API_KEY.",
+    );
+  }
   const client = llmClient as unknown as {
-    apiKey: string | undefined;
     userId: string;
   };
   const suggestionLlmClient = new AISdkClient(
-    client.apiKey,
+    openaiApiKey,
     SUGGESTION_MODEL,
     SUGGESTION_PROVIDER,
     llmClient.chainId,

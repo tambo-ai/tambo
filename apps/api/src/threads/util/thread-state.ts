@@ -1,14 +1,9 @@
 import { Logger } from "@nestjs/common";
-import {
-  getToolsFromSources,
-  ITamboBackend,
-  ToolRegistry,
-} from "@tambo-ai-cloud/backend";
+import type { DecisionStreamItem } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
   ContentPartType,
   GenerationStage,
-  getToolName,
   isUiToolName,
   LegacyComponentDecision,
   MessageRole,
@@ -18,63 +13,17 @@ import {
   ThreadToolMessage,
   ThreadUserMessage,
   ToolCallRequest,
-  unstrictifyToolCallRequest,
 } from "@tambo-ai-cloud/core";
-import { HydraDatabase, HydraDb, operations, schema } from "@tambo-ai-cloud/db";
+import { HydraDb, operations, schema } from "@tambo-ai-cloud/db";
 import { eq } from "drizzle-orm";
-import OpenAI from "openai";
-import { createResourceFetcherMap } from "../../common/systemTools";
-import { ThreadMcpClient } from "../../mcp-server/elicitations";
-import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
 import { MessageRequest } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
 import {
-  addAssistantMessageToThread,
   addMessage,
   updateMessage,
   verifyLatestMessageConsistency,
 } from "./messages";
-import { validateToolResponse } from "./tool";
-
-/**
- * Get the final decision from a stream of component decisions
- * by waiting for the last chunk in the stream.
- */
-async function getFinalDecision(
-  stream: AsyncIterableIterator<LegacyComponentDecision>,
-  originalTools: OpenAI.Chat.Completions.ChatCompletionTool[],
-): Promise<LegacyComponentDecision> {
-  let finalDecision: LegacyComponentDecision | undefined;
-
-  for await (const chunk of stream) {
-    finalDecision = chunk;
-  }
-
-  if (!finalDecision) {
-    throw new Error("No decision was received from the stream");
-  }
-
-  const strictToolCallRequest = finalDecision.toolCallRequest;
-  if (strictToolCallRequest) {
-    const originalTool = originalTools.find(
-      (tool) => getToolName(tool) === strictToolCallRequest.toolName,
-    );
-    if (!originalTool) {
-      throw new Error("Original tool not found");
-    }
-    const finalToolCallRequest = unstrictifyToolCallRequest(
-      originalTool,
-      strictToolCallRequest,
-    );
-    finalDecision = {
-      ...finalDecision,
-      toolCallRequest: finalToolCallRequest,
-    };
-  }
-
-  return finalDecision;
-}
 
 /**
  * Update the generation stage of a thread
@@ -89,75 +38,6 @@ export async function updateGenerationStage(
     generationStage,
     statusMessage,
   });
-}
-
-/**
- * Process the newest message in a thread.
- *
- * If it is a tool message (response to a tool call) then we hydrate the component.
- * Otherwise, we choose a component to generate.
- *
- * @param db
- * @param threadId
- * @param messages
- * @param advanceRequestDto
- * @param tamboBackend
- * @param allTools
- * @param mcpClients - MCP clients for resource fetching
- * @returns
- */
-export async function processThreadMessage(
-  db: HydraDatabase,
-  threadId: string,
-  messages: ThreadMessage[],
-  userMessage: ThreadMessage,
-  advanceRequestDto: AdvanceThreadDto,
-  tamboBackend: ITamboBackend,
-  allTools: ToolRegistry,
-  mcpClients: ThreadMcpClient[],
-): Promise<LegacyComponentDecision> {
-  const latestMessage = messages[messages.length - 1];
-  // For tool responses, we can fully hydrate the component
-  if (latestMessage.role === MessageRole.Tool) {
-    await updateGenerationStage(
-      db,
-      threadId,
-      GenerationStage.HYDRATING_COMPONENT,
-      `Hydrating ${latestMessage.component?.componentName}...`,
-    );
-
-    const toolResponse = validateToolResponse(userMessage);
-    if (!toolResponse) {
-      throw new Error("No tool response found");
-    }
-  } else {
-    // For non-tool responses, we need to generate a component
-    await updateGenerationStage(
-      db,
-      threadId,
-      GenerationStage.CHOOSING_COMPONENT,
-      `Choosing component...`,
-    );
-  }
-  const { strictTools, originalTools } = getToolsFromSources(
-    allTools,
-    advanceRequestDto.availableComponents ?? [],
-  );
-
-  // Build resource fetchers from MCP clients
-  const resourceFetchers = createResourceFetcherMap(mcpClients);
-
-  const decisionStream = await tamboBackend.runDecisionLoop({
-    messages,
-    strictTools,
-    forceToolChoice:
-      latestMessage.role === MessageRole.User
-        ? advanceRequestDto.forceToolChoice
-        : undefined,
-    resourceFetchers,
-  });
-
-  return await getFinalDecision(decisionStream, originalTools);
 }
 
 /**
@@ -220,71 +100,6 @@ function isThreadProcessing(generationStage: GenerationStage) {
 }
 
 /**
- * Add an assistant response to a thread, making sure that the thread is not already in the middle of processing.
- */
-export async function addAssistantResponse(
-  db: HydraDatabase,
-  threadId: string,
-  newestMessageId: string,
-  responseMessage: LegacyComponentDecision,
-  logger?: Logger,
-): Promise<{
-  responseMessageDto: ThreadMessage;
-  resultingGenerationStage: GenerationStage;
-  resultingStatusMessage: string;
-}> {
-  try {
-    const result = await db.transaction(
-      async (tx) => {
-        await verifyLatestMessageConsistency(
-          tx,
-          threadId,
-          newestMessageId,
-          false,
-        );
-
-        const responseMessageDto = await addAssistantMessageToThread(
-          tx,
-          responseMessage,
-          threadId,
-        );
-
-        const resultingGenerationStage = responseMessage.toolCallRequest
-          ? GenerationStage.FETCHING_CONTEXT
-          : GenerationStage.COMPLETE;
-        const resultingStatusMessage = responseMessage.toolCallRequest
-          ? `Fetching context...`
-          : `Complete`;
-
-        await updateGenerationStage(
-          tx,
-          threadId,
-          resultingGenerationStage,
-          resultingStatusMessage,
-        );
-
-        return {
-          responseMessageDto,
-          resultingGenerationStage,
-          resultingStatusMessage,
-        };
-      },
-      {
-        isolationLevel: "read committed",
-      },
-    );
-
-    return result;
-  } catch (error) {
-    logger?.error(
-      "Transaction failed: Adding assistant response.",
-      (error as Error).stack,
-    );
-    throw error;
-  }
-}
-
-/**
  * Processes a stream of component decisions to handle tool call information.
  *
  * This function preserves tool call info (even if incomplete)in chunks during streaming and uses the
@@ -305,21 +120,26 @@ export async function addAssistantResponse(
  * change with each message.
  */
 export async function* fixStreamedToolCalls(
-  stream: AsyncIterableIterator<LegacyComponentDecision>,
-): AsyncIterableIterator<LegacyComponentDecision> {
+  stream: AsyncIterableIterator<DecisionStreamItem>,
+): AsyncIterableIterator<DecisionStreamItem> {
   let currentDecisionId: string | undefined = undefined;
   let currentToolCallRequest: ToolCallRequest | undefined = undefined;
   let currentToolCallId: string | undefined = undefined;
   let currentDecision: LegacyComponentDecision | undefined = undefined;
 
-  for await (const chunk of stream) {
+  for await (const streamItem of stream) {
+    const chunk = streamItem.decision;
+
     if (currentDecision?.id && currentDecisionId !== chunk.id) {
       // we're on to a new chunk, so if we have a previous tool call request, emit it
       yield {
-        ...currentDecision,
-        toolCallRequest: currentToolCallRequest,
-        toolCallId: currentToolCallId,
-        isToolCallFinished: true,
+        decision: {
+          ...currentDecision,
+          toolCallRequest: currentToolCallRequest,
+          toolCallId: currentToolCallId,
+          isToolCallFinished: true,
+        },
+        aguiEvents: [], // No AG-UI events for this synthetic transition chunk
       };
       // and clear the current tool call request and id
       currentToolCallRequest = undefined;
@@ -332,16 +152,22 @@ export async function* fixStreamedToolCalls(
     currentDecisionId = chunk.id;
     currentToolCallId = chunk.toolCallId;
     currentToolCallRequest = toolCallRequest;
-    yield { ...chunk, isToolCallFinished: false };
+    yield {
+      decision: { ...chunk, isToolCallFinished: false },
+      aguiEvents: streamItem.aguiEvents,
+    };
   }
 
   // account for the last iteration
   if (currentDecision) {
     yield {
-      ...currentDecision,
-      toolCallRequest: currentToolCallRequest,
-      toolCallId: currentToolCallId,
-      isToolCallFinished: true,
+      decision: {
+        ...currentDecision,
+        toolCallRequest: currentToolCallRequest,
+        toolCallId: currentToolCallId,
+        isToolCallFinished: true,
+      },
+      aguiEvents: [], // No AG-UI events for this synthetic final chunk
     };
   }
 }

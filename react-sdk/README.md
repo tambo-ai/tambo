@@ -241,20 +241,18 @@ const InteractableNote = withInteractable(Note, {
 Connect to Linear, Slack, databases, or your own MCP servers. Tambo supports the full MCP protocol: tools, prompts, elicitations, and sampling.
 
 ```tsx
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 const mcpServers = [
   {
     name: "filesystem",
-    url: "http://localhost:3001/mcp",
+    url: "http://localhost:8261/mcp",
     transport: MCPTransport.HTTP,
   },
 ];
 
 <TamboProvider components={components} mcpServers={mcpServers}>
-  <TamboMcpProvider>
-    <App />
-  </TamboMcpProvider>
+  <App />
 </TamboProvider>;
 ```
 

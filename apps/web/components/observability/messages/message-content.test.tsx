@@ -4,16 +4,11 @@ import { TamboContextAttachmentProvider } from "@tambo-ai/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import * as utils from "../utils";
 
 // Mock the markdown components
 jest.mock("@/components/ui/tambo/markdown-components", () => ({
   createMarkdownComponents: () => ({}),
-}));
-
-// Mock the utils
-jest.mock("../utils", () => ({
-  formatTime: (_date: Date) => "12:00 PM",
-  getMessageContexts: () => [],
 }));
 
 // Mock the highlight components
@@ -83,6 +78,13 @@ function renderWithProviders(ui: React.ReactElement) {
 describe("MessageContent", () => {
   beforeEach(() => {
     mockWriteText.mockClear();
+    mockWriteText.mockResolvedValue(undefined);
+    // Spy on and mock formatTime
+    jest.spyOn(utils, "formatTime").mockImplementation(() => "12:00 PM");
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   const baseMessage = {
@@ -107,11 +109,6 @@ describe("MessageContent", () => {
     reasoning: null,
     reasoningDurationMS: null,
   };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockWriteText.mockResolvedValue(undefined);
-  });
 
   it("renders user message content", () => {
     renderWithProviders(

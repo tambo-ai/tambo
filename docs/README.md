@@ -10,7 +10,7 @@ To run the documentation site locally:
 npm run dev
 ```
 
-Open http://localhost:3000 to view the documentation.
+Open http://localhost:8263 to view the documentation.
 
 ## Structure
 

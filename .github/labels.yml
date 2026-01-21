@@ -1,0 +1,203 @@
+# GitHub labels configuration (see .github/workflows/automation-labels.yml)
+# Area labels - which part of the codebase
+- name: "area: api"
+  color: "26b5ce"
+  description: "Changes to the API (apps/api)"
+
+- name: "area: cli"
+  color: "26b5ce"
+  description: "Changes to the CLI package"
+
+- name: "area: db"
+  color: "26b5ce"
+  description: "Changes to the database package"
+
+- name: "area: documentation"
+  color: "26b5ce"
+  description: "Improvements or additions to documentation"
+
+- name: "area: github actions"
+  color: "26b5ce"
+  description: "Changes to GitHub Actions workflows"
+  from_name: "github_actions"
+
+- name: "area: linear"
+  color: "26b5ce"
+  description: "Issues related to Linear integration"
+
+- name: "area: react-sdk"
+  color: "26b5ce"
+  description: "Changes to the React SDK"
+
+- name: "area: showcase"
+  color: "26b5ce"
+  description: "Changes to the showcase app"
+
+- name: "area: ui"
+  color: "26b5ce"
+  description: "Changes to UI components"
+  from_name: "ui"
+
+- name: "area: web"
+  color: "26b5ce"
+  description: "Changes to the web app (apps/web)"
+
+- name: "area: community"
+  color: "26b5ce"
+  description: "Changes to community resources"
+
+- name: "area: core"
+  color: "26b5ce"
+  description: "Changes to the core package (packages/core)"
+
+- name: "area: backend"
+  color: "26b5ce"
+  description: "Changes to the backend package (packages/backend)"
+
+- name: "area: config"
+  color: "26b5ce"
+  description: "Changes to repository configuration files"
+
+# Type labels - what kind of change
+- name: "type: bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "type: enhancement"
+  color: "a2eeef"
+  description: "New feature or request"
+
+- name: "type: question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+# Change labels - conventional commit type
+- name: "change: feat"
+  color: "32e52f"
+  description: "New feature"
+
+- name: "change: fix"
+  color: "158c01"
+  description: "Bug fix"
+
+- name: "change: chore"
+  color: "ededed"
+  description: "Maintenance and chores"
+
+- name: "change: docs"
+  color: "0075ca"
+  description: "Documentation changes"
+
+- name: "change: refactor"
+  color: "fbca04"
+  description: "Code refactoring"
+
+- name: "change: test"
+  color: "bfd4f2"
+  description: "Test changes"
+
+- name: "change: ci"
+  color: "000000"
+  description: "CI/CD changes"
+
+- name: "change: perf"
+  color: "f9d0c4"
+  description: "Performance improvements"
+
+- name: "change: build"
+  color: "5319e7"
+  description: "Build system changes"
+
+- name: "change: style"
+  color: "c5def5"
+  description: "Code style changes"
+
+- name: "change: revert"
+  color: "d93f0b"
+  description: "Reverting changes"
+
+- name: "change: deps"
+  color: "0366d6"
+  description: "Dependency updates"
+
+# Status labels
+- name: "status: do not merge"
+  color: "e11d21"
+  description: "PR should not be merged"
+
+- name: "status: duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "status: invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+
+- name: "status: revision required"
+  color: "e11d21"
+  description: "Changes requested"
+
+- name: "status: help wanted"
+  color: "008672"
+  description: "Needs assistance and is ready for work to be started/continued"
+  from_name: "help wanted"
+
+- name: "status: blocked"
+  color: "e11d21"
+  description: "This issue or pull request is blocked"
+
+- name: "status: in progress"
+  color: "cccccc"
+  description: "Work is currently being done"
+
+- name: "status: triage"
+  color: "fef2c0"
+  description: "Needs to be triaged by a maintainer"
+
+# Priority labels
+- name: "priority: 0"
+  color: "b60205"
+  description: "Critical priority"
+
+- name: "priority: 1"
+  color: "b60205"
+  description: "High priority"
+
+- name: "priority: 2"
+  color: "eab308"
+  description: "Medium priority"
+
+- name: "priority: 3"
+  color: "0e8a16"
+  description: "Normal priority"
+
+# Contributor labels
+- name: "contributor: ai"
+  color: "3bc8b6"
+  description: "AI-assisted contribution"
+
+- name: "contributor: bot"
+  color: "0366d6"
+  description: "Created by a bot"
+
+- name: "contributor: community"
+  color: "6f42c1"
+  description: "Created by a community member"
+
+- name: "contributor: tambo-team"
+  color: "80ffce"
+  description: "Created by a Tambo team member"
+
+# Community labels
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+# Release-please labels
+- name: "autorelease: pending"
+  color: "ededed"
+  description: "Release pending"
+
+- name: "autorelease: tagged"
+  color: "ededed"
+  description: "Release tagged"

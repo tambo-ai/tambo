@@ -3,6 +3,7 @@ import {
   GenerationStage,
   MessageRole,
   UnsavedThreadMessage,
+  assertUnreachable,
   validateUnsavedThreadMessage,
 } from "@tambo-ai-cloud/core";
 import {
@@ -19,7 +20,6 @@ import {
   sql,
 } from "drizzle-orm";
 import { type SubqueryWithSelection } from "drizzle-orm/pg-core";
-import { UnreachableCaseError } from "ts-essentials";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
@@ -422,6 +422,84 @@ export async function updateThreadGenerationStatus(
   return updated;
 }
 
+/**
+ * Error thrown when a pending tool call clear fails.
+ *
+ * This is intentionally conservative: it conflates "thread not found" and
+ * "pendingToolCallIds state mismatch" so callers can treat both as a conflict
+ * without requiring a second query.
+ *
+ * This error intentionally does not distinguish between a missing thread and a
+ * `pendingToolCallIds` mismatch. If you need to debug which case occurred, add
+ * explicit logging or follow-up queries at the call site.
+ */
+export class PendingToolCallStateMismatchError extends Error {
+  constructor(threadId: string) {
+    super(
+      `Failed to clear pending tool calls: Thread ${threadId} not found or pendingToolCallIds state mismatch`,
+    );
+    this.name = "PendingToolCallStateMismatchError";
+  }
+}
+
+export class InvalidPendingToolCallExpectationError extends Error {
+  constructor() {
+    super(
+      "clearPendingToolCalls expected null or a non-empty array; got empty array. Use null when there are no pending tool calls.",
+    );
+    this.name = "InvalidPendingToolCallExpectationError";
+  }
+}
+
+/**
+ * Clear pending tool call IDs from a thread, but only if its `pendingToolCallIds` matches the expected value.
+ * Used when tool results have been processed and the thread can continue.
+ *
+ * This always enforces an optimistic concurrency check on `pendingToolCallIds`.
+ * Callers must pass the expected state; there is intentionally no unguarded variant.
+ * Callers should pass the expected state from the thread snapshot used to derive the tool results being cleared.
+ * Do not synthesize or default this value.
+ * An empty array is almost certainly a bug; use `null` when there are no pending tool calls.
+ * Callers should handle `PendingToolCallStateMismatchError` as a concurrency conflict.
+ *
+ * @param db - Database connection (can be a transaction)
+ * @param threadId - Thread to update
+ * @param expectedPendingToolCallIds - Optimistic concurrency guard; fails if stored pendingToolCallIds do not match (including null)
+ * @throws PendingToolCallStateMismatchError if no row was updated, either because the thread does not exist or its pendingToolCallIds no longer match the expected value
+ */
+export async function clearPendingToolCalls(
+  db: HydraDb,
+  threadId: string,
+  expectedPendingToolCallIds: string[] | null,
+): Promise<void> {
+  if (expectedPendingToolCallIds?.length === 0) {
+    throw new InvalidPendingToolCallExpectationError();
+  }
+
+  const whereConditions = [eq(schema.threads.id, threadId)];
+
+  if (expectedPendingToolCallIds === null) {
+    whereConditions.push(isNull(schema.threads.pendingToolCallIds));
+  } else {
+    whereConditions.push(
+      eq(schema.threads.pendingToolCallIds, expectedPendingToolCallIds),
+    );
+  }
+
+  const [updated] = await db
+    .update(schema.threads)
+    .set({
+      pendingToolCallIds: null,
+      updatedAt: sql`now()`,
+    })
+    .where(and(...whereConditions))
+    .returning({ id: schema.threads.id });
+
+  if (!updated) {
+    throw new PendingToolCallStateMismatchError(threadId);
+  }
+}
+
 type SortFieldKeys =
   | "contextKey"
   | "threadId"
@@ -594,7 +672,7 @@ function getFieldFromSort(sortField: SortFieldKeys) {
       // should never happen because we handle these separately
       return schema.threads.createdAt;
     default:
-      throw new UnreachableCaseError(sortField);
+      assertUnreachable(sortField);
   }
 }
 
@@ -614,7 +692,7 @@ function getCountsField(
     case "errors":
       return countsSubquery.errorCount;
     default:
-      throw new UnreachableCaseError(sortField);
+      assertUnreachable(sortField);
   }
 }
 

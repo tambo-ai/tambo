@@ -82,20 +82,15 @@ When the server needs the user to choose from a predefined set of options:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
-import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 function App() {
   return (
     <TamboProvider components={...} mcpServers={[]}>
-      <TamboMcpProvider>
-        {/* Your app - elicitation from server-side MCP servers will work */}
-      </TamboMcpProvider>
+      {/* Your app - elicitation from server-side MCP servers will work */}
     </TamboProvider>
   );
 }
 ```
-
-Without the `TamboMcpProvider`, server-side MCP servers cannot send elicitation requests to your application, as there's no connection to Tambo's internal MCP server.
 
 ## Advanced: Custom Elicitation Handlers
 
@@ -154,7 +149,6 @@ Apply a custom handler to all MCP servers:
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
-import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 
 function App() {
   const handleElicitation = async (request, extra, serverInfo) => {
@@ -174,14 +168,13 @@ function App() {
   };
 
   return (
-    <TamboProvider mcpServers={[...]}>
-      <TamboMcpProvider
-        handlers={{
-          elicitation: handleElicitation,
-        }}
-      >
-        {/* Your app */}
-      </TamboMcpProvider>
+    <TamboProvider
+      mcpServers={[...]}
+      mcpHandlers={{
+        elicitation: handleElicitation,
+      }}
+    >
+      {/* Your app */}
     </TamboProvider>
   );
 }
@@ -193,7 +186,7 @@ You can also override the handler for specific MCP servers, which is useful when
 
 ```tsx
 import { TamboProvider } from "@tambo-ai/react";
-import { TamboMcpProvider, MCPTransport } from "@tambo-ai/react/mcp";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 function App() {
   const handleGitHubElicitation = async (request, extra) => {
@@ -216,7 +209,7 @@ function App() {
         },
       ]}
     >
-      <TamboMcpProvider>{/* Your app */}</TamboMcpProvider>
+      {/* Your app */}
     </TamboProvider>
   );
 }

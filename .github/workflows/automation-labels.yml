@@ -1,0 +1,324 @@
+name: Automation / Labels
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+
+  issues:
+    types: [opened]
+
+  push:
+    branches:
+      - "main"
+    paths:
+      - ".github/labels.yml"
+      - ".github/workflows/automation-labels.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  meta:
+    name: "Meta"
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      author: ${{ steps.author.outputs.author }}
+      status: ${{ steps.status.outputs.status }}
+      areas: ${{ steps.files_changed.outputs.changed_keys || '[]' }}
+      change_type: ${{ steps.change_type.outputs.change_type }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Mise
+        uses: jdx/mise-action@v3.6.0
+
+      - name: Determine Author
+        id: author
+        env:
+          AUTHOR_LOGIN: "${{ github.event.sender.login }}"
+          AUTHOR_TYPE: "${{ github.event.sender.type }}"
+          TAMBO_TEAM_MEMBERS: |- # json
+            [
+              "alecf",
+              "akhileshrangani4",
+              "lachieh",
+              "MichaelMilstead",
+              "michaelmagan"
+            ]
+          KNOWN_AI_ACTORS: |- # json
+            [
+              "charliecreates[bot]",
+              "CharlieHelps"
+            ]
+        run: | # shell
+          AUTHOR="community"
+
+          if jq -e ". | index(\"${AUTHOR_LOGIN}\")" <<< "${TAMBO_TEAM_MEMBERS}" > /dev/null; then
+            AUTHOR="tambo-team"
+          elif jq -e ". | index(\"${AUTHOR_LOGIN}\")" <<< "${KNOWN_AI_ACTORS}" > /dev/null; then
+            AUTHOR="ai"
+          elif [[ "$AUTHOR_TYPE" == "Bot" || "${AUTHOR_LOGIN}" == *"[bot]"* ]]; then
+            AUTHOR="bot"
+          fi
+
+          echo "author=${AUTHOR}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check Status
+        id: status
+        if: github.event_name == 'pull_request' || github.event_name == 'issues'
+        env:
+          EXISTING_LABELS: ${{ toJson(github.event.issue.labels || github.event.pull_request.labels || '[]') }}
+        run: | # shell
+          ISSUE_STATUS="triage"
+
+          # Only apply one status label
+          if jq -e '.[] | select(.name | startswith("status: "))' <<< "${EXISTING_LABELS}" > /dev/null; then
+            ALL_STATUS_LABELS="$(jq -r '.[] | select(.name | startswith("status: ")) | .name' <<< "${EXISTING_LABELS}")"
+            FIRST_STATUS_LABEL=$(echo "${ALL_STATUS_LABELS}" | head -n 1)
+            ISSUE_STATUS="$(echo "${FIRST_STATUS_LABEL}" | sed 's/status: //')"
+          fi
+
+          echo "status=${ISSUE_STATUS}" >> "${GITHUB_OUTPUT}"
+
+      - name: Determine Change Type
+        id: change_type
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: "${{ github.event.pull_request.title }}"
+        run: | # shell
+          # Extract conventional commit type from PR title (e.g., "feat(scope): description" -> "feat")
+          CHANGE_TYPE=""
+          if [[ "${PR_TITLE}" =~ ^(feat|fix|chore|docs|refactor|test|ci|perf|build|style|revert|deps)(\(.+\))?!?:.*$ ]]; then
+            CHANGE_TYPE="${BASH_REMATCH[1]}"
+          fi
+          echo "change_type=${CHANGE_TYPE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Determine Areas
+        id: files_changed
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        uses: tj-actions/changed-files@v47
+        with:
+          json: true
+          escape_json: false
+          files_yaml: |- # yaml
+            api:
+              - "apps/api/**"
+            web:
+              - "apps/web/**"
+            showcase:
+              - "showcase/**"
+            cli:
+              - "cli/**"
+            community:
+              - "community/**"
+            db:
+              - "packages/db/**"
+            core:
+              - "packages/core/**"
+            backend:
+              - "packages/backend/**"
+            ui:
+              - "packages/ui-registry/**"
+            react-sdk:
+              - "react-sdk/**"
+            config:
+              - "packages/eslint-config/**"
+              - "packages/typescript-config/**"
+              - "turbo.json"
+              - ".nvmrc"
+              - ".node-version"
+              - "mise.toml"
+              - ".prettier*"
+              - "*.config.{js,cjs,mjs,ts,cts,mts,json}"
+            documentation:
+              - "docs/**"
+              - "devdocs/**"
+              - "**/*.md"
+              - "**/README.*"
+            github_actions:
+              - ".github/workflows/**"
+              - ".github/actions/**"
+            labels:
+              - ".github/labels.yml"
+              - ".github/workflows/automation-labels.yml"
+
+  repo-labels:
+    name: "Repository Labels"
+    runs-on: ubuntu-latest
+    needs: [meta]
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+    permissions:
+      contents: read # to fetch repository content
+      issues: write # to create and update labels
+      pull-requests: write # to comment on PRs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Labels
+        uses: crazy-max/ghaction-github-labeler@v5.3.0
+        if: ${{ contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels') }}
+        with:
+          dry-run: ${{ github.event_name == 'pull_request' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-delete: true
+          yaml-file: .github/labels.yml
+
+      - name: Comment on PR about label updates
+        if: github.event_name == 'pull_request' && contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
+        uses: marocchino/sticky-pull-request-comment@v2.9.4
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: "## :label: Repository Labels Updated"
+          message: |
+            This PR will update the repository labels in the `.github/labels.yml`:
+
+            https://github.com/tambo-ai/tambo/pull/${{ github.event.pull_request.number }}/changes#diff-${{ github.event.pull_request.head.sha }}
+
+      - name: Delete Comment on PR if no label updates
+        if: github.event_name == 'pull_request' && !contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
+        uses: marocchino/sticky-pull-request-comment@v2.9.4
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: "## :label: Repository Labels Updated"
+          delete: true
+
+  do-not-merge:
+    name: "Do Not Merge"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - name: Check
+        env:
+          DO_NOT_MERGE: "${{contains(github.event.pull_request.labels.*.name, 'status: do not merge')}}"
+        run: | # shell
+          if [[ "${DO_NOT_MERGE}" == "true" ]]; then
+            echo "##[error]Cannot merge when 'status: do not merge' label is present. Remove the label to proceed."
+            exit 1
+          else
+            echo "No 'status: do not merge' label found. Passing check."
+          fi
+
+  sync-labels:
+    name: "Sync Labels"
+    needs: [meta, repo-labels]
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'pull_request' || github.event_name == 'issues') && (github.event.action != 'labeled' && github.event.action != 'unlabeled')
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      added_labels: ${{ steps.determine_labels.outputs.added_labels || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Mise
+        uses: jdx/mise-action@v3.6.0
+
+      - name: Determine Labels
+        id: determine_labels
+        env:
+          EXISTING_LABELS: "${{ toJson(github.event.issue.labels || github.event.pull_request.labels || '[]') }}"
+          DATA_AREAS: "${{ needs.meta.outputs.areas }}"
+          DATA_STATUS: "${{ needs.meta.outputs.status }}"
+          DATA_AUTHOR: "${{ needs.meta.outputs.author }}"
+          DATA_CHANGE: "${{ needs.meta.outputs.change_type }}"
+        run: | # shell
+          # Determine Labels
+
+          # object of labels to add/remove
+          # {"label name": true (add) / false (remove)}
+          LABEL_CHANGES="{}"
+
+          remove_label() {
+            local LABEL_TO_REMOVE="$1"
+            LABEL_CHANGES=$(jq --arg key "$LABEL_TO_REMOVE" '. + {($key): false}' <<< "${LABEL_CHANGES}")
+          }
+
+          add_label() {
+            local LABEL_TO_ADD="$1"
+            LABEL_CHANGES=$(jq --arg key "$LABEL_TO_ADD" '. + {($key): true}' <<< "${LABEL_CHANGES}")
+          }
+
+          remove_all_by_prefix() {
+            local PREFIX="$1"
+            while IFS= read -r LABEL; do
+              if [[ "$LABEL" == ${PREFIX}* ]]; then
+                remove_label "$LABEL"
+              fi
+            done < <(jq -r '.[] | .name' <<< "${EXISTING_LABELS}")
+          }
+
+          label_prefix_exists() {
+            local PREFIX="$1"
+            if jq -e --arg prefix "$PREFIX" '.[] | select(.name | startswith($prefix))' <<< "${EXISTING_LABELS}" > /dev/null; then
+              return 0
+            else
+              return 1
+            fi
+          }
+
+          # Areas
+          remove_all_by_prefix "area: "
+          for AREA in $(jq -r '.[]' <<< "${DATA_AREAS}"); do
+            # skip "labels"
+            if [[ "${AREA}" == "labels" ]]; then continue; fi
+            LABEL_KEY="area: $(echo "${AREA}" | sed 's/_/ /g')"
+            add_label "$LABEL_KEY"
+          done
+
+          # Status
+          remove_all_by_prefix "status: "
+          if [[ -n "${DATA_STATUS}" ]]; then
+            LABEL_KEY="status: ${DATA_STATUS}"
+            add_label "$LABEL_KEY"
+          fi
+
+          # Contributor
+          remove_all_by_prefix "contributor: "
+          if [[ -n "${DATA_AUTHOR}" ]]; then
+            LABEL_KEY="contributor: ${DATA_AUTHOR}"
+            add_label "$LABEL_KEY"
+          fi
+
+          # Change Type
+          if [[ -n "${DATA_CHANGE}" ]]; then
+            remove_all_by_prefix "change: "
+            LABEL_KEY="change: ${DATA_CHANGE}"
+            add_label "$LABEL_KEY"
+          fi
+
+          echo "added_labels=$(jq -c '.' <<< "${LABEL_CHANGES}")" >> "${GITHUB_OUTPUT}"
+
+      - name: Apply Label Changes
+        env:
+          PR_OR_ISSUE_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.event.issue.number }}
+          GH_SUBCOMMAND: ${{ github.event_name == 'pull_request' && 'pr' || 'issue' }}
+          LABEL_CHANGES: |-
+            ${{ steps.determine_labels.outputs.added_labels || '{}' }}
+        run: | # shell
+          # Apply Label Changes
+          set +e;
+
+          while IFS= read -r LABEL; do
+            SHOULD_ADD=$(jq -r --arg key "$LABEL" '.[$key]' <<< "${LABEL_CHANGES}")
+            ACTION=$([[ "${SHOULD_ADD}" == "true" ]] && echo "--add-label" || echo "--remove-label")
+
+            echo "$([[ "${SHOULD_ADD}" == "true" ]] && echo "Adding" || echo "Removing") '$LABEL' to $GH_SUBCOMMAND: #$PR_OR_ISSUE_NUMBER"
+
+            RESULT=$(gh $GH_SUBCOMMAND edit "$PR_OR_ISSUE_NUMBER" $ACTION "$LABEL"  2>&1)
+            if [[ $? -ne 0 ]]; then
+              echo "::error title=Failed to sync labels: labels::Failed to sync label '$LABEL'. Error: $RESULT"
+            fi
+          done < <(jq -r 'keys[]' <<< "${LABEL_CHANGES}")

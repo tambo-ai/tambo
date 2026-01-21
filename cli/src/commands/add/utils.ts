@@ -12,12 +12,66 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Gets the registry root path.
+ *
+ * This is the directory that contains the `components/` folder (and related
+ * registry directories like `lib/` and `styles/`).
+ *
+ * For local development, `TAMBO_REGISTRY_PATH` can be set to override registry
+ * resolution.
+ * @returns The path to the registry root
+ */
+export function getRegistryBasePath(): string {
+  const envPath = process.env.TAMBO_REGISTRY_PATH;
+  if (envPath) {
+    const resolvedEnvPath = path.resolve(envPath);
+    const componentsDir = path.join(resolvedEnvPath, "components");
+    if (!fs.existsSync(componentsDir)) {
+      throw new Error(
+        `Invalid TAMBO_REGISTRY_PATH: expected a registry root containing a 'components' directory at "${componentsDir}"`,
+      );
+    }
+
+    return resolvedEnvPath;
+  }
+
+  // When running the compiled CLI (from dist/commands/add), registry is at dist/registry/
+  const distRegistryPath = path.join(__dirname, "../../registry");
+  if (fs.existsSync(distRegistryPath)) {
+    return distRegistryPath;
+  }
+
+  // When running the TS source directly (from src/commands/add), registry is at dist/registry/
+  const distRegistryPathFromSrc = path.join(
+    __dirname,
+    "../../../dist/registry",
+  );
+  if (fs.existsSync(distRegistryPathFromSrc)) {
+    return distRegistryPathFromSrc;
+  }
+
+  // Monorepo dev fallback.
+  const cliRoot = path.resolve(__dirname, "../../..");
+  const uiRegistrySrcPath = path.resolve(
+    cliRoot,
+    "../packages/ui-registry/src",
+  );
+  if (fs.existsSync(uiRegistrySrcPath)) {
+    return uiRegistrySrcPath;
+  }
+
+  throw new Error(
+    "Registry not found. The CLI looked for the registry in dist/registry and packages/ui-registry/src. Set TAMBO_REGISTRY_PATH to the registry root, or rebuild the CLI to generate dist/registry.",
+  );
+}
+
+/**
  * Gets the registry path for a component
  * @param componentName The name of the component
  * @returns The path to the component in the registry
  */
 export function getRegistryPath(componentName: string): string {
-  return path.join(__dirname, "../../../src/registry", componentName);
+  return path.join(getRegistryBasePath(), "components", componentName);
 }
 
 /**
@@ -61,11 +115,16 @@ interface ComponentInfo {
  * @returns An array of ComponentInfo objects
  */
 export function getComponentList(): ComponentInfo[] {
-  const registryPath = path.join(__dirname, "../../../src/registry");
+  const componentsPath = path.join(getRegistryBasePath(), "components");
+  if (!fs.existsSync(componentsPath)) {
+    return [];
+  }
+
   const components = fs
-    .readdirSync(registryPath)
-    .filter((file) => fs.statSync(path.join(registryPath, file)).isDirectory())
-    .filter((dir) => dir !== "config");
+    .readdirSync(componentsPath)
+    .filter((file) =>
+      fs.statSync(path.join(componentsPath, file)).isDirectory(),
+    );
 
   return components
     .map((componentName) => {
@@ -94,8 +153,8 @@ export function getTamboComponentInfo(): {
   allComponents: Set<string>;
 } {
   try {
-    const registryPath = path.join(__dirname, "../../../src/registry");
-    if (!fs.existsSync(registryPath)) {
+    const componentsPath = path.join(getRegistryBasePath(), "components");
+    if (!fs.existsSync(componentsPath)) {
       return {
         mainComponents: new Set(),
         supportComponents: new Set(),
@@ -108,10 +167,10 @@ export function getTamboComponentInfo(): {
 
     // First, add all components that have their own directories
     const directories = fs
-      .readdirSync(registryPath)
+      .readdirSync(componentsPath)
       .filter((file) => {
-        const fullPath = path.join(registryPath, file);
-        return fs.statSync(fullPath).isDirectory() && file !== "config";
+        const fullPath = path.join(componentsPath, file);
+        return fs.statSync(fullPath).isDirectory();
       })
       .filter((componentName) => componentExists(componentName));
 

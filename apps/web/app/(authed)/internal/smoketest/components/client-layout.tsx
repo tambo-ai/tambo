@@ -2,7 +2,6 @@
 
 import { env } from "@/lib/env";
 import { TamboProvider } from "@tambo-ai/react";
-import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 import { useSearchParams } from "next/navigation";
 import { FC, PropsWithChildren } from "react";
 
@@ -19,7 +18,7 @@ export const ClientLayout: FC<
       userToken={userToken}
       mcpServers={mcpServersArray}
     >
-      <TamboMcpProvider>{children}</TamboMcpProvider>
+      {children}
     </TamboProvider>
   );
 };

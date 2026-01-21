@@ -1,7 +1,28 @@
 volumes:
   tambo_postgres_data:
+  minio_data:
 
 services:
+  # MinIO S3-compatible storage
+  minio:
+    image: minio/minio:latest
+    container_name: tambo_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   # PostgreSQL Database
   postgres:
     image: postgres:17
@@ -12,7 +33,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-tambo}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - tambo_postgres_data:/var/lib/postgresql/data
@@ -49,7 +70,7 @@ services:
       - NEXT_PUBLIC_TAMBO_API_KEY=${NEXT_PUBLIC_TAMBO_API_KEY:-}
       - NEXT_PUBLIC_POSTHOG_HOST=${NEXT_PUBLIC_POSTHOG_HOST:-}
       - NEXT_PUBLIC_POSTHOG_KEY=${NEXT_PUBLIC_POSTHOG_KEY:-}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@postgres:5432/${POSTGRES_DB:-tambo}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-tambo}
       - API_KEY_SECRET=${API_KEY_SECRET}
       - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
       - RESEND_API_KEY=${RESEND_API_KEY:-}
@@ -92,7 +113,7 @@ services:
     environment:
       - PORT=3000
       - NODE_ENV=${NODE_ENV:-production}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@postgres:5432/${POSTGRES_DB:-tambo}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-tambo}
       - API_KEY_SECRET=${API_KEY_SECRET}
       - PROVIDER_KEY_SECRET=${PROVIDER_KEY_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
