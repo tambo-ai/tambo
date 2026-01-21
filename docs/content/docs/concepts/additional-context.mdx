@@ -1,0 +1,53 @@
+---
+title: Additional Context
+description: Help Tambo understand your users' environment and intent
+---
+
+When Tambo's response to a user's message needs to depend on information other than the message's text, additional context can be added to user messages sent to Tambo.
+
+## Context Helper Functions
+
+You can define and register any function as a Context Helper function. These are called every time a message is sent to Tambo, and their result is added to the message's additional context for Tambo to consider.
+
+Context Helpers are useful for giving Tambo information that might change between messages, like the user's current time, the user's current page, or some state object.
+
+```tsx
+<TamboProvider
+  contextHelpers={[
+    {
+      name: "current_time",
+      fn: () => ({ time: new Date().toISOString() }),
+    },
+  ]}
+>
+  {/* Your app */}
+</TamboProvider>
+```
+
+For detailed instructions on configuring Context Helpers, see the [Make AI Aware of State guide](/guides/give-context/make-ai-aware-of-state).
+
+## Context Attachments
+
+Context Attachments are one-time additions that are added as additional context to the next user message and then cleared. Stage any object as additional context to be added to the next message using `addContextAttachment`.
+
+Context Attachments are useful for situations where the additional context should depend on a user action. For example, in an application that allows users to select files and ask Tambo about them, you might add the file as a Context Attachment when the user clicks the file.
+
+```tsx
+const { addContextAttachment } = useTamboContextAttachment();
+
+function handleSelectFile(file) {
+  addContextAttachment({
+    context: file.content,
+    displayName: file.name,
+    type: "file",
+  });
+}
+```
+
+For detailed instructions on using Context Attachments, see the [Let Users Attach Context guide](/guides/give-context/let-users-attach-context).
+
+## Resources
+
+Resources are a form of additional context that usually come from attached MCP servers, although you can define local resources in your app. The list of available resources is stored by Tambo and exposed, enabling a UX where users can reference resources by typing @ and selecting what they want to include as additional context along with their message.
+
+For more information on resources, see the [Resources guide](/guides/give-context/make-context-referenceable).

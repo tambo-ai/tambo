@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.35.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.34.1...showcase-v0.35.0) (2026-01-21)
+
+
+### Features
+
+* **analytics:** PostHog cross-subdomain tracking (Phase 1) ([#1842](https://github.com/tambo-ai/tambo/issues/1842)) ([ed80eb0](https://github.com/tambo-ai/tambo/commit/ed80eb0c6a6d15a4be844ff895f983788a6d9fba))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the eslint group with 4 updates ([#1829](https://github.com/tambo-ai/tambo/issues/1829)) ([eab7100](https://github.com/tambo-ai/tambo/commit/eab7100dc3c4e4e63a68c76dade3fb8189a9a734))
+
 ## [0.34.1](https://github.com/tambo-ai/tambo/compare/showcase-v0.34.0...showcase-v0.34.1) (2025-12-17)
 
 

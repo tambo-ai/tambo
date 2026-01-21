@@ -1,0 +1,55 @@
+---
+title: Agent Configuration
+description: Configure your Tambo agent's behavior, LLM provider, MCP servers, and authentication settings
+---
+
+Messages sent from your app to Tambo are processed by the Tambo agent, which you can configure through your project settings page. You can add custom instructions to change Tambo's behavior and personality, configure the underlying LLM model and its options, connect MCP servers to extend capabilities, and set up user authentication.
+
+## Custom Instructions
+
+Custom instructions define how Tambo behaves and responds to users.
+
+When you add custom instructions, you're customizing Tambo's "system prompt". This is where you define the agent's role (is it a support agent? a creative partner? a data analyst?), set the tone and personality (formal or casual? friendly or professional?), establish behavioral guidelines for handling different types of requests, and give your AI a name or identity to help users understand who they're talking to.
+
+Here's how you might configure custom instructions for a creative writing application:
+
+```
+You are a creative writing partner helping authors develop their stories. You're imaginative, collaborative, and supportive. When users share ideas:
+- Ask thoughtful questions to deepen their concepts
+- Suggest creative alternatives and plot twists
+- Help brainstorm character motivations and arcs
+- Maintain an encouraging, enthusiastic tone
+- Avoid being prescriptive - guide, don't dictate
+```
+
+These instructions persist across all conversations in your project, ensuring consistent agent behavior. Users will experience the same personality and approach regardless of which thread they're in.
+
+## LLM Configuration
+
+The LLM configuration determines which AI model powers your Tambo agent and how it behaves. You can change the provider, select specific models, and fine-tune parameters to match your application's needs.
+
+### Choosing a Provider and Model
+
+Tambo integrates with major AI providers including OpenAI, Anthropic, Google, Groq, and Mistral. Each provider offers different models optimized for various use cases. See the [Models and Providers](/models) page for a complete list of available providers and their capabilities. You can also use any OpenAI-compatible model by selecting the "OpenAI Compatible" provider and specifying a custom endpoint.
+
+Each project starts with free messages to help you get started and test your configuration. Once you've used your free messages, you can add your own API key for the underlying LLM provider.
+
+### Custom Parameters
+
+If you need to adjust model-specific behavior, you can configure custom parameters. Temperature controls randomness in responses (0.0 = deterministic, 1.0 = creative), max tokens limits response length, top P controls diversity via nucleus sampling, and top K limits candidate tokens for each generation step. These parameters are stored as JSON and applied when threads are created. Different models support different parameters, so refer to your provider's documentation for available options.
+
+For detailed instructions on configuring LLM providers and parameters, see the [Configure LLM Provider guide](/guides/setup-project/llm-provider).
+
+## MCP Server Connection
+
+Model Context Protocol servers extend your Tambo agent's capabilities by providing access to external tools, data sources, and services. You can connect MCP servers directly from your project settings page, making their capabilities available to all users of your application.
+
+Once connected, your agent can call tools to perform actions and retrieve data, access resources like files, documents, and databases, and use prompts for structured interactions. MCP connections are configured at the project level and shared across all users. This means you set it up once, and every conversation in your project has access to those capabilities.
+
+To learn more about MCP, how it works, and what you can do with it, see the [Model Context Protocol concept page](/concepts/model-context-protocol).
+
+## User Authentication
+
+User authentication determines how Tambo identifies and isolates users in your application. Each user has their own threads and messages, kept separate from other users' data through secure token-based authentication.
+
+For more information on how authentication works and how to integrate with your provider, see the [User Authentication concept page](/concepts/user-authentication).

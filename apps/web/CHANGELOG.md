@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.127.0](https://github.com/tambo-ai/tambo/compare/web-v0.126.0...web-v0.127.0) (2026-01-21)
+
+
+### Features
+
+* **analytics:** PostHog cross-subdomain tracking (Phase 1) ([#1842](https://github.com/tambo-ai/tambo/issues/1842)) ([ed80eb0](https://github.com/tambo-ai/tambo/commit/ed80eb0c6a6d15a4be844ff895f983788a6d9fba))
+
+
+### Bug Fixes
+
+* correct OAuth callback URL construction for MCP server authoriza… [#1837](https://github.com/tambo-ai/tambo/issues/1837) ([#1839](https://github.com/tambo-ai/tambo/issues/1839)) ([cb7299c](https://github.com/tambo-ai/tambo/commit/cb7299c6ba5c34082ebb8a28c839c77a7581cf3a))
+* **web:** add guard for SLACK_OAUTH_TOKEN in callSlackAPI ([#1841](https://github.com/tambo-ai/tambo/issues/1841)) ([facf620](https://github.com/tambo-ai/tambo/commit/facf620a94ecd424c2c586c5678877f3577c9bab))
+* **web:** prevent optional env vars from failing validation when empty ([#1821](https://github.com/tambo-ai/tambo/issues/1821)) ([b95735b](https://github.com/tambo-ai/tambo/commit/b95735bd1b4611402bb131bd90253fa88c77d9ec))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump resend from 6.6.0 to 6.7.0 ([#1836](https://github.com/tambo-ai/tambo/issues/1836)) ([0410860](https://github.com/tambo-ai/tambo/commit/0410860a01fe73e51cb403f0b261f9cf760c987b))
+* **deps:** bump the sentry group with 3 updates ([#1832](https://github.com/tambo-ai/tambo/issues/1832)) ([bdbee36](https://github.com/tambo-ai/tambo/commit/bdbee3643f2cc90a5094365545e939633422a962))
+* **deps:** bump the small-safe-packages group with 8 updates ([#1831](https://github.com/tambo-ai/tambo/issues/1831)) ([a5965b4](https://github.com/tambo-ai/tambo/commit/a5965b4f9d1cf502eaf185cc8b1e26a93f847de0))
+* **test:** bump coverage thresholds (2026-01-19) ([#1822](https://github.com/tambo-ai/tambo/issues/1822)) ([acf34a5](https://github.com/tambo-ai/tambo/commit/acf34a58b3cda7d8ed0b1313998ecf53e8463ad3))
+
 ## [0.126.0](https://github.com/tambo-ai/tambo/compare/web-v0.125.0...web-v0.126.0) (2026-01-16)
 
 

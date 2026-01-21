@@ -1,0 +1,92 @@
+---
+title: Tools
+description: How function calling transforms natural language interfaces from conversations into operating systems
+---
+
+Tools are functions that allow Tambo to take actions in response to natural language. When a user asks "What's the weather in San Francisco?", Tambo can use a registered tool that calls a weather API to retrieve current data, and then use that data in the response or to populate a Generative Component.
+
+## Tambo's Approaches for Enabling Tools
+
+### Local Tools
+
+Local tools are JavaScript functions that execute in your React app, defined by you and registered with Tambo. When processing a user message, Tambo may decide to use tools you have registered to retrieve information or to take actions. Local tools allow you to easily extend the capabilities of Tambo.
+
+```tsx
+const getWeather = (city: string) => {
+  return `The weather in ${city} is warm and sunny!`;
+};
+
+export const weatherTool: TamboTool = {
+  name: "getWeather",
+  description: "A tool to get the current weather conditions of a city",
+  tool: getWeather,
+  inputSchema: z
+    .string()
+    .describe("The city name to get weather information for"),
+  outputSchema: z.string(),
+};
+
+<TamboProvider tools={[weatherTool]}>
+  <App />
+</TamboProvider>;
+```
+
+import LearnMore from "@/components/learn-more";
+import { Wrench } from "lucide-react";
+
+<LearnMore
+  title="Register Tools"
+  description="Step-by-step guide for adding custom tools to your application"
+  href="/guides/take-actions/register-tools"
+  icon={Wrench}
+/>
+
+## How Tools Execute
+
+### Default Execution
+
+By default, Tambo waits until tool arguments are fully generated before executing the tool. This ensures your tool receives complete, valid data before performing its action. For most tools—especially those that make API calls, update databases, or have side effects—this is the desired behavior.
+
+### Streamable Execution
+
+The `annotations.tamboStreamableHint` option enables incremental tool execution during streaming. When set to `true`, the tool will be called multiple times with partial arguments as they stream in, rather than waiting for complete arguments.
+
+This follows the [MCP ToolAnnotations specification](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations). This is useful for tools that can handle partial data gracefully and benefit from incremental execution—such as updating state, building visualizations progressively, or providing real-time feedback.
+
+### Execution Behavior Details
+
+When `annotations.tamboStreamableHint: true`:
+
+1. **Partial execution**: The tool is called with partial arguments as they stream in
+2. **Error handling**: If any partial call throws an error, streaming continues, and only the final call's error (if any) is reported
+3. **Final result**: Only the final call's return value (when arguments are complete) is sent back to the AI
+
+Intermediate calls allow for progressive execution.
+
+### Tool Annotations
+
+Tambo supports [MCP ToolAnnotations](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations) to describe tool behavior:
+
+| Annotation            | Default | Description                                                                          |
+| --------------------- | ------- | ------------------------------------------------------------------------------------ |
+| `title`               | -       | Human-readable title for the tool.                                                   |
+| `readOnlyHint`        | `false` | Tool doesn't modify its environment.                                                 |
+| `destructiveHint`     | `true`  | Tool may perform destructive updates (only meaningful when `readOnlyHint` is false). |
+| `idempotentHint`      | `false` | Calling repeatedly with same args has no additional effect.                          |
+| `openWorldHint`       | `false` | Tool may interact with external entities.                                            |
+| `tamboStreamableHint` | `false` | Tool is safe to call repeatedly with partial arguments during streaming.             |
+
+The `tamboStreamableHint` annotation is Tambo's key enabler for incremental execution. For practical examples of implementing streamable tools, see [Register Tools](/guides/take-actions/register-tools#enable-streaming-execution-optional).
+
+### MCP Tools
+
+MCP tools come from external servers that package tool definitions and implementations into reusable services. Services like Linear and GitHub provide MCP servers, letting you gain powerful integrations without writing them yourself, or as a way to expose your own API to Tambo. MCP tools are automatically discovered and made available to Tambo when you connect to an MCP server (either server-side or client-side).
+
+import { Network } from "lucide-react";
+
+<LearnMore
+  title="Model Context Protocol"
+  description="Connect to external MCP servers for ready-made integrations"
+  href="/concepts/model-context-protocol"
+  icon={Network}
+/>
