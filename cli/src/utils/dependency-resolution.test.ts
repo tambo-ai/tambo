@@ -51,26 +51,36 @@ const {
   expandComponentsWithDependencies,
 } = await import("./dependency-resolution.js");
 
+// Helpers for coarse substring checks against output captured via the single `logSpy`.
+const getLogCalls = (
+  logSpy: jest.SpiedFunction<typeof console.log>,
+): string[] =>
+  logSpy.mock.calls.map((call) => call.map((arg) => String(arg)).join(" "));
+
+const getLoggedOutput = (
+  logSpy: jest.SpiedFunction<typeof console.log>,
+): string => getLogCalls(logSpy).join("\n");
+
+const hasLoggedSubstring = (
+  logSpy: jest.SpiedFunction<typeof console.log>,
+  substring: string,
+): boolean => getLoggedOutput(logSpy).includes(substring);
+
 describe("Dependency Resolution", () => {
   let originalCwd: () => string;
-  let originalLog: typeof console.log;
-  let logs: string[];
+  let logSpy: jest.SpiedFunction<typeof console.log>;
 
   beforeEach(() => {
     vol.reset();
     originalCwd = process.cwd;
-    originalLog = console.log;
     process.cwd = () => "/mock-project";
-    logs = [];
-    console.log = (...args: unknown[]) => {
-      logs.push(args.map((arg) => String(arg)).join(" "));
-    };
+    logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
   });
 
   afterEach(() => {
     vol.reset();
     process.cwd = originalCwd;
-    console.log = originalLog;
+    logSpy.mockRestore();
   });
 
   describe("resolveComponentDependencies", () => {
@@ -288,7 +298,7 @@ describe("Dependency Resolution", () => {
       );
 
       // Should not log warnings in silent mode
-      const hasWarning = logs.some((log) => log.includes("Failed to resolve"));
+      const hasWarning = hasLoggedSubstring(logSpy, "Failed to resolve");
       expect(hasWarning).toBe(false);
     });
   });
@@ -306,7 +316,7 @@ describe("Dependency Resolution", () => {
         { name: "message", installPath: "src/components" },
       ]);
 
-      const output = logs.join("\n");
+      const output = getLoggedOutput(logSpy);
       expect(output).toContain("Including installed dependencies");
       expect(output).toContain("markdown-components");
     });
@@ -323,7 +333,7 @@ describe("Dependency Resolution", () => {
         { name: "message", installPath: "src/components" },
       ]);
 
-      const output = logs.join("\n");
+      const output = getLoggedOutput(logSpy);
       expect(output).toContain("Installing missing dependencies");
       expect(output).toContain("markdown-components");
     });

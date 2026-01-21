@@ -7,6 +7,11 @@ import {
   jest,
 } from "@jest/globals";
 import { fs as memfsFs, vol } from "memfs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const testDir = path.dirname(fileURLToPath(import.meta.url));
+const distRegistryPath = path.join(testDir, "../../registry");
 
 // Mock fs module before importing the utilities
 jest.unstable_mockModule("fs", () => ({
@@ -29,12 +34,12 @@ const {
 
 describe("Registry Utilities", () => {
   let originalCwd: () => string;
-  let originalEnv: NodeJS.ProcessEnv;
+  let originalRegistryPath: string | undefined;
 
   beforeEach(() => {
     vol.reset();
     originalCwd = process.cwd;
-    originalEnv = { ...process.env };
+    originalRegistryPath = process.env.TAMBO_REGISTRY_PATH;
     process.cwd = () => "/mock-project";
     delete process.env.TAMBO_REGISTRY_PATH;
   });
@@ -42,7 +47,12 @@ describe("Registry Utilities", () => {
   afterEach(() => {
     vol.reset();
     process.cwd = originalCwd;
-    process.env = originalEnv;
+
+    if (originalRegistryPath === undefined) {
+      delete process.env.TAMBO_REGISTRY_PATH;
+    } else {
+      process.env.TAMBO_REGISTRY_PATH = originalRegistryPath;
+    }
   });
 
   describe("getRegistryBasePath", () => {
@@ -162,14 +172,20 @@ describe("Registry Utilities", () => {
 
     it("returns empty array when components directory does not exist", () => {
       vol.fromJSON({
-        "/custom/registry/other/file.txt": "content",
+        [`${distRegistryPath}/.gitkeep`]: "",
       });
-      process.env.TAMBO_REGISTRY_PATH = "/custom/registry";
 
-      // This will throw because components dir doesn't exist for validation
-      // but getComponentList checks existsSync first
+      expect(
+        memfsFs.existsSync(path.join(distRegistryPath, "components")),
+      ).toBe(false);
+
+      const result = getComponentList();
+      expect(result).toEqual([]);
+    });
+
+    it("returns empty array when components directory exists but contains no component dirs", () => {
       vol.fromJSON({
-        "/custom/registry/components/.gitkeep": "",
+        [`${distRegistryPath}/components/.gitkeep`]: "",
       });
 
       const result = getComponentList();
