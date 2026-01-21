@@ -990,14 +990,14 @@ export class V1Service {
   }
 
   /**
-   * Find a message containing a component with the given ID.
+   * Find the first message in a thread containing a component block with the given ID.
    *
-   * Searches the content array in messages for component blocks matching the ID.
-   * This aligns with the V1 API model where components are content blocks.
+   * The `content` column is stored as JSONB and expected to be a JSON array of blocks.
+   * Non-array content is treated as empty.
    *
    * @param threadId - Thread to search
    * @param componentId - Component ID to find
-   * @returns Message containing the component, or undefined if not found
+   * @returns Message `id` and `componentState`, or undefined if not found
    */
   private async findMessageWithComponent(
     threadId: string,
