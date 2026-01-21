@@ -93,71 +93,15 @@ apps/api/src
 
 ### NestJS unit tests (providers/services)
 
-- Use `createTestingModule(...)` from `apps/api/src/test/utils/create-testing-module.ts` to build a lightweight module and override providers.
-- If you need to resolve a request-scoped provider (`@Injectable({ scope: Scope.REQUEST })`), use the helpers in `apps/api/src/test/utils/*`.
-- When passing a request to `createTestRequestContext(...)`, mirror the request shape your code uses with `ContextIdFactory.getByRequest(...)`.
+- Use `createTestingModule(...)` from `src/test/utils/create-testing-module.ts` for module setup + provider overrides.
+- Use `createTestRequestContext(...)` + `resolveRequestScopedProvider(...)` from `src/test/utils/*` when you need to resolve `Scope.REQUEST` providers.
+- Stub `ContextIdFactory.getByRequest(...)` only when the code under test calls it, and always restore the spy (avoid global setup stubs).
+- Always `await module.close()` in a `finally` (or `afterEach`) block.
 
-```ts
-import type { TestingModule } from "@nestjs/testing";
+See:
 
-// Helper import path depends on your test file location.
-// Adjust this relative path based on where your test file lives under `src/`.
-// For example, from `src/common/services/foo.service.test.ts` you'd use `../../test/utils/create-testing-module` and related helpers.
-import { createTestRequestContext } from "../../test/utils/create-test-request-context";
-import { createTestingModule } from "../../test/utils/create-testing-module";
-import { resolveRequestScopedProvider } from "../../test/utils/resolve-request-scoped-provider";
-
-it("resolves request-scoped providers", async () => {
-  const module: TestingModule = await createTestingModule(
-    {
-      // Replace these with the providers you want to test.
-      providers: [MyService, MyRequestScopedService],
-    },
-    (builder) =>
-      builder.overrideProvider(MyService).useValue({
-        doThing: jest.fn(),
-      }),
-  );
-
-  const context = createTestRequestContext({
-    headers: {},
-  });
-
-  try {
-    const requestScoped = await resolveRequestScopedProvider(
-      module,
-      MyRequestScopedService,
-      context,
-    );
-
-    expect(requestScoped).toBeDefined();
-  } finally {
-    await module.close();
-  }
-});
-```
-
-If code under test calls `ContextIdFactory.getByRequest(...)` (most tests won't), stub it _inside the test_ and restore it in a `finally` (or `afterEach`) block:
-
-```ts
-import { ContextIdFactory } from "@nestjs/core";
-
-const getByRequestSpy = jest
-  .spyOn(ContextIdFactory, "getByRequest")
-  .mockImplementation(() => context.contextId);
-
-try {
-  // ...
-} finally {
-  getByRequestSpy.mockRestore();
-}
-```
-
-Avoid adding this stub in global setup since it can leak `ContextIdFactory` state between tests.
-
-Always close the `TestingModule` in a `finally` block (or `afterEach`) when using `createTestingModule(...)`.
-
-See `src/test/utils/nest-testing.example.test.ts` for a runnable example.
+- [`src/test/utils/nest-testing.example.test.ts`](src/test/utils/nest-testing.example.test.ts) (runnable reference)
+- [`src/projects/projects.service.test.ts`](src/projects/projects.service.test.ts) (real module test using the helpers)
 
 ## Development Workflow
 
