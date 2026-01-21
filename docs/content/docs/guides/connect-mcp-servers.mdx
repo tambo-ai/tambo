@@ -56,51 +56,38 @@ Connect MCP servers from your browser using the `@tambo-ai/react` SDK. This appr
 
 **Setup:**
 
-First, install the MCP client utilities:
+> **Dependency note**
+>
+> The `@tambo-ai/react/mcp` subpath declares `@modelcontextprotocol/sdk`, `zod`, and `zod-to-json-schema` as optional peer dependencies. If you import this subpath, install these packages:
+>
+> ```bash
+> npm install @modelcontextprotocol/sdk@^1.24.0 zod@^4.0.0 zod-to-json-schema@^3.25.0
+> ```
 
-```bash
-npm install @modelcontextprotocol/sdk
-```
-
-Then configure the MCP client in your application:
+Configure MCP servers in your React application:
 
 ```tsx title="app/layout.tsx"
 import { TamboProvider } from "@tambo-ai/react";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
+import { MCPTransport } from "@tambo-ai/react/mcp";
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Create MCP client
-  const mcpClient = new Client(
-    {
-      name: "tambo-mcp-client",
-      version: "1.0.0",
-    },
-    {
-      capabilities: {
-        tools: {},
-        resources: {},
-        prompts: {},
-      },
-    },
-  );
-
-  // Connect to MCP server
-  const transport = new SSEClientTransport(
-    new URL("https://your-mcp-server.com/sse"),
-  );
-  await mcpClient.connect(transport);
-
   return (
     <html lang="en">
       <body>
         <TamboProvider
           projectKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
-          mcpClients={[mcpClient]}
+          mcpServers={[
+            {
+              url: "http://localhost:8123/",
+              serverKey: "local", // Optional: stable prefix for namespacing
+              customHeaders: {}, // Optional: custom headers like API keys
+              transport: MCPTransport.HTTP, // Optional: defaults to HTTP
+            },
+          ]}
         >
           {children}
         </TamboProvider>
@@ -110,7 +97,14 @@ export default function RootLayout({
 }
 ```
 
-**Note:** Client-side connections require the MCP server to support browser-based connections (typically via Server-Sent Events).
+`TamboProvider` automatically establishes connections to the specified MCP servers and makes their capabilities available to Tambo.
+
+**Transport options:**
+
+- `MCPTransport.HTTP` (default) - For HTTP-based MCP servers
+- `MCPTransport.SSE` - For Server-Sent Events transport
+
+**Note:** Client-side connections require the MCP server to support browser-based connections. Most MCP servers support HTTP transport, which works well from browsers.
 
 ## Authentication
 
@@ -130,17 +124,24 @@ For API key-based servers:
 
 **Server-side:** Configure custom headers in the dashboard with your API key.
 
-**Client-side:** Pass headers when creating the transport:
+**Client-side:** Pass headers in the `customHeaders` field:
 
 ```tsx
-const transport = new SSEClientTransport(
-  new URL("https://your-mcp-server.com/sse"),
-  {
-    headers: {
-      Authorization: `Bearer ${yourApiKey}`,
+<TamboProvider
+  projectKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
+  mcpServers={[
+    {
+      url: "https://your-mcp-server.com/",
+      serverKey: "myserver",
+      customHeaders: {
+        Authorization: `Bearer ${yourApiKey}`,
+      },
+      transport: MCPTransport.HTTP,
     },
-  },
-);
+  ]}
+>
+  {children}
+</TamboProvider>
 ```
 
 ## Testing Your Connection
@@ -171,7 +172,7 @@ Many applications provide MCP servers. Check the [MCP server directory](https://
 
 - Verify the server URL is correct and accessible
 - Check that authentication credentials are valid
-- For client-side connections, ensure the server supports SSE transport
+- For client-side connections, ensure the server supports HTTP or SSE transport
 - Review browser console for connection errors
 
 ### Tools aren't being used
