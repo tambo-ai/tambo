@@ -37,7 +37,7 @@ function Note({ title, content }: NoteProps) {
   const [draftContent, setDraftContent] = useTamboComponentState(
     "draftContent",
     content,
-    content
+    content,
   );
   return (
     <section className={`rounded-md p-4 bg-blue-500`}>
@@ -60,7 +60,7 @@ import { z } from "zod";
 
 export const NotePropsSchema = z.object({
   title: z.string(),
-  content: z.string()
+  content: z.string(),
 });
 ```
 
@@ -81,8 +81,7 @@ import { NotePropsSchema } from "./note-schema";
 
 export const InteractableNote = withInteractable(Note, {
   componentName: "Note",
-  description:
-    "A simple note that can change title, and content",
+  description: "A simple note that can change title, and content",
   propsSchema: NotePropsSchema,
 });
 ```
@@ -150,7 +149,7 @@ function Note({ title, content }: NoteProps) {
   const [draftContent, setDraftContent] = useTamboComponentState(
     "draftContent",
     content,
-    content
+    content,
   );
   return (
     <section className={`rounded-md p-4 bg-blue-500`}>
@@ -171,8 +170,7 @@ const NotePropsSchema = z.object({
 
 export const InteractableNote = withInteractable(Note, {
   componentName: "Note",
-  description:
-    "A simple note that can change title, and content",
+  description: "A simple note that can change title, and content",
   propsSchema: NotePropsSchema,
 });
 
