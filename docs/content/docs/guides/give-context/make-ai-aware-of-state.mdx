@@ -1,12 +1,12 @@
 ---
-title: Make AI Aware of State
+title: Make Tambo Aware of State
 description: Automatically include information about the user's current state on every message
 ---
 
 import LearnMore from "@/components/learn-more";
 import { BookOpen } from "lucide-react";
 
-Use context helpers to automatically include information about the user's current state on every message—no manual input required.
+Use context helpers to automatically include information about the user's current state on every message.
 
 <LearnMore
   title="Additional Context Concepts"
@@ -56,16 +56,6 @@ const sessionHelper = async () => ({
   }
 }
 ```
-
-### Key Characteristics
-
-- **Automatic**: Run on every message without explicit calls
-- **Keyed**: Key name becomes the context name sent to AI
-- **Flexible**: Can be sync or async functions
-- **Optional**: Return `null` or `undefined` to skip including context
-- **Clean**: No error propagation—handle errors internally
-
-## Quick Start
 
 ### Step 1: Configure at the Root
 

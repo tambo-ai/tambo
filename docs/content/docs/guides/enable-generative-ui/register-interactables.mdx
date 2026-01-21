@@ -29,20 +29,18 @@ import { useTamboComponentState } from "@tambo-ai/react";
 type NoteProps = {
   title: string;
   content: string;
-  color?: "white" | "yellow" | "blue" | "green";
 };
 
-export function Note({ title, content, color = "yellow" }: NoteProps) {
+function Note({ title, content }: NoteProps) {
   // useTamboComponentState allows Tambo to see and update the draft content
   // The setFromProp parameter syncs state from props during streaming
   const [draftContent, setDraftContent] = useTamboComponentState(
     "draftContent",
-    "",
     content,
+    content
   );
-
   return (
-    <section className={"note note-" + color}>
+    <section className={`rounded-md p-4 bg-blue-500`}>
       <h3>{title}</h3>
       <textarea
         value={draftContent}
@@ -62,8 +60,7 @@ import { z } from "zod";
 
 export const NotePropsSchema = z.object({
   title: z.string(),
-  content: z.string(),
-  color: z.enum(["white", "yellow", "blue", "green"]).optional(),
+  content: z.string()
 });
 ```
 
@@ -85,7 +82,7 @@ import { NotePropsSchema } from "./note-schema";
 export const InteractableNote = withInteractable(Note, {
   componentName: "Note",
   description:
-    "A simple note that can change title, content, and background color",
+    "A simple note that can change title, and content",
   propsSchema: NotePropsSchema,
 });
 ```
@@ -117,7 +114,6 @@ function App() {
         <InteractableNote
           title="Release plan"
           content="Ask Tambo to keep this note up to date."
-          color="yellow"
         />
       </main>
     </TamboProvider>
@@ -129,7 +125,6 @@ Tambo can now see and modify this component when users send messages like:
 
 - "Change the note title to 'Important Reminder'"
 - "Update the note content to 'Don't forget the meeting at 3pm'"
-- "Make the note blue"
 
 ## Complete Example
 
@@ -147,20 +142,18 @@ import { z } from "zod";
 type NoteProps = {
   title: string;
   content: string;
-  color?: "white" | "yellow" | "blue" | "green";
 };
 
-function Note({ title, content, color = "yellow" }: NoteProps) {
+function Note({ title, content }: NoteProps) {
   // useTamboComponentState allows Tambo to see and update the draft content
   // The setFromProp parameter syncs state from props during streaming
   const [draftContent, setDraftContent] = useTamboComponentState(
     "draftContent",
-    "",
     content,
+    content
   );
-
   return (
-    <section className={"note note-" + color}>
+    <section className={`rounded-md p-4 bg-blue-500`}>
       <h3>{title}</h3>
       <textarea
         value={draftContent}
@@ -174,13 +167,12 @@ function Note({ title, content, color = "yellow" }: NoteProps) {
 const NotePropsSchema = z.object({
   title: z.string(),
   content: z.string(),
-  color: z.enum(["white", "yellow", "blue", "green"]).optional(),
 });
 
-const InteractableNote = withInteractable(Note, {
+export const InteractableNote = withInteractable(Note, {
   componentName: "Note",
   description:
-    "A simple note that can change title, content, and background color",
+    "A simple note that can change title, and content",
   propsSchema: NotePropsSchema,
 });
 
