@@ -35,19 +35,14 @@ const createMockAnalyticsService = () =>
 jest.mock("@tambo-ai-cloud/db", () => {
   const actual = jest.requireActual("@tambo-ai-cloud/db");
 
-  const mockedOperations = {
-    createApiKey: jest.fn(),
-    createProject: jest.fn(),
-    getApiKeys: jest.fn(),
-    getProjectApiKeyId: jest.fn(),
-    updateApiKeyLastUsed: jest.fn(),
-  } satisfies MockedDbOperations;
-
   return {
     ...actual,
     operations: {
-      ...(actual.operations ?? {}),
-      ...mockedOperations,
+      createApiKey: jest.fn(),
+      createProject: jest.fn(),
+      getApiKeys: jest.fn(),
+      getProjectApiKeyId: jest.fn(),
+      updateApiKeyLastUsed: jest.fn(),
     },
   };
 });
