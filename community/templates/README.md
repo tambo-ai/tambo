@@ -21,12 +21,12 @@ Want to add a template? Open a PR that adds a new folder to this directory.
 
 Your PR must include:
 
-1. **A new folder** in `templates/` named after your template (e.g., `templates/remix-clerk-starter/`)
+1. **A new folder** in `community/templates/` named after your template (e.g., `community/templates/remix-clerk-starter/`)
 2. **Working code** that runs with `npm install && npm run dev` from within the template folder
 3. **README.md** inside your template folder with:
    - What the template demonstrates
    - Setup instructions
-   - Screenshot or GIF of the running app <-- only github references
+   - Screenshot or GIF (upload to GitHub by dragging into the PR, then use that link)
 4. **Video demo** - Link to a short video demo in the README and PR description. You can [upload videos directly to GitHub](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files) by dragging into a comment, then copy the generated link.
 
 ### Keep It Simple
@@ -76,7 +76,7 @@ Your template's README must include:
 ### Template Folder Structure
 
 ```
-templates/
+community/templates/
 ├── your-template-name/
 │   ├── README.md          # Setup instructions + screenshot
 │   ├── package.json
