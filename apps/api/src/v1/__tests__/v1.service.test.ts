@@ -1066,21 +1066,19 @@ describe("V1Service", () => {
           runStatus: V1RunStatus.IDLE,
         });
 
-        const promise = service.updateComponentState("thr_123", "comp_123", {});
+        const error = (await service
+          .updateComponentState("thr_123", "comp_123", {})
+          .catch((caught) => caught)) as BadRequestException | unknown;
 
-        await expect(promise).rejects.toThrow(BadRequestException);
+        expect(error).toBeInstanceOf(BadRequestException);
 
-        try {
-          await promise;
-        } catch (error: unknown) {
-          if (error instanceof BadRequestException) {
-            const response = error.getResponse() as {
-              detail?: string;
-              type?: string;
-            };
-            expect(response.detail).toContain("Either 'state' or 'patch'");
-            expect(response.type).toContain("validation_error");
-          }
+        if (error instanceof BadRequestException) {
+          const response = error.getResponse() as {
+            detail?: string;
+            type?: string;
+          };
+          expect(response.detail).toContain("Either 'state' or 'patch'");
+          expect(response.type).toContain("validation_error");
         }
       });
 
@@ -1090,24 +1088,22 @@ describe("V1Service", () => {
           runStatus: V1RunStatus.IDLE,
         });
 
-        const promise = service.updateComponentState("thr_123", "comp_123", {
-          state: { loading: true },
-          patch: [{ op: "replace", path: "/loading", value: false }],
-        });
+        const error = (await service
+          .updateComponentState("thr_123", "comp_123", {
+            state: { loading: true },
+            patch: [{ op: "replace", path: "/loading", value: false }],
+          })
+          .catch((caught) => caught)) as BadRequestException | unknown;
 
-        await expect(promise).rejects.toThrow(BadRequestException);
+        expect(error).toBeInstanceOf(BadRequestException);
 
-        try {
-          await promise;
-        } catch (error: unknown) {
-          if (error instanceof BadRequestException) {
-            const response = error.getResponse() as {
-              detail?: string;
-              type?: string;
-            };
-            expect(response.detail).toContain("not both");
-            expect(response.type).toContain("validation_error");
-          }
+        if (error instanceof BadRequestException) {
+          const response = error.getResponse() as {
+            detail?: string;
+            type?: string;
+          };
+          expect(response.detail).toContain("not both");
+          expect(response.type).toContain("validation_error");
         }
 
         expect(mockOperations.updateMessage).not.toHaveBeenCalled();
@@ -1119,23 +1115,19 @@ describe("V1Service", () => {
           runStatus: V1RunStatus.IDLE,
         });
 
-        const promise = service.updateComponentState("thr_123", "comp_123", {
-          patch: [],
-        });
+        const error = (await service
+          .updateComponentState("thr_123", "comp_123", { patch: [] })
+          .catch((caught) => caught)) as BadRequestException | unknown;
 
-        await expect(promise).rejects.toThrow(BadRequestException);
+        expect(error).toBeInstanceOf(BadRequestException);
 
-        try {
-          await promise;
-        } catch (error: unknown) {
-          if (error instanceof BadRequestException) {
-            const response = error.getResponse() as {
-              detail?: string;
-              type?: string;
-            };
-            expect(response.detail).toContain("must not be empty");
-            expect(response.type).toContain("validation_error");
-          }
+        if (error instanceof BadRequestException) {
+          const response = error.getResponse() as {
+            detail?: string;
+            type?: string;
+          };
+          expect(response.detail).toContain("must not be empty");
+          expect(response.type).toContain("validation_error");
         }
 
         expect(mockOperations.updateMessage).not.toHaveBeenCalled();

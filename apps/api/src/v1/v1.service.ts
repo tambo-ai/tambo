@@ -888,9 +888,9 @@ export class V1Service {
       );
     }
 
-    const state = dto.state ?? undefined;
     const patch = Array.isArray(dto.patch) ? dto.patch : undefined;
-    const hasState = state !== undefined;
+    const state = dto.state;
+    const hasState = state !== undefined && state !== null;
     const hasPatch = patch !== undefined;
 
     if (hasState && hasPatch) {
@@ -908,6 +908,16 @@ export class V1Service {
         createProblemDetail(
           V1ErrorCodes.VALIDATION_ERROR,
           "Either 'state' or 'patch' must be provided",
+          { threadId, componentId },
+        ),
+      );
+    }
+
+    if (hasState && (typeof state !== "object" || Array.isArray(state))) {
+      throw new BadRequestException(
+        createProblemDetail(
+          V1ErrorCodes.VALIDATION_ERROR,
+          "'state' must be a JSON object",
           { threadId, componentId },
         ),
       );
@@ -933,8 +943,22 @@ export class V1Service {
     }
 
     // 3. Get current state
-    const currentState =
-      (message.componentState as Record<string, unknown>) ?? {};
+    const rawState = message.componentState;
+    let currentState: Record<string, unknown> = {};
+    if (rawState !== null && rawState !== undefined) {
+      if (typeof rawState === "object" && !Array.isArray(rawState)) {
+        currentState = rawState;
+      } else {
+        throw new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.INTERNAL_ERROR,
+            "Stored component state must be a JSON object",
+            { threadId, componentId, messageId: message.id },
+          ),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
 
     // 4. Apply update (full replacement or JSON Patch)
     let newState: Record<string, unknown>;
@@ -984,12 +1008,15 @@ export class V1Service {
     | Pick<typeof schema.messages.$inferSelect, "id" | "componentState">
     | undefined
   > {
+    // `content` is expected to be a JSON array of blocks.
     const message = await this.db.query.messages.findFirst({
       where: and(
         eq(schema.messages.threadId, threadId),
         sql`exists (
           select 1
-          from jsonb_array_elements(content) as elem
+          from jsonb_array_elements(
+            case when jsonb_typeof(content) = 'array' then content else '[]'::jsonb end
+          ) as elem
           where elem->>'type' = 'component'
             and elem->>'id' = ${componentId}
         )`,
