@@ -39,13 +39,13 @@ const config = {
       },
       {
         source: "/concepts/user-authentication/:provider",
-        destination: "/guides/enable-user-authentication/:provider",
+        destination: "/guides/add-authentication/:provider",
         permanent: true,
       },
       // Tools reorganization
       {
         source: "/concepts/tools/adding-tools",
-        destination: "/guides/register-tools",
+        destination: "/guides/take-actions/register-tools",
         permanent: true,
       },
       // Models reorganization
