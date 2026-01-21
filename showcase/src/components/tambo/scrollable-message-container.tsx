@@ -11,7 +11,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useTambo } from "@tambo-ai/react";
+import { GenerationStage, useTambo } from "@tambo-ai/react";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -60,7 +60,7 @@ export const ScrollableMessageContainer = React.forwardRef<
     }));
   }, [thread.messages]);
 
-  const generationStage = thread?.generationStage ?? "IDLE";
+  const generationStage = thread?.generationStage ?? GenerationStage.IDLE;
 
   // Handle scroll events to detect user scrolling
   const handleScroll = () => {
@@ -94,7 +94,7 @@ export const ScrollableMessageContainer = React.forwardRef<
         }
       };
 
-      if (generationStage === "STREAMING_RESPONSE") {
+      if (generationStage === GenerationStage.STREAMING_RESPONSE) {
         // During streaming, scroll immediately
         requestAnimationFrame(scroll);
       } else {

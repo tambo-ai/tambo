@@ -582,6 +582,34 @@
       "when": 1767647475171,
       "tag": "0082_lowly_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1767824817956,
+      "tag": "0083_add-anon-role",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1767824862226,
+      "tag": "0084_abnormal_blonde_phantom",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1768414786809,
+      "tag": "0085_lean_proteus",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1768429803990,
+      "tag": "0086_magical_cannonball",
+      "breakpoints": true
     }
   ]
 }

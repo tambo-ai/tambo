@@ -1,0 +1,47 @@
+# Fast starship config optimized for large monorepos
+# Disables expensive checks to keep prompt responsive
+
+# Reduce timeout for scans
+scan_timeout = 10
+
+# Format: directory, git branch, node version, character
+format = """
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$character
+"""
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+symbol = " "
+format = "[$symbol$branch]($style) "
+
+[git_status]
+# Disable expensive file counting
+disabled = false
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+conflicted = "="
+deleted = "✘"
+renamed = "»"
+modified = "!"
+staged = "+"
+untracked = "?"
+stashed = "$"
+# Don't count files - this is slow
+format = '([\[$all_status$ahead_behind\]]($style) )'
+
+[nodejs]
+symbol = "⬢ "
+format = "[$symbol($version )]($style)"
+detect_files = ["package.json", ".node-version"]
+
+[character]
+success_symbol = "[➜](bold green)"
+error_symbol = "[➜](bold red)"

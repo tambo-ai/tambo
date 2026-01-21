@@ -2,7 +2,16 @@ import chalk from "chalk";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
-import { execSync, interactivePrompt } from "../utils/interactive.js";
+import {
+  execFileSync,
+  execSync,
+  interactivePrompt,
+} from "../utils/interactive.js";
+import {
+  detectPackageManager,
+  getInstallCommand,
+  validatePackageManager,
+} from "../utils/package-manager.js";
 
 // Define available templates
 interface Template {
@@ -204,7 +213,7 @@ export async function handleCreateApp(
         `git clone --depth 1 ${selectedTemplate.repository} ${
           appName === "." ? "." : appName
         }`,
-        { stdio: "ignore" },
+        { stdio: "ignore", allowNonInteractive: true },
       );
       cloneSpinner.succeed(
         `${selectedTemplate.name} template downloaded successfully`,
@@ -269,21 +278,27 @@ export async function handleCreateApp(
     }
 
     // Install dependencies with spinner
+    // Detect package manager from the target directory (which is now cwd after chdir above)
+    const pm = detectPackageManager(targetDir);
+    validatePackageManager(pm);
+    const installCmd = getInstallCommand(pm);
+    // --legacy-peer-deps is npm-specific
+    const legacyPeerDepsFlag =
+      options.legacyPeerDeps && pm === "npm" ? ["--legacy-peer-deps"] : [];
+
     const installSpinner = ora({
-      text: "Installing dependencies...",
+      text: `Installing dependencies using ${pm}...`,
       spinner: "dots",
     }).start();
 
     try {
-      execSync(
-        `npm install${options.legacyPeerDeps ? " --legacy-peer-deps" : ""}`,
-        { stdio: "ignore" },
-      );
+      const args = [installCmd, ...legacyPeerDepsFlag];
+      execFileSync(pm, args, { stdio: "ignore", allowNonInteractive: true });
       installSpinner.succeed("Dependencies installed successfully");
     } catch (_error) {
       installSpinner.fail("Failed to install dependencies");
       throw new Error(
-        "Failed to install dependencies. Please try running 'npm install' manually.",
+        `Failed to install dependencies. Please try running '${pm} ${installCmd}' manually.`,
       );
     }
 

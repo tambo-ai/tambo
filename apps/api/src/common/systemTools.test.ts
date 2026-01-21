@@ -90,7 +90,7 @@ describe("systemTools", () => {
     jest.clearAllMocks();
 
     // Set env variables
-    process.env.VERCEL_URL = "http://localhost:3000";
+    process.env.VERCEL_URL = "http://localhost:8260";
 
     // Create a mock db with a query property
     mockDb = {

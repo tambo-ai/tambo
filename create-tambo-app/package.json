@@ -1,6 +1,6 @@
 {
   "name": "create-tambo-app",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Create a new Tambo application",
   "license": "MIT",
   "repository": {
@@ -43,6 +43,6 @@
     "eslint": "^9.39.2",
     "rimraf": "^6.1.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.51.0"
+    "typescript-eslint": "^8.53.0"
   }
 }

@@ -17,6 +17,16 @@ import {
   interactivePrompt,
   NonInteractiveError,
 } from "../utils/interactive.js";
+import {
+  findAllTamboApiKeys,
+  findTamboApiKey,
+  setTamboApiKey,
+  type TamboApiKeyName,
+} from "../utils/dotenv-utils.js";
+import {
+  detectFramework,
+  getTamboApiKeyEnvVar,
+} from "../utils/framework-detection.js";
 import { handleAddComponent } from "./add/index.js";
 import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
@@ -62,6 +72,7 @@ interface InitOptions {
 /**
  * Writes the provided API key to .env.local, creating the file if necessary
  * Handles overwrite confirmation when a key already exists
+ * Automatically detects framework and uses appropriate env var prefix
  */
 async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
   try {
@@ -71,38 +82,47 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
       targetEnvFile = ".env";
     }
 
-    const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
+    // Detect framework and get appropriate env var name
+    const framework = detectFramework();
+    const envVarName = getTamboApiKeyEnvVar() as TamboApiKeyName;
+
+    if (framework) {
+      console.log(chalk.gray(`\nDetected ${framework.displayName} project`));
+    }
 
     if (!fs.existsSync(targetEnvFile)) {
-      fs.writeFileSync(targetEnvFile, "# Environment Variables\n");
+      fs.writeFileSync(
+        targetEnvFile,
+        `# Environment Variables\n${envVarName}=${apiKey.trim()}\n`,
+      );
       console.log(chalk.green(`\n✔ Created new ${targetEnvFile} file`));
-      fs.appendFileSync(targetEnvFile, envContent);
-      console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
       console.log(
-        chalk.gray(
-          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-        ),
+        chalk.green(`\n✔ API key saved to ${targetEnvFile} as ${envVarName}`),
       );
       return true;
     }
 
     const existingContent = fs.readFileSync(targetEnvFile, "utf8");
-    const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/gm;
+    const existingKeyNames = findAllTamboApiKeys(existingContent);
 
-    if (keyRegex.test(existingContent)) {
+    if (existingKeyNames.length > 0) {
+      // Build appropriate warning message
+      const warningMessage =
+        existingKeyNames.length === 1
+          ? `⚠️  This will overwrite the existing value of ${existingKeyNames[0]} in ${targetEnvFile}, are you sure?`
+          : `⚠️  Found multiple Tambo API key variants in ${targetEnvFile}:\n   ${existingKeyNames.join(", ")}\n   This will remove all of them and replace with ${envVarName}. Continue?`;
+
       const { confirmReplace } = await interactivePrompt<{
         confirmReplace: boolean;
       }>(
         {
           type: "confirm",
           name: "confirmReplace",
-          message: chalk.yellow(
-            `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in ${targetEnvFile}, are you sure?`,
-          ),
+          message: chalk.yellow(warningMessage),
           default: false,
         },
         chalk.yellow(
-          "Cannot prompt for API key confirmation in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY manually.",
+          `Cannot prompt for API key confirmation in non-interactive mode. Please set ${envVarName} manually.`,
         ),
       );
 
@@ -110,30 +130,30 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
         console.log(chalk.gray("\nKeeping existing API key."));
         return true;
       }
-
-      const updatedContent = existingContent.replace(
-        keyRegex,
-        `NEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}`,
-      );
-      fs.writeFileSync(targetEnvFile, updatedContent);
-      console.log(
-        chalk.green(`\n✔ Updated existing API key in ${targetEnvFile}`),
-      );
-      console.log(
-        chalk.gray(
-          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-        ),
-      );
-      return true;
     }
 
-    fs.appendFileSync(targetEnvFile, envContent);
-    console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
-    console.log(
-      chalk.gray(
-        "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-      ),
+    const updatedContent = setTamboApiKey(
+      existingContent,
+      envVarName,
+      apiKey.trim(),
     );
+    fs.writeFileSync(targetEnvFile, updatedContent);
+
+    if (existingKeyNames.length > 1) {
+      console.log(
+        chalk.green(
+          `\n✔ Replaced ${existingKeyNames.length} key variants with ${envVarName} in ${targetEnvFile}`,
+        ),
+      );
+    } else if (existingKeyNames.length === 1) {
+      console.log(
+        chalk.green(`\n✔ Updated API key in ${targetEnvFile} as ${envVarName}`),
+      );
+    } else {
+      console.log(
+        chalk.green(`\n✔ API key saved to ${targetEnvFile} as ${envVarName}`),
+      );
+    }
     return true;
   } catch (error) {
     console.error(chalk.red(`\nFailed to save API key: ${error}`));
@@ -183,7 +203,8 @@ function displaySelfHostInstructions(): void {
 
 /**
  * Checks for existing API key in .env files
- * @returns string | null Returns existing API key if found, null otherwise
+ * Supports multiple env var formats (with or without framework prefixes)
+ * @returns Existing API key value if user chooses to keep it, null otherwise
  */
 async function checkExistingApiKey(): Promise<string | null> {
   const envFiles = [".env.local", ".env"];
@@ -191,8 +212,9 @@ async function checkExistingApiKey(): Promise<string | null> {
   for (const file of envFiles) {
     if (fs.existsSync(file)) {
       const content = fs.readFileSync(file, "utf8");
-      const match = /^NEXT_PUBLIC_TAMBO_API_KEY=(.+)$/m.exec(content);
-      if (match?.[1]) {
+      const existingKey = findTamboApiKey(content);
+
+      if (existingKey) {
         const { overwriteExisting } = await interactivePrompt<{
           overwriteExisting: boolean;
         }>(
@@ -200,7 +222,7 @@ async function checkExistingApiKey(): Promise<string | null> {
             type: "confirm",
             name: "overwriteExisting",
             message: chalk.yellow(
-              `⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?`,
+              `⚠️  Would you like to overwrite the value of ${existingKey.keyName} in your .env file?`,
             ),
             default: true,
           },
@@ -210,7 +232,7 @@ async function checkExistingApiKey(): Promise<string | null> {
         );
 
         if (!overwriteExisting) {
-          return match[1].trim();
+          return existingKey.value.trim();
         }
       }
     }
@@ -502,7 +524,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       default: "cloud",
     },
     chalk.yellow(
-      "Cannot prompt for hosting choice in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+      `Cannot prompt for hosting choice in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
     ),
   );
 
@@ -556,7 +578,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       default: "paste",
     },
     chalk.yellow(
-      "Cannot prompt for API key method in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+      `Cannot prompt for API key method in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
     ),
   );
 
@@ -577,7 +599,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       },
     },
     chalk.yellow(
-      "Cannot prompt for API key in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+      `Cannot prompt for API key in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
     ),
   );
 
@@ -746,6 +768,8 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
     .join("\n");
 
   // Just the TamboProvider part for clipboard with all selected components
+  const framework = detectFramework();
+  const envVarName = getTamboApiKeyEnvVar();
   const providerSnippet = `"use client"; // Important!
 import { TamboProvider } from "@tambo-ai/react";
 import { components } from "../../lib/tambo";
@@ -758,7 +782,7 @@ export default function Page() {
     <div>
       {/* other components */}
       <TamboProvider
-        apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+        apiKey={process.env.${envVarName} ?? ""}
         components={components}
       >
         {/* Tambo components */}
@@ -779,6 +803,28 @@ ${componentInstances}
   } catch (error) {
     console.log(chalk.cyan("\n" + providerSnippet + "\n"));
     console.log(chalk.yellow("\n   ⚠️ Failed to copy to clipboard: " + error));
+  }
+
+  // Warn non-framework users about env var exposure
+  if (!framework) {
+    console.log(
+      chalk.yellow(
+        "\n   ⚠️  No supported framework detected. The environment variable",
+      ),
+    );
+    console.log(
+      chalk.yellow(
+        `      ${envVarName} will not be automatically exposed to the browser.`,
+      ),
+    );
+    console.log(
+      chalk.yellow(
+        "      You may need to configure your bundler to expose it, or pass",
+      ),
+    );
+    console.log(
+      chalk.yellow("      the API key directly to the TamboProvider.\n"),
+    );
   }
 
   console.log(chalk.bold("\n2. Use the installed components"));

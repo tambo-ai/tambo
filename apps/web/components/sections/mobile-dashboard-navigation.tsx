@@ -31,7 +31,8 @@ import {
   Menu,
   MessageSquare,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useSignOut } from "@/hooks/nextauth";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 
@@ -41,6 +42,7 @@ export function MobileDashboardNavigation() {
   const router = useRouter();
   const params = useParams();
   const { togglePanel } = useMessageThreadPanel();
+  const signOut = useSignOut();
 
   const projectId = params?.projectId as string | null;
 
@@ -125,7 +127,9 @@ export function MobileDashboardNavigation() {
 
         <div className="px-6 flex flex-col gap-2">
           <a
-            href={process.env.NEXT_PUBLIC_DOCS_URL || "/docs"}
+            href={siteConfig.links.docs}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accent transition-colors cursor-pointer"
           >
             <BookOpen className="h-4 w-4" />

@@ -10,7 +10,7 @@ import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
 import {
   createBasicProject,
-  createProjectWithReact,
+  createProjectWithTamboSDK,
   createRegistryFiles,
 } from "../__fixtures__/mock-fs-setup.js";
 
@@ -79,12 +79,13 @@ jest.unstable_mockModule("./migrate.js", () => ({
 
 // Mock the registry utilities to use memfs paths
 jest.unstable_mockModule("./add/utils.js", () => ({
+  getRegistryBasePath: () => `/mock-project/cli/dist/registry`,
   getRegistryPath: (componentName: string) =>
-    `/mock-project/cli/src/registry/${componentName}`,
+    `/mock-project/cli/dist/registry/components/${componentName}`,
   getConfigPath: (componentName: string) =>
-    `/mock-project/cli/src/registry/${componentName}/config.json`,
+    `/mock-project/cli/dist/registry/components/${componentName}/config.json`,
   componentExists: (componentName: string) => {
-    const configPath = `/mock-project/cli/src/registry/${componentName}/config.json`;
+    const configPath = `/mock-project/cli/dist/registry/components/${componentName}/config.json`;
     try {
       return (
         memfsFs.existsSync(configPath) &&
@@ -192,7 +193,7 @@ jest.unstable_mockModule("./shared/component-utils.js", () => {
     }[] = [];
 
     for (const component of verifiedComponents) {
-      const configPath = `/mock-project/cli/src/registry/${component.name}/config.json`;
+      const configPath = `/mock-project/cli/dist/registry/components/${component.name}/config.json`;
       if (!memfsFs.existsSync(configPath)) continue;
 
       const config = JSON.parse(
@@ -267,7 +268,7 @@ jest.unstable_mockModule("../utils/dependency-resolution.js", () => {
       allComponents.add(component.name);
 
       // Read config to get dependencies
-      const configPath = `/mock-project/cli/src/registry/${component.name}/config.json`;
+      const configPath = `/mock-project/cli/dist/registry/components/${component.name}/config.json`;
       if (memfsFs.existsSync(configPath)) {
         const config = JSON.parse(
           memfsFs.readFileSync(configPath, "utf-8") as string,
@@ -464,12 +465,12 @@ describe("handleUpdateComponents", () => {
     it("should update all installed components when 'installed' is specified", async () => {
       // Setup: Project with multiple installed components
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message", "form"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
-        "/mock-project/cli/src/registry/form/form.tsx":
+        "/mock-project/cli/dist/registry/components/form/form.tsx":
           "export const Form = () => <div>Updated</div>;",
         // Installed components
         "/mock-project/src/components/tambo/message.tsx":
@@ -515,10 +516,10 @@ describe("handleUpdateComponents", () => {
     it("should list installed components when using 'installed' keyword", async () => {
       // Setup: Project with installed components
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -539,10 +540,10 @@ describe("handleUpdateComponents", () => {
     it("should update a single installed component", async () => {
       // Setup: Project with installed component
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         // Existing component
         "/mock-project/src/components/tambo/message.tsx":
@@ -569,12 +570,12 @@ describe("handleUpdateComponents", () => {
     it("should update multiple components", async () => {
       // Setup: Project with multiple installed components
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message", "form"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
-        "/mock-project/cli/src/registry/form/form.tsx":
+        "/mock-project/cli/dist/registry/components/form/form.tsx":
           "export const Form = () => <div>Updated</div>;",
         // Existing components
         "/mock-project/src/components/tambo/message.tsx":
@@ -616,9 +617,9 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message", "form"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
-        "/mock-project/cli/src/registry/form/form.tsx":
+        "/mock-project/cli/dist/registry/components/form/form.tsx":
           "export const Form = () => <div>Updated</div>;",
         // Existing components
         "/mock-project/src/components/tambo/message.tsx":
@@ -659,23 +660,24 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override message config to require markdown-components
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: ["markdown-components"],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Updated</div>;",
-            },
-          ],
-        }),
+        "/mock-project/cli/dist/registry/components/message/config.json":
+          JSON.stringify({
+            name: "message",
+            description: "Message component",
+            dependencies: [],
+            devDependencies: [],
+            requires: ["markdown-components"],
+            files: [
+              {
+                name: "message.tsx",
+                content: "export const Message = () => <div>Updated</div>;",
+              },
+            ],
+          }),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
-        "/mock-project/cli/src/registry/markdown-components/markdown-components.tsx":
+        "/mock-project/cli/dist/registry/components/markdown-components/markdown-components.tsx":
           "export const Markdown = () => <div>Updated</div>;",
         // Installed components
         "/mock-project/src/components/tambo/message.tsx":
@@ -713,23 +715,24 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override message config to require markdown-components
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: ["markdown-components"],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Updated</div>;",
-            },
-          ],
-        }),
+        "/mock-project/cli/dist/registry/components/message/config.json":
+          JSON.stringify({
+            name: "message",
+            description: "Message component",
+            dependencies: [],
+            devDependencies: [],
+            requires: ["markdown-components"],
+            files: [
+              {
+                name: "message.tsx",
+                content: "export const Message = () => <div>Updated</div>;",
+              },
+            ],
+          }),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
-        "/mock-project/cli/src/registry/markdown-components/markdown-components.tsx":
+        "/mock-project/cli/dist/registry/components/markdown-components/markdown-components.tsx":
           "export const Markdown = () => <div>Updated</div>;",
         // Only message is installed
         "/mock-project/src/components/tambo/message.tsx":
@@ -762,7 +765,7 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         // Component in legacy location
         "/mock-project/src/components/ui/message.tsx":
@@ -794,23 +797,24 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override message config to require markdown-components
-        "/mock-project/cli/src/registry/message/config.json": JSON.stringify({
-          name: "message",
-          description: "Message component",
-          dependencies: [],
-          devDependencies: [],
-          requires: ["markdown-components"],
-          files: [
-            {
-              name: "message.tsx",
-              content: "export const Message = () => <div>Updated</div>;",
-            },
-          ],
-        }),
+        "/mock-project/cli/dist/registry/components/message/config.json":
+          JSON.stringify({
+            name: "message",
+            description: "Message component",
+            dependencies: [],
+            devDependencies: [],
+            requires: ["markdown-components"],
+            files: [
+              {
+                name: "message.tsx",
+                content: "export const Message = () => <div>Updated</div>;",
+              },
+            ],
+          }),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
-        "/mock-project/cli/src/registry/markdown-components/markdown-components.tsx":
+        "/mock-project/cli/dist/registry/components/markdown-components/markdown-components.tsx":
           "export const Markdown = () => <div>Updated</div>;",
         // Message in legacy location, markdown-components in new location
         "/mock-project/src/components/ui/message.tsx":
@@ -856,10 +860,10 @@ describe("handleUpdateComponents", () => {
     it("should respect --yes flag and skip confirmation", async () => {
       // Setup
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -893,7 +897,7 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -926,7 +930,7 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/custom/path/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -955,10 +959,10 @@ describe("handleUpdateComponents", () => {
     it("should respect --legacyPeerDeps option", async () => {
       // Setup
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -988,7 +992,7 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -1021,7 +1025,7 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -1052,7 +1056,7 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div>Old</div>;",
@@ -1080,7 +1084,7 @@ describe("handleUpdateComponents", () => {
         }),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
-        "/mock-project/cli/src/registry/message/message.tsx":
+        "/mock-project/cli/dist/registry/components/message/message.tsx":
           "export const Message = () => <div>Updated</div>;",
         "/mock-project/src/components/ui/message.tsx":
           "export const Message = () => <div>Old</div>;",
