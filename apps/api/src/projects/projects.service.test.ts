@@ -20,8 +20,7 @@ type MockedDbOperations = {
 };
 
 const getMockedDbOperations = (): MockedDbOperations =>
-  (jest.requireMock("@tambo-ai-cloud/db"))
-    .operations;
+  jest.requireMock("@tambo-ai-cloud/db").operations;
 
 const createMockConfigService = () =>
   ({
