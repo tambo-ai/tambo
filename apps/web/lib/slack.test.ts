@@ -14,14 +14,14 @@ describe("callSlackAPI - Environment Variables", () => {
   test("should throw an error if SLACK_OAUTH_TOKEN is empty", async () => {
     (env as any).SLACK_OAUTH_TOKEN = "";
     await expect(callSlackAPI(endpoint, body)).rejects.toThrow(
-      "Slack API call failed: Error: SLACK_OAUTH_TOKEN environment variable is not set",
+      "SLACK_OAUTH_TOKEN environment variable is not set",
     );
   });
 
   test("should throw an error if SLACK_OAUTH_TOKEN is missing (undefined)", async () => {
     (env as any).SLACK_OAUTH_TOKEN = undefined;
     await expect(callSlackAPI(endpoint, body)).rejects.toThrow(
-      "Slack API call failed: Error: SLACK_OAUTH_TOKEN environment variable is not set",
+      "SLACK_OAUTH_TOKEN environment variable is not set",
     );
   });
 });
