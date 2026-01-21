@@ -949,13 +949,8 @@ export class V1Service {
       if (typeof rawState === "object" && !Array.isArray(rawState)) {
         currentState = rawState;
       } else {
-        throw new HttpException(
-          createProblemDetail(
-            V1ErrorCodes.INTERNAL_ERROR,
-            "Stored component state must be a JSON object",
-            { threadId, componentId, messageId: message.id },
-          ),
-          HttpStatus.INTERNAL_SERVER_ERROR,
+        this.logger.warn(
+          `Invalid componentState for message ${message.id} (thread ${threadId}, component ${componentId}); coercing to empty object`,
         );
       }
     }
@@ -1008,7 +1003,7 @@ export class V1Service {
     | Pick<typeof schema.messages.$inferSelect, "id" | "componentState">
     | undefined
   > {
-    // `content` is expected to be a JSON array of blocks.
+    // `content` is expected to be a JSON array of blocks. Non-array content is treated as empty.
     const message = await this.db.query.messages.findFirst({
       where: and(
         eq(schema.messages.threadId, threadId),
