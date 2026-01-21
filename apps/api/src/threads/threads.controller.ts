@@ -398,6 +398,7 @@ export class ThreadsController {
   async advanceThread(
     @Param("id") _threadId: string,
     @Req() request: Request,
+    @Body() _advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
     throw new EndpointDeprecatedException({
       detail:
