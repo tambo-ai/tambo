@@ -69,11 +69,7 @@ describe("ProjectsService", () => {
     mockConfigService = createMockConfigService();
     mockAnalyticsService = createMockAnalyticsService();
 
-    jest
-      .mocked(operations.getApiKeys)
-      .mockResolvedValue(
-        [] as Awaited<ReturnType<typeof operations.getApiKeys>>,
-      );
+    mockedOperations.getApiKeys.mockResolvedValue([]);
   });
 
   it("creates a project", async () => {
@@ -97,7 +93,7 @@ describe("ProjectsService", () => {
         isTokenRequired: false,
         providerType: AiProviderType.LLM,
       } as Awaited<ReturnType<typeof operations.createProject>>;
-      jest.mocked(operations.createProject).mockResolvedValue(created);
+      mockedOperations.createProject.mockResolvedValue(created);
 
       const service = module.get(ProjectsService);
       const result = await service.create({
@@ -105,7 +101,7 @@ describe("ProjectsService", () => {
         userId: "user-1",
       });
 
-      expect(operations.createProject).toHaveBeenCalledWith(mockDb, {
+      expect(mockedOperations.createProject).toHaveBeenCalledWith(mockDb, {
         name: "New Project",
         userId: "user-1",
       });
@@ -136,7 +132,7 @@ describe("ProjectsService", () => {
 
     try {
       mockConfigService.getOrThrow.mockReturnValue("api-key-secret");
-      jest.mocked(operations.createApiKey).mockResolvedValue("tambo_test_key");
+      mockedOperations.createApiKey.mockResolvedValue("tambo_test_key");
 
       const service = module.get(ProjectsService);
       const apiKey = await service.generateApiKey(
@@ -146,11 +142,14 @@ describe("ProjectsService", () => {
       );
 
       expect(apiKey).toBe("tambo_test_key");
-      expect(operations.getApiKeys).toHaveBeenCalledWith(mockDb, "proj-1");
+      expect(mockedOperations.getApiKeys).toHaveBeenCalledWith(
+        mockDb,
+        "proj-1",
+      );
       expect(mockConfigService.getOrThrow).toHaveBeenCalledWith(
         "API_KEY_SECRET",
       );
-      expect(operations.createApiKey).toHaveBeenCalledWith(
+      expect(mockedOperations.createApiKey).toHaveBeenCalledWith(
         mockDb,
         "api-key-secret",
         {
