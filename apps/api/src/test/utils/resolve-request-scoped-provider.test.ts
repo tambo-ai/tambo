@@ -3,7 +3,7 @@ import { Injectable, Scope } from "@nestjs/common";
 import { createTestRequestContext } from "./create-test-request-context";
 import { createTestingModule } from "./create-testing-module";
 import { resolveRequestScopedProvider } from "./resolve-request-scoped-provider";
-import { assertTrue, type IsAny, type IsUnknown } from "./type-assertions";
+import { assertTrue, type IsNotAny, type IsUnknown } from "./type-assertions";
 
 @Injectable()
 class ExampleDepService {
@@ -70,7 +70,7 @@ describe("resolveRequestScopedProvider", () => {
       // These `assertTrue` calls are compile-time guards only. If `value` ever widens to `any`
       // or narrows away from `unknown`, TypeScript should fail the build.
       assertTrue<IsUnknown<typeof value>>(true);
-      assertTrue<IsAny<typeof value> extends false ? true : false>(true);
+      assertTrue<IsNotAny<typeof value>>(true);
       expect(value).toBe(123);
     } finally {
       await module.close();

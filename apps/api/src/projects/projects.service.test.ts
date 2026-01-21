@@ -4,22 +4,47 @@ import type { TestingModule } from "@nestjs/testing";
 import { AiProviderType } from "@tambo-ai-cloud/core";
 import { operations, type HydraDatabase } from "@tambo-ai-cloud/db";
 
+import { AnalyticsService } from "../common/services/analytics.service";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import { createTestRequestContext } from "../test/utils/create-test-request-context";
 import { createTestingModule } from "../test/utils/create-testing-module";
 import { resolveRequestScopedProvider } from "../test/utils/resolve-request-scoped-provider";
 import { ProjectsService } from "./projects.service";
 
+let mockedOperations: {
+  createApiKey: jest.Mock;
+  createProject: jest.Mock;
+  getApiKeys: jest.Mock;
+  getProjectApiKeyId: jest.Mock;
+  updateApiKeyLastUsed: jest.Mock;
+};
+
+const createMockConfigService = () =>
+  ({
+    getOrThrow: jest.fn(),
+  }) satisfies Pick<ConfigService, "getOrThrow">;
+
+const createMockAnalyticsService = () =>
+  ({
+    capture: jest.fn(),
+  }) satisfies Pick<AnalyticsService, "capture">;
+
 jest.mock("@tambo-ai-cloud/db", () => {
   const actual = jest.requireActual("@tambo-ai-cloud/db");
+
+  mockedOperations = {
+    createApiKey: jest.fn(),
+    createProject: jest.fn(),
+    getApiKeys: jest.fn(),
+    getProjectApiKeyId: jest.fn(),
+    updateApiKeyLastUsed: jest.fn(),
+  };
+
   return {
     ...actual,
     operations: {
       ...(actual.operations ?? {}),
-      createApiKey: jest.fn(),
-      createProject: jest.fn(),
-      getProjectApiKeyId: jest.fn(),
-      updateApiKeyLastUsed: jest.fn(),
+      ...mockedOperations,
     },
   };
 });
@@ -35,18 +60,20 @@ class ExampleRequestScopedService {
 
 describe("ProjectsService", () => {
   let mockDb: HydraDatabase;
-  let mockConfigService: Pick<jest.Mocked<ConfigService>, "getOrThrow">;
+  let mockConfigService: ReturnType<typeof createMockConfigService>;
+  let mockAnalyticsService: ReturnType<typeof createMockAnalyticsService>;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockDb = {} as HydraDatabase;
-    mockConfigService = {
-      getOrThrow: jest.fn(),
-    };
+    mockConfigService = createMockConfigService();
+    mockAnalyticsService = createMockAnalyticsService();
 
-    jest.mocked(operations.createApiKey).mockReset();
-    jest.mocked(operations.createProject).mockReset();
-    jest.mocked(operations.getProjectApiKeyId).mockReset();
-    jest.mocked(operations.updateApiKeyLastUsed).mockReset();
+    jest
+      .mocked(operations.getApiKeys)
+      .mockResolvedValue(
+        [] as Awaited<ReturnType<typeof operations.getApiKeys>>,
+      );
   });
 
   it("creates a project", async () => {
@@ -54,9 +81,10 @@ describe("ProjectsService", () => {
       providers: [
         ProjectsService,
         { provide: DATABASE, useValue: mockDb },
+        { provide: AnalyticsService, useValue: mockAnalyticsService },
         {
           provide: ConfigService,
-          useValue: mockConfigService as unknown as ConfigService,
+          useValue: mockConfigService,
         },
       ],
     });
@@ -98,9 +126,10 @@ describe("ProjectsService", () => {
       providers: [
         ProjectsService,
         { provide: DATABASE, useValue: mockDb },
+        { provide: AnalyticsService, useValue: mockAnalyticsService },
         {
           provide: ConfigService,
-          useValue: mockConfigService as unknown as ConfigService,
+          useValue: mockConfigService,
         },
       ],
     });
@@ -117,6 +146,7 @@ describe("ProjectsService", () => {
       );
 
       expect(apiKey).toBe("tambo_test_key");
+      expect(operations.getApiKeys).toHaveBeenCalledWith(mockDb, "proj-1");
       expect(mockConfigService.getOrThrow).toHaveBeenCalledWith(
         "API_KEY_SECRET",
       );
@@ -127,6 +157,14 @@ describe("ProjectsService", () => {
           projectId: "proj-1",
           userId: "user-1",
           name: "key-name",
+        },
+      );
+      expect(mockAnalyticsService.capture).toHaveBeenCalledWith(
+        "user-1",
+        "api_key_generated",
+        {
+          projectId: "proj-1",
+          isFirstKey: true,
         },
       );
     } finally {
@@ -140,9 +178,10 @@ describe("ProjectsService", () => {
         ProjectsService,
         ExampleRequestScopedService,
         { provide: DATABASE, useValue: mockDb },
+        { provide: AnalyticsService, useValue: mockAnalyticsService },
         {
           provide: ConfigService,
-          useValue: mockConfigService as unknown as ConfigService,
+          useValue: mockConfigService,
         },
       ],
     });

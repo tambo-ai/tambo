@@ -13,9 +13,19 @@ export function createTestRequestContext<
 >(request: TRequest): TestRequestContext<TRequest>;
 export function createTestRequestContext<
   TRequest extends Record<string, unknown>,
->(request?: TRequest): TestRequestContext<Record<string, unknown>> {
+>(
+  request?: TRequest,
+): TestRequestContext<Record<string, unknown>> | TestRequestContext<TRequest> {
+  const contextId = ContextIdFactory.create();
+  if (request === undefined) {
+    const emptyRequest: Record<string, unknown> = {};
+    return {
+      contextId,
+      request: emptyRequest,
+    };
+  }
   return {
-    contextId: ContextIdFactory.create(),
-    request: request ?? {},
+    contextId,
+    request,
   };
 }

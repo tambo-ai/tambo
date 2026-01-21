@@ -3,6 +3,8 @@
 // `IsAny<T>` is true iff T is `any`.
 export type IsAny<T> = 0 extends 1 & T ? true : false;
 
+export type IsNotAny<T> = IsAny<T> extends true ? false : true;
+
 // `IsUnknown<T>` is true iff T is exactly `unknown`.
 // Note: `any` is explicitly excluded and will return false.
 export type IsUnknown<T> =
@@ -14,6 +16,6 @@ export type IsUnknown<T> =
         : false
       : false;
 
-export function assertTrue<T extends true>(_value: T): T {
-  return _value;
+export function assertTrue<T extends true>(_value: T): asserts _value is T {
+  void _value;
 }
