@@ -94,62 +94,75 @@ The documentation follows a **progressive disclosure** pattern - starting with q
 
 In general, try to fit changes into the following categories. If you can't find a good fit, suggest a new category but ask the user for confirmation.
 
-1. **Getting Started** - Immediate value with working examples
-   - Quickstart: Template installation and first interactions
-   - Integration: Adding Tambo to existing projects
-   - Component basics: Understanding registration patterns
+1. **Getting Started** (3 pages)
+   - quickstart - Template installation and first interactions
+   - integrate - Adding Tambo to existing projects
+   - components - Understanding registration patterns
 
-2. **Guides** - Goal-oriented how-to guides organized by user journey
-   - **Getting Your First Components Working**: Quick wins for new users
-     - Make Tambo Generate Components for You
-     - Let Users Edit Components Through Chat
-     - Give Tambo Access to Your Functions
-     - Connect External Data Sources
-   - **Building Complete Interfaces**: Creating production UIs
-     - Build a Custom Chat Interface
-     - Customize How MCP Features Display
-     - Control What Components AI Can See
-   - **Adding Intelligence & Context**: Making AI smarter
-     - Configure AI Personality and Behavior (project settings, LLM provider, agent behavior)
-     - Give AI Access to User-Specific Data (context helpers, attachments, resources, thread instructions)
-     - Add User Authentication (Auth.js, Auth0, Clerk, Supabase, Neon, WorkOS, Better Auth)
+2. **Concepts** (10 pages across subsections)
+   - **generative-interfaces/** (4 pages including index)
+     - generative-components
+     - interactable-components
+     - component-state
+   - **model-context-protocol/** (2 pages including index)
+     - features - Tools, prompts, resources, elicitations, sampling
+   - tools - Function calling, schemas, orchestration
+   - additional-context - Configuration, custom helpers, context attachments
+   - conversation-storage - Message threads, history management, status tracking
+   - agent-configuration - AI personality and behavior
+   - user-authentication - OAuth providers, session management, context keys
 
-3. **Concepts** - Core architectural understanding (components, threads, tools, context)
-   - Components: Registration, schemas, lifecycle, interactables
-   - Message Threads: Sending messages, responses, history management, status tracking
-   - Tools: Function calling, schemas, orchestration
-   - Model Context Protocol: Overview (what is MCP, connection architectures - server-side vs client-side comparison, server namespacing, rich content support, quick start), Features (tools, prompts, resources, elicitations, sampling - all explained with user experience examples)
-   - User Authentication: OAuth providers, session management, context keys
-   - Additional Context: Configuration, custom helpers, context attachments, dynamic control, system messages (thread-level instructions), resources (local and MCP, @ mention syntax, user-controlled context inclusion)
+3. **Guides** (17 pages across 7 subsections)
+   - **setup-project/** (3 pages)
+     - create-project
+     - agent-behavior
+     - llm-provider
+   - **enable-generative-ui/** (2 pages)
+     - register-components
+     - register-interactables
+   - **build-interfaces/** (2 pages)
+     - build-chat-interface
+     - customize-mcp-display
+   - **give-context/** (3 pages)
+     - make-ai-aware-of-state
+     - let-users-attach-context
+     - make-context-referenceable
+   - **take-actions/** (1 page)
+     - register-tools
+   - **add-authentication/** (8 pages including index)
+     - Auth.js, Auth0, Clerk, Supabase, Neon, WorkOS, Better Auth
+   - connect-mcp-servers - Single page (not in subfolder)
 
-4. **Best Practices** - Guidance for production implementations
-   - Component data props optimization
-   - Performance considerations
-   - Error handling patterns
-   - Security best practices
+4. **Best Practices** (2 pages)
+   - coding-agent-generative-ui-rules
+   - component-data-props - Optimization guidance
 
-5. **API Reference** - Technical specifications
-   - React hooks: Complete signatures, parameters, return values
-   - TypeScript interfaces and types
-   - Provider configurations
+5. **API Reference** (4 pages)
+   - react-hooks - Complete signatures, parameters, return values
+   - typescript-types - TypeScript interfaces and types
+   - **problems/** (1 page)
+     - endpoint-deprecated
 
-6. **CLI** - Command-line tooling documentation
-   - Commands: add, create-app, init, list, migrate, update, upgrade
-   - Configuration: Project setup, customization options
-   - Workflows: Development patterns, component management
-   - Global options: Flags and environment variables
+6. **CLI** (9 pages)
+   - index, global-options, configuration, workflows
+   - **commands/** (8 pages)
+     - create-app, init, full-send, add, list, update, upgrade, migrate
 
-7. **Models** - Configuration and customization
-   - Custom LLM parameters: Temperature, max tokens, model selection
-   - Labels: Organizing and categorizing interactions
-   - Reasoning Models: Advanced thinking/reasoning capabilities for OpenAI and Gemini models
-   - Provider-specific configurations
+7. **Models** (3 pages)
+   - index
+   - labels - Organizing and categorizing interactions
+   - reasoning-models - Advanced thinking/reasoning capabilities for OpenAI and Gemini
 
-8. **Examples & Templates** - Real-world implementations
-   - Chat starter applications
-   - Integration examples (Supabase MCP client)
-   - Use case demonstrations
-   - Community templates and patterns
+8. **Reference** (6 pages)
+   - **providers/** (6 pages)
+     - OpenAI, Anthropic, Google, Groq, Mistral, Cerebras
+
+9. **Examples and Templates** (2 pages)
+   - chat-starter-app - Chat starter applications
+   - supabase-mcp-client - Integration examples
+
+10. **Tambo MCP Server** (1 page)
+    - index - MCP server documentation
 
 Please update the `Information Architecture` section in the AGENTS.md file to reflect changes when you make them. Keeping this up to date is VERY IMPORTANT.
 
