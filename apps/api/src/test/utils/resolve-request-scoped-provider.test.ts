@@ -69,6 +69,8 @@ describe("resolveRequestScopedProvider", () => {
       // Compile-time guards:
       // - Token overload should stay `unknown` so callers can't pretend token-based providers are type-safe.
       // - It should also not accidentally widen to `any`.
+      // If `typeof value` ever becomes a concrete type (e.g. `number`), this will fail.
+      // It still allows `any`, which is handled by the next assertion.
       "test" as unknown satisfies typeof value;
 
       // @ts-expect-error token overload should return `unknown` (not `any` or a concrete type)
