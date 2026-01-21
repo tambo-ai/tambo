@@ -20,6 +20,7 @@ import {
   ContentPartType,
   MessageRole,
   V1RunStatus,
+  type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
 import { sanitizeEvent } from "@tambo-ai-cloud/backend";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
@@ -28,6 +29,20 @@ import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
 import type { Response } from "express";
 import { createProblemDetail, V1ErrorCodes } from "./v1.errors";
 import { V1CreateRunDto } from "./dto/run.dto";
+import {
+  convertV1ComponentsToInternal,
+  convertV1ToolsToInternal,
+} from "./v1-tool-conversions";
+import {
+  createAwaitingInputEvent,
+  ClientToolCallTracker,
+} from "./v1-client-tools";
+import {
+  convertToolResultsToMessages,
+  dedupeToolResults,
+  extractToolResults,
+  validateToolResults,
+} from "./v1-tool-results";
 import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
 import { ThreadsService } from "../threads/threads.service";
 import type { MessageRequest } from "../threads/dto/message.dto";
@@ -379,28 +394,120 @@ export class V1Service {
       };
     }
 
-    const runId = await this.db.transaction(async (tx) => {
-      const didAcquireLock = await operations.acquireRunLock(tx, threadId);
-      if (!didAcquireLock) {
-        return null;
-      }
+    const toolResultMessages: UnsavedThreadToolMessage[] = [];
+    const toolResults = extractToolResults(dto.message);
+    const { toolResults: dedupedToolResults, duplicateToolCallIds } =
+      dedupeToolResults(toolResults);
+    const pendingToolCallIds = thread.pendingToolCallIds ?? [];
+    const validation = validateToolResults(
+      dedupedToolResults,
+      pendingToolCallIds,
+    );
 
-      const run = await operations.createRun(tx, {
-        threadId,
-        previousRunId: dto.previousRunId,
-        model: dto.model,
-        requestParams: {
-          maxTokens: dto.maxTokens,
-          temperature: dto.temperature,
-          toolChoice: dto.toolChoice,
-        },
-        metadata: dto.runMetadata,
+    if (!validation.valid) {
+      return {
+        success: false,
+        error: new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_TOOL_RESULT,
+            validation.error.message,
+            {
+              code: validation.error.code,
+              missingToolCallIds: validation.error.missingToolCallIds,
+              extraToolCallIds: validation.error.extraToolCallIds,
+            },
+          ),
+          HttpStatus.BAD_REQUEST,
+        ),
+      };
+    }
+
+    if (duplicateToolCallIds.length > 0) {
+      this.logger.warn(
+        `Dropping duplicate tool results for tool calls: ${duplicateToolCallIds.join(", ")}`,
+      );
+    }
+
+    // Convert validated tool results to internal messages
+    if (dedupedToolResults.length > 0) {
+      toolResultMessages.push(
+        ...convertToolResultsToMessages(dedupedToolResults),
+      );
+    }
+
+    // Capture expected pending tool call IDs from the thread snapshot we read before
+    // acquiring the run lock. This snapshot is the only concurrency key used for
+    // tool result application.
+    // Any change between this snapshot and the clear is
+    // treated as a concurrency conflict that requires client retry.
+    // Note: pendingToolCallIds should only be modified by the V1 run / tool-result flow.
+    const snapshotPendingToolCallIds = thread.pendingToolCallIds ?? null;
+
+    let runId: string | null;
+    try {
+      runId = await this.db.transaction(async (tx) => {
+        const didAcquireLock = await operations.acquireRunLock(tx, threadId);
+        if (!didAcquireLock) {
+          return null;
+        }
+
+        // Save tool result messages to the thread (before creating the run)
+        for (const toolMessage of toolResultMessages) {
+          await operations.addMessage(tx, threadId, toolMessage);
+        }
+
+        // Clear pendingToolCallIds since we've processed the tool results
+        if (toolResultMessages.length > 0) {
+          await operations.clearPendingToolCalls(
+            tx,
+            threadId,
+            snapshotPendingToolCallIds,
+          );
+        }
+
+        const run = await operations.createRun(tx, {
+          threadId,
+          previousRunId: dto.previousRunId,
+          model: dto.model,
+          requestParams: {
+            maxTokens: dto.maxTokens,
+            temperature: dto.temperature,
+            toolChoice: dto.toolChoice,
+          },
+          metadata: dto.runMetadata,
+        });
+
+        await operations.setCurrentRunId(tx, threadId, run.id);
+
+        return run.id;
       });
+    } catch (error) {
+      if (error instanceof operations.PendingToolCallStateMismatchError) {
+        const mismatchContext = "v1.apply_tool_results";
+        const snapshotPendingToolCallIdsCount =
+          snapshotPendingToolCallIds?.length ?? 0;
 
-      await operations.setCurrentRunId(tx, threadId, run.id);
-
-      return run.id;
-    });
+        // Keep warning logs low-cardinality and avoid emitting tool-call IDs.
+        this.logger.warn(
+          `Thread ${threadId} pending tool call state mismatch ` +
+            `(previousRunId=${dto.previousRunId ?? null}) ` +
+            `mismatchContext=${mismatchContext} ` +
+            `snapshotPendingToolCallIdsCount=${snapshotPendingToolCallIdsCount}`,
+        );
+        return {
+          success: false,
+          error: new HttpException(
+            createProblemDetail(
+              V1ErrorCodes.CONCURRENT_RUN,
+              "Thread pending tool call state changed; please retry",
+              { threadId },
+            ),
+            HttpStatus.CONFLICT,
+          ),
+        };
+      }
+      throw error;
+    }
 
     if (runId === null) {
       const { thread: latestThread } = await operations.getThreadForRunStart(
@@ -544,17 +651,20 @@ export class V1Service {
           // advanceThread is fire-and-forget style - it resolves when streaming completes
           // but pushes to queue while running
           //
-          // TODO(Step 8): Convert V1 tools/components to internal format
+          // Convert V1 tools/components to internal format
           // V1 uses JSON Schemas (inputSchema, propsSchema) while internal uses
-          // parsed metadata (ToolParameters[], contextTools). Proper conversion
-          // needed when implementing client-side tool handling.
+          // parsed metadata (ToolParameters[], contextTools).
+          const availableComponents = convertV1ComponentsToInternal(
+            dto.availableComponents,
+          );
+          const clientTools = convertV1ToolsToInternal(dto.tools);
+
           const streamingPromise = this.threadsService.advanceThread(
             projectId,
             {
               messageToAppend,
-              // V1 tools/components format differs from internal - conversion needed
-              availableComponents: undefined,
-              clientTools: undefined,
+              availableComponents,
+              clientTools,
             },
             threadId,
             {}, // toolCallCounts - start fresh for V1 API
@@ -563,11 +673,16 @@ export class V1Service {
             contextKey,
           );
 
-          // 5. Consume queue and emit AG-UI events
+          // 5. Consume queue and emit AG-UI events, tracking tool calls
+          const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
+          const toolCallTracker = new ClientToolCallTracker(clientToolNames);
+
           for await (const item of queue) {
             // Emit all AG-UI events from this stream item
             if (item.aguiEvents) {
               for (const event of item.aguiEvents) {
+                // Track tool calls to detect pending client-side tools
+                toolCallTracker.processEvent(event);
                 this.emitEvent(response, event);
               }
             }
@@ -576,13 +691,31 @@ export class V1Service {
           // Wait for streaming to complete (should already be done since queue finished)
           await streamingPromise;
 
-          // 6. Mark run as completed successfully
+          // 6. Check for pending client-side tool calls
+          const pendingToolCalls = toolCallTracker.getPendingToolCalls();
+          const hasPendingTools = pendingToolCalls.length > 0;
+
+          if (hasPendingTools) {
+            // Emit awaiting_input event before RUN_FINISHED
+            this.logger.log(
+              `Run ${runId} has ${pendingToolCalls.length} pending client tool calls`,
+            );
+            const awaitingEvent = createAwaitingInputEvent(pendingToolCalls);
+            this.emitEvent(response, awaitingEvent);
+          }
+
+          // 7. Mark run as completed (with pending tool call info if applicable)
+          const pendingToolCallIds = hasPendingTools
+            ? toolCallTracker.getPendingToolCallIds()
+            : undefined;
+
           const didReleaseLock = await this.db.transaction(async (tx) => {
             await operations.completeRun(tx, runId);
             return await operations.releaseRunLockIfCurrent(
               tx,
               threadId,
               runId,
+              { pendingToolCallIds },
             );
           });
 
@@ -592,7 +725,7 @@ export class V1Service {
             );
           }
 
-          // 7. Emit RUN_FINISHED
+          // 8. Emit RUN_FINISHED
           const runFinishedEvent: RunFinishedEvent = {
             type: EventType.RUN_FINISHED,
             threadId,
@@ -663,13 +796,22 @@ export class V1Service {
 
   /**
    * Convert V1 input message to internal MessageRequest format.
+   *
+   * Note: tool_result blocks are filtered out because they are processed
+   * separately in startRun and saved as Tool role messages before this
+   * conversion happens.
    */
   private convertV1MessageToInternal(
     message: V1CreateRunDto["message"],
   ): MessageRequest {
+    // Filter out tool_result blocks - they're already saved as separate Tool messages
+    const nonToolResultContent = message.content.filter(
+      (block) => block.type !== "tool_result",
+    );
+
     return {
       role: MessageRole.User,
-      content: message.content.map((block) => {
+      content: nonToolResultContent.map((block) => {
         switch (block.type) {
           case "text":
             return {
@@ -680,15 +822,6 @@ export class V1Service {
             return {
               type: ContentPartType.Resource,
               resource: block.resource,
-            };
-          case "tool_result":
-            // Tool results should be handled separately in processToolResults
-            // For now, convert to text representation
-            return {
-              type: ContentPartType.Text,
-              text: block.content
-                .map((c) => (c.type === "text" ? c.text : "[resource]"))
-                .join("\n"),
             };
           default:
             throw new Error(

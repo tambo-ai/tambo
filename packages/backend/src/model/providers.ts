@@ -6,4 +6,5 @@ export type Provider =
   | "gemini"
   | "groq"
   | "openrouter"
-  | "openai-compatible";
+  | "openai-compatible"
+  | "cerebras";

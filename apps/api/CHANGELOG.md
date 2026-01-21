@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.129.1](https://github.com/tambo-ai/tambo/compare/api-v0.129.0...api-v0.129.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* add back AdvanceThreadDto so it is codegened ([#1848](https://github.com/tambo-ai/tambo/issues/1848)) ([5e2caf7](https://github.com/tambo-ai/tambo/commit/5e2caf7915e5376d3f8312185cf23607ce7d75d8))
+
+## [0.129.0](https://github.com/tambo-ai/tambo/compare/api-v0.128.0...api-v0.129.0) (2026-01-20)
+
+
+### Features
+
+* **api:** implement v1 API phase 1 - foundation & schema ([#1767](https://github.com/tambo-ai/tambo/issues/1767)) ([e4dad06](https://github.com/tambo-ai/tambo/commit/e4dad061f22d2b6378846949beac1449f8c8b5c4))
+* **api:** implement v1 API phase 2 - thread & message CRUD ([#1779](https://github.com/tambo-ai/tambo/issues/1779)) ([94e6b60](https://github.com/tambo-ai/tambo/commit/94e6b600304b312b0fa419b5a217f42a3e052375))
+* **api:** V1 API Phase 3 - Client tools, tool results, component streaming ([#1813](https://github.com/tambo-ai/tambo/issues/1813)) ([2aa8f16](https://github.com/tambo-ai/tambo/commit/2aa8f1680b338c7c7e48031737ffd38b2cb14de6))
+* **api:** V1 API Phase 3 PR [#1](https://github.com/tambo-ai/tambo/issues/1) - Run endpoints & streaming foundation ([#1792](https://github.com/tambo-ai/tambo/issues/1792)) ([18e0272](https://github.com/tambo-ai/tambo/commit/18e0272c8dbfda35d0cafddfc53236ca19356067))
+
+
+### Bug Fixes
+
+* **api:** suppress console output in tests ([#1752](https://github.com/tambo-ai/tambo/issues/1752)) ([bee04b4](https://github.com/tambo-ai/tambo/commit/bee04b4f5d6f1e0836238841d326c27aabbbdd44))
+
+
+### Miscellaneous Chores
+
+* **api:** add debug logging for S3 config ([#1804](https://github.com/tambo-ai/tambo/issues/1804)) ([cd75bf0](https://github.com/tambo-ai/tambo/commit/cd75bf0a0b8c6f8f26bb647ddba65aee2637c749))
+* **api:** add more debug logging for env vars ([#1805](https://github.com/tambo-ai/tambo/issues/1805)) ([e884e6b](https://github.com/tambo-ai/tambo/commit/e884e6bc5684fe1782c4baed716785ab2f5cc556))
+* **deps:** bump openai from 6.15.0 to 6.16.0 ([#1835](https://github.com/tambo-ai/tambo/issues/1835)) ([c648fcb](https://github.com/tambo-ai/tambo/commit/c648fcbeb2b17a791c29b2ba6ad88e262a32200e))
+* **deps:** bump resend from 6.6.0 to 6.7.0 ([#1836](https://github.com/tambo-ai/tambo/issues/1836)) ([0410860](https://github.com/tambo-ai/tambo/commit/0410860a01fe73e51cb403f0b261f9cf760c987b))
+* **deps:** bump the ag-ui group across 1 directory with 2 updates ([#1771](https://github.com/tambo-ai/tambo/issues/1771)) ([5f0c14a](https://github.com/tambo-ai/tambo/commit/5f0c14aa5eaeb8dbf13bf68afe07c93faf2f6299))
+* **deps:** bump the nestjs group with 6 updates ([#1828](https://github.com/tambo-ai/tambo/issues/1828)) ([5f3f4b4](https://github.com/tambo-ai/tambo/commit/5f3f4b4b1be2b754b303d947516835e3238eea36))
+* **deps:** bump the sentry group with 3 updates ([#1832](https://github.com/tambo-ai/tambo/issues/1832)) ([bdbee36](https://github.com/tambo-ai/tambo/commit/bdbee3643f2cc90a5094365545e939633422a962))
+* **deps:** bump the small-safe-packages group with 8 updates ([#1831](https://github.com/tambo-ai/tambo/issues/1831)) ([a5965b4](https://github.com/tambo-ai/tambo/commit/a5965b4f9d1cf502eaf185cc8b1e26a93f847de0))
+* **test:** bump coverage thresholds (2026-01-19) ([#1822](https://github.com/tambo-ai/tambo/issues/1822)) ([acf34a5](https://github.com/tambo-ai/tambo/commit/acf34a58b3cda7d8ed0b1313998ecf53e8463ad3))
+
+
+### Code Refactoring
+
+* **logger:** replaced any with unknown and hardened message formatting ([#1670](https://github.com/tambo-ai/tambo/issues/1670)) ([6787db0](https://github.com/tambo-ai/tambo/commit/6787db01a96835f3168fd12a8a2dfd6e15fe42d9))
+
 ## [0.128.0](https://github.com/tambo-ai/tambo/compare/api-v0.127.1...api-v0.128.0) (2026-01-07)
 
 

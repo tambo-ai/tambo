@@ -53,6 +53,10 @@ import {
 } from "./llm-client";
 import { generateMessageId } from "./message-id-generator";
 import { limitTokens } from "./token-limiter";
+import {
+  ComponentStreamTracker,
+  tryExtractComponentName,
+} from "../../util/component-streaming";
 
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
@@ -63,6 +67,7 @@ interface ProviderConfig {
   apiKey?: string;
   baseURL?: string;
   headers?: Record<string, string>;
+  providerName?: string;
   [key: string]: unknown;
 }
 
@@ -79,9 +84,10 @@ const PROVIDER_FACTORIES: Record<string, ProviderFactory> = {
   mistral: createMistral,
   google: createGoogleGenerativeAI,
   groq: createGroq,
+  // Cerebras uses openai-compatible provider with custom base URL (see getModelInstance)
   "openai-compatible": (config) =>
     createOpenAICompatible({
-      name: "openai-compatible",
+      name: config?.providerName || "openai-compatible",
       baseURL: config?.baseURL || "",
       apiKey: config?.apiKey,
       ...config,
@@ -110,6 +116,9 @@ function getProviderFromModel(
       return "groq";
     case "gemini":
       return "google";
+    case "cerebras":
+      // Cerebras uses openai-compatible provider with custom base URL
+      return "openai-compatible";
     default:
       // Fallback to OpenAI for unknown providers
       return "openai";
@@ -321,8 +330,15 @@ export class AISdkClient implements LLMClient {
       config.apiKey = this.apiKey;
     }
 
-    if (providerKey === "openai-compatible" && this.baseURL) {
-      config.baseURL = this.baseURL;
+    // Handle openai-compatible providers (including Cerebras)
+    if (providerKey === "openai-compatible") {
+      if (this.provider === "cerebras") {
+        // Cerebras uses openai-compatible with their API endpoint
+        config.baseURL = "https://api.cerebras.ai/v1";
+        config.providerName = "cerebras";
+      } else if (this.baseURL) {
+        config.baseURL = this.baseURL;
+      }
     }
 
     // Create the configured provider instance
@@ -424,7 +440,12 @@ export class AISdkClient implements LLMClient {
 
     // Track message ID for AG-UI events
     let textMessageId: string | undefined;
+    // Local mutable accumulator for tool call args deltas (reset per tool call);
+    // do not reuse outside this scope.
     let toolCallArgDeltas: string[] = [];
+
+    // Track component streaming for UI tools (show_component_*)
+    let componentTracker: ComponentStreamTracker | undefined;
 
     for await (const delta of result.fullStream) {
       // Collect AG-UI events for this delta
@@ -462,15 +483,37 @@ export class AISdkClient implements LLMClient {
             } as TextMessageEndEvent);
           }
           break;
-        case "tool-input-start":
+        case "tool-input-start": {
           accumulatedToolCall.name = delta.toolName;
           accumulatedToolCall.arguments = "";
           accumulatedToolCall.id = undefined;
           toolCallArgDeltas = [];
+
+          // Initialize component tracker for UI tools
+          // Component streaming is only emitted for valid `show_component_*` tool names.
+          const componentName = tryExtractComponentName(delta.toolName);
+          if (componentName) {
+            const componentId = generateMessageId();
+            componentTracker = new ComponentStreamTracker(
+              componentId,
+              componentName,
+            );
+          } else {
+            componentTracker = undefined;
+          }
           break;
+        }
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
-          toolCallArgDeltas = [...toolCallArgDeltas, delta.delta];
+          toolCallArgDeltas.push(delta.delta);
+
+          // Emit component streaming events for UI tools
+          if (componentTracker) {
+            const componentEvents = componentTracker.processJsonDelta(
+              delta.delta,
+            );
+            aguiEvents.push(...componentEvents);
+          }
           break;
         case "tool-input-end":
           break;
@@ -499,6 +542,13 @@ export class AISdkClient implements LLMClient {
               toolCallId: delta.toolCallId,
               timestamp: Date.now(),
             } as ToolCallEndEvent);
+
+            // Finalize component tracker and emit end event
+            if (componentTracker) {
+              const endEvents = componentTracker.finalize();
+              aguiEvents.push(...endEvents);
+              componentTracker = undefined;
+            }
           }
 
           toolCallArgDeltas = [];
