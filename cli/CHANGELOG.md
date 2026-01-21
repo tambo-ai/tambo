@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.48.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.47.0...tambo-v0.48.0) (2026-01-21)
+
+
+### Features
+
+* **ui-registry:** create centralized component registry package ([#1793](https://github.com/tambo-ai/tambo/issues/1793)) ([ac0dd75](https://github.com/tambo-ai/tambo/commit/ac0dd75a35cc2f37f0635cba48b6983c544c70a4))
+
+
+### Bug Fixes
+
+* **cli:** allow git clone in non-interactive mode ([#1811](https://github.com/tambo-ai/tambo/issues/1811)) ([68035e2](https://github.com/tambo-ai/tambo/commit/68035e27becd6669bfca1c8e77e0cc374ae2dda2))
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-01-19) ([#1822](https://github.com/tambo-ai/tambo/issues/1822)) ([acf34a5](https://github.com/tambo-ai/tambo/commit/acf34a58b3cda7d8ed0b1313998ecf53e8463ad3))
+
 ## [0.47.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.46.1...tambo-v0.47.0) (2026-01-16)
 
 
