@@ -38,7 +38,7 @@ Each project starts with free messages to help you get started and test your con
 
 If you need to adjust model-specific behavior, you can configure custom parameters. Temperature controls randomness in responses (0.0 = deterministic, 1.0 = creative), max tokens limits response length, top P controls diversity via nucleus sampling, and top K limits candidate tokens for each generation step. These parameters are stored as JSON and applied when threads are created. Different models support different parameters, so refer to your provider's documentation for available options.
 
-For detailed instructions on configuring LLM providers and parameters, see the [Configure LLM Provider guide](/docs/guides/setup-project/llm-provider).
+For detailed instructions on configuring LLM providers and parameters, see the [Configure LLM Provider guide](/guides/setup-project/llm-provider).
 
 ## MCP Server Connection
 
@@ -46,10 +46,10 @@ Model Context Protocol servers extend your Tambo agent's capabilities by providi
 
 Once connected, your agent can call tools to perform actions and retrieve data, access resources like files, documents, and databases, and use prompts for structured interactions. MCP connections are configured at the project level and shared across all users. This means you set it up once, and every conversation in your project has access to those capabilities.
 
-To learn more about MCP, how it works, and what you can do with it, see the [Model Context Protocol concept page](/docs/concepts/model-context-protocol).
+To learn more about MCP, how it works, and what you can do with it, see the [Model Context Protocol concept page](/concepts/model-context-protocol).
 
 ## User Authentication
 
 User authentication determines how Tambo identifies and isolates users in your application. Each user has their own threads and messages, kept separate from other users' data through secure token-based authentication.
 
-For more information on how authentication works and how to integrate with your provider, see the [User Authentication concept page](/docs/concepts/user-authentication).
+For more information on how authentication works and how to integrate with your provider, see the [User Authentication concept page](/concepts/user-authentication).
