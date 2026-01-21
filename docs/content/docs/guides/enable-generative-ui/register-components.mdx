@@ -1,0 +1,245 @@
+---
+title: Give Tambo Components to Generate
+description: This guide helps you register React components so Tambo can intelligently create and render them in responses to user messages.
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+This guide shows you how to register your React components with Tambo so it can intelligently choose and render them in response to user messages. You'll see how to apply both static registration (at app startup) and dynamic registration (at runtime).
+
+<LearnMore
+  title="Learn more about generative components"
+  description="Understand what generative components are and when to use them"
+  href="/concepts/generative-interfaces/generative-components"
+  icon={BookOpen}
+/>
+
+## Prerequisites
+
+- A React component you want Tambo to use
+- A Zod schema defining the component's props
+- `@tambo-ai/react` installed in your project
+
+## Step 1: Define Your Component Props Schema
+
+Create a Zod schema that describes your component's props. This tells Tambo what data it needs to generate.
+
+```tsx
+import { z } from "zod";
+
+export const WeatherCardPropsSchema = z.object({
+  city: z.string(),
+  temperature: z.number(),
+  condition: z.string(),
+  humidity: z.number().optional(),
+});
+```
+
+<Callout type="info" title="Optional Props and Streaming">
+
+When using `.optional()` on a field, Tambo may not generate a value for that prop. Only mark props as optional if you truly want Tambo to sometimes omit them.
+
+**Important for streaming**: During streaming, all props (required and optional) start as `undefined` and populate as data arrives. Your component should handle undefined values gracefully by using optional prop types (`city?: string`) or providing default values in your component implementation.
+
+</Callout>
+
+The schema passed to Tambo must match the actual shape of the component's props, or Tambo may generate invalid props. One pattern to ensure this is to define the props based on the schema using `z.infer`:
+
+```tsx
+import { z } from "zod";
+
+const WeatherCardPropsSchema = z.object({
+  city: z.string(),
+  temperature: z.number(),
+  condition: z.string(),
+  humidity: z.number().optional(),
+});
+
+type WeatherCardProps = z.infer<typeof WeatherCardPropsSchema>;
+
+function WeatherCard({
+  city,
+  temperature,
+  condition,
+  humidity,
+}: WeatherCardProps) {
+  // Component implementation
+}
+```
+
+## Step 2: Add Descriptions for Better AI Guidance
+
+Use `z.describe()` to provide hints that help Tambo generate better prop values:
+
+```tsx
+import { z } from "zod";
+
+export const WeatherCardPropsSchema = z
+  .object({
+    city: z.string().describe("City name to display, e.g., 'San Francisco'"),
+    temperature: z
+      .number()
+      .describe("Temperature in Celsius as a whole number"),
+    condition: z
+      .string()
+      .describe("Weather condition like 'Sunny', 'Cloudy', 'Rainy'"),
+    humidity: z
+      .number()
+      .optional()
+      .describe("Humidity percentage (0-100). Optional field."),
+  })
+  .describe("Displays current weather information for a city");
+```
+
+Descriptions help Tambo understand:
+
+- What format to use for values
+- When to use specific enum options
+- Expected value ranges and formats
+
+Use descriptive field names and helpful descriptions:
+
+```tsx
+// ✅ Good: Clear field names and guidance
+z.object({
+  city: z.string().describe("City name to display"),
+  temperature: z.number().describe("Temperature in Celsius"),
+  condition: z.string().describe("Weather condition description"),
+});
+
+// ❌ Poor: Generic names, no guidance
+z.object({
+  data: z.any(),
+  value: z.string(),
+});
+```
+
+## Step 3: Register Your Component with Tambo
+
+Create a `TamboComponent` object including a reference to your component, the schema defined previously, a name, and a description of when to use the component.
+
+```tsx
+const weatherCardComponent: TamboComponent = {
+  component: WeatherCard,
+  name: "WeatherCard",
+  description:
+    "Displays current weather for a city. Use when the user asks about weather, temperature, or conditions.",
+  propsSchema: WeatherCardPropsSchema,
+};
+```
+
+Make sure the description explains both what the component does and when to use it to help Tambo use it appropriately:
+
+```tsx
+// ✅ Good: Clear purpose and usage
+description: "Displays current weather for a city. Use when the user asks about weather, temperature, or conditions.";
+// ❌ Poor: Too vague
+description: "A weather component";
+```
+
+Finally, give Tambo access to it by registering it in one of two ways:
+
+### Option A: Static Registration (Recommended for Most Cases)
+
+Register components when your app initializes by passing them to `TamboProvider`:
+
+```tsx
+function App() {
+  return (
+    <TamboProvider components={[weatherCardComponent]}>
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+**Use static registration when:**
+
+- Components are available at app startup
+- You want all components registered immediately
+
+### Option B: Dynamic Registration
+
+Register components at runtime using the `registerComponent` function from `useTamboRegistry`:
+
+```tsx
+import { useTamboRegistry } from "@tambo-ai/react";
+import { useEffect } from "react";
+import { weatherCardComponent } from "@/components/WeatherCard";
+
+function MyComponent() {
+  const { registerComponent } = useTamboRegistry();
+
+  useEffect(() => {
+    registerComponent(weatherCardComponent);
+  }, [registerComponent]);
+
+  return <YourUI />;
+}
+```
+
+**Use dynamic registration when:**
+
+- Components depend on runtime data or user context
+- You want to conditionally register components
+- Components are loaded asynchronously
+- You need to register components based on thread state
+
+## Step 4: Verify Registration
+
+Once registered, Tambo can use your component in responses. When a user sends a message that matches your component's purpose, Tambo will generate it with appropriate props.
+
+For example, if a user asks "What's the weather in Tokyo?", Tambo will render your `WeatherCard` component with generated weather data for Tokyo.
+
+## Complete Example
+
+Here's a complete example combining all steps:
+
+```tsx
+import { z } from "zod";
+import { WeatherCard } from "@/components/WeatherCard";
+import { TamboProvider } from "@tambo-ai/react";
+
+// Step 1/2: Define schema with descriptions
+export const WeatherCardPropsSchema = z
+  .object({
+    city: z.string().describe("City name to display, e.g., 'San Francisco'"),
+    temperature: z
+      .number()
+      .describe("Temperature in Celsius as a whole number"),
+    condition: z
+      .string()
+      .describe("Weather condition like 'Sunny', 'Cloudy', 'Rainy'"),
+    humidity: z
+      .number()
+      .optional()
+      .describe("Humidity percentage (0-100). Optional field."),
+  })
+  .describe("Displays current weather information for a city");
+
+// Step 3: Registration via TamboProvider
+const tamboComponents: TamboComponent[] = [
+  {
+    component: WeatherCard,
+    name: "WeatherCard",
+    description:
+      "Displays current weather for a city. Use when the user asks about weather, temperature, or conditions.",
+    propsSchema: WeatherCardPropsSchema,
+  },
+];
+
+function App() {
+  return (
+    <TamboProvider components={tamboComponents}>
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+<Callout type="info" title="Interactable Components">
+
+This registration approach is for generative components that Tambo creates on-demand. If you want to pre-place components on your page and let Tambo modify them, use [Interactable Components](/concepts/generative-interfaces/interactable-components) instead. They register themselves automatically when mounted.
+
+</Callout>

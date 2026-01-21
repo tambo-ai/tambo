@@ -5,6 +5,8 @@
     "...getting-started",
     "---Concepts---",
     "...concepts",
+    "---Guides---",
+    "...guides",
     "---Best Practices---",
     "...best-practices",
     "---API Reference---",
@@ -13,6 +15,8 @@
     "...cli",
     "---Models---",
     "...models",
+    "---Reference---",
+    "...reference",
     "---Examples and Templates---",
     "...examples-and-templates",
     "...tambo-mcp-server"
