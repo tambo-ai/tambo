@@ -35,13 +35,13 @@ class ExampleRequestScopedService {
 
 describe("ProjectsService", () => {
   let mockDb: HydraDatabase;
-  let mockConfigService: jest.Mocked<ConfigService>;
+  let mockConfigService: Pick<jest.Mocked<ConfigService>, "getOrThrow">;
 
   beforeEach(() => {
     mockDb = {} as HydraDatabase;
     mockConfigService = {
       getOrThrow: jest.fn(),
-    } as unknown as jest.Mocked<ConfigService>;
+    };
 
     jest.mocked(operations.createApiKey).mockReset();
     jest.mocked(operations.createProject).mockReset();
@@ -54,7 +54,10 @@ describe("ProjectsService", () => {
       providers: [
         ProjectsService,
         { provide: DATABASE, useValue: mockDb },
-        { provide: ConfigService, useValue: mockConfigService },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService as unknown as ConfigService,
+        },
       ],
     });
 
@@ -95,7 +98,10 @@ describe("ProjectsService", () => {
       providers: [
         ProjectsService,
         { provide: DATABASE, useValue: mockDb },
-        { provide: ConfigService, useValue: mockConfigService },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService as unknown as ConfigService,
+        },
       ],
     });
 
@@ -134,7 +140,10 @@ describe("ProjectsService", () => {
         ProjectsService,
         ExampleRequestScopedService,
         { provide: DATABASE, useValue: mockDb },
-        { provide: ConfigService, useValue: mockConfigService },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService as unknown as ConfigService,
+        },
       ],
     });
 
