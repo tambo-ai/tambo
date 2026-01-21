@@ -109,3 +109,126 @@ export const productTool: TamboTool = {
 ```
 
 Content types: `text`, `image_url`, `input_audio`
+
+## Enable Streaming Execution (Optional)
+
+By default, Tambo waits for complete tool arguments before executing. For tools that can handle partial arguments gracefully, you can enable streaming execution to call the tool incrementally as arguments are generated. To understand how streamable execution works under the hood, see [Tools > How Tools Execute](/concepts/tools#how-tools-execute).
+
+### When to Use Streamable Tools
+
+Use `annotations.tamboStreamableHint: true` when your tool:
+
+- ✅ Can handle incomplete or partial data gracefully
+- ✅ Has no side effects (safe to call multiple times)
+- ✅ Benefits from incremental execution (state updates, visualizations, real-time feedback)
+- ✅ Is idempotent or can merge partial updates safely
+
+### When NOT to Use Streamable Tools
+
+Avoid `annotations.tamboStreamableHint: true` when your tool:
+
+- ❌ Makes API calls or database writes (would cause duplicate requests)
+- ❌ Has side effects that shouldn't be repeated
+- ❌ Requires complete arguments to function correctly
+- ❌ Returns data that the AI needs immediately
+
+### Example: Enable Streaming Execution
+
+```tsx
+import { TamboTool } from "@tambo-ai/react";
+import { z } from "zod";
+
+const updateChart = (data: { title?: string; values?: number[] }) => {
+  // Called incrementally as arguments stream in
+  // Handles partial data gracefully
+  setChartState((prev) => ({
+    ...prev,
+    ...(data.title && { title: data.title }),
+    ...(data.values && { values: data.values }),
+  }));
+};
+
+export const chartTool: TamboTool = {
+  name: "update_chart",
+  description: "Update the chart visualization with new data",
+  tool: updateChart,
+  inputSchema: z.object({
+    title: z.string().optional(),
+    values: z.array(z.number()).optional(),
+  }),
+  outputSchema: z.void(),
+  annotations: {
+    tamboStreamableHint: true, // Enable streaming execution
+  },
+};
+```
+
+### Handling Partial Data
+
+Your streamable tool should handle incomplete data gracefully. Use optional properties and defensive checks:
+
+```tsx
+const updateDashboard = (data: {
+  title?: string;
+  metrics?: { name: string; value: number }[];
+  timeRange?: string;
+}) => {
+  // Only update fields that are present
+  if (data.title !== undefined) {
+    setTitle(data.title);
+  }
+  if (data.metrics !== undefined) {
+    setMetrics(data.metrics);
+  }
+  if (data.timeRange !== undefined) {
+    setTimeRange(data.timeRange);
+  }
+};
+
+export const dashboardTool: TamboTool = {
+  name: "update_dashboard",
+  description: "Update dashboard with metrics and time range",
+  tool: updateDashboard,
+  inputSchema: z.object({
+    title: z.string().optional(),
+    metrics: z.array(z.object({ name: z.string(), value: z.number() })).optional(),
+    timeRange: z.string().optional(),
+  }),
+  outputSchema: z.void(),
+  annotations: {
+    tamboStreamableHint: true,
+  },
+};
+```
+
+This pattern ensures your tool processes data incrementally as the AI generates each field, providing a smooth real-time experience.
+
+### Good vs Bad Examples
+
+```tsx
+// ❌ Bad: API call tool - would make duplicate requests
+export const createUserTool: TamboTool = {
+  name: "create_user",
+  description: "Create a new user account",
+  tool: async (data) => await api.createUser(data),
+  inputSchema: z.object({
+    name: z.string(),
+    email: z.string(),
+  }),
+  outputSchema: z.object({ userId: z.string() }),
+  annotations: { tamboStreamableHint: true }, // Don't do this!
+};
+
+// ✅ Good: State update tool - safe to call multiple times
+export const updateFormTool: TamboTool = {
+  name: "update_form",
+  description: "Update form fields in real-time",
+  tool: (fields) => setFormState(fields),
+  inputSchema: z.object({
+    name: z.string().optional(),
+    email: z.string().optional(),
+  }),
+  outputSchema: z.void(),
+  annotations: { tamboStreamableHint: true }, // Safe for repeated calls
+};
+```
