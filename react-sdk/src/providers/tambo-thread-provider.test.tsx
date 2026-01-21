@@ -214,7 +214,6 @@ describe("TamboThreadProvider", () => {
 
   // Default wrapper for most tests
   const Wrapper = createWrapper();
-  const LegacyWrapper = createWrapper({ streaming: false });
 
   afterEach(() => {
     jest.restoreAllMocks();
@@ -734,7 +733,7 @@ describe("TamboThreadProvider", () => {
 
     it("should throw when streamResponse is undefined and provider streaming=false", async () => {
       const { result } = renderHook(() => useTamboThread(), {
-        wrapper: LegacyWrapper,
+        wrapper: createWrapper({ streaming: false }),
       });
 
       await act(async () => {
@@ -1001,25 +1000,6 @@ describe("TamboThreadProvider", () => {
   });
 
   describe("error handling", () => {
-    it("should throw and keep generation stage IDLE when streamResponse=false (deprecated)", async () => {
-      const { result } = renderHook(() => useTamboThread(), {
-        wrapper: Wrapper,
-      });
-
-      await act(async () => {
-        await result.current.switchCurrentThread("test-thread-1");
-        await expect(
-          result.current.sendThreadMessage("Hello", {
-            threadId: "test-thread-1",
-            streamResponse: false,
-          }),
-        ).rejects.toThrow(/Non-streaming mode is deprecated/);
-      });
-
-      // Non-streaming is deprecated: we fail fast without transitioning to ERROR.
-      expect(result.current.generationStage).toBe(GenerationStage.IDLE);
-    });
-
     it("should set generation stage to ERROR when streaming sendThreadMessage fails", async () => {
       const testError = new Error("Streaming API call failed");
 
