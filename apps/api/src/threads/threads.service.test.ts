@@ -19,6 +19,7 @@ import {
   createMockDBThread,
 } from "@tambo-ai-cloud/testing";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
+import { AnalyticsService } from "../common/services/analytics.service";
 import { AuthService } from "../common/services/auth.service";
 import { EmailService } from "../common/services/email.service";
 import { CorrelationLoggerService } from "../common/services/logger.service";
@@ -395,6 +396,14 @@ describe("ThreadsService.advanceThread initialization", () => {
             bucket: "test-bucket",
             signingSecret: "",
             hasStorageConfig: () => false,
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            capture: jest.fn(),
+            identify: jest.fn(),
+            isEnabled: jest.fn().mockReturnValue(false),
           },
         },
       ],

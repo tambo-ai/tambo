@@ -157,9 +157,16 @@ eval "$(mise activate)"   # Interactive shells only
 - **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
 - **Avoid `{}` type** - it means "any non-nullish value" (including primitives). Prefer `unknown` (truly unknown), `object` (any non-primitive object), or `Record<string, unknown>` / a specific object type for key-value objects.
 
-### ts-essentials Utility Types
+### type-fest Utility Types
 
-We use the `ts-essentials` package for advanced type manipulation. Most types do exactly what they sound like: `DeepPartial`, `DeepReadonly`, `DeepRequired`, `Merge`, `ValueOf`, `UnreachableCaseError`, etc. Before writing any complicated derivative types, check ts-essentials first.
+Prefer the `type-fest` package for advanced type manipulation: https://github.com/sindresorhus/type-fest
+
+Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `RequiredDeep`, `Merge`, `ValueOf`, `SetOptional`, etc. Before writing any complicated derivative types, check `type-fest` first.
+
+`type-fest` is installed at the repo root, but each package must still declare it explicitly when used:
+
+- If you reference `type-fest` types from a package's **public exported types**, add `type-fest` to that package's `dependencies`.
+- If you only use `type-fest` in internal code or tests, add `type-fest` to that package's `devDependencies`.
 
 ### Type Inference
 

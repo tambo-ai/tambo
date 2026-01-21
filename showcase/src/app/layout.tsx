@@ -1,6 +1,11 @@
 import { GeistMono, GeistSans, sentientLight } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import {
+  PostHogPageview,
+  PostHogRootProvider,
+} from "@/providers/posthog-provider";
 import "leaflet/dist/leaflet.css";
+import { Suspense } from "react";
 import "./globals.css";
 
 export const metadata = {
@@ -80,7 +85,10 @@ export default function RootLayout({
         />
       </head>
       <body className={`${GeistSans.className} font-sans antialiased`}>
-        {children}
+        <Suspense>
+          <PostHogPageview />
+        </Suspense>
+        <PostHogRootProvider>{children}</PostHogRootProvider>
       </body>
     </html>
   );

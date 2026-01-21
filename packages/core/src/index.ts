@@ -1,3 +1,4 @@
+export * from "./assert-unreachable";
 export * from "./attachment";
 export * from "./ComponentDecision";
 export * from "./composio-utils";

@@ -66,6 +66,25 @@ describe("objectTemplate - templates for nested objects", () => {
     expect(out).toEqual(["Hello user", "age is 1"]);
   });
 
+  it("formats array of objects correctly (e.g. ThreadMessage[])", () => {
+    const t = objectTemplate([
+      { role: "user", content: "Hello {name}" },
+      { role: "assistant", content: "Hi there" },
+    ]);
+    const out = formatTemplate(t, { name: "Alice" });
+    expect(out).toEqual([
+      { role: "user", content: "Hello Alice" },
+      { role: "assistant", content: "Hi there" },
+    ]);
+  });
+
+  it("treats previous chat_history special objects as normal objects", () => {
+    const t = objectTemplate([{ role: "chat_history", content: "{val}" }]);
+    const out = formatTemplate(t, { val: "expanded" });
+    // Should be treated as normal object, not expanded into array
+    expect(out).toEqual([{ role: "chat_history", content: "expanded" }]);
+  });
+
   it("throws if input is not object or string", () => {
     expect(() => objectTemplate(5 as unknown as object)).toThrow(
       "Can only generate object templates for objects or strings",

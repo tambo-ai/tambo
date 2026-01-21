@@ -255,9 +255,9 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
       const request = { url: `/threads/${threadId}/advance` } as Request;
 
       // Act & Assert - The deprecated endpoint should throw EndpointDeprecatedException
-      await expect(controller.advanceThread(threadId, request)).rejects.toThrow(
-        EndpointDeprecatedException,
-      );
+      await expect(
+        controller.advanceThread(threadId, request, {} as any),
+      ).rejects.toThrow(EndpointDeprecatedException);
 
       // Verify the service was never called
       expect(threadsService.advanceThread).not.toHaveBeenCalled();
@@ -270,7 +270,7 @@ describe("ThreadsController - Stream Routes Error Propagation", () => {
 
       // Act & Assert
       const error = await controller
-        .advanceThread(threadId, request)
+        .advanceThread(threadId, request, {} as any)
         .catch((caughtError) => caughtError);
 
       expectEndpointDeprecatedProblem(error, {

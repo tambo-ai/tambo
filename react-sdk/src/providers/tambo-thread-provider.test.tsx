@@ -2,7 +2,6 @@ import TamboAI, { advanceStream } from "@tambo-ai/typescript-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import React from "react";
-import { DeepPartial } from "ts-essentials";
 import { z } from "zod/v4";
 import { TamboComponent } from "../model/component-metadata";
 import {
@@ -20,8 +19,6 @@ import { TamboMcpTokenProvider } from "./tambo-mcp-token-provider";
 import { TamboRegistryProvider } from "./tambo-registry-provider";
 import { TamboThreadProvider, useTamboThread } from "./tambo-thread-provider";
 
-type PartialTamboAI = DeepPartial<TamboAI>;
-
 // Mock crypto.randomUUID
 Object.defineProperty(global, "crypto", {
   value: {
@@ -37,9 +34,17 @@ jest.mock("./tambo-client-provider", () => {
     TamboClientContext: React.createContext(undefined),
   };
 });
-jest.mock("@tambo-ai/typescript-sdk", () => ({
-  advanceStream: jest.fn(),
-}));
+jest.mock("@tambo-ai/typescript-sdk", () => {
+  const actual = jest.requireActual<typeof import("@tambo-ai/typescript-sdk")>(
+    "@tambo-ai/typescript-sdk",
+  );
+
+  return {
+    __esModule: true,
+    ...actual,
+    advanceStream: jest.fn(),
+  };
+});
 
 // Mock the getCustomContext
 jest.mock("../util/registry", () => ({
@@ -63,8 +68,8 @@ const createMockMessage = (
 });
 
 const createMockThread = (
-  overrides: Partial<TamboAI.Beta.Threads.Thread> = {},
-) => ({
+  overrides: Partial<TamboAI.Beta.Threads.ThreadRetrieveResponse> = {},
+): TamboAI.Beta.Threads.ThreadRetrieveResponse => ({
   id: "test-thread-1",
   messages: [],
   createdAt: "2024-01-01T00:00:00Z",
@@ -94,33 +99,9 @@ const createMockAdvanceResponse = (
 describe("TamboThreadProvider", () => {
   const mockThread = createMockThread();
 
-  const mockThreadsApi = {
-    messages: {
-      create: jest.fn(),
-    },
-    retrieve: jest.fn(),
-    advance: jest.fn(),
-    advanceByID: jest.fn(),
-    generateName: jest.fn(),
-  } satisfies DeepPartial<
-    TamboAI["beta"]["threads"]
-  > as unknown as TamboAI.Beta.Threads;
-
-  const mockProjectsApi = {
-    getCurrent: jest.fn(),
-  } satisfies DeepPartial<
-    TamboAI["beta"]["projects"]
-  > as unknown as TamboAI.Beta.Projects;
-
-  const mockBeta = {
-    threads: mockThreadsApi,
-    projects: mockProjectsApi,
-  } satisfies PartialTamboAI["beta"];
-
-  const mockTamboAI = {
-    apiKey: "",
-    beta: mockBeta,
-  } satisfies PartialTamboAI as unknown as TamboAI;
+  let mockTamboAI: TamboAI;
+  let mockThreadsApi: TamboAI.Beta.Threads;
+  let mockProjectsApi: TamboAI.Beta.Projects;
 
   let mockQueryClient: {
     invalidateQueries: jest.Mock;
@@ -216,8 +197,22 @@ describe("TamboThreadProvider", () => {
   // Default wrapper for most tests
   const Wrapper = createWrapper();
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockTamboAI = new TamboAI({
+      apiKey: "",
+      fetch: () => {
+        throw new Error("Unexpected network call in test");
+      },
+    });
+
+    mockThreadsApi = mockTamboAI.beta.threads;
+    mockProjectsApi = mockTamboAI.beta.projects;
 
     // Setup mock query client
     mockQueryClient = {
@@ -228,21 +223,22 @@ describe("TamboThreadProvider", () => {
       .mocked(useTamboQueryClient)
       .mockReturnValue(mockQueryClient as unknown as QueryClient);
 
-    jest.mocked(mockThreadsApi.retrieve).mockResolvedValue(mockThread);
+    jest.spyOn(mockThreadsApi, "retrieve").mockResolvedValue(mockThread);
     jest
-      .mocked(mockThreadsApi.messages.create)
+      .spyOn(mockThreadsApi.messages, "create")
       .mockResolvedValue(createMockMessage());
     jest
-      .mocked(mockThreadsApi.advance)
+      .spyOn(mockThreadsApi, "advance")
       .mockResolvedValue(createMockAdvanceResponse());
     jest
-      .mocked(mockThreadsApi.advanceByID)
+      .spyOn(mockThreadsApi, "advanceByID")
       .mockResolvedValue(createMockAdvanceResponse());
-    jest.mocked(mockThreadsApi.generateName).mockResolvedValue({
+    jest.spyOn(mockThreadsApi, "generateName").mockResolvedValue({
       ...mockThread,
       name: "Generated Thread Name",
     });
-    jest.mocked(mockProjectsApi.getCurrent).mockResolvedValue({
+    jest.spyOn(mockThreadsApi, "update").mockResolvedValue({} as any);
+    jest.spyOn(mockProjectsApi, "getCurrent").mockResolvedValue({
       id: "test-project-id",
       name: "Test Project",
       isTokenRequired: false,
@@ -1092,6 +1088,126 @@ describe("TamboThreadProvider", () => {
 
       // Verify generation stage is set to ERROR
       expect(result.current.generationStage).toBe(GenerationStage.ERROR);
+    });
+
+    it("should rollback optimistic user message when sendThreadMessage fails", async () => {
+      const testError = new Error("API call failed");
+      jest.mocked(mockThreadsApi.advanceByID).mockRejectedValue(testError);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: Wrapper,
+      });
+
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      const initialMessageCount = result.current.thread.messages.length;
+
+      await act(async () => {
+        await expect(
+          result.current.sendThreadMessage("Hello", {
+            threadId: "test-thread-1",
+            streamResponse: false,
+          }),
+        ).rejects.toThrow("API call failed");
+      });
+
+      // Verify user message was rolled back
+      expect(result.current.thread.messages.length).toBe(initialMessageCount);
+    });
+
+    it("should rollback optimistic message when addThreadMessage fails", async () => {
+      const testError = new Error("Create message failed");
+      jest.mocked(mockThreadsApi.messages.create).mockRejectedValue(testError);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: Wrapper,
+      });
+
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      const initialMessageCount = result.current.thread.messages.length;
+      const newMessage = createMockMessage({ threadId: "test-thread-1" });
+
+      await act(async () => {
+        await expect(
+          result.current.addThreadMessage(newMessage, true),
+        ).rejects.toThrow("Create message failed");
+      });
+
+      // Verify message was rolled back
+      expect(result.current.thread.messages.length).toBe(initialMessageCount);
+    });
+
+    it("should rollback optimistic update when updateThreadMessage fails", async () => {
+      const testError = new Error("Update message failed");
+      jest.mocked(mockThreadsApi.messages.create).mockRejectedValue(testError);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: Wrapper,
+      });
+
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      const existingMessage = createMockMessage({
+        id: "existing-msg",
+        threadId: "test-thread-1",
+        content: [{ type: "text", text: "Old content" }],
+      });
+
+      await act(async () => {
+        await result.current.addThreadMessage(existingMessage, false);
+      });
+
+      const initialMessageCount = result.current.thread.messages.length;
+
+      await act(async () => {
+        await expect(
+          result.current.updateThreadMessage(
+            "existing-msg",
+            {
+              threadId: "test-thread-1",
+              content: [{ type: "text", text: "New content" }],
+              role: "assistant",
+            },
+            true,
+          ),
+        ).rejects.toThrow("Update message failed");
+      });
+
+      // Verify message was rolled back
+      expect(result.current.thread.messages.length).toBe(
+        initialMessageCount - 1,
+      );
+    });
+
+    it("should rollback optimistic name update when updateThreadName fails", async () => {
+      const testError = new Error("Update name failed");
+      jest.mocked(mockThreadsApi.update).mockRejectedValue(testError);
+
+      const { result } = renderHook(() => useTamboThread(), {
+        wrapper: Wrapper,
+      });
+
+      await act(async () => {
+        await result.current.switchCurrentThread("test-thread-1");
+      });
+
+      const initialName = result.current.thread.name;
+
+      await act(async () => {
+        await expect(
+          result.current.updateThreadName("New Name", "test-thread-1"),
+        ).rejects.toThrow("Update name failed");
+      });
+
+      // Verify name was rolled back
+      expect(result.current.thread.name).toBe(initialName);
     });
   });
 

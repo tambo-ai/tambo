@@ -23,18 +23,6 @@ export class StorageConfigService {
         this.configService.get<string>("S3_SECRET_ACCESS_KEY") ?? "",
     };
 
-    // DEBUG: Remove after troubleshooting
-    console.log("S3 Config check:", {
-      hasEndpoint: !!s3Config.endpoint,
-      hasRegion: !!s3Config.region,
-      hasAccessKey: !!s3Config.accessKeyId,
-      hasSecret: !!s3Config.secretAccessKey,
-      endpointLength: s3Config.endpoint.length,
-      regionLength: s3Config.region.length,
-      accessKeyLength: s3Config.accessKeyId.length,
-      secretLength: s3Config.secretAccessKey.length,
-    });
-
     this.bucket = this.configService.get<string>("S3_BUCKET") ?? "user-files";
     this.signingSecret = this.configService.get<string>("API_KEY_SECRET") ?? "";
 

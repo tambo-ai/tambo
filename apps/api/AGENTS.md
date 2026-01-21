@@ -105,6 +105,18 @@ apps/api/src
 - **Testing HttpException responses** - When testing methods that return `HttpException`, error details are in `getResponse()`, not `message`. Use `error.getResponse()` to access response body fields like `type` and `detail`.
 - Always run `npm run test:cov` when adding meaningful logic to keep a coverage baseline; document gaps if coverage dips.
 
+### NestJS unit tests (providers/services)
+
+- Use `createTestingModule(...)` from `src/test/utils/create-testing-module.ts` for module setup + provider overrides.
+- Use `createTestRequestContext(...)` + `resolveRequestScopedProvider(...)` from `src/test/utils/*` when you need to resolve `Scope.REQUEST` providers.
+- Stub `ContextIdFactory.getByRequest(...)` only when the code under test calls it, and always restore the spy (avoid global setup stubs).
+- Always `await module.close()` in a `finally` (or `afterEach`) block.
+
+See:
+
+- [`src/test/utils/nest-testing.example.test.ts`](src/test/utils/nest-testing.example.test.ts) (runnable reference)
+- [`src/projects/projects.service.test.ts`](src/projects/projects.service.test.ts) (real module test using the helpers)
+
 ## Development Workflow
 
 1. **Read existing code** within the domain module before touching anything.
