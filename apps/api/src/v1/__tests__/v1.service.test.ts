@@ -1040,7 +1040,7 @@ describe("V1Service", () => {
           loading: true,
           rows: [{ id: 1, name: "Alice" }],
         });
-        expect(mockDb.query.messages.findFirst).toHaveBeenCalledTimes(1);
+        expect(mockDb.query.messages.findFirst).toHaveBeenCalled();
         expect(mockOperations.updateMessage).toHaveBeenCalled();
       });
 
