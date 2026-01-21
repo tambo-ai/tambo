@@ -3,7 +3,6 @@ import { Injectable, Scope } from "@nestjs/common";
 import { createTestRequestContext } from "./create-test-request-context";
 import { createTestingModule } from "./create-testing-module";
 import { resolveRequestScopedProvider } from "./resolve-request-scoped-provider";
-import { assertTrue, type IsNotAny, type IsUnknown } from "./type-assertions";
 
 @Injectable()
 class ExampleDepService {
@@ -67,10 +66,14 @@ describe("resolveRequestScopedProvider", () => {
       const context = createTestRequestContext();
       const value = await resolveRequestScopedProvider(module, token, context);
 
-      // These `assertTrue` calls are compile-time guards only. If `value` ever widens to `any`
-      // or narrows away from `unknown`, TypeScript should fail the build.
-      assertTrue<IsUnknown<typeof value>>(true);
-      assertTrue<IsNotAny<typeof value>>(true);
+      // Compile-time guards:
+      // - Token overload should stay `unknown` so callers can't pretend token-based providers are type-safe.
+      // - It should also not accidentally widen to `any`.
+      const unknownValue: unknown = "test";
+      unknownValue satisfies typeof value;
+
+      // @ts-expect-error token overload should return `unknown` (not `any` or a concrete type)
+      value satisfies number;
       expect(value).toBe(123);
     } finally {
       await module.close();
