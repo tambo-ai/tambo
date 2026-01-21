@@ -9,7 +9,6 @@ export default tseslint.config(
     ignores: [
       "dist/**/*",
       "esm/**/*",
-      "scripts/**/*",
       "jest.config.ts",
       "jest.config.react.ts",
       "eslint.config.mjs",

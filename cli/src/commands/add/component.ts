@@ -194,12 +194,11 @@ export function cn(...inputs: ClassValue[]) {
         } else {
           // Try to resolve content path from registry base
           // Handle both old format (src/registry/...) and new format (lib/..., components/...)
+          // Strip leading "src/registry/" prefix using path operations for cross-platform safety
           let contentRelativePath = file.content;
-          if (contentRelativePath.startsWith("src/registry/")) {
-            contentRelativePath = contentRelativePath.replace(
-              "src/registry/",
-              "",
-            );
+          const parts = contentRelativePath.split(path.sep);
+          if (parts[0] === "src" && parts[1] === "registry") {
+            contentRelativePath = parts.slice(2).join(path.sep);
           }
 
           const contentPath = path.join(

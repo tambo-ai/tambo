@@ -66,6 +66,11 @@
     "WEATHER_API_KEY",
     "WEBHOOK_SECRET"
   ],
+  "globalPassThroughEnv": [
+    "TAMBO_REGISTRY_PATH",
+    "TAMBO_CLI_CONSOLE_BASE_URL",
+    "TAMBO_TOKEN"
+  ],
   "tasks": {
     "//#sync:showcase": {
       "cache": false,

@@ -24,15 +24,15 @@
     "paths": {
       "@/*": ["src/*"],
       "@tambo-ai/react": ["../react-sdk/src"],
-      "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"],
-      "@tambo-ai/ui-registry/utils": ["../packages/ui-registry/src/utils"],
-      "@tambo-ai/ui-registry/lib/*": ["../packages/ui-registry/src/lib/*"],
-      "@tambo-ai/ui-registry/components/*": [
-        "../packages/ui-registry/src/components/*"
-      ]
+      "@tambo-ai/react/mcp": ["../react-sdk/src/mcp"]
     },
     "outDir": "./dist"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/types/*.d.ts"],
+  "include": [
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    "src/**/*.tsx",
+    "src/types/*.d.ts"
+  ],
   "exclude": ["node_modules", "./dist"]
 }
