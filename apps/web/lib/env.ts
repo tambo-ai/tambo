@@ -45,11 +45,14 @@ export const env = createEnv({
     EMAIL_FROM_DEFAULT: z.string().transform(allowEmptyString).optional(),
 
     // Whitelabeling (server-side copies; optional so can be omitted)
-    TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional().or(z.literal("")),
+    TAMBO_WHITELABEL_ORG_NAME: z
+      .string()
+      .transform(allowEmptyString)
+      .optional(),
     TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional().or(z.literal("")),
     // Restrict logins to a specific verified email domain when self-hosting.
     // When unset, any verified email is allowed.
-    ALLOWED_LOGIN_DOMAIN: z.string().optional().or(z.literal("")),
+    ALLOWED_LOGIN_DOMAIN: z.string().transform(allowEmptyString).optional(),
     // When set, redirects auth routes from this host to NEXT_PUBLIC_APP_URL.
     // Used to redirect tambo.co/login -> console.tambo.co/login
     AUTH_REDIRECT_FROM_HOST: z.string().optional(),
@@ -76,9 +79,8 @@ export const env = createEnv({
     // Whitelabeling vars
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z
       .string()
-      .min(1)
-      .optional()
-      .or(z.literal("")),
+      .transform(allowEmptyString)
+      .optional(),
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z
       .string()
       .url()
