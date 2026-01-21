@@ -33,6 +33,6 @@
   "dependencies": {
     "@tambo-ai-cloud/core": "*",
     "@tambo-ai-cloud/db": "*",
-    "openai": "^6.15.0"
+    "openai": "^6.16.0"
   }
 }

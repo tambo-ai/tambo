@@ -1,7 +1,6 @@
 import { Message } from "@ag-ui/core";
 import {
   AsyncQueue,
-  LegacyComponentDecision,
   MessageRole,
   ThreadMessage,
   ToolCallRequest,
@@ -11,8 +10,12 @@ import {
   prefetchAndCacheResources,
   ResourceFetcherMap,
 } from "../../util/resource-transformation";
+import { aguiContentToString } from "../agui/content-to-string";
 import { AgentClient } from "../llm/agent-client";
 import { EventHandlerParams } from "../llm/async-adapters";
+import type { DecisionStreamItem } from "./decision-loop-service";
+// Re-export DecisionStreamItem for consumers that import from this module
+export type { DecisionStreamItem } from "./decision-loop-service";
 
 /**
  * Run the agent loop for processing ThreadMessages and generating decisions.
@@ -37,7 +40,7 @@ export async function* runAgentLoop(
   strictTools: OpenAI.Chat.Completions.ChatCompletionTool[],
   resourceFetchers: ResourceFetcherMap,
   //   customInstructions: string | undefined,
-): AsyncIterableIterator<LegacyComponentDecision> {
+): AsyncIterableIterator<DecisionStreamItem> {
   // Pre-fetch and cache all resources before passing to agent
   const messagesWithCachedResources = await prefetchAndCacheResources(
     messages,
@@ -50,24 +53,64 @@ export async function* runAgentLoop(
   });
   for await (const event of stream) {
     const { message } = event;
+
+    const messageRole = toCoreMessageRole(message.role);
+    if (!messageRole) {
+      console.warn(
+        `Dropping AG-UI message with unsupported role '${message.role}' (id: '${message.id}')`,
+      );
+      // `@ag-ui/core` messages can include roles (like `developer`/`activity`) that
+      // aren't represented in `@tambo-ai-cloud/core`'s `MessageRole` enum.
+      continue;
+    }
+
     const toolCallId = getToolCallId(message);
     const toolCallRequest = getToolCallRequest(message);
+
+    // Note: Agent client internally processes AG-UI events, but doesn't expose them
+    // in the AgentResponse. For now, we emit empty aguiEvents array.
+    // In the future, we could extend AgentClient to pass through raw events.
+
     yield {
-      id: message.id,
-      role: message.role as MessageRole,
-      parentMessageId: message.parentMessageId,
-      message: message.content || "",
-      componentName: null,
-      props: null,
-      componentState: null,
-      statusMessage: "",
-      completionStatusMessage: "",
-      toolCallRequest: toolCallRequest,
-      toolCallId: toolCallId,
-      reasoning: message.reasoning,
+      decision: {
+        id: message.id,
+        role: messageRole,
+        parentMessageId: message.parentMessageId,
+        message: aguiContentToString(message.content),
+        componentName: null,
+        props: null,
+        componentState: null,
+        statusMessage: "",
+        completionStatusMessage: "",
+        toolCallRequest: toolCallRequest,
+        toolCallId: toolCallId,
+        reasoning: message.reasoning,
+      },
+      aguiEvents: [],
     };
   }
 }
+
+function toCoreMessageRole(role: Message["role"]): MessageRole | null {
+  switch (role) {
+    case "user": {
+      return MessageRole.User;
+    }
+    case "assistant": {
+      return MessageRole.Assistant;
+    }
+    case "system": {
+      return MessageRole.System;
+    }
+    case "tool": {
+      return MessageRole.Tool;
+    }
+    default: {
+      return null;
+    }
+  }
+}
+
 function getToolCallId(message: Message) {
   if (message.role === "assistant") {
     return message.toolCalls?.[0]?.id;

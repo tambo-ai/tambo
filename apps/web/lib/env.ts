@@ -17,21 +17,21 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     DISALLOWED_EMAIL_DOMAINS: z.string().min(1).optional(),
-    INTERNAL_SLACK_USER_ID: z.string().min(1).optional(),
-    SLACK_OAUTH_TOKEN: z.string().min(1).optional(),
+    INTERNAL_SLACK_USER_ID: z.string().transform(allowEmptyString).optional(),
+    SLACK_OAUTH_TOKEN: z.string().transform(allowEmptyString).optional(),
     PORT: z.string().min(1).optional(),
     DATABASE_URL: z.string().min(1),
     /** Generate with `openssl rand -hex 32` */
     API_KEY_SECRET: z.string().min(8),
     /** Generate with `openssl rand -hex 32` */
     PROVIDER_KEY_SECRET: z.string().min(8),
-    RESEND_API_KEY: z.string().min(1).optional(),
-    RESEND_AUDIENCE_ID: z.string().min(1).optional(),
+    RESEND_API_KEY: z.string().transform(allowEmptyString).optional(),
+    RESEND_AUDIENCE_ID: z.string().transform(allowEmptyString).optional(),
     // for smoketesting
-    WEATHER_API_KEY: z.string().min(1).optional(),
+    WEATHER_API_KEY: z.string().transform(allowEmptyString).optional(),
     // Dev-only, allow testing server-side MCP servers running locally
     ALLOW_LOCAL_MCP_SERVERS: z.string().min(1).optional(),
-    GITHUB_TOKEN: z.string().min(1).optional(),
+    GITHUB_TOKEN: z.string().transform(allowEmptyString).optional(),
     // NextAuth OAuth providers
     GITHUB_CLIENT_ID: z.string().transform(allowEmptyString).optional(),
     GITHUB_CLIENT_SECRET: z.string().transform(allowEmptyString).optional(),
@@ -45,11 +45,17 @@ export const env = createEnv({
     EMAIL_FROM_DEFAULT: z.string().transform(allowEmptyString).optional(),
 
     // Whitelabeling (server-side copies; optional so can be omitted)
-    TAMBO_WHITELABEL_ORG_NAME: z.string().min(1).optional().or(z.literal("")),
+    TAMBO_WHITELABEL_ORG_NAME: z
+      .string()
+      .transform(allowEmptyString)
+      .optional(),
     TAMBO_WHITELABEL_ORG_LOGO: z.string().url().optional().or(z.literal("")),
     // Restrict logins to a specific verified email domain when self-hosting.
     // When unset, any verified email is allowed.
-    ALLOWED_LOGIN_DOMAIN: z.string().optional().or(z.literal("")),
+    ALLOWED_LOGIN_DOMAIN: z.string().transform(allowEmptyString).optional(),
+    // When set, redirects auth routes from this host to NEXT_PUBLIC_APP_URL.
+    // Used to redirect tambo.co/login -> console.tambo.co/login
+    AUTH_REDIRECT_FROM_HOST: z.string().optional(),
   },
   /*
    * Environment variables available on the client (and server).
@@ -58,10 +64,13 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
-    NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
-    NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1).optional(),
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().transform(allowEmptyString).optional(),
+    NEXT_PUBLIC_POSTHOG_HOST: z.string().transform(allowEmptyString).optional(),
     // for dogfooding our own API
-    NEXT_PUBLIC_TAMBO_API_KEY: z.string().min(1).optional(),
+    NEXT_PUBLIC_TAMBO_API_KEY: z
+      .string()
+      .transform(allowEmptyString)
+      .optional(),
     NEXT_PUBLIC_TAMBO_DASH_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_TAMBO_API_URL: z.string().min(1).optional(),
     NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY: z.string().min(1).optional(),
@@ -70,9 +79,8 @@ export const env = createEnv({
     // Whitelabeling vars
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_NAME: z
       .string()
-      .min(1)
-      .optional()
-      .or(z.literal("")),
+      .transform(allowEmptyString)
+      .optional(),
     NEXT_PUBLIC_TAMBO_WHITELABEL_ORG_LOGO: z
       .string()
       .url()
@@ -142,6 +150,7 @@ export const env = createEnv({
     TAMBO_WHITELABEL_ORG_NAME: process.env.TAMBO_WHITELABEL_ORG_NAME,
     TAMBO_WHITELABEL_ORG_LOGO: process.env.TAMBO_WHITELABEL_ORG_LOGO,
     ALLOWED_LOGIN_DOMAIN: process.env.ALLOWED_LOGIN_DOMAIN,
+    AUTH_REDIRECT_FROM_HOST: process.env.AUTH_REDIRECT_FROM_HOST,
 
     // Sentry
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,

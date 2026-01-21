@@ -16,6 +16,7 @@ import {
   TransactionProvider,
 } from "./common/middleware/db-transaction-middleware";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
+import { AnalyticsModule } from "./common/analytics.module";
 import { AuthService } from "./common/services/auth.service";
 import { EmailService } from "./common/services/email.service";
 import { StorageConfigService } from "./common/services/storage-config.service";
@@ -27,6 +28,7 @@ import { SchedulerModule } from "./scheduler/scheduler.module";
 import { StorageModule } from "./storage/storage.module";
 import { ThreadsModule } from "./threads/threads.module";
 import { UsersModule } from "./users/users.module";
+import { V1Module } from "./v1/v1.module";
 
 @Global()
 @Module({
@@ -39,6 +41,7 @@ export class GlobalModule {}
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    AnalyticsModule,
     LoggerModule,
     OAuthModule,
     ProjectsModule,
@@ -49,6 +52,7 @@ export class GlobalModule {}
     UsersModule,
     SchedulerModule,
     StorageModule,
+    V1Module,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService, AuthService],

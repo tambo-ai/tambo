@@ -3,11 +3,7 @@ import path from "path";
 import type { Root } from "postcss";
 import postcss from "postcss";
 import semver from "semver";
-import { fileURLToPath } from "url";
-
-// Get the current file URL and convert it to a path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { getRegistryBasePath } from "../../utils.js";
 
 /**
  * Extracts CSS variables from a specific selector in a CSS file
@@ -68,12 +64,12 @@ export function getTailwindVariables(version: string | null): {
   darkVars: Map<string, string>;
 } {
   const isV4 = version && semver.gte(version, "4.0.0");
-  const registryPath = path.join(__dirname, "../../../../../src/registry");
+  const registryPath = getRegistryBasePath();
 
   // Choose the appropriate CSS file based on version
   const cssFile = isV4
-    ? path.join(registryPath, "config", "globals-v4.css")
-    : path.join(registryPath, "config", "globals-v3.css");
+    ? path.join(registryPath, "styles", "globals-v4.css")
+    : path.join(registryPath, "styles", "globals-v3.css");
 
   // Extract variables from the registry CSS file
   const rootVars = extractVariablesFromCSS(cssFile, ":root");

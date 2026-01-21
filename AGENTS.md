@@ -100,6 +100,7 @@ eval "$(mise activate)"   # Interactive shells only
 - **No Silent Fallbacks**: Code must fail immediately when expected conditions aren't met. Silent fallback behavior masks bugs and creates unpredictable systems.
 - **Explicit Error Messages**: When something goes wrong, stop execution with clear error messages explaining what failed and what was expected.
 - **Example**: `throw new Error(\`Required model ${modelName} not found\`)` instead of falling back to first available model.
+- **Data mapping**: When converting enums or union types, handle all known values explicitly and throw for unknown values. Don't use catch-all defaults that mask data integrity issues. Log warnings if skipping invalid data intentionally.
 
 ### Naming Conventions
 
@@ -138,6 +139,7 @@ eval "$(mise activate)"   # Interactive shells only
 - Avoid default exports.
 - Don't create `index.ts` barrels for internal modules; import directly from source files. Exception: package entry points (e.g., `packages/core/src/index.ts`) are fine.
 - Don't re-export symbols for backwards compatibility. When moving a symbol, update all consumers to import from the new location.
+- **Never use dynamic `import()`** for regular imports, even for type imports. Use static imports at the top of the file. Dynamic imports are only appropriate for code splitting in specific scenarios (e.g., lazy-loaded routes).
 
 ## 3. TypeScript Standards
 
@@ -154,6 +156,17 @@ eval "$(mise activate)"   # Interactive shells only
 - **Use `as const`** to preserve literal types, especially for arrays that should be tuples.
 - **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
 - **Avoid `{}` type** - it means "any non-nullish value" (including primitives). Prefer `unknown` (truly unknown), `object` (any non-primitive object), or `Record<string, unknown>` / a specific object type for key-value objects.
+
+### type-fest Utility Types
+
+Prefer the `type-fest` package for advanced type manipulation: https://github.com/sindresorhus/type-fest
+
+Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `RequiredDeep`, `Merge`, `ValueOf`, `SetOptional`, etc. Before writing any complicated derivative types, check `type-fest` first.
+
+`type-fest` is installed at the repo root, but each package must still declare it explicitly when used:
+
+- If you reference `type-fest` types from a package's **public exported types**, add `type-fest` to that package's `dependencies`.
+- If you only use `type-fest` in internal code or tests, add `type-fest` to that package's `devDependencies`.
 
 ### Type Inference
 
@@ -268,6 +281,8 @@ eval "$(mise activate)"   # Interactive shells only
 
 - Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
+- Don't denormalize FKs that can be derived from relationships (e.g., if `runs.threadId` exists and threads have `projectId`, don't add `runs.projectId`).
+- **Factor database operations into `packages/db/src/operations/`**. Services in `apps/api` should call operation functions rather than writing inline DB queries. This promotes reuse and keeps DB logic centralized. Export new operations from `packages/db/src/operations/index.ts`.
 
 Database commands (require `-w packages/db` flag from root):
 
@@ -365,6 +380,12 @@ When working across multiple packages:
 - **Integration tests**: the only tests that stay in a `__tests__` folder, and the filename must describe the scenario (never just mirror another file's name).
 - **Fixtures & mocks**: keep shared helpers in a `__fixtures__` or `__mocks__` directory at the package's source root (e.g. `apps/web/__mocks__`), never nested inside feature folders.
 
+### Mocking
+
+- **Avoid over-mocking** - tests should exercise real code paths whenever possible. If you're mocking internal functions just to isolate a unit, you're probably testing implementation details rather than behavior.
+- **Only mock at system boundaries** - external APIs, databases, file systems, network calls, and other I/O with side effects.
+- **Don't mock what you own** - if a helper function is pure and fast, call it directly rather than mocking it. Mocking your own code couples tests to implementation.
+
 ### Pre-commit/PR Verification Checklist
 
 Run these commands before commits/PRs:
@@ -443,3 +464,4 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 - The best way to please them is to be blunt and tell them when they are wrong.
 - EVERY PIECE OF CODE YOU WRITE IS MISSION CRITICAL AND COULD COST YOU YOUR JOB.
 - When adding/editing JSDoc comments, make sure to add @returns to provide a description of the function return (the type should not be specified since TS will infer the return from the code, not the comment.)
+- Never reference planning documents, proposals, or design docs in code comments (e.g., `// See plans/foo.md`). These artifacts are short-lived but comments persist indefinitely. Code comments should be self-contained.

@@ -8,7 +8,7 @@ The Tambo CLI (`tambo`) is a command-line tool for scaffolding, managing, and ex
 
 ## Component Registry (Source of Truth)
 
-The `/cli/src/registry/` is the single source of truth for all Tambo components. Components auto-sync to showcase - edit only in CLI registry, never in showcase (files are auto-generated and will be overwritten).
+The component registry lives in `packages/ui-registry/` - this is the single source of truth for all Tambo components. The CLI copies these components to `dist/registry/` at build time via the `copy-registry` prebuild script. When users run `tambo add <component>`, files are read from `dist/registry/` and transformed for the user's project.
 
 ## Essential Commands
 
@@ -44,7 +44,8 @@ tambo upgrade               # Upgrade Tambo dependencies
 
 ### Component Registry System
 
-- **Registry**: `src/registry/` - Template components that auto-sync to showcase and get copied to user projects via `tambo add`
+- **Registry Source**: `packages/ui-registry/src/` - The source of truth for all Tambo components
+- **CLI Distribution**: At build time, registry is copied to `cli/dist/registry/`
 - **Structure**: Each component has:
   - `config.json` - Metadata (name, description, dependencies)
   - Component files (`.tsx`, `.ts`)
@@ -62,7 +63,8 @@ tambo upgrade               # Upgrade Tambo dependencies
 
 - `src/cli.ts` - Main CLI entry point with command routing
 - `src/commands/add/` - Component installation logic
-- `src/registry/` - Component templates and configurations
+- `scripts/copy-registry.ts` - Prebuild script that copies registry from ui-registry package
+- `dist/registry/` - Built registry files (copied from `packages/ui-registry/src/`)
 - `src/constants/` - Shared constants and paths
 - `src/templates/` - Project templates
 
@@ -88,102 +90,43 @@ If you do update the components directly, you should also update the documentati
 
 ### Adding New Components
 
-1. Create component directory in `src/registry/`
+1. Create component directory in `packages/ui-registry/src/components/`
 2. Add `config.json` with metadata
 3. Include component files and dependencies
-4. Test installation and generation
+4. Add exports to `packages/ui-registry/package.json`
+5. Rebuild CLI (`npm run build -w cli`) to copy new components
+6. Test installation with `tambo add <component>`
 
 ## Testing
 
-The CLI package has two types of tests with different layouts:
+### CLI Utility Tests
 
-### Test File Layout
+CLI utilities use Jest with ESM support and memfs for filesystem mocking:
 
-**Registry Component Tests** (React/shadcn components):
-
-- Location: `__tests__/registry/` mirroring the registry structure
-- Example: `src/registry/thread-dropdown/thread-dropdown.tsx` → `__tests__/registry/thread-dropdown/thread-dropdown.test.tsx`
-- **Rationale**: Registry components are distributed to users via npm. Tests must be in a separate directory to exclude them from the published package.
-
-**CLI Utility Tests** (commands, utils):
-
-- Location: Beside the file they cover
-- Example: `src/commands/add/index.ts` → `src/commands/add/index.test.ts`
+- **Location**: Tests live beside the files they cover
+- **Example**: `src/commands/add/index.ts` → `src/commands/add/index.test.ts`
+- Use `memfs` (`vol.fromJSON()`) to mock filesystem operations
+- Mock external dependencies: `child_process.execSync`, `inquirer.prompt`, registry utilities
+- Helper functions in `src/__fixtures__/mock-fs-setup.ts` for common test scenarios
+- See `src/commands/list/index.test.ts` and `src/commands/add/index.test.ts` for examples
 
 ### Running Tests
 
 ```bash
-npm test                        # Run all tests
+npm test                        # Run all CLI tests
 npm test -- --watch            # Run tests in watch mode
-npm test -- __tests__/registry # Run only registry component tests
-npm test -- thread-dropdown    # Run specific component test
 npm test -- add                # Run specific CLI utility test
 ```
-
-### Writing Registry Component Tests
-
-Registry components use `@testing-library/react` with jsdom and a shared Jest
-mock for `@tambo-ai/react`:
-
-- The default mock implementation lives in
-  `__tests__/__mocks__/@tambo-ai-react.ts`.
-- The mock is auto-applied via `moduleNameMapper` in `jest.config.ts`.
-- Use `jest.mocked()` for type-safe mock access when you need to override
-  behavior for a specific scenario.
-
-Example:
-
-```tsx
-import { jest, describe, it, expect, beforeEach } from "@jest/globals";
-import { render } from "@testing-library/react";
-import { ComponentName } from "@/components/tambo/component-name";
-import { useTambo } from "@tambo-ai/react";
-
-// @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
-
-describe("ComponentName", () => {
-  const mockUseTambo = jest.mocked(useTambo);
-
-  beforeEach(() => {
-    mockUseTambo.mockReturnValue({
-      // per-test mock return value
-    } as never);
-  });
-
-  it("renders correctly", () => {
-    const { getByText } = render(<ComponentName />);
-    expect(getByText("Expected Text")).toBeInTheDocument();
-  });
-
-  it("applies custom className", () => {
-    const { container } = render(<ComponentName className="custom-class" />);
-    expect(container.firstChild).toHaveClass("custom-class");
-  });
-});
-```
-
-Focus on:
-
-- Component renders without crashing
-- Props are passed correctly
-- Custom className is applied
-- Basic user interactions work
-- Error states are handled
-
-### Writing CLI Utility Tests
-
-CLI utilities use Jest with ESM support and memfs for filesystem mocking:
-
-- Use `memfs` (`vol.fromJSON()`) to mock filesystem operations
-- Mock external dependencies: `child_process.execSync`, `inquirer.prompt`, registry utilities
-- Helper functions in `tests/helpers/mock-fs-setup.ts` for common test scenarios
-- See `src/commands/list/index.test.ts` and `src/commands/add/index.test.ts` for examples
 
 Key requirements:
 
 - Command handlers must have unit tests
 - Test both success and error cases
 - Mock external dependencies (don't hit real filesystem/network/npm)
+
+### Component Tests
+
+Registry component tests live in `packages/ui-registry/` alongside the components they test. See `packages/ui-registry/AGENTS.md` for details on running and writing component tests.
 
 ### Package Distribution
 
@@ -198,14 +141,6 @@ published npm package:
   "!**/__tests__/**"
 ]
 ```
-
-Keeping registry tests under `__tests__/` and using `*.test.ts(x)` along with
-the `files` configuration ensures:
-
-1. Test files are not included in the npm package
-2. Registry components stay clean (no test files in the distributed components)
-3. Tests don't get synced to the showcase app
-4. Package size stays minimal for end users
 
 ## Important Development Rules
 

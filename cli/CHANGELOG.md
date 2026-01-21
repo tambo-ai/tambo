@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.47.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.46.1...tambo-v0.47.0) (2026-01-16)
+
+
+### Features
+
+* **ui:** add aria-labels to dictation button ([#1715](https://github.com/tambo-ai/tambo/issues/1715)) ([001e75b](https://github.com/tambo-ai/tambo/commit/001e75b03a969b228621c7b3f8c51a8952116954))
+* **web,cli:** redirect auth from tambo.co to app.tambo.co ([#1791](https://github.com/tambo-ai/tambo/issues/1791)) ([2d2b975](https://github.com/tambo-ai/tambo/commit/2d2b9750b6b1346b08949e2925ac1af774b9ea9c))
+
+
+### Bug Fixes
+
+* **cli:** add GenerationStage enum to components and Jest mock ([#1728](https://github.com/tambo-ai/tambo/issues/1728)) ([5b0eaf4](https://github.com/tambo-ai/tambo/commit/5b0eaf48ccf0cc80ff426457ca1b6121da4b6dad))
+* **message-input:** clean up paste handling ([#1732](https://github.com/tambo-ai/tambo/issues/1732)) ([29fd5c9](https://github.com/tambo-ai/tambo/commit/29fd5c9df7e7cb9ff4b3166a7f6194a0a88e228b))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump diff from 8.0.2 to 8.0.3 ([#1780](https://github.com/tambo-ai/tambo/issues/1780)) ([86f03a5](https://github.com/tambo-ai/tambo/commit/86f03a500044ca24b64539e2f475ce6a511106f2))
+
 ## [0.46.1](https://github.com/tambo-ai/tambo/compare/tambo-v0.46.0...tambo-v0.46.1) (2026-01-14)
 
 

@@ -199,17 +199,19 @@ jest.unstable_mockModule("../lib/api-client.js", () => ({
       },
     },
   },
-  getApiBaseUrl: () => "https://tambo.co",
+  // Note: This is the tRPC API (apps/web), not the NestJS API (api.tambo.co)
+  getConsoleBaseUrl: () => "https://console.tambo.co",
 }));
 
 // Mock the registry utilities to use memfs paths (same as add.test.ts)
 jest.unstable_mockModule("./add/utils.js", () => ({
+  getRegistryBasePath: () => `/mock-project/cli/dist/registry`,
   getRegistryPath: (componentName: string) =>
-    `/mock-project/cli/src/registry/${componentName}`,
+    `/mock-project/cli/dist/registry/components/${componentName}`,
   getConfigPath: (componentName: string) =>
-    `/mock-project/cli/src/registry/${componentName}/config.json`,
+    `/mock-project/cli/dist/registry/components/${componentName}/config.json`,
   componentExists: (componentName: string) => {
-    const configPath = `/mock-project/cli/src/registry/${componentName}/config.json`;
+    const configPath = `/mock-project/cli/dist/registry/components/${componentName}/config.json`;
     try {
       return (
         memfsFs.existsSync(configPath) &&

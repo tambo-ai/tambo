@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.126.0](https://github.com/tambo-ai/tambo/compare/web-v0.125.0...web-v0.126.0) (2026-01-16)
+
+
+### Features
+
+* **api:** implement v1 API phase 1 - foundation & schema ([#1767](https://github.com/tambo-ai/tambo/issues/1767)) ([e4dad06](https://github.com/tambo-ai/tambo/commit/e4dad061f22d2b6378846949beac1449f8c8b5c4))
+* **react-sdk:** Add streaming hint to enable tool streaming on the client ([#1685](https://github.com/tambo-ai/tambo/issues/1685)) ([c38f046](https://github.com/tambo-ai/tambo/commit/c38f046fda8a5ba2a3287ceab65ca10432be48fa))
+* **web,cli:** redirect auth from tambo.co to app.tambo.co ([#1791](https://github.com/tambo-ai/tambo/issues/1791)) ([2d2b975](https://github.com/tambo-ai/tambo/commit/2d2b9750b6b1346b08949e2925ac1af774b9ea9c))
+* **web:** add API key callout on project page ([#1755](https://github.com/tambo-ai/tambo/issues/1755)) ([d771f84](https://github.com/tambo-ai/tambo/commit/d771f84b0b315f729cbc45b90257ec6d50346f3f))
+* **web:** add Docs link to dashboard header ([#1757](https://github.com/tambo-ai/tambo/issues/1757)) ([0396733](https://github.com/tambo-ai/tambo/commit/03967335d289f215581e0b77c6a1e8c46fdd02e7))
+* **web:** make project names clickable in projects table ([#1754](https://github.com/tambo-ai/tambo/issues/1754)) ([3e992ab](https://github.com/tambo-ai/tambo/commit/3e992ab6b25158c7dd1dfe4a2b2e764d952a7a76))
+
+
+### Bug Fixes
+
+* **web:** avoid 'Invalid Date' for project createdAt ([#1768](https://github.com/tambo-ai/tambo/issues/1768)) ([77f2265](https://github.com/tambo-ai/tambo/commit/77f226500102a76f869fc2dba786e246ec9d9292))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @types/node from 22.19.1 to 22.19.5 ([#1746](https://github.com/tambo-ai/tambo/issues/1746)) ([aa0ca84](https://github.com/tambo-ai/tambo/commit/aa0ca84eb3e5cc582290e6aa0df6672f4b404969))
+* **deps:** bump the small-safe-packages group with 5 updates ([#1742](https://github.com/tambo-ai/tambo/issues/1742)) ([2056c5c](https://github.com/tambo-ai/tambo/commit/2056c5c424310b103ec0a93bedc59f774c532a5b))
+* **deps:** bump the tiptap group with 8 updates ([#1743](https://github.com/tambo-ai/tambo/issues/1743)) ([f3059ae](https://github.com/tambo-ai/tambo/commit/f3059ae231a4d19f799e6513c561695073c0e311))
+* **web:** shorten starter calls banner copy ([#1756](https://github.com/tambo-ai/tambo/issues/1756)) ([4f26716](https://github.com/tambo-ai/tambo/commit/4f267169f67b98132fed79df6681b06e84cfb6a3))
+
+
+### Code Refactoring
+
+* **cli:** remove unused children prop from MessageThreadPanel ([#1750](https://github.com/tambo-ai/tambo/issues/1750)) ([b6f0e34](https://github.com/tambo-ai/tambo/commit/b6f0e348c2c1174cecc01834e85125e0b2558b55))
+
 ## [0.125.0](https://github.com/tambo-ai/tambo/compare/web-v0.124.0...web-v0.125.0) (2026-01-07)
 
 

@@ -4,14 +4,16 @@ import {
   AsyncQueue,
   CustomLlmParameters,
   DEFAULT_OPENAI_MODEL,
-  LegacyComponentDecision,
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
 import OpenAI from "openai";
 import { AvailableComponent } from "./model/component-metadata";
 import { Provider } from "./model/providers";
 import { runAgentLoop } from "./services/decision-loop/agent-loop";
-import { runDecisionLoop } from "./services/decision-loop/decision-loop-service";
+import {
+  DecisionStreamItem,
+  runDecisionLoop,
+} from "./services/decision-loop/decision-loop-service";
 import { AgentClient } from "./services/llm/agent-client";
 import { AISdkClient } from "./services/llm/ai-sdk-client";
 import { EventHandlerParams } from "./services/llm/async-adapters";
@@ -67,7 +69,7 @@ export interface TamboBackend {
   ): Promise<SuggestionDecision>;
   runDecisionLoop: (
     params: RunDecisionLoopParams,
-  ) => Promise<AsyncIterableIterator<LegacyComponentDecision>>;
+  ) => Promise<AsyncIterableIterator<DecisionStreamItem>>;
   generateThreadName: (messages: ThreadMessage[]) => Promise<string>;
 
   readonly modelOptions: ModelOptions;
@@ -194,7 +196,7 @@ class AgenticTamboBackend implements TamboBackend {
 
   public async runDecisionLoop(
     params: RunDecisionLoopParams,
-  ): Promise<AsyncIterableIterator<LegacyComponentDecision>> {
+  ): Promise<AsyncIterableIterator<DecisionStreamItem>> {
     if (this.agentClient) {
       const queue = new AsyncQueue<EventHandlerParams>();
       return runAgentLoop(

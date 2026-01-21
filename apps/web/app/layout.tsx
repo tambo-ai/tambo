@@ -1,3 +1,4 @@
+import { PostHogIdentify } from "@/components/analytics/posthog-identify";
 import { PreloadResources } from "@/components/preload-resources";
 import { Schema } from "@/components/schema";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
@@ -92,6 +93,7 @@ export default async function RootLayout({
                 forcedTheme="light"
               >
                 <NextAuthProvider session={session}>
+                  <PostHogIdentify />
                   <MessageThreadPanelProvider>
                     <div className="flex h-screen overflow-hidden w-full">
                       <main className="flex-1 min-w-0 overflow-auto snap-y snap-proximity">

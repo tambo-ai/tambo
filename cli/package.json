@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.46.1",
+  "version": "0.47.0",
   "description": "Tambo command-line tool",
   "license": "MIT",
   "repository": {
@@ -30,7 +30,8 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
+    "build": "tsc --project tsconfig.build.json && npm run copy-registry",
+    "copy-registry": "npx tsx scripts/copy-registry.ts",
     "dev": "concurrently -c blue.bold,green.bold \"npm run dev:esm\"",
     "dev:esm": "tsc --watch",
     "check-types": "tsc --noEmit",
@@ -63,7 +64,7 @@
     "cli-table3": "^0.6.5",
     "clipboardy": "^5.0.2",
     "deepmerge": "^4.3.1",
-    "diff": "^8.0.2",
+    "diff": "^8.0.3",
     "dotenv": "^17.2.3",
     "env-paths": "^3.0.0",
     "fast-equals": "^5.3.3",
@@ -81,6 +82,7 @@
     "ts-morph": "^27.0.2"
   },
   "devDependencies": {
+    "@tambo-ai/ui-registry": "*",
     "@types/chalk": "^2.2.4",
     "@types/diffable-html": "^5.0.2",
     "@types/jest": "^30.0.0",
