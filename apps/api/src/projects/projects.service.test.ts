@@ -1,6 +1,7 @@
 import { Injectable, Scope } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { TestingModule } from "@nestjs/testing";
+import { AiProviderType } from "@tambo-ai-cloud/core";
 import { operations, type HydraDatabase } from "@tambo-ai-cloud/db";
 
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
@@ -33,10 +34,11 @@ class ExampleRequestScopedService {
 }
 
 describe("ProjectsService", () => {
-  const mockDb: HydraDatabase = {} as HydraDatabase;
+  let mockDb: HydraDatabase;
   let mockConfigService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
+    mockDb = {} as HydraDatabase;
     mockConfigService = {
       getOrThrow: jest.fn(),
     } as unknown as jest.Mocked<ConfigService>;
@@ -62,8 +64,8 @@ describe("ProjectsService", () => {
         name: "New Project",
         userId: "user-1",
         isTokenRequired: false,
-        providerType: "openai",
-      } as unknown as Awaited<ReturnType<typeof operations.createProject>>;
+        providerType: AiProviderType.LLM,
+      } as Awaited<ReturnType<typeof operations.createProject>>;
       jest.mocked(operations.createProject).mockResolvedValue(created);
 
       const service = module.get(ProjectsService);
@@ -81,7 +83,7 @@ describe("ProjectsService", () => {
         name: "New Project",
         userId: "user-1",
         isTokenRequired: false,
-        providerType: "openai",
+        providerType: AiProviderType.LLM,
       });
     } finally {
       await module.close();
@@ -109,6 +111,9 @@ describe("ProjectsService", () => {
       );
 
       expect(apiKey).toBe("tambo_test_key");
+      expect(mockConfigService.getOrThrow).toHaveBeenCalledWith(
+        "API_KEY_SECRET",
+      );
       expect(operations.createApiKey).toHaveBeenCalledWith(
         mockDb,
         "api-key-secret",
@@ -134,6 +139,8 @@ describe("ProjectsService", () => {
     });
 
     try {
+      // No need to stub `ContextIdFactory.getByRequest(...)` here; the provider
+      // resolution is driven by `registerRequestByContextId(...)`.
       const context = createTestRequestContext();
       const requestScopedService = await resolveRequestScopedProvider(
         module,
