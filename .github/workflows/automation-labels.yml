@@ -122,6 +122,8 @@ jobs:
               - "packages/core/**"
             backend:
               - "packages/backend/**"
+            ui:
+              - "packages/ui-registry/**"
             react-sdk:
               - "react-sdk/**"
             config:

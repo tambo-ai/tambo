@@ -71,6 +71,11 @@
     "WEATHER_API_KEY",
     "WEBHOOK_SECRET"
   ],
+  "globalPassThroughEnv": [
+    "TAMBO_REGISTRY_PATH",
+    "TAMBO_CLI_CONSOLE_BASE_URL",
+    "TAMBO_TOKEN"
+  ],
   "tasks": {
     "//#sync:showcase": {
       "cache": false,
@@ -87,6 +92,17 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "esm/**"],
       "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
+    },
+    "tambo#build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "../../packages/ui-registry/src/**/*.ts",
+        "../../packages/ui-registry/src/**/*.tsx",
+        "../../packages/ui-registry/src/**/*.css",
+        "../../packages/ui-registry/src/**/config.json"
+      ],
+      "outputs": ["dist/**"]
     },
     "@tambo-ai/showcase#build": {
       "dependsOn": ["^build", "//#sync:showcase"],

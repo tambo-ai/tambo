@@ -7,7 +7,6 @@ import postcss from "postcss";
 import semver from "semver";
 import type { Config } from "tailwindcss";
 import { Project, ScriptKind } from "ts-morph";
-import { fileURLToPath } from "url";
 import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
 import { parseConfigObject } from "./tailwind/config/parsing.js";
 import { showChangesSummary, showCssDiff } from "./tailwind/css/diff-viewer.js";
@@ -30,10 +29,7 @@ import {
   preserveConfigDirectives,
 } from "./tailwind/v4/handlers.js";
 import { detectTailwindVersion } from "./tailwind/version/detection.js";
-
-// Get the current file URL and convert it to a path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { getRegistryBasePath } from "./utils.js";
 
 /**
  * Sets up Tailwind CSS and global styles for the project
@@ -65,17 +61,17 @@ export async function setupTailwindAndGlobals(projectRoot: string) {
   // Set globals.css path based on project structure
   const globalsPath = path.join(projectRoot, appPath, "globals.css");
 
-  const registryPath = path.join(__dirname, "../../../src/registry");
+  const registryPath = getRegistryBasePath();
   const defaultTailwindConfig = path.join(
     registryPath,
-    "config",
+    "styles",
     "tailwind.config.ts",
   );
 
   // Choose the appropriate globals.css file based on Tailwind version
   const defaultGlobalsCSS = path.join(
     registryPath,
-    "config",
+    "styles",
     isV4 ? "globals-v4.css" : "globals-v3.css",
   );
 
