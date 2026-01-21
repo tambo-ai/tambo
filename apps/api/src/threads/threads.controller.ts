@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import * as Sentry from "@sentry/nestjs";
-import { AsyncQueue, GenerationStage } from "@tambo-ai-cloud/core";
+import { AsyncQueue } from "@tambo-ai-cloud/core";
 import { type Request, type Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
@@ -36,6 +36,7 @@ import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
 } from "./dto/advance-thread.dto";
+import { StreamQueueItem } from "./dto/stream-queue-item";
 import { ProblemDetailsDto } from "./dto/error.dto";
 import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
 import { SuggestionDto } from "./dto/suggestion.dto";
@@ -397,6 +398,7 @@ export class ThreadsController {
   async advanceThread(
     @Param("id") _threadId: string,
     @Req() request: Request,
+    @Body() _advanceRequestDto: AdvanceThreadDto,
   ): Promise<AdvanceThreadResponseDto> {
     throw new EndpointDeprecatedException({
       detail:
@@ -432,7 +434,7 @@ export class ThreadsController {
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
 
-    const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+    const queue = new AsyncQueue<StreamQueueItem>();
     try {
       const p = this.threadsService.advanceThread(
         projectId,
@@ -506,7 +508,7 @@ export class ThreadsController {
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
 
-    const queue = new AsyncQueue<AdvanceThreadResponseDto>();
+    const queue = new AsyncQueue<StreamQueueItem>();
     try {
       const p = this.threadsService.advanceThread(
         projectId,
@@ -575,23 +577,24 @@ export class ThreadsController {
 
   private async handleAdvanceStream(
     @Res() response,
-    stream: AsyncIterableIterator<{
-      responseMessageDto: ThreadMessageDto;
-      generationStage: GenerationStage;
-    }>,
+    stream: AsyncIterableIterator<StreamQueueItem>,
     shouldThrottle = true, // used mainly for debugging
   ) {
     try {
       if (shouldThrottle) {
-        for await (const chunk of throttleChunks(
+        for await (const item of throttleChunks(
           stream,
-          (m1, m2) => m1.responseMessageDto.id !== m2.responseMessageDto.id,
+          (m1, m2) =>
+            m1.response.responseMessageDto.id !==
+            m2.response.responseMessageDto.id,
         )) {
-          response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+          // Write only the response portion (backwards-compatible with existing clients)
+          response.write(`data: ${JSON.stringify(item.response)}\n\n`);
         }
       } else {
-        for await (const chunk of stream) {
-          response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        for await (const item of stream) {
+          // Write only the response portion (backwards-compatible with existing clients)
+          response.write(`data: ${JSON.stringify(item.response)}\n\n`);
         }
       }
     } catch (error: unknown) {

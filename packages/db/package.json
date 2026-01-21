@@ -35,9 +35,8 @@
     "@tambo-ai-cloud/core": "*",
     "drizzle-orm": "^0.45.1",
     "jsonwebtoken": "^9.0.2",
-    "openai": "^6.15.0",
+    "openai": "^6.16.0",
     "pg": "^8.16.3",
-    "superjson": "^2.2.6",
-    "ts-essentials": "^10.1.1"
+    "superjson": "^2.2.6"
   }
 }

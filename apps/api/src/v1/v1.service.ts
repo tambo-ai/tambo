@@ -1,13 +1,51 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+import * as Sentry from "@sentry/nestjs";
+import {
+  EventType,
+  type BaseEvent,
+  type RunStartedEvent,
+  type RunFinishedEvent,
+  type RunErrorEvent,
+} from "@ag-ui/core";
+import {
+  AsyncQueue,
+  ContentPartType,
+  MessageRole,
+  V1RunStatus,
+  type UnsavedThreadToolMessage,
+} from "@tambo-ai-cloud/core";
+import { sanitizeEvent } from "@tambo-ai-cloud/backend";
 import type { HydraDatabase } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
+import type { Response } from "express";
+import { createProblemDetail, V1ErrorCodes } from "./v1.errors";
+import { V1CreateRunDto } from "./dto/run.dto";
+import {
+  convertV1ComponentsToInternal,
+  convertV1ToolsToInternal,
+} from "./v1-tool-conversions";
+import {
+  createAwaitingInputEvent,
+  ClientToolCallTracker,
+} from "./v1-client-tools";
+import {
+  convertToolResultsToMessages,
+  dedupeToolResults,
+  extractToolResults,
+  validateToolResults,
+} from "./v1-tool-results";
+import type { StreamQueueItem } from "../threads/dto/stream-queue-item";
+import { ThreadsService } from "../threads/threads.service";
+import type { MessageRequest } from "../threads/dto/message.dto";
 import { DATABASE } from "../common/middleware/db-transaction-middleware";
 import {
   V1GetMessageResponseDto,
@@ -27,6 +65,13 @@ import {
   ContentConversionOptions,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
+
+/**
+ * Result type for startRun - either success with runId or failure with HttpException
+ */
+export type StartRunResult =
+  | { success: true; runId: string; threadId: string }
+  | { success: false; error: HttpException };
 
 @Injectable()
 export class V1Service {
@@ -53,6 +98,7 @@ export class V1Service {
   constructor(
     @Inject(DATABASE)
     private readonly db: HydraDatabase,
+    private readonly threadsService: ThreadsService,
   ) {}
 
   private parseLimit(raw: string | undefined, fallback: number): number {
@@ -283,5 +329,506 @@ export class V1Service {
     }
 
     return messageToDto(message, this.contentConversionOptions);
+  }
+
+  // ==========================================
+  // Run operations
+  // ==========================================
+
+  /**
+   * Start a run on an existing thread with atomic concurrency control.
+   *
+   * This method:
+   * 1. Validates previousRunId if thread has existing messages
+   * 2. Atomically sets runStatus from IDLE to WAITING (prevents concurrent runs)
+   * 3. Creates a run record in the runs table
+   *
+   * @returns Success with runId or failure with HttpException
+   */
+  async startRun(
+    threadId: string,
+    dto: V1CreateRunDto,
+  ): Promise<StartRunResult> {
+    const { thread, hasMessages } = await operations.getThreadForRunStart(
+      this.db,
+      threadId,
+    );
+
+    if (!thread) {
+      return {
+        success: false,
+        error: new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.THREAD_NOT_FOUND,
+            `Thread ${threadId} not found`,
+          ),
+          HttpStatus.NOT_FOUND,
+        ),
+      };
+    }
+
+    if (hasMessages && !dto.previousRunId) {
+      return {
+        success: false,
+        error: new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_PREVIOUS_RUN,
+            "previousRunId is required when continuing a thread with existing messages",
+          ),
+          HttpStatus.BAD_REQUEST,
+        ),
+      };
+    }
+
+    // Validate previousRunId matches lastCompletedRunId
+    if (dto.previousRunId && thread.lastCompletedRunId !== dto.previousRunId) {
+      return {
+        success: false,
+        error: new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_PREVIOUS_RUN,
+            `previousRunId ${dto.previousRunId} does not match last completed run ${thread.lastCompletedRunId ?? "(none)"}`,
+          ),
+          HttpStatus.BAD_REQUEST,
+        ),
+      };
+    }
+
+    const toolResultMessages: UnsavedThreadToolMessage[] = [];
+    const toolResults = extractToolResults(dto.message);
+    const { toolResults: dedupedToolResults, duplicateToolCallIds } =
+      dedupeToolResults(toolResults);
+    const pendingToolCallIds = thread.pendingToolCallIds ?? [];
+    const validation = validateToolResults(
+      dedupedToolResults,
+      pendingToolCallIds,
+    );
+
+    if (!validation.valid) {
+      return {
+        success: false,
+        error: new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_TOOL_RESULT,
+            validation.error.message,
+            {
+              code: validation.error.code,
+              missingToolCallIds: validation.error.missingToolCallIds,
+              extraToolCallIds: validation.error.extraToolCallIds,
+            },
+          ),
+          HttpStatus.BAD_REQUEST,
+        ),
+      };
+    }
+
+    if (duplicateToolCallIds.length > 0) {
+      this.logger.warn(
+        `Dropping duplicate tool results for tool calls: ${duplicateToolCallIds.join(", ")}`,
+      );
+    }
+
+    // Convert validated tool results to internal messages
+    if (dedupedToolResults.length > 0) {
+      toolResultMessages.push(
+        ...convertToolResultsToMessages(dedupedToolResults),
+      );
+    }
+
+    // Capture expected pending tool call IDs from the thread snapshot we read before
+    // acquiring the run lock. This snapshot is the only concurrency key used for
+    // tool result application.
+    // Any change between this snapshot and the clear is
+    // treated as a concurrency conflict that requires client retry.
+    // Note: pendingToolCallIds should only be modified by the V1 run / tool-result flow.
+    const snapshotPendingToolCallIds = thread.pendingToolCallIds ?? null;
+
+    let runId: string | null;
+    try {
+      runId = await this.db.transaction(async (tx) => {
+        const didAcquireLock = await operations.acquireRunLock(tx, threadId);
+        if (!didAcquireLock) {
+          return null;
+        }
+
+        // Save tool result messages to the thread (before creating the run)
+        for (const toolMessage of toolResultMessages) {
+          await operations.addMessage(tx, threadId, toolMessage);
+        }
+
+        // Clear pendingToolCallIds since we've processed the tool results
+        if (toolResultMessages.length > 0) {
+          await operations.clearPendingToolCalls(
+            tx,
+            threadId,
+            snapshotPendingToolCallIds,
+          );
+        }
+
+        const run = await operations.createRun(tx, {
+          threadId,
+          previousRunId: dto.previousRunId,
+          model: dto.model,
+          requestParams: {
+            maxTokens: dto.maxTokens,
+            temperature: dto.temperature,
+            toolChoice: dto.toolChoice,
+          },
+          metadata: dto.runMetadata,
+        });
+
+        await operations.setCurrentRunId(tx, threadId, run.id);
+
+        return run.id;
+      });
+    } catch (error) {
+      if (error instanceof operations.PendingToolCallStateMismatchError) {
+        const mismatchContext = "v1.apply_tool_results";
+        const snapshotPendingToolCallIdsCount =
+          snapshotPendingToolCallIds?.length ?? 0;
+
+        // Keep warning logs low-cardinality and avoid emitting tool-call IDs.
+        this.logger.warn(
+          `Thread ${threadId} pending tool call state mismatch ` +
+            `(previousRunId=${dto.previousRunId ?? null}) ` +
+            `mismatchContext=${mismatchContext} ` +
+            `snapshotPendingToolCallIdsCount=${snapshotPendingToolCallIdsCount}`,
+        );
+        return {
+          success: false,
+          error: new HttpException(
+            createProblemDetail(
+              V1ErrorCodes.CONCURRENT_RUN,
+              "Thread pending tool call state changed; please retry",
+              { threadId },
+            ),
+            HttpStatus.CONFLICT,
+          ),
+        };
+      }
+      throw error;
+    }
+
+    if (runId === null) {
+      const { thread: latestThread } = await operations.getThreadForRunStart(
+        this.db,
+        threadId,
+      );
+
+      return {
+        success: false,
+        error: new HttpException(
+          createProblemDetail(
+            V1ErrorCodes.CONCURRENT_RUN,
+            `A run is already active on thread ${threadId}`,
+            { threadId, currentRunId: latestThread?.currentRunId },
+          ),
+          HttpStatus.CONFLICT,
+        ),
+      };
+    }
+
+    this.logger.log(`Started run ${runId} on thread ${threadId}`);
+
+    return { success: true, runId, threadId };
+  }
+
+  /**
+   * Cancel an active run.
+   *
+   * Sets the thread status back to IDLE and marks the run as cancelled.
+   *
+   * @returns The cancelled run info
+   */
+  async cancelRun(
+    threadId: string,
+    runId: string,
+    reason: "user_cancelled" | "connection_closed",
+  ): Promise<{ runId: string; status: "cancelled" }> {
+    const run = await operations.getRun(this.db, threadId, runId);
+    if (!run) {
+      throw new NotFoundException(
+        `Run ${runId} not found on thread ${threadId}`,
+      );
+    }
+
+    const didCancel = await this.db.transaction(async (tx) => {
+      const didReleaseLock = await operations.releaseRunLockIfCurrent(
+        tx,
+        threadId,
+        runId,
+        { wasCancelled: true },
+      );
+      if (!didReleaseLock) {
+        return false;
+      }
+
+      await operations.markRunCancelled(tx, runId);
+      return true;
+    });
+
+    if (!didCancel) {
+      throw new NotFoundException(
+        `Run ${runId} not found on thread ${threadId}`,
+      );
+    }
+
+    this.logger.log(
+      `Cancelled run ${runId} on thread ${threadId} (reason: ${reason})`,
+    );
+
+    return { runId, status: "cancelled" };
+  }
+
+  /**
+   * Execute a run - generates content and streams AG-UI events.
+   *
+   * This method:
+   * 1. Adds the user message to the thread
+   * 2. Calls the LLM to generate a response
+   * 3. Streams AG-UI events as content is generated
+   * 4. Handles tool calls (server-side MCP inline, client-side awaits input)
+   * 5. Updates thread/run state on completion or error
+   *
+   * @param response - Express Response object for SSE streaming
+   * @param threadId - Thread to execute the run on
+   * @param runId - The run ID (already created by startRun)
+   * @param dto - Run configuration including message, tools, etc.
+   * @param projectId - The project ID for the thread
+   * @param contextKey - Optional context key for thread scoping
+   */
+  async executeRun(
+    response: Response,
+    threadId: string,
+    runId: string,
+    dto: V1CreateRunDto,
+    projectId: string,
+    contextKey?: string,
+  ): Promise<void> {
+    return await Sentry.startSpan(
+      {
+        op: "v1.executeRun",
+        name: `V1 Run ${runId}`,
+        attributes: { threadId, runId, projectId },
+      },
+      async () => {
+        // Set Sentry context for this run
+        Sentry.setContext("v1Run", {
+          threadId,
+          runId,
+          projectId,
+          contextKey,
+          model: dto.model,
+        });
+
+        this.logger.log(`Executing run ${runId} on thread ${threadId}`);
+
+        // 1. Emit RUN_STARTED event
+        const runStartedEvent: RunStartedEvent = {
+          type: EventType.RUN_STARTED,
+          threadId,
+          runId,
+          timestamp: Date.now(),
+        };
+        this.emitEvent(response, runStartedEvent);
+
+        // Update run and thread status to STREAMING
+        await operations.updateRunStatus(this.db, runId, V1RunStatus.STREAMING);
+        await operations.updateThreadRunStatus(
+          this.db,
+          threadId,
+          V1RunStatus.STREAMING,
+        );
+
+        try {
+          // 2. Convert V1 message to internal format
+          const messageToAppend = this.convertV1MessageToInternal(dto.message);
+
+          // 3. Create streaming infrastructure
+          const queue = new AsyncQueue<StreamQueueItem>();
+
+          // 4. Start streaming via shared logic with advanceThread
+          // advanceThread is fire-and-forget style - it resolves when streaming completes
+          // but pushes to queue while running
+          //
+          // Convert V1 tools/components to internal format
+          // V1 uses JSON Schemas (inputSchema, propsSchema) while internal uses
+          // parsed metadata (ToolParameters[], contextTools).
+          const availableComponents = convertV1ComponentsToInternal(
+            dto.availableComponents,
+          );
+          const clientTools = convertV1ToolsToInternal(dto.tools);
+
+          const streamingPromise = this.threadsService.advanceThread(
+            projectId,
+            {
+              messageToAppend,
+              availableComponents,
+              clientTools,
+            },
+            threadId,
+            {}, // toolCallCounts - start fresh for V1 API
+            undefined, // cachedSystemTools
+            queue,
+            contextKey,
+          );
+
+          // 5. Consume queue and emit AG-UI events, tracking tool calls
+          const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
+          const toolCallTracker = new ClientToolCallTracker(clientToolNames);
+
+          for await (const item of queue) {
+            // Emit all AG-UI events from this stream item
+            if (item.aguiEvents) {
+              for (const event of item.aguiEvents) {
+                // Track tool calls to detect pending client-side tools
+                toolCallTracker.processEvent(event);
+                this.emitEvent(response, event);
+              }
+            }
+          }
+
+          // Wait for streaming to complete (should already be done since queue finished)
+          await streamingPromise;
+
+          // 6. Check for pending client-side tool calls
+          const pendingToolCalls = toolCallTracker.getPendingToolCalls();
+          const hasPendingTools = pendingToolCalls.length > 0;
+
+          if (hasPendingTools) {
+            // Emit awaiting_input event before RUN_FINISHED
+            this.logger.log(
+              `Run ${runId} has ${pendingToolCalls.length} pending client tool calls`,
+            );
+            const awaitingEvent = createAwaitingInputEvent(pendingToolCalls);
+            this.emitEvent(response, awaitingEvent);
+          }
+
+          // 7. Mark run as completed (with pending tool call info if applicable)
+          const pendingToolCallIds = hasPendingTools
+            ? toolCallTracker.getPendingToolCallIds()
+            : undefined;
+
+          const didReleaseLock = await this.db.transaction(async (tx) => {
+            await operations.completeRun(tx, runId);
+            return await operations.releaseRunLockIfCurrent(
+              tx,
+              threadId,
+              runId,
+              { pendingToolCallIds },
+            );
+          });
+
+          if (!didReleaseLock) {
+            this.logger.warn(
+              `Skipped releasing run lock for run ${runId} on thread ${threadId} (no longer current run)`,
+            );
+          }
+
+          // 8. Emit RUN_FINISHED
+          const runFinishedEvent: RunFinishedEvent = {
+            type: EventType.RUN_FINISHED,
+            threadId,
+            runId,
+            timestamp: Date.now(),
+          };
+          this.emitEvent(response, runFinishedEvent);
+        } catch (error) {
+          // 8. Handle error - emit RUN_ERROR and update state
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
+          this.logger.error(`Run ${runId} failed: ${errorMessage}`);
+
+          // Capture exception with Sentry context
+          Sentry.captureException(error, {
+            tags: { threadId, runId, projectId },
+            extra: { model: dto.model, contextKey },
+          });
+
+          // Use generic message for client to avoid exposing internal details
+          const runErrorEvent: RunErrorEvent = {
+            type: EventType.RUN_ERROR,
+            message: "An internal error occurred",
+            code: "INTERNAL_ERROR",
+            timestamp: Date.now(),
+          };
+          this.emitEvent(response, runErrorEvent);
+
+          // Store full error details in database for debugging
+          const errorInfo = {
+            code: "INTERNAL_ERROR",
+            message: errorMessage,
+          };
+
+          // Update run and thread with error
+          const didReleaseLock = await this.db.transaction(async (tx) => {
+            await operations.completeRun(tx, runId, { error: errorInfo });
+            return await operations.releaseRunLockIfCurrent(
+              tx,
+              threadId,
+              runId,
+              {
+                error: errorInfo,
+              },
+            );
+          });
+
+          if (!didReleaseLock) {
+            this.logger.warn(
+              `Skipped releasing run lock for run ${runId} on thread ${threadId} after error (no longer current run)`,
+            );
+          }
+
+          throw error;
+        }
+      },
+    );
+  }
+
+  /**
+   * Emit an AG-UI event to the SSE response.
+   * Events are sanitized before emission to prevent exposure of sensitive data.
+   */
+  private emitEvent(response: Response, event: BaseEvent): void {
+    const sanitized = sanitizeEvent(event);
+    response.write(`data: ${JSON.stringify(sanitized)}\n\n`);
+  }
+
+  /**
+   * Convert V1 input message to internal MessageRequest format.
+   *
+   * Note: tool_result blocks are filtered out because they are processed
+   * separately in startRun and saved as Tool role messages before this
+   * conversion happens.
+   */
+  private convertV1MessageToInternal(
+    message: V1CreateRunDto["message"],
+  ): MessageRequest {
+    // Filter out tool_result blocks - they're already saved as separate Tool messages
+    const nonToolResultContent = message.content.filter(
+      (block) => block.type !== "tool_result",
+    );
+
+    return {
+      role: MessageRole.User,
+      content: nonToolResultContent.map((block) => {
+        switch (block.type) {
+          case "text":
+            return {
+              type: ContentPartType.Text,
+              text: block.text,
+            };
+          case "resource":
+            return {
+              type: ContentPartType.Resource,
+              resource: block.resource,
+            };
+          default:
+            throw new Error(
+              `Unknown content type: ${(block as { type: string }).type}`,
+            );
+        }
+      }),
+    };
   }
 }

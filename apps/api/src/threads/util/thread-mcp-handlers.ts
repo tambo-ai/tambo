@@ -15,7 +15,7 @@ import type {
   ResourceLink,
 } from "@modelcontextprotocol/sdk/types.js";
 import mimeTypes from "mime-types";
-import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
+import { StreamQueueItem } from "../dto/stream-queue-item";
 import { AudioFormat } from "../dto/message.dto";
 import { convertContentPartToDto } from "./content";
 import { MCP_PARENT_MESSAGE_ID_META_KEY } from "./tool";
@@ -24,7 +24,7 @@ export function createMcpHandlers(
   db: HydraDb,
   tamboBackend: ITamboBackend,
   threadId: string,
-  queue: AsyncQueue<AdvanceThreadResponseDto>,
+  queue: AsyncQueue<StreamQueueItem>,
 ): MCPHandlers {
   return {
     async sampling(e) {
@@ -66,17 +66,20 @@ export function createMcpHandlers(
         savedMessages.push(dbMessageToThreadMessage(message));
 
         queue.push({
-          responseMessageDto: {
-            id: message.id,
-            parentMessageId,
-            role: message.role,
-            content: convertContentPartToDto(message.content),
-            componentState: message.componentState ?? {},
-            threadId: message.threadId,
-            createdAt: message.createdAt,
+          response: {
+            responseMessageDto: {
+              id: message.id,
+              parentMessageId,
+              role: message.role,
+              content: convertContentPartToDto(message.content),
+              componentState: message.componentState ?? {},
+              threadId: message.threadId,
+              createdAt: message.createdAt,
+            },
+            generationStage: GenerationStage.STREAMING_RESPONSE,
+            statusMessage: `Streaming response...`,
           },
-          generationStage: GenerationStage.STREAMING_RESPONSE,
-          statusMessage: `Streaming response...`,
+          aguiEvents: [], // MCP sampling message, no AG-UI events
         });
       }
       // Filter unsupported parts (resource content) for LLM
@@ -112,17 +115,20 @@ export function createMcpHandlers(
       });
 
       queue.push({
-        responseMessageDto: {
-          id: message.id,
-          parentMessageId,
-          role: message.role,
-          content: convertContentPartToDto(message.content),
-          componentState: message.componentState ?? {},
-          threadId: message.threadId,
-          createdAt: message.createdAt,
+        response: {
+          responseMessageDto: {
+            id: message.id,
+            parentMessageId,
+            role: message.role,
+            content: convertContentPartToDto(message.content),
+            componentState: message.componentState ?? {},
+            threadId: message.threadId,
+            createdAt: message.createdAt,
+          },
+          generationStage: GenerationStage.STREAMING_RESPONSE,
+          statusMessage: `Streaming response...`,
         },
-        generationStage: GenerationStage.STREAMING_RESPONSE,
-        statusMessage: `Streaming response...`,
+        aguiEvents: [], // MCP LLM response, no AG-UI events
       });
 
       return {

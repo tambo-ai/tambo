@@ -29,8 +29,8 @@ const config: Config = {
   resetMocks: true,
   coverageThreshold: {
     global: {
-      branches: 78,
-      lines: 85,
+      branches: 79,
+      lines: 86,
     },
   },
 };

@@ -8,7 +8,7 @@ import {
 } from "@tambo-ai-cloud/core";
 import type { HydraDb } from "@tambo-ai-cloud/db";
 import { operations } from "@tambo-ai-cloud/db";
-import { AdvanceThreadResponseDto } from "../dto/advance-thread.dto";
+import { StreamQueueItem } from "../dto/stream-queue-item";
 import { createMcpHandlers } from "./thread-mcp-handlers";
 
 // Mock dependencies
@@ -31,7 +31,7 @@ jest.mock("./content");
 describe("createMcpHandlers", () => {
   const mockDb = {} as HydraDb;
   const mockThreadId = "thread-123";
-  let mockQueue: AsyncQueue<AdvanceThreadResponseDto>;
+  let mockQueue: AsyncQueue<StreamQueueItem>;
   let mockTamboBackend: ITamboBackend;
 
   beforeEach(() => {
@@ -205,32 +205,38 @@ describe("createMcpHandlers", () => {
 
         // Verify input message pushed to queue
         expect(mockQueue.push).toHaveBeenNthCalledWith(1, {
-          responseMessageDto: {
-            id: "msg-1",
-            parentMessageId: undefined,
-            role: MessageRole.User,
-            content: mockInputMessageContent,
-            componentState: {},
-            threadId: mockThreadId,
-            createdAt: mockInputMessage.createdAt,
+          response: {
+            responseMessageDto: {
+              id: "msg-1",
+              parentMessageId: undefined,
+              role: MessageRole.User,
+              content: mockInputMessageContent,
+              componentState: {},
+              threadId: mockThreadId,
+              createdAt: mockInputMessage.createdAt,
+            },
+            generationStage: GenerationStage.STREAMING_RESPONSE,
+            statusMessage: `Streaming response...`,
           },
-          generationStage: GenerationStage.STREAMING_RESPONSE,
-          statusMessage: `Streaming response...`,
+          aguiEvents: [],
         });
 
         // Verify response message pushed to queue
         expect(mockQueue.push).toHaveBeenNthCalledWith(2, {
-          responseMessageDto: {
-            id: "msg-2",
-            parentMessageId: undefined,
-            role: MessageRole.Assistant,
-            content: mockResponseMessageContent,
-            componentState: {},
-            threadId: mockThreadId,
-            createdAt: mockResponseMessage.createdAt,
+          response: {
+            responseMessageDto: {
+              id: "msg-2",
+              parentMessageId: undefined,
+              role: MessageRole.Assistant,
+              content: mockResponseMessageContent,
+              componentState: {},
+              threadId: mockThreadId,
+              createdAt: mockResponseMessage.createdAt,
+            },
+            generationStage: GenerationStage.STREAMING_RESPONSE,
+            statusMessage: `Streaming response...`,
           },
-          generationStage: GenerationStage.STREAMING_RESPONSE,
-          statusMessage: `Streaming response...`,
+          aguiEvents: [],
         });
 
         expect(mockQueue.push).toHaveBeenCalledTimes(2);
@@ -410,8 +416,10 @@ describe("createMcpHandlers", () => {
         // Verify queue messages include parentMessageId
         expect(mockQueue.push).toHaveBeenCalledWith(
           expect.objectContaining({
-            responseMessageDto: expect.objectContaining({
-              parentMessageId: parentMsgId,
+            response: expect.objectContaining({
+              responseMessageDto: expect.objectContaining({
+                parentMessageId: parentMsgId,
+              }),
             }),
           }),
         );
