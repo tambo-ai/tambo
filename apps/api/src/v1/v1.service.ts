@@ -888,6 +888,41 @@ export class V1Service {
       );
     }
 
+    const state = dto.state ?? undefined;
+    const patch = Array.isArray(dto.patch) ? dto.patch : undefined;
+    const hasState = state !== undefined;
+    const hasPatch = patch !== undefined;
+
+    if (hasState && hasPatch) {
+      throw new BadRequestException(
+        createProblemDetail(
+          V1ErrorCodes.VALIDATION_ERROR,
+          "Provide either 'state' or 'patch', not both",
+          { threadId, componentId },
+        ),
+      );
+    }
+
+    if (!hasState && !hasPatch) {
+      throw new BadRequestException(
+        createProblemDetail(
+          V1ErrorCodes.VALIDATION_ERROR,
+          "Either 'state' or 'patch' must be provided",
+          { threadId, componentId },
+        ),
+      );
+    }
+
+    if (hasPatch && patch.length === 0) {
+      throw new BadRequestException(
+        createProblemDetail(
+          V1ErrorCodes.VALIDATION_ERROR,
+          "'patch' must not be empty",
+          { threadId, componentId },
+        ),
+      );
+    }
+
     // 2. Verify component exists in thread by searching content array for component blocks
     const message = await this.findMessageWithComponent(threadId, componentId);
 
@@ -898,17 +933,15 @@ export class V1Service {
     }
 
     // 3. Get current state
-    const currentState = await this.getComponentState(threadId, componentId);
+    const currentState =
+      (message.componentState as Record<string, unknown>) ?? {};
 
     // 4. Apply update (full replacement or JSON Patch)
     let newState: Record<string, unknown>;
 
-    if (dto.patch !== undefined) {
+    if (hasPatch) {
       // JSON Patch mode
-      const validation = validateJsonPatch(
-        dto.patch as Operation[],
-        currentState,
-      );
+      const validation = validateJsonPatch(patch as Operation[], currentState);
       if (validation) {
         throw new BadRequestException(
           createProblemDetail(
@@ -919,15 +952,13 @@ export class V1Service {
         );
       }
 
-      const patchResult = applyPatch(currentState, dto.patch as Operation[]);
+      const patchResult = applyPatch(currentState, patch as Operation[]);
       newState = patchResult.newDocument;
-    } else if (dto.state !== undefined && dto.state !== null) {
+    } else if (hasState) {
       // Full replacement mode
-      newState = dto.state;
+      newState = state;
     } else {
-      throw new BadRequestException(
-        "Either 'state' or 'patch' must be provided",
-      );
+      throw new Error("Unreachable: request shape already validated");
     }
 
     // 5. Persist the new state
@@ -949,42 +980,27 @@ export class V1Service {
   private async findMessageWithComponent(
     threadId: string,
     componentId: string,
-  ): Promise<typeof schema.messages.$inferSelect | undefined> {
-    // Search for messages with component blocks in content array
-    // The content is JSONB, so we use the @> operator to check if it contains
-    // a component block with the matching ID
+  ): Promise<
+    | Pick<typeof schema.messages.$inferSelect, "id" | "componentState">
+    | undefined
+  > {
     const message = await this.db.query.messages.findFirst({
       where: and(
         eq(schema.messages.threadId, threadId),
-        sql`content @> ${JSON.stringify([{ type: "component", id: componentId }])}::jsonb`,
+        sql`exists (
+          select 1
+          from jsonb_array_elements(content) as elem
+          where elem->>'type' = 'component'
+            and elem->>'id' = ${componentId}
+        )`,
       ),
+      columns: {
+        id: true,
+        componentState: true,
+      },
     });
 
     return message;
-  }
-
-  /**
-   * Get current component state from the message.
-   *
-   * @param threadId - Thread containing the component
-   * @param componentId - Component ID
-   * @returns Current state object (empty object if no state exists)
-   */
-  private async getComponentState(
-    threadId: string,
-    componentId: string,
-  ): Promise<Record<string, unknown>> {
-    const message = await this.findMessageWithComponent(threadId, componentId);
-
-    if (!message) {
-      throw new NotFoundException(
-        `Component ${componentId} not found in thread ${threadId}`,
-      );
-    }
-
-    // Extract state from componentState field
-    // componentState is the internal storage for component state
-    return (message.componentState as Record<string, unknown>) ?? {};
   }
 
   /**

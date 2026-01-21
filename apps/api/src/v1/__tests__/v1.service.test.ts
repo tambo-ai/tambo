@@ -1018,8 +1018,6 @@ describe("V1Service", () => {
           id: "thr_123",
           runStatus: V1RunStatus.IDLE,
         });
-        // findMessageWithComponent is called once in updateComponentState,
-        // then again inside getComponentState
         mockDb.query.messages.findFirst.mockResolvedValue(
           mockMessageWithComponent as any,
         );
@@ -1042,6 +1040,7 @@ describe("V1Service", () => {
           loading: true,
           rows: [{ id: 1, name: "Alice" }],
         });
+        expect(mockDb.query.messages.findFirst).toHaveBeenCalledTimes(1);
         expect(mockOperations.updateMessage).toHaveBeenCalled();
       });
 
@@ -1066,13 +1065,80 @@ describe("V1Service", () => {
           id: "thr_123",
           runStatus: V1RunStatus.IDLE,
         });
-        mockDb.query.messages.findFirst.mockResolvedValue(
-          mockMessageWithComponent as any,
-        );
 
-        await expect(
-          service.updateComponentState("thr_123", "comp_123", {}),
-        ).rejects.toThrow("Either 'state' or 'patch' must be provided");
+        const promise = service.updateComponentState("thr_123", "comp_123", {});
+
+        await expect(promise).rejects.toThrow(BadRequestException);
+
+        try {
+          await promise;
+        } catch (error: unknown) {
+          if (error instanceof BadRequestException) {
+            const response = error.getResponse() as {
+              detail?: string;
+              type?: string;
+            };
+            expect(response.detail).toContain("Either 'state' or 'patch'");
+            expect(response.type).toContain("validation_error");
+          }
+        }
+      });
+
+      it("should throw BadRequestException when both state and patch are provided", async () => {
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.IDLE,
+        });
+
+        const promise = service.updateComponentState("thr_123", "comp_123", {
+          state: { loading: true },
+          patch: [{ op: "replace", path: "/loading", value: false }],
+        });
+
+        await expect(promise).rejects.toThrow(BadRequestException);
+
+        try {
+          await promise;
+        } catch (error: unknown) {
+          if (error instanceof BadRequestException) {
+            const response = error.getResponse() as {
+              detail?: string;
+              type?: string;
+            };
+            expect(response.detail).toContain("not both");
+            expect(response.type).toContain("validation_error");
+          }
+        }
+
+        expect(mockOperations.updateMessage).not.toHaveBeenCalled();
+      });
+
+      it("should throw BadRequestException when patch is an empty array", async () => {
+        mockDb.query.threads.findFirst.mockResolvedValue({
+          id: "thr_123",
+          runStatus: V1RunStatus.IDLE,
+        });
+
+        const promise = service.updateComponentState("thr_123", "comp_123", {
+          patch: [],
+        });
+
+        await expect(promise).rejects.toThrow(BadRequestException);
+
+        try {
+          await promise;
+        } catch (error: unknown) {
+          if (error instanceof BadRequestException) {
+            const response = error.getResponse() as {
+              detail?: string;
+              type?: string;
+            };
+            expect(response.detail).toContain("must not be empty");
+            expect(response.type).toContain("validation_error");
+          }
+        }
+
+        expect(mockOperations.updateMessage).not.toHaveBeenCalled();
       });
 
       it("should handle empty state in component", async () => {
