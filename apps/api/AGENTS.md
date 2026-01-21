@@ -11,7 +11,7 @@ Detailed guidance for Claude Code agents working inside `apps/api`, the NestJS O
 ## Essential Commands
 
 ```bash
-npm run dev           # Start Nest in watch mode (port 3000 by default)
+npm run dev           # Start Nest in watch mode (port 8261 by default)
 npm run build         # Compile to dist/ for production
 npm run start:prod    # Run the compiled build
 npm run generate-config # Bootstraps runtime config snapshot
@@ -75,6 +75,13 @@ apps/api/src
 - For request bodies referencing enums or Drizzle schema enums, import the source of truth (e.g., `packages/db/src/schema`).
 - DTOs mirror API responses too—define explicit response interfaces instead of returning raw database rows.
 
+## Silent Failures & Error Handling
+
+- **No silent fallbacks in data mapping** - When converting internal data to API format, don't silently return defaults for unknown values. Throw errors for truly unexpected cases; log warnings for skippable cases.
+- **Validate database operation returns** - Write operations (create, update) should validate the return value. If an insert returns null/undefined, throw with context (e.g., "Failed to create thread for project X").
+- **Explicit handling for all enum branches** - When mapping enums (e.g., message roles), handle all known values explicitly and throw for unknown values. Don't use a catch-all default that masks data issues.
+- **Log when skipping data** - If code intentionally skips invalid/unknown data (e.g., unknown content types), use `Logger.warn()` so issues are visible. Silent skips mask bugs.
+
 ## Observability
 
 - Enable tracing via `src/telemetry.ts`. Any long-running service (scheduler jobs, external API calls) should create spans.
@@ -89,6 +96,13 @@ apps/api/src
   - DTO validation paths (happy path + failure)
   - Auth guard rejection cases (missing header, project mismatch)
   - Cross-module flows (e.g., threads touching projects) via integration tests
+- **Test error paths and edge cases** - Don't just test happy paths:
+  - Unknown/invalid enum values (e.g., unknown message role should throw)
+  - Empty inputs (e.g., message with empty content array)
+  - Missing required fields in data (e.g., componentDecision without componentName)
+  - Null returns from database operations
+  - Context fallback behavior (e.g., query param vs bearer token precedence)
+- **Testing HttpException responses** - When testing methods that return `HttpException`, error details are in `getResponse()`, not `message`. Use `error.getResponse()` to access response body fields like `type` and `detail`.
 - Always run `npm run test:cov` when adding meaningful logic to keep a coverage baseline; document gaps if coverage dips.
 
 ## Development Workflow
@@ -98,7 +112,7 @@ apps/api/src
 3. **Add DTOs + tests** before wiring controllers.
 4. **Wire services** and ensure providers are registered inside the module.
 5. **Add Swagger decorators** for every route (summary, description, auth requirements).
-6. **Verify locally** with `npm run dev` and the Swagger UI at `http://localhost:3000/api`.
+6. **Verify locally** with `npm run dev` and the Swagger UI at `http://localhost:8261/api`.
 7. **Run lint, type-check, and tests** before committing.
 
 ## Common Pitfalls
@@ -107,5 +121,7 @@ apps/api/src
 - Forgetting to register providers: Nest will throw at runtime; run tests to catch missing injections.
 - Bypassing `ConfigService`: direct `process.env` reads drift from validation rules.
 - Mutating shared DTO instances: treat DTOs as immutable and create new objects when enriching responses.
+- Silent fallbacks in data mapping: returning defaults for unknown values masks data integrity issues. Throw or log instead.
+- Only testing happy paths: error conditions and edge cases (empty inputs, unknown enums, null returns) must have test coverage.
 
 Sticking to these patterns keeps the API dependable and makes onboarding faster for everyone touching the Cloud platform.

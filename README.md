@@ -188,7 +188,7 @@ import { MCPTransport } from "@tambo-ai/react/mcp";
 const mcpServers = [
   {
     name: "filesystem",
-    url: "http://localhost:3001/mcp",
+    url: "http://localhost:8261/mcp",
     transport: MCPTransport.HTTP,
   },
 ];
@@ -268,7 +268,7 @@ Docs: [additional context](https://docs.tambo.co/concepts/additional-context), [
 
 ### Supported LLM Providers
 
-OpenAI, Anthropic, Google Gemini, Mistral, Groq, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/models). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
+OpenAI, Anthropic, Cerebras, Google Gemini, Mistral, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/models). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
 
 ## How Tambo Compares
 

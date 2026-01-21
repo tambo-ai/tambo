@@ -65,8 +65,8 @@ async function bootstrap() {
     await Sentry.close(2000).then(() => process.exit(1));
   });
 
-  console.log("Starting server on port", process.env.PORT || 3000);
-  await app.listen(process.env.PORT || 3000);
+  console.log("Starting server on port", process.env.PORT || 8261);
+  await app.listen(process.env.PORT || 8261);
 }
 
 function configureSwagger(app: INestApplication) {

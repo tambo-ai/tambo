@@ -5,11 +5,28 @@ import open from "open";
 import ora from "ora";
 import path from "path";
 import { COMPONENT_SUBDIR } from "../constants/paths.js";
+import { api } from "../lib/api-client.js";
+import {
+  DeviceAuthError,
+  isTokenValid,
+  runDeviceAuthFlow,
+  verifySession,
+} from "../lib/device-auth.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import {
   interactivePrompt,
   NonInteractiveError,
 } from "../utils/interactive.js";
+import {
+  findAllTamboApiKeys,
+  findTamboApiKey,
+  setTamboApiKey,
+  type TamboApiKeyName,
+} from "../utils/dotenv-utils.js";
+import {
+  detectFramework,
+  getTamboApiKeyEnvVar,
+} from "../utils/framework-detection.js";
 import { handleAddComponent } from "./add/index.js";
 import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
@@ -55,6 +72,7 @@ interface InitOptions {
 /**
  * Writes the provided API key to .env.local, creating the file if necessary
  * Handles overwrite confirmation when a key already exists
+ * Automatically detects framework and uses appropriate env var prefix
  */
 async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
   try {
@@ -64,38 +82,47 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
       targetEnvFile = ".env";
     }
 
-    const envContent = `\nNEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}\n`;
+    // Detect framework and get appropriate env var name
+    const framework = detectFramework();
+    const envVarName = getTamboApiKeyEnvVar() as TamboApiKeyName;
+
+    if (framework) {
+      console.log(chalk.gray(`\nDetected ${framework.displayName} project`));
+    }
 
     if (!fs.existsSync(targetEnvFile)) {
-      fs.writeFileSync(targetEnvFile, "# Environment Variables\n");
+      fs.writeFileSync(
+        targetEnvFile,
+        `# Environment Variables\n${envVarName}=${apiKey.trim()}\n`,
+      );
       console.log(chalk.green(`\n✔ Created new ${targetEnvFile} file`));
-      fs.appendFileSync(targetEnvFile, envContent);
-      console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
       console.log(
-        chalk.gray(
-          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-        ),
+        chalk.green(`\n✔ API key saved to ${targetEnvFile} as ${envVarName}`),
       );
       return true;
     }
 
     const existingContent = fs.readFileSync(targetEnvFile, "utf8");
-    const keyRegex = /^NEXT_PUBLIC_TAMBO_API_KEY=.*/gm;
+    const existingKeyNames = findAllTamboApiKeys(existingContent);
 
-    if (keyRegex.test(existingContent)) {
+    if (existingKeyNames.length > 0) {
+      // Build appropriate warning message
+      const warningMessage =
+        existingKeyNames.length === 1
+          ? `⚠️  This will overwrite the existing value of ${existingKeyNames[0]} in ${targetEnvFile}, are you sure?`
+          : `⚠️  Found multiple Tambo API key variants in ${targetEnvFile}:\n   ${existingKeyNames.join(", ")}\n   This will remove all of them and replace with ${envVarName}. Continue?`;
+
       const { confirmReplace } = await interactivePrompt<{
         confirmReplace: boolean;
       }>(
         {
           type: "confirm",
           name: "confirmReplace",
-          message: chalk.yellow(
-            `⚠️  This will overwrite the existing value of NEXT_PUBLIC_TAMBO_API_KEY in ${targetEnvFile}, are you sure?`,
-          ),
+          message: chalk.yellow(warningMessage),
           default: false,
         },
         chalk.yellow(
-          "Cannot prompt for API key confirmation in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY manually.",
+          `Cannot prompt for API key confirmation in non-interactive mode. Please set ${envVarName} manually.`,
         ),
       );
 
@@ -103,30 +130,30 @@ async function writeApiKeyToEnv(apiKey: string): Promise<boolean> {
         console.log(chalk.gray("\nKeeping existing API key."));
         return true;
       }
-
-      const updatedContent = existingContent.replace(
-        keyRegex,
-        `NEXT_PUBLIC_TAMBO_API_KEY=${apiKey.trim()}`,
-      );
-      fs.writeFileSync(targetEnvFile, updatedContent);
-      console.log(
-        chalk.green(`\n✔ Updated existing API key in ${targetEnvFile}`),
-      );
-      console.log(
-        chalk.gray(
-          "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-        ),
-      );
-      return true;
     }
 
-    fs.appendFileSync(targetEnvFile, envContent);
-    console.log(chalk.green(`\n✔ API key saved to ${targetEnvFile}`));
-    console.log(
-      chalk.gray(
-        "\nNote: If you're not using Next.js, remove 'NEXT_PUBLIC_' from the variable name in your env file",
-      ),
+    const updatedContent = setTamboApiKey(
+      existingContent,
+      envVarName,
+      apiKey.trim(),
     );
+    fs.writeFileSync(targetEnvFile, updatedContent);
+
+    if (existingKeyNames.length > 1) {
+      console.log(
+        chalk.green(
+          `\n✔ Replaced ${existingKeyNames.length} key variants with ${envVarName} in ${targetEnvFile}`,
+        ),
+      );
+    } else if (existingKeyNames.length === 1) {
+      console.log(
+        chalk.green(`\n✔ Updated API key in ${targetEnvFile} as ${envVarName}`),
+      );
+    } else {
+      console.log(
+        chalk.green(`\n✔ API key saved to ${targetEnvFile} as ${envVarName}`),
+      );
+    }
     return true;
   } catch (error) {
     console.error(chalk.red(`\nFailed to save API key: ${error}`));
@@ -176,7 +203,8 @@ function displaySelfHostInstructions(): void {
 
 /**
  * Checks for existing API key in .env files
- * @returns string | null Returns existing API key if found, null otherwise
+ * Supports multiple env var formats (with or without framework prefixes)
+ * @returns Existing API key value if user chooses to keep it, null otherwise
  */
 async function checkExistingApiKey(): Promise<string | null> {
   const envFiles = [".env.local", ".env"];
@@ -184,8 +212,9 @@ async function checkExistingApiKey(): Promise<string | null> {
   for (const file of envFiles) {
     if (fs.existsSync(file)) {
       const content = fs.readFileSync(file, "utf8");
-      const match = /^NEXT_PUBLIC_TAMBO_API_KEY=(.+)$/m.exec(content);
-      if (match?.[1]) {
+      const existingKey = findTamboApiKey(content);
+
+      if (existingKey) {
         const { overwriteExisting } = await interactivePrompt<{
           overwriteExisting: boolean;
         }>(
@@ -193,7 +222,7 @@ async function checkExistingApiKey(): Promise<string | null> {
             type: "confirm",
             name: "overwriteExisting",
             message: chalk.yellow(
-              `⚠️  Would you like to overwrite the value of NEXT_PUBLIC_TAMBO_API_KEY in your .env file?`,
+              `⚠️  Would you like to overwrite the value of ${existingKey.keyName} in your .env file?`,
             ),
             default: true,
           },
@@ -203,7 +232,7 @@ async function checkExistingApiKey(): Promise<string | null> {
         );
 
         if (!overwriteExisting) {
-          return match[1].trim();
+          return existingKey.value.trim();
         }
       }
     }
@@ -266,61 +295,213 @@ export async function getInstallationPath(yes = false): Promise<string> {
 }
 
 /**
- * Handles the authentication flow with Tambo
+ * Handles the authentication flow with Tambo using device auth
  * @returns Promise<boolean> Returns true if authentication was successful
  * @throws AuthenticationError
  */
 async function handleAuthentication(): Promise<boolean> {
   try {
-    // 1. Browser-based auth flow
     console.log(chalk.cyan("\nStep 1: Authentication"));
 
-    // Check for existing API key first
+    // Check for existing API key first (backwards compatibility)
     const existingKey = await checkExistingApiKey();
     if (existingKey) {
       console.log(chalk.green("\n✔ Using existing API key"));
       return true;
     }
 
-    // Continue with browser-based auth flow
-    const authUrl = `https://tambo.co/login?returnUrl=%2Fcli-auth`;
-    console.log(chalk.gray("\nOpening browser for authentication..."));
+    // Check if already authenticated via device auth
+    // First do local check, then verify with server to ensure sync
+    if (isTokenValid()) {
+      const spinner = ora("Verifying session...").start();
+      const isValid = await verifySession();
+      spinner.stop();
 
-    try {
-      await open(authUrl);
-    } catch (error) {
-      throw new AuthenticationError(
-        "Failed to open browser for authentication. Please visit https://tambo.co/cli-auth manually. Error: " +
-          error,
-      );
+      if (isValid) {
+        console.log(chalk.green("\n✔ Already authenticated"));
+        return await handleProjectAndApiKey();
+      }
+      // Session was invalid on server - token already cleared by verifySession
+      console.log(chalk.yellow("\n⚠ Session expired, please re-authenticate"));
     }
 
-    // 2. Get API key from user
-    const { apiKey } = await interactivePrompt<{ apiKey: string }>(
-      {
-        type: "password",
-        name: "apiKey",
-        mask: "*",
-        message: "Please paste your API key from the browser:",
-        validate: (input: string) => {
-          if (!input?.trim()) return "API key is required";
-          return true;
-        },
-      },
-      chalk.yellow(
-        "Cannot prompt for API key in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+    // Run device auth flow
+    const authResult = await runDeviceAuthFlow();
+
+    console.log(
+      chalk.green(
+        `\n✔ Authenticated as ${authResult.user.email ?? authResult.user.name ?? "user"}`,
       ),
     );
 
-    // 3. Save API key to .env file
-    const saved = await writeApiKeyToEnv(apiKey);
-    return saved;
+    // After auth, select/create project and generate API key
+    return await handleProjectAndApiKey();
   } catch (error) {
-    if (error instanceof AuthenticationError) {
-      console.error(chalk.red(`Authentication error: ${error.message}`));
+    if (error instanceof DeviceAuthError) {
+      console.error(chalk.red(`\n✖ Authentication failed`));
+      console.error(chalk.gray(`  ${error.message}`));
+    } else if (error instanceof AuthenticationError) {
+      console.error(chalk.red(`\nAuthentication error: ${error.message}`));
     } else {
-      console.error(chalk.red(`Failed to save API key: ${error}`));
+      console.error(chalk.red(`\nFailed to authenticate: ${error}`));
     }
+    return false;
+  }
+}
+
+/**
+ * Handles project selection/creation and API key generation after device auth
+ */
+async function handleProjectAndApiKey(): Promise<boolean> {
+  try {
+    console.log(chalk.cyan("\nStep 2: Project Setup"));
+
+    // Fetch user's projects
+    const spinner = ora("Loading your projects...").start();
+    let projects;
+    try {
+      projects = await api.project.getUserProjects.query({});
+      spinner.stop();
+    } catch (error) {
+      spinner.fail("Failed to load projects");
+      throw error;
+    }
+
+    let selectedProjectId: string;
+    let selectedProjectName: string;
+
+    if (projects.length === 0) {
+      // No projects, create one
+      console.log(
+        chalk.gray("\nNo existing projects found. Creating one...\n"),
+      );
+
+      const { projectName } = await interactivePrompt<{ projectName: string }>(
+        {
+          type: "input",
+          name: "projectName",
+          message: "Project name:",
+          default: path.basename(process.cwd()),
+          validate: (input: string) => {
+            if (!input?.trim()) return "Project name is required";
+            return true;
+          },
+        },
+        chalk.yellow("Cannot prompt for project name in non-interactive mode."),
+      );
+
+      const createSpinner = ora("Creating project...").start();
+      try {
+        const project = await api.project.createProject2.mutate({
+          name: projectName.trim(),
+        });
+        createSpinner.succeed(`Created project: ${project.name}`);
+        selectedProjectId = project.id;
+        selectedProjectName = project.name;
+      } catch (error) {
+        createSpinner.fail("Failed to create project");
+        throw error;
+      }
+    } else {
+      // Let user select existing project or create new
+      const choices = [
+        ...projects.map((p: { id: string; name: string }) => ({
+          name: p.name,
+          value: p.id,
+        })),
+        { name: chalk.cyan("+ Create new project"), value: "__NEW__" },
+      ];
+
+      const { projectChoice } = await interactivePrompt<{
+        projectChoice: string;
+      }>(
+        {
+          type: "select",
+          name: "projectChoice",
+          message: "Select a project:",
+          choices,
+        },
+        chalk.yellow(
+          "Cannot prompt for project selection in non-interactive mode.",
+        ),
+      );
+
+      if (projectChoice === "__NEW__") {
+        const { projectName } = await interactivePrompt<{
+          projectName: string;
+        }>(
+          {
+            type: "input",
+            name: "projectName",
+            message: "Project name:",
+            default: path.basename(process.cwd()),
+            validate: (input: string) => {
+              if (!input?.trim()) return "Project name is required";
+              return true;
+            },
+          },
+          chalk.yellow(
+            "Cannot prompt for project name in non-interactive mode.",
+          ),
+        );
+
+        const createSpinner = ora("Creating project...").start();
+        try {
+          const project = await api.project.createProject2.mutate({
+            name: projectName.trim(),
+          });
+          createSpinner.succeed(`Created project: ${project.name}`);
+          selectedProjectId = project.id;
+          selectedProjectName = project.name;
+        } catch (error) {
+          createSpinner.fail("Failed to create project");
+          throw error;
+        }
+      } else {
+        const selected = projects.find(
+          (p: { id: string; name: string }) => p.id === projectChoice,
+        );
+        selectedProjectId = projectChoice;
+        selectedProjectName = selected?.name ?? projectChoice;
+        console.log(
+          chalk.green(`\n✔ Selected project: ${selectedProjectName}`),
+        );
+      }
+    }
+
+    // Generate API key
+    console.log(chalk.cyan("\nStep 3: Generate API Key"));
+    const keySpinner = ora("Generating API key...").start();
+
+    try {
+      const timestamp = new Date().toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const result = await api.project.generateApiKey.mutate({
+        projectId: selectedProjectId,
+        name: `CLI Key (${timestamp})`,
+      });
+      keySpinner.succeed("API key generated");
+
+      // Save to .env file
+      const saved = await writeApiKeyToEnv(result.apiKey);
+      if (saved) {
+        console.log(
+          chalk.gray(
+            `\n   Project: ${selectedProjectName}\n   Key saved to your .env file`,
+          ),
+        );
+      }
+      return saved;
+    } catch (error) {
+      keySpinner.fail("Failed to generate API key");
+      throw error;
+    }
+  } catch (error) {
+    console.error(chalk.red(`\nProject setup failed: ${error}`));
     return false;
   }
 }
@@ -343,7 +524,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       default: "cloud",
     },
     chalk.yellow(
-      "Cannot prompt for hosting choice in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+      `Cannot prompt for hosting choice in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
     ),
   );
 
@@ -397,7 +578,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       default: "paste",
     },
     chalk.yellow(
-      "Cannot prompt for API key method in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+      `Cannot prompt for API key method in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
     ),
   );
 
@@ -418,7 +599,7 @@ async function handleHostingChoiceAndAuth(): Promise<boolean> {
       },
     },
     chalk.yellow(
-      "Cannot prompt for API key in non-interactive mode. Please set NEXT_PUBLIC_TAMBO_API_KEY in .env file manually.",
+      `Cannot prompt for API key in non-interactive mode. Please set ${getTamboApiKeyEnvVar()} in .env file manually.`,
     ),
   );
 
@@ -587,6 +768,8 @@ function displayFullSendInstructions(selectedComponents: string[] = []): void {
     .join("\n");
 
   // Just the TamboProvider part for clipboard with all selected components
+  const framework = detectFramework();
+  const envVarName = getTamboApiKeyEnvVar();
   const providerSnippet = `"use client"; // Important!
 import { TamboProvider } from "@tambo-ai/react";
 import { components } from "../../lib/tambo";
@@ -599,7 +782,7 @@ export default function Page() {
     <div>
       {/* other components */}
       <TamboProvider
-        apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
+        apiKey={process.env.${envVarName} ?? ""}
         components={components}
       >
         {/* Tambo components */}
@@ -620,6 +803,28 @@ ${componentInstances}
   } catch (error) {
     console.log(chalk.cyan("\n" + providerSnippet + "\n"));
     console.log(chalk.yellow("\n   ⚠️ Failed to copy to clipboard: " + error));
+  }
+
+  // Warn non-framework users about env var exposure
+  if (!framework) {
+    console.log(
+      chalk.yellow(
+        "\n   ⚠️  No supported framework detected. The environment variable",
+      ),
+    );
+    console.log(
+      chalk.yellow(
+        `      ${envVarName} will not be automatically exposed to the browser.`,
+      ),
+    );
+    console.log(
+      chalk.yellow(
+        "      You may need to configure your bundler to expose it, or pass",
+      ),
+    );
+    console.log(
+      chalk.yellow("      the API key directly to the TamboProvider.\n"),
+    );
   }
 
   console.log(chalk.bold("\n2. Use the installed components"));

@@ -10,7 +10,7 @@ import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
 import {
   createBasicProject,
-  createProjectWithReact,
+  createProjectWithTamboSDK,
   createRegistryFiles,
 } from "../../__fixtures__/mock-fs-setup.js";
 
@@ -264,7 +264,7 @@ describe("handleAddComponents", () => {
     it("should skip already installed components", async () => {
       // Setup: Project with already installed component
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Component already exists
         "/mock-project/src/components/tambo/message.tsx":
@@ -289,7 +289,7 @@ describe("handleAddComponents", () => {
     it("should install only new components when some are already installed", async () => {
       // Setup: Project with one component already installed
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message", "form"]),
         // Message already exists
         "/mock-project/src/components/tambo/message.tsx":
@@ -394,7 +394,7 @@ describe("handleAddComponents", () => {
     it("should install to legacy location when components exist there", async () => {
       // Setup: Project with components in legacy ui/ directory
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message", "form"]),
         // Existing component in legacy location
         "/mock-project/src/components/ui/message.tsx":

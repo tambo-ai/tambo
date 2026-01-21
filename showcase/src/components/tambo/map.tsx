@@ -18,7 +18,11 @@ import {
   type LayerProps,
   type LeafletContextInterface,
 } from "@react-leaflet/core";
-import { useTambo, useTamboCurrentMessage } from "@tambo-ai/react";
+import {
+  GenerationStage,
+  useTambo,
+  useTamboCurrentMessage,
+} from "@tambo-ai/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import L, {
   type HeatLatLngTuple,
@@ -410,8 +414,8 @@ export const Map = React.forwardRef<HTMLDivElement, MapProps>(
     const generationStage = thread?.generationStage;
     const isGenerating =
       generationStage &&
-      generationStage !== "COMPLETE" &&
-      generationStage !== "ERROR";
+      generationStage !== GenerationStage.COMPLETE &&
+      generationStage !== GenerationStage.ERROR;
 
     const validMarkers = useValidMarkers(markers);
     const validHeatData = useValidHeatData(heatData);

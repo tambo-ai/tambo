@@ -6,6 +6,19 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { LanguageModelV2 } from "@ai-sdk/provider";
 import {
+  EventType,
+  type BaseEvent,
+  type TextMessageContentEvent,
+  type TextMessageEndEvent,
+  type TextMessageStartEvent,
+  type ThinkingTextMessageContentEvent,
+  type ThinkingTextMessageEndEvent,
+  type ThinkingTextMessageStartEvent,
+  type ToolCallArgsEvent,
+  type ToolCallEndEvent,
+  type ToolCallStartEvent,
+} from "@ag-ui/core";
+import {
   CustomLlmParameters,
   getToolDescription,
   getToolName,
@@ -35,9 +48,15 @@ import {
   CompleteParams,
   LLMClient,
   LLMResponse,
+  LLMStreamItem,
   StreamingCompleteParams,
 } from "./llm-client";
+import { generateMessageId } from "./message-id-generator";
 import { limitTokens } from "./token-limiter";
+import {
+  ComponentStreamTracker,
+  tryExtractComponentName,
+} from "../../util/component-streaming";
 
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
@@ -48,6 +67,7 @@ interface ProviderConfig {
   apiKey?: string;
   baseURL?: string;
   headers?: Record<string, string>;
+  providerName?: string;
   [key: string]: unknown;
 }
 
@@ -64,9 +84,10 @@ const PROVIDER_FACTORIES: Record<string, ProviderFactory> = {
   mistral: createMistral,
   google: createGoogleGenerativeAI,
   groq: createGroq,
+  // Cerebras uses openai-compatible provider with custom base URL (see getModelInstance)
   "openai-compatible": (config) =>
     createOpenAICompatible({
-      name: "openai-compatible",
+      name: config?.providerName || "openai-compatible",
       baseURL: config?.baseURL || "",
       apiKey: config?.apiKey,
       ...config,
@@ -95,6 +116,9 @@ function getProviderFromModel(
       return "groq";
     case "gemini":
       return "google";
+    case "cerebras":
+      // Cerebras uses openai-compatible provider with custom base URL
+      return "openai-compatible";
     default:
       // Fallback to OpenAI for unknown providers
       return "openai";
@@ -133,11 +157,11 @@ export class AISdkClient implements LLMClient {
 
   async complete(
     params: StreamingCompleteParams,
-  ): Promise<AsyncIterableIterator<LLMResponse>>;
+  ): Promise<AsyncIterableIterator<LLMStreamItem>>;
   async complete(params: CompleteParams): Promise<LLMResponse>;
   async complete(
     params: StreamingCompleteParams | CompleteParams,
-  ): Promise<LLMResponse | AsyncIterableIterator<LLMResponse>> {
+  ): Promise<LLMResponse | AsyncIterableIterator<LLMStreamItem>> {
     const providerKey = getProviderFromModel(this.model, this.provider);
 
     // Get the model instance with proper configuration
@@ -306,8 +330,15 @@ export class AISdkClient implements LLMClient {
       config.apiKey = this.apiKey;
     }
 
-    if (providerKey === "openai-compatible" && this.baseURL) {
-      config.baseURL = this.baseURL;
+    // Handle openai-compatible providers (including Cerebras)
+    if (providerKey === "openai-compatible") {
+      if (this.provider === "cerebras") {
+        // Cerebras uses openai-compatible with their API endpoint
+        config.baseURL = "https://api.cerebras.ai/v1";
+        config.providerName = "cerebras";
+      } else if (this.baseURL) {
+        config.baseURL = this.baseURL;
+      }
     }
 
     // Create the configured provider instance
@@ -396,7 +427,7 @@ export class AISdkClient implements LLMClient {
 
   private async *handleStreamingResponse(
     result: TextStreamResponse,
-  ): AsyncIterableIterator<LLMResponse> {
+  ): AsyncIterableIterator<LLMStreamItem> {
     let accumulatedMessage = "";
     let accumulatedReasoning: string[] = [];
     let reasoningStartTimestamp: number | undefined;
@@ -407,46 +438,152 @@ export class AISdkClient implements LLMClient {
       id?: string;
     } = { arguments: "" };
 
+    // Track message ID for AG-UI events
+    let textMessageId: string | undefined;
+    // Local mutable accumulator for tool call args deltas (reset per tool call);
+    // do not reuse outside this scope.
+    let toolCallArgDeltas: string[] = [];
+
+    // Track component streaming for UI tools (show_component_*)
+    let componentTracker: ComponentStreamTracker | undefined;
+
     for await (const delta of result.fullStream) {
+      // Collect AG-UI events for this delta
+      const aguiEvents: BaseEvent[] = [];
+
       switch (delta.type) {
         case "text-start":
           accumulatedMessage = "";
+          // Generate message ID for this text stream
+          textMessageId = generateMessageId();
+          aguiEvents.push({
+            type: EventType.TEXT_MESSAGE_START,
+            messageId: textMessageId,
+            role: "assistant",
+            timestamp: Date.now(),
+          } as TextMessageStartEvent);
           break;
         case "text-delta":
           accumulatedMessage += delta.text;
+          if (textMessageId) {
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_CONTENT,
+              messageId: textMessageId,
+              delta: delta.text,
+              timestamp: Date.now(),
+            } as TextMessageContentEvent);
+          }
           break;
         case "text-end":
+          if (textMessageId) {
+            aguiEvents.push({
+              type: EventType.TEXT_MESSAGE_END,
+              messageId: textMessageId,
+              timestamp: Date.now(),
+            } as TextMessageEndEvent);
+          }
           break;
-        case "tool-input-start":
+        case "tool-input-start": {
           accumulatedToolCall.name = delta.toolName;
+          accumulatedToolCall.arguments = "";
+          accumulatedToolCall.id = undefined;
+          toolCallArgDeltas = [];
+
+          // Initialize component tracker for UI tools
+          // Component streaming is only emitted for valid `show_component_*` tool names.
+          const componentName = tryExtractComponentName(delta.toolName);
+          if (componentName) {
+            const componentId = generateMessageId();
+            componentTracker = new ComponentStreamTracker(
+              componentId,
+              componentName,
+            );
+          } else {
+            componentTracker = undefined;
+          }
           break;
+        }
         case "tool-input-delta":
           accumulatedToolCall.arguments += delta.delta;
+          toolCallArgDeltas.push(delta.delta);
+
+          // Emit component streaming events for UI tools
+          if (componentTracker) {
+            const componentEvents = componentTracker.processJsonDelta(
+              delta.delta,
+            );
+            aguiEvents.push(...componentEvents);
+          }
           break;
         case "tool-input-end":
           break;
         case "tool-call":
           accumulatedToolCall.id = delta.toolCallId;
+          if (accumulatedToolCall.name) {
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_START,
+              toolCallId: delta.toolCallId,
+              toolCallName: accumulatedToolCall.name,
+              parentMessageId: textMessageId,
+              timestamp: Date.now(),
+            } as ToolCallStartEvent);
+
+            for (const toolCallArgDelta of toolCallArgDeltas) {
+              aguiEvents.push({
+                type: EventType.TOOL_CALL_ARGS,
+                toolCallId: delta.toolCallId,
+                delta: toolCallArgDelta,
+                timestamp: Date.now(),
+              } as ToolCallArgsEvent);
+            }
+
+            aguiEvents.push({
+              type: EventType.TOOL_CALL_END,
+              toolCallId: delta.toolCallId,
+              timestamp: Date.now(),
+            } as ToolCallEndEvent);
+
+            // Finalize component tracker and emit end event
+            if (componentTracker) {
+              const endEvents = componentTracker.finalize();
+              aguiEvents.push(...endEvents);
+              componentTracker = undefined;
+            }
+          }
+
+          toolCallArgDeltas = [];
           break;
         case "tool-result":
           // Tambo should be handling all tool results, not operating like an agent
           throw new Error("Tool result should not be emitted during streaming");
         case "tool-error":
-          console.error("Got error from tool call", delta.error);
-          break;
+          throw delta.error;
         case "reasoning-start":
           // append to the last element of the array
           accumulatedReasoning = [...accumulatedReasoning, ""];
           reasoningStartTimestamp = reasoningStartTimestamp ?? Date.now();
+          aguiEvents.push({
+            type: EventType.THINKING_TEXT_MESSAGE_START,
+            timestamp: Date.now(),
+          } as ThinkingTextMessageStartEvent);
           break;
         case "reasoning-delta":
           accumulatedReasoning = [
             ...accumulatedReasoning.slice(0, -1),
             accumulatedReasoning[accumulatedReasoning.length - 1] + delta.text,
           ];
+          aguiEvents.push({
+            type: EventType.THINKING_TEXT_MESSAGE_CONTENT,
+            delta: delta.text,
+            timestamp: Date.now(),
+          } as ThinkingTextMessageContentEvent);
           break;
         case "reasoning-end":
           reasoningEndTimestamp = Date.now();
+          aguiEvents.push({
+            type: EventType.THINKING_TEXT_MESSAGE_END,
+            timestamp: Date.now(),
+          } as ThinkingTextMessageEndEvent);
           break;
         case "source": // url? not sure what this is
         case "file": // TODO: handle files - should be added as message objects
@@ -461,41 +598,47 @@ export class AISdkClient implements LLMClient {
         case "error":
           console.error("error:", delta.error);
           throw delta.error;
-          // Mostly ignored/unsupported
-          break;
         case "abort":
           throw new Error("Aborted by SDK");
         default:
           warnUnknownMessageType(delta);
       }
+
       let toolCallRequest:
         | OpenAI.Chat.Completions.ChatCompletionMessageToolCall
         | undefined;
-      if (accumulatedToolCall.name && accumulatedToolCall.arguments) {
+      if (
+        accumulatedToolCall.id &&
+        accumulatedToolCall.name &&
+        accumulatedToolCall.arguments
+      ) {
         toolCallRequest = {
           function: {
             name: accumulatedToolCall.name,
             arguments: accumulatedToolCall.arguments,
           },
-          id: accumulatedToolCall.id ?? "",
+          id: accumulatedToolCall.id,
           type: "function",
         };
       }
 
       yield {
-        message: {
-          content: accumulatedMessage,
-          role: "assistant",
-          tool_calls: toolCallRequest ? [toolCallRequest] : undefined,
-          refusal: null,
+        llmResponse: {
+          message: {
+            content: accumulatedMessage,
+            role: "assistant",
+            tool_calls: toolCallRequest ? [toolCallRequest] : undefined,
+            refusal: null,
+          },
+          reasoning: accumulatedReasoning,
+          reasoningDurationMS:
+            reasoningStartTimestamp && reasoningEndTimestamp
+              ? reasoningEndTimestamp - reasoningStartTimestamp
+              : undefined,
+          index: 0,
+          logprobs: null,
         },
-        reasoning: accumulatedReasoning,
-        reasoningDurationMS:
-          reasoningStartTimestamp && reasoningEndTimestamp
-            ? reasoningEndTimestamp - reasoningStartTimestamp
-            : undefined,
-        index: 0,
-        logprobs: null,
+        aguiEvents,
       };
     }
 

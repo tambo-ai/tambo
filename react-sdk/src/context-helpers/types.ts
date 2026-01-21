@@ -5,7 +5,7 @@ export interface AdditionalContext {
   /** The name of the context type */
   name: string;
   /** The context data */
-  context: any;
+  context: unknown;
 }
 
 /**
@@ -13,10 +13,10 @@ export interface AdditionalContext {
  * or null/undefined to skip including anything.
  */
 export type ContextHelperFn = () =>
-  | any
+  | unknown
   | null
   | undefined
-  | Promise<any | null | undefined>;
+  | Promise<unknown | null | undefined>;
 
 /**
  * A collection of context helpers keyed by their context name.

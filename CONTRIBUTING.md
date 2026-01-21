@@ -88,8 +88,8 @@ For Tambo Cloud (web dashboard + API):
 npm run dev:cloud
 ```
 
-- **Web App**: http://localhost:3000
-- **API**: http://localhost:3001
+- **Web App**: http://localhost:8260
+- **API**: http://localhost:8261
 
 For the React SDK framework (showcase + docs):
 
@@ -100,10 +100,10 @@ npm run dev
 ### 6. Get a Local API Key
 
 1. Start the dev servers: `npm run dev:cloud`
-2. Visit http://localhost:3000/dashboard and sign in
+2. Visit http://localhost:8260/dashboard and sign in
 3. Create a project and generate an API key
 4. Add to `apps/web/.env.local`: `NEXT_PUBLIC_TAMBO_API_KEY=your_key`
-5. Verify with http://localhost:3000/internal/smoketest
+5. Verify with http://localhost:8260/internal/smoketest
 
 ## Common Commands
 
@@ -133,7 +133,7 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 | `API_KEY_SECRET`      | `apps/api/.env`, `apps/web/.env.local`                     | API key encryption secret    |
 | `PROVIDER_KEY_SECRET` | `apps/api/.env`, `apps/web/.env.local`                     | Provider key encryption      |
 | `NEXTAUTH_SECRET`     | `apps/web/.env.local`                                      | NextAuth.js session secret   |
-| `NEXTAUTH_URL`        | `apps/web/.env.local`                                      | http://localhost:3000        |
+| `NEXTAUTH_URL`        | `apps/web/.env.local`                                      | http://localhost:8260        |
 
 ### Optional
 

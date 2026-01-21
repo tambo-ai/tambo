@@ -8,50 +8,187 @@ import {
   ThreadMessage,
   ToolCallRequest,
 } from "@tambo-ai-cloud/core";
+import type {
+  AudioContent,
+  EmbeddedResource,
+  ImageContent,
+  ResourceLink,
+  TextContent,
+} from "@modelcontextprotocol/sdk/types.js";
+import mimeTypes from "mime-types";
 import { AdvanceThreadDto } from "../dto/advance-thread.dto";
 import { ComponentDecisionV2Dto } from "../dto/component-decision.dto";
-import { ChatCompletionContentPartDto } from "../dto/message.dto";
-import { tryParseJson } from "./content";
+import { AudioFormat, ChatCompletionContentPartDto } from "../dto/message.dto";
 
+/**
+ * Validates that a tool response message has valid content.
+ * Accepts text, image, audio, and resource content types.
+ * Messages containing any other content type are considered invalid.
+ *
+ * @returns True if the message has valid content
+ */
 export function validateToolResponse(message: ThreadMessage): boolean {
-  // TODO: Handle Resource types - MCP servers return resource content parts
-  // Need to validate Resource content parts:
-  // - Check for required fields (at least one of: uri, text, or blob)
-  // - Validate MIME types if present
-  // - For large content, ensure it will be stored in S3 before sending to LLM
-  const nonResourceContent = message.content.filter((part) => {
-    // Do not log here (warn: false previously)
-    if (part.type === ContentPartType.Resource) return false;
-    return true;
-  });
-  if (nonResourceContent.length === 0) {
+  if (message.content.length === 0) {
     return false;
   }
-  if (nonResourceContent.every((part) => part.type === ContentPartType.Text)) {
-    const contentString = nonResourceContent.map((part) => part.text).join("");
-    const jsonResponse = tryParseJson(contentString);
-    if (jsonResponse) {
-      return true;
-    }
-    return true;
+
+  const allPartsAreValid = message.content.every((part) => {
+    return (
+      part.type === ContentPartType.Text ||
+      part.type === ContentPartType.ImageUrl ||
+      part.type === ContentPartType.InputAudio ||
+      part.type === ContentPartType.Resource
+    );
+  });
+
+  if (!allPartsAreValid) {
+    return false;
   }
-  if (
-    nonResourceContent.every((part) => part.type === ContentPartType.ImageUrl)
-  ) {
-    return true;
-  }
-  return false;
+
+  return true;
 }
 
+/**
+ * MCP content block type union for tool call results.
+ */
+type McpContentBlock =
+  | TextContent
+  | ImageContent
+  | AudioContent
+  | ResourceLink
+  | EmbeddedResource;
+
+/**
+ * Convert an MCP content block to our internal ChatCompletionContentPartDto format.
+ * Handles text, image, audio, resource_link, and embedded resource types.
+ *
+ * Resource URIs are prefixed with serverKey (e.g., "github:file:///main.rs") to enable
+ * routing to the correct MCP server during the prefetch phase. This prefix is safe to add
+ * unconditionally because:
+ *
+ * 1. This function only processes content from MCPClient.callTool() results
+ * 2. callTool() returns results directly from the MCP SDK's Client.callTool()
+ * 3. MCP servers return raw MCP-native URIs - they have no knowledge of our serverKey
+ *    routing mechanism, which is purely an internal concept
+ * 4. The prefix is stripped in createResourceFetcherMap() before calling readResource()
+ *
+ * @param content - MCP content block from tool call result (always contains raw URIs)
+ * @param serverKey - The MCP server key for prefixing resource URIs
+ * @returns Internal content part format
+ */
+function mcpContentBlockToContentPart(
+  content: McpContentBlock,
+  serverKey: string,
+): ChatCompletionContentPartDto {
+  switch (content.type) {
+    case "text":
+      return { type: ContentPartType.Text, text: content.text };
+
+    case "image":
+      return {
+        type: ContentPartType.ImageUrl,
+        image_url: {
+          url: `data:${content.mimeType};base64,${content.data}`,
+        },
+      };
+
+    case "audio": {
+      const format = mimeTypes.extension(content.mimeType);
+      if (format !== AudioFormat.MP3 && format !== AudioFormat.WAV) {
+        console.warn(
+          `Unsupported audio format in tool response: ${content.mimeType}`,
+        );
+        return {
+          type: ContentPartType.Text,
+          text: "[Audio content not supported]",
+        };
+      }
+      return {
+        type: ContentPartType.InputAudio,
+        input_audio: {
+          data: content.data,
+          format,
+        },
+      };
+    }
+
+    case "resource_link":
+      // Convert resource_link to Resource with prefixed URI for later fetching
+      return {
+        type: ContentPartType.Resource,
+        resource: {
+          uri: `${serverKey}:${content.uri}`,
+          name: content.name,
+          description: content.description,
+          mimeType: content.mimeType,
+          annotations: content.annotations
+            ? {
+                audience: content.annotations.audience,
+                priority: content.annotations.priority,
+              }
+            : undefined,
+        },
+      };
+
+    case "resource":
+      // Embedded resource - already has content inline
+      return {
+        type: ContentPartType.Resource,
+        resource: {
+          uri: `${serverKey}:${content.resource.uri}`,
+          text: "text" in content.resource ? content.resource.text : undefined,
+          blob: "blob" in content.resource ? content.resource.blob : undefined,
+          mimeType: content.resource.mimeType,
+        },
+      };
+
+    default: {
+      // Handle unknown types gracefully
+      const unknownContent: unknown = content;
+      let type = "unknown";
+      if (
+        unknownContent &&
+        typeof unknownContent === "object" &&
+        "type" in unknownContent
+      ) {
+        const maybeType = (unknownContent as Record<string, unknown>).type;
+        if (typeof maybeType === "string") {
+          type = maybeType;
+        }
+      }
+      console.warn(`Unknown MCP content type in tool response: ${type}`);
+      return {
+        type: ContentPartType.Text,
+        text: `[Unsupported content type: ${type}]`,
+      };
+    }
+  }
+}
+
+/**
+ * Build response content from an MCP tool call result.
+ * Converts MCP content types to our internal format.
+ *
+ * @param result - The result from calling an MCP tool
+ * @param serverKey - The MCP server key for prefixing resource URIs
+ * @returns Array of content parts in our internal format
+ */
 function buildToolResponseContent(
   result: MCPToolCallResult,
+  serverKey: string,
 ): ChatCompletionContentPartDto[] {
+  // Handle legacy string result format
   if (typeof result === "string") {
     return [{ type: ContentPartType.Text, text: result }];
   }
-  if (Array.isArray(result.content)) {
-    return result.content;
+
+  // Handle structured result with content array
+  if (Array.isArray(result.content) && result.content.length > 0) {
+    return result.content.map((block) =>
+      mcpContentBlockToContentPart(block as McpContentBlock, serverKey),
+    );
   }
+
   return [];
 }
 
@@ -88,15 +225,14 @@ export async function callSystemTool(
         [MCP_PARENT_MESSAGE_ID_META_KEY]: toolCallMessageId,
       },
     );
-    const responseContent = buildToolResponseContent(result);
+    const responseContent = buildToolResponseContent(
+      result,
+      toolSourceInfo.serverKey,
+    );
 
-    // TODO: Handle File types - MCP servers can return resource content parts (now "file" type)
-    // When processing MCP responses with File content:
-    // 1. Check for File content parts in the response
-    // 2. For large text/blob content, upload to S3 before proceeding
-    // 3. Store file metadata in database
-    // 4. Replace large content with S3 URI references
-    // 5. Ensure Files are properly validated and sanitized
+    // Note: resource_link content is converted to Resource with prefixed URI.
+    // The prefetchAndCacheResources() function will fetch the content later.
+    // TODO: For large text/blob content, upload to S3 before proceeding.
     if (responseContent.length === 0) {
       console.warn(
         "No response content found from MCP tool call - may contain only file/resource types that need processing",

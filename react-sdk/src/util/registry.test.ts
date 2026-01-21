@@ -13,6 +13,7 @@ import * as z4 from "zod/v4";
 import {
   ComponentRegistry,
   RegisteredComponent,
+  TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
 } from "../model/component-metadata";
@@ -31,12 +32,14 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
     it("should handle tool with toolSchema", () => {
       const tool = createMockToolWithToolSchema(
         z3.function().args(z3.string().describe("The name")).returns(z3.void()),
+        3,
       );
       const result = mapTamboToolToContextTool(tool);
       // Should have at least one parameter (either extracted or wrapped)
       expect(result.parameters.length).toBeGreaterThanOrEqual(1);
       expect(result.name).toBe("testTool");
       expect(result.description).toBe("A test tool");
+      expect(result.maxCalls).toBe(3);
     });
 
     it("should handle toolSchema with multiple args", () => {
@@ -65,8 +68,10 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
             age: z4.number().describe("User age"),
           }),
           outputSchema: z4.boolean(),
+          maxCalls: 10,
         });
         const result = mapTamboToolToContextTool(tool);
+        expect(result.maxCalls).toBe(10);
         expect(result.parameters).toHaveLength(2);
 
         // Parameters should be extracted from object properties
@@ -249,6 +254,127 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
       expect(ageParam?.type).toBe("number");
 
       expect(result.parameters).toMatchSnapshot();
+    });
+  });
+});
+
+describe("registry util: maxCalls", () => {
+  it("adaptToolFromFnSchema preserves maxCalls for legacy toolSchema", () => {
+    const legacy = createMockToolWithToolSchema(
+      z3.function().args(z3.string()).returns(z3.string()),
+      2,
+    );
+    const adapted = adaptToolFromFnSchema(legacy);
+    expect(adapted.maxCalls).toBe(2);
+  });
+
+  it("mapTamboToolToContextTool includes maxCalls when present", () => {
+    const tool = createMockTool({
+      inputSchema: z3.object({ q: z3.string() }),
+      maxCalls: 5,
+    });
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.maxCalls).toBe(5);
+  });
+
+  it("getUnassociatedTools does not drop unassociated tools and preserves maxCalls", () => {
+    const t1: TamboTool = {
+      name: "a",
+      description: "a",
+      tool: () => {},
+      inputSchema: {},
+      outputSchema: {},
+      maxCalls: 3,
+    };
+    const registry = { a: t1 };
+    const associations = { SomeComponent: [] as string[] };
+    const out = getUnassociatedTools(registry, associations);
+    expect(out.find((t) => t.name === "a")?.maxCalls).toBe(3);
+  });
+});
+
+describe("registry util: annotations", () => {
+  it("mapTamboToolToContextTool includes annotations when present", () => {
+    const tool: TamboTool = {
+      name: "read-only-tool",
+      description: "A tool that can be called with partial args",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+      annotations: { readOnlyHint: true },
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toEqual({ readOnlyHint: true });
+  });
+
+  it("mapTamboToolToContextTool does not include annotations when undefined", () => {
+    const tool: TamboTool = {
+      name: "regular-tool",
+      description: "A regular tool",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toBeUndefined();
+  });
+
+  it("mapTamboToolToContextTool includes annotations with readOnlyHint: false when explicitly set", () => {
+    const tool: TamboTool = {
+      name: "explicit-non-read-only-tool",
+      description: "A tool explicitly marked as non-read-only",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+      annotations: { readOnlyHint: false },
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toEqual({ readOnlyHint: false });
+  });
+
+  it("getUnassociatedTools preserves annotations", () => {
+    const tool: TamboTool = {
+      name: "streaming-tool",
+      description: "A streaming tool",
+      tool: () => {},
+      inputSchema: {},
+      outputSchema: {},
+      annotations: { readOnlyHint: true },
+    };
+    const registry = { "streaming-tool": tool };
+    const associations = { SomeComponent: [] as string[] };
+    const out = getUnassociatedTools(registry, associations);
+    expect(out.find((t) => t.name === "streaming-tool")?.annotations).toEqual({
+      readOnlyHint: true,
+    });
+  });
+
+  it("mapTamboToolToContextTool includes tamboStreamableHint annotation", () => {
+    const tool: TamboTool = {
+      name: "streamable-tool",
+      description: "A tool safe to call during streaming",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+      annotations: { tamboStreamableHint: true },
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toEqual({ tamboStreamableHint: true });
+  });
+
+  it("mapTamboToolToContextTool preserves multiple combined annotations", () => {
+    const tool: TamboTool = {
+      name: "combined-annotations-tool",
+      description: "A tool with multiple annotations",
+      tool: () => {},
+      inputSchema: z3.object({ text: z3.string() }),
+      outputSchema: z3.string(),
+      annotations: { readOnlyHint: true, tamboStreamableHint: true },
+    };
+    const meta = mapTamboToolToContextTool(tool);
+    expect(meta.annotations).toEqual({
+      readOnlyHint: true,
+      tamboStreamableHint: true,
     });
   });
 });

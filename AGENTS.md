@@ -21,11 +21,13 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
   - Built as ESM module with executable binary
 
 - **showcase/** - Demo application (`@tambo-ai/showcase`)
+  - Runs on port 8262
   - Next.js app demonstrating all Tambo components and patterns
   - Components auto-synced from CLI registry - edit CLI registry, not showcase components directly
   - Serves as both documentation and testing ground
 
 - **docs/** - Documentation site (`@tambo-ai/docs`)
+  - Runs on port 8263
   - Built with Fumadocs, includes comprehensive guides and API reference
   - This package contains ui components that originated from the cli/ package.
     Any changes to the components should be made in the cli/ package first, and
@@ -42,8 +44,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 ### Tambo Cloud Platform
 
-- **apps/web** - Next.js app (UI)
-- **apps/api** - NestJS app (OpenAPI server)
+- **apps/web** - Next.js app (UI) - runs on port 8260
+- **apps/api** - NestJS app (OpenAPI server) - runs on port 8261
 - **packages/db** - Drizzle ORM schema + migrations + DB helpers
 - **packages/core** - Shared pure utilities (no DB access)
 - **packages/backend** - LLM/agent-side helpers
@@ -53,7 +55,27 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - Node.js >=22
 - npm >=11
-- Uses Volta for version management consistency
+
+**Recommended:** Install [mise](https://mise.jdx.dev) for automatic version management. See [mise getting started](https://mise.jdx.dev/getting-started.html) for installation instructions.
+
+### Tool Versions
+
+Tool versions are managed via mise. Source of truth files:
+
+- **Most tools**: `mise.toml`
+- **Node.js**: `.node-version` (`.nvmrc` kept in sync for nvm compatibility)
+
+These files are kept up to date by Renovate.
+
+```bash
+mise install              # Install/update tools to correct versions
+mise exec -- <command>    # Preferred for scripts/CI/non-interactive shells
+eval "$(mise activate)"   # Interactive shells only
+```
+
+**Changing tool versions**: Open a PR updating the authoritative version file(s). For Node.js, always update both `.node-version` and `.nvmrc` together. Run `mise install`, then verify with `npm run lint && npm run check-types && npm test`.
+
+**Local overrides**: Use `.mise.local.toml` (gitignored) for local-only changes. Only for additive or patch-level changes—don't override Node.js or use incompatible versions.
 
 ## 2. Core Development Principles
 
@@ -78,6 +100,7 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - **No Silent Fallbacks**: Code must fail immediately when expected conditions aren't met. Silent fallback behavior masks bugs and creates unpredictable systems.
 - **Explicit Error Messages**: When something goes wrong, stop execution with clear error messages explaining what failed and what was expected.
 - **Example**: `throw new Error(\`Required model ${modelName} not found\`)` instead of falling back to first available model.
+- **Data mapping**: When converting enums or union types, handle all known values explicitly and throw for unknown values. Don't use catch-all defaults that mask data integrity issues. Log warnings if skipping invalid data intentionally.
 
 ### Naming Conventions
 
@@ -114,7 +137,9 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - Prefer named exports; allow multiple exports when they belong together (e.g., component + related types).
 - Avoid default exports.
-- Don't create generic index.ts barrels for internal modules; import directly from concrete files.
+- Don't create `index.ts` barrels for internal modules; import directly from source files. Exception: package entry points (e.g., `packages/core/src/index.ts`) are fine.
+- Don't re-export symbols for backwards compatibility. When moving a symbol, update all consumers to import from the new location.
+- **Never use dynamic `import()`** for regular imports, even for type imports. Use static imports at the top of the file. Dynamic imports are only appropriate for code splitting in specific scenarios (e.g., lazy-loaded routes).
 
 ## 3. TypeScript Standards
 
@@ -126,6 +151,22 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - **Prefer `Record<string, unknown>` over `object`** or `{ [key: string]: unknown }` when possible.
 - **Do not disable ESLint rules** unless explicitly requested - fix the root cause instead.
 - **Do not disable TypeScript errors** unless explicitly requested - fix the root cause instead.
+- **Constrain generics** with `extends` - avoid overly broad `<T>`, prefer `<T extends SomeType>`.
+- **Use discriminated unions** for mutually exclusive states (e.g., `{ success: true; data: T } | { success: false; error: Error }`).
+- **Use `as const`** to preserve literal types, especially for arrays that should be tuples.
+- **Use built-in utility types** (`Pick`, `Omit`, `Partial`, `Required`, `ReturnType`, `Parameters`) - don't reimplement them.
+- **Avoid `{}` type** - it means "any non-nullish value" (including primitives). Prefer `unknown` (truly unknown), `object` (any non-primitive object), or `Record<string, unknown>` / a specific object type for key-value objects.
+
+### type-fest Utility Types
+
+Prefer the `type-fest` package for advanced type manipulation: https://github.com/sindresorhus/type-fest
+
+Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `RequiredDeep`, `Merge`, `ValueOf`, `SetOptional`, etc. Before writing any complicated derivative types, check `type-fest` first.
+
+`type-fest` is installed at the repo root, but each package must still declare it explicitly when used:
+
+- If you reference `type-fest` types from a package's **public exported types**, add `type-fest` to that package's `dependencies`.
+- If you only use `type-fest` in internal code or tests, add `type-fest` to that package's `devDependencies`.
 
 ### Type Inference
 
@@ -134,9 +175,12 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
   - Return values of functions that have an obvious return type
   - Local variables that are well defined
 - **Let TypeScript infer return types** when they're obvious.
-- **Avoid creating intermediate "helper" types** for internal functions.
+- **Avoid creating one-off/intermediate "helper" types** for internal functions.
 - **Use inferred types** from database schemas, tRPC schemas, and other sources of truth.
 - **Add explicit types** when it improves clarity or catches errors.
+- **Avoid type casts (e.g. `as`)** unless absolutely necessary. Prefer updating function signatures/types so the code doesn't need a cast. Casting through `unknown` is usually a smell; when it's needed at an interop boundary, do runtime validation first (e.g. Zod) and keep the cast local.
+- **Use `satisfies` to check an object literal matches a type** while preserving inference (compile-time only). It does not validate runtime data; use a schema validator for untrusted input.
+- **Type guards** should perform real runtime checks to narrow values. Use `unknown` as an input type only when the value is truly unknown (e.g. JSON deserialization, user input). Avoid "fake" guards that just assert a type without validation.
 
 ### Type Conversions
 
@@ -165,6 +209,13 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - **Avoid `reduce()`** - it's often confusing and can usually be replaced with simpler patterns.
   - Exception: when the mental model genuinely requires accumulation (e.g., summing numbers).
 - **Avoid complex method chaining** - break it into named intermediate steps for clarity.
+
+### Avoid RegEx When Possible
+
+- **Prefer string methods**: `str.includes()`, `str.startsWith()`, `str.split()`, and `str.replace()` are easier to read and maintain.
+- **Avoid global flag (`/g`)**: Creates stateful regex objects where `lastIndex` persists between calls, causing subtle bugs.
+- **Avoid multiline flag (`/m`)**: Platform differences in line endings (`\n` vs `\r\n`) cause inconsistent behavior.
+- **If regex is unavoidable**: Keep it simple, add a comment explaining the pattern, and test edge cases thoroughly.
 
 ## 4. Frontend Development (React + Next.js)
 
@@ -230,6 +281,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 
 - Source of truth is packages/db/src/schema.ts. Do not hand-edit generated SQL.
 - Generate migrations with `npm run db:generate`, do not manually generate migrations.
+- Don't denormalize FKs that can be derived from relationships (e.g., if `runs.threadId` exists and threads have `projectId`, don't add `runs.projectId`).
+- **Factor database operations into `packages/db/src/operations/`**. Services in `apps/api` should call operation functions rather than writing inline DB queries. This promotes reuse and keeps DB logic centralized. Export new operations from `packages/db/src/operations/index.ts`.
 
 Database commands (require `-w packages/db` flag from root):
 
@@ -254,7 +307,7 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 
 ```bash
 # Development (two different apps!)
-npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 3000/3001
+npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
 npm run dev              # Start React SDK (showcase + docs)
 
 # Quality checks
@@ -327,6 +380,12 @@ When working across multiple packages:
 - **Integration tests**: the only tests that stay in a `__tests__` folder, and the filename must describe the scenario (never just mirror another file's name).
 - **Fixtures & mocks**: keep shared helpers in a `__fixtures__` or `__mocks__` directory at the package's source root (e.g. `apps/web/__mocks__`), never nested inside feature folders.
 
+### Mocking
+
+- **Avoid over-mocking** - tests should exercise real code paths whenever possible. If you're mocking internal functions just to isolate a unit, you're probably testing implementation details rather than behavior.
+- **Only mock at system boundaries** - external APIs, databases, file systems, network calls, and other I/O with side effects.
+- **Don't mock what you own** - if a helper function is pure and fast, call it directly rather than mocking it. Mocking your own code couples tests to implementation.
+
 ### Pre-commit/PR Verification Checklist
 
 Run these commands before commits/PRs:
@@ -339,6 +398,10 @@ npm test              # Unit/integration tests
 ```
 
 ## 10. Git Workflow & PRs
+
+### Branch Naming
+
+Create branches in the format `<userid>/<feature-name>`, e.g., `alecf/add-dark-mode` or `jane/fix-login-bug`.
 
 ### Conventional Commits
 
@@ -401,3 +464,4 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 - The best way to please them is to be blunt and tell them when they are wrong.
 - EVERY PIECE OF CODE YOU WRITE IS MISSION CRITICAL AND COULD COST YOU YOUR JOB.
 - When adding/editing JSDoc comments, make sure to add @returns to provide a description of the function return (the type should not be specified since TS will infer the return from the code, not the comment.)
+- Never reference planning documents, proposals, or design docs in code comments (e.g., `// See plans/foo.md`). These artifacts are short-lived but comments persist indefinitely. Code comments should be self-contained.

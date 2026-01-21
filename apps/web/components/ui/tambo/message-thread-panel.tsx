@@ -44,12 +44,6 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
  */
 export interface MessageThreadPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
-   * Optional key to identify the context of the thread
-   * Used to maintain separate thread histories for different contexts
-   */
-  /** Optional content to render in the left panel of the grid */
-  children?: React.ReactNode;
-  /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
    * These values are defined in messageVariants from "@/components/tambo/message".

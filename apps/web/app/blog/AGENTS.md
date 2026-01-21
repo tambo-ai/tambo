@@ -212,7 +212,7 @@ export function Example() {
 ## Development Commands
 
 ```bash
-npm run dev              # Start dev server (localhost:3000)
+npm run dev              # Start dev server (localhost:8260)
 npm run build            # Build for production
 npm run lint             # Check code quality
 npm run check-types      # TypeScript type checking

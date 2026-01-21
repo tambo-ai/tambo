@@ -1,3 +1,5 @@
+export * from "./assert-unreachable";
+export * from "./attachment";
 export * from "./ComponentDecision";
 export * from "./composio-utils";
 export * from "./email";
@@ -10,6 +12,7 @@ export * from "./mcp-utils";
 export * from "./oauth";
 export * from "./oauth-validation";
 export * from "./project";
+export * from "./sessions";
 export * from "./shared-constants";
 export * from "./strictness/json-schema";
 export * from "./strictness/tool-call-strict";

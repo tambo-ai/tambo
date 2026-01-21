@@ -332,7 +332,7 @@ async function getAuthProvider(
   }
 
   const authProvider = new OAuthLocalProvider(db, context.id, {
-    baseUrl: env.VERCEL_URL ?? "http://localhost:3000",
+    baseUrl: env.VERCEL_URL ?? "http://localhost:8260",
     serverUrl: mcpServer.url,
     clientInformation: client.sessionInfo.clientInformation,
     sessionId: client.sessionId,

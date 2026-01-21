@@ -1,5 +1,6 @@
 import { CopyButton } from "@/components/copy-button";
 import { Card, CardContent } from "@/components/ui/card";
+import { isLikelyIsoDateTimeString } from "@/lib/is-likely-iso-datetime";
 import { type RouterOutputs, api } from "@/trpc/react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -27,13 +28,15 @@ export const ProjectInfoProps = z.object({
   project: ProjectInfoSchema.optional().describe("The project to display."),
   createdAt: z
     .string()
+    .datetime()
     .optional()
-    .describe("The creation date of the project."),
+    .describe("The ISO-8601 creation date of the project."),
   isLoading: z.boolean().optional().describe("Whether the project is loading."),
 });
 
 interface ProjectInfoProps {
   project?: RouterOutputs["project"]["getUserProjects"][number];
+  /** ISO-8601 datetime string (e.g. from `Date.prototype.toISOString()`). */
   createdAt?: string;
   isLoading?: boolean;
   compact?: boolean;
@@ -90,17 +93,25 @@ export function ProjectInfo({
   const remainingMessages = Math.max(0, FREE_MESSAGE_LIMIT - messageCount);
   const isLowMessages = remainingMessages < 50;
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: compact ? "2-digit" : "numeric",
-        month: compact ? "short" : "long",
-        day: "numeric",
-      });
-    } catch (_error) {
-      return dateString;
+  // Expects an ISO-8601 datetime string; returns "—" when the input isn't a
+  // likely ISO datetime or can't be parsed.
+  const formatDate = (isoDateString: string) => {
+    if (!isLikelyIsoDateTimeString(isoDateString)) {
+      return "—";
     }
+
+    const date = new Date(isoDateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return "—";
+    }
+
+    // Intentionally uses the viewer's local time zone (the default).
+    return date.toLocaleDateString(undefined, {
+      year: compact ? "2-digit" : "numeric",
+      month: compact ? "short" : "long",
+      day: "numeric",
+    });
   };
 
   // Compact version - to be used in chat with tambo
@@ -146,15 +157,14 @@ export function ProjectInfo({
               <span
                 className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
               >
-                {remainingMessages} starter LLM calls left — bring your own key
-                to keep going
+                {remainingMessages}
               </span>
               {isLowMessages && (
                 <Link
                   href={`/dashboard/${project.id}/settings`}
                   className="text-primary hover:underline font-medium"
                 >
-                  Add key
+                  Add API Key
                 </Link>
               )}
             </div>
@@ -166,15 +176,15 @@ export function ProjectInfo({
 
   // Full version
   return (
-    <Card className="border-card-background bg-card-background rounded-3xl overflow-hidden p-2 sm:p-4">
-      <CardContent className="p-2 sm:p-4 space-y-4">
+    <Card className="border-card-background bg-card-background rounded-3xl overflow-hidden">
+      <CardContent className="p-4 space-y-4">
         <motion.div
           className="flex items-center gap-2"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <h4 className="text-3xl sm:text-4xl md:text-6xl pb-4 sm:pb-4">
+          <h4 className="text-3xl sm:text-4xl md:text-6xl pb-2">
             {project.name}
           </h4>
         </motion.div>
@@ -227,18 +237,17 @@ export function ProjectInfo({
               <h5 className="text-xs font-medium text-foreground mb-1">
                 Starter LLM calls remaining
               </h5>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col items-start gap-2">
                 <p
                   className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
                 >
-                  {remainingMessages} starter LLM calls left — bring your own
-                  key to keep going
+                  {remainingMessages}
                 </p>
                 <Link
                   href={`/dashboard/${project.id}/settings`}
                   className="text-xs font-semibold underline"
                 >
-                  Add provider key
+                  Add API Key
                 </Link>
               </div>
             </motion.div>

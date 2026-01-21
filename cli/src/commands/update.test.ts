@@ -10,7 +10,7 @@ import { fs as memfsFs, vol } from "memfs";
 import { toTreeSync } from "memfs/lib/print";
 import {
   createBasicProject,
-  createProjectWithReact,
+  createProjectWithTamboSDK,
   createRegistryFiles,
 } from "../__fixtures__/mock-fs-setup.js";
 
@@ -464,7 +464,7 @@ describe("handleUpdateComponents", () => {
     it("should update all installed components when 'installed' is specified", async () => {
       // Setup: Project with multiple installed components
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message", "form"]),
         // Override to have "Updated" content
         "/mock-project/cli/src/registry/message/message.tsx":
@@ -515,7 +515,7 @@ describe("handleUpdateComponents", () => {
     it("should list installed components when using 'installed' keyword", async () => {
       // Setup: Project with installed components
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
         "/mock-project/cli/src/registry/message/message.tsx":
@@ -539,7 +539,7 @@ describe("handleUpdateComponents", () => {
     it("should update a single installed component", async () => {
       // Setup: Project with installed component
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
         "/mock-project/cli/src/registry/message/message.tsx":
@@ -569,7 +569,7 @@ describe("handleUpdateComponents", () => {
     it("should update multiple components", async () => {
       // Setup: Project with multiple installed components
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message", "form"]),
         // Override to have "Updated" content
         "/mock-project/cli/src/registry/message/message.tsx":
@@ -856,7 +856,7 @@ describe("handleUpdateComponents", () => {
     it("should respect --yes flag and skip confirmation", async () => {
       // Setup
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
         "/mock-project/cli/src/registry/message/message.tsx":
@@ -955,7 +955,7 @@ describe("handleUpdateComponents", () => {
     it("should respect --legacyPeerDeps option", async () => {
       // Setup
       vol.fromJSON({
-        ...createProjectWithReact(),
+        ...createProjectWithTamboSDK(),
         ...createRegistryFiles(["message"]),
         // Override to have "Updated" content
         "/mock-project/cli/src/registry/message/message.tsx":

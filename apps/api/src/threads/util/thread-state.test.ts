@@ -9,18 +9,22 @@ import {
   UI_TOOLNAME_PREFIX,
   LegacyComponentDecision,
   MessageRole,
+  V1RunStatus,
   ThreadMessage,
 } from "@tambo-ai-cloud/core";
 import { HydraDb } from "@tambo-ai-cloud/db";
 import { SQL } from "drizzle-orm";
 import { PgTable, PgTransaction } from "drizzle-orm/pg-core";
+import type { DecisionStreamItem } from "@tambo-ai-cloud/backend";
 import {
   addUserMessage,
+  appendNewMessageToThread,
   finishInProgressMessage,
   fixStreamedToolCalls,
   updateGenerationStage,
   updateThreadMessageFromLegacyDecision,
 } from "./thread-state";
+import * as messagesModule from "./messages";
 
 const schema = jest.requireActual("@tambo-ai-cloud/db").schema;
 
@@ -31,10 +35,18 @@ jest.mock("@tambo-ai-cloud/db", () => {
     operations: {
       updateThread: jest.fn(),
       updateMessage: jest.fn(),
+      addMessage: jest.fn(),
     },
     schema,
+    dbMessageToThreadMessage: jest.fn((message) => message),
   };
 });
+
+jest.mock("./messages", () => ({
+  ...jest.requireActual("./messages"),
+  addMessage: jest.fn(),
+  verifyLatestMessageConsistency: jest.fn(),
+}));
 
 describe("Thread State", () => {
   let mockDb: HydraDb;
@@ -84,6 +96,13 @@ describe("Thread State", () => {
         name: "Test name",
         createdAt: now,
         updatedAt: now,
+        // v1 API fields
+        runStatus: V1RunStatus.IDLE,
+        currentRunId: null,
+        lastRunCancelled: null,
+        lastRunError: null,
+        pendingToolCallIds: null,
+        lastCompletedRunId: null,
       });
       jest
         .mocked(
@@ -121,6 +140,13 @@ describe("Thread State", () => {
         metadata: null,
         statusMessage: null,
         name: null,
+        // v1 API fields
+        runStatus: V1RunStatus.IDLE,
+        currentRunId: null,
+        lastRunCancelled: null,
+        lastRunError: null,
+        pendingToolCallIds: null,
+        lastCompletedRunId: null,
       };
 
       const mockTransaction = {
@@ -151,6 +177,153 @@ describe("Thread State", () => {
           mockLogger,
         ),
       ).rejects.toThrow("Thread is already in processing");
+    });
+  });
+
+  describe("appendNewMessageToThread", () => {
+    it("should create a new message with default role (Assistant)", async () => {
+      const now = new Date();
+      const mockCreatedMessage: ThreadMessage = {
+        id: "msg-new-1",
+        threadId: "thread-1",
+        parentMessageId: "msg-1",
+        role: MessageRole.Assistant,
+        content: [
+          { type: ContentPartType.Text, text: "" } as ChatCompletionContentPart,
+        ],
+        componentState: {},
+        createdAt: now,
+      };
+
+      const mockTransaction = {
+        ...mockDb,
+        schema,
+        nestedIndex: 0,
+        rollback: jest.fn(),
+        setTransaction: jest.fn(),
+      } as unknown as PgTransaction<any, any, any>;
+
+      jest
+        .mocked(mockDb.transaction)
+        .mockImplementation(
+          async (callback) => await callback(mockTransaction),
+        );
+
+      // Mock verifyLatestMessageConsistency to do nothing (success)
+      jest
+        .mocked(messagesModule.verifyLatestMessageConsistency)
+        .mockResolvedValue(undefined);
+
+      // Mock addMessage to return the created message
+      jest
+        .mocked(messagesModule.addMessage)
+        .mockResolvedValue(mockCreatedMessage);
+
+      const result = await appendNewMessageToThread(
+        mockDb,
+        "thread-1",
+        "msg-1",
+      );
+
+      expect(result).toBeDefined();
+      expect(result.role).toBe(MessageRole.Assistant);
+      expect(
+        messagesModule.verifyLatestMessageConsistency,
+      ).toHaveBeenCalledWith(mockTransaction, "thread-1", "msg-1", false);
+      expect(messagesModule.addMessage).toHaveBeenCalledWith(
+        mockTransaction,
+        "thread-1",
+        expect.objectContaining({
+          role: MessageRole.Assistant,
+          content: [{ type: ContentPartType.Text, text: "" }],
+        }),
+      );
+    });
+
+    it("should create a message with custom role and initial text", async () => {
+      const now = new Date();
+      const mockCreatedMessage: ThreadMessage = {
+        id: "msg-new-2",
+        threadId: "thread-1",
+        parentMessageId: "msg-1",
+        role: MessageRole.System,
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "Custom initial text",
+          } as ChatCompletionContentPart,
+        ],
+        componentState: {},
+        createdAt: now,
+      };
+
+      const mockTransaction = {
+        ...mockDb,
+        schema,
+        nestedIndex: 0,
+        rollback: jest.fn(),
+        setTransaction: jest.fn(),
+      } as unknown as PgTransaction<any, any, any>;
+
+      jest
+        .mocked(mockDb.transaction)
+        .mockImplementation(
+          async (callback) => await callback(mockTransaction),
+        );
+
+      // Mock verifyLatestMessageConsistency to do nothing (success)
+      jest
+        .mocked(messagesModule.verifyLatestMessageConsistency)
+        .mockResolvedValue(undefined);
+
+      // Mock addMessage to return the created message
+      jest
+        .mocked(messagesModule.addMessage)
+        .mockResolvedValue(mockCreatedMessage);
+
+      const result = await appendNewMessageToThread(
+        mockDb,
+        "thread-1",
+        "msg-1",
+        MessageRole.System,
+        "Custom initial text",
+      );
+
+      expect(result).toBeDefined();
+      expect(result.role).toBe(MessageRole.System);
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(messagesModule.addMessage).toHaveBeenCalledWith(
+        mockTransaction,
+        "thread-1",
+        expect.objectContaining({
+          role: MessageRole.System,
+          content: [
+            { type: ContentPartType.Text, text: "Custom initial text" },
+          ],
+        }),
+      );
+    });
+
+    it("should log error and rethrow when transaction fails", async () => {
+      const transactionError = new Error("Transaction failed");
+
+      jest.mocked(mockDb.transaction).mockRejectedValue(transactionError);
+
+      await expect(
+        appendNewMessageToThread(
+          mockDb,
+          "thread-1",
+          "msg-1",
+          undefined,
+          undefined,
+          mockLogger,
+        ),
+      ).rejects.toThrow("Transaction failed");
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Transaction failed: Adding in-progress message",
+        expect.any(String),
+      );
     });
   });
 
@@ -329,6 +502,119 @@ describe("Thread State", () => {
       expect(nonUIThreadMessageFinished.tool_call_id).toBe("tool-nonui-456");
       expect(nonUIThreadMessageFinished.actionType).toBe(ActionType.ToolCall);
     });
+
+    it("should handle User role messages", () => {
+      const mockDecision: LegacyComponentDecision = {
+        message: "User message content",
+        componentName: "",
+        props: null,
+        componentState: { userState: "value" },
+        reasoning: [],
+      };
+
+      const mockUserMessage: ThreadMessage = {
+        id: "msg-user-1",
+        threadId: "thread-1",
+        role: MessageRole.User,
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "original",
+          } as ChatCompletionContentPart,
+        ],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const result = updateThreadMessageFromLegacyDecision(
+        mockUserMessage,
+        mockDecision,
+      );
+
+      expect(result.role).toBe(MessageRole.User);
+      expect(result.id).toBe("msg-user-1");
+      expect(result.threadId).toBe("thread-1");
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[0].type === "text" && result.content[0].text).toBe(
+        "User message content",
+      );
+      expect(result.componentState).toEqual({ userState: "value" });
+    });
+
+    it("should handle System role messages", () => {
+      const mockDecision: LegacyComponentDecision = {
+        message: "System message content",
+        componentName: "",
+        props: null,
+        componentState: {},
+        reasoning: [],
+      };
+
+      const mockSystemMessage: ThreadMessage = {
+        id: "msg-system-1",
+        threadId: "thread-1",
+        role: MessageRole.System,
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "original system",
+          } as ChatCompletionContentPart,
+        ],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const result = updateThreadMessageFromLegacyDecision(
+        mockSystemMessage,
+        mockDecision,
+      );
+
+      expect(result.role).toBe(MessageRole.System);
+      expect(result.id).toBe("msg-system-1");
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[0].type === "text" && result.content[0].text).toBe(
+        "System message content",
+      );
+    });
+
+    it("should handle Tool role messages and preserve tool_call_id", () => {
+      const mockDecision: LegacyComponentDecision = {
+        message: "Tool response content",
+        componentName: "",
+        props: null,
+        componentState: {},
+        reasoning: [],
+      };
+
+      const mockToolMessage: ThreadMessage = {
+        id: "msg-tool-1",
+        threadId: "thread-1",
+        role: MessageRole.Tool,
+        tool_call_id: "original-tool-call-id",
+        content: [
+          {
+            type: ContentPartType.Text,
+            text: "original tool response",
+          } as ChatCompletionContentPart,
+        ],
+        createdAt: new Date(),
+        componentState: {},
+      };
+
+      const result = updateThreadMessageFromLegacyDecision(
+        mockToolMessage,
+        mockDecision,
+      );
+
+      expect(result.role).toBe(MessageRole.Tool);
+      expect(result.id).toBe("msg-tool-1");
+      // Tool messages should preserve the original tool_call_id
+      expect(result.tool_call_id).toBe("original-tool-call-id");
+      expect(result.content[0].type).toBe(ContentPartType.Text);
+      expect(result.content[0].type === "text" && result.content[0].text).toBe(
+        "Tool response content",
+      );
+    });
   });
 
   describe("fixStreamedToolCalls", () => {
@@ -336,15 +622,20 @@ describe("Thread State", () => {
       id: string,
       message: string,
       tool?: { id: string; request: any },
-    ): LegacyComponentDecision {
+    ): DecisionStreamItem {
       return {
-        id,
-        message,
-        componentName: "test-component",
-        props: {},
-        componentState: {},
-        reasoning: ["because"],
-        ...(tool ? { toolCallId: tool.id, toolCallRequest: tool.request } : {}),
+        decision: {
+          id,
+          message,
+          componentName: "test-component",
+          props: {},
+          componentState: {},
+          reasoning: ["because"],
+          ...(tool
+            ? { toolCallId: tool.id, toolCallRequest: tool.request }
+            : {}),
+        },
+        aguiEvents: [],
       };
     }
 
@@ -377,35 +668,35 @@ describe("Thread State", () => {
 
       expect(result).toHaveLength(4);
       // Streaming chunks preserve tool call info and mark as not finished
-      expect(result[0].message).toBe("part1");
-      expect(result[0].toolCallRequest).toBeUndefined(); // No tool call in this chunk
-      expect(result[0].isToolCallFinished).toBe(false);
+      expect(result[0].decision.message).toBe("part1");
+      expect(result[0].decision.toolCallRequest).toBeUndefined(); // No tool call in this chunk
+      expect(result[0].decision.isToolCallFinished).toBe(false);
 
-      expect(result[1].message).toBe("part2");
-      expect(result[1].toolCallRequest).toBeDefined(); // Tool call info preserved
-      expect(result[1].toolCallRequest?.toolName).toBe("toolA");
-      expect(result[1].toolCallId).toBe("tc-1");
-      expect(result[1].toolCallRequest?.parameters).toEqual([]);
-      expect(result[1].isToolCallFinished).toBe(false); // Not finished yet
+      expect(result[1].decision.message).toBe("part2");
+      expect(result[1].decision.toolCallRequest).toBeDefined(); // Tool call info preserved
+      expect(result[1].decision.toolCallRequest?.toolName).toBe("toolA");
+      expect(result[1].decision.toolCallId).toBe("tc-1");
+      expect(result[1].decision.toolCallRequest?.parameters).toEqual([]);
+      expect(result[1].decision.isToolCallFinished).toBe(false); // Not finished yet
 
-      expect(result[2].message).toBe("part3");
-      expect(result[2].toolCallRequest).toBeDefined();
-      expect(result[2].toolCallRequest?.toolName).toBe("toolA");
-      expect(result[2].toolCallId).toBe("tc-1");
-      expect(result[2].toolCallRequest?.parameters).toEqual([
+      expect(result[2].decision.message).toBe("part3");
+      expect(result[2].decision.toolCallRequest).toBeDefined();
+      expect(result[2].decision.toolCallRequest?.toolName).toBe("toolA");
+      expect(result[2].decision.toolCallId).toBe("tc-1");
+      expect(result[2].decision.toolCallRequest?.parameters).toEqual([
         { parameterName: "param1", parameterValue: "value1" },
       ]);
-      expect(result[2].isToolCallFinished).toBe(false); // Not finished yet
+      expect(result[2].decision.isToolCallFinished).toBe(false); // Not finished yet
 
       // Final chunk has tool call info and is marked as finished
-      expect(result[3].message).toBe("part3");
-      expect(result[3].toolCallRequest).toBeDefined();
-      expect(result[3].toolCallRequest?.toolName).toBe("toolA");
-      expect(result[3].toolCallId).toBe("tc-1");
-      expect(result[3].toolCallRequest?.parameters).toEqual([
+      expect(result[3].decision.message).toBe("part3");
+      expect(result[3].decision.toolCallRequest).toBeDefined();
+      expect(result[3].decision.toolCallRequest?.toolName).toBe("toolA");
+      expect(result[3].decision.toolCallId).toBe("tc-1");
+      expect(result[3].decision.toolCallRequest?.parameters).toEqual([
         { parameterName: "param1", parameterValue: "value1" },
       ]);
-      expect(result[3].isToolCallFinished).toBe(true); // Finished
+      expect(result[3].decision.isToolCallFinished).toBe(true); // Finished
     });
 
     it("emits final chunk when message id changes, then continues streaming", async () => {
@@ -432,7 +723,7 @@ describe("Thread State", () => {
       // 3: b1 (streaming, no tool call)
       // 4: b2 (streaming, has tool call, not finished)
       // 5: b2 final (finished, has tool call)
-      expect(result.map((r: any) => r.message)).toEqual([
+      expect(result.map((r) => r.decision.message)).toEqual([
         "a1",
         "a2",
         "a2",
@@ -442,24 +733,24 @@ describe("Thread State", () => {
       ]);
 
       // Streaming chunks preserve tool call info
-      expect(result[1].toolCallRequest).toBeDefined();
-      expect(result[1].toolCallId).toBe("tc-a");
-      expect(result[1].isToolCallFinished).toBe(false);
+      expect(result[1].decision.toolCallRequest).toBeDefined();
+      expect(result[1].decision.toolCallId).toBe("tc-a");
+      expect(result[1].decision.isToolCallFinished).toBe(false);
 
       // Final chunk has tool call info and is marked finished
-      expect(result[2].toolCallRequest).toBeDefined();
-      expect(result[2].toolCallId).toBe("tc-a");
-      expect(result[2].isToolCallFinished).toBe(true);
+      expect(result[2].decision.toolCallRequest).toBeDefined();
+      expect(result[2].decision.toolCallId).toBe("tc-a");
+      expect(result[2].decision.isToolCallFinished).toBe(true);
 
       // Streaming chunks preserve tool call info
-      expect(result[4].toolCallRequest).toBeDefined();
-      expect(result[4].toolCallId).toBe("tc-b");
-      expect(result[4].isToolCallFinished).toBe(false);
+      expect(result[4].decision.toolCallRequest).toBeDefined();
+      expect(result[4].decision.toolCallId).toBe("tc-b");
+      expect(result[4].decision.isToolCallFinished).toBe(false);
 
       // Final chunk has tool call info and is marked finished
-      expect(result[5].toolCallRequest).toBeDefined();
-      expect(result[5].toolCallId).toBe("tc-b");
-      expect(result[5].isToolCallFinished).toBe(true);
+      expect(result[5].decision.toolCallRequest).toBeDefined();
+      expect(result[5].decision.toolCallId).toBe("tc-b");
+      expect(result[5].decision.isToolCallFinished).toBe(true);
     });
 
     it("should preserve tool call info in streaming chunks and mark completion status", async () => {
@@ -484,17 +775,17 @@ describe("Thread State", () => {
       const result = await collect(fixStreamedToolCalls(makeStream()));
 
       // Streaming chunks preserve tool call info and mark as not finished
-      const streamingChunk1 = result[0];
+      const streamingChunk1 = result[0].decision;
       expect(streamingChunk1.toolCallRequest).toBeUndefined(); // No tool call in this chunk
       expect(streamingChunk1.isToolCallFinished).toBe(false);
 
-      const streamingChunk2 = result[1];
+      const streamingChunk2 = result[1].decision;
       expect(streamingChunk2.toolCallRequest).toBeDefined(); // Tool call info preserved
       expect(streamingChunk2.toolCallRequest?.toolName).toBe("toolA");
       expect(streamingChunk2.toolCallId).toBe("tc-1");
       expect(streamingChunk2.isToolCallFinished).toBe(false); // Not finished yet
 
-      const streamingChunk3 = result[2];
+      const streamingChunk3 = result[2].decision;
       expect(streamingChunk3.toolCallRequest).toBeDefined(); // Tool call info preserved (updated)
       expect(streamingChunk3.toolCallRequest?.toolName).toBe("toolA");
       expect(streamingChunk3.toolCallRequest?.parameters).toEqual([
@@ -504,7 +795,7 @@ describe("Thread State", () => {
       expect(streamingChunk3.isToolCallFinished).toBe(false); // Not finished yet
 
       // Final chunk has tool call info and is marked as finished
-      const finalChunk = result[3];
+      const finalChunk = result[3].decision;
       expect(finalChunk.toolCallRequest).toBeDefined();
       expect(finalChunk.toolCallRequest?.toolName).toBe("toolA");
       expect(finalChunk.toolCallRequest?.parameters).toEqual([

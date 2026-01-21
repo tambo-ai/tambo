@@ -36,6 +36,7 @@ coverage
 *.code*
 .claude/settings.local.json
 .plans/
+.playwright-mcp/
 
 # misc
 .DS_Store
@@ -45,6 +46,9 @@ coverage
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# mise
+.mise.local.toml
 
 # typescript
 *.tsbuildinfo

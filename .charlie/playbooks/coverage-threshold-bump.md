@@ -75,17 +75,14 @@ npm -w showcase run test:unit -- \
   --coverageReporters=json-summary \
   --coverageDirectory=/tmp/tambo-coverage/showcase
 
-# cli (two Jest configs)
-npm -w cli run test:esm -- \
+# cli (single command runs all Jest projects)
+npm -w cli test -- \
   --coverage \
   --coverageReporters=json-summary \
-  --coverageDirectory=/tmp/tambo-coverage/cli-esm
-
-npm -w cli run test:react -- \
-  --coverage \
-  --coverageReporters=json-summary \
-  --coverageDirectory=/tmp/tambo-coverage/cli-react
+  --coverageDirectory=/tmp/tambo-coverage/cli
 ```
+
+Note: the `cli` workspace `test` script currently runs `NODE_OPTIONS=--experimental-vm-modules jest`, so `npm -w cli test -- ...` forwards Jest flags like `--coverageDirectory`. The CLI Jest config uses multiple projects (`node` and `react`); this coverage directory aggregates them into a single report that `coverageThreshold.global` enforces. If the `test` script ever stops being a thin `jest` wrapper, update this playbook to call `jest` directly.
 
 If a new workspace adds Jest coverage thresholds (or test scripts are renamed), update the command list above so every Jest project stays covered.
 

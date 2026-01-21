@@ -112,15 +112,18 @@ describe("ThreadsController HTTP response handling without network sockets", () 
 
       async function* stream() {
         yield {
-          responseMessageDto: {
-            id: "msg-1",
-            threadId: "thread-1",
-            role: MessageRole.Assistant,
-            content: [{ type: ContentPartType.Text, text: "Hello" }],
-            componentState: {},
-            createdAt: new Date(),
-          } as ThreadMessageDto,
-          generationStage: GenerationStage.COMPLETE,
+          response: {
+            responseMessageDto: {
+              id: "msg-1",
+              threadId: "thread-1",
+              role: MessageRole.Assistant,
+              content: [{ type: ContentPartType.Text, text: "Hello" }],
+              componentState: {},
+              createdAt: new Date(),
+            } as ThreadMessageDto,
+            generationStage: GenerationStage.COMPLETE,
+          },
+          aguiEvents: [],
         };
       }
 

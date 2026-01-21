@@ -5,7 +5,7 @@ permissions:
 
 on:
   workflow_run:
-    workflows: ["Build (Cloud)"]
+    workflows: ["CI"]
     branches: [main]
     types:
       - completed
@@ -14,8 +14,8 @@ on:
 jobs:
   deploy-migrations:
     name: Deploy Database Migrations
-    # Skip if the actor is dependabot
-    if: github.actor != 'dependabot[bot]'
+    # Skip if the actor is dependabot, or if the triggering workflow failed
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
 
     steps:
@@ -129,20 +129,9 @@ jobs:
             fi
           fi
 
-      - name: Set up Node.js
+      - name: Setup Tools
         if: steps.check-changes.outputs.changed == 'true'
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-
-      - name: Pin NPM version
-        if: steps.check-changes.outputs.changed == 'true'
-        run: npm install -g npm@11.7.0
-
-      - name: Install dependencies
-        if: steps.check-changes.outputs.changed == 'true'
-        run: npm ci
-        working-directory: tambo-cloud
+        uses: ./.github/actions/setup-tools
 
       - name: Run database migrations
         if: steps.check-changes.outputs.changed == 'true'

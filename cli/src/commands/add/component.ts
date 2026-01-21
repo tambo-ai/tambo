@@ -5,6 +5,11 @@ import { fileURLToPath } from "url";
 import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
 import { execFileSync } from "../../utils/interactive.js";
 import {
+  detectPackageManager,
+  getDevFlag,
+  getInstallCommand,
+} from "../../utils/package-manager.js";
+import {
   getComponentDirectoryPath,
   getLibDirectory,
 } from "../shared/path-utils.js";
@@ -110,9 +115,16 @@ export function cn(...inputs: ClassValue[]) {
 
   // 4. Install all dependencies at once
   if (prodDeps.length > 0 || devDeps.length > 0) {
+    const pm = detectPackageManager();
+    const installCmd = getInstallCommand(pm);
+    const devFlag = getDevFlag(pm);
+    // --legacy-peer-deps is npm-specific
+    const legacyPeerDepsFlag =
+      options.legacyPeerDeps && pm === "npm" ? ["--legacy-peer-deps"] : [];
+
     if (!options.silent) {
       console.log(
-        `${chalk.green("✔")} Installing dependencies for ${componentNames.join(", ")}...`,
+        `${chalk.green("✔")} Installing dependencies for ${componentNames.join(", ")} using ${pm}...`,
       );
     }
 
@@ -120,25 +132,16 @@ export function cn(...inputs: ClassValue[]) {
       const allowNonInteractive = Boolean(options.yes);
 
       if (prodDeps.length > 0) {
-        const args = [
-          "install",
-          ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
-          ...prodDeps,
-        ];
-        execFileSync("npm", args, {
+        const args = [installCmd, ...legacyPeerDepsFlag, ...prodDeps];
+        execFileSync(pm, args, {
           stdio: "inherit",
           encoding: "utf-8",
           allowNonInteractive,
         });
       }
       if (devDeps.length > 0) {
-        const args = [
-          "install",
-          "-D",
-          ...(options.legacyPeerDeps ? ["--legacy-peer-deps"] : []),
-          ...devDeps,
-        ];
-        execFileSync("npm", args, {
+        const args = [installCmd, devFlag, ...legacyPeerDepsFlag, ...devDeps];
+        execFileSync(pm, args, {
           stdio: "inherit",
           encoding: "utf-8",
           allowNonInteractive,

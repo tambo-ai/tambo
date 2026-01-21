@@ -28,10 +28,10 @@ export const currentInteractablesContextHelper: ContextHelperFn = () => {
  * Creates an interactables context helper with access to the current components.
  * This is used internally by TamboInteractableProvider.
  * @param components Array of interactable components
- * @returns Context helper function
+ * @returns A context helper function that returns component metadata or null if no components exist
  */
 export const createInteractablesContextHelper = (
-  components: any[],
+  components: unknown[],
 ): ContextHelperFn => {
   return () => {
     if (!Array.isArray(components) || components.length === 0) {
@@ -39,20 +39,38 @@ export const createInteractablesContextHelper = (
     }
 
     return {
-      components: components.map((component) => ({
-        id: component.id,
-        componentName: component.name,
-        description: component.description,
-        props: component.props,
-        propsSchema: component.propsSchema
-          ? "Available - use component-specific update tools"
-          : "Not specified",
-        state: component.state,
-        isSelectedForInteraction: component.isSelectedForInteraction ?? false,
-        stateSchema: component.stateSchema
-          ? "Available - use component-specific update tools"
-          : "Not specified",
-      })),
+      components: components.map((component) => {
+        // Type guard: ensure component is an object with the expected properties
+        if (typeof component !== "object" || component === null) {
+          return {
+            id: "unknown",
+            componentName: "unknown",
+            description: "invalid component",
+            props: undefined,
+            propsSchema: "Not specified",
+            state: undefined,
+            isSelectedForInteraction: false,
+            stateSchema: "Not specified",
+          };
+        }
+
+        const comp = component as Record<string, unknown>;
+        return {
+          id: String(comp.id ?? "unknown"),
+          componentName: String(comp.name ?? "unknown"),
+          description: String(comp.description ?? ""),
+          props: comp.props,
+          propsSchema: comp.propsSchema
+            ? "Available - use component-specific update tools"
+            : "Not specified",
+          state: comp.state,
+          isSelectedForInteraction:
+            (comp.isSelectedForInteraction as boolean | undefined) ?? false,
+          stateSchema: comp.stateSchema
+            ? "Available - use component-specific update tools"
+            : "Not specified",
+        };
+      }),
     };
   };
 };

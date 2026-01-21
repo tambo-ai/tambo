@@ -23,7 +23,9 @@ export class ThreadInProjectGuard implements CanActivate {
       request,
       request.params.contextKey,
     );
-    const threadId = request.params.id;
+    // Support :threadId (v1 API), :thread_id (v1 API snake_case), and :id (legacy)
+    const threadId =
+      request.params.threadId ?? request.params.thread_id ?? request.params.id;
 
     if (!threadId) {
       this.logger.error("Missing thread ID in request parameters");
@@ -48,12 +50,16 @@ export class ThreadInProjectGuard implements CanActivate {
         `Valid thread ${threadId} access for project ${projectId}`,
       );
       return true;
-    } catch (error: any) {
-      this.logger.error(
-        `Error validating thread access: ${error.message}`,
-        error.stack,
-      );
-      return false;
+    } catch (error: unknown) {
+      // Only suppress "Thread not found" - the expected authorization failure.
+      // Rethrow unexpected errors (database issues, etc.) so they become 500s, not 403s.
+      if (error instanceof Error && error.message === "Thread not found") {
+        this.logger.warn(
+          `Thread ${threadId} not found or not in project ${projectId}`,
+        );
+        return false;
+      }
+      throw error;
     }
   }
 }

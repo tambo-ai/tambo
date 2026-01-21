@@ -10,6 +10,7 @@ import { createHydrationHelpers } from "@trpc/react-query/rsc";
 import { cache } from "react";
 import { appRouter as applicationRouter } from "./routers/app";
 import { demoRouter } from "./routers/demo";
+import { deviceAuthRouter } from "./routers/device-auth";
 import { llmRouter } from "./routers/llm";
 import { projectRouter } from "./routers/project";
 import { threadRouter } from "./routers/thread";
@@ -34,6 +35,7 @@ export const appRouter = createTRPCRouter({
   demo: demoRouter,
   llm: llmRouter,
   validate: validateRouter,
+  deviceAuth: deviceAuthRouter,
 });
 
 // export type definition of API for the client
