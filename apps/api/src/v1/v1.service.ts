@@ -893,6 +893,16 @@ export class V1Service {
     const hasState = state !== undefined && state !== null;
     const hasPatch = patch !== undefined;
 
+    const isPlainObject = (
+      value: unknown,
+    ): value is Record<string, unknown> => {
+      if (value === null || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+      }
+      const proto = Object.getPrototypeOf(value);
+      return proto === Object.prototype || proto === null;
+    };
+
     if (hasState && hasPatch) {
       throw new BadRequestException(
         createProblemDetail(
@@ -913,11 +923,11 @@ export class V1Service {
       );
     }
 
-    if (hasState && (typeof state !== "object" || Array.isArray(state))) {
+    if (hasState && !isPlainObject(state)) {
       throw new BadRequestException(
         createProblemDetail(
           V1ErrorCodes.VALIDATION_ERROR,
-          "'state' must be a JSON object",
+          "'state' must be a plain JSON object",
           { threadId, componentId },
         ),
       );
