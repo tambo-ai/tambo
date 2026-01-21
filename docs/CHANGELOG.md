@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.23.0](https://github.com/tambo-ai/tambo/compare/docs-v1.22.0...docs-v1.23.0) (2026-01-21)
+
+
+### Features
+
+* **analytics:** PostHog cross-subdomain tracking (Phase 1) ([#1842](https://github.com/tambo-ai/tambo/issues/1842)) ([ed80eb0](https://github.com/tambo-ai/tambo/commit/ed80eb0c6a6d15a4be844ff895f983788a6d9fba))
+* **docs:** Implement middleware to serve markdown when `Accept` prefers ([#1766](https://github.com/tambo-ai/tambo/issues/1766)) ([286ccd3](https://github.com/tambo-ai/tambo/commit/286ccd39040f08e2dc4972c9e8bb8038ae54b4d4))
+* **models:** add Cerebras AI provider support ([#1795](https://github.com/tambo-ai/tambo/issues/1795)) ([21650bb](https://github.com/tambo-ai/tambo/commit/21650bbd3f706f4a1cf04ae5b42536edb57ff8ce))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the small-safe-packages group with 8 updates ([#1831](https://github.com/tambo-ai/tambo/issues/1831)) ([a5965b4](https://github.com/tambo-ai/tambo/commit/a5965b4f9d1cf502eaf185cc8b1e26a93f847de0))
+
 ## [1.22.0](https://github.com/tambo-ai/tambo/compare/docs-v1.21.1...docs-v1.22.0) (2026-01-07)
 
 
