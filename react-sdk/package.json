@@ -78,6 +78,7 @@
     }
   },
   "dependencies": {
+    "@ag-ui/core": "^0.0.42",
     "@standard-community/standard-json": "^0.3.5",
     "@standard-schema/spec": "^1.1.0",
     "@tambo-ai/typescript-sdk": "^0.84.0",

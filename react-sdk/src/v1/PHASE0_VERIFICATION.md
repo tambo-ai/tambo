@@ -2,37 +2,42 @@
 
 This document tracks the verification of `@tambo-ai/typescript-sdk` compatibility with the v1 API implementation.
 
-## Status: ⚠️ VERIFICATION REQUIRED
+## Status: ✅ TYPES IMPORTED FROM PACKAGES
 
-The following assumptions must be verified before Phase 1 can be considered complete:
+Successfully imported types from `@ag-ui/core` and `@tambo-ai/typescript-sdk` instead of reimplementing them.
 
-## 1. TypeScript SDK v1 Exports
+The following verifications have been completed or are in progress:
 
-**Assumption**: `@tambo-ai/typescript-sdk` package provides v1-specific exports via `/v1` subpath.
+## 1. TypeScript SDK & AG-UI Core Exports
 
-**Required Exports**:
+**Status**: ✅ VERIFIED
 
-- [ ] `Thread` type (from `@tambo-ai/typescript-sdk/v1`)
-- [ ] `Message` type (from `@tambo-ai/typescript-sdk/v1`)
-- [ ] `Content` type (from `@tambo-ai/typescript-sdk/v1`)
-- [ ] `RunStatus` type (from `@tambo-ai/typescript-sdk/v1`)
-- [ ] `AvailableComponent` type (from `@tambo-ai/typescript-sdk/v1`)
-- [ ] `Tool` type (from `@tambo-ai/typescript-sdk/v1`)
-- [ ] `JsonPatchOperation` type (from `@tambo-ai/typescript-sdk/v1`)
-- [ ] `ToolResultContent` type (from `@tambo-ai/typescript-sdk/v1`)
+Successfully imported types from existing packages:
 
-**Verification Method**:
+**From `@ag-ui/core@^0.0.42`**:
 
-```bash
-# Check if types are exported
-npx tsc --noEmit --skipLibCheck test-v1-imports.ts
+- [x] `EventType` enum
+- [x] `BaseEvent` type
+- [x] All event types: `RunStartedEvent`, `RunFinishedEvent`, `TextMessageStartEvent`, etc.
+- [x] `CustomEvent` type (base for Tambo custom events)
 
-# test-v1-imports.ts content:
-import type { Thread, Message, Content } from '@tambo-ai/typescript-sdk/v1';
-```
+**From `@tambo-ai/typescript-sdk@^0.84.0`**:
 
-**Status**: ❌ Not yet verified
-**Action Required**: Run verification script after TypeScript SDK v1 support is released
+- [x] `TextContent`, `ToolUseContent`, `ToolResultContent`, `ComponentContent`, `ResourceContent` (from `/resources/threads/threads`)
+- [x] `InputMessage` (from `/resources/threads/runs`)
+- [x] `ThreadCreateResponse`, `ThreadRetrieveResponse`, `ThreadListResponse` (from `/resources/threads/threads`)
+- [x] `MessageListResponse`, `MessageGetResponse` (from `/resources/threads/messages`)
+
+**React-Specific Types (defined in v1 SDK)**:
+
+- [x] `TamboV1Component` - Extends `AvailableComponent` with React `component` field
+- [x] `TamboV1Tool` - Extends `Tool` with implementation function
+- [x] `TamboV1Thread` - Extends thread types with React state fields
+- [x] `TamboV1Message` - Simplified message interface for React state
+- [x] `StreamingState` - React-specific streaming status tracking
+- [x] Tambo custom events: `ComponentStartEvent`, `ComponentPropsDeltaEvent`, etc.
+
+**Type Checking**: ✅ All types compile with 0 errors
 
 ## 2. Stream Class Compatibility
 

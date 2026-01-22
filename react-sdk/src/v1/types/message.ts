@@ -1,68 +1,51 @@
 /**
  * Message and Content Types for v1 API
  *
+ * Re-exports message and content types from @tambo-ai/typescript-sdk.
  * Messages use Anthropic-style content blocks pattern where a message
  * contains an array of content blocks (text, tool calls, tool results, components).
- *
- * TODO: Once @tambo-ai/typescript-sdk/v1 is released, replace these with
- * imports from the SDK package.
  */
 
+// Import and re-export content block types from TypeScript SDK
+import type {
+  TextContent as SDKTextContent,
+  ToolUseContent as SDKToolUseContent,
+  ToolResultContent as SDKToolResultContent,
+  ComponentContent as SDKComponentContent,
+  ResourceContent as SDKResourceContent,
+} from "@tambo-ai/typescript-sdk/resources/threads/threads";
+
+export type TextContent = SDKTextContent;
+export type ToolUseContent = SDKToolUseContent;
+export type ToolResultContent = SDKToolResultContent;
+export type ComponentContent = SDKComponentContent;
+export type ResourceContent = SDKResourceContent;
+
+// Re-export message types from TypeScript SDK
+export type { InputMessage } from "@tambo-ai/typescript-sdk/resources/threads/runs";
+
+export type {
+  MessageListResponse,
+  MessageGetResponse,
+} from "@tambo-ai/typescript-sdk/resources/threads/messages";
+
 /**
- * Message role
+ * Message role (from SDK)
  */
 export type MessageRole = "user" | "assistant";
-
-/**
- * Text content block
- */
-export interface TextContent {
-  type: "text";
-  text: string;
-}
-
-/**
- * Tool use content block (tool invocation)
- */
-export interface ToolUseContent {
-  type: "tool_use";
-  id: string;
-  name: string;
-  input: Record<string, unknown>;
-}
-
-/**
- * Tool result content block (tool execution result)
- */
-export interface ToolResultContent {
-  type: "tool_result";
-  toolCallId: string;
-  content: unknown;
-  isError?: boolean;
-}
-
-/**
- * Component content block (AI-rendered React component)
- */
-export interface ComponentContent {
-  type: "component";
-  id: string;
-  name: string;
-  props: Record<string, unknown>;
-  state?: Record<string, unknown>;
-}
 
 /**
  * Union type of all content block types
  */
 export type Content =
-  | TextContent
-  | ToolUseContent
-  | ToolResultContent
-  | ComponentContent;
+  | SDKTextContent
+  | SDKToolUseContent
+  | SDKToolResultContent
+  | SDKComponentContent
+  | SDKResourceContent;
 
 /**
- * Message in a thread
+ * Message in a thread (simplified from SDK's MessageGetResponse)
  */
 export interface TamboV1Message {
   /** Unique message identifier */
@@ -78,22 +61,5 @@ export interface TamboV1Message {
   createdAt: string;
 
   /** Message metadata */
-  metadata?: Record<string, unknown>;
-}
-
-/**
- * Message creation parameters
- */
-export interface CreateMessageParams {
-  /** Thread ID to add message to */
-  threadId: string;
-
-  /** Message role */
-  role: MessageRole;
-
-  /** Message content (simple text or content blocks) */
-  content: string | Content[];
-
-  /** Optional metadata */
   metadata?: Record<string, unknown>;
 }
