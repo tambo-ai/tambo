@@ -39,6 +39,33 @@ Create a new subpackage at `react-sdk/src/v1/` following the established MCP sub
 5. **React Query integration**: Leverage existing caching for thread list, thread fetching
 6. **Type definitions**: Import v1 types from TypeScript SDK, extend with React-specific interfaces
 
+## Migration Strategy
+
+### Phased Rollout Approach
+
+The v1 SDK will be developed and released in phases to minimize risk for existing users:
+
+**Phase 1: Early Adopter Testing (v1 Subpackage)**
+
+- Develop v1 SDK as a subpackage at `@tambo-ai/react/v1`
+- Release to select group of early adopters for testing and feedback
+- Beta SDK remains unchanged and fully supported
+- Users can import both: `@tambo-ai/react` (beta) and `@tambo-ai/react/v1`
+- Iterate based on early adopter feedback
+
+**Phase 2: Breaking Change Release (1.0)**
+
+- Once v1 is validated and stable with early adopters
+- Move v1 implementation to main package exports
+- Release as `@tambo-ai/react@1.0.0` with breaking changes
+- Provide comprehensive migration guide with:
+  - Side-by-side code comparisons (beta → v1)
+  - Breaking changes documentation
+  - Codemods or automated migration tools (if feasible)
+  - Gradual migration path (both APIs can coexist temporarily)
+
+**Note:** The detailed migration documentation will be created after v1 implementation is complete and validated with early adopters. This ensures the migration guide reflects the actual API surface and common migration patterns discovered during testing.
+
 ## Technical Approach
 
 ### Architecture
@@ -114,31 +141,42 @@ react-sdk/src/v1/
 
 ### Implementation Phases
 
-#### Phase 0: Extract Reusable Provider Logic (Est: 1 day)
+#### Phase 0: Verify Compatibility & Extract Reusable Logic (Est: 1-2 days)
 
 **Goals:**
 
-- Extract registry logic from `TamboRegistryProvider` into reusable hooks
-- Identify and extract tool execution utilities that both APIs can use
+- **CRITICAL:** Verify `TamboClientProvider` actually works with v1 API (don't assume)
+- Determine if `TamboRegistryProvider` can be reused or needs v1-specific version
+- Extract tool execution utilities that both APIs can use
 - Ensure existing SDK still works (no breaking changes)
 
 **Tasks:**
 
-- [ ] Review `TamboClientProvider` - confirm it works as-is for v1 (uses same SDK)
-- [ ] Extract `useRegistryState()` hook from `TamboRegistryProvider`
-  - Component registry management (Map state, register/unregister)
-  - Tool registry management (Map state, register/unregister)
-  - Schema validation and conversion logic
+- [ ] **Verify TamboClientProvider v1 Compatibility**
+  - [ ] Read `@tambo-ai/typescript-sdk` source code to verify `/v1` exports exist
+  - [ ] Check if `TamboAI` client constructor accepts v1 API configuration
+  - [ ] Verify session token management works with v1 endpoints
+  - [ ] Create type compatibility matrix: beta types vs. v1 types
+  - [ ] Add runtime type guards for casting SDK responses to v1 event types
+  - [ ] Document any incompatibilities found (may need `TamboV1ClientProvider`)
+- [ ] **Assess TamboRegistryProvider Reusability**
+  - [ ] Compare `TamboComponent` (beta) vs. `TamboV1Component` type requirements
+  - [ ] Check if schema conversion logic is API-specific or reusable
+  - [ ] Verify component validation logic works for both APIs
+  - [ ] Decision: Reuse existing provider or create v1-specific version?
 - [ ] Extract tool execution utilities to `src/util/tool-execution.ts`
   - `executeClientTool(tool, args)` - generic tool caller
   - `transformToolResult(result, tool)` - uses `transformToContent` if present
   - Error handling and timeout logic
-- [ ] Create `src/util/message-accumulation.ts` for shared message logic
-  - Message map management
-  - Message update/append patterns
-  - Optimistic updates and rollback
 - [ ] Write tests for extracted utilities
 - [ ] Verify existing SDK tests still pass
+
+**Critical Success Criteria:**
+
+- [ ] Written proof that `TamboClientProvider` works with v1 (or documented why it doesn't)
+- [ ] Clear decision on registry reuse with justification
+- [ ] Type compatibility issues identified and documented
+- [ ] No breaking changes to existing beta SDK
 
 **Files to Refactor:**
 
@@ -313,7 +351,8 @@ export type StreamingState =
 - [ ] Handle `CUSTOM: tambo.run.awaiting_input` - transition to awaiting state
 - [ ] Handle `RUN_FINISHED` - transition to complete state
 - [ ] Handle `RUN_ERROR` - transition to error state
-- [ ] Implement JSON Patch application utility
+- [ ] Add `fast-json-patch` dependency to react-sdk/package.json
+- [ ] Implement JSON Patch wrapper using `fast-json-patch` library
 - [ ] Write comprehensive unit tests for all event types
 - [ ] Test event sequences (e.g., TOOL_CALL_START → ARGS → END → RESULT)
 
@@ -383,21 +422,28 @@ export function streamReducer(
     case EventType.TEXT_MESSAGE_CONTENT: {
       const e = event as TextMessageContentEvent;
       // Find current message, append delta to last TextContent block
-      const messages = [...state.thread.messages];
-      const currentMsg = messages.find((m) => m.id === e.messageId);
-      if (!currentMsg) return state;
+      // IMPORTANT: Must immutably update all nested objects
+      const messages = state.thread.messages.map((msg) => {
+        if (msg.id !== e.messageId) return msg;
 
-      const lastContent = currentMsg.content[currentMsg.content.length - 1];
-      if (lastContent?.type === "text") {
-        // Append to existing text block
-        lastContent.text += e.delta;
-      } else {
-        // Create new text block
-        currentMsg.content.push({
-          type: "text",
-          text: e.delta,
-        });
-      }
+        const lastContent = msg.content[msg.content.length - 1];
+        if (lastContent?.type === "text") {
+          // Append to existing text block (immutably)
+          return {
+            ...msg,
+            content: [
+              ...msg.content.slice(0, -1),
+              { ...lastContent, text: lastContent.text + e.delta },
+            ],
+          };
+        } else {
+          // Create new text block
+          return {
+            ...msg,
+            content: [...msg.content, { type: "text", text: e.delta }],
+          };
+        }
+      });
 
       return {
         ...state,
@@ -405,22 +451,60 @@ export function streamReducer(
       };
     }
 
-    // ... handle other event types
+    // ... handle other event types (TOOL_CALL_START, TOOL_CALL_ARGS, etc.)
 
-    default:
+    default: {
+      // Exhaustiveness check: TypeScript will error if we add new event types
+      // and forget to handle them. Remove this default case to enable checking.
+      const _exhaustiveCheck: never = event.type;
+      console.warn("Unhandled event type:", event.type);
       return state;
+    }
   }
 }
 
+// Type guard helpers for runtime validation
+function isTextMessageContentEvent(
+  event: BaseEvent,
+): event is TextMessageContentEvent {
+  return event.type === EventType.TEXT_MESSAGE_CONTENT;
+}
+
+// Note: Use type guards when consuming untrusted event streams.
+// The 'as' casts in the switch are safe because we've checked event.type.
+
 // react-sdk/src/v1/utils/json-patch.ts
+import { applyPatch, type Operation } from "fast-json-patch";
 import type { JsonPatchOperation } from "@tambo-ai/typescript-sdk/v1";
 
+/**
+ * Apply JSON Patch operations to an object (RFC 6902).
+ * Uses fast-json-patch library for battle-tested implementation.
+ *
+ * @param obj - Object to patch (will not be mutated)
+ * @param operations - Array of JSON Patch operations from AG-UI protocol
+ * @returns New object with patches applied
+ * @throws Error if patch operations are invalid or paths don't exist
+ */
 export function applyJsonPatch(
   obj: Record<string, unknown>,
   operations: JsonPatchOperation[],
 ): Record<string, unknown> {
-  // Use fast-json-patch or implement RFC 6902
-  // Handle: add, remove, replace, move, copy, test
+  try {
+    // Clone to avoid mutation
+    const cloned = structuredClone(obj);
+    // fast-json-patch mutates in place, but we cloned first
+    const result = applyPatch(
+      cloned,
+      operations as Operation[],
+      /* validate */ true,
+    );
+    return result.newDocument;
+  } catch (error) {
+    throw new Error(
+      `Failed to apply JSON Patch: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 ```
 
@@ -522,106 +606,70 @@ export function useStreamDispatch() {
 - Cancellation works without memory leaks
 - Error states properly surfaced to UI
 
-#### Phase 4: Component & Tool Registry (Est: 1-2 days)
+#### Phase 4: Reuse Registry Provider (Est: 0.5 days)
 
 **Goals:**
 
-- Implement global registry for components and tools
-- Automatically include registered items in API requests
-- Support dynamic registration/unregistration
+- Reuse existing `TamboRegistryProvider` from beta SDK (confirmed compatible in Phase 0)
+- Create v1-specific type aliases and conversion utilities only where needed
+- Minimal new code - maximize reuse
+
+**Rationale:**
+
+After Phase 0 analysis, `TamboRegistryProvider` is API-agnostic - it just stores Maps of components/tools and handles schema conversion. The v1 API needs the same registry functionality, so we'll reuse it directly rather than duplicating (~150 LOC saved).
 
 **Tasks:**
 
-- [ ] Create `TamboV1RegistryContext` for components and tools
-- [ ] Implement `registerComponent()` function with validation
-- [ ] Implement `registerTool()` function with validation
-- [ ] Convert registered components to `AvailableComponent[]` format
-- [ ] Convert registered tools to `Tool[]` format for API
-- [ ] Handle schema conversion (Zod → JSON Schema if needed)
-- [ ] Implement `useRegisterComponent()` hook for dynamic registration
-- [ ] Implement `useRegisterTool()` hook for dynamic registration
-- [ ] Write tests for registry operations
-- [ ] Test schema validation and error handling
+- [ ] Import and re-export `TamboRegistryProvider` from beta SDK in `src/v1/providers/index.ts`
+- [ ] Create v1 type aliases in `src/v1/types/component.ts` and `src/v1/types/tool.ts` (if types differ from beta)
+- [ ] Create conversion utilities in `src/v1/utils/registry-conversion.ts`:
+  - `toAvailableComponents(components)` - Map → v1 API format
+  - `toAvailableTools(tools)` - Map → v1 API format
+- [ ] Write tests for conversion utilities only (registry itself already tested in beta SDK)
+- [ ] Document any type differences between beta and v1 component/tool types
 
 **Files:**
 
 ```typescript
-// react-sdk/src/v1/providers/tambo-v1-registry-context.tsx
-import { createContext, useState, useContext, useCallback } from 'react';
-import type { TamboV1Component, TamboV1Tool } from '../types';
-import type { AvailableComponent, Tool } from '@tambo-ai/typescript-sdk/v1';
+// react-sdk/src/v1/providers/index.ts
+export { TamboRegistryProvider } from "../../providers/tambo-registry-provider";
 
-type RegistryState = {
-  components: Map<string, TamboV1Component>;
-  tools: Map<string, TamboV1Tool>;
-};
+// react-sdk/src/v1/utils/registry-conversion.ts
+import type { TamboComponent, TamboTool } from "../../model/component-metadata";
+import type { AvailableComponent, Tool } from "@tambo-ai/typescript-sdk/v1";
 
-const RegistryContext = createContext<RegistryState & {
-  registerComponent: (component: TamboV1Component) => void;
-  registerTool: (tool: TamboV1Tool) => void;
-  getAvailableComponents: () => AvailableComponent[];
-  getAvailableTools: () => Tool[];
-} | null>(null);
-
-export function TamboV1RegistryProvider({ children }: PropsWithChildren) {
-  const [components, setComponents] = useState(new Map<string, TamboV1Component>());
-  const [tools, setTools] = useState(new Map<string, TamboV1Tool>());
-
-  const registerComponent = useCallback((component: TamboV1Component) => {
-    setComponents(prev => new Map(prev).set(component.name, component));
-  }, []);
-
-  const registerTool = useCallback((tool: TamboV1Tool) => {
-    setTools(prev => new Map(prev).set(tool.name, tool));
-  }, []);
-
-  const getAvailableComponents = useCallback((): AvailableComponent[] => {
-    return Array.from(components.values()).map(c => ({
-      name: c.name,
-      description: c.description,
-      propsSchema: convertSchemaToJSON(c.propsSchema),
-      stateSchema: c.stateSchema ? convertSchemaToJSON(c.stateSchema) : undefined,
-    }));
-  }, [components]);
-
-  const getAvailableTools = useCallback((): Tool[] => {
-    return Array.from(tools.values()).map(t => ({
-      name: t.name,
-      description: t.description,
-      inputSchema: convertSchemaToJSON(t.inputSchema),
-      outputSchema: t.outputSchema ? convertSchemaToJSON(t.outputSchema) : undefined,
-    }));
-  }, [tools]);
-
-  return (
-    <RegistryContext.Provider value={{
-      components,
-      tools,
-      registerComponent,
-      registerTool,
-      getAvailableComponents,
-      getAvailableTools,
-    }}>
-      {children}
-    </RegistryContext.Provider>
-  );
+/**
+ * Convert registered components to v1 API format.
+ */
+export function toAvailableComponents(
+  components: Map<string, TamboComponent>,
+): AvailableComponent[] {
+  return Array.from(components.values()).map((c) => ({
+    name: c.name,
+    description: c.description,
+    propsSchema: c.propsSchema, // Already JSON Schema from registry
+    stateSchema: c.stateSchema,
+  }));
 }
 
-export function useRegistry() {
-  const context = useContext(RegistryContext);
-  if (!context) {
-    throw new Error('useRegistry must be used within TamboV1RegistryProvider');
-  }
-  return context;
+/**
+ * Convert registered tools to v1 API format.
+ */
+export function toAvailableTools(tools: Map<string, TamboTool>): Tool[] {
+  return Array.from(tools.values()).map((t) => ({
+    name: t.name,
+    description: t.description,
+    inputSchema: t.toolSchema.parameters, // Extract from Zod function schema
+  }));
 }
 ```
 
 **Success Criteria:**
 
-- Components/tools persist across renders
-- Registry updates trigger re-renders only when needed
-- Schema conversion handles all supported formats (Zod, JSON Schema, etc.)
-- Dynamic registration/unregistration works correctly
+- Beta `TamboRegistryProvider` works without modification for v1
+- Conversion utilities correctly transform to v1 API format
+- No duplication of registry logic
+- Tests verify conversion accuracy
 
 #### Phase 5: React Query Integration (Est: 2-3 days)
 
