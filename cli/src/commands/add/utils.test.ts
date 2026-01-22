@@ -319,13 +319,11 @@ describe("Registry Utilities", () => {
       }),
     } satisfies Record<string, string>);
 
-    const seedProjectFiles = (projectFiles: Record<string, string>): void => {
-      vol.fromJSON(projectFiles);
-    };
-
     let previousRegistryPath: string | undefined;
 
     beforeEach(() => {
+      vol.reset();
+
       previousRegistryPath = process.env.TAMBO_REGISTRY_PATH;
       process.env.TAMBO_REGISTRY_PATH = "/custom/registry";
 
@@ -341,7 +339,7 @@ describe("Registry Utilities", () => {
     });
 
     it("finds components in tambo/ location", async () => {
-      seedProjectFiles({
+      vol.fromJSON({
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div />;",
         "/mock-project/src/components/tambo/form.tsx":
@@ -354,7 +352,7 @@ describe("Registry Utilities", () => {
     });
 
     it("finds components in ui/ legacy location", async () => {
-      seedProjectFiles({
+      vol.fromJSON({
         "/mock-project/src/components/ui/message.tsx":
           "export const Message = () => <div />;",
       });
@@ -364,7 +362,7 @@ describe("Registry Utilities", () => {
     });
 
     it("deduplicates components across locations", async () => {
-      seedProjectFiles({
+      vol.fromJSON({
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div />;",
         "/mock-project/src/components/ui/message.tsx":
@@ -377,7 +375,7 @@ describe("Registry Utilities", () => {
     });
 
     it("respects isExplicitPrefix flag", async () => {
-      seedProjectFiles({
+      vol.fromJSON({
         "/mock-project/custom/path/message.tsx":
           "export const Message = () => <div />;",
         "/mock-project/custom/path/ui/form.tsx":
@@ -391,7 +389,7 @@ describe("Registry Utilities", () => {
     });
 
     it("only returns known registry components", async () => {
-      seedProjectFiles({
+      vol.fromJSON({
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div />;",
         "/mock-project/src/components/tambo/custom-component.tsx":
@@ -404,7 +402,7 @@ describe("Registry Utilities", () => {
     });
 
     it("returns empty array when no components installed", async () => {
-      seedProjectFiles({
+      vol.fromJSON({
         "/mock-project/src/components/tambo/.gitkeep": "",
       });
 
