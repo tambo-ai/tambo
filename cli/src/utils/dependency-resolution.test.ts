@@ -18,11 +18,7 @@ jest.unstable_mockModule("fs", () => ({
 jest.unstable_mockModule("../commands/add/utils.js", () => ({
   componentExists: (componentName: string) => {
     const configPath = `/custom/registry/components/${componentName}/config.json`;
-    try {
-      return memfsFs.existsSync(configPath);
-    } catch {
-      return false;
-    }
+    return memfsFs.existsSync(configPath);
   },
   getConfigPath: (componentName: string) =>
     `/custom/registry/components/${componentName}/config.json`,
