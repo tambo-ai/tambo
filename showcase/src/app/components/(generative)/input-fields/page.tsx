@@ -25,6 +25,7 @@ export default function InputFieldsComponentPage() {
         <h2 className="text-2xl font-semibold">Examples</h2>
 
         <div className="space-y-6">
+          {/* Uses the global TamboProvider in `src/app/template.tsx` (per-user context key). */}
           <ComponentCodePreview
             title="User Registration Fields"
             component={<InputFieldsChatInterface />}
