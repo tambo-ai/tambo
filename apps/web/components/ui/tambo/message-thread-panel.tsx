@@ -1,31 +1,6 @@
 "use client";
 
-import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
-import {
-  Message,
-  MessageContent,
-} from "@tambo-ai/ui-registry/components/message";
-import {
-  MessageInput,
-  MessageInputContexts,
-  MessageInputError,
-  MessageInputFileButton,
-  MessageInputSubmitButton,
-  MessageInputToolbar,
-} from "@tambo-ai/ui-registry/components/message-input";
 import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
-import {
-  MessageSuggestions,
-  MessageSuggestionsList,
-  MessageSuggestionsStatus,
-} from "@tambo-ai/ui-registry/components/message-suggestions";
-import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
-import type { TamboEditor } from "@tambo-ai/ui-registry/components/message-input";
-import {
-  ThreadContent,
-  ThreadContentMessages,
-} from "@tambo-ai/ui-registry/components/thread-content";
-import { ThreadDropdown } from "@tambo-ai/ui-registry/components/thread-dropdown";
 import { registerAllTools } from "@/lib/tambo/tools/tool-registry";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
@@ -35,6 +10,31 @@ import {
   type Suggestion,
   type TamboThreadMessage,
 } from "@tambo-ai/react";
+import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
+import {
+  Message,
+  MessageContent,
+} from "@tambo-ai/ui-registry/components/message";
+import type { TamboEditor } from "@tambo-ai/ui-registry/components/message-input";
+import {
+  MessageInput,
+  MessageInputContexts,
+  MessageInputError,
+  MessageInputFileButton,
+  MessageInputSubmitButton,
+  MessageInputToolbar,
+} from "@tambo-ai/ui-registry/components/message-input";
+import {
+  MessageSuggestions,
+  MessageSuggestionsList,
+  MessageSuggestionsStatus,
+} from "@tambo-ai/ui-registry/components/message-suggestions";
+import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@tambo-ai/ui-registry/components/thread-content";
+import { ThreadDropdown } from "@tambo-ai/ui-registry/components/thread-dropdown";
 import type { VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
