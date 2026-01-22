@@ -116,6 +116,10 @@
       "cache": false,
       "persistent": true
     },
+    "@tambo-ai/react#dev": {
+      "cache": false,
+      "persistent": true
+    },
     "@tambo-ai/showcase#dev": {
       "dependsOn": ["^build", "//#sync:showcase"],
       "cache": false,

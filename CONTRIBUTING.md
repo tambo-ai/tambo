@@ -97,6 +97,14 @@ For the React SDK framework (showcase + docs):
 npm run dev
 ```
 
+For React SDK development (SDK in watch mode + showcase):
+
+```bash
+npm run dev:sdk
+```
+
+This runs the React SDK in watch mode (automatically rebuilds on changes) alongside the showcase app, making it easy to develop and test SDK changes.
+
 ### 6. Get a Local API Key
 
 1. Start the dev servers: `npm run dev:cloud`
@@ -111,6 +119,7 @@ npm run dev
 # Development
 npm run dev:cloud        # Start web + API for Tambo Cloud
 npm run dev              # Start showcase + docs for React SDK
+npm run dev:sdk          # Start React SDK watch mode + showcase
 
 # Quality (required before PRs)
 npm run lint
@@ -121,6 +130,10 @@ npm test
 npm run db:generate -w packages/db  # Generate migrations
 npm run db:migrate -w packages/db   # Apply migrations
 npm run db:studio -w packages/db    # Open Drizzle Studio
+
+# React SDK
+npm run build:sdk        # One-time build of React SDK
+npm run dev:sdk          # SDK watch mode + showcase (for SDK development)
 ```
 
 ## Environment Variables
