@@ -224,7 +224,7 @@ describe("Component Location Utilities", () => {
       expect(result).toHaveLength(0);
     });
 
-    it("deduplicates detected inconsistencies", async () => {
+    it("deduplicates duplicate input components", async () => {
       vol.fromJSON({
         // Multiple components depending on same cross-location component
         "/mock-project/src/components/ui/message.tsx":
