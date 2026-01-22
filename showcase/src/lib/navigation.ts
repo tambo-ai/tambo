@@ -69,6 +69,11 @@ export const navigation: NavigationItem[] = [
             title: "Thread History",
             href: "/components/thread-history",
           },
+          {
+            title: "Data Table Viewer",
+            href: "/components/data-table-viewer",
+            isNew: true,
+          },
         ],
       },
       {

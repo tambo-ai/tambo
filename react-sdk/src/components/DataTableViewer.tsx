@@ -9,16 +9,18 @@ import { z } from "zod";
 
 export const DataTableViewerPropsSchema = z.object({
   data: z
-    .array(z.record(z.any()))
-    .describe("The array of data objects to display"),
+    .array(z.any())
+    .describe("The array of data objects to be displayed in the table."),
   columns: z
     .array(
       z.object({
-        accessorKey: z.string(),
-        header: z.string(),
+        accessorKey: z
+          .string()
+          .describe("The key in the data object this column corresponds to."),
+        header: z.string().describe("The display name for the column header."),
       }),
     )
-    .describe("Column definitions for the table"),
+    .describe("An array of column definitions."),
 });
 
 export type DataTableViewerProps = z.infer<typeof DataTableViewerPropsSchema>;
