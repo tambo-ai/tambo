@@ -1,11 +1,11 @@
 "use client";
 
 import { demoComponents } from "@/components/ui/tambo/demo-config";
+import { TamboEmailButton } from "@/components/ui/tambo/tambo-email-button";
 import { env } from "@/lib/env";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import { TamboProvider } from "@tambo-ai/react";
 import { useEffect } from "react";
-import { MessageThreadFull } from "../ui/tambo/message-thread-full";
-import { TamboEmailButton } from "../ui/tambo/tambo-email-button";
 
 export function InteractiveDemo() {
   useEffect(() => {

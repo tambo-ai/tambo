@@ -21,9 +21,7 @@
     "dev:local": "./scripts/dev-local.sh",
     "dev:web": "turbo dev --filter=@tambo-ai-cloud/web",
     "dev:api": "turbo dev --filter=@tambo-ai-cloud/api",
-    "dev:docs": "turbo dev --filter=@tambo-ai/docs",
-    "sync:showcase": "tsx scripts/sync-showcase-components.ts",
-    "sync:showcase:watch": "tsx scripts/sync-showcase-components.ts --watch"
+    "dev:docs": "turbo dev --filter=@tambo-ai/docs"
   },
   "author": "",
   "license": "MIT",
