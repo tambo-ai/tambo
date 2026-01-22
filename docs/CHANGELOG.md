@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.23.1](https://github.com/tambo-ai/tambo/compare/docs-v1.23.0...docs-v1.23.1) (2026-01-22)
+
+
+### Miscellaneous Chores
+
+* **docs:** Split concepts into explanations and guides  ([#1747](https://github.com/tambo-ai/tambo/issues/1747)) ([a2cc494](https://github.com/tambo-ai/tambo/commit/a2cc4940d8a924e62c6cbfd07c849b503ec4eef1))
+* **react:** bump to new @tambo-ai/typescript-sdk ([#1864](https://github.com/tambo-ai/tambo/issues/1864)) ([7643415](https://github.com/tambo-ai/tambo/commit/76434157aeaa2f4fb6501702403262025614931b))
+* **sdk:** Bump again: get SSE streaming types ([#1870](https://github.com/tambo-ai/tambo/issues/1870)) ([e6fbb44](https://github.com/tambo-ai/tambo/commit/e6fbb4432bc3ba07fe8b660206a1c514ffb98ea8))
+
 ## [1.23.0](https://github.com/tambo-ai/tambo/compare/docs-v1.22.0...docs-v1.23.0) (2026-01-21)
 
 
