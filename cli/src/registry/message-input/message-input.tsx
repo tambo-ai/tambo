@@ -38,7 +38,11 @@ import {
 import * as React from "react";
 import { useDebounce } from "use-debounce";
 import {
-  getImageItems,
+  handlePastedImages,
+  IS_PASTED_IMAGE,
+  MAX_IMAGES,
+} from "./paste-handler";
+import {
   TextEditor,
   type PromptItem,
   type ResourceItem,
@@ -710,23 +714,6 @@ MessageInputInternal.displayName = "MessageInputInternal";
 MessageInput.displayName = "MessageInput";
 
 /**
- * Symbol for marking pasted images
- */
-const IS_PASTED_IMAGE = Symbol.for("tambo-is-pasted-image");
-
-/** Maximum number of images that can be staged at once */
-const MAX_IMAGES = 10;
-
-/**
- * Extend the File interface to include IS_PASTED_IMAGE symbol
- */
-declare global {
-  interface File {
-    [IS_PASTED_IMAGE]?: boolean;
-  }
-}
-
-/**
  * Props for the MessageInputTextarea component.
  * Extends standard TextareaHTMLAttributes.
  */
@@ -942,31 +929,16 @@ const MessageInputPlainTextarea = ({
   };
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const { imageItems, hasText } = getImageItems(e.clipboardData);
+    const result = await handlePastedImages(e.clipboardData, {
+      currentImageCount: images.length,
+      maxImages: MAX_IMAGES,
+      setImageError,
+      addImage,
+    });
 
-    if (imageItems.length === 0) {
-      return; // Allow default text paste
-    }
-
-    if (!hasText) {
-      e.preventDefault(); // Only prevent when image-only paste
-    }
-
-    const totalImages = images.length + imageItems.length;
-    if (totalImages > MAX_IMAGES) {
-      setImageError(`Max ${MAX_IMAGES} uploads at a time`);
-      return;
-    }
-    setImageError(null);
-
-    for (const item of imageItems) {
-      try {
-        // Mark this image as pasted so we can show "Image 1", "Image 2", etc.
-        item[IS_PASTED_IMAGE] = true;
-        await addImage(item);
-      } catch (error) {
-        console.error("Failed to add pasted image:", error);
-      }
+    // Only prevent default when there are images and no text
+    if (result.hasImages && !result.hasText) {
+      e.preventDefault();
     }
   };
 

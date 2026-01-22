@@ -19,44 +19,7 @@ import Suggestion from "@tiptap/suggestion";
 import { Cuboid, FileText } from "lucide-react";
 import * as React from "react";
 import { useImperativeHandle, useState } from "react";
-
-/**
- * Result of extracting images from clipboard data.
- */
-export interface ImageItems {
-  imageItems: File[];
-  hasText: boolean;
-}
-
-/**
- * Returns images array and hasText bool from clipboard data.
- * @param clipboardData - The clipboard data from a paste event
- * @returns Object containing extracted images array and whether text was present
- */
-export function getImageItems(
-  clipboardData: DataTransfer | null | undefined,
-): ImageItems {
-  const items = Array.from(clipboardData?.items ?? []);
-  const imageItems: File[] = [];
-
-  for (const item of items) {
-    if (!item.type.startsWith("image/")) {
-      continue;
-    }
-
-    const image = item.getAsFile();
-    if (image) {
-      imageItems.push(image);
-    }
-  }
-
-  const text = clipboardData?.getData("text/plain") ?? "";
-
-  return {
-    imageItems,
-    hasText: text.length > 0 ? true : false,
-  };
-}
+import { getImageItems } from "./paste-handler";
 
 /**
  * Minimal editor interface exposed to parent components.
