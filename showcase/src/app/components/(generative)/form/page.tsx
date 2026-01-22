@@ -3,7 +3,6 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { FormChatInterface } from "@/components/generative/FormChatInterface";
 import { InstallationSection } from "@/components/installation-section";
-import { TamboProvider } from "@tambo-ai/react";
 
 export default function FormComponentPage() {
   return (
@@ -27,14 +26,7 @@ export default function FormComponentPage() {
         <div className="space-y-6">
           <ComponentCodePreview
             title="Contact Form"
-            component={
-              <TamboProvider
-                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-                tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
-              >
-                <FormChatInterface />
-              </TamboProvider>
-            }
+            component={<FormChatInterface />}
             code={`import { Form } from "@/components/tambo/form";
 
 export function ContactForm() {

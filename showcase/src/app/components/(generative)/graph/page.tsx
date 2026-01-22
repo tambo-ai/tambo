@@ -3,7 +3,6 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { GraphChatInterface } from "@/components/generative/GraphChatInterface";
-import { TamboProvider } from "@tambo-ai/react";
 
 export default function GraphPage() {
   return (
@@ -27,14 +26,7 @@ export default function GraphPage() {
         <div className="space-y-6">
           <ComponentCodePreview
             title="Quarterly Sales Chart"
-            component={
-              <TamboProvider
-                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-                tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
-              >
-                <GraphChatInterface />
-              </TamboProvider>
-            }
+            component={<GraphChatInterface />}
             code={`import { Graph } from "@/components/tambo/graph";
 
 export function QuarterlySalesChart() {
