@@ -51,11 +51,6 @@ export function TamboProviderWrapper({
 }: TamboProviderWrapperProps) {
   const contextKey = useContextKey(userId);
 
-  // Don't render TamboProvider until contextKey is resolved to avoid transient threads
-  if (!contextKey) {
-    return <>{children}</>;
-  }
-
   return (
     <TamboProvider
       apiKey={env.NEXT_PUBLIC_TAMBO_DASH_KEY!}
