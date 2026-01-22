@@ -31,6 +31,17 @@ import type {
 import { applyJsonPatch } from "./json-patch";
 
 /**
+ * Error thrown when an unreachable case is reached in a switch statement.
+ * This indicates a programming error where not all cases were handled.
+ */
+export class UnreachableCaseError extends Error {
+  constructor(value: never) {
+    super(`Unreachable case: ${JSON.stringify(value)}`);
+    this.name = "UnreachableCaseError";
+  }
+}
+
+/**
  * State managed by the stream reducer.
  * Combines thread data with streaming status.
  */
@@ -127,9 +138,30 @@ export function streamReducer(
     case EventType.CUSTOM:
       return handleCustomEvent(state, event);
 
-    // Other event types are ignored for now
-    default:
+    // Unsupported AG-UI event types - may be added in future phases
+    case EventType.TEXT_MESSAGE_CHUNK:
+    case EventType.THINKING_TEXT_MESSAGE_START:
+    case EventType.THINKING_TEXT_MESSAGE_CONTENT:
+    case EventType.THINKING_TEXT_MESSAGE_END:
+    case EventType.TOOL_CALL_CHUNK:
+    case EventType.THINKING_START:
+    case EventType.THINKING_END:
+    case EventType.STATE_SNAPSHOT:
+    case EventType.STATE_DELTA:
+    case EventType.MESSAGES_SNAPSHOT:
+    case EventType.ACTIVITY_SNAPSHOT:
+    case EventType.ACTIVITY_DELTA:
+    case EventType.RAW:
+    case EventType.STEP_STARTED:
+    case EventType.STEP_FINISHED:
+      // Not supported yet - silently ignore
       return state;
+
+    default: {
+      // Exhaustiveness check - TypeScript will error if we add new event types and forget to handle them
+      const _exhaustiveCheck: never = event.type;
+      throw new UnreachableCaseError(_exhaustiveCheck);
+    }
   }
 }
 
