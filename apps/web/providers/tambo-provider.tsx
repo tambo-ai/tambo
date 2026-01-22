@@ -10,27 +10,14 @@ const USER_PREFIX = "user:";
 const ANON_PREFIX = "anon:";
 
 function getOrCreateAnonymousId(): string {
-  try {
-    const existingId = localStorage.getItem(ANONYMOUS_USER_STORAGE_KEY);
-    if (existingId) {
-      return existingId;
-    }
-
-    const newId = crypto.randomUUID();
-    localStorage.setItem(ANONYMOUS_USER_STORAGE_KEY, newId);
-    return newId;
-  } catch {
-    // Fallback for environments where localStorage or crypto.randomUUID is unavailable
-    // Use crypto.getRandomValues for secure randomness when possible
-    try {
-      const array = new Uint32Array(4);
-      crypto.getRandomValues(array);
-      return `fallback-${Array.from(array, (n) => n.toString(16)).join("")}`;
-    } catch {
-      // Last resort fallback using timestamp only (not for security-sensitive use)
-      return `fallback-${Date.now().toString(36)}`;
-    }
+  const existingId = localStorage.getItem(ANONYMOUS_USER_STORAGE_KEY);
+  if (existingId) {
+    return existingId;
   }
+
+  const newId = crypto.randomUUID();
+  localStorage.setItem(ANONYMOUS_USER_STORAGE_KEY, newId);
+  return newId;
 }
 
 function useContextKey(userId?: string): string | undefined {
