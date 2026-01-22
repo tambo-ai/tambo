@@ -1,11 +1,16 @@
 /**
  * V1 API Type Definitions
  *
- * Exports all TypeScript types for the v1 streaming API.
- * For AG-UI base events, import directly from @ag-ui/core.
+ * Only exports React SDK-specific types and Tambo custom events.
+ * For SDK types (thread responses, content blocks, etc.), import directly from:
+ * - @tambo-ai/typescript-sdk/resources/threads/threads
+ * - @tambo-ai/typescript-sdk/resources/threads/runs
+ * - @tambo-ai/typescript-sdk/resources/threads/messages
+ *
+ * For AG-UI events, import directly from @ag-ui/core.
  */
 
-// Tambo-specific custom events only
+// Tambo-specific custom events
 export type {
   ComponentStartEvent,
   ComponentPropsDeltaEvent,
@@ -16,39 +21,20 @@ export type {
   JsonPatchOperation,
 } from "./event";
 
-// Thread types (from @tambo-ai/typescript-sdk + React extensions)
-export type {
-  TamboV1Thread,
-  RunStatus,
-  StreamingState,
-  ThreadCreateResponse,
-  ThreadRetrieveResponse,
-  ThreadListResponse,
-} from "./thread";
+// React-specific thread state types
+export type { TamboV1Thread, RunStatus, StreamingState } from "./thread";
 
-// Message types (from @tambo-ai/typescript-sdk)
-export type {
-  TamboV1Message,
-  MessageRole,
-  Content,
-  TextContent,
-  ToolUseContent,
-  ToolResultContent,
-  ComponentContent,
-  ResourceContent,
-  InputMessage,
-  MessageListResponse,
-  MessageGetResponse,
-} from "./message";
+// React-specific message types and convenience unions
+export type { TamboV1Message, MessageRole, Content } from "./message";
 
-// Component types (React-specific)
+// React-specific component types
 export type {
   AvailableComponent,
   TamboV1Component,
   TamboComponentProps,
 } from "./component";
 
-// Tool types (React-specific)
+// React-specific tool types
 export type {
   Tool,
   ToolFunction,
