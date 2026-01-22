@@ -897,6 +897,115 @@ describe("ThreadsService.advanceThread initialization", () => {
       // Verify that mcpAccessToken is NOT included
       expect(messages[0].response).not.toHaveProperty("mcpAccessToken");
     });
+
+    test("excludes attachment fetcher from resourceFetchers when storage is not configured", async () => {
+      const dto = makeDto();
+
+      const storageConfig = module.get(StorageConfigService);
+      const hasStorageConfigSpy = jest
+        .spyOn(storageConfig, "hasStorageConfig")
+        .mockReturnValue(false);
+
+      const runDecisionLoopMock = jest.fn().mockImplementation(() => {
+        throw new Error("STOP_ATTACHMENT_CHECK");
+      });
+
+      const backendMock = {
+        runDecisionLoop: runDecisionLoopMock,
+        modelOptions: { provider: "openai", model: "gpt-4o" },
+        llmClient: {
+          complete: jest.fn().mockResolvedValue({
+            message: { content: "" },
+          }),
+        },
+        generateSuggestions: jest.fn(),
+        generateThreadName: jest.fn(),
+      } as const;
+
+      const backendSpy = jest
+        .spyOn<any, any>(service, "createTamboBackendForThread")
+        .mockResolvedValue(backendMock);
+
+      try {
+        await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+          "STOP_ATTACHMENT_CHECK",
+        );
+
+        expect(hasStorageConfigSpy).toHaveBeenCalled();
+        expect(runDecisionLoopMock).toHaveBeenCalledTimes(1);
+        const [{ resourceFetchers }] = runDecisionLoopMock.mock.calls[0];
+        expect(resourceFetchers).not.toHaveProperty("attachment");
+      } finally {
+        backendSpy.mockRestore();
+        hasStorageConfigSpy.mockRestore();
+      }
+    });
+
+    test("includes attachment fetcher in resourceFetchers when storage is configured", async () => {
+      const dto = makeDto();
+
+      const storageConfig = module.get(StorageConfigService);
+      const mutableStorageConfig = storageConfig as StorageConfigService & {
+        s3Client: unknown;
+        bucket: string;
+        signingSecret: string;
+      };
+      const originalState = {
+        s3Client: mutableStorageConfig.s3Client,
+        bucket: mutableStorageConfig.bucket,
+        signingSecret: mutableStorageConfig.signingSecret,
+      };
+      mutableStorageConfig.s3Client = {
+        send: jest.fn(),
+        config: {} as any,
+        destroy: jest.fn(),
+        middlewareStack: {} as any,
+      };
+      mutableStorageConfig.bucket = "test-bucket";
+      mutableStorageConfig.signingSecret = "test-secret";
+
+      const hasStorageConfigSpy = jest
+        .spyOn(storageConfig, "hasStorageConfig")
+        .mockReturnValue(true);
+
+      const runDecisionLoopMock = jest.fn().mockImplementation(() => {
+        throw new Error("STOP_ATTACHMENT_CHECK_TRUE");
+      });
+
+      const backendMock = {
+        runDecisionLoop: runDecisionLoopMock,
+        modelOptions: { provider: "openai", model: "gpt-4o" },
+        llmClient: {
+          complete: jest.fn().mockResolvedValue({
+            message: { content: "" },
+          }),
+        },
+        generateSuggestions: jest.fn(),
+        generateThreadName: jest.fn(),
+      } as const;
+
+      const backendSpy = jest
+        .spyOn<any, any>(service, "createTamboBackendForThread")
+        .mockResolvedValue(backendMock);
+
+      try {
+        await expect(service.advanceThread(projectId, dto)).rejects.toThrow(
+          "STOP_ATTACHMENT_CHECK_TRUE",
+        );
+
+        expect(hasStorageConfigSpy).toHaveBeenCalled();
+        expect(runDecisionLoopMock).toHaveBeenCalledTimes(1);
+        const [{ resourceFetchers }] = runDecisionLoopMock.mock.calls[0];
+        expect(resourceFetchers).toHaveProperty("attachment");
+        expect(typeof resourceFetchers.attachment).toBe("function");
+      } finally {
+        backendSpy.mockRestore();
+        hasStorageConfigSpy.mockRestore();
+        mutableStorageConfig.s3Client = originalState.s3Client;
+        mutableStorageConfig.bucket = originalState.bucket;
+        mutableStorageConfig.signingSecret = originalState.signingSecret;
+      }
+    });
   });
 
   describe("CRUD Operations", () => {
