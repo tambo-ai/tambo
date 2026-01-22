@@ -309,6 +309,8 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 # Development (two different apps!)
 npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
 npm run dev              # Start React SDK (showcase + docs)
+npm run dev:sdk          # Start React SDK in watch mode + showcase (for SDK development)
+npm run build:sdk        # One-time build of React SDK
 
 # Quality checks
 npm run lint             # Lint all packages
@@ -352,7 +354,7 @@ turbo check-types       # Type-check all packages
 
 When working across multiple packages:
 
-1. **react-sdk changes** → Run tests, rebuild, check showcase integration
+1. **react-sdk changes** → Use `npm run dev:sdk` for watch mode development, or `npm run build:sdk` for one-time builds. Run tests, check showcase integration.
 2. **cli changes** → Test component generation, verify registry updates, sync to showcase
 3. **showcase changes** → Edit CLI registry (auto-syncs to showcase)
 4. **docs changes** → Ensure examples match current API
