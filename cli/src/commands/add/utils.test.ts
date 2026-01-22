@@ -304,27 +304,34 @@ describe("Registry Utilities", () => {
   });
 
   describe("getInstalledComponents", () => {
-    beforeEach(() => {
+    const registryFiles: Record<string, string> = {
+      "/custom/registry/components/message/config.json": JSON.stringify({
+        name: "message",
+        files: [{ name: "message.tsx" }],
+      }),
+      "/custom/registry/components/form/config.json": JSON.stringify({
+        name: "form",
+        files: [{ name: "form.tsx" }],
+      }),
+      "/custom/registry/components/graph/config.json": JSON.stringify({
+        name: "graph",
+        files: [{ name: "graph.tsx" }],
+      }),
+    };
+
+    const seedRegistry = (projectFiles: Record<string, string>): void => {
       vol.fromJSON({
-        "/custom/registry/components/message/config.json": JSON.stringify({
-          name: "message",
-          files: [{ name: "message.tsx" }],
-        }),
-        "/custom/registry/components/form/config.json": JSON.stringify({
-          name: "form",
-          files: [{ name: "form.tsx" }],
-        }),
-        "/custom/registry/components/graph/config.json": JSON.stringify({
-          name: "graph",
-          files: [{ name: "graph.tsx" }],
-        }),
+        ...registryFiles,
+        ...projectFiles,
       });
+    };
+
+    beforeEach(() => {
       process.env.TAMBO_REGISTRY_PATH = "/custom/registry";
     });
 
     it("finds components in tambo/ location", async () => {
-      vol.fromJSON({
-        ...vol.toJSON(),
+      seedRegistry({
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div />;",
         "/mock-project/src/components/tambo/form.tsx":
@@ -337,8 +344,7 @@ describe("Registry Utilities", () => {
     });
 
     it("finds components in ui/ legacy location", async () => {
-      vol.fromJSON({
-        ...vol.toJSON(),
+      seedRegistry({
         "/mock-project/src/components/ui/message.tsx":
           "export const Message = () => <div />;",
       });
@@ -348,8 +354,7 @@ describe("Registry Utilities", () => {
     });
 
     it("deduplicates components across locations", async () => {
-      vol.fromJSON({
-        ...vol.toJSON(),
+      seedRegistry({
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div />;",
         "/mock-project/src/components/ui/message.tsx":
@@ -362,8 +367,7 @@ describe("Registry Utilities", () => {
     });
 
     it("respects isExplicitPrefix flag", async () => {
-      vol.fromJSON({
-        ...vol.toJSON(),
+      seedRegistry({
         "/mock-project/custom/path/message.tsx":
           "export const Message = () => <div />;",
         "/mock-project/custom/path/ui/form.tsx":
@@ -377,8 +381,7 @@ describe("Registry Utilities", () => {
     });
 
     it("only returns known registry components", async () => {
-      vol.fromJSON({
-        ...vol.toJSON(),
+      seedRegistry({
         "/mock-project/src/components/tambo/message.tsx":
           "export const Message = () => <div />;",
         "/mock-project/src/components/tambo/custom-component.tsx":
@@ -391,8 +394,7 @@ describe("Registry Utilities", () => {
     });
 
     it("returns empty array when no components installed", async () => {
-      vol.fromJSON({
-        ...vol.toJSON(),
+      seedRegistry({
         "/mock-project/src/components/tambo/.gitkeep": "",
       });
 
