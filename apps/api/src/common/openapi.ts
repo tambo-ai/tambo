@@ -5,8 +5,8 @@ export function generateOpenAPIConfig(
   app: INestApplication | INestApplicationContext,
 ) {
   const config = new DocumentBuilder()
-    .setTitle("Hydra API")
-    .setDescription("Hosted Hydra Backend")
+    .setTitle("Tambo API")
+    .setDescription("Hosted Tambo Backend")
     .setVersion("0.0.1")
     .addApiKey({ type: "apiKey", name: "x-api-key", in: "header" }, "apiKey")
     .addBearerAuth()
