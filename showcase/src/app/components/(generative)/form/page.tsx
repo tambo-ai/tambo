@@ -23,8 +23,12 @@ export default function FormComponentPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-semibold">Examples</h2>
 
+        <p className="text-sm text-muted-foreground">
+          This interactive demo relies on an app-level TamboProvider to supply a
+          per-user context key.
+        </p>
+
         <div className="space-y-6">
-          {/* Uses the global TamboProvider in `src/app/template.tsx` (per-user context key). */}
           <ComponentCodePreview
             title="Contact Form"
             component={<FormChatInterface />}
