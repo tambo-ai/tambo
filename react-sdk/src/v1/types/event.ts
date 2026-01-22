@@ -1,34 +1,8 @@
 /**
- * AG-UI Event Types for v1 Streaming API
+ * Tambo-specific Custom Event Types for v1 Streaming API
  *
- * Re-exports event types from the @ag-ui/core package.
- * These represent the Server-Sent Events (SSE) that the v1 API streams.
- */
-
-// Re-export all event types from @ag-ui/core
-export type {
-  BaseEvent,
-  CustomEvent,
-  RunStartedEvent,
-  RunFinishedEvent,
-  RunErrorEvent,
-  TextMessageStartEvent,
-  TextMessageContentEvent,
-  TextMessageEndEvent,
-  ToolCallStartEvent,
-  ToolCallArgsEvent,
-  ToolCallEndEvent,
-  ToolCallResultEvent,
-  StepStartedEvent,
-  StepFinishedEvent,
-  // Add other event types as needed from @ag-ui/core
-} from "@ag-ui/core";
-
-export { EventType } from "@ag-ui/core";
-
-/**
- * Tambo-specific custom event types
- * These extend the CustomEvent type from @ag-ui/core
+ * Defines custom events specific to Tambo functionality.
+ * For standard AG-UI events, import directly from @ag-ui/core.
  */
 
 /**
