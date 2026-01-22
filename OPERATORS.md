@@ -162,7 +162,6 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 
 ## Production Deployment
 
-
 ### Self-Hosting with npm
 
 You can now manage the Tambo self-hosted stack using npm scripts:
@@ -172,7 +171,6 @@ npm run tambo:setup   # Initial setup
 npm run tambo:start   # Start services
 npm run tambo:stop    # Stop services
 ```
-
 
 ### Using Docker Compose
 
