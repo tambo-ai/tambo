@@ -163,7 +163,7 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 ## Production Deployment
 
 
-## Self-Hosting with npm
+### Self-Hosting with npm
 
 You can now manage the Tambo self-hosted stack using npm scripts:
 
