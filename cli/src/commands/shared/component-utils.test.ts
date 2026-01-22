@@ -365,9 +365,7 @@ describe("Component Location Utilities", () => {
       );
 
       expect(result).toBe(false);
-      const output = logSpy.mock.calls
-        .map((call) => call.map((arg) => String(arg)).join(" "))
-        .join("\n");
+      const output = logSpy.mock.calls.flat().map(String).join(" ");
       expect(output).toContain("Mixed component locations detected");
       expect(output).toContain("message");
       expect(output).toContain("markdown-components");
