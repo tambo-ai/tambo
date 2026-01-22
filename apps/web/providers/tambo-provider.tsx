@@ -5,24 +5,41 @@ import { tamboRegisteredComponents } from "@/lib/tambo/config";
 import { TamboProvider, currentPageContextHelper } from "@tambo-ai/react";
 import { useEffect, useState } from "react";
 
-const ANONYMOUS_USER_KEY = "tambo-anonymous-user-id";
+const ANONYMOUS_USER_STORAGE_KEY = "tambo-anonymous-user-id";
+const USER_PREFIX = "user:";
+const ANON_PREFIX = "anon:";
+
+function getOrCreateAnonymousId(): string {
+  try {
+    const existingId = localStorage.getItem(ANONYMOUS_USER_STORAGE_KEY);
+    if (existingId) {
+      return existingId;
+    }
+
+    const newId = crypto.randomUUID();
+    localStorage.setItem(ANONYMOUS_USER_STORAGE_KEY, newId);
+    return newId;
+  } catch {
+    // Fallback for environments where localStorage or crypto is unavailable
+    return `fallback-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+}
 
 function useContextKey(userId?: string): string | undefined {
-  const [contextKey, setContextKey] = useState<string | undefined>(userId);
+  // Initialize with userId if available (server-rendered value)
+  const [contextKey, setContextKey] = useState<string | undefined>(
+    userId ? `${USER_PREFIX}${userId}` : undefined,
+  );
 
   useEffect(() => {
     if (userId) {
-      setContextKey(userId);
+      setContextKey(`${USER_PREFIX}${userId}`);
       return;
     }
 
     // For unauthenticated users, use a random UUID stored in localStorage
-    let anonymousId = localStorage.getItem(ANONYMOUS_USER_KEY);
-    if (!anonymousId) {
-      anonymousId = crypto.randomUUID();
-      localStorage.setItem(ANONYMOUS_USER_KEY, anonymousId);
-    }
-    setContextKey(anonymousId);
+    const anonymousId = getOrCreateAnonymousId();
+    setContextKey(`${ANON_PREFIX}${anonymousId}`);
   }, [userId]);
 
   return contextKey;
@@ -38,6 +55,11 @@ export function TamboProviderWrapper({
   userId,
 }: TamboProviderWrapperProps) {
   const contextKey = useContextKey(userId);
+
+  // Don't render TamboProvider until contextKey is resolved to avoid transient threads
+  if (!contextKey) {
+    return <>{children}</>;
+  }
 
   return (
     <TamboProvider
