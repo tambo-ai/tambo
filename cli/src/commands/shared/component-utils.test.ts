@@ -327,19 +327,14 @@ describe("Component Location Utilities", () => {
   });
 
   describe("handleDependencyInconsistencies", () => {
-    let logs: string[];
-    let originalLog: typeof console.log;
+    let logSpy: jest.SpiedFunction<typeof console.log>;
 
     beforeEach(() => {
-      logs = [];
-      originalLog = console.log;
-      console.log = (...args: unknown[]) => {
-        logs.push(args.map((arg) => String(arg)).join(" "));
-      };
+      logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     });
 
     afterEach(() => {
-      console.log = originalLog;
+      logSpy.mockRestore();
     });
 
     it("returns false when no inconsistencies", async () => {
@@ -370,7 +365,9 @@ describe("Component Location Utilities", () => {
       );
 
       expect(result).toBe(false);
-      const output = logs.join("\n");
+      const output = logSpy.mock.calls
+        .map((call) => call.map((arg) => String(arg)).join(" "))
+        .join("\n");
       expect(output).toContain("Mixed component locations detected");
       expect(output).toContain("message");
       expect(output).toContain("markdown-components");
