@@ -24,8 +24,9 @@ export default function MapPage() {
         <h2 className="text-2xl font-semibold">Examples</h2>
 
         <p className="text-sm text-muted-foreground">
-          This interactive demo relies on an app-level TamboProvider to supply a
-          per-user context key.
+          This interactive demo runs inside the showcase&apos;s app-level
+          TamboProvider, which sets a per-user context key (persisted in
+          localStorage).
         </p>
 
         <div className="space-y-6">
