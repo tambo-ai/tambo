@@ -54,6 +54,47 @@ const config = {
         destination: "/guides/setup-project/llm-provider",
         permanent: true,
       },
+      // Reference section consolidation
+      {
+        source: "/api-reference",
+        destination: "/reference/api",
+        permanent: true,
+      },
+      {
+        source: "/api-reference/:path*",
+        destination: "/reference/api/:path*",
+        permanent: true,
+      },
+      {
+        source: "/cli",
+        destination: "/reference/cli",
+        permanent: true,
+      },
+      {
+        source: "/cli/:path*",
+        destination: "/reference/cli/:path*",
+        permanent: true,
+      },
+      {
+        source: "/models",
+        destination: "/reference/llm-providers",
+        permanent: true,
+      },
+      {
+        source: "/models/:path*",
+        destination: "/reference/llm-providers/:path*",
+        permanent: true,
+      },
+      {
+        source: "/reference/providers",
+        destination: "/reference/llm-providers",
+        permanent: true,
+      },
+      {
+        source: "/reference/providers/:path*",
+        destination: "/reference/llm-providers/:path*",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

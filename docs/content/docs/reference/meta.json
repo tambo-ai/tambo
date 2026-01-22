@@ -1,4 +1,4 @@
 {
   "title": "Reference",
-  "pages": ["providers"]
+  "pages": ["api", "cli", "llm-providers"]
 }
