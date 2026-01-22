@@ -171,7 +171,7 @@ You can now manage the Tambo self-hosted stack using npm scripts:
 npm run tambo:setup   # Initial setup
 npm run tambo:start   # Start services
 npm run tambo:stop    # Stop services
-
+```
 
 
 ### Using Docker Compose
