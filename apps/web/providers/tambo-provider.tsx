@@ -20,8 +20,16 @@ function getOrCreateAnonymousId(): string {
     localStorage.setItem(ANONYMOUS_USER_STORAGE_KEY, newId);
     return newId;
   } catch {
-    // Fallback for environments where localStorage or crypto is unavailable
-    return `fallback-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    // Fallback for environments where localStorage or crypto.randomUUID is unavailable
+    // Use crypto.getRandomValues for secure randomness when possible
+    try {
+      const array = new Uint32Array(4);
+      crypto.getRandomValues(array);
+      return `fallback-${Array.from(array, (n) => n.toString(16)).join("")}`;
+    } catch {
+      // Last resort fallback using timestamp only (not for security-sensitive use)
+      return `fallback-${Date.now().toString(36)}`;
+    }
   }
 }
 
