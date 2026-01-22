@@ -1,15 +1,12 @@
 {
   "title": "Concepts",
   "pages": [
-    "components",
-    "message-threads",
+    "generative-interfaces",
     "tools",
-    "resources",
-    "model-context-protocol",
-    "streaming",
-    "user-authentication",
     "additional-context",
-    "tracking-progress",
-    "suggestions"
+    "conversation-storage",
+    "agent-configuration",
+    "model-context-protocol",
+    "user-authentication"
   ]
 }

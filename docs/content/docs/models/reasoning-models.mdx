@@ -15,8 +15,8 @@ Reasoning models are specialized LLMs that expose their internal thought process
 
 For detailed information about reasoning parameters and configuration for each provider, see:
 
-- **[OpenAI Models](/models/openai#provider-specific-parameters)** - Configure `reasoningEffort` and `reasoningSummary` for GPT-5, O3, and other OpenAI reasoning models
-- **[Google Models](/models/google#provider-specific-parameters)** - Configure `thinkingConfig` for Gemini 3.0 Pro, Deep Think, and other Gemini reasoning models
+- **[OpenAI Models](/reference/providers/openai#provider-specific-parameters)** - Configure `reasoningEffort` and `reasoningSummary` for GPT-5, O3, and other OpenAI reasoning models
+- **[Google Models](/reference/providers/google#provider-specific-parameters)** - Configure `thinkingConfig` for Gemini 3.0 Pro, Deep Think, and other Gemini reasoning models
 
 ## What Are Reasoning Models?
 
@@ -33,8 +33,8 @@ This thinking process is captured as **reasoning tokens** that you can access, d
 
 See the provider-specific pages for complete model lists:
 
-- **[OpenAI Models](/models/openai)** - GPT-5, GPT-5.1, GPT-5 Mini, GPT-5 Nano, GPT-4.1 Nano, O3, and more
-- **[Google Models](/models/google)** - Gemini 3.0 Pro, Deep Think, 2.5 Pro, 2.5 Flash, and more
+- **[OpenAI Models](/reference/providers/openai)** - GPT-5, GPT-5.1, GPT-5 Mini, GPT-5 Nano, GPT-4.1 Nano, O3, and more
+- **[Google Models](/reference/providers/google)** - Gemini 3.0 Pro, Deep Think, 2.5 Pro, 2.5 Flash, and more
 
 For configuration instructions and parameter details, see the **Provider-Specific Parameters** sections on each provider page.
 
@@ -113,8 +113,8 @@ Access it like any other message property:
 
 Balance reasoning effort with cost and latency in your dashboard configuration. See provider-specific pages for parameter details:
 
-- **[OpenAI Configuration](/models/openai#provider-specific-parameters)** - Adjust `reasoningEffort` levels
-- **[Google Configuration](/models/google#provider-specific-parameters)** - Optimize `thinkingBudget` values
+- **[OpenAI Configuration](/reference/providers/openai#provider-specific-parameters)** - Adjust `reasoningEffort` levels
+- **[Google Configuration](/reference/providers/google#provider-specific-parameters)** - Optimize `thinkingBudget` values
 
 **General Guidelines:**
 
@@ -134,7 +134,7 @@ Reasoning tokens are billed separately and typically cost more than standard tok
 
 **Reasoning not appearing in responses?**
 
-- Verify you're using a supported reasoning model (see [OpenAI](/models/openai) or [Google](/models/google) model lists)
+- Verify you're using a supported reasoning model (see [OpenAI](/reference/providers/openai) or [Google](/reference/providers/google) model lists)
 - Check your dashboard settings under **LLM Providers** → **Custom LLM Parameters**
 - Ensure reasoning parameters are properly configured (see provider-specific documentation)
 - Click **Save Settings** after making changes
@@ -148,7 +148,7 @@ Reasoning tokens are billed separately and typically cost more than standard tok
 
 ## Additional Resources
 
-- **[OpenAI Models](/models/openai)** - Complete OpenAI model list and reasoning configuration
-- **[Google Models](/models/google)** - Complete Google model list and thinking configuration
-- **[Custom LLM Parameters](/models/custom-llm-parameters)** - General parameter configuration guide
+- **[OpenAI Models](/reference/providers/openai)** - Complete OpenAI model list and reasoning configuration
+- **[Google Models](/reference/providers/google)** - Complete Google model list and thinking configuration
+- **[Custom LLM Parameters](/reference/providers/custom-llm-parameters)** - General parameter configuration guide
 - **[Model Labels](/models/labels)** - Understanding model status and observed behaviors

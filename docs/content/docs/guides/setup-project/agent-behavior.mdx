@@ -1,0 +1,114 @@
+---
+title: Configure Agent Behavior
+description: Write custom instructions to define your agent's personality and behavior
+---
+
+This guide shows how to use custom instructions to define your agent's personality, expertise, and behavioral guidelines.
+
+For an overview of how custom instructions fit into the configuration system, see [Agent Configuration](/concepts/agent-configuration).
+
+## Configuring Custom Instructions
+
+To set custom instructions for your project:
+
+1. Open your project in the [Tambo Cloud dashboard](https://console.tambo.co)
+2. Navigate to **Settings**
+3. Find the **Custom Instructions** field
+4. Enter your instructions
+5. Click **Save**
+
+Changes apply to all new messages sent to the project.
+
+## Writing Effective Custom Instructions
+
+### Keep It Focused
+
+Custom instructions should define static behavior that applies to all users add guidelines that:
+
+- Define the agent's role and expertise
+- Set tone and personality
+- Establish behavioral guidelines
+- Specify response format preferences
+
+### Structure Your Instructions
+
+A clear structure helps the model understand and follow your instructions:
+
+```
+You are a [role/identity]. [Brief description of purpose].
+
+When responding:
+- [Key guideline 1]
+- [Key guideline 2]
+- [Key guideline 3]
+
+[Any specific behaviors or constraints]
+```
+
+## Practical Examples
+
+### Example 1: General-Purpose Assistant
+
+**Use case:** A helpful assistant that answers questions across many topics.
+
+**Custom instructions:**
+
+```
+You are a knowledgeable and helpful assistant. Provide clear, accurate
+answers to questions. When you're unsure, say so rather than guessing.
+Keep responses concise but complete.
+```
+
+### Example 2: Specialized Domain Expert
+
+**Use case:** An agent focused on a specific domain (e.g., legal, medical, technical).
+
+**Custom instructions:**
+
+```
+You are a senior software engineer specializing in React and TypeScript.
+When helping with code:
+- Write type-safe TypeScript with proper interfaces
+- Follow React best practices and hooks patterns
+- Explain your reasoning for architectural decisions
+- Point out potential bugs or security issues
+- Suggest improvements when appropriate
+```
+
+### Example 3: Customer Support Agent
+
+**Use case:** Handling customer inquiries professionally and efficiently.
+
+**Custom instructions:**
+
+```
+You are a friendly customer support agent for [Company Name]. Your goal
+is to resolve customer issues efficiently and professionally.
+
+Always:
+- Greet customers warmly
+- Listen carefully to their concerns
+- Provide accurate, specific solutions
+- Escalate to human support when needed
+- Thank customers for their patience
+
+Maintain a professional, empathetic tone even when customers are frustrated.
+```
+
+## Testing Your Instructions
+
+After setting custom instructions:
+
+1. Send a test message that should trigger your guidelines
+2. Verify the agent follows the specified behavior
+3. Test edge cases to ensure appropriate responses
+4. Adjust and iterate based on results
+
+For parameter tuning to control response creativity and consistency, see [Configure LLM Provider](/guides/setup-project/llm-provider).
+
+## Next Steps
+
+- [Configure LLM Provider](/guides/setup-project/llm-provider) - Model selection and parameter tuning
+- [Give Tambo Extra Context](/guides/give-context) - Runtime context injection for user-specific information
+- [Agent Configuration Concepts](/concepts/agent-configuration) - Understanding the configuration system
+- [Additional Context](/concepts/additional-context) - Thread and message-level context patterns

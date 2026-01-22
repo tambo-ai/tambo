@@ -14,7 +14,8 @@ interface TamboTool {
   name: string;
   description: string;
   tool: (...args: any[]) => any;
-  toolSchema: z.ZodFunction | JSONSchemaLite;
+  inputSchema?: z.ZodTypeAny | JSONSchemaLite;
+  outputSchema?: z.ZodTypeAny | JSONSchemaLite;
   transformToContent?: (
     result: any,
   ) => Promise<ChatCompletionContentPart[]> | ChatCompletionContentPart[];
@@ -47,20 +48,32 @@ The function that implements the tool's logic. Can be synchronous or asynchronou
 tool: (...args: any[]) => any;
 ```
 
-#### toolSchema
+#### inputSchema (optional)
 
-A Zod function schema that defines the tool's parameters and return type. Can also be a JSON Schema object.
+A Zod schema that defines the tool's input parameters. Can also be a JSON Schema object. Omit if the tool takes no parameters.
 
 ```typescript
-toolSchema: z.ZodFunction | JSONSchemaLite;
+inputSchema?: z.ZodTypeAny | JSONSchemaLite;
 ```
 
 **Example:**
 
 ```typescript
-toolSchema: z.function()
-  .args(z.string().describe("The city name"))
-  .returns(z.object({ temperature: z.number(), condition: z.string() }));
+inputSchema: z.string().describe("The city name");
+```
+
+#### outputSchema (optional)
+
+A Zod schema that defines the tool's return type. Can also be a JSON Schema object.
+
+```typescript
+outputSchema?: z.ZodTypeAny | JSONSchemaLite;
+```
+
+**Example:**
+
+```typescript
+outputSchema: z.object({ temperature: z.number(), condition: z.string() });
 ```
 
 #### transformToContent (optional)
@@ -82,7 +95,7 @@ transformToContent: (result) => [
 ];
 ```
 
-[Learn more about returning rich content from tools](/concepts/tools/adding-tools#returning-rich-content).
+[Learn more about returning rich content from tools](/guides/take-actions/register-tools#return-rich-content-optional).
 
 ## TamboComponent
 

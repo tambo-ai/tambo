@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/tambo/thread-content";
+} from "@tambo-ai/ui-registry/components/thread-content";
 import { api } from "@/trpc/react";
 import { TamboTool, useTambo, useTamboThreadList } from "@tambo-ai/react";
 import { TRPCClientErrorLike } from "@trpc/client";

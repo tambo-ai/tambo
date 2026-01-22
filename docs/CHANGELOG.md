@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.23.1](https://github.com/tambo-ai/tambo/compare/docs-v1.23.0...docs-v1.23.1) (2026-01-22)
+
+
+### Miscellaneous Chores
+
+* **docs:** Split concepts into explanations and guides  ([#1747](https://github.com/tambo-ai/tambo/issues/1747)) ([a2cc494](https://github.com/tambo-ai/tambo/commit/a2cc4940d8a924e62c6cbfd07c849b503ec4eef1))
+* **react:** bump to new @tambo-ai/typescript-sdk ([#1864](https://github.com/tambo-ai/tambo/issues/1864)) ([7643415](https://github.com/tambo-ai/tambo/commit/76434157aeaa2f4fb6501702403262025614931b))
+* **sdk:** Bump again: get SSE streaming types ([#1870](https://github.com/tambo-ai/tambo/issues/1870)) ([e6fbb44](https://github.com/tambo-ai/tambo/commit/e6fbb4432bc3ba07fe8b660206a1c514ffb98ea8))
+
+## [1.23.0](https://github.com/tambo-ai/tambo/compare/docs-v1.22.0...docs-v1.23.0) (2026-01-21)
+
+
+### Features
+
+* **analytics:** PostHog cross-subdomain tracking (Phase 1) ([#1842](https://github.com/tambo-ai/tambo/issues/1842)) ([ed80eb0](https://github.com/tambo-ai/tambo/commit/ed80eb0c6a6d15a4be844ff895f983788a6d9fba))
+* **docs:** Implement middleware to serve markdown when `Accept` prefers ([#1766](https://github.com/tambo-ai/tambo/issues/1766)) ([286ccd3](https://github.com/tambo-ai/tambo/commit/286ccd39040f08e2dc4972c9e8bb8038ae54b4d4))
+* **models:** add Cerebras AI provider support ([#1795](https://github.com/tambo-ai/tambo/issues/1795)) ([21650bb](https://github.com/tambo-ai/tambo/commit/21650bbd3f706f4a1cf04ae5b42536edb57ff8ce))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the small-safe-packages group with 8 updates ([#1831](https://github.com/tambo-ai/tambo/issues/1831)) ([a5965b4](https://github.com/tambo-ai/tambo/commit/a5965b4f9d1cf502eaf185cc8b1e26a93f847de0))
+
 ## [1.22.0](https://github.com/tambo-ai/tambo/compare/docs-v1.21.1...docs-v1.22.0) (2026-01-07)
 
 
