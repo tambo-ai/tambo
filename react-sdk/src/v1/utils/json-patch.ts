@@ -6,7 +6,7 @@
  */
 
 import { applyPatch, type Operation } from "fast-json-patch";
-import type { JsonPatchOperation } from "../types";
+import type { JsonPatchOperation } from "../types/event";
 
 /**
  * Apply JSON Patch operations to an object.

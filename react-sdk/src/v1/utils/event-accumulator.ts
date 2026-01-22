@@ -19,17 +19,15 @@ import type {
   ToolCallResultEvent,
 } from "@ag-ui/core";
 import { EventType } from "@ag-ui/core";
+import type { TamboV1Thread, StreamingState } from "../types/thread";
+import type { TamboV1Message, Content } from "../types/message";
 import type {
-  TamboV1Thread,
-  TamboV1Message,
-  StreamingState,
-  Content,
   ComponentStartEvent,
   ComponentPropsDeltaEvent,
   ComponentStateDeltaEvent,
   ComponentEndEvent,
   RunAwaitingInputEvent,
-} from "../types";
+} from "../types/event";
 import { applyJsonPatch } from "./json-patch";
 
 /**
