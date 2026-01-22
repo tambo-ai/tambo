@@ -129,3 +129,8 @@ export type {
 
 // Note: Full MCP exports like TamboMcpProvider are available separately in the
 // @tambo-ai/react/mcp package
+export {
+  DataTableViewer,
+  DataTableViewerPropsSchema,
+  type DataTableViewerProps,
+} from "./components/DataTableViewer";

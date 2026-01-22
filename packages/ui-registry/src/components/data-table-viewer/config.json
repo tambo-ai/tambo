@@ -1,0 +1,6 @@
+{
+  "name": "DataTableViewer",
+  "description": "A high-performance virtualized table for viewing 10k+ rows of data with sorting and filtering.",
+  "dependencies": ["@tanstack/react-table", "@tanstack/react-virtual", "zod"],
+  "files": ["DataTableViewer.tsx"]
+}

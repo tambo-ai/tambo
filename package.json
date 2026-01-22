@@ -63,5 +63,9 @@
   "volta": {
     "node": "22.21.1",
     "npm": "11.7.0"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.18"
   }
 }

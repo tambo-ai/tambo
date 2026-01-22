@@ -28,7 +28,8 @@
     "./components/scrollable-message-container": "./src/components/scrollable-message-container/index.tsx",
     "./components/thread-content": "./src/components/thread-content/index.tsx",
     "./components/thread-dropdown": "./src/components/thread-dropdown/index.tsx",
-    "./components/thread-history": "./src/components/thread-history/index.tsx"
+    "./components/thread-history": "./src/components/thread-history/index.tsx",
+    "./components/data-table-viewer": "./src/components/data-table-viewer/index.tsx"
   },
   "scripts": {
     "lint": "eslint",

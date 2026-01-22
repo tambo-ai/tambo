@@ -4,6 +4,7 @@ import { DashboardCardComponent } from "@/components/dashboard-card";
 import { DiscordInvite } from "@/components/discord-invite";
 import { GitHubIssueCreator } from "@/components/github-issue-creator";
 import { TamboComponent } from "@tambo-ai/react";
+import { DataTableViewer, DataTableViewerPropsSchema } from "@tambo-ai/react";
 import { z } from "zod/v3";
 
 export const components: TamboComponent[] = [
@@ -27,5 +28,11 @@ export const components: TamboComponent[] = [
       "A component that invites users to join the Tambo Discord server, whenever a user asks about community, support, Discord, or getting help, use this component to invite them to Discord.",
     component: DiscordInvite,
     propsSchema: z.object({}),
+  },
+  {
+    name: "DataTableViewer",
+    description: "Virtualized table for high-density data viewing (10k+ rows).",
+    component: DataTableViewer,
+    propsSchema: DataTableViewerPropsSchema,
   },
 ];
