@@ -38,6 +38,9 @@
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
     "check-types": "tsc --noEmit",
+    "dev": "concurrently \"npm run dev:cjs\" \"npm run dev:esm\"",
+    "dev:cjs": "tsc -p tsconfig.cjs.json --watch",
+    "dev:esm": "tsc -p tsconfig.esm.json --watch",
     "test": "jest --config jest.config.ts",
     "format": "prettier --write .",
     "lint": "eslint",
@@ -75,7 +78,7 @@
   "dependencies": {
     "@standard-community/standard-json": "^0.3.5",
     "@standard-schema/spec": "^1.1.0",
-    "@tambo-ai/typescript-sdk": "^0.80.0",
+    "@tambo-ai/typescript-sdk": "^0.84.0",
     "@tanstack/react-query": "^5.90.16",
     "fast-equals": "^5.3.3",
     "partial-json": "^0.1.7",

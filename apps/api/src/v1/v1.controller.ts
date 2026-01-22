@@ -44,6 +44,7 @@ import {
   V1ListThreadsQueryDto,
   V1ListThreadsResponseDto,
 } from "./dto/thread.dto";
+import { V1BaseEventDto } from "./dto/event.dto";
 import { V1Service } from "./v1.service";
 
 @ApiTags("v1")
@@ -245,7 +246,9 @@ export class V1Controller {
   @ApiProduces("text/event-stream")
   @ApiResponse({
     status: 200,
-    description: "SSE stream of AG-UI events",
+    description:
+      "SSE stream of AG-UI events. Each event is sent as 'data: <json>\\n\\n' where <json> is a BaseEvent object.",
+    type: V1BaseEventDto,
     headers: {
       "X-Thread-Id": {
         description: "The created thread ID",
@@ -360,7 +363,9 @@ export class V1Controller {
   @ApiProduces("text/event-stream")
   @ApiResponse({
     status: 200,
-    description: "SSE stream of AG-UI events",
+    description:
+      "SSE stream of AG-UI events. Each event is sent as 'data: <json>\\n\\n' where <json> is a BaseEvent object.",
+    type: V1BaseEventDto,
     headers: {
       "X-Run-Id": {
         description: "The created run ID",

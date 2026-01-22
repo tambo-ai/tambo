@@ -25,6 +25,35 @@ const config = {
         destination: "/:path*",
         permanent: true,
       },
+      // Message Threads → Conversation Storage migration
+      {
+        source: "/concepts/message-threads/:path*",
+        destination: "/concepts/conversation-storage",
+        permanent: true,
+      },
+      // User Authentication reorganization
+      {
+        source: "/concepts/user-authentication/overview",
+        destination: "/concepts/user-authentication",
+        permanent: true,
+      },
+      {
+        source: "/concepts/user-authentication/:provider",
+        destination: "/guides/add-authentication/:provider",
+        permanent: true,
+      },
+      // Tools reorganization
+      {
+        source: "/concepts/tools/adding-tools",
+        destination: "/guides/take-actions/register-tools",
+        permanent: true,
+      },
+      // Models reorganization
+      {
+        source: "/models/custom-llm-parameters",
+        destination: "/guides/setup-project/llm-provider",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

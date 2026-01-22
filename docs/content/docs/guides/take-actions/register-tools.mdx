@@ -1,0 +1,236 @@
+---
+title: Give Tambo Access to Your Functions
+description: This guide helps you register custom JavaScript functions as tools that Tambo can call to retrieve data or take actions.
+---
+
+import LearnMore from "@/components/learn-more";
+import { Wrench } from "lucide-react";
+
+This guide shows you how to register custom JavaScript functions as tools so Tambo can call them to retrieve data or take actions in response to user messages.
+
+<LearnMore
+  title="Learn more about tools"
+  description="Understand what tools are and how they enable Tambo to take actions"
+  href="/concepts/tools"
+  icon={Wrench}
+/>
+
+## Prerequisites
+
+- TamboProvider set up in your application
+- Zod installed for schema definitions
+
+## Step 1: Define your tool function
+
+Create a JavaScript function that performs the action:
+
+```tsx
+const getWeather = async (city: string) => {
+  const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
+};
+```
+
+## Step 2: Create the tool definition
+
+Wrap your function in a TamboTool object with a schema. The `description` field helps Tambo decide when to use your tool, and `.describe()` on schema fields helps Tambo understand how to call it with the right parameters.
+
+```tsx
+import { TamboTool } from "@tambo-ai/react";
+import { z } from "zod";
+
+export const weatherTool: TamboTool = {
+  name: "get_weather",
+  // Clear description of what the tool does and when to use it
+  description: "Fetch current weather information for a specified city",
+  tool: getWeather,
+  // Use .describe() to explain each parameter
+  inputSchema: z.string().describe("The city to fetch weather for"),
+  outputSchema: z.object({
+    location: z.object({
+      name: z.string(),
+    }),
+  }),
+};
+```
+
+Write clear, specific descriptions so Tambo knows when to call your tool and what values to pass.
+
+## Step 3: Register with TamboProvider
+
+Pass your tools array to the provider:
+
+```tsx
+<TamboProvider tools={[weatherTool]}>
+  <App />
+</TamboProvider>
+```
+
+Tambo can now call your tool when relevant to user messages.
+
+## Return Rich Content (Optional)
+
+To return images, audio, or mixed media instead of plain text, add `transformToContent` to your tool definition:
+
+```tsx
+const getProductImage = async (productId: string) => {
+  const product = await fetchProductData(productId);
+  return {
+    name: product.name,
+    description: product.description,
+    imageUrl: product.imageUrl,
+    price: product.price,
+  };
+};
+
+export const productTool: TamboTool = {
+  name: "get_product",
+  description: "Fetch product information with image",
+  tool: getProductImage,
+  inputSchema: z.string().describe("Product ID"),
+  outputSchema: z.object({
+    name: z.string(),
+    description: z.string(),
+    imageUrl: z.string(),
+    price: z.number(),
+  }),
+  transformToContent: (result) => [
+    {
+      type: "text",
+      text: `${result.name} - $${result.price}\n\n${result.description}`,
+    },
+    {
+      type: "image_url",
+      image_url: { url: result.imageUrl },
+    },
+  ],
+};
+```
+
+Content types: `text`, `image_url`, `input_audio`
+
+## Enable Streaming Execution (Optional)
+
+By default, Tambo waits for complete tool arguments before executing. For tools that can handle partial arguments gracefully, you can enable streaming execution to call the tool incrementally as arguments are generated. To understand how streamable execution works under the hood, see [Tools > How Tools Execute](/concepts/tools#how-tools-execute).
+
+### When to Use Streamable Tools
+
+Use `annotations.tamboStreamableHint: true` when your tool:
+
+- ✅ Can handle incomplete or partial data gracefully
+- ✅ Has no side effects (safe to call multiple times)
+- ✅ Benefits from incremental execution (state updates, visualizations, real-time feedback)
+- ✅ Is idempotent or can merge partial updates safely
+
+### When NOT to Use Streamable Tools
+
+Avoid `annotations.tamboStreamableHint: true` when your tool:
+
+- ❌ Makes API calls or database writes (would cause duplicate requests)
+- ❌ Has side effects that shouldn't be repeated
+- ❌ Requires complete arguments to function correctly
+- ❌ Returns data that the AI needs immediately
+
+### Example: Enable Streaming Execution
+
+```tsx
+import { TamboTool } from "@tambo-ai/react";
+import { z } from "zod";
+
+const updateChart = (data: { title?: string; values?: number[] }) => {
+  // Called incrementally as arguments stream in
+  // Handles partial data gracefully
+  setChartState((prev) => ({
+    ...prev,
+    ...(data.title && { title: data.title }),
+    ...(data.values && { values: data.values }),
+  }));
+};
+
+export const chartTool: TamboTool = {
+  name: "update_chart",
+  description: "Update the chart visualization with new data",
+  tool: updateChart,
+  inputSchema: z.object({
+    title: z.string().optional(),
+    values: z.array(z.number()).optional(),
+  }),
+  outputSchema: z.void(),
+  annotations: {
+    tamboStreamableHint: true, // Enable streaming execution
+  },
+};
+```
+
+### Handling Partial Data
+
+Your streamable tool should handle incomplete data gracefully. Use optional properties and defensive checks:
+
+```tsx
+const updateDashboard = (data: {
+  title?: string;
+  metrics?: { name: string; value: number }[];
+  timeRange?: string;
+}) => {
+  // Only update fields that are present
+  if (data.title !== undefined) {
+    setTitle(data.title);
+  }
+  if (data.metrics !== undefined) {
+    setMetrics(data.metrics);
+  }
+  if (data.timeRange !== undefined) {
+    setTimeRange(data.timeRange);
+  }
+};
+
+export const dashboardTool: TamboTool = {
+  name: "update_dashboard",
+  description: "Update dashboard with metrics and time range",
+  tool: updateDashboard,
+  inputSchema: z.object({
+    title: z.string().optional(),
+    metrics: z
+      .array(z.object({ name: z.string(), value: z.number() }))
+      .optional(),
+    timeRange: z.string().optional(),
+  }),
+  outputSchema: z.void(),
+  annotations: {
+    tamboStreamableHint: true,
+  },
+};
+```
+
+This pattern ensures your tool processes data incrementally as the AI generates each field, providing a smooth real-time experience.
+
+### Good vs Bad Examples
+
+```tsx
+// ❌ Bad: API call tool - would make duplicate requests
+export const createUserTool: TamboTool = {
+  name: "create_user",
+  description: "Create a new user account",
+  tool: async (data) => await api.createUser(data),
+  inputSchema: z.object({
+    name: z.string(),
+    email: z.string(),
+  }),
+  outputSchema: z.object({ userId: z.string() }),
+  annotations: { tamboStreamableHint: true }, // Don't do this!
+};
+
+// ✅ Good: State update tool - safe to call multiple times
+export const updateFormTool: TamboTool = {
+  name: "update_form",
+  description: "Update form fields in real-time",
+  tool: (fields) => setFormState(fields),
+  inputSchema: z.object({
+    name: z.string().optional(),
+    email: z.string().optional(),
+  }),
+  outputSchema: z.void(),
+  annotations: { tamboStreamableHint: true }, // Safe for repeated calls
+};
+```

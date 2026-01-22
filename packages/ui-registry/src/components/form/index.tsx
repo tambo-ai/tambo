@@ -1,1 +1,7 @@
-export { FormComponent, type FormProps } from "./form";
+export {
+  FormComponent,
+  formFieldSchema,
+  formSchema,
+  type FormField,
+  type FormProps,
+} from "./form";
