@@ -1,6 +1,6 @@
 import {
-  createProjectInput,
-  createdProjectSchema,
+  createProjectInput as createProjectInputSchema,
+  createProjectOutputSchema,
   getProjectByIdInput,
   projectDetailSchema,
   projectTableSchema,
@@ -70,9 +70,9 @@ export function registerProjectTools(
       return result;
     },
     inputSchema: z.object({
-      projectName: createProjectInput,
+      projectName: createProjectInputSchema,
     }),
-    outputSchema: createdProjectSchema,
+    outputSchema: createProjectOutputSchema,
   });
 
   /**

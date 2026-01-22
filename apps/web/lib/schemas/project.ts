@@ -178,13 +178,13 @@ export const projectDetailSchema = projectSchema.extend({
   maxInputTokens: z.number().nullable().describe("Maximum input tokens"),
 });
 
-export const createdProjectSchema = z.object({
+export const createProjectOutputSchema = z.object({
   id: z.string().describe("The unique identifier for the project"),
   name: z.string().describe("The name of the project"),
   userId: z.string().describe("The user ID who owns the project"),
 });
 
-export const updatedProjectSchema = z.object({
+export const updateProjectOutputSchema = z.object({
   id: z.string().describe("The unique identifier for the project"),
   name: z.string().describe("The name of the project"),
   userId: z.string().describe("The user ID who owns the project"),
