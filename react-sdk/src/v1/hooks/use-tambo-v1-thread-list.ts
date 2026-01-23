@@ -7,47 +7,27 @@
  */
 
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import type { ThreadListResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
-import type { TamboV1Thread } from "../types/thread";
 
 /**
  * Options for fetching thread list
  */
 export interface ThreadListOptions {
   /**
-   * Project ID to filter threads by
+   * Optional context key to filter threads by
    */
-  projectId?: string;
+  contextKey?: string;
 
   /**
-   * Maximum number of threads to return
+   * Maximum number of threads to return (as string per SDK)
    */
-  limit?: number;
+  limit?: string;
 
   /**
    * Pagination cursor for fetching next page
    */
-  after?: string;
-}
-
-/**
- * Response from thread list query
- */
-export interface ThreadListResponse {
-  /**
-   * Array of threads
-   */
-  data: TamboV1Thread[];
-
-  /**
-   * Whether there are more threads available
-   */
-  hasMore: boolean;
-
-  /**
-   * Cursor for fetching next page
-   */
-  nextCursor?: string;
+  cursor?: string;
 }
 
 /**
@@ -55,15 +35,18 @@ export interface ThreadListResponse {
  *
  * Uses React Query for caching and automatic refetching.
  * Threads are considered stale after 5 seconds.
+ *
+ * Returns the thread list directly from the SDK with no transformation.
+ * Each thread includes runStatus, metadata, and all SDK fields.
  * @param listOptions - Filtering and pagination options
  * @param queryOptions - Additional React Query options
  * @returns React Query query object with thread list
  * @example
  * ```tsx
- * function ThreadList({ projectId }: { projectId: string }) {
+ * function ThreadList({ contextKey }: { contextKey?: string }) {
  *   const { data, isLoading, isError } = useTamboV1ThreadList({
- *     projectId,
- *     limit: 20,
+ *     contextKey,
+ *     limit: "20",
  *   });
  *
  *   if (isLoading) return <Spinner />;
@@ -71,10 +54,12 @@ export interface ThreadListResponse {
  *
  *   return (
  *     <ul>
- *       {data.data.map(thread => (
- *         <li key={thread.id}>{thread.title}</li>
+ *       {data.threads.map(thread => (
+ *         <li key={thread.id}>
+ *           {thread.id} - {thread.runStatus}
+ *         </li>
  *       ))}
- *       {data.hasMore && <LoadMoreButton />}
+ *       {data.hasMore && <LoadMoreButton cursor={data.nextCursor} />}
  *     </ul>
  *   );
  * }
@@ -91,30 +76,7 @@ export function useTamboV1ThreadList(
 
   return useQuery({
     queryKey: ["v1-threads", "list", listOptions],
-    queryFn: async () => {
-      const response = await client.threads.list({
-        limit: listOptions?.limit?.toString(), // SDK expects string
-        cursor: listOptions?.after,
-      });
-
-      // Transform SDK response to ThreadListResponse
-      return {
-        data: response.threads.map(
-          (thread) =>
-            ({
-              id: thread.id,
-              projectId: thread.projectId,
-              messages: [], // Messages not included in list response
-              status: "idle" as const,
-              metadata: thread.metadata,
-              createdAt: thread.createdAt,
-              updatedAt: thread.updatedAt,
-            }) as TamboV1Thread,
-        ),
-        hasMore: response.hasMore,
-        nextCursor: response.nextCursor,
-      };
-    },
+    queryFn: async () => await client.threads.list(listOptions),
     staleTime: 5000, // Consider stale after 5s
     ...queryOptions,
   });

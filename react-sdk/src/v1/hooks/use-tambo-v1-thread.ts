@@ -7,14 +7,17 @@
  */
 
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import type { ThreadRetrieveResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
-import type { TamboV1Thread } from "../types/thread";
 
 /**
  * Hook to fetch a single thread by ID.
  *
  * Uses React Query for caching and automatic refetching.
  * Thread data is considered stale after 1 second (real-time data).
+ *
+ * Returns the thread with all its messages and current run status directly
+ * from the SDK with no transformation.
  * @param threadId - Thread ID to fetch
  * @param options - Additional React Query options
  * @returns React Query query object with thread data
@@ -28,7 +31,7 @@ import type { TamboV1Thread } from "../types/thread";
  *
  *   return (
  *     <div>
- *       <h1>{thread.title}</h1>
+ *       <div>Status: {thread.runStatus}</div>
  *       {thread.messages.map(msg => <Message key={msg.id} message={msg} />)}
  *     </div>
  *   );
@@ -37,25 +40,16 @@ import type { TamboV1Thread } from "../types/thread";
  */
 export function useTamboV1Thread(
   threadId: string,
-  options?: Omit<UseQueryOptions<TamboV1Thread>, "queryKey" | "queryFn">,
+  options?: Omit<
+    UseQueryOptions<ThreadRetrieveResponse>,
+    "queryKey" | "queryFn"
+  >,
 ) {
   const client = useTamboClient();
 
   return useQuery({
     queryKey: ["v1-threads", threadId],
-    queryFn: async () => {
-      const response = await client.threads.retrieve(threadId);
-      // Transform SDK response to TamboV1Thread
-      return {
-        id: response.id,
-        projectId: response.projectId,
-        messages: [], // Messages fetched separately via streaming
-        status: "idle" as const,
-        metadata: response.metadata,
-        createdAt: response.createdAt,
-        updatedAt: response.updatedAt,
-      } as TamboV1Thread;
-    },
+    queryFn: async () => await client.threads.retrieve(threadId),
     staleTime: 1000, // Consider stale after 1s (real-time data)
     ...options,
   });
