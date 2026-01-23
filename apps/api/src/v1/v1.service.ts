@@ -866,14 +866,19 @@ export class V1Service {
     dto: UpdateComponentStateDto,
   ): Promise<UpdateComponentStateResponseDto> {
     return await this.db.transaction(async (tx) => {
-      // 1. Check thread is idle (inline auth check)
-      const thread = await tx.query.threads.findFirst({
-        where: eq(schema.threads.id, threadId),
-        columns: {
-          id: true,
-          runStatus: true,
-        },
-      });
+      // Lock thread row so `runStatus` can't flip mid-update.
+      const threads = await tx
+        .select({
+          id: schema.threads.id,
+          runStatus: schema.threads.runStatus,
+        })
+        .from(schema.threads)
+        .where(eq(schema.threads.id, threadId))
+        .limit(1)
+        .for("update")
+        .execute();
+
+      const thread = threads[0];
 
       if (!thread) {
         throw new NotFoundException(`Thread ${threadId} not found`);
