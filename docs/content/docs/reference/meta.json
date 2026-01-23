@@ -1,4 +1,4 @@
 {
   "title": "Reference",
-  "pages": ["api", "cli", "llm-providers"]
+  "pages": ["react-sdk", "rest-api", "cli", "llm-providers"]
 }
