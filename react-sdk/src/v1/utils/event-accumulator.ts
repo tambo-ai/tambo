@@ -3,6 +3,10 @@
  *
  * Implements a reducer that transforms AG-UI event streams into React state.
  * Used with useReducer to accumulate events into thread state.
+ *
+ * Note: The TypeScript SDK returns events with type: string rather than
+ * the AG-UI EventType enum, but the values are compatible. This module
+ * handles events from the SDK using the StreamEvent type.
  */
 
 import type {
@@ -29,6 +33,13 @@ import type {
   RunAwaitingInputEvent,
 } from "../types/event";
 import { applyJsonPatch } from "./json-patch";
+
+/**
+ * Stream event type that's compatible with SDK's RunRunResponse.
+ * The SDK returns events with type: string instead of EventType enum,
+ * but the actual event objects match AG-UI event structures.
+ */
+export type StreamEvent = Omit<BaseEvent, "type"> & { type: string };
 
 /**
  * Error thrown when an unreachable case is reached in a switch statement.
@@ -60,7 +71,7 @@ export interface StreamState {
  */
 export interface StreamAction {
   type: "EVENT";
-  event: BaseEvent;
+  event: StreamEvent;
 }
 
 /**
@@ -110,7 +121,9 @@ export function streamReducer(
 ): StreamState {
   const { event } = action;
 
-  switch (event.type) {
+  // Cast event.type to EventType for switch statement
+  // SDK returns type as string, but values match EventType enum
+  switch (event.type as EventType) {
     case EventType.RUN_STARTED:
       return handleRunStarted(state, event as RunStartedEvent);
 
@@ -163,11 +176,13 @@ export function streamReducer(
       // Not supported yet - silently ignore
       return state;
 
-    default: {
-      // Exhaustiveness check - TypeScript will error if we add new event types and forget to handle them
-      const _exhaustiveCheck: never = event.type;
-      throw new UnreachableCaseError(_exhaustiveCheck);
-    }
+    default:
+      // Unknown event type - log warning and return state unchanged
+      // Note: Cannot use exhaustiveness check with string types from SDK
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(`[StreamReducer] Unknown event type: ${event.type}`);
+      }
+      return state;
   }
 }
 
@@ -603,12 +618,16 @@ function handleToolCallResult(
  * @param event - Base event (must be CUSTOM type)
  * @returns Updated stream state
  */
-function handleCustomEvent(state: StreamState, event: BaseEvent): StreamState {
-  if (event.type !== EventType.CUSTOM) {
+function handleCustomEvent(
+  state: StreamState,
+  event: StreamEvent,
+): StreamState {
+  // Cast type to EventType for comparison
+  if ((event.type as EventType) !== EventType.CUSTOM) {
     return state;
   }
 
-  const customEvent = event as { type: "CUSTOM"; name: string; value: unknown };
+  const customEvent = event as { type: string; name: string; value: unknown };
 
   switch (customEvent.name) {
     case "tambo.component.start":

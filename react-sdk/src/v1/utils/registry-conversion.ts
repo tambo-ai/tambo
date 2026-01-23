@@ -7,7 +7,11 @@
  */
 
 import type { JSONSchema7 } from "json-schema";
-import type { TamboComponent, TamboTool } from "../../model/component-metadata";
+import type {
+  TamboComponent,
+  TamboTool,
+  TamboToolWithToolSchema,
+} from "../../model/component-metadata";
 import { schemaToJsonSchema } from "../../schema/schema";
 import type { AvailableComponent } from "../types/component";
 import type { Tool } from "../types/tool";
@@ -45,17 +49,22 @@ export function toAvailableComponent(
 /**
  * Convert multiple registered components to v1 API format.
  *
- * Transforms a Map of TamboComponents to an array of AvailableComponents.
+ * Transforms a Record/Map of TamboComponents to an array of AvailableComponents.
  * Components without propsSchema will be logged as warnings and skipped.
- * @param components - Map of components from beta SDK registry
+ * @param components - Record or Map of components from beta SDK registry
  * @returns Array of component metadata in v1 API format
  */
 export function toAvailableComponents(
-  components: Map<string, TamboComponent>,
+  components: Record<string, TamboComponent> | Map<string, TamboComponent>,
 ): AvailableComponent[] {
   const results: AvailableComponent[] = [];
 
-  for (const [name, component] of components) {
+  const entries =
+    components instanceof Map
+      ? Array.from(components.entries())
+      : Object.entries(components);
+
+  for (const [name, component] of entries) {
     try {
       results.push(toAvailableComponent(component));
     } catch (error) {
@@ -71,42 +80,61 @@ export function toAvailableComponents(
 /**
  * Convert a registered tool to v1 API format.
  *
- * Transforms TamboTool (beta SDK format with Standard Schema support)
- * to Tool (v1 API format requiring JSON Schema).
+ * Transforms TamboTool or TamboToolWithToolSchema (beta SDK format with
+ * Standard Schema support) to Tool (v1 API format requiring JSON Schema).
+ * Handles both new inputSchema and deprecated toolSchema formats.
  * @param tool - Tool from beta SDK registry
  * @returns Tool metadata in v1 API format
- * @throws {Error} if inputSchema conversion fails
+ * @throws {Error} if schema conversion fails or schema is missing
  */
-export function toAvailableTool(tool: TamboTool): Tool {
-  // Extract inputSchema from tool
-  if (!tool.inputSchema) {
-    throw new Error(
-      `Tool "${tool.name}" missing inputSchema - required for v1 API`,
-    );
+export function toAvailableTool(
+  tool: TamboTool | TamboToolWithToolSchema,
+): Tool {
+  // Check for inputSchema (modern format)
+  if ("inputSchema" in tool && tool.inputSchema) {
+    const inputSchema: JSONSchema7 = schemaToJsonSchema(tool.inputSchema);
+    return {
+      name: tool.name,
+      description: tool.description,
+      inputSchema: inputSchema as Record<string, unknown>,
+    };
   }
 
-  // Convert inputSchema to JSON Schema
-  const inputSchema: JSONSchema7 = schemaToJsonSchema(tool.inputSchema);
+  // Check for deprecated toolSchema format
+  if ("toolSchema" in tool && tool.toolSchema) {
+    const inputSchema: JSONSchema7 = schemaToJsonSchema(tool.toolSchema);
+    return {
+      name: tool.name,
+      description: tool.description,
+      inputSchema: inputSchema as Record<string, unknown>,
+    };
+  }
 
-  return {
-    name: tool.name,
-    description: tool.description,
-    inputSchema: inputSchema as Record<string, unknown>,
-  };
+  throw new Error(
+    `Tool "${tool.name}" missing inputSchema or toolSchema - required for v1 API`,
+  );
 }
 
 /**
  * Convert multiple registered tools to v1 API format.
  *
- * Transforms a Map of TamboTools to an array of Tools.
- * Tools without inputSchema will be logged as warnings and skipped.
- * @param tools - Map of tools from beta SDK registry
+ * Transforms a Record/Map of TamboTools or TamboToolWithToolSchema to an array
+ * of Tools. Tools without inputSchema/toolSchema will be logged as warnings
+ * and skipped.
+ * @param tools - Record or Map of tools from beta SDK registry
  * @returns Array of tool metadata in v1 API format
  */
-export function toAvailableTools(tools: Map<string, TamboTool>): Tool[] {
+export function toAvailableTools(
+  tools:
+    | Record<string, TamboTool | TamboToolWithToolSchema>
+    | Map<string, TamboTool | TamboToolWithToolSchema>,
+): Tool[] {
   const results: Tool[] = [];
 
-  for (const [name, tool] of tools) {
+  const entries =
+    tools instanceof Map ? Array.from(tools.entries()) : Object.entries(tools);
+
+  for (const [name, tool] of entries) {
     try {
       results.push(toAvailableTool(tool));
     } catch (error) {
