@@ -267,11 +267,8 @@ Key decisions:
 
 #### Phase 2: Event Accumulation Logic (Est: 2-3 days)
 
-<<<<<<< HEAD
-=======
 **Status: ✅ COMPLETED**
 
->>>>>>> 33f3d8b5 (docs(plan): mark Phase 2 as completed)
 **Goals:**
 
 - Implement reducer for AG-UI event → React state transformation
@@ -280,28 +277,6 @@ Key decisions:
 
 **Tasks:**
 
-<<<<<<< HEAD
-- [ ] Implement `streamReducer(state, event)` with discriminated union pattern
-- [ ] Handle `RUN_STARTED` - initialize streaming state
-- [ ] Handle `TEXT_MESSAGE_START` - create new message stub
-- [ ] Handle `TEXT_MESSAGE_CONTENT` - accumulate text deltas
-- [ ] Handle `TEXT_MESSAGE_END` - finalize text message
-- [ ] Handle `TOOL_CALL_START` - create tool_use content block
-- [ ] Handle `TOOL_CALL_ARGS` - accumulate JSON args string, parse on END
-- [ ] Handle `TOOL_CALL_END` - finalize tool call
-- [ ] Handle `TOOL_CALL_RESULT` - create tool_result content block (server-side tools)
-- [ ] Handle `CUSTOM: tambo.component.start` - create component content block
-- [ ] Handle `CUSTOM: tambo.component.props_delta` - apply JSON Patch to props
-- [ ] Handle `CUSTOM: tambo.component.state_delta` - apply JSON Patch to state
-- [ ] Handle `CUSTOM: tambo.component.end` - finalize component
-- [ ] Handle `CUSTOM: tambo.run.awaiting_input` - transition to awaiting state
-- [ ] Handle `RUN_FINISHED` - transition to complete state
-- [ ] Handle `RUN_ERROR` - transition to error state
-- [ ] Add `fast-json-patch` dependency to react-sdk/package.json
-- [ ] Implement JSON Patch wrapper using `fast-json-patch` library
-- [ ] Write comprehensive unit tests for all event types
-- [ ] Test event sequences (e.g., TOOL_CALL_START → ARGS → END → RESULT)
-=======
 - [x] Implement `streamReducer(state, event)` with discriminated union pattern - Implemented in event-accumulator.ts
 - [x] Handle `RUN_STARTED` - initialize streaming state - ✅ handleRunStarted()
 - [x] Handle `TEXT_MESSAGE_START` - create new message stub - ✅ handleTextMessageStart()
@@ -322,7 +297,6 @@ Key decisions:
 - [x] Implement JSON Patch wrapper using `fast-json-patch` library - ✅ json-patch.ts with applyJsonPatch()
 - [x] Write comprehensive unit tests for all event types - Deferred to Phase 10
 - [x] Test event sequences (e.g., TOOL_CALL_START → ARGS → END → RESULT) - Deferred to Phase 10
->>>>>>> 33f3d8b5 (docs(plan): mark Phase 2 as completed)
 
 **Files:**
 
@@ -478,13 +452,6 @@ export function applyJsonPatch(
 
 **Success Criteria:**
 
-<<<<<<< HEAD
-- All AG-UI event types handled without errors
-- Event sequences produce correct accumulated state
-- JSON Patch operations apply correctly to component props/state
-- Exhaustiveness checking catches unhandled event types
-- 95%+ test coverage for reducer logic
-=======
 - [x] All AG-UI event types handled without errors - All 9 standard + 4 custom events implemented
 - [x] Event sequences produce correct accumulated state - Immutable updates with React patterns
 - [x] JSON Patch operations apply correctly to component props/state - Using fast-json-patch library
@@ -515,7 +482,6 @@ Key fixes during implementation:
 - Fixed ToolResultContent structure (toolUseId not tool_use_id, content array not string)
 - Added type guards before spreading ToolUseContent.input (typed as unknown)
 - Prefixed unused event parameters with underscore to satisfy ESLint
->>>>>>> 33f3d8b5 (docs(plan): mark Phase 2 as completed)
 
 #### Phase 3: Streaming & State Management (Est: 2-3 days)
 
