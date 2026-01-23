@@ -1,4 +1,4 @@
-import { applyDecorators } from "@nestjs/common";
+import { applyDecorators, type Type as NestType } from "@nestjs/common";
 import {
   ApiExtraModels,
   ApiProperty,
@@ -6,14 +6,14 @@ import {
   getSchemaPath,
 } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, ValidateNested } from "class-validator";
+import { ValidateNested } from "class-validator";
 
 /**
  * Type mapping for discriminated union members.
  */
 export interface DiscriminatedUnionType {
   /** The DTO class */
-  dto: any;
+  dto: NestType<unknown>;
   /** The discriminator value (e.g., "text", "resource") */
   name: string;
 }
@@ -60,7 +60,7 @@ export interface ApiDiscriminatedUnionOptions {
  * - @ApiProperty with oneOf/discriminator
  * - @ApiExtraModels
  * - @Type with discriminator
- * - @IsArray / @ValidateNested
+ * - @ValidateNested
  */
 export function ApiDiscriminatedUnion(
   options: ApiDiscriminatedUnionOptions,
@@ -121,7 +121,7 @@ export function ApiDiscriminatedUnion(
     ApiProperty(apiPropertyOptions),
 
     // Runtime validation
-    ...(isArray ? [IsArray(), ValidateNested({ each: true })] : []),
+    ...(isArray ? [ValidateNested({ each: true })] : []),
 
     // Runtime deserialization
     Type(() => Object, classTransformerDiscriminator),
