@@ -163,8 +163,8 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 ## Production Deployment
 ### Self-hosting with npm (Convenience Scripts)
 
-These npm scripts are convenience aliases for the Docker-based self-hosted
-workflow described above:
+These npm scripts are **convenience aliases** for Docker-based commands.  
+They require **bash**, so Windows users should run them in **WSL** or **Git Bash**.
 
 ```bash
 npm run tambo:setup   # Initial setup
