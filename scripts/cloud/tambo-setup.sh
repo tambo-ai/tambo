@@ -15,12 +15,16 @@ info "This script will help you set up Tambo for self-hosting with Docker"
 info "📁 Working directory: $(pwd)"
 printf '\n'
 
-# Check if Docker is installed
-if ! command -v docker &> /dev/null; then
+if docker compose version >/dev/null 2>&1; then
+    COMPOSE="docker compose"
+elif docker-compose version >/dev/null 2>&1; then
+    COMPOSE="docker-compose"
+else
     fail \
-      "❌ Docker is not installed. Please install Docker first." \
-      "💡 Visit: https://docs.docker.com/get-docker/"
+      "❌ Docker Compose is not installed." \
+      "💡 Visit: https://docs.docker.com/compose/install/"
 fi
+
 
 # Check if Docker Compose is installed
 if ! command -v docker compose &> /dev/null; then
