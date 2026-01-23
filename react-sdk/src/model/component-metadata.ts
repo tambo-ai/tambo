@@ -13,8 +13,8 @@ import { ComponentType } from "react";
  * allowing us to accept any compliant validator without depending on a specific library.
  * @see https://standardschema.dev/
  */
-export type SupportedSchema<Shape = unknown> =
-  | StandardSchemaV1<Shape, Shape>
+export type SupportedSchema<Input = unknown, Output = Input> =
+  | StandardSchemaV1<Input, Output>
   | JSONSchema7;
 
 /**
