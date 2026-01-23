@@ -1,19 +1,11 @@
-import {
-  ApiProperty,
-  ApiSchema,
-  ApiExtraModels,
-  getSchemaPath,
-} from "@nestjs/swagger";
+import { ApiProperty, ApiSchema } from "@nestjs/swagger";
 import {
   IsString,
   IsOptional,
-  ValidateNested,
-  IsArray,
   IsNotEmpty,
   IsIn,
   IsObject,
 } from "class-validator";
-import { Type } from "class-transformer";
 import {
   V1ContentBlock,
   V1TextContentDto,
@@ -21,8 +13,8 @@ import {
   V1ToolResultContentDto,
   V1ToolUseContentDto,
   V1ComponentContentDto,
-  v1ContentBlockDiscriminator,
 } from "./content.dto";
+import { ApiDiscriminatedUnion } from "../../common/decorators/api-discriminated-union.decorator";
 
 /**
  * Message role following OpenAI/Anthropic conventions.
@@ -34,13 +26,6 @@ export type V1MessageRole = "user" | "assistant" | "system";
  * Represents a message in a thread.
  */
 @ApiSchema({ name: "Message" })
-@ApiExtraModels(
-  V1TextContentDto,
-  V1ResourceContentDto,
-  V1ToolUseContentDto,
-  V1ToolResultContentDto,
-  V1ComponentContentDto,
-)
 export class V1MessageDto {
   @ApiProperty({
     description: "Unique identifier for this message",
@@ -57,32 +42,17 @@ export class V1MessageDto {
   @IsIn(["user", "assistant", "system"])
   role!: V1MessageRole;
 
-  @ApiProperty({
+  @ApiDiscriminatedUnion({
+    types: [
+      { dto: V1TextContentDto, name: "text" },
+      { dto: V1ResourceContentDto, name: "resource" },
+      { dto: V1ToolUseContentDto, name: "tool_use" },
+      { dto: V1ToolResultContentDto, name: "tool_result" },
+      { dto: V1ComponentContentDto, name: "component" },
+    ],
     description: "Content blocks in this message",
-    type: "array",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(V1TextContentDto) },
-        { $ref: getSchemaPath(V1ResourceContentDto) },
-        { $ref: getSchemaPath(V1ToolUseContentDto) },
-        { $ref: getSchemaPath(V1ToolResultContentDto) },
-        { $ref: getSchemaPath(V1ComponentContentDto) },
-      ],
-      discriminator: {
-        propertyName: "type",
-        mapping: {
-          text: getSchemaPath(V1TextContentDto),
-          resource: getSchemaPath(V1ResourceContentDto),
-          tool_use: getSchemaPath(V1ToolUseContentDto),
-          tool_result: getSchemaPath(V1ToolResultContentDto),
-          component: getSchemaPath(V1ComponentContentDto),
-        },
-      },
-    },
+    isArray: true,
   })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => Object, v1ContentBlockDiscriminator)
   content!: V1ContentBlock[];
 
   @ApiProperty({
@@ -117,7 +87,6 @@ export type V1InputContent =
  * Only "user" role is allowed for input messages.
  */
 @ApiSchema({ name: "InputMessage" })
-@ApiExtraModels(V1TextContentDto, V1ResourceContentDto, V1ToolResultContentDto)
 export class V1InputMessageDto {
   @ApiProperty({
     description: "Message role - must be 'user' for input messages",
@@ -127,41 +96,20 @@ export class V1InputMessageDto {
   @IsIn(["user"])
   role!: "user";
 
-  @ApiProperty({
+  @ApiDiscriminatedUnion({
+    types: [
+      { dto: V1TextContentDto, name: "text" },
+      { dto: V1ResourceContentDto, name: "resource" },
+      { dto: V1ToolResultContentDto, name: "tool_result" },
+    ],
     description: "Content blocks (text, resource, or tool_result)",
-    type: "array",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(V1TextContentDto) },
-        { $ref: getSchemaPath(V1ResourceContentDto) },
-        { $ref: getSchemaPath(V1ToolResultContentDto) },
-      ],
-      discriminator: {
-        propertyName: "type",
-        mapping: {
-          text: getSchemaPath(V1TextContentDto),
-          resource: getSchemaPath(V1ResourceContentDto),
-          tool_result: getSchemaPath(V1ToolResultContentDto),
-        },
-      },
+    isArray: true,
+    additionalOptions: {
+      // Mark as required and non-empty
+      required: true,
     },
   })
-  @IsArray()
   @IsNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => Object, {
-    ...v1ContentBlockDiscriminator,
-    // Override to only allow input content types
-    discriminator: {
-      property: "type",
-      subTypes: [
-        { value: V1TextContentDto, name: "text" },
-        { value: V1ResourceContentDto, name: "resource" },
-        { value: V1ToolResultContentDto, name: "tool_result" },
-      ],
-    },
-    keepDiscriminatorProperty: true,
-  })
   content!: V1InputContent[];
 
   @ApiProperty({
