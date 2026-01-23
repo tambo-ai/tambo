@@ -25,6 +25,7 @@ import type {
   ComponentStartEvent,
   ComponentStateDeltaEvent,
   RunAwaitingInputEvent,
+  TamboCustomEvent,
 } from "../types/event";
 import type { Content, TamboV1Message } from "../types/message";
 import type { StreamingState, TamboV1Thread } from "../types/thread";
@@ -712,41 +713,42 @@ function handleCustomEvent(
     return threadState;
   }
 
-  const customEvent = event as { type: string; name: string; value: unknown };
+  const customEvent = event as TamboCustomEvent;
 
   switch (customEvent.name) {
     case "tambo.component.start":
       return handleComponentStart(
         threadState,
-        customEvent as unknown as ComponentStartEvent,
+        customEvent,
       );
 
     case "tambo.component.props_delta":
       return handleComponentPropsDelta(
         threadState,
-        customEvent as unknown as ComponentPropsDeltaEvent,
+        customEvent,
       );
 
     case "tambo.component.state_delta":
       return handleComponentStateDelta(
         threadState,
-        customEvent as unknown as ComponentStateDeltaEvent,
+        customEvent,
       );
 
     case "tambo.component.end":
-      return handleComponentEnd(
-        threadState,
-        customEvent as unknown as ComponentEndEvent,
-      );
+      return handleComponentEnd(threadState, customEvent);
 
     case "tambo.run.awaiting_input":
       return handleRunAwaitingInput(
         threadState,
-        customEvent as unknown as RunAwaitingInputEvent,
+        customEvent,
       );
 
-    default:
-      return threadState;
+    default: {
+      // Exhaustiveness check: if a new event type is added to TamboCustomEvent
+      // and not handled here, TypeScript will error
+      const _exhaustiveCheck: never = customEvent;
+      throw new UnreachableCaseError(_exhaustiveCheck);
+    }
   }
 }
 
