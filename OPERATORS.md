@@ -161,6 +161,7 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 4. Copy Client ID and Secret to `docker.env`
 
 ## Production Deployment
+
 ### Self-hosting with npm (Convenience Scripts)
 
 These npm scripts are **convenience aliases** for Docker-based commands.  

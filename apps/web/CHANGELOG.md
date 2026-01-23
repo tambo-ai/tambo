@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.128.0](https://github.com/tambo-ai/tambo/compare/web-v0.127.0...web-v0.128.0) (2026-01-22)
+
+
+### Features
+
+* **web:** add context key support for Tambo user isolation ([#1894](https://github.com/tambo-ai/tambo/issues/1894)) ([c3c05ce](https://github.com/tambo-ai/tambo/commit/c3c05ce533c36e21af946f58f7becf6ab7548c76))
+
+
+### Miscellaneous Chores
+
+* **react:** bump to new @tambo-ai/typescript-sdk ([#1864](https://github.com/tambo-ai/tambo/issues/1864)) ([7643415](https://github.com/tambo-ai/tambo/commit/76434157aeaa2f4fb6501702403262025614931b))
+* **sdk:** Bump again: get SSE streaming types ([#1870](https://github.com/tambo-ai/tambo/issues/1870)) ([e6fbb44](https://github.com/tambo-ai/tambo/commit/e6fbb4432bc3ba07fe8b660206a1c514ffb98ea8))
+
+
+### Code Refactoring
+
+* **ui-registry:** migrate consumers to centralized component registry ([#1872](https://github.com/tambo-ai/tambo/issues/1872)) ([1a74aeb](https://github.com/tambo-ai/tambo/commit/1a74aeb1255e612a651cfa303cd972c7eb8df115))
+
 ## [0.127.0](https://github.com/tambo-ai/tambo/compare/web-v0.126.0...web-v0.127.0) (2026-01-21)
 
 

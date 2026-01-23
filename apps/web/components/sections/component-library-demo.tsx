@@ -2,8 +2,8 @@
 
 import { Section } from "@/components/section";
 import { demoComponents } from "@/components/ui/tambo/demo-config";
-import { MessageThreadFull } from "@/components/ui/tambo/message-thread-full";
 import { TamboEmailButton } from "@/components/ui/tambo/tambo-email-button";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import { env } from "@/lib/env";
 import { TamboProvider } from "@tambo-ai/react";
 import { clsx } from "clsx";

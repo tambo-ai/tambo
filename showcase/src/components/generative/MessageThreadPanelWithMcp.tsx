@@ -1,6 +1,6 @@
 "use client";
 
-import type { messageVariants } from "@/components/tambo/message";
+import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
 import {
   MessageInput,
   MessageInputError,
@@ -8,29 +8,29 @@ import {
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
-} from "@/components/tambo/message-input";
+} from "@tambo-ai/ui-registry/components/message-input";
 import {
   MessageSuggestions,
   MessageSuggestionsList,
   MessageSuggestionsStatus,
-} from "@/components/tambo/message-suggestions";
-import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
+} from "@tambo-ai/ui-registry/components/message-suggestions";
+import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/tambo/thread-content";
+} from "@tambo-ai/ui-registry/components/thread-content";
 import {
   ThreadHistory,
   ThreadHistoryHeader,
   ThreadHistoryList,
   ThreadHistoryNewButton,
   ThreadHistorySearch,
-} from "@/components/tambo/thread-history";
+} from "@tambo-ai/ui-registry/components/thread-history";
 import {
   useCanvasDetection,
   useMergeRefs,
   usePositioning,
-} from "@/lib/thread-hooks";
+} from "@tambo-ai/ui-registry/lib/thread-hooks";
 import { cn } from "@/lib/utils";
 import { useTamboThreadInput } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";

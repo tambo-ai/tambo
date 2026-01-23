@@ -1,7 +1,7 @@
 # Centralize Component Registry
 
 **Date:** 2026-01-14
-**Status:** Draft
+**Status:** Phase 2 Complete (2026-01-21)
 **Type:** Refactor
 
 ## Overview
@@ -337,18 +337,18 @@ The CLI build depends on registry source files. This ensures registry changes tr
 
 ## Acceptance Criteria
 
-- [ ] All shared components exist in `packages/ui-registry/src/components/`
-- [ ] Showcase, Web, Docs import from `@tambo-ai/ui-registry` and build successfully
-- [ ] CLI copies registry at build time; `tambo add <component>` works
-- [ ] Old component directories deleted (showcase, web, docs)
-- [ ] `npm run lint && npm run check-types && npm test` all pass
-- [ ] HMR works: edit in `packages/ui-registry/`, change appears in running apps
+- [x] All shared components exist in `packages/ui-registry/src/components/`
+- [x] Showcase, Web, Docs import from `@tambo-ai/ui-registry` and build successfully
+- [x] CLI copies registry at build time; `tambo add <component>` works
+- [x] Old component directories deleted (showcase, web, docs)
+- [x] `npm run lint && npm run check-types && npm test` all pass
+- [x] HMR works: edit in `packages/ui-registry/`, change appears in running apps
 - [ ] `tambo add` resolves and transforms imports, installs component dependencies
 - [ ] `tambo upgrade` works with new structure
 
 ## Implementation Phases
 
-### Phase 1: Create Registry Package + Update CLI
+### Phase 1: Create Registry Package + Update CLI ✅ COMPLETE
 
 1. **Create `packages/ui-registry/`**
    - `package.json` with explicit exports (no wildcards)
@@ -389,7 +389,7 @@ The CLI build depends on registry source files. This ensures registry changes tr
    - Implement runtime import transformation using existing logic, updated for new import patterns
    - Update Turbo config with registry inputs for cache invalidation
 
-### Phase 2: Migrate Remaining Consumers
+### Phase 2: Migrate Remaining Consumers ✅ COMPLETE
 
 1. **Configure each consumer** (showcase, web, docs)
    - Add `"@tambo-ai/ui-registry": "*"` to dependencies
@@ -406,14 +406,16 @@ The CLI build depends on registry source files. This ensures registry changes tr
    - Type checking passes
    - Manual smoke test in each app
 
-4. **Delete old directories** (only after verification)
-   - `showcase/src/components/tambo/`
-   - `apps/web/components/ui/tambo/` (shared components only)
-   - `docs/src/components/tambo/`
-   - `scripts/sync-showcase-components.ts`
-   - Remove `sync:showcase` from turbo.json and package.json
+4. **Delete old directories** (only after verification) ✅ DONE
+   - `showcase/src/components/tambo/` - deleted (kept `message-thread-panel-with-mcp.tsx` as showcase-specific)
+   - `apps/web/components/ui/tambo/` - deleted shared components (kept web-specific: `context-attachment-badge.tsx`, `demo-config.ts`, `edit-with-tambo-button.tsx`, `founder-email-component.tsx`, `message-input-with-interactables.tsx`, `message-thread-full.tsx`, `message-thread-panel.tsx`, `tambo-email-button.tsx`)
+   - `docs/src/components/tambo/` - deleted entirely
+   - `scripts/sync-showcase-components.ts` - deleted
+   - `scripts/README.md` - deleted
+   - Removed `sync:showcase` from turbo.json and package.json
+   - Removed sync trigger from `lint-staged.config.mjs`
 
-### Phase 3: Verification & Cleanup
+### Phase 3: Verification & Cleanup (TO DO)
 
 1. **Integration testing**
    - `tambo add message` in fresh project

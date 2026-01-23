@@ -1,7 +1,7 @@
 "use client";
 
 import { demoComponents } from "@/components/ui/tambo/demo-config";
-import { MessageThreadFull } from "@/components/ui/tambo/message-thread-full";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import { TamboEmailButton } from "@/components/ui/tambo/tambo-email-button";
 import { env } from "@/lib/env";
 import { TamboProvider } from "@tambo-ai/react";

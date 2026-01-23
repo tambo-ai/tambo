@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai-cloud/web",
-  "version": "0.127.0",
+  "version": "0.128.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -45,6 +45,7 @@
     "@t3-oss/env-nextjs": "^0.13.10",
     "@tambo-ai-cloud/db": "*",
     "@tambo-ai/react": "*",
+    "@tambo-ai/ui-registry": "*",
     "@tambo-ai/typescript-sdk": "^0.84.0",
     "@tanstack/react-query": "^5.90.16",
     "@theguild/remark-mermaid": "^0.3.0",
