@@ -192,7 +192,7 @@ export interface TamboTool<
    * This schema is used to validate and parse the parameters before passing
    * them to the tool function.
    */
-  inputSchema: SupportedSchema;
+  inputSchema: SupportedSchema<Params>;
 
   /**
    * The schema for the tool's output/return value. This can be any Standard Schema
@@ -201,7 +201,7 @@ export interface TamboTool<
    * This is used to inform the model about the structure of the tool's return value
    * and is not used for runtime validation at this stage.
    */
-  outputSchema: SupportedSchema;
+  outputSchema: SupportedSchema<Returns>;
 
   /**
    * Optional function to transform the tool's return value into an array of content parts.
@@ -264,6 +264,26 @@ export type TamboToolStandardSchema<
   ) => MaybeAsync<StandardSchemaV1.InferOutput<Output>>;
   inputSchema: Input;
   outputSchema: Output;
+};
+
+/**
+ * If you're seeing this type, it means that you are using a deprecated and now
+ * unsupported schema type for defining Tambo tools.
+ *
+ * Follow the migration guide to update your tool definitions to use
+ * inputSchema and outputSchema with either Standard Schema compliant validators
+ * (like Zod 3.25.76, Zod 4.x) or raw JSON Schema objects.
+ * @deprecated replace `toolSchema` with `inputSchema` and `outputSchema` instead.
+ * @see {@link https://docs.tambo.ai/api-reference/migration/toolschema}
+ */
+export type UnsupportedSchemaTamboTool = Omit<
+  TamboTool,
+  "tool" | "inputSchema" | "outputSchema"
+> & {
+  toolSchema: any;
+  tool: (...args: any[]) => MaybeAsync<any>;
+  inputSchema: never;
+  outputSchema: never;
 };
 
 export type TamboToolAssociations = Record<string, string[]>;
@@ -354,6 +374,7 @@ export interface RegisterToolFn {
     warnOnOverwrite?: boolean,
   ): void;
   (tool: TamboToolUnknown, warnOnOverwrite?: boolean): void;
+  (tool: UnsupportedSchemaTamboTool, warnOnOverwrite?: boolean): void;
   (tool: TamboTool, warnOnOverwrite?: boolean): void;
 }
 
@@ -411,5 +432,16 @@ export interface DefineToolFn {
    * @returns The registered tool definition
    */
   (tool: TamboToolUnknown): TamboToolUnknown;
+  /**
+   * Deprecated overload for defining a Tambo Tool using unsupported schema types.
+   *
+   * This overload is retained for backward compatibility but should not be used
+   * in new code. Please migrate to using `inputSchema` and `outputSchema`.
+   * @deprecated replace `toolSchema` with `inputSchema` and `outputSchema` instead.
+   * @see {@link https://docs.tambo.ai/api-reference/migration/toolschema}
+   * @param tool The tool definition to register
+   * @returns The registered tool definition
+   */
+  (tool: UnsupportedSchemaTamboTool): UnsupportedSchemaTamboTool;
   (tool: TamboTool): TamboTool;
 }
