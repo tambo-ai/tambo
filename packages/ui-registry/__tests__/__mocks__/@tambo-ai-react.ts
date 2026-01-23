@@ -35,3 +35,10 @@ export const useTamboThreadList: Mock = jest.fn().mockReturnValue({
   error: null,
   refetch: jest.fn(),
 });
+
+export const useTamboSuggestions: Mock = jest.fn().mockReturnValue({
+  suggestions: [],
+  isLoading: false,
+  error: null,
+  refetch: jest.fn(),
+});
