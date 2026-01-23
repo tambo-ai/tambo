@@ -999,6 +999,8 @@ describe("V1Service", () => {
             state: { loading: true },
           }),
         ).rejects.toThrow("Component comp_nonexistent not found");
+
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
       });
 
       it("should update state with full replacement", async () => {
@@ -1032,6 +1034,7 @@ describe("V1Service", () => {
             componentState: { loading: true, rows: [{ id: 1 }] },
           },
         );
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
       });
 
       it("should update state with JSON Patch", async () => {
@@ -1067,6 +1070,7 @@ describe("V1Service", () => {
         });
         expect(mockDb.select).toHaveBeenCalled();
         expect(mockOperations.updateMessage).toHaveBeenCalled();
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
       });
 
       it("should throw BadRequestException for invalid JSON Patch", async () => {
@@ -1086,6 +1090,8 @@ describe("V1Service", () => {
             patch: [{ op: "replace", path: "/nonexistent", value: true }],
           }),
         ).rejects.toThrow(BadRequestException);
+
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
       });
 
       it("should throw BadRequestException when neither state nor patch provided", async () => {
@@ -1189,6 +1195,7 @@ describe("V1Service", () => {
         );
 
         expect(result.state).toEqual({ loading: true });
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
       });
     });
   });
