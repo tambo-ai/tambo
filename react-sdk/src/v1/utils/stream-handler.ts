@@ -6,7 +6,7 @@
  * so this module just adds optional debug logging.
  */
 
-import type { RunRunResponse } from "@tambo-ai/typescript-sdk/resources/threads/runs";
+import type { BaseEvent } from "@ag-ui/core";
 
 /**
  * Options for stream handling.
@@ -20,24 +20,24 @@ export interface StreamHandlerOptions {
 }
 
 /**
- * Handle an event stream from the TypeScript SDK and yield AG-UI-compatible events.
+ * Handle an event stream from the TypeScript SDK and yield AG-UI BaseEvent types.
  *
- * The TypeScript SDK's client.threads.runs.run() returns an async iterable
- * that yields RunRunResponse events (with type: string). This function wraps it
- * to add optional debug logging.
+ * The TypeScript SDK's client.threads.runs.run() and client.threads.runs.create()
+ * return async iterables that yield events compatible with AG-UI's BaseEvent.
+ * This function wraps the stream to add optional debug logging and ensures
+ * proper typing.
  *
- * Note: RunRunResponse events have `type: string` rather than the AG-UI
- * `type: EventType` enum, but they contain the same event type values and
- * are compatible with the AG-UI event system.
+ * Note: SDK events have `type: string` rather than `type: EventType` enum,
+ * but the values are compatible with AG-UI event types.
  * @param stream - Async iterable of events from SDK
  * @param options - Optional configuration for stream handling
- * @returns Async iterable of AG-UI-compatible events
+ * @yields {BaseEvent} AG-UI BaseEvent types from the stream
+ * @returns Async iterable of AG-UI BaseEvent types
  * @example
  * ```typescript
- * const streamPromise = client.threads.runs.run(threadId, {
+ * const stream = await client.threads.runs.run(threadId, {
  *   message: { role: "user", content: [{ type: "text", text: "hello" }] },
  * });
- * const stream = await streamPromise;
  *
  * for await (const event of handleEventStream(stream, { debug: true })) {
  *   dispatch({ type: 'EVENT', event }); // Send to reducer
@@ -45,9 +45,9 @@ export interface StreamHandlerOptions {
  * ```
  */
 export async function* handleEventStream(
-  stream: AsyncIterable<RunRunResponse>,
+  stream: AsyncIterable<unknown>,
   options?: StreamHandlerOptions,
-): AsyncIterable<RunRunResponse> {
+): AsyncIterable<BaseEvent> {
   const { debug = false } = options ?? {};
 
   for await (const event of stream) {
@@ -56,6 +56,7 @@ export async function* handleEventStream(
       console.log("[StreamHandler] Event:", event);
     }
 
-    yield event;
+    // SDK events are compatible with AG-UI BaseEvent
+    yield event as BaseEvent;
   }
 }

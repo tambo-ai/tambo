@@ -20,6 +20,7 @@ import React, {
 } from "react";
 import {
   streamReducer,
+  createInitialThreadState,
   type StreamState,
   type StreamAction,
 } from "../utils/event-accumulator";
@@ -72,22 +73,33 @@ export interface TamboV1StreamProviderProps {
 function createInitialState(props: TamboV1StreamProviderProps): StreamState {
   const { initialThread, threadId, projectId } = props;
 
-  // Use provided thread or create default
-  const thread: TamboV1Thread = {
-    id: threadId ?? initialThread?.id ?? "",
-    projectId: projectId ?? initialThread?.projectId ?? "",
-    title: initialThread?.title,
-    messages: initialThread?.messages ?? [],
-    status: initialThread?.status ?? "idle",
-    metadata: initialThread?.metadata,
-    createdAt: initialThread?.createdAt ?? new Date().toISOString(),
-    updatedAt: initialThread?.updatedAt ?? new Date().toISOString(),
-  };
+  // Initialize with empty threadMap
+  const threadMap: Record<
+    string,
+    ReturnType<typeof createInitialThreadState>
+  > = {};
+
+  // If thread info is provided, initialize that thread
+  if (threadId && projectId) {
+    // Create initial thread state
+    const threadState = createInitialThreadState(threadId, projectId);
+
+    // If initial thread data provided, merge it in
+    if (initialThread) {
+      threadState.thread = {
+        ...threadState.thread,
+        ...initialThread,
+        id: threadId, // Always use the provided threadId
+        projectId, // Always use the provided projectId
+      };
+    }
+
+    threadMap[threadId] = threadState;
+  }
 
   return {
-    thread,
-    streaming: { status: "idle" },
-    accumulatingToolArgs: new Map(),
+    threadMap,
+    currentThreadId: threadId ?? null,
   };
 }
 

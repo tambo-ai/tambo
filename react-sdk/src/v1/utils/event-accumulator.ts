@@ -3,43 +3,32 @@
  *
  * Implements a reducer that transforms AG-UI event streams into React state.
  * Used with useReducer to accumulate events into thread state.
- *
- * Note: The TypeScript SDK returns events with type: string rather than
- * the AG-UI EventType enum, but the values are compatible. This module
- * handles events from the SDK using the StreamEvent type.
  */
 
 import type {
   BaseEvent,
-  RunStartedEvent,
-  RunFinishedEvent,
   RunErrorEvent,
-  TextMessageStartEvent,
+  RunFinishedEvent,
+  RunStartedEvent,
   TextMessageContentEvent,
   TextMessageEndEvent,
-  ToolCallStartEvent,
+  TextMessageStartEvent,
   ToolCallArgsEvent,
   ToolCallEndEvent,
   ToolCallResultEvent,
+  ToolCallStartEvent,
 } from "@ag-ui/core";
 import { EventType } from "@ag-ui/core";
-import type { TamboV1Thread, StreamingState } from "../types/thread";
-import type { TamboV1Message, Content } from "../types/message";
 import type {
-  ComponentStartEvent,
-  ComponentPropsDeltaEvent,
-  ComponentStateDeltaEvent,
   ComponentEndEvent,
+  ComponentPropsDeltaEvent,
+  ComponentStartEvent,
+  ComponentStateDeltaEvent,
   RunAwaitingInputEvent,
 } from "../types/event";
+import type { Content, TamboV1Message } from "../types/message";
+import type { StreamingState, TamboV1Thread } from "../types/thread";
 import { applyJsonPatch } from "./json-patch";
-
-/**
- * Stream event type that's compatible with SDK's RunRunResponse.
- * The SDK returns events with type: string instead of EventType enum,
- * but the actual event objects match AG-UI event structures.
- */
-export type StreamEvent = Omit<BaseEvent, "type"> & { type: string };
 
 /**
  * Error thrown when an unreachable case is reached in a switch statement.
@@ -53,10 +42,10 @@ export class UnreachableCaseError extends Error {
 }
 
 /**
- * State managed by the stream reducer.
- * Combines thread data with streaming status.
+ * Per-thread state managed by the stream reducer.
+ * Tracks thread data, streaming status, and accumulating data.
  */
-export interface StreamState {
+export interface ThreadState {
   thread: TamboV1Thread;
   streaming: StreamingState;
   /**
@@ -67,11 +56,29 @@ export interface StreamState {
 }
 
 /**
+ * State managed by the stream reducer.
+ * Maintains a map of all threads being tracked.
+ */
+export interface StreamState {
+  /**
+   * Map of thread ID to thread state
+   */
+  threadMap: Record<string, ThreadState>;
+
+  /**
+   * Current active thread ID (for UI context)
+   */
+  currentThreadId: string | null;
+}
+
+/**
  * Action type for the stream reducer.
+ * Includes threadId to ensure events update the correct thread.
  */
 export interface StreamAction {
   type: "EVENT";
-  event: StreamEvent;
+  event: BaseEvent;
+  threadId: string;
 }
 
 /**
@@ -82,15 +89,15 @@ const initialStreamingState: StreamingState = {
 };
 
 /**
- * Create initial state for a new thread.
+ * Create initial thread state for a new thread.
  * @param threadId - Unique thread identifier
  * @param projectId - Project ID this thread belongs to
- * @returns Initial stream state
+ * @returns Initial thread state
  */
-export function createInitialState(
+export function createInitialThreadState(
   threadId: string,
   projectId: string,
-): StreamState {
+): ThreadState {
   const now = new Date().toISOString();
   return {
     thread: {
@@ -107,55 +114,122 @@ export function createInitialState(
 }
 
 /**
+ * Create initial stream state with empty threadMap.
+ * @returns Initial stream state
+ */
+export function createInitialState(): StreamState {
+  return {
+    threadMap: {},
+    currentThreadId: null,
+  };
+}
+
+/**
  * Stream reducer that accumulates events into thread state.
  *
  * This reducer handles all AG-UI events and Tambo custom events,
- * transforming them into immutable state updates.
+ * transforming them into immutable state updates per thread.
  * @param state - Current stream state
- * @param action - Action containing the event to process
+ * @param action - Action containing the event and threadId to process
  * @returns Updated stream state
  */
 export function streamReducer(
   state: StreamState,
   action: StreamAction,
 ): StreamState {
-  const { event } = action;
+  const { event, threadId } = action;
 
-  // Cast event.type to EventType for switch statement
-  // SDK returns type as string, but values match EventType enum
-  switch (event.type as EventType) {
+  // Get the current thread state (or undefined if thread doesn't exist yet)
+  const threadState = state.threadMap[threadId];
+
+  // If thread doesn't exist, we need to create it first
+  // This can happen when events arrive before thread initialization
+  if (!threadState) {
+    // For now, we'll skip the event if the thread doesn't exist
+    // The provider should initialize threads before dispatching events
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `[StreamReducer] Received event for unknown thread: ${threadId}`,
+      );
+    }
+    return state;
+  }
+
+  // Process the event for this specific thread
+  let updatedThreadState: ThreadState;
+
+  // Switch on event.type (string) - values match EventType enum
+  switch (event.type) {
     case EventType.RUN_STARTED:
-      return handleRunStarted(state, event as RunStartedEvent);
+      updatedThreadState = handleRunStarted(
+        threadState,
+        event as RunStartedEvent,
+      );
+      break;
 
     case EventType.RUN_FINISHED:
-      return handleRunFinished(state, event as RunFinishedEvent);
+      updatedThreadState = handleRunFinished(
+        threadState,
+        event as RunFinishedEvent,
+      );
+      break;
 
     case EventType.RUN_ERROR:
-      return handleRunError(state, event as RunErrorEvent);
+      updatedThreadState = handleRunError(threadState, event as RunErrorEvent);
+      break;
 
     case EventType.TEXT_MESSAGE_START:
-      return handleTextMessageStart(state, event as TextMessageStartEvent);
+      updatedThreadState = handleTextMessageStart(
+        threadState,
+        event as TextMessageStartEvent,
+      );
+      break;
 
     case EventType.TEXT_MESSAGE_CONTENT:
-      return handleTextMessageContent(state, event as TextMessageContentEvent);
+      updatedThreadState = handleTextMessageContent(
+        threadState,
+        event as TextMessageContentEvent,
+      );
+      break;
 
     case EventType.TEXT_MESSAGE_END:
-      return handleTextMessageEnd(state, event as TextMessageEndEvent);
+      updatedThreadState = handleTextMessageEnd(
+        threadState,
+        event as TextMessageEndEvent,
+      );
+      break;
 
     case EventType.TOOL_CALL_START:
-      return handleToolCallStart(state, event as ToolCallStartEvent);
+      updatedThreadState = handleToolCallStart(
+        threadState,
+        event as ToolCallStartEvent,
+      );
+      break;
 
     case EventType.TOOL_CALL_ARGS:
-      return handleToolCallArgs(state, event as ToolCallArgsEvent);
+      updatedThreadState = handleToolCallArgs(
+        threadState,
+        event as ToolCallArgsEvent,
+      );
+      break;
 
     case EventType.TOOL_CALL_END:
-      return handleToolCallEnd(state, event as ToolCallEndEvent);
+      updatedThreadState = handleToolCallEnd(
+        threadState,
+        event as ToolCallEndEvent,
+      );
+      break;
 
     case EventType.TOOL_CALL_RESULT:
-      return handleToolCallResult(state, event as ToolCallResultEvent);
+      updatedThreadState = handleToolCallResult(
+        threadState,
+        event as ToolCallResultEvent,
+      );
+      break;
 
     case EventType.CUSTOM:
-      return handleCustomEvent(state, event);
+      updatedThreadState = handleCustomEvent(threadState, event);
+      break;
 
     // Unsupported AG-UI event types - may be added in future phases
     case EventType.TEXT_MESSAGE_CHUNK:
@@ -184,22 +258,31 @@ export function streamReducer(
       }
       return state;
   }
+
+  // Return updated state with modified thread
+  return {
+    ...state,
+    threadMap: {
+      ...state.threadMap,
+      [threadId]: updatedThreadState,
+    },
+  };
 }
 
 /**
  * Handle RUN_STARTED event.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Run started event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleRunStarted(
-  state: StreamState,
+  threadState: ThreadState,
   event: RunStartedEvent,
-): StreamState {
+): ThreadState {
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       status: "streaming",
       updatedAt: new Date().toISOString(),
     },
@@ -213,23 +296,23 @@ function handleRunStarted(
 
 /**
  * Handle RUN_FINISHED event.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param _event - Run finished event (unused)
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleRunFinished(
-  state: StreamState,
+  threadState: ThreadState,
   _event: RunFinishedEvent,
-): StreamState {
+): ThreadState {
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       status: "complete",
       updatedAt: new Date().toISOString(),
     },
     streaming: {
-      ...state.streaming,
+      ...threadState.streaming,
       status: "complete",
     },
   };
@@ -237,20 +320,23 @@ function handleRunFinished(
 
 /**
  * Handle RUN_ERROR event.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Run error event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
-function handleRunError(state: StreamState, event: RunErrorEvent): StreamState {
+function handleRunError(
+  threadState: ThreadState,
+  event: RunErrorEvent,
+): ThreadState {
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       status: "error",
       updatedAt: new Date().toISOString(),
     },
     streaming: {
-      ...state.streaming,
+      ...threadState.streaming,
       status: "error",
       error: {
         message: event.message,
@@ -263,14 +349,14 @@ function handleRunError(state: StreamState, event: RunErrorEvent): StreamState {
 /**
  * Handle TEXT_MESSAGE_START event.
  * Creates a new message in the thread.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Text message start event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleTextMessageStart(
-  state: StreamState,
+  threadState: ThreadState,
   event: TextMessageStartEvent,
-): StreamState {
+): ThreadState {
   const newMessage: TamboV1Message = {
     id: event.messageId,
     role: event.role === "user" ? "user" : "assistant",
@@ -279,14 +365,14 @@ function handleTextMessageStart(
   };
 
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
-      messages: [...state.thread.messages, newMessage],
+      ...threadState.thread,
+      messages: [...threadState.thread.messages, newMessage],
       updatedAt: new Date().toISOString(),
     },
     streaming: {
-      ...state.streaming,
+      ...threadState.streaming,
       messageId: event.messageId,
     },
   };
@@ -295,16 +381,16 @@ function handleTextMessageStart(
 /**
  * Handle TEXT_MESSAGE_CONTENT event.
  * Appends text content to the current message.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Text message content event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleTextMessageContent(
-  state: StreamState,
+  threadState: ThreadState,
   event: TextMessageContentEvent,
-): StreamState {
+): ThreadState {
   const messageId = event.messageId;
-  const messages = state.thread.messages;
+  const messages = threadState.thread.messages;
 
   // Find the message to update
   const messageIndex = messages.findIndex((m) => m.id === messageId);
@@ -351,9 +437,9 @@ function handleTextMessageContent(
   ];
 
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     },
@@ -363,31 +449,31 @@ function handleTextMessageContent(
 /**
  * Handle TEXT_MESSAGE_END event.
  * Marks the message as complete.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param _event - Text message end event (unused)
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleTextMessageEnd(
-  state: StreamState,
+  threadState: ThreadState,
   _event: TextMessageEndEvent,
-): StreamState {
+): ThreadState {
   // For now, this doesn't change state, but could be used for message finalization
-  return state;
+  return threadState;
 }
 
 /**
  * Handle TOOL_CALL_START event.
  * Adds a tool use content block to the current message.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Tool call start event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleToolCallStart(
-  state: StreamState,
+  threadState: ThreadState,
   event: ToolCallStartEvent,
-): StreamState {
+): ThreadState {
   const messageId = event.parentMessageId;
-  const messages = state.thread.messages;
+  const messages = threadState.thread.messages;
 
   // If no parent message ID, use the last message
   const messageIndex = messageId
@@ -422,9 +508,9 @@ function handleToolCallStart(
   ];
 
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     },
@@ -435,24 +521,24 @@ function handleToolCallStart(
  * Handle TOOL_CALL_ARGS event.
  * Accumulates JSON string deltas for tool call arguments.
  * The accumulated string will be parsed at TOOL_CALL_END.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Tool call args event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleToolCallArgs(
-  state: StreamState,
+  threadState: ThreadState,
   event: ToolCallArgsEvent,
-): StreamState {
+): ThreadState {
   const toolCallId = event.toolCallId;
 
   // Accumulate the JSON string delta
-  const accumulatedArgs = state.accumulatingToolArgs;
+  const accumulatedArgs = threadState.accumulatingToolArgs;
   const existingArgs = accumulatedArgs.get(toolCallId) ?? "";
   const newAccumulatedArgs = new Map(accumulatedArgs);
   newAccumulatedArgs.set(toolCallId, existingArgs + event.delta);
 
   return {
-    ...state,
+    ...threadState,
     accumulatingToolArgs: newAccumulatedArgs,
   };
 }
@@ -460,22 +546,22 @@ function handleToolCallArgs(
 /**
  * Handle TOOL_CALL_END event.
  * Parses the accumulated JSON arguments and updates the tool_use content block.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Tool call end event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleToolCallEnd(
-  state: StreamState,
+  threadState: ThreadState,
   event: ToolCallEndEvent,
-): StreamState {
+): ThreadState {
   const toolCallId = event.toolCallId;
-  const messages = state.thread.messages;
+  const messages = threadState.thread.messages;
 
   // Get accumulated JSON args string
-  const accumulatedJson = state.accumulatingToolArgs.get(toolCallId);
+  const accumulatedJson = threadState.accumulatingToolArgs.get(toolCallId);
   if (!accumulatedJson) {
     // No args accumulated - tool call has empty input
-    return state;
+    return threadState;
   }
 
   // Parse the accumulated JSON
@@ -541,13 +627,13 @@ function handleToolCallEnd(
   ];
 
   // Clear accumulated args for this tool call
-  const newAccumulatingToolArgs = new Map(state.accumulatingToolArgs);
+  const newAccumulatingToolArgs = new Map(threadState.accumulatingToolArgs);
   newAccumulatingToolArgs.delete(toolCallId);
 
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     },
@@ -558,16 +644,16 @@ function handleToolCallEnd(
 /**
  * Handle TOOL_CALL_RESULT event.
  * Adds tool result to the message.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Tool call result event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleToolCallResult(
-  state: StreamState,
+  threadState: ThreadState,
   event: ToolCallResultEvent,
-): StreamState {
+): ThreadState {
   const messageId = event.messageId;
-  const messages = state.thread.messages;
+  const messages = threadState.thread.messages;
 
   // Find the message
   const messageIndex = messages.findIndex((m) => m.id === messageId);
@@ -603,9 +689,9 @@ function handleToolCallResult(
   ];
 
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     },
@@ -614,17 +700,16 @@ function handleToolCallResult(
 
 /**
  * Handle custom events (Tambo-specific).
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Base event (must be CUSTOM type)
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleCustomEvent(
-  state: StreamState,
-  event: StreamEvent,
-): StreamState {
-  // Cast type to EventType for comparison
-  if ((event.type as EventType) !== EventType.CUSTOM) {
-    return state;
+  threadState: ThreadState,
+  event: BaseEvent,
+): ThreadState {
+  if (event.type !== EventType.CUSTOM) {
+    return threadState;
   }
 
   const customEvent = event as { type: string; name: string; value: unknown };
@@ -632,52 +717,52 @@ function handleCustomEvent(
   switch (customEvent.name) {
     case "tambo.component.start":
       return handleComponentStart(
-        state,
+        threadState,
         customEvent as unknown as ComponentStartEvent,
       );
 
     case "tambo.component.props_delta":
       return handleComponentPropsDelta(
-        state,
+        threadState,
         customEvent as unknown as ComponentPropsDeltaEvent,
       );
 
     case "tambo.component.state_delta":
       return handleComponentStateDelta(
-        state,
+        threadState,
         customEvent as unknown as ComponentStateDeltaEvent,
       );
 
     case "tambo.component.end":
       return handleComponentEnd(
-        state,
+        threadState,
         customEvent as unknown as ComponentEndEvent,
       );
 
     case "tambo.run.awaiting_input":
       return handleRunAwaitingInput(
-        state,
+        threadState,
         customEvent as unknown as RunAwaitingInputEvent,
       );
 
     default:
-      return state;
+      return threadState;
   }
 }
 
 /**
  * Handle tambo.component.start event.
  * Adds a component content block to the message.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Component start event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleComponentStart(
-  state: StreamState,
+  threadState: ThreadState,
   event: ComponentStartEvent,
-): StreamState {
+): ThreadState {
   const messageId = event.value.messageId;
-  const messages = state.thread.messages;
+  const messages = threadState.thread.messages;
 
   // Find the message
   const messageIndex = messages.findIndex((m) => m.id === messageId);
@@ -709,9 +794,9 @@ function handleComponentStart(
   ];
 
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     },
@@ -721,17 +806,17 @@ function handleComponentStart(
 /**
  * Handle tambo.component.props_delta event.
  * Applies JSON Patch to component props.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Component props delta event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleComponentPropsDelta(
-  state: StreamState,
+  threadState: ThreadState,
   event: ComponentPropsDeltaEvent,
-): StreamState {
+): ThreadState {
   const componentId = event.value.componentId;
   const operations = event.value.operations;
-  const messages = state.thread.messages;
+  const messages = threadState.thread.messages;
 
   // Find the message containing this component
   let messageIndex = -1;
@@ -791,9 +876,9 @@ function handleComponentPropsDelta(
   ];
 
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     },
@@ -803,17 +888,17 @@ function handleComponentPropsDelta(
 /**
  * Handle tambo.component.state_delta event.
  * Applies JSON Patch to component state.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param event - Component state delta event
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleComponentStateDelta(
-  state: StreamState,
+  threadState: ThreadState,
   event: ComponentStateDeltaEvent,
-): StreamState {
+): ThreadState {
   const componentId = event.value.componentId;
   const operations = event.value.operations;
-  const messages = state.thread.messages;
+  const messages = threadState.thread.messages;
 
   // Find the message containing this component
   let messageIndex = -1;
@@ -872,9 +957,9 @@ function handleComponentStateDelta(
   ];
 
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     },
@@ -884,38 +969,38 @@ function handleComponentStateDelta(
 /**
  * Handle tambo.component.end event.
  * Marks component as complete.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param _event - Component end event (unused)
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleComponentEnd(
-  state: StreamState,
+  threadState: ThreadState,
   _event: ComponentEndEvent,
-): StreamState {
+): ThreadState {
   // For now, this doesn't change state
-  return state;
+  return threadState;
 }
 
 /**
  * Handle tambo.run.awaiting_input event.
  * Sets thread status to waiting for client-side tool execution.
- * @param state - Current stream state
+ * @param threadState - Current thread state
  * @param _event - Run awaiting input event (unused)
- * @returns Updated stream state
+ * @returns Updated thread state
  */
 function handleRunAwaitingInput(
-  state: StreamState,
+  threadState: ThreadState,
   _event: RunAwaitingInputEvent,
-): StreamState {
+): ThreadState {
   return {
-    ...state,
+    ...threadState,
     thread: {
-      ...state.thread,
+      ...threadState.thread,
       status: "waiting",
       updatedAt: new Date().toISOString(),
     },
     streaming: {
-      ...state.streaming,
+      ...threadState.streaming,
       status: "waiting",
     },
   };

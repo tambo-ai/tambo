@@ -1,7 +1,7 @@
 /**
  * Message and Content Types for v1 API
  *
- * Re-exports message and content types from @tambo-ai/typescript-sdk.
+ * Re-exports message and content types from `@tambo-ai/typescript-sdk`.
  * Messages use Anthropic-style content blocks pattern where a message
  * contains an array of content blocks (text, tool calls, tool results, components).
  */
