@@ -6,6 +6,7 @@
  */
 
 import type { CustomEvent } from "@ag-ui/core";
+import type { Operation } from "fast-json-patch";
 
 type TamboCustomEventEnvelope<TName extends string, TValue> = Omit<
   CustomEvent,
@@ -35,7 +36,7 @@ export type ComponentPropsDeltaEvent = TamboCustomEventEnvelope<
   "tambo.component.props_delta",
   {
     componentId: string;
-    operations: JsonPatchOperation[];
+    operations: Operation[];
   }
 >;
 
@@ -47,7 +48,7 @@ export type ComponentStateDeltaEvent = TamboCustomEventEnvelope<
   "tambo.component.state_delta",
   {
     componentId: string;
-    operations: JsonPatchOperation[];
+    operations: Operation[];
   }
 >;
 
@@ -71,16 +72,6 @@ export type RunAwaitingInputEvent = TamboCustomEventEnvelope<
     pendingToolCallIds: string[];
   }
 >;
-
-/**
- * JSON Patch operation (RFC 6902)
- */
-export interface JsonPatchOperation {
-  op: "add" | "remove" | "replace" | "move" | "copy" | "test";
-  path: string;
-  value?: unknown;
-  from?: string; // For 'move' and 'copy' operations
-}
 
 /**
  * Union type of Tambo-specific custom events

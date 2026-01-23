@@ -6,28 +6,23 @@
  */
 
 import { applyPatch, type Operation } from "fast-json-patch";
-import type { JsonPatchOperation } from "../types/event";
 
 /**
  * Apply JSON Patch operations to an object.
+ *
+ * Returns a new object with patches applied without mutating the original.
  * @param target - The object to patch
  * @param operations - Array of JSON Patch operations
  * @returns New object with patches applied
  */
 export function applyJsonPatch<T extends Record<string, unknown>>(
   target: T,
-  operations: JsonPatchOperation[],
+  operations: Operation[],
 ): T {
-  // fast-json-patch mutates the target, so we clone it first
-  const cloned = structuredClone(target);
-
-  // Convert our operations to fast-json-patch format
-  const patchOperations: Operation[] = operations as unknown as Operation[];
-
-  // Apply the patches
+  // Apply patches with mutate=false so fast-json-patch handles cloning
   const result = applyPatch(
-    cloned,
-    patchOperations,
+    target,
+    operations,
     /* validate */ true,
     /* mutate */ false,
   );
