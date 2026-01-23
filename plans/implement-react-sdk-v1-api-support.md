@@ -698,6 +698,8 @@ Components/tools missing required schemas will be skipped with warnings during c
 
 #### Phase 5: React Query Integration (Est: 2-3 days)
 
+**Status: ✅ COMPLETED**
+
 **Goals:**
 
 - Implement React Query mutations for sending messages
@@ -706,17 +708,17 @@ Components/tools missing required schemas will be skipped with warnings during c
 
 **Tasks:**
 
-- [ ] Create `useTamboV1SendMessage()` mutation hook
-- [ ] Handle streaming response in mutation `onSuccess`
-- [ ] Dispatch AG-UI events to stream context during mutation
-- [ ] Implement optimistic updates for new messages
-- [ ] Create `useTamboV1ThreadList()` query hook
-- [ ] Create `useTamboV1ThreadGet()` query hook
-- [ ] Implement automatic refetch on thread updates
-- [ ] Handle tool execution within mutation (automatic continuation)
-- [ ] Add query invalidation on successful mutations
-- [ ] Write tests for query/mutation flow
-- [ ] Test query caching and stale-while-revalidate behavior
+- [x] Create `useTamboV1SendMessage()` mutation hook - ✅ Implemented with optional threadId
+- [x] Handle streaming response in mutation `onSuccess` - ✅ Query invalidation on completion
+- [x] Dispatch AG-UI events to stream context during mutation - ✅ Events dispatched with threadId
+- [ ] Implement optimistic updates for new messages - Deferred (not required for MVP)
+- [x] Create `useTamboV1ThreadList()` query hook - ✅ Implemented with pagination
+- [x] Create `useTamboV1Thread()` query hook - ✅ Implemented (renamed from Get)
+- [x] Implement automatic refetch on thread updates - ✅ Query invalidation in onSuccess
+- [ ] Handle tool execution within mutation (automatic continuation) - Deferred to Phase 6
+- [x] Add query invalidation on successful mutations - ✅ Invalidates thread queries
+- [ ] Write tests for query/mutation flow - Deferred to Phase 10
+- [ ] Test query caching and stale-while-revalidate behavior - Deferred to Phase 10
 
 **Files:**
 
@@ -789,11 +791,57 @@ export function useTamboV1Thread(threadId: string) {
 
 **Success Criteria:**
 
-- Mutations trigger streaming and update local state
-- Queries provide cached thread data
-- Optimistic updates show immediately
-- Query cache invalidation works correctly
-- Tool execution doesn't block UI
+- [x] Mutations trigger streaming and update local state - ✅ Works for both new and existing threads
+- [x] Queries provide cached thread data - ✅ React Query caching works
+- [ ] Optimistic updates show immediately - Deferred (not required for MVP)
+- [x] Query cache invalidation works correctly - ✅ Invalidates on success
+- [ ] Tool execution doesn't block UI - Deferred to Phase 6
+
+**Actual Implementation:**
+
+Created React Query hooks in v1/hooks/:
+
+- **use-tambo-v1-send-message.ts**: Mutation hook for sending messages
+  - Handles both thread creation (no threadId) and existing threads (with threadId)
+  - Extracts threadId from RUN_STARTED event when creating new threads
+  - Dispatches AG-UI events to stream context with threadId
+  - Invalidates thread queries on success
+  - Returns { threadId } from mutation result
+
+- **use-tambo-v1-thread.ts**: Query hook for fetching single thread
+  - Uses React Query with ["v1-threads", threadId] key
+  - Returns ThreadRetrieveResponse directly from SDK (no transformation)
+  - Stale time: 1s for real-time data
+
+- **use-tambo-v1-thread-list.ts**: Query hook for fetching thread list
+  - Supports pagination via cursor, limit, contextKey
+  - Returns ThreadListResponse directly from SDK
+  - Stale time: 5s for list data
+
+**Post-Phase 5 Refactoring:**
+
+After Phase 5 implementation, additional refactoring was done based on code review:
+
+1. **Multi-Thread Architecture** - Refactored streaming system to support multiple concurrent threads:
+   - Changed StreamState from single `thread` field to `threadMap: Record<string, ThreadState>`
+   - Added `threadId` to StreamAction for proper event routing
+   - Updated all event handlers to work with per-thread state
+   - Stream context now manages multiple threads simultaneously
+
+2. **Type System Simplification** - Removed unnecessary type abstractions:
+   - Removed `StreamEvent` type alias, use `BaseEvent` directly
+   - Use proper AG-UI event types throughout (EventType enum, RunStartedEvent, etc.)
+   - Simplified type checking (removed excessive guards)
+   - Direct SDK type usage in hooks (no transformation layers)
+
+3. **Barrel Export Removal** - Eliminated barrel exports following AGENTS.md guidelines:
+   - Deleted `v1/hooks/index.ts`
+   - Users import directly from hook files
+   - Only exception: package entry points
+
+4. **Documentation Improvements** - Simplified examples:
+   - useTamboV1SendMessage shows single component handling both scenarios
+   - Removed redundant separate examples for with/without threadId
 
 #### Phase 6: Automatic Tool Execution (Est: 2-3 days)
 
