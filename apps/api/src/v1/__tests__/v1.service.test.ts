@@ -1,8 +1,16 @@
-import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import {
   V1RunStatus,
   ContentPartType,
   GenerationStage,
+  MessageRole,
 } from "@tambo-ai-cloud/core";
 import { V1Service } from "../v1.service";
 import {
@@ -25,6 +33,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     updateRunStatus: jest.fn(),
     updateThreadRunStatus: jest.fn(),
     completeRun: jest.fn(),
+    updateMessage: jest.fn(),
   },
   schema: {
     threads: {
@@ -38,6 +47,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
       id: { name: "id" },
       threadId: { name: "threadId" },
       createdAt: { name: "createdAt" },
+      componentState: { name: "componentState" },
     },
     runs: {
       id: { name: "id" },
@@ -66,6 +76,7 @@ type MockDb = {
       findFirst: jest.Mock;
     };
   };
+  select: jest.Mock;
   // Chain mocks for update().set().where().returning()
   update: jest.Mock;
   // Chain mocks for insert().values().returning()
@@ -81,6 +92,13 @@ describe("V1Service", () => {
   let service: V1Service;
   let mockDb: MockDb;
   let mockThreadsService: MockThreadsService;
+  let mockSelectChain: {
+    from: jest.Mock;
+    where: jest.Mock;
+    limit: jest.Mock;
+    for: jest.Mock;
+    execute: jest.Mock;
+  };
 
   const mockThread = {
     id: "thr_123",
@@ -142,13 +160,23 @@ describe("V1Service", () => {
           findFirst: jest.fn(),
         },
       },
+      select: jest.fn(),
       update: createUpdateChain([{ id: "thr_123" }]),
       insert: createInsertChain([{ id: "run_123" }]),
     };
 
+    mockSelectChain = {
+      from: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      for: jest.fn().mockReturnThis(),
+      execute: jest.fn(),
+    };
+
+    mockDb.select.mockReturnValue(mockSelectChain);
+
     mockDb.transaction.mockImplementation(async (handler) => {
-      const txDb = { ...mockDb } as unknown as HydraDatabase;
-      return await handler(txDb);
+      return await handler(mockDb as unknown as HydraDatabase);
     });
 
     mockThreadsService = {
@@ -883,6 +911,375 @@ describe("V1Service", () => {
       expect(mockDb.transaction).toHaveBeenCalledTimes(1);
       expect(mockOperations.releaseRunLockIfCurrent).toHaveBeenCalledTimes(1);
       expect(mockOperations.markRunCancelled).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Component State", () => {
+    const mockMessageWithComponent = {
+      id: "msg_123",
+      threadId: "thr_123",
+      role: MessageRole.Assistant,
+      content: [
+        {
+          type: "component",
+          id: "comp_123",
+          name: "DataTable",
+          props: { title: "Users" },
+        },
+      ],
+      componentState: { loading: false, rows: [] },
+      createdAt: new Date(),
+      toolCallRequest: null,
+      reasoning: null,
+      reasoningDurationMS: null,
+      parentMessageId: null,
+      componentDecision: null,
+      tokenUsage: null,
+      llmModel: null,
+      llmModelLabel: null,
+      mcpToolCallRequest: null,
+      mcpToolResponses: null,
+      finishReason: null,
+      additionalContext: null,
+      error: null,
+      metadata: null,
+      isCancelled: false,
+      llmRunId: null,
+      updatedAt: new Date(),
+      actionType: null,
+      toolCallId: null,
+    };
+
+    describe("updateComponentState", () => {
+      it("should throw NotFoundException when thread not found", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([]);
+
+        await expect(
+          service.updateComponentState("thr_nonexistent", "comp_123", {
+            state: { loading: true },
+          }),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it("should throw ConflictException when thread has active run", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.STREAMING,
+          },
+        ]);
+
+        const promise = service.updateComponentState("thr_123", "comp_123", {
+          state: { loading: true },
+        });
+
+        await expect(promise).rejects.toThrow(ConflictException);
+
+        try {
+          await promise;
+        } catch (error: unknown) {
+          if (error instanceof ConflictException) {
+            const response = error.getResponse() as {
+              detail?: string;
+              type?: string;
+            };
+            expect(response.detail).toContain(
+              "Cannot update component state while a run is active",
+            );
+            expect(response.type).toContain("run_active");
+          }
+        }
+      });
+
+      it("should throw NotFoundException when component not found", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([]);
+
+        await expect(
+          service.updateComponentState("thr_123", "comp_nonexistent", {
+            state: { loading: true },
+          }),
+        ).rejects.toThrow("Component comp_nonexistent not found");
+
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
+      });
+
+      it("should throw HttpException when stored componentState is invalid", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: [],
+          },
+        ]);
+
+        const error = (await service
+          .updateComponentState("thr_123", "comp_123", {
+            state: { loading: true },
+          })
+          .catch((caught) => caught)) as HttpException | unknown;
+
+        expect(error).toBeInstanceOf(HttpException);
+
+        if (error instanceof HttpException) {
+          expect(error.getStatus()).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+
+          const response = error.getResponse() as {
+            detail?: string;
+            type?: string;
+          };
+
+          expect(response.detail).toContain(
+            "Stored component state is invalid",
+          );
+          expect(response.type).toContain("internal_error");
+        }
+
+        expect(mockOperations.updateMessage).not.toHaveBeenCalled();
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
+      });
+
+      it("should update state with full replacement", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
+        mockOperations.updateMessage.mockResolvedValue(
+          mockMessageWithComponent as any,
+        );
+
+        const result = await service.updateComponentState(
+          "thr_123",
+          "comp_123",
+          {
+            state: { loading: true, rows: [{ id: 1 }] },
+          },
+        );
+
+        expect(result.state).toEqual({ loading: true, rows: [{ id: 1 }] });
+        expect(mockOperations.updateMessage).toHaveBeenCalledWith(
+          mockDb,
+          "msg_123",
+          {
+            componentState: { loading: true, rows: [{ id: 1 }] },
+          },
+        );
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
+      });
+
+      it("should update state with JSON Patch", async () => {
+        // Mock message with initial state: { loading: false, rows: [] }
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
+        mockOperations.updateMessage.mockResolvedValue(
+          mockMessageWithComponent as any,
+        );
+
+        const result = await service.updateComponentState(
+          "thr_123",
+          "comp_123",
+          {
+            patch: [
+              { op: "replace", path: "/loading", value: true },
+              { op: "add", path: "/rows/-", value: { id: 1, name: "Alice" } },
+            ],
+          },
+        );
+
+        expect(result.state).toEqual({
+          loading: true,
+          rows: [{ id: 1, name: "Alice" }],
+        });
+        expect(mockDb.select).toHaveBeenCalled();
+        expect(mockOperations.updateMessage).toHaveBeenCalled();
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
+      });
+
+      it("should throw BadRequestException for invalid JSON Patch", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
+
+        await expect(
+          service.updateComponentState("thr_123", "comp_123", {
+            patch: [{ op: "replace", path: "/nonexistent", value: true }],
+          }),
+        ).rejects.toThrow(BadRequestException);
+
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
+      });
+
+      it("should throw BadRequestException when neither state nor patch provided", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        const error = (await service
+          .updateComponentState("thr_123", "comp_123", {})
+          .catch((caught) => caught)) as BadRequestException | unknown;
+
+        expect(error).toBeInstanceOf(BadRequestException);
+
+        if (error instanceof BadRequestException) {
+          const response = error.getResponse() as {
+            detail?: string;
+            type?: string;
+          };
+          expect(response.detail).toContain("Either 'state' or 'patch'");
+          expect(response.type).toContain("validation_error");
+        }
+      });
+
+      it("should throw BadRequestException when both state and patch are provided", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        const error = (await service
+          .updateComponentState("thr_123", "comp_123", {
+            state: { loading: true },
+            patch: [{ op: "replace", path: "/loading", value: false }],
+          })
+          .catch((caught) => caught)) as BadRequestException | unknown;
+
+        expect(error).toBeInstanceOf(BadRequestException);
+
+        if (error instanceof BadRequestException) {
+          const response = error.getResponse() as {
+            detail?: string;
+            type?: string;
+          };
+          expect(response.detail).toContain("not both");
+          expect(response.type).toContain("validation_error");
+        }
+
+        expect(mockOperations.updateMessage).not.toHaveBeenCalled();
+      });
+
+      it("should throw BadRequestException when patch is an empty array", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        const error = (await service
+          .updateComponentState("thr_123", "comp_123", { patch: [] })
+          .catch((caught) => caught)) as BadRequestException | unknown;
+
+        expect(error).toBeInstanceOf(BadRequestException);
+
+        if (error instanceof BadRequestException) {
+          const response = error.getResponse() as {
+            detail?: string;
+            type?: string;
+          };
+          expect(response.detail).toContain("must not be empty");
+          expect(response.type).toContain("validation_error");
+        }
+
+        expect(mockOperations.updateMessage).not.toHaveBeenCalled();
+      });
+
+      it("should handle empty state in component", async () => {
+        const messageWithNoState = {
+          ...mockMessageWithComponent,
+          componentState: null,
+        };
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: null,
+          },
+        ]);
+        mockOperations.updateMessage.mockResolvedValue(
+          messageWithNoState as any,
+        );
+
+        const result = await service.updateComponentState(
+          "thr_123",
+          "comp_123",
+          {
+            state: { loading: true },
+          },
+        );
+
+        expect(result.state).toEqual({ loading: true });
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
+      });
     });
   });
 });
