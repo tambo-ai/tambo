@@ -161,10 +161,10 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 4. Copy Client ID and Secret to `docker.env`
 
 ## Production Deployment
+### Self-hosting with npm (Convenience Scripts)
 
-### Self-Hosting with npm
-
-You can now manage the Tambo self-hosted stack using npm scripts:
+These npm scripts are convenience aliases for the Docker-based self-hosted
+workflow described above:
 
 ```bash
 npm run tambo:setup   # Initial setup
