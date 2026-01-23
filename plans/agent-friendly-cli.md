@@ -8,7 +8,7 @@ The Tambo CLI is built for humans: interactive prompts, spinners, colored output
 
 ### Goal
 
-Make the Tambo CLI non-interactive by default (except auth) - commands return helpful guidance instead of hanging when they can't prompt for input.
+Make the Tambo CLI gracefully handle non-interactive environments (CI, piped output, AI agents) - commands return helpful guidance instead of hanging when they can't prompt for input. Interactive mode remains the default for humans in terminals.
 
 ### Key Design Decisions
 
@@ -96,37 +96,45 @@ export function isTTY(options: { stream?: NodeJS.WriteStream } = {}): boolean {
 }
 ```
 
-**Detection precedence (first match wins):**
+**Detection precedence (first match wins, order matters):**
 
-| Check                    | Result          | Why                               |
-| ------------------------ | --------------- | --------------------------------- |
-| `stream.isTTY === false` | Non-interactive | Output is piped or redirected     |
-| `TERM=dumb`              | Non-interactive | Terminal doesn't support features |
-| `FORCE_INTERACTIVE=1`    | **Interactive** | Testing override                  |
-| `CI` env var set         | Non-interactive | Running in CI pipeline            |
-| `GITHUB_ACTIONS=true`    | Non-interactive | Running in GitHub Actions         |
-| Default                  | Interactive     | Real terminal with a human        |
+| #   | Check                    | Result          | Why                                         |
+| --- | ------------------------ | --------------- | ------------------------------------------- |
+| 1   | `stream.isTTY === false` | Non-interactive | Output is piped or redirected               |
+| 2   | `TERM=dumb`              | Non-interactive | Terminal doesn't support features           |
+| 3   | `FORCE_INTERACTIVE=1`    | **Interactive** | Testing override (takes precedence over CI) |
+| 4   | `CI` env var set         | Non-interactive | Running in CI pipeline                      |
+| 5   | `GITHUB_ACTIONS=true`    | Non-interactive | Running in GitHub Actions                   |
+| 6   | Default                  | Interactive     | Real terminal with a human                  |
+
+**Note:** `FORCE_INTERACTIVE=1` is checked before `CI` so tests can force interactive mode even in CI environments.
 
 ### 1.3 Command Pattern
 
-Commands check if they can prompt, and return guidance if not:
+Commands check if they can prompt, and throw a `GuidanceError` if not. The CLI entry point catches these and handles exit codes, keeping handlers testable:
 
 ```typescript
 import { isTTY } from "./utils/tty.js";
 
+// Error type for non-interactive guidance (testable - no process.exit in handlers)
+class GuidanceError extends Error {
+  constructor(
+    message: string,
+    public guidance: string[],
+  ) {
+    super(message);
+    this.name = "GuidanceError";
+  }
+}
+
 async function handleInit(options: InitOptions) {
   // Check if we can prompt the user
   if (!options.projectName && !isTTY()) {
-    // Can't prompt - return guidance instead of hanging
-    console.error("Error: Project name required.");
-    console.error("");
-    console.error("Run one of:");
-    console.error("  tambo init --project-name=myapp    # Create new project");
-    console.error(
-      "  tambo init --project-id=abc123     # Use existing project",
-    );
-    process.exit(2); // Exit code 2 = user action required
-    return;
+    // Can't prompt - throw guidance error (CLI entry point handles exit code)
+    throw new GuidanceError("Project name required", [
+      "tambo init --project-name=myapp    # Create new project",
+      "tambo init --project-id=abc123     # Use existing project",
+    ]);
   }
 
   // Safe to prompt - we're in a real terminal
@@ -137,6 +145,21 @@ async function handleInit(options: InitOptions) {
     ]));
 
   // ... rest of init ...
+}
+
+// CLI entry point (cli.ts) - handles errors and exit codes
+try {
+  await runCommand(args);
+  process.exit(0);
+} catch (err) {
+  if (err instanceof GuidanceError) {
+    console.error(`Error: ${err.message}`);
+    console.error("\nRun one of:");
+    err.guidance.forEach((g) => console.error(`  ${g}`));
+    process.exit(2); // User action required
+  }
+  console.error(err.message);
+  process.exit(1); // General error
 }
 ```
 
@@ -440,6 +463,7 @@ function ChatUI() {
 const { generationStage, isLoading } = useTamboThread();
 
 return (
+
 <div>
 {isLoading && <LoadingIndicator stage={generationStage} />}
 {/_ ... _/}
@@ -458,6 +482,7 @@ return <Skeleton className="h-8 w-48" />;
 }
 
 return (
+
 <div>
 <h2>{title}</h2>
 <ul>
@@ -567,6 +592,7 @@ fontSize: z.number().min(12).max(24).describe("Font size in pixels")
 
 function SettingsPanel({ theme, fontSize, onThemeChange }: Props) {
 return (
+
 <div>
 <select value={theme} onChange={e => onThemeChange(e.target.value)}>
 <option value="light">Light</option>
@@ -883,13 +909,13 @@ jobs:
           set -euo pipefail
 
           # list should complete without hanging
-          timeout 30 ./cli/dist/cli.js list
+          timeout 30 node ./cli/dist/cli.js list
 
           # auth status should complete
-          timeout 30 ./cli/dist/cli.js auth status
+          timeout 30 node ./cli/dist/cli.js auth status
 
           # init without args should return guidance (exit 2)
-          timeout 30 ./cli/dist/cli.js init || [ $? -eq 2 ]
+          timeout 30 node ./cli/dist/cli.js init; code=$?; [ $code -eq 2 ]
 ```
 
 ---

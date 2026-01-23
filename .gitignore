@@ -54,5 +54,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 react-sdk/dist/**
-
-/test
