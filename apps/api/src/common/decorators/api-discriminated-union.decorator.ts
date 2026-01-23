@@ -6,7 +6,7 @@ import {
   getSchemaPath,
 } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { ValidateNested } from "class-validator";
+import { IsArray, ValidateNested } from "class-validator";
 
 /**
  * Type mapping for discriminated union members.
@@ -60,7 +60,7 @@ export interface ApiDiscriminatedUnionOptions {
  * - @ApiProperty with oneOf/discriminator
  * - @ApiExtraModels
  * - @Type with discriminator
- * - @ValidateNested
+ * - @IsArray / @ValidateNested
  */
 export function ApiDiscriminatedUnion(
   options: ApiDiscriminatedUnionOptions,
@@ -121,7 +121,7 @@ export function ApiDiscriminatedUnion(
     ApiProperty(apiPropertyOptions),
 
     // Runtime validation
-    ...(isArray ? [ValidateNested({ each: true })] : []),
+    ...(isArray ? [IsArray(), ValidateNested({ each: true })] : []),
 
     // Runtime deserialization
     Type(() => Object, classTransformerDiscriminator),

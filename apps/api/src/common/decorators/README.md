@@ -39,6 +39,7 @@ These systems don't share metadata, leading to ~30 lines of duplicated configura
   },
 })
 @ApiExtraModels(TextDto, ResourceDto)
+@IsArray()
 @ValidateNested({ each: true })
 @Type(() => Object, {
   discriminator: {
@@ -141,7 +142,7 @@ content?: ContentBlock[] | null;
 
 1. Applies `@ApiExtraModels` to register DTO classes with Swagger
 2. Applies `@ApiProperty` with `oneOf`/`discriminator` for OpenAPI schema
-3. Applies `@ValidateNested` for array validation (when `isArray: true`)
+3. Applies `@IsArray` and `@ValidateNested` for array validation (when `isArray: true`)
 4. Applies `@Type` with discriminator for runtime deserialization
 
 ### Testing
@@ -154,7 +155,7 @@ To migrate existing discriminated unions:
 
 1. Find all uses of `@Type(() => Object, { discriminator: ... })`
 2. Replace with `@ApiDiscriminatedUnion({ types: [...], ... })`
-3. Remove the manual `@ApiProperty`, `@ApiExtraModels`, `@ValidateNested`, and `@Type` decorators
+3. Remove the manual `@ApiProperty`, `@ApiExtraModels`, `@IsArray`, `@ValidateNested`, and `@Type` decorators
 4. Verify tests pass and OpenAPI schema is correct
 
 ### Files

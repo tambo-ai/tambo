@@ -115,6 +115,17 @@ describe("ApiDiscriminatedUnion", () => {
 
       expect(errors.length).toBeGreaterThan(0);
     });
+
+    it("should fail validation when content is not an array", async () => {
+      const plain = {
+        content: { type: "text", text: "hello" },
+      };
+
+      const instance = plainToInstance(TestContainerDto, plain);
+      const errors = await validate(instance);
+
+      expect(errors.length).toBeGreaterThan(0);
+    });
   });
 
   describe("non-array content", () => {
