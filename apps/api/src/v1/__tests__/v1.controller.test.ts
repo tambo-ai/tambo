@@ -423,7 +423,7 @@ describe("V1Controller", () => {
 
         await expect(
           controller.updateComponentState("thr_123", "comp_456", {
-            patch: [{ op: "invalid" as any, path: "/foo" }],
+            patch: [{ op: "replace", path: "foo", value: true }],
           }),
         ).rejects.toThrow(BadRequestException);
       });

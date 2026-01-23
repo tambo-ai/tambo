@@ -45,6 +45,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
       id: { name: "id" },
       threadId: { name: "threadId" },
       createdAt: { name: "createdAt" },
+      componentState: { name: "componentState" },
     },
     runs: {
       id: { name: "id" },
@@ -73,6 +74,7 @@ type MockDb = {
       findFirst: jest.Mock;
     };
   };
+  select: jest.Mock;
   // Chain mocks for update().set().where().returning()
   update: jest.Mock;
   // Chain mocks for insert().values().returning()
@@ -88,6 +90,13 @@ describe("V1Service", () => {
   let service: V1Service;
   let mockDb: MockDb;
   let mockThreadsService: MockThreadsService;
+  let mockSelectChain: {
+    from: jest.Mock;
+    where: jest.Mock;
+    limit: jest.Mock;
+    for: jest.Mock;
+    execute: jest.Mock;
+  };
 
   const mockThread = {
     id: "thr_123",
@@ -149,13 +158,23 @@ describe("V1Service", () => {
           findFirst: jest.fn(),
         },
       },
+      select: jest.fn(),
       update: createUpdateChain([{ id: "thr_123" }]),
       insert: createInsertChain([{ id: "run_123" }]),
     };
 
+    mockSelectChain = {
+      from: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      for: jest.fn().mockReturnThis(),
+      execute: jest.fn(),
+    };
+
+    mockDb.select.mockReturnValue(mockSelectChain);
+
     mockDb.transaction.mockImplementation(async (handler) => {
-      const txDb = { ...mockDb } as unknown as HydraDatabase;
-      return await handler(txDb);
+      return await handler(mockDb as unknown as HydraDatabase);
     });
 
     mockThreadsService = {
@@ -973,7 +992,7 @@ describe("V1Service", () => {
           id: "thr_123",
           runStatus: V1RunStatus.IDLE,
         });
-        mockDb.query.messages.findFirst.mockResolvedValue(null);
+        mockSelectChain.execute.mockResolvedValue([]);
 
         await expect(
           service.updateComponentState("thr_123", "comp_nonexistent", {
@@ -987,9 +1006,12 @@ describe("V1Service", () => {
           id: "thr_123",
           runStatus: V1RunStatus.IDLE,
         });
-        mockDb.query.messages.findFirst.mockResolvedValue(
-          mockMessageWithComponent as any,
-        );
+        mockSelectChain.execute.mockResolvedValue([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
         mockOperations.updateMessage.mockResolvedValue(
           mockMessageWithComponent as any,
         );
@@ -1018,9 +1040,12 @@ describe("V1Service", () => {
           id: "thr_123",
           runStatus: V1RunStatus.IDLE,
         });
-        mockDb.query.messages.findFirst.mockResolvedValue(
-          mockMessageWithComponent as any,
-        );
+        mockSelectChain.execute.mockResolvedValue([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
         mockOperations.updateMessage.mockResolvedValue(
           mockMessageWithComponent as any,
         );
@@ -1040,7 +1065,7 @@ describe("V1Service", () => {
           loading: true,
           rows: [{ id: 1, name: "Alice" }],
         });
-        expect(mockDb.query.messages.findFirst).toHaveBeenCalled();
+        expect(mockDb.select).toHaveBeenCalled();
         expect(mockOperations.updateMessage).toHaveBeenCalled();
       });
 
@@ -1049,9 +1074,12 @@ describe("V1Service", () => {
           id: "thr_123",
           runStatus: V1RunStatus.IDLE,
         });
-        mockDb.query.messages.findFirst.mockResolvedValue(
-          mockMessageWithComponent as any,
-        );
+        mockSelectChain.execute.mockResolvedValue([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
 
         await expect(
           service.updateComponentState("thr_123", "comp_123", {
@@ -1142,9 +1170,12 @@ describe("V1Service", () => {
           id: "thr_123",
           runStatus: V1RunStatus.IDLE,
         });
-        mockDb.query.messages.findFirst.mockResolvedValue(
-          messageWithNoState as any,
-        );
+        mockSelectChain.execute.mockResolvedValue([
+          {
+            id: "msg_123",
+            componentState: null,
+          },
+        ]);
         mockOperations.updateMessage.mockResolvedValue(
           messageWithNoState as any,
         );

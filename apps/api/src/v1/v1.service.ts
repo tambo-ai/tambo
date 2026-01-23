@@ -24,7 +24,7 @@ import {
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
 import { sanitizeEvent } from "@tambo-ai-cloud/backend";
-import type { HydraDatabase } from "@tambo-ai-cloud/db";
+import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
 import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
 import type { Response } from "express";
@@ -865,128 +865,137 @@ export class V1Service {
     componentId: string,
     dto: UpdateComponentStateDto,
   ): Promise<UpdateComponentStateResponseDto> {
-    // 1. Check thread is idle (inline auth check)
-    const thread = await this.db.query.threads.findFirst({
-      where: eq(schema.threads.id, threadId),
-      columns: {
-        id: true,
-        runStatus: true,
-      },
-    });
+    return await this.db.transaction(async (tx) => {
+      // 1. Check thread is idle (inline auth check)
+      const thread = await tx.query.threads.findFirst({
+        where: eq(schema.threads.id, threadId),
+        columns: {
+          id: true,
+          runStatus: true,
+        },
+      });
 
-    if (!thread) {
-      throw new NotFoundException(`Thread ${threadId} not found`);
-    }
-
-    if (thread.runStatus !== V1RunStatus.IDLE) {
-      throw new ConflictException(
-        createProblemDetail(
-          V1ErrorCodes.RUN_ACTIVE,
-          "Cannot update component state while a run is active",
-          { threadId, runStatus: thread.runStatus },
-        ),
-      );
-    }
-
-    const patch = Array.isArray(dto.patch) ? dto.patch : undefined;
-    const state = dto.state;
-    const hasState = state !== undefined && state !== null;
-    const hasPatch = patch !== undefined;
-
-    const isJsonObject = (value: unknown): value is Record<string, unknown> =>
-      value !== null && typeof value === "object" && !Array.isArray(value);
-
-    if (hasState && hasPatch) {
-      throw new BadRequestException(
-        createProblemDetail(
-          V1ErrorCodes.VALIDATION_ERROR,
-          "Provide either 'state' or 'patch', not both",
-          { threadId, componentId },
-        ),
-      );
-    }
-
-    if (!hasState && !hasPatch) {
-      throw new BadRequestException(
-        createProblemDetail(
-          V1ErrorCodes.VALIDATION_ERROR,
-          "Either 'state' or 'patch' must be provided",
-          { threadId, componentId },
-        ),
-      );
-    }
-
-    if (hasState && !isJsonObject(state)) {
-      throw new BadRequestException(
-        createProblemDetail(
-          V1ErrorCodes.VALIDATION_ERROR,
-          "'state' must be a JSON object",
-          { threadId, componentId },
-        ),
-      );
-    }
-
-    if (hasPatch && patch.length === 0) {
-      throw new BadRequestException(
-        createProblemDetail(
-          V1ErrorCodes.VALIDATION_ERROR,
-          "'patch' must not be empty",
-          { threadId, componentId },
-        ),
-      );
-    }
-
-    // 2. Verify component exists in thread by searching content array for component blocks
-    const message = await this.findMessageWithComponent(threadId, componentId);
-
-    if (!message) {
-      throw new NotFoundException(
-        `Component ${componentId} not found in thread ${threadId}`,
-      );
-    }
-
-    // 3. Get current state
-    const rawState = message.componentState;
-    let currentState: Record<string, unknown> = {};
-    if (rawState !== null && rawState !== undefined) {
-      if (typeof rawState === "object" && !Array.isArray(rawState)) {
-        currentState = rawState;
-      } else {
-        this.logger.warn(
-          `Invalid componentState for message ${message.id} (thread ${threadId}, component ${componentId}); coercing to empty object`,
-        );
+      if (!thread) {
+        throw new NotFoundException(`Thread ${threadId} not found`);
       }
-    }
 
-    // 4. Apply update (full replacement or JSON Patch)
-    let newState: Record<string, unknown>;
-
-    if (hasPatch) {
-      // JSON Patch mode
-      const validation = validateJsonPatch(patch as Operation[], currentState);
-      if (validation) {
-        throw new BadRequestException(
+      if (thread.runStatus !== V1RunStatus.IDLE) {
+        throw new ConflictException(
           createProblemDetail(
-            V1ErrorCodes.INVALID_JSON_PATCH,
-            `Invalid JSON Patch: ${validation.message}`,
-            { errors: validation },
+            V1ErrorCodes.RUN_ACTIVE,
+            "Cannot update component state while a run is active",
+            { threadId, runStatus: thread.runStatus },
           ),
         );
       }
 
-      const patchResult = applyPatch(currentState, patch as Operation[]);
-      newState = patchResult.newDocument;
-    } else if (hasState) {
-      // Full replacement mode
-      newState = state;
-    } else {
-      throw new Error("Unreachable: request shape already validated");
-    }
+      const patch = Array.isArray(dto.patch) ? dto.patch : undefined;
+      const state = dto.state;
+      const hasState = state !== undefined && state !== null;
+      const hasPatch = patch !== undefined;
 
-    // 5. Persist the new state
-    await this.persistComponentState(message.id, newState);
+      const isJsonObject = (value: unknown): value is Record<string, unknown> =>
+        value !== null && typeof value === "object" && !Array.isArray(value);
 
-    return { state: newState };
+      if (hasState && hasPatch) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.VALIDATION_ERROR,
+            "Provide either 'state' or 'patch', not both",
+            { threadId, componentId },
+          ),
+        );
+      }
+
+      if (!hasState && !hasPatch) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.VALIDATION_ERROR,
+            "Either 'state' or 'patch' must be provided",
+            { threadId, componentId },
+          ),
+        );
+      }
+
+      if (hasState && !isJsonObject(state)) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.VALIDATION_ERROR,
+            "'state' must be a JSON object",
+            { threadId, componentId },
+          ),
+        );
+      }
+
+      if (hasPatch && patch.length === 0) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.VALIDATION_ERROR,
+            "'patch' must not be empty",
+            { threadId, componentId },
+          ),
+        );
+      }
+
+      // 2. Verify component exists in thread by searching content array for component blocks
+      const message = await this.findMessageWithComponent(
+        tx,
+        threadId,
+        componentId,
+      );
+
+      if (!message) {
+        throw new NotFoundException(
+          `Component ${componentId} not found in thread ${threadId}`,
+        );
+      }
+
+      // 3. Get current state
+      const rawState = message.componentState;
+      let currentState: Record<string, unknown> = {};
+      if (rawState !== null && rawState !== undefined) {
+        if (typeof rawState === "object" && !Array.isArray(rawState)) {
+          currentState = rawState;
+        } else {
+          this.logger.warn(
+            `Invalid componentState for message ${message.id} (thread ${threadId}, component ${componentId}); coercing to empty object`,
+          );
+        }
+      }
+
+      // 4. Apply update (full replacement or JSON Patch)
+      let newState: Record<string, unknown>;
+
+      if (hasPatch) {
+        // JSON Patch mode
+        const validation = validateJsonPatch(
+          patch as Operation[],
+          currentState,
+        );
+        if (validation) {
+          throw new BadRequestException(
+            createProblemDetail(
+              V1ErrorCodes.INVALID_JSON_PATCH,
+              `Invalid JSON Patch: ${validation.message}`,
+              { errors: validation },
+            ),
+          );
+        }
+
+        const patchResult = applyPatch(currentState, patch as Operation[]);
+        newState = patchResult.newDocument;
+      } else if (hasState) {
+        // Full replacement mode
+        newState = state;
+      } else {
+        throw new Error("Unreachable: request shape already validated");
+      }
+
+      // 5. Persist the new state
+      await this.persistComponentState(tx, message.id, newState);
+
+      return { state: newState };
+    });
   }
 
   /**
@@ -1000,6 +1009,7 @@ export class V1Service {
    * @returns Message `id` and `componentState`, or undefined if not found
    */
   private async findMessageWithComponent(
+    db: HydraDb,
     threadId: string,
     componentId: string,
   ): Promise<
@@ -1007,25 +1017,30 @@ export class V1Service {
     | undefined
   > {
     // `content` is expected to be a JSON array of blocks. Non-array content is treated as empty.
-    const message = await this.db.query.messages.findFirst({
-      where: and(
-        eq(schema.messages.threadId, threadId),
-        sql`exists (
-          select 1
-          from jsonb_array_elements(
-            case when jsonb_typeof(content) = 'array' then content else '[]'::jsonb end
-          ) as elem
-          where elem->>'type' = 'component'
-            and elem->>'id' = ${componentId}
-        )`,
-      ),
-      columns: {
-        id: true,
-        componentState: true,
-      },
-    });
+    const messages = await db
+      .select({
+        id: schema.messages.id,
+        componentState: schema.messages.componentState,
+      })
+      .from(schema.messages)
+      .where(
+        and(
+          eq(schema.messages.threadId, threadId),
+          sql`exists (
+            select 1
+            from jsonb_array_elements(
+              case when jsonb_typeof(content) = 'array' then content else '[]'::jsonb end
+            ) as elem
+            where elem->>'type' = 'component'
+              and elem->>'id' = ${componentId}
+          )`,
+        ),
+      )
+      .limit(1)
+      .for("update")
+      .execute();
 
-    return message;
+    return messages[0];
   }
 
   /**
@@ -1038,10 +1053,11 @@ export class V1Service {
    * @param newState - New complete state to persist
    */
   private async persistComponentState(
+    db: HydraDb,
     messageId: string,
     newState: Record<string, unknown>,
   ): Promise<void> {
-    await operations.updateMessage(this.db, messageId, {
+    await operations.updateMessage(db, messageId, {
       componentState: newState,
     });
   }
