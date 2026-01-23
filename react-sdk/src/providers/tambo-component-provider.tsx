@@ -5,7 +5,6 @@ import {
   RegisterToolsFn,
   TamboComponent,
   TamboTool,
-  TamboToolWithToolSchema,
 } from "../model/component-metadata";
 import { useTamboClient } from "./tambo-client-provider";
 import { useTamboRegistry } from "./tambo-registry-provider";
@@ -14,10 +13,7 @@ export interface TamboComponentContextProps {
   registerComponent: (options: TamboComponent) => void;
   registerTool: RegisterToolFn;
   registerTools: RegisterToolsFn;
-  addToolAssociation: (
-    componentName: string,
-    tool: TamboTool | TamboToolWithToolSchema,
-  ) => void;
+  addToolAssociation: (componentName: string, tool: TamboTool) => void;
 }
 
 const TamboComponentContext = createContext<TamboComponentContextProps>({

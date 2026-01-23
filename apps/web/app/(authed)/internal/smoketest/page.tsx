@@ -588,25 +588,29 @@ function makeWeatherTools(
       name: "getWeatherForecast",
       description: "Get the weather forecast",
       tool: getForecast,
-      toolSchema: z.function().args(weatherLocationSchema).returns(z.any()),
+      inputSchema: weatherLocationSchema,
+      outputSchema: z.any(),
     },
     history: {
       name: "getHistoricalWeather",
       description: "Get the historical weather",
       tool: getHistoricalWeather,
-      toolSchema: z.function().args(historySchema).returns(z.any()),
+      inputSchema: historySchema,
+      outputSchema: z.any(),
     },
     aqi: {
       name: "getAirQuality",
       description: "Get the air quality",
       tool: getAirQuality,
-      toolSchema: z.function().args(aqiSchema, z.string()).returns(z.any()),
+      inputSchema: aqiSchema,
+      outputSchema: z.any(),
     },
     currentWeather: {
       name: "getCurrentWeather",
       description: "Get the current weather",
       tool: getCurrentWeather,
-      toolSchema: z.function().args(weatherLocationSchema).returns(z.any()),
+      inputSchema: weatherLocationSchema,
+      outputSchema: z.any(),
     },
   };
 }
