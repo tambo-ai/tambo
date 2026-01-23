@@ -950,6 +950,7 @@ describe("V1Service", () => {
 
     describe("updateComponentState", () => {
       it("should throw NotFoundException when thread not found", async () => {
+        // First execute: thread row lock
         mockSelectChain.execute.mockResolvedValueOnce([]);
 
         await expect(
@@ -960,6 +961,7 @@ describe("V1Service", () => {
       });
 
       it("should throw ConflictException when thread has active run", async () => {
+        // First execute: thread row lock
         mockSelectChain.execute.mockResolvedValueOnce([
           {
             id: "thr_123",
@@ -990,14 +992,16 @@ describe("V1Service", () => {
       });
 
       it("should throw NotFoundException when component not found", async () => {
-        mockSelectChain.execute
-          .mockResolvedValueOnce([
-            {
-              id: "thr_123",
-              runStatus: V1RunStatus.IDLE,
-            },
-          ])
-          .mockResolvedValueOnce([]);
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([]);
 
         await expect(
           service.updateComponentState("thr_123", "comp_nonexistent", {
@@ -1009,19 +1013,21 @@ describe("V1Service", () => {
       });
 
       it("should update state with full replacement", async () => {
-        mockSelectChain.execute
-          .mockResolvedValueOnce([
-            {
-              id: "thr_123",
-              runStatus: V1RunStatus.IDLE,
-            },
-          ])
-          .mockResolvedValueOnce([
-            {
-              id: "msg_123",
-              componentState: { loading: false, rows: [] },
-            },
-          ]);
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
         mockOperations.updateMessage.mockResolvedValue(
           mockMessageWithComponent as any,
         );
@@ -1047,19 +1053,21 @@ describe("V1Service", () => {
 
       it("should update state with JSON Patch", async () => {
         // Mock message with initial state: { loading: false, rows: [] }
-        mockSelectChain.execute
-          .mockResolvedValueOnce([
-            {
-              id: "thr_123",
-              runStatus: V1RunStatus.IDLE,
-            },
-          ])
-          .mockResolvedValueOnce([
-            {
-              id: "msg_123",
-              componentState: { loading: false, rows: [] },
-            },
-          ]);
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
         mockOperations.updateMessage.mockResolvedValue(
           mockMessageWithComponent as any,
         );
@@ -1085,19 +1093,21 @@ describe("V1Service", () => {
       });
 
       it("should throw BadRequestException for invalid JSON Patch", async () => {
-        mockSelectChain.execute
-          .mockResolvedValueOnce([
-            {
-              id: "thr_123",
-              runStatus: V1RunStatus.IDLE,
-            },
-          ])
-          .mockResolvedValueOnce([
-            {
-              id: "msg_123",
-              componentState: { loading: false, rows: [] },
-            },
-          ]);
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: { loading: false, rows: [] },
+          },
+        ]);
 
         await expect(
           service.updateComponentState("thr_123", "comp_123", {
@@ -1109,6 +1119,7 @@ describe("V1Service", () => {
       });
 
       it("should throw BadRequestException when neither state nor patch provided", async () => {
+        // First execute: thread row lock
         mockSelectChain.execute.mockResolvedValueOnce([
           {
             id: "thr_123",
@@ -1133,6 +1144,7 @@ describe("V1Service", () => {
       });
 
       it("should throw BadRequestException when both state and patch are provided", async () => {
+        // First execute: thread row lock
         mockSelectChain.execute.mockResolvedValueOnce([
           {
             id: "thr_123",
@@ -1162,6 +1174,7 @@ describe("V1Service", () => {
       });
 
       it("should throw BadRequestException when patch is an empty array", async () => {
+        // First execute: thread row lock
         mockSelectChain.execute.mockResolvedValueOnce([
           {
             id: "thr_123",
@@ -1192,19 +1205,21 @@ describe("V1Service", () => {
           ...mockMessageWithComponent,
           componentState: null,
         };
-        mockSelectChain.execute
-          .mockResolvedValueOnce([
-            {
-              id: "thr_123",
-              runStatus: V1RunStatus.IDLE,
-            },
-          ])
-          .mockResolvedValueOnce([
-            {
-              id: "msg_123",
-              componentState: null,
-            },
-          ]);
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: null,
+          },
+        ]);
         mockOperations.updateMessage.mockResolvedValue(
           messageWithNoState as any,
         );
