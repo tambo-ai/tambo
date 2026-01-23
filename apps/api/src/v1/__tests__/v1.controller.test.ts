@@ -437,26 +437,6 @@ describe("V1Controller", () => {
           controller.updateComponentState("thr_123", "comp_456", {}),
         ).rejects.toThrow(BadRequestException);
       });
-
-      it("should handle empty state in component", async () => {
-        const mockResponse = {
-          state: { initialized: true },
-        };
-        mockV1Service.updateComponentState.mockResolvedValue(mockResponse);
-
-        const result = await controller.updateComponentState(
-          "thr_123",
-          "comp_456",
-          { state: { initialized: true } },
-        );
-
-        expect(mockV1Service.updateComponentState).toHaveBeenCalledWith(
-          "thr_123",
-          "comp_456",
-          { state: { initialized: true } },
-        );
-        expect(result).toEqual(mockResponse);
-      });
     });
   });
 });

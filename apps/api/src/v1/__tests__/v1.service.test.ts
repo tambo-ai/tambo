@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Logger,
   NotFoundException,
 } from "@nestjs/common";
@@ -1009,6 +1011,49 @@ describe("V1Service", () => {
           }),
         ).rejects.toThrow("Component comp_nonexistent not found");
 
+        expect(mockSelectChain.for).toHaveBeenCalledWith("update");
+      });
+
+      it("should throw HttpException when stored componentState is invalid", async () => {
+        // First execute: thread row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "thr_123",
+            runStatus: V1RunStatus.IDLE,
+          },
+        ]);
+
+        // Second execute: message row lock
+        mockSelectChain.execute.mockResolvedValueOnce([
+          {
+            id: "msg_123",
+            componentState: [],
+          },
+        ]);
+
+        const error = (await service
+          .updateComponentState("thr_123", "comp_123", {
+            state: { loading: true },
+          })
+          .catch((caught) => caught)) as HttpException | unknown;
+
+        expect(error).toBeInstanceOf(HttpException);
+
+        if (error instanceof HttpException) {
+          expect(error.getStatus()).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+
+          const response = error.getResponse() as {
+            detail?: string;
+            type?: string;
+          };
+
+          expect(response.detail).toContain(
+            "Stored component state is invalid",
+          );
+          expect(response.type).toContain("internal_error");
+        }
+
+        expect(mockOperations.updateMessage).not.toHaveBeenCalled();
         expect(mockSelectChain.for).toHaveBeenCalledWith("update");
       });
 

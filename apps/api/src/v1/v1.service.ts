@@ -959,13 +959,18 @@ export class V1Service {
       const rawState = message.componentState;
       let currentState: Record<string, unknown> = {};
       if (rawState !== null && rawState !== undefined) {
-        if (typeof rawState === "object" && !Array.isArray(rawState)) {
-          currentState = rawState;
-        } else {
-          this.logger.warn(
-            `Invalid componentState for message ${message.id} (thread ${threadId}, component ${componentId}); coercing to empty object`,
+        if (!isJsonObject(rawState)) {
+          throw new HttpException(
+            createProblemDetail(
+              V1ErrorCodes.INTERNAL_ERROR,
+              "Stored component state is invalid",
+              { threadId, componentId, messageId: message.id },
+            ),
+            HttpStatus.INTERNAL_SERVER_ERROR,
           );
         }
+
+        currentState = rawState;
       }
 
       // 4. Apply update (full replacement or JSON Patch)
