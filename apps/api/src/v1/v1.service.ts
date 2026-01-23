@@ -971,12 +971,15 @@ export class V1Service {
       // 4. Apply update (full replacement or JSON Patch)
       let newState: Record<string, unknown>;
 
-      if (hasPatch) {
-        // JSON Patch mode
-        const validation = validateJsonPatch(
-          patch as Operation[],
-          currentState,
+      if (patch !== undefined) {
+        const patchOperations = this.convertJsonPatchDtoToOperations(
+          patch,
+          threadId,
+          componentId,
         );
+
+        // JSON Patch mode
+        const validation = validateJsonPatch(patchOperations, currentState);
         if (validation) {
           throw new BadRequestException(
             createProblemDetail(
@@ -987,7 +990,12 @@ export class V1Service {
           );
         }
 
-        const patchResult = applyPatch(currentState, patch as Operation[]);
+        const patchResult = applyPatch(
+          currentState,
+          patchOperations,
+          false,
+          false,
+        );
         newState = patchResult.newDocument;
       } else if (hasState) {
         // Full replacement mode
@@ -1000,6 +1008,48 @@ export class V1Service {
       await this.persistComponentState(tx, message.id, newState);
 
       return { state: newState };
+    });
+  }
+
+  private convertJsonPatchDtoToOperations(
+    patch: NonNullable<UpdateComponentStateDto["patch"]>,
+    threadId: string,
+    componentId: string,
+  ): ReadonlyArray<Operation> {
+    return patch.map((operation) => {
+      switch (operation.op) {
+        case "add":
+        case "replace":
+        case "test":
+          return {
+            op: operation.op,
+            path: operation.path,
+            value: operation.value,
+          };
+        case "remove":
+          return {
+            op: operation.op,
+            path: operation.path,
+          };
+        case "copy":
+        case "move":
+          if (typeof operation.from !== "string") {
+            throw new BadRequestException(
+              createProblemDetail(
+                V1ErrorCodes.INVALID_JSON_PATCH,
+                "Invalid JSON Patch: operation requires 'from'",
+                { threadId, componentId, operation },
+              ),
+            );
+          }
+          return {
+            op: operation.op,
+            from: operation.from,
+            path: operation.path,
+          };
+        default:
+          throw new Error("Unreachable: unknown JSON Patch operation");
+      }
     });
   }
 
