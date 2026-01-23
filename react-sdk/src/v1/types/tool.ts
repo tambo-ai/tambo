@@ -36,18 +36,23 @@ export type ToolFunction<
  * Optional function to transform tool output into content blocks
  * Useful for tools that return rich media (images, audio, etc.)
  */
-export type TransformToContent = (result: unknown) => Content[];
+export type TransformToContent<TOutput = unknown> = (
+  result: TOutput,
+) => Content[];
 
 /**
  * Tool registration for React SDK
  * Extends Tool with the actual implementation
  */
-export interface TamboV1Tool extends Tool {
+export interface TamboV1Tool<
+  TInput extends Record<string, unknown> = Record<string, unknown>,
+  TOutput = unknown,
+> extends Tool {
   /** The tool implementation */
-  tool: ToolFunction;
+  tool: ToolFunction<TInput, TOutput>;
 
   /** Optional: Transform result to content blocks (default: stringifies to text) */
-  transformToContent?: TransformToContent;
+  transformToContent?: TransformToContent<TOutput>;
 }
 
 /**

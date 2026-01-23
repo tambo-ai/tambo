@@ -55,7 +55,7 @@ export interface TamboV1Thread {
  */
 export interface StreamingState {
   /** Current streaming status */
-  status: "idle" | "waiting" | "streaming" | "complete" | "error";
+  status: RunStatus;
 
   /** Active run ID (if streaming) */
   runId?: string;
