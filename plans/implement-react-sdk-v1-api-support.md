@@ -510,18 +510,17 @@ Key fixes during implementation:
 
 ```typescript
 // react-sdk/src/v1/utils/stream-handler.ts
-import { Stream } from '@tambo-ai/typescript-sdk/core';
 import type { BaseEvent } from '@ag-ui/core';
 
-export async function* handleSSEStream(
-  response: Response,
-  controller: AbortController,
+export async function* handleEventStream(
+  stream: AsyncIterable<BaseEvent>,
+  options?: { debug?: boolean },
 ): AsyncIterable<BaseEvent> {
-  const stream = Stream.fromSSEResponse<BaseEvent>(response, controller);
-
   for await (const event of stream) {
-    // Event is already JSON-parsed by SDK
-    yield event as BaseEvent;
+    if (options?.debug) {
+      console.log("[StreamHandler] Event:", event);
+    }
+    yield event;
   }
 }
 
@@ -579,12 +578,11 @@ export function useStreamDispatch() {
 
 Created complete streaming infrastructure in v1/:
 
-- **utils/stream-handler.ts**: Native SSE stream parser
-  - AsyncGenerator function parseSSEStream() yields BaseEvent objects
-  - Handles SSE protocol (data: lines, event boundaries)
-  - Built-in cancellation via AbortController
+- **utils/stream-handler.ts**: Stream wrapper for SDK async iterables
+  - handleEventStream() wraps the async iterable returned by client.threads.runs.create()
+  - TypeScript SDK already provides fully-parsed AG-UI events (no manual SSE parsing needed)
   - Optional debug logging (dev mode only)
-  - No dependency on external Stream class (implemented from scratch)
+  - Simple pass-through wrapper that adds observability
 
 - **providers/tambo-v1-stream-context.tsx**: React Context for stream state
   - Split-context pattern (separate StreamStateContext and StreamDispatchContext)
@@ -598,7 +596,9 @@ Created complete streaming infrastructure in v1/:
 
 Key design decisions:
 
-- Implemented native SSE parser instead of relying on TypeScript SDK Stream class (not available)
+- TypeScript SDK's client.threads.runs.create() already returns async iterable of AG-UI events
+- No manual SSE parsing needed - SDK handles all streaming protocol details
+- Stream handler is just a thin wrapper for optional debug logging
 - Split contexts optimize re-render performance (dispatch doesn't change when state updates)
 - Generator function pattern allows natural async iteration over events
 - Debug logging gated by NODE_ENV check and explicit debug flag
