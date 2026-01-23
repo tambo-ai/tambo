@@ -10,7 +10,7 @@ import type { JSONSchema7 } from "json-schema";
 import type {
   TamboComponent,
   TamboTool,
-  TamboToolWithToolSchema,
+  UnsupportedSchemaTamboTool,
 } from "../../model/component-metadata";
 import { schemaToJsonSchema } from "../../schema/schema";
 import type { AvailableComponent } from "../types/component";
@@ -80,7 +80,7 @@ export function toAvailableComponents(
 /**
  * Convert a registered tool to v1 API format.
  *
- * Transforms TamboTool or TamboToolWithToolSchema (beta SDK format with
+ * Transforms TamboTool or UnsupportedSchemaTamboTool (beta SDK format with
  * Standard Schema support) to Tool (v1 API format requiring JSON Schema).
  * Handles both new inputSchema and deprecated toolSchema formats.
  * @param tool - Tool from beta SDK registry
@@ -88,9 +88,9 @@ export function toAvailableComponents(
  * @throws {Error} if schema conversion fails or schema is missing
  */
 export function toAvailableTool(
-  tool: TamboTool | TamboToolWithToolSchema,
+  tool: TamboTool | UnsupportedSchemaTamboTool,
 ): Tool {
-  // Check for inputSchema (modern format)
+  // Check for inputSchema (modern format - required in TamboTool)
   if ("inputSchema" in tool && tool.inputSchema) {
     const inputSchema: JSONSchema7 = schemaToJsonSchema(tool.inputSchema);
     return {
@@ -100,7 +100,7 @@ export function toAvailableTool(
     };
   }
 
-  // Check for deprecated toolSchema format
+  // Check for deprecated toolSchema format (UnsupportedSchemaTamboTool)
   if ("toolSchema" in tool && tool.toolSchema) {
     const inputSchema: JSONSchema7 = schemaToJsonSchema(tool.toolSchema);
     return {
@@ -118,7 +118,7 @@ export function toAvailableTool(
 /**
  * Convert multiple registered tools to v1 API format.
  *
- * Transforms a Record/Map of TamboTools or TamboToolWithToolSchema to an array
+ * Transforms a Record/Map of TamboTools or UnsupportedSchemaTamboTool to an array
  * of Tools. Tools without inputSchema/toolSchema will be logged as warnings
  * and skipped.
  * @param tools - Record or Map of tools from beta SDK registry
@@ -126,8 +126,8 @@ export function toAvailableTool(
  */
 export function toAvailableTools(
   tools:
-    | Record<string, TamboTool | TamboToolWithToolSchema>
-    | Map<string, TamboTool | TamboToolWithToolSchema>,
+    | Record<string, TamboTool | UnsupportedSchemaTamboTool>
+    | Map<string, TamboTool | UnsupportedSchemaTamboTool>,
 ): Tool[] {
   const results: Tool[] = [];
 
