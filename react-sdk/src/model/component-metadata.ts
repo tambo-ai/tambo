@@ -108,26 +108,6 @@ type MaybeAsync<T> = T | Promise<T>;
  *   }),
  * });
  * ```
- * Alternatively, you manually construct a TamboTool with type safety by passing
- * the expected parameter and return types as generics:
- * ```ts
- * import { TamboTool } from "@tambo-ai/react";
- * import { z } from "zod";
- *
- * const locationToLatLon: TamboTool<{ location: string }, { lat: number; lon: number }> = {
- *   name: "location_to_latlon",
- *   description:
- *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
- *   tool: async ({ location }) => getLatLonFromLocation(location),
- *   inputSchema: z.object({
- *     location: z.string(),
- *   }),
- *   outputSchema: z.object({
- *     lat: z.number(),
- *     lon: z.number(),
- *   }),
- * });
- * ```
  */
 export interface TamboTool<
   Params = any,
@@ -280,10 +260,13 @@ export type UnsupportedSchemaTamboTool = Omit<
   TamboTool,
   "tool" | "inputSchema" | "outputSchema"
 > & {
+  /**
+   * @deprecated replace `toolSchema` with `inputSchema` and `outputSchema` instead.
+   */
   toolSchema: any;
   tool: (...args: any[]) => MaybeAsync<any>;
-  inputSchema: never;
-  outputSchema: never;
+  inputSchema?: never;
+  outputSchema?: never;
 };
 
 export type TamboToolAssociations = Record<string, string[]>;
@@ -353,11 +336,38 @@ export interface TamboComponent {
   annotations?: ToolAnnotations;
 }
 
+type OptionalSchemaProps<T> = Omit<T, "inputSchema" | "outputSchema"> & {
+  inputSchema?: T extends { inputSchema: infer I } ? I : never;
+  outputSchema?: T extends { outputSchema: infer O } ? O : never;
+};
+
 /**
  * Registers one or more Tambo tools.
  * @param tools - An array of Tambo tools to register
+ * @param warnOnOverwrite - Whether to warn if any tool is being overwritten
  */
-export type RegisterToolsFn = (tools: TamboTool[]) => void;
+export interface RegisterToolsFn {
+  /**
+   * @deprecated Follow the {@link https://docs.tambo.ai/api-reference/migration/toolschema | Migration Guide} to update
+   * your tool definitions to use `inputSchema` and `outputSchema` instead.
+   */
+  (tools: UnsupportedSchemaTamboTool[], warnOnOverwrite?: boolean): void;
+  /**
+   * Register one or more Tambo tools. For better type inference, consider registering tools individually using the
+   * `registerTool` function or use the `defineTool` helper when defining your tools.
+   * @example
+   * ```typescript
+   * import { defineTool } from "@tambo-ai/react";
+   * const tools = [
+   *   defineTool({...});
+   *   defineTool({...});
+   * ];
+   * registerTools(tools);
+   * @param tools - An array of Tambo tools to register
+   * @param warnOnOverwrite - Whether to warn if any tool is being overwritten
+   */
+  (tools: TamboTool[], warnOnOverwrite?: boolean): void;
+}
 
 /**
  * Function interface for registering a Tambo tool with full type inference.
@@ -374,16 +384,28 @@ export interface RegisterToolFn {
     warnOnOverwrite?: boolean,
   ): void;
   (tool: TamboToolUnknown, warnOnOverwrite?: boolean): void;
-  (tool: UnsupportedSchemaTamboTool, warnOnOverwrite?: boolean): void;
   (tool: TamboTool, warnOnOverwrite?: boolean): void;
+  /**
+   * @deprecated Follow the {@link https://docs.tambo.ai/api-reference/migration/toolschema | Migration Guide} to update
+   * your tool definitions to use `inputSchema` and `outputSchema` instead.
+   * @param tool - The unsupported schema Tambo tool to register
+   * @param warnOnOverwrite - Whether to warn if the tool is being overwritten
+   */
+  (tool: UnsupportedSchemaTamboTool, warnOnOverwrite?: boolean): void;
 }
 
 /**
- * Function interface for defining a Tambo tool with full type inference. This
- * function has multiple overloads to handle different schema types. This is a
- * utility function and does not perform any runtime logic.
+ * Function interface for defining a Tambo tool with full type inference. This function has multiple overloads to handle
+ * different schema types. This is a utility function and does not perform any runtime logic.
  */
 export interface DefineToolFn {
+  /**
+   * @deprecated Follow the {@link https://docs.tambo.ai/api-reference/migration/toolschema | Migration Guide} to update
+   * your tool definitions to use `inputSchema` and `outputSchema` instead.
+   * @param tool The tool definition to register
+   * @returns The registered tool definition
+   */
+  (tool: UnsupportedSchemaTamboTool): typeof tool;
   /**
    * Provides type safety for defining a Tambo Tool.
    *
@@ -409,7 +431,7 @@ export interface DefineToolFn {
    * @returns The registered tool definition
    */
   <Input extends StandardSchemaV1, Output extends StandardSchemaV1>(
-    tool: TamboToolStandardSchema<Input, Output>,
+    tool: OptionalSchemaProps<TamboToolStandardSchema<Input, Output>>,
   ): TamboToolStandardSchema<Input, Output>;
   /**
    * Provides type safety for defining a Tambo Tool with JSON Schema input and output.
@@ -421,7 +443,7 @@ export interface DefineToolFn {
    * @returns The registered tool definition
    */
   <I extends any[], O = any>(
-    tool: TamboToolJSONSchema<I, O>,
+    tool: OptionalSchemaProps<TamboToolJSONSchema<I, O>>,
   ): TamboToolJSONSchema<I, O>;
   /**
    * Provides type safety for defining a Tambo Tool.
@@ -431,17 +453,13 @@ export interface DefineToolFn {
    * @param tool The tool definition to register
    * @returns The registered tool definition
    */
-  (tool: TamboToolUnknown): TamboToolUnknown;
+  (tool: OptionalSchemaProps<TamboToolUnknown>): TamboToolUnknown;
   /**
-   * Deprecated overload for defining a Tambo Tool using unsupported schema types.
+   * Provides type safety for defining a Tambo Tool.
    *
-   * This overload is retained for backward compatibility but should not be used
-   * in new code. Please migrate to using `inputSchema` and `outputSchema`.
-   * @deprecated replace `toolSchema` with `inputSchema` and `outputSchema` instead.
-   * @see {@link https://docs.tambo.ai/api-reference/migration/toolschema}
+   * This overload is used when providing a fully defined TamboTool.
    * @param tool The tool definition to register
    * @returns The registered tool definition
    */
-  (tool: UnsupportedSchemaTamboTool): UnsupportedSchemaTamboTool;
-  (tool: TamboTool): TamboTool;
+  (tool: OptionalSchemaProps<TamboTool>): TamboTool;
 }

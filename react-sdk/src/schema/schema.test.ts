@@ -350,6 +350,69 @@ describe("schema utilities", () => {
 
         expect(params).toEqual([]);
       });
+
+      it("handles JSON Schema with no properties field", () => {
+        // Test the fallback: const properties = schema.properties ?? {};
+        const tool: TamboTool = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          inputSchema: {
+            type: "object",
+            // No properties field
+          } as JSONSchema7,
+          outputSchema: z4.void(),
+        };
+
+        const params = getParametersFromToolSchema(tool);
+        expect(params).toEqual([]);
+      });
+
+      it("handles JSON Schema properties without descriptions", () => {
+        // Test the fallback: propSchema.description ?? ""
+        const tool: TamboTool = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          inputSchema: {
+            type: "object",
+            properties: {
+              name: { type: "string" }, // No description
+              age: { type: "number" }, // No description
+            },
+          } as JSONSchema7,
+          outputSchema: z4.void(),
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        expect(params).toHaveLength(2);
+        expect(params[0].description).toBe("");
+        expect(params[1].description).toBe("");
+      });
+
+      it("handles JSON Schema with non-object property values", () => {
+        // Test the fallback: typeof propSchema === "object" && propSchema !== null ? propSchema : {}
+        const tool: TamboTool = {
+          name: "test-tool",
+          description: "Test tool",
+          tool: jest.fn(),
+          inputSchema: {
+            type: "object",
+            properties: {
+              // Properties can technically be boolean (for schema composition)
+              weird: true,
+            } as any,
+          } as JSONSchema7,
+          outputSchema: z4.void(),
+        };
+
+        const params = getParametersFromToolSchema(tool);
+
+        expect(params).toHaveLength(1);
+        expect(params[0].name).toBe("weird");
+        expect(params[0].schema).toEqual({});
+      });
     });
   });
 

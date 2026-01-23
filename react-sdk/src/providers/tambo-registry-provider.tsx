@@ -43,7 +43,10 @@ export interface TamboRegistryContext {
   mcpServerInfos: NormalizedMcpServerInfo[];
   resources: ListResourceItem[];
   resourceSource: ResourceSource | null;
-  registerComponent: (options: TamboComponent) => void;
+  registerComponent: (
+    options: TamboComponent,
+    warnOnOverwrite?: boolean,
+  ) => void;
   registerTool: RegisterToolFn;
   registerTools: RegisterToolsFn;
   addToolAssociation: (componentName: string, tool: TamboTool) => void;
@@ -183,28 +186,37 @@ export const TamboRegistryProvider: React.FC<
     null,
   );
 
-  const registerTool = useCallback(
-    (tool: TamboTool, warnOnOverwrite = true) => {
+  const registryWithTool = useCallback((warnOnOverwrite: boolean) => {
+    return (registry: TamboToolRegistry, tool: unknown): TamboToolRegistry => {
       validateTool(tool);
 
-      setToolRegistry((prev) => {
-        if (prev[tool.name] && warnOnOverwrite) {
-          console.warn(`Overwriting tool ${tool.name}`);
-        }
-        return {
-          ...prev,
-          [tool.name]: tool,
-        };
-      });
+      if (registry[tool.name] && warnOnOverwrite) {
+        console.warn(`Overwriting tool ${tool.name}`);
+      }
+
+      return {
+        ...registry,
+        [tool.name]: tool,
+      };
+    };
+  }, []);
+
+  const registerTool = useCallback<RegisterToolFn>(
+    (tool: unknown, warnOnOverwrite = true) => {
+      setToolRegistry((registry) =>
+        registryWithTool(warnOnOverwrite)(registry, tool),
+      );
     },
-    [],
+    [registryWithTool],
   );
 
-  const registerTools = useCallback(
-    (tools: TamboTool[], warnOnOverwrite = true) => {
-      tools.forEach((tool) => registerTool(tool, warnOnOverwrite));
+  const registerTools = useCallback<RegisterToolsFn>(
+    (tools, warnOnOverwrite = true) => {
+      setToolRegistry((existingRegistry) =>
+        tools.reduce(registryWithTool(warnOnOverwrite), existingRegistry),
+      );
     },
-    [registerTool],
+    [registryWithTool],
   );
 
   const registerMcpServer = useCallback((info: McpServerInfo | string) => {

@@ -149,5 +149,10 @@ export const mapTamboToolToContextTool = (
  * @returns The registered tool definition
  */
 export const defineTool: DefineToolFn = (tool: any) => {
+  if ("toolSchema" in tool) {
+    return tool;
+  }
+  tool.inputSchema ??= { type: "object", properties: {}, required: [] };
+  tool.outputSchema ??= { type: "object", properties: {}, required: [] };
   return tool;
 };

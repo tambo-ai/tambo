@@ -322,24 +322,34 @@ describe("Schema Compatibility", () => {
 
   describe("registerTool with different schema types", () => {
     describe("Deprecated toolSchema throws error", () => {
+      const deprecatedTool = {
+        name: "deprecated-tool",
+        description: "Tool with deprecated toolSchema",
+        tool: jest.fn().mockResolvedValue("result"),
+        toolSchema: z3
+          .function()
+          .args(z3.string().describe("input parameter"))
+          .returns(z3.string()),
+      };
+
       it("should throw error when using deprecated toolSchema", () => {
         const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
-        const tool = {
-          name: "deprecated-tool",
-          description: "Tool with deprecated toolSchema",
-          tool: jest.fn().mockResolvedValue("result"),
-          toolSchema: z3
-            .function()
-            .args(z3.string().describe("input parameter"))
-            .returns(z3.string()),
-        };
+        expect(() => {
+          act(() => result.current.registerTool(deprecatedTool));
+        }).toThrow(
+          'Tool "deprecated-tool" uses deprecated "toolSchema" property.',
+        );
+      });
 
-        act(() => {
-          expect(() => result.current.registerTool(tool as any)).toThrow(
-            'Tool "deprecated-tool" uses deprecated "toolSchema" property.',
-          );
-        });
+      it("registerTools should throw error when using deprecated toolSchema", () => {
+        const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+        expect(() => {
+          act(() => result.current.registerTools([deprecatedTool]));
+        }).toThrow(
+          'Tool "deprecated-tool" uses deprecated "toolSchema" property.',
+        );
       });
     });
 
