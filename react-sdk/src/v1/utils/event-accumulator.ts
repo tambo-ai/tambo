@@ -48,6 +48,11 @@ export class UnreachableCaseError extends Error {
 export interface StreamState {
   thread: TamboV1Thread;
   streaming: StreamingState;
+  /**
+   * Accumulating tool call arguments as JSON strings (for streaming).
+   * Maps tool call ID to accumulated JSON string.
+   */
+  accumulatingToolArgs: Map<string, string>;
 }
 
 /**
@@ -86,6 +91,7 @@ export function createInitialState(
       updatedAt: now,
     },
     streaming: initialStreamingState,
+    accumulatingToolArgs: new Map(),
   };
 }
 
@@ -288,8 +294,9 @@ function handleTextMessageContent(
   // Find the message to update
   const messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
-    // Message not found, ignore event
-    return state;
+    throw new Error(
+      `Message ${messageId} not found for TEXT_MESSAGE_CONTENT event`,
+    );
   }
 
   const message = messages[messageIndex];
@@ -356,6 +363,9 @@ function handleTextMessageEnd(
 /**
  * Handle TOOL_CALL_START event.
  * Adds a tool use content block to the current message.
+ * @param state - Current stream state
+ * @param event - Tool call start event
+ * @returns Updated stream state
  */
 function handleToolCallStart(
   state: StreamState,
@@ -370,7 +380,11 @@ function handleToolCallStart(
     : messages.length - 1;
 
   if (messageIndex === -1) {
-    return state;
+    throw new Error(
+      messageId
+        ? `Message ${messageId} not found for TOOL_CALL_START event`
+        : `No messages exist for TOOL_CALL_START event`,
+    );
   }
 
   const message = messages[messageIndex];
@@ -404,16 +418,62 @@ function handleToolCallStart(
 
 /**
  * Handle TOOL_CALL_ARGS event.
- * Updates the tool call arguments (streaming).
+ * Accumulates JSON string deltas for tool call arguments.
+ * The accumulated string will be parsed at TOOL_CALL_END.
+ * @param state - Current stream state
+ * @param event - Tool call args event
+ * @returns Updated stream state
  */
 function handleToolCallArgs(
   state: StreamState,
   event: ToolCallArgsEvent,
 ): StreamState {
   const toolCallId = event.toolCallId;
+
+  // Accumulate the JSON string delta
+  const accumulatedArgs = state.accumulatingToolArgs;
+  const existingArgs = accumulatedArgs.get(toolCallId) ?? "";
+  const newAccumulatedArgs = new Map(accumulatedArgs);
+  newAccumulatedArgs.set(toolCallId, existingArgs + event.delta);
+
+  return {
+    ...state,
+    accumulatingToolArgs: newAccumulatedArgs,
+  };
+}
+
+/**
+ * Handle TOOL_CALL_END event.
+ * Parses the accumulated JSON arguments and updates the tool_use content block.
+ * @param state - Current stream state
+ * @param event - Tool call end event
+ * @returns Updated stream state
+ */
+function handleToolCallEnd(
+  state: StreamState,
+  event: ToolCallEndEvent,
+): StreamState {
+  const toolCallId = event.toolCallId;
   const messages = state.thread.messages;
 
-  // Find the message containing this tool call
+  // Get accumulated JSON args string
+  const accumulatedJson = state.accumulatingToolArgs.get(toolCallId);
+  if (!accumulatedJson) {
+    // No args accumulated - tool call has empty input
+    return state;
+  }
+
+  // Parse the accumulated JSON
+  let parsedInput: unknown;
+  try {
+    parsedInput = JSON.parse(accumulatedJson);
+  } catch (error) {
+    throw new Error(
+      `Failed to parse tool call arguments for ${toolCallId}: ${error instanceof Error ? error.message : String(error)}. JSON: ${accumulatedJson}`,
+    );
+  }
+
+  // Find the message and content block containing this tool call
   let messageIndex = -1;
   let contentIndex = -1;
 
@@ -430,34 +490,24 @@ function handleToolCallArgs(
   }
 
   if (messageIndex === -1 || contentIndex === -1) {
-    return state;
+    throw new Error(
+      `Tool call ${toolCallId} not found in messages for TOOL_CALL_END event`,
+    );
   }
 
   const message = messages[messageIndex];
   const toolUseContent = message.content[contentIndex];
 
   if (toolUseContent.type !== "tool_use") {
-    return state;
+    throw new Error(
+      `Content at index ${contentIndex} is not a tool_use block for TOOL_CALL_END event`,
+    );
   }
 
-  // Parse the delta as JSON and merge with existing input
-  let parsedDelta: Record<string, unknown> = {};
-  try {
-    parsedDelta = JSON.parse(event.delta);
-  } catch {
-    // If delta is not valid JSON, ignore this event
-    return state;
-  }
-
-  // Update tool arguments by merging delta
-  const existingInput =
-    typeof toolUseContent.input === "object" && toolUseContent.input !== null
-      ? (toolUseContent.input as Record<string, unknown>)
-      : {};
-
+  // Update the tool_use content with parsed input
   const updatedContent: Content = {
     ...toolUseContent,
-    input: { ...existingInput, ...parsedDelta },
+    input: parsedInput,
   };
 
   const updatedMessage: TamboV1Message = {
@@ -475,6 +525,10 @@ function handleToolCallArgs(
     ...messages.slice(messageIndex + 1),
   ];
 
+  // Clear accumulated args for this tool call
+  const newAccumulatingToolArgs = new Map(state.accumulatingToolArgs);
+  newAccumulatingToolArgs.delete(toolCallId);
+
   return {
     ...state,
     thread: {
@@ -482,27 +536,16 @@ function handleToolCallArgs(
       messages: updatedMessages,
       updatedAt: new Date().toISOString(),
     },
+    accumulatingToolArgs: newAccumulatingToolArgs,
   };
-}
-
-/**
- * Handle TOOL_CALL_END event.
- * Marks the tool call as complete.
- * @param state - Current stream state
- * @param _event - Tool call end event (unused)
- * @returns Updated stream state
- */
-function handleToolCallEnd(
-  state: StreamState,
-  _event: ToolCallEndEvent,
-): StreamState {
-  // For now, this doesn't change state
-  return state;
 }
 
 /**
  * Handle TOOL_CALL_RESULT event.
  * Adds tool result to the message.
+ * @param state - Current stream state
+ * @param event - Tool call result event
+ * @returns Updated stream state
  */
 function handleToolCallResult(
   state: StreamState,
@@ -514,7 +557,9 @@ function handleToolCallResult(
   // Find the message
   const messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
-    return state;
+    throw new Error(
+      `Message ${messageId} not found for TOOL_CALL_RESULT event`,
+    );
   }
 
   const message = messages[messageIndex];
@@ -554,6 +599,9 @@ function handleToolCallResult(
 
 /**
  * Handle custom events (Tambo-specific).
+ * @param state - Current stream state
+ * @param event - Base event (must be CUSTOM type)
+ * @returns Updated stream state
  */
 function handleCustomEvent(state: StreamState, event: BaseEvent): StreamState {
   if (event.type !== EventType.CUSTOM) {
@@ -601,6 +649,9 @@ function handleCustomEvent(state: StreamState, event: BaseEvent): StreamState {
 /**
  * Handle tambo.component.start event.
  * Adds a component content block to the message.
+ * @param state - Current stream state
+ * @param event - Component start event
+ * @returns Updated stream state
  */
 function handleComponentStart(
   state: StreamState,
@@ -612,7 +663,9 @@ function handleComponentStart(
   // Find the message
   const messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
-    return state;
+    throw new Error(
+      `Message ${messageId} not found for tambo.component.start event`,
+    );
   }
 
   const message = messages[messageIndex];
@@ -649,6 +702,9 @@ function handleComponentStart(
 /**
  * Handle tambo.component.props_delta event.
  * Applies JSON Patch to component props.
+ * @param state - Current stream state
+ * @param event - Component props delta event
+ * @returns Updated stream state
  */
 function handleComponentPropsDelta(
   state: StreamState,
@@ -675,14 +731,18 @@ function handleComponentPropsDelta(
   }
 
   if (messageIndex === -1 || contentIndex === -1) {
-    return state;
+    throw new Error(
+      `Component ${componentId} not found for tambo.component.props_delta event`,
+    );
   }
 
   const message = messages[messageIndex];
   const componentContent = message.content[contentIndex];
 
   if (componentContent.type !== "component") {
-    return state;
+    throw new Error(
+      `Content at index ${contentIndex} is not a component block for tambo.component.props_delta event`,
+    );
   }
 
   // Apply JSON Patch to props
@@ -724,6 +784,9 @@ function handleComponentPropsDelta(
 /**
  * Handle tambo.component.state_delta event.
  * Applies JSON Patch to component state.
+ * @param state - Current stream state
+ * @param event - Component state delta event
+ * @returns Updated stream state
  */
 function handleComponentStateDelta(
   state: StreamState,
@@ -750,14 +813,18 @@ function handleComponentStateDelta(
   }
 
   if (messageIndex === -1 || contentIndex === -1) {
-    return state;
+    throw new Error(
+      `Component ${componentId} not found for tambo.component.state_delta event`,
+    );
   }
 
   const message = messages[messageIndex];
   const componentContent = message.content[contentIndex];
 
   if (componentContent.type !== "component") {
-    return state;
+    throw new Error(
+      `Content at index ${contentIndex} is not a component block for tambo.component.state_delta event`,
+    );
   }
 
   // Apply JSON Patch to state
