@@ -52,30 +52,8 @@ export interface SendMessageOptions {
  * @returns React Query mutation object with threadId in mutation result
  * @example
  * ```tsx
- * // Send message on existing thread
- * function ChatInput({ threadId }: { threadId: string }) {
+ * function ChatInput({ threadId }: { threadId?: string }) {
  *   const sendMessage = useTamboV1SendMessage(threadId);
- *
- *   const handleSubmit = (text: string) => {
- *     sendMessage.mutate({
- *       message: {
- *         role: "user",
- *         content: [{ type: "text", text }],
- *       },
- *     });
- *   };
- *
- *   return (
- *     <div>
- *       <input onSubmit={handleSubmit} />
- *       {sendMessage.isPending && <Spinner />}
- *     </div>
- *   );
- * }
- *
- * // Create new thread
- * function NewChat() {
- *   const sendMessage = useTamboV1SendMessage();
  *
  *   const handleSubmit = async (text: string) => {
  *     const result = await sendMessage.mutateAsync({
@@ -84,10 +62,19 @@ export interface SendMessageOptions {
  *         content: [{ type: "text", text }],
  *       },
  *     });
- *     console.log("Created thread:", result.threadId);
+ *
+ *     // If threadId wasn't provided, a new thread was created
+ *     if (!threadId) {
+ *       console.log("Created thread:", result.threadId);
+ *     }
  *   };
  *
- *   return <input onSubmit={handleSubmit} />;
+ *   return (
+ *     <div>
+ *       <input onSubmit={handleSubmit} />
+ *       {sendMessage.isPending && <Spinner />}
+ *     </div>
+ *   );
  * }
  * ```
  */
