@@ -51,7 +51,7 @@ tool: (params: Record<string, unknown>) => unknown;
 
 #### inputSchema
 
-A Zod schema that defines the tool's input parameters. Can also be a JSON Schema object. Omit if the tool takes no parameters.
+A Zod schema that defines the tool's input parameters. Can also be a JSON Schema object. Use `z.object({})` (or an equivalent empty object schema) for no-parameter tools.
 
 ```typescript
 inputSchema: z.ZodObject | JSONSchema7;

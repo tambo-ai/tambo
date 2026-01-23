@@ -63,6 +63,78 @@ describe("validateTool", () => {
     );
   });
 
+  it("should throw when tool is not an object", () => {
+    expect(() => validateTool(null)).toThrow("Tool must be an object");
+    expect(() => validateTool(undefined)).toThrow("Tool must be an object");
+    expect(() => validateTool("string")).toThrow("Tool must be an object");
+    expect(() => validateTool(42)).toThrow("Tool must be an object");
+  });
+
+  it("should throw when tool name is missing", () => {
+    const tool = {
+      description: "A tool",
+      tool: () => "result",
+      inputSchema: z.object({}),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool must have a 'name' property of type string",
+    );
+  });
+
+  it("should throw when tool description is missing", () => {
+    const tool = {
+      name: "my-tool",
+      tool: () => "result",
+      inputSchema: z.object({}),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool \"my-tool\" must have a 'description' property of type string",
+    );
+  });
+
+  it("should throw when tool function is missing", () => {
+    const tool = {
+      name: "my-tool",
+      description: "A tool",
+      inputSchema: z.object({}),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool \"my-tool\" must have a 'tool' property of type function",
+    );
+  });
+
+  it("should throw when inputSchema is missing", () => {
+    const tool = {
+      name: "my-tool",
+      description: "A tool",
+      tool: () => "result",
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool \"my-tool\" must have an 'inputSchema' property",
+    );
+  });
+
+  it("should throw when outputSchema is missing", () => {
+    const tool = {
+      name: "my-tool",
+      description: "A tool",
+      tool: () => "result",
+      inputSchema: z.object({}),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool \"my-tool\" must have an 'outputSchema' property",
+    );
+  });
+
   it("should throw when inputSchema contains z.record()", () => {
     const tool: TamboTool = {
       name: "invalid-tool",
