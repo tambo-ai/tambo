@@ -359,7 +359,6 @@ describe("V1Service", () => {
         metadata: undefined,
       });
       expect(result.id).toBe("thr_123");
-      expect(result.projectId).toBe("prj_123");
     });
 
     it("should create a thread with context key and metadata", async () => {

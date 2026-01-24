@@ -48,7 +48,6 @@ export function roleToV1(role: string): V1MessageRole {
 export function threadToDto(thread: DbThread): V1ThreadDto {
   return {
     id: thread.id,
-    projectId: thread.projectId,
     contextKey: thread.contextKey ?? undefined,
     runStatus: thread.runStatus,
     currentRunId: thread.currentRunId ?? undefined,
