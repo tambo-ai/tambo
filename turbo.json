@@ -103,7 +103,10 @@
     "@tambo-ai/ui-registry#lint": {
       "dependsOn": ["@tambo-ai/ui-registry#verify-exports"]
     },
-    "verify-exports": {},
+    "verify-exports": {
+      "inputs": ["package.json", "src/**", "scripts/**"],
+      "outputs": []
+    },
     "check-types": { "dependsOn": ["^check-types"] },
     "dev": {
       "dependsOn": ["^build"],
