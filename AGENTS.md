@@ -429,6 +429,24 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 
 - PR Summaries should include "Fixes #123" (GitHub) or "Fixes TAM-123" (Linear) in PR body when applicable.
 
+### GitHub Actions
+
+When creating or modifying GitHub Actions workflows:
+
+- **Pin actions to full commit SHA** with a version comment for security and reproducibility:
+
+  ```yaml
+  # ✅ Good - pinned to SHA with version comment
+  - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+  # ❌ Bad - unpinned version tag
+  - uses: actions/checkout@v4
+  ```
+
+- **Look up the SHA** from the action's releases page (e.g., https://github.com/actions/checkout/releases)
+- **Include the version in a comment** so humans can understand what version is pinned
+- **Local actions** (`./.github/actions/*`) don't need pinning since they're in the repo
+
 ## 11. Development Rules & Constraints
 
 ### What Agents MUST Do
