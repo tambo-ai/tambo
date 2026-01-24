@@ -10,13 +10,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
+permissions:
+  # Default to read-only; only the `test` job should request broader access.
+  contents: read
+
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
     env:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-
-    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5.0.1
@@ -37,9 +40,98 @@ jobs:
       - name: Run Lint
         run: npm run lint
 
+      - name: Build React SDK types
+        run: npm -w @tambo-ai/react run build:cjs
+
+      - name: Run Type Check
+        run: npm run check-types
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      COVERAGE_FILES: |
+        React SDK, ./react-sdk/coverage/coverage-summary.json
+        CLI, ./cli/coverage/coverage-summary.json
+        Showcase, ./showcase/coverage/coverage-summary.json
+        Apps API, ./apps/api/coverage/coverage-summary.json
+        Apps Web, ./apps/web/coverage/coverage-summary.json
+        Packages Core, ./packages/core/coverage/coverage-summary.json
+        Packages Backend, ./packages/backend/coverage/coverage-summary.json
+        Packages UI Registry, ./packages/ui-registry/coverage/coverage-summary.json
+    permissions:
+      contents: read
+      pull-requests: write # Needed to post the coverage comment on PRs.
+
+    steps:
+      - uses: actions/checkout@v5.0.1
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+        # This `frozen: false` is a workaround for the fact that release-please
+        # is not properly updating the lockfile for interdependencies. `npm ci`
+        # is run by setup-tools by default (when frozen=true) but this command
+        # will fail if more than one package has a version change. This is a bug
+        # in release-please, which should be updating the version numbers in release PR.
+        with:
+          frozen: false
+
       - name: Run Tests
-        # Have to use extra -- -- because of turbo wrapping
-        run: npm run test -- -- --coverage
+        id: test
+        continue-on-error: true
+        run: npm run test -- -- --coverage --coverageReporters=json-summary --coverageReporters=text
+
+      - name: Detect coverage
+        id: coverage
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Extract file paths from COVERAGE_FILES (format: "Name, ./path/to/file")
+          while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            file="${line##*, }"
+            if [[ -f "$file" ]]; then
+              echo "has_coverage=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done <<< "$COVERAGE_FILES"
+
+          echo "has_coverage=false" >> "$GITHUB_OUTPUT"
+
+      - name: Jest Coverage Comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && steps.coverage.outputs.has_coverage == 'true'
+        continue-on-error: true
+        uses: MishaKav/jest-coverage-comment@174f9cbf582b7cc2a7a3acce14dcfc8362e9d37f # v1.0.29
+        with:
+          title: "Test Coverage Report"
+          multiple-files: ${{ env.COVERAGE_FILES }}
+          report-only-changed-files: true
+
+      - name: Fail if tests failed
+        if: steps.test.outcome == 'failure'
+        run: exit 1
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v5.0.1
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+        # This `frozen: false` is a workaround for the fact that release-please
+        # is not properly updating the lockfile for interdependencies. `npm ci`
+        # is run by setup-tools by default (when frozen=true) but this command
+        # will fail if more than one package has a version change. This is a bug
+        # in release-please, which should be updating the version numbers in release PR.
+        with:
+          frozen: false
 
       - name: Build
         run: npm run build

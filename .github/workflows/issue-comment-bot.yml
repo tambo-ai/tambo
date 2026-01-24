@@ -1,0 +1,77 @@
+name: Issue Comment Bot
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  respond:
+    # Only respond to issues (not PRs), open issues, unassigned issues,
+    # and comments asking to work on the issue
+    if: |
+      !github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      github.event.comment.user.type != 'Bot' &&
+      github.event.comment.user.login != 'github-actions[bot]' &&
+      !github.event.issue.assignee &&
+      (
+        contains(github.event.comment.body, 'can i work on this') ||
+        contains(github.event.comment.body, 'Can I work on this') ||
+        contains(github.event.comment.body, 'can i take this') ||
+        contains(github.event.comment.body, 'Can I take this') ||
+        contains(github.event.comment.body, 'i would like to work on this') ||
+        contains(github.event.comment.body, 'I would like to work on this') ||
+        contains(github.event.comment.body, 'is this available') ||
+        contains(github.event.comment.body, 'Is this available')
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Respond to comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = "<!-- tambo-issue-comment-bot:do-not-remove -->";
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const per_page = 100;
+            let hasAlreadyResponded = false;
+
+            for (let page = 1; ; page += 1) {
+              const response = await github.rest.issues.listComments({
+                issue_number,
+                owner,
+                repo,
+                page,
+                per_page,
+                direction: "desc",
+                sort: "created",
+              });
+
+              hasAlreadyResponded = response.data.some(
+                (comment) => (comment.body ?? "").includes(marker),
+              );
+
+              if (hasAlreadyResponded || response.data.length < per_page) {
+                break;
+              }
+            }
+
+            if (hasAlreadyResponded) {
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              issue_number,
+              owner,
+              repo,
+              body: `${marker}
+
+Thanks for your interest!
+
+We encourage you to go ahead and open a pull request - no need to ask permission first. Feel free to ask questions on the PR if you get stuck.
+
+Check out our [Contributing Guide](https://github.com/${owner}/${repo}/blob/main/CONTRIBUTING.md) for setup instructions.`,
+            });
