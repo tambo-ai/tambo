@@ -27,6 +27,6 @@ child.on("error", (err: NodeJS.ErrnoException) => {
   process.exit(1);
 });
 
-child.on("exit", (code) => {
+child.on("exit", (code: number | null) => {
   process.exit(code ?? 0);
 });
