@@ -1,0 +1,29 @@
+{
+  "name": "@tambo-ai/kotlin-sdk",
+  "version": "0.1.0",
+  "description": "Kotlin SDK for Tambo AI - Generative UI for Android",
+  "main": "build/libs/tambo-kotlin-sdk-0.1.0.jar",
+  "scripts": {
+    "build": "./gradlew build",
+    "test": "./gradlew test",
+    "clean": "./gradlew clean",
+    "publish": "./gradlew publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "kotlin-sdk"
+  },
+  "keywords": [
+    "android",
+    "kotlin",
+    "ai",
+    "generative-ui",
+    "jetpack-compose",
+    "llm",
+    "chatbot"
+  ],
+  "author": "Tambo AI",
+  "license": "MIT",
+  "homepage": "https://tambo.co"
+}
