@@ -365,6 +365,11 @@ When working across multiple packages:
 - `package.json` - Workspace configuration and scripts
 - Individual package.json files for package-specific configuration
 
+### Knowledge Base
+
+- Refer to `devdocs/` for detailed guidelines on coding standards, naming conventions, loading states, and more.
+- When adding knowledge for specific solutions, document it and place it in the appropriate `devdocs/solutions/` folder.
+
 ## 9. Testing & Quality
 
 ### Testing Strategy
@@ -436,10 +441,10 @@ When creating or modifying GitHub Actions workflows:
 - **Pin actions to full commit SHA** with a version comment for security and reproducibility:
 
   ```yaml
-  # ✅ Good - pinned to SHA with version comment
+  # Good - pinned to SHA with version comment
   - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-  # ❌ Bad - unpinned version tag
+  # Bad - unpinned version tag
   - uses: actions/checkout@v4
   ```
 
