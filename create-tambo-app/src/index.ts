@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from "child_process";
+import spawn from "cross-spawn";
 
 // Use npx to ensure we get the latest version of tambo
 const args = ["-y", "tambo@latest", "create-app", ...process.argv.slice(2)];
