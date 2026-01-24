@@ -60,36 +60,12 @@ jobs:
           frozen: false
 
       - name: Run Tests
-        id: test
-        continue-on-error: true
-        run: npm run test -- -- --coverage --coverageReporters=json-summary --coverageReporters=text
+        run: npm run test -- -- --coverage
 
-      - name: Upload coverage artifacts
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
-          name: coverage-${{ github.event.pull_request.number }}
-          path: "**/coverage/coverage-summary.json"
-          if-no-files-found: ignore
-
-      - name: Cache coverage for base branch
-        if: github.event_name == 'push'
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: "**/coverage/coverage-summary.json"
-          key: coverage-${{ github.ref_name }}-${{ github.sha }}
-
-      - name: Update latest base branch coverage cache
-        if: github.event_name == 'push'
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: "**/coverage/coverage-summary.json"
-          key: coverage-${{ github.ref_name }}-latest
-          enableCrossOsArchive: true
-
-      - name: Fail if tests failed
-        if: steps.test.outcome == 'failure'
-        run: exit 1
+          fail_ci_if_error: false
 
   build:
     runs-on: ubuntu-latest
