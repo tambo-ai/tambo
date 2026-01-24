@@ -100,6 +100,10 @@
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": { "dependsOn": ["^lint"] },
+    "@tambo-ai/ui-registry#lint": {
+      "dependsOn": ["@tambo-ai/ui-registry#verify-exports"]
+    },
+    "verify-exports": {},
     "check-types": { "dependsOn": ["^check-types"] },
     "dev": {
       "dependsOn": ["^build"],
