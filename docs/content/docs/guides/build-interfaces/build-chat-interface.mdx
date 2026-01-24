@@ -1,0 +1,330 @@
+---
+title: Build a Custom Chat Interface
+description: This guide helps you create your own chat interface using the React SDK to access and display stored conversations.
+---
+
+Tambo provides [pre-built components](https://ui.tambo.co) to help you create common conversation interfaces quickly, but if you prefer to build your own from scratch you can use the React SDK.
+
+The Tambo React SDK provides hooks for accessing stored conversation data, allowing you to build custom interfaces that match your application's design. Whether you're building a traditional chat, a canvas-style workspace, or a hybrid interface, the SDK handles data fetching, real-time updates, and state management while you control the presentation.
+
+This guide walks through building a complete custom conversation interface from scratch.
+
+## Prerequisites
+
+Before building custom conversation UI:
+
+- Understand how [Conversation Storage](/concepts/conversation-storage) works
+- Set up the `TamboProvider` in your application
+
+## Single Conversation Interface
+
+### Display Messages
+
+Show the conversation history using the current thread's messages:
+
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
+export default function MessageList() {
+  const { thread } = useTamboThread();
+
+  if (!thread) {
+    return <div>Loading conversation...</div>;
+  }
+
+  return (
+    <div className="messages">
+      {thread.messages.map((message) => (
+        <div key={message.id} className={`message message-${message.role}`}>
+          <div className="message-sender">{message.role}</div>
+
+          {/* Render text content */}
+          {message.content.map((contentPart, idx) => {
+            if (contentPart.type === "text") {
+              return <p key={idx}>{contentPart.text}</p>;
+            }
+            return null;
+          })}
+
+          {/* Show tool calls */}
+          {message.role === "assistant" && message.toolCallRequest && (
+            <div className="tool-calls">
+              {message.component?.toolCallRequest && (
+                <div className="text-sm text-gray-500 p-2 w-full text-left animate-fade-in">
+                  -&gt; {message.component.toolCallRequest.toolName}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Render component if present */}
+          {message.renderedComponent && (
+            <div className="message-component">{message.renderedComponent}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+Messages contain text content, images, generated components, and tool calls. The `renderedComponent` property contains any component Tambo created in response to the message. Tool calls show which tools the AI invoked, useful for debugging or transparency.
+
+**Alternative: Canvas-Style Display**
+
+For interfaces showing only the latest component (dashboards, workspaces), walk backwards through messages to find the most recent component:
+
+```tsx
+import { useTamboThread } from "@tambo-ai/react";
+
+function CanvasView() {
+  const { thread } = useTamboThread();
+
+  const latestComponent = thread?.messages
+    .slice()
+    .reverse()
+    .find((message) => message.renderedComponent)?.renderedComponent;
+
+  return (
+    <div className="canvas">
+      {latestComponent ? (
+        latestComponent
+      ) : (
+        <p>Ask Tambo to create something...</p>
+      )}
+    </div>
+  );
+}
+```
+
+This pattern is useful when you want a clean workspace that updates with each AI response, rather than showing full conversation history.
+
+### Send Messages
+
+Create an input form that sends messages to the current thread:
+
+```tsx
+import { useTamboThreadInput } from "@tambo-ai/react";
+
+function MessageInput() {
+  const { value, setValue, submit, isPending, error } = useTamboThreadInput();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!value.trim() || isPending) return;
+
+    await submit({
+      streamResponse: true,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Type your message..."
+        disabled={isPending}
+      />
+      <button type="submit" disabled={isPending || !value.trim()}>
+        {isPending ? "Sending..." : "Send"}
+      </button>
+      {error && <div className="error">{error.message}</div>}
+    </form>
+  );
+}
+```
+
+The `useTamboThreadInput` hook manages input state and submission, providing the current value, a setter function, a submit function, pending state, and any errors.
+
+For more control over message sending, use `sendThreadMessage` directly:
+
+```tsx
+import { useState } from "react";
+import { useTamboThread } from "@tambo-ai/react";
+
+function CustomInput() {
+  const { sendThreadMessage } = useTamboThread();
+  const [input, setInput] = useState("");
+
+  const handleSend = async () => {
+    await sendThreadMessage(input, {
+      streamResponse: true,
+    });
+    setInput("");
+  };
+
+  return (
+    <div>
+      <input value={input} onChange={(e) => setInput(e.target.value)} />
+      <button onClick={handleSend}>Send</button>
+    </div>
+  );
+}
+```
+
+## Multiple Conversations
+
+### Display Thread List
+
+Show users their available conversations:
+
+```tsx
+import { useTamboThreadList } from "@tambo-ai/react";
+
+export default function ThreadList() {
+  const { data: threads, isLoading, error, refetch } = useTamboThreadList();
+
+  return (
+    <div className="thread-list">
+      <h2>Conversations</h2>
+      {threads?.items.map((thread) => (
+        <div key={thread.id} className="thread-item">
+          <h3>{thread.name || "Untitled Conversation"}</h3>
+          <p>{new Date(thread.createdAt).toLocaleDateString()}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+The `threads` array contains all stored conversations.
+
+### Switch Between Threads
+
+Allow users to select and view different conversations:
+
+```tsx
+import { useTamboThread, useTamboThreadList } from "@tambo-ai/react";
+
+export default function ThreadList() {
+  const { data: threads, isLoading, error, refetch } = useTamboThreadList();
+  const { currentThread, switchCurrentThread } = useTamboThread();
+
+  return (
+    <div className="thread-list">
+      <h2>Conversations</h2>
+      {threads?.items.map((thread) => (
+        <div key={thread.id} className="thread-item">
+          <button
+            key={thread.id}
+            onClick={() => switchCurrentThread(thread.id)}
+            className={currentThread?.id === thread.id ? "active" : ""}
+          >
+            {thread.name || "Untitled Conversation"}
+            <p>{new Date(thread.createdAt).toLocaleDateString()}</p>
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+When you switch threads, the entire UI automatically updates to show the new thread's messages and state. The SDK handles fetching the thread data and updating component state.
+
+## Advanced Patterns
+
+## Add Contextual Suggestions (Optional)
+
+Show AI-generated suggestions after each assistant message to help users discover next actions.
+
+### Display Suggestions
+
+Use the `useTamboSuggestions` hook to get and display suggestions:
+
+```tsx
+import { useTamboThread, useTamboSuggestions } from "@tambo-ai/react";
+
+function MessageThread() {
+  const { thread } = useTamboThread();
+  const { suggestions, isLoading, isAccepting, accept } = useTamboSuggestions({
+    maxSuggestions: 3, // Optional: 1-10, default 3
+  });
+
+  const latestMessage = thread.messages[thread.messages.length - 1];
+  const showSuggestions = latestMessage?.role === "assistant";
+
+  return (
+    <div>
+      {/* Messages */}
+      {thread.messages.map((message) => (
+        <div key={message.id}>{message.content}</div>
+      ))}
+
+      {/* Suggestions */}
+      {showSuggestions && !isLoading && (
+        <div className="suggestions">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion.id}
+              onClick={() => accept(suggestion)}
+              disabled={isAccepting}
+            >
+              {suggestion.title}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+Suggestions are automatically generated after each assistant message when the hook is used.
+
+### Accept Suggestions
+
+The `accept` function provides two modes:
+
+```tsx
+// Set suggestion text in the input (user can edit before sending)
+accept(suggestion);
+
+// Set text and automatically submit
+accept(suggestion, true);
+```
+
+### Custom Suggestions
+
+Override auto-generated suggestions for specific contexts using `useTamboContextAttachment`:
+
+```tsx
+import { useTamboContextAttachment } from "@tambo-ai/react";
+
+function ComponentSelector({ component }) {
+  const { setCustomSuggestions } = useTamboContextAttachment();
+
+  const handleSelectComponent = () => {
+    setCustomSuggestions([
+      {
+        id: "1",
+        title: "Edit this component",
+        detailedSuggestion: `Modify the ${component.name} component`,
+        messageId: "",
+      },
+      {
+        id: "2",
+        title: "Add a feature",
+        detailedSuggestion: `Add a new feature to ${component.name}`,
+        messageId: "",
+      },
+    ]);
+  };
+
+  return <button onClick={handleSelectComponent}>Select</button>;
+}
+```
+
+Clear custom suggestions to return to auto-generated ones:
+
+```tsx
+setCustomSuggestions(null);
+```
+
+## Related Concepts
+
+- **[Conversation Storage](/concepts/conversation-storage)** - Understanding how threads are persisted
+- **[Additional Context](/concepts/additional-context)** - Providing context to improve responses
+- **[Component State](/concepts/generative-interfaces/component-state)** - How component state persists across renders

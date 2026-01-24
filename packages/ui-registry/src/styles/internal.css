@@ -1,0 +1,35 @@
+/* ========================================================================== *\
+| TL;DR: See https://ui.tambo.co for how to install tambo ui components.       |
+|                                                                              |
+| If you are using the tambo cli to sync tambo ui components, you do not need  |
+| to import this file. This file is explicitly for use by packages/apps inside |
+| the tambo-ai/tambo repo.                                                     |
+\* ========================================================================== */
+
+/*
+This file triggers tailwindcss to source the class names for the ui components
+in this package. It explicitly does not contain the theme so that you can define
+your own. If you want to use the default tambo theme, import the globals-v4.css
+file from this package, in addition to this file.
+
+If you are creating a new app that uses the `@tambo-ai/ui-registry` package, you
+can import have tailwind source the components by importing this file.
+
+For example, inside your app's global css file, you can add the following import
+after your tailwindcss import:
+```css
+@import tailwindcss;
+
+@import "@tambo-ai/ui-registry/styles.css";
+```
+
+If you also want to use the default tambo theme, you can add:
+```css
+@import "@tambo-ai/ui-registry/styles/globals-v4.css";
+```
+*/
+
+/* import tailwindcss if necessary, but prevent it from generating any styles */
+@import "tailwindcss" source(none);
+/* manually source components */
+@source "../../**/*.{ts,tsx}";

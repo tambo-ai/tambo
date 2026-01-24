@@ -1,0 +1,74 @@
+---
+title: Configure LLM Provider
+description: Step-by-step guide to selecting and configuring LLM providers and models
+---
+
+This guide walks you through configuring LLM providers and models for your Tambo project, including provider-specific settings and parameter tuning patterns.
+
+## Step 1: Select a Provider
+
+Tambo supports multiple LLM providers:
+
+- **OpenAI** - GPT-4, GPT-4 Turbo, GPT-3.5 models
+- **Anthropic** - Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+- **Google** - Gemini 1.5 Pro, Gemini 1.5 Flash
+- **Groq** - Fast inference for Llama, Mixtral models
+- **Mistral** - Mistral Large, Mistral Medium
+- **OpenAI-Compatible** - Any provider with OpenAI API compatibility
+
+Navigate to your project's LLM Configuration section in the settings of the Tambo dashboard and select your provider from the dropdown.
+
+For detailed provider capabilities and comparison, see the [Provider Reference](/models).
+
+## Step 2: Add API Keys
+
+Generate an API key from your provider's dashboard:
+
+- **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **Anthropic**: [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+- **Google AI Studio**: [makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
+- **Groq**: [console.groq.com/keys](https://console.groq.com/keys)
+- **Mistral**: [console.mistral.ai/api-keys](https://console.mistral.ai/api-keys)
+
+In your project's LLM Configuration:
+
+1. Find **API Key** field
+2. Paste your API key exactly as provided
+3. Click **Save** to store securely
+
+## Step 3: Select a Model
+
+Choose a model based on your requirements:
+
+### Selection Criteria
+
+- **Capability** - More capable models handle complex tasks better
+- **Cost** - Larger models cost more per token
+- **Speed** - Smaller models respond faster
+- **Context Window** - Some models support larger inputs
+
+## Step 4: Configure Custom Parameters
+
+Parameters control how your model behaves. Configure these in the Custom Parameters section of your project settings.
+
+The specific parameters available depend on the selected provider and model. For example, OpenAI GPT-5 models have a `reasoningEffort` parameter that you can edit.
+
+For details on how each parameter changes model output, refer to your provider's documentation for available options.
+
+## Advanced: Custom OpenAI-Compatible Endpoints
+
+If your provider is not listed explicitly in the LLM Providers dropdown, you are still able to use it if its API is OpenAI compatible:
+
+1. Select **OpenAI Compatible** as your provider
+2. Enter **Custom Model Name** (e.g., `meta-llama/Llama-3-70b-chat-hf`)
+3. Enter **Custom Base URL** without "chat/completions" - Tambo will add this automatically. (e.g., `https://api.myai.xyz/v1` becomes `https://api.myai.xyz/v1/chat/completions`)
+4. Add your API key if required
+5. Click **Save**
+
+Your endpoint must implement OpenAI API format with `/chat/completions` support.
+
+## Next Steps
+
+- [Configure Agent Behavior](/guides/setup-project/agent-behavior) - Practical configuration patterns
+- [Provider Reference](/models) - Detailed provider capabilities
+- [Agent Configuration Concepts](/concepts/agent-configuration) - Understanding the system

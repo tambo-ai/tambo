@@ -1,0 +1,343 @@
+---
+title: OpenAI
+description: Configure OpenAI models in Tambo including GPT-5, GPT-4.1, o3, GPT-4o, and GPT-4 Turbo families with reasoning capabilities.
+---
+
+OpenAI provides a comprehensive suite of language models optimized for different use cases, from high-intelligence reasoning to cost-efficient production tasks. Tambo supports the full range of OpenAI models, including the latest GPT-5 series with advanced reasoning capabilities.
+
+## Supported Models
+
+Tambo supports 12 OpenAI models organized into five families:
+
+### GPT-5 Family
+
+The latest generation of OpenAI models with advanced reasoning capabilities and massive context windows.
+
+#### gpt-5
+
+**Status:** Tested
+**API Name:** `gpt-5-2025-08-07`
+**Context Window:** 400,000 tokens
+**Provider Docs:** [OpenAI GPT-5](https://platform.openai.com/docs/models/gpt-5)
+
+The flagship GPT-5 model, best for coding and agentic tasks across domains. Supports reasoning parameters for exposing internal thought processes.
+
+**Best for:**
+
+- Complex coding tasks and refactoring
+- Agentic workflows requiring multi-step reasoning
+- Tasks requiring deep analysis and problem-solving
+- Applications where showing reasoning builds trust
+
+**Notes:** The most powerful model for reasoning-intensive tasks. Use [`reasoningEffort`](#reasoningeffort) and [`reasoningSummary`](#reasoningsummary) parameters to control thinking behavior.
+
+#### gpt-5-mini
+
+**Status:** Tested
+**API Name:** `gpt-5-mini-2025-08-07`
+**Context Window:** 400,000 tokens
+**Provider Docs:** [OpenAI GPT-5 Mini](https://platform.openai.com/docs/models/gpt-5-mini)
+
+A faster, more cost-efficient version of GPT-5 for well-defined tasks.
+
+**Best for:**
+
+- Production applications requiring balance of intelligence and cost
+- Well-scoped tasks with clear requirements
+- High-volume reasoning workloads
+- Applications where latency matters
+
+**Notes:** Maintains GPT-5's reasoning capabilities while optimizing for speed and cost. Ideal for production deployments.
+
+#### gpt-5-nano
+
+**Status:** Tested
+**API Name:** `gpt-5-nano-2025-08-07`
+**Context Window:** 400,000 tokens
+**Provider Docs:** [OpenAI GPT-5 Nano](https://platform.openai.com/docs/models/gpt-5-nano)
+
+The fastest, most cost-efficient version of GPT-5.
+
+**Best for:**
+
+- High-volume applications requiring reasoning at scale
+- Simple reasoning tasks
+- Latency-sensitive applications
+- Cost-optimized production deployments
+
+**Notes:** Smallest GPT-5 variant, optimized for efficiency while retaining reasoning capabilities.
+
+#### gpt-5.1 Thinking
+
+**Status:** Tested
+**API Name:** `gpt-5.1`
+**Context Window:** 400,000 tokens
+**Provider Docs:** [OpenAI Latest Model](https://platform.openai.com/docs/guides/latest-model)
+
+GPT-5.1 Thinking with adaptive reasoning. Dynamically varies thinking time based on task complexity for better token efficiency.
+
+**Best for:**
+
+- Tasks with variable complexity
+- Applications requiring intelligent cost optimization
+- Complex problem-solving with automatic effort adjustment
+- Production systems handling diverse query types
+
+**Notes:** Released November 2025. Adaptive reasoning automatically adjusts thinking time, optimizing cost without sacrificing quality on complex tasks.
+
+#### gpt-5.1 Instant
+
+**Status:** Tested
+**API Name:** `gpt-5.1-chat-latest`
+**Context Window:** 400,000 tokens
+**Provider Docs:** [OpenAI Latest Model](https://platform.openai.com/docs/guides/latest-model)
+
+GPT-5.1 Instant - warmer, more conversational model with adaptive reasoning. Defaults to 'none' reasoning effort for latency-sensitive workloads.
+
+**Best for:**
+
+- Conversational applications requiring natural responses
+- Latency-sensitive chat interfaces
+- Applications balancing warmth and intelligence
+- Real-time interactions with optional reasoning
+
+**Notes:** Released November 2025. Latest conversational variant with improved responsiveness. Defaults to minimal reasoning for speed but can be configured for deeper thinking when needed.
+
+### GPT-4.1 Family
+
+High-intelligence models excelling at function calling and instruction following with massive context windows.
+
+#### gpt-4.1
+
+**Status:** Tested (Default Model)
+**API Name:** `gpt-4.1-2025-04-14`
+**Context Window:** 1,047,576 tokens
+**Provider Docs:** [OpenAI GPT-4.1](https://platform.openai.com/docs/models/gpt-4.1)
+
+The default model for Tambo projects. Excels at function calling and instruction following.
+
+**Best for:**
+
+- Function calling and tool use
+- Following complex instructions precisely
+- General-purpose applications
+- Large context requirements (1M+ tokens)
+
+**Notes:** This is Tambo's default model, balancing intelligence, reliability, and cost. Ideal for most production applications.
+
+#### gpt-4.1-mini
+
+**Status:** Tested
+**API Name:** `gpt-4.1-mini-2025-04-14`
+**Context Window:** 1,047,576 tokens
+**Provider Docs:** [OpenAI GPT-4.1 Mini](https://platform.openai.com/docs/models/gpt-4.1-mini)
+
+Balanced for intelligence, speed, and cost.
+
+**Best for:**
+
+- Production applications requiring cost efficiency
+- High-volume workloads
+- Applications balancing quality and performance
+- Large context with cost constraints
+
+**Notes:** Offers excellent value proposition with maintained quality at reduced cost.
+
+#### gpt-4.1-nano
+
+**Status:** Tested
+**API Name:** `gpt-4.1-nano-2025-04-14`
+**Context Window:** 1,047,576 tokens
+**Provider Docs:** [OpenAI GPT-4.1 Nano](https://platform.openai.com/docs/models/gpt-4.1-nano)
+
+Fastest, most cost-efficient version of GPT-4.1.
+
+**Best for:**
+
+- Maximum throughput applications
+- Simple, well-defined tasks
+- Cost-critical deployments
+- High-volume production systems
+
+**Notes:** Validated on common Tambo tasks including streaming responses and generative UI components. Some edge cases require explicit prompts and are documented.
+
+### o3 Family
+
+Specialized reasoning model for complex problem-solving.
+
+#### o3
+
+**Status:** Tested
+**API Name:** `o3-2025-04-16`
+**Context Window:** 200,000 tokens
+**Provider Docs:** [OpenAI o3](https://platform.openai.com/docs/models/o3)
+
+The most powerful reasoning model available.
+
+**Best for:**
+
+- Mathematical proofs and calculations
+- Complex code review and debugging
+- Strategic planning requiring deep analysis
+- Research and analysis tasks
+- Any task where showing reasoning is critical
+
+**Notes:** Dedicated reasoning model with the most powerful thinking capabilities. Higher latency and cost but unmatched reasoning depth.
+
+### GPT-4o Family
+
+Versatile multimodal models with text and image input support.
+
+#### gpt-4o
+
+**Status:** Tested
+**API Name:** `gpt-4o-2024-11-20`
+**Context Window:** 128,000 tokens
+**Provider Docs:** [OpenAI GPT-4o](https://platform.openai.com/docs/models/gpt-4o)
+
+Versatile and high-intelligence model with text and image input support. Best for most tasks, combining strong reasoning, creativity, and multimodal understanding.
+
+**Best for:**
+
+- Multimodal applications (text + images)
+- Creative tasks requiring nuanced understanding
+- General-purpose applications requiring versatility
+- Tasks requiring both analysis and generation
+
+**Notes:** Excellent all-around model with multimodal capabilities. Strong choice when you need both text and image understanding.
+
+#### gpt-4o-mini
+
+**Status:** Tested
+**API Name:** `gpt-4o-mini-2024-07-18`
+**Context Window:** 128,000 tokens
+**Provider Docs:** [OpenAI GPT-4o Mini](https://platform.openai.com/docs/models/gpt-4o-mini)
+
+Fast, affordable model ideal for focused tasks and fine-tuning. Supports text and image inputs, with low cost and latency for efficient performance.
+
+**Best for:**
+
+- Cost-sensitive multimodal applications
+- Fine-tuning for specific use cases
+- High-volume image analysis
+- Production deployments prioritizing efficiency
+
+**Notes:** Most efficient multimodal option with excellent performance-to-cost ratio.
+
+### GPT-4 Turbo Family
+
+Previous generation high-intelligence model, still powerful but superseded by newer families.
+
+#### gpt-4-turbo
+
+**Status:** Tested
+**API Name:** `gpt-4-turbo-2024-04-09`
+**Context Window:** 128,000 tokens
+**Provider Docs:** [OpenAI GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo)
+
+High-intelligence model that's cheaper and faster than GPT-4. Still powerful, but we recommend using GPT-4o for most tasks.
+
+**Best for:**
+
+- Legacy applications requiring GPT-4 Turbo specifically
+- Cost-conscious deployments not yet migrated to newer models
+
+**Notes:** While still capable, GPT-4o and GPT-4.1 families offer better performance and features for most use cases.
+
+## Provider-Specific Parameters
+
+OpenAI reasoning models support specialized parameters to control their thinking behavior.
+
+### Reasoning Parameters
+
+Configure reasoning capabilities through your project's LLM provider settings in the [dashboard](#configuration).
+
+#### reasoningEffort
+
+**Type:** `string`
+**Values:** `"minimal"`, `"low"`, `"medium"`, `"high"`
+**Description:** Controls the intensity of the model's reasoning process. Only effective when [`reasoningSummary`](#reasoningsummary) is also set.
+
+- **`"minimal"`** - Quick reasoning with minimal thinking time
+- **`"low"`** - Light reasoning for simpler tasks (faster, cheaper)
+- **`"medium"`** - Balanced reasoning for most use cases (recommended)
+- **`"high"`** - Deep reasoning for complex problems (slower, more expensive)
+
+#### reasoningSummary
+
+**Type:** `string`
+**Values:** `"auto"`, `"detailed"`
+**Description:** Enables reasoning token output, allowing you to see the model's internal thought process.
+
+- **`"auto"`** - Automatically determines appropriate reasoning detail level
+- **`"detailed"`** - Provides more comprehensive reasoning output
+
+**Example Configuration:**
+
+In your Tambo Cloud dashboard under **Settings** → **LLM Providers** → **Custom LLM Parameters**:
+
+```
+reasoningEffort: "medium"
+reasoningSummary: "auto"
+```
+
+### Supported Reasoning Models
+
+Reasoning parameters are available for the following OpenAI models:
+
+- GPT-5 (`gpt-5-2025-08-07`)
+- GPT-5 Mini (`gpt-5-mini-2025-08-07`)
+- GPT-5 Nano (`gpt-5-nano-2025-08-07`)
+- GPT-5.1 (`gpt-5.1`)
+- GPT-5.1 Chat Latest (`gpt-5.1-chat-latest`)
+- o3 (`o3-2025-04-16`)
+
+## Configuration
+
+### Setting Up OpenAI in Tambo
+
+1. Navigate to your project in the Tambo Cloud dashboard
+2. Go to **Settings** → **LLM Providers**
+3. Select **OpenAI** as your provider
+4. Choose your desired model from the dropdown
+5. Configure any provider-specific parameters (reasoning, temperature, etc.)
+6. Click **Save**
+
+### Dashboard Features
+
+When you select an OpenAI reasoning model, the dashboard automatically suggests relevant parameters:
+
+- [**reasoningEffort**](#reasoningeffort) - Suggested for all reasoning models
+- [**reasoningSummary**](#reasoningsummary) - Suggested for all reasoning models
+
+Simply click the suggested parameter to add it to your configuration, set the desired value, and save.
+
+### Best Practices
+
+**Model Selection:**
+
+- Use **gpt-4.1** for most production applications (default)
+- Use **gpt-5** family when reasoning capabilities are critical
+- Use **gpt-4o** for multimodal applications
+- Use **mini/nano** variants for cost-optimized deployments
+- Use **o3** for maximum reasoning depth
+
+**Reasoning Configuration:**
+
+- Start with [`reasoningEffort: "medium"`](#reasoningeffort) for balanced performance
+- Set [`reasoningSummary: "auto"`](#reasoningsummary) to enable reasoning display
+- Increase effort for complex tasks, decrease for simple queries
+- Monitor token usage as reasoning consumes additional tokens
+
+**Production Considerations:**
+
+- Test untested models thoroughly before production deployment
+- Monitor costs with reasoning parameters enabled
+- Use separate projects for different reasoning requirements
+- Consider using non-reasoning models for high-volume simple tasks
+
+## See Also
+
+- [Labels](/models/labels) - Understanding model status labels and observed behaviors
+- [Custom LLM Parameters](/models/custom-llm-parameters) - Configuring temperature, max tokens, and other parameters
+- [Reasoning Models](/models/reasoning-models) - Deep dive into reasoning capabilities for OpenAI and Gemini models

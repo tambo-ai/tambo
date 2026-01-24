@@ -1,17 +1,11 @@
 import type { JSONSchema7 } from "json-schema";
-import type {
-  TamboComponent,
-  TamboTool,
-  TamboToolWithToolSchema,
-} from "../model/component-metadata";
+import type { TamboComponent, TamboTool } from "../model/component-metadata";
 import {
   assertNoRecordSchema,
-  getZodFunctionArgs,
   isStandardSchema,
   looksLikeJSONSchema,
   schemaToJsonSchema,
 } from "../schema";
-import { isZodFunctionSchema } from "../schema/zod";
 import { assertValidName } from "./validate-component-name";
 
 /**
@@ -60,34 +54,74 @@ function assertObjectSchema(schema: unknown, context: string): void {
  * Throws an error if the tool is invalid.
  * @param tool - The tool to validate
  */
-export function validateTool(tool: TamboTool | TamboToolWithToolSchema): void {
-  // Validate tool name
+export function validateTool(tool: unknown): asserts tool is TamboTool {
+  // Basic runtime type checks before narrowing
+  if (!tool || typeof tool !== "object") {
+    throw new Error("Tool must be an object");
+  }
+
+  // Extract name for error messages (before we know it's valid)
+  const toolName =
+    "name" in tool && typeof tool.name === "string" ? tool.name : "<unknown>";
+
+  // Check for deprecated toolSchema - throw error with migration instructions
+  if ("toolSchema" in tool) {
+    throw new Error(
+      `Tool "${toolName}" uses deprecated "toolSchema" property. ` +
+        `Migrate to "inputSchema" and "outputSchema" properties. ` +
+        `See migration guide: https://tambo.ai/docs/migration/toolschema`,
+    );
+  }
+
+  // Validate required properties exist
+  if (!("name" in tool) || typeof tool.name !== "string") {
+    throw new Error("Tool must have a 'name' property of type string");
+  }
+
+  if (!("description" in tool) || typeof tool.description !== "string") {
+    throw new Error(
+      `Tool "${tool.name}" must have a 'description' property of type string`,
+    );
+  }
+
+  if (!("tool" in tool) || typeof tool.tool !== "function") {
+    throw new Error(
+      `Tool "${tool.name}" must have a 'tool' property of type function`,
+    );
+  }
+
+  if (!("inputSchema" in tool)) {
+    throw new Error(`Tool "${tool.name}" must have an 'inputSchema' property`);
+  }
+
+  if (!("outputSchema" in tool)) {
+    throw new Error(`Tool "${tool.name}" must have an 'outputSchema' property`);
+  }
+
+  // Validate tool name format
   assertValidName(tool.name, "tool");
 
-  // Validate tool schemas
-  // 1. check inputSchema
-  if ("inputSchema" in tool && tool.inputSchema) {
-    // inputSchema must be an object schema
+  // Validate tool schemas - inputSchema must be an object schema
+  if (tool.inputSchema) {
     assertObjectSchema(tool.inputSchema, `inputSchema of tool "${tool.name}"`);
     assertNoRecordSchema(
       tool.inputSchema,
       `inputSchema of tool "${tool.name}"`,
     );
   }
-  // 2. check deprecated toolSchema
-  else if ("toolSchema" in tool && tool.toolSchema) {
-    let inputSchema = tool.toolSchema;
-    // toolSchema may sometimes be a zod function schema, extract args if so
-    if (isZodFunctionSchema(tool.toolSchema)) {
-      inputSchema = getZodFunctionArgs(tool.toolSchema);
-    }
-    assertNoRecordSchema(inputSchema, `toolSchema of tool "${tool.name}"`);
-  }
 
   // Validate maxCalls if provided - must be a positive integer
-  if ("maxCalls" in tool && tool.maxCalls !== undefined) {
+  if (
+    "maxCalls" in tool &&
+    tool.maxCalls !== undefined &&
+    tool.maxCalls !== null
+  ) {
     const maxCalls = tool.maxCalls;
-    if (!Number.isInteger(maxCalls) || maxCalls < 0) {
+    if (
+      typeof maxCalls !== "number" ||
+      !Number.isInteger(maxCalls) ||
+      maxCalls < 0
+    ) {
       throw new Error(
         `maxCalls for tool "${tool.name}" must be a positive integer`,
       );

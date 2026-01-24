@@ -13,11 +13,13 @@ The `TamboTool` interface defines the structure for registering tools with Tambo
 interface TamboTool {
   name: string;
   description: string;
-  tool: (...args: any[]) => any;
-  toolSchema: z.ZodFunction | JSONSchemaLite;
+  tool: (params: Record<string, unknown>) => unknown;
+  inputSchema: z.ZodObject | JSONSchema7;
+  outputSchema: z.ZodTypeAny | JSONSchema7;
   transformToContent?: (
     result: any,
   ) => Promise<ChatCompletionContentPart[]> | ChatCompletionContentPart[];
+  maxCalls?: number;
 }
 ```
 
@@ -41,26 +43,44 @@ description: string;
 
 #### tool
 
-The function that implements the tool's logic. Can be synchronous or asynchronous.
+The function that implements the tool's logic. Receives a single object with named parameters.
 
 ```typescript
-tool: (...args: any[]) => any;
+tool: (params: Record<string, unknown>) => unknown;
 ```
 
-#### toolSchema
+#### inputSchema
 
-A Zod function schema that defines the tool's parameters and return type. Can also be a JSON Schema object.
+A Zod schema that defines the tool's input parameters. Can also be a JSON Schema object. Use `z.object({})` (or an equivalent empty object schema) for no-parameter tools.
 
 ```typescript
-toolSchema: z.ZodFunction | JSONSchemaLite;
+inputSchema: z.ZodObject | JSONSchema7;
 ```
 
 **Example:**
 
 ```typescript
-toolSchema: z.function()
-  .args(z.string().describe("The city name"))
-  .returns(z.object({ temperature: z.number(), condition: z.string() }));
+inputSchema: z.object({
+  city: z.string().describe("The city name"),
+  units: z.enum(["celsius", "fahrenheit"]).optional(),
+});
+```
+
+#### outputSchema
+
+A Zod schema that defines the tool's return type. Can also be a JSON Schema object.
+
+```typescript
+outputSchema: z.ZodTypeAny | JSONSchema7;
+```
+
+**Example:**
+
+```typescript
+outputSchema: z.object({
+  temperature: z.number(),
+  condition: z.string(),
+});
 ```
 
 #### transformToContent (optional)
@@ -82,7 +102,7 @@ transformToContent: (result) => [
 ];
 ```
 
-[Learn more about returning rich content from tools](/concepts/tools/adding-tools#returning-rich-content).
+[Learn more about returning rich content from tools](/guides/take-actions/register-tools#return-rich-content-optional).
 
 ## TamboComponent
 

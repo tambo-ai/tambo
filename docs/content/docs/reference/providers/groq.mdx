@@ -1,0 +1,233 @@
+---
+title: Groq
+description: Groq provider configuration for Meta's Llama models with ultra-fast inference.
+---
+
+Groq provides ultra-fast inference for Meta's Llama models, delivering high-throughput AI capabilities for demanding applications. Groq's specialized hardware accelerates model performance, enabling speeds of 400+ tokens/sec for real-time use cases.
+
+## Groq Llama model overview
+
+Groq hosts Meta's latest Llama models, including the new Llama 4 family. These models excel at diverse NLP tasks, from summarization and reasoning to multilingual and multimodal applications, all powered by Groq's high-performance infrastructure.
+
+**Provider-specific features:**
+
+- Ultra-fast inference (400+ tokens/sec)
+- Large context windows (128K tokens)
+- Cost-effective pricing
+- Specialized hardware acceleration
+
+## Supported Models
+
+Groq offers 4 Llama models across different generations, each optimized for specific use cases.
+
+### Llama 4 Family
+
+#### llama-4-scout-17b-16e-instruct
+
+**Status:** Untested
+
+**API Name:** `meta-llama/llama-4-scout-17b-16e-instruct`
+
+**Context Window:** 128K tokens
+
+**Provider Docs:** [Groq Llama 4 Announcement](https://groq.com/blog/llama-4-now-live-on-groq-build-fast-at-the-lowest-cost-without-compromise)
+
+**Description:**
+
+Meta's Llama 4 Scout model (17Bx16E) is ideal for summarization, reasoning, and code generation. Runs at 460+ tokens/sec on Groq's infrastructure.
+
+**Best For:**
+
+- Code generation and analysis
+- Text summarization
+- Multi-step reasoning tasks
+- Real-time applications requiring high throughput
+
+**Notes:**
+
+Not yet validated on common Tambo tasks. This model is newly released as of November 2025. Use with caution and test in your specific context.
+
+#### llama-4-maverick-17b-128e-instruct
+
+**Status:** Untested
+
+**API Name:** `meta-llama/llama-4-maverick-17b-128e-instruct`
+
+**Context Window:** 128K tokens
+
+**Provider Docs:** [Groq Llama 4 Announcement](https://groq.com/blog/llama-4-now-live-on-groq-build-fast-at-the-lowest-cost-without-compromise)
+
+**Description:**
+
+Meta's Llama 4 Maverick model (17Bx128E) is optimized for multilingual and multimodal tasks, making it ideal for assistants, chat applications, and creative use cases.
+
+**Best For:**
+
+- Multilingual applications
+- Conversational AI and chatbots
+- Creative writing and content generation
+- Assistant and agent implementations
+
+**Notes:**
+
+Not yet validated on common Tambo tasks. This model is newly released as of November 2025 with enhanced multimodal capabilities. Use with caution and test in your specific context.
+
+### Llama 3.3 Family
+
+#### llama-3.3-70b-versatile
+
+**Status:** Untested
+
+**API Name:** `llama-3.3-70b-versatile`
+
+**Context Window:** 128K tokens
+
+**Provider Docs:** [Groq Llama 3.3 Documentation](https://console.groq.com/docs/model/llama-3.3-70b-versatile)
+
+**Description:**
+
+Llama 3.3 70B Versatile is Meta's powerful multilingual model with 70B parameters, optimized for diverse NLP tasks and delivering strong performance across a wide range of applications.
+
+**Best For:**
+
+- Complex multilingual tasks
+- General-purpose NLP applications
+- Tasks requiring strong reasoning
+- Production workloads requiring reliability
+
+**Notes:**
+
+Not yet validated on common Tambo tasks. With 70B parameters, this model offers strong capabilities but may have higher latency than smaller variants.
+
+### Llama 3.1 Family
+
+#### llama-3.1-8b-instant
+
+**Status:** Tested
+
+**API Name:** `llama-3.1-8b-instant`
+
+**Context Window:** 128K tokens
+
+**Provider Docs:** [Groq Llama 3.1 Documentation](https://console.groq.com/docs/model/llama-3.1-8b-instant)
+
+**Description:**
+
+Llama 3.1 8B on Groq delivers fast, high-quality responses for real-time tasks. Supports function calling, JSON output, and 128K context at low cost, making it ideal for cost-conscious applications.
+
+**Best For:**
+
+- Real-time chat applications
+- Cost-sensitive production deployments
+- Function calling and tool use
+- JSON-structured outputs
+- High-volume applications
+
+**Notes:**
+
+This model has been tested with Tambo component generation tasks and shows issues with JSON escaping in component attributes and component tag syntax. While it's the most cost-effective option in Groq's lineup, it will require careful validation and potentially post-processing for component generation use cases. See below for details.
+
+**Known Shortcomings:**
+
+Based on testing with component generation tasks, the following issues have been observed:
+
+- **JSON Escaping in Component Attributes**: The fields attribute contains unescaped JSON strings. This will cause parsing errors because quotes aren't escaped. (e.g., `fields="[{"id":"text_field","type":"text",...}]"`)
+
+- **Verbose Explanatory Text**: The model tends to include unnecessary explanatory text before and after component tags (e.g., "The form component is now displayed below" or "Your form now includes an email input field"). While not breaking, this adds noise to responses.
+
+- **Invalid Component Syntax**: Uses non-standard XML-like syntax that won't render properly. (e.g., `<show_component_FormComponent ... ></show_component_FormComponent>`)
+
+- **Streaming Error**: The model throws error while streaming sometimes.
+
+## Configuration
+
+### Dashboard Setup
+
+Configure Groq models through your project's LLM provider settings:
+
+1. Navigate to your project in the dashboard
+2. Go to **Settings** → **LLM Providers**
+3. Add or select **Groq** as your provider
+4. Enter your [Groq API key](#api-key)
+5. Select your preferred Llama model
+6. Configure any [custom LLM parameters](/models/custom-llm-parameters) as needed
+7. Click **Save** to apply the configuration
+
+### API Key
+
+You'll need a Groq API key to use these models. Get one from [Groq Console](https://console.groq.com/).
+
+### Model Selection
+
+Choose your model based on your use case:
+
+- [**Llama 4 Scout**](#llama-4-scout-17b-16e-instruct): Code generation, reasoning, summarization
+- [**Llama 4 Maverick**](#llama-4-maverick-17b-128e-instruct): Multilingual, multimodal, creative tasks
+- [**Llama 3.3 70B**](#llama-3-3-70b-versatile): Complex tasks requiring strong reasoning
+- [**Llama 3.1 8B**](#llama-3-1-8b-instant): Cost-effective real-time applications
+
+## Performance Considerations
+
+**Speed vs. Size:**
+
+- Smaller models ([8B](#llama-3-1-8b-instant)) offer lower latency and cost
+- Larger models ([70B](#llama-3-3-70b-versatile)) provide better reasoning and accuracy
+- [Llama 4 models](#llama-4-family) balance performance with specialized capabilities
+
+**Context Window:**
+
+All Groq Llama models support 128K token context windows, enabling long-form conversations and document analysis.
+
+**Throughput:**
+
+Groq's specialized hardware delivers exceptional inference speeds (400-460+ tokens/sec), making it ideal for real-time applications.
+
+## Best Practices
+
+- **Start with [Llama 3.1 8B](#llama-3-1-8b-instant)** for cost-effective testing and simple tasks
+- **Use [Llama 3.3 70B](#llama-3-3-70b-versatile)** when you need stronger reasoning or complex understanding
+- **Try [Llama 4 models](#llama-4-family)** for specialized tasks ([Scout](#llama-4-scout-17b-16e-instruct) for code, [Maverick](#llama-4-maverick-17b-128e-instruct) for multilingual)
+- **Test thoroughly** since all models are currently [untested with Tambo](#known-behaviors)
+- **Monitor costs** and performance to find the right balance for your use case
+
+## Known Behaviors
+
+<Callout type="warning" title="Untested Models">
+  All Groq Llama models are currently **Untested** in Tambo. They are newly
+  released or recently added. Test them in your specific context before
+  production deployment. See the [Labels](/models/labels) page for more
+  information about model status labels.
+</Callout>
+
+<Callout type="warning" title="Potential Streaming Issues">
+  Streaming may behave inconsistently in models other than OpenAI. We're aware
+  of the issue and are actively working on a fix. Please proceed with caution
+  when using streaming on Groq models.
+</Callout>
+
+## Troubleshooting
+
+**Slow response times?**
+
+- Groq is optimized for speed; if experiencing slowness, check your network connection
+- Verify you're using the correct API endpoint
+- Monitor your Groq account for rate limits
+
+**Unexpected outputs?**
+
+- Adjust temperature and other parameters in [Custom LLM Parameters](/models/custom-llm-parameters)
+- Try a different model size ([8B](#llama-3-1-8b-instant) vs. [70B](#llama-3-3-70b-versatile)) for your use case
+- Provide more context in your prompts for better results
+
+**API errors?**
+
+- Verify your [Groq API key](#api-key) is valid and not expired
+- Check your account quota and rate limits
+- Ensure the model name matches exactly as shown in [Supported Models](#supported-models)
+
+## See Also
+
+- [Labels](/models/labels) - Understanding model status labels
+- [Custom LLM Parameters](/models/custom-llm-parameters) - Fine-tune model behavior
+- [Groq Console](https://console.groq.com/) - Manage your API keys and usage
+- [Groq Documentation](https://console.groq.com/docs) - Official Groq provider docs

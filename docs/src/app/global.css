@@ -1,6 +1,12 @@
+/* Remaining Tailwind CSS */
 @import "tailwindcss";
+
+/* Fumadocs UI base styles */
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
+
+/* Styles for ui components are imported directly from the ui-registry package */
+@import "@tambo-ai/ui-registry/styles.css";
 
 @theme inline {
   /* Tailwind CSS Variables customized with tambo colors */

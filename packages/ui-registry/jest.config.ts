@@ -20,6 +20,9 @@ const config: Config = {
     "^@tambo-ai/ui-registry/components/(.*)$": "<rootDir>/src/components/$1",
     // Mock @tambo-ai/react
     "^@tambo-ai/react$": "<rootDir>/__tests__/__mocks__/@tambo-ai-react.ts",
+    // Mock @tambo-ai/react/mcp
+    "^@tambo-ai/react/mcp$":
+      "<rootDir>/__tests__/__mocks__/@tambo-ai-react-mcp.ts",
     // Mock CSS imports
     "\\.(css|less|scss|sass)$": "<rootDir>/__tests__/__mocks__/styleMock.js",
     // Mock react-media-recorder - uses browser APIs not available in jsdom

@@ -1,6 +1,6 @@
 {
   "name": "tambo",
-  "version": "0.47.0",
+  "version": "0.48.0",
   "description": "Tambo command-line tool",
   "license": "MIT",
   "repository": {
@@ -57,7 +57,7 @@
   "dependencies": {
     "@tambo-ai/react": "*",
     "date-fns": "^4.1.0",
-    "@tambo-ai/typescript-sdk": "^0.80.0",
+    "@tambo-ai/typescript-sdk": "^0.84.0",
     "@trpc/client": "^11.7.2",
     "@trpc/server": "^11.7.2",
     "chalk": "^5.6.0",
