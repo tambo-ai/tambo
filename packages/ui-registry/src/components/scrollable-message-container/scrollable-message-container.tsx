@@ -98,22 +98,25 @@ export const ScrollableMessageContainer = React.forwardRef<
     }
   }, [messagesContent, generationStage, shouldAutoscroll]);
 
-  return (
-    <div
-      ref={scrollContainerRef}
-      onScroll={handleScroll}
-      className={cn(
-        "flex-1 overflow-y-auto",
-        "[&::-webkit-scrollbar]:w-[6px]",
-        "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30",
-        "[&::-webkit-scrollbar:horizontal]:h-[4px]",
-        className,
-      )}
-      data-slot="scrollable-message-container"
-      {...props}
-    >
-      {children}
-    </div>
+  return useMemo(
+    () => (
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className={cn(
+          "flex-1 overflow-y-auto",
+          "[&::-webkit-scrollbar]:w-1.5",
+          "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30",
+          "[&::-webkit-scrollbar:horizontal]:h-1",
+          className,
+        )}
+        data-slot="scrollable-message-container"
+        {...props}
+      >
+        {children}
+      </div>
+    ),
+    [scrollContainerRef, handleScroll, className, props, children],
   );
 });
 ScrollableMessageContainer.displayName = "ScrollableMessageContainer";
