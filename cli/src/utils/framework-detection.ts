@@ -54,19 +54,26 @@ const FRAMEWORKS: FrameworkDefinition[] = [
       hasPackage("next") ||
       hasAnyFile(["next.config.js", "next.config.ts", "next.config.mjs"]),
   },
-  // Future frameworks can be added here:
-  // {
-  //   name: "vite",
-  //   displayName: "Vite",
-  //   envPrefix: "VITE_",
-  //   detect: () => hasPackage("vite") || hasAnyFile(["vite.config.js", "vite.config.ts"]),
-  // },
-  // {
-  //   name: "cra",
-  //   displayName: "Create React App",
-  //   envPrefix: "REACT_APP_",
-  //   detect: () => hasPackage("react-scripts"),
-  // },
+  {
+    name: "vite",
+    displayName: "Vite",
+    envPrefix: "VITE_",
+    detect: () =>
+      hasPackage("vite") ||
+      hasAnyFile(["vite.config.js", "vite.config.ts", "vite.config.mjs"]),
+  },
+  {
+    name: "remix",
+    displayName: "Remix",
+    envPrefix: null,
+    detect: () => hasPackage("@remix-run/react"),
+  },
+  {
+    name: "astro",
+    displayName: "Astro",
+    envPrefix: null,
+    detect: () => hasPackage("astro") || hasAnyFile(["astro.config.mjs"]),
+  },
 ];
 
 /**

@@ -7,6 +7,7 @@ import postcss from "postcss";
 import semver from "semver";
 import type { Config } from "tailwindcss";
 import { Project, ScriptKind } from "ts-morph";
+import { detectFramework } from "../../utils/framework-detection.js";
 import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
 import { parseConfigObject } from "./tailwind/config/parsing.js";
 import { showChangesSummary, showCssDiff } from "./tailwind/css/diff-viewer.js";
@@ -31,10 +32,6 @@ import {
 import { detectTailwindVersion } from "./tailwind/version/detection.js";
 import { getRegistryBasePath } from "./utils.js";
 
-/**
- * Sets up Tailwind CSS and global styles for the project
- * @param projectRoot The root directory of the project
- */
 export async function setupTailwindAndGlobals(projectRoot: string) {
   const tailwindConfigPath = path.join(projectRoot, "tailwind.config.ts");
 
@@ -50,7 +47,12 @@ export async function setupTailwindAndGlobals(projectRoot: string) {
     );
   }
 
-  // Detect if src directory exists
+  const framework = detectFramework();
+
+  if (isV4 && framework && (framework.name === "vite" || framework.name === "remix" || framework.name === "astro")) {
+    await setupVitePlugin(projectRoot, framework.displayName);
+  }
+
   const hasSrcDir = fs.existsSync(path.join(projectRoot, "src"));
   const appPath = hasSrcDir ? "src/app" : "app";
 
@@ -507,4 +509,127 @@ export default config`;
       `${chalk.green("✔")} Updated globals.css (preserved existing content)`,
     );
   }
+}
+
+async function setupVitePlugin(projectRoot: string, frameworkName: string) {
+  console.log(
+    `${chalk.blue("ℹ")} Detected ${frameworkName} + Tailwind v4 - configuring PostCSS toolchain...`,
+  );
+
+  const packageJsonPath = path.join(projectRoot, "package.json");
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+  const installedDeps = {
+    ...packageJson.dependencies,
+    ...packageJson.devDependencies,
+  };
+
+  if (!installedDeps["@tailwindcss/vite"]) {
+    console.log(`${chalk.blue("ℹ")} Installing @tailwindcss/vite...`);
+
+    const { execFileSync } = await import("../../utils/interactive.js");
+    const {
+      detectPackageManager,
+      getInstallCommand,
+      getDevFlag,
+      formatPackageArgs,
+    } = await import("../../utils/package-manager.js");
+
+    const pm = detectPackageManager();
+    const installCmd = getInstallCommand(pm);
+    const devFlag = getDevFlag(pm);
+
+    try {
+      const args = [
+        ...installCmd,
+        devFlag,
+        ...formatPackageArgs(pm, ["@tailwindcss/vite"]),
+      ];
+      execFileSync(pm, args, {
+        encoding: "utf-8",
+        allowNonInteractive: true,
+      } as any);
+      console.log(`${chalk.green("✔")} Installed @tailwindcss/vite`);
+    } catch (error) {
+      throw new Error(`Failed to install @tailwindcss/vite: ${error}`);
+    }
+  } else {
+    console.log(`${chalk.gray("ℹ")} @tailwindcss/vite already installed`);
+  }
+
+  const viteConfigFiles = [
+    "vite.config.ts",
+    "vite.config.js",
+    "vite.config.mjs",
+  ];
+  const viteConfigPath = viteConfigFiles
+    .map((file) => path.join(projectRoot, file))
+    .find((file) => fs.existsSync(file));
+
+  if (!viteConfigPath) {
+    console.log(
+      `${chalk.yellow("⚠")} No vite.config file found. Please add the @tailwindcss/vite plugin manually.`,
+    );
+    console.log(
+      chalk.gray(
+        `\nAdd to your vite.config file:\nimport tailwindcss from '@tailwindcss/vite'\n\nexport default defineConfig({\n  plugins: [tailwindcss()],\n})\n`,
+      ),
+    );
+    return;
+  }
+
+  let viteConfig = fs.readFileSync(viteConfigPath, "utf-8");
+
+  const hasTailwindImport =
+    viteConfig.includes("@tailwindcss/vite") ||
+    viteConfig.includes("tailwindcss") && viteConfig.includes("from");
+
+  if (hasTailwindImport) {
+    console.log(
+      `${chalk.gray("ℹ")} Tailwind plugin already configured in vite.config`,
+    );
+    return;
+  }
+
+  console.log(`${chalk.blue("ℹ")} Updating ${path.basename(viteConfigPath)}...`);
+
+  const importStatement = "import tailwindcss from '@tailwindcss/vite';\n";
+
+  if (!viteConfig.includes(importStatement.trim())) {
+    const importRegex = /^(import\s+.+?;?\s*\n)+/m;
+    const match = viteConfig.match(importRegex);
+
+    if (match) {
+      viteConfig = viteConfig.replace(
+        importRegex,
+        match[0] + importStatement,
+      );
+    } else {
+      viteConfig = importStatement + viteConfig;
+    }
+  }
+
+  const pluginsRegex = /plugins:\s*\[([\s\S]*?)\]/;
+  const pluginsMatch = viteConfig.match(pluginsRegex);
+
+  if (pluginsMatch) {
+    const existingPlugins = pluginsMatch[1].trim();
+    const newPlugins = existingPlugins
+      ? `${existingPlugins}, tailwindcss()`
+      : "tailwindcss()";
+    viteConfig = viteConfig.replace(
+      pluginsRegex,
+      `plugins: [${newPlugins}]`,
+    );
+  } else {
+    const defineConfigRegex = /defineConfig\s*\(\s*\{/;
+    viteConfig = viteConfig.replace(
+      defineConfigRegex,
+      "defineConfig({\n  plugins: [tailwindcss()],",
+    );
+  }
+
+  fs.writeFileSync(viteConfigPath, viteConfig);
+  console.log(
+    `${chalk.green("✔")} Updated ${path.basename(viteConfigPath)} with Tailwind plugin`,
+  );
 }
