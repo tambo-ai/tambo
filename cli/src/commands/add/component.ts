@@ -98,6 +98,7 @@ export function cn(...inputs: ClassValue[]) {
     "postcss",
     "autoprefixer",
     "tailwind-merge",
+    "@tailwindcss/vite",
     "clsx",
   ]);
 

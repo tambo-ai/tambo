@@ -7,7 +7,18 @@ import postcss from "postcss";
 import semver from "semver";
 import type { Config } from "tailwindcss";
 import { Project, ScriptKind } from "ts-morph";
-import { interactivePrompt, isInteractive } from "../../utils/interactive.js";
+import { detectFramework } from "../../utils/framework-detection.js";
+import {
+  execFileSync,
+  interactivePrompt,
+  isInteractive,
+} from "../../utils/interactive.js";
+import {
+  detectPackageManager,
+  formatPackageArgs,
+  getDevFlag,
+  getInstallCommand,
+} from "../../utils/package-manager.js";
 import { parseConfigObject } from "./tailwind/config/parsing.js";
 import { showChangesSummary, showCssDiff } from "./tailwind/css/diff-viewer.js";
 import {
@@ -31,6 +42,7 @@ import {
 import { detectTailwindVersion } from "./tailwind/version/detection.js";
 import { getRegistryBasePath } from "./utils.js";
 
+import { setupViteTailwindPlugin } from "./setupViteTailwindPlugin.js";
 /**
  * Sets up Tailwind CSS and global styles for the project
  * @param projectRoot The root directory of the project
@@ -38,16 +50,54 @@ import { getRegistryBasePath } from "./utils.js";
 export async function setupTailwindAndGlobals(projectRoot: string) {
   const tailwindConfigPath = path.join(projectRoot, "tailwind.config.ts");
 
-  // Detect Tailwind version first
-  const tailwindVersion = detectTailwindVersion(projectRoot);
-  const isV4 = !!(tailwindVersion && semver.gte(tailwindVersion, "4.0.0"));
+  //  Removing the checking Tailwind version logic
+  // giving user flexibility that when they run "npx tambo full-send" command tailwind automatically install into theri project !
+  // rather than manually configuring the tailwind !
+  const framework = detectFramework();
+  const isVite = framework?.name === "vite";
+  let tailwindVersion = detectTailwindVersion(projectRoot);
+  let isV4 = !!(tailwindVersion && semver.gte(tailwindVersion, "4.0.0"));
 
-  if (tailwindVersion) {
-    console.log(`${chalk.blue("ℹ")} Detected Tailwind CSS v${tailwindVersion}`);
-  } else {
+  // if vite is detected and tailwind is not installed then
+  if (isVite && !tailwindVersion) {
     console.log(
-      `${chalk.yellow("⚠")} Could not detect Tailwind CSS version, assuming v3`,
+      "Detected Vite and Tailwind is not installed, installing Tailwind...",
     );
+    const pm = detectPackageManager(projectRoot);
+    const installCmd = getInstallCommand(pm);
+    const devFlag = getDevFlag(pm);
+
+    try {
+      console.log(
+        "Installing Tailwind CSS ... In the mean time don't forget to read our Docs https://docs.tambo.co",
+      );
+      const args = [
+        ...installCmd,
+        devFlag,
+        ...formatPackageArgs(pm, ["tailwindcss", "@tailwindcss/vite"]),
+      ];
+      execFileSync(pm, args, {
+        stdio: "inherit",
+        encoding: "utf-8",
+        allowNonInteractive: true, // Auto-install for better UX
+      });
+
+      console.log("This installs latest Tailwind CSS");
+      // detecting the tailwind version
+      const newVersion = detectTailwindVersion(projectRoot);
+      if (newVersion && semver.gt(newVersion, "4.0.0")) {
+        tailwindVersion = newVersion;
+        isV4 = true;
+      }
+    } catch (error) {
+      throw new Error(`Failed to install Tailwind CSS: ${error}`);
+    }
+  }
+
+  // installing viteTailwindPlugin for vite project !
+  if (isVite && isV4) {
+    await setupViteTailwindPlugin(projectRoot);
+    console.log("Vite Tailwind plugin setup complete");
   }
 
   // Detect if src directory exists
@@ -190,7 +240,45 @@ export default config`;
     console.log(`${chalk.green("✔")} Updated tailwind.config.ts`);
   }
 
-  // Handle globals.css with careful preservation of user content
+  // For Vite projects, use App.css instead of globals.css
+  if (isVite && isV4) {
+    const appCssPath = path.join(projectRoot, "src", "App.css");
+    const indexCssPath = path.join(projectRoot, "src", "index.css");
+
+    // Check if App.css exists, otherwise try index.css
+    const cssPath = fs.existsSync(appCssPath) ? appCssPath : indexCssPath;
+
+    if (fs.existsSync(cssPath)) {
+      // Read existing CSS file
+      const existingCSS = fs.readFileSync(cssPath, "utf-8");
+
+      // Check if @import "tailwindcss" already exists
+      if (!existingCSS.includes('@import "tailwindcss"')) {
+        // Add @import at the top of the file
+        const modifiedCSS = `@import "tailwindcss";\n\n${existingCSS}`;
+        fs.writeFileSync(cssPath, modifiedCSS);
+        console.log(
+          `${chalk.green("✔")} Added Tailwind import to ${path.basename(cssPath)}`,
+        );
+      } else {
+        console.log(
+          `${chalk.blue("ℹ")} Tailwind import already exists in ${path.basename(cssPath)}`,
+        );
+      }
+    } else {
+      // Create App.css if it doesn't exist
+      const newCssPath = appCssPath;
+      fs.mkdirSync(path.dirname(newCssPath), { recursive: true });
+      fs.writeFileSync(newCssPath, '@import "tailwindcss";\n');
+      console.log(
+        `${chalk.green("✔")} Created ${path.basename(newCssPath)} with Tailwind import`,
+      );
+    }
+
+    return;
+  }
+
+  // Handle globals.css with careful preservation of user content (for non-Vite projects)
   fs.mkdirSync(path.dirname(globalsPath), { recursive: true });
 
   if (!fs.existsSync(globalsPath)) {

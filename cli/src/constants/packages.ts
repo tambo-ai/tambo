@@ -12,6 +12,7 @@ export const KNOWN_SAFE_PACKAGES = [
   "class-variance-authority",
   "framer-motion",
   "lucide-react",
+  "@tailwindcss/vite",
   "radix-ui",
   "@radix-ui/react-dialog",
   "@radix-ui/react-slot",
