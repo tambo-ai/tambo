@@ -1,18 +1,38 @@
 "use client";
 
-import {
-  Tooltip,
-  TooltipProvider,
-} from "@tambo-ai/ui-registry/components/message-suggestions";
-import { cn } from "@tambo-ai/ui-registry/utils";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   useTamboMcpPrompt,
   useTamboMcpPromptList,
   useTamboMcpResourceList,
 } from "@tambo-ai/react/mcp";
+import {
+  Tooltip,
+  TooltipProvider,
+} from "@tambo-ai/ui-registry/components/message-suggestions";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import { AlertCircle, AtSign, FileText, Search } from "lucide-react";
 import * as React from "react";
+import { z } from "zod";
+
+/**
+ * Zod schema for validating MCP prompt content structure.
+ * Ensures prompt data has a valid messages array with properly formatted content.
+ */
+const mcpPromptContentSchema = z.object({
+  type: z.string().optional(),
+  text: z.string().optional(),
+});
+
+const mcpPromptMessageSchema = z.object({
+  content: mcpPromptContentSchema.optional(),
+});
+
+const mcpPromptDataSchema = z.object({
+  messages: z.array(mcpPromptMessageSchema),
+});
+
+type McpPromptData = z.infer<typeof mcpPromptDataSchema>;
 
 /**
  * Represents a single message content item from an MCP prompt.
@@ -30,45 +50,63 @@ interface PromptMessage {
 }
 
 /**
- * Validates that prompt data has a valid messages array structure.
+ * Validates that prompt data has a valid messages array structure using Zod.
  * @param promptData - The prompt data to validate
- * @returns true if the prompt data has valid messages, false otherwise
+ * @returns Validation result with either validated data or error message
  */
-function isValidPromptData(
+function validatePromptData(
   promptData: unknown,
-): promptData is { messages: PromptMessage[] } {
-  if (!promptData || typeof promptData !== "object") {
-    return false;
+): { valid: true; data: McpPromptData } | { valid: false; error: string } {
+  try {
+    const validated = mcpPromptDataSchema.parse(promptData);
+    return { valid: true, data: validated };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // Extract the first validation error for user-friendly message
+      const firstError = error.errors[0];
+      const fieldPath = firstError.path.join(".");
+      return {
+        valid: false,
+        error: `Invalid prompt format${fieldPath ? ` (${fieldPath})` : ""}: ${firstError.message}`,
+      };
+    }
+    return {
+      valid: false,
+      error: "Invalid prompt format: unknown validation error",
+    };
   }
-
-  const data = promptData as { messages?: unknown };
-  if (!Array.isArray(data.messages)) {
-    return false;
-  }
-
-  return true;
 }
 
 /**
  * Safely extracts text content from prompt messages.
  * Handles malformed or missing content gracefully.
+ * Only extracts text type content, ignores other types.
  * @param messages - Array of prompt messages
- * @returns Extracted text content joined by newlines
+ * @returns Extracted text content joined by newlines, or empty string if no text found
  */
 function extractPromptText(messages: PromptMessage[]): string {
-  return messages
+  if (!Array.isArray(messages)) {
+    return "";
+  }
+
+  const textParts = messages
+    .filter((msg) => msg && typeof msg === "object")
     .map((msg) => {
       // Safely access nested properties
+      const content = msg.content;
       if (
-        msg?.content?.type === "text" &&
-        typeof msg.content.text === "string"
+        content &&
+        typeof content === "object" &&
+        content.type === "text" &&
+        typeof content.text === "string"
       ) {
-        return msg.content.text;
+        return content.text.trim();
       }
       return "";
     })
-    .filter(Boolean)
-    .join("\n");
+    .filter((text) => text.length > 0);
+
+  return textParts.join("\n");
 }
 
 /**
@@ -110,15 +148,16 @@ export const McpPromptButton = React.forwardRef<
   // When prompt data is fetched, validate and insert it into the input
   React.useEffect(() => {
     if (selectedPromptName && promptData) {
-      // Validate prompt data structure
-      if (!isValidPromptData(promptData)) {
-        setPromptError("Invalid prompt format received");
+      // Validate prompt data structure with Zod
+      const validation = validatePromptData(promptData);
+      if (!validation.valid) {
+        setPromptError(validation.error);
         setSelectedPromptName(null);
         return;
       }
 
       // Extract text with safe access
-      const promptText = extractPromptText(promptData.messages);
+      const promptText = extractPromptText(validation.data.messages);
 
       if (!promptText) {
         setPromptError("Prompt contains no text content");

@@ -1,9 +1,8 @@
 /// <reference types="@testing-library/jest-dom" />
-import { jest, describe, it, expect, beforeEach } from "@jest/globals";
-import React from "react";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { useTamboMcpPrompt, useTamboMcpPromptList } from "@tambo-ai/react/mcp";
 import { render, screen } from "@testing-library/react";
 import { McpPromptButton } from "./mcp-components";
-import { useTamboMcpPromptList, useTamboMcpPrompt } from "@tambo-ai/react/mcp";
 
 // Mocks are provided via moduleNameMapper in jest.config.ts
 
@@ -89,6 +88,22 @@ describe("McpPromptButton validation", () => {
       rerender(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
 
       // The callback should not be called yet since no prompt is selected
+      expect(mockOnInsertText).not.toHaveBeenCalled();
+    });
+
+    it("handles empty messages array gracefully", () => {
+      const invalidPromptData = {
+        messages: [],
+      };
+
+      mockUseTamboMcpPrompt.mockReturnValue({
+        data: invalidPromptData,
+        error: undefined,
+      } as ReturnType<typeof useTamboMcpPrompt>);
+
+      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
+
+      // Should not crash and should not call onInsertText
       expect(mockOnInsertText).not.toHaveBeenCalled();
     });
 
@@ -232,6 +247,74 @@ describe("McpPromptButton validation", () => {
     it("handles undefined prompt data", () => {
       mockUseTamboMcpPrompt.mockReturnValue({
         data: undefined,
+        error: undefined,
+      } as ReturnType<typeof useTamboMcpPrompt>);
+
+      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
+
+      // Should not crash
+      expect(mockOnInsertText).not.toHaveBeenCalled();
+    });
+
+    it("handles messages with empty text content", () => {
+      const promptDataWithEmptyText = {
+        messages: [
+          { content: { type: "text", text: "" } },
+          { content: { type: "text", text: "  " } }, // Whitespace only
+          { content: { type: "text", text: "Valid message" } },
+        ],
+      };
+
+      mockUseTamboMcpPrompt.mockReturnValue({
+        data: promptDataWithEmptyText,
+        error: undefined,
+      } as ReturnType<typeof useTamboMcpPrompt>);
+
+      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
+
+      // Should not crash and should not call onInsertText (no valid text found)
+      expect(mockOnInsertText).not.toHaveBeenCalled();
+    });
+
+    it("handles deeply nested invalid structures", () => {
+      const deeplyNestedInvalid = {
+        messages: [
+          {
+            content: {
+              type: "text",
+              text: "Valid",
+              nested: {
+                deeply: {
+                  invalid: "data",
+                },
+              },
+            },
+          },
+        ],
+      };
+
+      mockUseTamboMcpPrompt.mockReturnValue({
+        data: deeplyNestedInvalid,
+        error: undefined,
+      } as ReturnType<typeof useTamboMcpPrompt>);
+
+      render(<McpPromptButton value="" onInsertText={mockOnInsertText} />);
+
+      // Should not crash and should only extract valid text
+      expect(mockOnInsertText).not.toHaveBeenCalled();
+    });
+
+    it("handles arrays in unexpected places", () => {
+      const arrayInWrongPlace = {
+        messages: [
+          {
+            content: [{ type: "text", text: "This is in an array" }],
+          },
+        ],
+      };
+
+      mockUseTamboMcpPrompt.mockReturnValue({
+        data: arrayInWrongPlace,
         error: undefined,
       } as ReturnType<typeof useTamboMcpPrompt>);
 
