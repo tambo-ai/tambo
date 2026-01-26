@@ -1,21 +1,21 @@
 "use client";
 
-import { markdownComponents } from "./markdown-components";
+import type { TamboThreadMessage } from "@tambo-ai/react";
+import { useTambo } from "@tambo-ai/react";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import {
   checkHasContent,
   getMessageImages,
   getSafeContent,
 } from "@tambo-ai/ui-registry/lib/thread-hooks";
 import { cn } from "@tambo-ai/ui-registry/utils";
-import type { TamboThreadMessage } from "@tambo-ai/react";
-import { useTambo } from "@tambo-ai/react";
-import type TamboAI from "@tambo-ai/typescript-sdk";
 import { cva, type VariantProps } from "class-variance-authority";
 import stringify from "json-stringify-pretty-compact";
 import { Check, ChevronDown, ExternalLink, Loader2, X } from "lucide-react";
 import * as React from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
+import { markdownComponents } from "./markdown-components";
 
 /**
  * Converts message content to markdown format for rendering with streamdown.
@@ -433,27 +433,23 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
     const toolDetailsId = React.useId();
 
     const associatedToolResponse = React.useMemo(() => {
-      if (!thread?.messages) return null;
-      const currentMessageIndex = thread.messages.findIndex(
-        (m: TamboThreadMessage) => m.id === message.id,
-      );
-      if (currentMessageIndex === -1) return null;
-      for (let i = currentMessageIndex + 1; i < thread.messages.length; i++) {
-        const nextMessage = thread.messages[i];
-        if (nextMessage.role === "tool") {
-          return nextMessage;
-        }
-        if (
-          nextMessage.role === "assistant" &&
-          getToolCallRequest(nextMessage)
-        ) {
-          break;
-        }
-      }
-      return null;
-    }, [message, thread?.messages]);
+      if (!thread?.messages.length || !message.tool_call_id) return null;
+      // Match by tool_call_id for accurate pairing
+      const toolCallId = message.tool_call_id;
 
-    if (message.role !== "assistant" || !getToolCallRequest(message)) {
+      return (
+        thread.messages.find(
+          (m: TamboThreadMessage) =>
+            m.role === "tool" && m.tool_call_id === toolCallId,
+        ) ?? null
+      );
+    }, [message, thread?.messages]);
+    // Missing tool_call_id will hide the entire component,
+    if (
+      message.role !== "assistant" ||
+      !getToolCallRequest(message) ||
+      !message.tool_call_id
+    ) {
       return null;
     }
 

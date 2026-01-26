@@ -1,10 +1,9 @@
 /// <reference types="@testing-library/jest-dom" />
-import { jest, describe, it, expect, beforeEach } from "@jest/globals";
-import React from "react";
-import { render, screen } from "@testing-library/react";
-import { Message, ToolcallInfo } from "./message";
-import { useTambo } from "@tambo-ai/react";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import type { TamboThreadMessage } from "@tambo-ai/react";
+import { useTambo } from "@tambo-ai/react";
+import { render } from "@testing-library/react";
+import { Message, ToolcallInfo } from "./message";
 
 // @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 
@@ -19,6 +18,7 @@ function createToolCallMessage(
     role: "assistant",
     content: [],
     createdAt: new Date().toISOString(),
+    tool_call_id: "test_call_id",
     toolCallRequest: {
       toolName: "test_tool",
       parameters: [],
@@ -33,6 +33,7 @@ function createToolResponseMessage(
   return {
     id: "tool-response-id",
     role: "tool",
+    tool_call_id: "test_call_id",
     content,
     createdAt: new Date().toISOString(),
   } as TamboThreadMessage;
@@ -346,6 +347,191 @@ describe("formatToolResult in ToolcallInfo", () => {
         thread: {
           messages: [toolCallMessage, toolResponse],
           generationStage: "COMPLETE",
+        },
+      } as never);
+
+      const { container } = render(
+        <Message role="assistant" message={toolCallMessage}>
+          <ToolcallInfo />
+        </Message>,
+      );
+
+      expect(
+        container.querySelector('[data-slot="toolcall-info"]'),
+      ).toBeTruthy();
+    });
+  });
+
+  describe("Tool Call/Result Pairing", () => {
+    it("renders result when tool_call_id matches", async () => {
+      const toolCallMessage = createToolCallMessage({
+        id: "msg-1",
+        tool_call_id: "call_123",
+        toolCallRequest: {
+          toolName: "weatherTool",
+          parameters: [{ parameterName: "city", parameterValue: "London" }],
+        },
+      });
+
+      const toolResultMessage = createToolResponseMessage([
+        { type: "text", text: '{"temp": 72, "condition": "sunny"}' },
+      ]);
+      toolResultMessage.tool_call_id = "call_123";
+
+      mockUseTambo.mockReturnValue({
+        thread: {
+          messages: [toolCallMessage, toolResultMessage],
+          generationStage: "IDLE",
+        },
+      } as never);
+
+      const { container } = render(
+        <Message role="assistant" message={toolCallMessage}>
+          <ToolcallInfo />
+        </Message>,
+      );
+
+      const button = container.querySelector("button");
+      expect(button).toBeTruthy();
+      expect(button?.textContent).toContain("weatherTool");
+    });
+
+    it("does not render component when tool_call_id is missing", () => {
+      const toolCallMessage = createToolCallMessage({
+        id: "msg-1",
+        tool_call_id: undefined,
+        toolCallRequest: {
+          toolName: "noIdTool",
+          parameters: [],
+        },
+      });
+
+      const toolResultMessage = createToolResponseMessage([
+        { type: "text", text: "Orphaned result" },
+      ]);
+      toolResultMessage.tool_call_id = "some_id";
+
+      mockUseTambo.mockReturnValue({
+        thread: {
+          messages: [toolCallMessage, toolResultMessage],
+          generationStage: "IDLE",
+        },
+      } as never);
+
+      const { container } = render(
+        <Message role="assistant" message={toolCallMessage}>
+          <ToolcallInfo />
+        </Message>,
+      );
+
+      const button = container.querySelector("button");
+      expect(button).toBeNull();
+      expect(container.querySelector('[data-slot="toolcall-info"]')).toBeNull();
+    });
+
+    it("pairs correctly with out-of-order results", () => {
+      const toolCall1 = createToolCallMessage({
+        id: "msg-1",
+        tool_call_id: "call_first",
+        toolCallRequest: {
+          toolName: "toolA",
+          parameters: [],
+        },
+      });
+
+      const toolCall2 = createToolCallMessage({
+        id: "msg-2",
+        tool_call_id: "call_second",
+        toolCallRequest: {
+          toolName: "toolB",
+          parameters: [],
+        },
+      });
+
+      const toolResult2 = createToolResponseMessage([
+        { type: "text", text: "Result B" },
+      ]);
+      toolResult2.id = "msg-3";
+      toolResult2.tool_call_id = "call_second";
+
+      const toolResult1 = createToolResponseMessage([
+        { type: "text", text: "Result A" },
+      ]);
+      toolResult1.id = "msg-4";
+      toolResult1.tool_call_id = "call_first";
+
+      mockUseTambo.mockReturnValue({
+        thread: {
+          messages: [toolCall1, toolCall2, toolResult2, toolResult1],
+          generationStage: "IDLE",
+        },
+      } as never);
+
+      const { container } = render(
+        <Message role="assistant" message={toolCall1}>
+          <ToolcallInfo />
+        </Message>,
+      );
+
+      expect(
+        container.querySelector('[data-slot="toolcall-info"]'),
+      ).toBeTruthy();
+    });
+
+    it("pairs each tool call with correct result in multi-tool scenario", () => {
+      const toolCall1 = createToolCallMessage({
+        id: "msg-1",
+        tool_call_id: "call_1",
+        toolCallRequest: {
+          toolName: "tool1",
+          parameters: [],
+        },
+      });
+
+      const toolResult1 = createToolResponseMessage([
+        { type: "text", text: "Result 1" },
+      ]);
+      toolResult1.id = "msg-3";
+      toolResult1.tool_call_id = "call_1";
+
+      mockUseTambo.mockReturnValue({
+        thread: {
+          messages: [toolCall1, toolResult1],
+          generationStage: "IDLE",
+        },
+      } as never);
+
+      const { container } = render(
+        <Message role="assistant" message={toolCall1}>
+          <ToolcallInfo />
+        </Message>,
+      );
+
+      expect(
+        container.querySelector('[data-slot="toolcall-info"]'),
+      ).toBeTruthy();
+    });
+
+    it("does not render result when tool_call_id does not match any result", () => {
+      const toolCallMessage = createToolCallMessage({
+        id: "msg-1",
+        tool_call_id: "call_not_found",
+        toolCallRequest: {
+          toolName: "unmatchedTool",
+          parameters: [],
+        },
+      });
+
+      const toolResultMessage = createToolResponseMessage([
+        { type: "text", text: "Wrong result" },
+      ]);
+      toolResultMessage.id = "msg-2";
+      toolResultMessage.tool_call_id = "call_different";
+
+      mockUseTambo.mockReturnValue({
+        thread: {
+          messages: [toolCallMessage, toolResultMessage],
+          generationStage: "IDLE",
         },
       } as never);
 
