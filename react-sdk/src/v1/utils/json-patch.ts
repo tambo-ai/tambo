@@ -14,7 +14,7 @@ import { applyPatch, type Operation } from "fast-json-patch";
  * @param target - The object to patch
  * @param operations - Array of JSON Patch operations
  * @returns New object with patches applied
- * @throws Error with context about the failed operation if patching fails
+ * @throws {Error} With context about the failed operation if patching fails
  */
 export function applyJsonPatch<T extends Record<string, unknown>>(
   target: T,

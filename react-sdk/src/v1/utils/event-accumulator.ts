@@ -177,7 +177,7 @@ function updateContentAtIndex(
  * @param contentId - ID of the content block
  * @param eventName - Name of the event (for error messages)
  * @returns Location of the content block
- * @throws Error if content not found
+ * @throws {Error} If content not found
  */
 function findContentById(
   messages: TamboV1Message[],
