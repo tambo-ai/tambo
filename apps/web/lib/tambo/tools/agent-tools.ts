@@ -13,6 +13,24 @@ type UpdateProjectAgentSettingsToolInput = z.infer<
   typeof updateProjectAgentSettingsInputSchema
 >;
 
+const blockedAgentHeaderKeys = new Set([
+  "__proto__",
+  "prototype",
+  "constructor",
+]);
+const headerNameTokenRegex = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+
+function hasUnsafeHeaderValueChars(value: string): boolean {
+  for (const char of value) {
+    const charCode = char.charCodeAt(0);
+    if (charCode <= 0x1f || charCode === 0x7f) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function normalizeAgentHeaders(
   agentHeaders: unknown,
 ): Record<string, string> | null | undefined {
@@ -26,17 +44,24 @@ function normalizeAgentHeaders(
     );
   }
 
-  const blockedKeys = new Set(["__proto__", "prototype", "constructor"]);
   const headers = Object.create(null) as Record<string, string>;
   for (const [key, value] of Object.entries(
     agentHeaders as Record<string, unknown>,
   )) {
-    if (blockedKeys.has(key)) {
+    if (blockedAgentHeaderKeys.has(key)) {
       throw new Error(`Invalid agentHeaders: forbidden key '${key}'`);
+    }
+    if (!headerNameTokenRegex.test(key)) {
+      throw new Error(`Invalid agentHeaders: invalid header name '${key}'`);
     }
     if (typeof value !== "string") {
       throw new Error(
         `Invalid agentHeaders: agentHeaders[${key}] must be a string (received ${typeof value})`,
+      );
+    }
+    if (hasUnsafeHeaderValueChars(value)) {
+      throw new Error(
+        `Invalid agentHeaders: invalid header value for '${key}'`,
       );
     }
     headers[key] = value;
