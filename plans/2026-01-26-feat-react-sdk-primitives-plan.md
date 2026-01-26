@@ -12,6 +12,18 @@ Extract business logic from UI components into reusable hooks, utilities, and un
 - **Internal-first migration**: Original components will use primitives hooks internally, preserving API backwards compatibility
 - **Composition over replacement**: Each extracted hook handles one concern; components compose multiple hooks
 
+## Tree-shaking Requirements
+
+Tree-shaking should be treated as a requirement of the primitives export surface, not just a nice-to-have.
+
+- `@tambo-ai/react` must be publishable as side-effect free for these entrypoints (e.g., `"sideEffects": false`, or a precise allowlist if we ever add non-tree-shakeable assets).
+- `@tambo-ai/react/primitives` should avoid module-level side effects (no work at import-time):
+  - No `window`/`document`/`sessionStorage` access outside of `useEffect` / guarded helper functions.
+  - No logging, no runtime registration, no global polyfills.
+- Keep primitives UI-agnostic to avoid pulling in UI dependencies (e.g., no `lucide-react` imports or returning JSX elements from primitives hooks).
+- Be careful with `index.ts` barrels: prefer `export { foo } from "./foo"` re-exports over patterns that eagerly import modules and make tree-shaking less reliable.
+- If consumers need deep imports without barrels, consider additional subpath exports (e.g., `@tambo-ai/react/primitives/hooks/*` and `@tambo-ai/react/primitives/utils/*`).
+
 ## Architecture
 
 ```
