@@ -1,0 +1,706 @@
+import { EventType } from "@ag-ui/core";
+import type { BaseEvent } from "@ag-ui/core";
+import {
+  createInitialState,
+  createInitialThreadState,
+  streamReducer,
+  type StreamState,
+  type ThreadState,
+} from "./event-accumulator";
+
+// Helper to create a base thread state for testing
+function createTestThreadState(threadId: string): ThreadState {
+  return {
+    ...createInitialThreadState(threadId),
+    thread: {
+      ...createInitialThreadState(threadId).thread,
+      // Use fixed timestamps for snapshot stability
+      createdAt: "2024-01-01T00:00:00.000Z",
+      updatedAt: "2024-01-01T00:00:00.000Z",
+    },
+  };
+}
+
+// Helper to create stream state with a thread
+function createTestStreamState(threadId: string): StreamState {
+  return {
+    threadMap: {
+      [threadId]: createTestThreadState(threadId),
+    },
+    currentThreadId: threadId,
+  };
+}
+
+describe("createInitialThreadState", () => {
+  it("creates thread state with correct structure", () => {
+    const state = createInitialThreadState("thread_123");
+
+    expect(state.thread.id).toBe("thread_123");
+    expect(state.thread.messages).toEqual([]);
+    expect(state.thread.status).toBe("idle");
+    expect(state.streaming.status).toBe("idle");
+    expect(state.accumulatingToolArgs).toBeInstanceOf(Map);
+    expect(state.accumulatingToolArgs.size).toBe(0);
+  });
+});
+
+describe("createInitialState", () => {
+  it("creates empty stream state", () => {
+    const state = createInitialState();
+
+    expect(state.threadMap).toEqual({});
+    expect(state.currentThreadId).toBeNull();
+  });
+});
+
+describe("streamReducer", () => {
+  // Mock console.warn for tests that check logging
+  let consoleWarnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
+  });
+
+  describe("unknown thread handling", () => {
+    it("logs warning and returns unchanged state for unknown thread", () => {
+      const state = createInitialState();
+      const event: BaseEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_1",
+        threadId: "unknown_thread",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "unknown_thread",
+      });
+
+      expect(result).toBe(state);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("unknown thread: unknown_thread"),
+      );
+    });
+  });
+
+  describe("unsupported event types", () => {
+    it("logs warning for unsupported AG-UI events", () => {
+      const state = createTestStreamState("thread_1");
+      const event: BaseEvent = {
+        type: EventType.STATE_SNAPSHOT,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      expect(result).toBe(state);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("unsupported event type"),
+      );
+    });
+
+    it("logs warning for unknown custom event names", () => {
+      const state = createTestStreamState("thread_1");
+      const event = {
+        type: EventType.CUSTOM,
+        name: "unknown.custom.event",
+        value: {},
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: event as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1).toBe(state.threadMap.thread_1);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Unknown custom event name"),
+      );
+    });
+  });
+
+  describe("RUN_STARTED event", () => {
+    it("updates thread status to streaming", () => {
+      const state = createTestStreamState("thread_1");
+      const event: BaseEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_123",
+        threadId: "thread_1",
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1.thread.status).toBe("streaming");
+      expect(result.threadMap.thread_1.streaming.status).toBe("streaming");
+      expect(result.threadMap.thread_1.streaming.runId).toBe("run_123");
+    });
+  });
+
+  describe("RUN_FINISHED event", () => {
+    it("updates thread status to complete", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.status = "streaming";
+      state.threadMap.thread_1.streaming.status = "streaming";
+
+      const event: BaseEvent = {
+        type: EventType.RUN_FINISHED,
+        runId: "run_123",
+        threadId: "thread_1",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1.thread.status).toBe("complete");
+      expect(result.threadMap.thread_1.streaming.status).toBe("complete");
+    });
+  });
+
+  describe("RUN_ERROR event", () => {
+    it("updates thread status to error with details", () => {
+      const state = createTestStreamState("thread_1");
+      const event: BaseEvent = {
+        type: EventType.RUN_ERROR,
+        message: "Something went wrong",
+        code: "ERR_001",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1.thread.status).toBe("error");
+      expect(result.threadMap.thread_1.streaming.status).toBe("error");
+      expect(result.threadMap.thread_1.streaming.error).toEqual({
+        message: "Something went wrong",
+        code: "ERR_001",
+      });
+    });
+  });
+
+  describe("TEXT_MESSAGE_START event", () => {
+    it("creates new message in thread", () => {
+      const state = createTestStreamState("thread_1");
+      const event: BaseEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_1",
+        role: "assistant",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_1");
+      expect(messages[0].role).toBe("assistant");
+      expect(messages[0].content).toEqual([]);
+    });
+  });
+
+  describe("TEXT_MESSAGE_CONTENT event", () => {
+    it("appends text content to message", () => {
+      const state = createTestStreamState("thread_1");
+      // Add a message first
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: BaseEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "msg_1",
+        delta: "Hello ",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const content = result.threadMap.thread_1.thread.messages[0].content;
+      expect(content).toHaveLength(1);
+      expect(content[0]).toEqual({ type: "text", text: "Hello " });
+    });
+
+    it("accumulates text content deltas", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [{ type: "text", text: "Hello " }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: BaseEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "msg_1",
+        delta: "world!",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const content = result.threadMap.thread_1.thread.messages[0].content;
+      expect(content).toHaveLength(1);
+      expect(content[0]).toEqual({ type: "text", text: "Hello world!" });
+    });
+  });
+
+  describe("TOOL_CALL_START event", () => {
+    it("adds tool_use content block to message", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: BaseEvent = {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "tool_1",
+        toolCallName: "get_weather",
+        parentMessageId: "msg_1",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const content = result.threadMap.thread_1.thread.messages[0].content;
+      expect(content).toHaveLength(1);
+      expect(content[0]).toEqual({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+        input: {},
+      });
+    });
+  });
+
+  describe("TOOL_CALL_ARGS and TOOL_CALL_END events", () => {
+    it("accumulates and parses tool arguments", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "test", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // Send TOOL_CALL_ARGS
+      let result = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: '{"city":',
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: '"NYC"}',
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      // Send TOOL_CALL_END
+      result = streamReducer(result, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_END,
+          toolCallId: "tool_1",
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      const toolContent = result.threadMap.thread_1.thread.messages[0]
+        .content[0] as { type: "tool_use"; input: unknown };
+      expect(toolContent.input).toEqual({ city: "NYC" });
+    });
+  });
+
+  describe("custom component events", () => {
+    it("handles tambo.component.start event", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.start",
+        value: {
+          messageId: "msg_1",
+          componentId: "comp_1",
+          componentName: "WeatherCard",
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: event as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      const content = result.threadMap.thread_1.thread.messages[0].content;
+      expect(content).toHaveLength(1);
+      expect(content[0]).toEqual({
+        type: "component",
+        id: "comp_1",
+        name: "WeatherCard",
+        props: {},
+      });
+    });
+
+    it("handles tambo.component.props_delta event", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "component", id: "comp_1", name: "Test", props: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.props_delta",
+        value: {
+          componentId: "comp_1",
+          operations: [{ op: "add", path: "/temperature", value: 72 }],
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: event as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      const component = result.threadMap.thread_1.thread.messages[0]
+        .content[0] as { props: Record<string, unknown> };
+      expect(component.props).toEqual({ temperature: 72 });
+    });
+
+    it("handles tambo.run.awaiting_input event", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.status = "streaming";
+
+      const event = {
+        type: EventType.CUSTOM,
+        name: "tambo.run.awaiting_input",
+        value: { pendingToolCallIds: ["tool_1", "tool_2"] },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: event as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1.thread.status).toBe("waiting");
+      expect(result.threadMap.thread_1.streaming.status).toBe("waiting");
+    });
+  });
+
+  describe("snapshot tests for complex state transitions", () => {
+    it("matches snapshot for full message flow", () => {
+      let state = createTestStreamState("thread_1");
+
+      // RUN_STARTED
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.RUN_STARTED,
+          runId: "run_1",
+          threadId: "thread_1",
+          timestamp: 1704067200000,
+        },
+        threadId: "thread_1",
+      });
+
+      // TEXT_MESSAGE_START
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TEXT_MESSAGE_START,
+          messageId: "msg_1",
+          role: "assistant",
+        },
+        threadId: "thread_1",
+      });
+
+      // TEXT_MESSAGE_CONTENT
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TEXT_MESSAGE_CONTENT,
+          messageId: "msg_1",
+          delta: "Hello, how can I help?",
+        },
+        threadId: "thread_1",
+      });
+
+      // TEXT_MESSAGE_END
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TEXT_MESSAGE_END,
+          messageId: "msg_1",
+        },
+        threadId: "thread_1",
+      });
+
+      // RUN_FINISHED
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.RUN_FINISHED,
+          runId: "run_1",
+          threadId: "thread_1",
+        },
+        threadId: "thread_1",
+      });
+
+      // Normalize timestamps for snapshot stability
+      const snapshot = {
+        ...state,
+        threadMap: {
+          thread_1: {
+            ...state.threadMap.thread_1,
+            thread: {
+              ...state.threadMap.thread_1.thread,
+              messages: state.threadMap.thread_1.thread.messages.map(
+                (m) => ({
+                  ...m,
+                  createdAt: "[TIMESTAMP]",
+                }),
+              ),
+              createdAt: "[TIMESTAMP]",
+              updatedAt: "[TIMESTAMP]",
+            },
+          },
+        },
+      };
+
+      expect(snapshot).toMatchSnapshot();
+    });
+
+    it("matches snapshot for component streaming flow", () => {
+      let state = createTestStreamState("thread_1");
+
+      // Add a message
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // COMPONENT_START
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.CUSTOM,
+          name: "tambo.component.start",
+          value: {
+            messageId: "msg_1",
+            componentId: "comp_1",
+            componentName: "WeatherCard",
+          },
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      // COMPONENT_PROPS_DELTA - add city
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.CUSTOM,
+          name: "tambo.component.props_delta",
+          value: {
+            componentId: "comp_1",
+            operations: [{ op: "add", path: "/city", value: "New York" }],
+          },
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      // COMPONENT_PROPS_DELTA - add temperature
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.CUSTOM,
+          name: "tambo.component.props_delta",
+          value: {
+            componentId: "comp_1",
+            operations: [{ op: "add", path: "/temperature", value: 72 }],
+          },
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      // COMPONENT_END
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.CUSTOM,
+          name: "tambo.component.end",
+          value: { componentId: "comp_1" },
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      // Normalize timestamps for snapshot stability
+      const snapshot = {
+        ...state,
+        threadMap: {
+          thread_1: {
+            ...state.threadMap.thread_1,
+            thread: {
+              ...state.threadMap.thread_1.thread,
+              messages: state.threadMap.thread_1.thread.messages.map(
+                (m) => ({
+                  ...m,
+                  createdAt: "[TIMESTAMP]",
+                }),
+              ),
+              createdAt: "[TIMESTAMP]",
+              updatedAt: "[TIMESTAMP]",
+            },
+          },
+        },
+      };
+
+      expect(snapshot).toMatchSnapshot();
+    });
+
+    it("matches snapshot for tool call flow", () => {
+      let state = createTestStreamState("thread_1");
+
+      // Add a message with tool_use
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "get_weather", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // TOOL_CALL_ARGS
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_ARGS,
+          toolCallId: "tool_1",
+          delta: '{"city":"San Francisco","units":"fahrenheit"}',
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      // TOOL_CALL_END
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_END,
+          toolCallId: "tool_1",
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      // TOOL_CALL_RESULT
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: {
+          type: EventType.TOOL_CALL_RESULT,
+          toolCallId: "tool_1",
+          messageId: "msg_1",
+          content: "Temperature: 65°F, Sunny",
+        } as BaseEvent,
+        threadId: "thread_1",
+      });
+
+      // Normalize timestamps for snapshot stability
+      const snapshot = {
+        ...state,
+        threadMap: {
+          thread_1: {
+            ...state.threadMap.thread_1,
+            thread: {
+              ...state.threadMap.thread_1.thread,
+              messages: state.threadMap.thread_1.thread.messages.map(
+                (m) => ({
+                  ...m,
+                  createdAt: "[TIMESTAMP]",
+                }),
+              ),
+              createdAt: "[TIMESTAMP]",
+              updatedAt: "[TIMESTAMP]",
+            },
+          },
+        },
+      };
+
+      expect(snapshot).toMatchSnapshot();
+    });
+  });
+});
