@@ -4,6 +4,7 @@ import {
   execFileSync as nodeExecFileSync,
   execSync as nodeExecSync,
 } from "child_process";
+import spawn from "cross-spawn";
 import type { Answers, DistinctQuestion, PromptSession } from "inquirer";
 import inquirer from "inquirer";
 
@@ -111,11 +112,10 @@ const WINDOWS_CMD_BINARIES = new Set([
  * Safe wrapper around execFileSync (preferred) that prevents execution of external commands
  * in non-interactive environments unless explicitly allowed.
  *
- * Uses execFileSync by default (more secure - doesn't invoke shell), falls back to execSync
- * only when shell features are needed.
+ * Uses execFileSync by default, falls back to execSync only when shell features are needed.
  *
- * On Windows, uses execSync with shell for known package manager binaries (npm, npx, pnpm, yarn, rush)
- * since they are batch files/shims that require shell interpretation to resolve from PATH.
+ * On Windows, uses cross-spawn for known package manager binaries (npm, npx, pnpm, yarn, rush)
+ * since they are batch files/shims that require cmd.exe invocation.
  *
  * @param file - The file/command to execute
  * @param args - Arguments to pass to the command
@@ -139,19 +139,36 @@ export function execFileSync(
     );
   }
 
-  // On Windows, package managers are .cmd batch files or shims that need shell to resolve.
-  // Use execSync with shell only for known safe package manager commands.
+  // On Windows, package managers are .cmd batch files or shims that require cmd.exe to run.
+  // cross-spawn handles the Windows-specific invocation details while keeping args separate.
   if (process.platform === "win32" && WINDOWS_CMD_BINARIES.has(file)) {
-    const argsStr = args ? ` ${args.join(" ")}` : "";
-    // Extract only the options compatible with execSync
     const { stdio, cwd, env, encoding, timeout } = execOptions;
-    return nodeExecSync(`${file}${argsStr}`, {
+    const result = spawn.sync(file, args ?? [], {
       stdio,
       cwd,
       env,
       encoding,
       timeout,
     });
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    if (result.status !== 0) {
+      const commandStr = args ? `${file} ${args.join(" ")}` : file;
+      throw new Error(
+        `Command failed (${result.status ?? "unknown status"}): ${commandStr}`,
+      );
+    }
+
+    if (result.stdout != null) {
+      return result.stdout;
+    }
+
+    return typeof encoding === "string" && encoding !== "buffer"
+      ? ""
+      : Buffer.alloc(0);
   }
 
   return nodeExecFileSync(file, args, execOptions);

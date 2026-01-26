@@ -1,4 +1,5 @@
-import { execFileSync, execSync } from "child_process";
+import { execFileSync } from "child_process";
+import spawn from "cross-spawn";
 import fs from "fs";
 import path from "path";
 
@@ -78,10 +79,12 @@ export function detectPackageManager(
  */
 export function validatePackageManager(pm: PackageManager): void {
   try {
-    // On Windows, use execSync with shell to properly resolve .cmd files from PATH.
-    // This is safe since we're only checking version with a known command (no user input).
     if (process.platform === "win32") {
-      execSync(`${pm} --version`, { stdio: "ignore" });
+      const result = spawn.sync(pm, ["--version"], { stdio: "ignore" });
+
+      if (result.error || result.status !== 0) {
+        throw result.error ?? new Error("Failed to execute package manager");
+      }
     } else {
       execFileSync(pm, ["--version"], { stdio: "ignore" });
     }
