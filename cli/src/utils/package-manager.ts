@@ -77,12 +77,11 @@ export function detectPackageManager(
  * @throws Error if the package manager is not installed
  */
 export function validatePackageManager(pm: PackageManager): void {
+  // On Windows, package managers are .cmd batch files
+  const command = process.platform === "win32" ? `${pm}.cmd` : pm;
+
   try {
-    // On Windows, package managers are .cmd files that require shell resolution
-    execFileSync(pm, ["--version"], {
-      stdio: "ignore",
-      shell: process.platform === "win32",
-    });
+    execFileSync(command, ["--version"], { stdio: "ignore" });
   } catch {
     throw new Error(
       `Detected ${pm} from lockfile but ${pm} is not installed. Please install ${pm} first.`,

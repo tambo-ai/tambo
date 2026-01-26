@@ -1,11 +1,11 @@
 import chalk from "chalk";
+import type { ExecFileSyncOptions, ExecSyncOptions } from "child_process";
 import {
   execFileSync as nodeExecFileSync,
   execSync as nodeExecSync,
 } from "child_process";
-import type { ExecFileSyncOptions, ExecSyncOptions } from "child_process";
-import inquirer from "inquirer";
 import type { Answers, DistinctQuestion, PromptSession } from "inquirer";
+import inquirer from "inquirer";
 
 type InquirerPromptQuestions = PromptSession<
   Answers,
@@ -97,6 +97,16 @@ export interface SafeExecFileSyncOptions extends ExecFileSyncOptions {
   allowNonInteractive?: boolean;
 }
 
+// Package manager commands that are .cmd batch files on Windows
+const WINDOWS_CMD_BINARIES = new Set([
+  "npm",
+  "npx",
+  "pnpm",
+  "yarn",
+  "rush",
+  "rushx",
+]);
+
 /**
  * Safe wrapper around execFileSync (preferred) that prevents execution of external commands
  * in non-interactive environments unless explicitly allowed.
@@ -104,7 +114,8 @@ export interface SafeExecFileSyncOptions extends ExecFileSyncOptions {
  * Uses execFileSync by default (more secure - doesn't invoke shell), falls back to execSync
  * only when shell features are needed.
  *
- * On Windows, uses shell: true to resolve .cmd files (npm.cmd, npx.cmd, etc.) from PATH.
+ * On Windows, appends .cmd extension for known package manager binaries (npm, npx, pnpm, yarn, rush)
+ * since they are batch files that execFileSync cannot resolve without the extension.
  *
  * @param file - The file/command to execute
  * @param args - Arguments to pass to the command
@@ -128,11 +139,13 @@ export function execFileSync(
     );
   }
 
-  // On Windows, package managers are .cmd files that require shell resolution
-  const windowsOptions =
-    process.platform === "win32" ? { shell: true } : undefined;
+  // On Windows, package managers are .cmd batch files that need explicit extension
+  const command =
+    process.platform === "win32" && WINDOWS_CMD_BINARIES.has(file)
+      ? `${file}.cmd`
+      : file;
 
-  return nodeExecFileSync(file, args, { ...windowsOptions, ...execOptions });
+  return nodeExecFileSync(command, args, execOptions);
 }
 
 /**
