@@ -31,9 +31,13 @@ function createTestCtx() {
 }
 
 function getUpdateProjectAgentSettingsTool(ctx: ToolContext) {
-  let toolDef: any;
+  type RegisteredToolDefinition = {
+    tool: (input: any) => Promise<unknown>;
+  };
+
+  let toolDef: RegisteredToolDefinition | undefined;
   registerAgentTools((def: any) => {
-    toolDef = def;
+    toolDef = def as RegisteredToolDefinition;
   }, ctx);
 
   if (!toolDef) {
@@ -174,6 +178,37 @@ describe("registerAgentTools", () => {
         agentHeaders: { "x,bad": "x" },
       }),
     ).rejects.toThrow("invalid header name");
+
+    for (const badName of ['x"bad', "x\\bad", "x;bad"]) {
+      await expect(
+        tool.tool({
+          projectId: "proj_1",
+          providerType: "AGENT",
+          agentProviderType: "CUSTOM",
+          agentUrl: "https://example.com",
+          agentName: "test-agent",
+          agentHeaders: { [badName]: "x" },
+        }),
+      ).rejects.toThrow("invalid header name");
+    }
+  });
+
+  it("accepts safe visible ASCII header names", async () => {
+    const { ctx, mutate } = createTestCtx();
+    const tool = getUpdateProjectAgentSettingsTool(ctx);
+
+    await tool.tool({
+      projectId: "proj_1",
+      providerType: "AGENT",
+      agentProviderType: "CUSTOM",
+      agentUrl: "https://example.com",
+      agentName: "test-agent",
+      agentHeaders: {
+        "X-._|!#$%&'*+^`~09Az": "x",
+      },
+    });
+
+    expect(mutate).toHaveBeenCalledTimes(1);
   });
 
   it("accepts headers exactly at the max count", async () => {
