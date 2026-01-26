@@ -475,6 +475,73 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.thread.status).toBe("waiting");
       expect(result.threadMap.thread_1.streaming.status).toBe("waiting");
     });
+
+    it("handles tambo.component.state_delta event", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "component", id: "comp_1", name: "Counter", props: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.state_delta",
+        value: {
+          componentId: "comp_1",
+          operations: [{ op: "add", path: "/count", value: 42 }],
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const component = result.threadMap.thread_1.thread.messages[0]
+        .content[0] as { state: Record<string, unknown> };
+      expect(component.state).toEqual({ count: 42 });
+    });
+
+    it("handles tambo.component.end event", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "component", id: "comp_1", name: "Test", props: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.end",
+        value: { componentId: "comp_1" },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // component.end doesn't change state currently, just returns unchanged
+      expect(result.threadMap.thread_1.thread.messages[0].content[0]).toEqual({
+        type: "component",
+        id: "comp_1",
+        name: "Test",
+        props: {},
+      });
+    });
   });
 
   describe("snapshot tests for complex state transitions", () => {
