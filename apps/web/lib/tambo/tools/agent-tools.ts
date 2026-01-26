@@ -15,17 +15,16 @@ type UpdateProjectAgentSettingsToolInput = z.infer<
 
 // Block keys commonly used in prototype pollution attacks. This is defense-in-depth
 // alongside using a null-prototype accumulator.
-const blockedAgentHeaderKeys = new Set([
-  "__proto__",
-  "prototype",
-  "constructor",
-]);
+function isPrototypePollutionKey(key: string): boolean {
+  return key === "__proto__" || key === "prototype" || key === "constructor";
+}
 const headerNameTokenRegex = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 
 function hasUnsafeHeaderValueChars(value: string): boolean {
   for (const char of value) {
     const charCode = char.charCodeAt(0);
-    // Disallow CTL characters (0x00-0x1F, 0x7F) per RFC 7230.
+    // Disallow CTL characters (0x00-0x1F, 0x7F) per RFC 7230. We intentionally
+    // disallow all control characters (including horizontal tab).
     if (charCode <= 0x1f || charCode === 0x7f) {
       return true;
     }
@@ -51,7 +50,7 @@ function normalizeAgentHeaders(
   for (const [key, value] of Object.entries(
     agentHeaders as Record<string, unknown>,
   )) {
-    if (blockedAgentHeaderKeys.has(key)) {
+    if (isPrototypePollutionKey(key)) {
       throw new Error(`Invalid agentHeaders: forbidden key '${key}'`);
     }
     if (!headerNameTokenRegex.test(key)) {
@@ -59,7 +58,7 @@ function normalizeAgentHeaders(
     }
     if (typeof value !== "string") {
       throw new Error(
-        `Invalid agentHeaders: agentHeaders[${key}] must be a string (received ${typeof value})`,
+        `Invalid agentHeaders: value for header '${key}' must be a string (received ${typeof value})`,
       );
     }
     if (hasUnsafeHeaderValueChars(value)) {
