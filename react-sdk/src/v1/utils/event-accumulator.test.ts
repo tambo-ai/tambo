@@ -120,6 +120,30 @@ describe("streamReducer", () => {
       );
     });
 
+    it("logs warning for completely unknown event types", () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "development";
+
+      const state = createTestStreamState("thread_1");
+      // Create an event with an unknown type (not in EventType enum)
+      const event = {
+        type: "TOTALLY_UNKNOWN_EVENT_TYPE",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: event as unknown as RunStartedEvent,
+        threadId: "thread_1",
+      });
+
+      expect(result).toBe(state);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Unknown event type"),
+      );
+
+      process.env.NODE_ENV = originalEnv;
+    });
+
     it("logs warning for unknown custom event names", () => {
       const state = createTestStreamState("thread_1");
       const event: CustomEvent = {
@@ -160,6 +184,24 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.thread.status).toBe("streaming");
       expect(result.threadMap.thread_1.streaming.status).toBe("streaming");
       expect(result.threadMap.thread_1.streaming.runId).toBe("run_123");
+    });
+
+    it("uses provided timestamp for startTime", () => {
+      const state = createTestStreamState("thread_1");
+      const event: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_123",
+        threadId: "thread_1",
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1.streaming.startTime).toBe(1704067200000);
     });
   });
 
@@ -231,6 +273,25 @@ describe("streamReducer", () => {
       expect(messages[0].role).toBe("assistant");
       expect(messages[0].content).toEqual([]);
     });
+
+    it("creates user message when role is user", () => {
+      const state = createTestStreamState("thread_1");
+      const event: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_1",
+        role: "user",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].role).toBe("user");
+    });
   });
 
   describe("TEXT_MESSAGE_CONTENT event", () => {
@@ -261,6 +322,42 @@ describe("streamReducer", () => {
       const content = result.threadMap.thread_1.thread.messages[0].content;
       expect(content).toHaveLength(1);
       expect(content[0]).toEqual({ type: "text", text: "Hello " });
+    });
+
+    it("creates new text block after non-text content", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "test", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "msg_1",
+        delta: "After tool call",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const content = result.threadMap.thread_1.thread.messages[0].content;
+      expect(content).toHaveLength(2);
+      expect(content[0]).toEqual({
+        type: "tool_use",
+        id: "tool_1",
+        name: "test",
+        input: {},
+      });
+      expect(content[1]).toEqual({ type: "text", text: "After tool call" });
     });
 
     it("accumulates text content deltas", () => {
@@ -328,7 +425,72 @@ describe("streamReducer", () => {
     });
   });
 
+  describe("TOOL_CALL_START event", () => {
+    it("uses last message when no parentMessageId provided", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: ToolCallStartEvent = {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "tool_1",
+        toolCallName: "get_weather",
+        // No parentMessageId - should use last message
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const content = result.threadMap.thread_1.thread.messages[0].content;
+      expect(content).toHaveLength(1);
+      expect(content[0]).toEqual({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+        input: {},
+      });
+    });
+  });
+
   describe("TOOL_CALL_ARGS and TOOL_CALL_END events", () => {
+    it("handles TOOL_CALL_END with no accumulated args", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "test", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // Send TOOL_CALL_END without any TOOL_CALL_ARGS first
+      const endEvent: ToolCallEndEvent = {
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "tool_1",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: endEvent,
+        threadId: "thread_1",
+      });
+
+      // Should return unchanged state since no args were accumulated
+      expect(result.threadMap.thread_1).toBe(state.threadMap.thread_1);
+    });
+
     it("accumulates and parses tool arguments", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [
