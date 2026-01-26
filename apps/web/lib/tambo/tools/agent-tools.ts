@@ -5,6 +5,13 @@ import {
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 
+class AgentHeadersValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AgentHeadersValidationError";
+  }
+}
+
 function normalizeAgentHeaders(
   agentHeaders: unknown,
 ): Record<string, string> | null | undefined {
@@ -13,8 +20,8 @@ function normalizeAgentHeaders(
   }
 
   if (typeof agentHeaders !== "object" || Array.isArray(agentHeaders)) {
-    throw new Error(
-      "agentHeaders must be an object of string values (e.g. { Authorization: 'Bearer <token>' })",
+    throw new AgentHeadersValidationError(
+      "agentHeaders must be an object mapping string keys to string values (e.g. { key: 'value' })",
     );
   }
 
@@ -22,12 +29,16 @@ function normalizeAgentHeaders(
   for (const [key, value] of Object.entries(
     agentHeaders as Record<string, unknown>,
   )) {
-    if (typeof value !== "string") {
-      throw new Error(
-        `agentHeaders[${key}] must be a string (received ${typeof value})`,
+    if (
+      typeof value !== "string" &&
+      typeof value !== "number" &&
+      typeof value !== "boolean"
+    ) {
+      throw new AgentHeadersValidationError(
+        `agentHeaders[${key}] must be a string, number, or boolean (received ${typeof value})`,
       );
     }
-    headers[key] = value;
+    headers[key] = `${value}`;
   }
 
   return headers;
