@@ -7,6 +7,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
     "thread_1": {
       "accumulatingToolArgs": Map {},
       "streaming": {
+        "messageId": "msg_1",
         "status": "streaming",
       },
       "thread": {
@@ -81,6 +82,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
     "thread_1": {
       "accumulatingToolArgs": Map {},
       "streaming": {
+        "messageId": "msg_1",
         "status": "streaming",
       },
       "thread": {

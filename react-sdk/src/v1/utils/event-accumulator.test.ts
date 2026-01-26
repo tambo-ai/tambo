@@ -387,6 +387,87 @@ describe("streamReducer", () => {
       expect(content).toHaveLength(1);
       expect(content[0]).toEqual({ type: "text", text: "Hello world!" });
     });
+
+    it("throws when message not found", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "unknown_msg",
+        delta: "Hello",
+      };
+
+      expect(() => {
+        streamReducer(state, {
+          type: "EVENT",
+          event,
+          threadId: "thread_1",
+        });
+      }).toThrow("Message unknown_msg not found");
+    });
+  });
+
+  describe("TEXT_MESSAGE_END event", () => {
+    it("throws when messageId doesn't match active message", () => {
+      const state = createTestStreamState("thread_1");
+      // Set up an active message in streaming state
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [{ type: "text", text: "Hello" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "wrong_msg_id",
+      };
+
+      expect(() => {
+        streamReducer(state, {
+          type: "EVENT",
+          event,
+          threadId: "thread_1",
+        });
+      }).toThrow("TEXT_MESSAGE_END messageId mismatch");
+    });
+
+    it("clears active messageId on success", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.streaming.messageId = "msg_1";
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [{ type: "text", text: "Hello" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "msg_1",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      expect(result.threadMap.thread_1.streaming.messageId).toBeUndefined();
+    });
   });
 
   describe("TOOL_CALL_START event", () => {
@@ -458,6 +539,53 @@ describe("streamReducer", () => {
         name: "get_weather",
         input: {},
       });
+    });
+
+    it("throws when parentMessageId message not found", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: ToolCallStartEvent = {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "tool_1",
+        toolCallName: "get_weather",
+        parentMessageId: "unknown_msg",
+      };
+
+      expect(() => {
+        streamReducer(state, {
+          type: "EVENT",
+          event,
+          threadId: "thread_1",
+        });
+      }).toThrow("Message unknown_msg not found for TOOL_CALL_START event");
+    });
+
+    it("throws when no messages exist", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [];
+
+      const event: ToolCallStartEvent = {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "tool_1",
+        toolCallName: "get_weather",
+        // No parentMessageId, no messages
+      };
+
+      expect(() => {
+        streamReducer(state, {
+          type: "EVENT",
+          event,
+          threadId: "thread_1",
+        });
+      }).toThrow("No messages exist for TOOL_CALL_START event");
     });
   });
 
@@ -545,6 +673,47 @@ describe("streamReducer", () => {
         .content[0] as { type: "tool_use"; input: unknown };
       expect(toolContent.input).toEqual({ city: "NYC" });
     });
+
+    it("throws when tool arguments JSON is invalid", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            { type: "tool_use", id: "tool_1", name: "test", input: {} },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // Send invalid JSON via TOOL_CALL_ARGS
+      const argsEvent: ToolCallArgsEvent = {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "tool_1",
+        delta: "{invalid json",
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: argsEvent,
+        threadId: "thread_1",
+      });
+
+      // Send TOOL_CALL_END - should throw when parsing
+      const endEvent: ToolCallEndEvent = {
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "tool_1",
+      };
+
+      expect(() => {
+        streamReducer(result, {
+          type: "EVENT",
+          event: endEvent,
+          threadId: "thread_1",
+        });
+      }).toThrow("Failed to parse tool call arguments");
+    });
   });
 
   describe("custom component events", () => {
@@ -616,6 +785,35 @@ describe("streamReducer", () => {
       const component = result.threadMap.thread_1.thread.messages[0]
         .content[0] as { props: Record<string, unknown> };
       expect(component.props).toEqual({ temperature: 72 });
+    });
+
+    it("throws when component not found for props_delta", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [], // No component
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.props_delta",
+        value: {
+          componentId: "unknown_comp",
+          operations: [{ op: "add", path: "/value", value: 1 }],
+        },
+      };
+
+      expect(() => {
+        streamReducer(state, {
+          type: "EVENT",
+          event,
+          threadId: "thread_1",
+        });
+      }).toThrow("component unknown_comp not found");
     });
 
     it("handles tambo.run.awaiting_input event", () => {

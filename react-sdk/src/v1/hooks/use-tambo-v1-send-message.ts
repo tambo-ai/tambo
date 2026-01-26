@@ -9,8 +9,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { EventType, type RunStartedEvent } from "@ag-ui/core";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useTamboClient } from "../../providers/tambo-client-provider";
-import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
+import {
+  TamboRegistryContext,
+  type TamboRegistryContext as TamboRegistry,
+} from "../../providers/tambo-registry-provider";
 import { useStreamDispatch } from "../providers/tambo-v1-stream-context";
 import type { InputMessage } from "../types/message";
 import {
@@ -32,6 +36,63 @@ export interface SendMessageOptions {
    * Enable debug logging for the stream
    */
   debug?: boolean;
+}
+
+/**
+ * Parameters for creating a run stream
+ */
+export interface CreateRunStreamParams {
+  client: TamboAI;
+  threadId: string | undefined;
+  message: InputMessage;
+  registry: TamboRegistry;
+}
+
+/**
+ * Result from creating a run stream
+ */
+export interface CreateRunStreamResult {
+  stream:
+    | Awaited<ReturnType<TamboAI["threads"]["runs"]["run"]>>
+    | Awaited<ReturnType<TamboAI["threads"]["runs"]["create"]>>;
+  initialThreadId: string | undefined;
+}
+
+/**
+ * Creates a run stream by calling the appropriate API method.
+ *
+ * If threadId is provided, runs on existing thread via client.threads.runs.run().
+ * If no threadId, creates new thread via client.threads.runs.create().
+ * @param params - The parameters for creating the run stream
+ * @returns The stream and initial thread ID (undefined if creating new thread)
+ */
+export async function createRunStream(
+  params: CreateRunStreamParams,
+): Promise<CreateRunStreamResult> {
+  const { client, threadId, message, registry } = params;
+
+  // Convert registry components/tools to v1 API format
+  const availableComponents = toAvailableComponents(registry.componentList);
+  const availableTools = toAvailableTools(registry.toolRegistry);
+
+  if (threadId) {
+    // Run on existing thread
+    const stream = await client.threads.runs.run(threadId, {
+      message,
+      availableComponents,
+      tools: availableTools,
+    });
+    return { stream, initialThreadId: threadId };
+  } else {
+    // Create new thread
+    const stream = await client.threads.runs.create({
+      message,
+      availableComponents,
+      tools: availableTools,
+    });
+    // threadId will be extracted from first event (RUN_STARTED)
+    return { stream, initialThreadId: undefined };
+  }
 }
 
 /**
@@ -94,34 +155,15 @@ export function useTamboV1SendMessage(threadId?: string) {
     mutationFn: async (options: SendMessageOptions) => {
       const { message, debug = false } = options;
 
-      // Convert registry components/tools to v1 API format
-      const availableComponents = toAvailableComponents(registry.componentList);
-      const availableTools = toAvailableTools(registry.toolRegistry);
+      // Create the run stream
+      const { stream, initialThreadId } = await createRunStream({
+        client,
+        threadId,
+        message,
+        registry,
+      });
 
-      // Determine which API to call based on threadId presence
-      let stream:
-        | Awaited<ReturnType<typeof client.threads.runs.run>>
-        | Awaited<ReturnType<typeof client.threads.runs.create>>;
-      let actualThreadId: string | undefined;
-
-      if (threadId) {
-        // Run on existing thread
-        stream = await client.threads.runs.run(threadId, {
-          message,
-          availableComponents,
-          tools: availableTools,
-        });
-        actualThreadId = threadId;
-      } else {
-        // Create new thread
-        stream = await client.threads.runs.create({
-          message,
-          availableComponents,
-          tools: availableTools,
-        });
-        // threadId will be extracted from first event (RUN_STARTED)
-        actualThreadId = undefined;
-      }
+      let actualThreadId = initialThreadId;
 
       // Stream events and dispatch to reducer
       for await (const event of handleEventStream(stream, { debug })) {
