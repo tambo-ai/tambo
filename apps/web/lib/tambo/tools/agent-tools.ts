@@ -1,5 +1,5 @@
 import {
-  updateProjectAgentSettingsInput as updateProjectAgentSettingsInputSchema,
+  updateProjectAgentSettingsToolInput as updateProjectAgentSettingsInputSchema,
   updateProjectAgentSettingsOutputSchema,
 } from "@/lib/schemas/agent";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
@@ -36,9 +36,12 @@ export function registerAgentTools(
           agentProviderType,
           agentUrl,
           agentName,
-          // Cast from unknown (tool schema) to Record<string, string> (tRPC expects)
-          // Validation happens server-side
-          agentHeaders: agentHeaders,
+          // Tool input schema uses `z.unknown()` for compatibility.
+          // Validation happens in the tRPC layer.
+          agentHeaders: agentHeaders as
+            | Record<string, string>
+            | null
+            | undefined,
         });
 
       // Invalidate all caches that display agent settings (shown in LLM settings view)
