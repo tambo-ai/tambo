@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTableViewer } from "@tambo-ai/react";
+import { DataTableViewer } from "@tambo-ai/ui-registry/components/data-table-viewer";
 
 export default function DataTableViewerDemo() {
   // Creating 10,000 rows of mock data for the stress test

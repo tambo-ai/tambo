@@ -4,7 +4,10 @@ import { DashboardCardComponent } from "@/components/dashboard-card";
 import { DiscordInvite } from "@/components/discord-invite";
 import { GitHubIssueCreator } from "@/components/github-issue-creator";
 import { TamboComponent } from "@tambo-ai/react";
-import { DataTableViewer, DataTableViewerPropsSchema } from "@tambo-ai/react";
+import {
+  DataTableViewer,
+  DataTableViewerPropsSchema,
+} from "@tambo-ai/ui-registry/components/data-table-viewer";
 import { z } from "zod/v3";
 
 export const components: TamboComponent[] = [

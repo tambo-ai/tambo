@@ -63,6 +63,8 @@
     "streamdown": "^1.6.10",
     "tailwind-merge": "^2.0.0",
     "ts-jest": "^29.4.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.18"
   }
 }
