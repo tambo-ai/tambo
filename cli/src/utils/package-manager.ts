@@ -78,7 +78,11 @@ export function detectPackageManager(
  */
 export function validatePackageManager(pm: PackageManager): void {
   try {
-    execFileSync(pm, ["--version"], { stdio: "ignore" });
+    // On Windows, package managers are .cmd files that require shell resolution
+    execFileSync(pm, ["--version"], {
+      stdio: "ignore",
+      shell: process.platform === "win32",
+    });
   } catch {
     throw new Error(
       `Detected ${pm} from lockfile but ${pm} is not installed. Please install ${pm} first.`,

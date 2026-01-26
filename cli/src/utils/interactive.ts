@@ -104,6 +104,8 @@ export interface SafeExecFileSyncOptions extends ExecFileSyncOptions {
  * Uses execFileSync by default (more secure - doesn't invoke shell), falls back to execSync
  * only when shell features are needed.
  *
+ * On Windows, uses shell: true to resolve .cmd files (npm.cmd, npx.cmd, etc.) from PATH.
+ *
  * @param file - The file/command to execute
  * @param args - Arguments to pass to the command
  * @param options - Options to pass to execFileSync, including allowNonInteractive flag
@@ -126,7 +128,11 @@ export function execFileSync(
     );
   }
 
-  return nodeExecFileSync(file, args, execOptions);
+  // On Windows, package managers are .cmd files that require shell resolution
+  const windowsOptions =
+    process.platform === "win32" ? { shell: true } : undefined;
+
+  return nodeExecFileSync(file, args, { ...windowsOptions, ...execOptions });
 }
 
 /**

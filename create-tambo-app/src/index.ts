@@ -4,9 +4,11 @@ import spawn from "cross-spawn";
 
 // Use npx to ensure we get the latest version of tambo
 const args = ["-y", "tambo@latest", "create-app", ...process.argv.slice(2)];
+
+// On Windows, npx is a .cmd file that requires shell resolution.
+// Note: shell: true with args triggers DEP0190 warning in Node 22+, but still works.
 const child = spawn("npx", args, {
   stdio: "inherit",
-  // Use shell on Windows to ensure npx.cmd is resolved correctly via PATH
   shell: process.platform === "win32",
 });
 
