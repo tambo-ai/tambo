@@ -92,13 +92,14 @@ on:
 
 jobs:
   sync-lockfile:
+    # Only run on release-please PRs (they have "autorelease: pending" label)
     if: "${{ contains(github.event.pull_request.labels.*.name, 'autorelease: pending') }}"
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.head_ref }}
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
