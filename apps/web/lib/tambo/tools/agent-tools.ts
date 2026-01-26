@@ -26,8 +26,77 @@ function isPrototypePollutionKey(key: string): boolean {
   return key === "__proto__" || key === "prototype" || key === "constructor";
 }
 
-// Intentionally enforce RFC 7230 token syntax for header names on the tool boundary.
-const headerNameTokenRegex = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+// DoS guardrails for agent-provided headers. These are conservative limits chosen
+// to stay comfortably within typical server/proxy header size bounds while still
+// allowing realistic usage. Increase only with security review.
+const maxAgentProvidedHeaderCount = 50;
+const maxAgentProvidedHeaderNameLength = 200;
+const maxAgentProvidedHeaderValueLength = 8_000;
+const maxAgentProvidedHeadersTotalBytes = 16_000;
+
+function getUtf8ByteLength(value: string): number {
+  if (
+    typeof Buffer !== "undefined" &&
+    typeof Buffer.byteLength === "function"
+  ) {
+    return Buffer.byteLength(value, "utf8");
+  }
+
+  if (typeof TextEncoder !== "undefined") {
+    return new TextEncoder().encode(value).length;
+  }
+
+  let bytes = 0;
+  for (let i = 0; i < value.length; i++) {
+    const codePoint = value.codePointAt(i);
+    if (!codePoint) {
+      continue;
+    }
+
+    if (codePoint <= 0x7f) {
+      bytes += 1;
+    } else if (codePoint <= 0x7ff) {
+      bytes += 2;
+    } else if (codePoint <= 0xffff) {
+      bytes += 3;
+    } else {
+      bytes += 4;
+      i++;
+    }
+  }
+
+  return bytes;
+}
+
+// Header-name policy for this tool boundary:
+// - Visible ASCII only (no whitespace / control characters)
+// - Disallow ":" (header separator), and a small set of punctuation characters that
+//   can cause downstream parsing/logging ambiguities: '"', '\\', ',', ';'.
+// This is intentionally not a full RFC 7230 token implementation.
+function isSafeHeaderName(key: string): boolean {
+  if (key.length === 0) {
+    return false;
+  }
+
+  for (let i = 0; i < key.length; i++) {
+    const charCode = key.charCodeAt(i);
+    // Allow visible ASCII only; disallow ":" (which would conflict with header parsing).
+    // Also disallow quotes and backslashes to avoid downstream parsing/logging issues.
+    if (
+      charCode < 0x21 ||
+      charCode > 0x7e ||
+      charCode === 0x3a ||
+      charCode === 0x22 ||
+      charCode === 0x5c ||
+      charCode === 0x2c ||
+      charCode === 0x3b
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 function hasUnsafeHeaderValueChars(value: string): boolean {
   for (const char of value) {
@@ -45,6 +114,8 @@ function hasUnsafeHeaderValueChars(value: string): boolean {
 function normalizeAgentHeaders(
   agentHeaders: unknown,
 ): Record<string, string> | null | undefined {
+  // Tool inputs are expected to be plain JSON objects; we intentionally reject
+  // other collection types here (Map, Headers, etc.).
   if (agentHeaders === null || agentHeaders === undefined) {
     return agentHeaders;
   }
@@ -55,16 +126,54 @@ function normalizeAgentHeaders(
     );
   }
 
+  const agentHeadersPrototype = Object.getPrototypeOf(agentHeaders);
+  if (
+    agentHeadersPrototype !== Object.prototype &&
+    agentHeadersPrototype !== null
+  ) {
+    throw new Error(
+      "Invalid agentHeaders: must be a plain object with prototype null or Object.prototype",
+    );
+  }
+
+  if (Object.getOwnPropertySymbols(agentHeaders).length > 0) {
+    throw new Error(
+      "Invalid agentHeaders: symbol keys are not allowed; header names must be strings",
+    );
+  }
+
   const headers = Object.create(null) as Record<string, string>;
-  for (const [key, value] of Object.entries(
-    agentHeaders as Record<string, unknown>,
-  )) {
+
+  let headerCount = 0;
+  let totalBytes = 0;
+  // Use `for...in` + `hasOwnProperty.call` so we can stop early on large objects without
+  // allocating intermediate arrays (DoS guardrail) and so we work with null-prototype
+  // objects.
+  for (const key in agentHeaders as Record<string, unknown>) {
+    if (!Object.prototype.hasOwnProperty.call(agentHeaders, key)) {
+      continue;
+    }
+
+    const value = (agentHeaders as Record<string, unknown>)[key];
+
+    headerCount++;
+    if (headerCount > maxAgentProvidedHeaderCount) {
+      throw new Error(
+        `Invalid agentHeaders: too many headers (max ${maxAgentProvidedHeaderCount})`,
+      );
+    }
+
+    if (key.length > maxAgentProvidedHeaderNameLength) {
+      throw new Error(
+        `Invalid agentHeaders: header name too long ${formatAgentHeaderKeyForError(key)}`,
+      );
+    }
     if (isPrototypePollutionKey(key)) {
       throw new Error(
         `Invalid agentHeaders: forbidden key ${formatAgentHeaderKeyForError(key)}`,
       );
     }
-    if (!headerNameTokenRegex.test(key)) {
+    if (!isSafeHeaderName(key)) {
       throw new Error(
         `Invalid agentHeaders: invalid header name ${formatAgentHeaderKeyForError(key)}`,
       );
@@ -74,6 +183,23 @@ function normalizeAgentHeaders(
         `Invalid agentHeaders: value for header ${formatAgentHeaderKeyForError(key)} must be a string (received ${typeof value})`,
       );
     }
+
+    if (value.length > maxAgentProvidedHeaderValueLength) {
+      throw new Error(
+        `Invalid agentHeaders: header value too long for ${formatAgentHeaderKeyForError(key)}`,
+      );
+    }
+
+    const keyBytes = getUtf8ByteLength(key);
+    const valueBytes = getUtf8ByteLength(value);
+    const nextTotalBytes = totalBytes + keyBytes + valueBytes;
+    if (nextTotalBytes > maxAgentProvidedHeadersTotalBytes) {
+      throw new Error(
+        `Invalid agentHeaders: total header names + values too large when adding ${formatAgentHeaderKeyForError(key)} (${nextTotalBytes} bytes, max ${maxAgentProvidedHeadersTotalBytes} bytes)`,
+      );
+    }
+    totalBytes = nextTotalBytes;
+
     if (hasUnsafeHeaderValueChars(value)) {
       throw new Error(
         `Invalid agentHeaders: header value for ${formatAgentHeaderKeyForError(key)} contains control characters`,
