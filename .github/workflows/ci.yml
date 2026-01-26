@@ -60,7 +60,7 @@ jobs:
         with:
           fail_ci_if_error: false
 
-  build:
+  e2e:
     runs-on: ubuntu-latest
     env:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
@@ -74,6 +74,18 @@ jobs:
 
       - name: Run E2E Tests
         run: npm run test:e2e -w @tambo-ai-cloud/api
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
 
       - name: Build
         run: npm run build
