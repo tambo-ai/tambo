@@ -1,0 +1,245 @@
+---
+title: Migrating from toolSchema to inputSchema/outputSchema
+description: Guide for migrating tools from the deprecated toolSchema API to the new inputSchema/outputSchema pattern.
+---
+
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+The `toolSchema` property has been deprecated in favor of separate `inputSchema` and `outputSchema` properties. This guide explains how to migrate your tools to the new API.
+
+## Why the change?
+
+The new API provides:
+
+- **Clearer semantics** - Input and output schemas are explicitly separated
+- **Better type inference** - TypeScript can infer parameter and return types from schemas
+- **StandardSchema support** - Works with Zod 3.25.76, Zod 4.x, and other StandardSchema-compliant validators
+- **Simpler function signatures** - Tool functions receive a single object parameter
+
+## Migration steps
+
+### 1. Update the schema definition and tool function signature
+
+Tool functions now receive a single object parameter instead of spread arguments.
+
+**Before (deprecated):**
+
+```typescript
+import { z } from "zod";
+
+const fetchUserTool = {
+  name: "fetchUser",
+  description: "Fetch a user by ID",
+  tool: async (userId: string): Promise<{ name: string; email: string }> => {
+    const user = await fetchUser(userId);
+    return user;
+  },
+  toolSchema: z
+    .function()
+    .args(z.string())
+    .returns(z.object({ name: z.string(), email: z.string() })),
+};
+```
+
+**After:**
+
+```typescript
+const fetchUserTool = {
+  name: "fetchUser",
+  description: "Fetch a user by ID",
+  // tool() receives a single object as the first argument to the tool function
+  tool: async ({ userId }) => {
+    const user = await fetchUser(userId);
+    return user;
+  },
+  inputSchema: z.object({
+    userId: z.string().describe("The user ID to fetch"),
+  }),
+  outputSchema: z.object({
+    name: z.string(),
+    email: z.string(),
+  }),
+};
+```
+
+### 2. Use defineTool for better type safety
+
+The `defineTool` helper provides full type inference from your schemas:
+
+```typescript
+import { defineTool } from "@tambo-ai/react";
+import { z } from "zod";
+
+const fetchUserTool = defineTool({
+  name: "fetchUser",
+  description: "Fetch a user by ID",
+  inputSchema: z.object({
+    userId: z.string().describe("The user ID to fetch"),
+  }),
+  outputSchema: z.object({
+    name: z.string(),
+    email: z.string(),
+  }),
+  // inputSchema and outputSchema allow TypeScript to infer the tool signature:
+  // ({ userId }: { userId: string }) => { name: string; email: string }
+  tool: async ({ userId }) => {
+    const user = await fetchUser(userId);
+    return user;
+  },
+});
+```
+
+## Complete example
+
+**Before (deprecated):**
+
+```typescript
+import { z } from "zod";
+import { useTambo } from "@tambo-ai/react";
+
+const weatherSchema = z
+  .function()
+  .args(z.string(), z.enum(["celsius", "fahrenheit"]))
+  .returns(z.object({ temperature: z.number(), unit: z.string() }));
+
+function WeatherApp() {
+  const { registerTool } = useTambo();
+
+  useEffect(() => {
+    registerTool({
+      name: "getWeather",
+      description: "Get weather for a city",
+      tool: async (city: string, unit: "celsius" | "fahrenheit") => {
+        return await fetchWeather(city, unit);
+      },
+      toolSchema: weatherSchema,
+    });
+  }, []);
+}
+```
+
+**After:**
+
+```typescript
+import { z } from "zod";
+import { useTambo, defineTool } from "@tambo-ai/react";
+
+const getWeatherTool = defineTool({
+  name: "getWeather",
+  description: "Get weather for a city",
+  inputSchema: z.object({
+    city: z.string().describe("The city name"),
+    unit: z.enum(["celsius", "fahrenheit"]).describe("Temperature unit"),
+  }),
+  outputSchema: z.object({
+    temperature: z.number(),
+    unit: z.string(),
+  }),
+  tool: async ({ city, unit }) => {
+    return await fetchWeather(city, unit);
+  },
+});
+
+function WeatherApp() {
+  const { registerTool } = useTambo();
+
+  useEffect(() => {
+    registerTool(getWeatherTool);
+  }, []);
+}
+```
+
+## Zod version compatibility
+
+The new API supports both Zod 3.25.76 and Zod 4.x through the StandardSchema specification:
+
+```typescript
+// Zod 3.25.76
+import { z } from "zod";
+
+// Zod 4.x
+import { z } from "zod/v4";
+
+// Both work identically with inputSchema/outputSchema
+const inputSchema = z.object({
+  query: z.string(),
+});
+```
+
+## JSON Schema support
+
+If you prefer raw JSON Schema, that's also supported:
+
+```typescript
+const searchTool = {
+  name: "search",
+  description: "Search for items",
+  inputSchema: {
+    type: "object",
+    properties: {
+      query: { type: "string", description: "Search query" },
+    },
+    required: ["query"],
+  },
+  outputSchema: {
+    type: "array",
+    items: { type: "object" },
+  },
+  tool: async ({ query }: { query: string }) => {
+    return await search(query);
+  },
+};
+```
+
+## Troubleshooting
+
+### TypeScript errors after migration
+
+If you see type errors, ensure:
+
+1. Your `inputSchema` is an object schema (not a function schema)
+2. Your tool function accepts a single object parameter matching the input schema
+3. You're using `defineTool` for automatic type inference
+
+### Runtime errors
+
+If tools fail at runtime:
+
+1. Check that parameter names in your tool function match the schema property names
+2. Verify your Zod version is >4, or 3.25.76 for Zod 3
+3. Ensure `zod-to-json-schema` is installed if using Zod 3.x
+
+### Slow TypeScript compilation with Zod
+
+Some projects may encounter performance issues with TypeScript when using Zod schemas:
+
+- IDE becomes sluggish or unresponsive
+- Type checking takes significantly longer than expected
+- TypeScript language server may stop responding
+- Compilation errors about deeply nested type instantiations:
+  ```
+  Type instantiation is excessively deep and possibly infinite ts(2589)
+  ```
+
+**Root cause:** Earlier Zod versions had a module resolution configuration that could cause TypeScript to process type definitions multiple times, creating expensive type comparisons.
+
+**Fix:** Update to Zod 4.1.8 or newer:
+
+<Tabs items={["npm", "pnpm", "yarn", "bun"]}>
+  <Tab id="tab-npm" value="npm">
+    ```bash npm install zod@^4.1.8 ```
+  </Tab>
+  <Tab id="tab-pnpm" value="pnpm">
+    ```bash pnpm add zod@^4.1.8 ```
+  </Tab>
+  <Tab id="tab-yarn" value="yarn">
+    ```bash yarn add zod@^4.1.8 ```
+  </Tab>
+  <Tab id="tab-bun" value="bun">
+    ```bash bun add zod@^4.1.8 ```
+  </Tab>
+</Tabs>
+
+Zod 4.1.8+ resolves the module resolution configuration that was causing duplicate type processing.
+
+**Need help?** If you can't upgrade immediately, reach out on Discord and we'll help troubleshoot your specific situation.

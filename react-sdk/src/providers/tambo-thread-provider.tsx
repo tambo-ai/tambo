@@ -11,10 +11,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  TamboTool,
-  TamboToolWithToolSchema,
-} from "../model/component-metadata";
+import { TamboTool } from "../model/component-metadata";
 import {
   GenerationStage,
   isIdleStage,
@@ -817,7 +814,7 @@ export const TamboThreadProvider: React.FC<
   const handleAdvanceStream = useCallback(
     async (
       stream: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>,
-      params: TamboAI.Beta.Threads.ThreadAdvanceParams,
+      params: TamboAI.Beta.Threads.ThreadAdvanceByIDParams,
       threadId: string,
       contextKey?: string,
     ): Promise<TamboThreadMessage> => {
@@ -876,7 +873,7 @@ export const TamboThreadProvider: React.FC<
 
           const contentParts = await convertToolResponse(toolCallResponse);
 
-          const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
+          const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceByIDParams =
             {
               ...params,
               // Exclude initialMessages from tool response since thread already exists
@@ -1075,6 +1072,11 @@ export const TamboThreadProvider: React.FC<
         additionalContext,
         content,
       } = options;
+      if (!streamResponse) {
+        throw new Error(
+          "Non-streaming mode is deprecated. Use streaming mode instead.",
+        );
+      }
       updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
 
       // Get additional context from enabled helpers
@@ -1125,7 +1127,7 @@ export const TamboThreadProvider: React.FC<
       // Track tool call counts for this message processing
       const toolCallCounts: Record<string, number> = {};
 
-      const params: TamboAI.Beta.Threads.ThreadAdvanceParams = {
+      const params: TamboAI.Beta.Threads.ThreadAdvanceByIDParams = {
         messageToAppend: {
           content: messageContent as any,
           role: "user",
@@ -1148,84 +1150,13 @@ export const TamboThreadProvider: React.FC<
           }),
       };
 
-      if (streamResponse) {
-        let advanceStreamResponse: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>;
-        try {
-          advanceStreamResponse = await advanceStream(
-            client,
-            params,
-            threadId === placeholderThread.id ? undefined : threadId,
-          );
-        } catch (error) {
-          updateThreadStatus(threadId, GenerationStage.ERROR);
-          // Rollback the optimistic user message
-          setThreadMap((prev) => {
-            const thread = prev[threadId];
-            if (!thread) return prev;
-            return {
-              ...prev,
-              [threadId]: {
-                ...thread,
-                messages: thread.messages.filter(
-                  (msg) => msg.id !== optimiticMessageId,
-                ),
-              },
-            };
-          });
-          throw error;
-        }
-        try {
-          const result = await handleAdvanceStream(
-            advanceStreamResponse,
-            params,
-            threadId,
-            contextKey,
-          );
-
-          return result;
-        } catch (error) {
-          updateThreadStatus(threadId, GenerationStage.ERROR);
-          // Rollback the optimistic user message
-          setThreadMap((prev) => {
-            const thread = prev[threadId];
-            if (!thread) return prev;
-            return {
-              ...prev,
-              [threadId]: {
-                ...thread,
-                messages: thread.messages.filter(
-                  (msg) => msg.id !== optimiticMessageId,
-                ),
-              },
-            };
-          });
-          throw error;
-        }
-      }
-
-      let advanceResponse: TamboAI.Beta.Threads.ThreadAdvanceResponse;
+      let advanceStreamResponse: AsyncIterable<TamboAI.Beta.Threads.ThreadAdvanceResponse>;
       try {
-        advanceResponse = await (threadId === placeholderThread.id
-          ? client.beta.threads.advance(params)
-          : client.beta.threads.advanceByID(threadId, params));
-
-        // Store MCP access token in thread data
-        const actualThreadId = advanceResponse.responseMessageDto.threadId;
-        if (advanceResponse.mcpAccessToken && actualThreadId) {
-          setThreadMap((prev) => {
-            const thread = prev[actualThreadId];
-            if (thread) {
-              return {
-                ...prev,
-                [actualThreadId]: {
-                  ...thread,
-                  mcpAccessToken: advanceResponse.mcpAccessToken,
-                },
-              };
-            }
-            return prev;
-          });
-        }
+        advanceStreamResponse = await advanceStream(
+          client,
+          params,
+          threadId === placeholderThread.id ? undefined : threadId,
+        );
       } catch (error) {
         updateThreadStatus(threadId, GenerationStage.ERROR);
         // Rollback the optimistic user message
@@ -1244,105 +1175,24 @@ export const TamboThreadProvider: React.FC<
         });
         throw error;
       }
-
-      //handle tool calls
       try {
-        while (advanceResponse.responseMessageDto.toolCallRequest) {
-          // Increment tool call count for this tool
-          const toolName =
-            advanceResponse.responseMessageDto.toolCallRequest.toolName;
-          if (toolName) {
-            toolCallCounts[toolName] = (toolCallCounts[toolName] || 0) + 1;
-          }
-
-          updateThreadStatus(threadId, GenerationStage.FETCHING_CONTEXT);
-          const toolCallResponse = await handleToolCall(
-            advanceResponse.responseMessageDto.toolCallRequest,
-            toolRegistry,
-            onCallUnregisteredTool,
-          );
-
-          const contentParts = await convertToolResponse(toolCallResponse);
-
-          const toolCallResponseParams: TamboAI.Beta.Threads.ThreadAdvanceParams =
-            {
-              ...params,
-              messageToAppend: {
-                ...params.messageToAppend,
-                content: contentParts,
-                role: "tool",
-                actionType: "tool_response",
-                component: advanceResponse.responseMessageDto.component,
-                tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
-                error: toolCallResponse.error,
-              },
-            };
-          if (toolCallResponse.error) {
-            //update toolcall message with error
-            const toolCallMessage = {
-              ...advanceResponse.responseMessageDto,
-              error: toolCallResponse.error,
-            };
-            await updateThreadMessage(
-              toolCallMessage.id,
-              toolCallMessage,
-              false,
-            );
-          }
-          updateThreadStatus(threadId, GenerationStage.HYDRATING_COMPONENT);
-          await addThreadMessage(
-            {
-              threadId: threadId,
-              content: contentParts,
-              role: "tool",
-              id: crypto.randomUUID(),
-              createdAt: new Date().toISOString(),
-              componentState: {},
-              actionType: "tool_response",
-              tool_call_id: advanceResponse.responseMessageDto.tool_call_id,
-              error: toolCallResponse.error,
-            },
-            false,
-          );
-
-          advanceResponse = await client.beta.threads.advanceByID(
-            advanceResponse.responseMessageDto.threadId,
-            toolCallResponseParams,
-          );
-
-          // Store MCP access token in thread data
-          if (advanceResponse.mcpAccessToken) {
-            const actualThreadId = advanceResponse.responseMessageDto.threadId;
-            if (actualThreadId) {
-              setThreadMap((prev) => {
-                const thread = prev[actualThreadId];
-                if (thread) {
-                  return {
-                    ...prev,
-                    [actualThreadId]: {
-                      ...thread,
-                      mcpAccessToken: advanceResponse.mcpAccessToken,
-                    },
-                  };
-                }
-                return prev;
-              });
-            }
-          }
-        }
-      } catch (error) {
-        updateThreadStatus(
-          advanceResponse.responseMessageDto.threadId,
-          GenerationStage.ERROR,
+        const result = await handleAdvanceStream(
+          advanceStreamResponse,
+          params,
+          threadId,
+          contextKey,
         );
+
+        return result;
+      } catch (error) {
+        updateThreadStatus(threadId, GenerationStage.ERROR);
         // Rollback the optimistic user message
         setThreadMap((prev) => {
-          const actualThreadId = advanceResponse.responseMessageDto.threadId;
-          const thread = prev[actualThreadId];
+          const thread = prev[threadId];
           if (!thread) return prev;
           return {
             ...prev,
-            [actualThreadId]: {
+            [threadId]: {
               ...thread,
               messages: thread.messages.filter(
                 (msg) => msg.id !== optimiticMessageId,
@@ -1352,49 +1202,20 @@ export const TamboThreadProvider: React.FC<
         });
         throw error;
       }
-
-      const finalMessage = advanceResponse.responseMessageDto.component
-        ?.componentName
-        ? renderComponentIntoMessage(
-            advanceResponse.responseMessageDto,
-            componentList,
-          )
-        : advanceResponse.responseMessageDto;
-      const wasPlaceholderThread = currentThreadId === PLACEHOLDER_THREAD.id;
-      await switchCurrentThread(advanceResponse.responseMessageDto.threadId);
-
-      // If we're switching from placeholder to a real thread
-      // this means a new thread was created, so add it to cache
-      if (wasPlaceholderThread) {
-        await addThreadToCache(
-          advanceResponse.responseMessageDto.threadId,
-          contextKey,
-        );
-      }
-      const completedThreadId = advanceResponse.responseMessageDto.threadId;
-
-      updateThreadStatus(completedThreadId, GenerationStage.COMPLETE);
-      maybeAutoGenerateThreadName(completedThreadId, contextKey);
-
-      return finalMessage;
     },
     [
       componentList,
       toolRegistry,
       componentToolAssociations,
       currentThreadId,
-      switchCurrentThread,
       addThreadMessage,
       client,
-      updateThreadMessage,
       updateThreadStatus,
       handleAdvanceStream,
       streaming,
       getAdditionalContext,
       placeholderThread.id,
       initialMessages,
-      onCallUnregisteredTool,
-      addThreadToCache,
       maybeAutoGenerateThreadName,
     ],
   );
@@ -1472,7 +1293,7 @@ export const useTamboThread = (): CombinedTamboThreadContextProps => {
 async function convertToolResponse(toolCallResponse: {
   result: unknown;
   error?: string;
-  tamboTool?: TamboTool | TamboToolWithToolSchema;
+  tamboTool?: TamboTool;
 }): Promise<TamboAI.Beta.Threads.ChatCompletionContentPart[]> {
   // If the tool call errored, surface that as text so the model reliably sees the error
   if (toolCallResponse.error) {

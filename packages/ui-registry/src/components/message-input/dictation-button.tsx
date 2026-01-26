@@ -15,7 +15,7 @@ export default function DictationButton() {
     transcript,
     transcriptionError,
   } = useTamboVoice();
-  const { value, setValue } = useTamboThreadInput();
+  const { setValue } = useTamboThreadInput();
   const [lastProcessedTranscript, setLastProcessedTranscript] =
     useState<string>("");
 
@@ -31,9 +31,9 @@ export default function DictationButton() {
   useEffect(() => {
     if (transcript && transcript !== lastProcessedTranscript) {
       setLastProcessedTranscript(transcript);
-      setValue(value + " " + transcript);
+      setValue((prev) => prev + " " + transcript);
     }
-  }, [transcript, lastProcessedTranscript, value, setValue]);
+  }, [transcript, lastProcessedTranscript, setValue]);
 
   if (isTranscribing) {
     return (

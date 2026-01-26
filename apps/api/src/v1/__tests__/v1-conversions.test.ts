@@ -57,7 +57,6 @@ describe("v1-conversions", () => {
       const result = threadToDto(baseThread);
 
       expect(result.id).toBe("thr_123");
-      expect(result.projectId).toBe("prj_123");
       expect(result.contextKey).toBe("user_456");
       expect(result.runStatus).toBe(V1RunStatus.IDLE);
       expect(result.metadata).toEqual({ key: "value" });

@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/react",
-  "version": "0.69.1",
+  "version": "0.70.0",
   "description": "React client package for Tambo AI",
   "license": "MIT",
   "repository": {
@@ -22,6 +22,11 @@
       "import": "./esm/mcp/index.js",
       "require": "./dist/mcp/index.js",
       "types": "./dist/mcp/index.d.ts"
+    },
+    "./v1": {
+      "import": "./esm/v1/index.js",
+      "require": "./dist/v1/index.js",
+      "types": "./dist/v1/index.d.ts"
     }
   },
   "files": [
@@ -38,6 +43,9 @@
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
     "check-types": "tsc --noEmit",
+    "dev": "concurrently \"npm run dev:cjs\" \"npm run dev:esm\"",
+    "dev:cjs": "tsc -p tsconfig.cjs.json --watch",
+    "dev:esm": "tsc -p tsconfig.esm.json --watch",
     "test": "jest --config jest.config.ts",
     "format": "prettier --write .",
     "lint": "eslint",
@@ -61,7 +69,7 @@
     "@types/react-dom": "^18.0.0 || ^19.0.0",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
-    "zod": "^3.25.76 || ~4.0.0",
+    "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"
   },
   "peerDependenciesMeta": {
@@ -73,9 +81,11 @@
     }
   },
   "dependencies": {
+    "@ag-ui/core": "^0.0.42",
+    "@modelcontextprotocol/sdk": "^1.25.1",
     "@standard-community/standard-json": "^0.3.5",
     "@standard-schema/spec": "^1.1.0",
-    "@tambo-ai/typescript-sdk": "^0.80.0",
+    "@tambo-ai/typescript-sdk": "^0.84.0",
     "@tanstack/react-query": "^5.90.16",
     "fast-equals": "^5.3.3",
     "partial-json": "^0.1.7",
@@ -113,7 +123,7 @@
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.0",
-    "zod": "^3.25.76 || ~4.0.0",
+    "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"
   }
 }

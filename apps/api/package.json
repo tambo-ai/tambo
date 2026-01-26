@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai-cloud/api",
-  "version": "0.130.0",
+  "version": "0.131.0",
   "description": "",
   "author": "",
   "private": true,
@@ -13,7 +13,7 @@
     "start:dev": "NODE_OPTIONS=--experimental-require-module nest start --watch",
     "start:debug": "NODE_OPTIONS=--experimental-require-module nest start --debug --watch ",
     "start:prod": "NODE_OPTIONS=--experimental-require-module node dist/apps/api/src/main",
-    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "tsx --inspect-brk node_modules/.bin/jest --runInBand",
@@ -25,7 +25,7 @@
     "storage:init": "tsx scripts/storage-init.ts"
   },
   "dependencies": {
-    "@ag-ui/client": "0.0.42",
+    "@ag-ui/client": "0.0.43",
     "@ag-ui/crewai": "^0.0.3",
     "@ag-ui/llamaindex": "^0.1.5",
     "@langfuse/otel": "^4.5.1",
@@ -54,6 +54,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "drizzle-orm": "^0.45.1",
+    "fast-json-patch": "^3.1.1",
     "helmet": "^8.1.0",
     "jose": "^5.10.0",
     "json-schema": "^0.4.0",
@@ -67,6 +68,7 @@
     "resend": "^6.7.0",
     "rxjs": "7.8.1",
     "superjson": "^2.2.6",
+    "ts-essentials": "^10.1.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

@@ -2,7 +2,6 @@
  * Tests for registry utilities:
  * - getParametersFromToolSchema via mapTamboToolToContextTool
  * - convertPropsToJsonSchema
- * - adaptToolFromFnSchema
  * - getComponentFromRegistry
  * - getAvailableComponents
  * - getUnassociatedTools
@@ -17,9 +16,8 @@ import {
   TamboToolAssociations,
   TamboToolRegistry,
 } from "../model/component-metadata";
-import { createMockTool, createMockToolWithToolSchema } from "../testing/tools";
+import { createMockTool } from "../testing/tools";
 import {
-  adaptToolFromFnSchema,
   convertPropsToJsonSchema,
   getAvailableComponents,
   getComponentFromRegistry,
@@ -28,38 +26,7 @@ import {
 } from "./registry";
 
 describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
-  describe("Deprecated toolSchema interface (Zod function schemas)", () => {
-    it("should handle tool with toolSchema", () => {
-      const tool = createMockToolWithToolSchema(
-        z3.function().args(z3.string().describe("The name")).returns(z3.void()),
-        3,
-      );
-      const result = mapTamboToolToContextTool(tool);
-      // Should have at least one parameter (either extracted or wrapped)
-      expect(result.parameters.length).toBeGreaterThanOrEqual(1);
-      expect(result.name).toBe("testTool");
-      expect(result.description).toBe("A test tool");
-      expect(result.maxCalls).toBe(3);
-    });
-
-    it("should handle toolSchema with multiple args", () => {
-      const tool = createMockToolWithToolSchema(
-        z3
-          .function()
-          .args(
-            z3.string().describe("First name"),
-            z3.number().describe("Age"),
-            z3.boolean().describe("Is active"),
-          )
-          .returns(z3.void()),
-      );
-      const result = mapTamboToolToContextTool(tool);
-      // Should have parameters (extraction depends on JSON Schema conversion)
-      expect(result.parameters.length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  describe("New inputSchema interface (object schemas)", () => {
+  describe("inputSchema interface (object schemas)", () => {
     describe("Zod 4 object schemas", () => {
       it("should extract parameters from object schema properties", () => {
         const tool = createMockTool({
@@ -259,15 +226,6 @@ describe("getParametersFromToolSchema (via mapTamboToolToContextTool)", () => {
 });
 
 describe("registry util: maxCalls", () => {
-  it("adaptToolFromFnSchema preserves maxCalls for legacy toolSchema", () => {
-    const legacy = createMockToolWithToolSchema(
-      z3.function().args(z3.string()).returns(z3.string()),
-      2,
-    );
-    const adapted = adaptToolFromFnSchema(legacy);
-    expect(adapted.maxCalls).toBe(2);
-  });
-
   it("mapTamboToolToContextTool includes maxCalls when present", () => {
     const tool = createMockTool({
       inputSchema: z3.object({ q: z3.string() }),
@@ -445,31 +403,6 @@ describe("convertPropsToJsonSchema", () => {
     } as RegisteredComponent;
     const result = convertPropsToJsonSchema(component);
     expect(result).toBe(unknownFormat);
-  });
-});
-
-describe("adaptToolFromFnSchema", () => {
-  it("should return tool unchanged when it has inputSchema (new interface)", () => {
-    const tool = createMockTool({
-      inputSchema: z4.object({ name: z4.string() }),
-      outputSchema: z4.string(),
-    });
-    const result = adaptToolFromFnSchema(tool);
-    expect(result).toBe(tool); // Same reference
-    expect(result.inputSchema).toBeDefined();
-  });
-
-  it("should adapt toolSchema to inputSchema/outputSchema", () => {
-    const tool = createMockToolWithToolSchema(
-      z3
-        .function()
-        .args(z3.string().describe("Name"), z3.number().describe("Age"))
-        .returns(z3.boolean()),
-    );
-    const result = adaptToolFromFnSchema(tool);
-    expect(result.inputSchema).toBeDefined();
-    expect(result.outputSchema).toBeDefined();
-    expect("toolSchema" in result).toBe(false);
   });
 });
 

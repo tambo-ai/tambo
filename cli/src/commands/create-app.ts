@@ -292,13 +292,13 @@ export async function handleCreateApp(
     }).start();
 
     try {
-      const args = [installCmd, ...legacyPeerDepsFlag];
+      const args = [...installCmd, ...legacyPeerDepsFlag];
       execFileSync(pm, args, { stdio: "ignore", allowNonInteractive: true });
       installSpinner.succeed("Dependencies installed successfully");
     } catch (_error) {
       installSpinner.fail("Failed to install dependencies");
       throw new Error(
-        `Failed to install dependencies. Please try running '${pm} ${installCmd}' manually.`,
+        `Failed to install dependencies. Please try running '${pm} ${installCmd.join(" ")}' manually.`,
       );
     }
 

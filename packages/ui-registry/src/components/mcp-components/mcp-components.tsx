@@ -11,8 +11,65 @@ import {
   useTamboMcpPromptList,
   useTamboMcpResourceList,
 } from "@tambo-ai/react/mcp";
-import { AtSign, FileText, Search } from "lucide-react";
+import { AlertCircle, AtSign, FileText, Search } from "lucide-react";
 import * as React from "react";
+
+/**
+ * Represents a single message content item from an MCP prompt.
+ */
+interface PromptMessageContent {
+  type?: string;
+  text?: string;
+}
+
+/**
+ * Represents a single message from an MCP prompt.
+ */
+interface PromptMessage {
+  content?: PromptMessageContent;
+}
+
+/**
+ * Validates that prompt data has a valid messages array structure.
+ * @param promptData - The prompt data to validate
+ * @returns true if the prompt data has valid messages, false otherwise
+ */
+function isValidPromptData(
+  promptData: unknown,
+): promptData is { messages: PromptMessage[] } {
+  if (!promptData || typeof promptData !== "object") {
+    return false;
+  }
+
+  const data = promptData as { messages?: unknown };
+  if (!Array.isArray(data.messages)) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Safely extracts text content from prompt messages.
+ * Handles malformed or missing content gracefully.
+ * @param messages - Array of prompt messages
+ * @returns Extracted text content joined by newlines
+ */
+function extractPromptText(messages: PromptMessage[]): string {
+  return messages
+    .map((msg) => {
+      // Safely access nested properties
+      if (
+        msg?.content?.type === "text" &&
+        typeof msg.content.text === "string"
+      ) {
+        return msg.content.text;
+      }
+      return "";
+    })
+    .filter(Boolean)
+    .join("\n");
+}
 
 /**
  * Props for the McpPromptButton component.
@@ -45,21 +102,32 @@ export const McpPromptButton = React.forwardRef<
   const [selectedPromptName, setSelectedPromptName] = React.useState<
     string | null
   >(null);
-  const { data: promptData } = useTamboMcpPrompt(selectedPromptName ?? "");
+  const [promptError, setPromptError] = React.useState<string | null>(null);
+  const { data: promptData, error: fetchError } = useTamboMcpPrompt(
+    selectedPromptName ?? "",
+  );
 
-  // When prompt data is fetched, insert it into the input
+  // When prompt data is fetched, validate and insert it into the input
   React.useEffect(() => {
-    if (promptData && selectedPromptName) {
-      // Extract the text from the prompt messages
-      const promptText = promptData.messages
-        .map((msg) => {
-          if (msg.content.type === "text") {
-            return msg.content.text;
-          }
-          return "";
-        })
-        .filter(Boolean)
-        .join("\n");
+    if (selectedPromptName && promptData) {
+      // Validate prompt data structure
+      if (!isValidPromptData(promptData)) {
+        setPromptError("Invalid prompt format received");
+        setSelectedPromptName(null);
+        return;
+      }
+
+      // Extract text with safe access
+      const promptText = extractPromptText(promptData.messages);
+
+      if (!promptText) {
+        setPromptError("Prompt contains no text content");
+        setSelectedPromptName(null);
+        return;
+      }
+
+      // Clear any previous errors
+      setPromptError(null);
 
       // Insert the prompt text, appending to existing value if any
       const newValue = value ? `${value}\n\n${promptText}` : promptText;
@@ -69,6 +137,22 @@ export const McpPromptButton = React.forwardRef<
       setSelectedPromptName(null);
     }
   }, [promptData, selectedPromptName, onInsertText, value]);
+
+  // Handle fetch errors
+  React.useEffect(() => {
+    if (fetchError) {
+      setPromptError("Failed to load prompt");
+      setSelectedPromptName(null);
+    }
+  }, [fetchError]);
+
+  // Clear error after a delay
+  React.useEffect(() => {
+    if (promptError) {
+      const timer = setTimeout(() => setPromptError(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [promptError]);
 
   // Only show button if prompts are available (hide during loading and when no prompts)
   if (!promptList || promptList.length === 0) {
@@ -83,21 +167,31 @@ export const McpPromptButton = React.forwardRef<
   return (
     <TooltipProvider>
       <Tooltip
-        content="Insert MCP Prompt"
+        content={promptError ?? "Insert MCP Prompt"}
         side="top"
-        className="bg-muted text-foreground"
+        className={cn(
+          "bg-muted text-foreground",
+          promptError && "bg-destructive text-destructive-foreground",
+        )}
       >
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <button
               ref={ref}
               type="button"
-              className={buttonClasses}
+              className={cn(
+                buttonClasses,
+                promptError && "border-destructive text-destructive",
+              )}
               aria-label="Insert MCP Prompt"
               data-slot="mcp-prompt-button"
               {...props}
             >
-              <FileText className="w-4 h-4" />
+              {promptError ? (
+                <AlertCircle className="w-4 h-4" />
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
             </button>
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>

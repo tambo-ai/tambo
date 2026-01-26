@@ -5,6 +5,7 @@ import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
 import { execFileSync } from "../../utils/interactive.js";
 import {
   detectPackageManager,
+  formatPackageArgs,
   getDevFlag,
   getInstallCommand,
 } from "../../utils/package-manager.js";
@@ -132,7 +133,11 @@ export function cn(...inputs: ClassValue[]) {
       const allowNonInteractive = Boolean(options.yes);
 
       if (prodDeps.length > 0) {
-        const args = [installCmd, ...legacyPeerDepsFlag, ...prodDeps];
+        const args = [
+          ...installCmd,
+          ...legacyPeerDepsFlag,
+          ...formatPackageArgs(pm, prodDeps),
+        ];
         execFileSync(pm, args, {
           stdio: "inherit",
           encoding: "utf-8",
@@ -140,7 +145,12 @@ export function cn(...inputs: ClassValue[]) {
         });
       }
       if (devDeps.length > 0) {
-        const args = [installCmd, devFlag, ...legacyPeerDepsFlag, ...devDeps];
+        const args = [
+          ...installCmd,
+          devFlag,
+          ...legacyPeerDepsFlag,
+          ...formatPackageArgs(pm, devDeps),
+        ];
         execFileSync(pm, args, {
           stdio: "inherit",
           encoding: "utf-8",

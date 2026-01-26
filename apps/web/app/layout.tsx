@@ -72,7 +72,7 @@ export default async function RootLayout({
       <head>
         <PreloadResources />
       </head>
-      <TamboProviderWrapper>
+      <TamboProviderWrapper userId={session?.user?.id}>
         <Suspense>
           <PostHogPageview />
         </Suspense>

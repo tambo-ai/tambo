@@ -1,9 +1,9 @@
 "use client";
 
-import { cn } from "@tambo-ai/ui-registry/utils";
 import { GenerationStage, useTambo } from "@tambo-ai/react";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 
 /**
  * Props for the ScrollableMessageContainer component
@@ -37,7 +37,7 @@ export const ScrollableMessageContainer = React.forwardRef<
   React.useImperativeHandle(ref, () => scrollContainerRef.current!, []);
 
   // Create a dependency that represents all content that should trigger autoscroll
-  const messagesContent = React.useMemo(() => {
+  const messagesContent = useMemo(() => {
     if (!thread.messages) return null;
 
     return thread.messages.map((message) => ({
@@ -50,10 +50,13 @@ export const ScrollableMessageContainer = React.forwardRef<
     }));
   }, [thread.messages]);
 
-  const generationStage = thread?.generationStage ?? GenerationStage.IDLE;
+  const generationStage = useMemo(
+    () => thread?.generationStage ?? GenerationStage.IDLE,
+    [thread?.generationStage],
+  );
 
   // Handle scroll events to detect user scrolling
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current) return;
 
     const { scrollTop, scrollHeight, clientHeight } =
@@ -70,7 +73,7 @@ export const ScrollableMessageContainer = React.forwardRef<
     }
 
     lastScrollTopRef.current = scrollTop;
-  };
+  }, []);
 
   // Auto-scroll to bottom when message content changes
   useEffect(() => {

@@ -77,16 +77,6 @@
     "TAMBO_TOKEN"
   ],
   "tasks": {
-    "//#sync:showcase": {
-      "cache": false,
-      "inputs": [
-        "cli/src/registry/**/*.tsx",
-        "cli/src/registry/**/*.ts",
-        "cli/src/registry/**/*.css",
-        "cli/src/registry/**/config.json"
-      ],
-      "outputs": ["showcase/src/components/tambo/**"]
-    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
@@ -105,7 +95,7 @@
       "outputs": ["dist/**"]
     },
     "@tambo-ai/showcase#build": {
-      "dependsOn": ["^build", "//#sync:showcase"],
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
@@ -116,8 +106,12 @@
       "cache": false,
       "persistent": true
     },
+    "@tambo-ai/react#dev": {
+      "cache": false,
+      "persistent": true
+    },
     "@tambo-ai/showcase#dev": {
-      "dependsOn": ["^build", "//#sync:showcase"],
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },

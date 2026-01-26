@@ -6,48 +6,47 @@ import { z } from "zod/v3";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**
- * Zod schema for the `fetchTotalMessageUsage` function.
- * Defines a period argument and returns total message usage.
+ * Input schema for the `fetchTotalMessageUsage` function.
+ * Accepts a period argument.
  */
-export const fetchTotalMessageUsageSchema = z
-  .function()
-  .args(
-    z.object({
-      period: z
-        .string()
-        .optional()
-        .describe(
-          "Time period filter: 'all time', 'per month', or 'per week'. Defaults to 'all time'",
-        ),
-    }),
-  )
-  .returns(
-    totalMessageUsageSchema.extend({
-      period: z.string(),
-    }),
-  );
+export const fetchTotalMessageUsageInputSchema = z.object({
+  period: z
+    .string()
+    .optional()
+    .describe(
+      "Time period filter: 'all time', 'per month', or 'per week'. Defaults to 'all time'",
+    ),
+});
 
 /**
- * Zod schema for the `fetchTotalUsers` function.
- * Defines a period argument and returns total user count.
+ * Output schema for the `fetchTotalMessageUsage` function.
+ * Returns total message usage.
  */
-export const fetchTotalUsersSchema = z
-  .function()
-  .args(
-    z.object({
-      period: z
-        .string()
-        .optional()
-        .describe(
-          "Time period filter: 'all time', 'per month', or 'per week'. Defaults to 'all time'",
-        ),
-    }),
-  )
-  .returns(
-    totalUsersSchema.extend({
-      period: z.string(),
-    }),
-  );
+export const fetchTotalMessageUsageOutputSchema =
+  totalMessageUsageSchema.extend({
+    period: z.string(),
+  });
+
+/**
+ * Input schema for the `fetchTotalUsers` function.
+ * Accepts a period argument.
+ */
+export const fetchTotalUsersInputSchema = z.object({
+  period: z
+    .string()
+    .optional()
+    .describe(
+      "Time period filter: 'all time', 'per month', or 'per week'. Defaults to 'all time'",
+    ),
+});
+
+/**
+ * Output schema for the `fetchTotalUsers` function.
+ * Returns total user count.
+ */
+export const fetchTotalUsersOutputSchema = totalUsersSchema.extend({
+  period: z.string(),
+});
 
 /**
  * Register dashboard statistics management tools
@@ -66,7 +65,7 @@ export function registerDashboardTools(
     name: "fetchTotalMessageUsage",
     description:
       "Fetches total message usage statistics with period filtering. Period can be 'all time', 'per month', or 'per week'.",
-    tool: async (params: { period?: string }) => {
+    tool: async (params) => {
       // Use 'all time' as default if period is not provided or invalid
       const validPeriod = params.period || "all time";
       const result = await ctx.trpcClient.project.getTotalMessageUsage.query({
@@ -77,7 +76,8 @@ export function registerDashboardTools(
         period: validPeriod,
       };
     },
-    toolSchema: fetchTotalMessageUsageSchema,
+    inputSchema: fetchTotalMessageUsageInputSchema,
+    outputSchema: fetchTotalMessageUsageOutputSchema,
   });
 
   /**
@@ -90,7 +90,7 @@ export function registerDashboardTools(
     name: "fetchTotalUsers",
     description:
       "Fetches total user count statistics with period filtering. Period can be 'all time', 'per month', or 'per week'.",
-    tool: async (params: { period?: string }) => {
+    tool: async (params) => {
       // Use 'all time' as default if period is not provided or invalid
       const validPeriod = params.period || "all time";
       const result = await ctx.trpcClient.project.getTotalUsers.query({
@@ -101,6 +101,7 @@ export function registerDashboardTools(
         period: validPeriod,
       };
     },
-    toolSchema: fetchTotalUsersSchema,
+    inputSchema: fetchTotalUsersInputSchema,
+    outputSchema: fetchTotalUsersOutputSchema,
   });
 }

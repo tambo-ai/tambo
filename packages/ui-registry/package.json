@@ -7,6 +7,7 @@
   "exports": {
     "./styles/globals-v3.css": "./src/styles/globals-v3.css",
     "./styles/globals-v4.css": "./src/styles/globals-v4.css",
+    "./styles.css": "./src/styles/internal.css",
     "./styles/tailwind": "./src/styles/tailwind.config.ts",
     "./utils": "./src/utils.ts",
     "./lib/thread-hooks": "./src/lib/thread-hooks.ts",
@@ -60,6 +61,8 @@
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "streamdown": "^1.6.10",
+    "tailwindcss": "^4.1.18",
+    "tailwindcss-animate": "^1.0.7",
     "tailwind-merge": "^2.0.0",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"

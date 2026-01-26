@@ -103,7 +103,7 @@ Not yet validated on common Tambo tasks. With 70B parameters, this model offers 
 
 #### llama-3.1-8b-instant
 
-**Status:** Untested
+**Status:** Tested
 
 **API Name:** `llama-3.1-8b-instant`
 
@@ -125,7 +125,19 @@ Llama 3.1 8B on Groq delivers fast, high-quality responses for real-time tasks. 
 
 **Notes:**
 
-Not yet validated on common Tambo tasks. This is the most cost-effective option in Groq's lineup while maintaining good performance for well-defined tasks.
+This model has been tested with Tambo component generation tasks and shows issues with JSON escaping in component attributes and component tag syntax. While it's the most cost-effective option in Groq's lineup, it will require careful validation and potentially post-processing for component generation use cases. See below for details.
+
+**Known Shortcomings:**
+
+Based on testing with component generation tasks, the following issues have been observed:
+
+- **JSON Escaping in Component Attributes**: The fields attribute contains unescaped JSON strings. This will cause parsing errors because quotes aren't escaped. (e.g., `fields="[{"id":"text_field","type":"text",...}]"`)
+
+- **Verbose Explanatory Text**: The model tends to include unnecessary explanatory text before and after component tags (e.g., "The form component is now displayed below" or "Your form now includes an email input field"). While not breaking, this adds noise to responses.
+
+- **Invalid Component Syntax**: Uses non-standard XML-like syntax that won't render properly. (e.g., `<show_component_FormComponent ... ></show_component_FormComponent>`)
+
+- **Streaming Error**: The model throws error while streaming sometimes.
 
 ## Configuration
 
