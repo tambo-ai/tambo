@@ -6,6 +6,8 @@ import spawn from "cross-spawn";
 const args = ["-y", "tambo@latest", "create-app", ...process.argv.slice(2)];
 const child = spawn("npx", args, {
   stdio: "inherit",
+  // Use shell on Windows to ensure npx.cmd is resolved correctly via PATH
+  shell: process.platform === "win32",
 });
 
 // Handle the case where `npx` is not found on PATH. When not using a shell,
