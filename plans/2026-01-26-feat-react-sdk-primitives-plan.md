@@ -463,6 +463,7 @@ Extract the MCP resource and prompt merging logic with debouncing.
 - Extract `useCombinedPromptList()` from message-input.tsx
 - Parameterize debounce duration (default 200ms)
 - Handle async provider search with cancellation
+- Primitives must not import icon/UI libraries (e.g. `lucide-react`). Return stable keys/metadata and map to UI elements in `ui-registry`.
 
 ```pseudo
 // use-combined-resources.ts
@@ -474,7 +475,7 @@ function useCombinedResourceList({ externalProvider, search, debounceMs = 200 })
     mcpResources?.map(entry => ({
       id: entry.resource.uri,
       name: entry.resource.name ?? entry.resource.uri,
-      icon: createElement(AtSign, { className: "w-4 h-4" }),
+      iconKey: "mcp-resource",
       componentData: { type: "mcp-resource", data: entry }
     })) ?? []
   , [mcpResources])
