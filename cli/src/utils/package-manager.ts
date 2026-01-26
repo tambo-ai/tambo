@@ -102,7 +102,7 @@ export function validatePackageManager(pm: PackageManager): void {
     }
   } catch (err) {
     throw new Error(
-      `Detected ${pm} from lockfile but ${pm} is not installed. Please install ${pm} first.`,
+      `Detected ${pm} from lockfile, but running \`${pm} --version\` failed. Please ensure ${pm} is installed and available on your PATH.`,
       {
         cause: err,
       },

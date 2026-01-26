@@ -117,6 +117,9 @@ const WINDOWS_CMD_BINARIES = new Set([
  * On Windows, uses cross-spawn for known package manager binaries (npm, npx, pnpm, yarn, rush)
  * since they are batch files/shims that require cmd.exe invocation.
  *
+ * Note: on Windows package manager binaries, only a subset of ExecFileSync options is honored
+ * (stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide).
+ *
  * @param file - The file/command to execute
  * @param args - Arguments to pass to the command
  * @param options - Options to pass to execFileSync, including allowNonInteractive flag
@@ -142,13 +145,16 @@ export function execFileSync(
   // On Windows, package managers are .cmd batch files or shims that require cmd.exe to run.
   // cross-spawn handles the Windows-specific invocation details while keeping args separate.
   if (process.platform === "win32" && WINDOWS_CMD_BINARIES.has(file)) {
-    const { stdio, cwd, env, encoding, timeout } = execOptions;
+    const { stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide } =
+      execOptions;
     const result = spawn.sync(file, args ?? [], {
       stdio,
       cwd,
       env,
       encoding,
       timeout,
+      maxBuffer,
+      windowsHide,
     });
 
     if (result.error) {
@@ -178,7 +184,15 @@ export function execFileSync(
     }
 
     if (result.stdout != null) {
-      return result.stdout;
+      if (typeof result.stdout === "string") {
+        return result.stdout;
+      }
+
+      if (encoding === "buffer" || encoding == null) {
+        return result.stdout;
+      }
+
+      return result.stdout.toString(encoding);
     }
 
     return encoding === "buffer" || encoding == null ? Buffer.alloc(0) : "";
