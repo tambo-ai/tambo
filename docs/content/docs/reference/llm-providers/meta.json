@@ -1,15 +1,13 @@
 {
   "title": "LLM Providers",
   "pages": [
-    "index",
-    "---Providers---",
     "openai",
     "anthropic",
     "google",
     "groq",
     "mistral",
     "cerebras",
-    "---Additional---",
+    "---Additional Information---",
     "labels",
     "reasoning-models"
   ]

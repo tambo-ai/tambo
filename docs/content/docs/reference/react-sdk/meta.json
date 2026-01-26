@@ -1,4 +1,4 @@
 {
   "title": "React SDK",
-  "pages": ["index", "hooks", "types", "utilities", "providers", "mcp"]
+  "pages": ["hooks", "types", "utilities", "providers", "mcp"]
 }
