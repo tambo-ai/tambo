@@ -30,8 +30,16 @@ function App() {
   return (
     <TamboProvider
       apiKey={process.env.TAMBO_API_KEY}
-      components={[/* your components */]}
-      tools={[/* your tools */]}
+      components={
+        [
+          /* your components */
+        ]
+      }
+      tools={
+        [
+          /* your tools */
+        ]
+      }
     >
       <YourApp />
     </TamboProvider>
@@ -42,7 +50,11 @@ function App() {
 Inside the provider, use hooks to access Tambo functionality:
 
 ```tsx
-import { useTambo, useTamboThread, useTamboStreamStatus } from "@tambo-ai/react";
+import {
+  useTambo,
+  useTamboThread,
+  useTamboStreamStatus,
+} from "@tambo-ai/react";
 
 function Chat() {
   const { sendThreadMessage, thread } = useTamboThread();

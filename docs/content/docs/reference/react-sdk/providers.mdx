@@ -27,27 +27,27 @@ function App() {
 
 ### Props
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `apiKey` | `string` | Yes* | Your Tambo API key |
-| `userToken` | `string` | No | OAuth token for user authentication |
-| `tamboUrl` | `string` | No | Custom Tambo API URL |
-| `environment` | `string` | No | Environment name |
-| `components` | `TamboComponent[]` | No | Components to register |
-| `tools` | `TamboTool[]` | No | Tools to register |
-| `mcpServers` | `McpServerInfo[]` | No | MCP servers to connect |
-| `contextHelpers` | `ContextHelpers` | No | Context helper functions |
-| `contextKey` | `string` | No | Key for thread scoping |
-| `streaming` | `boolean` | No | Enable streaming (default: `true`) |
-| `autoGenerateThreadName` | `boolean` | No | Auto-generate thread names (default: `true`) |
-| `autoGenerateNameThreshold` | `number` | No | Message count for name generation (default: `3`) |
-| `initialMessages` | `InitialTamboThreadMessage[]` | No | Initial messages for new threads |
-| `onCallUnregisteredTool` | `function` | No | Callback for unregistered tool calls |
-| `resources` | `ListResourceItem[]` | No | Static resources for MCP |
-| `listResources` | `function` | No | Dynamic resource listing |
-| `getResource` | `function` | No | Resource content resolver |
+| Prop                        | Type                          | Required | Description                                      |
+| --------------------------- | ----------------------------- | -------- | ------------------------------------------------ |
+| `apiKey`                    | `string`                      | Yes\*    | Your Tambo API key                               |
+| `userToken`                 | `string`                      | No       | OAuth token for user authentication              |
+| `tamboUrl`                  | `string`                      | No       | Custom Tambo API URL                             |
+| `environment`               | `string`                      | No       | Environment name                                 |
+| `components`                | `TamboComponent[]`            | No       | Components to register                           |
+| `tools`                     | `TamboTool[]`                 | No       | Tools to register                                |
+| `mcpServers`                | `McpServerInfo[]`             | No       | MCP servers to connect                           |
+| `contextHelpers`            | `ContextHelpers`              | No       | Context helper functions                         |
+| `contextKey`                | `string`                      | No       | Key for thread scoping                           |
+| `streaming`                 | `boolean`                     | No       | Enable streaming (default: `true`)               |
+| `autoGenerateThreadName`    | `boolean`                     | No       | Auto-generate thread names (default: `true`)     |
+| `autoGenerateNameThreshold` | `number`                      | No       | Message count for name generation (default: `3`) |
+| `initialMessages`           | `InitialTamboThreadMessage[]` | No       | Initial messages for new threads                 |
+| `onCallUnregisteredTool`    | `function`                    | No       | Callback for unregistered tool calls             |
+| `resources`                 | `ListResourceItem[]`          | No       | Static resources for MCP                         |
+| `listResources`             | `function`                    | No       | Dynamic resource listing                         |
+| `getResource`               | `function`                    | No       | Resource content resolver                        |
 
-*Either `apiKey` or `userToken` is required for authentication.
+\*Either `apiKey` or `userToken` is required for authentication.
 
 ### Example with All Options
 
@@ -93,7 +93,7 @@ const tools: TamboTool[] = [
   autoGenerateNameThreshold={3}
 >
   <App />
-</TamboProvider>
+</TamboProvider>;
 ```
 
 ### Provider Hierarchy
@@ -140,12 +140,12 @@ function TestApp() {
 
 ### Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `stubResponses` | `TamboThreadMessage[]` | Pre-configured responses |
-| `components` | `TamboComponent[]` | Components to register |
-| `tools` | `TamboTool[]` | Tools to register |
-| `contextHelpers` | `ContextHelpers` | Context helpers |
+| Prop             | Type                   | Description              |
+| ---------------- | ---------------------- | ------------------------ |
+| `stubResponses`  | `TamboThreadMessage[]` | Pre-configured responses |
+| `components`     | `TamboComponent[]`     | Components to register   |
+| `tools`          | `TamboTool[]`          | Tools to register        |
+| `contextHelpers` | `ContextHelpers`       | Context helpers          |
 
 ## TamboMcpProvider
 
@@ -165,16 +165,16 @@ import { TamboMcpProvider } from "@tambo-ai/react/mcp";
   contextKey="my-context"
 >
   <App />
-</TamboMcpProvider>
+</TamboMcpProvider>;
 ```
 
 ### Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `handlers` | `ProviderMCPHandlers` | Optional handlers for all MCP servers |
-| `contextKey` | `string` | Context key for threadless MCP tokens |
-| `children` | `ReactNode` | Child components |
+| Prop         | Type                  | Description                           |
+| ------------ | --------------------- | ------------------------------------- |
+| `handlers`   | `ProviderMCPHandlers` | Optional handlers for all MCP servers |
+| `contextKey` | `string`              | Context key for threadless MCP tokens |
+| `children`   | `ReactNode`           | Child components                      |
 
 **Note**: MCP servers are configured on `TamboProvider` via the `mcpServers` prop. `TamboMcpProvider` manages the connections and provides hooks to interact with them.
 
@@ -227,7 +227,7 @@ import { TamboClientProvider, useTamboClient } from "@tambo-ai/react";
   tamboUrl="https://api.tambo.co"
 >
   <App />
-</TamboClientProvider>
+</TamboClientProvider>;
 ```
 
 ### TamboRegistryProvider
@@ -243,7 +243,7 @@ import { TamboRegistryProvider, useTamboRegistry } from "@tambo-ai/react";
   mcpServers={mcpServers}
 >
   <App />
-</TamboRegistryProvider>
+</TamboRegistryProvider>;
 ```
 
 ### TamboThreadProvider
@@ -259,7 +259,7 @@ import { TamboThreadProvider, useTamboThread } from "@tambo-ai/react";
   autoGenerateThreadName={true}
 >
   <App />
-</TamboThreadProvider>
+</TamboThreadProvider>;
 ```
 
 ### TamboContextHelpersProvider
@@ -267,7 +267,10 @@ import { TamboThreadProvider, useTamboThread } from "@tambo-ai/react";
 Manages context helpers that provide additional information to the AI.
 
 ```tsx
-import { TamboContextHelpersProvider, useTamboContextHelpers } from "@tambo-ai/react";
+import {
+  TamboContextHelpersProvider,
+  useTamboContextHelpers,
+} from "@tambo-ai/react";
 
 <TamboContextHelpersProvider
   contextHelpers={{
@@ -275,7 +278,7 @@ import { TamboContextHelpersProvider, useTamboContextHelpers } from "@tambo-ai/r
   }}
 >
   <App />
-</TamboContextHelpersProvider>
+</TamboContextHelpersProvider>;
 ```
 
 ### TamboInteractableProvider
@@ -283,9 +286,12 @@ import { TamboContextHelpersProvider, useTamboContextHelpers } from "@tambo-ai/r
 Manages interactable component registration and state.
 
 ```tsx
-import { TamboInteractableProvider, useTamboInteractable } from "@tambo-ai/react";
+import {
+  TamboInteractableProvider,
+  useTamboInteractable,
+} from "@tambo-ai/react";
 
 <TamboInteractableProvider>
   <App />
-</TamboInteractableProvider>
+</TamboInteractableProvider>;
 ```

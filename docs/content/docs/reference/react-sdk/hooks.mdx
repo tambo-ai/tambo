@@ -433,11 +433,11 @@ Global stream status flags for the component:
 
 ```tsx
 interface StreamStatus {
-  isPending: boolean;   // No tokens received yet, generation not active
+  isPending: boolean; // No tokens received yet, generation not active
   isStreaming: boolean; // Active streaming - generation or props still streaming
-  isSuccess: boolean;   // Complete - all props finished without error
-  isError: boolean;     // Fatal error occurred
-  streamError?: Error;  // First error encountered (if any)
+  isSuccess: boolean; // Complete - all props finished without error
+  isError: boolean; // Fatal error occurred
+  streamError?: Error; // First error encountered (if any)
 }
 ```
 
@@ -447,10 +447,10 @@ Per-prop streaming status:
 
 ```tsx
 interface PropStatus {
-  isPending: boolean;   // No tokens received for this prop yet
+  isPending: boolean; // No tokens received for this prop yet
   isStreaming: boolean; // Prop has partial content, still updating
-  isSuccess: boolean;   // Prop finished streaming successfully
-  error?: Error;        // Error during streaming (if any)
+  isSuccess: boolean; // Prop finished streaming successfully
+  error?: Error; // Error during streaming (if any)
 }
 ```
 
@@ -516,15 +516,15 @@ const {
 
 ### Return values
 
-| Value | Type | Description |
-|-------|------|-------------|
-| `startRecording` | `() => void` | Start recording audio and reset the current transcript |
-| `stopRecording` | `() => void` | Stop recording and automatically start transcription |
-| `isRecording` | `boolean` | Whether the user is currently recording |
-| `isTranscribing` | `boolean` | Whether audio is being transcribed |
-| `transcript` | `string \| null` | The transcript of the recorded audio |
-| `transcriptionError` | `string \| null` | Error message if transcription fails |
-| `mediaAccessError` | `string \| null` | Error message if microphone access fails |
+| Value                | Type             | Description                                            |
+| -------------------- | ---------------- | ------------------------------------------------------ |
+| `startRecording`     | `() => void`     | Start recording audio and reset the current transcript |
+| `stopRecording`      | `() => void`     | Stop recording and automatically start transcription   |
+| `isRecording`        | `boolean`        | Whether the user is currently recording                |
+| `isTranscribing`     | `boolean`        | Whether audio is being transcribed                     |
+| `transcript`         | `string \| null` | The transcript of the recorded audio                   |
+| `transcriptionError` | `string \| null` | Error message if transcription fails                   |
+| `mediaAccessError`   | `string \| null` | Error message if microphone access fails               |
 
 ### Example
 
@@ -639,13 +639,8 @@ Clears all component selections.
 Hook for managing images in message input.
 
 ```tsx
-const {
-  images,
-  addImage,
-  addImages,
-  removeImage,
-  clearImages,
-} = useMessageImages();
+const { images, addImage, addImages, removeImage, clearImages } =
+  useMessageImages();
 ```
 
 ### images

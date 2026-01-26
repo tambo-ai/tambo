@@ -31,13 +31,13 @@ Get your API key from the [Tambo Cloud dashboard](https://tambo.co).
 
 ## Common Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/threads` | GET | List all threads for your project |
-| `/threads` | POST | Create a new thread |
-| `/threads/:id` | GET | Get a specific thread with messages |
-| `/threads/:id/advance` | POST | Send a message and get AI response |
-| `/threads/:id/advancestream` | POST | Send a message with streaming response |
+| Endpoint                     | Method | Description                            |
+| ---------------------------- | ------ | -------------------------------------- |
+| `/threads`                   | GET    | List all threads for your project      |
+| `/threads`                   | POST   | Create a new thread                    |
+| `/threads/:id`               | GET    | Get a specific thread with messages    |
+| `/threads/:id/advance`       | POST   | Send a message and get AI response     |
+| `/threads/:id/advancestream` | POST   | Send a message with streaming response |
 
 ## Error Responses
 
@@ -62,6 +62,7 @@ Returned when calling an endpoint that has been removed:
 ```
 
 **Fields:**
+
 - `code` - Stable identifier for programmatic handling
 - `detail` - Human-readable description
 - `instance` - The request path that triggered the error
@@ -73,4 +74,3 @@ For most use cases, we recommend using one of the official SDKs instead of direc
 
 - **React**: [`@tambo-ai/react`](/reference/react-sdk) - Full-featured React SDK with hooks and providers
 - **TypeScript/Node**: [`@tambo-ai/typescript-sdk`](https://www.npmjs.com/package/@tambo-ai/typescript-sdk) - Core TypeScript client
-

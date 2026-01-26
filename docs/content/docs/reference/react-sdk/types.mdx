@@ -346,11 +346,11 @@ Global stream status flags for a component during streaming. Returned by `useTam
 
 ```typescript
 interface StreamStatus {
-  isPending: boolean;   // No tokens received yet, generation not active
+  isPending: boolean; // No tokens received yet, generation not active
   isStreaming: boolean; // Active streaming - generation or props still streaming
-  isSuccess: boolean;   // Complete - all props finished without error
-  isError: boolean;     // Fatal error occurred
-  streamError?: Error;  // First error encountered (if any)
+  isSuccess: boolean; // Complete - all props finished without error
+  isError: boolean; // Fatal error occurred
+  streamError?: Error; // First error encountered (if any)
 }
 ```
 
@@ -360,10 +360,10 @@ Streaming status flags for individual component props. Returned by `useTamboStre
 
 ```typescript
 interface PropStatus {
-  isPending: boolean;   // No tokens received for this prop yet
+  isPending: boolean; // No tokens received for this prop yet
   isStreaming: boolean; // Prop has partial content, still updating
-  isSuccess: boolean;   // Prop finished streaming successfully
-  error?: Error;        // Error during streaming (if any)
+  isSuccess: boolean; // Prop finished streaming successfully
+  error?: Error; // Error during streaming (if any)
 }
 ```
 
@@ -376,10 +376,10 @@ interface TamboInteractableComponent<
   Props = Record<string, unknown>,
   State = Record<string, unknown>,
 > extends TamboComponent {
-  id: string;                        // Unique identifier for this instance
-  props: Props;                      // Current props
-  isSelected?: boolean;              // Whether selected for interaction
-  state?: State;                     // Current component state
+  id: string; // Unique identifier for this instance
+  props: Props; // Current props
+  isSelected?: boolean; // Whether selected for interaction
+  state?: State; // Current component state
   stateSchema?: SupportedSchema<State>; // Optional state validation schema
 }
 ```
@@ -393,10 +393,10 @@ interface InteractableConfig<
   Props = Record<string, unknown>,
   State = Record<string, unknown>,
 > {
-  componentName: string;             // Name used for identification
-  description: string;               // Description for LLM understanding
-  propsSchema?: SupportedSchema<Props>;  // Optional props validation
-  stateSchema?: SupportedSchema<State>;  // Optional state validation
+  componentName: string; // Name used for identification
+  description: string; // Description for LLM understanding
+  propsSchema?: SupportedSchema<Props>; // Optional props validation
+  stateSchema?: SupportedSchema<State>; // Optional state validation
 }
 ```
 
@@ -406,8 +406,8 @@ Props injected by `withInteractable` HOC.
 
 ```typescript
 interface WithTamboInteractableProps {
-  interactableId?: string;           // Optional custom ID
-  onInteractableReady?: (id: string) => void;  // Called when registered
+  interactableId?: string; // Optional custom ID
+  onInteractableReady?: (id: string) => void; // Called when registered
   onPropsUpdate?: (newProps: Record<string, unknown>) => void; // Called on prop updates
 }
 ```
@@ -454,12 +454,12 @@ Represents an image staged for upload in message input.
 
 ```typescript
 interface StagedImage {
-  id: string;        // Unique identifier
-  name: string;      // File name
-  dataUrl: string;   // Base64 data URL
-  file: File;        // Original File object
-  size: number;      // File size in bytes
-  type: string;      // MIME type
+  id: string; // Unique identifier
+  name: string; // File name
+  dataUrl: string; // Base64 data URL
+  file: File; // Original File object
+  size: number; // File size in bytes
+  type: string; // MIME type
 }
 ```
 
@@ -469,8 +469,8 @@ Interface for additional context that can be added to messages.
 
 ```typescript
 interface AdditionalContext {
-  name: string;      // Name of the context type
-  context: unknown;  // The context data
+  name: string; // Name of the context type
+  context: unknown; // The context data
 }
 ```
 

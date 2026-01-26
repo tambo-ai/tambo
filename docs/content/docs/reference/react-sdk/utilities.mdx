@@ -34,17 +34,17 @@ const weatherTool = defineTool({
 
 The `defineTool` function accepts a tool definition object:
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `name` | `string` | Yes | Unique identifier for the tool |
-| `description` | `string` | Yes | Description of what the tool does (used by AI) |
-| `tool` | `function` | Yes | The function implementing the tool logic |
-| `inputSchema` | `SupportedSchema` | Yes | Schema for input parameters |
-| `outputSchema` | `SupportedSchema` | Yes | Schema for return value |
-| `title` | `string` | No | Human-readable display name |
-| `maxCalls` | `number` | No | Maximum calls per response |
-| `annotations` | `ToolAnnotations` | No | Behavior hints (e.g., `tamboStreamableHint`) |
-| `transformToContent` | `function` | No | Transform result to content parts |
+| Property             | Type              | Required | Description                                    |
+| -------------------- | ----------------- | -------- | ---------------------------------------------- |
+| `name`               | `string`          | Yes      | Unique identifier for the tool                 |
+| `description`        | `string`          | Yes      | Description of what the tool does (used by AI) |
+| `tool`               | `function`        | Yes      | The function implementing the tool logic       |
+| `inputSchema`        | `SupportedSchema` | Yes      | Schema for input parameters                    |
+| `outputSchema`       | `SupportedSchema` | Yes      | Schema for return value                        |
+| `title`              | `string`          | No       | Human-readable display name                    |
+| `maxCalls`           | `number`          | No       | Maximum calls per response                     |
+| `annotations`        | `ToolAnnotations` | No       | Behavior hints (e.g., `tamboStreamableHint`)   |
+| `transformToContent` | `function`        | No       | Transform result to content parts              |
 
 ### Schema Support
 
@@ -53,15 +53,15 @@ Tambo uses the [Standard Schema](https://standard-schema.dev) specification, so 
 ```tsx
 // Zod
 import { z } from "zod";
-inputSchema: z.object({ query: z.string() })
+inputSchema: z.object({ query: z.string() });
 
 // Valibot
 import * as v from "valibot";
-inputSchema: v.object({ query: v.string() })
+inputSchema: v.object({ query: v.string() });
 
 // ArkType
 import { type } from "arktype";
-inputSchema: type({ query: "string" })
+inputSchema: type({ query: "string" });
 ```
 
 ### Streaming-Safe Tools
@@ -106,38 +106,38 @@ const InteractableNote = withInteractable(Note, {
 });
 
 // Usage
-<InteractableNote title="My Note" content="Initial content" />
+<InteractableNote title="My Note" content="Initial content" />;
 ```
 
 ### Parameters
 
 ```tsx
-withInteractable(WrappedComponent, config)
+withInteractable(WrappedComponent, config);
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter          | Type                  | Description                        |
+| ------------------ | --------------------- | ---------------------------------- |
 | `WrappedComponent` | `React.ComponentType` | The component to make interactable |
-| `config` | `InteractableConfig` | Configuration for the interactable |
+| `config`           | `InteractableConfig`  | Configuration for the interactable |
 
 ### InteractableConfig
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `componentName` | `string` | Yes | Unique name for identification |
-| `description` | `string` | Yes | Description for AI understanding |
-| `propsSchema` | `SupportedSchema` | No | Schema for validating prop updates |
-| `stateSchema` | `SupportedSchema` | No | Schema for validating state updates |
+| Property        | Type              | Required | Description                         |
+| --------------- | ----------------- | -------- | ----------------------------------- |
+| `componentName` | `string`          | Yes      | Unique name for identification      |
+| `description`   | `string`          | Yes      | Description for AI understanding    |
+| `propsSchema`   | `SupportedSchema` | No       | Schema for validating prop updates  |
+| `stateSchema`   | `SupportedSchema` | No       | Schema for validating state updates |
 
 ### Injected Props
 
 The wrapped component receives additional props:
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `interactableId` | `string` | Optional custom ID for this instance |
-| `onInteractableReady` | `(id: string) => void` | Called when component is registered |
-| `onPropsUpdate` | `(newProps: Record<string, unknown>) => void` | Called when AI updates props |
+| Prop                  | Type                                          | Description                          |
+| --------------------- | --------------------------------------------- | ------------------------------------ |
+| `interactableId`      | `string`                                      | Optional custom ID for this instance |
+| `onInteractableReady` | `(id: string) => void`                        | Called when component is registered  |
+| `onPropsUpdate`       | `(newProps: Record<string, unknown>) => void` | Called when AI updates props         |
 
 ### Example with State
 
@@ -145,8 +145,17 @@ The wrapped component receives additional props:
 import { withInteractable, useTamboComponentState } from "@tambo-ai/react";
 import { z } from "zod";
 
-const Task = ({ title, description }: { title: string; description: string }) => {
-  const [isComplete, setIsComplete] = useTamboComponentState("isComplete", false);
+const Task = ({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) => {
+  const [isComplete, setIsComplete] = useTamboComponentState(
+    "isComplete",
+    false,
+  );
 
   return (
     <div className={isComplete ? "completed" : ""}>
@@ -204,7 +213,7 @@ Context helpers are configured on the `TamboProvider`:
 import {
   TamboProvider,
   currentPageContextHelper,
-  currentTimeContextHelper
+  currentTimeContextHelper,
 } from "@tambo-ai/react";
 
 <TamboProvider
@@ -220,7 +229,7 @@ import {
   }}
 >
   <App />
-</TamboProvider>
+</TamboProvider>;
 ```
 
 ### Dynamic Context Helpers
@@ -244,6 +253,7 @@ function MyComponent() {
 ```
 
 Context helper return values:
+
 - Return a value to include it in the context
 - Return `null` or `undefined` to skip
 - Can be async (return a Promise)

@@ -91,9 +91,9 @@ const {
 } = useTamboMcpResourceList(search?: string);
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `search` | `string` | Optional search string to filter resources |
+| Parameter | Type     | Description                                |
+| --------- | -------- | ------------------------------------------ |
+| `search`  | `string` | Optional search string to filter resources |
 
 ```tsx
 function ResourceList() {
@@ -127,8 +127,8 @@ const {
 } = useTamboMcpResource(resourceUri?: string);
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter     | Type     | Description                                         |
+| ------------- | -------- | --------------------------------------------------- |
 | `resourceUri` | `string` | Prefixed resource URI (e.g., `"linear:file://foo"`) |
 
 ### useTamboMcpPromptList
@@ -146,9 +146,9 @@ const {
 } = useTamboMcpPromptList(search?: string);
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `search` | `string` | Optional search string to filter prompts |
+| Parameter | Type     | Description                              |
+| --------- | -------- | ---------------------------------------- |
+| `search`  | `string` | Optional search string to filter prompts |
 
 ### useTamboMcpPrompt
 
@@ -164,10 +164,10 @@ const {
 } = useTamboMcpPrompt(promptName?: string, args?: Record<string, string>);
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `promptName` | `string` | Prompt name (can be prefixed with serverKey) |
-| `args` | `Record<string, string>` | Arguments to pass to the prompt |
+| Parameter    | Type                     | Description                                  |
+| ------------ | ------------------------ | -------------------------------------------- |
+| `promptName` | `string`                 | Prompt name (can be prefixed with serverKey) |
+| `args`       | `Record<string, string>` | Arguments to pass to the prompt              |
 
 ### useTamboMcpElicitation
 
@@ -178,6 +178,7 @@ const { elicitation, resolveElicitation } = useTamboMcpElicitation();
 ```
 
 Returns:
+
 - `elicitation` - Current elicitation request (or `null`)
 - `resolveElicitation` - Function to respond to the elicitation
 
@@ -190,7 +191,9 @@ function ElicitationHandler() {
   return (
     <Dialog>
       <p>{elicitation.message}</p>
-      <button onClick={() => resolveElicitation?.({ action: "accept", content: {} })}>
+      <button
+        onClick={() => resolveElicitation?.({ action: "accept", content: {} })}
+      >
         Accept
       </button>
       <button onClick={() => resolveElicitation?.({ action: "decline" })}>
@@ -227,9 +230,9 @@ interface ConnectedMcpServer {
   serverKey: string;
   customHeaders?: Record<string, string>;
   handlers?: Partial<MCPHandlers>;
-  key: string;           // Stable identity key
+  key: string; // Stable identity key
   serverType: ServerType;
-  client: MCPClient;     // Active MCP client
+  client: MCPClient; // Active MCP client
 }
 ```
 
@@ -301,7 +304,7 @@ A resource entry from `useTamboMcpResourceList`.
 type ListResourceEntry = RegistryResourceEntry | McpResourceEntry;
 
 interface RegistryResourceEntry {
-  server: null;  // Local registry resource
+  server: null; // Local registry resource
   resource: ListResourceItem;
 }
 
@@ -367,8 +370,8 @@ Normalized server info with required fields.
 interface NormalizedMcpServerInfo {
   name: string;
   url: string;
-  transport: MCPTransport;  // Always defined
-  serverKey: string;        // Always defined
+  transport: MCPTransport; // Always defined
+  serverKey: string; // Always defined
   customHeaders?: Record<string, string>;
   handlers?: unknown;
 }
