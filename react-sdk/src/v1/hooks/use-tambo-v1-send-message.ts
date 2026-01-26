@@ -154,5 +154,12 @@ export function useTamboV1SendMessage(threadId?: string) {
         queryKey: ["v1-threads", result.threadId],
       });
     },
+    onError: (error) => {
+      // Log error for observability
+
+      console.error("[useTamboV1SendMessage] Mutation failed:", error);
+      // Note: If streaming failed mid-way, the thread may be in an inconsistent state.
+      // The caller should handle this via mutation.error and mutation.isError.
+    },
   });
 }

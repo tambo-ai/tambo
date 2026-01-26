@@ -30,9 +30,6 @@ export interface TamboV1Thread {
   /** Thread title/name */
   title?: string;
 
-  /** Project ID this thread belongs to */
-  projectId: string;
-
   /** Messages in the thread */
   messages: TamboV1Message[];
 

@@ -14,18 +14,28 @@ import { applyPatch, type Operation } from "fast-json-patch";
  * @param target - The object to patch
  * @param operations - Array of JSON Patch operations
  * @returns New object with patches applied
+ * @throws Error with context about the failed operation if patching fails
  */
 export function applyJsonPatch<T extends Record<string, unknown>>(
   target: T,
   operations: Operation[],
 ): T {
-  // Apply patches with mutate=false so fast-json-patch handles cloning
-  const result = applyPatch(
-    target,
-    operations,
-    /* validate */ true,
-    /* mutate */ false,
-  );
+  try {
+    // Apply patches with mutate=false so fast-json-patch handles cloning
+    const result = applyPatch(
+      target,
+      operations,
+      /* validate */ true,
+      /* mutate */ false,
+    );
 
-  return result.newDocument;
+    return result.newDocument;
+  } catch (error) {
+    const opSummary = operations.map((op) => `${op.op} ${op.path}`).join(", ");
+    throw new Error(
+      `Failed to apply JSON patch operations [${opSummary}]: ` +
+        `${error instanceof Error ? error.message : String(error)}. ` +
+        `Target had keys: [${Object.keys(target).join(", ")}]`,
+    );
+  }
 }

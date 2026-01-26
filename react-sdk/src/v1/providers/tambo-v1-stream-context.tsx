@@ -57,12 +57,6 @@ export interface TamboV1StreamProviderProps {
    * Used to initialize the thread if initialThread is not provided.
    */
   threadId?: string;
-
-  /**
-   * Project ID for the thread.
-   * Required if threadId is provided without initialThread.
-   */
-  projectId?: string;
 }
 
 /**
@@ -71,7 +65,7 @@ export interface TamboV1StreamProviderProps {
  * @returns Initial stream state
  */
 function createInitialState(props: TamboV1StreamProviderProps): StreamState {
-  const { initialThread, threadId, projectId } = props;
+  const { initialThread, threadId } = props;
 
   // Initialize with empty threadMap
   const threadMap: Record<
@@ -79,20 +73,22 @@ function createInitialState(props: TamboV1StreamProviderProps): StreamState {
     ReturnType<typeof createInitialThreadState>
   > = {};
 
-  // If thread info is provided, initialize that thread
-  if (threadId && projectId) {
-    // Create initial thread state
-    const threadState = createInitialThreadState(threadId, projectId);
+  // If threadId is provided, initialize that thread
+  if (threadId) {
+    // Create initial thread state (immutably)
+    const baseState = createInitialThreadState(threadId);
 
-    // If initial thread data provided, merge it in
-    if (initialThread) {
-      threadState.thread = {
-        ...threadState.thread,
-        ...initialThread,
-        id: threadId, // Always use the provided threadId
-        projectId, // Always use the provided projectId
-      };
-    }
+    // If initial thread data provided, merge it immutably
+    const threadState = initialThread
+      ? {
+          ...baseState,
+          thread: {
+            ...baseState.thread,
+            ...initialThread,
+            id: threadId, // Always use the provided threadId
+          },
+        }
+      : baseState;
 
     threadMap[threadId] = threadState;
   }
@@ -111,7 +107,7 @@ function createInitialState(props: TamboV1StreamProviderProps): StreamState {
  * @returns JSX element wrapping children with stream contexts
  * @example
  * ```tsx
- * <TamboV1StreamProvider threadId="thread_123" projectId="proj_456">
+ * <TamboV1StreamProvider threadId="thread_123">
  *   <ChatInterface />
  * </TamboV1StreamProvider>
  * ```
@@ -121,9 +117,9 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
 
   const initialState = useMemo(
     () => createInitialState(props),
-    // Only recompute if these specific props change
+    // Only recompute if threadId changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [props.threadId, props.projectId],
+    [props.threadId],
   );
 
   const [state, dispatch] = useReducer(streamReducer, initialState);

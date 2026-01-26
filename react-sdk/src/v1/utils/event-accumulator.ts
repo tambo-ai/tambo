@@ -19,13 +19,13 @@ import type {
   ToolCallStartEvent,
 } from "@ag-ui/core";
 import { EventType } from "@ag-ui/core";
-import type {
-  ComponentEndEvent,
-  ComponentPropsDeltaEvent,
-  ComponentStartEvent,
-  ComponentStateDeltaEvent,
-  RunAwaitingInputEvent,
-  TamboCustomEvent,
+import {
+  isTamboCustomEvent,
+  type ComponentEndEvent,
+  type ComponentPropsDeltaEvent,
+  type ComponentStartEvent,
+  type ComponentStateDeltaEvent,
+  type RunAwaitingInputEvent,
 } from "../types/event";
 import type { Content, TamboV1Message } from "../types/message";
 import type { StreamingState, TamboV1Thread } from "../types/thread";
@@ -92,18 +92,13 @@ const initialStreamingState: StreamingState = {
 /**
  * Create initial thread state for a new thread.
  * @param threadId - Unique thread identifier
- * @param projectId - Project ID this thread belongs to
  * @returns Initial thread state
  */
-export function createInitialThreadState(
-  threadId: string,
-  projectId: string,
-): ThreadState {
+export function createInitialThreadState(threadId: string): ThreadState {
   const now = new Date().toISOString();
   return {
     thread: {
       id: threadId,
-      projectId,
       messages: [],
       status: "idle",
       createdAt: now,
@@ -122,6 +117,102 @@ export function createInitialState(): StreamState {
   return {
     threadMap: {},
     currentThreadId: null,
+  };
+}
+
+// ============================================================================
+// Helper Functions for Immutable State Updates
+// ============================================================================
+
+/**
+ * Location of a content block within messages.
+ */
+interface ContentLocation {
+  messageIndex: number;
+  contentIndex: number;
+}
+
+/**
+ * Replace a message at a specific index immutably.
+ * @param messages - Current messages array
+ * @param index - Index of message to replace
+ * @param updatedMessage - New message to insert
+ * @returns New messages array with the message replaced
+ */
+function updateMessageAtIndex(
+  messages: TamboV1Message[],
+  index: number,
+  updatedMessage: TamboV1Message,
+): TamboV1Message[] {
+  return [
+    ...messages.slice(0, index),
+    updatedMessage,
+    ...messages.slice(index + 1),
+  ];
+}
+
+/**
+ * Replace a content block at a specific index within a message's content immutably.
+ * @param content - Current content array
+ * @param index - Index of content to replace
+ * @param updatedContent - New content to insert
+ * @returns New content array with the content replaced
+ */
+function updateContentAtIndex(
+  content: Content[],
+  index: number,
+  updatedContent: Content,
+): Content[] {
+  return [
+    ...content.slice(0, index),
+    updatedContent,
+    ...content.slice(index + 1),
+  ];
+}
+
+/**
+ * Find a content block by ID across all messages, searching from most recent.
+ * @param messages - Messages to search
+ * @param contentType - Type of content to find ("component" or "tool_use")
+ * @param contentId - ID of the content block
+ * @param eventName - Name of the event (for error messages)
+ * @returns Location of the content block
+ * @throws Error if content not found
+ */
+function findContentById(
+  messages: TamboV1Message[],
+  contentType: "component" | "tool_use",
+  contentId: string,
+  eventName: string,
+): ContentLocation {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const idx = messages[i].content.findIndex(
+      (c) => c.type === contentType && c.id === contentId,
+    );
+    if (idx !== -1) {
+      return { messageIndex: i, contentIndex: idx };
+    }
+  }
+  throw new Error(`${contentType} ${contentId} not found for ${eventName}`);
+}
+
+/**
+ * Create updated thread state with new messages.
+ * @param threadState - Current thread state
+ * @param messages - New messages array
+ * @returns Updated thread state
+ */
+function updateThreadMessages(
+  threadState: ThreadState,
+  messages: TamboV1Message[],
+): ThreadState {
+  return {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      messages,
+      updatedAt: new Date().toISOString(),
+    },
   };
 }
 
@@ -146,13 +237,12 @@ export function streamReducer(
   // If thread doesn't exist, we need to create it first
   // This can happen when events arrive before thread initialization
   if (!threadState) {
-    // For now, we'll skip the event if the thread doesn't exist
-    // The provider should initialize threads before dispatching events
-    if (process.env.NODE_ENV !== "production") {
-      console.warn(
-        `[StreamReducer] Received event for unknown thread: ${threadId}`,
-      );
-    }
+    // Log warning in all environments - this indicates a race condition or misconfiguration
+
+    console.warn(
+      `[StreamReducer] Received event for unknown thread: ${threadId}. ` +
+        `Ensure the thread is initialized before dispatching events.`,
+    );
     return state;
   }
 
@@ -248,7 +338,12 @@ export function streamReducer(
     case EventType.RAW:
     case EventType.STEP_STARTED:
     case EventType.STEP_FINISHED:
-      // Not supported yet - silently ignore
+      // Log warning - these events are being ignored
+
+      console.warn(
+        `[StreamReducer] Received unsupported event type: ${event.type}. ` +
+          `This event will be ignored.`,
+      );
       return state;
 
     default:
@@ -424,27 +519,15 @@ function handleTextMessageContent(
         },
       ];
 
-  // Create updated message
   const updatedMessage: TamboV1Message = {
     ...message,
     content: updatedContent,
   };
 
-  // Create updated messages array
-  const updatedMessages = [
-    ...messages.slice(0, messageIndex),
-    updatedMessage,
-    ...messages.slice(messageIndex + 1),
-  ];
-
-  return {
-    ...threadState,
-    thread: {
-      ...threadState.thread,
-      messages: updatedMessages,
-      updatedAt: new Date().toISOString(),
-    },
-  };
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**
@@ -502,20 +585,10 @@ function handleToolCallStart(
     content: [...message.content, newContent],
   };
 
-  const updatedMessages = [
-    ...messages.slice(0, messageIndex),
-    updatedMessage,
-    ...messages.slice(messageIndex + 1),
-  ];
-
-  return {
-    ...threadState,
-    thread: {
-      ...threadState.thread,
-      messages: updatedMessages,
-      updatedAt: new Date().toISOString(),
-    },
-  };
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**
@@ -575,27 +648,13 @@ function handleToolCallEnd(
     );
   }
 
-  // Find the message and content block containing this tool call
-  let messageIndex = -1;
-  let contentIndex = -1;
-
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    const idx = message.content.findIndex(
-      (c) => c.type === "tool_use" && c.id === toolCallId,
-    );
-    if (idx !== -1) {
-      messageIndex = i;
-      contentIndex = idx;
-      break;
-    }
-  }
-
-  if (messageIndex === -1 || contentIndex === -1) {
-    throw new Error(
-      `Tool call ${toolCallId} not found in messages for TOOL_CALL_END event`,
-    );
-  }
+  // Find the tool_use content block
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "tool_use",
+    toolCallId,
+    "TOOL_CALL_END event",
+  );
 
   const message = messages[messageIndex];
   const toolUseContent = message.content[contentIndex];
@@ -614,30 +673,22 @@ function handleToolCallEnd(
 
   const updatedMessage: TamboV1Message = {
     ...message,
-    content: [
-      ...message.content.slice(0, contentIndex),
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
       updatedContent,
-      ...message.content.slice(contentIndex + 1),
-    ],
+    ),
   };
-
-  const updatedMessages = [
-    ...messages.slice(0, messageIndex),
-    updatedMessage,
-    ...messages.slice(messageIndex + 1),
-  ];
 
   // Clear accumulated args for this tool call
   const newAccumulatingToolArgs = new Map(threadState.accumulatingToolArgs);
   newAccumulatingToolArgs.delete(toolCallId);
 
   return {
-    ...threadState,
-    thread: {
-      ...threadState.thread,
-      messages: updatedMessages,
-      updatedAt: new Date().toISOString(),
-    },
+    ...updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    ),
     accumulatingToolArgs: newAccumulatingToolArgs,
   };
 }
@@ -683,20 +734,10 @@ function handleToolCallResult(
     content: [...message.content, newContent],
   };
 
-  const updatedMessages = [
-    ...messages.slice(0, messageIndex),
-    updatedMessage,
-    ...messages.slice(messageIndex + 1),
-  ];
-
-  return {
-    ...threadState,
-    thread: {
-      ...threadState.thread,
-      messages: updatedMessages,
-      updatedAt: new Date().toISOString(),
-    },
-  };
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**
@@ -713,35 +754,36 @@ function handleCustomEvent(
     return threadState;
   }
 
-  const customEvent = event as TamboCustomEvent;
+  // Cast to CustomEvent type (which has name property) for type guard check
+  const customEventBase = event as { name?: string };
+
+  // Use type guard to validate this is a known Tambo custom event
+  if (!isTamboCustomEvent(customEventBase)) {
+    // Unknown custom event - log and return unchanged
+
+    console.warn(
+      `[StreamReducer] Unknown custom event name: ${customEventBase.name}`,
+    );
+    return threadState;
+  }
+
+  const customEvent = customEventBase;
 
   switch (customEvent.name) {
     case "tambo.component.start":
-      return handleComponentStart(
-        threadState,
-        customEvent,
-      );
+      return handleComponentStart(threadState, customEvent);
 
     case "tambo.component.props_delta":
-      return handleComponentPropsDelta(
-        threadState,
-        customEvent,
-      );
+      return handleComponentPropsDelta(threadState, customEvent);
 
     case "tambo.component.state_delta":
-      return handleComponentStateDelta(
-        threadState,
-        customEvent,
-      );
+      return handleComponentStateDelta(threadState, customEvent);
 
     case "tambo.component.end":
       return handleComponentEnd(threadState, customEvent);
 
     case "tambo.run.awaiting_input":
-      return handleRunAwaitingInput(
-        threadState,
-        customEvent,
-      );
+      return handleRunAwaitingInput(threadState, customEvent);
 
     default: {
       // Exhaustiveness check: if a new event type is added to TamboCustomEvent
@@ -789,20 +831,10 @@ function handleComponentStart(
     content: [...message.content, newContent],
   };
 
-  const updatedMessages = [
-    ...messages.slice(0, messageIndex),
-    updatedMessage,
-    ...messages.slice(messageIndex + 1),
-  ];
-
-  return {
-    ...threadState,
-    thread: {
-      ...threadState.thread,
-      messages: updatedMessages,
-      updatedAt: new Date().toISOString(),
-    },
-  };
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**
@@ -820,27 +852,13 @@ function handleComponentPropsDelta(
   const operations = event.value.operations;
   const messages = threadState.thread.messages;
 
-  // Find the message containing this component
-  let messageIndex = -1;
-  let contentIndex = -1;
-
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    const idx = message.content.findIndex(
-      (c) => c.type === "component" && c.id === componentId,
-    );
-    if (idx !== -1) {
-      messageIndex = i;
-      contentIndex = idx;
-      break;
-    }
-  }
-
-  if (messageIndex === -1 || contentIndex === -1) {
-    throw new Error(
-      `Component ${componentId} not found for tambo.component.props_delta event`,
-    );
-  }
+  // Find the component content block
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "component",
+    componentId,
+    "tambo.component.props_delta event",
+  );
 
   const message = messages[messageIndex];
   const componentContent = message.content[contentIndex];
@@ -864,27 +882,17 @@ function handleComponentPropsDelta(
 
   const updatedMessage: TamboV1Message = {
     ...message,
-    content: [
-      ...message.content.slice(0, contentIndex),
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
       updatedContent,
-      ...message.content.slice(contentIndex + 1),
-    ],
+    ),
   };
 
-  const updatedMessages = [
-    ...messages.slice(0, messageIndex),
-    updatedMessage,
-    ...messages.slice(messageIndex + 1),
-  ];
-
-  return {
-    ...threadState,
-    thread: {
-      ...threadState.thread,
-      messages: updatedMessages,
-      updatedAt: new Date().toISOString(),
-    },
-  };
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**
@@ -902,27 +910,13 @@ function handleComponentStateDelta(
   const operations = event.value.operations;
   const messages = threadState.thread.messages;
 
-  // Find the message containing this component
-  let messageIndex = -1;
-  let contentIndex = -1;
-
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    const idx = message.content.findIndex(
-      (c) => c.type === "component" && c.id === componentId,
-    );
-    if (idx !== -1) {
-      messageIndex = i;
-      contentIndex = idx;
-      break;
-    }
-  }
-
-  if (messageIndex === -1 || contentIndex === -1) {
-    throw new Error(
-      `Component ${componentId} not found for tambo.component.state_delta event`,
-    );
-  }
+  // Find the component content block
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "component",
+    componentId,
+    "tambo.component.state_delta event",
+  );
 
   const message = messages[messageIndex];
   const componentContent = message.content[contentIndex];
@@ -945,27 +939,17 @@ function handleComponentStateDelta(
 
   const updatedMessage: TamboV1Message = {
     ...message,
-    content: [
-      ...message.content.slice(0, contentIndex),
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
       updatedContent,
-      ...message.content.slice(contentIndex + 1),
-    ],
+    ),
   };
 
-  const updatedMessages = [
-    ...messages.slice(0, messageIndex),
-    updatedMessage,
-    ...messages.slice(messageIndex + 1),
-  ];
-
-  return {
-    ...threadState,
-    thread: {
-      ...threadState.thread,
-      messages: updatedMessages,
-      updatedAt: new Date().toISOString(),
-    },
-  };
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**

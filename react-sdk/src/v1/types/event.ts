@@ -82,3 +82,29 @@ export type TamboCustomEvent =
   | ComponentStateDeltaEvent
   | ComponentEndEvent
   | RunAwaitingInputEvent;
+
+/**
+ * Known Tambo custom event names for type narrowing
+ */
+const TAMBO_CUSTOM_EVENT_NAMES = [
+  "tambo.component.start",
+  "tambo.component.props_delta",
+  "tambo.component.state_delta",
+  "tambo.component.end",
+  "tambo.run.awaiting_input",
+] as const;
+
+/**
+ * Type guard to check if an event is a Tambo custom event.
+ * Validates that the event has a name matching known Tambo custom event types.
+ * @param event - Event with name property to check
+ * @returns True if event is a TamboCustomEvent
+ */
+export function isTamboCustomEvent(event: {
+  name?: string;
+}): event is TamboCustomEvent {
+  return (
+    typeof event.name === "string" &&
+    (TAMBO_CUSTOM_EVENT_NAMES as readonly string[]).includes(event.name)
+  );
+}
