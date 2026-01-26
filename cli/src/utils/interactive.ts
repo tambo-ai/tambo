@@ -157,18 +157,31 @@ export function execFileSync(
 
     if (result.status !== 0) {
       const commandStr = args ? `${file} ${args.join(" ")}` : file;
-      throw new Error(
-        `Command failed (${result.status ?? "unknown status"}): ${commandStr}`,
+      const stderr =
+        typeof result.stderr === "string"
+          ? result.stderr
+          : result.stderr?.toString();
+
+      const err = new Error(
+        `Command failed (${result.status ?? "unknown status"}): ${commandStr}${
+          stderr ? `\n${stderr.trim()}` : ""
+        }`,
       );
+      // Keep the status/signal available for callers that want to inspect.
+      (
+        err as { status?: number | null; signal?: NodeJS.Signals | null }
+      ).status = result.status;
+      (
+        err as { status?: number | null; signal?: NodeJS.Signals | null }
+      ).signal = result.signal;
+      throw err;
     }
 
     if (result.stdout != null) {
       return result.stdout;
     }
 
-    return typeof encoding === "string" && encoding !== "buffer"
-      ? ""
-      : Buffer.alloc(0);
+    return encoding === "buffer" || encoding == null ? Buffer.alloc(0) : "";
   }
 
   return nodeExecFileSync(file, args, execOptions);

@@ -80,17 +80,32 @@ export function detectPackageManager(
 export function validatePackageManager(pm: PackageManager): void {
   try {
     if (process.platform === "win32") {
-      const result = spawn.sync(pm, ["--version"], { stdio: "ignore" });
+      const result = spawn.sync(pm, ["--version"], { stdio: "pipe" });
 
-      if (result.error || result.status !== 0) {
-        throw result.error ?? new Error("Failed to execute package manager");
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (result.status !== 0) {
+        const stderr =
+          typeof result.stderr === "string"
+            ? result.stderr
+            : result.stderr?.toString();
+        throw new Error(
+          `Failed to execute ${pm} --version (${result.status ?? "unknown status"})${
+            stderr ? `: ${stderr.trim()}` : ""
+          }`,
+        );
       }
     } else {
       execFileSync(pm, ["--version"], { stdio: "ignore" });
     }
-  } catch {
+  } catch (err) {
     throw new Error(
       `Detected ${pm} from lockfile but ${pm} is not installed. Please install ${pm} first.`,
+      {
+        cause: err,
+      },
     );
   }
 }
