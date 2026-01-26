@@ -2,7 +2,7 @@
  * Tambo-specific Custom Event Types for v1 Streaming API
  *
  * Defines custom events specific to Tambo functionality.
- * For standard AG-UI events, import directly from @ag-ui/core.
+ * For standard AG-UI events, import directly from `@ag-ui/core`.
  */
 
 import type { CustomEvent } from "@ag-ui/core";
@@ -97,7 +97,8 @@ const TAMBO_CUSTOM_EVENT_NAMES = [
 /**
  * Type guard to check if an event is a Tambo custom event.
  * Validates that the event has a name matching known Tambo custom event types.
- * @param event - Event with name property to check
+ * @param event - Event object to check
+ * @param event.name - Event name to match against known Tambo event types
  * @returns True if event is a TamboCustomEvent
  */
 export function isTamboCustomEvent(event: {

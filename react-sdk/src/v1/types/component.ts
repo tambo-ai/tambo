@@ -3,7 +3,7 @@
  *
  * Defines how React components are registered and made available to the AI.
  *
- * TODO: Once @tambo-ai/typescript-sdk/v1 is released, import AvailableComponent
+ * TODO: Once `@tambo-ai/typescript-sdk/v1` is released, import AvailableComponent
  * from the SDK package.
  */
 

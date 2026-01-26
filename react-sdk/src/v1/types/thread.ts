@@ -1,7 +1,7 @@
 /**
  * Thread Types for v1 API
  *
- * Re-exports thread types from @tambo-ai/typescript-sdk and defines
+ * Re-exports thread types from `@tambo-ai/typescript-sdk` and defines
  * React-specific extensions for streaming state management.
  */
 

@@ -3,7 +3,7 @@
  *
  * Defines how client-side tools are registered and executed.
  *
- * TODO: Once @tambo-ai/typescript-sdk/v1 is released, import Tool
+ * TODO: Once `@tambo-ai/typescript-sdk/v1` is released, import Tool
  * from the SDK package.
  */
 
