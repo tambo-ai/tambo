@@ -545,16 +545,12 @@ function handleTextMessageEnd(
 
   if (activeMessageId && event.messageId !== activeMessageId) {
     throw new Error(
-      `TEXT_MESSAGE_END messageId mismatch: expected ${activeMessageId}, got ${event.messageId}`,
+      `TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId}`,
     );
   }
 
   return {
     ...threadState,
-    thread: {
-      ...threadState.thread,
-      updatedAt: new Date().toISOString(),
-    },
     streaming: {
       ...threadState.streaming,
       messageId: undefined,
