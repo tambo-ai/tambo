@@ -1,0 +1,23 @@
+/* Reset everything so we have full control */
+:root {
+  font-family: sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: white;
+  background-color: black;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  min-height: 100vh;
+  display: block; /* distinct change from default flex */
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
