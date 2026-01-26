@@ -147,11 +147,16 @@ export function execFileSync(
   if (process.platform === "win32" && WINDOWS_CMD_BINARIES.has(file)) {
     const { stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide } =
       execOptions;
+
+    const spawnEncoding =
+      typeof encoding === "string" && encoding !== "buffer"
+        ? encoding
+        : undefined;
     const result = spawn.sync(file, args ?? [], {
       stdio,
       cwd,
       env,
-      encoding,
+      encoding: spawnEncoding,
       timeout,
       maxBuffer,
       windowsHide,
@@ -166,7 +171,7 @@ export function execFileSync(
       const stderr =
         typeof result.stderr === "string"
           ? result.stderr
-          : result.stderr?.toString();
+          : result.stderr?.toString(spawnEncoding);
 
       const err = new Error(
         `Command failed (${result.status ?? "unknown status"}): ${commandStr}${
@@ -184,18 +189,18 @@ export function execFileSync(
     }
 
     if (result.stdout != null) {
-      if (typeof result.stdout === "string") {
-        return result.stdout;
+      if (spawnEncoding) {
+        return typeof result.stdout === "string"
+          ? result.stdout
+          : result.stdout.toString(spawnEncoding);
       }
 
-      if (encoding === "buffer" || encoding == null) {
-        return result.stdout;
-      }
-
-      return result.stdout.toString(encoding);
+      return Buffer.isBuffer(result.stdout)
+        ? result.stdout
+        : Buffer.from(String(result.stdout));
     }
 
-    return encoding === "buffer" || encoding == null ? Buffer.alloc(0) : "";
+    return spawnEncoding ? "" : Buffer.alloc(0);
   }
 
   return nodeExecFileSync(file, args, execOptions);

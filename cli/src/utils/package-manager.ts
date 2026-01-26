@@ -91,11 +91,18 @@ export function validatePackageManager(pm: PackageManager): void {
           typeof result.stderr === "string"
             ? result.stderr
             : result.stderr?.toString();
-        throw new Error(
+        const err = new Error(
           `Failed to execute ${pm} --version (${result.status ?? "unknown status"})${
             stderr ? `: ${stderr.trim()}` : ""
           }`,
         );
+        (
+          err as { status?: number | null; signal?: NodeJS.Signals | null }
+        ).status = result.status;
+        (
+          err as { status?: number | null; signal?: NodeJS.Signals | null }
+        ).signal = result.signal;
+        throw err;
       }
     } else {
       execFileSync(pm, ["--version"], { stdio: "ignore" });
