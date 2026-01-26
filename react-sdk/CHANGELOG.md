@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.70.0](https://github.com/tambo-ai/tambo/compare/react-v0.69.1...react-v0.70.0) (2026-01-26)
+
+
+### Features
+
+* **react-sdk:** Added React SDK dev workflow scripts (dev:sdk, build:sdk) [#1880](https://github.com/tambo-ai/tambo/issues/1880) ([#1886](https://github.com/tambo-ai/tambo/issues/1886)) ([85f49ce](https://github.com/tambo-ai/tambo/commit/85f49ceb41118a8a9e3b757b92d2ef8105adfd87))
+* **react-sdk:** Implement rollback logic for optimistic UI updates ([#1843](https://github.com/tambo-ai/tambo/issues/1843)) ([5916cfc](https://github.com/tambo-ai/tambo/commit/5916cfc426289b204c9df47782561ee9cd52a19c))
+* **react-sdk:** Phase 0 & 1 - v1 types and structure ([#1890](https://github.com/tambo-ai/tambo/issues/1890)) ([77aa301](https://github.com/tambo-ai/tambo/commit/77aa301c3db58efea2cd8777cb385e7c4db1e1a8))
+
+
+### Bug Fixes
+
+* **react-sdk:** add @modelcontextprotocol/sdk to dependencies ([#1907](https://github.com/tambo-ai/tambo/issues/1907)) ([c2271c8](https://github.com/tambo-ai/tambo/commit/c2271c892f48755484e90c60ae6b61fc9109a502))
+
+
+### Miscellaneous Chores
+
+* **react:** bump to new @tambo-ai/typescript-sdk ([#1864](https://github.com/tambo-ai/tambo/issues/1864)) ([7643415](https://github.com/tambo-ai/tambo/commit/76434157aeaa2f4fb6501702403262025614931b))
+* **sdk:** Bump again: get SSE streaming types ([#1870](https://github.com/tambo-ai/tambo/issues/1870)) ([e6fbb44](https://github.com/tambo-ai/tambo/commit/e6fbb4432bc3ba07fe8b660206a1c514ffb98ea8))
+
+
+### Documentation
+
+* **react-sdk:** remove dependency on zod ([#1850](https://github.com/tambo-ai/tambo/issues/1850)) ([18dcc3a](https://github.com/tambo-ai/tambo/commit/18dcc3af02e147c2259f7e9dfd0aee800c03d97a))
+
 ## [0.69.1](https://github.com/tambo-ai/tambo/compare/react-v0.69.0...react-v0.69.1) (2026-01-16)
 
 
