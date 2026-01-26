@@ -534,15 +534,32 @@ function handleTextMessageContent(
  * Handle TEXT_MESSAGE_END event.
  * Marks the message as complete.
  * @param threadState - Current thread state
- * @param _event - Text message end event (unused)
+ * @param event - Text message end event
  * @returns Updated thread state
  */
 function handleTextMessageEnd(
   threadState: ThreadState,
-  _event: TextMessageEndEvent,
+  event: TextMessageEndEvent,
 ): ThreadState {
-  // For now, this doesn't change state, but could be used for message finalization
-  return threadState;
+  const activeMessageId = threadState.streaming.messageId;
+
+  if (activeMessageId && event.messageId !== activeMessageId) {
+    throw new Error(
+      `TEXT_MESSAGE_END messageId mismatch: expected ${activeMessageId}, got ${event.messageId}`,
+    );
+  }
+
+  return {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      ...threadState.streaming,
+      messageId: undefined,
+    },
+  };
 }
 
 /**
