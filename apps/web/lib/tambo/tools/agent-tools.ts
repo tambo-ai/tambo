@@ -13,6 +13,8 @@ type UpdateProjectAgentSettingsToolInput = z.infer<
   typeof updateProjectAgentSettingsInputSchema
 >;
 
+// Block keys commonly used in prototype pollution attacks. This is defense-in-depth
+// alongside using a null-prototype accumulator.
 const blockedAgentHeaderKeys = new Set([
   "__proto__",
   "prototype",
@@ -23,6 +25,7 @@ const headerNameTokenRegex = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 function hasUnsafeHeaderValueChars(value: string): boolean {
   for (const char of value) {
     const charCode = char.charCodeAt(0);
+    // Disallow CTL characters (0x00-0x1F, 0x7F) per RFC 7230.
     if (charCode <= 0x1f || charCode === 0x7f) {
       return true;
     }
@@ -61,7 +64,7 @@ function normalizeAgentHeaders(
     }
     if (hasUnsafeHeaderValueChars(value)) {
       throw new Error(
-        `Invalid agentHeaders: invalid header value for '${key}'`,
+        `Invalid agentHeaders: header value for '${key}' contains control characters`,
       );
     }
     headers[key] = value;
