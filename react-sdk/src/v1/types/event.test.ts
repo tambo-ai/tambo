@@ -57,10 +57,7 @@ describe("isTamboCustomEvent", () => {
   });
 
   it("returns false when name is undefined", () => {
-    const event = {
-      type: EventType.CUSTOM,
-      value: {},
-    };
+    const event: { name?: string } = {};
     expect(isTamboCustomEvent(event)).toBe(false);
   });
 

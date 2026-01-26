@@ -1,5 +1,18 @@
-import { EventType } from "@ag-ui/core";
-import type { BaseEvent } from "@ag-ui/core";
+import {
+  EventType,
+  type CustomEvent,
+  type RunErrorEvent,
+  type RunFinishedEvent,
+  type RunStartedEvent,
+  type StateSnapshotEvent,
+  type TextMessageContentEvent,
+  type TextMessageEndEvent,
+  type TextMessageStartEvent,
+  type ToolCallArgsEvent,
+  type ToolCallEndEvent,
+  type ToolCallResultEvent,
+  type ToolCallStartEvent,
+} from "@ag-ui/core";
 import {
   createInitialState,
   createInitialThreadState,
@@ -68,7 +81,7 @@ describe("streamReducer", () => {
   describe("unknown thread handling", () => {
     it("logs warning and returns unchanged state for unknown thread", () => {
       const state = createInitialState();
-      const event: BaseEvent = {
+      const event: RunStartedEvent = {
         type: EventType.RUN_STARTED,
         runId: "run_1",
         threadId: "unknown_thread",
@@ -90,8 +103,9 @@ describe("streamReducer", () => {
   describe("unsupported event types", () => {
     it("logs warning for unsupported AG-UI events", () => {
       const state = createTestStreamState("thread_1");
-      const event: BaseEvent = {
+      const event: StateSnapshotEvent = {
         type: EventType.STATE_SNAPSHOT,
+        snapshot: {},
       };
 
       const result = streamReducer(state, {
@@ -108,7 +122,7 @@ describe("streamReducer", () => {
 
     it("logs warning for unknown custom event names", () => {
       const state = createTestStreamState("thread_1");
-      const event = {
+      const event: CustomEvent = {
         type: EventType.CUSTOM,
         name: "unknown.custom.event",
         value: {},
@@ -116,7 +130,7 @@ describe("streamReducer", () => {
 
       const result = streamReducer(state, {
         type: "EVENT",
-        event: event as BaseEvent,
+        event,
         threadId: "thread_1",
       });
 
@@ -130,7 +144,7 @@ describe("streamReducer", () => {
   describe("RUN_STARTED event", () => {
     it("updates thread status to streaming", () => {
       const state = createTestStreamState("thread_1");
-      const event: BaseEvent = {
+      const event: RunStartedEvent = {
         type: EventType.RUN_STARTED,
         runId: "run_123",
         threadId: "thread_1",
@@ -155,7 +169,7 @@ describe("streamReducer", () => {
       state.threadMap.thread_1.thread.status = "streaming";
       state.threadMap.thread_1.streaming.status = "streaming";
 
-      const event: BaseEvent = {
+      const event: RunFinishedEvent = {
         type: EventType.RUN_FINISHED,
         runId: "run_123",
         threadId: "thread_1",
@@ -175,7 +189,7 @@ describe("streamReducer", () => {
   describe("RUN_ERROR event", () => {
     it("updates thread status to error with details", () => {
       const state = createTestStreamState("thread_1");
-      const event: BaseEvent = {
+      const event: RunErrorEvent = {
         type: EventType.RUN_ERROR,
         message: "Something went wrong",
         code: "ERR_001",
@@ -199,7 +213,7 @@ describe("streamReducer", () => {
   describe("TEXT_MESSAGE_START event", () => {
     it("creates new message in thread", () => {
       const state = createTestStreamState("thread_1");
-      const event: BaseEvent = {
+      const event: TextMessageStartEvent = {
         type: EventType.TEXT_MESSAGE_START,
         messageId: "msg_1",
         role: "assistant",
@@ -232,7 +246,7 @@ describe("streamReducer", () => {
         },
       ];
 
-      const event: BaseEvent = {
+      const event: TextMessageContentEvent = {
         type: EventType.TEXT_MESSAGE_CONTENT,
         messageId: "msg_1",
         delta: "Hello ",
@@ -260,7 +274,7 @@ describe("streamReducer", () => {
         },
       ];
 
-      const event: BaseEvent = {
+      const event: TextMessageContentEvent = {
         type: EventType.TEXT_MESSAGE_CONTENT,
         messageId: "msg_1",
         delta: "world!",
@@ -290,7 +304,7 @@ describe("streamReducer", () => {
         },
       ];
 
-      const event: BaseEvent = {
+      const event: ToolCallStartEvent = {
         type: EventType.TOOL_CALL_START,
         toolCallId: "tool_1",
         toolCallName: "get_weather",
@@ -329,33 +343,39 @@ describe("streamReducer", () => {
       ];
 
       // Send TOOL_CALL_ARGS
+      const argsEvent1: ToolCallArgsEvent = {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "tool_1",
+        delta: '{"city":',
+      };
+
       let result = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.TOOL_CALL_ARGS,
-          toolCallId: "tool_1",
-          delta: '{"city":',
-        } as BaseEvent,
+        event: argsEvent1,
         threadId: "thread_1",
       });
 
+      const argsEvent2: ToolCallArgsEvent = {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "tool_1",
+        delta: '"NYC"}',
+      };
+
       result = streamReducer(result, {
         type: "EVENT",
-        event: {
-          type: EventType.TOOL_CALL_ARGS,
-          toolCallId: "tool_1",
-          delta: '"NYC"}',
-        } as BaseEvent,
+        event: argsEvent2,
         threadId: "thread_1",
       });
 
       // Send TOOL_CALL_END
+      const endEvent: ToolCallEndEvent = {
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "tool_1",
+      };
+
       result = streamReducer(result, {
         type: "EVENT",
-        event: {
-          type: EventType.TOOL_CALL_END,
-          toolCallId: "tool_1",
-        } as BaseEvent,
+        event: endEvent,
         threadId: "thread_1",
       });
 
@@ -377,7 +397,7 @@ describe("streamReducer", () => {
         },
       ];
 
-      const event = {
+      const event: CustomEvent = {
         type: EventType.CUSTOM,
         name: "tambo.component.start",
         value: {
@@ -389,7 +409,7 @@ describe("streamReducer", () => {
 
       const result = streamReducer(state, {
         type: "EVENT",
-        event: event as BaseEvent,
+        event,
         threadId: "thread_1",
       });
 
@@ -416,7 +436,7 @@ describe("streamReducer", () => {
         },
       ];
 
-      const event = {
+      const event: CustomEvent = {
         type: EventType.CUSTOM,
         name: "tambo.component.props_delta",
         value: {
@@ -427,7 +447,7 @@ describe("streamReducer", () => {
 
       const result = streamReducer(state, {
         type: "EVENT",
-        event: event as BaseEvent,
+        event,
         threadId: "thread_1",
       });
 
@@ -440,7 +460,7 @@ describe("streamReducer", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.status = "streaming";
 
-      const event = {
+      const event: CustomEvent = {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
         value: { pendingToolCallIds: ["tool_1", "tool_2"] },
@@ -448,7 +468,7 @@ describe("streamReducer", () => {
 
       const result = streamReducer(state, {
         type: "EVENT",
-        event: event as BaseEvent,
+        event,
         threadId: "thread_1",
       });
 
@@ -462,57 +482,62 @@ describe("streamReducer", () => {
       let state = createTestStreamState("thread_1");
 
       // RUN_STARTED
+      const runStarted: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_1",
+        threadId: "thread_1",
+        timestamp: 1704067200000,
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.RUN_STARTED,
-          runId: "run_1",
-          threadId: "thread_1",
-          timestamp: 1704067200000,
-        },
+        event: runStarted,
         threadId: "thread_1",
       });
 
       // TEXT_MESSAGE_START
+      const msgStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_1",
+        role: "assistant",
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.TEXT_MESSAGE_START,
-          messageId: "msg_1",
-          role: "assistant",
-        },
+        event: msgStart,
         threadId: "thread_1",
       });
 
       // TEXT_MESSAGE_CONTENT
+      const msgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "msg_1",
+        delta: "Hello, how can I help?",
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.TEXT_MESSAGE_CONTENT,
-          messageId: "msg_1",
-          delta: "Hello, how can I help?",
-        },
+        event: msgContent,
         threadId: "thread_1",
       });
 
       // TEXT_MESSAGE_END
+      const msgEnd: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "msg_1",
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.TEXT_MESSAGE_END,
-          messageId: "msg_1",
-        },
+        event: msgEnd,
         threadId: "thread_1",
       });
 
       // RUN_FINISHED
+      const runFinished: RunFinishedEvent = {
+        type: EventType.RUN_FINISHED,
+        runId: "run_1",
+        threadId: "thread_1",
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.RUN_FINISHED,
-          runId: "run_1",
-          threadId: "thread_1",
-        },
+        event: runFinished,
         threadId: "thread_1",
       });
 
@@ -524,12 +549,10 @@ describe("streamReducer", () => {
             ...state.threadMap.thread_1,
             thread: {
               ...state.threadMap.thread_1.thread,
-              messages: state.threadMap.thread_1.thread.messages.map(
-                (m) => ({
-                  ...m,
-                  createdAt: "[TIMESTAMP]",
-                }),
-              ),
+              messages: state.threadMap.thread_1.thread.messages.map((m) => ({
+                ...m,
+                createdAt: "[TIMESTAMP]",
+              })),
               createdAt: "[TIMESTAMP]",
               updatedAt: "[TIMESTAMP]",
             },
@@ -554,56 +577,60 @@ describe("streamReducer", () => {
       ];
 
       // COMPONENT_START
+      const compStart: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.start",
+        value: {
+          messageId: "msg_1",
+          componentId: "comp_1",
+          componentName: "WeatherCard",
+        },
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.CUSTOM,
-          name: "tambo.component.start",
-          value: {
-            messageId: "msg_1",
-            componentId: "comp_1",
-            componentName: "WeatherCard",
-          },
-        } as BaseEvent,
+        event: compStart,
         threadId: "thread_1",
       });
 
       // COMPONENT_PROPS_DELTA - add city
+      const propsDelta1: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.props_delta",
+        value: {
+          componentId: "comp_1",
+          operations: [{ op: "add", path: "/city", value: "New York" }],
+        },
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.CUSTOM,
-          name: "tambo.component.props_delta",
-          value: {
-            componentId: "comp_1",
-            operations: [{ op: "add", path: "/city", value: "New York" }],
-          },
-        } as BaseEvent,
+        event: propsDelta1,
         threadId: "thread_1",
       });
 
       // COMPONENT_PROPS_DELTA - add temperature
+      const propsDelta2: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.props_delta",
+        value: {
+          componentId: "comp_1",
+          operations: [{ op: "add", path: "/temperature", value: 72 }],
+        },
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.CUSTOM,
-          name: "tambo.component.props_delta",
-          value: {
-            componentId: "comp_1",
-            operations: [{ op: "add", path: "/temperature", value: 72 }],
-          },
-        } as BaseEvent,
+        event: propsDelta2,
         threadId: "thread_1",
       });
 
       // COMPONENT_END
+      const compEnd: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.end",
+        value: { componentId: "comp_1" },
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.CUSTOM,
-          name: "tambo.component.end",
-          value: { componentId: "comp_1" },
-        } as BaseEvent,
+        event: compEnd,
         threadId: "thread_1",
       });
 
@@ -615,12 +642,10 @@ describe("streamReducer", () => {
             ...state.threadMap.thread_1,
             thread: {
               ...state.threadMap.thread_1.thread,
-              messages: state.threadMap.thread_1.thread.messages.map(
-                (m) => ({
-                  ...m,
-                  createdAt: "[TIMESTAMP]",
-                }),
-              ),
+              messages: state.threadMap.thread_1.thread.messages.map((m) => ({
+                ...m,
+                createdAt: "[TIMESTAMP]",
+              })),
               createdAt: "[TIMESTAMP]",
               updatedAt: "[TIMESTAMP]",
             },
@@ -647,35 +672,39 @@ describe("streamReducer", () => {
       ];
 
       // TOOL_CALL_ARGS
+      const toolArgs: ToolCallArgsEvent = {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "tool_1",
+        delta: '{"city":"San Francisco","units":"fahrenheit"}',
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.TOOL_CALL_ARGS,
-          toolCallId: "tool_1",
-          delta: '{"city":"San Francisco","units":"fahrenheit"}',
-        } as BaseEvent,
+        event: toolArgs,
         threadId: "thread_1",
       });
 
       // TOOL_CALL_END
+      const toolEnd: ToolCallEndEvent = {
+        type: EventType.TOOL_CALL_END,
+        toolCallId: "tool_1",
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.TOOL_CALL_END,
-          toolCallId: "tool_1",
-        } as BaseEvent,
+        event: toolEnd,
         threadId: "thread_1",
       });
 
       // TOOL_CALL_RESULT
+      const toolResult: ToolCallResultEvent = {
+        type: EventType.TOOL_CALL_RESULT,
+        toolCallId: "tool_1",
+        messageId: "msg_1",
+        content: "Temperature: 65°F, Sunny",
+        role: "tool",
+      };
       state = streamReducer(state, {
         type: "EVENT",
-        event: {
-          type: EventType.TOOL_CALL_RESULT,
-          toolCallId: "tool_1",
-          messageId: "msg_1",
-          content: "Temperature: 65°F, Sunny",
-        } as BaseEvent,
+        event: toolResult,
         threadId: "thread_1",
       });
 
@@ -687,12 +716,10 @@ describe("streamReducer", () => {
             ...state.threadMap.thread_1,
             thread: {
               ...state.threadMap.thread_1.thread,
-              messages: state.threadMap.thread_1.thread.messages.map(
-                (m) => ({
-                  ...m,
-                  createdAt: "[TIMESTAMP]",
-                }),
-              ),
+              messages: state.threadMap.thread_1.thread.messages.map((m) => ({
+                ...m,
+                createdAt: "[TIMESTAMP]",
+              })),
               createdAt: "[TIMESTAMP]",
               updatedAt: "[TIMESTAMP]",
             },
