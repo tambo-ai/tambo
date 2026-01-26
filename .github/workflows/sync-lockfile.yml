@@ -24,16 +24,36 @@ jobs:
           frozen: false
 
       - name: Regenerate package-lock.json
-        run: npm install --package-lock-only
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
 
       - name: Check for changes
         id: check
+        shell: bash
         run: |
-          if git diff --quiet package-lock.json; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          untracked_files="$(git ls-files --others --exclude-standard)"
+          if [[ -n "$untracked_files" ]]; then
+            echo "Unexpected untracked files detected:" >&2
+            echo "$untracked_files" >&2
+            git status --porcelain >&2
+            exit 1
           fi
+
+          changed_files="$(git diff --name-only | sort -u)"
+          if [[ -z "$changed_files" ]]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if echo "$changed_files" | grep -qv '^package-lock\.json$'; then
+            echo "Unexpected file changes detected:" >&2
+            echo "$changed_files" >&2
+            git status --porcelain >&2
+            exit 1
+          fi
+
+          echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit lockfile changes
         if: steps.check.outputs.changed == 'true'
