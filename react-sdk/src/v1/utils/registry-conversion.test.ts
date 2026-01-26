@@ -120,6 +120,7 @@ describe("registry-conversion", () => {
         description: "Gets weather for a city",
         tool: async () => ({ temp: 72 }),
         inputSchema: z.object({ city: z.string() }),
+        outputSchema: z.any(),
       };
 
       const result = toAvailableTool(tool);
@@ -151,12 +152,14 @@ describe("registry-conversion", () => {
           description: "Search the web",
           tool: async () => [],
           inputSchema: z.object({ query: z.string() }),
+          outputSchema: z.any(),
         },
         calculate: {
           name: "calculate",
           description: "Calculate expression",
           tool: async () => 0,
           inputSchema: z.object({ expr: z.string() }),
+          outputSchema: z.any(),
         },
       };
 
@@ -176,6 +179,7 @@ describe("registry-conversion", () => {
             description: "Fetch data",
             tool: async () => null,
             inputSchema: z.object({ url: z.string() }),
+            outputSchema: z.any(),
           },
         ],
       ]);
@@ -195,6 +199,7 @@ describe("registry-conversion", () => {
           description: "Valid tool",
           tool: async () => null,
           inputSchema: z.object({ x: z.number() }),
+          outputSchema: z.any(),
         },
         invalid: {
           name: "invalid",
