@@ -114,8 +114,8 @@ const WINDOWS_CMD_BINARIES = new Set([
  * Uses execFileSync by default (more secure - doesn't invoke shell), falls back to execSync
  * only when shell features are needed.
  *
- * On Windows, appends .cmd extension for known package manager binaries (npm, npx, pnpm, yarn, rush)
- * since they are batch files that execFileSync cannot resolve without the extension.
+ * On Windows, uses execSync with shell for known package manager binaries (npm, npx, pnpm, yarn, rush)
+ * since they are batch files/shims that require shell interpretation to resolve from PATH.
  *
  * @param file - The file/command to execute
  * @param args - Arguments to pass to the command
@@ -139,13 +139,22 @@ export function execFileSync(
     );
   }
 
-  // On Windows, package managers are .cmd batch files that need explicit extension
-  const command =
-    process.platform === "win32" && WINDOWS_CMD_BINARIES.has(file)
-      ? `${file}.cmd`
-      : file;
+  // On Windows, package managers are .cmd batch files or shims that need shell to resolve.
+  // Use execSync with shell only for known safe package manager commands.
+  if (process.platform === "win32" && WINDOWS_CMD_BINARIES.has(file)) {
+    const argsStr = args ? ` ${args.join(" ")}` : "";
+    // Extract only the options compatible with execSync
+    const { stdio, cwd, env, encoding, timeout } = execOptions;
+    return nodeExecSync(`${file}${argsStr}`, {
+      stdio,
+      cwd,
+      env,
+      encoding,
+      timeout,
+    });
+  }
 
-  return nodeExecFileSync(command, args, execOptions);
+  return nodeExecFileSync(file, args, execOptions);
 }
 
 /**

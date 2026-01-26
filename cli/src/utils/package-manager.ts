@@ -1,4 +1,4 @@
-import { execFileSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -77,11 +77,14 @@ export function detectPackageManager(
  * @throws Error if the package manager is not installed
  */
 export function validatePackageManager(pm: PackageManager): void {
-  // On Windows, package managers are .cmd batch files
-  const command = process.platform === "win32" ? `${pm}.cmd` : pm;
-
   try {
-    execFileSync(command, ["--version"], { stdio: "ignore" });
+    // On Windows, use execSync with shell to properly resolve .cmd files from PATH.
+    // This is safe since we're only checking version with a known command (no user input).
+    if (process.platform === "win32") {
+      execSync(`${pm} --version`, { stdio: "ignore" });
+    } else {
+      execFileSync(pm, ["--version"], { stdio: "ignore" });
+    }
   } catch {
     throw new Error(
       `Detected ${pm} from lockfile but ${pm} is not installed. Please install ${pm} first.`,
