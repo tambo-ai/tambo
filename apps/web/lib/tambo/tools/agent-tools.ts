@@ -4,13 +4,14 @@ import {
 } from "@/lib/schemas/agent";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
+import type { z } from "zod/v3";
 
-class AgentHeadersValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AgentHeadersValidationError";
-  }
-}
+// NOTE: `updateProjectAgentSettingsToolInput` models `agentHeaders` as `z.unknown()`
+// to keep the tool input schema JSON-schema compatible. We validate/normalize
+// before calling the tRPC mutation.
+type UpdateProjectAgentSettingsToolInput = z.infer<
+  typeof updateProjectAgentSettingsInputSchema
+>;
 
 function normalizeAgentHeaders(
   agentHeaders: unknown,
@@ -20,8 +21,8 @@ function normalizeAgentHeaders(
   }
 
   if (typeof agentHeaders !== "object" || Array.isArray(agentHeaders)) {
-    throw new AgentHeadersValidationError(
-      "agentHeaders must be an object mapping string keys to string values (e.g. { key: 'value' })",
+    throw new Error(
+      "Invalid agentHeaders: must be an object mapping string keys to string values (e.g. { key: 'value' })",
     );
   }
 
@@ -29,16 +30,12 @@ function normalizeAgentHeaders(
   for (const [key, value] of Object.entries(
     agentHeaders as Record<string, unknown>,
   )) {
-    if (
-      typeof value !== "string" &&
-      typeof value !== "number" &&
-      typeof value !== "boolean"
-    ) {
-      throw new AgentHeadersValidationError(
-        `agentHeaders[${key}] must be a string, number, or boolean (received ${typeof value})`,
+    if (typeof value !== "string") {
+      throw new Error(
+        `Invalid agentHeaders: agentHeaders[${key}] must be a string (received ${typeof value})`,
       );
     }
-    headers[key] = `${value}`;
+    headers[key] = value;
   }
 
   return headers;
@@ -67,7 +64,7 @@ export function registerAgentTools(
       agentUrl,
       agentName,
       agentHeaders,
-    }) => {
+    }: UpdateProjectAgentSettingsToolInput) => {
       const result =
         await ctx.trpcClient.project.updateProjectAgentSettings.mutate({
           projectId,
