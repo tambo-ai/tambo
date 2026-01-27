@@ -15,15 +15,12 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
-  ApiBody,
-  ApiExtraModels,
   ApiOperation,
   ApiParam,
   ApiProduces,
   ApiResponse,
   ApiSecurity,
   ApiTags,
-  getSchemaPath,
 } from "@nestjs/swagger";
 import { Request, Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
@@ -41,7 +38,6 @@ import {
   V1CreateThreadWithRunDto,
 } from "./dto/run.dto";
 import {
-  JsonPatchOperationDto,
   UpdateComponentStateDto,
   UpdateComponentStateResponseDto,
 } from "./dto/component-state.dto";
@@ -500,34 +496,6 @@ export class V1Controller {
 
   @Post("threads/:threadId/components/:componentId/state")
   @UseGuards(ThreadInProjectGuard)
-  @ApiExtraModels(JsonPatchOperationDto)
-  @ApiBody({
-    schema: {
-      oneOf: [
-        {
-          type: "object",
-          required: ["state"],
-          properties: {
-            state: {
-              type: "object",
-              additionalProperties: true,
-            },
-          },
-        },
-        {
-          type: "object",
-          required: ["patch"],
-          properties: {
-            patch: {
-              type: "array",
-              minItems: 1,
-              items: { $ref: getSchemaPath(JsonPatchOperationDto) },
-            },
-          },
-        },
-      ],
-    },
-  })
   @ApiOperation({
     summary: "Update component state",
     description:
