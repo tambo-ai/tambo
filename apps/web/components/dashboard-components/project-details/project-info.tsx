@@ -234,14 +234,12 @@ function ProjectInfoLoaded({
                 >
                   {starterQuotaCopy}
                 </span>
-                {isLowMessages && (
-                  <Link
-                    href={settingsHref}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Add key
-                  </Link>
-                )}
+                <Link
+                  href={settingsHref}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Add key
+                </Link>
               </div>
             ) : (
               <div className="flex items-center gap-2">
