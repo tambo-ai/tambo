@@ -33,14 +33,16 @@ Your PR must include:
 
 Templates should be focused and minimal:
 
+- **Starters, not showcases** - Templates should be minimal enough that someone can take it and build something completely different. If you've built a polished app with lots of demo UI, strip it down to the essentials before submitting.
 - **1-3 technologies** is ideal. A template showing "Next.js + Clerk + Tambo" is better than one with 8 different libraries.
 - **One tool per job** - pick ONE auth provider, ONE database, ONE styling solution. Templates with multiple options for the same thing will be rejected.
 - **Minimal dependencies** - only include what's necessary to demonstrate the integration.
-- **Clean code** - no commented-out code, no unused files, no placeholder TODOs.
+- **Small, readable files** - If your main App file is doing too much, break it up or simplify. Templates should be easy to understand at a glance.
+- **Clean code** - no commented-out code, no unused files, no placeholder TODOs, no hardcoded user names or demo data.
 
 ### Design Requirements
 
-Design quality should match Tambo's component design. Or better.
+Design quality should match our [official templates](https://github.com/tambo-ai/tambo-template). Or better. Use them as your reference for the visual bar we expect.
 
 ### Tambo Integration
 
@@ -51,6 +53,8 @@ We're not expecting a ton of Tambo code. Just **one example** that proves the in
 - **Framework template** - existing Tambo components work and are styled correctly in that framework
 
 The video should show a conversation with the AI using your integration. Proper component/tool registration with clear descriptions is required.
+
+**No workarounds** - Your template must use Tambo's actual APIs correctly. If you run into issues getting components to render or tools to work, [open a bug issue](https://github.com/tambo-ai/tambo/issues/new) and we'll help. Don't hack around problems - templates that bypass Tambo's rendering system will be rejected.
 
 ### README Quality
 
@@ -66,12 +70,15 @@ Your template's README must include:
 ### What Gets Rejected
 
 - Kitchen-sink templates that try to include everything
+- Overcomplicated "showcase" apps disguised as starters
+- Workarounds that bypass Tambo's actual rendering or tool system
 - Broken or incomplete setups
 - Missing video demo
 - Poor documentation
 - Ugly or unstyled UI
 - Not responsive
 - Generic "todo app" without meaningful Tambo integration
+- Duplicating an integration we already have without adding something new
 
 ### Template Folder Structure
 
