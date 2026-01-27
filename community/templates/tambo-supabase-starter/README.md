@@ -52,7 +52,7 @@ insert into todos (text, is_complete) values ('Star this repo!', false);
 Important: Ensure Row Level Security (RLS) is disabled for this table, or configure policies to allow anonymous access for this demo.
 
 ### 3. Environment Variables
-Create .env.local and add your keys:
+Rename example.env.local to .env.local and add your keys:
 
 Code snippet
 VITE_TAMBO_API_KEY=your_tambo_api_key

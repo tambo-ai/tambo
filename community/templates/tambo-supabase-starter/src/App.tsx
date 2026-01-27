@@ -3,7 +3,6 @@ import { TamboProvider, useTamboThread, useTamboThreadInput } from '@tambo-ai/re
 import { z } from 'zod';
 import { TaskList } from './components/tambo/TaskList';
 
-// We keep the component definition, though we will force render it manually now.
 const components = [
   {
     component: TaskList,
@@ -127,6 +126,7 @@ function MainChat() {
 }
 
 function App() {
+  // Revert to using environment variables
   const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
   
   return (
