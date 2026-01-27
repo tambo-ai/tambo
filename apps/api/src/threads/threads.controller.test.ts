@@ -37,7 +37,7 @@ const expectEndpointDeprecatedProblem = (
 
   expect(endpointDeprecatedError.getStatus()).toBe(410);
   expect(endpointDeprecatedError.getResponse()).toEqual({
-    type: "https://docs.tambo.co/api-reference/problems/endpoint-deprecated",
+    type: "https://docs.tambo.co/reference/problems/endpoint-deprecated",
     status: 410,
     title: "Endpoint Deprecated",
     detail,

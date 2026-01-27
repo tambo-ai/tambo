@@ -339,3 +339,161 @@ Function to remove all active context attachments. The context helper automatica
 ```typescript
 clearContextAttachments: () => void;
 ```
+
+## StreamStatus
+
+Global stream status flags for a component during streaming. Returned by `useTamboStreamStatus`.
+
+```typescript
+interface StreamStatus {
+  isPending: boolean; // No tokens received yet, generation not active
+  isStreaming: boolean; // Active streaming - generation or props still streaming
+  isSuccess: boolean; // Complete - all props finished without error
+  isError: boolean; // Fatal error occurred
+  streamError?: Error; // First error encountered (if any)
+}
+```
+
+## PropStatus
+
+Streaming status flags for individual component props. Returned by `useTamboStreamStatus`.
+
+```typescript
+interface PropStatus {
+  isPending: boolean; // No tokens received for this prop yet
+  isStreaming: boolean; // Prop has partial content, still updating
+  isSuccess: boolean; // Prop finished streaming successfully
+  error?: Error; // Error during streaming (if any)
+}
+```
+
+## TamboInteractableComponent
+
+Represents a component instance that can be interacted with by Tambo. Extends `TamboComponent`.
+
+```typescript
+interface TamboInteractableComponent<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> extends TamboComponent {
+  id: string; // Unique identifier for this instance
+  props: Props; // Current props
+  isSelected?: boolean; // Whether selected for interaction
+  state?: State; // Current component state
+  stateSchema?: SupportedSchema<State>; // Optional state validation schema
+}
+```
+
+## InteractableConfig
+
+Configuration for the `withInteractable` HOC.
+
+```typescript
+interface InteractableConfig<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> {
+  componentName: string; // Name used for identification
+  description: string; // Description for LLM understanding
+  propsSchema?: SupportedSchema<Props>; // Optional props validation
+  stateSchema?: SupportedSchema<State>; // Optional state validation
+}
+```
+
+## WithTamboInteractableProps
+
+Props injected by `withInteractable` HOC.
+
+```typescript
+interface WithTamboInteractableProps {
+  interactableId?: string; // Optional custom ID
+  onInteractableReady?: (id: string) => void; // Called when registered
+  onPropsUpdate?: (newProps: Record<string, unknown>) => void; // Called on prop updates
+}
+```
+
+## InteractableMetadata
+
+Metadata about an interactable component.
+
+```typescript
+interface InteractableMetadata {
+  id: string;
+  componentName: string;
+  description: string;
+}
+```
+
+## ToolAnnotations
+
+Annotations describing a tool's behavior, aligned with the MCP specification.
+
+```typescript
+type ToolAnnotations = MCPToolAnnotations & {
+  tamboStreamableHint?: boolean; // Safe to call repeatedly during streaming
+};
+```
+
+The `tamboStreamableHint` property indicates that the tool is safe to be called repeatedly while a response is being streamed. This is typically used for read-only tools that do not cause side effects.
+
+## SupportedSchema
+
+A schema type that accepts either a Standard Schema compliant validator or a raw JSON Schema object.
+
+```typescript
+type SupportedSchema<Shape = unknown> =
+  | StandardSchemaV1<Shape, Shape>
+  | JSONSchema7;
+```
+
+Standard Schema is a specification that provides a unified interface for TypeScript validation libraries. Libraries like Zod, Valibot, and ArkType implement this spec.
+
+## StagedImage
+
+Represents an image staged for upload in message input.
+
+```typescript
+interface StagedImage {
+  id: string; // Unique identifier
+  name: string; // File name
+  dataUrl: string; // Base64 data URL
+  file: File; // Original File object
+  size: number; // File size in bytes
+  type: string; // MIME type
+}
+```
+
+## AdditionalContext
+
+Interface for additional context that can be added to messages.
+
+```typescript
+interface AdditionalContext {
+  name: string; // Name of the context type
+  context: unknown; // The context data
+}
+```
+
+## ContextHelperFn
+
+A function that returns context data to include in messages.
+
+```typescript
+type ContextHelperFn = () =>
+  | unknown
+  | null
+  | undefined
+  | Promise<unknown | null | undefined>;
+```
+
+Return `null` or `undefined` to skip including the context.
+
+## ContextHelpers
+
+A collection of context helpers keyed by their context name.
+
+```typescript
+type ContextHelpers = Record<string, ContextHelperFn>;
+```
+
+The key becomes the `AdditionalContext.name` sent to the model.

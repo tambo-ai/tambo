@@ -8,7 +8,8 @@ Mistral AI provides a range of powerful language models designed for professiona
 <Callout type="warning" title="Known Rendering Issues">
   Mistral models (Large 2.1 and Medium 3) may inconsistently follow rendering
   instructions, similar to Gemini models. Try clarifying prompt structure if you
-  encounter formatting issues. See [Labels](/models/labels) for more details.
+  encounter formatting issues. See [Labels](/reference/llm-providers/labels) for
+  more details.
 </Callout>
 
 ## Available Models
@@ -87,9 +88,9 @@ Mistral's top-tier large model for high-complexity tasks, with the latest versio
 
 ### Custom Parameters
 
-Mistral models support standard LLM parameters like temperature, max tokens, and more. Configure these in the dashboard under [**Custom LLM Parameters**](/models/custom-llm-parameters).
+Mistral models support standard LLM parameters like temperature, max tokens, and more. Configure these in the dashboard under [**Custom LLM Parameters**](/guides/setup-project/llm-provider).
 
-For detailed information on available parameters, see [Custom LLM Parameters](/models/custom-llm-parameters).
+For detailed information on available parameters, see [Custom LLM Parameters](/guides/setup-project/llm-provider).
 
 ## Model Comparison
 
@@ -116,7 +117,7 @@ If you encounter formatting inconsistencies with [Medium 3](#mistral-medium-3) o
 3. **Validate outputs** - Add checks for critical formatting requirements
 4. **Test thoroughly** - Run a prompt suite to verify behavior in your workload
 
-For production-critical formatting, consider using [**Tested**](/models/labels) models and validating outputs. See [Labels](/models/labels) for more guidance.
+For production-critical formatting, consider using [**Tested**](/reference/llm-providers/labels) models and validating outputs. See [Labels](/reference/llm-providers/labels) for more guidance.
 
 ## Troubleshooting
 
@@ -131,7 +132,7 @@ For production-critical formatting, consider using [**Tested**](/models/labels) 
 - This is a [known issue](#available-models) with [Medium 3](#mistral-medium-3) and [Large 2.1](#mistral-large-2-1) models
 - Try being more explicit in your prompt instructions
 - Consider using [Magistral Medium 1](#magistral-medium-1) if formatting is critical
-- See [Labels](/models/labels) for detailed behavior notes
+- See [Labels](/reference/llm-providers/labels) for detailed behavior notes
 
 **High token usage?**
 
@@ -142,6 +143,6 @@ For production-critical formatting, consider using [**Tested**](/models/labels) 
 
 ## See Also
 
-- [Labels](/models/labels) - Understanding model status labels and observed behaviors
-- [Custom LLM Parameters](/models/custom-llm-parameters) - Configuring model parameters
-- [Reasoning Models](/models/reasoning-models) - Advanced reasoning capabilities
+- [Labels](/reference/llm-providers/labels) - Understanding model status labels and observed behaviors
+- [Custom LLM Parameters](/guides/setup-project/llm-provider) - Configuring model parameters
+- [Reasoning Models](/reference/llm-providers/reasoning-models) - Advanced reasoning capabilities
