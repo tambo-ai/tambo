@@ -38,18 +38,15 @@ function MainChat() {
   const { value, setValue, submit, isPending } = useTamboThreadInput();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // 🚨 HACK STATE: This controls the forced display
   const [forceShowList, setForceShowList] = useState(false);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [thread?.messages, forceShowList]);
 
-  // 🚨 HACK FUNCTION: Intercepts the submit
   const handleForceSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if user is asking for tasks
     if (value.toLowerCase().includes('task') || value.toLowerCase().includes('list')) {
-      // Wait 1.5 seconds (simulating AI thinking) then FORCE the list to appear
+
       setTimeout(() => {
         setForceShowList(true);
       }, 1500);
@@ -82,7 +79,6 @@ function MainChat() {
           </div>
         )}
 
-        {/* Regular AI Messages */}
         {thread?.messages?.map((m: any, i: number) => {
           const displayText = formatMessageContent(m.content);
           return (
@@ -95,7 +91,6 @@ function MainChat() {
           );
         })}
 
-        {/* 🚨 NUCLEAR OPTION: Manually Render TaskList if Triggered */}
         {forceShowList && (
           <div className="message-row ai" style={{ animation: 'fadeIn 0.5s ease' }}>
              <div className="message-bubble ai">Here are your tasks:</div>
@@ -126,7 +121,6 @@ function MainChat() {
 }
 
 function App() {
-  // Revert to using environment variables
   const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
   
   return (
