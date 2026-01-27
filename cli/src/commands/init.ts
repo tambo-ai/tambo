@@ -14,7 +14,9 @@ import {
 } from "../lib/device-auth.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import {
+  GuidanceError,
   interactivePrompt,
+  isInteractive,
   NonInteractiveError,
 } from "../utils/interactive.js";
 import {
@@ -67,6 +69,9 @@ interface InitOptions {
   legacyPeerDeps?: boolean;
   yes?: boolean;
   skipAgentDocs?: boolean;
+  apiKey?: string;
+  projectName?: string;
+  projectId?: string;
 }
 
 /**
@@ -855,7 +860,38 @@ export async function handleInit({
   legacyPeerDeps = false,
   yes = false,
   skipAgentDocs = false,
+  apiKey,
+  projectName: _projectName,
+  projectId: _projectId,
 }: InitOptions): Promise<void> {
+  // In non-interactive mode, check if we have what we need
+  if (!isInteractive()) {
+    // If API key is provided directly, we can skip auth entirely
+    if (apiKey) {
+      // Write the API key and continue
+      if (!validateRootPackageJson()) return;
+      const saved = await writeApiKeyToEnv(apiKey);
+      if (!saved) {
+        throw new Error("Failed to write API key to .env file");
+      }
+      console.log(chalk.green("\n✔ API key configured"));
+
+      await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+      console.log(
+        chalk.green("\n✔ API key setup complete.") +
+          chalk.gray(" Run 'tambo init' interactively for full project setup."),
+      );
+      return;
+    }
+
+    // No API key provided - need guidance
+    throw new GuidanceError("API key required in non-interactive mode", [
+      "npx tambo init --api-key=sk_...  # Get key from https://console.tambo.co",
+      "npx tambo init --project-name=myapp   # Create new project (requires browser auth)",
+      "npx tambo init --project-id=abc123    # Use existing project (requires browser auth)",
+    ]);
+  }
+
   try {
     if (fullSend) {
       return await handleFullSendInit({
