@@ -16,7 +16,7 @@ import { handleListComponents } from "./commands/list/index.js";
 import { handleMigrate } from "./commands/migrate.js";
 import { handleUpdateComponents } from "./commands/update.js";
 import { handleUpgrade } from "./commands/upgrade/index.js";
-import { NonInteractiveError } from "./utils/interactive.js";
+import { GuidanceError, NonInteractiveError } from "./utils/interactive.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,6 +42,9 @@ interface CLIFlags extends Record<string, any> {
   quiet?: Flag<"boolean", boolean>;
   force?: Flag<"boolean", boolean>;
   all?: Flag<"boolean", boolean>;
+  apiKey?: Flag<"string", string>;
+  projectName?: Flag<"string", string>;
+  projectId?: Flag<"string", string>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -68,6 +71,9 @@ const OPTION_DOCS: Record<string, string> = {
   "dry-run": `${chalk.yellow("--dry-run")}            Preview changes without applying them`,
   quiet: `${chalk.yellow("--quiet, -q")}          Exit code 0 if authenticated, 1 otherwise`,
   force: `${chalk.yellow("--force, -f")}          Skip confirmation prompts`,
+  "api-key": `${chalk.yellow("--api-key <key>")}      Direct API key input (skips auth)`,
+  "project-name": `${chalk.yellow("--project-name <name>")} Create new project with this name`,
+  "project-id": `${chalk.yellow("--project-id <id>")}    Use existing project by ID`,
 };
 
 const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
@@ -79,11 +85,20 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       `$ ${chalk.cyan("tambo init")} [options]`,
       `$ ${chalk.cyan("tambo full-send")} [options]  ${chalk.dim("(includes component installation)")}`,
     ],
-    options: ["yes", "skip-agent-docs", "legacy-peer-deps"],
+    options: [
+      "yes",
+      "api-key",
+      "project-name",
+      "project-id",
+      "skip-agent-docs",
+      "legacy-peer-deps",
+    ],
     examples: [
-      `$ ${chalk.cyan("tambo init")}                      # Basic initialization`,
-      `$ ${chalk.cyan("tambo init --yes")}                # Skip all prompts`,
-      `$ ${chalk.cyan("tambo full-send")}                 # Full setup with components`,
+      `$ ${chalk.cyan("tambo init")}                              # Interactive mode`,
+      `$ ${chalk.cyan("tambo init --yes --project-name=myapp")}   # Non-interactive`,
+      `$ ${chalk.cyan("tambo init --api-key=sk_...")}             # Direct API key`,
+      `$ ${chalk.cyan("tambo init --project-id=abc123")}          # Existing project`,
+      `$ ${chalk.cyan("tambo full-send")}                         # Full setup`,
     ],
     exampleTitle: "Getting Started",
   },
@@ -390,6 +405,18 @@ const cli = meow(generateGlobalHelp(), {
       type: "boolean",
       description: "Revoke all CLI sessions",
     },
+    apiKey: {
+      type: "string",
+      description: "API key to use for init (skips auth flow)",
+    },
+    projectName: {
+      type: "string",
+      description: "Project name for init (creates new project)",
+    },
+    projectId: {
+      type: "string",
+      description: "Project ID for init (uses existing project)",
+    },
   },
   importMeta: import.meta,
 });
@@ -438,6 +465,9 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       legacyPeerDeps: Boolean(flags.legacyPeerDeps),
       yes: Boolean(flags.yes),
       skipAgentDocs: Boolean(flags.skipAgentDocs),
+      apiKey: flags.apiKey as string | undefined,
+      projectName: flags.projectName as string | undefined,
+      projectId: flags.projectId as string | undefined,
     });
     return;
   }
@@ -684,15 +714,24 @@ async function main() {
 
     await handleCommand(command, flags);
   } catch (error) {
+    // GuidanceError: user action required - exit with code 2
+    if (error instanceof GuidanceError) {
+      console.error(chalk.red(`Error: ${error.message}`));
+      console.error("\nRun one of:");
+      error.guidance.forEach((g) => console.error(`  ${g}`));
+      process.exit(2);
+    }
+
     // NonInteractiveError already has a well-formatted message, don't add prefix
     if (error instanceof NonInteractiveError) {
       console.error(error.message);
-    } else {
-      console.error(
-        chalk.red("Error executing command:"),
-        error instanceof Error ? error.message : String(error),
-      );
+      process.exit(1);
     }
+
+    console.error(
+      chalk.red("Error executing command:"),
+      error instanceof Error ? error.message : String(error),
+    );
     process.exit(1);
   }
 }

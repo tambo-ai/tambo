@@ -5,7 +5,9 @@ import path from "path";
 import {
   execFileSync,
   execSync,
+  GuidanceError,
   interactivePrompt,
+  isInteractive,
 } from "../utils/interactive.js";
 import {
   detectPackageManager,
@@ -98,6 +100,16 @@ function updatePackageJson(targetDir: string, appName: string): void {
 export async function handleCreateApp(
   options: CreateAppOptions = {},
 ): Promise<void> {
+  // In non-interactive mode, check if we have what we need
+  if (!isInteractive() && !options.name) {
+    throw new GuidanceError("App name required in non-interactive mode", [
+      "tambo create-app my-app                     # Create in 'my-app' directory",
+      "tambo create-app my-app --template=standard # With template",
+      "tambo create-app .                          # Create in current directory",
+      "FORCE_INTERACTIVE=1 tambo create-app        # Force interactive mode",
+    ]);
+  }
+
   console.log("");
 
   let appName: string;

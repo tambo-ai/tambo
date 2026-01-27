@@ -14,7 +14,9 @@ import {
 } from "../lib/device-auth.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import {
+  GuidanceError,
   interactivePrompt,
+  isInteractive,
   NonInteractiveError,
 } from "../utils/interactive.js";
 import {
@@ -67,6 +69,9 @@ interface InitOptions {
   legacyPeerDeps?: boolean;
   yes?: boolean;
   skipAgentDocs?: boolean;
+  apiKey?: string;
+  projectName?: string;
+  projectId?: string;
 }
 
 /**
@@ -855,7 +860,36 @@ export async function handleInit({
   legacyPeerDeps = false,
   yes = false,
   skipAgentDocs = false,
+  apiKey,
+  projectName: _projectName,
+  projectId: _projectId,
 }: InitOptions): Promise<void> {
+  // In non-interactive mode, check if we have what we need
+  if (!isInteractive()) {
+    // If API key is provided directly, we can skip auth entirely
+    if (apiKey) {
+      // Write the API key and continue
+      if (!validateRootPackageJson()) return;
+      const saved = await writeApiKeyToEnv(apiKey);
+      if (!saved) {
+        throw new Error("Failed to write API key to .env file");
+      }
+      console.log(chalk.green("\n✔ API key configured"));
+
+      await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+      console.log(chalk.green("\n✨ Initialization complete!"));
+      return;
+    }
+
+    // No API key provided - need guidance
+    throw new GuidanceError("Cannot run init interactively in CI/piped mode", [
+      "tambo init --api-key=sk_...           # Direct API key input",
+      "tambo init --project-name=myapp       # Auth & create new project",
+      "tambo init --project-id=abc123        # Auth & use existing project",
+      "FORCE_INTERACTIVE=1 tambo init        # Force interactive mode",
+    ]);
+  }
+
   try {
     if (fullSend) {
       return await handleFullSendInit({

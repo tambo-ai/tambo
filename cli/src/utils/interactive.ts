@@ -48,6 +48,25 @@ export class NonInteractiveError extends Error {
 }
 
 /**
+ * Error thrown when a command needs user action in non-interactive mode.
+ * Unlike NonInteractiveError, this provides specific guidance on what flags to use.
+ * The CLI entry point catches these and exits with code 2 (user action required).
+ */
+export class GuidanceError extends Error {
+  /**
+   * @param message - Brief error message (e.g., "Project name required")
+   * @param guidance - Array of example commands showing how to resolve the issue
+   */
+  constructor(
+    message: string,
+    public readonly guidance: string[],
+  ) {
+    super(message);
+    this.name = "GuidanceError";
+  }
+}
+
+/**
  * Wrapper around inquirer.prompt that checks for interactivity first.
  * If running in a non-interactive environment, throws a NonInteractiveError
  * with helpful guidance on what flags to pass.
