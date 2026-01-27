@@ -885,11 +885,10 @@ export async function handleInit({
     }
 
     // No API key provided - need guidance
-    throw new GuidanceError("Cannot run init interactively in CI/piped mode", [
-      "tambo init --api-key=sk_...           # Direct API key input",
-      "tambo init --project-name=myapp       # Auth & create new project",
-      "tambo init --project-id=abc123        # Auth & use existing project",
-      "FORCE_INTERACTIVE=1 tambo init        # Force interactive mode",
+    throw new GuidanceError("API key required in non-interactive mode", [
+      "npx tambo init --api-key=sk_...  # Get key from https://console.tambo.co",
+      "npx tambo init --project-name=myapp   # Create new project (requires browser auth)",
+      "npx tambo init --project-id=abc123    # Use existing project (requires browser auth)",
     ]);
   }
 

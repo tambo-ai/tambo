@@ -715,10 +715,15 @@ async function main() {
     await handleCommand(command, flags);
   } catch (error) {
     // GuidanceError: user action required - exit with code 2
+    // Format is designed to be easily parsed by AI agents
     if (error instanceof GuidanceError) {
       console.error(chalk.red(`Error: ${error.message}`));
-      console.error("\nRun one of:");
-      error.guidance.forEach((g) => console.error(`  ${g}`));
+      console.error(chalk.yellow("\nRequired: Run one of these commands:\n"));
+      error.guidance.forEach((g, i) => {
+        const prefix = i === 0 ? chalk.green("→") : " ";
+        console.error(`${prefix} ${g}`);
+      });
+      console.error(chalk.gray("\n(Exit code 2 = command needs flags)"));
       process.exit(2);
     }
 

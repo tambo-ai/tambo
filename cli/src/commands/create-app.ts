@@ -102,12 +102,14 @@ export async function handleCreateApp(
 ): Promise<void> {
   // In non-interactive mode, check if we have what we need
   if (!isInteractive() && !options.name) {
-    throw new GuidanceError("App name required in non-interactive mode", [
-      "tambo create-app my-app                     # Create in 'my-app' directory",
-      "tambo create-app my-app --template=standard # With template",
-      "tambo create-app .                          # Create in current directory",
-      "FORCE_INTERACTIVE=1 tambo create-app        # Force interactive mode",
-    ]);
+    throw new GuidanceError(
+      "App name and template required in non-interactive mode",
+      [
+        "npx tambo create-app my-app --template=standard  # Recommended",
+        "npx tambo create-app my-app --template=analytics # Analytics template",
+        "npx tambo create-app . --template=standard       # Current directory",
+      ],
+    );
   }
 
   console.log("");
