@@ -1,0 +1,6 @@
+# Convex generated files
+convex/_generated/**
+
+# Config files
+*.config.mjs
+postcss.config.mjs

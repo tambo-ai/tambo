@@ -1,9 +1,12 @@
-import {
-  updateProjectAgentSettingsInput as updateProjectAgentSettingsInputSchema,
-  updateProjectAgentSettingsOutputSchema,
-} from "@/lib/schemas/agent";
+import { updateProjectAgentSettingsToolInput as updateProjectAgentSettingsInputSchema } from "@/lib/schemas/agent";
+import { z } from "zod/v3";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
+
+// Tool-compatible output schema (original uses agentHeadersSchema which is a Record type)
+const updateProjectAgentSettingsOutputSchema = z
+  .unknown()
+  .describe("Updated agent settings for the project");
 
 /**
  * Register agent-specific settings management tools
@@ -29,6 +32,24 @@ export function registerAgentTools(
       agentName,
       agentHeaders,
     }) => {
+      // Validate and convert agentHeaders from unknown to Record<string, string> | null | undefined
+      let validatedHeaders: Record<string, string> | null | undefined =
+        undefined;
+      if (agentHeaders !== null && agentHeaders !== undefined) {
+        if (typeof agentHeaders === "object" && !Array.isArray(agentHeaders)) {
+          // Convert to Record<string, string>, filtering out non-string values
+          const headers: Record<string, string> = {};
+          for (const [key, value] of Object.entries(agentHeaders)) {
+            if (typeof key === "string" && typeof value === "string") {
+              headers[key] = value;
+            }
+          }
+          validatedHeaders = Object.keys(headers).length > 0 ? headers : null;
+        } else {
+          validatedHeaders = null;
+        }
+      }
+
       const result =
         await ctx.trpcClient.project.updateProjectAgentSettings.mutate({
           projectId,
@@ -36,9 +57,7 @@ export function registerAgentTools(
           agentProviderType,
           agentUrl,
           agentName,
-          // Cast from unknown (tool schema) to Record<string, string> (tRPC expects)
-          // Validation happens server-side
-          agentHeaders: agentHeaders,
+          agentHeaders: validatedHeaders,
         });
 
       // Invalidate all caches that display agent settings (shown in LLM settings view)

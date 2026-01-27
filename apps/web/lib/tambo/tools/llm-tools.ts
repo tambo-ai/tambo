@@ -1,7 +1,5 @@
 import {
   getProjectLlmSettingsInput,
-  llmProviderConfigSchema,
-  projectLlmSettingsSchema,
   updateProjectLlmSettingsInput,
   updateProjectLlmSettingsOutputSchema,
 } from "@/lib/schemas/llm";
@@ -15,11 +13,10 @@ import type { RegisterToolFn, ToolContext } from "./types";
  */
 export const fetchAvailableLlmModelsInputSchema = z.object({});
 
-/**
- * Output schema for the `fetchAvailableLlmModels` function.
- * Returns all available LLM providers and their models with IDs.
- */
-export const fetchAvailableLlmModelsOutputSchema = llmProviderConfigSchema;
+// Tool-compatible output schema (original llmProviderConfigSchema uses z.record() which is not supported)
+export const fetchAvailableLlmModelsOutputSchema = z
+  .unknown()
+  .describe("LLM provider configuration with all available models");
 
 /**
  * Input schema for the `fetchProjectLlmSettings` function.
@@ -27,11 +24,12 @@ export const fetchAvailableLlmModelsOutputSchema = llmProviderConfigSchema;
  */
 export const fetchProjectLlmSettingsInputSchema = getProjectLlmSettingsInput;
 
-/**
- * Output schema for the `fetchProjectLlmSettings` function.
- * Returns LLM settings.
- */
-export const fetchProjectLlmSettingsOutputSchema = projectLlmSettingsSchema;
+// Tool-compatible output schema (original projectLlmSettingsSchema has agentHeaders Record type)
+export const fetchProjectLlmSettingsOutputSchema = z
+  .unknown()
+  .describe(
+    "Project LLM settings including provider, model, and agent configuration",
+  );
 
 /**
  * Tool-specific input schema for updateProjectLlmSettings.
