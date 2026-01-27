@@ -66,7 +66,7 @@
     "dompurify": "^3.3.1",
     "drizzle-orm": "^0.45.1",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^12.23.26",
+    "framer-motion": "^12.29.0",
     "geist": "^1.5.1",
     "highlight.js": "^11.11.1",
     "jiti": "^2.6.1",
