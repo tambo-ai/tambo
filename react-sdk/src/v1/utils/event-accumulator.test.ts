@@ -13,6 +13,10 @@ import {
   type ToolCallResultEvent,
   type ToolCallStartEvent,
 } from "@ag-ui/core";
+import type {
+  ComponentContent,
+  ToolUseContent,
+} from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import {
   createInitialState,
   createInitialThreadState,
@@ -20,6 +24,30 @@ import {
   type StreamState,
   type ThreadState,
 } from "./event-accumulator";
+import type { Content } from "../types/message";
+
+/**
+ * Helper to extract a ToolUseContent from a message content array.
+ * @param content - Content array from a message
+ * @param index - Index of the content item
+ * @returns The content as ToolUseContent
+ */
+function asToolUseContent(content: Content[], index: number): ToolUseContent {
+  return content[index] as ToolUseContent;
+}
+
+/**
+ * Helper to extract a ComponentContent from a message content array.
+ * @param content - Content array from a message
+ * @param index - Index of the content item
+ * @returns The content as ComponentContent
+ */
+function asComponentContent(
+  content: Content[],
+  index: number,
+): ComponentContent {
+  return content[index] as ComponentContent;
+}
 
 // Helper to create a base thread state for testing
 function createTestThreadState(threadId: string): ThreadState {
@@ -674,8 +702,10 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      const toolContent = result.threadMap.thread_1.thread.messages[0]
-        .content[0] as { type: "tool_use"; input: unknown };
+      const toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
       expect(toolContent.input).toEqual({ city: "NYC" });
     });
 
@@ -787,8 +817,10 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      const component = result.threadMap.thread_1.thread.messages[0]
-        .content[0] as { props: Record<string, unknown> };
+      const component = asComponentContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
       expect(component.props).toEqual({ temperature: 72 });
     });
 
@@ -869,8 +901,10 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      const component = result.threadMap.thread_1.thread.messages[0]
-        .content[0] as { state: Record<string, unknown> };
+      const component = asComponentContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
       expect(component.state).toEqual({ count: 42 });
     });
 

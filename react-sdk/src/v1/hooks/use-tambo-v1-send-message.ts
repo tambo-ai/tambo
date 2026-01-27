@@ -15,6 +15,7 @@ import {
   type RunErrorEvent,
   type CustomEvent,
 } from "@ag-ui/core";
+import { asTamboCustomEvent, type RunAwaitingInputEvent } from "../types/event";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
@@ -70,7 +71,7 @@ export interface CreateRunStreamResult {
  * Parameters for handling awaiting_input events
  */
 interface HandleAwaitingInputParams {
-  event: CustomEvent;
+  event: RunAwaitingInputEvent;
   toolTracker: ToolCallTracker;
   registry: TamboRegistry;
   client: TamboAI;
@@ -104,13 +105,7 @@ async function handleAwaitingInput(
     dispatch,
   } = params;
 
-  if (event.name !== "tambo.run.awaiting_input") {
-    return undefined;
-  }
-
-  const { pendingToolCallIds } = event.value as {
-    pendingToolCallIds: string[];
-  };
+  const { pendingToolCallIds } = event.value;
   const toolCallsToExecute = toolTracker.getToolCallsById(pendingToolCallIds);
 
   // Execute tools
@@ -287,18 +282,21 @@ export function useTamboV1SendMessage(threadId?: string) {
 
           // Handle awaiting_input for client-side tool execution
           if (event.type === EventType.CUSTOM) {
-            const result = await handleAwaitingInput({
-              event: event as CustomEvent,
-              toolTracker,
-              registry,
-              client,
-              threadId: actualThreadId,
-              runId,
-              debug,
-              dispatch,
-            });
-            if (result?.runId) {
-              runId = result.runId;
+            const customEvent = asTamboCustomEvent(event as CustomEvent);
+            if (customEvent?.name === "tambo.run.awaiting_input") {
+              const result = await handleAwaitingInput({
+                event: customEvent,
+                toolTracker,
+                registry,
+                client,
+                threadId: actualThreadId,
+                runId,
+                debug,
+                dispatch,
+              });
+              if (result?.runId) {
+                runId = result.runId;
+              }
             }
           }
         }

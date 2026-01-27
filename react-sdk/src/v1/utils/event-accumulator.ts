@@ -7,6 +7,7 @@
 
 import type {
   BaseEvent,
+  CustomEvent,
   RunErrorEvent,
   RunFinishedEvent,
   RunStartedEvent,
@@ -20,7 +21,7 @@ import type {
 } from "@ag-ui/core";
 import { EventType } from "@ag-ui/core";
 import {
-  isTamboCustomEvent,
+  asTamboCustomEvent,
   type ComponentEndEvent,
   type ComponentPropsDeltaEvent,
   type ComponentStartEvent,
@@ -883,20 +884,16 @@ function handleCustomEvent(
     return threadState;
   }
 
-  // Cast to CustomEvent type (which has name property) for type guard check
-  const customEventBase = event as { name?: string };
+  // Use centralized casting function to get properly typed event
+  const customEvent = asTamboCustomEvent(event as CustomEvent);
 
-  // Use type guard to validate this is a known Tambo custom event
-  if (!isTamboCustomEvent(customEventBase)) {
+  if (!customEvent) {
     // Unknown custom event - log and return unchanged
-
     console.warn(
-      `[StreamReducer] Unknown custom event name: ${customEventBase.name}`,
+      `[StreamReducer] Unknown custom event name: ${(event as CustomEvent).name}`,
     );
     return threadState;
   }
-
-  const customEvent = customEventBase;
 
   switch (customEvent.name) {
     case "tambo.component.start":
