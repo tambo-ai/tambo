@@ -132,6 +132,26 @@ export function execFileSync(
 ): Buffer | string {
   const { allowNonInteractive, ...execOptions } = options ?? {};
 
+  const isPipedStdio = (
+    stdio: ExecFileSyncOptions["stdio"] | undefined,
+    index: 1 | 2,
+  ): boolean => {
+    if (stdio === undefined || stdio === "pipe") {
+      return true;
+    }
+
+    if (stdio === "ignore" || stdio === "inherit") {
+      return false;
+    }
+
+    if (Array.isArray(stdio)) {
+      const stdioAtIndex = stdio[index];
+      return stdioAtIndex === undefined || stdioAtIndex === "pipe";
+    }
+
+    return false;
+  };
+
   if (!isInteractive() && !allowNonInteractive) {
     const commandStr = args ? `${file} ${args.join(" ")}` : file;
     throw new NonInteractiveError(
@@ -162,45 +182,68 @@ export function execFileSync(
       windowsHide,
     });
 
+    const stdout = isPipedStdio(stdio, 1) ? (result.stdout ?? null) : null;
+    const stderr = isPipedStdio(stdio, 2) ? (result.stderr ?? null) : null;
+
     if (result.error) {
-      throw result.error;
+      const err = result.error as Error & {
+        stdout?: Buffer | string | null;
+        stderr?: Buffer | string | null;
+      };
+      err.stdout = stdout;
+      err.stderr = stderr;
+      throw err;
     }
 
     if (result.status !== 0) {
       const commandStr = args ? `${file} ${args.join(" ")}` : file;
-      const stderr =
-        typeof result.stderr === "string"
-          ? result.stderr
-          : result.stderr?.toString(spawnEncoding);
+
+      let stderrStr: string | undefined;
+      if (typeof stderr === "string") {
+        stderrStr = stderr;
+      } else if (stderr instanceof Buffer) {
+        stderrStr = stderr.toString(spawnEncoding);
+      }
 
       const err = new Error(
         `Command failed (${result.status ?? "unknown status"}): ${commandStr}${
-          stderr ? `\n${stderr.trim()}` : ""
+          stderrStr ? `\n${stderrStr.trim()}` : ""
         }`,
-      );
+      ) as Error & {
+        status?: number | null;
+        signal?: NodeJS.Signals | null;
+        stdout?: Buffer | string | null;
+        stderr?: Buffer | string | null;
+      };
       // Keep the status/signal available for callers that want to inspect.
-      (
-        err as { status?: number | null; signal?: NodeJS.Signals | null }
-      ).status = result.status;
-      (
-        err as { status?: number | null; signal?: NodeJS.Signals | null }
-      ).signal = result.signal;
+      err.status = result.status;
+      err.signal = result.signal;
+      err.stdout = stdout;
+      err.stderr = stderr;
       throw err;
     }
 
-    if (result.stdout != null) {
-      if (spawnEncoding) {
-        return typeof result.stdout === "string"
-          ? result.stdout
-          : result.stdout.toString(spawnEncoding);
+    if (spawnEncoding) {
+      if (typeof stdout === "string") {
+        return stdout;
       }
 
-      return Buffer.isBuffer(result.stdout)
-        ? result.stdout
-        : Buffer.from(String(result.stdout));
+      if (stdout instanceof Buffer) {
+        return stdout.toString(spawnEncoding);
+      }
+
+      return "";
     }
 
-    return spawnEncoding ? "" : Buffer.alloc(0);
+    if (stdout instanceof Buffer) {
+      return stdout;
+    }
+
+    if (typeof stdout === "string") {
+      return Buffer.from(stdout);
+    }
+
+    return Buffer.alloc(0);
   }
 
   return nodeExecFileSync(file, args, execOptions);
