@@ -1,42 +1,17 @@
 "use client";
 
-import { TamboProvider, useTamboThreadInput } from "@tambo-ai/react";
-
-function Chat() {
-  const { value, setValue, submit } = useTamboThreadInput();
-
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Tambo Chat</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit();
-        }}
-        className="flex gap-2"
-      >
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 border rounded px-3 py-2"
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Send
-        </button>
-      </form>
-    </div>
-  );
-}
+import { TamboProvider } from "@tambo-ai/react";
 
 export default function Page() {
+  const apiKey = process.env.NEXT_PUBLIC_TAMBO_API_KEY;
+
+  if (!apiKey) {
+    return <div className="p-4">Set NEXT_PUBLIC_TAMBO_API_KEY to enable Tambo.</div>;
+  }
+
   return (
-    <TamboProvider apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}>
-      <Chat />
+    <TamboProvider apiKey={apiKey}>
+      <div className="p-4">Tambo is connected.</div>
     </TamboProvider>
   );
 }
