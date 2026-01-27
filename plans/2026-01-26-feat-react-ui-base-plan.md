@@ -1,28 +1,29 @@
-# Feature: react-sdk Primitives Subpath
+# Feature: @tambo-ai/react-ui-base Package
 
 ## Overview
 
-Extract business logic from UI components into reusable hooks, utilities, and unstyled primitive components, exposed via a tree-shakeable subpath export from `@tambo-ai/react/primitives`. This enables users to build custom UIs while leveraging Tambo's core functionality. The extraction targets the two largest components (`message-input.tsx` at 1612 lines and `message.tsx` at 1071 lines) while maintaining backwards compatibility.
+Extract business logic from UI components into reusable hooks, utilities, and unstyled base components in a new `@tambo-ai/react-ui-base` package. This enables users to build custom UIs while leveraging Tambo's core functionality. The extraction targets the two largest components (`message-input.tsx` at 1612 lines and `message.tsx` at 1071 lines) while maintaining backwards compatibility.
 
 ## Key Design Decisions
 
-- **Subpath export from react-sdk**: `@tambo-ai/react/primitives` - no new package, tree-shakeable
+- **Separate package**: `@tambo-ai/react-ui-base` - cleaner dependency boundaries, easier tree-shaking
+- **Peer dependency on react-sdk**: Base hooks integrate with existing `@tambo-ai/react` providers
 - **Tambo-specific naming**: Hooks follow `useTambo*` convention for consistency
 - **Incremental extraction**: Start with pure utility functions, then simple hooks, then complex stateful hooks
-- **Internal-first migration**: Original components will use primitives hooks internally, preserving API backwards compatibility
+- **Internal-first migration**: Original components will use base hooks internally, preserving API backwards compatibility
 - **Composition over replacement**: Each extracted hook handles one concern; components compose multiple hooks
 
 ## Tree-shaking Requirements
 
-Tree-shaking should be treated as a requirement of the primitives export surface, not just a nice-to-have.
+Tree-shaking should be treated as a requirement, not just a nice-to-have.
 
-- `@tambo-ai/react` must be publishable as side-effect free for these entrypoints (e.g., `"sideEffects": false`, or a precise allowlist if we ever add non-tree-shakeable assets).
-- `@tambo-ai/react/primitives` should avoid module-level side effects (no work at import-time):
-  - No `window`/`document`/`sessionStorage` access outside of `useEffect` / guarded helper functions.
-  - No logging, no runtime registration, no global polyfills.
-- Keep primitives UI-agnostic to avoid pulling in UI dependencies (e.g., no `lucide-react` imports or returning JSX elements from primitives hooks).
-- Be careful with `index.ts` barrels: prefer `export { foo } from "./foo"` re-exports over patterns that eagerly import modules and make tree-shaking less reliable.
-- If consumers need deep imports without barrels, consider additional subpath exports (e.g., `@tambo-ai/react/primitives/hooks/*` and `@tambo-ai/react/primitives/utils/*`).
+- `@tambo-ai/react-ui-base` should be publishable as side-effect free (`"sideEffects": false` in package.json)
+- Avoid module-level side effects (no work at import-time):
+  - No `window`/`document`/`sessionStorage` access outside of `useEffect` / guarded helper functions
+  - No logging, no runtime registration, no global polyfills
+- Keep base hooks UI-agnostic to avoid pulling in UI dependencies (e.g., no `lucide-react` imports or returning JSX elements from hooks)
+- Be careful with `index.ts` barrels: prefer `export { foo } from "./foo"` re-exports over patterns that eagerly import modules
+- Use feature-based subpath exports (e.g., `@tambo-ai/react-ui-base/message-input`, `@tambo-ai/react-ui-base/message`)
 
 ## Architecture
 
@@ -30,25 +31,34 @@ Tree-shaking should be treated as a requirement of the primitives export surface
 User Code
     |
     v
-@tambo-ai/react/primitives (subpath export - tree-shakeable)
+@tambo-ai/react-ui-base (feature-based subpath exports - tree-shakeable)
     |
-    +-- utils/
-    |     +-- content-transforms.ts     (pure functions)
-    |     +-- draft-persistence.ts      (sessionStorage helpers)
-    |     +-- image-validation.ts       (file validation)
-    |     +-- keyboard-shortcuts.ts     (shortcut detection)
-    |     +-- resource-filters.ts       (filtering & dedup)
+    +-- message-input/
+    |     +-- use-message-input-state.ts
+    |     +-- use-keyboard-shortcut.ts
+    |     +-- draft-persistence.ts
+    |     +-- image-validation.ts
+    |     +-- keyboard-shortcuts.ts
     |
-    +-- hooks/
+    +-- message/
+    |     +-- use-message-content.ts
+    |     +-- use-tool-response.ts
+    |     +-- format-tool-result.ts
+    |     +-- get-tool-status-message.ts
+    |     +-- content-utils.ts
+    |     +-- content-transforms.ts
+    |
+    +-- thread/
+    |     +-- use-thread-management.ts
+    |     +-- use-suggestion-merge.ts
+    |
+    +-- resources/
+    |     +-- use-combined-resources.ts
+    |     +-- use-combined-prompts.ts
+    |     +-- resource-filters.ts
+    |
+    +-- scroll/
           +-- use-tambo-auto-scroll.ts
-          +-- use-combined-resources.ts
-          +-- use-combined-prompts.ts
-          +-- use-message-input-state.ts
-          +-- use-message-content.ts
-          +-- use-tool-response.ts
-          +-- use-thread-management.ts
-          +-- use-suggestion-merge.ts
-          +-- use-keyboard-shortcut.ts
     |
     v
 @tambo-ai/react (providers & core hooks)
@@ -60,14 +70,24 @@ User Code
 ## Usage
 
 ```typescript
-// Primitives hooks - tree-shakeable subpath
+// Import by feature
+import {
+  useMessageInputState,
+  useKeyboardShortcut,
+} from "@tambo-ai/react-ui-base/message-input";
+import {
+  useMessageContent,
+  formatToolResult,
+} from "@tambo-ai/react-ui-base/message";
+import { useTamboAutoScroll } from "@tambo-ai/react-ui-base/scroll";
+
+// Or from main entry (re-exports all features - less tree-shakeable; depends on bundler)
 import {
   useMessageInputState,
   useTamboAutoScroll,
-} from "@tambo-ai/react/primitives";
-import { formatToolResult } from "@tambo-ai/react/primitives/utils";
+} from "@tambo-ai/react-ui-base";
 
-// Main entry unchanged
+// Core SDK (providers, API hooks)
 import { useTambo, TamboProvider } from "@tambo-ai/react";
 ```
 
@@ -159,34 +179,35 @@ function getToolStatusMessage(status: ToolCallStatus): string;
 
 ## File Structure
 
+Organized by **feature folders** rather than by type (hooks/utils). Each feature folder contains all related hooks, utilities, and tests.
+
 ```
-react-sdk/
-  src/
-    index.ts                      # Main entry (unchanged)
-    primitives/
-      index.ts                    # Subpath entry: @tambo-ai/react/primitives
-      hooks/
+packages/
+  react-ui-base/                   # NEW PACKAGE
+    package.json
+    tsconfig.json
+    src/
+      index.ts                     # Main entry: @tambo-ai/react-ui-base
+
+      message-input/               # Message input feature
         index.ts
-        use-tambo-auto-scroll.ts
-        use-tambo-auto-scroll.test.ts
-        use-combined-resources.ts
-        use-combined-resources.test.ts
-        use-combined-prompts.ts
-        use-combined-prompts.test.ts
         use-message-input-state.ts
         use-message-input-state.test.ts
+        use-keyboard-shortcut.ts
+        use-keyboard-shortcut.test.ts
+        draft-persistence.ts
+        draft-persistence.test.ts
+        image-validation.ts
+        image-validation.test.ts
+        keyboard-shortcuts.ts
+        keyboard-shortcuts.test.ts
+
+      message/                     # Message display feature
+        index.ts
         use-message-content.ts
         use-message-content.test.ts
         use-tool-response.ts
         use-tool-response.test.ts
-        use-thread-management.ts
-        use-thread-management.test.ts
-        use-suggestion-merge.ts
-        use-suggestion-merge.test.ts
-        use-keyboard-shortcut.ts
-        use-keyboard-shortcut.test.ts
-      utils/
-        index.ts                  # Subpath entry: @tambo-ai/react/primitives/utils
         format-tool-result.ts
         format-tool-result.test.ts
         get-tool-status-message.ts
@@ -195,25 +216,49 @@ react-sdk/
         content-utils.test.ts
         content-transforms.ts
         content-transforms.test.ts
-        draft-persistence.ts
-        draft-persistence.test.ts
-        image-validation.ts
-        image-validation.test.ts
+
+      thread/                      # Thread management feature
+        index.ts
+        use-thread-management.ts
+        use-thread-management.test.ts
+        use-suggestion-merge.ts
+        use-suggestion-merge.test.ts
+
+      resources/                   # Resource/prompt combining feature
+        index.ts
+        use-combined-resources.ts
+        use-combined-resources.test.ts
+        use-combined-prompts.ts
+        use-combined-prompts.test.ts
         resource-filters.ts
         resource-filters.test.ts
-        keyboard-shortcuts.ts
-        keyboard-shortcuts.test.ts
-  package.json                    # Add subpath exports
+
+      scroll/                      # Auto-scroll feature
+        index.ts
+        use-tambo-auto-scroll.ts
+        use-tambo-auto-scroll.test.ts
 ```
 
-**package.json exports addition:**
+**package.json:**
 
 ```json
 {
+  "name": "@tambo-ai/react-ui-base",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./primitives": "./src/primitives/index.ts",
-    "./primitives/utils": "./src/primitives/utils/index.ts"
+    "./message-input": "./src/message-input/index.ts",
+    "./message": "./src/message/index.ts",
+    "./thread": "./src/thread/index.ts",
+    "./resources": "./src/resources/index.ts",
+    "./scroll": "./src/scroll/index.ts"
+  },
+  "peerDependencies": {
+    "@tambo-ai/react": "*",
+    "react": "^18 || ^19"
   }
 }
 ```
@@ -222,7 +267,7 @@ react-sdk/
 
 ### Step 1: In-Place Component Refactoring (Preparation)
 
-Before creating the primitives package, refactor existing components to separate "dumb-display" (presentation) from "primitives-functional" (state/logic) parts. This is done within the existing `ui-registry` package without changing functionality.
+Before creating the base package, refactor existing components to separate "dumb-display" (presentation) from "base-functional" (state/logic) parts. This is done within the existing `ui-registry` package without changing functionality.
 
 **Goal:** Each component directory exports both:
 
@@ -277,61 +322,43 @@ After:
 
 ---
 
-### Step 2: Add Subpath Exports to react-sdk
+### Step 2: Create Package Scaffolding
 
-After in-place refactoring proves the separation works, add the primitives subpath exports to react-sdk.
+After in-place refactoring proves the separation works, create the `@tambo-ai/react-ui-base` package.
 
 **Files:**
 
-- `react-sdk/src/primitives/index.ts` (NEW) - Main primitives entry point
-- `react-sdk/src/primitives/hooks/index.ts` (NEW) - Hooks barrel export
-- `react-sdk/src/primitives/utils/index.ts` (NEW) - Utils barrel export
-- `react-sdk/package.json` (MODIFIED) - Add subpath exports
+- `packages/react-ui-base/package.json` (NEW)
+- `packages/react-ui-base/tsconfig.json` (NEW)
+- `packages/react-ui-base/src/index.ts` (NEW) - Main entry point
+- `packages/react-ui-base/src/message-input/index.ts` (NEW) - Message input feature barrel
+- `packages/react-ui-base/src/message/index.ts` (NEW) - Message feature barrel
+- `packages/react-ui-base/src/thread/index.ts` (NEW) - Thread feature barrel
+- `packages/react-ui-base/src/resources/index.ts` (NEW) - Resources feature barrel
+- `packages/react-ui-base/src/scroll/index.ts` (NEW) - Scroll feature barrel
 
 **Key Implementation Details:**
 
-- Add subpath exports to package.json for tree-shaking
-- Create directory structure under `src/primitives/`
-- Ensure ESM and CJS builds include the new entry points
-
-```json
-// package.json exports addition
-{
-  "exports": {
-    ".": {
-      "import": "./esm/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./primitives": {
-      "import": "./esm/primitives/index.js",
-      "require": "./dist/primitives/index.js",
-      "types": "./dist/primitives/index.d.ts"
-    },
-    "./primitives/utils": {
-      "import": "./esm/primitives/utils/index.js",
-      "require": "./dist/primitives/utils/index.js",
-      "types": "./dist/primitives/utils/index.d.ts"
-    }
-  }
-}
-```
+- Create new package in `packages/react-ui-base/`
+- Set up peer dependency on `@tambo-ai/react`
+- Configure `"sideEffects": false` for tree-shaking
+- Use feature folders instead of hooks/utils folders
+- No build step initially - export TypeScript directly (like `ui-registry`)
 
 ### Step 3: Extract Shared Utilities
 
-Extract pure functions with zero React dependencies. These can be tested independently.
+Extract pure functions with zero React dependencies. These can be tested independently. Utilities are colocated with their related feature.
 
 **Files:**
 
-- `packages/primitives-ui/src/utils/content-transforms.ts` (NEW)
-- `packages/primitives-ui/src/utils/draft-persistence.ts` (NEW)
-- `packages/primitives-ui/src/utils/image-validation.ts` (NEW)
-- `packages/primitives-ui/src/utils/resource-filters.ts` (NEW)
-- `packages/primitives-ui/src/utils/keyboard-shortcuts.ts` (NEW)
-- `packages/primitives-ui/src/utils/format-tool-result.ts` (NEW)
-- `packages/primitives-ui/src/utils/get-tool-status-message.ts` (NEW)
-- `packages/primitives-ui/src/utils/content-utils.ts` (NEW)
-- `packages/primitives-ui/src/utils/index.ts` (NEW)
+- `packages/react-ui-base/src/message/content-transforms.ts` (NEW)
+- `packages/react-ui-base/src/message/format-tool-result.ts` (NEW)
+- `packages/react-ui-base/src/message/get-tool-status-message.ts` (NEW)
+- `packages/react-ui-base/src/message/content-utils.ts` (NEW)
+- `packages/react-ui-base/src/message-input/draft-persistence.ts` (NEW)
+- `packages/react-ui-base/src/message-input/image-validation.ts` (NEW)
+- `packages/react-ui-base/src/message-input/keyboard-shortcuts.ts` (NEW)
+- `packages/react-ui-base/src/resources/resource-filters.ts` (NEW)
 
 **Key Implementation Details:**
 
@@ -398,10 +425,9 @@ Create hooks that compute derived state without managing their own state.
 
 **Files:**
 
-- `packages/primitives-ui/src/hooks/use-message-content.ts` (NEW)
-- `packages/primitives-ui/src/hooks/use-tool-response.ts` (NEW)
-- `packages/primitives-ui/src/hooks/use-keyboard-shortcut.ts` (NEW)
-- `packages/primitives-ui/src/hooks/index.ts` (NEW)
+- `packages/react-ui-base/src/message/use-message-content.ts` (NEW)
+- `packages/react-ui-base/src/message/use-tool-response.ts` (NEW)
+- `packages/react-ui-base/src/message-input/use-keyboard-shortcut.ts` (NEW)
 
 **Key Implementation Details:**
 
@@ -454,8 +480,8 @@ Extract the MCP resource and prompt merging logic with debouncing.
 
 **Files:**
 
-- `packages/primitives-ui/src/hooks/use-combined-resources.ts` (NEW)
-- `packages/primitives-ui/src/hooks/use-combined-prompts.ts` (NEW)
+- `packages/react-ui-base/src/resources/use-combined-resources.ts` (NEW)
+- `packages/react-ui-base/src/resources/use-combined-prompts.ts` (NEW)
 
 **Key Implementation Details:**
 
@@ -507,8 +533,8 @@ Extract the scroll behavior with user override detection.
 
 **Files:**
 
-- `packages/primitives-ui/src/hooks/use-tambo-auto-scroll.ts` (NEW)
-- `packages/primitives-ui/src/hooks/use-tambo-auto-scroll.test.ts` (NEW)
+- `packages/react-ui-base/src/scroll/use-tambo-auto-scroll.ts` (NEW)
+- `packages/react-ui-base/src/scroll/use-tambo-auto-scroll.test.ts` (NEW)
 
 **Key Implementation Details:**
 
@@ -566,7 +592,7 @@ Extract the core message input state management.
 
 **Files:**
 
-- `packages/primitives-ui/src/hooks/use-message-input-state.ts` (NEW)
+- `packages/react-ui-base/src/message-input/use-message-input-state.ts` (NEW)
 
 **Key Implementation Details:**
 
@@ -639,8 +665,8 @@ Extract thread and suggestion logic.
 
 **Files:**
 
-- `packages/primitives-ui/src/hooks/use-thread-management.ts` (NEW)
-- `packages/primitives-ui/src/hooks/use-suggestion-merge.ts` (NEW)
+- `packages/react-ui-base/src/thread/use-thread-management.ts` (NEW)
+- `packages/react-ui-base/src/thread/use-suggestion-merge.ts` (NEW)
 
 **Key Implementation Details:**
 
@@ -691,20 +717,23 @@ function useSuggestionMerge({
   }, [threadMessages?.length, generatedSuggestions, initialSuggestions, maxSuggestions])
 ```
 
-### Step 9: Move Hooks to react-sdk/primitives
+### Step 9: Move Hooks to @tambo-ai/react-ui-base
 
-Move the already-separated hooks from component directories into the react-sdk primitives subpath.
+Move the already-separated hooks from component directories into the new package.
 
-**Files to move (from ui-registry component directories to react-sdk):**
+**Files to move (from ui-registry component directories to react-ui-base feature folders):**
 
-- Local hooks from each component → `react-sdk/src/primitives/hooks/`
-- Local utils from each component → `react-sdk/src/primitives/utils/`
-- Update imports in ui-registry components to use `@tambo-ai/react/primitives`
+- Message input hooks/utils → `packages/react-ui-base/src/message-input/`
+- Message hooks/utils → `packages/react-ui-base/src/message/`
+- Thread hooks → `packages/react-ui-base/src/thread/`
+- Resource hooks/utils → `packages/react-ui-base/src/resources/`
+- Scroll hooks → `packages/react-ui-base/src/scroll/`
+- Update imports in ui-registry components to use `@tambo-ai/react-ui-base`
 
 **Key Implementation Details:**
 
 - This is a straightforward move since separation was already done in Step 1
-- No new package dependency needed - ui-registry already depends on react-sdk
+- Add `@tambo-ai/react-ui-base` as dependency to ui-registry
 - Keep all existing props and component API unchanged
 - Re-export moved utilities from original locations with deprecation warnings (if needed)
 
@@ -715,8 +744,8 @@ Move the already-separated hooks from component directories into the react-sdk p
 // packages/ui-registry/src/components/message-input/use-message-input-state.ts
 export function useMessageInputState(...) { ... }
 
-// After (in react-sdk primitives subpath):
-// react-sdk/src/primitives/hooks/use-message-input-state.ts
+// After (in react-ui-base package):
+// packages/react-ui-base/src/message-input/use-message-input-state.ts
 export function useMessageInputState(...) { ... }
 
 // Component import changes:
@@ -724,7 +753,7 @@ export function useMessageInputState(...) { ... }
 import { useMessageInputState } from "./use-message-input-state";
 
 // After:
-import { useMessageInputState } from "@tambo-ai/react/primitives";
+import { useMessageInputState } from "@tambo-ai/react-ui-base";
 ```
 
 ### Step 10: Testing and Validation
@@ -784,11 +813,11 @@ Add comprehensive tests for all extracted functionality.
 - [ ] react-sdk builds without errors: `npm run build -w react-sdk`
 - [ ] All tests pass: `npm test -w react-sdk`
 - [ ] Lint passes: `npm run lint -w react-sdk`
-- [ ] Subpath imports work: `import { ... } from "@tambo-ai/react/primitives"`
-- [ ] Tree-shaking works: unused primitives exports not bundled
+- [ ] Subpath imports work: `import { ... } from "@tambo-ai/react-ui-base"`
+- [ ] Tree-shaking works: unused exports not bundled
 - [ ] All utility functions extracted and tested in isolation
 - [ ] All hooks extracted and tested with renderHook
-- [ ] ui-registry components import from `@tambo-ai/react/primitives`
+- [ ] ui-registry components import from `@tambo-ai/react-ui-base`
 - [ ] No changes to component public APIs
 - [ ] All existing tests pass without modification
 - [ ] Showcase app renders and functions identically
