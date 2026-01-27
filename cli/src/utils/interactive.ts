@@ -108,6 +108,11 @@ const WINDOWS_CMD_BINARIES = new Set([
   "rushx",
 ]);
 
+// Treat stdio as "piped" when:
+// - top-level stdio is undefined or "pipe" (Node default is piped stdout/stderr), or
+// - array stdio has undefined/null or "pipe" at the given index.
+// This mirrors Node's execFileSync defaults so we can decide when stdout/stderr are
+// available to attach to errors.
 const isPipedStdio = (
   stdio: ExecFileSyncOptions["stdio"] | undefined,
   index: 1 | 2,
@@ -137,7 +142,9 @@ const isPipedStdio = (
  * On Windows, uses cross-spawn for known package manager binaries (npm, npx, pnpm, yarn, rush)
  * since they are batch files/shims that require cmd.exe invocation.
  *
- * When stdout is not piped (e.g. stdio: "inherit"), this returns an empty string or Buffer.
+ * When stdout is not piped (e.g. `stdio: "inherit"` or array stdio with a non-pipe value at
+ * index 1), this function does not attempt to capture output and instead returns an empty
+ * string (for string encodings) or an empty Buffer.
  *
  * Note: on Windows package manager binaries, only a subset of ExecFileSync options is honored
  * (stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide).
@@ -195,10 +202,20 @@ export function execFileSync(
         : undefined;
 
     if (result.error) {
-      const err = result.error as Error & {
+      const baseError = result.error as NodeJS.ErrnoException;
+      const err = new Error(baseError.message, {
+        cause: baseError,
+      }) as NodeJS.ErrnoException & {
         stdout?: Buffer | string;
         stderr?: Buffer | string;
       };
+
+      err.name = baseError.name;
+      err.code = baseError.code;
+      err.errno = baseError.errno;
+      err.syscall = baseError.syscall;
+      err.path = baseError.path;
+
       if (stdout !== undefined) {
         err.stdout = stdout;
       }
@@ -220,10 +237,10 @@ export function execFileSync(
             ? stderrRaw.toString(spawnEncoding)
             : stderrRaw.toString();
         } catch {
-          stderrStr = `<non-decodable stderr: ${stderrRaw.length} bytes>`;
+          stderrStr = `<non-decodable stderr: ${stderrRaw.length} bytes; see err.stderr for raw data>`;
         }
       } else if (stderrRaw != null) {
-        stderrStr = `<unexpected stderr type: ${Object.prototype.toString.call(stderrRaw)}>`;
+        stderrStr = `<unexpected stderr type: ${Object.prototype.toString.call(stderrRaw)}; see err.stderr for raw data>`;
       }
 
       const err = new Error(
@@ -249,6 +266,7 @@ export function execFileSync(
     }
 
     if (!isStdoutPiped) {
+      // stdout is being inherited/redirected, so there's nothing for us to capture.
       return spawnEncoding ? "" : Buffer.alloc(0);
     }
 
