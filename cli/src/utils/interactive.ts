@@ -130,7 +130,13 @@ const isPipedStdio = (
     return stdioAtIndex == null || stdioAtIndex === "pipe";
   }
 
-  return false;
+  // Any other string literal is treated as not-piped.
+  if (typeof stdio === "string") {
+    return false;
+  }
+
+  // For custom streams / file descriptors, default to treating them as piped.
+  return true;
 };
 
 /**
@@ -142,9 +148,10 @@ const isPipedStdio = (
  * On Windows, uses cross-spawn for known package manager binaries (npm, npx, pnpm, yarn, rush)
  * since they are batch files/shims that require cmd.exe invocation.
  *
- * When stdout is not piped (e.g. `stdio: "inherit"` or array stdio with a non-pipe value at
- * index 1), this function does not attempt to capture output and instead returns an empty
- * string (for string encodings) or an empty Buffer.
+ * Important: when stdout is not piped (e.g. `stdio: "inherit"` or array stdio with a non-pipe
+ * value at index 1), this function does not attempt to capture output and instead returns an
+ * empty string (for string encodings) or an empty Buffer, even if the child process writes to
+ * stdout.
  *
  * Note: on Windows package manager binaries, only a subset of ExecFileSync options is honored
  * (stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide).
@@ -202,27 +209,43 @@ export function execFileSync(
         : undefined;
 
     if (result.error) {
-      const baseError = result.error as NodeJS.ErrnoException;
-      const err = new Error(baseError.message, {
-        cause: baseError,
-      }) as NodeJS.ErrnoException & {
+      const baseError = result.error as NodeJS.ErrnoException & {
         stdout?: Buffer | string;
         stderr?: Buffer | string;
       };
 
-      err.name = baseError.name;
-      err.code = baseError.code;
-      err.errno = baseError.errno;
-      err.syscall = baseError.syscall;
-      err.path = baseError.path;
+      try {
+        if (stdout !== undefined) {
+          baseError.stdout = stdout;
+        }
+        if (stderr !== undefined) {
+          baseError.stderr = stderr;
+        }
 
-      if (stdout !== undefined) {
-        err.stdout = stdout;
+        throw baseError;
+      } catch {
+        const err = new Error(baseError.message, {
+          cause: baseError,
+        }) as NodeJS.ErrnoException & {
+          stdout?: Buffer | string;
+          stderr?: Buffer | string;
+        };
+
+        err.name = baseError.name;
+        err.code = baseError.code;
+        err.errno = baseError.errno;
+        err.syscall = baseError.syscall;
+        err.path = baseError.path;
+
+        if (stdout !== undefined) {
+          err.stdout = stdout;
+        }
+        if (stderr !== undefined) {
+          err.stderr = stderr;
+        }
+
+        throw err;
       }
-      if (stderr !== undefined) {
-        err.stderr = stderr;
-      }
-      throw err;
     }
 
     if (result.status !== 0) {
