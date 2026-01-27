@@ -73,14 +73,38 @@ export interface StreamState {
 }
 
 /**
- * Action type for the stream reducer.
- * Includes threadId to ensure events update the correct thread.
+ * Event action - dispatches an AG-UI event to update thread state.
  */
-export interface StreamAction {
+export interface EventAction {
   type: "EVENT";
   event: BaseEvent;
   threadId: string;
 }
+
+/**
+ * Initialize thread action - creates a new thread in the threadMap.
+ */
+export interface InitThreadAction {
+  type: "INIT_THREAD";
+  threadId: string;
+  initialThread?: Partial<TamboV1Thread>;
+}
+
+/**
+ * Set current thread action - changes the active thread.
+ */
+export interface SetCurrentThreadAction {
+  type: "SET_CURRENT_THREAD";
+  threadId: string | null;
+}
+
+/**
+ * Action type for the stream reducer.
+ */
+export type StreamAction =
+  | EventAction
+  | InitThreadAction
+  | SetCurrentThreadAction;
 
 /**
  * Initial streaming state.
@@ -222,13 +246,54 @@ function updateThreadMessages(
  * This reducer handles all AG-UI events and Tambo custom events,
  * transforming them into immutable state updates per thread.
  * @param state - Current stream state
- * @param action - Action containing the event and threadId to process
+ * @param action - Action to process
  * @returns Updated stream state
  */
 export function streamReducer(
   state: StreamState,
   action: StreamAction,
 ): StreamState {
+  // Handle non-event actions first
+  switch (action.type) {
+    case "INIT_THREAD": {
+      const { threadId, initialThread } = action;
+      // Don't overwrite existing thread
+      if (state.threadMap[threadId]) {
+        return state;
+      }
+      const baseState = createInitialThreadState(threadId);
+      const threadState = initialThread
+        ? {
+            ...baseState,
+            thread: {
+              ...baseState.thread,
+              ...initialThread,
+              id: threadId,
+            },
+          }
+        : baseState;
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [threadId]: threadState,
+        },
+      };
+    }
+
+    case "SET_CURRENT_THREAD": {
+      return {
+        ...state,
+        currentThreadId: action.threadId,
+      };
+    }
+
+    case "EVENT":
+      // Fall through to event handling below
+      break;
+  }
+
+  // Handle EVENT action
   const { event, threadId } = action;
 
   // Get the current thread state (or undefined if thread doesn't exist yet)

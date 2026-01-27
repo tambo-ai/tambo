@@ -15,6 +15,7 @@ import React, {
   useReducer,
   useContext,
   useMemo,
+  useCallback,
   type ReactNode,
   type Dispatch,
 } from "react";
@@ -25,6 +26,36 @@ import {
   type StreamAction,
 } from "../utils/event-accumulator";
 import type { TamboV1Thread } from "../types/thread";
+
+/**
+ * Thread management functions exposed by the stream context.
+ */
+export interface ThreadManagement {
+  /**
+   * Initialize a new thread in the stream context.
+   * Use this before sending messages to a new thread.
+   * @param threadId - The thread ID to initialize
+   * @param initialThread - Optional initial thread data
+   */
+  initThread: (
+    threadId: string,
+    initialThread?: Partial<TamboV1Thread>,
+  ) => void;
+
+  /**
+   * Switch the current active thread.
+   * Does not fetch thread data - use useTamboV1Thread for that.
+   * @param threadId - The thread ID to switch to, or null to clear
+   */
+  switchThread: (threadId: string | null) => void;
+
+  /**
+   * Start a new thread (generates a temporary ID).
+   * The actual thread ID will be assigned when the first message is sent.
+   * @returns The temporary thread ID
+   */
+  startNewThread: () => string;
+}
 
 /**
  * Context for accessing stream state (read-only).
@@ -39,6 +70,12 @@ const StreamStateContext = createContext<StreamState | null>(null);
 const StreamDispatchContext = createContext<Dispatch<StreamAction> | null>(
   null,
 );
+
+/**
+ * Context for thread management functions.
+ * Separated from state to prevent unnecessary re-renders.
+ */
+const ThreadManagementContext = createContext<ThreadManagement | null>(null);
 
 /**
  * Props for TamboV1StreamProvider
@@ -103,7 +140,7 @@ function createInitialState(props: TamboV1StreamProviderProps): StreamState {
  * Provider component for stream state management.
  *
  * Uses useReducer with streamReducer to accumulate AG-UI events into
- * thread state. Provides state and dispatch via separate contexts.
+ * thread state. Provides state, dispatch, and thread management via separate contexts.
  * @returns JSX element wrapping children with stream contexts
  * @example
  * ```tsx
@@ -124,10 +161,40 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
 
   const [state, dispatch] = useReducer(streamReducer, initialState);
 
+  // Thread management functions
+  const initThread = useCallback(
+    (threadId: string, initialThread?: Partial<TamboV1Thread>) => {
+      dispatch({ type: "INIT_THREAD", threadId, initialThread });
+    },
+    [],
+  );
+
+  const switchThread = useCallback((threadId: string | null) => {
+    dispatch({ type: "SET_CURRENT_THREAD", threadId });
+  }, []);
+
+  const startNewThread = useCallback(() => {
+    const tempId = `temp_${crypto.randomUUID()}`;
+    dispatch({ type: "INIT_THREAD", threadId: tempId });
+    dispatch({ type: "SET_CURRENT_THREAD", threadId: tempId });
+    return tempId;
+  }, []);
+
+  const threadManagement = useMemo<ThreadManagement>(
+    () => ({
+      initThread,
+      switchThread,
+      startNewThread,
+    }),
+    [initThread, switchThread, startNewThread],
+  );
+
   return (
     <StreamStateContext.Provider value={state}>
       <StreamDispatchContext.Provider value={dispatch}>
-        {children}
+        <ThreadManagementContext.Provider value={threadManagement}>
+          {children}
+        </ThreadManagementContext.Provider>
       </StreamDispatchContext.Provider>
     </StreamStateContext.Provider>
   );
@@ -193,6 +260,42 @@ export function useStreamDispatch(): Dispatch<StreamAction> {
   if (!context) {
     throw new Error(
       "useStreamDispatch must be used within TamboV1StreamProvider",
+    );
+  }
+
+  return context;
+}
+
+/**
+ * Hook to access thread management functions.
+ *
+ * Must be used within TamboV1StreamProvider.
+ * @returns Thread management functions
+ * @throws {Error} if used outside TamboV1StreamProvider
+ * @example
+ * ```tsx
+ * function ThreadSwitcher() {
+ *   const { switchThread, startNewThread } = useThreadManagement();
+ *
+ *   return (
+ *     <div>
+ *       <button onClick={() => switchThread('thread_123')}>
+ *         Load Thread
+ *       </button>
+ *       <button onClick={startNewThread}>
+ *         New Chat
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+export function useThreadManagement(): ThreadManagement {
+  const context = useContext(ThreadManagementContext);
+
+  if (!context) {
+    throw new Error(
+      "useThreadManagement must be used within TamboV1StreamProvider",
     );
   }
 

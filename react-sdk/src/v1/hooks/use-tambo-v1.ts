@@ -16,6 +16,8 @@ import {
 import {
   useStreamState,
   useStreamDispatch,
+  useThreadManagement,
+  type ThreadManagement,
 } from "../providers/tambo-v1-stream-context";
 import type { StreamingState } from "../types/thread";
 import type { TamboV1Message } from "../types/message";
@@ -86,6 +88,26 @@ export interface UseTamboV1Return {
   toolRegistry: TamboRegistryContextType["toolRegistry"];
 
   /**
+   * Current thread ID (may be null if no thread is active)
+   */
+  currentThreadId: string | null;
+
+  /**
+   * Initialize a new thread in the stream context
+   */
+  initThread: ThreadManagement["initThread"];
+
+  /**
+   * Switch the current active thread
+   */
+  switchThread: ThreadManagement["switchThread"];
+
+  /**
+   * Start a new thread (generates a temporary ID)
+   */
+  startNewThread: ThreadManagement["startNewThread"];
+
+  /**
    * Dispatch function for stream events (advanced usage)
    */
   dispatch: ReturnType<typeof useStreamDispatch>;
@@ -122,9 +144,13 @@ export function useTamboV1(threadId?: string): UseTamboV1Return {
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
   const registry = useContext(TamboRegistryContext);
+  const threadManagement = useThreadManagement();
 
-  // Get thread state for the given threadId
-  const threadState = threadId ? streamState.threadMap[threadId] : undefined;
+  // Get thread state for the given threadId (or current thread if not specified)
+  const effectiveThreadId = threadId ?? streamState.currentThreadId;
+  const threadState = effectiveThreadId
+    ? streamState.threadMap[effectiveThreadId]
+    : undefined;
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => {
@@ -147,7 +173,18 @@ export function useTamboV1(threadId?: string): UseTamboV1Return {
       registerTools: registry.registerTools,
       componentList: registry.componentList,
       toolRegistry: registry.toolRegistry,
+      currentThreadId: streamState.currentThreadId,
+      initThread: threadManagement.initThread,
+      switchThread: threadManagement.switchThread,
+      startNewThread: threadManagement.startNewThread,
       dispatch,
     };
-  }, [client, threadState, registry, dispatch]);
+  }, [
+    client,
+    threadState,
+    registry,
+    streamState.currentThreadId,
+    threadManagement,
+    dispatch,
+  ]);
 }

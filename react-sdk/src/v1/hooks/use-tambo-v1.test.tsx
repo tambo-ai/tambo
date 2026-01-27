@@ -1,5 +1,5 @@
 import TamboAI from "@tambo-ai/typescript-sdk";
-import { renderHook } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
@@ -133,5 +133,62 @@ describe("useTamboV1", () => {
     });
 
     expect(typeof result.current.dispatch).toBe("function");
+  });
+
+  it("provides thread management functions", () => {
+    const { result } = renderHook(() => useTamboV1(), {
+      wrapper: TestWrapper,
+    });
+
+    expect(typeof result.current.initThread).toBe("function");
+    expect(typeof result.current.switchThread).toBe("function");
+    expect(typeof result.current.startNewThread).toBe("function");
+  });
+
+  it("initializes and switches threads", () => {
+    const { result } = renderHook(() => useTamboV1(), {
+      wrapper: TestWrapper,
+    });
+
+    // Initially no current thread
+    expect(result.current.currentThreadId).toBeNull();
+    expect(result.current.thread).toBeUndefined();
+
+    // Initialize a new thread
+    act(() => {
+      result.current.initThread("new_thread_1");
+    });
+
+    // Switch to the new thread
+    act(() => {
+      result.current.switchThread("new_thread_1");
+    });
+
+    expect(result.current.currentThreadId).toBe("new_thread_1");
+  });
+
+  it("starts new thread with generated ID", () => {
+    const { result } = renderHook(() => useTamboV1(), {
+      wrapper: TestWrapper,
+    });
+
+    let newThreadId: string;
+    act(() => {
+      newThreadId = result.current.startNewThread();
+    });
+
+    expect(newThreadId!).toMatch(/^temp_/);
+    expect(result.current.currentThreadId).toBe(newThreadId!);
+    expect(result.current.thread).toBeDefined();
+  });
+
+  it("uses current thread when no threadId argument provided", () => {
+    const { result } = renderHook(() => useTamboV1(), {
+      wrapper: TestWrapperWithThreadId,
+    });
+
+    // Should use current thread from context (thread_123)
+    expect(result.current.currentThreadId).toBe("thread_123");
+    expect(result.current.thread?.thread.id).toBe("thread_123");
   });
 });

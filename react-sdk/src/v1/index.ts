@@ -71,6 +71,8 @@ export {
   TamboV1StreamProvider,
   useStreamState,
   useStreamDispatch,
+  useThreadManagement,
+  type ThreadManagement,
 } from "./providers/tambo-v1-stream-context";
 
 // Re-export registry provider from beta SDK (works with v1)

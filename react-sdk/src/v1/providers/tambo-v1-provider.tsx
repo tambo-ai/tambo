@@ -22,6 +22,7 @@ import {
   TamboRegistryProvider,
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
+import type { McpServerInfo } from "../../model/mcp-server-info";
 import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
 
 /**
@@ -29,7 +30,7 @@ import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
  */
 export interface TamboV1ProviderProps extends Pick<
   TamboClientProviderProps,
-  "apiKey" | "tamboUrl" | "environment"
+  "apiKey" | "tamboUrl" | "environment" | "userToken"
 > {
   /**
    * Components to register with the registry.
@@ -44,16 +45,22 @@ export interface TamboV1ProviderProps extends Pick<
   tools?: TamboRegistryProviderProps["tools"];
 
   /**
+   * MCP servers to register with the registry.
+   * These provide additional tools and resources from MCP-compatible servers.
+   */
+  mcpServers?: (McpServerInfo | string)[];
+
+  /**
+   * Callback function called when an unregistered tool is called.
+   * If not provided, an error will be thrown for unknown tools.
+   */
+  onCallUnregisteredTool?: TamboRegistryProviderProps["onCallUnregisteredTool"];
+
+  /**
    * Optional custom QueryClient instance.
    * If not provided, a default client will be created.
    */
   queryClient?: QueryClient;
-
-  /**
-   * Initial thread ID to load.
-   * If provided, the stream context will be initialized with this thread.
-   */
-  threadId?: string;
 
   /**
    * Children components
@@ -76,14 +83,21 @@ const defaultQueryClient = new QueryClient({
  *
  * Composes TamboClientProvider, TamboRegistryProvider, and TamboV1StreamProvider
  * to provide a complete context for building AI-powered applications.
+ *
+ * Threads are managed dynamically through useTamboV1() hook functions:
+ * - startNewThread() - Begin a new conversation
+ * - switchThread(threadId) - Switch to an existing thread
+ * - initThread(threadId) - Initialize a thread for receiving events
  * @param props - Provider configuration
  * @param props.apiKey - Tambo API key for authentication
  * @param props.tamboUrl - Optional custom Tambo API URL
  * @param props.environment - Optional environment configuration
+ * @param props.userToken - Optional OAuth token for user authentication
  * @param props.components - Components to register with the AI
  * @param props.tools - Tools to register for client-side execution
+ * @param props.mcpServers - MCP servers to register for additional tools/resources
+ * @param props.onCallUnregisteredTool - Callback for handling unknown tool calls
  * @param props.queryClient - Optional custom React Query client
- * @param props.threadId - Optional initial thread ID
  * @param props.children - Child components
  * @returns Provider component tree
  * @example
@@ -107,10 +121,12 @@ export function TamboV1Provider({
   apiKey,
   tamboUrl,
   environment,
+  userToken,
   components,
   tools,
+  mcpServers,
+  onCallUnregisteredTool,
   queryClient,
-  threadId,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
   const client = queryClient ?? defaultQueryClient;
@@ -121,11 +137,15 @@ export function TamboV1Provider({
         apiKey={apiKey}
         tamboUrl={tamboUrl}
         environment={environment}
+        userToken={userToken}
       >
-        <TamboRegistryProvider components={components} tools={tools}>
-          <TamboV1StreamProvider threadId={threadId}>
-            {children}
-          </TamboV1StreamProvider>
+        <TamboRegistryProvider
+          components={components}
+          tools={tools}
+          mcpServers={mcpServers}
+          onCallUnregisteredTool={onCallUnregisteredTool}
+        >
+          <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
         </TamboRegistryProvider>
       </TamboClientProvider>
     </QueryClientProvider>
