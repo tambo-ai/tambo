@@ -1,5 +1,10 @@
 import { updateProjectAgentSettingsToolInput as updateProjectAgentSettingsInputSchema } from "@/lib/schemas/agent";
 import { z } from "zod/v3";
+import {
+  type AgentHeadersToolInput,
+  updateProjectAgentSettingsOutputSchema,
+  updateProjectAgentSettingsToolInput,
+} from "@/lib/schemas/agent";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 
@@ -7,6 +12,16 @@ import type { RegisterToolFn, ToolContext } from "./types";
 const updateProjectAgentSettingsOutputSchema = z
   .unknown()
   .describe("Updated agent settings for the project");
+
+/**
+ * Converts an array of header objects to a record.
+ */
+function headersArrayToRecord(
+  headers: AgentHeadersToolInput | null | undefined,
+): Record<string, string> | null | undefined {
+  if (!headers) return headers;
+  return Object.fromEntries(headers.map(({ name, value }) => [name, value]));
+}
 
 /**
  * Register agent-specific settings management tools
@@ -58,6 +73,7 @@ export function registerAgentTools(
           agentUrl,
           agentName,
           agentHeaders: validatedHeaders,
+          agentHeaders: headersArrayToRecord(agentHeaders),
         });
 
       // Invalidate all caches that display agent settings (shown in LLM settings view)
@@ -69,7 +85,7 @@ export function registerAgentTools(
 
       return result;
     },
-    inputSchema: updateProjectAgentSettingsInputSchema,
+    inputSchema: updateProjectAgentSettingsToolInput,
     outputSchema: updateProjectAgentSettingsOutputSchema,
   });
 }
