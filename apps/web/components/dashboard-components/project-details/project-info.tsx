@@ -332,7 +332,7 @@ function ProjectInfoLoaded({
                   <h5 className="text-xs font-medium text-foreground mb-1">
                     Starter LLM calls remaining
                   </h5>
-                  <div className="flex flex-col items-start gap-2">
+                  <div className="flex items-center gap-2">
                     <p
                       className={`text-sm ${isLowMessages ? "text-red-500 font-medium" : ""}`}
                     >
@@ -342,7 +342,7 @@ function ProjectInfoLoaded({
                       href={settingsHref}
                       className="text-xs font-semibold underline"
                     >
-                      Add API Key
+                      Add your LLM API Key
                     </Link>
                   </div>
                 </>
