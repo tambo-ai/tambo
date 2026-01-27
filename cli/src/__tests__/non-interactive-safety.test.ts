@@ -25,19 +25,31 @@ let isInteractive: (opts?: { stream?: NodeJS.WriteStream }) => boolean;
 
 describe("non-interactive mode safety", () => {
   const originalEnv = { ...process.env };
-  const originalIsTTY = process.stdout.isTTY;
+  const originalStdoutIsTTY = process.stdout.isTTY;
+  const originalStdinIsTTY = process.stdin.isTTY;
+
+  // Helper to set both stdin and stdout TTY status
+  const setTTY = (stdin: boolean, stdout: boolean) => {
+    Object.defineProperty(process.stdin, "isTTY", {
+      value: stdin,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: stdout,
+      writable: true,
+      configurable: true,
+    });
+  };
 
   beforeEach(async () => {
     // Reset mocks
     mockPrompt.mockReset();
 
-    // Set up non-interactive environment
+    // Set up non-interactive environment (both stdin and stdout non-TTY)
     process.env.CI = "true";
     process.env.TERM = "xterm-256color";
-    Object.defineProperty(process.stdout, "isTTY", {
-      value: false,
-      writable: true,
-    });
+    setTTY(false, false);
 
     // Clear FORCE_INTERACTIVE to ensure non-interactive mode
     delete process.env.FORCE_INTERACTIVE;
@@ -51,38 +63,37 @@ describe("non-interactive mode safety", () => {
   afterEach(() => {
     // Restore environment
     process.env = { ...originalEnv };
-    Object.defineProperty(process.stdout, "isTTY", {
-      value: originalIsTTY,
-      writable: true,
-    });
+    setTTY(originalStdinIsTTY ?? false, originalStdoutIsTTY ?? false);
 
     jest.resetModules();
   });
 
   describe("isInteractive detection", () => {
     it("returns false when stdout is not a TTY", () => {
-      Object.defineProperty(process.stdout, "isTTY", {
-        value: false,
-        writable: true,
-      });
+      setTTY(true, false); // stdin TTY, stdout not TTY
+      delete process.env.CI;
+      delete process.env.GITHUB_ACTIONS;
+      process.env.TERM = "xterm-256color";
+      expect(isInteractive()).toBe(false);
+    });
+
+    it("returns false when stdin is not a TTY", () => {
+      setTTY(false, true); // stdin not TTY, stdout TTY
+      delete process.env.CI;
+      delete process.env.GITHUB_ACTIONS;
+      process.env.TERM = "xterm-256color";
       expect(isInteractive()).toBe(false);
     });
 
     it("returns false when CI env var is set", () => {
-      Object.defineProperty(process.stdout, "isTTY", {
-        value: true,
-        writable: true,
-      });
+      setTTY(true, true); // both TTY
       process.env.CI = "true";
       delete process.env.FORCE_INTERACTIVE;
       expect(isInteractive()).toBe(false);
     });
 
     it("returns false when GITHUB_ACTIONS is true", () => {
-      Object.defineProperty(process.stdout, "isTTY", {
-        value: true,
-        writable: true,
-      });
+      setTTY(true, true); // both TTY
       delete process.env.CI;
       process.env.GITHUB_ACTIONS = "true";
       delete process.env.FORCE_INTERACTIVE;
@@ -90,20 +101,14 @@ describe("non-interactive mode safety", () => {
     });
 
     it("returns true when FORCE_INTERACTIVE=1 overrides CI", () => {
-      Object.defineProperty(process.stdout, "isTTY", {
-        value: true,
-        writable: true,
-      });
+      setTTY(true, true); // both TTY
       process.env.CI = "true";
       process.env.FORCE_INTERACTIVE = "1";
       expect(isInteractive()).toBe(true);
     });
 
     it("returns false when TERM=dumb", () => {
-      Object.defineProperty(process.stdout, "isTTY", {
-        value: true,
-        writable: true,
-      });
+      setTTY(true, true); // both TTY
       delete process.env.CI;
       delete process.env.GITHUB_ACTIONS;
       process.env.TERM = "dumb";
@@ -111,15 +116,30 @@ describe("non-interactive mode safety", () => {
     });
 
     it("returns true for normal TTY with no CI vars", () => {
-      Object.defineProperty(process.stdout, "isTTY", {
-        value: true,
-        writable: true,
-      });
+      setTTY(true, true); // both TTY
       delete process.env.CI;
       delete process.env.GITHUB_ACTIONS;
       process.env.TERM = "xterm-256color";
       delete process.env.FORCE_INTERACTIVE;
       expect(isInteractive()).toBe(true);
+    });
+
+    it("returns false when only stdout is piped (stdin TTY)", () => {
+      // Scenario: user has TTY but output is piped (e.g., tambo init | cat)
+      setTTY(true, false);
+      delete process.env.CI;
+      delete process.env.GITHUB_ACTIONS;
+      process.env.TERM = "xterm-256color";
+      expect(isInteractive()).toBe(false);
+    });
+
+    it("returns false when only stdin is piped (stdout TTY)", () => {
+      // Scenario: input is piped but output goes to terminal (e.g., echo | tambo init)
+      setTTY(false, true);
+      delete process.env.CI;
+      delete process.env.GITHUB_ACTIONS;
+      process.env.TERM = "xterm-256color";
+      expect(isInteractive()).toBe(false);
     });
   });
 

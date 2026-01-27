@@ -17,6 +17,9 @@ type InquirerPromptQuestions = PromptSession<
 /**
  * Checks if the current environment is interactive.
  * Based on the is-interactive package logic.
+ *
+ * For prompts to work correctly, both stdin (for input) and stdout (for display)
+ * must be TTYs. This function checks both by default.
  */
 export function isInteractive({
   stream = process.stdout,
@@ -30,11 +33,16 @@ export function isInteractive({
   );
   const forceInteractive = process.env.FORCE_INTERACTIVE === "1";
 
+  // Check both stdin and stdout TTY status for true interactivity.
+  // Prompts need stdin to receive input and stdout to display prompts.
+  const stdinIsTTY = process.stdin.isTTY;
+  const streamIsTTY = stream?.isTTY;
+
   if (forceInteractive) {
-    return Boolean(stream && stream.isTTY && term !== "dumb");
+    return Boolean(stdinIsTTY && streamIsTTY && term !== "dumb");
   }
 
-  return Boolean(stream && stream.isTTY && term !== "dumb" && !isCI);
+  return Boolean(stdinIsTTY && streamIsTTY && term !== "dumb" && !isCI);
 }
 
 /**
