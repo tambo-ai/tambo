@@ -25,26 +25,34 @@ const reasoningParameters: LlmParameterMetadata = {
 export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
   "gpt-5.1": {
     apiName: "gpt-5.1",
-    displayName: "gpt-5.1 Thinking",
+    displayName: "gpt-5.1",
     status: "tested",
     notes:
-      "GPT-5.1 Thinking with adaptive reasoning. Dynamically varies thinking time based on task complexity for better token efficiency",
+      "GPT-5.1 with adaptive reasoning. Dynamically varies thinking time based on task complexity for better token efficiency",
     docLink: "https://platform.openai.com/docs/guides/latest-model",
-    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-51-thinking",
+    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-51",
     inputTokenLimit: 400000,
     modelSpecificParams: reasoningParameters,
+    modelParamsDefaults: {
+      reasoningEffort: "none",
+      reasoningSummary: "auto",
+    },
+    isDefaultModel: true,
   },
   "gpt-5.1-chat-latest": {
     apiName: "gpt-5.1-chat-latest",
-    displayName: "gpt-5.1 Instant",
+    displayName: "gpt-5.1-chat-latest",
     status: "tested",
     notes:
-      "GPT-5.1 Instant - warmer, more conversational model with adaptive reasoning. Defaults to 'none' reasoning effort for latency-sensitive workloads",
+      "GPT-5.1 Chat Latest - warmer, more conversational model with adaptive reasoning",
     docLink: "https://platform.openai.com/docs/guides/latest-model",
-    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-51-instant",
+    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-51-chat-latest",
     inputTokenLimit: 400000,
     modelSpecificParams: reasoningParameters,
-    isDefaultModel: true,
+    modelParamsDefaults: {
+      reasoningEffort: "medium",
+      reasoningSummary: "auto",
+    },
   },
   "gpt-5-2025-08-07": {
     apiName: "gpt-5-2025-08-07",
@@ -55,10 +63,10 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5",
     inputTokenLimit: 400000,
     modelSpecificParams: reasoningParameters,
-    // We can add common parameters defaults here if needed
-    // commonParametersDefaults: {
-    //   temperature: 1,
-    // },
+    modelParamsDefaults: {
+      reasoningEffort: "low",
+      reasoningSummary: "auto",
+    },
   },
   "gpt-5-mini-2025-08-07": {
     apiName: "gpt-5-mini-2025-08-07",
@@ -70,6 +78,10 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-mini",
     inputTokenLimit: 400000,
     modelSpecificParams: reasoningParameters,
+    modelParamsDefaults: {
+      reasoningEffort: "low",
+      reasoningSummary: "auto",
+    },
   },
   "gpt-5-nano-2025-08-07": {
     apiName: "gpt-5-nano-2025-08-07",
@@ -80,6 +92,10 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink: "https://docs.tambo.co/models/openai#gpt-5-nano",
     inputTokenLimit: 400000,
     modelSpecificParams: reasoningParameters,
+    modelParamsDefaults: {
+      reasoningEffort: "low",
+      reasoningSummary: "auto",
+    },
   },
   "gpt-4.1-2025-04-14": {
     apiName: "gpt-4.1-2025-04-14",
@@ -117,6 +133,10 @@ export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
     tamboDocLink: "https://docs.tambo.co/models/openai#o3",
     inputTokenLimit: 200000,
     modelSpecificParams: reasoningParameters,
+    modelParamsDefaults: {
+      reasoningEffort: "medium",
+      reasoningSummary: "auto",
+    },
   },
   "gpt-4o-2024-11-20": {
     apiName: "gpt-4o-2024-11-20",
