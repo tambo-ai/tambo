@@ -1,23 +1,30 @@
-import { defineConfig, globalIgnores } from "eslint/config";
+import { defineConfig } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
 const eslintConfig = defineConfig([
+  // Ignores must be first - use patterns that match from project root
+  {
+    ignores: [
+      // Convex generated files
+      "convex/_generated/**",
+      // Config files - match all variations
+      "*.config.mjs",
+      "**/*.config.mjs",
+      "./*.config.mjs",
+      "./**/*.config.mjs",
+      "postcss.config.mjs",
+      "eslint.config.mjs",
+      "./postcss.config.mjs",
+      "./eslint.config.mjs",
+    ],
+  },
   ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-    // Convex generated files
-    "convex/_generated/**",
-    // Config files
-    "*.config.mjs",
-    "postcss.config.mjs",
-  ]),
+  // TypeScript config - explicitly only process .ts and .tsx files
+  ...nextTs.map((config) => ({
+    ...config,
+    files: ["**/*.ts", "**/*.tsx"], // Explicitly exclude .mjs
+  })),
 ]);
 
 export default eslintConfig;
