@@ -365,6 +365,11 @@ When working across multiple packages:
 - `package.json` - Workspace configuration and scripts
 - Individual package.json files for package-specific configuration
 
+### Knowledge Base
+
+- Refer to `devdocs/` for detailed guidelines on coding standards, naming conventions, loading states, and more.
+- When adding knowledge for specific solutions, document it and place it in the appropriate `devdocs/solutions/` folder.
+
 ## 9. Testing & Quality
 
 ### Testing Strategy

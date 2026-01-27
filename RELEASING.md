@@ -48,6 +48,21 @@ When you update either or both SDKs, also update the dependencies that live unde
 
 All of the Tambo repos are managed using [release-please](https://github.com/googleapis/release-please).
 
+#### Configuration
+
+The release-please configuration lives in two files:
+
+- `release-please-config.json` - Defines packages, plugins, and changelog sections
+- `.release-please-manifest.json` - Tracks current versions for each package
+
+Key configuration:
+
+- **`separate-pull-requests: true`** - Each package gets its own release PR
+- **`node-workspace` plugin** - Keeps `package-lock.json` in sync when workspace package versions are bumped
+- **`sync-lockfile.yml` workflow** - Backup mechanism that regenerates the lockfile on release PRs
+
+#### Process
+
 In general, the process is as follows for any repo:
 
 1. When new PRs are merged, release-please will automatically create or update a
