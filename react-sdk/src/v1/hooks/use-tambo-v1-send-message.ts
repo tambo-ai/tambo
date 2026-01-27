@@ -8,13 +8,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
-import {
-  EventType,
-  type BaseEvent,
-  type RunStartedEvent,
-  type RunErrorEvent,
-  type CustomEvent,
-} from "@ag-ui/core";
+import { EventType, type AGUIEvent, type RunErrorEvent } from "@ag-ui/core";
 import { asTamboCustomEvent, type RunAwaitingInputEvent } from "../types/event";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useTamboClient } from "../../providers/tambo-client-provider";
@@ -80,7 +74,7 @@ interface HandleAwaitingInputParams {
   debug: boolean;
   dispatch: (action: {
     type: "EVENT";
-    event: BaseEvent;
+    event: AGUIEvent;
     threadId: string;
   }) => void;
 }
@@ -139,8 +133,7 @@ async function handleAwaitingInput(
 
     // Update runId if we get a new RUN_STARTED
     if (continueEvent.type === EventType.RUN_STARTED) {
-      const runStarted = continueEvent as RunStartedEvent;
-      newRunId = runStarted.runId;
+      newRunId = continueEvent.runId;
     }
 
     // Note: Recursive tool calls would need additional handling here
@@ -268,9 +261,8 @@ export function useTamboV1SendMessage(threadId?: string) {
         for await (const event of handleEventStream(stream, { debug })) {
           // Extract threadId and runId from RUN_STARTED event
           if (event.type === EventType.RUN_STARTED) {
-            const runStartedEvent = event as RunStartedEvent;
-            runId = runStartedEvent.runId;
-            actualThreadId ??= runStartedEvent.threadId;
+            runId = event.runId;
+            actualThreadId ??= event.threadId;
           } else if (!actualThreadId) {
             throw new Error(
               `Expected first event to be RUN_STARTED with threadId, got: ${event.type}`,
@@ -282,7 +274,7 @@ export function useTamboV1SendMessage(threadId?: string) {
 
           // Handle awaiting_input for client-side tool execution
           if (event.type === EventType.CUSTOM) {
-            const customEvent = asTamboCustomEvent(event as CustomEvent);
+            const customEvent = asTamboCustomEvent(event);
             if (customEvent?.name === "tambo.run.awaiting_input") {
               const result = await handleAwaitingInput({
                 event: customEvent,

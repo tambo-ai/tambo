@@ -153,28 +153,21 @@ describe("streamReducer", () => {
       );
     });
 
-    it("logs warning for completely unknown event types", () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "development";
-
+    it("throws for completely unknown event types (fail-fast)", () => {
       const state = createTestStreamState("thread_1");
       // Create an event with an unknown type (not in EventType enum)
+      // This tests fail-fast behavior when SDK returns unexpected event types
       const event = {
         type: "TOTALLY_UNKNOWN_EVENT_TYPE",
       };
 
-      const result = streamReducer(state, {
-        type: "EVENT",
-        event: event as unknown as RunStartedEvent,
-        threadId: "thread_1",
-      });
-
-      expect(result).toBe(state);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Unknown event type"),
-      );
-
-      process.env.NODE_ENV = originalEnv;
+      expect(() =>
+        streamReducer(state, {
+          type: "EVENT",
+          event: event as unknown as RunStartedEvent,
+          threadId: "thread_1",
+        }),
+      ).toThrow("Unreachable case");
     });
 
     it("logs warning for unknown custom event names", () => {

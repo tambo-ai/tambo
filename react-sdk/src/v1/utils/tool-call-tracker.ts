@@ -5,13 +5,7 @@
  * Used by the send message hook to collect tool call state for execution.
  */
 
-import {
-  EventType,
-  type BaseEvent,
-  type ToolCallStartEvent,
-  type ToolCallArgsEvent,
-  type ToolCallEndEvent,
-} from "@ag-ui/core";
+import { EventType, type AGUIEvent } from "@ag-ui/core";
 import type { PendingToolCall } from "./tool-executor";
 
 /**
@@ -34,35 +28,44 @@ export class ToolCallTracker {
    * @param event - The streaming event to process
    * @throws {Error} If JSON parsing fails on TOOL_CALL_END (fail-fast, no silent fallback)
    */
-  handleEvent(event: BaseEvent): void {
-    if (event.type === EventType.TOOL_CALL_START) {
-      const toolCallStart = event as ToolCallStartEvent;
-      this.pendingToolCalls.set(toolCallStart.toolCallId, {
-        name: toolCallStart.toolCallName,
-        input: {},
-      });
-      this.accumulatingArgs.set(toolCallStart.toolCallId, "");
-    } else if (event.type === EventType.TOOL_CALL_ARGS) {
-      const toolCallArgs = event as ToolCallArgsEvent;
-      const current = this.accumulatingArgs.get(toolCallArgs.toolCallId);
-      this.accumulatingArgs.set(
-        toolCallArgs.toolCallId,
-        (current ?? "") + toolCallArgs.delta,
-      );
-    } else if (event.type === EventType.TOOL_CALL_END) {
-      const toolCallEnd = event as ToolCallEndEvent;
-      const jsonStr = this.accumulatingArgs.get(toolCallEnd.toolCallId);
-      const toolCall = this.pendingToolCalls.get(toolCallEnd.toolCallId);
-      if (toolCall && jsonStr) {
-        try {
-          toolCall.input = JSON.parse(jsonStr) as Record<string, unknown>;
-        } catch (error) {
-          // Fail-fast: don't silently continue with empty input
-          throw new Error(
-            `Failed to parse tool call arguments for ${toolCallEnd.toolCallId}: ${error instanceof Error ? error.message : "Unknown error"}. JSON: ${jsonStr.slice(0, 100)}${jsonStr.length > 100 ? "..." : ""}`,
-          );
-        }
+  handleEvent(event: AGUIEvent): void {
+    switch (event.type) {
+      case EventType.TOOL_CALL_START:
+        this.pendingToolCalls.set(event.toolCallId, {
+          name: event.toolCallName,
+          input: {},
+        });
+        this.accumulatingArgs.set(event.toolCallId, "");
+        break;
+
+      case EventType.TOOL_CALL_ARGS: {
+        const current = this.accumulatingArgs.get(event.toolCallId);
+        this.accumulatingArgs.set(
+          event.toolCallId,
+          (current ?? "") + event.delta,
+        );
+        break;
       }
+
+      case EventType.TOOL_CALL_END: {
+        const jsonStr = this.accumulatingArgs.get(event.toolCallId);
+        const toolCall = this.pendingToolCalls.get(event.toolCallId);
+        if (toolCall && jsonStr) {
+          try {
+            toolCall.input = JSON.parse(jsonStr) as Record<string, unknown>;
+          } catch (error) {
+            // Fail-fast: don't silently continue with empty input
+            throw new Error(
+              `Failed to parse tool call arguments for ${event.toolCallId}: ${error instanceof Error ? error.message : "Unknown error"}. JSON: ${jsonStr.slice(0, 100)}${jsonStr.length > 100 ? "..." : ""}`,
+            );
+          }
+        }
+        break;
+      }
+
+      default:
+        // Other event types are ignored - only tool call events are tracked
+        break;
     }
   }
 

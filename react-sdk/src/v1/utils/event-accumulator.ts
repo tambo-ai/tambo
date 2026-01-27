@@ -6,7 +6,7 @@
  */
 
 import type {
-  BaseEvent,
+  AGUIEvent,
   CustomEvent,
   RunErrorEvent,
   RunFinishedEvent,
@@ -78,7 +78,7 @@ export interface StreamState {
  */
 export interface EventAction {
   type: "EVENT";
-  event: BaseEvent;
+  event: AGUIEvent;
   threadId: string;
 }
 
@@ -366,73 +366,47 @@ export function streamReducer(
   // Process the event for this specific thread
   let updatedThreadState: ThreadState;
 
-  // Switch on event.type (string) - values match EventType enum
+  // Switch on event.type - AGUIEvent is a discriminated union so TypeScript
+  // automatically narrows the type in each case branch
   switch (event.type) {
     case EventType.RUN_STARTED:
-      updatedThreadState = handleRunStarted(
-        threadState,
-        event as RunStartedEvent,
-      );
+      updatedThreadState = handleRunStarted(threadState, event);
       break;
 
     case EventType.RUN_FINISHED:
-      updatedThreadState = handleRunFinished(
-        threadState,
-        event as RunFinishedEvent,
-      );
+      updatedThreadState = handleRunFinished(threadState, event);
       break;
 
     case EventType.RUN_ERROR:
-      updatedThreadState = handleRunError(threadState, event as RunErrorEvent);
+      updatedThreadState = handleRunError(threadState, event);
       break;
 
     case EventType.TEXT_MESSAGE_START:
-      updatedThreadState = handleTextMessageStart(
-        threadState,
-        event as TextMessageStartEvent,
-      );
+      updatedThreadState = handleTextMessageStart(threadState, event);
       break;
 
     case EventType.TEXT_MESSAGE_CONTENT:
-      updatedThreadState = handleTextMessageContent(
-        threadState,
-        event as TextMessageContentEvent,
-      );
+      updatedThreadState = handleTextMessageContent(threadState, event);
       break;
 
     case EventType.TEXT_MESSAGE_END:
-      updatedThreadState = handleTextMessageEnd(
-        threadState,
-        event as TextMessageEndEvent,
-      );
+      updatedThreadState = handleTextMessageEnd(threadState, event);
       break;
 
     case EventType.TOOL_CALL_START:
-      updatedThreadState = handleToolCallStart(
-        threadState,
-        event as ToolCallStartEvent,
-      );
+      updatedThreadState = handleToolCallStart(threadState, event);
       break;
 
     case EventType.TOOL_CALL_ARGS:
-      updatedThreadState = handleToolCallArgs(
-        threadState,
-        event as ToolCallArgsEvent,
-      );
+      updatedThreadState = handleToolCallArgs(threadState, event);
       break;
 
     case EventType.TOOL_CALL_END:
-      updatedThreadState = handleToolCallEnd(
-        threadState,
-        event as ToolCallEndEvent,
-      );
+      updatedThreadState = handleToolCallEnd(threadState, event);
       break;
 
     case EventType.TOOL_CALL_RESULT:
-      updatedThreadState = handleToolCallResult(
-        threadState,
-        event as ToolCallResultEvent,
-      );
+      updatedThreadState = handleToolCallResult(threadState, event);
       break;
 
     case EventType.CUSTOM:
@@ -463,13 +437,12 @@ export function streamReducer(
       );
       return updatedState;
 
-    default:
-      // Unknown event type - log warning and return state unchanged
-      // Note: Cannot use exhaustiveness check with string types from SDK
-      if (process.env.NODE_ENV !== "production") {
-        console.warn(`[StreamReducer] Unknown event type: ${event.type}`);
-      }
-      return updatedState;
+    default: {
+      // Exhaustiveness check: if a new event type is added to AGUIEvent
+      // and not handled above, TypeScript will error here
+      const _exhaustiveCheck: never = event;
+      throw new UnreachableCaseError(_exhaustiveCheck);
+    }
   }
 
   // Return updated state with modified thread
@@ -873,25 +846,19 @@ function handleToolCallResult(
 /**
  * Handle custom events (Tambo-specific).
  * @param threadState - Current thread state
- * @param event - Base event (must be CUSTOM type)
+ * @param event - Custom event (already narrowed from AGUIEvent)
  * @returns Updated thread state
  */
 function handleCustomEvent(
   threadState: ThreadState,
-  event: BaseEvent,
+  event: CustomEvent,
 ): ThreadState {
-  if (event.type !== EventType.CUSTOM) {
-    return threadState;
-  }
-
-  // Use centralized casting function to get properly typed event
-  const customEvent = asTamboCustomEvent(event as CustomEvent);
+  // Use centralized casting function to get properly typed Tambo event
+  const customEvent = asTamboCustomEvent(event);
 
   if (!customEvent) {
     // Unknown custom event - log and return unchanged
-    console.warn(
-      `[StreamReducer] Unknown custom event name: ${(event as CustomEvent).name}`,
-    );
+    console.warn(`[StreamReducer] Unknown custom event name: ${event.name}`);
     return threadState;
   }
 
