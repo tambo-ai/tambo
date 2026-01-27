@@ -152,6 +152,23 @@ const isDefaultPipedStdio = (
 };
 
 /**
+ * Formats a command and args for diagnostic output.
+ * Uses JSON.stringify for args to preserve actual boundaries (spaces, special chars).
+ * This avoids misleading output when users copy/paste error messages.
+ *
+ * @returns A structured string like: `npm ["install", "my package"]`
+ */
+const formatCommandForDiagnostics = (
+  file: string,
+  args?: readonly string[],
+): string => {
+  if (!args || args.length === 0) {
+    return file;
+  }
+  return `${file} ${JSON.stringify(args)}`;
+};
+
+/**
  * Safe wrapper around execFileSync (preferred) that prevents execution of external commands
  * in non-interactive environments unless explicitly allowed.
  *
@@ -181,10 +198,9 @@ export function execFileSync(
   const { allowNonInteractive, ...execOptions } = options ?? {};
 
   if (!isInteractive() && !allowNonInteractive) {
-    const commandStr = args ? `${file} ${args.join(" ")}` : file;
     throw new NonInteractiveError(
       `${chalk.red("Error: Cannot execute external command in non-interactive mode.")}\n\n` +
-        `${chalk.yellow("Command:")} ${commandStr}\n\n` +
+        `${chalk.yellow("Command:")} ${formatCommandForDiagnostics(file, args)}\n\n` +
         `${chalk.blue("Reason:")} Running external commands (npm, npx, git) requires user confirmation.\n` +
         `Use appropriate flags to run in interactive mode or provide all necessary options upfront.`,
     );
@@ -248,8 +264,6 @@ export function execFileSync(
     }
 
     if (result.status !== 0) {
-      const commandStr = args ? `${file} ${args.join(" ")}` : file;
-
       let stderrStr: string | undefined;
       if (typeof stderr === "string") {
         stderrStr = stderr;
@@ -264,7 +278,7 @@ export function execFileSync(
       }
 
       const err = new Error(
-        `Command failed (${result.status ?? "unknown status"}): ${commandStr}${
+        `Command failed (${result.status ?? "unknown status"}): ${formatCommandForDiagnostics(file, args)}${
           stderrStr ? `\n${stderrStr.trim()}` : ""
         }`,
       ) as Error & {

@@ -169,7 +169,9 @@ describe("execFileSync", () => {
         interactive.execFileSync("npm.cmd", ["install", "nonexistent"], {
           allowNonInteractive: true,
         }),
-      ).toThrow(/Command failed[\s\S]*npm ERR!/);
+      ).toThrow(
+        /Command failed \(1\): npm\.cmd \["install","nonexistent"\][\s\S]*npm ERR!/,
+      );
     });
 
     it("returns empty string when stdout is inherited", () => {
