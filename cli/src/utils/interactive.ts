@@ -204,23 +204,18 @@ export function execFileSync(
         stderr?: Buffer | string;
       };
 
-      const err = new Error(baseError.message, {
-        cause: baseError,
-      }) as NodeJS.ErrnoException & {
-        stdout?: Buffer | string;
-        stderr?: Buffer | string;
-      };
-
-      Object.assign(err, baseError);
-
-      if (stdout !== undefined) {
-        err.stdout = stdout;
-      }
-      if (stderr !== undefined) {
-        err.stderr = stderr;
+      try {
+        if (stdout !== undefined) {
+          baseError.stdout = stdout;
+        }
+        if (stderr !== undefined) {
+          baseError.stderr = stderr;
+        }
+      } catch {
+        // Ignore (some errors can be non-extensible) and throw the original error.
       }
 
-      throw err;
+      throw baseError;
     }
 
     if (result.status !== 0) {
