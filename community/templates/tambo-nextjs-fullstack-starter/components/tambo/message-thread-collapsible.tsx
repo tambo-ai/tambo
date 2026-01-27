@@ -23,9 +23,9 @@ import {
 } from "@/components/tambo/thread-content";
 import { ThreadDropdown } from "@/components/tambo/thread-dropdown";
 import { cn } from "@/lib/utils";
-import { type Suggestion } from "@tambo-ai/react";
+import { type Suggestion, useTamboThread } from "@tambo-ai/react";
 import { type VariantProps } from "class-variance-authority";
-import { XIcon } from "lucide-react";
+import { ArrowUp, XIcon } from "lucide-react";
 import { Collapsible } from "radix-ui";
 import * as React from "react";
 
@@ -68,13 +68,14 @@ export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTML
  */
 const useCollapsibleState = (defaultOpen = false) => {
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
+  const [isHovered, setIsHovered] = React.useState(false);
   const isMac =
     typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
-  const shortcutText = isMac ? "⌘K" : "Ctrl+K";
+  const shortcutText = isMac ? "⌘I" : "Ctrl+I";
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+      if ((event.metaKey || event.ctrlKey) && event.key === "i") {
         event.preventDefault();
         setIsOpen((prev) => !prev);
       }
@@ -84,7 +85,7 @@ const useCollapsibleState = (defaultOpen = false) => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  return { isOpen, setIsOpen, shortcutText };
+  return { isOpen, setIsOpen, shortcutText, isHovered, setIsHovered };
 };
 
 /**
@@ -101,22 +102,33 @@ interface CollapsibleContainerProps extends React.HTMLAttributes<HTMLDivElement>
  */
 const CollapsibleContainer = React.forwardRef<
   HTMLDivElement,
-  CollapsibleContainerProps
->(({ className, isOpen, onOpenChange, children, ...props }, ref) => (
-  <Collapsible.Root
-    ref={ref}
-    open={isOpen}
-    onOpenChange={onOpenChange}
-    className={cn(
-      "fixed bottom-4 right-4 w-full max-w-sm sm:max-w-md md:max-w-lg rounded-lg shadow-lg bg-background border border-border",
-      "transition-all duration-300 ease-in-out",
-      className,
-    )}
-    {...props}
-  >
-    {children}
-  </Collapsible.Root>
-));
+  CollapsibleContainerProps & { isHovered?: boolean }
+>(
+  (
+    { className, isOpen, onOpenChange, isHovered = false, children, ...props },
+    ref,
+  ) => (
+    <Collapsible.Root
+      ref={ref}
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      className={cn(
+        "fixed bottom-6 left-1/2 -translate-x-1/2",
+        "rounded-xl shadow-2xl bg-transparent border border-border/30",
+        "backdrop-blur-md",
+        "transition-all duration-300 ease-in-out",
+        !isOpen && "w-[360px] max-w-[85vw]",
+        !isOpen && isHovered && "w-[400px] scale-105",
+        isOpen && "w-full max-w-sm md:max-w-md right-6 left-auto translate-x-0",
+        isOpen && "ring-1 ring-border/20",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </Collapsible.Root>
+  ),
+);
 CollapsibleContainer.displayName = "CollapsibleContainer";
 
 /**
@@ -136,6 +148,94 @@ interface CollapsibleTriggerProps {
 }
 
 /**
+ * Compact input component for closed state
+ */
+const CompactInput = ({
+  shortcutText,
+  onOpen,
+}: {
+  shortcutText: string;
+  onOpen: () => void;
+}) => {
+  const [value, setValue] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const { sendThreadMessage } = useTamboThread();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!value.trim() || isSubmitting || !sendThreadMessage) return;
+
+    const messageText = value.trim();
+    setValue("");
+    setIsSubmitting(true);
+
+    try {
+      // Open the panel first, then send message
+      onOpen();
+
+      // Small delay to ensure panel is open before sending
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Send the message
+      await sendThreadMessage(messageText, {
+        streamResponse: true,
+      });
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      setValue(messageText); // Restore value on error
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "i") {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  return (
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="relative flex items-center gap-1.5 px-3 py-2 bg-transparent rounded-xl border border-border/30 shadow-lg backdrop-blur-md">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask a question..."
+          disabled={isSubmitting}
+          className="flex-1 bg-transparent text-xs placeholder:text-muted-foreground/60 focus:outline-none disabled:opacity-50"
+        />
+        <span className="text-[10px] text-muted-foreground font-mono select-none">
+          {shortcutText}
+        </span>
+        <button
+          type="submit"
+          disabled={!value.trim() || isSubmitting}
+          className="w-6 h-6 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ArrowUp className="h-3 w-3" />
+        </button>
+      </div>
+    </form>
+  );
+};
+
+/**
  * Trigger component for the collapsible panel
  */
 const CollapsibleTrigger = ({
@@ -144,43 +244,29 @@ const CollapsibleTrigger = ({
   onClose,
   onThreadChange,
   config,
-}: CollapsibleTriggerProps) => (
+  onOpen,
+}: CollapsibleTriggerProps & { onOpen: () => void }) => (
   <>
     {!isOpen && (
-      <Collapsible.Trigger asChild>
-        <button
-          className={cn(
-            "flex items-center justify-between w-full p-4",
-            "hover:bg-muted/50 transition-colors",
-          )}
-          aria-expanded={isOpen}
-          aria-controls="message-thread-content"
-        >
-          <span>{config.labels.closedState}</span>
-          <span
-            className="text-xs text-muted-foreground pl-8"
-            suppressHydrationWarning
-          >
-            {`(${shortcutText})`}
-          </span>
-        </button>
-      </Collapsible.Trigger>
+      <div className="p-2">
+        <CompactInput shortcutText={shortcutText} onOpen={onOpen} />
+      </div>
     )}
     {isOpen && (
-      <div className="flex items-center justify-between w-full p-4">
+      <div className="flex items-center justify-between w-full p-2.5 border-b border-border/30 bg-transparent backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <span>{config.labels.openState}</span>
+          <span className="font-medium text-xs">{config.labels.openState}</span>
           <ThreadDropdown onThreadChange={onThreadChange} />
         </div>
         <button
-          className="p-1 rounded-full hover:bg-muted/70 transition-colors cursor-pointer"
+          className="p-1 rounded-lg hover:bg-muted/70 active:bg-muted transition-colors cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             onClose();
           }}
           aria-label="Close"
         >
-          <XIcon className="h-4 w-4" />
+          <XIcon className="h-3.5 w-3.5" />
         </button>
       </div>
     )}
@@ -196,13 +282,17 @@ export const MessageThreadCollapsible = React.forwardRef<
     { className, defaultOpen = false, variant, height, maxHeight, ...props },
     ref,
   ) => {
-    const { isOpen, setIsOpen, shortcutText } =
+    const { isOpen, setIsOpen, shortcutText, isHovered, setIsHovered } =
       useCollapsibleState(defaultOpen);
 
     // Backward compatibility: prefer height, fall back to maxHeight
     const effectiveHeight = height ?? maxHeight;
 
     const handleThreadChange = React.useCallback(() => {
+      setIsOpen(true);
+    }, [setIsOpen]);
+
+    const handleOpen = React.useCallback(() => {
       setIsOpen(true);
     }, [setIsOpen]);
 
@@ -238,60 +328,73 @@ export const MessageThreadCollapsible = React.forwardRef<
     ];
 
     return (
-      <CollapsibleContainer
-        ref={ref}
-        isOpen={isOpen}
-        onOpenChange={setIsOpen}
-        className={className}
-        {...props}
+      <div
+        onMouseEnter={() => !isOpen && setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        <CollapsibleTrigger
+        <CollapsibleContainer
+          ref={ref}
           isOpen={isOpen}
-          shortcutText={shortcutText}
-          onClose={() => setIsOpen(false)}
-          onThreadChange={handleThreadChange}
-          config={THREAD_CONFIG}
-        />
-        <Collapsible.Content>
-          <div
-            className={cn("flex flex-col", effectiveHeight ? "" : "h-[80vh]")}
-            style={effectiveHeight ? { height: effectiveHeight } : undefined}
-          >
-            {/* Message thread content */}
-            <ScrollableMessageContainer className="p-4">
-              <ThreadContent variant={variant}>
-                <ThreadContentMessages />
-              </ThreadContent>
-            </ScrollableMessageContainer>
+          onOpenChange={setIsOpen}
+          isHovered={isHovered}
+          className={className}
+          {...props}
+        >
+          <CollapsibleTrigger
+            isOpen={isOpen}
+            shortcutText={shortcutText}
+            onClose={() => setIsOpen(false)}
+            onThreadChange={handleThreadChange}
+            onOpen={handleOpen}
+            config={THREAD_CONFIG}
+          />
+          <Collapsible.Content className="overflow-hidden">
+            <div
+              className={cn(
+                "flex flex-col bg-transparent backdrop-blur-md",
+                effectiveHeight ? "" : "h-[80vh] max-h-[calc(100vh-8rem)]",
+              )}
+              style={effectiveHeight ? { height: effectiveHeight } : undefined}
+            >
+              {/* Message thread content */}
+              <ScrollableMessageContainer className="p-2.5 flex-1">
+                <ThreadContent variant={variant}>
+                  <ThreadContentMessages />
+                </ThreadContent>
+              </ScrollableMessageContainer>
 
-            {/* Message Suggestions Status */}
-            <MessageSuggestions>
-              <MessageSuggestionsStatus />
-            </MessageSuggestions>
+              {/* Message Suggestions Status */}
+              <MessageSuggestions>
+                <MessageSuggestionsStatus />
+              </MessageSuggestions>
 
-            {/* Message input */}
-            <div className="p-4">
-              <MessageInput>
-                <MessageInputTextarea placeholder="Type your message or paste images..." />
-                <MessageInputToolbar>
-                  <MessageInputFileButton />
-                  <MessageInputMcpPromptButton />
-                  <MessageInputMcpResourceButton />
-                  {/* Uncomment this to enable client-side MCP config modal button */}
-                  {/* <MessageInputMcpConfigButton /> */}
-                  <MessageInputSubmitButton />
-                </MessageInputToolbar>
-                <MessageInputError />
-              </MessageInput>
+              {/* Message input - compact version */}
+              <div className="p-2 border-t border-border/30 bg-transparent">
+                <MessageInput>
+                  <MessageInputTextarea
+                    placeholder="Ask a question..."
+                    className="min-h-[32px] max-h-[100px] text-xs py-1.5"
+                  />
+                  <MessageInputToolbar>
+                    <MessageInputFileButton />
+                    <MessageInputMcpPromptButton />
+                    <MessageInputMcpResourceButton />
+                    {/* Uncomment this to enable client-side MCP config modal button */}
+                    {/* <MessageInputMcpConfigButton /> */}
+                    <MessageInputSubmitButton />
+                  </MessageInputToolbar>
+                  <MessageInputError />
+                </MessageInput>
+              </div>
+
+              {/* Message suggestions */}
+              <MessageSuggestions initialSuggestions={defaultSuggestions}>
+                <MessageSuggestionsList />
+              </MessageSuggestions>
             </div>
-
-            {/* Message suggestions */}
-            <MessageSuggestions initialSuggestions={defaultSuggestions}>
-              <MessageSuggestionsList />
-            </MessageSuggestions>
-          </div>
-        </Collapsible.Content>
-      </CollapsibleContainer>
+          </Collapsible.Content>
+        </CollapsibleContainer>
+      </div>
     );
   },
 );

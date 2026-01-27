@@ -11,7 +11,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
+    // "components-theme" is a utility CSS class that likely applies a global theme context or resets certain CSS variables/tokens for any child components.
+    // In the Tambo starter, using a wrapper <div> with "components-theme" ensures all nested UI components (especially those shared or contextually themed) inherit the correct styling (e.g., light/dark theme, variables like --background, --foreground).
+    // This pattern prevents errant styles from leaking in from the higher-level app and guarantees design consistency across all areas of the dashboard layout.
+    <div className="components-theme min-h-screen bg-background text-foreground">
       {/* Navbar Header */}
       <header className="border-b border-border bg-background">
         <nav className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
