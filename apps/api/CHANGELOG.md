@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.132.1](https://github.com/tambo-ai/tambo/compare/api-v0.132.0...api-v0.132.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* **api:** add ApiExtraModels to DTOs for OpenAPI schema generation ([#1953](https://github.com/tambo-ai/tambo/issues/1953)) ([c345c72](https://github.com/tambo-ai/tambo/commit/c345c725c321ea3517805daf7f2a044ce6ade2f6))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump posthog-node from 5.21.2 to 5.24.1 ([#1938](https://github.com/tambo-ai/tambo/issues/1938)) ([b9790dd](https://github.com/tambo-ai/tambo/commit/b9790dd427ab59321f227efe281d335df2fba53c))
+* **deps:** bump the sentry group with 3 updates ([#1933](https://github.com/tambo-ai/tambo/issues/1933)) ([5bec612](https://github.com/tambo-ai/tambo/commit/5bec6126512078ee8f8bff2845d1660f73357d88))
+* **deps:** bump the small-safe-packages group with 10 updates ([#1932](https://github.com/tambo-ai/tambo/issues/1932)) ([66f8ee8](https://github.com/tambo-ai/tambo/commit/66f8ee83adbcdb8c64d5c85159bc6574d4166f7b))
+* **docs:** Organize reference section ([#1916](https://github.com/tambo-ai/tambo/issues/1916)) ([46154a5](https://github.com/tambo-ai/tambo/commit/46154a5fd22525f9d6dc601119d09c8f8909d841))
+
 ## [0.132.0](https://github.com/tambo-ai/tambo/compare/api-v0.131.0...api-v0.132.0) (2026-01-27)
 
 
