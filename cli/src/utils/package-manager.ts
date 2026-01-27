@@ -74,6 +74,11 @@ export function detectPackageManager(
  * Validates that the detected package manager is actually installed on the system.
  * Throws an error with a helpful message if not installed.
  *
+ * Note: Validation is performed using the current process execution context (current
+ * working directory and environment variables). This function does not accept custom
+ * `cwd`/`env` options; callers must ensure the package manager is available on `PATH` in
+ * the environment where this check runs.
+ *
  * @param pm The package manager to validate
  * @throws Error if the package manager is not installed
  */
