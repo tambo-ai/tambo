@@ -41,6 +41,9 @@ jobs:
         # Have to use extra -- -- because of turbo wrapping
         run: npm run test -- -- --coverage
 
+      - name: Run E2E Tests
+        run: npm run test:e2e -w @tambo-ai-cloud/api
+
       - name: Build
         run: npm run build
         env:

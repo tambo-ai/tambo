@@ -54,13 +54,6 @@ export class V1ThreadDto {
   id!: string;
 
   @ApiProperty({
-    description: "Project this thread belongs to",
-    example: "prj_xyz789",
-  })
-  @IsString()
-  projectId!: string;
-
-  @ApiProperty({
     description: "Optional context key for thread organization",
     required: false,
   })

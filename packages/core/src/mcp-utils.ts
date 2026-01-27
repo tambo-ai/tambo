@@ -25,6 +25,11 @@ export function deriveServerKey(url: string): string {
     const parsed = new URL(url);
     const hostname = parsed.hostname;
 
+    // Handle IP addresses explicitly
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
+      return hostname.replace(/\./g, "_");
+    }
+
     // Split hostname into parts
     const parts = hostname.split(".");
 

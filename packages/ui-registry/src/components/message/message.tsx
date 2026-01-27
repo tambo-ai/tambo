@@ -789,8 +789,98 @@ function formatReasoningDuration(durationMS: number) {
 }
 
 /**
- * Helper function to detect if content is JSON and format it nicely
+ * Renders an image content part from a tool result.
+ * @param url - The image URL
+ * @param index - Index for unique key generation
+ * @returns Image element
+ */
+function renderImageContent(url: string, index: number): React.ReactNode {
+  return (
+    <div
+      key={`image-${index}`}
+      className="rounded-md overflow-hidden shadow-sm max-w-xs"
+    >
+      <img
+        src={url}
+        alt={`Tool result image ${index + 1}`}
+        loading="lazy"
+        decoding="async"
+        className="max-w-full h-auto object-contain"
+      />
+    </div>
+  );
+}
+
+/**
+ * Renders a resource content part from a tool result.
+ * Handles text, blob (images), and URI resources.
+ * @param resource - The resource object
+ * @param index - Index for unique key generation
+ * @returns Resource element
+ */
+function renderResourceContent(
+  resource: {
+    uri?: string;
+    text?: string;
+    blob?: string;
+    name?: string;
+    mimeType?: string;
+  },
+  index: number,
+): React.ReactNode {
+  // Handle blob content (e.g., base64-encoded images)
+  if (resource.blob && resource.mimeType?.startsWith("image/")) {
+    const dataUrl = `data:${resource.mimeType};base64,${resource.blob}`;
+    return (
+      <div
+        key={`resource-blob-${index}`}
+        className="rounded-md overflow-hidden shadow-sm max-w-xs"
+      >
+        <img
+          src={dataUrl}
+          alt={resource.name ?? `Resource image ${index + 1}`}
+          loading="lazy"
+          decoding="async"
+          className="max-w-full h-auto object-contain"
+        />
+      </div>
+    );
+  }
+
+  // Handle text content
+  if (resource.text) {
+    return (
+      <div key={`resource-text-${index}`} className="whitespace-pre-wrap">
+        {resource.name && (
+          <span className="font-medium text-muted-foreground">
+            {resource.name}:{" "}
+          </span>
+        )}
+        {resource.text}
+      </div>
+    );
+  }
+
+  // Handle URI reference
+  if (resource.uri) {
+    return (
+      <div key={`resource-uri-${index}`} className="flex items-center gap-1">
+        <span className="font-medium text-muted-foreground">
+          {resource.name ?? "Resource"}:
+        </span>
+        <span className="font-mono text-xs truncate">{resource.uri}</span>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+/**
+ * Helper function to detect if content is JSON and format it nicely.
+ * Handles text, image, and MCP resource content types.
  * @param content - The content to check and format
+ * @param enableMarkdown - Whether to render text as markdown
  * @returns Formatted content or original content if not JSON
  */
 function formatToolResult(
@@ -799,47 +889,87 @@ function formatToolResult(
 ): React.ReactNode {
   if (!content) return content;
 
-  // First check if content can be converted to a string for JSON parsing
-  let contentString: string | null = null;
+  // Handle string content directly
   if (typeof content === "string") {
-    contentString = content;
-  } else if (Array.isArray(content)) {
-    contentString = content
-      .map((item) => {
-        if (item?.type === "text") {
-          return item.text ?? "";
+    return formatTextContent(content, enableMarkdown);
+  }
+
+  // Handle array content with mixed types
+  if (Array.isArray(content)) {
+    const textParts: string[] = [];
+    const nonTextParts: React.ReactNode[] = [];
+
+    content.forEach((item, index) => {
+      if (!item?.type) return;
+
+      if (item.type === "text" && item.text) {
+        textParts.push(item.text);
+      } else if (item.type === "image_url" && item.image_url?.url) {
+        nonTextParts.push(renderImageContent(item.image_url.url, index));
+      } else if (item.type === "resource" && item.resource) {
+        const resourceNode = renderResourceContent(item.resource, index);
+        if (resourceNode) {
+          nonTextParts.push(resourceNode);
         }
-        return "";
-      })
-      .join("");
-  }
+      }
+    });
 
-  // Try to parse as JSON if we have a string
-  if (contentString) {
-    try {
-      const parsed = JSON.parse(contentString);
-      return (
-        <pre
-          className={cn(
-            "bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64",
-          )}
-        >
-          <code className="font-mono break-words whitespace-pre-wrap">
-            {JSON.stringify(parsed, null, 2)}
-          </code>
-        </pre>
-      );
-    } catch {
-      // JSON parsing failed, render as markdown or plain text
-      if (!enableMarkdown) return contentString;
-      return (
-        <Streamdown components={markdownComponents}>{contentString}</Streamdown>
-      );
+    // Combine text parts and render
+    const combinedText = textParts.join("");
+    const textNode = combinedText
+      ? formatTextContent(combinedText, enableMarkdown)
+      : null;
+
+    // If we only have text, return it directly
+    if (nonTextParts.length === 0) {
+      return textNode;
     }
+
+    // If we have mixed content, render in a flex container
+    return (
+      <div className="flex flex-col gap-2">
+        {textNode}
+        {nonTextParts.length > 0 && (
+          <div className="flex flex-wrap gap-2">{nonTextParts}</div>
+        )}
+      </div>
+    );
   }
 
-  // If content is not a string or array, use getSafeContent as fallback
+  // Fallback for unknown content types
   return getSafeContent(content);
+}
+
+/**
+ * Formats text content, attempting JSON parsing for pretty-printing.
+ * @param text - The text to format
+ * @param enableMarkdown - Whether to render as markdown if not JSON
+ * @returns Formatted text node
+ */
+function formatTextContent(
+  text: string,
+  enableMarkdown: boolean,
+): React.ReactNode {
+  if (!text) return null;
+
+  try {
+    const parsed = JSON.parse(text);
+    return (
+      <pre
+        className={cn(
+          "bg-muted/50 rounded-md p-3 text-xs overflow-x-auto overflow-y-auto max-w-full max-h-64",
+        )}
+      >
+        <code className="font-mono break-words whitespace-pre-wrap">
+          {JSON.stringify(parsed, null, 2)}
+        </code>
+      </pre>
+    );
+  } catch {
+    // JSON parsing failed, render as markdown or plain text
+    if (!enableMarkdown) return text;
+    return <Streamdown components={markdownComponents}>{text}</Streamdown>;
+  }
 }
 
 /**

@@ -13,12 +13,13 @@ The `TamboTool` interface defines the structure for registering tools with Tambo
 interface TamboTool {
   name: string;
   description: string;
-  tool: (...args: any[]) => any;
-  inputSchema?: z.ZodTypeAny | JSONSchemaLite;
-  outputSchema?: z.ZodTypeAny | JSONSchemaLite;
+  tool: (params: Record<string, unknown>) => unknown;
+  inputSchema: z.ZodObject | JSONSchema7;
+  outputSchema: z.ZodTypeAny | JSONSchema7;
   transformToContent?: (
     result: any,
   ) => Promise<ChatCompletionContentPart[]> | ChatCompletionContentPart[];
+  maxCalls?: number;
 }
 ```
 
@@ -42,38 +43,44 @@ description: string;
 
 #### tool
 
-The function that implements the tool's logic. Can be synchronous or asynchronous.
+The function that implements the tool's logic. Receives a single object with named parameters.
 
 ```typescript
-tool: (...args: any[]) => any;
+tool: (params: Record<string, unknown>) => unknown;
 ```
 
-#### inputSchema (optional)
+#### inputSchema
 
-A Zod schema that defines the tool's input parameters. Can also be a JSON Schema object. Omit if the tool takes no parameters.
+A Zod schema that defines the tool's input parameters. Can also be a JSON Schema object. Use `z.object({})` (or an equivalent empty object schema) for no-parameter tools.
 
 ```typescript
-inputSchema?: z.ZodTypeAny | JSONSchemaLite;
+inputSchema: z.ZodObject | JSONSchema7;
 ```
 
 **Example:**
 
 ```typescript
-inputSchema: z.string().describe("The city name");
+inputSchema: z.object({
+  city: z.string().describe("The city name"),
+  units: z.enum(["celsius", "fahrenheit"]).optional(),
+});
 ```
 
-#### outputSchema (optional)
+#### outputSchema
 
 A Zod schema that defines the tool's return type. Can also be a JSON Schema object.
 
 ```typescript
-outputSchema?: z.ZodTypeAny | JSONSchemaLite;
+outputSchema: z.ZodTypeAny | JSONSchema7;
 ```
 
 **Example:**
 
 ```typescript
-outputSchema: z.object({ temperature: z.number(), condition: z.string() });
+outputSchema: z.object({
+  temperature: z.number(),
+  condition: z.string(),
+});
 ```
 
 #### transformToContent (optional)

@@ -3,7 +3,6 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { GraphChatInterface } from "@/components/generative/GraphChatInterface";
-import { TamboProvider } from "@tambo-ai/react";
 
 export default function GraphPage() {
   return (
@@ -24,17 +23,16 @@ export default function GraphPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-semibold">Examples</h2>
 
+        <p className="text-sm text-muted-foreground">
+          This interactive demo runs inside the showcase&apos;s app-level
+          TamboProvider, which sets a per-user context key (persisted in
+          localStorage).
+        </p>
+
         <div className="space-y-6">
           <ComponentCodePreview
             title="Quarterly Sales Chart"
-            component={
-              <TamboProvider
-                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-                tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
-              >
-                <GraphChatInterface />
-              </TamboProvider>
-            }
+            component={<GraphChatInterface />}
             code={`import { Graph } from "@/components/tambo/graph";
 
 export function QuarterlySalesChart() {

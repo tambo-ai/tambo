@@ -15,12 +15,15 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ApiBody,
+  ApiExtraModels,
   ApiOperation,
   ApiParam,
   ApiProduces,
   ApiResponse,
   ApiSecurity,
   ApiTags,
+  getSchemaPath,
 } from "@nestjs/swagger";
 import { Request, Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
@@ -37,6 +40,11 @@ import {
   V1CreateRunDto,
   V1CreateThreadWithRunDto,
 } from "./dto/run.dto";
+import {
+  JsonPatchOperationDto,
+  UpdateComponentStateDto,
+  UpdateComponentStateResponseDto,
+} from "./dto/component-state.dto";
 import {
   V1CreateThreadDto,
   V1CreateThreadResponseDto,
@@ -484,5 +492,83 @@ export class V1Controller {
     @Param("runId") runId: string,
   ): Promise<V1CancelRunResponseDto> {
     return await this.v1Service.cancelRun(threadId, runId, "user_cancelled");
+  }
+
+  // ==========================================
+  // Component state endpoint
+  // ==========================================
+
+  @Post("threads/:threadId/components/:componentId/state")
+  @UseGuards(ThreadInProjectGuard)
+  @ApiExtraModels(JsonPatchOperationDto)
+  @ApiBody({
+    schema: {
+      oneOf: [
+        {
+          type: "object",
+          required: ["state"],
+          properties: {
+            state: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+        },
+        {
+          type: "object",
+          required: ["patch"],
+          properties: {
+            patch: {
+              type: "array",
+              minItems: 1,
+              items: { $ref: getSchemaPath(JsonPatchOperationDto) },
+            },
+          },
+        },
+      ],
+    },
+  })
+  @ApiOperation({
+    summary: "Update component state",
+    description:
+      "Update the state of a component in a thread. Supports both full replacement and JSON Patch operations. Thread must not have an active run.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "componentId",
+    description: "Component ID",
+    example: "comp_xyz789abc",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Component state updated successfully",
+    type: UpdateComponentStateResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid request (missing state/patch, or invalid patch)",
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Component not found in thread",
+  })
+  @ApiResponse({
+    status: 409,
+    description: "Cannot update state while run is active",
+  })
+  async updateComponentState(
+    @Param("threadId") threadId: string,
+    @Param("componentId") componentId: string,
+    @Body() dto: UpdateComponentStateDto,
+  ): Promise<UpdateComponentStateResponseDto> {
+    return await this.v1Service.updateComponentState(
+      threadId,
+      componentId,
+      dto,
+    );
   }
 }

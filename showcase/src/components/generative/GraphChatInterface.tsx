@@ -1,5 +1,5 @@
-import { Graph, graphSchema } from "@/components/tambo/graph";
-import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { Graph, graphSchema } from "@tambo-ai/ui-registry/components/graph";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 

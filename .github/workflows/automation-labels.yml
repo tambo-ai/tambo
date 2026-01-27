@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Mise
-        uses: jdx/mise-action@v3.6.0
+        uses: jdx/mise-action@v3.6.1
 
       - name: Determine Author
         id: author
@@ -224,7 +224,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Mise
-        uses: jdx/mise-action@v3.6.0
+        uses: jdx/mise-action@v3.6.1
 
       - name: Determine Labels
         id: determine_labels

@@ -1,4 +1,8 @@
-import { NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from "@nestjs/common";
 import { Request } from "express";
 import { V1Controller } from "../v1.controller";
 import { V1Service } from "../v1.service";
@@ -21,6 +25,7 @@ describe("V1Controller", () => {
       deleteThread: jest.fn(),
       listMessages: jest.fn(),
       getMessage: jest.fn(),
+      updateComponentState: jest.fn(),
     } as unknown as jest.Mocked<V1Service>;
 
     // Create controller directly with mocked service
@@ -334,6 +339,103 @@ describe("V1Controller", () => {
         await expect(
           controller.getMessage("thr_123", "msg_nonexistent"),
         ).rejects.toThrow(NotFoundException);
+      });
+    });
+  });
+
+  describe("Component State endpoints", () => {
+    describe("updateComponentState", () => {
+      it("should update component state with full replacement", async () => {
+        const mockResponse = {
+          state: { loading: false, data: [1, 2, 3] },
+        };
+        mockV1Service.updateComponentState.mockResolvedValue(mockResponse);
+
+        const result = await controller.updateComponentState(
+          "thr_123",
+          "comp_456",
+          { state: { loading: false, data: [1, 2, 3] } },
+        );
+
+        expect(mockV1Service.updateComponentState).toHaveBeenCalledWith(
+          "thr_123",
+          "comp_456",
+          { state: { loading: false, data: [1, 2, 3] } },
+        );
+        expect(result).toEqual(mockResponse);
+      });
+
+      it("should update component state with JSON Patch", async () => {
+        const mockResponse = {
+          state: { loading: false, data: [1, 2, 3, 4] },
+        };
+        mockV1Service.updateComponentState.mockResolvedValue(mockResponse);
+
+        const patch = [
+          { op: "replace" as const, path: "/loading", value: false },
+          { op: "add" as const, path: "/data/-", value: 4 },
+        ];
+
+        const result = await controller.updateComponentState(
+          "thr_123",
+          "comp_456",
+          { patch },
+        );
+
+        expect(mockV1Service.updateComponentState).toHaveBeenCalledWith(
+          "thr_123",
+          "comp_456",
+          { patch },
+        );
+        expect(result).toEqual(mockResponse);
+      });
+
+      it("should throw ConflictException when thread has active run", async () => {
+        mockV1Service.updateComponentState.mockRejectedValue(
+          new ConflictException("Cannot update state while run is active"),
+        );
+
+        await expect(
+          controller.updateComponentState("thr_123", "comp_456", {
+            state: { loading: false },
+          }),
+        ).rejects.toThrow(ConflictException);
+      });
+
+      it("should throw NotFoundException for non-existent component", async () => {
+        mockV1Service.updateComponentState.mockRejectedValue(
+          new NotFoundException(
+            "Component comp_nonexistent not found in thread thr_123",
+          ),
+        );
+
+        await expect(
+          controller.updateComponentState("thr_123", "comp_nonexistent", {
+            state: { loading: false },
+          }),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it("should throw BadRequestException for invalid JSON Patch", async () => {
+        mockV1Service.updateComponentState.mockRejectedValue(
+          new BadRequestException("Invalid JSON Patch"),
+        );
+
+        await expect(
+          controller.updateComponentState("thr_123", "comp_456", {
+            patch: [{ op: "move", path: "/foo" }],
+          }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it("should throw BadRequestException when neither state nor patch provided", async () => {
+        mockV1Service.updateComponentState.mockRejectedValue(
+          new BadRequestException("Either state or patch must be provided"),
+        );
+
+        await expect(
+          controller.updateComponentState("thr_123", "comp_456", {}),
+        ).rejects.toThrow(BadRequestException);
       });
     });
   });

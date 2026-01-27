@@ -2,7 +2,7 @@ import {
   ContextAttachmentBadgeList,
   ContextAttachmentBadgeListData,
 } from "@/components/ui/tambo/context-attachment-badge";
-import { createMarkdownComponents } from "@/components/ui/tambo/markdown-components";
+import { createMarkdownComponents } from "@tambo-ai/ui-registry/components/message";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { getSafeContent } from "@/lib/thread-hooks";
 import { cn } from "@/lib/utils";
