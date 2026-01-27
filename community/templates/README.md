@@ -11,6 +11,12 @@ Starter templates for building AI-powered apps with Tambo.
 | [analytics-template](https://github.com/tambo-ai/analytics-template)             | Analytics dashboard | Next.js + Charts |
 | [betterauth-tambo-example](https://github.com/tambo-ai/betterauth-tambo-example) | Auth integration    | BetterAuth       |
 
+## Community Templates
+
+| Template                                                                      | Description       | Stack             |
+| ----------------------------------------------------------------------------- | ----------------- | ----------------- |
+| [elysiajs-tambo-template](https://github.com/vkop007/elysiajs-tambo-template) | Elysia.js + Tambo | Elysia.js + Tambo |
+
 ## Contributing a Template
 
 We have a high quality bar for merging templates. Focus on quality over quantity.
