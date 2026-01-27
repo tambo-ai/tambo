@@ -51,7 +51,7 @@ npm run build     # Must complete successfully (includes type checking)
 
 Templates should include:
 
-- **ESLint configuration** - Use `eslint.config.mjs` with sensible defaults
+- **ESLint configuration** - Use `eslint.config.mjs` with sensible defaults (see [our config](https://github.com/tambo-ai/tambo/blob/main/packages/eslint-config/base.mjs) for reference)
 - **TypeScript strict mode** - Enable `"strict": true` in tsconfig.json
 - **No type errors** - Fix all TypeScript errors, don't use `@ts-ignore` or `any` as workarounds
 
