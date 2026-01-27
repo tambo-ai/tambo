@@ -1,0 +1,499 @@
+---
+title: TypeScript Types
+description: TypeScript interfaces and types exported by @tambo-ai/react
+---
+
+The `@tambo-ai/react` package exports TypeScript types and interfaces to help you build type-safe AI applications.
+
+## TamboTool
+
+The `TamboTool` interface defines the structure for registering tools with Tambo.
+
+```typescript
+interface TamboTool {
+  name: string;
+  description: string;
+  tool: (params: Record<string, unknown>) => unknown;
+  inputSchema: z.ZodObject | JSONSchema7;
+  outputSchema: z.ZodTypeAny | JSONSchema7;
+  transformToContent?: (
+    result: any,
+  ) => Promise<ChatCompletionContentPart[]> | ChatCompletionContentPart[];
+  maxCalls?: number;
+}
+```
+
+### Properties
+
+#### name
+
+The unique identifier for the tool. This is how Tambo references the tool internally.
+
+```typescript
+name: string;
+```
+
+#### description
+
+A clear description of what the tool does. This helps the AI understand when to use the tool.
+
+```typescript
+description: string;
+```
+
+#### tool
+
+The function that implements the tool's logic. Receives a single object with named parameters.
+
+```typescript
+tool: (params: Record<string, unknown>) => unknown;
+```
+
+#### inputSchema
+
+A Zod schema that defines the tool's input parameters. Can also be a JSON Schema object. Use `z.object({})` (or an equivalent empty object schema) for no-parameter tools.
+
+```typescript
+inputSchema: z.ZodObject | JSONSchema7;
+```
+
+**Example:**
+
+```typescript
+inputSchema: z.object({
+  city: z.string().describe("The city name"),
+  units: z.enum(["celsius", "fahrenheit"]).optional(),
+});
+```
+
+#### outputSchema
+
+A Zod schema that defines the tool's return type. Can also be a JSON Schema object.
+
+```typescript
+outputSchema: z.ZodTypeAny | JSONSchema7;
+```
+
+**Example:**
+
+```typescript
+outputSchema: z.object({
+  temperature: z.number(),
+  condition: z.string(),
+});
+```
+
+#### transformToContent (optional)
+
+A function that transforms the tool's return value into an array of content parts. Use this when your tool needs to return rich content like images or audio.
+
+```typescript
+transformToContent?: (result: any) => Promise<ChatCompletionContentPart[]> | ChatCompletionContentPart[];
+```
+
+By default, tool responses are stringified and wrapped in a text content part. The `transformToContent` function allows you to return rich content including images, audio, or mixed media.
+
+**Example:**
+
+```typescript
+transformToContent: (result) => [
+  { type: "text", text: result.description },
+  { type: "image_url", image_url: { url: result.imageUrl } },
+];
+```
+
+[Learn more about returning rich content from tools](/guides/take-actions/register-tools#return-rich-content-optional).
+
+## TamboComponent
+
+The `TamboComponent` interface defines the structure for registering React components with Tambo.
+
+```typescript
+interface TamboComponent {
+  name: string;
+  description: string;
+  component: ComponentType<any>;
+  propsSchema?: z.ZodTypeAny | JSONSchema7;
+  propsDefinition?: any;
+  loadingComponent?: ComponentType<any>;
+  associatedTools?: TamboTool[];
+}
+```
+
+### Properties
+
+#### name
+
+The unique identifier for the component.
+
+```typescript
+name: string;
+```
+
+#### description
+
+A clear description of what the component displays or does. This helps the AI understand when to use the component.
+
+```typescript
+description: string;
+```
+
+#### component
+
+The React component to render.
+
+```typescript
+component: ComponentType<any>;
+```
+
+#### propsSchema (recommended)
+
+A Zod schema that defines the component's props.
+
+```typescript
+propsSchema?: z.ZodTypeAny | JSONSchema7;
+```
+
+#### propsDefinition (deprecated)
+
+A JSON object defining the component's props. Use `propsSchema` instead.
+
+```typescript
+propsDefinition?: any;
+```
+
+#### loadingComponent (optional)
+
+A component to display while the main component is loading.
+
+```typescript
+loadingComponent?: ComponentType<any>;
+```
+
+#### associatedTools (optional)
+
+An array of tools that are associated with this component.
+
+```typescript
+associatedTools?: TamboTool[];
+```
+
+## ChatCompletionContentPart
+
+Content parts that can be sent to or received from the AI.
+
+```typescript
+interface ChatCompletionContentPart {
+  type: "text" | "image_url" | "input_audio";
+  text?: string;
+  image_url?: { url: string; detail?: "auto" | "high" | "low" };
+  input_audio?: { data: string; format: "wav" | "mp3" };
+}
+```
+
+This type is used in the `transformToContent` function to define rich content responses.
+
+## TamboThreadMessage
+
+A message in a Tambo thread.
+
+```typescript
+interface TamboThreadMessage {
+  id: string;
+  role: "user" | "assistant" | "system" | "tool";
+  content: ChatCompletionContentPart[];
+  createdAt: string;
+  renderedComponent?: React.ReactNode;
+  component?: {
+    componentName: string;
+    props: any;
+  };
+  actionType?: string;
+  error?: string;
+}
+```
+
+## TamboThread
+
+A Tambo conversation thread.
+
+```typescript
+interface TamboThread {
+  id: string;
+  messages: TamboThreadMessage[];
+  contextKey?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+## GenerationStage
+
+The current stage of AI response generation.
+
+```typescript
+enum GenerationStage {
+  IDLE = "IDLE",
+  CHOOSING_COMPONENT = "CHOOSING_COMPONENT",
+  FETCHING_CONTEXT = "FETCHING_CONTEXT",
+  HYDRATING_COMPONENT = "HYDRATING_COMPONENT",
+  STREAMING_RESPONSE = "STREAMING_RESPONSE",
+  COMPLETE = "COMPLETE",
+  ERROR = "ERROR",
+}
+```
+
+## ContextAttachment
+
+Represents a context attachment that will be sent with the next user message.
+
+```typescript
+interface ContextAttachment {
+  id: string; // Auto-generated unique identifier
+  displayName?: string; // Optional display name for UI rendering
+  context: string; // The context value that will be used in additionalContext
+  type?: string; // Optional type identifier for grouping/rendering
+}
+```
+
+### Properties
+
+#### id
+
+Unique identifier for the attachment. Auto-generated when adding a context attachment.
+
+```typescript
+id: string;
+```
+
+#### displayName
+
+Display name for UI rendering.
+
+```typescript
+displayName: string;
+```
+
+#### context
+
+The context value that will be used in `additionalContext` when the next message is sent.
+
+```typescript
+context: string;
+```
+
+#### type
+
+Optional type identifier for grouping/rendering multiple contexts of the same type.
+
+```typescript
+type?: string;
+```
+
+## ContextAttachmentState
+
+The state interface returned by the `useTamboContextAttachment` hook.
+
+```typescript
+interface ContextAttachmentState {
+  attachments: ContextAttachment[];
+  addContextAttachment: (
+    contextAttachment: Omit<ContextAttachment, "id">,
+  ) => ContextAttachment;
+  removeContextAttachment: (id: string) => void;
+  clearContextAttachments: () => void;
+}
+```
+
+### Properties
+
+#### attachments
+
+Array of active context attachments that will be included in `additionalContext` when the next message is sent.
+
+```typescript
+attachments: ContextAttachment[];
+```
+
+#### addContextAttachment
+
+Function to add a new context attachment. The `id` is automatically generated. All attachments are automatically registered together as a single merged context helper (key: `contextAttachments`) that returns an array of all active attachments.
+
+```typescript
+addContextAttachment: (contextAttachment: Omit<ContextAttachment, "id">) =>
+  ContextAttachment;
+```
+
+#### removeContextAttachment
+
+Function to remove a specific context attachment by its ID. The context helper automatically updates to reflect the change.
+
+```typescript
+removeContextAttachment: (id: string) => void;
+```
+
+#### clearContextAttachments
+
+Function to remove all active context attachments. The context helper automatically updates to reflect the change. Context attachments are automatically cleared after message submission (one-time use), so you typically don't need to call this manually.
+
+```typescript
+clearContextAttachments: () => void;
+```
+
+## StreamStatus
+
+Global stream status flags for a component during streaming. Returned by `useTamboStreamStatus`.
+
+```typescript
+interface StreamStatus {
+  isPending: boolean; // No tokens received yet, generation not active
+  isStreaming: boolean; // Active streaming - generation or props still streaming
+  isSuccess: boolean; // Complete - all props finished without error
+  isError: boolean; // Fatal error occurred
+  streamError?: Error; // First error encountered (if any)
+}
+```
+
+## PropStatus
+
+Streaming status flags for individual component props. Returned by `useTamboStreamStatus`.
+
+```typescript
+interface PropStatus {
+  isPending: boolean; // No tokens received for this prop yet
+  isStreaming: boolean; // Prop has partial content, still updating
+  isSuccess: boolean; // Prop finished streaming successfully
+  error?: Error; // Error during streaming (if any)
+}
+```
+
+## TamboInteractableComponent
+
+Represents a component instance that can be interacted with by Tambo. Extends `TamboComponent`.
+
+```typescript
+interface TamboInteractableComponent<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> extends TamboComponent {
+  id: string; // Unique identifier for this instance
+  props: Props; // Current props
+  isSelected?: boolean; // Whether selected for interaction
+  state?: State; // Current component state
+  stateSchema?: SupportedSchema<State>; // Optional state validation schema
+}
+```
+
+## InteractableConfig
+
+Configuration for the `withInteractable` HOC.
+
+```typescript
+interface InteractableConfig<
+  Props = Record<string, unknown>,
+  State = Record<string, unknown>,
+> {
+  componentName: string; // Name used for identification
+  description: string; // Description for LLM understanding
+  propsSchema?: SupportedSchema<Props>; // Optional props validation
+  stateSchema?: SupportedSchema<State>; // Optional state validation
+}
+```
+
+## WithTamboInteractableProps
+
+Props injected by `withInteractable` HOC.
+
+```typescript
+interface WithTamboInteractableProps {
+  interactableId?: string; // Optional custom ID
+  onInteractableReady?: (id: string) => void; // Called when registered
+  onPropsUpdate?: (newProps: Record<string, unknown>) => void; // Called on prop updates
+}
+```
+
+## InteractableMetadata
+
+Metadata about an interactable component.
+
+```typescript
+interface InteractableMetadata {
+  id: string;
+  componentName: string;
+  description: string;
+}
+```
+
+## ToolAnnotations
+
+Annotations describing a tool's behavior, aligned with the MCP specification.
+
+```typescript
+type ToolAnnotations = MCPToolAnnotations & {
+  tamboStreamableHint?: boolean; // Safe to call repeatedly during streaming
+};
+```
+
+The `tamboStreamableHint` property indicates that the tool is safe to be called repeatedly while a response is being streamed. This is typically used for read-only tools that do not cause side effects.
+
+## SupportedSchema
+
+A schema type that accepts either a Standard Schema compliant validator or a raw JSON Schema object.
+
+```typescript
+type SupportedSchema<Shape = unknown> =
+  | StandardSchemaV1<Shape, Shape>
+  | JSONSchema7;
+```
+
+Standard Schema is a specification that provides a unified interface for TypeScript validation libraries. Libraries like Zod, Valibot, and ArkType implement this spec.
+
+## StagedImage
+
+Represents an image staged for upload in message input.
+
+```typescript
+interface StagedImage {
+  id: string; // Unique identifier
+  name: string; // File name
+  dataUrl: string; // Base64 data URL
+  file: File; // Original File object
+  size: number; // File size in bytes
+  type: string; // MIME type
+}
+```
+
+## AdditionalContext
+
+Interface for additional context that can be added to messages.
+
+```typescript
+interface AdditionalContext {
+  name: string; // Name of the context type
+  context: unknown; // The context data
+}
+```
+
+## ContextHelperFn
+
+A function that returns context data to include in messages.
+
+```typescript
+type ContextHelperFn = () =>
+  | unknown
+  | null
+  | undefined
+  | Promise<unknown | null | undefined>;
+```
+
+Return `null` or `undefined` to skip including the context.
+
+## ContextHelpers
+
+A collection of context helpers keyed by their context name.
+
+```typescript
+type ContextHelpers = Record<string, ContextHelperFn>;
+```
+
+The key becomes the `AdditionalContext.name` sent to the model.

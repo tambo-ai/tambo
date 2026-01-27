@@ -362,6 +362,15 @@ jest.unstable_mockModule("../utils/interactive.js", () => ({
       this.name = "NonInteractiveError";
     }
   },
+  GuidanceError: class GuidanceError extends Error {
+    constructor(
+      message: string,
+      public readonly guidance: string[],
+    ) {
+      super(message);
+      this.name = "GuidanceError";
+    }
+  },
 }));
 
 // Import after mocking
