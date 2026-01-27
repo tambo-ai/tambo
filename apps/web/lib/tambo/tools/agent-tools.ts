@@ -1,9 +1,20 @@
 import {
-  updateProjectAgentSettingsInput as updateProjectAgentSettingsInputSchema,
+  type AgentHeadersToolInput,
   updateProjectAgentSettingsOutputSchema,
+  updateProjectAgentSettingsToolInput,
 } from "@/lib/schemas/agent";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
+
+/**
+ * Converts an array of header objects to a record.
+ */
+function headersArrayToRecord(
+  headers: AgentHeadersToolInput | null | undefined,
+): Record<string, string> | null | undefined {
+  if (!headers) return headers;
+  return Object.fromEntries(headers.map(({ name, value }) => [name, value]));
+}
 
 /**
  * Register agent-specific settings management tools
@@ -36,9 +47,7 @@ export function registerAgentTools(
           agentProviderType,
           agentUrl,
           agentName,
-          // Cast from unknown (tool schema) to Record<string, string> (tRPC expects)
-          // Validation happens server-side
-          agentHeaders: agentHeaders,
+          agentHeaders: headersArrayToRecord(agentHeaders),
         });
 
       // Invalidate all caches that display agent settings (shown in LLM settings view)
@@ -50,7 +59,7 @@ export function registerAgentTools(
 
       return result;
     },
-    inputSchema: updateProjectAgentSettingsInputSchema,
+    inputSchema: updateProjectAgentSettingsToolInput,
     outputSchema: updateProjectAgentSettingsOutputSchema,
   });
 }

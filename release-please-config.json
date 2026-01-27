@@ -5,6 +5,12 @@
   "always-update": true,
   "bootstrap-sha": "afad6013a55f7614de2c2e5c9b090d271e821e01",
   "commit-search-depth": 50,
+  "plugins": [
+    {
+      "type": "node-workspace",
+      "updatePeerDependencies": true
+    }
+  ],
   "packages": {
     "react-sdk": {
       "component": "react"

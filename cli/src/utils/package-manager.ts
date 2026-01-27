@@ -1,4 +1,5 @@
 import { execFileSync } from "child_process";
+import spawn from "cross-spawn";
 import fs from "fs";
 import path from "path";
 
@@ -73,15 +74,50 @@ export function detectPackageManager(
  * Validates that the detected package manager is actually installed on the system.
  * Throws an error with a helpful message if not installed.
  *
+ * Note: Validation is performed using the current process execution context (current
+ * working directory and environment variables). This function does not accept custom
+ * `cwd`/`env` options; callers must ensure the package manager is available on `PATH` in
+ * the environment where this check runs.
+ *
  * @param pm The package manager to validate
  * @throws Error if the package manager is not installed
  */
 export function validatePackageManager(pm: PackageManager): void {
   try {
-    execFileSync(pm, ["--version"], { stdio: "ignore" });
-  } catch {
+    if (process.platform === "win32") {
+      const result = spawn.sync(pm, ["--version"], { stdio: "pipe" });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (result.status !== 0) {
+        const stderr =
+          typeof result.stderr === "string"
+            ? result.stderr
+            : result.stderr?.toString();
+        const err = new Error(
+          `Failed to execute ${pm} --version (${result.status ?? "unknown status"})${
+            stderr ? `: ${stderr.trim()}` : ""
+          }`,
+        );
+        (
+          err as { status?: number | null; signal?: NodeJS.Signals | null }
+        ).status = result.status;
+        (
+          err as { status?: number | null; signal?: NodeJS.Signals | null }
+        ).signal = result.signal;
+        throw err;
+      }
+    } else {
+      execFileSync(pm, ["--version"], { stdio: "ignore" });
+    }
+  } catch (err) {
     throw new Error(
-      `Detected ${pm} from lockfile but ${pm} is not installed. Please install ${pm} first.`,
+      `Detected ${pm} from lockfile, but running \`${pm} --version\` failed. Please ensure ${pm} is installed and available on your PATH.`,
+      {
+        cause: err,
+      },
     );
   }
 }

@@ -1,0 +1,12 @@
+{
+  "title": "React SDK",
+  "pages": [
+    "hooks",
+    "types",
+    "utilities",
+    "providers",
+    "mcp",
+    "---Migration Guides---",
+    "...migration"
+  ]
+}

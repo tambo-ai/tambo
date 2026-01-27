@@ -2,10 +2,11 @@
  * Tambo-specific Custom Event Types for v1 Streaming API
  *
  * Defines custom events specific to Tambo functionality.
- * For standard AG-UI events, import directly from @ag-ui/core.
+ * For standard AG-UI events, import directly from `@ag-ui/core`.
  */
 
 import type { CustomEvent } from "@ag-ui/core";
+import type { Operation } from "fast-json-patch";
 
 type TamboCustomEventEnvelope<TName extends string, TValue> = Omit<
   CustomEvent,
@@ -35,7 +36,7 @@ export type ComponentPropsDeltaEvent = TamboCustomEventEnvelope<
   "tambo.component.props_delta",
   {
     componentId: string;
-    operations: JsonPatchOperation[];
+    operations: Operation[];
   }
 >;
 
@@ -47,7 +48,7 @@ export type ComponentStateDeltaEvent = TamboCustomEventEnvelope<
   "tambo.component.state_delta",
   {
     componentId: string;
-    operations: JsonPatchOperation[];
+    operations: Operation[];
   }
 >;
 
@@ -73,16 +74,6 @@ export type RunAwaitingInputEvent = TamboCustomEventEnvelope<
 >;
 
 /**
- * JSON Patch operation (RFC 6902)
- */
-export interface JsonPatchOperation {
-  op: "add" | "remove" | "replace" | "move" | "copy" | "test";
-  path: string;
-  value?: unknown;
-  from?: string; // For 'move' and 'copy' operations
-}
-
-/**
  * Union type of Tambo-specific custom events
  */
 export type TamboCustomEvent =
@@ -91,3 +82,30 @@ export type TamboCustomEvent =
   | ComponentStateDeltaEvent
   | ComponentEndEvent
   | RunAwaitingInputEvent;
+
+/**
+ * Known Tambo custom event names for type narrowing
+ */
+const TAMBO_CUSTOM_EVENT_NAMES = [
+  "tambo.component.start",
+  "tambo.component.props_delta",
+  "tambo.component.state_delta",
+  "tambo.component.end",
+  "tambo.run.awaiting_input",
+] as const;
+
+/**
+ * Type guard to check if an event is a Tambo custom event.
+ * Validates that the event has a name matching known Tambo custom event types.
+ * @param event - Event object to check
+ * @param event.name - Event name to match against known Tambo event types
+ * @returns True if event is a TamboCustomEvent
+ */
+export function isTamboCustomEvent(event: {
+  name?: string;
+}): event is TamboCustomEvent {
+  return (
+    typeof event.name === "string" &&
+    (TAMBO_CUSTOM_EVENT_NAMES as readonly string[]).includes(event.name)
+  );
+}

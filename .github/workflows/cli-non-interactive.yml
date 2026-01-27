@@ -1,0 +1,72 @@
+# CLI Non-Interactive Tests
+# Verifies that CLI commands don't hang in CI/non-TTY environments
+name: CLI Non-Interactive Tests
+
+on:
+  push:
+    paths:
+      - "cli/**"
+  pull_request:
+    paths:
+      - "cli/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  cli-non-interactive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5.0.1
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+        with:
+          frozen: false
+
+      - name: Build CLI
+        run: npm run build -w cli
+
+      - name: Test non-interactive mode
+        shell: bash
+        run: |
+          # Don't use set -e since we're testing exit codes
+          set -uo pipefail
+
+          # list should complete without hanging (may fail if not in project, that's ok)
+          echo "Testing 'tambo list'..."
+          timeout 30 node ./cli/dist/cli.js list || true
+
+          # auth status should complete (may exit non-zero if not logged in)
+          echo "Testing 'tambo auth status'..."
+          timeout 30 node ./cli/dist/cli.js auth status || true
+
+          # init without args should return guidance (exit 2)
+          echo "Testing 'tambo init' returns exit code 2 without args..."
+          set +e  # Disable errexit to capture exit code
+          node ./cli/dist/cli.js init
+          code=$?
+          set -e  # Re-enable errexit
+          if [ $code -ne 2 ]; then
+            echo "Expected exit code 2, got $code"
+            exit 1
+          fi
+          echo "✓ init correctly returns exit code 2"
+
+          # create-app without args should return guidance (exit 2)
+          echo "Testing 'tambo create-app' returns exit code 2 without args..."
+          set +e
+          node ./cli/dist/cli.js create-app
+          code=$?
+          set -e
+          if [ $code -ne 2 ]; then
+            echo "Expected exit code 2, got $code"
+            exit 1
+          fi
+          echo "✓ create-app correctly returns exit code 2"
+
+          echo "All non-interactive tests passed!"

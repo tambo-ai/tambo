@@ -1,25 +1,19 @@
 /**
  * Message and Content Types for v1 API
  *
- * Re-exports message and content types from @tambo-ai/typescript-sdk.
+ * Re-exports message and content types from `@tambo-ai/typescript-sdk`.
  * Messages use Anthropic-style content blocks pattern where a message
  * contains an array of content blocks (text, tool calls, tool results, components).
  */
 
-// Import and re-export content block types from TypeScript SDK
-import type {
-  TextContent as SDKTextContent,
-  ToolUseContent as SDKToolUseContent,
-  ToolResultContent as SDKToolResultContent,
-  ComponentContent as SDKComponentContent,
-  ResourceContent as SDKResourceContent,
+// Re-export content block types from TypeScript SDK
+export type {
+  TextContent,
+  ToolUseContent,
+  ToolResultContent,
+  ComponentContent,
+  ResourceContent,
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
-
-export type TextContent = SDKTextContent;
-export type ToolUseContent = SDKToolUseContent;
-export type ToolResultContent = SDKToolResultContent;
-export type ComponentContent = SDKComponentContent;
-export type ResourceContent = SDKResourceContent;
 
 // Re-export message types from TypeScript SDK
 export type { InputMessage } from "@tambo-ai/typescript-sdk/resources/threads/runs";
@@ -28,6 +22,15 @@ export type {
   MessageListResponse,
   MessageGetResponse,
 } from "@tambo-ai/typescript-sdk/resources/threads/messages";
+
+// Import for Content union type
+import type {
+  TextContent,
+  ToolUseContent,
+  ToolResultContent,
+  ComponentContent,
+  ResourceContent,
+} from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
 /**
  * Message role (from SDK)
@@ -38,11 +41,11 @@ export type MessageRole = "user" | "assistant";
  * Union type of all content block types
  */
 export type Content =
-  | SDKTextContent
-  | SDKToolUseContent
-  | SDKToolResultContent
-  | SDKComponentContent
-  | SDKResourceContent;
+  | TextContent
+  | ToolUseContent
+  | ToolResultContent
+  | ComponentContent
+  | ResourceContent;
 
 /**
  * Message in a thread (simplified from SDK's MessageGetResponse)
