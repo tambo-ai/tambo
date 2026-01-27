@@ -96,3 +96,11 @@ jobs:
           NEXTAUTH_SECRET: "dummy-nextauth-secret"
           NEXTAUTH_URL: "http://localhost:8260"
           SKIP_ENV_VALIDATION: "true"
+
+  status:
+    needs: [lint, test, e2e, build]
+    if: ${{ always() }}
+    uses: ./.github/workflows/workflow-check.yml
+    with:
+      pass-condition: ${{ contains(needs.*.result, 'failure') == false }}
+      error-message: "One or more of the CI jobs have failed. Please view the jobs for this workflow run for more details."
