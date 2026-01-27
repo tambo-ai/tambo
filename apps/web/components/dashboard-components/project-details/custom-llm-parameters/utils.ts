@@ -266,7 +266,7 @@ export const extractParametersWithDefaults = (
 
   const remainingKeys = Array.from(allKeys)
     .filter((key) => !usedKeys.has(key))
-    .sort((a, b) => a.localeCompare(b));
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
   sortedKeys.push(...remainingKeys);
 
