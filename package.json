@@ -35,7 +35,7 @@
     "chokidar": "^5.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.8.0",
+    "prettier": "^3.8.1",
     "tsx": "^4.21.0",
     "turbo": "^2.7.6",
     "type-fest": "^5.4.1",

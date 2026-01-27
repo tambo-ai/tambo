@@ -50,7 +50,7 @@
     "next": "^15.5.9",
     "next-themes": "^0.4.6",
     "postcss": "^8.5.6",
-    "posthog-js": "^1.326.0",
+    "posthog-js": "^1.334.1",
     "radix-ui": "^1.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
