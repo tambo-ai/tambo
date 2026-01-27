@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import React from "react";
 
 // HeroIllustration component based on apps/web/components/sections/hero.tsx
@@ -114,14 +115,14 @@ export default function Home() {
 
               {/* Buttons */}
               <div className="flex flex-col gap-4 sm:flex-row mt-4">
-                <Button asChild size="lg" className="rounded-full">
-                  <Link
-                    href="https://docs.tambo.co/getting-started/quickstart"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Get Started
-                  </Link>
+                <Button
+                  size="lg"
+                  className="rounded-full"
+                  onClick={() =>
+                    signIn("google", { callbackUrl: "/dashboard" })
+                  }
+                >
+                  Get Started
                 </Button>
                 <Button
                   asChild
