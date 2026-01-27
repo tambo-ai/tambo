@@ -108,11 +108,11 @@ const WINDOWS_CMD_BINARIES = new Set([
   "rushx",
 ]);
 
-// Treat stdio as "piped" when:
+// Treat stdio as "piped" only when:
 // - top-level stdio is undefined or "pipe" (Node default is piped stdout/stderr), or
 // - array stdio has undefined/null or "pipe" at the given index.
-// This mirrors Node's execFileSync defaults so we can decide when stdout/stderr are
-// available to attach to errors.
+// Any other values (including custom streams/fds) are treated as non-piped since the output
+// is not available to capture synchronously.
 const isPipedStdio = (
   stdio: ExecFileSyncOptions["stdio"] | undefined,
   index: 1 | 2,
@@ -130,13 +130,7 @@ const isPipedStdio = (
     return stdioAtIndex == null || stdioAtIndex === "pipe";
   }
 
-  // Any other string literal is treated as not-piped.
-  if (typeof stdio === "string") {
-    return false;
-  }
-
-  // For custom streams / file descriptors, default to treating them as piped.
-  return true;
+  return false;
 };
 
 /**
@@ -202,11 +196,7 @@ export function execFileSync(
     });
 
     const stdout = isStdoutPiped ? (result.stdout ?? undefined) : undefined;
-    const stderrRaw: unknown = isStderrPiped ? result.stderr : undefined;
-    const stderr =
-      typeof stderrRaw === "string" || stderrRaw instanceof Buffer
-        ? stderrRaw
-        : undefined;
+    const stderr = isStderrPiped ? (result.stderr ?? undefined) : undefined;
 
     if (result.error) {
       const baseError = result.error as NodeJS.ErrnoException & {
@@ -221,8 +211,6 @@ export function execFileSync(
         if (stderr !== undefined) {
           baseError.stderr = stderr;
         }
-
-        throw baseError;
       } catch {
         const err = new Error(baseError.message, {
           cause: baseError,
@@ -231,11 +219,7 @@ export function execFileSync(
           stderr?: Buffer | string;
         };
 
-        err.name = baseError.name;
-        err.code = baseError.code;
-        err.errno = baseError.errno;
-        err.syscall = baseError.syscall;
-        err.path = baseError.path;
+        Object.assign(err, baseError);
 
         if (stdout !== undefined) {
           err.stdout = stdout;
@@ -246,24 +230,24 @@ export function execFileSync(
 
         throw err;
       }
+
+      throw baseError;
     }
 
     if (result.status !== 0) {
       const commandStr = args ? `${file} ${args.join(" ")}` : file;
 
       let stderrStr: string | undefined;
-      if (typeof stderrRaw === "string") {
-        stderrStr = stderrRaw;
-      } else if (stderrRaw instanceof Buffer) {
+      if (typeof stderr === "string") {
+        stderrStr = stderr;
+      } else if (stderr instanceof Buffer) {
         try {
           stderrStr = spawnEncoding
-            ? stderrRaw.toString(spawnEncoding)
-            : stderrRaw.toString();
+            ? stderr.toString(spawnEncoding)
+            : stderr.toString();
         } catch {
-          stderrStr = `<non-decodable stderr: ${stderrRaw.length} bytes; see err.stderr for raw data>`;
+          stderrStr = `<non-decodable stderr: ${stderr.length} bytes; see err.stderr for raw data>`;
         }
-      } else if (stderrRaw != null) {
-        stderrStr = `<unexpected stderr type: ${Object.prototype.toString.call(stderrRaw)}; see err.stderr for raw data>`;
       }
 
       const err = new Error(
