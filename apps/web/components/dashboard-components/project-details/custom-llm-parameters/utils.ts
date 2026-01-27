@@ -247,7 +247,33 @@ export const extractParametersWithDefaults = (
     ...Object.keys(userParams),
   ]);
 
-  return Array.from(allKeys).map((key) => {
+  const modelSpecificParamsOrder = Object.keys(
+    modelInfo?.modelSpecificParams ?? {},
+  );
+  const modelSpecificParamsIndex = new Map(
+    modelSpecificParamsOrder.map((key, index) => [key, index]),
+  );
+
+  const sortedKeys = Array.from(allKeys).sort((a, b) => {
+    const aIndex = modelSpecificParamsIndex.get(a);
+    const bIndex = modelSpecificParamsIndex.get(b);
+
+    if (aIndex !== undefined && bIndex !== undefined) {
+      return aIndex - bIndex;
+    }
+
+    if (aIndex !== undefined) {
+      return -1;
+    }
+
+    if (bIndex !== undefined) {
+      return 1;
+    }
+
+    return a.localeCompare(b);
+  });
+
+  return sortedKeys.map((key) => {
     const providerValue = relevantProviderDefaults[key];
     const modelValue = modelDefaults[key];
     const userValue = userParams[key];
