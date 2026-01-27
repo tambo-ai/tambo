@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for agents working in `.github/`.
+Guidance for agents working in `.github/` (GitHub Actions workflows and composite actions). This file is referenced from the root [`AGENTS.md`](../AGENTS.md).
 
 ## GitHub Actions
 

@@ -433,7 +433,10 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 ### PR Requirements
 
 - PR Summaries should include "Fixes #123" (GitHub) or "Fixes TAM-123" (Linear) in PR body when applicable.
-- GitHub Actions guidance lives in `.github/AGENTS.md`.
+
+### GitHub Actions
+
+All GitHub Actions used in this repo **must** be pinned to full commit SHAs. Detailed standards for workflows and composite actions under `.github/` live in [`.github/AGENTS.md`](.github/AGENTS.md).
 
 ## 11. Development Rules & Constraints
 
