@@ -24,6 +24,7 @@ A production-ready starter template for building **Generative UI** apps with **T
 ## Prerequisites
 
 Before you begin, you will need:
+
 1.  A **Tambo** API Key (Get it from the Tambo Dashboard).
 2.  A **Supabase** Project (Get the URL and Anon Key).
 
@@ -79,3 +80,4 @@ src/App.tsx: The main chat interface with the Tambo Provider configuration.
 src/lib/supabase.ts: The database connection client.
 
 Built for the Tambo Templates Challenge.
+```
