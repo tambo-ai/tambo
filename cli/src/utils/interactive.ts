@@ -146,7 +146,7 @@ export function execFileSync(
 
     if (Array.isArray(stdio)) {
       const stdioAtIndex = stdio[index];
-      return stdioAtIndex === undefined || stdioAtIndex === "pipe";
+      return stdioAtIndex == null || stdioAtIndex === "pipe";
     }
 
     return false;
@@ -168,6 +168,9 @@ export function execFileSync(
     const { stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide } =
       execOptions;
 
+    const isStdoutPiped = isPipedStdio(stdio, 1);
+    const isStderrPiped = isPipedStdio(stdio, 2);
+
     const spawnEncoding =
       typeof encoding === "string" && encoding !== "buffer"
         ? encoding
@@ -182,16 +185,20 @@ export function execFileSync(
       windowsHide,
     });
 
-    const stdout = isPipedStdio(stdio, 1) ? (result.stdout ?? null) : null;
-    const stderr = isPipedStdio(stdio, 2) ? (result.stderr ?? null) : null;
+    const stdout = isStdoutPiped ? (result.stdout ?? undefined) : undefined;
+    const stderr = isStderrPiped ? (result.stderr ?? undefined) : undefined;
 
     if (result.error) {
       const err = result.error as Error & {
-        stdout?: Buffer | string | null;
-        stderr?: Buffer | string | null;
+        stdout?: Buffer | string;
+        stderr?: Buffer | string;
       };
-      err.stdout = stdout;
-      err.stderr = stderr;
+      if (stdout !== undefined) {
+        err.stdout = stdout;
+      }
+      if (stderr !== undefined) {
+        err.stderr = stderr;
+      }
       throw err;
     }
 
@@ -202,7 +209,13 @@ export function execFileSync(
       if (typeof stderr === "string") {
         stderrStr = stderr;
       } else if (stderr instanceof Buffer) {
-        stderrStr = stderr.toString(spawnEncoding);
+        try {
+          stderrStr = spawnEncoding
+            ? stderr.toString(spawnEncoding)
+            : stderr.toString();
+        } catch {
+          stderrStr = `<non-decodable stderr: ${stderr.length} bytes>`;
+        }
       }
 
       const err = new Error(
@@ -212,38 +225,38 @@ export function execFileSync(
       ) as Error & {
         status?: number | null;
         signal?: NodeJS.Signals | null;
-        stdout?: Buffer | string | null;
-        stderr?: Buffer | string | null;
+        stdout?: Buffer | string;
+        stderr?: Buffer | string;
       };
       // Keep the status/signal available for callers that want to inspect.
       err.status = result.status;
       err.signal = result.signal;
-      err.stdout = stdout;
-      err.stderr = stderr;
+      if (stdout !== undefined) {
+        err.stdout = stdout;
+      }
+      if (stderr !== undefined) {
+        err.stderr = stderr;
+      }
       throw err;
     }
 
-    if (spawnEncoding) {
-      if (typeof stdout === "string") {
-        return stdout;
+    if (!isStdoutPiped) {
+      return spawnEncoding ? "" : Buffer.alloc(0);
+    }
+
+    if (result.stdout != null) {
+      if (spawnEncoding) {
+        return typeof result.stdout === "string"
+          ? result.stdout
+          : result.stdout.toString(spawnEncoding);
       }
 
-      if (stdout instanceof Buffer) {
-        return stdout.toString(spawnEncoding);
-      }
-
-      return "";
+      return Buffer.isBuffer(result.stdout)
+        ? result.stdout
+        : Buffer.from(String(result.stdout));
     }
 
-    if (stdout instanceof Buffer) {
-      return stdout;
-    }
-
-    if (typeof stdout === "string") {
-      return Buffer.from(stdout);
-    }
-
-    return Buffer.alloc(0);
+    return spawnEncoding ? "" : Buffer.alloc(0);
   }
 
   return nodeExecFileSync(file, args, execOptions);
