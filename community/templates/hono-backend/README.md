@@ -2,11 +2,15 @@
 
 A template demonstrating how to integrate Tambo tools with a Hono backend API, showing the pattern for connecting any backend service to Tambo through AI-powered tools.
 
-![Screenshot placeholder - Add your screenshot here]
+![Screenshot showing the Hono backend template with full-screen chat interface](https://github.com/user-attachments/assets/e91d8e55-7518-441d-b441-ee4d458e028d)
+
+![Screenshot showing bookmark management with AI assistant](https://github.com/user-attachments/assets/7c89e8c6-a683-4275-94f0-d3a1459fb9a1)
 
 ## Video Demo
 
-[Add video demo link here - upload to GitHub and link in PR description]
+Watch the demo: https://youtu.be/nUG0nhBf3bc
+
+This video demonstrates the AI interacting with the Hono backend API through Tambo tools, showing bookmark creation, retrieval, updates, and deletion via natural language.
 
 ## What This Template Demonstrates
 
@@ -77,7 +81,7 @@ This pattern is reusable for any backend API - swap out the data model and endpo
 
 - **4 Tools** - Demonstrating GET, POST, PUT, DELETE operations calling backend APIs
 - **1 Component** - BookmarkList component that renders backend data in a card grid
-- **Dashboard UI** - Modern sidebar navigation and responsive chat interface
+- **Modern UI** - Full-screen responsive chat interface with clean design
 
 ## Usage Examples
 
@@ -106,8 +110,7 @@ hono-backend/
 │   │   ├── components/
 │   │   │   ├── tambo/
 │   │   │   │   └── BookmarkList.tsx  # Component rendering backend data
-│   │   │   ├── Chat.tsx      # Chat interface
-│   │   │   └── Sidebar.tsx   # Sidebar navigation
+│   │   │   └── Chat.tsx      # Chat interface
 │   │   ├── App.tsx
 │   │   └── main.tsx
 │   └── package.json
