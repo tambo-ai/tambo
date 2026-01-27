@@ -13,6 +13,8 @@ function TamboWrapper({ children }: { children: React.ReactNode }) {
   const chainId = useChainId();
   const { data: balance } = useBalance({ address });
 
+  const isTestnet = chainId === 338;
+
   // Context helpers pass real-time wallet state to Tambo AI
   const contextHelpers = {
     walletStatus: () => ({
@@ -33,6 +35,14 @@ function TamboWrapper({ children }: { children: React.ReactNode }) {
           : chainId === 338
             ? "Cronos Testnet"
             : `Chain ${chainId}`,
+    }),
+    isTestnet: () => ({
+      key: "isTestnet",
+      value: isTestnet ? "true" : "false",
+    }),
+    walletAddress: () => ({
+      key: "walletAddress",
+      value: address || "",
     }),
   };
 

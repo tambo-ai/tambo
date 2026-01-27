@@ -6,7 +6,7 @@ interface TokenBalanceProps {
   symbol: string;
   balance: string;
   usdValue?: string;
-  change24h?: number;
+  change24h?: number | null;
 }
 
 const TOKEN_ICONS: Record<string, string> = {
@@ -16,6 +16,7 @@ const TOKEN_ICONS: Record<string, string> = {
   ETH: "💎",
   BTC: "🪙",
   WCRO: "🔶",
+  TCRO: "🔷",
 };
 
 export function TokenBalance({
@@ -25,7 +26,11 @@ export function TokenBalance({
   change24h,
 }: TokenBalanceProps) {
   const icon = TOKEN_ICONS[symbol.toUpperCase()] || "🪙";
-  const isPositive = change24h && change24h >= 0;
+
+  // Safely check if change24h exists and is a number
+  const hasChange =
+    change24h !== undefined && change24h !== null && !isNaN(change24h);
+  const isPositive = hasChange && change24h >= 0;
 
   return (
     <div className="glass rounded-xl p-5">
@@ -36,8 +41,10 @@ export function TokenBalance({
           </div>
           <div>
             <p className="text-white font-semibold text-lg">{symbol}</p>
-            {change24h !== undefined && (
-              <div className={`flex items-center gap-1 text-sm ${isPositive ? "text-green-400" : "text-red-400"}`}>
+            {hasChange && (
+              <div
+                className={`flex items-center gap-1 text-sm ${isPositive ? "text-green-400" : "text-red-400"}`}
+              >
                 {isPositive ? (
                   <TrendingUp className="w-3 h-3" />
                 ) : (

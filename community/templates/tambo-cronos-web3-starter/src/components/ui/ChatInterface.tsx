@@ -26,9 +26,9 @@ export function ChatInterface() {
 
   const suggestions = [
     "Show my wallet",
-    "Display my CRO balance",
-    "Show a sample transaction",
-    "What is Cronos network?",
+    "What's the CRO price?",
+    "Show gas prices",
+    "Show my transaction history",
   ];
 
   return (
@@ -44,8 +44,8 @@ export function ChatInterface() {
               Cronos AI Assistant
             </h3>
             <p className="text-white/60 max-w-md mx-auto mb-6">
-              Ask me to show your wallet info, check balances, or learn about
-              Cronos. Your wallet is connected - try the suggestions below!
+              Check your wallet, view live CRO prices, monitor gas fees, and
+              explore your transaction history!
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {suggestions.map((suggestion) => (
@@ -164,7 +164,7 @@ export function ChatInterface() {
             type="text"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="Try: Show my wallet, Display my balance..."
+            placeholder="Try: CRO price, gas fees, transaction history..."
             className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-cronos-secondary/50 transition-colors"
             disabled={isPending}
           />
