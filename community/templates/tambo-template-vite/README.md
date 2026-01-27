@@ -8,11 +8,11 @@ A minimal Vite + React starter template demonstrating how to integrate the Tambo
 
 ### Screenshot
 
-![App Screenshot](IMAGE_LINK_HERE)
+![Screenshot](https://github.com/user-attachments/assets/741570a6-1b32-46c6-845f-a544c4946854)
 
 ### Video Demo
 
-[Watch Demo](VIDEO_LINK_HERE)
+[Watch Demo](https://github.com/user-attachments/assets/1262c751-22a2-44c3-a80a-af16cf423959)
 
 ---
 
