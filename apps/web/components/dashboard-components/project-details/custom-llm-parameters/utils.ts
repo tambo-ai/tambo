@@ -209,6 +209,10 @@ export const extractParameters = (
  * 2. Model-level defaults (modelParamsDefaults)
  * 3. User-specified custom params (highest priority)
  *
+ * Ordering:
+ * - First, keys in the order defined by `modelInfo.modelSpecificParams`
+ * - Then, any remaining keys in alphabetical order
+ *
  * @returns ParameterEntry[] with source tracking
  */
 export const extractParametersWithDefaults = (
@@ -250,28 +254,21 @@ export const extractParametersWithDefaults = (
   const modelSpecificParamsOrder = Object.keys(
     modelInfo?.modelSpecificParams ?? {},
   );
-  const modelSpecificParamsIndex = new Map(
-    modelSpecificParamsOrder.map((key, index) => [key, index]),
-  );
+  const sortedKeys: string[] = [];
+  const usedKeys = new Set<string>();
 
-  const sortedKeys = Array.from(allKeys).sort((a, b) => {
-    const aIndex = modelSpecificParamsIndex.get(a);
-    const bIndex = modelSpecificParamsIndex.get(b);
-
-    if (aIndex !== undefined && bIndex !== undefined) {
-      return aIndex - bIndex;
+  for (const key of modelSpecificParamsOrder) {
+    if (allKeys.has(key)) {
+      usedKeys.add(key);
+      sortedKeys.push(key);
     }
+  }
 
-    if (aIndex !== undefined) {
-      return -1;
-    }
+  const remainingKeys = Array.from(allKeys)
+    .filter((key) => !usedKeys.has(key))
+    .sort((a, b) => a.localeCompare(b));
 
-    if (bIndex !== undefined) {
-      return 1;
-    }
-
-    return a.localeCompare(b);
-  });
+  sortedKeys.push(...remainingKeys);
 
   return sortedKeys.map((key) => {
     const providerValue = relevantProviderDefaults[key];
