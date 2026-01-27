@@ -4,6 +4,7 @@ import {
   execFileSync as nodeExecFileSync,
   execSync as nodeExecSync,
 } from "child_process";
+import path from "node:path";
 import spawn from "cross-spawn";
 import type { Answers, DistinctQuestion, PromptSession } from "inquirer";
 import inquirer from "inquirer";
@@ -98,7 +99,24 @@ export interface SafeExecFileSyncOptions extends ExecFileSyncOptions {
   allowNonInteractive?: boolean;
 }
 
-// Package manager commands that are .cmd batch files on Windows
+// Extensions for Windows shim/batch executables that should map into WINDOWS_CMD_BINARIES.
+const WINDOWS_CMD_EXTENSIONS = [".cmd", ".exe", ".bat"] as const;
+
+// Helper for internal package-manager detection on Windows.
+const normalizeWindowsCmdBinaryName = (file: string): string => {
+  const baseName = path.win32.basename(file).toLowerCase();
+
+  for (const ext of WINDOWS_CMD_EXTENSIONS) {
+    if (baseName.endsWith(ext)) {
+      return baseName.slice(0, -ext.length);
+    }
+  }
+
+  return baseName;
+};
+
+// Package manager commands that are batch files/shims on Windows.
+// Stored as normalized lowercase names without extensions.
 const WINDOWS_CMD_BINARIES = new Set([
   "npm",
   "npx",
@@ -172,9 +190,20 @@ export function execFileSync(
     );
   }
 
-  // On Windows, package managers are .cmd batch files or shims that require cmd.exe to run.
+  const isWindows = process.platform === "win32";
+  const normalizedWindowsCmdBinary = isWindows
+    ? normalizeWindowsCmdBinaryName(file)
+    : undefined;
+
+  // On Windows, package managers are batch files/shims that require cmd.exe to run.
+  // We normalize the command to a lowercase basename (stripping common Windows extensions)
+  // and only special-case it when the normalized name is in WINDOWS_CMD_BINARIES.
   // cross-spawn handles the Windows-specific invocation details while keeping args separate.
-  if (process.platform === "win32" && WINDOWS_CMD_BINARIES.has(file)) {
+  if (
+    isWindows &&
+    normalizedWindowsCmdBinary &&
+    WINDOWS_CMD_BINARIES.has(normalizedWindowsCmdBinary)
+  ) {
     const { stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide } =
       execOptions;
 

@@ -1,6 +1,39 @@
-import { beforeEach, afterEach, describe, expect, it } from "@jest/globals";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
+import type { SafeExecFileSyncOptions } from "./interactive.js";
 
-import { isInteractive } from "./interactive.js";
+const mockSpawnSync = jest.fn();
+
+jest.unstable_mockModule("cross-spawn", () => ({
+  default: {
+    sync: mockSpawnSync,
+  },
+}));
+
+let interactive: {
+  readonly execFileSync: (
+    file: string,
+    args: string[] | undefined,
+    execOptions?: SafeExecFileSyncOptions,
+  ) => string | Buffer;
+  readonly isInteractive: (opts?: { stream?: NodeJS.WriteStream }) => boolean;
+};
+
+beforeAll(async () => {
+  const module = await import("./interactive.js");
+  interactive = {
+    execFileSync: module.execFileSync,
+    isInteractive: module.isInteractive,
+  };
+});
 
 describe("isInteractive", () => {
   const stream = { isTTY: true } as unknown as NodeJS.WriteStream;
@@ -43,17 +76,68 @@ describe("isInteractive", () => {
   });
 
   it("returns true for TTY streams with TERM set and no CI", () => {
-    expect(isInteractive({ stream })).toBe(true);
+    expect(interactive.isInteractive({ stream })).toBe(true);
   });
 
   it("treats CI=true as non-interactive by default", () => {
     process.env.CI = "true";
-    expect(isInteractive({ stream })).toBe(false);
+    expect(interactive.isInteractive({ stream })).toBe(false);
   });
 
   it("allows FORCE_INTERACTIVE=1 to override CI detection", () => {
     process.env.CI = "true";
     process.env.FORCE_INTERACTIVE = "1";
-    expect(isInteractive({ stream })).toBe(true);
+    expect(interactive.isInteractive({ stream })).toBe(true);
+  });
+});
+
+describe("execFileSync", () => {
+  beforeEach(() => {
+    mockSpawnSync.mockReset();
+
+    mockSpawnSync.mockReturnValue({
+      status: 0,
+      signal: null,
+      stdout: Buffer.from("ok"),
+      stderr: Buffer.alloc(0),
+    });
+  });
+
+  describe("Windows allowlist normalization", () => {
+    const originalPlatform = process.platform;
+
+    beforeAll(() => {
+      Object.defineProperty(process, "platform", { value: "win32" });
+    });
+
+    afterAll(() => {
+      Object.defineProperty(process, "platform", {
+        value: originalPlatform,
+      });
+    });
+
+    it.each(["npm.cmd", "C:\\nodejs\\npm.cmd", "npx.exe", "YARN.BAT"])(
+      "routes %s through cross-spawn",
+      (binary) => {
+        interactive.execFileSync(binary, ["--version"], {
+          allowNonInteractive: true,
+        });
+
+        expect(mockSpawnSync).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it("does not route unknown .cmd paths through cross-spawn", () => {
+      try {
+        interactive.execFileSync("C:\\tools\\custom.cmd", ["--version"], {
+          allowNonInteractive: true,
+        });
+      } catch {
+        // This path isn't expected to be runnable in unit tests; we only care that
+        // it doesn't go through cross-spawn's package-manager allowlist.
+      }
+
+      expect(mockSpawnSync).not.toHaveBeenCalled();
+    });
   });
 });
