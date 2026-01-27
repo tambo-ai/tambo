@@ -8,9 +8,10 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
-import { EventType, type AGUIEvent, type RunErrorEvent } from "@ag-ui/core";
+import { EventType, type RunErrorEvent } from "@ag-ui/core";
 import { asTamboCustomEvent, type RunAwaitingInputEvent } from "../types/event";
 import type TamboAI from "@tambo-ai/typescript-sdk";
+import type { Stream } from "@tambo-ai/typescript-sdk/core/streaming";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
   TamboRegistryContext,
@@ -52,52 +53,44 @@ export interface CreateRunStreamParams {
 }
 
 /**
+ * Stream types from the SDK
+ */
+type RunStream = Stream<TamboAI.Threads.Runs.RunRunResponse>;
+type CreateStream = Stream<TamboAI.Threads.Runs.RunCreateResponse>;
+
+/**
  * Result from creating a run stream
  */
 export interface CreateRunStreamResult {
-  stream:
-    | Awaited<ReturnType<TamboAI["threads"]["runs"]["run"]>>
-    | Awaited<ReturnType<TamboAI["threads"]["runs"]["create"]>>;
+  stream: RunStream | CreateStream;
   initialThreadId: string | undefined;
 }
 
 /**
- * Parameters for handling awaiting_input events
+ * Parameters for executing tools and continuing the run
  */
-interface HandleAwaitingInputParams {
+interface ExecuteToolsParams {
   event: RunAwaitingInputEvent;
   toolTracker: ToolCallTracker;
   registry: TamboRegistry;
   client: TamboAI;
   threadId: string;
-  runId: string | undefined;
-  debug: boolean;
-  dispatch: (action: {
-    type: "EVENT";
-    event: AGUIEvent;
-    threadId: string;
-  }) => void;
+  runId: string;
 }
 
 /**
- * Handles the tambo.run.awaiting_input custom event by executing pending tools
- * and continuing the run with tool results.
- * @param params - The parameters for handling the awaiting_input event
- * @returns Updated runId if the run was continued, undefined otherwise
+ * Executes pending tools and returns a continuation stream.
+ *
+ * This function does NOT process the continuation stream - it just executes
+ * the tools and returns the new stream for the caller to process. This enables
+ * the flat loop pattern that correctly handles multi-round tool execution.
+ * @param params - The parameters for tool execution
+ * @returns The continuation stream to process
  */
-async function handleAwaitingInput(
-  params: HandleAwaitingInputParams,
-): Promise<{ runId: string } | undefined> {
-  const {
-    event,
-    toolTracker,
-    registry,
-    client,
-    threadId,
-    runId,
-    debug,
-    dispatch,
-  } = params;
+async function executeToolsAndContinue(
+  params: ExecuteToolsParams,
+): Promise<RunStream> {
+  const { event, toolTracker, registry, client, threadId, runId } = params;
 
   const { pendingToolCallIds } = event.value;
   const toolCallsToExecute = toolTracker.getToolCallsById(pendingToolCallIds);
@@ -108,12 +101,11 @@ async function handleAwaitingInput(
     registry.toolRegistry,
   );
 
-  // Continue the run with tool results
-  if (!runId) {
-    return undefined;
-  }
+  // Clear executed tool calls before continuing
+  toolTracker.clearToolCalls(pendingToolCallIds);
 
-  const continueStream = await client.threads.runs.run(threadId, {
+  // Return the continuation stream (caller will process it)
+  return await client.threads.runs.run(threadId, {
     message: {
       role: "user",
       content: toolResults,
@@ -122,28 +114,6 @@ async function handleAwaitingInput(
     availableComponents: toAvailableComponents(registry.componentList),
     tools: toAvailableTools(registry.toolRegistry),
   });
-
-  let newRunId = runId;
-
-  // Process continuation stream
-  for await (const continueEvent of handleEventStream(continueStream, {
-    debug,
-  })) {
-    dispatch({ type: "EVENT", event: continueEvent, threadId });
-
-    // Update runId if we get a new RUN_STARTED
-    if (continueEvent.type === EventType.RUN_STARTED) {
-      newRunId = continueEvent.runId;
-    }
-
-    // Note: Recursive tool calls would need additional handling here
-    // For now, we assume continuation doesn't trigger more awaiting_input
-  }
-
-  // Clear executed tool calls
-  toolTracker.clearToolCalls(pendingToolCallIds);
-
-  return { runId: newRunId };
 }
 
 /**
@@ -255,42 +225,63 @@ export function useTamboV1SendMessage(threadId?: string) {
 
       let actualThreadId = initialThreadId;
       let runId: string | undefined;
+      let currentStream: CreateRunStreamResult["stream"] = stream;
 
       try {
-        // Stream events and dispatch to reducer
-        for await (const event of handleEventStream(stream, { debug })) {
-          // Extract threadId and runId from RUN_STARTED event
-          if (event.type === EventType.RUN_STARTED) {
-            runId = event.runId;
-            actualThreadId ??= event.threadId;
-          } else if (!actualThreadId) {
-            throw new Error(
-              `Expected first event to be RUN_STARTED with threadId, got: ${event.type}`,
-            );
-          }
+        // Outer loop handles stream replacement for multi-round tool execution.
+        // When we hit awaiting_input, we execute tools, get a new stream, and continue.
+        // This flat loop pattern correctly handles tool→AI→tool→AI chains.
+        while (true) {
+          let pendingAwaitingInput: RunAwaitingInputEvent | undefined;
 
-          toolTracker.handleEvent(event);
-          dispatch({ type: "EVENT", event, threadId: actualThreadId });
+          // Process current stream until completion or awaiting_input
+          for await (const event of handleEventStream(currentStream, {
+            debug,
+          })) {
+            // Extract threadId and runId from RUN_STARTED event
+            if (event.type === EventType.RUN_STARTED) {
+              runId = event.runId;
+              actualThreadId ??= event.threadId;
+            } else if (!actualThreadId) {
+              throw new Error(
+                `Expected first event to be RUN_STARTED with threadId, got: ${event.type}`,
+              );
+            }
 
-          // Handle awaiting_input for client-side tool execution
-          if (event.type === EventType.CUSTOM) {
-            const customEvent = asTamboCustomEvent(event);
-            if (customEvent?.name === "tambo.run.awaiting_input") {
-              const result = await handleAwaitingInput({
-                event: customEvent,
-                toolTracker,
-                registry,
-                client,
-                threadId: actualThreadId,
-                runId,
-                debug,
-                dispatch,
-              });
-              if (result?.runId) {
-                runId = result.runId;
+            toolTracker.handleEvent(event);
+            dispatch({ type: "EVENT", event, threadId: actualThreadId });
+
+            // Check for awaiting_input - if found, break to execute tools
+            if (event.type === EventType.CUSTOM) {
+              const customEvent = asTamboCustomEvent(event);
+              if (customEvent?.name === "tambo.run.awaiting_input") {
+                pendingAwaitingInput = customEvent;
+                break; // Exit stream loop to handle tool execution
               }
             }
           }
+
+          // If stream finished without awaiting_input, we're done
+          if (!pendingAwaitingInput) {
+            break;
+          }
+
+          // Execute tools and get continuation stream
+          // These checks should never fail since awaiting_input comes after RUN_STARTED
+          if (!runId || !actualThreadId) {
+            throw new Error(
+              "Cannot continue run after awaiting_input: missing runId or threadId",
+            );
+          }
+
+          currentStream = await executeToolsAndContinue({
+            event: pendingAwaitingInput,
+            toolTracker,
+            registry,
+            client,
+            threadId: actualThreadId,
+            runId,
+          });
         }
 
         return { threadId: actualThreadId };

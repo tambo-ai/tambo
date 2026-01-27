@@ -8,6 +8,7 @@
  */
 
 import { useContext, useMemo } from "react";
+import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
   TamboRegistryContext,
@@ -30,7 +31,7 @@ export interface UseTamboV1Return {
   /**
    * The Tambo API client instance
    */
-  client: ReturnType<typeof useTamboClient>;
+  client: TamboAI;
 
   /**
    * Current thread state for the given threadId, or undefined if not loaded

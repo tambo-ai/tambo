@@ -810,6 +810,162 @@ describe("useTamboV1SendMessage mutation", () => {
     });
   });
 
+  it("handles multi-round tool execution (tool→AI→tool→AI)", async () => {
+    const tool1Executed = jest.fn().mockResolvedValue("result from tool 1");
+    const tool2Executed = jest.fn().mockResolvedValue("result from tool 2");
+
+    const tool1: TamboTool = {
+      name: "tool_1",
+      description: "First tool",
+      tool: tool1Executed,
+      inputSchema: z.object({ input: z.string() }),
+      outputSchema: z.string(),
+    };
+
+    const tool2: TamboTool = {
+      name: "tool_2",
+      description: "Second tool",
+      tool: tool2Executed,
+      inputSchema: z.object({ input: z.string() }),
+      outputSchema: z.string(),
+    };
+
+    const mockRegistry = {
+      componentList: new Map(),
+      toolRegistry: new Map([
+        ["tool_1", tool1],
+        ["tool_2", tool2],
+      ]),
+    };
+
+    // Initial stream: AI calls tool_1
+    const initialStream = createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_1",
+        threadId: "thread_123",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_1",
+        role: "assistant",
+      },
+      {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "call_1",
+        toolCallName: "tool_1",
+        parentMessageId: "msg_1",
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_1",
+        delta: '{"input":"first"}',
+      },
+      { type: EventType.TOOL_CALL_END, toolCallId: "call_1" },
+      {
+        type: EventType.CUSTOM,
+        name: "tambo.run.awaiting_input",
+        value: { pendingToolCallIds: ["call_1"] },
+      },
+    ]);
+
+    // Second stream: AI receives tool_1 result, then calls tool_2
+    const secondStream = createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_2",
+        threadId: "thread_123",
+      },
+      {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "msg_2",
+        role: "assistant",
+      },
+      {
+        type: EventType.TOOL_CALL_START,
+        toolCallId: "call_2",
+        toolCallName: "tool_2",
+        parentMessageId: "msg_2",
+      },
+      {
+        type: EventType.TOOL_CALL_ARGS,
+        toolCallId: "call_2",
+        delta: '{"input":"second"}',
+      },
+      { type: EventType.TOOL_CALL_END, toolCallId: "call_2" },
+      {
+        type: EventType.CUSTOM,
+        name: "tambo.run.awaiting_input",
+        value: { pendingToolCallIds: ["call_2"] },
+      },
+    ]);
+
+    // Third stream: AI receives tool_2 result, finishes
+    const thirdStream = createAsyncIterator([
+      {
+        type: EventType.RUN_STARTED,
+        runId: "run_3",
+        threadId: "thread_123",
+      },
+      { type: EventType.RUN_FINISHED },
+    ]);
+
+    mockThreadsRunsApi.run
+      .mockResolvedValueOnce(initialStream)
+      .mockResolvedValueOnce(secondStream)
+      .mockResolvedValueOnce(thirdStream);
+
+    function TestWrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <TamboRegistryContext.Provider value={mockRegistry as any}>
+            <TamboV1StreamProvider threadId="thread_123">
+              {children}
+            </TamboV1StreamProvider>
+          </TamboRegistryContext.Provider>
+        </QueryClientProvider>
+      );
+    }
+
+    const { result } = renderHook(() => useTamboV1SendMessage("thread_123"), {
+      wrapper: TestWrapper,
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+        },
+      });
+    });
+
+    // Both tools should have been executed
+    expect(tool1Executed).toHaveBeenCalledWith({ input: "first" });
+    expect(tool2Executed).toHaveBeenCalledWith({ input: "second" });
+
+    // Should have made 3 API calls (initial + 2 continuations)
+    expect(mockThreadsRunsApi.run).toHaveBeenCalledTimes(3);
+
+    // First continuation should have tool_1 result with previousRunId: run_1
+    const firstContinue = mockThreadsRunsApi.run.mock.calls[1];
+    expect(firstContinue[1].previousRunId).toBe("run_1");
+    expect(firstContinue[1].message.content[0]).toEqual({
+      type: "tool_result",
+      toolUseId: "call_1",
+      content: [{ type: "text", text: "result from tool 1" }],
+    });
+
+    // Second continuation should have tool_2 result with previousRunId: run_2
+    const secondContinue = mockThreadsRunsApi.run.mock.calls[2];
+    expect(secondContinue[1].previousRunId).toBe("run_2");
+    expect(secondContinue[1].message.content[0]).toEqual({
+      type: "tool_result",
+      toolUseId: "call_2",
+      content: [{ type: "text", text: "result from tool 2" }],
+    });
+  });
+
   it("logs error on mutation failure", async () => {
     const consoleSpy = jest
       .spyOn(console, "error")
