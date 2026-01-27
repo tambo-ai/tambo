@@ -877,7 +877,10 @@ export async function handleInit({
       console.log(chalk.green("\n✔ API key configured"));
 
       await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
-      console.log(chalk.green("\n✨ Initialization complete!"));
+      console.log(
+        chalk.green("\n✔ API key setup complete.") +
+          chalk.gray(" Run 'tambo init' interactively for full project setup."),
+      );
       return;
     }
 

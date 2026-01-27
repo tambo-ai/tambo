@@ -6,6 +6,7 @@ import {
   it,
   jest,
 } from "@jest/globals";
+import type { GuidanceError as GuidanceErrorType } from "../utils/interactive.js";
 
 // Mock inquirer - we want to verify it's NOT called in non-interactive mode
 const mockPrompt = jest.fn();
@@ -13,8 +14,13 @@ jest.unstable_mockModule("inquirer", () => ({
   default: { prompt: mockPrompt },
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let GuidanceError: any;
+// GuidanceError class constructor type
+type GuidanceErrorConstructor = new (
+  message: string,
+  guidance: string[],
+) => GuidanceErrorType;
+
+let GuidanceError: GuidanceErrorConstructor;
 let isInteractive: (opts?: { stream?: NodeJS.WriteStream }) => boolean;
 
 describe("non-interactive mode safety", () => {
