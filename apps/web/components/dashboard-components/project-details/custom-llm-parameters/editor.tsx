@@ -14,6 +14,7 @@ import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
 import {
   convertValue,
   extractParameters,
+  extractParametersWithDefaults,
   generateParameterId,
   getDefaultValueForType,
   validateValue,
@@ -85,9 +86,9 @@ export function CustomLlmParametersEditor({
   // Only OpenAI-compatible providers can add custom parameters
   const allowCustomParameters = providerName === "openai-compatible";
 
-  // Initialize parameters from project data
+  // Initialize parameters from project data, including model defaults
   useEffect(() => {
-    const params = extractParameters(
+    const params = extractParametersWithDefaults(
       projectData?.customLlmParameters,
       currentProvider,
       currentModel,
@@ -134,9 +135,10 @@ export function CustomLlmParametersEditor({
     if (!projectId || !currentProvider || !currentModel) return;
 
     // Convert UI parameters back to their proper types
+    // Only save values that differ from defaults (to avoid persisting default values)
     const parametersObject = Object.fromEntries(
       parameters
-        .filter((p) => p.key)
+        .filter((p) => p.key && p.value !== p.defaultValue)
         .map((p) => [p.key, convertValue(p.value, p.type)])
         .filter(([_, v]) => v !== undefined),
     );
@@ -165,7 +167,7 @@ export function CustomLlmParametersEditor({
   ]);
 
   const handleCancel = useCallback(() => {
-    const params = extractParameters(
+    const params = extractParametersWithDefaults(
       projectData?.customLlmParameters,
       currentProvider,
       currentModel,

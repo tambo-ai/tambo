@@ -1,9 +1,10 @@
 import {
   CustomLlmParameters,
   JSONValue,
+  llmProviderConfig,
   LlmParameterUIType,
 } from "@tambo-ai-cloud/core";
-import { ParameterEntry } from "./types";
+import { ParameterEntry, ParameterSource } from "./types";
 
 /**
  * Safely attempts to parse JSON, returning null if parsing fails
@@ -197,4 +198,87 @@ export const extractParameters = (
     value: valueToString(value),
     type: detectType(value),
   }));
+};
+
+/**
+ * Extracts parameters including defaults from provider and model configuration.
+ * Shows all available parameters with their source and allows users to see/edit defaults.
+ *
+ * Merge hierarchy (later overrides earlier):
+ * 1. Provider-level defaults (providerSpecificParams)
+ * 2. Model-level defaults (modelParamsDefaults)
+ * 3. User-specified custom params (highest priority)
+ *
+ * @returns ParameterEntry[] with source tracking
+ */
+export const extractParametersWithDefaults = (
+  customParams: CustomLlmParameters | null | undefined,
+  provider?: string | null,
+  model?: string | null,
+): ParameterEntry[] => {
+  if (!provider || !model) return [];
+
+  const providerInfo = llmProviderConfig[provider];
+  const modelInfo = providerInfo?.models?.[model];
+
+  // Get defaults from provider and model levels
+  const providerDefaults = providerInfo?.providerSpecificParams ?? {};
+  const modelDefaults = modelInfo?.modelParamsDefaults ?? {};
+  const userParams = customParams?.[provider]?.[model] ?? {};
+
+  // Only show model-specific params (not general provider params like parallelToolCalls)
+  // Get the keys that are model-specific parameters
+  const modelSpecificParamKeys = new Set(
+    Object.keys(modelInfo?.modelSpecificParams ?? {}),
+  );
+
+  // Filter provider defaults to only include model-specific params
+  const relevantProviderDefaults: Record<string, JSONValue> = {};
+  for (const [key, value] of Object.entries(providerDefaults)) {
+    if (modelSpecificParamKeys.has(key)) {
+      relevantProviderDefaults[key] = value;
+    }
+  }
+
+  // Merge: model defaults and user params (model defaults are already model-specific)
+  const allKeys = new Set([
+    ...Object.keys(relevantProviderDefaults),
+    ...Object.keys(modelDefaults),
+    ...Object.keys(userParams),
+  ]);
+
+  return Array.from(allKeys).map((key) => {
+    const providerValue = relevantProviderDefaults[key];
+    const modelValue = modelDefaults[key];
+    const userValue = userParams[key];
+
+    // Determine effective value and source
+    const hasUserValue = userValue !== undefined;
+    const hasModelDefault = modelValue !== undefined;
+    const hasProviderDefault = providerValue !== undefined;
+
+    const effectiveValue = userValue ?? modelValue ?? providerValue;
+    const defaultValue = modelValue ?? providerValue;
+
+    let source: ParameterSource;
+    if (hasUserValue) {
+      source = "custom";
+    } else if (hasModelDefault) {
+      source = "model-default";
+    } else if (hasProviderDefault) {
+      source = "provider-default";
+    } else {
+      source = "custom";
+    }
+
+    return {
+      id: generateParameterId(key),
+      key,
+      value: valueToString(effectiveValue),
+      type: detectType(effectiveValue),
+      source,
+      defaultValue:
+        defaultValue !== undefined ? valueToString(defaultValue) : undefined,
+    };
+  });
 };
