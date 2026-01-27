@@ -1,4 +1,4 @@
-import { ApiProperty, ApiSchema } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiSchema } from "@nestjs/swagger";
 import {
   IsString,
   IsOptional,
@@ -26,6 +26,13 @@ export type V1MessageRole = "user" | "assistant" | "system";
  * Represents a message in a thread.
  */
 @ApiSchema({ name: "Message" })
+@ApiExtraModels(
+  V1TextContentDto,
+  V1ResourceContentDto,
+  V1ToolUseContentDto,
+  V1ToolResultContentDto,
+  V1ComponentContentDto,
+)
 export class V1MessageDto {
   @ApiProperty({
     description: "Unique identifier for this message",
@@ -87,6 +94,7 @@ export type V1InputContent =
  * Only "user" role is allowed for input messages.
  */
 @ApiSchema({ name: "InputMessage" })
+@ApiExtraModels(V1TextContentDto, V1ResourceContentDto, V1ToolResultContentDto)
 export class V1InputMessageDto {
   @ApiProperty({
     description: "Message role - must be 'user' for input messages",
