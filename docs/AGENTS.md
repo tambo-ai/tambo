@@ -137,7 +137,7 @@ In general, try to fit changes into the following categories. If you can't find 
    - coding-agent-generative-ui-rules
    - component-data-props - Optimization guidance
 
-5. **Reference** (4 subsections)
+5. **Reference** (5 subsections)
    - **react-sdk/** (6 pages including index)
      - hooks - React hooks for thread management, component state, streaming
      - types - TypeScript interfaces and types
@@ -147,6 +147,8 @@ In general, try to fit changes into the following categories. If you can't find 
      - **migration/** (1 page)
        - toolschema - Migration guide for tool schemas
    - rest-api - OpenAPI specification for Tambo Cloud REST API
+   - **problems/** (1 page)
+     - endpoint-deprecated - Documentation for endpoint deprecation errors (410 Gone)
    - **cli/** (5 pages including index)
      - global-options - Global CLI options
      - configuration - CSS and Tailwind configuration

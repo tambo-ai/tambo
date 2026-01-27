@@ -78,7 +78,7 @@ const config = {
       },
       {
         source: "/api-reference/problems/:path*",
-        destination: "/reference/rest-api",
+        destination: "/reference/problems/:path*",
         permanent: true,
       },
       {

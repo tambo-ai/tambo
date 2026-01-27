@@ -41,32 +41,11 @@ Get your API key from the [Tambo Cloud dashboard](https://tambo.co).
 
 ## Error Responses
 
-The API uses [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) for error responses.
+The API uses [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) for error responses. Each error response includes a `type` field with a URI that links to detailed documentation about that specific problem.
 
-### Endpoint Deprecated (410 Gone)
+### Common Problem Types
 
-Returned when calling an endpoint that has been removed:
-
-```json
-{
-  "type": "https://docs.tambo.co/api-reference/problems/endpoint-deprecated",
-  "status": 410,
-  "title": "Endpoint Deprecated",
-  "detail": "The non-streaming /advance endpoint has been deprecated. Please use /advancestream instead.",
-  "code": "ENDPOINT_DEPRECATED",
-  "instance": "/threads/advance",
-  "details": {
-    "migrateToEndpoint": "POST /advancestream"
-  }
-}
-```
-
-**Fields:**
-
-- `code` - Stable identifier for programmatic handling
-- `detail` - Human-readable description
-- `instance` - The request path that triggered the error
-- `details.migrateToEndpoint` - Migration guidance (HTTP method + replacement endpoint)
+- **[Endpoint Deprecated](/reference/problems/endpoint-deprecated)** - Returned when calling a deprecated endpoint (410 Gone)
 
 ## SDKs
 
