@@ -139,5 +139,121 @@ describe("execFileSync", () => {
 
       expect(mockSpawnSync).not.toHaveBeenCalled();
     });
+
+    it("throws when spawn returns an error", () => {
+      const spawnError = new Error("spawn ENOENT");
+      mockSpawnSync.mockReturnValue({
+        status: null,
+        signal: null,
+        stdout: Buffer.from("partial output"),
+        stderr: Buffer.from("error output"),
+        error: spawnError,
+      });
+
+      expect(() =>
+        interactive.execFileSync("npm.cmd", ["install"], {
+          allowNonInteractive: true,
+        }),
+      ).toThrow("spawn ENOENT");
+    });
+
+    it("throws with stderr when command exits with non-zero status", () => {
+      mockSpawnSync.mockReturnValue({
+        status: 1,
+        signal: null,
+        stdout: Buffer.alloc(0),
+        stderr: Buffer.from("npm ERR! code E404"),
+      });
+
+      expect(() =>
+        interactive.execFileSync("npm.cmd", ["install", "nonexistent"], {
+          allowNonInteractive: true,
+        }),
+      ).toThrow(/Command failed[\s\S]*npm ERR!/);
+    });
+
+    it("returns empty string when stdout is inherited", () => {
+      mockSpawnSync.mockReturnValue({
+        status: 0,
+        signal: null,
+        stdout: null,
+        stderr: null,
+      });
+
+      const result = interactive.execFileSync("npm.cmd", ["--version"], {
+        allowNonInteractive: true,
+        stdio: "inherit",
+        encoding: "utf-8",
+      });
+
+      expect(result).toBe("");
+    });
+
+    it("returns empty Buffer when stdout is inherited without encoding", () => {
+      mockSpawnSync.mockReturnValue({
+        status: 0,
+        signal: null,
+        stdout: null,
+        stderr: null,
+      });
+
+      const result = interactive.execFileSync("npm.cmd", ["--version"], {
+        allowNonInteractive: true,
+        stdio: "inherit",
+      });
+
+      expect(Buffer.isBuffer(result)).toBe(true);
+      expect((result as Buffer).length).toBe(0);
+    });
+
+    it("handles string encoding for stdout", () => {
+      mockSpawnSync.mockReturnValue({
+        status: 0,
+        signal: null,
+        stdout: "version output",
+        stderr: null,
+      });
+
+      const result = interactive.execFileSync("npm.cmd", ["--version"], {
+        allowNonInteractive: true,
+        encoding: "utf-8",
+      });
+
+      expect(result).toBe("version output");
+    });
+
+    it("handles array stdio with pipe at index 1", () => {
+      mockSpawnSync.mockReturnValue({
+        status: 0,
+        signal: null,
+        stdout: Buffer.from("output"),
+        stderr: null,
+      });
+
+      const result = interactive.execFileSync("npm.cmd", ["--version"], {
+        allowNonInteractive: true,
+        stdio: ["inherit", "pipe", "pipe"],
+      });
+
+      expect(Buffer.isBuffer(result)).toBe(true);
+      expect(result.toString()).toBe("output");
+    });
+
+    it("handles array stdio with ignore at index 1", () => {
+      mockSpawnSync.mockReturnValue({
+        status: 0,
+        signal: null,
+        stdout: null,
+        stderr: null,
+      });
+
+      const result = interactive.execFileSync("npm.cmd", ["--version"], {
+        allowNonInteractive: true,
+        stdio: ["inherit", "ignore", "pipe"],
+      });
+
+      expect(Buffer.isBuffer(result)).toBe(true);
+      expect((result as Buffer).length).toBe(0);
+    });
   });
 });
