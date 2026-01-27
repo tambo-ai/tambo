@@ -85,7 +85,7 @@
     "@modelcontextprotocol/sdk": "^1.25.1",
     "@standard-community/standard-json": "^0.3.5",
     "@standard-schema/spec": "^1.1.0",
-    "@tambo-ai/typescript-sdk": "^0.84.0",
+    "@tambo-ai/typescript-sdk": "^0.86.0",
     "@tanstack/react-query": "^5.90.16",
     "fast-equals": "^5.3.3",
     "fast-json-patch": "^3.1.1",
