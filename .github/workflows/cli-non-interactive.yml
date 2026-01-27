@@ -34,11 +34,12 @@ jobs:
       - name: Test non-interactive mode
         shell: bash
         run: |
-          set -euo pipefail
+          # Don't use set -e since we're testing exit codes
+          set -uo pipefail
 
-          # list should complete without hanging
+          # list should complete without hanging (may fail if not in project, that's ok)
           echo "Testing 'tambo list'..."
-          timeout 30 node ./cli/dist/cli.js list || true  # list may fail if not in project, that's ok
+          timeout 30 node ./cli/dist/cli.js list || true
 
           # auth status should complete (may exit non-zero if not logged in)
           echo "Testing 'tambo auth status'..."
@@ -46,7 +47,10 @@ jobs:
 
           # init without args should return guidance (exit 2)
           echo "Testing 'tambo init' returns exit code 2 without args..."
-          node ./cli/dist/cli.js init; code=$?
+          set +e  # Disable errexit to capture exit code
+          node ./cli/dist/cli.js init
+          code=$?
+          set -e  # Re-enable errexit
           if [ $code -ne 2 ]; then
             echo "Expected exit code 2, got $code"
             exit 1
@@ -55,7 +59,10 @@ jobs:
 
           # create-app without args should return guidance (exit 2)
           echo "Testing 'tambo create-app' returns exit code 2 without args..."
-          node ./cli/dist/cli.js create-app; code=$?
+          set +e
+          node ./cli/dist/cli.js create-app
+          code=$?
+          set -e
           if [ $code -ne 2 ]; then
             echo "Expected exit code 2, got $code"
             exit 1
