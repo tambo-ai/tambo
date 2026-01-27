@@ -1,6 +1,7 @@
 "use client";
 
 import { TamboProvider } from "@tambo-ai/react";
+import { useSession } from "next-auth/react";
 import { ReactNode } from "react";
 
 interface ClientLayoutProps {
@@ -12,10 +13,22 @@ export default function ClientLayout({
   children,
   userToken,
 }: ClientLayoutProps) {
+  const { data: session } = useSession();
+
   return (
     <TamboProvider
       userToken={userToken}
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      contextHelpers={{
+        user: async () => {
+          if (!session?.user) return null;
+          return {
+            name: session.user.name,
+            email: session.user.email,
+            image: session.user.image,
+          };
+        },
+      }}
     >
       {children}
     </TamboProvider>

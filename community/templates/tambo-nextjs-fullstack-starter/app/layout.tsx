@@ -1,12 +1,12 @@
-import { authOptions } from "@/auth";
-import Providers from "@/components/authentication/providers";
-import ClientLayout from "@/components/tamboAuthentication/client-layout";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import { sentientLight } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
-import type { Metadata } from "next";
-import { getServerSession } from "next-auth/next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Providers from "@/components/authentication/providers";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/auth";
+import ClientLayout from "@/components/tamboAuthentication/client-layout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +29,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
-  console.log(session?.user);
 
   return (
     <html lang="en">
