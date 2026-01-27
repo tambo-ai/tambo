@@ -4,7 +4,11 @@ import spawn from "cross-spawn";
 
 // Use npx to ensure we get the latest version of tambo
 const args = ["-y", "tambo@latest", "create-app", ...process.argv.slice(2)];
-const child = spawn("npx", args, {
+
+// On Windows, npx is a .cmd batch file - use explicit extension
+const command = process.platform === "win32" ? "npx.cmd" : "npx";
+
+const child = spawn(command, args, {
   stdio: "inherit",
 });
 
