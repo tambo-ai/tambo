@@ -108,6 +108,26 @@ const WINDOWS_CMD_BINARIES = new Set([
   "rushx",
 ]);
 
+const isPipedStdio = (
+  stdio: ExecFileSyncOptions["stdio"] | undefined,
+  index: 1 | 2,
+): boolean => {
+  if (stdio === undefined || stdio === "pipe") {
+    return true;
+  }
+
+  if (stdio === "ignore" || stdio === "inherit") {
+    return false;
+  }
+
+  if (Array.isArray(stdio)) {
+    const stdioAtIndex = stdio[index];
+    return stdioAtIndex == null || stdioAtIndex === "pipe";
+  }
+
+  return false;
+};
+
 /**
  * Safe wrapper around execFileSync (preferred) that prevents execution of external commands
  * in non-interactive environments unless explicitly allowed.
@@ -116,6 +136,8 @@ const WINDOWS_CMD_BINARIES = new Set([
  *
  * On Windows, uses cross-spawn for known package manager binaries (npm, npx, pnpm, yarn, rush)
  * since they are batch files/shims that require cmd.exe invocation.
+ *
+ * When stdout is not piped (e.g. stdio: "inherit"), this returns an empty string or Buffer.
  *
  * Note: on Windows package manager binaries, only a subset of ExecFileSync options is honored
  * (stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide).
@@ -131,26 +153,6 @@ export function execFileSync(
   options?: SafeExecFileSyncOptions,
 ): Buffer | string {
   const { allowNonInteractive, ...execOptions } = options ?? {};
-
-  const isPipedStdio = (
-    stdio: ExecFileSyncOptions["stdio"] | undefined,
-    index: 1 | 2,
-  ): boolean => {
-    if (stdio === undefined || stdio === "pipe") {
-      return true;
-    }
-
-    if (stdio === "ignore" || stdio === "inherit") {
-      return false;
-    }
-
-    if (Array.isArray(stdio)) {
-      const stdioAtIndex = stdio[index];
-      return stdioAtIndex == null || stdioAtIndex === "pipe";
-    }
-
-    return false;
-  };
 
   if (!isInteractive() && !allowNonInteractive) {
     const commandStr = args ? `${file} ${args.join(" ")}` : file;
@@ -186,7 +188,11 @@ export function execFileSync(
     });
 
     const stdout = isStdoutPiped ? (result.stdout ?? undefined) : undefined;
-    const stderr = isStderrPiped ? (result.stderr ?? undefined) : undefined;
+    const stderrRaw: unknown = isStderrPiped ? result.stderr : undefined;
+    const stderr =
+      typeof stderrRaw === "string" || stderrRaw instanceof Buffer
+        ? stderrRaw
+        : undefined;
 
     if (result.error) {
       const err = result.error as Error & {
@@ -206,16 +212,18 @@ export function execFileSync(
       const commandStr = args ? `${file} ${args.join(" ")}` : file;
 
       let stderrStr: string | undefined;
-      if (typeof stderr === "string") {
-        stderrStr = stderr;
-      } else if (stderr instanceof Buffer) {
+      if (typeof stderrRaw === "string") {
+        stderrStr = stderrRaw;
+      } else if (stderrRaw instanceof Buffer) {
         try {
           stderrStr = spawnEncoding
-            ? stderr.toString(spawnEncoding)
-            : stderr.toString();
+            ? stderrRaw.toString(spawnEncoding)
+            : stderrRaw.toString();
         } catch {
-          stderrStr = `<non-decodable stderr: ${stderr.length} bytes>`;
+          stderrStr = `<non-decodable stderr: ${stderrRaw.length} bytes>`;
         }
+      } else if (stderrRaw != null) {
+        stderrStr = `<unexpected stderr type: ${Object.prototype.toString.call(stderrRaw)}>`;
       }
 
       const err = new Error(
