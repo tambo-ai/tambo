@@ -40,6 +40,23 @@ Templates should be focused and minimal:
 - **Small, readable files** - If your main App file is doing too much, break it up or simplify. Templates should be easy to understand at a glance.
 - **Clean code** - no commented-out code, no unused files, no placeholder TODOs, no hardcoded user names or demo data.
 
+### Code Quality
+
+Your template must pass its own linting and type checking. Before submitting:
+
+```bash
+npm run lint      # Must pass with no errors
+npm run build     # Must complete successfully (includes type checking)
+```
+
+Templates should include:
+
+- **ESLint configuration** - Use `eslint.config.mjs` with sensible defaults
+- **TypeScript strict mode** - Enable `"strict": true` in tsconfig.json
+- **No type errors** - Fix all TypeScript errors, don't use `@ts-ignore` or `any` as workarounds
+
+We'll run these checks during review. Templates with lint errors or type issues will be rejected.
+
 ### Design Requirements
 
 Design quality should match our [official templates](https://github.com/tambo-ai/tambo-template). Or better. Use them as your reference for the visual bar we expect.
@@ -69,6 +86,9 @@ Your template's README must include:
 
 ### What Gets Rejected
 
+- Lint errors or type checking failures
+- Missing ESLint or TypeScript configuration
+- Use of `@ts-ignore`, `any`, or disabled lint rules as workarounds
 - Kitchen-sink templates that try to include everything
 - Overcomplicated "showcase" apps disguised as starters
 - Workarounds that bypass Tambo's actual rendering or tool system
