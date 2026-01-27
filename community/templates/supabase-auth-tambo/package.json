@@ -1,0 +1,48 @@
+{
+  "name": "supabase-auth-tambo",
+  "version": "1.0.0",
+  "description": "Next.js + Supabase Auth + Tambo template with AI-powered chat and auth-protected user data",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check-types": "tsc --noEmit",
+    "format": "prettier --write .",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.5.0",
+    "@supabase/supabase-js": "^2.45.2",
+    "@tambo-ai/react": "^0.70.0",
+    "effect": "^3.16.8",
+    "@hookform/resolvers": "^5.2.2",
+    "sury": "^10.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.51.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.5",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@rushstack/eslint-patch": "^1.10.3",
+    "@next/eslint-plugin-next": "^15.1.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "@tambo-ai/eslint-config": "file:../../packages/eslint-config",
+    "eslint-config-next": "^15.1.0",
+    "globals": "^15.9.0",
+    "next": "^15.1.0",
+    "postcss": "^8.4.32",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.9.3"
+  }
+}

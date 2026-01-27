@@ -1,0 +1,15 @@
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.idea/
+.vscode/
+eslint.config.mjs
+next.config.mjs
+postcss.config.mjs
+next-env.d.ts
