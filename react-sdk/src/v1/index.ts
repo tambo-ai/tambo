@@ -4,44 +4,115 @@
  * Provides React hooks and providers for building AI-powered applications
  * using the v1 streaming API with AG-UI protocol.
  *
- * Types are not re-exported. Import directly from specific type files:
- * - Custom events: import from `@tambo-ai/react/v1/types/event`
- * - Thread state: import from `@tambo-ai/react/v1/types/thread`
- * - Messages: import from `@tambo-ai/react/v1/types/message`
- * - Components: import from `@tambo-ai/react/v1/types/component`
- * - Tools: import from `@tambo-ai/react/v1/types/tool`
+ * ## Quick Start
  *
- * SDK types: import directly from `@tambo-ai/typescript-sdk`
- * AG-UI events: import directly from `@ag-ui/core`
- * @example
- * ```typescript
- * import { TamboV1Provider, useTamboV1 } from '@tambo-ai/react/v1';
+ * ```tsx
+ * import {
+ *   TamboV1Provider,
+ *   useTamboV1,
+ *   useTamboV1SendMessage,
+ * } from '@tambo-ai/react/v1';
  *
  * function App() {
  *   return (
- *     <TamboV1Provider apiKey="your-api-key">
+ *     <TamboV1Provider
+ *       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+ *       components={[WeatherCard]}
+ *       tools={[searchTool]}
+ *     >
  *       <ChatInterface />
  *     </TamboV1Provider>
  *   );
  * }
  *
  * function ChatInterface() {
- *   const { thread, sendMessage, isStreaming } = useTamboV1();
- *   // ... implementation
+ *   const [threadId, setThreadId] = useState<string>();
+ *   const { messages, isStreaming } = useTamboV1(threadId);
+ *   const sendMessage = useTamboV1SendMessage(threadId);
+ *
+ *   const handleSend = async (text: string) => {
+ *     const result = await sendMessage.mutateAsync({
+ *       message: { role: 'user', content: [{ type: 'text', text }] },
+ *     });
+ *     if (!threadId) setThreadId(result.threadId);
+ *   };
+ *
+ *   return (
+ *     <div>
+ *       {messages.map(msg => <Message key={msg.id} message={msg} />)}
+ *       {isStreaming && <LoadingIndicator />}
+ *       <MessageInput onSend={handleSend} />
+ *     </div>
+ *   );
  * }
  * ```
+ *
+ * ## Type Imports
+ *
+ * Types are imported directly from specific files:
+ * - Thread state: `import type { TamboV1Thread } from '@tambo-ai/react/v1/types/thread'`
+ * - Messages: `import type { TamboV1Message } from '@tambo-ai/react/v1/types/message'`
+ * - Custom events: `import type { ComponentStartEvent } from '@tambo-ai/react/v1/types/event'`
+ *
+ * SDK types: `import type { ... } from '@tambo-ai/typescript-sdk'`
+ * AG-UI events: `import { EventType, type BaseEvent } from '@ag-ui/core'`
  */
 
-// Providers (TODO: implement in Phase 7)
-// export { TamboV1Provider } from './providers/tambo-v1-provider';
-// export { TamboRegistryProvider } from '../providers/tambo-registry-provider'; // Reused from beta
+// =============================================================================
+// Providers
+// =============================================================================
 
-// Hooks (TODO: implement in Phase 7)
-// export { useTamboV1 } from './hooks/use-tambo-v1';
-// export { useTamboV1Thread } from './hooks/use-tambo-v1-thread';
-// export { useTamboV1Messages } from './hooks/use-tambo-v1-messages';
-// export { useTamboV1SendMessage } from './hooks/use-tambo-v1-send-message';
-// export { useTamboV1ComponentState } from './hooks/use-tambo-v1-component-state';
+export {
+  TamboV1Provider,
+  type TamboV1ProviderProps,
+} from "./providers/tambo-v1-provider";
 
-// Utilities (TODO: implement in Phase 2-3)
-// export { applyJsonPatch } from './utils/json-patch';
+export {
+  TamboV1StreamProvider,
+  useStreamState,
+  useStreamDispatch,
+} from "./providers/tambo-v1-stream-context";
+
+// Re-export registry provider from beta SDK (works with v1)
+export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
+
+// =============================================================================
+// Hooks
+// =============================================================================
+
+export { useTamboV1, type UseTamboV1Return } from "./hooks/use-tambo-v1";
+
+export {
+  useTamboV1Messages,
+  type UseTamboV1MessagesReturn,
+} from "./hooks/use-tambo-v1-messages";
+
+export {
+  useTamboV1SendMessage,
+  type SendMessageOptions,
+} from "./hooks/use-tambo-v1-send-message";
+
+export { useTamboV1Thread } from "./hooks/use-tambo-v1-thread";
+
+export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list";
+
+// =============================================================================
+// Utilities
+// =============================================================================
+
+export { applyJsonPatch } from "./utils/json-patch";
+
+export {
+  toAvailableComponent,
+  toAvailableComponents,
+  toAvailableTool,
+  toAvailableTools,
+} from "./utils/registry-conversion";
+
+export {
+  executeClientTool,
+  executeAllPendingTools,
+  type PendingToolCall,
+} from "./utils/tool-executor";
+
+export { handleEventStream } from "./utils/stream-handler";
