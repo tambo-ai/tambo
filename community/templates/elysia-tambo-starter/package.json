@@ -1,0 +1,15 @@
+{
+  "name": "tambo-template-elysia",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "build": "bun run --filter '*' build",
+    "start": "bun run --filter '*' start"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
