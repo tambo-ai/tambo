@@ -1,83 +1,81 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
-interface TaskListProps {
-  filter?: 'all' | 'completed' | 'pending';
-  title?: string;
-}
+type Task = {
+  id: number;
+  text: string;
+  is_complete: boolean;
+};
 
-export function TaskList({ filter = 'all', title = 'My Tasks' }: TaskListProps) {
-  const [tasks, setTasks] = useState<any[]>([]);
+export function TaskList({ filter = 'all' }: { filter?: string }) {
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Function to toggle status in SUPABASE
-  const toggleTask = async (id: number, currentStatus: boolean) => {
-    // 1. Update UI immediately
-    setTasks(currentTasks => 
-      currentTasks.map(t => t.id === id ? { ...t, is_complete: !currentStatus } : t)
-    );
+  // 1. Fetch Data from Supabase
+  const fetchTasks = async () => {
+    setLoading(true);
+    let query = supabase
+      .from('todos')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    // 2. Update Real Database
+    // Apply Filter
+    if (filter === 'pending') {
+      query = query.eq('is_complete', false);
+    } else if (filter === 'completed') {
+      query = query.eq('is_complete', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching tasks:', error);
+    } else {
+      setTasks(data || []);
+    }
+    setLoading(false);
+  };
+
+  // 2. Toggle Task Status in Supabase
+  const toggleTask = async (id: number, currentStatus: boolean) => {
+    // Optimistic Update (Update UI instantly)
+    setTasks(tasks.map(t => t.id === id ? { ...t, is_complete: !currentStatus } : t));
+
+    // Update Database
     await supabase.from('todos').update({ is_complete: !currentStatus }).eq('id', id);
   };
 
+  // Run fetch when component loads
   useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      console.log("Fetching Supabase tasks...");
-      
-      // 1. Fetch from Supabase
-      let query = supabase.from('todos').select('*').order('id');
-      
-      // 2. Apply Filters
-      if (filter === 'completed') query = query.eq('is_complete', true);
-      if (filter === 'pending') query = query.eq('is_complete', false);
-
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error("Supabase Error:", error);
-      } else {
-        console.log("Data received:", data);
-        setTasks(data || []);
-      }
-      setLoading(false);
-    };
     fetchTasks();
   }, [filter]);
 
+  if (loading && tasks.length === 0) {
+    return <div style={{ padding: '20px', color: '#666' }}>Loading tasks from Supabase...</div>;
+  }
+
   return (
-    <div style={{ padding: '20px', border: '1px solid #444', borderRadius: '12px', background: '#111', color: 'white', marginTop: '10px', width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '15px' }}>
-        <h3 style={{ margin: 0, fontSize: '16px' }}>{title}</h3>
-        <span style={{ fontSize: '10px', background: '#222', padding: '4px 8px', borderRadius: '4px', color: '#888' }}>
-          LIVE DATA
-        </span>
+    <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', marginTop: '10px', width: '100%' }}>
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+        SUPABASE TASKS ({filter?.toUpperCase() || 'ALL'})
       </div>
-
-      {loading && <p style={{color: '#666', fontSize: '14px'}}>Loading...</p>}
-      
-      {!loading && tasks.length === 0 && (
-        <p style={{color: '#666', fontSize: '14px'}}>
-          No tasks found in Supabase. <br/>
-          (Check your database table 'todos')
-        </p>
-      )}
-
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {tasks.map(t => (
-          <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid #222' }}>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {tasks.map((task) => (
+          <li key={task.id} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #f3f4f6', gap: '12px' }}>
             <input 
               type="checkbox" 
-              checked={t.is_complete} 
-              onChange={() => toggleTask(t.id, t.is_complete)}
-              style={{ width: '18px', height: '18px', accentColor: 'white', cursor: 'pointer' }}
+              checked={task.is_complete} 
+              onChange={() => toggleTask(task.id, task.is_complete)}
+              style={{ width: '20px', height: '20px', accentColor: '#2563eb', cursor: 'pointer' }} 
             />
-            <span style={{ fontSize: '15px', textDecoration: t.is_complete ? 'line-through' : 'none', color: t.is_complete ? '#666' : 'white' }}>
-              {t.text}
+            <span style={{ flex: 1, color: '#111827', textDecoration: task.is_complete ? 'line-through' : 'none', fontSize: '1rem', opacity: task.is_complete ? 0.6 : 1 }}>
+              {task.text}
             </span>
           </li>
         ))}
+        {tasks.length === 0 && (
+          <li style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No tasks found.</li>
+        )}
       </ul>
     </div>
   );
