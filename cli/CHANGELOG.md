@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.49.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.48.0...tambo-v0.49.0) (2026-01-27)
+
+
+### Features
+
+* **cli:** add Rush.js package manager support ([#1825](https://github.com/tambo-ai/tambo/issues/1825)) ([8d004c5](https://github.com/tambo-ai/tambo/commit/8d004c5450cf9b5996d6f5d07d21ca656aa8580d))
+
+
+### Bug Fixes
+
+* **create-tambo-app:** resolve npx not found error on Windows ([#1925](https://github.com/tambo-ai/tambo/issues/1925)) ([f62f144](https://github.com/tambo-ai/tambo/commit/f62f144991722d35af7df62092d07ce8256e6197))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump inquirer from 13.1.0 to 13.2.1 ([#1937](https://github.com/tambo-ai/tambo/issues/1937)) ([c800a4d](https://github.com/tambo-ai/tambo/commit/c800a4de60b9caca59280b2b536f6aa52b8cae65))
+* **test:** bump coverage thresholds (2026-01-26) ([#1918](https://github.com/tambo-ai/tambo/issues/1918)) ([3173795](https://github.com/tambo-ai/tambo/commit/3173795837258192e183144b3c5c48c901990d26))
+
+
+### Tests
+
+* **cli:** add tests for critical utility modules ([#1858](https://github.com/tambo-ai/tambo/issues/1858)) ([613b445](https://github.com/tambo-ai/tambo/commit/613b445d650e3ac04e6537fc16b9ea2775844a6a))
+
 ## [0.48.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.47.0...tambo-v0.48.0) (2026-01-21)
 
 
