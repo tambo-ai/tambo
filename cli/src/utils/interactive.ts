@@ -113,7 +113,7 @@ const WINDOWS_CMD_BINARIES = new Set([
 // - array stdio has undefined/null or "pipe" at the given index.
 // Any other values (including custom streams/fds) are treated as non-piped since the output
 // is not available to capture synchronously.
-const isPipedStdio = (
+const isDefaultPipedStdio = (
   stdio: ExecFileSyncOptions["stdio"] | undefined,
   index: 1 | 2,
 ): boolean => {
@@ -178,8 +178,8 @@ export function execFileSync(
     const { stdio, cwd, env, encoding, timeout, maxBuffer, windowsHide } =
       execOptions;
 
-    const isStdoutPiped = isPipedStdio(stdio, 1);
-    const isStderrPiped = isPipedStdio(stdio, 2);
+    const isStdoutPiped = isDefaultPipedStdio(stdio, 1);
+    const isStderrPiped = isDefaultPipedStdio(stdio, 2);
 
     const spawnEncoding =
       typeof encoding === "string" && encoding !== "buffer"
@@ -204,34 +204,23 @@ export function execFileSync(
         stderr?: Buffer | string;
       };
 
-      try {
-        if (stdout !== undefined) {
-          baseError.stdout = stdout;
-        }
-        if (stderr !== undefined) {
-          baseError.stderr = stderr;
-        }
-      } catch {
-        const err = new Error(baseError.message, {
-          cause: baseError,
-        }) as NodeJS.ErrnoException & {
-          stdout?: Buffer | string;
-          stderr?: Buffer | string;
-        };
+      const err = new Error(baseError.message, {
+        cause: baseError,
+      }) as NodeJS.ErrnoException & {
+        stdout?: Buffer | string;
+        stderr?: Buffer | string;
+      };
 
-        Object.assign(err, baseError);
+      Object.assign(err, baseError);
 
-        if (stdout !== undefined) {
-          err.stdout = stdout;
-        }
-        if (stderr !== undefined) {
-          err.stderr = stderr;
-        }
-
-        throw err;
+      if (stdout !== undefined) {
+        err.stdout = stdout;
+      }
+      if (stderr !== undefined) {
+        err.stderr = stderr;
       }
 
-      throw baseError;
+      throw err;
     }
 
     if (result.status !== 0) {
