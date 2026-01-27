@@ -1,5 +1,37 @@
-@import "tailwindcss/preflight";
-@tailwind utilities;
+:root {
+  /* Default values - will be overridden by .components-theme */
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 235 12% 21%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 218 11% 46%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 217 14% 90%;
+  --muted-foreground: 217 14% 68%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 207 22% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 10% 3.9%;
+  --radius: 0.5rem;
+  --chart-1: 30 80% 54.9%;
+  --chart-2: 339.8 74.8% 54.9%;
+  --chart-3: 219.9 70.2% 50%;
+  --chart-4: 160 60% 45.1%;
+  --chart-5: 280 64.7% 60%;
+  --background: 150 30% 96%;
+  --foreground: 240 10% 3.9%;
+  --container: 210 29% 97%;
+  --backdrop: 210 88% 14% / 0.25;
+  --muted-backdrop: 210 88% 14% / 0.1;
+  --panel-left-width: 500px;
+  --panel-right-width: 500px;
+  --sidebar-width: 16rem;
+}
 
 @layer components-theme {
   .components-theme {
