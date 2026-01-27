@@ -7,8 +7,8 @@ on:
 
 jobs:
   sync-lockfile:
-    # Only run on release-please PRs (they have "autorelease: pending" label)
-    if: "${{ contains(github.event.pull_request.labels.*.name, 'autorelease: pending') }}"
+    # Only run on PRs from release-please bot with "autorelease: pending" label
+    if: "${{ contains(github.event.pull_request.labels.*.name, 'autorelease: pending') && github.actor == 'release-please[bot]' }}"
     runs-on: ubuntu-latest
     permissions:
       contents: write

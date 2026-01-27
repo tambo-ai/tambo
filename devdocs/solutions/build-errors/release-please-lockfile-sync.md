@@ -57,90 +57,20 @@ Without it, release-please updates `package.json` files but leaves the lockfile 
 
 ### Step 1: Add node-workspace Plugin
 
-Add the plugin to `release-please-config.json`:
-
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/refs/heads/main/schemas/config.json",
-  "always-link-local": true,
-  "separate-pull-requests": true,
-  "always-update": true,
-  "plugins": [
-    {
-      "type": "node-workspace",
-      "updatePeerDependencies": true
-    }
-  ],
-  "packages": {
-    "react-sdk": { "component": "react" }
-    // ... other packages
-  }
-}
-```
+In `release-please-config.json`, add the `node-workspace` plugin with `updatePeerDependencies: true`. Also ensure `always-link-local: true` and `always-update: true` are set.
 
 ### Step 2: Add Backup Sync Workflow
 
-Create `.github/workflows/sync-lockfile.yml` as a safety net:
+Create `.github/workflows/sync-lockfile.yml` that:
 
-```yaml
-name: Sync Package Lock
-
-on:
-  pull_request:
-    types: [labeled, synchronize]
-    branches: [main]
-
-jobs:
-  sync-lockfile:
-    # Only run on release-please PRs (they have "autorelease: pending" label)
-    if: "${{ contains(github.event.pull_request.labels.*.name, 'autorelease: pending') }}"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ github.head_ref }}
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-
-      - uses: ./.github/actions/setup-tools
-        with:
-          frozen: false
-
-      - name: Regenerate package-lock.json
-        run: npm install --package-lock-only
-
-      - name: Check for changes
-        id: check
-        run: |
-          if git diff --quiet package-lock.json; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit lockfile changes
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          git commit -m "chore: sync package-lock.json"
-          git push
-```
+- Triggers on `pull_request` events (`labeled`, `synchronize`) targeting `main`
+- Only runs on PRs from release-please bot with "autorelease: pending" label
+- Runs `npm install --package-lock-only` to regenerate the lockfile
+- Commits and pushes changes if the lockfile was modified
 
 ### Step 3: Remove CI Workaround
 
-Remove `frozen: false` from CI workflows. The setup-tools action defaults to `frozen: true` (uses `npm ci`).
-
-## Why This Works
-
-1. **node-workspace plugin** understands Turborepo workspace dependencies and updates internal package references when versions change
-
-2. **Backup sync workflow** runs on release PRs (identified by `autorelease: pending` label), regenerates the lockfile, and commits changes if needed
-
-3. **Combined effect**: Release PRs have fully synced `package.json` and `package-lock.json` files, so CI passes with deterministic `npm ci`
+Remove any `frozen: false` workarounds from CI workflows. The setup-tools action defaults to `frozen: true` (uses `npm ci`).
 
 ## Prevention
 
