@@ -12,7 +12,7 @@
  * that needs access to Tambo v1 functionality.
  */
 
-import React, { type PropsWithChildren } from "react";
+import React, { type PropsWithChildren, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   TamboClientProvider,
@@ -68,16 +68,6 @@ export interface TamboV1ProviderProps extends Pick<
   children: React.ReactNode;
 }
 
-// Create a default query client for when none is provided
-const defaultQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000,
-      retry: 1,
-    },
-  },
-});
-
 /**
  * Main provider for the Tambo v1 SDK.
  *
@@ -129,6 +119,20 @@ export function TamboV1Provider({
   queryClient,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
+  // Create a stable default QueryClient if none provided.
+  // Using useState to avoid SSR issues with module-level singletons.
+  const [defaultQueryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000,
+            retry: 1,
+          },
+        },
+      }),
+  );
+
   const client = queryClient ?? defaultQueryClient;
 
   return (

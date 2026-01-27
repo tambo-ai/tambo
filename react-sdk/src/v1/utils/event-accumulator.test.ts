@@ -79,7 +79,7 @@ describe("streamReducer", () => {
   });
 
   describe("unknown thread handling", () => {
-    it("logs warning and returns unchanged state for unknown thread", () => {
+    it("auto-initializes unknown thread when receiving events", () => {
       const state = createInitialState();
       const event: RunStartedEvent = {
         type: EventType.RUN_STARTED,
@@ -93,10 +93,15 @@ describe("streamReducer", () => {
         threadId: "unknown_thread",
       });
 
-      expect(result).toBe(state);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("unknown thread: unknown_thread"),
+      // Should auto-initialize the thread rather than dropping the event
+      expect(result.threadMap.unknown_thread).toBeDefined();
+      expect(result.threadMap.unknown_thread.thread.id).toBe("unknown_thread");
+      expect(result.threadMap.unknown_thread.streaming.status).toBe(
+        "streaming",
       );
+      expect(result.threadMap.unknown_thread.streaming.runId).toBe("run_1");
+      // No warning should be logged for auto-initialization
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
   });
 

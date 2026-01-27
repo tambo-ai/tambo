@@ -10,10 +10,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import {
   EventType,
+  type BaseEvent,
   type RunStartedEvent,
-  type ToolCallStartEvent,
-  type ToolCallArgsEvent,
-  type ToolCallEndEvent,
+  type RunErrorEvent,
   type CustomEvent,
 } from "@ag-ui/core";
 import type TamboAI from "@tambo-ai/typescript-sdk";
@@ -29,10 +28,8 @@ import {
   toAvailableTools,
 } from "../utils/registry-conversion";
 import { handleEventStream } from "../utils/stream-handler";
-import {
-  executeAllPendingTools,
-  type PendingToolCall,
-} from "../utils/tool-executor";
+import { executeAllPendingTools } from "../utils/tool-executor";
+import { ToolCallTracker } from "../utils/tool-call-tracker";
 
 /**
  * Options for sending a message
@@ -67,6 +64,98 @@ export interface CreateRunStreamResult {
     | Awaited<ReturnType<TamboAI["threads"]["runs"]["run"]>>
     | Awaited<ReturnType<TamboAI["threads"]["runs"]["create"]>>;
   initialThreadId: string | undefined;
+}
+
+/**
+ * Parameters for handling awaiting_input events
+ */
+interface HandleAwaitingInputParams {
+  event: CustomEvent;
+  toolTracker: ToolCallTracker;
+  registry: TamboRegistry;
+  client: TamboAI;
+  threadId: string;
+  runId: string | undefined;
+  debug: boolean;
+  dispatch: (action: {
+    type: "EVENT";
+    event: BaseEvent;
+    threadId: string;
+  }) => void;
+}
+
+/**
+ * Handles the tambo.run.awaiting_input custom event by executing pending tools
+ * and continuing the run with tool results.
+ * @param params - The parameters for handling the awaiting_input event
+ * @returns Updated runId if the run was continued, undefined otherwise
+ */
+async function handleAwaitingInput(
+  params: HandleAwaitingInputParams,
+): Promise<{ runId: string } | undefined> {
+  const {
+    event,
+    toolTracker,
+    registry,
+    client,
+    threadId,
+    runId,
+    debug,
+    dispatch,
+  } = params;
+
+  if (event.name !== "tambo.run.awaiting_input") {
+    return undefined;
+  }
+
+  const { pendingToolCallIds } = event.value as {
+    pendingToolCallIds: string[];
+  };
+  const toolCallsToExecute = toolTracker.getToolCallsById(pendingToolCallIds);
+
+  // Execute tools
+  const toolResults = await executeAllPendingTools(
+    toolCallsToExecute,
+    registry.toolRegistry,
+  );
+
+  // Continue the run with tool results
+  if (!runId) {
+    return undefined;
+  }
+
+  const continueStream = await client.threads.runs.run(threadId, {
+    message: {
+      role: "user",
+      content: toolResults,
+    },
+    previousRunId: runId,
+    availableComponents: toAvailableComponents(registry.componentList),
+    tools: toAvailableTools(registry.toolRegistry),
+  });
+
+  let newRunId = runId;
+
+  // Process continuation stream
+  for await (const continueEvent of handleEventStream(continueStream, {
+    debug,
+  })) {
+    dispatch({ type: "EVENT", event: continueEvent, threadId });
+
+    // Update runId if we get a new RUN_STARTED
+    if (continueEvent.type === EventType.RUN_STARTED) {
+      const runStarted = continueEvent as RunStartedEvent;
+      newRunId = runStarted.runId;
+    }
+
+    // Note: Recursive tool calls would need additional handling here
+    // For now, we assume continuation doesn't trigger more awaiting_input
+  }
+
+  // Clear executed tool calls
+  toolTracker.clearToolCalls(pendingToolCallIds);
+
+  return { runId: newRunId };
 }
 
 /**
@@ -166,9 +255,7 @@ export function useTamboV1SendMessage(threadId?: string) {
     mutationFn: async (options: SendMessageOptions) => {
       const { message, debug = false } = options;
 
-      // Track tool calls locally during streaming
-      const pendingToolCalls = new Map<string, PendingToolCall>();
-      const accumulatingToolArgs = new Map<string, string>();
+      const toolTracker = new ToolCallTracker();
 
       // Create the run stream
       const { stream, initialThreadId } = await createRunStream({
@@ -181,123 +268,60 @@ export function useTamboV1SendMessage(threadId?: string) {
       let actualThreadId = initialThreadId;
       let runId: string | undefined;
 
-      // Stream events and dispatch to reducer
-      for await (const event of handleEventStream(stream, { debug })) {
-        // Extract threadId from RUN_STARTED event if we don't have it yet
-        // Also always extract runId from RUN_STARTED for tool continuation
-        if (event.type === EventType.RUN_STARTED) {
-          const runStartedEvent = event as RunStartedEvent;
-          runId = runStartedEvent.runId;
-          actualThreadId ??= runStartedEvent.threadId;
-        } else if (!actualThreadId) {
-          // First event should be RUN_STARTED when creating new thread
-          throw new Error(
-            `Expected first event to be RUN_STARTED with threadId, got: ${event.type}`,
-          );
-        }
-
-        // Track tool calls locally for execution on awaiting_input
-        if (event.type === EventType.TOOL_CALL_START) {
-          const toolCallStart = event as ToolCallStartEvent;
-          pendingToolCalls.set(toolCallStart.toolCallId, {
-            name: toolCallStart.toolCallName,
-            input: {},
-          });
-          accumulatingToolArgs.set(toolCallStart.toolCallId, "");
-        } else if (event.type === EventType.TOOL_CALL_ARGS) {
-          const toolCallArgs = event as ToolCallArgsEvent;
-          const current = accumulatingToolArgs.get(toolCallArgs.toolCallId);
-          accumulatingToolArgs.set(
-            toolCallArgs.toolCallId,
-            (current ?? "") + toolCallArgs.delta,
-          );
-        } else if (event.type === EventType.TOOL_CALL_END) {
-          const toolCallEnd = event as ToolCallEndEvent;
-          const jsonStr = accumulatingToolArgs.get(toolCallEnd.toolCallId);
-          const toolCall = pendingToolCalls.get(toolCallEnd.toolCallId);
-          if (toolCall && jsonStr) {
-            try {
-              toolCall.input = JSON.parse(jsonStr) as Record<string, unknown>;
-            } catch {
-              // Keep empty input if parsing fails
-            }
-          }
-        }
-
-        dispatch({ type: "EVENT", event, threadId: actualThreadId });
-
-        // Handle awaiting_input for client-side tool execution
-        if (event.type === EventType.CUSTOM) {
-          const customEvent = event as CustomEvent;
-          if (customEvent.name === "tambo.run.awaiting_input") {
-            const { pendingToolCallIds } = customEvent.value as {
-              pendingToolCallIds: string[];
-            };
-
-            // Filter to only the tool calls requested
-            const toolCallsToExecute = new Map<string, PendingToolCall>();
-            for (const id of pendingToolCallIds) {
-              const toolCall = pendingToolCalls.get(id);
-              if (toolCall) {
-                toolCallsToExecute.set(id, toolCall);
-              }
-            }
-
-            // Execute tools and continue the run
-            const toolResults = await executeAllPendingTools(
-              toolCallsToExecute,
-              registry.toolRegistry,
+      try {
+        // Stream events and dispatch to reducer
+        for await (const event of handleEventStream(stream, { debug })) {
+          // Extract threadId and runId from RUN_STARTED event
+          if (event.type === EventType.RUN_STARTED) {
+            const runStartedEvent = event as RunStartedEvent;
+            runId = runStartedEvent.runId;
+            actualThreadId ??= runStartedEvent.threadId;
+          } else if (!actualThreadId) {
+            throw new Error(
+              `Expected first event to be RUN_STARTED with threadId, got: ${event.type}`,
             );
+          }
 
-            // Continue the run with tool results
-            if (actualThreadId && runId) {
-              const continueStream = await client.threads.runs.run(
-                actualThreadId,
-                {
-                  message: {
-                    role: "user",
-                    content: toolResults,
-                  },
-                  previousRunId: runId,
-                  availableComponents: toAvailableComponents(
-                    registry.componentList,
-                  ),
-                  tools: toAvailableTools(registry.toolRegistry),
-                },
-              );
+          toolTracker.handleEvent(event);
+          dispatch({ type: "EVENT", event, threadId: actualThreadId });
 
-              // Process continuation stream
-              for await (const continueEvent of handleEventStream(
-                continueStream,
-                { debug },
-              )) {
-                dispatch({
-                  type: "EVENT",
-                  event: continueEvent,
-                  threadId: actualThreadId,
-                });
-
-                // Update runId if we get a new RUN_STARTED
-                if (continueEvent.type === EventType.RUN_STARTED) {
-                  const runStarted = continueEvent as RunStartedEvent;
-                  runId = runStarted.runId;
-                }
-
-                // Note: Recursive tool calls would need additional handling here
-                // For now, we assume tools don't trigger more tool calls
-              }
-            }
-
-            // Clear executed tool calls
-            for (const id of pendingToolCallIds) {
-              pendingToolCalls.delete(id);
-              accumulatingToolArgs.delete(id);
+          // Handle awaiting_input for client-side tool execution
+          if (event.type === EventType.CUSTOM) {
+            const result = await handleAwaitingInput({
+              event: event as CustomEvent,
+              toolTracker,
+              registry,
+              client,
+              threadId: actualThreadId,
+              runId,
+              debug,
+              dispatch,
+            });
+            if (result?.runId) {
+              runId = result.runId;
             }
           }
         }
-      }
 
-      return { threadId: actualThreadId };
+        return { threadId: actualThreadId };
+      } catch (error) {
+        // Dispatch a synthetic RUN_ERROR event to clean up thread state
+        // This ensures the thread doesn't stay stuck in "streaming" status
+        if (actualThreadId) {
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown streaming error";
+          const errorEvent: RunErrorEvent = {
+            type: EventType.RUN_ERROR,
+            message: errorMessage,
+          };
+          dispatch({
+            type: "EVENT",
+            event: errorEvent,
+            threadId: actualThreadId,
+          });
+        }
+        throw error;
+      }
     },
     onSuccess: async (result) => {
       // Invalidate thread queries to refetch updated state
@@ -306,11 +330,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       });
     },
     onError: (error) => {
-      // Log error for observability
-
       console.error("[useTamboV1SendMessage] Mutation failed:", error);
-      // Note: If streaming failed mid-way, the thread may be in an inconsistent state.
-      // The caller should handle this via mutation.error and mutation.isError.
     },
   });
 }

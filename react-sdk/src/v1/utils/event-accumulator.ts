@@ -99,12 +99,23 @@ export interface SetCurrentThreadAction {
 }
 
 /**
+ * Start new thread action - atomically creates and switches to a new thread.
+ * This prevents race conditions when multiple calls happen concurrently.
+ */
+export interface StartNewThreadAction {
+  type: "START_NEW_THREAD";
+  threadId: string;
+  initialThread?: Partial<TamboV1Thread>;
+}
+
+/**
  * Action type for the stream reducer.
  */
 export type StreamAction =
   | EventAction
   | InitThreadAction
-  | SetCurrentThreadAction;
+  | SetCurrentThreadAction
+  | StartNewThreadAction;
 
 /**
  * Initial streaming state.
@@ -196,6 +207,11 @@ function updateContentAtIndex(
 
 /**
  * Find a content block by ID across all messages, searching from most recent.
+ *
+ * TODO: This is O(n*m) where n = messages and m = content blocks per message.
+ * For high-frequency streaming with many messages, consider maintaining an
+ * index map of contentId -> {messageIndex, contentIndex} that gets updated
+ * when content blocks are created.
  * @param messages - Messages to search
  * @param contentType - Type of content to find ("component" or "tool_use")
  * @param contentId - ID of the content block
@@ -288,6 +304,38 @@ export function streamReducer(
       };
     }
 
+    case "START_NEW_THREAD": {
+      // Atomic action: initialize thread AND set as current in one reducer pass
+      // This prevents race conditions when multiple startNewThread() calls happen
+      const { threadId, initialThread } = action;
+      // Don't overwrite existing thread
+      if (state.threadMap[threadId]) {
+        return {
+          ...state,
+          currentThreadId: threadId,
+        };
+      }
+      const baseState = createInitialThreadState(threadId);
+      const threadState = initialThread
+        ? {
+            ...baseState,
+            thread: {
+              ...baseState.thread,
+              ...initialThread,
+              id: threadId,
+            },
+          }
+        : baseState;
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [threadId]: threadState,
+        },
+        currentThreadId: threadId,
+      };
+    }
+
     case "EVENT":
       // Fall through to event handling below
       break;
@@ -296,19 +344,22 @@ export function streamReducer(
   // Handle EVENT action
   const { event, threadId } = action;
 
-  // Get the current thread state (or undefined if thread doesn't exist yet)
-  const threadState = state.threadMap[threadId];
+  // Get the current thread state, auto-initializing if needed
+  // Auto-initialization handles the case where events arrive before explicit thread init
+  // (e.g., when creating a new thread and RUN_STARTED is the first event)
+  let threadState = state.threadMap[threadId];
+  let updatedState = state;
 
-  // If thread doesn't exist, we need to create it first
-  // This can happen when events arrive before thread initialization
   if (!threadState) {
-    // Log warning in all environments - this indicates a race condition or misconfiguration
-
-    console.warn(
-      `[StreamReducer] Received event for unknown thread: ${threadId}. ` +
-        `Ensure the thread is initialized before dispatching events.`,
-    );
-    return state;
+    // Auto-initialize the thread to avoid dropping events
+    threadState = createInitialThreadState(threadId);
+    updatedState = {
+      ...state,
+      threadMap: {
+        ...state.threadMap,
+        [threadId]: threadState,
+      },
+    };
   }
 
   // Process the event for this specific thread
@@ -409,7 +460,7 @@ export function streamReducer(
         `[StreamReducer] Received unsupported event type: ${event.type}. ` +
           `This event will be ignored.`,
       );
-      return state;
+      return updatedState;
 
     default:
       // Unknown event type - log warning and return state unchanged
@@ -417,14 +468,14 @@ export function streamReducer(
       if (process.env.NODE_ENV !== "production") {
         console.warn(`[StreamReducer] Unknown event type: ${event.type}`);
       }
-      return state;
+      return updatedState;
   }
 
   // Return updated state with modified thread
   return {
-    ...state,
+    ...updatedState,
     threadMap: {
-      ...state.threadMap,
+      ...updatedState.threadMap,
       [threadId]: updatedThreadState,
     },
   };
@@ -852,10 +903,10 @@ function handleCustomEvent(
       return handleComponentStart(threadState, customEvent);
 
     case "tambo.component.props_delta":
-      return handleComponentPropsDelta(threadState, customEvent);
+      return handleComponentDelta(threadState, customEvent, "props");
 
     case "tambo.component.state_delta":
-      return handleComponentStateDelta(threadState, customEvent);
+      return handleComponentDelta(threadState, customEvent, "state");
 
     case "tambo.component.end":
       return handleComponentEnd(threadState, customEvent);
@@ -916,26 +967,29 @@ function handleComponentStart(
 }
 
 /**
- * Handle tambo.component.props_delta event.
- * Applies JSON Patch to component props.
+ * Handle component delta events (both props_delta and state_delta).
+ * Applies JSON Patch to the specified field.
  * @param threadState - Current thread state
- * @param event - Component props delta event
+ * @param event - Component delta event (props or state)
+ * @param field - Which field to update ('props' or 'state')
  * @returns Updated thread state
  */
-function handleComponentPropsDelta(
+function handleComponentDelta(
   threadState: ThreadState,
-  event: ComponentPropsDeltaEvent,
+  event: ComponentPropsDeltaEvent | ComponentStateDeltaEvent,
+  field: "props" | "state",
 ): ThreadState {
   const componentId = event.value.componentId;
   const operations = event.value.operations;
   const messages = threadState.thread.messages;
+  const eventName = `tambo.component.${field}_delta`;
 
   // Find the component content block
   const { messageIndex, contentIndex } = findContentById(
     messages,
     "component",
     componentId,
-    "tambo.component.props_delta event",
+    `${eventName} event`,
   );
 
   const message = messages[messageIndex];
@@ -943,76 +997,22 @@ function handleComponentPropsDelta(
 
   if (componentContent.type !== "component") {
     throw new Error(
-      `Content at index ${contentIndex} is not a component block for tambo.component.props_delta event`,
+      `Content at index ${contentIndex} is not a component block for ${eventName} event`,
     );
   }
 
-  // Apply JSON Patch to props
-  const updatedProps = applyJsonPatch(
-    componentContent.props as Record<string, unknown>,
-    operations,
-  );
+  // Get current value (state defaults to {} if undefined)
+  const currentValue =
+    field === "props"
+      ? (componentContent.props as Record<string, unknown>)
+      : ((componentContent.state as Record<string, unknown>) ?? {});
+
+  // Apply JSON Patch
+  const updatedValue = applyJsonPatch(currentValue, operations);
 
   const updatedContent: Content = {
     ...componentContent,
-    props: updatedProps,
-  };
-
-  const updatedMessage: TamboV1Message = {
-    ...message,
-    content: updateContentAtIndex(
-      message.content,
-      contentIndex,
-      updatedContent,
-    ),
-  };
-
-  return updateThreadMessages(
-    threadState,
-    updateMessageAtIndex(messages, messageIndex, updatedMessage),
-  );
-}
-
-/**
- * Handle tambo.component.state_delta event.
- * Applies JSON Patch to component state.
- * @param threadState - Current thread state
- * @param event - Component state delta event
- * @returns Updated thread state
- */
-function handleComponentStateDelta(
-  threadState: ThreadState,
-  event: ComponentStateDeltaEvent,
-): ThreadState {
-  const componentId = event.value.componentId;
-  const operations = event.value.operations;
-  const messages = threadState.thread.messages;
-
-  // Find the component content block
-  const { messageIndex, contentIndex } = findContentById(
-    messages,
-    "component",
-    componentId,
-    "tambo.component.state_delta event",
-  );
-
-  const message = messages[messageIndex];
-  const componentContent = message.content[contentIndex];
-
-  if (componentContent.type !== "component") {
-    throw new Error(
-      `Content at index ${contentIndex} is not a component block for tambo.component.state_delta event`,
-    );
-  }
-
-  // Apply JSON Patch to state
-  const currentState =
-    (componentContent.state as Record<string, unknown>) ?? {};
-  const updatedState = applyJsonPatch(currentState, operations);
-
-  const updatedContent: Content = {
-    ...componentContent,
-    state: updatedState,
+    [field]: updatedValue,
   };
 
   const updatedMessage: TamboV1Message = {

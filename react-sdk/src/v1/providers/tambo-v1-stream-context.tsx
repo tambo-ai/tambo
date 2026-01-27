@@ -175,8 +175,9 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
 
   const startNewThread = useCallback(() => {
     const tempId = `temp_${crypto.randomUUID()}`;
-    dispatch({ type: "INIT_THREAD", threadId: tempId });
-    dispatch({ type: "SET_CURRENT_THREAD", threadId: tempId });
+    // Use atomic START_NEW_THREAD action to prevent race conditions
+    // when multiple calls happen concurrently (e.g., double-click)
+    dispatch({ type: "START_NEW_THREAD", threadId: tempId });
     return tempId;
   }, []);
 

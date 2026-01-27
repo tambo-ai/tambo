@@ -117,4 +117,6 @@ export {
   type PendingToolCall,
 } from "./utils/tool-executor";
 
+export { ToolCallTracker } from "./utils/tool-call-tracker";
+
 export { handleEventStream } from "./utils/stream-handler";
