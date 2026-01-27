@@ -60,3 +60,69 @@
     font-family: var(--font-sentient-light), serif;
   }
 }
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.14 0 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.14 0 285);
+  --primary: oklch(0.31 0.02 281);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.9676 0.0013 286.4);
+  --secondary-foreground: oklch(0.2103 0.0059 285.9);
+  --muted: oklch(0.92 0 260);
+  --muted-foreground: oklch(0.5519 0.0137 285.9);
+  --accent: oklch(0.97 0 286);
+  --accent-foreground: oklch(0.21 0 286);
+  --destructive: oklch(0.64 0.2 25);
+  --border: oklch(0.9219 0.0096 242.3);
+  --input: oklch(0.9197 0.004 286.3);
+  --ring: oklch(0.14 0 285);
+  --chart-1: oklch(0.72 0.15 60);
+  --chart-2: oklch(0.62 0.2 6);
+  --chart-3: oklch(0.53 0.2 262);
+  --chart-4: oklch(0.7 0.13 165);
+  --chart-5: oklch(0.62 0.2 313);
+  --container: oklch(0.98 0 247);
+  --backdrop: oklch(0.25 0.07 252 / 0.25);
+  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+  --radius: 0.5rem;
+  --panel-left-width: 500px;
+  --panel-right-width: 500px;
+  --sidebar-width: 3rem;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.72 0.15 60);
+  --chart-2: oklch(0.62 0.2 6);
+  --chart-3: oklch(0.53 0.2 262);
+  --chart-4: oklch(0.7 0.13 165);
+  --chart-5: oklch(0.62 0.2 313);
+  --container: oklch(0.22 0 0);
+  --backdrop: oklch(0.85 0 0 / 0.15);
+  --muted-backdrop: oklch(0.85 0 0 / 0.08);
+  --radius: 0.5rem;
+  --panel-left-width: 500px;
+  --panel-right-width: 500px;
+  --sidebar-width: 3rem;
+}
