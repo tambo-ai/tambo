@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { signOut } from "next-auth/react";
-import { DoorOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DoorOpen } from "lucide-react";
+import { signOut } from "next-auth/react";
+import Image from "next/image";
 
 export default function DashboardLayout({
   children,
@@ -14,7 +14,7 @@ export default function DashboardLayout({
     // Dashboard uses components-theme for proper component styling but with
     // neutral white background (not green). The dashboard-theme class overrides
     // only the background color while keeping all component styling.
-    <div className="components-theme dashboard-theme min-h-screen bg-background text-foreground">
+    <div className="components-theme dashboard-theme min-h-screen bg-background text-foreground font-heading">
       {/* Navbar Header */}
       <header className="border-b border-border bg-background">
         <nav className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
@@ -22,12 +22,12 @@ export default function DashboardLayout({
             {/* Logo on the left */}
             <div className="flex items-center">
               <Image
-                src="/logo/Octo-Icon.svg"
+                src="/logo/wordmark/Tambo-Lockup.svg"
                 alt="Tambo logo"
-                width={40}
-                height={40}
+                width={56}
+                height={56}
                 priority
-                className="h-10 w-10"
+                className="h-31 w-31"
               />
             </div>
 
