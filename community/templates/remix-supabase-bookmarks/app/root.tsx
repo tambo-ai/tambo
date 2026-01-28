@@ -25,7 +25,7 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(_args: LoaderFunctionArgs) {
   return json({
     ENV: {
       TAMBO_API_KEY: process.env.TAMBO_API_KEY ?? "",

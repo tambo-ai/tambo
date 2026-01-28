@@ -120,8 +120,8 @@ export default function BookmarksPage() {
   const isAdding = navigation.state === "submitting" && 
     navigation.formData?.get("intent") === "add";
 
-  // Reset form after successful add
-  const formKey = actionData && "success" in actionData ? Date.now() : "form";
+  // Use bookmarks length as form key to reset after successful add
+  const formKey = bookmarks.length;
 
   // Create Supabase client for Tambo tools (client-side)
   const supabaseClient = useMemo(() => {
@@ -392,17 +392,19 @@ function BookmarkCard({ bookmark }: { bookmark: Bookmark }) {
   })();
   const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : null;
 
-  // Track if we were updating to close form when done
-  const wasUpdating = useRef(false);
+  // Close edit form when navigation completes after submitting
+  const prevNavigationState = useRef(navigation.state);
   
   useEffect(() => {
-    if (isUpdating) {
-      wasUpdating.current = true;
-    } else if (wasUpdating.current && navigation.state === "idle") {
-      wasUpdating.current = false;
+    const wasSubmitting = prevNavigationState.current === "submitting";
+    const isNowIdle = navigation.state === "idle";
+    
+    if (wasSubmitting && isNowIdle && isEditing) {
       setIsEditing(false);
     }
-  }, [isUpdating, navigation.state]);
+    
+    prevNavigationState.current = navigation.state;
+  }, [navigation.state, isEditing]);
 
   if (isEditing) {
     return (
