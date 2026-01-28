@@ -1,0 +1,50 @@
+{
+  "name": "react-router-clerk-starter",
+  "version": "1.0.0",
+  "description": "Production-ready starter template with React Router v7, Clerk Auth, and Tambo AI",
+  "type": "module",
+  "scripts": {
+    "dev": "react-router dev",
+    "build": "react-router build",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "tsc",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@clerk/react-router": "^1.1.0",
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@react-router/node": "^7.1.1",
+    "@react-router/serve": "^7.1.1",
+    "@tambo-ai/react": "^0.69.1",
+    "@tambo-ai/typescript-sdk": "^0.84.0",
+    "clsx": "^2.1.1",
+    "isbot": "^5.1.0",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router": "^7.1.1",
+    "tailwind-merge": "^2.5.0",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.25.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@react-router/dev": "^7.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "^15.14.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.20.0",
+    "vite": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
