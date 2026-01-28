@@ -26,7 +26,7 @@ import {
 import { sanitizeEvent } from "@tambo-ai-cloud/backend";
 import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
 import { operations, schema } from "@tambo-ai-cloud/db";
-import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { Response } from "express";
 import {
   applyPatch,
@@ -134,31 +134,19 @@ export class V1Service {
   ): Promise<V1ListThreadsResponseDto> {
     const effectiveLimit = this.parseLimit(query.limit, 20);
 
-    // Build where conditions
-    const conditions = [
-      eq(schema.threads.projectId, projectId),
-      eq(schema.threads.contextKey, contextKey),
-    ];
+    const cursor = query.cursor
+      ? parseV1CompoundCursor(query.cursor)
+      : undefined;
 
-    // Cursor-based pagination (using createdAt + id)
-    if (query.cursor) {
-      const cursor = parseV1CompoundCursor(query.cursor);
-      const cursorCondition = or(
-        lt(schema.threads.createdAt, cursor.createdAt),
-        and(
-          eq(schema.threads.createdAt, cursor.createdAt),
-          lt(schema.threads.id, cursor.id),
-        ),
-      )!;
-
-      conditions.push(cursorCondition);
-    }
-
-    const threads = await this.db.query.threads.findMany({
-      where: and(...conditions),
-      orderBy: [desc(schema.threads.createdAt), desc(schema.threads.id)],
-      limit: effectiveLimit + 1, // Fetch one extra to determine hasMore
-    });
+    const threads = await operations.listThreadsPaginated(
+      this.db,
+      projectId,
+      contextKey,
+      {
+        cursor,
+        limit: effectiveLimit + 1, // Fetch one extra to determine hasMore
+      },
+    );
 
     const hasMore = threads.length > effectiveLimit;
     const resultThreads = hasMore ? threads.slice(0, effectiveLimit) : threads;
@@ -257,41 +245,14 @@ export class V1Service {
       throw new BadRequestException(`Invalid order: ${order}`);
     }
 
-    // Build where conditions
-    const conditions = [eq(schema.messages.threadId, threadId)];
+    const cursor = query.cursor
+      ? parseV1CompoundCursor(query.cursor)
+      : undefined;
 
-    // Cursor-based pagination (using createdAt + id)
-    if (query.cursor) {
-      const cursor = parseV1CompoundCursor(query.cursor);
-      const cursorCondition =
-        order === "asc"
-          ? or(
-              gt(schema.messages.createdAt, cursor.createdAt),
-              and(
-                eq(schema.messages.createdAt, cursor.createdAt),
-                gt(schema.messages.id, cursor.id),
-              ),
-            )
-          : or(
-              lt(schema.messages.createdAt, cursor.createdAt),
-              and(
-                eq(schema.messages.createdAt, cursor.createdAt),
-                lt(schema.messages.id, cursor.id),
-              ),
-            );
-
-      conditions.push(cursorCondition!);
-    }
-
-    const messages = await this.db.query.messages.findMany({
-      where: and(...conditions),
-      orderBy: [
-        order === "asc"
-          ? asc(schema.messages.createdAt)
-          : desc(schema.messages.createdAt),
-        order === "asc" ? asc(schema.messages.id) : desc(schema.messages.id),
-      ],
+    const messages = await operations.listMessagesPaginated(this.db, threadId, {
+      cursor,
       limit: effectiveLimit + 1,
+      order,
     });
 
     const hasMore = messages.length > effectiveLimit;
@@ -320,12 +281,11 @@ export class V1Service {
     threadId: string,
     messageId: string,
   ): Promise<V1GetMessageResponseDto> {
-    const message = await this.db.query.messages.findFirst({
-      where: and(
-        eq(schema.messages.id, messageId),
-        eq(schema.messages.threadId, threadId),
-      ),
-    });
+    const message = await operations.getMessageByIdInThread(
+      this.db,
+      threadId,
+      messageId,
+    );
 
     if (!message) {
       throw new NotFoundException(

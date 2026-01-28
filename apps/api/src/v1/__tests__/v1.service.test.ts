@@ -34,6 +34,9 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     updateThreadRunStatus: jest.fn(),
     completeRun: jest.fn(),
     updateMessage: jest.fn(),
+    listThreadsPaginated: jest.fn(),
+    listMessagesPaginated: jest.fn(),
+    getMessageByIdInThread: jest.fn(),
   },
   schema: {
     threads: {
@@ -208,28 +211,38 @@ describe("V1Service", () => {
 
   describe("listThreads", () => {
     it("should list threads with default pagination", async () => {
-      mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
+      mockOperations.listThreadsPaginated.mockResolvedValue([mockThread]);
 
       const result = await service.listThreads("prj_123", "user_456", {});
 
-      expect(mockDb.query.threads.findMany).toHaveBeenCalled();
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        { cursor: undefined, limit: 21 },
+      );
       expect(result.threads).toHaveLength(1);
       expect(result.threads[0].id).toBe("thr_123");
       expect(result.hasMore).toBe(false);
     });
 
     it("should filter by context key", async () => {
-      mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
+      mockOperations.listThreadsPaginated.mockResolvedValue([mockThread]);
 
       await service.listThreads("prj_123", "user_456", {});
 
-      expect(mockDb.query.threads.findMany).toHaveBeenCalled();
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        expect.any(Object),
+      );
     });
 
     // Note: Empty context key validation is now handled at the controller level
 
     it("should handle pagination with cursor", async () => {
-      mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
+      mockOperations.listThreadsPaginated.mockResolvedValue([mockThread]);
 
       const cursor = encodeV1CompoundCursor({
         createdAt: new Date("2024-01-01T00:00:00Z"),
@@ -241,7 +254,18 @@ describe("V1Service", () => {
         limit: "10",
       });
 
-      expect(mockDb.query.threads.findMany).toHaveBeenCalled();
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        {
+          cursor: {
+            createdAt: new Date("2024-01-01T00:00:00Z"),
+            id: "thr_000",
+          },
+          limit: 11,
+        },
+      );
       expect(result).toBeDefined();
     });
 
@@ -274,7 +298,7 @@ describe("V1Service", () => {
             `2024-01-${String(i + 1).padStart(2, "0")}T00:00:00Z`,
           ),
         }));
-      mockDb.query.threads.findMany.mockResolvedValue(threads);
+      mockOperations.listThreadsPaginated.mockResolvedValue(threads);
 
       const result = await service.listThreads("prj_123", "user_456", {});
 
@@ -300,7 +324,7 @@ describe("V1Service", () => {
         id: "thr_a",
         createdAt: new Date("2024-01-02T00:00:00Z"),
       };
-      mockDb.query.threads.findMany.mockResolvedValue([t1, t2]);
+      mockOperations.listThreadsPaginated.mockResolvedValue([t1, t2]);
 
       const result = await service.listThreads("prj_123", "user_456", {
         limit: "1",
@@ -442,33 +466,46 @@ describe("V1Service", () => {
 
   describe("listMessages", () => {
     it("should list messages with default pagination", async () => {
-      mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
+      mockOperations.listMessagesPaginated.mockResolvedValue([mockMessage]);
 
       const result = await service.listMessages("thr_123", {});
 
+      expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        { cursor: undefined, limit: 51, order: "asc" },
+      );
       expect(result.messages).toHaveLength(1);
       expect(result.messages[0].role).toBe("user");
       expect(result.hasMore).toBe(false);
     });
 
     it("should support ascending order (oldest first)", async () => {
-      mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
+      mockOperations.listMessagesPaginated.mockResolvedValue([mockMessage]);
 
       await service.listMessages("thr_123", { order: "asc" });
 
-      expect(mockDb.query.messages.findMany).toHaveBeenCalled();
+      expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        expect.objectContaining({ order: "asc" }),
+      );
     });
 
     it("should support descending order (newest first)", async () => {
-      mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
+      mockOperations.listMessagesPaginated.mockResolvedValue([mockMessage]);
 
       await service.listMessages("thr_123", { order: "desc" });
 
-      expect(mockDb.query.messages.findMany).toHaveBeenCalled();
+      expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        expect.objectContaining({ order: "desc" }),
+      );
     });
 
     it("should handle pagination with cursor", async () => {
-      mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
+      mockOperations.listMessagesPaginated.mockResolvedValue([mockMessage]);
 
       const cursor = encodeV1CompoundCursor({
         createdAt: new Date("2024-01-01T00:00:00Z"),
@@ -480,7 +517,18 @@ describe("V1Service", () => {
         limit: "10",
       });
 
-      expect(mockDb.query.messages.findMany).toHaveBeenCalled();
+      expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        {
+          cursor: {
+            createdAt: new Date("2024-01-01T00:00:00Z"),
+            id: "msg_000",
+          },
+          limit: 11,
+          order: "asc",
+        },
+      );
     });
 
     it("should reject an invalid cursor", async () => {
@@ -518,7 +566,11 @@ describe("V1Service", () => {
         createdAt: new Date("2024-01-03T00:00:00Z"),
       };
 
-      mockDb.query.messages.findMany.mockResolvedValueOnce([msg1, msg2, msg3]);
+      mockOperations.listMessagesPaginated.mockResolvedValueOnce([
+        msg1,
+        msg2,
+        msg3,
+      ]);
       const ascPage = await service.listMessages("thr_123", {
         limit: "2",
         order: "asc",
@@ -527,7 +579,11 @@ describe("V1Service", () => {
       expect(ascPage.messages).toHaveLength(2);
       expect(parseV1CompoundCursor(ascPage.nextCursor!).id).toBe("msg_2");
 
-      mockDb.query.messages.findMany.mockResolvedValueOnce([msg3, msg2, msg1]);
+      mockOperations.listMessagesPaginated.mockResolvedValueOnce([
+        msg3,
+        msg2,
+        msg1,
+      ]);
       const descPage = await service.listMessages("thr_123", {
         limit: "2",
         order: "desc",
@@ -540,16 +596,21 @@ describe("V1Service", () => {
 
   describe("getMessage", () => {
     it("should return a single message", async () => {
-      mockDb.query.messages.findFirst.mockResolvedValue(mockMessage);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(mockMessage);
 
       const result = await service.getMessage("thr_123", "msg_123");
 
+      expect(mockOperations.getMessageByIdInThread).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        "msg_123",
+      );
       expect(result.id).toBe("msg_123");
       expect(result.role).toBe("user");
     });
 
     it("should throw NotFoundException for non-existent message", async () => {
-      mockDb.query.messages.findFirst.mockResolvedValue(null);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(undefined);
 
       await expect(
         service.getMessage("thr_123", "msg_nonexistent"),
@@ -563,7 +624,9 @@ describe("V1Service", () => {
         ...mockMessage,
         content: [{ type: "text", text: "Hello world" }],
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithText);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithText as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -587,7 +650,9 @@ describe("V1Service", () => {
           },
         ],
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithResource);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithResource as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -605,7 +670,9 @@ describe("V1Service", () => {
           },
         ],
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithImage);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithImage as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -623,7 +690,9 @@ describe("V1Service", () => {
         },
         componentState: { expanded: true },
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithComponent);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithComponent as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -637,8 +706,8 @@ describe("V1Service", () => {
 
     it("should handle message with empty content array", async () => {
       const messageWithEmptyContent = { ...mockMessage, content: [] };
-      mockDb.query.messages.findFirst.mockResolvedValue(
-        messageWithEmptyContent,
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithEmptyContent as any,
       );
 
       const result = await service.getMessage("thr_123", "msg_123");
@@ -654,13 +723,13 @@ describe("V1Service", () => {
       const messageWithUnknownContent = {
         ...mockMessage,
         content: [
-          { type: "text", text: "Hello" },
+          { type: "text" as const, text: "Hello" },
           { type: "unknown_future_type", data: "something" },
-          { type: "text", text: "World" },
+          { type: "text" as const, text: "World" },
         ],
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(
-        messageWithUnknownContent,
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithUnknownContent as any,
       );
 
       const result = await service.getMessage("thr_123", "msg_123");
@@ -685,8 +754,8 @@ describe("V1Service", () => {
           props: { foo: "bar" },
         },
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(
-        messageWithBadComponent,
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithBadComponent as any,
       );
 
       await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
@@ -698,7 +767,9 @@ describe("V1Service", () => {
   describe("Role mapping", () => {
     it("should map 'tool' role to 'assistant'", async () => {
       const messageWithToolRole = { ...mockMessage, role: "tool" };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithToolRole);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolRole as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -707,7 +778,9 @@ describe("V1Service", () => {
 
     it("should throw error for unknown role", async () => {
       const messageWithUnknownRole = { ...mockMessage, role: "invalid_role" };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithUnknownRole);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithUnknownRole as any,
+      );
 
       await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
         /Unknown message role "invalid_role"/,

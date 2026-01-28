@@ -14,6 +14,7 @@ import {
   ilike,
   inArray,
   isNull,
+  lt,
   not,
   or,
   type SQL,
@@ -158,6 +159,62 @@ export async function getThreadsByProject(
     limit,
   });
 }
+
+/**
+ * Cursor for paginated thread queries.
+ */
+export interface ThreadCursor {
+  createdAt: Date;
+  id: string;
+}
+
+/**
+ * List threads for a project with cursor-based pagination.
+ * Uses compound cursor (createdAt + id) for stable pagination.
+ *
+ * @param db - Database connection
+ * @param projectId - Project to list threads from
+ * @param contextKey - Context key filter (required for V1 API)
+ * @param options - Pagination options
+ * @returns Array of threads (caller should handle hasMore logic by requesting limit+1)
+ */
+export async function listThreadsPaginated(
+  db: HydraDb,
+  projectId: string,
+  contextKey: string,
+  {
+    cursor,
+    limit,
+  }: {
+    cursor?: ThreadCursor;
+    limit: number;
+  },
+): Promise<schema.DBThread[]> {
+  const conditions = [
+    eq(schema.threads.projectId, projectId),
+    eq(schema.threads.contextKey, contextKey),
+  ];
+
+  if (cursor) {
+    const cursorCondition = or(
+      lt(schema.threads.createdAt, cursor.createdAt),
+      and(
+        eq(schema.threads.createdAt, cursor.createdAt),
+        lt(schema.threads.id, cursor.id),
+      ),
+    );
+    if (cursorCondition) {
+      conditions.push(cursorCondition);
+    }
+  }
+
+  return await db.query.threads.findMany({
+    where: and(...conditions),
+    orderBy: [desc(schema.threads.createdAt), desc(schema.threads.id)],
+    limit,
+  });
+}
+
 export async function countThreadsByProject(
   db: HydraDb,
   projectId: string,
