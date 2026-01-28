@@ -11,6 +11,7 @@
  * Read more about Tambo at https://docs.tambo.co
  */
 
+import { AddUserForm } from "@/components/tambo/add-user-form";
 import { ChartBarLabelCustom } from "@/components/ui/chart-bar";
 import type { TamboComponent, TamboTool } from "@tambo-ai/react";
 import { z } from "zod/v4";
@@ -126,6 +127,13 @@ export const components: TamboComponent[] = [
       title: z.string().optional().describe("Optional chart title"),
       description: z.string().optional().describe("Optional chart description"),
     }),
+  },
+  {
+    name: "AddUserForm",
+    description:
+      "MANDATORY RENDERING: When user says 'wanted to add data into users table', 'add data into the user', 'add some data into users table', 'add data into users', 'create a new user', 'add user information', 'insert user data', 'add user', or ANY request to add/create/insert user data - you MUST IMMEDIATELY call show_component_AddUserForm with empty props {}. DO NOT just describe or mention the form - you MUST actually render it. This form allows adding a user with email (required), name (optional, placeholder: 'user.name'), and their first post with title (required), content (optional), and published status (checkbox). The form submits to /api/addUser and handles all validation. Render it NOW when user wants to add data.",
+    component: AddUserForm,
+    propsSchema: z.object({}),
   },
 ];
 

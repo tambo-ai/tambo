@@ -1,7 +1,6 @@
 "use client";
 
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
-import { ChartBarLabelCustom } from "@/components/ui/chart-bar";
 import { SpinnerCustom } from "@/components/ui/spinner";
 import {
   Table,
@@ -13,11 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  AlertCircle,
   BookOpen,
   ChevronRight,
   Code,
-  Database,
+  ExternalLink,
   FileCode,
+  Heart,
   Settings,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -44,23 +45,24 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/getUser");
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        const data = await response.json();
-        setUsers(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("/api/getUser");
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
       }
-    };
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -81,7 +83,7 @@ export default function DashboardPage() {
               ? `Welcome, ${session.user.name.split(" ")[0]}`
               : "Dashboard"}
           </h1>
-          <p className="text-sm text-muted-foreground">User and Post Data</p>
+          <p className="text-sm text-foreground">User and Post Data</p>
         </div>
 
         {loading && (
@@ -181,7 +183,7 @@ export default function DashboardPage() {
                                 Yes
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-xs">
+                              <span className="text-foreground text-xs">
                                 No
                               </span>
                             )}
@@ -206,330 +208,599 @@ export default function DashboardPage() {
 
             {/* Template Guide - Below Tables */}
             <div className="mt-12">
-              <div className="bg-card border border-border rounded-lg p-6 space-y-6">
+              <div className="bg-card border-2 border-border rounded-xl p-8 space-y-4 shadow-sm">
+                {/* Header */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Template Guide</h3>
+                  <div className="flex items-center gap-2 ">
+                    <BookOpen className="h-6 w-6 text-primary" />
+                    <h3 className="text-xl font-bold text-foreground">
+                      Template Guide
+                    </h3>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Quick reference for customizing this template
+                </div>
+
+                {/* Flow Maps Section */}
+                <div className="border-t-2 border-border pt-7">
+                  <h4 className="text-lg font-bold mb-4 flex items-center gap-2 text-foreground">
+                    <Code className="h-5 w-5 text-primary" />
+                    How Actions Work: Step-by-Step
+                  </h4>
+                  <p className="text-sm text-foreground mb-6 leading-relaxed">
+                    This section uses bullet points to show how
+                    <strong className="text-foreground font-semibold">
+                      {" "}
+                      Tambo AI{" "}
+                    </strong>
+                    processes user requests and interacts with your application.
+                    You&apos;ll see each stage from user input to the delivered
+                    result.
                   </p>
-                </div>
 
-                {/* Getting Started */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Getting Started
-                  </h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        Set up your database connection in{" "}
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          .env
-                        </code>
+                  {/* Flow A: Bar Chart Showing - As Bullets */}
+                  <div className="mb-10">
+                    <h5 className="text-base font-bold mb-3 flex items-center gap-3 text-foreground">
+                      <span className="bg-primary text-primary-foreground rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-sm">
+                        A
                       </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        Run migrations:{" "}
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          npx prisma migrate dev
-                        </code>
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        Seed data via{" "}
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          POST /api/addUser
-                        </code>
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Files to Edit */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <FileCode className="h-4 w-4" />
-                    Files to Edit
-                  </h4>
-                  <ul className="space-y-2 text-sm">
-                    <li>
-                      <div className="font-medium text-foreground mb-1">
-                        <code className="text-xs">app/dashboard/page.tsx</code>
-                      </div>
-                      <p className="text-muted-foreground text-xs">
-                        Customize dashboard layout, add new sections, or modify
-                        table displays
-                      </p>
-                    </li>
-                    <li>
-                      <div className="font-medium text-foreground mb-1">
-                        <code className="text-xs">
-                          app/api/getUser/route.ts
-                        </code>
-                      </div>
-                      <p className="text-muted-foreground text-xs">
-                        Modify data fetching logic, add filters, or change
-                        response format
-                      </p>
-                    </li>
-                    <li>
-                      <div className="font-medium text-foreground mb-1">
-                        <code className="text-xs">
-                          app/api/addUser/route.ts
-                        </code>
-                      </div>
-                      <p className="text-muted-foreground text-xs">
-                        Customize data seeding, add validation, or change data
-                        structure
-                      </p>
-                    </li>
-                    <li>
-                      <div className="font-medium text-foreground mb-1">
-                        <code className="text-xs">prisma/schema.prisma</code>
-                      </div>
-                      <p className="text-muted-foreground text-xs">
-                        Define your database models and relationships
-                      </p>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Database */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Database className="h-4 w-4" />
-                    Database Operations
-                  </h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          npx prisma studio
+                      Showing a Bar Chart: Step-by-Step
+                    </h5>
+                    <p className="text-sm text-foreground mb-4 pl-10 font-medium">
+                      When you ask:{" "}
+                      <strong className="text-foreground">
+                        &quot;Show me a bar chart of users&quot;
+                      </strong>{" "}
+                      or{" "}
+                      <strong className="text-foreground">
+                        &quot;Generate summary for user table&quot;
+                      </strong>
+                    </p>
+                    <ul className="bg-white dark:bg-background rounded-lg p-6 border-2 border-border shadow-md space-y-3 text-sm list-disc list-inside">
+                      <li>
+                        <span className="text-primary font-bold">AI</span> scans
+                        tool descriptions and locates{" "}
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          getUsersData
                         </code>{" "}
-                        - View/edit data
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          npx prisma generate
-                        </code>{" "}
-                        - Regenerate client
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          npx prisma migrate
-                        </code>{" "}
-                        - Apply schema changes
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* API Endpoints */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Code className="h-4 w-4" />
-                    API Endpoints
-                  </h4>
-                  <ul className="space-y-2 text-sm">
-                    <li>
-                      <div className="font-medium text-foreground mb-1">
-                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                          GET /api/getUser
+                        tool.
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">AI</span>{" "}
+                        executes{" "}
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          getUsersData()
                         </code>
-                      </div>
-                      <p className="text-muted-foreground text-xs">
-                        Fetch all users with their posts
-                      </p>
-                    </li>
-                    <li>
-                      <div className="font-medium text-foreground mb-1">
-                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                          POST /api/addUser
-                        </code>
-                      </div>
-                      <p className="text-muted-foreground text-xs">
-                        Seed database with dummy data (6 users, 12 posts)
-                      </p>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Tambo Tools & Components Flow */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Code className="h-4 w-4" />
-                    Tambo Tools & Components Flow
-                  </h4>
-                  <div className="space-y-3 text-sm">
-                    <div className="bg-muted/50 rounded-lg p-4 border border-border">
-                      <p className="text-muted-foreground text-xs mb-3 font-medium">
-                        Example: User asks: &quot;Generate summary for user
-                        table&quot;
-                      </p>
-                      <div className="space-y-2 text-xs font-mono">
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">↓</span>
-                        </div>
-                        <div className="pl-4 text-foreground">
-                          AI reads tool descriptions → Finds
-                          &quot;getUsersData&quot; tool
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">↓</span>
-                        </div>
-                        <div className="pl-4 text-foreground">
-                          AI calls:{" "}
-                          <code className="bg-background px-1 rounded">
-                            getUsersData()
-                          </code>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">↓</span>
-                        </div>
-                        <div className="pl-4 text-foreground">
-                          <code className="bg-background px-1 rounded">
-                            getUsersData()
-                          </code>{" "}
-                          executes:
-                        </div>
-                        <div className="pl-8 space-y-1 text-muted-foreground">
-                          <div>
-                            1.{" "}
-                            <code className="bg-background px-1 rounded">
+                        .
+                      </li>
+                      <li>
+                        <code className="bg-primary/10 text-primary px-2  rounded font-bold border border-primary/20">
+                          getUsersData()
+                        </code>{" "}
+                        executes:
+                        <ul className="pl-6 space-y-1 my-3  list-[circle]">
+                          <li>
+                            <span className="text-primary font-bold">1.</span>{" "}
+                            <code className="bg-muted px-2 py-1 rounded text-xs border font-mono">
                               fetch(&quot;/api/getUser&quot;)
                             </code>
-                          </div>
-                          <div>
-                            2. Transform data →{" "}
-                            <code className="bg-background px-1 rounded">
-                              [{`{User: "John", Posts: 5}`}, ...]
+                          </li>
+                          <li>
+                            <span className="text-primary font-bold">2.</span>{" "}
+                            Transform data to{" "}
+                            <code className="bg-muted px-2 py-1 my-3 rounded text-xs border font-mono">
+                              {`[{User: "John", Posts: 5}, ...]`}
                             </code>
-                          </div>
-                          <div>
-                            3. Return{" "}
-                            <code className="bg-background px-1 rounded">{`{data, title, description}`}</code>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">↓</span>
-                        </div>
-                        <div className="pl-4 text-foreground">
-                          AI receives tool output
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">↓</span>
-                        </div>
-                        <div className="pl-4 text-foreground">
-                          AI reads component descriptions → Finds
-                          &quot;BarChart&quot; component
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">↓</span>
-                        </div>
-                        <div className="pl-4 text-foreground">
-                          AI validates props against{" "}
-                          <code className="bg-background px-1 rounded">
-                            propsSchema
+                          </li>
+                          <li>
+                            <span className="text-primary font-bold">3.</span>{" "}
+                            Returns{" "}
+                            <code className="bg-muted px-2 py-1 rounded text-xs border font-mono">
+                              {`{data, title, description}`}
+                            </code>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">AI</span>{" "}
+                        receives the tool output.
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">AI</span> reads
+                        component descriptions and finds the{" "}
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          BarChart
+                        </code>{" "}
+                        component.
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">AI</span>{" "}
+                        validates props according to{" "}
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          propsSchema
+                        </code>
+                        .
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">AI</span>{" "}
+                        renders the chart with:
+                        <br />
+                        <code className="bg-muted px-2 py-1 rounded text-xs border font-mono">
+                          {`<BarChart data={...} title={...} description={...} />`}
+                        </code>
+                      </li>
+                      <li>
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          ChartBarLabelCustom
+                        </code>{" "}
+                        component displays the chart to the user.
+                      </li>
+                    </ul>
+                    <div className="mt-5 pt-5 border-t-2 border-border">
+                      <p className="text-foreground mb-3 font-bold text-sm">
+                        Key Concepts:
+                      </p>
+                      <ul className="space-y-2 text-sm list-disc list-inside">
+                        <li>
+                          <strong className="text-primary font-bold">
+                            Tools
+                          </strong>{" "}
+                          (in{" "}
+                          <code className="bg-primary/10 text-primary px-2 py-1 rounded text-xs border font-mono font-semibold">
+                            lib/tambo.ts
                           </code>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">↓</span>
-                        </div>
-                        <div className="pl-4 text-foreground">
-                          AI renders:{" "}
-                          <code className="bg-background px-1 rounded">{`<BarChart data={...} title={...} description={...} />`}</code>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">↓</span>
-                        </div>
-                        <div className="pl-4 text-foreground">
-                          <code className="bg-background px-1 rounded">
-                            ChartBarLabelCustom
+                          ): <strong>Fetch and process data</strong> from your
+                          APIs.
+                        </li>
+                        <li>
+                          <strong className="text-primary font-bold">
+                            Components
+                          </strong>{" "}
+                          (in{" "}
+                          <code className="bg-primary/10 text-primary px-2 py-1 rounded text-xs border font-mono font-semibold">
+                            lib/tambo.ts
+                          </code>
+                          ): <strong>Render UI elements</strong> with validated
+                          props.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Flow B: Adding Data to Table - As Bullets */}
+                  <div className="mt-10">
+                    <h5 className="text-base font-bold mb-3 flex items-center gap-3 text-foreground">
+                      <span className="bg-primary text-primary-foreground rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-sm">
+                        B
+                      </span>
+                      Adding Data to Users Table: Step-by-Step
+                    </h5>
+                    <p className="text-sm text-foreground mb-4 pl-10 font-medium">
+                      When you ask:{" "}
+                      <strong className="text-foreground">
+                        &quot;Add data to users table&quot;
+                      </strong>{" "}
+                      or{" "}
+                      <strong className="text-foreground">
+                        &quot;Create a new user&quot;
+                      </strong>
+                    </p>
+                    <ul className="bg-white dark:bg-background rounded-lg p-6 border-2 border-border shadow-md space-y-3 text-sm list-disc list-inside">
+                      <li>
+                        <span className="text-primary font-bold">User</span>{" "}
+                        fills out the form and clicks the{" "}
+                        <strong className="text-foreground">
+                          &quot;Add User &amp; Post&quot;
+                        </strong>{" "}
+                        button.
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">
+                          Client-side validation:
+                        </span>
+                        <ul className="pl-6 list-[circle] space-y-1">
+                          <li>Email format check</li>
+                          <li>Post title required check</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Form sends a{" "}
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          POST /api/addUser
+                        </code>{" "}
+                        request with the user and post data.
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">Server</span>{" "}
+                        validates and checks for{" "}
+                        <strong className="text-foreground">
+                          duplicate email
+                        </strong>
+                        .
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">
+                          Prisma transaction
+                        </span>{" "}
+                        creates:
+                        <ul className="pl-6 list-[circle] space-y-1">
+                          <li>User record in the database</li>
+                          <li>Post record linked to the user</li>
+                        </ul>
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">API</span>{" "}
+                        returns a success response with the created user and
+                        post data.
+                      </li>
+                      <li>
+                        The form sends feedback to{" "}
+                        <strong className="text-primary">Tambo AI</strong> using{" "}
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          sendThreadMessage()
+                        </code>
+                        .
+                      </li>
+                      <li>
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          onRefresh()
+                        </code>{" "}
+                        callback triggers table refresh.
+                      </li>
+                      <li>
+                        Dashboard fetches the updated data again using{" "}
+                        <code className="bg-primary/10 text-primary px-2 py-1 rounded font-bold border border-primary/20">
+                          /api/getUser
+                        </code>
+                        .
+                      </li>
+                      <li>
+                        <span className="text-foreground">
+                          Tables automatically update with the new user and
+                          post.
+                        </span>
+                      </li>
+                      <li>
+                        The form{" "}
+                        <span className="text-foreground font-bold">
+                          resets all fields
+                        </span>
+                        .
+                      </li>
+                      <li>
+                        <span className="text-primary font-bold">Tambo AI</span>{" "}
+                        receives feedback and can confirm the action.
+                      </li>
+                    </ul>
+                    <div className="mt-5 pt-5 border-t-2 border-border">
+                      <p className="text-foreground mb-3 font-bold text-sm">
+                        Key Features:
+                      </p>
+                      <ul className="space-y-2 text-sm list-disc list-inside">
+                        <li>
+                          <strong className="text-primary font-bold">
+                            Atomic Transaction:
+                          </strong>{" "}
+                          User and post are created together{" "}
+                          <span className="text-foreground">
+                            (all-or-nothing)
+                          </span>
+                        </li>
+                        <li>
+                          <strong className="text-primary font-bold">
+                            AI Feedback:
+                          </strong>{" "}
+                          Real-time updates via{" "}
+                          <code className="bg-primary/10 text-primary px-2 py-1 rounded text-xs border font-mono font-semibold">
+                            useTamboThread()
                           </code>{" "}
-                          component displays the chart
+                          hook.
+                        </li>
+                        <li>
+                          <strong className="text-primary font-bold">
+                            Auto Refresh:
+                          </strong>{" "}
+                          Tables update{" "}
+                          <span className="text-foreground">
+                            automatically without page reload
+                          </span>
+                        </li>
+                        <li>
+                          <strong className="text-primary font-bold">
+                            Error Handling:
+                          </strong>{" "}
+                          <span className="text-foreground">
+                            User-friendly messages
+                          </span>{" "}
+                          at each validation step.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Project Structure */}
+                <div className="border-t-2 border-border pt-8">
+                  <h4 className="text-base font-bold mb-4 flex items-center gap-2 text-foreground">
+                    <FileCode className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    Project Structure & Key Files
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-800 rounded-lg p-4 shadow-sm">
+                      <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-3">
+                        Frontend Files
+                      </p>
+                      <div className="space-y-3">
+                        <div>
+                          <code className="text-xs bg-white dark:bg-background px-2 py-1 rounded border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            app/dashboard/page.tsx
+                          </code>
+                          <p className="text-xs text-foreground mt-1">
+                            Main dashboard component - customize layout, tables,
+                            and UI
+                          </p>
+                        </div>
+                        <div>
+                          <code className="text-xs bg-white dark:bg-background px-2 py-1 rounded border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            components/tambo/add-user-form.tsx
+                          </code>
+                          <p className="text-xs text-foreground mt-1">
+                            Form component for adding users - can be rendered by
+                            AI
+                          </p>
+                        </div>
+                        <div>
+                          <code className="text-xs bg-white dark:bg-background px-2 py-1 rounded border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            lib/tambo.ts
+                          </code>
+                          <p className="text-xs text-foreground mt-1">
+                            Register all Tambo tools and components here
+                          </p>
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <p>
-                        <strong className="text-foreground">Tools</strong>{" "}
-                        (defined in{" "}
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          lib/tambo.ts
-                        </code>
-                        ): Fetch and process data
+                    <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-800 rounded-lg p-4 shadow-sm">
+                      <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-3">
+                        Backend Files
                       </p>
-                      <p>
-                        <strong className="text-foreground">Components</strong>{" "}
-                        (defined in{" "}
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          lib/tambo.ts
-                        </code>
-                        ): Render UI with validated props
-                      </p>
+                      <div className="space-y-3">
+                        <div>
+                          <code className="text-xs bg-white dark:bg-background px-2 py-1 rounded border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            app/api/getUser/route.ts
+                          </code>
+                          <p className="text-xs text-foreground mt-1">
+                            API endpoint to fetch all users with their posts
+                          </p>
+                        </div>
+                        <div>
+                          <code className="text-xs bg-white dark:bg-background px-2 py-1 rounded border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            app/api/addUser/route.ts
+                          </code>
+                          <p className="text-xs text-foreground mt-1">
+                            API endpoint to create new users and posts
+                          </p>
+                        </div>
+                        <div>
+                          <code className="text-xs bg-white dark:bg-background px-2 py-1 rounded border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            prisma/schema.prisma
+                          </code>
+                          <p className="text-xs text-foreground mt-1">
+                            Database schema - define your models and
+                            relationships here
+                          </p>
+                        </div>
+                      </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* What to Keep in Mind */}
+                <div className="border-t-2 border-border pt-8">
+                  <h4 className="text-base font-bold mb-4 flex items-center gap-2 text-foreground">
+                    <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    Important Things to Keep in Mind
+                  </h4>
+                  <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-800 rounded-lg p-5 space-y-3 shadow-sm">
+                    <ul className="space-y-3 text-sm text-foreground">
+                      <li className="flex items-start gap-3">
+                        <ChevronRight className="h-5 w-5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400 font-bold" />
+                        <span className="leading-relaxed">
+                          <strong className="text-amber-700 dark:text-amber-300 font-bold">
+                            Tool & Component Registration:
+                          </strong>{" "}
+                          All tools and components must be registered in{" "}
+                          <code className="bg-white dark:bg-background px-2 py-1 rounded text-xs border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            lib/tambo.ts
+                          </code>{" "}
+                          for{" "}
+                          <strong className="text-foreground">Tambo AI</strong>{" "}
+                          to use them
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <ChevronRight className="h-5 w-5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400 font-bold" />
+                        <span className="leading-relaxed">
+                          <strong className="text-amber-700 dark:text-amber-300 font-bold">
+                            Schema Validation:
+                          </strong>{" "}
+                          Component props are validated using{" "}
+                          <strong className="text-foreground">
+                            Zod schemas
+                          </strong>{" "}
+                          - ensure your schemas match your component props
+                          exactly
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <ChevronRight className="h-5 w-5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400 font-bold" />
+                        <span className="leading-relaxed">
+                          <strong className="text-amber-700 dark:text-amber-300 font-bold">
+                            Database Migrations:
+                          </strong>{" "}
+                          Always run{" "}
+                          <code className="bg-white dark:bg-background px-2 py-1 rounded text-xs border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            npx prisma migrate dev
+                          </code>{" "}
+                          after changing{" "}
+                          <code className="bg-white dark:bg-background px-2 py-1 rounded text-xs border-2 border-amber-300 dark:border-amber-700 font-mono font-semibold">
+                            schema.prisma
+                          </code>
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <ChevronRight className="h-5 w-5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400 font-bold" />
+                        <span className="leading-relaxed">
+                          <strong className="text-amber-700 dark:text-amber-300 font-bold">
+                            Error Handling:
+                          </strong>{" "}
+                          Always handle errors in API routes and provide{" "}
+                          <strong className="text-foreground">
+                            meaningful error messages
+                          </strong>{" "}
+                          to users
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <ChevronRight className="h-5 w-5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400 font-bold" />
+                        <span className="leading-relaxed">
+                          <strong className="text-amber-700 dark:text-amber-300 font-bold">
+                            Type Safety:
+                          </strong>{" "}
+                          Use{" "}
+                          <strong className="text-foreground">
+                            TypeScript types
+                          </strong>{" "}
+                          that match your Prisma schema for better type-checking
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <ChevronRight className="h-5 w-5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400 font-bold" />
+                        <span className="leading-relaxed">
+                          <strong className="text-amber-700 dark:text-amber-300 font-bold">
+                            AI Descriptions:
+                          </strong>{" "}
+                          Write{" "}
+                          <strong className="text-foreground">
+                            clear, descriptive
+                          </strong>{" "}
+                          tool and component descriptions - the AI uses these to
+                          understand when to use them
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Tambo AI Documentation */}
+                <div className="border-t-2 border-border pt-8">
+                  <h4 className="text-base font-bold mb-4 flex items-center gap-2 text-foreground">
+                    <BookOpen className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    Learn More About Tambo AI
+                  </h4>
+                  <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-300 dark:border-amber-800 rounded-lg p-5 shadow-sm">
+                    <p className="text-sm text-foreground mb-4 leading-relaxed font-medium">
+                      Want to dive deeper into{" "}
+                      <strong className="text-amber-700 dark:text-amber-300 font-bold">
+                        Tambo AI
+                      </strong>
+                      ? Check out the official documentation to learn about{" "}
+                      <strong className="text-foreground font-bold">
+                        advanced features, best practices, and more examples
+                      </strong>
+                      .
+                    </p>
+                    <a
+                      href="https://docs.tambo.co"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm font-bold text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200 transition-colors bg-white dark:bg-background px-4 py-2 rounded-lg border-2 border-amber-300 dark:border-amber-700 hover:border-amber-400 dark:hover:border-amber-600 shadow-sm"
+                    >
+                      <span>Visit Tambo AI Documentation</span>
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
                   </div>
                 </div>
 
                 {/* Customization Tips */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">
-                    Customization Tips
+                <div className="border-t-2 border-border pt-8">
+                  <h4 className="text-base font-bold mb-5 flex items-center gap-2 text-foreground">
+                    <Settings className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    Quick Customization Tips
                   </h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        Modify table columns by editing the table headers and
-                        cells
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        Add new API routes in{" "}
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-                          app/api/
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-green-50 dark:bg-green-950/20 border-2 border-green-300 dark:border-green-800 rounded-lg p-4 shadow-sm">
+                      <p className="text-sm font-bold text-green-700 dark:text-green-300 mb-2">
+                        Modify Tables
+                      </p>
+                      <p className="text-xs text-foreground leading-relaxed">
+                        Edit table headers and cells in{" "}
+                        <code className="bg-white dark:bg-background px-2 py-1 rounded text-xs border-2 border-green-300 dark:border-green-700 font-mono font-bold">
+                          app/dashboard/page.tsx
                         </code>
+                      </p>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-950/20 border-2 border-green-300 dark:border-green-800 rounded-lg p-4 shadow-sm">
+                      <p className="text-sm font-bold text-green-700 dark:text-green-300 mb-2">
+                        Add API Routes
+                      </p>
+                      <p className="text-xs text-foreground leading-relaxed">
+                        Create new endpoints in{" "}
+                        <code className="bg-white dark:bg-background px-2 py-1 rounded text-xs border-2 border-green-300 dark:border-green-700 font-mono font-bold">
+                          app/api/
+                        </code>{" "}
+                        directory
+                      </p>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-950/20 border-2 border-green-300 dark:border-green-800 rounded-lg p-4 shadow-sm">
+                      <p className="text-sm font-bold text-green-700 dark:text-green-300 mb-2">
+                        Customize Styling
+                      </p>
+                      <p className="text-xs text-foreground leading-relaxed">
+                        Use{" "}
+                        <strong className="text-foreground font-bold">
+                          Tailwind classes
+                        </strong>{" "}
+                        or theme variables for consistent design
+                      </p>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-950/20 border-2 border-green-300 dark:border-green-800 rounded-lg p-4 shadow-sm">
+                      <p className="text-sm font-bold text-green-700 dark:text-green-300 mb-2">
+                        Update Schema
+                      </p>
+                      <p className="text-xs text-foreground leading-relaxed">
+                        Modify{" "}
+                        <code className="bg-white dark:bg-background px-2 py-1 rounded text-xs border-2 border-green-300 dark:border-green-700 font-mono font-bold">
+                          prisma/schema.prisma
+                        </code>{" "}
+                        and{" "}
+                        <strong className="text-foreground font-bold">
+                          run migrations
+                        </strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="border-t-2 border-border pt-8 mt-8">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-sm">
+                    <div className="flex items-center gap-2 bg-red-50 dark:bg-red-950/20 px-4 py-2 rounded-lg border-2 border-red-200 dark:border-red-900">
+                      <Heart className="h-5 w-5 text-red-500 fill-red-500 animate-pulse" />
+                      <span className="font-bold text-foreground">
+                        Don&apos;t forget to like Tambo AI
                       </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        Customize styling using Tailwind classes or theme
-                        variables
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        Update Prisma schema and run migrations for new models
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                      <span>
-                        You can add the button to insert the data into users and
-                        post as per your choice!
-                      </span>
-                    </li>
-                  </ul>
+                    </div>
+                    <span className="hidden sm:inline text-foreground font-bold">
+                      •
+                    </span>
+                    <a
+                      href="https://tambo.co"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors flex items-center gap-2 font-bold text-primary hover:underline"
+                    >
+                      <span>Visit Tambo AI</span>
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
