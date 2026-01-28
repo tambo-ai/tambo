@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.133.0](https://github.com/tambo-ai/tambo/compare/api-v0.132.1...api-v0.133.0) (2026-01-28)
+
+
+### Features
+
+* **api:** add userKey support to V1 API endpoints ([#1994](https://github.com/tambo-ai/tambo/issues/1994)) ([02e7169](https://github.com/tambo-ai/tambo/commit/02e7169e63422961a68bd0c40cec2cf7acf11f8d))
+
+
+### Bug Fixes
+
+* **api:** remove inline oneOf schema from component state endpoint ([#1961](https://github.com/tambo-ai/tambo/issues/1961)) ([c79be8e](https://github.com/tambo-ai/tambo/commit/c79be8ec7de12df6ccb0049a95990e05cf4b871f))
+
 ## [0.132.1](https://github.com/tambo-ai/tambo/compare/api-v0.132.0...api-v0.132.1) (2026-01-27)
 
 
