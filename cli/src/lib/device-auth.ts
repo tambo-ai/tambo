@@ -3,6 +3,7 @@ import clipboard from "clipboardy";
 import open from "open";
 import ora from "ora";
 import { api, ApiError } from "./api-client.js";
+import { isInteractive } from "../utils/interactive.js";
 import {
   saveToken,
   setInMemoryToken,
@@ -81,23 +82,37 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   console.log(chalk.cyan("\n📱 Please authorize this device:\n"));
   console.log(chalk.white(`   Visit: ${chalk.bold(verificationUri)}`));
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
+  console.log(
+    chalk.white(
+      `   Or open directly: ${chalk.cyan(verificationUriComplete)}\n`,
+    ),
+  );
 
-  // Copy code to clipboard
-  try {
-    await clipboard.write(userCode);
-    console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
-  } catch {
-    // Clipboard might not be available in all environments
-  }
+  if (isInteractive()) {
+    // Copy code to clipboard
+    try {
+      await clipboard.write(userCode);
+      console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
+    } catch {
+      // Clipboard might not be available in all environments
+    }
 
-  // Open browser with pre-filled code URL
-  try {
-    await open(verificationUriComplete);
-    console.log(chalk.gray("   Browser opened for authentication\n"));
-  } catch {
+    // Open browser with pre-filled code URL
+    try {
+      // `wait: false` avoids blocking the CLI until the browser is closed.
+      await open(verificationUriComplete, { wait: false });
+      console.log(chalk.gray("   Browser opened for authentication\n"));
+    } catch {
+      console.log(
+        chalk.yellow(
+          `   Could not open browser automatically. Please visit the URL above.\n`,
+        ),
+      );
+    }
+  } else {
     console.log(
-      chalk.yellow(
-        `   Could not open browser automatically. Please visit the URL above.\n`,
+      chalk.gray(
+        "   Running in non-interactive mode; not attempting to open a browser or copy to clipboard.\n",
       ),
     );
   }
