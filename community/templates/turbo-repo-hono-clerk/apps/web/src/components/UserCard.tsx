@@ -24,10 +24,6 @@ export function UserCard() {
           <span>{primaryEmail}</span>
         </p>
       ) : null}
-      <p className="user-card-row">
-        <span className="user-card-label">User ID:</span>
-        <span>{user.id}</span>
-      </p>
     </section>
   );
 }
