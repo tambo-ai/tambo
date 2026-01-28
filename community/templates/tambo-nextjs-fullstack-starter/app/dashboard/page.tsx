@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
+import { ChartBarLabelCustom } from "@/components/ui/chart-bar";
 import { SpinnerCustom } from "@/components/ui/spinner";
 import {
   Table,
@@ -73,6 +74,19 @@ export default function DashboardPage() {
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 py-16">
+        <div className="mb-4 max-w-md mx-auto">
+          <ChartBarLabelCustom
+            title="Average Post Per User"
+            description="6 months"
+            data={[
+              { User: "Vishal", Posts: 30 },
+              { User: "Himanshu", Posts: 42 },
+              { User: "SHivam", Posts: 30 },
+              { User: "Prajjwal", Posts: 42 },
+            ]}
+          />
+        </div>
+
         {/* Welcome Section */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold tracking-tight mb-2">
@@ -367,6 +381,123 @@ export default function DashboardPage() {
                       </p>
                     </li>
                   </ul>
+                </div>
+
+                {/* Tambo Tools & Components Flow */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Code className="h-4 w-4" />
+                    Tambo Tools & Components Flow
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="bg-muted/50 rounded-lg p-4 border border-border">
+                      <p className="text-muted-foreground text-xs mb-3 font-medium">
+                        Example: User asks: &quot;Generate summary for user
+                        table&quot;
+                      </p>
+                      <div className="space-y-2 text-xs font-mono">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">↓</span>
+                        </div>
+                        <div className="pl-4 text-foreground">
+                          AI reads tool descriptions → Finds
+                          &quot;getUsersData&quot; tool
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">↓</span>
+                        </div>
+                        <div className="pl-4 text-foreground">
+                          AI calls:{" "}
+                          <code className="bg-background px-1 rounded">
+                            getUsersData()
+                          </code>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">↓</span>
+                        </div>
+                        <div className="pl-4 text-foreground">
+                          <code className="bg-background px-1 rounded">
+                            getUsersData()
+                          </code>{" "}
+                          executes:
+                        </div>
+                        <div className="pl-8 space-y-1 text-muted-foreground">
+                          <div>
+                            1.{" "}
+                            <code className="bg-background px-1 rounded">
+                              fetch(&quot;/api/getUser&quot;)
+                            </code>
+                          </div>
+                          <div>
+                            2. Transform data →{" "}
+                            <code className="bg-background px-1 rounded">
+                              [{`{User: "John", Posts: 5}`}, ...]
+                            </code>
+                          </div>
+                          <div>
+                            3. Return{" "}
+                            <code className="bg-background px-1 rounded">{`{data, title, description}`}</code>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">↓</span>
+                        </div>
+                        <div className="pl-4 text-foreground">
+                          AI receives tool output
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">↓</span>
+                        </div>
+                        <div className="pl-4 text-foreground">
+                          AI reads component descriptions → Finds
+                          &quot;BarChart&quot; component
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">↓</span>
+                        </div>
+                        <div className="pl-4 text-foreground">
+                          AI validates props against{" "}
+                          <code className="bg-background px-1 rounded">
+                            propsSchema
+                          </code>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">↓</span>
+                        </div>
+                        <div className="pl-4 text-foreground">
+                          AI renders:{" "}
+                          <code className="bg-background px-1 rounded">{`<BarChart data={...} title={...} description={...} />`}</code>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">↓</span>
+                        </div>
+                        <div className="pl-4 text-foreground">
+                          <code className="bg-background px-1 rounded">
+                            ChartBarLabelCustom
+                          </code>{" "}
+                          component displays the chart
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p>
+                        <strong className="text-foreground">Tools</strong>{" "}
+                        (defined in{" "}
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
+                          lib/tambo.ts
+                        </code>
+                        ): Fetch and process data
+                      </p>
+                      <p>
+                        <strong className="text-foreground">Components</strong>{" "}
+                        (defined in{" "}
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
+                          lib/tambo.ts
+                        </code>
+                        ): Render UI with validated props
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Customization Tips */}

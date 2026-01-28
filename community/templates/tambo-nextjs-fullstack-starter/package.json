@@ -38,9 +38,11 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "recharts": "^2.15.4",
     "streamdown": "^2.1.0",
     "tailwind-merge": "^3.4.0",
-    "use-debounce": "^10.1.0"
+    "use-debounce": "^10.1.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
