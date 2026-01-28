@@ -8,7 +8,9 @@ import {
   isComponentContent,
   renderComponentContent,
   renderMessageContent,
+  renderMessageComponents,
   useV1ComponentContent,
+  useV1ComponentContentOptional,
 } from "./component-renderer";
 
 // Test component that displays its props
@@ -215,5 +217,248 @@ describe("renderMessageContent", () => {
     expect(result[0]).toEqual({ type: "text", text: "Hello" });
     expect((result[1] as any).renderedComponent).not.toBeNull();
     expect(result[2]).toEqual({ type: "text", text: "World" });
+  });
+
+  it("handles multiple component blocks in a message", () => {
+    const content = [
+      {
+        type: "component",
+        id: "comp_1",
+        name: "TestComponent",
+        props: { title: "First", count: 1 },
+        streamingState: "done",
+      } as V1ComponentContent,
+      {
+        type: "component",
+        id: "comp_2",
+        name: "TestComponent",
+        props: { title: "Second", count: 2 },
+        streamingState: "done",
+      } as V1ComponentContent,
+    ];
+
+    const result = renderMessageContent(content as any, {
+      threadId: "thread_1",
+      messageId: "msg_1",
+      componentList: mockRegistry,
+    });
+
+    expect(result).toHaveLength(2);
+    expect((result[0] as V1ComponentContent).renderedComponent).not.toBeNull();
+    expect((result[1] as V1ComponentContent).renderedComponent).not.toBeNull();
+  });
+
+  it("handles tool_use content blocks unchanged", () => {
+    const content = [
+      {
+        type: "tool_use",
+        id: "tool_1",
+        name: "search",
+        input: { query: "test" },
+      },
+    ];
+
+    const result = renderMessageContent(content as any, {
+      threadId: "thread_1",
+      messageId: "msg_1",
+      componentList: mockRegistry,
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(content[0]);
+  });
+});
+
+describe("renderComponentContent edge cases", () => {
+  it("shows main component when streamingState is 'started' (no loading component)", () => {
+    const content: V1ComponentContent = {
+      type: "component",
+      id: "comp_1",
+      name: "TestComponent",
+      props: { title: "Started", count: 0 },
+      streamingState: "started",
+    };
+
+    const result = renderComponentContent(content, {
+      threadId: "thread_1",
+      messageId: "msg_1",
+      componentList: mockRegistry,
+    });
+
+    // TestComponent has no loading component, so it shows main even when streaming
+    render(<>{result.renderedComponent}</>);
+    expect(screen.getByTestId("title")).toHaveTextContent("Started");
+  });
+
+  it("shows loading component when streamingState is 'started' and loading exists", () => {
+    const content: V1ComponentContent = {
+      type: "component",
+      id: "comp_1",
+      name: "TestWithLoading",
+      props: { title: "Started", count: 0 },
+      streamingState: "started",
+    };
+
+    const result = renderComponentContent(content, {
+      threadId: "thread_1",
+      messageId: "msg_1",
+      componentList: mockRegistry,
+    });
+
+    render(<>{result.renderedComponent}</>);
+    expect(screen.getByTestId("loading")).toHaveTextContent("Loading...");
+  });
+
+  it("passes state as initialState prop", () => {
+    // Component that reads initialState
+    function StatefulComponent({
+      initialState,
+    }: {
+      initialState?: { count: number };
+    }) {
+      return (
+        <div data-testid="initial-count">{initialState?.count ?? "none"}</div>
+      );
+    }
+
+    const registryWithStateful: ComponentRegistry = {
+      StatefulComponent: {
+        component: StatefulComponent,
+        name: "StatefulComponent",
+        description: "A stateful component",
+        props: {},
+        contextTools: [],
+      },
+    };
+
+    const content: V1ComponentContent = {
+      type: "component",
+      id: "comp_1",
+      name: "StatefulComponent",
+      props: {},
+      state: { count: 42 },
+      streamingState: "done",
+    };
+
+    const result = renderComponentContent(content, {
+      threadId: "thread_1",
+      messageId: "msg_1",
+      componentList: registryWithStateful,
+    });
+
+    render(<>{result.renderedComponent}</>);
+    expect(screen.getByTestId("initial-count")).toHaveTextContent("42");
+  });
+
+  it("preserves original content properties in returned object", () => {
+    const content: V1ComponentContent = {
+      type: "component",
+      id: "comp_custom",
+      name: "TestComponent",
+      props: { title: "Test", count: 5 },
+      state: { value: "preserved" },
+      streamingState: "done",
+    };
+
+    const result = renderComponentContent(content, {
+      threadId: "thread_1",
+      messageId: "msg_1",
+      componentList: mockRegistry,
+    });
+
+    expect(result.id).toBe("comp_custom");
+    expect(result.name).toBe("TestComponent");
+    expect(result.props).toEqual({ title: "Test", count: 5 });
+    expect(result.state).toEqual({ value: "preserved" });
+    expect(result.streamingState).toBe("done");
+  });
+});
+
+describe("useV1ComponentContentOptional", () => {
+  it("returns null when used outside rendered component", () => {
+    function TestConsumer() {
+      const context = useV1ComponentContentOptional();
+      return (
+        <div data-testid="context">
+          {context ? "has context" : "no context"}
+        </div>
+      );
+    }
+
+    render(<TestConsumer />);
+    expect(screen.getByTestId("context")).toHaveTextContent("no context");
+  });
+});
+
+describe("renderMessageComponents", () => {
+  it("renders all components in a message", () => {
+    const message = {
+      id: "msg_1",
+      role: "assistant" as const,
+      content: [
+        { type: "text" as const, text: "Here is the weather:" },
+        {
+          type: "component",
+          id: "comp_1",
+          name: "TestComponent",
+          props: { title: "Weather", count: 72 },
+          streamingState: "done",
+        } as V1ComponentContent,
+      ],
+      createdAt: "2024-01-01T00:00:00.000Z",
+    };
+
+    const result = renderMessageComponents(message, {
+      threadId: "thread_1",
+      componentList: mockRegistry,
+    });
+
+    expect(result.id).toBe("msg_1");
+    expect(result.content).toHaveLength(2);
+    expect(result.content[0]).toEqual({
+      type: "text",
+      text: "Here is the weather:",
+    });
+    expect(
+      (result.content[1] as V1ComponentContent).renderedComponent,
+    ).not.toBeNull();
+  });
+
+  it("preserves message metadata", () => {
+    const message = {
+      id: "msg_123",
+      role: "assistant" as const,
+      content: [],
+      createdAt: "2024-01-01T00:00:00.000Z",
+      metadata: { custom: "value" },
+    };
+
+    const result = renderMessageComponents(message, {
+      threadId: "thread_1",
+      componentList: mockRegistry,
+    });
+
+    expect(result.id).toBe("msg_123");
+    expect(result.role).toBe("assistant");
+    expect(result.createdAt).toBe("2024-01-01T00:00:00.000Z");
+    expect(result.metadata).toEqual({ custom: "value" });
+  });
+});
+
+describe("useV1ComponentContent error handling", () => {
+  it("throws when used outside rendered component", () => {
+    function TestConsumer() {
+      useV1ComponentContent();
+      return <div>Should not render</div>;
+    }
+
+    // Suppress React error boundary logs
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
+    expect(() => render(<TestConsumer />)).toThrow(
+      "useV1ComponentContent must be used within a rendered component",
+    );
+
+    consoleSpy.mockRestore();
   });
 });
