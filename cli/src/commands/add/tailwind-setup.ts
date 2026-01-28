@@ -50,16 +50,26 @@ export async function setupTailwindAndGlobals(projectRoot: string) {
     );
   }
 
-  // Detect if src directory exists
-  const hasSrcDir = fs.existsSync(path.join(projectRoot, "src"));
-  const appPath = hasSrcDir ? "src/app" : "app";
+  // Find existing globals.css or determine where to create it
+  // Check common locations in order of preference
+  const possibleGlobalsPaths = [
+    path.join(projectRoot, "src/app/globals.css"),
+    path.join(projectRoot, "app/globals.css"),
+    path.join(projectRoot, "src/styles/globals.css"),
+    path.join(projectRoot, "styles/globals.css"),
+  ];
 
-  // Create app directory if it doesn't exist
-  const fullAppPath = path.join(projectRoot, appPath);
-  fs.mkdirSync(fullAppPath, { recursive: true });
+  let globalsPath = possibleGlobalsPaths.find((p) => fs.existsSync(p));
 
-  // Set globals.css path based on project structure
-  const globalsPath = path.join(projectRoot, appPath, "globals.css");
+  // If no existing globals.css found, create in the appropriate location
+  if (!globalsPath) {
+    const hasSrcDir = fs.existsSync(path.join(projectRoot, "src"));
+    const appPath = hasSrcDir ? "src/app" : "app";
+    globalsPath = path.join(projectRoot, appPath, "globals.css");
+  }
+
+  // Create the directory if it doesn't exist
+  fs.mkdirSync(path.dirname(globalsPath), { recursive: true });
 
   const registryPath = getRegistryBasePath();
   const defaultTailwindConfig = path.join(

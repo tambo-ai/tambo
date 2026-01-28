@@ -109,3 +109,28 @@ export function isTamboCustomEvent(event: {
     (TAMBO_CUSTOM_EVENT_NAMES as readonly string[]).includes(event.name)
   );
 }
+
+/**
+ * Casts a CustomEvent to the specific TamboCustomEvent type based on its name.
+ * Uses exhaustive type checking to ensure all event types are handled.
+ * @param event - The CustomEvent to cast
+ * @returns The properly typed TamboCustomEvent, or undefined if not a known Tambo event
+ */
+export function asTamboCustomEvent(
+  event: CustomEvent,
+): TamboCustomEvent | undefined {
+  switch (event.name) {
+    case "tambo.component.start":
+      return event as ComponentStartEvent;
+    case "tambo.component.props_delta":
+      return event as ComponentPropsDeltaEvent;
+    case "tambo.component.state_delta":
+      return event as ComponentStateDeltaEvent;
+    case "tambo.component.end":
+      return event as ComponentEndEvent;
+    case "tambo.run.awaiting_input":
+      return event as RunAwaitingInputEvent;
+    default:
+      return undefined;
+  }
+}

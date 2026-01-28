@@ -102,6 +102,8 @@ export interface LlmModelConfigInfo<ModelId extends string = string> {
   commonParametersDefaults?: CommonParametersDefaults;
   /** Any parameters that are specific to just this model, such as reasoning or modality */
   modelSpecificParams?: LlmParameterMetadata;
+  /** Default values for provider-specific params (e.g., reasoningEffort) */
+  modelParamsDefaults?: ProviderSpecificParams;
   /** Whether the model is the default model */
   isDefaultModel?: boolean;
   /** Input token limit of the model */

@@ -8,7 +8,7 @@ on:
 jobs:
   sync-lockfile:
     # Only run on PRs from release-please bot with "autorelease: pending" label
-    if: "${{ contains(github.event.pull_request.labels.*.name, 'autorelease: pending') && github.actor == 'release-please[bot]' }}"
+    if: "${{ contains(github.event.pull_request.labels.*.name, 'autorelease: pending') && github.actor == 'tambo-bot' }}"
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -58,8 +58,8 @@ jobs:
       - name: Commit lockfile changes
         if: steps.check.outputs.changed == 'true'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "tambo-bot"
+          git config user.email "bots@tambo.co"
           git add package-lock.json
           git commit -m "chore: sync package-lock.json"
           git push origin "HEAD:${{ github.head_ref }}"

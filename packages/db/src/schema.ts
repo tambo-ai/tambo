@@ -602,6 +602,10 @@ export const threads = pgTable(
       index("threads_project_updated_idx").on(table.projectId, table.updatedAt),
       // Stand-alone index on updated_at to aid generic recency queries.
       index("threads_updated_at_idx").on(table.updatedAt),
+      // Stand-alone index on project_id for filtering threads by project.
+      index("threads_project_id_idx").on(table.projectId),
+      // Stand-alone index on created_at for sorting/filtering by creation time.
+      index("threads_created_at_idx").on(table.createdAt),
       // Note: threads.current_run_id -> runs.id FK is added via migration SQL
       // to avoid circular type inference issues between threads and runs tables
     ];

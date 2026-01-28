@@ -234,7 +234,9 @@ export async function handleAddComponents(
     });
 
     // 7. Setup Tailwind and globals.css after all components are installed
-    await setupTailwindAndGlobals(process.cwd());
+    if (!options.skipTailwindSetup) {
+      await setupTailwindAndGlobals(process.cwd());
+    }
 
     if (!options.silent) {
       console.log(chalk.green("\n✨ Installation complete!"));

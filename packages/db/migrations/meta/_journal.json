@@ -610,6 +610,13 @@
       "when": 1768429803990,
       "tag": "0086_magical_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1769560381699,
+      "tag": "0087_overconfident_doctor_doom",
+      "breakpoints": true
     }
   ]
 }

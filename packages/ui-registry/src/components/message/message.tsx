@@ -1,6 +1,9 @@
 "use client";
 
-import { markdownComponents } from "./markdown-components";
+import {
+  createMarkdownComponents,
+  markdownComponents,
+} from "./markdown-components";
 import {
   checkHasContent,
   getMessageImages,
@@ -1067,4 +1070,6 @@ export {
   messageVariants,
   ReasoningInfo,
   ToolcallInfo,
+  createMarkdownComponents,
+  markdownComponents,
 };

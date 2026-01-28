@@ -47,6 +47,7 @@
     "@tambo-ai/eslint-config": "*",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-config": "*",
+    "@tambo-ai/typescript-sdk": "^0.86.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
@@ -62,9 +63,9 @@
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "streamdown": "^1.6.10",
+    "tailwind-merge": "^2.0.0",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
-    "tailwind-merge": "^2.0.0",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
   }
