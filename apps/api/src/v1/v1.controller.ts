@@ -18,6 +18,7 @@ import {
   ApiOperation,
   ApiParam,
   ApiProduces,
+  ApiQuery,
   ApiResponse,
   ApiSecurity,
   ApiTags,
@@ -69,7 +70,7 @@ export class V1Controller {
   @ApiOperation({
     summary: "List threads",
     description:
-      "List all threads for the authenticated project. Supports cursor-based pagination and filtering by context key.",
+      "List all threads for the authenticated project. Supports cursor-based pagination and filtering by user key.",
   })
   @ApiResponse({
     status: 200,
@@ -82,10 +83,10 @@ export class V1Controller {
   ): Promise<V1ListThreadsResponseDto> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      query.contextKey,
+      query.userKey,
     );
-    // Use context key from query if provided, otherwise fall back to bearer token context
-    const effectiveContextKey = query.contextKey ?? bearerContextKey;
+    // Use user key from query if provided, otherwise fall back to bearer token context
+    const effectiveContextKey = query.userKey ?? bearerContextKey;
     return await this.v1Service.listThreads(
       projectId,
       effectiveContextKey,
@@ -105,6 +106,11 @@ export class V1Controller {
     description: "Thread ID",
     example: "thr_abc123xyz",
   })
+  @ApiQuery({
+    name: "userKey",
+    description: "Optional user key for thread organization",
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: "Thread with messages",
@@ -115,8 +121,12 @@ export class V1Controller {
     description: "Thread not found",
   })
   async getThread(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
+    @Query("userKey") userKey?: string,
   ): Promise<V1GetThreadResponseDto> {
+    // Extract context info - userKey from query param or bearer token
+    extractContextInfo(request, userKey);
     return await this.v1Service.getThread(threadId);
   }
 
@@ -137,10 +147,10 @@ export class V1Controller {
   ): Promise<V1CreateThreadResponseDto> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      dto.contextKey,
+      dto.userKey,
     );
-    // Use context key from body if provided, otherwise fall back to bearer token context
-    const effectiveContextKey = dto.contextKey ?? bearerContextKey;
+    // Use user key from body if provided, otherwise fall back to bearer token context
+    const effectiveContextKey = dto.userKey ?? bearerContextKey;
     return await this.v1Service.createThread(
       projectId,
       effectiveContextKey,
@@ -275,16 +285,16 @@ export class V1Controller {
   ): Promise<void> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      dto.thread?.contextKey,
+      dto.thread?.userKey,
     );
 
     // Create thread first
-    const effectiveContextKey = dto.thread?.contextKey ?? bearerContextKey;
+    const effectiveContextKey = dto.thread?.userKey ?? bearerContextKey;
     const thread = await this.v1Service.createThread(
       projectId,
       effectiveContextKey,
       {
-        contextKey: dto.thread?.contextKey,
+        userKey: dto.thread?.userKey,
         metadata: dto.threadMetadata ?? dto.thread?.metadata,
       },
     );
@@ -392,8 +402,7 @@ export class V1Controller {
     @Res() response: Response,
   ): Promise<void> {
     // Extract project and context info from the request
-    // Note: V1CreateRunDto doesn't have contextKey, so we only use bearer token context
-    const { projectId, contextKey } = extractContextInfo(request, undefined);
+    const { projectId, contextKey } = extractContextInfo(request, dto.userKey);
 
     // Start run (handles concurrency atomically)
     const startResult = await this.v1Service.startRun(threadId, dto);

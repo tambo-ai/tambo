@@ -372,7 +372,7 @@ describe("V1Service", () => {
         metadata: { custom: "data" },
       });
 
-      expect(result.contextKey).toBe("user_456");
+      expect(result.userKey).toBe("user_456");
       expect(result.metadata).toEqual({ custom: "data" });
     });
 
