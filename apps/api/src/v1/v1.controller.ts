@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -15,15 +16,13 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
-  ApiBody,
-  ApiExtraModels,
   ApiOperation,
   ApiParam,
   ApiProduces,
+  ApiQuery,
   ApiResponse,
   ApiSecurity,
   ApiTags,
-  getSchemaPath,
 } from "@nestjs/swagger";
 import { Request, Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
@@ -41,7 +40,6 @@ import {
   V1CreateThreadWithRunDto,
 } from "./dto/run.dto";
 import {
-  JsonPatchOperationDto,
   UpdateComponentStateDto,
   UpdateComponentStateResponseDto,
 } from "./dto/component-state.dto";
@@ -54,6 +52,27 @@ import {
 } from "./dto/thread.dto";
 import { V1BaseEventDto } from "./dto/event.dto";
 import { V1Service } from "./v1.service";
+
+/**
+ * Validates that a userKey is provided either via request parameter or bearer token.
+ * @throws BadRequestException if no userKey is available from either source, or if it's empty
+ */
+function requireUserKey(
+  paramUserKey: string | undefined,
+  bearerContextKey: string | undefined,
+): string {
+  // Check for empty string explicitly
+  if (paramUserKey === "") {
+    throw new BadRequestException("userKey cannot be an empty string.");
+  }
+  const effectiveUserKey = paramUserKey ?? bearerContextKey;
+  if (!effectiveUserKey) {
+    throw new BadRequestException(
+      "userKey is required. Provide it as a query/body parameter or use a bearer token with a context key.",
+    );
+  }
+  return effectiveUserKey;
+}
 
 @ApiTags("v1")
 @ApiSecurity("apiKey")
@@ -73,7 +92,7 @@ export class V1Controller {
   @ApiOperation({
     summary: "List threads",
     description:
-      "List all threads for the authenticated project. Supports cursor-based pagination and filtering by context key.",
+      "List all threads for the authenticated project. Supports cursor-based pagination and filtering by user key.",
   })
   @ApiResponse({
     status: 200,
@@ -86,10 +105,9 @@ export class V1Controller {
   ): Promise<V1ListThreadsResponseDto> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      query.contextKey,
+      query.userKey,
     );
-    // Use context key from query if provided, otherwise fall back to bearer token context
-    const effectiveContextKey = query.contextKey ?? bearerContextKey;
+    const effectiveContextKey = requireUserKey(query.userKey, bearerContextKey);
     return await this.v1Service.listThreads(
       projectId,
       effectiveContextKey,
@@ -109,6 +127,11 @@ export class V1Controller {
     description: "Thread ID",
     example: "thr_abc123xyz",
   })
+  @ApiQuery({
+    name: "userKey",
+    description: "Optional user key for thread organization",
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: "Thread with messages",
@@ -119,9 +142,20 @@ export class V1Controller {
     description: "Thread not found",
   })
   async getThread(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
+    @Query("userKey") userKey?: string,
   ): Promise<V1GetThreadResponseDto> {
-    return await this.v1Service.getThread(threadId);
+    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    const effectiveContextKey = requireUserKey(userKey, bearerContextKey);
+    return await this.v1Service.getThread(
+      threadId,
+      projectId,
+      effectiveContextKey,
+    );
   }
 
   @Post("threads")
@@ -141,10 +175,9 @@ export class V1Controller {
   ): Promise<V1CreateThreadResponseDto> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      dto.contextKey,
+      dto.userKey,
     );
-    // Use context key from body if provided, otherwise fall back to bearer token context
-    const effectiveContextKey = dto.contextKey ?? bearerContextKey;
+    const effectiveContextKey = requireUserKey(dto.userKey, bearerContextKey);
     return await this.v1Service.createThread(
       projectId,
       effectiveContextKey,
@@ -279,16 +312,19 @@ export class V1Controller {
   ): Promise<void> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      dto.thread?.contextKey,
+      dto.thread?.userKey,
     );
 
     // Create thread first
-    const effectiveContextKey = dto.thread?.contextKey ?? bearerContextKey;
+    const effectiveContextKey = requireUserKey(
+      dto.thread?.userKey,
+      bearerContextKey,
+    );
     const thread = await this.v1Service.createThread(
       projectId,
       effectiveContextKey,
       {
-        contextKey: dto.thread?.contextKey,
+        userKey: dto.thread?.userKey,
         metadata: dto.threadMetadata ?? dto.thread?.metadata,
       },
     );
@@ -395,9 +431,11 @@ export class V1Controller {
     @Body() dto: V1CreateRunDto,
     @Res() response: Response,
   ): Promise<void> {
-    // Extract project and context info from the request
-    // Note: V1CreateRunDto doesn't have contextKey, so we only use bearer token context
-    const { projectId, contextKey } = extractContextInfo(request, undefined);
+    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      dto.userKey,
+    );
+    const effectiveContextKey = requireUserKey(dto.userKey, bearerContextKey);
 
     // Start run (handles concurrency atomically)
     const startResult = await this.v1Service.startRun(threadId, dto);
@@ -441,7 +479,7 @@ export class V1Controller {
         startResult.runId,
         dto,
         projectId,
-        contextKey,
+        effectiveContextKey,
       );
     } catch (error) {
       // Emit error event if headers already sent
@@ -500,34 +538,6 @@ export class V1Controller {
 
   @Post("threads/:threadId/components/:componentId/state")
   @UseGuards(ThreadInProjectGuard)
-  @ApiExtraModels(JsonPatchOperationDto)
-  @ApiBody({
-    schema: {
-      oneOf: [
-        {
-          type: "object",
-          required: ["state"],
-          properties: {
-            state: {
-              type: "object",
-              additionalProperties: true,
-            },
-          },
-        },
-        {
-          type: "object",
-          required: ["patch"],
-          properties: {
-            patch: {
-              type: "array",
-              minItems: 1,
-              items: { $ref: getSchemaPath(JsonPatchOperationDto) },
-            },
-          },
-        },
-      ],
-    },
-  })
   @ApiOperation({
     summary: "Update component state",
     description:

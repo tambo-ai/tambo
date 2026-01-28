@@ -409,4 +409,10 @@ function getSuggestionButtonClassName({
   return "bg-background hover:bg-accent hover:text-accent-foreground";
 }
 
-export { MessageSuggestions, MessageSuggestionsList, MessageSuggestionsStatus };
+export {
+  MessageSuggestions,
+  MessageSuggestionsList,
+  MessageSuggestionsStatus,
+  Tooltip,
+  TooltipProvider,
+};
