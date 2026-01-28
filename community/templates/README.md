@@ -13,9 +13,9 @@ Starter templates for building AI-powered apps with Tambo.
 
 ## Community Templates
 
-| Template                                                                      | Description       | Stack             |
-| ----------------------------------------------------------------------------- | ----------------- | ----------------- |
-| [elysiajs-tambo-template](https://github.com/vkop007/elysiajs-tambo-template) | Elysia.js + Tambo | Elysia.js + Tambo |
+| Template                                                         | Description                                                  | Stack                          |
+| ---------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------ |
+| [bun-elysia-vite-tambo-template](bun-elysia-vite-tambo-template) | Full-stack template with voice input & generative components | Bun + Elysia.js + Vite + Tambo |
 
 ## Contributing a Template
 
