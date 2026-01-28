@@ -1,0 +1,20 @@
+/* Smooth transitions for all interactive elements */
+button,
+input,
+.task-item,
+.recent-item {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus visible styles for accessibility */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Custom selection color */
+::selection {
+  background: rgba(37, 99, 235, 0.2);
+  color: var(--text-primary);
+}

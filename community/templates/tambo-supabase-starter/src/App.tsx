@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React from "react";
 import {
   TamboProvider,
   useTamboThread,
@@ -11,69 +11,18 @@ const components = [
   {
     component: TaskList,
     name: "TaskList",
-    description: "Display the task list.",
+    description:
+      "Use this tool WHENEVER the user mentions tasks, todos, or lists.",
     propsSchema: z.object({
-      filter: z.enum(["pending", "completed", "all"]).default("all"),
+      filter: z.string().optional(),
+      title: z.string().optional(),
     }),
   },
 ];
 
-function Sidebar() {
-  const handleNewThread = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = window.location.origin;
-  };
-
-  return (
-    <div className="sidebar">
-      <div className="sidebar-header">
-        <span>Tambo Conversations</span>
-      </div>
-      <button className="new-thread-btn" onClick={handleNewThread}>
-        <span
-          style={{
-            color: "#2563eb",
-            marginRight: "8px",
-            fontSize: "1.2rem",
-            lineHeight: "1",
-          }}
-        >
-          +
-        </span>{" "}
-        New thread
-      </button>
-      <div className="nav-label">Recents</div>
-      <div className="nav-item">Task List Overview</div>
-    </div>
-  );
-}
-
-function MainChat() {
+function ChatInterface() {
   const { thread } = useTamboThread();
   const { value, setValue, submit, isPending } = useTamboThreadInput();
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  const [forceShowList, setForceShowList] = useState(false);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [thread?.messages, forceShowList]);
-
-  const handleForceSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (
-      value.toLowerCase().includes("task") ||
-      value.toLowerCase().includes("list")
-    ) {
-      setTimeout(() => {
-        setForceShowList(true);
-      }, 1500);
-    }
-
-    submit();
-  };
 
   const formatMessageContent = (content: any) => {
     try {
@@ -88,97 +37,99 @@ function MainChat() {
           return content;
         }
       }
-      if (Array.isArray(data))
-        return data.find((item: any) => item.text)?.text || "";
-      return typeof data === "string" ? data : "";
+      if (Array.isArray(data)) {
+        const textPart = data.find((item: any) => item.text);
+        return textPart ? textPart.text : "";
+      }
+      if (typeof data === "object" && data !== null) return data.text || "";
+      return String(data);
     } catch (e) {
       return "";
     }
   };
 
   return (
-    <div className="main-content">
-      <div className="chat-scroll-area">
+    <div className="chat-container">
+      <div className="messages-area">
         {(!thread?.messages || thread.messages.length === 0) && (
-          <div style={{ marginTop: "auto", textAlign: "center" }}>
-            <h2 style={{ marginBottom: "24px", color: "#111827" }}>
+          <div className="empty-state">
+            <h3 style={{ marginBottom: "20px", color: "#666" }}>
               How can I help you manage tasks?
-            </h2>
+            </h3>
+            {/* ✨ FIXED: Added Suggestion Buttons back */}
             <div className="suggestion-chips">
-              <div
+              <button
                 className="chip"
                 onClick={() => setValue("Show my pending tasks")}
               >
-                Show my pending tasks
-              </div>
-              <div
+                Show pending tasks
+              </button>
+              <button
                 className="chip"
-                onClick={() => setValue("Mark all tasks as done")}
+                onClick={() => setValue("Add a new task")}
               >
-                Mark all tasks as done
-              </div>
+                Add a new task
+              </button>
+              <button
+                className="chip"
+                onClick={() => setValue("Show all tasks")}
+              >
+                Show all tasks
+              </button>
             </div>
           </div>
         )}
 
         {thread?.messages?.map((m: any, i: number) => {
           const displayText = formatMessageContent(m.content);
+
           return (
-            <div
-              key={m.id || i}
-              className={`message-row ${m.role === "user" ? "user" : "ai"}`}
-            >
+            <div key={i} className={`message-wrapper ${m.role}`}>
               {displayText && (
-                <div
-                  className={`message-bubble ${m.role === "user" ? "user" : "ai"}`}
-                >
-                  {displayText}
-                </div>
+                <div className="message-bubble">{displayText}</div>
               )}
+
               {m.component && (
-                <div style={{ marginTop: "16px", width: "100%" }}>
-                  {m.component.renderedComponent}
+                <div className="component-wrapper">
+                  {m.component.renderedComponent || (
+                    <TaskList title="My Tasks" />
+                  )}
                 </div>
               )}
             </div>
           );
         })}
+      </div>
 
-        {forceShowList && (
-          <div
-            className="message-row ai"
-            style={{ animation: "fadeIn 0.5s ease" }}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit();
+        }}
+        className="input-form"
+      >
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Type a command (e.g., Show my tasks)..."
+          disabled={isPending}
+          className="message-input"
+        />
+        <button type="submit" disabled={isPending} className="send-button">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <div className="message-bubble ai">Here are your tasks:</div>
-            <div style={{ marginTop: "16px", width: "100%" }}>
-              <TaskList />
-            </div>
-          </div>
-        )}
-
-        <div ref={bottomRef} />
-      </div>
-
-      <div className="input-wrapper">
-        <form className="input-box" onSubmit={handleForceSubmit}>
-          <input
-            className="input-field"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="Type a command (e.g., Show my tasks)..."
-            disabled={isPending}
-          />
-          <div className="input-footer">
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={isPending || !value.trim()}
-            >
-              ➤
-            </button>
-          </div>
-        </form>
-      </div>
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </form>
     </div>
   );
 }
@@ -186,11 +137,47 @@ function MainChat() {
 function App() {
   const apiKey = import.meta.env.VITE_TAMBO_API_KEY;
 
+  // ✨ FIXED: New Thread Logic
+  const handleNewThread = () => {
+    if (confirm("Start a new conversation? This will clear current chat.")) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
   return (
     <TamboProvider apiKey={apiKey} components={components}>
       <div className="app-container">
-        <Sidebar />
-        <MainChat />
+        <aside className="sidebar">
+          <div className="sidebar-header">
+            <h2>Tambo Conversations</h2>
+          </div>
+
+          {/* ✨ FIXED: Added onClick handler */}
+          <button className="new-thread-btn" onClick={handleNewThread}>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New thread
+          </button>
+
+          <div className="recents-section">
+            <h3>RECENTS</h3>
+            <div className="recent-item active">Task List Overview</div>
+          </div>
+        </aside>
+
+        <main className="main-content">
+          <ChatInterface />
+        </main>
       </div>
     </TamboProvider>
   );
