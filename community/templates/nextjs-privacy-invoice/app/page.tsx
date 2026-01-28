@@ -18,7 +18,7 @@ export default function Home() {
   const [newItem, setNewItem] = useState({ description: '', quantity: 1, price: 0 });
 
   const addItem = () => {
-    if (!newItem.description) return; // Prevent empty items
+    if (!newItem.description) return; 
     const updatedItems = [...items, { ...newItem, id: Date.now().toString() }];
     setItems(updatedItems);
     
@@ -44,7 +44,6 @@ export default function Home() {
         {/* Client Details */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
-          {/* ADDED text-gray-900 HERE to fix invisible text */}
           <input 
             type="text" 
             placeholder="e.g. Acme Corp"
@@ -66,7 +65,6 @@ export default function Home() {
           
           {/* Add Item Form */}
           <div className="flex gap-2 mt-4 bg-gray-100 p-4 rounded">
-            {/* ADDED text-gray-900 to all inputs below */}
             <input 
               placeholder="Description" 
               value={newItem.description}
@@ -104,7 +102,11 @@ export default function Home() {
           </div>
 
           <div className="flex gap-3">
-            <button className="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50">
+            {/* UPDATED BUTTON: Calls window.print() */}
+            <button 
+              onClick={() => window.print()}
+              className="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50"
+            >
               Download PDF
             </button>
 
