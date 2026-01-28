@@ -270,9 +270,12 @@ body {
 .chat-panel-header {
   padding: 1.5rem 1.5rem 1rem 1.5rem;
   border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
 }
 
-.chat-panel-header h2 {
+.chat-panel-header span {
   font-size: 1.125rem;
   font-weight: 600;
   margin: 0;
@@ -300,7 +303,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 0;
+  padding: 2rem 2rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg-card);
 }

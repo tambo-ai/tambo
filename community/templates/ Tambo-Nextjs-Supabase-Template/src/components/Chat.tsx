@@ -32,7 +32,7 @@ export const Chat = () => {
         {thread.messages.length === 0 ? (
           <div className="chat-empty">
             <div className="chat-empty-icon">
-              <BiBarChart size={48} />
+              <BiBarChart size={48} color="white"/>
             </div>
             <p className="chat-empty-title">Start a conversation</p>
             <p className="chat-empty-hint">
@@ -49,9 +49,9 @@ export const Chat = () => {
               >
                 <div className="message-avatar">
                   {message.role === "user" ? (
-                    <BiUser size={20} />
+                    <BiUser size={20}  color="black"/>
                   ) : (
-                    <BiBot size={20} />
+                    <BiBot size={20} color="white"/>
                   )}
                 </div>
                 <div className="message-wrapper">
@@ -77,7 +77,7 @@ export const Chat = () => {
             {isPending && (
               <div className="chat-message assistant">
                 <div className="message-avatar">
-                  <BiBot size={20} />
+                  <BiBot size={20} color="white"/>
                 </div>
                 <div className="message-wrapper">
                   <div className="message-content">
@@ -108,7 +108,7 @@ export const Chat = () => {
           className="chat-submit"
           aria-label="Send message"
         >
-          {isPending ? <BiLoaderCircle size={20} /> : <BiSend size={20} />}
+          {isPending ? <BiLoaderCircle size={20} color="white"/> : <BiSend size={20} color="white" />}
         </button>
       </form>
     </div>

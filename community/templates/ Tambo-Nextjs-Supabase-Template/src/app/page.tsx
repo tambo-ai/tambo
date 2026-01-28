@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { BiRefresh, BiMenu, BiX } from "react-icons/bi";
+import { MdOutlineAnalytics } from "react-icons/md";
+import { TbPresentationAnalyticsFilled } from "react-icons/tb";
+import { MdAssistant } from "react-icons/md";
+import { TbReportAnalytics } from "react-icons/tb";
 import { Chat } from "../components/Chat";
 import { supabase } from "../lib/supabase";
 import "./dashboard.css";
@@ -86,7 +90,7 @@ export default function Dashboard() {
       <aside className={`sidebar ${isSidebarOpen ? "open" : ""}`}>
         <div className="sidebar-header">
           <div className="logo">
-            <span className="logo-icon">📊</span>
+            <MdOutlineAnalytics size={24} color="white"/>
             <span className="logo-text">Analytics</span>
           </div>
         </div>
@@ -101,7 +105,7 @@ export default function Dashboard() {
               setIsSidebarOpen(false);
             }}
           >
-            <span className="nav-icon">🏠</span>
+            <TbPresentationAnalyticsFilled size={20} color="white"/>
             <span className="nav-label">Dashboard</span>
           </button>
           <button
@@ -113,7 +117,7 @@ export default function Dashboard() {
               setIsSidebarOpen(false);
             }}
           >
-            <span className="nav-icon">📋</span>
+            <TbReportAnalytics size={20} color="white"/>
             <span className="nav-label">Records</span>
           </button>
         </nav>
@@ -132,7 +136,8 @@ export default function Dashboard() {
             <div className="dashboard-content">
               <div className="chat-panel">
                 <div className="chat-panel-header">
-                  <h2>AI Assistant</h2>
+                  <MdAssistant size={20}/>
+                  <span style={{ margin: "10px" }}>AI Assistant</span>
                 </div>
                 <div className="chat-panel-body">
                   <Chat />
