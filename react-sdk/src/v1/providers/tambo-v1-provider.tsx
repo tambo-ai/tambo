@@ -23,6 +23,10 @@ import {
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
 import type { McpServerInfo } from "../../model/mcp-server-info";
+import type {
+  ListResourceItem,
+  ResourceSource,
+} from "../../model/resource-info";
 import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
 
 /**
@@ -57,6 +61,26 @@ export interface TamboV1ProviderProps extends Pick<
   onCallUnregisteredTool?: TamboRegistryProviderProps["onCallUnregisteredTool"];
 
   /**
+   * Static resources to register with the registry.
+   * These will be available for the AI to access.
+   */
+  resources?: ListResourceItem[];
+
+  /**
+   * Dynamic resource search function.
+   * Must be paired with getResource.
+   * Called when searching for resources dynamically.
+   */
+  listResources?: ResourceSource["listResources"];
+
+  /**
+   * Dynamic resource fetch function.
+   * Must be paired with listResources.
+   * Called when fetching a specific resource by URI.
+   */
+  getResource?: ResourceSource["getResource"];
+
+  /**
    * Optional custom QueryClient instance.
    * If not provided, a default client will be created.
    */
@@ -87,6 +111,9 @@ export interface TamboV1ProviderProps extends Pick<
  * @param props.tools - Tools to register for client-side execution
  * @param props.mcpServers - MCP servers to register for additional tools/resources
  * @param props.onCallUnregisteredTool - Callback for handling unknown tool calls
+ * @param props.resources - Static resources to register with the AI
+ * @param props.listResources - Dynamic resource search function (must be paired with getResource)
+ * @param props.getResource - Dynamic resource fetch function (must be paired with listResources)
  * @param props.queryClient - Optional custom React Query client
  * @param props.children - Child components
  * @returns Provider component tree
@@ -116,6 +143,9 @@ export function TamboV1Provider({
   tools,
   mcpServers,
   onCallUnregisteredTool,
+  resources,
+  listResources,
+  getResource,
   queryClient,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
@@ -148,6 +178,9 @@ export function TamboV1Provider({
           tools={tools}
           mcpServers={mcpServers}
           onCallUnregisteredTool={onCallUnregisteredTool}
+          resources={resources}
+          listResources={listResources}
+          getResource={getResource}
         >
           <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
         </TamboRegistryProvider>

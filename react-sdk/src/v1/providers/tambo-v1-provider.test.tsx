@@ -190,4 +190,48 @@ describe("TamboV1Provider", () => {
 
     expect(result.current.onCallUnregisteredTool).toBe(onCallUnregisteredTool);
   });
+
+  it("registers static resources when provided", () => {
+    const resources = [
+      {
+        uri: "resource://test/example",
+        name: "Test Resource",
+        description: "A test resource",
+        mimeType: "text/plain",
+      },
+    ];
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboV1Provider apiKey="test-api-key" resources={resources}>
+        {children}
+      </TamboV1Provider>
+    );
+
+    const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+    expect(result.current.resources).toHaveLength(1);
+    expect(result.current.resources[0].uri).toBe("resource://test/example");
+    expect(result.current.resources[0].name).toBe("Test Resource");
+  });
+
+  it("registers resource source when listResources and getResource provided", () => {
+    const listResources = jest.fn().mockResolvedValue({ resources: [] });
+    const getResource = jest.fn().mockResolvedValue({ contents: [] });
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboV1Provider
+        apiKey="test-api-key"
+        listResources={listResources}
+        getResource={getResource}
+      >
+        {children}
+      </TamboV1Provider>
+    );
+
+    const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+
+    expect(result.current.resourceSource).toBeDefined();
+    expect(result.current.resourceSource?.listResources).toBe(listResources);
+    expect(result.current.resourceSource?.getResource).toBe(getResource);
+  });
 });

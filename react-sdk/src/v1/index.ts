@@ -98,6 +98,26 @@ export { useTamboV1Thread } from "./hooks/use-tambo-v1-thread";
 
 export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list";
 
+export {
+  useTamboV1ComponentState,
+  type UseTamboV1ComponentStateReturn,
+} from "./hooks/use-tambo-v1-component-state";
+
+// =============================================================================
+// Component Rendering
+// =============================================================================
+
+export {
+  useV1ComponentContent,
+  useV1ComponentContentOptional,
+  renderComponentContent,
+  renderMessageContent,
+  renderMessageComponents,
+  isComponentContent,
+  type V1ComponentContentContext,
+  type RenderComponentOptions,
+} from "./utils/component-renderer";
+
 // =============================================================================
 // Utilities
 // =============================================================================
