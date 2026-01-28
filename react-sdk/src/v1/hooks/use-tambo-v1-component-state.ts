@@ -135,8 +135,12 @@ export function useTamboV1ComponentState<S>(
   // Track whether there's a pending local change that hasn't synced yet
   const hasPendingLocalChangeRef = useRef(false);
 
+  // Track in-flight sync requests to avoid stale completions clearing pending state
+  const syncSeqRef = useRef(0);
+
   // Debounced function to sync state to server
   const syncToServer = useDebouncedCallback(async (newState: S) => {
+    const seq = ++syncSeqRef.current;
     setIsPending(true);
     setError(null);
     lastSentValueRef.current = newState;
@@ -149,6 +153,8 @@ export function useTamboV1ComponentState<S>(
       // Clear pending flag after successful sync
       hasPendingLocalChangeRef.current = false;
     } catch (err) {
+      // Clear pending flag on error to allow server reconciliation
+      hasPendingLocalChangeRef.current = false;
       const syncError = err instanceof Error ? err : new Error(String(err));
       setError(syncError);
       console.error(
@@ -156,7 +162,10 @@ export function useTamboV1ComponentState<S>(
         syncError,
       );
     } finally {
-      setIsPending(false);
+      // Only clear isPending if this is the most recent request
+      if (seq === syncSeqRef.current) {
+        setIsPending(false);
+      }
     }
   }, debounceTime);
 
@@ -201,11 +210,11 @@ export function useTamboV1ComponentState<S>(
       return;
     }
 
-    // Only sync if the value is different from local state
-    if (!deepEqual(serverValue, localState)) {
-      setLocalState(serverValue);
-    }
-  }, [serverValue, localState]);
+    // Use functional update to avoid localState in deps
+    setLocalState((prev) =>
+      deepEqual(serverValue, prev) ? prev : serverValue,
+    );
+  }, [serverValue]);
 
   // Flush pending updates on unmount
   useEffect(() => {

@@ -10,7 +10,6 @@
 import React, {
   createContext,
   createElement,
-  Suspense,
   useContext,
   useMemo,
   type ReactElement,
@@ -203,23 +202,17 @@ export function renderComponentContent(
   let element: ReactElement;
 
   if (isStreaming && LoadingComponent) {
-    // Show loading component during streaming
+    // Show loading component during streaming (with props for partial data display)
     element = createElement(LoadingComponent, props);
   } else {
-    // Show main component (with Suspense for lazy loading support)
-    const mainElement = createElement(Component, {
+    // Show main component - props stream in as they're filled out
+    element = createElement(Component, {
       ...props,
-      // Pass state as initialState prop for components that support it
-      initialState: content.state,
+      // Pass state as initialState prop only if not already provided
+      ...(props.initialState === undefined
+        ? { initialState: content.state }
+        : {}),
     });
-
-    element = LoadingComponent
-      ? createElement(
-          Suspense,
-          { fallback: createElement(LoadingComponent) },
-          mainElement,
-        )
-      : mainElement;
   }
 
   // Wrap with component content context
