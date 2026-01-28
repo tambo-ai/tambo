@@ -34,16 +34,16 @@ This template solves the "Blank Canvas" problem for personal dashboards. It prov
 
 ## 🎥 Video Demo
 
-[Download/Watch Demo Video](/public/video.mp4)
+[Download/Watch Demo Video](public/video.mp4)
 
 _(Note: For the best experience, we recommend watching the high-quality recording uploaded to the PR)_
 
 ## 📸 Screenshots
 
-![Default Dashboard](/public/screenshot-default.png)
+![Default Dashboard](public/screenshot-default.png)
 _The default Bento Grid view_
 
-![Context Aware Mode](/public/screenshot-context.png)
+![Context Aware Mode](public/screenshot-context.png)
 _Context-Aware Mode: "Coding" profile activated by AI_
 
 ## 🚀 Quick Start
