@@ -19,11 +19,15 @@ export async function getSession(request: Request) {
   return sessionStorage.getSession(cookie);
 }
 
-export async function commitSession(session: Awaited<ReturnType<typeof getSession>>) {
+export async function commitSession(
+  session: Awaited<ReturnType<typeof getSession>>,
+) {
   return sessionStorage.commitSession(session);
 }
 
-export async function destroySession(session: Awaited<ReturnType<typeof getSession>>) {
+export async function destroySession(
+  session: Awaited<ReturnType<typeof getSession>>,
+) {
   return sessionStorage.destroySession(session);
 }
 
@@ -37,7 +41,7 @@ export async function getUserFromSession(request: Request) {
   }
 
   const supabase = createSupabaseServerClient();
-  
+
   const { data, error } = await supabase.auth.setSession({
     access_token: accessToken,
     refresh_token: refreshToken ?? "",
@@ -47,16 +51,19 @@ export async function getUserFromSession(request: Request) {
     return null;
   }
 
-  return { user: data.user, accessToken: data.session?.access_token ?? accessToken };
+  return {
+    user: data.user,
+    accessToken: data.session?.access_token ?? accessToken,
+  };
 }
 
 export async function requireUser(request: Request) {
   const result = await getUserFromSession(request);
-  
+
   if (!result) {
     throw redirect("/login");
   }
-  
+
   return result;
 }
 
@@ -64,7 +71,7 @@ export async function createUserSession(
   request: Request,
   accessToken: string,
   refreshToken: string,
-  redirectTo: string
+  redirectTo: string,
 ) {
   const session = await getSession(request);
   session.set("accessToken", accessToken);
@@ -79,7 +86,7 @@ export async function createUserSession(
 
 export async function logout(request: Request) {
   const session = await getSession(request);
-  
+
   return redirect("/login", {
     headers: {
       "Set-Cookie": await destroySession(session),

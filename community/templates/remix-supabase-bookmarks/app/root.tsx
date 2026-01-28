@@ -55,7 +55,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { ENV } = useLoaderData<typeof loader>();
-  
+
   return (
     <>
       <Outlet />

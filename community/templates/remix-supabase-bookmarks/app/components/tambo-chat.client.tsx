@@ -13,11 +13,7 @@ interface TamboChatProps {
 
 export function TamboChat({ apiKey, tools, onClose }: TamboChatProps) {
   return (
-    <TamboProvider 
-      apiKey={apiKey} 
-      tools={tools}
-      components={tamboComponents}
-    >
+    <TamboProvider apiKey={apiKey} tools={tools} components={tamboComponents}>
       <ChatPanel onClose={onClose} />
     </TamboProvider>
   );

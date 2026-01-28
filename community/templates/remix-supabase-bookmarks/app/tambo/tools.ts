@@ -7,14 +7,22 @@ import type { Database, Bookmark } from "~/lib/database.types";
 export function createBookmarkTools(
   supabase: SupabaseClient<Database>,
   userId: string,
-  onMutate: () => void // callback to refresh the bookmark list
+  onMutate: () => void, // callback to refresh the bookmark list
 ): TamboTool[] {
-  
   // Tool: Add a new bookmark
   const addBookmarkTool: TamboTool = {
     name: "add_bookmark",
-    description: "Save a new bookmark to the user's collection. Use this when the user wants to save a URL, link, or article.",
-    tool: async ({ url, title, category }: { url: string; title?: string; category?: string }) => {
+    description:
+      "Save a new bookmark to the user's collection. Use this when the user wants to save a URL, link, or article.",
+    tool: async ({
+      url,
+      title,
+      category,
+    }: {
+      url: string;
+      title?: string;
+      category?: string;
+    }) => {
       const { data, error } = await supabase
         .from("bookmarks")
         .insert({
@@ -39,8 +47,16 @@ export function createBookmarkTools(
     },
     inputSchema: z.object({
       url: z.string().url().describe("The URL to bookmark"),
-      title: z.string().optional().describe("A descriptive title for the bookmark"),
-      category: z.string().optional().describe("Category to organize the bookmark (e.g., 'Tech', 'Cooking', 'News')"),
+      title: z
+        .string()
+        .optional()
+        .describe("A descriptive title for the bookmark"),
+      category: z
+        .string()
+        .optional()
+        .describe(
+          "Category to organize the bookmark (e.g., 'Tech', 'Cooking', 'News')",
+        ),
     }),
     outputSchema: z.object({
       success: z.boolean(),
@@ -57,15 +73,22 @@ export function createBookmarkTools(
   // Tool: Search bookmarks
   const searchBookmarksTool: TamboTool = {
     name: "search_bookmarks",
-    description: "Search through the user's saved bookmarks by keyword, category, or URL. Use this when the user wants to find, list, or show bookmarks. IMPORTANT: After calling this tool, always render the results using the BookmarkList component to display them visually.",
-    tool: async ({ query, category }: { query?: string; category?: string }) => {
+    description:
+      "Search through the user's saved bookmarks by keyword, category, or URL. Use this when the user wants to find, list, or show bookmarks. IMPORTANT: After calling this tool, always render the results using the BookmarkList component to display them visually.",
+    tool: async ({
+      query,
+      category,
+    }: {
+      query?: string;
+      category?: string;
+    }) => {
       const baseQuery = supabase
         .from("bookmarks")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      const finalQuery = category 
+      const finalQuery = category
         ? baseQuery.ilike("category", `%${category}%`)
         : baseQuery;
 
@@ -84,31 +107,37 @@ export function createBookmarkTools(
           (b) =>
             b.url.toLowerCase().includes(lowerQuery) ||
             b.title?.toLowerCase().includes(lowerQuery) ||
-            b.category?.toLowerCase().includes(lowerQuery)
+            b.category?.toLowerCase().includes(lowerQuery),
         );
       }
 
       return {
         count: results.length,
         bookmarks: results.slice(0, 10), // Limit to 10 results
-        message: results.length > 0 
-          ? `Found ${results.length} bookmark${results.length === 1 ? "" : "s"}.`
-          : "No bookmarks found matching your search.",
+        message:
+          results.length > 0
+            ? `Found ${results.length} bookmark${results.length === 1 ? "" : "s"}.`
+            : "No bookmarks found matching your search.",
       };
     },
     inputSchema: z.object({
-      query: z.string().optional().describe("Text to search for in bookmark titles and URLs"),
+      query: z
+        .string()
+        .optional()
+        .describe("Text to search for in bookmark titles and URLs"),
       category: z.string().optional().describe("Filter by category name"),
     }),
     outputSchema: z.object({
       count: z.number(),
-      bookmarks: z.array(z.object({
-        id: z.string(),
-        url: z.string(),
-        title: z.string().nullable(),
-        category: z.string().nullable(),
-        created_at: z.string(),
-      })),
+      bookmarks: z.array(
+        z.object({
+          id: z.string(),
+          url: z.string(),
+          title: z.string().nullable(),
+          category: z.string().nullable(),
+          created_at: z.string(),
+        }),
+      ),
       message: z.string(),
     }),
   };
@@ -116,8 +145,15 @@ export function createBookmarkTools(
   // Tool: Categorize bookmarks
   const categorizeBookmarksTool: TamboTool = {
     name: "categorize_bookmarks",
-    description: "Update the category of one or more bookmarks. Use this when the user wants to organize, tag, or categorize their bookmarks.",
-    tool: async ({ bookmarkIds, category }: { bookmarkIds: string[]; category: string }) => {
+    description:
+      "Update the category of one or more bookmarks. Use this when the user wants to organize, tag, or categorize their bookmarks.",
+    tool: async ({
+      bookmarkIds,
+      category,
+    }: {
+      bookmarkIds: string[];
+      category: string;
+    }) => {
       const { data, error } = await supabase
         .from("bookmarks")
         .update({ category })
@@ -137,7 +173,9 @@ export function createBookmarkTools(
       };
     },
     inputSchema: z.object({
-      bookmarkIds: z.array(z.string()).describe("Array of bookmark IDs to categorize"),
+      bookmarkIds: z
+        .array(z.string())
+        .describe("Array of bookmark IDs to categorize"),
       category: z.string().describe("The category to assign to the bookmarks"),
     }),
     outputSchema: z.object({
@@ -150,8 +188,19 @@ export function createBookmarkTools(
   // Tool: Update bookmark
   const updateBookmarkTool: TamboTool = {
     name: "update_bookmark",
-    description: "Update an existing bookmark's title, URL, or category. Use this when the user wants to edit, rename, change, or fix a bookmark.",
-    tool: async ({ bookmarkId, title, url, category }: { bookmarkId: string; title?: string; url?: string; category?: string }) => {
+    description:
+      "Update an existing bookmark's title, URL, or category. Use this when the user wants to edit, rename, change, or fix a bookmark.",
+    tool: async ({
+      bookmarkId,
+      title,
+      url,
+      category,
+    }: {
+      bookmarkId: string;
+      title?: string;
+      url?: string;
+      category?: string;
+    }) => {
       const updates: { title?: string; url?: string; category?: string } = {};
       if (title !== undefined) updates.title = title;
       if (url !== undefined) updates.url = url;
@@ -160,7 +209,8 @@ export function createBookmarkTools(
       if (Object.keys(updates).length === 0) {
         return {
           success: false,
-          message: "No updates provided. Please specify at least one of: title, url, or category.",
+          message:
+            "No updates provided. Please specify at least one of: title, url, or category.",
         };
       }
 
@@ -193,12 +243,14 @@ export function createBookmarkTools(
     }),
     outputSchema: z.object({
       success: z.boolean(),
-      bookmark: z.object({
-        id: z.string(),
-        url: z.string(),
-        title: z.string().nullable(),
-        category: z.string().nullable(),
-      }).optional(),
+      bookmark: z
+        .object({
+          id: z.string(),
+          url: z.string(),
+          title: z.string().nullable(),
+          category: z.string().nullable(),
+        })
+        .optional(),
       message: z.string(),
     }),
   };
@@ -206,7 +258,8 @@ export function createBookmarkTools(
   // Tool: Delete bookmark
   const deleteBookmarkTool: TamboTool = {
     name: "delete_bookmark",
-    description: "Delete a bookmark from the user's collection. Use this when the user wants to remove a saved link.",
+    description:
+      "Delete a bookmark from the user's collection. Use this when the user wants to remove a saved link.",
     tool: async ({ bookmarkId }: { bookmarkId: string }) => {
       const { error } = await supabase
         .from("bookmarks")
@@ -236,7 +289,8 @@ export function createBookmarkTools(
   // Tool: Get uncategorized bookmarks
   const getUncategorizedTool: TamboTool = {
     name: "get_uncategorized_bookmarks",
-    description: "Get all bookmarks that don't have a category assigned. Use this to help the user organize their bookmarks.",
+    description:
+      "Get all bookmarks that don't have a category assigned. Use this to help the user organize their bookmarks.",
     tool: async () => {
       const { data, error } = await supabase
         .from("bookmarks")
@@ -246,13 +300,15 @@ export function createBookmarkTools(
         .order("created_at", { ascending: false });
 
       if (error) {
-        throw new Error(`Failed to get uncategorized bookmarks: ${error.message}`);
+        throw new Error(
+          `Failed to get uncategorized bookmarks: ${error.message}`,
+        );
       }
 
       return {
         count: data?.length ?? 0,
         bookmarks: data ?? [],
-        message: data?.length 
+        message: data?.length
           ? `Found ${data.length} uncategorized bookmark${data.length === 1 ? "" : "s"}.`
           : "All your bookmarks are categorized!",
       };
@@ -260,13 +316,15 @@ export function createBookmarkTools(
     inputSchema: z.object({}),
     outputSchema: z.object({
       count: z.number(),
-      bookmarks: z.array(z.object({
-        id: z.string(),
-        url: z.string(),
-        title: z.string().nullable(),
-        category: z.string().nullable(),
-        created_at: z.string(),
-      })),
+      bookmarks: z.array(
+        z.object({
+          id: z.string(),
+          url: z.string(),
+          title: z.string().nullable(),
+          category: z.string().nullable(),
+          created_at: z.string(),
+        }),
+      ),
       message: z.string(),
     }),
   };
@@ -274,7 +332,8 @@ export function createBookmarkTools(
   // Tool: Get category statistics
   const getCategoryStatsTool: TamboTool = {
     name: "get_category_stats",
-    description: "Get statistics about the user's bookmark categories. Use when user asks 'what categories do I have?', 'show my categories', or wants an overview. IMPORTANT: After calling this tool, always render the results using the CategorySummary component.",
+    description:
+      "Get statistics about the user's bookmark categories. Use when user asks 'what categories do I have?', 'show my categories', or wants an overview. IMPORTANT: After calling this tool, always render the results using the CategorySummary component.",
     tool: async () => {
       const { data, error } = await supabase
         .from("bookmarks")
@@ -300,17 +359,20 @@ export function createBookmarkTools(
       return {
         categories,
         totalBookmarks: data?.length ?? 0,
-        message: categories.length > 0
-          ? `You have ${categories.length} categor${categories.length === 1 ? "y" : "ies"} across ${data?.length ?? 0} bookmarks.`
-          : "You don't have any bookmarks yet.",
+        message:
+          categories.length > 0
+            ? `You have ${categories.length} categor${categories.length === 1 ? "y" : "ies"} across ${data?.length ?? 0} bookmarks.`
+            : "You don't have any bookmarks yet.",
       };
     },
     inputSchema: z.object({}),
     outputSchema: z.object({
-      categories: z.array(z.object({
-        name: z.string(),
-        count: z.number(),
-      })),
+      categories: z.array(
+        z.object({
+          name: z.string(),
+          count: z.number(),
+        }),
+      ),
       totalBookmarks: z.number(),
       message: z.string(),
     }),

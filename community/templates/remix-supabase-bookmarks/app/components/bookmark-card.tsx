@@ -45,7 +45,8 @@ export function BookmarkCard({ url, title, category }: BookmarkCardProps) {
               alt=""
               className="h-8 w-8 rounded"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'%3E%3C/path%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'%3E%3C/path%3E%3C/svg%3E";
+                (e.target as HTMLImageElement).src =
+                  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'%3E%3C/path%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'%3E%3C/path%3E%3C/svg%3E";
               }}
             />
           </div>
@@ -72,7 +73,9 @@ export function BookmarkCard({ url, title, category }: BookmarkCardProps) {
 
 // Schema for bookmark list props
 export const bookmarkListPropsSchema = z.object({
-  bookmarks: z.array(bookmarkCardPropsSchema).describe("Array of bookmarks to display"),
+  bookmarks: z
+    .array(bookmarkCardPropsSchema)
+    .describe("Array of bookmarks to display"),
   title: z.string().optional().describe("Optional title for the list"),
 });
 
@@ -110,10 +113,14 @@ export function BookmarkList({ bookmarks, title }: BookmarkListProps) {
 
 // Schema for category summary props
 export const categorySummaryPropsSchema = z.object({
-  categories: z.array(z.object({
-    name: z.string().describe("Category name"),
-    count: z.number().describe("Number of bookmarks in this category"),
-  })).describe("Array of category summaries"),
+  categories: z
+    .array(
+      z.object({
+        name: z.string().describe("Category name"),
+        count: z.number().describe("Number of bookmarks in this category"),
+      }),
+    )
+    .describe("Array of category summaries"),
 });
 
 export type CategorySummaryProps = z.infer<typeof categorySummaryPropsSchema>;
@@ -123,11 +130,11 @@ export type CategorySummaryProps = z.infer<typeof categorySummaryPropsSchema>;
  */
 export function CategorySummary({ categories }: CategorySummaryProps) {
   const total = categories.reduce((sum, cat) => sum + cat.count, 0);
-  
+
   // Color palette for categories
   const colors = [
     "bg-blue-500",
-    "bg-green-500", 
+    "bg-green-500",
     "bg-purple-500",
     "bg-orange-500",
     "bg-pink-500",
@@ -139,7 +146,7 @@ export function CategorySummary({ categories }: CategorySummaryProps) {
   return (
     <div className="my-2 rounded-lg border border-gray-200 bg-white p-4">
       <h4 className="mb-3 font-medium text-gray-900">Your Categories</h4>
-      
+
       {/* Progress bar visualization */}
       <div className="mb-3 flex h-3 overflow-hidden rounded-full bg-gray-100">
         {categories.map((cat, i) => (
@@ -156,7 +163,9 @@ export function CategorySummary({ categories }: CategorySummaryProps) {
       <div className="flex flex-wrap gap-3">
         {categories.map((cat, i) => (
           <div key={cat.name} className="flex items-center gap-1.5 text-sm">
-            <div className={`h-2.5 w-2.5 rounded-full ${colors[i % colors.length]}`} />
+            <div
+              className={`h-2.5 w-2.5 rounded-full ${colors[i % colors.length]}`}
+            />
             <span className="text-gray-700">{cat.name}</span>
             <span className="text-gray-400">({cat.count})</span>
           </div>

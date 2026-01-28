@@ -67,12 +67,14 @@ Open [http://localhost:5173](http://localhost:5173) to see the app.
 ## Features
 
 ### Phase 1 ✅
+
 - [x] User authentication (sign up / sign in)
 - [x] Add bookmarks manually with URL, title, and category
 - [x] View and delete bookmarks
 - [x] Row-level security (users only see their own bookmarks)
 
 ### Phase 2 ✅
+
 - [x] Tambo AI chat integration
 - [x] Natural language bookmark creation ("Save this React article")
 - [x] Search bookmarks ("Find my cooking recipes")
@@ -80,6 +82,7 @@ Open [http://localhost:5173](http://localhost:5173) to see the app.
 - [x] Delete bookmarks via chat
 
 ### Phase 3 ✅
+
 - [x] Generative UI components (BookmarkCard, BookmarkList, CategorySummary)
 - [x] AI renders visual bookmark cards in chat responses
 - [x] Category statistics visualization
@@ -113,12 +116,12 @@ app/
 
 The template includes these Tambo tools:
 
-| Tool | Description | Example prompts |
-|------|-------------|-----------------|
-| `add_bookmark` | Save a new bookmark | "Save https://remix.run as Remix Docs" |
-| `search_bookmarks` | Find bookmarks by keyword or category | "Find my React articles" |
-| `update_bookmark` | Edit title, URL, or category | "Rename that bookmark to 'New Title'" |
-| `categorize_bookmarks` | Update bookmark categories | "Categorize these as Tech" |
-| `delete_bookmark` | Remove a bookmark | "Delete that bookmark" |
-| `get_uncategorized_bookmarks` | List uncategorized items | "Show uncategorized bookmarks" |
-| `get_category_stats` | View category breakdown | "Show my categories" |
+| Tool                          | Description                           | Example prompts                        |
+| ----------------------------- | ------------------------------------- | -------------------------------------- |
+| `add_bookmark`                | Save a new bookmark                   | "Save https://remix.run as Remix Docs" |
+| `search_bookmarks`            | Find bookmarks by keyword or category | "Find my React articles"               |
+| `update_bookmark`             | Edit title, URL, or category          | "Rename that bookmark to 'New Title'"  |
+| `categorize_bookmarks`        | Update bookmark categories            | "Categorize these as Tech"             |
+| `delete_bookmark`             | Remove a bookmark                     | "Delete that bookmark"                 |
+| `get_uncategorized_bookmarks` | List uncategorized items              | "Show uncategorized bookmarks"         |
+| `get_category_stats`          | View category breakdown               | "Show my categories"                   |
