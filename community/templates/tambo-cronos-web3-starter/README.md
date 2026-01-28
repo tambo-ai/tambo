@@ -2,11 +2,15 @@
 
 AI-powered Web3 chat interface for the Cronos blockchain, built with Next.js, Tambo, and Wagmi.
 
-![Tambo Cronos Web3 Starter Screenshot](https://github.com/user-attachments/assets/PLACEHOLDER_SCREENSHOT_URL)
+## Screenshots
 
-## 🎥 Video Demo
+![Wallet and Chat Interface](https://github.com/user-attachments/assets/a5992447-8ef0-4d85-a55c-afc3d1bfc2e9)
 
-[Watch the demo video](https://github.com/user-attachments/assets/PLACEHOLDER_VIDEO_URL)
+![CRO Price and Gas Estimator](https://github.com/user-attachments/assets/562d32d4-c24c-4a80-8106-1a466ac45686)
+
+## Video Demo
+
+[▶️ Watch the demo](https://youtu.be/n3m7Ijxn5V0)
 
 ## What This Template Demonstrates
 
@@ -15,6 +19,8 @@ This template shows how to integrate **Tambo's generative UI** with **Web3 walle
 - Display wallet connection status and CRO balance
 - Show transaction details with explorer links
 - Render token balance cards with price changes
+- Estimate gas fees for transactions
+- Fetch live CRO price data
 - Provide information about the Cronos network
 
 ## Prerequisites
@@ -28,27 +34,32 @@ Before you begin, you'll need:
 ## Setup Instructions
 
 1. **Clone and navigate to the template:**
+
    ```bash
    cd community/templates/tambo-cronos-web3-starter
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables:**
+
    ```bash
    cp example.env.local .env.local
    ```
 
 4. **Add your API keys to `.env.local`:**
+
    ```env
    NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key_here
    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
    ```
 
 5. **Start the development server:**
+
    ```bash
    npm run dev
    ```
@@ -57,20 +68,21 @@ Before you begin, you'll need:
 
 ## What's Included
 
-| Technology | Purpose |
-|------------|---------|
-| **Next.js 15** | React framework with App Router |
-| **Tambo** | AI-powered generative UI components |
-| **Wagmi v2** | Ethereum/EVM wallet connections |
-| **Viem** | TypeScript Ethereum library |
+| Technology         | Purpose                                |
+| ------------------ | -------------------------------------- |
+| **Next.js 15**     | React framework with App Router        |
+| **Tambo**          | AI-powered generative UI components    |
+| **Wagmi v2**       | Ethereum/EVM wallet connections        |
+| **Viem**           | TypeScript Ethereum library            |
 | **TanStack Query** | Async state management for wallet data |
-| **Tailwind CSS** | Utility-first styling |
+| **Tailwind CSS**   | Utility-first styling                  |
 
 ## Tambo Components
 
 This template registers three AI-controlled components:
 
 ### WalletCard
+
 Displays connected wallet info, CRO balance, and network status.
 
 ```tsx
@@ -79,6 +91,7 @@ Displays connected wallet info, CRO balance, and network status.
 ```
 
 ### TransactionCard
+
 Shows transaction details with status, addresses, and explorer link.
 
 ```tsx
@@ -93,16 +106,12 @@ Shows transaction details with status, addresses, and explorer link.
 ```
 
 ### TokenBalance
+
 Displays token holdings with USD value estimation.
 
 ```tsx
 // AI uses this for token balance queries
-<TokenBalance
-  symbol="CRO"
-  balance="1000.50"
-  usdValue="80.04"
-  change24h={2.5}
-/>
+<TokenBalance symbol="CRO" balance="1000.50" usdValue="80.04" change24h={2.5} />
 ```
 
 ## Project Structure
@@ -111,24 +120,26 @@ Displays token holdings with USD value estimation.
 tambo-cronos-web3-starter/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx      # Root layout with providers
-│   │   ├── page.tsx        # Main chat interface page
-│   │   └── globals.css     # Global styles
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   └── globals.css
 │   ├── components/
-│   │   ├── tambo/          # Tambo AI components
+│   │   ├── tambo/          # AI-rendered components
 │   │   │   ├── WalletCard.tsx
-│   │   │   ├── TransactionCard.tsx
-│   │   │   └── TokenBalance.tsx
-│   │   ├── ui/             # UI components
+│   │   │   ├── TransactionHistory.tsx
+│   │   │   ├── TokenPrice.tsx
+│   │   │   ├── GasEstimator.tsx
+│   │   │   ├── TokenBalance.tsx
+│   │   │   └── TransactionCard.tsx
+│   │   ├── ui/
 │   │   │   ├── ConnectButton.tsx
 │   │   │   └── ChatInterface.tsx
-│   │   └── Providers.tsx   # Wagmi + Tambo providers
+│   │   └── Providers.tsx
 │   ├── config/
-│   │   └── wagmi.ts        # Wagmi config for Cronos
+│   │   └── wagmi.ts
 │   └── lib/
-│       └── tambo.ts        # Tambo component/tool registry
+│       └── tambo.ts
 ├── package.json
-├── tailwind.config.ts
 └── README.md
 ```
 
