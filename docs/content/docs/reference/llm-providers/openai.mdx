@@ -7,7 +7,7 @@ OpenAI provides a comprehensive suite of language models optimized for different
 
 ## Supported Models
 
-Tambo supports 12 OpenAI models organized into five families:
+Tambo supports 13 OpenAI models organized into five families:
 
 ### GPT-5 Family
 
@@ -67,14 +67,14 @@ The fastest, most cost-efficient version of GPT-5.
 
 **Notes:** Smallest GPT-5 variant, optimized for efficiency while retaining reasoning capabilities.
 
-#### gpt-5.1 Thinking
+#### gpt-5.1
 
-**Status:** Tested
+**Status:** Tested (Default Model)
 **API Name:** `gpt-5.1`
 **Context Window:** 400,000 tokens
 **Provider Docs:** [OpenAI Latest Model](https://platform.openai.com/docs/guides/latest-model)
 
-GPT-5.1 Thinking with adaptive reasoning. Dynamically varies thinking time based on task complexity for better token efficiency.
+GPT-5.1 with adaptive reasoning. Dynamically varies thinking time based on task complexity for better token efficiency.
 
 **Best for:**
 
@@ -85,14 +85,14 @@ GPT-5.1 Thinking with adaptive reasoning. Dynamically varies thinking time based
 
 **Notes:** Released November 2025. Adaptive reasoning automatically adjusts thinking time, optimizing cost without sacrificing quality on complex tasks.
 
-#### gpt-5.1 Instant
+#### gpt-5.1-chat-latest
 
 **Status:** Tested
 **API Name:** `gpt-5.1-chat-latest`
 **Context Window:** 400,000 tokens
 **Provider Docs:** [OpenAI Latest Model](https://platform.openai.com/docs/guides/latest-model)
 
-GPT-5.1 Instant - warmer, more conversational model with adaptive reasoning. Defaults to 'none' reasoning effort for latency-sensitive workloads.
+GPT-5.1 Chat Latest - warmer, more conversational model with adaptive reasoning.
 
 **Best for:**
 
@@ -101,7 +101,7 @@ GPT-5.1 Instant - warmer, more conversational model with adaptive reasoning. Def
 - Applications balancing warmth and intelligence
 - Real-time interactions with optional reasoning
 
-**Notes:** Released November 2025. Latest conversational variant with improved responsiveness. Defaults to minimal reasoning for speed but can be configured for deeper thinking when needed.
+**Notes:** Released November 2025. Conversational variant with improved responsiveness.
 
 ### GPT-4.1 Family
 
@@ -109,12 +109,12 @@ High-intelligence models excelling at function calling and instruction following
 
 #### gpt-4.1
 
-**Status:** Tested (Default Model)
+**Status:** Tested
 **API Name:** `gpt-4.1-2025-04-14`
 **Context Window:** 1,047,576 tokens
 **Provider Docs:** [OpenAI GPT-4.1](https://platform.openai.com/docs/models/gpt-4.1)
 
-The default model for Tambo projects. Excels at function calling and instruction following.
+Excels at function calling and instruction following.
 
 **Best for:**
 
@@ -123,7 +123,7 @@ The default model for Tambo projects. Excels at function calling and instruction
 - General-purpose applications
 - Large context requirements (1M+ tokens)
 
-**Notes:** This is Tambo's default model, balancing intelligence, reliability, and cost. Ideal for most production applications.
+**Notes:** Balances intelligence, reliability, and cost. Ideal for most production applications.
 
 #### gpt-4.1-mini
 
@@ -255,13 +255,21 @@ Configure reasoning capabilities through your project's LLM provider settings in
 #### reasoningEffort
 
 **Type:** `string`
-**Values:** `"minimal"`, `"low"`, `"medium"`, `"high"`
+**Values:** `"none"`, `"low"`, `"medium"`, `"high"`
 **Description:** Controls the intensity of the model's reasoning process. Only effective when [`reasoningSummary`](#reasoningsummary) is also set.
 
-- **`"minimal"`** - Quick reasoning with minimal thinking time
+- **`"none"`** - No extended reasoning (fastest)
 - **`"low"`** - Light reasoning for simpler tasks (faster, cheaper)
 - **`"medium"`** - Balanced reasoning for most use cases (recommended)
 - **`"high"`** - Deep reasoning for complex problems (slower, more expensive)
+
+**Default Values by Model:**
+| Model | Default |
+|-------|---------|
+| gpt-5.1 | `"none"` |
+| gpt-5.1-chat-latest | `"medium"` |
+| gpt-5, gpt-5-mini, gpt-5-nano | `"low"` |
+| o3 | `"medium"` |
 
 #### reasoningSummary
 
@@ -316,7 +324,7 @@ Simply click the suggested parameter to add it to your configuration, set the de
 
 **Model Selection:**
 
-- Use **gpt-4.1** for most production applications (default)
+- Use **gpt-5.1** for most production applications (default)
 - Use **gpt-5** family when reasoning capabilities are critical
 - Use **gpt-4o** for multimodal applications
 - Use **mini/nano** variants for cost-optimized deployments
