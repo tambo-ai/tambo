@@ -32,7 +32,21 @@ Most dashboards are static. You build them once and they stay that way. **Person
 
 This template solves the "Blank Canvas" problem for personal dashboards. It provides a premium, Apple-style UI out of the box and demonstrates a generic "Widget System" that any developer can extend. It is the perfect starting point for building "Notion-like" or "Linear-like" tools with Tambo.
 
-## 🎥 Quick Demo
+## 🎥 Video Demo
+
+[Download/Watch Demo Video](/public/video.mp4)
+
+_(Note: For the best experience, we recommend watching the high-quality recording uploaded to the PR)_
+
+## 📸 Screenshots
+
+![Default Dashboard](/public/screenshot-default.png)
+_The default Bento Grid view_
+
+![Context Aware Mode](/public/screenshot-context.png)
+_Context-Aware Mode: "Coding" profile activated by AI_
+
+## 🚀 Quick Start
 
 1.  **Clone & Run:**
 
