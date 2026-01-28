@@ -62,12 +62,12 @@ async function withTimeout<T>(
 
 interface GoogleProfile {
   sub: string;
-  name: string;
-  given_name: string;
-  family_name: string;
-  picture: string;
   email: string;
-  email_verified: boolean;
+  email_verified?: boolean;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  picture?: string;
 }
 
 const ProviderConfig = {
@@ -83,12 +83,18 @@ const ProviderConfig = {
         response_type: "code",
       },
     },
+    // Note: email_verified is handled in the signIn callback via isEmailAllowed()
     profile(profile: GoogleProfile) {
+      // Fallback to given_name + family_name if name is not provided
+      const name =
+        profile.name ||
+        [profile.given_name, profile.family_name].filter(Boolean).join(" ");
+
       return {
         id: profile.sub,
-        name: profile.name,
+        name: name || null,
         email: profile.email,
-        image: profile.picture,
+        image: profile.picture ?? null,
       };
     },
   },
