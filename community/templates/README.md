@@ -42,16 +42,17 @@ Templates should be focused and minimal:
 
 ### Code Quality
 
-Your template must pass its own linting and type checking. Before submitting:
+Your template must include linting and type checking appropriate for its stack, and it must pass. Before submitting:
 
 ```bash
 npm run lint      # Must pass with no errors
-npm run build     # Must complete successfully (includes type checking)
+npm run typecheck # Must pass with no errors (if using TypeScript)
+npm run build     # Must complete successfully
 ```
 
 Templates should include:
 
-- **ESLint configuration** - Use `eslint.config.mjs` with sensible defaults (see [our config](https://github.com/tambo-ai/tambo/blob/main/packages/eslint-config/base.mjs) for reference)
+- **Linting configuration** - Include linting with sensible defaults for the technologies in your template (ESLint is recommended for JS/TS stacks). Most of the Tambo repo uses [our base config](https://github.com/tambo-ai/tambo/blob/main/packages/eslint-config/base.mjs) as a reference point, but templates are not required to use it. Anything materially looser in style/consistency is unlikely to be accepted.
 - **TypeScript strict mode** - Enable `"strict": true` in tsconfig.json
 - **No type errors** - Fix all TypeScript errors, don't use `@ts-ignore` or `any` as workarounds
 
