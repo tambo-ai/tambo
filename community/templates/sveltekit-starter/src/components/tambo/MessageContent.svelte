@@ -14,7 +14,12 @@
     class?: string;
   }
 
-  let { content, isLoading = false, markdown = true, class: className }: Props = $props();
+  let {
+    content,
+    isLoading = false,
+    markdown = true,
+    class: className,
+  }: Props = $props();
 
   // Configure marked with syntax highlighting extension
   marked.use(
@@ -30,13 +35,15 @@
         }
         return hljs.highlightAuto(code).value;
       },
-    }) as MarkedExtension
+    }) as MarkedExtension,
   );
 
   /**
    * Get safe content string from various content types
    */
-  function getSafeContent(content: string | ContentPart[] | null | undefined): string {
+  function getSafeContent(
+    content: string | ContentPart[] | null | undefined,
+  ): string {
     if (!content) return "";
     if (typeof content === "string") return content;
     if (Array.isArray(content)) {
@@ -50,7 +57,9 @@
   /**
    * Check if content has meaningful data
    */
-  function hasContent(content: string | ContentPart[] | null | undefined): boolean {
+  function hasContent(
+    content: string | ContentPart[] | null | undefined,
+  ): boolean {
     if (!content) return false;
     if (typeof content === "string") return content.trim().length > 0;
     if (Array.isArray(content)) {
@@ -81,12 +90,15 @@
 <div
   class={cn(
     "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full [&_p]:py-1 [&_li]:list-item",
-    className
+    className,
   )}
   data-slot="message-content"
 >
   {#if showLoading}
-    <div class="flex items-center justify-start h-4 py-1" data-slot="message-loading-indicator">
+    <div
+      class="flex items-center justify-start h-4 py-1"
+      data-slot="message-loading-indicator"
+    >
       <LoadingIndicator />
     </div>
   {:else}

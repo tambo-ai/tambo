@@ -1,7 +1,16 @@
 <script lang="ts">
   import { cn } from "$lib/utils.js";
   import { z } from "zod";
-  import { Chart, Svg, Axis, Bars, Area, Points, Tooltip, Legend } from "layerchart";
+  import {
+    Chart,
+    Svg,
+    Axis,
+    Bars,
+    Area,
+    Points,
+    Tooltip,
+    Legend,
+  } from "layerchart";
   import { scaleBand, scaleLinear, scaleOrdinal } from "d3-scale";
 
   // Schema definitions
@@ -13,8 +22,11 @@
         z.object({
           label: z.string().describe("Label for the dataset"),
           data: z.array(z.number()).describe("Data points for the dataset"),
-          color: z.string().optional().describe("Optional color for the dataset"),
-        })
+          color: z
+            .string()
+            .optional()
+            .describe("Optional color for the dataset"),
+        }),
       )
       .describe("Data for the graph"),
   });
@@ -32,7 +44,14 @@
 
   interface Props extends GraphProps {}
 
-  let { data, title, showLegend = true, variant = "default", size = "default", className }: Props = $props();
+  let {
+    data,
+    title,
+    showLegend = true,
+    variant = "default",
+    size = "default",
+    className,
+  }: Props = $props();
 
   // Default colors
   const defaultColors = [
@@ -61,35 +80,40 @@
     if (!data?.labels || !data?.datasets?.length) return [];
 
     const validDatasets = data.datasets.filter(
-      (ds) => ds.label && ds.data && Array.isArray(ds.data) && ds.data.length > 0
+      (ds) =>
+        ds.label && ds.data && Array.isArray(ds.data) && ds.data.length > 0,
     );
 
     if (validDatasets.length === 0) return [];
 
     const maxDataPoints = Math.min(
       data.labels.length,
-      Math.min(...validDatasets.map((d) => d.data.length))
+      Math.min(...validDatasets.map((d) => d.data.length)),
     );
 
     return data.labels.slice(0, maxDataPoints).map((label, index) => ({
       name: label,
       ...Object.fromEntries(
-        validDatasets.map((dataset) => [dataset.label, dataset.data[index] ?? 0])
+        validDatasets.map((dataset) => [
+          dataset.label,
+          dataset.data[index] ?? 0,
+        ]),
       ),
     }));
   });
 
   const hasValidData = $derived(
     data?.type &&
-    data?.labels?.length > 0 &&
-    data?.datasets?.length > 0 &&
-    chartData().length > 0
+      data?.labels?.length > 0 &&
+      data?.datasets?.length > 0 &&
+      chartData().length > 0,
   );
 
   const validDatasets = $derived(
     data?.datasets?.filter(
-      (ds) => ds.label && ds.data && Array.isArray(ds.data) && ds.data.length > 0
-    ) || []
+      (ds) =>
+        ds.label && ds.data && Array.isArray(ds.data) && ds.data.length > 0,
+    ) || [],
   );
 
   // Get max value for y-axis scaling
@@ -105,7 +129,7 @@
     "w-full rounded-lg overflow-hidden transition-all duration-200",
     variantClasses[variant],
     sizeClasses[size],
-    className
+    className,
   )}
 >
   <div class="p-4 h-full">
@@ -117,9 +141,15 @@
       <div class="h-full flex items-center justify-center">
         <div class="flex flex-col items-center gap-2 text-muted-foreground">
           <div class="flex items-center gap-1 h-4">
-            <span class="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-            <span class="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"></span>
-            <span class="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+            <span
+              class="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"
+            ></span>
+            <span
+              class="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.2s]"
+            ></span>
+            <span
+              class="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.1s]"
+            ></span>
           </div>
           <span class="text-sm">Awaiting data...</span>
         </div>
@@ -147,7 +177,9 @@
               <Bars class="fill-primary" radius={4} />
             </Svg>
             <Tooltip.Root>
-              <Tooltip.Header>{(d: Record<string, unknown>) => d.name}</Tooltip.Header>
+              <Tooltip.Header
+                >{(d: Record<string, unknown>) => d.name}</Tooltip.Header
+              >
               <Tooltip.List>
                 {#each validDatasets as dataset, i}
                   <Tooltip.Item
@@ -170,11 +202,16 @@
             <Svg>
               <Axis placement="left" grid={{ class: "stroke-border" }} />
               <Axis placement="bottom" />
-              <Area class="fill-primary/20" line={{ class: "stroke-primary stroke-2" }} />
+              <Area
+                class="fill-primary/20"
+                line={{ class: "stroke-primary stroke-2" }}
+              />
               <Points class="fill-primary" />
             </Svg>
             <Tooltip.Root>
-              <Tooltip.Header>{(d: Record<string, unknown>) => d.name}</Tooltip.Header>
+              <Tooltip.Header
+                >{(d: Record<string, unknown>) => d.name}</Tooltip.Header
+              >
               <Tooltip.List>
                 {#each validDatasets as dataset}
                   <Tooltip.Item
@@ -201,7 +238,9 @@
               <Bars class="fill-primary" radius={4} />
             </Svg>
             <Tooltip.Root>
-              <Tooltip.Header>{(d: Record<string, unknown>) => d.name}</Tooltip.Header>
+              <Tooltip.Header
+                >{(d: Record<string, unknown>) => d.name}</Tooltip.Header
+              >
               <Tooltip.List>
                 {#each validDatasets as dataset}
                   <Tooltip.Item
@@ -220,7 +259,8 @@
               <div class="flex items-center gap-2 text-sm">
                 <div
                   class="w-3 h-3 rounded"
-                  style="background-color: {dataset.color || defaultColors[i % defaultColors.length]}"
+                  style="background-color: {dataset.color ||
+                    defaultColors[i % defaultColors.length]}"
                 ></div>
                 <span class="text-foreground">{dataset.label}</span>
               </div>

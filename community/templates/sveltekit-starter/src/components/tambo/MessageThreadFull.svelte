@@ -55,7 +55,7 @@
   <div
     class={cn(
       "flex flex-col flex-1 h-full bg-background transition-all duration-300",
-      className
+      className,
     )}
   >
     <!-- Messages -->
@@ -65,7 +65,10 @@
 
     <!-- Message Input -->
     <div class="px-4 pb-4">
-      <MessageInput {contextKey} placeholder="Type your message or paste images..." />
+      <MessageInput
+        {contextKey}
+        placeholder="Type your message or paste images..."
+      />
     </div>
   </div>
 

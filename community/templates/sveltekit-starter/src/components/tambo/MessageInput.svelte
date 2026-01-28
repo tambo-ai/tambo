@@ -1,7 +1,13 @@
 <script lang="ts">
   import { cn } from "$lib/utils.js";
   import { getTamboContext } from "$lib/tambo/context.js";
-  import { ArrowUp, Paperclip, Square, X, Image as ImageIcon } from "lucide-svelte";
+  import {
+    ArrowUp,
+    Paperclip,
+    Square,
+    X,
+    Image as ImageIcon,
+  } from "lucide-svelte";
   import type { StagedImage } from "$lib/tambo/types.js";
 
   interface Props {
@@ -29,7 +35,8 @@
   // Variant styles
   const variantStyles = {
     default: "",
-    solid: "[&>div]:bg-background [&>div]:border-0 [&>div]:shadow-xl [&>div]:shadow-black/5",
+    solid:
+      "[&>div]:bg-background [&>div]:border-0 [&>div]:shadow-xl [&>div]:shadow-black/5",
     bordered: "[&>div]:bg-transparent [&>div]:border-2 [&>div]:border-gray-300",
   };
 
@@ -52,7 +59,8 @@
       await thread.sendMessage(messageText, messageImages, true);
       textareaRef?.focus();
     } catch (err) {
-      submitError = err instanceof Error ? err.message : "Failed to send message";
+      submitError =
+        err instanceof Error ? err.message : "Failed to send message";
       // Restore input on error
       input.setValue(messageText);
     }
@@ -75,7 +83,7 @@
     e.stopPropagation();
     if (e.dataTransfer?.items) {
       const hasImages = Array.from(e.dataTransfer.items).some((item) =>
-        item.type.startsWith("image/")
+        item.type.startsWith("image/"),
       );
       if (hasImages) isDragging = true;
     }
@@ -98,7 +106,7 @@
     isDragging = false;
 
     const files = Array.from(e.dataTransfer?.files || []).filter((file) =>
-      file.type.startsWith("image/")
+      file.type.startsWith("image/"),
     );
 
     if (files.length > 0) {
@@ -148,7 +156,9 @@
   <div
     class={cn(
       "relative flex flex-col rounded-xl bg-background shadow-md p-2 px-3",
-      isDragging ? "border border-dashed border-emerald-400" : "border border-border"
+      isDragging
+        ? "border border-dashed border-emerald-400"
+        : "border border-border",
     )}
   >
     <!-- Drag overlay -->
@@ -164,17 +174,23 @@
 
     <!-- Staged images -->
     {#if input.images.length > 0}
-      <div class="flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border">
+      <div
+        class="flex flex-wrap items-center gap-2 pb-2 pt-1 border-b border-border"
+      >
         {#each input.images as image, index}
           <div class="relative group flex-shrink-0">
             <button
               type="button"
-              onclick={() => (expandedImageId = expandedImageId === image.id ? null : image.id)}
+              onclick={() =>
+                (expandedImageId =
+                  expandedImageId === image.id ? null : image.id)}
               class={cn(
                 "relative flex items-center rounded-lg border overflow-hidden",
                 "border-border bg-background hover:bg-muted cursor-pointer",
                 "transition-[width,height,padding] duration-200",
-                expandedImageId === image.id ? "w-40 h-28 p-0" : "w-32 h-9 pl-3 pr-8 gap-2"
+                expandedImageId === image.id
+                  ? "w-40 h-28 p-0"
+                  : "w-32 h-9 pl-3 pr-8 gap-2",
               )}
             >
               {#if expandedImageId === image.id}
@@ -184,15 +200,23 @@
                     alt={image.name}
                     class="w-full h-full object-cover"
                   />
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  <div class="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate">
+                  <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
+                  ></div>
+                  <div
+                    class="absolute bottom-1 left-2 right-2 text-white text-xs font-medium truncate"
+                  >
                     {image.name}
                   </div>
                 </div>
               {:else}
-                <span class="flex items-center gap-1.5 text-sm text-foreground truncate">
+                <span
+                  class="flex items-center gap-1.5 text-sm text-foreground truncate"
+                >
                   <ImageIcon class="w-3.5 h-3.5 flex-shrink-0" />
-                  <span class="truncate">{image.name || `Image ${index + 1}`}</span>
+                  <span class="truncate"
+                    >{image.name || `Image ${index + 1}`}</span
+                  >
                 </span>
               {/if}
             </button>

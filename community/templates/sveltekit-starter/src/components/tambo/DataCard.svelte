@@ -12,9 +12,15 @@
           id: z.string().describe("Unique identifier for this card"),
           label: z.string().describe("Display text for the card title"),
           value: z.string().describe("Value associated with this card"),
-          description: z.string().optional().describe("Optional summary for the card"),
-          url: z.string().optional().describe("Optional URL for the card to navigate to"),
-        })
+          description: z
+            .string()
+            .optional()
+            .describe("Optional summary for the card"),
+          url: z
+            .string()
+            .optional()
+            .describe("Optional URL for the card to navigate to"),
+        }),
       )
       .describe("Array of selectable cards to display"),
   });
@@ -52,16 +58,20 @@
 
 <div class={cn("w-full", className)}>
   {#if title}
-    <h2 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">{title}</h2>
+    <h2 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">
+      {title}
+    </h2>
   {/if}
 
   <div class="space-y-2">
     {#each options || [] as card, index (card.id || `card-${index}`)}
-      <div class="border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0">
+      <div
+        class="border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0"
+      >
         <div
           class={cn(
             "group flex items-start p-1.5 rounded-md transition-colors",
-            isSelected(card.value) && "bg-gray-50 dark:bg-gray-800"
+            isSelected(card.value) && "bg-gray-50 dark:bg-gray-800",
           )}
         >
           <!-- Checkbox -->
@@ -75,7 +85,7 @@
                 "w-4 h-4 border rounded-sm flex items-center justify-center transition-colors",
                 isSelected(card.value)
                   ? "bg-blue-500 border-blue-500 text-white"
-                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
+                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300",
               )}
             >
               {#if isSelected(card.value)}
@@ -89,25 +99,30 @@
             type="button"
             class="flex-1 text-left cursor-pointer"
             onclick={() =>
-              card.url ? handleNavigate(card.url) : handleToggleCard(card.value)
-            }
+              card.url
+                ? handleNavigate(card.url)
+                : handleToggleCard(card.value)}
           >
             <h3
               class={cn(
                 "text-blue-600 dark:text-blue-400 font-medium text-sm",
                 "group-hover:text-blue-700 dark:group-hover:text-blue-300",
-                isSelected(card.value) && "text-blue-700 dark:text-blue-300"
+                isSelected(card.value) && "text-blue-700 dark:text-blue-300",
               )}
             >
               {card.label}
             </h3>
             {#if card.description}
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+              <p
+                class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed"
+              >
                 {card.description}
               </p>
             {/if}
             {#if card.url}
-              <span class="text-xs text-green-600 dark:text-green-400 mt-1 block truncate opacity-80">
+              <span
+                class="text-xs text-green-600 dark:text-green-400 mt-1 block truncate opacity-80"
+              >
                 {card.url}
               </span>
             {/if}
