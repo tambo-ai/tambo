@@ -57,4 +57,4 @@ This template demonstrates a deep integration between Tambo AI and a real-time d
 
 ## Video Demo
 
-[Link to Video Demo](https://youtube.com/...)
+[Link to Video Demo](https://github.com/user-attachments/assets/5fa82e1b-245d-455f-a6b9-3887dc85e35d)
