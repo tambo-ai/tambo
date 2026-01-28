@@ -64,6 +64,7 @@
 
 export {
   TamboV1Provider,
+  useContextKey,
   type TamboV1ProviderProps,
 } from "./providers/tambo-v1-provider";
 
@@ -77,6 +78,12 @@ export {
 
 // Re-export registry provider from beta SDK (works with v1)
 export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
+
+// Re-export context helpers from beta SDK (works with v1)
+export {
+  TamboContextHelpersProvider,
+  useTamboContextHelpers,
+} from "../providers/tambo-context-helpers-provider";
 
 // =============================================================================
 // Hooks

@@ -6,13 +6,19 @@
  * Composes the necessary providers for the v1 SDK:
  * - TamboClientProvider: API client and authentication
  * - TamboRegistryProvider: Component and tool registration
+ * - TamboContextHelpersProvider: Context helper functions
  * - TamboV1StreamProvider: Streaming state management
  *
  * This provider should wrap your entire application or the portion
  * that needs access to Tambo v1 functionality.
  */
 
-import React, { type PropsWithChildren, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  type PropsWithChildren,
+  useState,
+} from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   TamboClientProvider,
@@ -22,12 +28,27 @@ import {
   TamboRegistryProvider,
   type TamboRegistryProviderProps,
 } from "../../providers/tambo-registry-provider";
+import { TamboContextHelpersProvider } from "../../providers/tambo-context-helpers-provider";
+import type { ContextHelpers } from "../../context-helpers";
 import type { McpServerInfo } from "../../model/mcp-server-info";
 import type {
   ListResourceItem,
   ResourceSource,
 } from "../../model/resource-info";
 import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
+
+/**
+ * Context for providing contextKey to child components.
+ */
+const ContextKeyContext = createContext<string | undefined>(undefined);
+
+/**
+ * Hook to access the contextKey from TamboV1Provider.
+ * @returns The contextKey if provided, undefined otherwise
+ */
+export function useContextKey(): string | undefined {
+  return useContext(ContextKeyContext);
+}
 
 /**
  * Props for TamboV1Provider
@@ -81,6 +102,20 @@ export interface TamboV1ProviderProps extends Pick<
   getResource?: ResourceSource["getResource"];
 
   /**
+   * Configuration for context helpers.
+   * A dictionary of functions that provide additional context to the AI.
+   * Each key becomes the context name, and the function returns the value.
+   */
+  contextHelpers?: ContextHelpers;
+
+  /**
+   * Optional context key for thread scoping/isolation.
+   * Threads created with the same contextKey are grouped together.
+   * Useful for multi-tenant applications or separating conversation contexts.
+   */
+  contextKey?: string;
+
+  /**
    * Optional custom QueryClient instance.
    * If not provided, a default client will be created.
    */
@@ -114,6 +149,8 @@ export interface TamboV1ProviderProps extends Pick<
  * @param props.resources - Static resources to register with the AI
  * @param props.listResources - Dynamic resource search function (must be paired with getResource)
  * @param props.getResource - Dynamic resource fetch function (must be paired with listResources)
+ * @param props.contextHelpers - Configuration for context helper functions
+ * @param props.contextKey - Optional context key for thread scoping/isolation
  * @param props.queryClient - Optional custom React Query client
  * @param props.children - Child components
  * @returns Provider component tree
@@ -146,6 +183,8 @@ export function TamboV1Provider({
   resources,
   listResources,
   getResource,
+  contextHelpers,
+  contextKey,
   queryClient,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
@@ -182,7 +221,11 @@ export function TamboV1Provider({
           listResources={listResources}
           getResource={getResource}
         >
-          <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+          <TamboContextHelpersProvider contextHelpers={contextHelpers}>
+            <ContextKeyContext.Provider value={contextKey}>
+              <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+            </ContextKeyContext.Provider>
+          </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       </TamboClientProvider>
     </QueryClientProvider>

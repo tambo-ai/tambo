@@ -5,8 +5,9 @@ import React from "react";
 import { z } from "zod";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
+import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import { useStreamState, useThreadManagement } from "./tambo-v1-stream-context";
-import { TamboV1Provider } from "./tambo-v1-provider";
+import { TamboV1Provider, useContextKey } from "./tambo-v1-provider";
 
 // Mock the client provider to capture the apiKey
 jest.mock("../../providers/tambo-client-provider", () => ({
@@ -233,5 +234,64 @@ describe("TamboV1Provider", () => {
     expect(result.current.resourceSource).toBeDefined();
     expect(result.current.resourceSource?.listResources).toBe(listResources);
     expect(result.current.resourceSource?.getResource).toBe(getResource);
+  });
+
+  it("provides contextKey via useContextKey hook", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboV1Provider apiKey="test-api-key" contextKey="my-context-key">
+        {children}
+      </TamboV1Provider>
+    );
+
+    const { result } = renderHook(() => useContextKey(), { wrapper });
+
+    expect(result.current).toBe("my-context-key");
+  });
+
+  it("returns undefined from useContextKey when no contextKey provided", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
+    );
+
+    const { result } = renderHook(() => useContextKey(), { wrapper });
+
+    expect(result.current).toBeUndefined();
+  });
+
+  it("provides context helpers via useTamboContextHelpers hook", async () => {
+    const contextHelpers = {
+      getUserName: () => "Test User",
+      getCurrentTime: () => new Date().toISOString(),
+    };
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboV1Provider apiKey="test-api-key" contextHelpers={contextHelpers}>
+        {children}
+      </TamboV1Provider>
+    );
+
+    const { result, rerender } = renderHook(() => useTamboContextHelpers(), {
+      wrapper,
+    });
+
+    // Helpers are registered via useEffect, so we need to trigger a rerender
+    await act(async () => {
+      rerender();
+    });
+
+    const helpers = result.current.getContextHelpers();
+    expect(helpers.getUserName).toBe(contextHelpers.getUserName);
+    expect(helpers.getCurrentTime).toBe(contextHelpers.getCurrentTime);
+  });
+
+  it("returns empty contextHelpers when none provided", async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
+    );
+
+    const { result } = renderHook(() => useTamboContextHelpers(), { wrapper });
+
+    const helpers = result.current.getContextHelpers();
+    expect(Object.keys(helpers)).toHaveLength(0);
   });
 });
