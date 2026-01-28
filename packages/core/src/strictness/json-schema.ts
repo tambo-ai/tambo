@@ -123,6 +123,58 @@ export function strictifyJSONSchemaProperty(
     };
   }
 
+  // Check for anyOf/oneOf/allOf/not BEFORE checking type
+  // This prevents invalid schemas where type and anyOf are mixed
+  const restOfProperty = stripValidationProps(property, debugKey);
+  const wellKnownKeys = ["anyOf", "oneOf", "allOf", "not"] as const;
+  for (const key of wellKnownKeys) {
+    if (key in restOfProperty) {
+      const value = restOfProperty[key];
+      if (Array.isArray(value)) {
+        const sanitizedArray = value
+          .map((item, index) => {
+            return strictifyJSONSchemaProperty(
+              item,
+              isRequired,
+              `${debugKey}.${key}[${index}]`,
+            );
+          })
+          .filter((value) => value !== null);
+        if (
+          (key === "allOf" || key === "anyOf" || key === "oneOf") &&
+          sanitizedArray.length === 1
+        ) {
+          // no need for the wrapper
+          return sanitizedArray[0];
+        }
+
+        return {
+          ...restOfProperty,
+          [key]: sanitizedArray,
+        };
+      } else {
+        if (key === "not" && (!value || Object.keys(value).length === 0)) {
+          // this is a broken case, "not: {}" which means "not everything" or "never"
+          // so we just ignore it
+          return null;
+        }
+
+        const strictSchema = strictifyJSONSchemaProperty(
+          value as JSONSchema7Definition,
+          isRequired,
+          `${debugKey}.${key}`,
+        );
+        if (!strictSchema) {
+          return null;
+        }
+        return {
+          ...restOfProperty,
+          [key]: strictSchema,
+        };
+      }
+    }
+  }
+
   if (
     property?.type === "boolean" ||
     property?.type === "number" ||
@@ -199,60 +251,9 @@ export function strictifyJSONSchemaProperty(
       anyOf: [{ type: "null" }, arrayProperty],
     };
   }
-  const restOfProperty = stripValidationProps(property, debugKey);
-
-  const wellKnownKeys = ["anyOf", "oneOf", "allOf", "not"] as const;
-  for (const key of wellKnownKeys) {
-    if (!(key in restOfProperty)) {
-      continue;
-    }
-    const value = restOfProperty[key];
-    if (Array.isArray(value)) {
-      const sanitizedArray = value
-        .map((item, index) => {
-          return strictifyJSONSchemaProperty(
-            item,
-            isRequired,
-            `${debugKey}.${key}[${index}]`,
-          );
-        })
-        .filter((value) => value !== null);
-      if (
-        (key === "allOf" || key === "anyOf" || key === "oneOf") &&
-        sanitizedArray.length === 1
-      ) {
-        // no need for the wrapper
-        return sanitizedArray[0];
-      }
-
-      return {
-        ...restOfProperty,
-        [key]: sanitizedArray,
-      };
-    } else {
-      if (key === "not" && (!value || Object.keys(value).length === 0)) {
-        // this is a broken case, "not: {}" which means "not everything" or "never"
-        // so we just ignore it
-        return null;
-      }
-
-      const strictSchema = strictifyJSONSchemaProperty(
-        value as JSONSchema7Definition,
-        isRequired,
-        `${debugKey}.${key}`,
-      );
-      if (!strictSchema) {
-        return null;
-      }
-      return {
-        ...restOfProperty,
-        [key]: strictSchema,
-      };
-    }
-  }
   if (!property?.type) {
     // technically this means "any" type but
-    const restOfProperty = stripValidationProps(property, debugKey);
+    // restOfProperty was already defined above, reuse it
     return {
       anyOf: [
         { type: "null" },
