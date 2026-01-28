@@ -4,13 +4,13 @@ A production-ready starter template demonstrating authenticated users interactin
 
 ## Screenshot
 
-![Tambo Notes App](./screenshot.png)
+![Tambo Notes App](./public/screenshot.png)
 
 ## Video Demo
 
-[![Watch the demo](https://img.shields.io/badge/Watch-Demo-blue)](./demo-video-link.mp4)
+[![Watch the demo](https://img.shields.io/badge/Watch-Demo-red?logo=youtube)](https://youtu.be/7m6TLkf8hTM)
 
-> **Note**: Add your video demo link here after recording. The video should show: signing in → asking AI to save a note → AI saving to Neon → retrieving notes.
+Watch the full demo showing authentication, AI interaction, and database operations in action.
 
 ## What's Included
 
