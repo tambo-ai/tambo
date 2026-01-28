@@ -60,6 +60,16 @@ async function withTimeout<T>(
   });
 }
 
+interface GoogleProfile {
+  sub: string;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  email: string;
+  email_verified: boolean;
+}
+
 const ProviderConfig = {
   google: {
     clientId: env.GOOGLE_CLIENT_ID!,
@@ -72,6 +82,14 @@ const ProviderConfig = {
         access_type: "offline", // ask for a refresh_token
         response_type: "code",
       },
+    },
+    profile(profile: GoogleProfile) {
+      return {
+        id: profile.sub,
+        name: profile.name,
+        email: profile.email,
+        image: profile.picture,
+      };
     },
   },
   github: {

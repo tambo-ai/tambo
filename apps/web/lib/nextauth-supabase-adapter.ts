@@ -48,7 +48,10 @@ export function SupabaseAdapter(): Adapter {
             now,
             now,
             now,
-            data.name ? { name: data.name } : {},
+            {
+              ...(data.name && { name: data.name }),
+              ...(data.image && { avatar_url: data.image }),
+            },
           ],
         );
 
@@ -137,14 +140,23 @@ export function SupabaseAdapter(): Adapter {
     async updateUser(data: UpdateUserData) {
       // console.log("AUTH: Updating user", data);
       return await withDbClient(env.DATABASE_URL, async (client) => {
+        // Fetch existing user to preserve metadata
+        const { rows: existingRows } = await client.query(
+          `SELECT raw_user_meta_data FROM auth.users WHERE id = $1`,
+          [data.id],
+        );
+        const existingMetaData = existingRows[0]?.raw_user_meta_data ?? {};
+
+        // Merge new values with existing metadata
+        const updatedMetaData = {
+          ...existingMetaData,
+          ...(data.name !== undefined && { name: data.name }),
+          ...(data.image !== undefined && { avatar_url: data.image }),
+        };
+
         const { rows } = await client.query(
           `UPDATE auth.users SET email = $1, raw_user_meta_data = $2, updated_at = $3 WHERE id = $4 returning *`,
-          [
-            data.email,
-            data.name ? { name: data.name } : {},
-            new Date().toISOString(),
-            data.id,
-          ],
+          [data.email, updatedMetaData, new Date().toISOString(), data.id],
         );
 
         if (!rows.length) throw new Error("Failed to update user");
