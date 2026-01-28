@@ -1,135 +1,147 @@
-# Turborepo starter
+## Turbo Repo Hono + Clerk + Tambo
 
-This Turborepo starter is maintained by the Turborepo core team.
+Monorepo template with:
 
-## Using this example
+- **`apps/api`**: Express API with Clerk auth.
+- **`apps/web`**: Vite + React app using Clerk and `@tambo-ai/react`.
+- **`packages/ui`**: Shared UI primitives.
+- **`packages/eslint-config` / `packages/typescript-config`**: Shared tooling config.
 
-Run the following command:
+Everything is TypeScript and managed with Turborepo.
 
-```sh
-npx create-turbo@latest
+---
+
+### Prerequisites
+
+- **Node**: `>=18`
+- **npm**: `>=11` (this template was built with `npm@11.7.0`)
+- A **Clerk** account and application
+- A **Tambo** project (if you want the Tambo integration working)
+
+---
+
+### 1. Install dependencies
+
+From the template root (`turbo-repo-hono-clerk`):
+
+```bash
+npm install
 ```
 
-## What's inside?
+This installs dependencies for all workspaces (`apps/*`, `packages/*`).
 
-This Turborepo includes the following packages/apps:
+---
 
-### Apps and Packages
+### 2. Configure environment variables
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+#### `apps/api/.env`
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+Copy `.env.example` to `.env`:
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+cd apps/api
+cp .env.example .env
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Then set the values:
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+- **`CLERK_PUBLISHABLE_KEY`**: From your Clerk project.
+- **`CLERK_SECRET_KEY`**: From your Clerk project.
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+#### `apps/web/.env`
 
-### Develop
+Copy `.env.example` to `.env`:
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+cd ../web
+cp .env.example .env
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Then set:
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+- **`VITE_CLERK_PUBLISHABLE_KEY`**: Clerk publishable key (frontend).
+- **`VITE_CLERK_SECRET_KEY`**: Clerk secret key (used where required).
+- **`VITE_TAMBO_API_KEY`**: API key for your Tambo project.
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+Do **not** commit real secrets. Use `.env` locally only.
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+### 3. Run the dev servers
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+From the template root:
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```bash
+npm run dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+This runs `turbo run dev`, which:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+- Starts the **API** (`apps/api`) on its configured port.
+- Starts the **web** app (`apps/web`) with Vite (defaults to `http://localhost:5173` unless changed).
 
+You can also run each app directly:
+
+```bash
+# API
+cd apps/api
+npm run dev
+
+# Web
+cd ../web
+npm run dev
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+---
+
+### 4. Build, lint, and type-check
+
+From the root:
+
+```bash
+# Build all apps and packages
+npm run build
+
+# Lint all apps and packages
+npm run lint
+
+# Type-check all apps and packages
+npm run check-types
 ```
 
-## Useful Links
+For a single app, you can run its local scripts (e.g. `npm run build` in `apps/web`).
 
-Learn more about the power of Turborepo:
+---
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+### 5. Project layout
+
+- **`apps/api`**: Express + Clerk backend, reads `CLERK_*` env vars from `.env`.
+- **`apps/web`**: React + Vite frontend using Clerk and Tambo; reads `VITE_*` env vars from `.env`.
+- **`packages/ui`**: Shared UI components, import into `apps/web`.
+- **`packages/eslint-config` / `packages/typescript-config`**: Shared lint/TS base configs.
+
+---
+
+### 6. Production build
+
+To produce production builds:
+
+```bash
+# From root
+npm run build
+```
+
+This runs the `build` script for each app/package:
+
+- **`apps/api`**: Compiles TypeScript and outputs to `dist/`, run with `node dist/index.js`.
+- **`apps/web`**: Builds a Vite bundle in `dist/`.
+
+You are responsible for deploying those artifacts to your hosting of choice.
+
+---
+
+### 7. Useful links
+
+- **Tambo docs**: `https://docs.tambo.co`
+- **Clerk docs**: `https://clerk.com/docs`
+- **Turborepo docs**: `https://turbo.build/repo/docs`
