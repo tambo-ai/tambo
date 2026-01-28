@@ -1,0 +1,36 @@
+{
+  "name": "tambo-hono-crm",
+  "version": "1.0.0",
+  "description": "Tambo CRM template with Hono API",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tambo-ai/react": "^1.0.0",
+    "hono": "^4.0.0",
+    "drizzle-orm": "^0.45.1",
+    "better-sqlite3": "^11.0.0",
+    "zod": "^3.22.0",
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "tailwindcss": "^3.4.0",
+    "lucide-react": "^0.400.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  }
+}
