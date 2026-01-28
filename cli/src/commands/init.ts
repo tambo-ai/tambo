@@ -73,6 +73,7 @@ interface InitOptions {
   apiKey?: string;
   projectName?: string;
   projectId?: string;
+  noBrowser?: boolean;
 }
 
 /**
@@ -352,6 +353,119 @@ async function handleAuthentication(): Promise<boolean> {
       console.error(chalk.red(`\nFailed to authenticate: ${error}`));
     }
     return false;
+  }
+}
+
+/**
+ * Creates a project with the given name and generates an API key
+ * Used in non-interactive mode with --project-name flag
+ */
+async function createProjectAndGenerateKey(
+  projectName: string,
+): Promise<boolean> {
+  try {
+    console.log(chalk.cyan("\nCreating project..."));
+    const createSpinner = ora(`Creating project: ${projectName}`).start();
+
+    try {
+      const project = await api.project.createProject2.mutate({
+        name: projectName.trim(),
+      });
+      createSpinner.succeed(`Created project: ${project.name}`);
+
+      // Generate API key
+      return await generateApiKeyForProject(project.id, project.name);
+    } catch (error) {
+      createSpinner.fail("Failed to create project");
+      throw error;
+    }
+  } catch (error) {
+    console.error(chalk.red(`\nProject creation failed: ${error}`));
+    return false;
+  }
+}
+
+/**
+ * Uses an existing project by ID and generates an API key
+ * Used in non-interactive mode with --project-id flag
+ */
+async function useExistingProjectAndGenerateKey(
+  projectId: string,
+): Promise<boolean> {
+  try {
+    console.log(chalk.cyan("\nLooking up project..."));
+    const spinner = ora("Fetching project details...").start();
+
+    try {
+      // Try to fetch the project to verify it exists and get its name
+      const projects = await api.project.getUserProjects.query({});
+      const project = projects.find(
+        (p: { id: string; name: string }) => p.id === projectId,
+      );
+
+      if (!project) {
+        spinner.fail("Project not found");
+        console.error(
+          chalk.red(`\nProject with ID "${projectId}" was not found.`),
+        );
+        console.error(
+          chalk.gray(
+            "Make sure you have access to this project and the ID is correct.",
+          ),
+        );
+        return false;
+      }
+
+      spinner.succeed(`Found project: ${project.name}`);
+
+      // Generate API key
+      return await generateApiKeyForProject(project.id, project.name);
+    } catch (error) {
+      spinner.fail("Failed to fetch project");
+      throw error;
+    }
+  } catch (error) {
+    console.error(chalk.red(`\nProject lookup failed: ${error}`));
+    return false;
+  }
+}
+
+/**
+ * Generates an API key for the given project and saves it to .env
+ */
+async function generateApiKeyForProject(
+  projectId: string,
+  projectName: string,
+): Promise<boolean> {
+  console.log(chalk.cyan("\nGenerating API key..."));
+  const keySpinner = ora("Generating API key...").start();
+
+  try {
+    const timestamp = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const result = await api.project.generateApiKey.mutate({
+      projectId,
+      name: `CLI Key (${timestamp})`,
+    });
+    keySpinner.succeed("API key generated");
+
+    // Save to .env file
+    const saved = await writeApiKeyToEnv(result.apiKey);
+    if (saved) {
+      console.log(
+        chalk.gray(
+          `\n   Project: ${projectName}\n   Key saved to your .env file`,
+        ),
+      );
+    }
+    return saved;
+  } catch (error) {
+    keySpinner.fail("Failed to generate API key");
+    throw error;
   }
 }
 
@@ -867,8 +981,9 @@ export async function handleInit({
   yes = false,
   skipAgentDocs = false,
   apiKey,
-  projectName: _projectName,
-  projectId: _projectId,
+  projectName,
+  projectId,
+  noBrowser = false,
 }: InitOptions): Promise<void> {
   // In non-interactive mode, check if we have what we need
   if (!isInteractive()) {
@@ -890,7 +1005,75 @@ export async function handleInit({
       return;
     }
 
-    // No API key provided - need guidance
+    // Handle --project-name: auth + create project + generate key
+    if (projectName) {
+      if (!validateRootPackageJson()) return;
+
+      console.log(
+        chalk.blue("\nInitializing with new project via device auth...\n"),
+      );
+
+      try {
+        // Run device auth with noBrowser option
+        await runDeviceAuthFlow({ noBrowser });
+        console.log(chalk.green("\n✔ Authentication successful"));
+
+        // Create project and generate key
+        const success = await createProjectAndGenerateKey(projectName);
+        if (!success) {
+          throw new Error("Failed to create project and generate API key");
+        }
+
+        await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+        console.log(chalk.green("\n✨ Initialization complete!"));
+        return;
+      } catch (error) {
+        if (error instanceof DeviceAuthError) {
+          console.error(
+            chalk.red(`\n✖ Authentication failed: ${error.message}`),
+          );
+        } else {
+          console.error(chalk.red(`\n✖ Initialization failed: ${error}`));
+        }
+        process.exit(1);
+      }
+    }
+
+    // Handle --project-id: auth + select project + generate key
+    if (projectId) {
+      if (!validateRootPackageJson()) return;
+
+      console.log(
+        chalk.blue("\nInitializing with existing project via device auth...\n"),
+      );
+
+      try {
+        // Run device auth with noBrowser option
+        await runDeviceAuthFlow({ noBrowser });
+        console.log(chalk.green("\n✔ Authentication successful"));
+
+        // Use existing project and generate key
+        const success = await useExistingProjectAndGenerateKey(projectId);
+        if (!success) {
+          throw new Error("Failed to use project and generate API key");
+        }
+
+        await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+        console.log(chalk.green("\n✨ Initialization complete!"));
+        return;
+      } catch (error) {
+        if (error instanceof DeviceAuthError) {
+          console.error(
+            chalk.red(`\n✖ Authentication failed: ${error.message}`),
+          );
+        } else {
+          console.error(chalk.red(`\n✖ Initialization failed: ${error}`));
+        }
+        process.exit(1);
+      }
+    }
+
+    // No API key or project info provided - need guidance
     throw new GuidanceError("API key required in non-interactive mode", [
       "npx tambo init --api-key=sk_...  # Get key from https://console.tambo.co",
       "npx tambo init --project-name=myapp   # Create new project (requires browser auth)",

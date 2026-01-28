@@ -105,6 +105,10 @@ jest.unstable_mockModule("./utils.js", () => ({
   checkLegacyComponents: () => null,
   getInstalledComponents: async () => [],
   getComponentList: () => [],
+  getComponentNpmDependencies: () => ({
+    dependencies: [],
+    devDependencies: [],
+  }),
 }));
 
 // Mock the interactive module to make tests think they're in an interactive environment
