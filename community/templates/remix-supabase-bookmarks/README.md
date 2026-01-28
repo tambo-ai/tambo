@@ -5,10 +5,11 @@ An AI-powered bookmark manager built with Remix, Supabase, and Tambo.
 Save, organize, and search your bookmarks using natural language. The AI assistant can automatically categorize your links, find saved articles, and help manage your collection.
 
 ### Screenshot
+
 <img width="1916" height="1079" alt="Screenshot 2026-01-28 140640" src="https://github.com/user-attachments/assets/4e0f1e40-c380-4e72-8ca5-7b9a2acf2b24" />
 
-
 ### Video demo
+
 https://github.com/user-attachments/assets/73c55390-c3db-4f47-b558-4f728f62304d
 
 ## What's Included
