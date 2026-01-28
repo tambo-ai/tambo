@@ -18,4 +18,5 @@ export interface InstallComponentOptions {
   yes?: boolean;
   baseInstallPath?: string;
   skipAgentDocs?: boolean;
+  skipTailwindSetup?: boolean;
 }

@@ -33,14 +33,34 @@ Your PR must include:
 
 Templates should be focused and minimal:
 
+- **Starters, not showcases** - Templates should be minimal enough that someone can take it and build something completely different. If you've built a polished app with lots of demo UI, strip it down to the essentials before submitting.
 - **1-3 technologies** is ideal. A template showing "Next.js + Clerk + Tambo" is better than one with 8 different libraries.
 - **One tool per job** - pick ONE auth provider, ONE database, ONE styling solution. Templates with multiple options for the same thing will be rejected.
 - **Minimal dependencies** - only include what's necessary to demonstrate the integration.
-- **Clean code** - no commented-out code, no unused files, no placeholder TODOs.
+- **Small, readable files** - If your main App file is doing too much, break it up or simplify. Templates should be easy to understand at a glance.
+- **Clean code** - no commented-out code, no unused files, no placeholder TODOs, no hardcoded user names or demo data.
+
+### Code Quality
+
+Your template must include linting and type checking appropriate for its stack, and it must pass. Before submitting:
+
+```bash
+npm run lint      # Must pass with no errors
+npm run typecheck # Must pass with no errors (if using TypeScript)
+npm run build     # Must complete successfully
+```
+
+Templates should include:
+
+- **Linting configuration** - Include linting with sensible defaults for the technologies in your template (ESLint is recommended for JS/TS stacks). Most of the Tambo repo uses [our base config](https://github.com/tambo-ai/tambo/blob/main/packages/eslint-config/base.mjs) as a reference point, but templates are not required to use it. Anything materially looser in style/consistency is unlikely to be accepted.
+- **TypeScript strict mode** - Enable `"strict": true` in tsconfig.json
+- **No type errors** - Fix all TypeScript errors, don't use `@ts-ignore` or `any` as workarounds
+
+We'll run these checks during review. Templates with lint errors or type issues will be rejected.
 
 ### Design Requirements
 
-Design quality should match Tambo's component design. Or better.
+Design quality should match our [official templates](https://github.com/tambo-ai/tambo-template). Or better. Use them as your reference for the visual bar we expect.
 
 ### Tambo Integration
 
@@ -51,6 +71,8 @@ We're not expecting a ton of Tambo code. Just **one example** that proves the in
 - **Framework template** - existing Tambo components work and are styled correctly in that framework
 
 The video should show a conversation with the AI using your integration. Proper component/tool registration with clear descriptions is required.
+
+**No workarounds** - Your template must use Tambo's actual APIs correctly. If you run into issues getting components to render or tools to work, [open a bug issue](https://github.com/tambo-ai/tambo/issues/new) and we'll help. Don't hack around problems - templates that bypass Tambo's rendering system will be rejected.
 
 ### README Quality
 
@@ -65,13 +87,19 @@ Your template's README must include:
 
 ### What Gets Rejected
 
+- Lint errors or type checking failures
+- Missing ESLint or TypeScript configuration
+- Use of `@ts-ignore`, `any`, or disabled lint rules as workarounds
 - Kitchen-sink templates that try to include everything
+- Overcomplicated "showcase" apps disguised as starters
+- Workarounds that bypass Tambo's actual rendering or tool system
 - Broken or incomplete setups
 - Missing video demo
 - Poor documentation
 - Ugly or unstyled UI
 - Not responsive
 - Generic "todo app" without meaningful Tambo integration
+- Duplicating an integration we already have without adding something new
 
 ### Template Folder Structure
 
