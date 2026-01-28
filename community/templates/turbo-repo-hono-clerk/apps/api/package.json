@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@clerk/express": "^1.7.65",
     "cors": "^2.8.6",
     "dotenv": "^16.0.3",
     "express": "^5.2.1",
