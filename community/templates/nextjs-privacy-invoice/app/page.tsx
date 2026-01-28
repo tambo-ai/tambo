@@ -15,18 +15,34 @@ export default function Home() {
     isSaving 
   } = useInvoiceStore();
 
-  const [newItem, setNewItem] = useState({ description: '', quantity: 1, price: 0 });
+  // FIX: Initialize price as an empty string '' so the box starts empty
+  const [newItem, setNewItem] = useState<{description: string, quantity: number, price: string | number}>({ 
+    description: '', 
+    quantity: 1, 
+    price: '' 
+  });
 
   const addItem = () => {
     if (!newItem.description) return; 
-    const updatedItems = [...items, { ...newItem, id: Date.now().toString() }];
+    
+    // Convert the empty string price to a real number when adding
+    const finalPrice = Number(newItem.price) || 0;
+
+    const updatedItems = [...items, { 
+      description: newItem.description,
+      quantity: newItem.quantity,
+      price: finalPrice,
+      id: Date.now().toString() 
+    }];
+    
     setItems(updatedItems);
     
     // Auto-calculate total
     const newTotal = updatedItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
     setTotal(newTotal);
     
-    setNewItem({ description: '', quantity: 1, price: 0 }); 
+    // Reset form (Price goes back to empty)
+    setNewItem({ description: '', quantity: 1, price: '' }); 
   };
 
   return (
@@ -82,7 +98,7 @@ export default function Home() {
               type="number" 
               placeholder="Price" 
               value={newItem.price}
-              onChange={(e) => setNewItem({...newItem, price: Number(e.target.value)})}
+              onChange={(e) => setNewItem({...newItem, price: e.target.value})}
               className="border p-2 rounded w-24 text-gray-900 bg-white"
             />
             <button 
@@ -102,7 +118,7 @@ export default function Home() {
           </div>
 
           <div className="flex gap-3">
-            {/* UPDATED: Bright Blue Button */}
+            {/* Bright Blue Button */}
             <button 
               onClick={() => window.print()}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm"
