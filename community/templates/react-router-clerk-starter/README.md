@@ -8,7 +8,7 @@ A production-ready starter template combining React Router v7, Clerk authenticat
 ## 🎬 Video Demo
 
 <!-- TODO: Replace with your GitHub-hosted video URL -->
-https://github.com/user-attachments/assets/YOUR_VIDEO_ID_HERE
+https://github.com/user-attachments/assets/8c770bac-285a-4a63-9711-8a8f2f9e9721
 
 
 ## ✨ What's Included
