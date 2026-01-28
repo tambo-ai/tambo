@@ -1,27 +1,9 @@
-import { updateProjectAgentSettingsToolInput as updateProjectAgentSettingsInputSchema } from "@/lib/schemas/agent";
-import { z } from "zod/v3";
 import {
-  type AgentHeadersToolInput,
+  updateProjectAgentSettingsInput as updateProjectAgentSettingsInputSchema,
   updateProjectAgentSettingsOutputSchema,
-  updateProjectAgentSettingsToolInput,
 } from "@/lib/schemas/agent";
 import { invalidateLlmSettingsCache, invalidateProjectCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
-
-// Tool-compatible output schema (original uses agentHeadersSchema which is a Record type)
-const updateProjectAgentSettingsOutputSchema = z
-  .unknown()
-  .describe("Updated agent settings for the project");
-
-/**
- * Converts an array of header objects to a record.
- */
-function headersArrayToRecord(
-  headers: AgentHeadersToolInput | null | undefined,
-): Record<string, string> | null | undefined {
-  if (!headers) return headers;
-  return Object.fromEntries(headers.map(({ name, value }) => [name, value]));
-}
 
 /**
  * Register agent-specific settings management tools
@@ -47,24 +29,6 @@ export function registerAgentTools(
       agentName,
       agentHeaders,
     }) => {
-      // Validate and convert agentHeaders from unknown to Record<string, string> | null | undefined
-      let validatedHeaders: Record<string, string> | null | undefined =
-        undefined;
-      if (agentHeaders !== null && agentHeaders !== undefined) {
-        if (typeof agentHeaders === "object" && !Array.isArray(agentHeaders)) {
-          // Convert to Record<string, string>, filtering out non-string values
-          const headers: Record<string, string> = {};
-          for (const [key, value] of Object.entries(agentHeaders)) {
-            if (typeof key === "string" && typeof value === "string") {
-              headers[key] = value;
-            }
-          }
-          validatedHeaders = Object.keys(headers).length > 0 ? headers : null;
-        } else {
-          validatedHeaders = null;
-        }
-      }
-
       const result =
         await ctx.trpcClient.project.updateProjectAgentSettings.mutate({
           projectId,
@@ -72,8 +36,9 @@ export function registerAgentTools(
           agentProviderType,
           agentUrl,
           agentName,
-          agentHeaders: validatedHeaders,
-          agentHeaders: headersArrayToRecord(agentHeaders),
+          // Cast from unknown (tool schema) to Record<string, string> (tRPC expects)
+          // Validation happens server-side
+          agentHeaders: agentHeaders,
         });
 
       // Invalidate all caches that display agent settings (shown in LLM settings view)
@@ -85,7 +50,7 @@ export function registerAgentTools(
 
       return result;
     },
-    inputSchema: updateProjectAgentSettingsToolInput,
+    inputSchema: updateProjectAgentSettingsInputSchema,
     outputSchema: updateProjectAgentSettingsOutputSchema,
   });
 }
