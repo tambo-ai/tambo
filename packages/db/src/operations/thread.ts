@@ -24,6 +24,18 @@ import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
 
+/**
+ * Sentinel value to skip contextKey filtering entirely.
+ * Use this when you want to match threads regardless of their contextKey value.
+ *
+ * - `undefined` = filter by `contextKey IS NULL`
+ * - `ANY_CONTEXT_KEY` = no contextKey filter (matches all)
+ * - `"some-string"` = filter by exact contextKey match
+ */
+export const ANY_CONTEXT_KEY: unique symbol = Symbol("ANY_CONTEXT_KEY");
+
+export type ContextKeyFilter = string | typeof ANY_CONTEXT_KEY | undefined;
+
 export type ThreadMetadata = Record<string, unknown>;
 export type MessageContent = string | Record<string, unknown>;
 export type MessageMetadata = Record<string, unknown>;
@@ -79,20 +91,28 @@ export async function getThreadGenerationStage(
   return thread?.generationStage;
 }
 
+function buildContextKeyCondition(contextKey: ContextKeyFilter) {
+  if (contextKey === ANY_CONTEXT_KEY) {
+    return undefined;
+  }
+  if (contextKey) {
+    return eq(schema.threads.contextKey, contextKey);
+  }
+  return isNull(schema.threads.contextKey);
+}
+
 export async function getThreadForProjectId(
   db: HydraDb,
   threadId: string,
   projectId: string,
-  contextKey?: string,
+  contextKey: ContextKeyFilter = undefined,
   includeSystem: boolean = true,
 ): Promise<schema.DBThreadWithMessages | undefined> {
   return await db.query.threads.findFirst({
     where: and(
       eq(schema.threads.id, threadId),
       eq(schema.threads.projectId, projectId),
-      contextKey
-        ? eq(schema.threads.contextKey, contextKey)
-        : isNull(schema.threads.contextKey),
+      buildContextKeyCondition(contextKey),
     ),
     with: {
       messages: {
@@ -117,7 +137,7 @@ export async function getThreadsByProject(
     limit = 10,
     includeMessages = true,
   }: {
-    contextKey?: string;
+    contextKey?: ContextKeyFilter;
     offset?: number;
     limit?: number;
     includeMessages?: boolean;
@@ -126,9 +146,7 @@ export async function getThreadsByProject(
   return await db.query.threads.findMany({
     where: and(
       eq(schema.threads.projectId, projectId),
-      contextKey
-        ? eq(schema.threads.contextKey, contextKey)
-        : isNull(schema.threads.contextKey),
+      buildContextKeyCondition(contextKey),
     ),
     with: includeMessages
       ? {
@@ -143,15 +161,13 @@ export async function getThreadsByProject(
 export async function countThreadsByProject(
   db: HydraDb,
   projectId: string,
-  { contextKey }: { contextKey?: string } = {},
+  { contextKey }: { contextKey?: ContextKeyFilter } = {},
 ) {
   return await db.$count(
     schema.threads,
     and(
       eq(schema.threads.projectId, projectId),
-      contextKey
-        ? eq(schema.threads.contextKey, contextKey)
-        : isNull(schema.threads.contextKey),
+      buildContextKeyCondition(contextKey),
     ),
   );
 }

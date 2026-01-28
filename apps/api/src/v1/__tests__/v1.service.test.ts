@@ -8,7 +8,6 @@ import {
 } from "@nestjs/common";
 import {
   V1RunStatus,
-  ContentPartType,
   GenerationStage,
   MessageRole,
 } from "@tambo-ai-cloud/core";
@@ -122,12 +121,24 @@ describe("V1Service", () => {
   const mockMessage = {
     id: "msg_123",
     threadId: "thr_123",
-    role: "user",
-    content: [{ type: ContentPartType.Text, text: "Hello" }],
+    role: MessageRole.User,
+    content: [{ type: "text" as const, text: "Hello" }],
     componentDecision: null,
     componentState: null,
     metadata: null,
     createdAt: new Date("2024-01-01T00:00:00Z"),
+    toolCallRequest: null,
+    reasoning: null,
+    reasoningDurationMS: null,
+    parentMessageId: null,
+    toolCallId: null,
+    error: null,
+    additionalContext: null,
+    isCancelled: false,
+    actionType: null,
+    tokenUsage: null,
+    llmModel: null,
+    suggestions: [],
   };
 
   beforeEach(() => {
@@ -326,7 +337,7 @@ describe("V1Service", () => {
     });
 
     it("should throw NotFoundException for non-existent thread", async () => {
-      mockOperations.getThreadForProjectId.mockResolvedValue(null);
+      mockOperations.getThreadForProjectId.mockResolvedValue(undefined);
 
       await expect(
         service.getThread("thr_nonexistent", "prj_123", undefined),
