@@ -8,16 +8,17 @@ import { tamboComponents } from "~/tambo/components";
 interface TamboChatProps {
   apiKey: string;
   tools: TamboTool[];
+  onClose?: () => void;
 }
 
-export function TamboChat({ apiKey, tools }: TamboChatProps) {
+export function TamboChat({ apiKey, tools, onClose }: TamboChatProps) {
   return (
     <TamboProvider 
       apiKey={apiKey} 
       tools={tools}
       components={tamboComponents}
     >
-      <ChatPanel />
+      <ChatPanel onClose={onClose} />
     </TamboProvider>
   );
 }

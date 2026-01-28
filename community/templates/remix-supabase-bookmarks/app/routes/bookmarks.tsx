@@ -164,34 +164,34 @@ export default function BookmarksPage() {
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${isChatOpen ? "mr-[420px]" : ""}`}>
+      <div className={`flex-1 transition-all duration-300 ${isChatOpen ? "lg:mr-[420px]" : ""}`}>
         {/* Header */}
         <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur-md">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white sm:h-10 sm:w-10">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-slate-900">Bookmarks</h1>
+                <h1 className="text-base font-semibold text-slate-900 sm:text-lg">Bookmarks</h1>
                 <p className="text-xs text-slate-500">{bookmarks.length} saved</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-smooth hover:bg-slate-800"
+                className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition-smooth hover:bg-slate-800 sm:gap-2 sm:px-4"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Add
+                <span className="hidden sm:inline">Add</span>
               </button>
               <button
                 onClick={() => setIsChatOpen(!isChatOpen)}
-                className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-smooth ${
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-smooth sm:gap-2 sm:px-4 ${
                   isChatOpen 
                     ? "border-slate-900 bg-slate-900 text-white" 
                     : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
@@ -200,10 +200,10 @@ export default function BookmarksPage() {
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                AI
+                <span className="hidden sm:inline">AI</span>
               </button>
-              <div className="h-6 w-px bg-slate-200" />
-              <span className="text-sm text-slate-500">{user.email}</span>
+              <div className="hidden h-6 w-px bg-slate-200 sm:block" />
+              <span className="hidden text-sm text-slate-500 md:inline">{user.email}</span>
               <Form method="post" action="/logout">
                 <button
                   type="submit"
@@ -339,9 +339,9 @@ export default function BookmarksPage() {
         </main>
       </div>
 
-      {/* Chat Sidebar */}
+      {/* Chat Sidebar - full screen on mobile, fixed width on desktop */}
       <div 
-        className={`fixed right-0 top-0 h-full w-[420px] border-l border-slate-200 bg-white shadow-xl transition-transform duration-300 ${
+        className={`fixed inset-0 z-20 bg-white shadow-xl transition-transform duration-300 lg:left-auto lg:right-0 lg:w-[420px] lg:border-l lg:border-slate-200 ${
           isChatOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -357,7 +357,7 @@ export default function BookmarksPage() {
               </div>
             </div>
           }>
-            <TamboChat apiKey={tamboApiKey} tools={tamboTools} />
+            <TamboChat apiKey={tamboApiKey} tools={tamboTools} onClose={() => setIsChatOpen(false)} />
           </Suspense>
         )}
       </div>
