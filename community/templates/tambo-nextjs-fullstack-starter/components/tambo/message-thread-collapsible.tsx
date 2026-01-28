@@ -84,7 +84,23 @@ const useCollapsibleState = (defaultOpen = false) => {
       // Toggle with Ctrl+I / Cmd+I
       if ((event.metaKey || event.ctrlKey) && event.key === "i") {
         event.preventDefault();
-        setIsOpen((prev) => !prev);
+        const wasClosed = !isOpenRef.current;
+        setIsOpen((prev) => {
+          const newState = !prev;
+          // If opening the panel, focus the input after a short delay
+          if (wasClosed && newState) {
+            setTimeout(() => {
+              // Find the textarea/editor element and focus it
+              const textareaElement = document.querySelector(
+                '[data-slot="message-input-textarea"] textarea, [data-slot="message-input-textarea"] .ProseMirror',
+              ) as HTMLElement;
+              if (textareaElement) {
+                textareaElement.focus();
+              }
+            }, 100);
+          }
+          return newState;
+        });
       }
       // Close with Escape when open
       if (event.key === "Escape" && isOpenRef.current) {
@@ -307,6 +323,23 @@ export const MessageThreadCollapsible = React.forwardRef<
     const handleOpen = React.useCallback(() => {
       setIsOpen(true);
     }, [setIsOpen]);
+
+    // Focus the input when the panel opens
+    React.useEffect(() => {
+      if (isOpen) {
+        // Small delay to ensure the panel and input are fully rendered
+        const timer = setTimeout(() => {
+          // Try to find and focus the textarea or editor element
+          const textareaElement = document.querySelector(
+            '[data-slot="message-input-textarea"] textarea, [data-slot="message-input-textarea"] .ProseMirror',
+          ) as HTMLElement;
+          if (textareaElement) {
+            textareaElement.focus();
+          }
+        }, 150);
+        return () => clearTimeout(timer);
+      }
+    }, [isOpen]);
 
     /**
      * Configuration for the MessageThreadCollapsible component

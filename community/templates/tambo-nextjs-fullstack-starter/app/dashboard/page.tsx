@@ -74,19 +74,6 @@ export default function DashboardPage() {
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 py-16">
-        <div className="mb-4 max-w-md mx-auto">
-          <ChartBarLabelCustom
-            title="Average Post Per User"
-            description="6 months"
-            data={[
-              { User: "Vishal", Posts: 30 },
-              { User: "Himanshu", Posts: 42 },
-              { User: "SHivam", Posts: 30 },
-              { User: "Prajjwal", Posts: 42 },
-            ]}
-          />
-        </div>
-
         {/* Welcome Section */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold tracking-tight mb-2">
