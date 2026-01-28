@@ -1,10 +1,10 @@
 import {
   CustomLlmParameters,
   JSONValue,
-  llmProviderConfig,
   LlmParameterUIType,
+  llmProviderConfig,
 } from "@tambo-ai-cloud/core";
-import { ParameterEntry, ParameterSource } from "./types";
+import { ParameterEntry } from "./types";
 
 /**
  * Safely attempts to parse JSON, returning null if parsing fails
@@ -180,42 +180,16 @@ export const getDefaultValueForType = (
 };
 
 /**
- * Extracts parameters from the nested storage structure (provider -> model -> parameters)
- * and converts them to the UI format for editing
- */
-export const extractParameters = (
-  customParams: CustomLlmParameters | null | undefined,
-  provider?: string | null,
-  model?: string | null,
-): ParameterEntry[] => {
-  if (!provider || !model) return [];
-
-  const modelParams = customParams?.[provider]?.[model] ?? {};
-
-  return Object.entries(modelParams).map(([key, value]) => ({
-    id: generateParameterId(key),
-    key,
-    value: valueToString(value),
-    type: detectType(value),
-  }));
-};
-
-/**
- * Extracts parameters including defaults from provider and model configuration.
+ * Extracts parameters including defaults from model configuration and user-defined parameters.
  * Shows all available parameters with their source and allows users to see/edit defaults.
  *
  * Merge hierarchy (later overrides earlier):
- * 1. Provider-level defaults (providerSpecificParams)
  * 2. Model-level defaults (modelParamsDefaults)
  * 3. User-specified custom params (highest priority)
  *
- * Ordering:
- * - First, keys in the order defined by `modelInfo.modelSpecificParams`
- * - Then, any remaining keys in alphabetical order
- *
  * @returns ParameterEntry[] with source tracking
  */
-export const extractParametersWithDefaults = (
+export const extractCustomParameters = (
   customParams: CustomLlmParameters | null | undefined,
   provider?: string | null,
   model?: string | null,
@@ -225,81 +199,29 @@ export const extractParametersWithDefaults = (
   const providerInfo = llmProviderConfig[provider];
   const modelInfo = providerInfo?.models?.[model];
 
-  // Get defaults from provider and model levels
-  const providerDefaults = providerInfo?.providerSpecificParams ?? {};
+  // Get defaults from model and user levels
   const modelDefaults = modelInfo?.modelParamsDefaults ?? {};
   const userParams = customParams?.[provider]?.[model] ?? {};
 
-  // Only show model-specific params (not general provider params like parallelToolCalls)
-  // Get the keys that are model-specific parameters
-  const modelSpecificParamKeys = new Set(
-    Object.keys(modelInfo?.modelSpecificParams ?? {}),
-  );
-
-  // Filter provider defaults to only include model-specific params
-  const relevantProviderDefaults: Record<string, JSONValue> = {};
-  for (const [key, value] of Object.entries(providerDefaults)) {
-    if (modelSpecificParamKeys.has(key)) {
-      relevantProviderDefaults[key] = value;
-    }
-  }
-
   // Merge: model defaults and user params (model defaults are already model-specific)
   const allKeys = new Set([
-    ...Object.keys(relevantProviderDefaults),
     ...Object.keys(modelDefaults),
     ...Object.keys(userParams),
   ]);
 
-  const modelSpecificParamsOrder = Object.keys(
-    modelInfo?.modelSpecificParams ?? {},
-  );
-  const sortedKeys: string[] = [];
-  const usedKeys = new Set<string>();
-
-  for (const key of modelSpecificParamsOrder) {
-    if (allKeys.has(key)) {
-      usedKeys.add(key);
-      sortedKeys.push(key);
-    }
-  }
-
-  const remainingKeys = Array.from(allKeys)
-    .filter((key) => !usedKeys.has(key))
-    .sort();
-
-  sortedKeys.push(...remainingKeys);
-
-  return sortedKeys.map((key) => {
-    const providerValue = relevantProviderDefaults[key];
+  return Array.from(allKeys).map((key) => {
     const modelValue = modelDefaults[key];
     const userValue = userParams[key];
 
-    // Determine effective value and source
-    const hasUserValue = userValue !== undefined;
-    const hasModelDefault = modelValue !== undefined;
-    const hasProviderDefault = providerValue !== undefined;
-
-    const effectiveValue = userValue ?? modelValue ?? providerValue;
-    const defaultValue = modelValue ?? providerValue;
-
-    let source: ParameterSource;
-    if (hasUserValue) {
-      source = "custom";
-    } else if (hasModelDefault) {
-      source = "model-default";
-    } else if (hasProviderDefault) {
-      source = "provider-default";
-    } else {
-      source = "custom";
-    }
+    const effectiveValue = userValue ?? modelValue;
+    const defaultValue = modelValue;
 
     return {
       id: generateParameterId(key),
       key,
       value: valueToString(effectiveValue),
       type: detectType(effectiveValue),
-      source,
+      source: userValue ? "custom" : "model-default",
       defaultValue:
         defaultValue !== undefined ? valueToString(defaultValue) : undefined,
     };

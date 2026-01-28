@@ -13,8 +13,7 @@ import { EditMode, ViewMode } from "./editor-modes";
 import { PARAMETER_SUGGESTIONS, type ParameterEntry } from "./types";
 import {
   convertValue,
-  extractParameters,
-  extractParametersWithDefaults,
+  extractCustomParameters,
   generateParameterId,
   getDefaultValueForType,
   validateValue,
@@ -88,7 +87,7 @@ export function CustomLlmParametersEditor({
 
   // Initialize parameters from project data, including model defaults
   useEffect(() => {
-    const params = extractParametersWithDefaults(
+    const params = extractCustomParameters(
       projectData?.customLlmParameters,
       currentProvider,
       currentModel,
@@ -167,7 +166,7 @@ export function CustomLlmParametersEditor({
   ]);
 
   const handleCancel = useCallback(() => {
-    const params = extractParametersWithDefaults(
+    const params = extractCustomParameters(
       projectData?.customLlmParameters,
       currentProvider,
       currentModel,
