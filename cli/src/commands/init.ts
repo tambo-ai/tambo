@@ -700,6 +700,7 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
         silent: true,
         legacyPeerDeps: options.legacyPeerDeps,
         installPath,
+        isExplicitPrefix: false, // Ensure COMPONENT_SUBDIR is appended
       });
       spinner.succeed(`Installed ${component}`);
     } catch (error) {
