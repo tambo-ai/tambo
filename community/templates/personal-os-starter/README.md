@@ -34,9 +34,9 @@ This template solves the "Blank Canvas" problem for personal dashboards. It prov
 
 ## 🎥 Video Demo
 
-[Download/Watch Demo Video](public/video.mp4)
+[![Watch Demo Video](public/screenshot-context.png)](public/video.mp4)
 
-_(Note: For the best experience, we recommend watching the high-quality recording uploaded to the PR)_
+_(Click result above to watch video)_
 
 ## 📸 Screenshots
 
