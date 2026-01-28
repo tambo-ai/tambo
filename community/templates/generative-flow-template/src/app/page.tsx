@@ -22,7 +22,9 @@ export default function Home() {
           {/* The chat overlay */}
           <div className="absolute right-0 top-0 bottom-0 w-[450px] z-10 pointer-events-none">
             <div className="h-full pointer-events-auto bg-background/95 backdrop-blur border-l shadow-xl flex flex-col">
-              <div className="p-4 border-b font-medium">Generative Flow Assistant</div>
+              <div className="p-4 border-b font-medium">
+                Generative Flow Assistant
+              </div>
               <div className="flex-1 overflow-hidden">
                 <MessageThreadFull />
               </div>

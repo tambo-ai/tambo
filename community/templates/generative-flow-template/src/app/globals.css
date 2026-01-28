@@ -135,7 +135,6 @@ You can remove this if you don't want to use it.
 */
 
 @keyframes flash {
-
   0%,
   100% {
     background-color: transparent;
@@ -167,10 +166,12 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
   /* Fallback */
   background: linear-gradient(90deg, #666 0%, #bbb 50%, #666 100%);
   /* Preferred (overrides when supported) */
-  background: linear-gradient(90deg,
-      oklch(0.14 0 0) 0%,
-      oklch(0.7 0 0) 50%,
-      oklch(0.14 0 0) 100%);
+  background: linear-gradient(
+    90deg,
+    oklch(0.14 0 0) 0%,
+    oklch(0.7 0 0) 50%,
+    oklch(0.14 0 0) 100%
+  );
   background-size: 200% 100%;
   background-clip: text;
   -webkit-background-clip: text;
