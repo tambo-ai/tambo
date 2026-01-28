@@ -60,14 +60,16 @@ npm run dev
 ```
 ### 5. Demo Video
 
-- [Tambo+Nextjs+Supabase](https://youtu.be/U5AOfX0DVtA)
+- [Tambo+Nextjs+Supabase](https://youtu.be/43qJENjluj0)
   
 ### 6. Screenshots
- <img width="1363" height="597" alt="Screenshot 2026-01-28 062316" src="https://github.com/user-attachments/assets/f38f0fe9-7817-4d5b-b04d-0c3f54b93e8d" />
+ <img width="1361" height="598" alt="Screenshot 2026-01-28 160903" src="https://github.com/user-attachments/assets/f28fcd2e-a238-4a72-8674-ce0b4bbb2eda" />
 
 ---
 
- <img width="1365" height="601" alt="Screenshot 2026-01-28 062332" src="https://github.com/user-attachments/assets/b16cd817-7c8a-4c2e-ba43-0550ad36e38c" />
+<img width="1362" height="600" alt="Screenshot 2026-01-28 160943" src="https://github.com/user-attachments/assets/f4e42fef-5109-4823-9949-79871c8bb9a4" />
+
+ 
 
 
 ## How it Works
@@ -83,3 +85,4 @@ The dashboard uses Supabase's `postgres_changes` subscription to listen for inse
 ## Contributing
 
 This is a community template. Feel free to submit PRs to improve it!
+
