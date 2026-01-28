@@ -2,7 +2,7 @@
 
 A web-based generator for creating **production-ready, Tambo-compliant templates** for the Tambo community.
 
-This tool helps contributors generate complete starter templates that meet Tambo’s quality, documentation, and integration standards - ready to be submitted to `community/templates/` with minimal manual work.
+This tool helps contributors generate complete starter templates that meet Tambo's quality, documentation, and integration standards - ready to be submitted to `community/templates/` with minimal manual work.
 
 ---
 
@@ -38,7 +38,7 @@ This project is intended as a **community tool**, not a template itself.
 - Auto-generated README and configuration files
 - Conditional generation based on selected tech stack
 - ZIP export for easy download and submission
-- Enforces “starter, not showcase” principles
+- Enforces "starter, not showcase" principles
 
 ---
 
@@ -98,7 +98,7 @@ npm run dev
 npm run lint
 npm run build
 ```
+
 ## Code Style
 
-This project follows the Tambo repository’s Prettier configuration and passes
-`prettier --check` without any formatting issues.
+This project follows the Tambo repository's Prettier configuration and passes `prettier --check` without any formatting issues.
