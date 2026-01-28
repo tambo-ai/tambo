@@ -24,48 +24,18 @@ export interface SubmitOptions {
  * Return type for useTamboV1ThreadInput hook
  */
 export interface UseTamboV1ThreadInputReturn {
-  /**
-   * Current value of the input field
-   */
+  /** Current value of the input field */
   value: string;
-
-  /**
-   * Function to update the input value
-   */
+  /** Function to update the input value */
   setValue: React.Dispatch<React.SetStateAction<string>>;
-
-  /**
-   * Function to submit the current input value.
-   * Clears the input on successful submission.
-   * Returns the threadId (may be undefined if stream ended before receiving it).
-   */
+  /** Submit the current input. Clears input on success. */
   submit: (
     options?: SubmitOptions,
   ) => Promise<{ threadId: string | undefined }>;
-
-  /**
-   * Whether a message is currently being submitted
-   */
   isPending: boolean;
-
-  /**
-   * Whether the last submission resulted in an error
-   */
   isError: boolean;
-
-  /**
-   * The error from the last submission, if any
-   */
   error: Error | null;
-
-  /**
-   * Whether the submission was successful
-   */
   isSuccess: boolean;
-
-  /**
-   * Reset the mutation state
-   */
   reset: () => void;
 }
 

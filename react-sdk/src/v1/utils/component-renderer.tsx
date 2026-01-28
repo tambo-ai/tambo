@@ -12,8 +12,48 @@ import React, {
   createElement,
   Suspense,
   useContext,
+  useMemo,
   type ReactElement,
 } from "react";
+
+/**
+ * Props that should be filtered out when rendering components.
+ * These could be used for event handler injection or other security concerns.
+ */
+const DANGEROUS_PROP_PATTERNS = [
+  /^on[A-Z]/, // Event handlers (onClick, onError, etc.)
+  /^dangerouslySetInnerHTML$/,
+];
+
+const DANGEROUS_PROP_NAMES = new Set(["ref", "key", "children"]);
+
+/**
+ * Sanitize props by removing potentially dangerous properties.
+ * Filters out event handlers, refs, and other props that could be abused.
+ * @param props - Raw props from the component content
+ * @returns Sanitized props safe for spreading to components
+ */
+function sanitizeProps(
+  props: Record<string, unknown>,
+): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(props)) {
+    // Skip dangerous prop names
+    if (DANGEROUS_PROP_NAMES.has(key)) {
+      continue;
+    }
+
+    // Skip props matching dangerous patterns
+    if (DANGEROUS_PROP_PATTERNS.some((pattern) => pattern.test(key))) {
+      continue;
+    }
+
+    sanitized[key] = value;
+  }
+
+  return sanitized;
+}
 import type { ComponentRegistry } from "../../model/component-metadata";
 import type {
   Content,
@@ -43,6 +83,7 @@ const ComponentContentContext = createContext<V1ComponentContentContext | null>(
 /**
  * Provider for component content context.
  * Wraps rendered components to provide access to component metadata.
+ * @returns Provider component with memoized context value
  */
 function V1ComponentContentProvider({
   children,
@@ -51,10 +92,14 @@ function V1ComponentContentProvider({
   messageId,
   componentName,
 }: V1ComponentContentContext & { children: React.ReactNode }) {
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  const value = useMemo(
+    () => ({ componentId, threadId, messageId, componentName }),
+    [componentId, threadId, messageId, componentName],
+  );
+
   return (
-    <ComponentContentContext.Provider
-      value={{ componentId, threadId, messageId, componentName }}
-    >
+    <ComponentContentContext.Provider value={value}>
       {children}
     </ComponentContentContext.Provider>
   );
@@ -151,8 +196,8 @@ export function renderComponentContent(
   // Determine if we should show loading state
   const isStreaming = content.streamingState !== "done";
 
-  // Create props for the component
-  const props = content.props as Record<string, unknown>;
+  // Sanitize props to prevent injection of event handlers or other dangerous props
+  const props = sanitizeProps(content.props as Record<string, unknown>);
 
   // Create the component element
   let element: ReactElement;

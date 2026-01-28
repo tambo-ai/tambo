@@ -23,38 +23,39 @@ import type { V1ComponentContent } from "../types/message";
  * Similar to useState but with additional metadata.
  */
 export type UseTamboV1ComponentStateReturn<S> = [
-  /** Current state value */
   currentState: S,
-  /** Function to update the state */
   setState: (newState: S | ((prev: S) => S)) => void,
-  /** Additional metadata about the state */
   meta: {
-    /** Whether the state is being synced to the server */
     isPending: boolean;
-    /** Error from the last sync attempt, if any */
     error: Error | null;
-    /** Flush any pending debounced updates immediately */
     flush: () => void;
   },
 ];
 
 /**
- * Find a component content block by ID in the stream state.
+ * Find a component content block by ID in a specific thread.
+ * Only searches the specified thread to prevent cross-thread data access
+ * and improve performance (O(m*k) instead of O(n*m*k)).
  * @param streamState - The current stream state
+ * @param threadId - The thread ID to search in
  * @param componentId - The component ID to find
  * @returns The component content block, or undefined if not found
  */
 function findComponentContent(
   streamState: ReturnType<typeof useStreamState>,
+  threadId: string,
   componentId: string,
 ): V1ComponentContent | undefined {
-  // Search through all threads and messages
-  for (const threadState of Object.values(streamState.threadMap)) {
-    for (const message of threadState.thread.messages) {
-      for (const content of message.content) {
-        if (content.type === "component" && content.id === componentId) {
-          return content;
-        }
+  // Only search the specified thread (not all threads)
+  const threadState = streamState.threadMap[threadId];
+  if (!threadState) {
+    return undefined;
+  }
+
+  for (const message of threadState.thread.messages) {
+    for (const content of message.content) {
+      if (content.type === "component" && content.id === componentId) {
+        return content;
       }
     }
   }
@@ -108,8 +109,12 @@ export function useTamboV1ComponentState<S>(
   const { componentId, threadId } = useV1ComponentContent();
   const streamState = useStreamState();
 
-  // Find the component content to get server state
-  const componentContent = findComponentContent(streamState, componentId);
+  // Find the component content to get server state (only search current thread)
+  const componentContent = findComponentContent(
+    streamState,
+    threadId,
+    componentId,
+  );
   const serverState = componentContent?.state as
     | Record<string, unknown>
     | undefined;
