@@ -1,6 +1,33 @@
 import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 
 /**
+ * Checks if an anyOf array looks like it's defining type alternatives
+ * (e.g., from z.any().nullable() which produces [{}, {type: "null"}])
+ * rather than adding constraints to an object.
+ *
+ * Type alternatives pattern: contains empty object {} or {type: "null"}
+ * Constraint pattern: contains objects with properties/required/etc
+ */
+function looksLikeTypeAlternatives(
+  anyOfValue: JSONSchema7Definition[],
+): boolean {
+  return anyOfValue.some((item) => {
+    if (typeof item !== "object" || item === null) {
+      return false;
+    }
+    // Empty object {} means "any type" - this is from z.any()
+    if (Object.keys(item).length === 0) {
+      return true;
+    }
+    // {type: "null"} is the nullable variant
+    if (item.type === "null") {
+      return true;
+    }
+    return false;
+  });
+}
+
+/**
  * Sanitizes a JSON Schema object to ensure it is valid for OpenAI function
  * calling in strict mode.
  *
@@ -130,16 +157,29 @@ export function strictifyJSONSchemaProperty(
   for (const key of wellKnownKeys) {
     if (key in restOfProperty) {
       const value = restOfProperty[key];
-      // When we have composite types (anyOf/oneOf/allOf/not), we need to remove
-      // `type` from the result since having both `type: "object"` and `anyOf`
-      // at the same level creates an invalid schema
-      const {
-        type: _type,
-        properties: _properties,
-        required: _required,
-        additionalProperties: _additionalProperties,
-        ...restWithoutType
-      } = restOfProperty;
+
+      // Determine if we should strip object-related properties (type, properties, required, additionalProperties).
+      // We only do this for `anyOf` when it looks like type alternatives (e.g., from z.any().nullable()),
+      // NOT for `allOf` which typically adds constraints to an existing object type.
+      const shouldStripObjectProps =
+        key === "anyOf" &&
+        restOfProperty.type === "object" &&
+        Array.isArray(value) &&
+        looksLikeTypeAlternatives(value);
+
+      const propsToSpread = shouldStripObjectProps
+        ? (() => {
+            const {
+              type: _type,
+              properties: _properties,
+              required: _required,
+              additionalProperties: _additionalProperties,
+              ...rest
+            } = restOfProperty;
+            return rest;
+          })()
+        : restOfProperty;
+
       if (Array.isArray(value)) {
         const sanitizedArray = value
           .map((item, index) => {
@@ -150,8 +190,11 @@ export function strictifyJSONSchemaProperty(
             );
           })
           .filter((value) => value !== null);
+        // Only collapse single-item anyOf/oneOf, NOT allOf.
+        // allOf items are constraints that combine with the parent schema,
+        // so collapsing would lose parent's type/properties.
         if (
-          (key === "allOf" || key === "anyOf" || key === "oneOf") &&
+          (key === "anyOf" || key === "oneOf") &&
           sanitizedArray.length === 1
         ) {
           // no need for the wrapper
@@ -159,7 +202,7 @@ export function strictifyJSONSchemaProperty(
         }
 
         return {
-          ...restWithoutType,
+          ...propsToSpread,
           [key]: sanitizedArray,
         };
       } else {
@@ -178,7 +221,7 @@ export function strictifyJSONSchemaProperty(
           return null;
         }
         return {
-          ...restWithoutType,
+          ...propsToSpread,
           [key]: strictSchema,
         };
       }

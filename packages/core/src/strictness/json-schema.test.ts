@@ -397,6 +397,94 @@ describe("strictifyJSONSchemaProperties", () => {
     }
   });
 
+  it("should preserve object properties when allOf is used to add constraints", () => {
+    // allOf is typically used to add constraints to an object, NOT as type alternatives
+    // We should NOT strip type/properties/required when allOf is present
+    const property: JSONSchema7Definition = {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        email: { type: "string" },
+      },
+      allOf: [{ required: ["name"] }],
+    };
+
+    const result = strictifyJSONSchemaProperty(property, true, "$.test");
+
+    expect(result).toBeDefined();
+    expect(typeof result === "object" && result !== null).toBe(true);
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      !Array.isArray(result)
+    ) {
+      // Should preserve type: "object" since allOf is adding constraints, not type alternatives
+      expect(result.type).toBe("object");
+      // Should preserve properties
+      expect(result.properties).toBeDefined();
+      // Should have allOf
+      expect(result.allOf).toBeDefined();
+    }
+  });
+
+  it("should preserve object properties when anyOf does not contain type alternatives", () => {
+    // If anyOf contains object schemas (not empty {} or {type: "null"}),
+    // it's defining alternative object shapes, not replacing the type
+    const property: JSONSchema7Definition = {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+      },
+      anyOf: [
+        { properties: { role: { type: "string", enum: ["admin"] } } },
+        { properties: { role: { type: "string", enum: ["user"] } } },
+      ],
+    };
+
+    const result = strictifyJSONSchemaProperty(property, true, "$.test");
+
+    expect(result).toBeDefined();
+    expect(typeof result === "object" && result !== null).toBe(true);
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      !Array.isArray(result)
+    ) {
+      // Should preserve type: "object" since anyOf is adding alternative constraints
+      expect(result.type).toBe("object");
+      // Should preserve base properties
+      expect(result.properties).toBeDefined();
+      // Should have anyOf
+      expect(result.anyOf).toBeDefined();
+    }
+  });
+
+  it("should strip object properties only when anyOf contains type alternatives like {} or {type: null}", () => {
+    // This is the z.any().nullable() pattern - anyOf with {} (any) and {type: "null"}
+    const property: JSONSchema7Definition = {
+      type: "object",
+      properties: {},
+      required: [],
+      additionalProperties: false,
+      anyOf: [{}, { type: "null" }],
+    };
+
+    const result = strictifyJSONSchemaProperty(property, false, "$.test");
+
+    expect(result).toBeDefined();
+    expect(typeof result === "object" && result !== null).toBe(true);
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      !Array.isArray(result)
+    ) {
+      // Should NOT have type: "object" since anyOf has type alternatives
+      expect(result.type).not.toBe("object");
+      // Should have anyOf
+      expect(result.anyOf).toBeDefined();
+    }
+  });
+
   it("should handle anyOf with nested objects that have non-required properties", () => {
     const properties: Record<string, JSONSchema7Definition> = {
       userOrContact: {
