@@ -120,7 +120,7 @@
             t.id.toLowerCase().includes(query) ||
             (t.name?.toLowerCase().includes(query) ?? false)
           );
-        })
+        }),
   );
 
   function formatDate(dateStr: string): string {
@@ -138,7 +138,7 @@
     "border-flat bg-container h-full transition-all duration-300 flex-none",
     position === "left" ? "border-r" : "border-l",
     isCollapsed ? "w-12" : "w-64",
-    className
+    className,
   )}
 >
   <div class={cn("flex flex-col h-full", isCollapsed ? "py-4 px-2" : "p-4")}>
@@ -149,7 +149,7 @@
           "text-sm text-muted-foreground whitespace-nowrap",
           isCollapsed
             ? "opacity-0 max-w-0 overflow-hidden"
-            : "opacity-100 max-w-none transition-all duration-300 delay-75"
+            : "opacity-100 max-w-none transition-all duration-300 delay-75",
         )}
       >
         Tambo Conversations
@@ -159,13 +159,17 @@
         onclick={() => (isCollapsed = !isCollapsed)}
         class={cn(
           "bg-container p-1 hover:bg-backdrop transition-colors rounded-md cursor-pointer absolute flex items-center justify-center",
-          position === "left" ? "right-1" : "left-0"
+          position === "left" ? "right-1" : "left-0",
         )}
       >
         {#if isCollapsed}
-          <ArrowRightToLine class={cn("h-4 w-4", position === "right" && "rotate-180")} />
+          <ArrowRightToLine
+            class={cn("h-4 w-4", position === "right" && "rotate-180")}
+          />
         {:else}
-          <ArrowLeftToLine class={cn("h-4 w-4", position === "right" && "rotate-180")} />
+          <ArrowLeftToLine
+            class={cn("h-4 w-4", position === "right" && "rotate-180")}
+          />
         {/if}
       </button>
     </div>
@@ -176,7 +180,7 @@
       onclick={handleNewThread}
       class={cn(
         "flex items-center rounded-md mb-4 hover:bg-backdrop transition-colors cursor-pointer relative",
-        isCollapsed ? "p-1 justify-center" : "p-2 gap-2"
+        isCollapsed ? "p-1 justify-center" : "p-2 gap-2",
       )}
     >
       <PlusIcon class="h-4 w-4 bg-green-600 rounded-full text-white" />
@@ -185,7 +189,7 @@
           "text-sm font-medium whitespace-nowrap absolute left-8 pb-[2px]",
           isCollapsed
             ? "opacity-0 max-w-0 overflow-hidden pointer-events-none"
-            : "opacity-100 transition-all duration-300 delay-100"
+            : "opacity-100 transition-all duration-300 delay-100",
         )}
       >
         New thread
@@ -204,7 +208,9 @@
         </button>
       {:else}
         <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+          >
             <SearchIcon class="h-4 w-4 text-gray-400" />
           </div>
           <input
@@ -223,7 +229,7 @@
         "overflow-y-auto flex-1 transition-all duration-300 ease-in-out",
         isCollapsed
           ? "opacity-0 max-h-0 overflow-hidden pointer-events-none"
-          : "opacity-100 max-h-full pointer-events-auto"
+          : "opacity-100 max-h-full pointer-events-auto",
       )}
     >
       {#if isLoading}
@@ -241,7 +247,7 @@
               class={cn(
                 "p-2 rounded-md hover:bg-backdrop cursor-pointer group flex items-center justify-between",
                 thread.currentThreadId === t.id && "bg-muted",
-                editingThread?.id === t.id && "bg-muted"
+                editingThread?.id === t.id && "bg-muted",
               )}
               onclick={() => handleSwitchThread(t.id)}
               onkeydown={(e) => e.key === "Enter" && handleSwitchThread(t.id)}

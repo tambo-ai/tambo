@@ -14,6 +14,9 @@ docs/.source/
 apps/web/.source/
 packages/db/migrations/
 
+# SvelteKit
+**/.svelte-kit
+
 # Other
 packages/ag-ui-mastra/
 .vscode/

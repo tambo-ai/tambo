@@ -17,8 +17,8 @@
   // Filter messages to exclude system messages and child messages
   const filteredMessages = $derived(
     thread.messages.filter(
-      (message) => message.role !== "system" && !message.parentMessageId
-    )
+      (message) => message.role !== "system" && !message.parentMessageId,
+    ),
   );
 
   const isGenerating = $derived(!thread.isIdle);
@@ -35,7 +35,7 @@
           isLoading={isGenerating && index === filteredMessages.length - 1}
           class={cn(
             "flex w-full",
-            message.role === "assistant" ? "justify-start" : "justify-end"
+            message.role === "assistant" ? "justify-start" : "justify-end",
           )}
         />
       </div>
