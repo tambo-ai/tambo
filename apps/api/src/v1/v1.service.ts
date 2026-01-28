@@ -182,15 +182,18 @@ export class V1Service {
   /**
    * Get a thread by ID with all messages.
    */
-  async getThread(threadId: string): Promise<V1GetThreadResponseDto> {
-    const thread = await this.db.query.threads.findFirst({
-      where: eq(schema.threads.id, threadId),
-      with: {
-        messages: {
-          orderBy: [asc(schema.messages.createdAt)],
-        },
-      },
-    });
+  async getThread(
+    threadId: string,
+    projectId: string,
+    contextKey: string | undefined,
+  ): Promise<V1GetThreadResponseDto> {
+    const thread = await operations.getThreadForProjectId(
+      this.db,
+      threadId,
+      projectId,
+      contextKey,
+      true, // includeSystem
+    );
 
     if (!thread) {
       throw new NotFoundException(`Thread ${threadId} not found`);

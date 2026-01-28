@@ -126,8 +126,16 @@ export class V1Controller {
     @Query("userKey") userKey?: string,
   ): Promise<V1GetThreadResponseDto> {
     // Extract context info - userKey from query param or bearer token
-    extractContextInfo(request, userKey);
-    return await this.v1Service.getThread(threadId);
+    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    const effectiveContextKey = userKey ?? bearerContextKey;
+    return await this.v1Service.getThread(
+      threadId,
+      projectId,
+      effectiveContextKey,
+    );
   }
 
   @Post("threads")

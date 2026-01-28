@@ -87,16 +87,13 @@ export async function getThreadForProjectId(
   includeSystem: boolean = true,
 ): Promise<schema.DBThreadWithMessages | undefined> {
   return await db.query.threads.findFirst({
-    where: contextKey
-      ? and(
-          eq(schema.threads.id, threadId),
-          eq(schema.threads.projectId, projectId),
-          eq(schema.threads.contextKey, contextKey),
-        )
-      : and(
-          eq(schema.threads.id, threadId),
-          eq(schema.threads.projectId, projectId),
-        ),
+    where: and(
+      eq(schema.threads.id, threadId),
+      eq(schema.threads.projectId, projectId),
+      contextKey
+        ? eq(schema.threads.contextKey, contextKey)
+        : isNull(schema.threads.contextKey),
+    ),
     with: {
       messages: {
         where: includeSystem
@@ -127,12 +124,12 @@ export async function getThreadsByProject(
   } = {},
 ) {
   return await db.query.threads.findMany({
-    where: contextKey
-      ? and(
-          eq(schema.threads.projectId, projectId),
-          eq(schema.threads.contextKey, contextKey),
-        )
-      : eq(schema.threads.projectId, projectId),
+    where: and(
+      eq(schema.threads.projectId, projectId),
+      contextKey
+        ? eq(schema.threads.contextKey, contextKey)
+        : isNull(schema.threads.contextKey),
+    ),
     with: includeMessages
       ? {
           messages: true,
@@ -150,9 +147,12 @@ export async function countThreadsByProject(
 ) {
   return await db.$count(
     schema.threads,
-    contextKey
-      ? eq(schema.threads.contextKey, contextKey)
-      : eq(schema.threads.projectId, projectId),
+    and(
+      eq(schema.threads.projectId, projectId),
+      contextKey
+        ? eq(schema.threads.contextKey, contextKey)
+        : isNull(schema.threads.contextKey),
+    ),
   );
 }
 

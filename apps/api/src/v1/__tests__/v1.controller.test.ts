@@ -139,7 +139,11 @@ describe("V1Controller", () => {
 
         const result = await controller.getThread(mockRequest, "thr_123");
 
-        expect(mockV1Service.getThread).toHaveBeenCalledWith("thr_123");
+        expect(mockV1Service.getThread).toHaveBeenCalledWith(
+          "thr_123",
+          "prj_123",
+          undefined,
+        );
         expect(result).toEqual(mockThread);
       });
 
@@ -156,6 +160,40 @@ describe("V1Controller", () => {
         await expect(
           controller.getThread(mockRequest, "thr_nonexistent"),
         ).rejects.toThrow(NotFoundException);
+      });
+
+      it("should pass userKey to service when provided", async () => {
+        const mockRequest = {} as Request;
+        mockExtractContextInfo.mockReturnValue({
+          projectId: "prj_123",
+          contextKey: undefined,
+        });
+        mockV1Service.getThread.mockResolvedValue({} as any);
+
+        await controller.getThread(mockRequest, "thr_123", "user_456");
+
+        expect(mockV1Service.getThread).toHaveBeenCalledWith(
+          "thr_123",
+          "prj_123",
+          "user_456",
+        );
+      });
+
+      it("should use bearer token context when userKey not provided", async () => {
+        const mockRequest = {} as Request;
+        mockExtractContextInfo.mockReturnValue({
+          projectId: "prj_123",
+          contextKey: "bearer_context",
+        });
+        mockV1Service.getThread.mockResolvedValue({} as any);
+
+        await controller.getThread(mockRequest, "thr_123");
+
+        expect(mockV1Service.getThread).toHaveBeenCalledWith(
+          "thr_123",
+          "prj_123",
+          "bearer_context",
+        );
       });
     });
 

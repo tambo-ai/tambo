@@ -23,6 +23,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
   operations: {
     createThread: jest.fn(),
     deleteThread: jest.fn(),
+    getThreadForProjectId: jest.fn(),
     getThreadForRunStart: jest.fn(),
     acquireRunLock: jest.fn(),
     createRun: jest.fn(),
@@ -305,24 +306,31 @@ describe("V1Service", () => {
 
   describe("getThread", () => {
     it("should return thread with messages", async () => {
-      mockDb.query.threads.findFirst.mockResolvedValue({
+      mockOperations.getThreadForProjectId.mockResolvedValue({
         ...mockThread,
         messages: [mockMessage],
       });
 
-      const result = await service.getThread("thr_123");
+      const result = await service.getThread("thr_123", "prj_123", undefined);
 
+      expect(mockOperations.getThreadForProjectId).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        "prj_123",
+        undefined,
+        true,
+      );
       expect(result.id).toBe("thr_123");
       expect(result.messages).toHaveLength(1);
       expect(result.messages[0].id).toBe("msg_123");
     });
 
     it("should throw NotFoundException for non-existent thread", async () => {
-      mockDb.query.threads.findFirst.mockResolvedValue(null);
+      mockOperations.getThreadForProjectId.mockResolvedValue(null);
 
-      await expect(service.getThread("thr_nonexistent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getThread("thr_nonexistent", "prj_123", undefined),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it("should map V1 fields correctly", async () => {
@@ -335,15 +343,34 @@ describe("V1Service", () => {
         lastCompletedRunId: "run_prev",
         messages: [],
       };
-      mockDb.query.threads.findFirst.mockResolvedValue(threadWithV1Fields);
+      mockOperations.getThreadForProjectId.mockResolvedValue(
+        threadWithV1Fields,
+      );
 
-      const result = await service.getThread("thr_123");
+      const result = await service.getThread("thr_123", "prj_123", undefined);
 
       expect(result.runStatus).toBe(V1RunStatus.STREAMING);
       expect(result.currentRunId).toBe("run_123");
       expect(result.statusMessage).toBe("Processing...");
       expect(result.pendingToolCallIds).toEqual(["call_1", "call_2"]);
       expect(result.lastCompletedRunId).toBe("run_prev");
+    });
+
+    it("should pass contextKey to operation when provided", async () => {
+      mockOperations.getThreadForProjectId.mockResolvedValue({
+        ...mockThread,
+        messages: [],
+      });
+
+      await service.getThread("thr_123", "prj_123", "user_456");
+
+      expect(mockOperations.getThreadForProjectId).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        "prj_123",
+        "user_456",
+        true,
+      );
     });
   });
 
@@ -691,9 +718,9 @@ describe("V1Service", () => {
         },
         messages: [],
       };
-      mockDb.query.threads.findFirst.mockResolvedValue(threadWithError);
+      mockOperations.getThreadForProjectId.mockResolvedValue(threadWithError);
 
-      const result = await service.getThread("thr_123");
+      const result = await service.getThread("thr_123", "prj_123", undefined);
 
       expect(result.lastRunError).toEqual({
         code: "RATE_LIMITED",
