@@ -13,7 +13,8 @@ export default function TemplateBasics({ config, updateConfig }: TemplateBasicsP
       <div>
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Template Basics</h2>
         <p className="text-slate-600">
-          Let&apos;s start with the fundamentals. This information will be used in your README and package.json.
+          Let&apos;s start with the fundamentals. This information will be used in your README and
+          package.json.
         </p>
       </div>
 
@@ -71,10 +72,17 @@ export default function TemplateBasics({ config, updateConfig }: TemplateBasicsP
             <div>
               <h4 className="font-semibold text-amber-900 mb-1">Template Naming Tips</h4>
               <ul className="text-sm text-amber-800 space-y-1">
-                <li>• Use the format: <code className="bg-amber-100 px-1 rounded">framework-integration-purpose</code></li>
-                <li>• Example: <code className="bg-amber-100 px-1 rounded">remix-clerk-starter</code></li>
+                <li>
+                  • Use the format:{' '}
+                  <code className="bg-amber-100 px-1 rounded">framework-integration-purpose</code>
+                </li>
+                <li>
+                  • Example: <code className="bg-amber-100 px-1 rounded">remix-clerk-starter</code>
+                </li>
                 <li>• Keep it descriptive but concise (max 3-4 words)</li>
-                <li>• Avoid generic names like &quot;tambo-template&quot; or &quot;my-template&quot;</li>
+                <li>
+                  • Avoid generic names like &quot;tambo-template&quot; or &quot;my-template&quot;
+                </li>
               </ul>
             </div>
           </div>

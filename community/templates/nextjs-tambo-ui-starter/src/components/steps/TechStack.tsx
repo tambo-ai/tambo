@@ -8,31 +8,31 @@ interface TechStackProps {
 }
 
 const frameworks = [
-  { id: 'nextjs' as const, name: 'Next.js', description: 'React framework with App Router' },
-  { id: 'remix' as const, name: 'Remix', description: 'Full-stack React framework' },
-  { id: 'vite' as const, name: 'Vite + React', description: 'Fast build tool with React' },
-  { id: 'expo' as const, name: 'Expo', description: 'React Native framework' },
-  { id: 'astro' as const, name: 'Astro', description: 'Content-focused framework' },
+  { id: 'nextjs', name: 'Next.js', description: 'React framework with App Router' },
+  { id: 'remix', name: 'Remix', description: 'Full-stack React framework' },
+  { id: 'vite', name: 'Vite + React', description: 'Fast build tool with React' },
+  { id: 'expo', name: 'Expo', description: 'React Native framework' },
+  { id: 'astro', name: 'Astro', description: 'Content-focused framework' },
 ];
 
 const stylingOptions = [
-  { id: 'tailwind' as const, name: 'Tailwind CSS', description: 'Utility-first CSS framework' },
-  { id: 'css-modules' as const, name: 'CSS Modules', description: 'Scoped CSS files' },
-  { id: 'styled-components' as const, name: 'Styled Components', description: 'CSS-in-JS solution' },
+  { id: 'tailwind', name: 'Tailwind CSS', description: 'Utility-first CSS framework' },
+  { id: 'css-modules', name: 'CSS Modules', description: 'Scoped CSS files' },
+  { id: 'styled-components', name: 'Styled Components', description: 'CSS-in-JS solution' },
 ];
 
 const authOptions = [
-  { id: 'none' as const, name: 'No Auth', description: 'Skip authentication' },
-  { id: 'clerk' as const, name: 'Clerk', description: 'Complete auth solution' },
-  { id: 'supabase' as const, name: 'Supabase Auth', description: 'Open source auth' },
-  { id: 'nextauth' as const, name: 'NextAuth.js', description: 'Auth for Next.js' },
+  { id: 'none', name: 'No Auth', description: 'Skip authentication' },
+  { id: 'clerk', name: 'Clerk', description: 'Complete auth solution' },
+  { id: 'supabase', name: 'Supabase Auth', description: 'Open source auth' },
+  { id: 'nextauth', name: 'NextAuth.js', description: 'Auth for Next.js' },
 ];
 
 const databaseOptions = [
-  { id: 'none' as const, name: 'No Database', description: 'Skip database setup' },
-  { id: 'prisma' as const, name: 'Prisma', description: 'Next-gen ORM' },
-  { id: 'drizzle' as const, name: 'Drizzle', description: 'TypeScript ORM' },
-  { id: 'supabase' as const, name: 'Supabase DB', description: 'PostgreSQL database' },
+  { id: 'none', name: 'No Database', description: 'Skip database setup' },
+  { id: 'prisma', name: 'Prisma', description: 'Next-gen ORM' },
+  { id: 'drizzle', name: 'Drizzle', description: 'TypeScript ORM' },
+  { id: 'supabase', name: 'Supabase DB', description: 'PostgreSQL database' },
 ];
 
 export default function TechStack({ config, updateConfig }: TechStackProps) {
@@ -53,7 +53,11 @@ export default function TechStack({ config, updateConfig }: TechStackProps) {
           {frameworks.map((framework) => (
             <button
               key={framework.id}
-              onClick={() => updateConfig({ framework: framework.id })}
+              onClick={() =>
+                updateConfig({
+                  framework: framework.id as 'nextjs' | 'remix' | 'vite' | 'expo' | 'astro',
+                })
+              }
               className={`p-4 border-2 rounded-lg text-left transition-all ${
                 config.framework === framework.id
                   ? 'border-blue-500 bg-blue-50'
@@ -77,7 +81,11 @@ export default function TechStack({ config, updateConfig }: TechStackProps) {
           {stylingOptions.map((option) => (
             <button
               key={option.id}
-              onClick={() => updateConfig({ styling: option.id })}
+              onClick={() =>
+                updateConfig({
+                  styling: option.id as 'tailwind' | 'css-modules' | 'styled-components',
+                })
+              }
               className={`p-4 border-2 rounded-lg text-left transition-all ${
                 config.styling === option.id
                   ? 'border-blue-500 bg-blue-50'
@@ -101,7 +109,11 @@ export default function TechStack({ config, updateConfig }: TechStackProps) {
           {authOptions.map((option) => (
             <button
               key={option.id}
-              onClick={() => updateConfig({ auth: option.id })}
+              onClick={() =>
+                updateConfig({
+                  auth: option.id as 'none' | 'clerk' | 'supabase' | 'nextauth',
+                })
+              }
               className={`p-4 border-2 rounded-lg text-left transition-all ${
                 config.auth === option.id
                   ? 'border-blue-500 bg-blue-50'
@@ -118,14 +130,16 @@ export default function TechStack({ config, updateConfig }: TechStackProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-3">
-          Database (Optional)
-        </label>
+        <label className="block text-sm font-medium text-slate-700 mb-3">Database (Optional)</label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {databaseOptions.map((option) => (
             <button
               key={option.id}
-              onClick={() => updateConfig({ database: option.id })}
+              onClick={() =>
+                updateConfig({
+                  database: option.id as 'none' | 'prisma' | 'drizzle' | 'supabase',
+                })
+              }
               className={`p-4 border-2 rounded-lg text-left transition-all ${
                 config.database === option.id
                   ? 'border-blue-500 bg-blue-50'
@@ -145,8 +159,8 @@ export default function TechStack({ config, updateConfig }: TechStackProps) {
         <div>
           <h4 className="font-semibold text-amber-900 mb-1">Keep It Simple</h4>
           <p className="text-sm text-amber-800">
-            Templates with 1-3 technologies perform best. Choose ONE tool per job - one auth provider, 
-            one database, one styling solution. Kitchen-sink templates get rejected.
+            Templates with 1-3 technologies perform best. Choose ONE tool per job - one auth
+            provider, one database, one styling solution. Kitchen-sink templates get rejected.
           </p>
         </div>
       </div>

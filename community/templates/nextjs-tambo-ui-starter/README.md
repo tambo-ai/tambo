@@ -45,6 +45,7 @@ This project is intended as a **community tool**, not a template itself.
 ## Supported Options
 
 ### Frameworks
+
 - Next.js
 - Remix
 - Vite + React
@@ -52,21 +53,25 @@ This project is intended as a **community tool**, not a template itself.
 - Astro
 
 ### Styling
+
 - Tailwind CSS
 - CSS Modules
 - Styled Components
 
 ### Authentication (Optional)
+
 - Clerk
 - Supabase Auth
 - NextAuth.js
 
 ### Database (Optional)
+
 - Prisma
 - Drizzle
 - Supabase
 
 ### Tambo Integration
+
 - Component-focused examples
 - Tool-focused examples
 - Combined component + tool examples
@@ -92,3 +97,8 @@ npm install
 npm run dev
 npm run lint
 npm run build
+```
+## Code Style
+
+This project follows the Tambo repository’s Prettier configuration and passes
+`prettier --check` without any formatting issues.

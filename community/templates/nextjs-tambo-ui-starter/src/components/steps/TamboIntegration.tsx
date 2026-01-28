@@ -29,9 +29,7 @@ const integrationOptions = [
     description: 'Show both component creation and tool usage',
     example: 'Components that fetch data using tools',
   },
-] as const;
-
-
+];
 
 const componentExamples = [
   { name: 'MetricCard', desc: 'Display key metrics with icons and trends' },
@@ -48,7 +46,8 @@ export default function TamboIntegration({ config, updateConfig }: TamboIntegrat
       <div>
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Tambo Integration</h2>
         <p className="text-slate-600">
-          Define what your template will demonstrate. You only need ONE working example - quality over quantity.
+          Define what your template will demonstrate. You only need ONE working example - quality
+          over quantity.
         </p>
       </div>
 
@@ -60,7 +59,11 @@ export default function TamboIntegration({ config, updateConfig }: TamboIntegrat
           {integrationOptions.map((option) => (
             <button
               key={option.id}
-              onClick={() => updateConfig({ integrationFocus: option.id })}
+              onClick={() =>
+                updateConfig({
+                  integrationFocus: option.id as 'components' | 'tools' | 'both',
+                })
+              }
               className={`p-4 border-2 rounded-lg text-left transition-all ${
                 config.integrationFocus === option.id
                   ? 'border-blue-500 bg-blue-50'

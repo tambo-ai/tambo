@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -52,7 +51,7 @@ export default function TemplateGenerator() {
   });
 
   const updateConfig = (updates: Partial<TemplateConfig>) => {
-    setConfig(prev => ({ ...prev, ...updates }));
+    setConfig((prev) => ({ ...prev, ...updates }));
   };
 
   const nextStep = () => {
@@ -97,9 +96,7 @@ export default function TemplateGenerator() {
               <div className="text-sm font-medium text-slate-900">
                 Step {currentStep} of {STEPS.length}
               </div>
-              <div className="text-xs text-slate-500">
-                {STEPS[currentStep - 1].name}
-              </div>
+              <div className="text-xs text-slate-500">{STEPS[currentStep - 1].name}</div>
             </div>
           </div>
         </div>
@@ -112,15 +109,9 @@ export default function TemplateGenerator() {
       <main className="max-w-6xl mx-auto px-6 pb-12">
         <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden min-h-[500px]">
           <div className="p-8">
-            {currentStep === 1 && (
-              <TemplateBasics config={config} updateConfig={updateConfig} />
-            )}
-            {currentStep === 2 && (
-              <TechStack config={config} updateConfig={updateConfig} />
-            )}
-            {currentStep === 3 && (
-              <TamboIntegration config={config} updateConfig={updateConfig} />
-            )}
+            {currentStep === 1 && <TemplateBasics config={config} updateConfig={updateConfig} />}
+            {currentStep === 2 && <TechStack config={config} updateConfig={updateConfig} />}
+            {currentStep === 3 && <TamboIntegration config={config} updateConfig={updateConfig} />}
             {currentStep === 4 && <Preview config={config} />}
             {currentStep === 5 && <GenerateDownload config={config} />}
           </div>
@@ -172,10 +163,14 @@ export default function TemplateGenerator() {
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <span className={config.name && config.description ? 'text-green-600' : 'text-slate-400'}>
+              <span
+                className={config.name && config.description ? 'text-green-600' : 'text-slate-400'}
+              >
                 {config.name && config.description ? '✓' : '○'}
               </span>
-              <span className={config.name && config.description ? 'text-slate-900' : 'text-slate-500'}>
+              <span
+                className={config.name && config.description ? 'text-slate-900' : 'text-slate-500'}
+              >
                 Complete README with setup instructions
               </span>
             </div>
@@ -189,15 +184,11 @@ export default function TemplateGenerator() {
             </div>
             <div className="flex items-start gap-2">
               <span className="text-green-600">✓</span>
-              <span className="text-slate-900">
-                Runs with npm install && npm run dev
-              </span>
+              <span className="text-slate-900">Runs with npm install && npm run dev</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-green-600">✓</span>
-              <span className="text-slate-900">
-                Passes npm run lint && npm run build
-              </span>
+              <span className="text-slate-900">Passes npm run lint && npm run build</span>
             </div>
           </div>
         </div>

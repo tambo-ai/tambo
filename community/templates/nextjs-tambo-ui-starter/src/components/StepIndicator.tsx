@@ -1,4 +1,3 @@
-
 'use client';
 
 interface Step {
@@ -23,8 +22,8 @@ export default function StepIndicator({ steps, currentStep }: StepIndicatorProps
                 step.id === currentStep
                   ? 'bg-blue-600 text-white shadow-lg scale-110'
                   : step.id < currentStep
-                  ? 'bg-green-500 text-white'
-                  : 'bg-slate-200 text-slate-500'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-slate-200 text-slate-500'
               }`}
             >
               {step.id < currentStep ? '✓' : step.icon}
@@ -35,8 +34,8 @@ export default function StepIndicator({ steps, currentStep }: StepIndicatorProps
                   step.id === currentStep
                     ? 'text-blue-600'
                     : step.id < currentStep
-                    ? 'text-green-600'
-                    : 'text-slate-500'
+                      ? 'text-green-600'
+                      : 'text-slate-500'
                 }`}
               >
                 {step.name}

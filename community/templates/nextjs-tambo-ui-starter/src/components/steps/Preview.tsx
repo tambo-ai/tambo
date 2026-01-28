@@ -28,18 +28,14 @@ export default function Preview({ config }: PreviewProps) {
         <h3 className="text-xl font-bold text-blue-900 mb-4">
           {config.name || 'your-template-name'}
         </h3>
-        <p className="text-blue-800 mb-4">
-          {config.description || 'A Tambo template for...'}
-        </p>
+        <p className="text-blue-800 mb-4">{config.description || 'A Tambo template for...'}</p>
         <div className="flex items-center gap-2 text-sm text-blue-700">
           <span className="bg-blue-100 px-2 py-1 rounded">by {config.author || 'Author'}</span>
         </div>
       </div>
 
       <div className="border border-slate-200 rounded-lg p-6">
-        <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-          Tech Stack
-        </h3>
+        <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">Tech Stack</h3>
         <div className="flex flex-wrap gap-2">
           {getTechStackSummary().map((tech) => (
             <span
@@ -134,7 +130,7 @@ export default function Preview({ config }: PreviewProps) {
           <span>📁</span> Folder Structure
         </h3>
         <pre className="text-sm text-slate-700 font-mono overflow-x-auto">
-{`${config.name || 'your-template'}/
+          {`${config.name || 'your-template'}/
 ├── README.md
 ├── package.json
 ├── tsconfig.json
@@ -159,9 +155,13 @@ export default function Preview({ config }: PreviewProps) {
             <h4 className="font-semibold text-blue-900 mb-2">Next Steps After Download</h4>
             <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
               <li>Extract the generated ZIP file</li>
-              <li>Run <code className="bg-blue-100 px-1 rounded">npm install</code></li>
+              <li>
+                Run <code className="bg-blue-100 px-1 rounded">npm install</code>
+              </li>
               <li>Set up environment variables in .env</li>
-              <li>Run <code className="bg-blue-100 px-1 rounded">npm run dev</code> to test</li>
+              <li>
+                Run <code className="bg-blue-100 px-1 rounded">npm run dev</code> to test
+              </li>
               <li>Record a video demo showing the Tambo integration</li>
               <li>Add the template to community/templates/ in Tambo repo</li>
               <li>Submit a PR with your template and video link</li>

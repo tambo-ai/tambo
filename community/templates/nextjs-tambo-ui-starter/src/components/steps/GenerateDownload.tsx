@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -73,8 +72,8 @@ export default function GenerateDownload({ config }: GenerateDownloadProps) {
             </div>
             <h3 className="text-xl font-semibold text-slate-900">Ready to Generate</h3>
             <p className="text-slate-600 max-w-md mx-auto">
-              Click the button below to generate your {config.name} template.
-              This will create a ZIP file with all necessary files.
+              Click the button below to generate your {config.name} template. This will create a ZIP
+              file with all necessary files.
             </p>
             <button
               onClick={handleGenerate}
@@ -110,7 +109,8 @@ export default function GenerateDownload({ config }: GenerateDownloadProps) {
             </div>
             <h3 className="text-xl font-semibold text-green-900">Template Generated!</h3>
             <p className="text-slate-600 max-w-md mx-auto">
-              Your template has been downloaded. Extract the ZIP and follow the instructions in the README.
+              Your template has been downloaded. Extract the ZIP and follow the instructions in the
+              README.
             </p>
             <button
               onClick={handleGenerate}
@@ -147,9 +147,7 @@ export default function GenerateDownload({ config }: GenerateDownloadProps) {
         </div>
 
         <div className="border border-slate-200 rounded-lg p-4">
-          <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-            Source Code
-          </h4>
+          <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">Source Code</h4>
           <ul className="space-y-2 text-sm text-slate-600">
             <li className="flex items-center gap-2">
               <span className="text-green-600">✓</span> App structure
@@ -195,7 +193,7 @@ export default function GenerateDownload({ config }: GenerateDownloadProps) {
 
         <div className="border border-slate-200 rounded-lg p-4">
           <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-          Tambo Integration
+            Tambo Integration
           </h4>
           <ul className="space-y-2 text-sm text-slate-600">
             <li className="flex items-center gap-2">
@@ -222,19 +220,23 @@ export default function GenerateDownload({ config }: GenerateDownloadProps) {
           <li className="flex items-start gap-2">
             <span className="font-bold">1.</span>
             <div>
-              <strong>Test thoroughly:</strong> Run <code className="bg-purple-100 px-1 rounded">npm install && npm run dev</code>, ensure no errors
+              <strong>Test thoroughly:</strong> Run{' '}
+              <code className="bg-purple-100 px-1 rounded">npm install && npm run dev</code>, ensure
+              no errors
             </div>
           </li>
           <li className="flex items-start gap-2">
             <span className="font-bold">2.</span>
             <div>
-              <strong>Record video demo:</strong> Show the template running and Tambo integration working
+              <strong>Record video demo:</strong> Show the template running and Tambo integration
+              working
             </div>
           </li>
           <li className="flex items-start gap-2">
             <span className="font-bold">3.</span>
             <div>
-              <strong>Add to repo:</strong> Place in <code className="bg-purple-100 px-1 rounded">community/templates/{config.name}/</code>
+              <strong>Add to repo:</strong> Place in{' '}
+              <code className="bg-purple-100 px-1 rounded">community/templates/{config.name}/</code>
             </div>
           </li>
           <li className="flex items-start gap-2">
@@ -246,7 +248,8 @@ export default function GenerateDownload({ config }: GenerateDownloadProps) {
           <li className="flex items-start gap-2">
             <span className="font-bold">5.</span>
             <div>
-              <strong>Pass checks:</strong> Ensure <code className="bg-purple-100 px-1 rounded">npm run lint</code> and
+              <strong>Pass checks:</strong> Ensure{' '}
+              <code className="bg-purple-100 px-1 rounded">npm run lint</code> and
               <code className="bg-purple-100 px-1 rounded ml-1">npm run build</code> pass
             </div>
           </li>

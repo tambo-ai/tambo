@@ -35,7 +35,7 @@ function generateReadme(config: TemplateConfig): string {
     config.styling,
     config.auth !== 'none' ? config.auth : null,
     config.database !== 'none' ? config.database : null,
-    'Tambo'
+    'Tambo',
   ].filter(Boolean);
 
   return `# ${config.name}
@@ -44,7 +44,7 @@ ${config.description}
 
 ## What's Included
 
-${techStack.map(tech => `- **${tech}**`).join('\n')}
+${techStack.map((tech) => `- **${tech}**`).join('\n')}
 
 ## Prerequisites
 
@@ -52,9 +52,7 @@ Before you begin, you'll need:
 
 - Node.js 18+ installed
 - A Tambo API key from [tambo.ai](https://tambo.ai)
-${config.auth === 'clerk' ? '- A Clerk account and API keys\n' : ''}
-${config.auth === 'supabase' ? '- A Supabase project with auth enabled\n' : ''}
-${config.database === 'prisma' ? '- A PostgreSQL database (or other Prisma-supported DB)\n' : ''}
+${config.auth === 'clerk' ? '- A Clerk account and API keys\n' : ''}${config.auth === 'supabase' ? '- A Supabase project with auth enabled\n' : ''}${config.database === 'prisma' ? '- A PostgreSQL database (or other Prisma-supported DB)\n' : ''}
 
 ## Setup
 
@@ -80,9 +78,7 @@ cp .env.example .env
 
 \`\`\`env
 TAMBO_API_KEY=your_tambo_api_key_here
-${config.auth === 'clerk' ? 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key_here\nCLERK_SECRET_KEY=your_clerk_secret_here\n' : ''}
-${config.auth === 'supabase' ? 'NEXT_PUBLIC_SUPABASE_URL=your_supabase_url\nNEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key\n' : ''}
-${config.database === 'prisma' ? 'DATABASE_URL=postgresql://...\n' : ''}
+${config.auth === 'clerk' ? 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key_here\nCLERK_SECRET_KEY=your_clerk_secret_here\n' : ''}${config.auth === 'supabase' ? 'NEXT_PUBLIC_SUPABASE_URL=your_supabase_url\nNEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key\n' : ''}${config.database === 'prisma' ? 'DATABASE_URL=postgresql://...\n' : ''}
 \`\`\`
 
 5. Run the development server:
@@ -129,8 +125,7 @@ ${config.name}/
 
 - [Tambo Documentation](https://docs.tambo.ai)
 - [Tambo Templates](https://github.com/tambo-ai/tambo/tree/main/community/templates)
-${config.framework === 'nextjs' ? '- [Next.js Documentation](https://nextjs.org/docs)\n' : ''}
-${config.auth === 'clerk' ? '- [Clerk Documentation](https://clerk.com/docs)\n' : ''}
+${config.framework === 'nextjs' ? '- [Next.js Documentation](https://nextjs.org/docs)\n' : ''}${config.auth === 'clerk' ? '- [Clerk Documentation](https://clerk.com/docs)\n' : ''}
 
 ## Contributing
 
@@ -339,7 +334,7 @@ module.exports = nextConfig;
 
 function generateNextLayout(config: TemplateConfig): string {
   const imports = ["import './globals.css'"];
-  
+
   if (config.auth === 'clerk') {
     imports.push("import { ClerkProvider } from '@clerk/nextjs'");
   }
@@ -376,18 +371,15 @@ function generateNextPage(config: TemplateConfig): string {
   return `export default function Home() {
   return (
     <main className="min-h-screen p-8">
-      <h1 className="text-4xl font-bold mb-4">
-        ${config.name}
-      </h1>
-      <p className="text-lg text-gray-600 mb-8">
-        ${config.description}
-      </p>
-      
+      <h1 className="text-4xl font-bold mb-4">${config.name}</h1>
+      <p className="text-lg text-gray-600 mb-8">${config.description}</p>
+
       <div className="bg-white rounded-lg border p-6 max-w-2xl">
         <h2 className="text-2xl font-semibold mb-4">🤖 Tambo Integration</h2>
         <p className="text-gray-700">
-          This template includes the <code className="bg-gray-100 px-2 py-1 rounded">${config.exampleComponent}</code> component.
-          ${config.componentDescription || ''}
+          This template includes the{' '}
+          <code className="bg-gray-100 px-2 py-1 rounded">${config.exampleComponent}</code>{' '}
+          component. ${config.componentDescription || ''}
         </p>
       </div>
     </main>
@@ -429,12 +421,8 @@ export default function ${config.exampleComponent}(props: ${config.exampleCompon
   return (
     <div className="border rounded-lg p-6 bg-white shadow-sm">
       <h3 className="text-xl font-semibold mb-2">{props.title}</h3>
-      {props.value && (
-        <p className="text-gray-600">{props.value}</p>
-      )}
-      <div className="mt-4 text-sm text-gray-500">
-        This is a Tambo-generated component!
-      </div>
+      {props.value && <p className="text-gray-600">{props.value}</p>}
+      <div className="mt-4 text-sm text-gray-500">This is a Tambo-generated component!</div>
     </div>
   );
 }
