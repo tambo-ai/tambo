@@ -30,6 +30,7 @@ import {
   getTamboApiKeyEnvVar,
 } from "../utils/framework-detection.js";
 import { handleAddComponent } from "./add/index.js";
+import { setupTailwindAndGlobals } from "./add/tailwind-setup.js";
 import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
 
@@ -701,6 +702,7 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
         legacyPeerDeps: options.legacyPeerDeps,
         installPath,
         isExplicitPrefix: false, // Ensure COMPONENT_SUBDIR is appended
+        skipTailwindSetup: true, // Handle tailwind setup after spinner completes
       });
       spinner.succeed(`Installed ${component}`);
     } catch (error) {
@@ -721,6 +723,9 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     );
     return; // Exit early without showing next steps
   }
+
+  // Setup tailwind after all components installed (outside spinner to allow prompts)
+  await setupTailwindAndGlobals(process.cwd());
 
   displayFullSendInstructions(selectedComponents);
 }
