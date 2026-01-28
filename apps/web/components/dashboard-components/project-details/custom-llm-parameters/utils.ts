@@ -215,13 +215,14 @@ export const extractCustomParameters = (
 
     const effectiveValue = userValue ?? modelValue;
     const defaultValue = modelValue;
+    const hasUserValue = userValue !== undefined;
 
     return {
       id: generateParameterId(key),
       key,
       value: valueToString(effectiveValue),
       type: detectType(effectiveValue),
-      source: userValue ? "custom" : "model-default",
+      source: hasUserValue ? "custom" : "model-default",
       defaultValue:
         defaultValue !== undefined ? valueToString(defaultValue) : undefined,
     };
