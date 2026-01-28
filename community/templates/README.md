@@ -52,7 +52,7 @@ npm run build     # Must complete successfully
 
 Templates should include:
 
-- **Linting configuration** - Include linting with sensible defaults for the technologies in your template (ESLint is recommended for JS/TS stacks). Most of the Tambo repo uses [our base config](https://github.com/tambo-ai/tambo/blob/main/packages/eslint-config/base.mjs) as a reference point, but templates are not required to use it. Anything materially looser in style/consistency is unlikely to be accepted.
+- **Linting configuration** - Include linting with sensible defaults for the technologies in your template (ESLint is recommended for JS/TS stacks). Most of the Tambo repo uses [our base config](https://github.com/tambo-ai/tambo/blob/main/packages/eslint-config/base.mjs) as a reference point, but templates are not required to use it. Your lint configuration must enforce a similar level of consistency and code quality for the technologies you use; anything significantly looser is unlikely to be accepted.
 - **TypeScript strict mode** - Enable `"strict": true` in tsconfig.json
 - **No type errors** - Fix all TypeScript errors, don't use `@ts-ignore` or `any` as workarounds
 
