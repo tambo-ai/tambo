@@ -1,0 +1,259 @@
+---
+title: Utility Functions
+description: Helper functions for defining tools, making components interactable, and providing context to the AI.
+---
+
+The `@tambo-ai/react` package exports utility functions for common tasks like defining tools with full type inference and making components interactable.
+
+## defineTool
+
+Type-safe helper for defining Tambo tools. Provides full type inference from your schema definitions.
+
+```tsx
+import { defineTool } from "@tambo-ai/react";
+import { z } from "zod";
+
+const weatherTool = defineTool({
+  name: "get_weather",
+  description: "Get current weather for a location",
+  tool: async ({ location }) => {
+    const response = await fetch(`/api/weather?location=${location}`);
+    return response.json();
+  },
+  inputSchema: z.object({
+    location: z.string().describe("City name or zip code"),
+  }),
+  outputSchema: z.object({
+    temperature: z.number(),
+    condition: z.string(),
+  }),
+});
+```
+
+### Parameters
+
+The `defineTool` function accepts a tool definition object:
+
+| Property             | Type              | Required | Description                                    |
+| -------------------- | ----------------- | -------- | ---------------------------------------------- |
+| `name`               | `string`          | Yes      | Unique identifier for the tool                 |
+| `description`        | `string`          | Yes      | Description of what the tool does (used by AI) |
+| `tool`               | `function`        | Yes      | The function implementing the tool logic       |
+| `inputSchema`        | `SupportedSchema` | Yes      | Schema for input parameters                    |
+| `outputSchema`       | `SupportedSchema` | Yes      | Schema for return value                        |
+| `title`              | `string`          | No       | Human-readable display name                    |
+| `maxCalls`           | `number`          | No       | Maximum calls per response                     |
+| `annotations`        | `ToolAnnotations` | No       | Behavior hints (e.g., `tamboStreamableHint`)   |
+| `transformToContent` | `function`        | No       | Transform result to content parts              |
+
+### Schema Support
+
+Tambo uses the [Standard Schema](https://standard-schema.dev) specification, so you can use any compliant validator:
+
+```tsx
+// Zod
+import { z } from "zod";
+inputSchema: z.object({ query: z.string() });
+
+// Valibot
+import * as v from "valibot";
+inputSchema: v.object({ query: v.string() });
+
+// ArkType
+import { type } from "arktype";
+inputSchema: type({ query: "string" });
+```
+
+### Streaming-Safe Tools
+
+For tools that are safe to call repeatedly during streaming (typically read-only tools), use the `tamboStreamableHint` annotation:
+
+```tsx
+const searchTool = defineTool({
+  name: "search",
+  description: "Search for items",
+  annotations: {
+    tamboStreamableHint: true, // Safe for streaming
+  },
+  tool: async ({ query }) => searchDatabase(query),
+  inputSchema: z.object({ query: z.string() }),
+  outputSchema: z.array(z.object({ id: z.string(), title: z.string() })),
+});
+```
+
+## withInteractable
+
+Higher-Order Component that makes any component interactable by Tambo. Interactable components can have their props and state modified by the AI during a conversation.
+
+```tsx
+import { withInteractable } from "@tambo-ai/react";
+import { z } from "zod";
+
+const Note = ({ title, content }: { title: string; content: string }) => (
+  <div className="note">
+    <h2>{title}</h2>
+    <p>{content}</p>
+  </div>
+);
+
+const InteractableNote = withInteractable(Note, {
+  componentName: "Note",
+  description: "A note component that can be edited by the AI",
+  propsSchema: z.object({
+    title: z.string(),
+    content: z.string(),
+  }),
+});
+
+// Usage
+<InteractableNote title="My Note" content="Initial content" />;
+```
+
+### Parameters
+
+```tsx
+withInteractable(WrappedComponent, config);
+```
+
+| Parameter          | Type                  | Description                        |
+| ------------------ | --------------------- | ---------------------------------- |
+| `WrappedComponent` | `React.ComponentType` | The component to make interactable |
+| `config`           | `InteractableConfig`  | Configuration for the interactable |
+
+### InteractableConfig
+
+| Property        | Type              | Required | Description                         |
+| --------------- | ----------------- | -------- | ----------------------------------- |
+| `componentName` | `string`          | Yes      | Unique name for identification      |
+| `description`   | `string`          | Yes      | Description for AI understanding    |
+| `propsSchema`   | `SupportedSchema` | No       | Schema for validating prop updates  |
+| `stateSchema`   | `SupportedSchema` | No       | Schema for validating state updates |
+
+### Injected Props
+
+The wrapped component receives additional props:
+
+| Prop                  | Type                                          | Description                          |
+| --------------------- | --------------------------------------------- | ------------------------------------ |
+| `interactableId`      | `string`                                      | Optional custom ID for this instance |
+| `onInteractableReady` | `(id: string) => void`                        | Called when component is registered  |
+| `onPropsUpdate`       | `(newProps: Record<string, unknown>) => void` | Called when AI updates props         |
+
+### Example with State
+
+```tsx
+import { withInteractable, useTamboComponentState } from "@tambo-ai/react";
+import { z } from "zod";
+
+const Task = ({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) => {
+  const [isComplete, setIsComplete] = useTamboComponentState(
+    "isComplete",
+    false,
+  );
+
+  return (
+    <div className={isComplete ? "completed" : ""}>
+      <h3>{title}</h3>
+      <p>{description}</p>
+      <button onClick={() => setIsComplete(!isComplete)}>
+        {isComplete ? "Undo" : "Complete"}
+      </button>
+    </div>
+  );
+};
+
+const InteractableTask = withInteractable(Task, {
+  componentName: "Task",
+  description: "A task that can be completed or edited",
+  propsSchema: z.object({
+    title: z.string(),
+    description: z.string(),
+  }),
+  stateSchema: z.object({
+    isComplete: z.boolean(),
+  }),
+});
+```
+
+## Built-in Context Helpers
+
+Tambo provides pre-built context helpers that automatically provide useful information to the AI.
+
+### currentPageContextHelper
+
+Provides information about the user's current page.
+
+```tsx
+import { currentPageContextHelper } from "@tambo-ai/react";
+
+// Returns: { url: "https://...", title: "Page Title" }
+```
+
+### currentTimeContextHelper
+
+Provides the current timestamp.
+
+```tsx
+import { currentTimeContextHelper } from "@tambo-ai/react";
+
+// Returns: { timestamp: "Wed Jan 22 2025 10:30:00 GMT-0800" }
+```
+
+### Using Context Helpers
+
+Context helpers are configured on the `TamboProvider`:
+
+```tsx
+import {
+  TamboProvider,
+  currentPageContextHelper,
+  currentTimeContextHelper,
+} from "@tambo-ai/react";
+
+<TamboProvider
+  apiKey={process.env.TAMBO_API_KEY}
+  contextHelpers={{
+    currentPage: currentPageContextHelper,
+    currentTime: currentTimeContextHelper,
+    // Custom helper
+    userPreferences: () => ({
+      theme: "dark",
+      language: "en",
+    }),
+  }}
+>
+  <App />
+</TamboProvider>;
+```
+
+### Dynamic Context Helpers
+
+You can add/remove context helpers dynamically using `useTamboContextHelpers`:
+
+```tsx
+import { useTamboContextHelpers } from "@tambo-ai/react";
+
+function MyComponent() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  useEffect(() => {
+    addContextHelper("selection", () => ({
+      selectedItems: getSelectedItems(),
+    }));
+
+    return () => removeContextHelper("selection");
+  }, []);
+}
+```
+
+Context helper return values:
+
+- Return a value to include it in the context
+- Return `null` or `undefined` to skip
+- Can be async (return a Promise)

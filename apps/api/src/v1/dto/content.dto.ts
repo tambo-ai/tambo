@@ -1,4 +1,4 @@
-import { ApiProperty, ApiSchema } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, ApiSchema } from "@nestjs/swagger";
 import {
   ValidateNested,
   IsBoolean,
@@ -107,6 +107,7 @@ export class V1ToolUseContentDto {
  * Tool result content block - represents the result of a tool call.
  */
 @ApiSchema({ name: "ToolResultContent" })
+@ApiExtraModels(V1TextContentDto, V1ResourceContentDto)
 export class V1ToolResultContentDto {
   @ApiProperty({
     description: "Content block type identifier",

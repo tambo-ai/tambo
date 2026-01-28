@@ -55,6 +55,62 @@ const config = {
         destination: "/guides/setup-project/llm-provider",
         permanent: true,
       },
+      // Reference section consolidation - api-reference redirects
+      {
+        source: "/api-reference",
+        destination: "/reference/react-sdk",
+        permanent: true,
+      },
+      {
+        source: "/api-reference/react-hooks",
+        destination: "/reference/react-sdk/hooks",
+        permanent: true,
+      },
+      {
+        source: "/api-reference/typescript-types",
+        destination: "/reference/react-sdk/types",
+        permanent: true,
+      },
+      {
+        source: "/api-reference/migration/:path*",
+        destination: "/reference/react-sdk/migration/:path*",
+        permanent: true,
+      },
+      {
+        source: "/api-reference/problems/:path*",
+        destination: "/reference/problems/:path*",
+        permanent: true,
+      },
+      {
+        source: "/cli",
+        destination: "/reference/cli",
+        permanent: true,
+      },
+      {
+        source: "/cli/:path*",
+        destination: "/reference/cli/:path*",
+        permanent: true,
+      },
+      {
+        source: "/models",
+        destination: "/reference/llm-providers",
+        permanent: true,
+      },
+      {
+        source: "/models/:path*",
+        destination: "/reference/llm-providers/:path*",
+        permanent: true,
+      },
+      {
+        source: "/reference/providers",
+        destination: "/reference/llm-providers",
+        permanent: true,
+      },
+      {
+        source: "/reference/providers/:path*",
+        destination: "/reference/llm-providers/:path*",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

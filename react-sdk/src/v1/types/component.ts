@@ -3,8 +3,11 @@
  *
  * Defines how React components are registered and made available to the AI.
  *
- * TODO: Import AvailableComponent from `@tambo-ai/typescript-sdk` instead of
- * defining it here.
+ * Note: AvailableComponent is defined locally to match RunCreateParams.AvailableComponent
+ * from the SDK. The SDK exports two different AvailableComponent types:
+ * - `shared.AvailableComponent` has `props` and `contextTools` fields
+ * - `RunCreateParams.AvailableComponent` has `propsSchema` and `stateSchema` fields
+ * We need the latter for v1 API calls, so we define it locally to avoid confusion.
  */
 
 import type { ComponentType } from "react";

@@ -14,7 +14,9 @@ import {
 } from "../lib/device-auth.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import {
+  GuidanceError,
   interactivePrompt,
+  isInteractive,
   NonInteractiveError,
 } from "../utils/interactive.js";
 import {
@@ -28,6 +30,7 @@ import {
   getTamboApiKeyEnvVar,
 } from "../utils/framework-detection.js";
 import { handleAddComponent } from "./add/index.js";
+import { setupTailwindAndGlobals } from "./add/tailwind-setup.js";
 import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
 
@@ -67,6 +70,9 @@ interface InitOptions {
   legacyPeerDeps?: boolean;
   yes?: boolean;
   skipAgentDocs?: boolean;
+  apiKey?: string;
+  projectName?: string;
+  projectId?: string;
 }
 
 /**
@@ -695,6 +701,8 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
         silent: true,
         legacyPeerDeps: options.legacyPeerDeps,
         installPath,
+        isExplicitPrefix: false, // Ensure COMPONENT_SUBDIR is appended
+        skipTailwindSetup: true, // Handle tailwind setup after spinner completes
       });
       spinner.succeed(`Installed ${component}`);
     } catch (error) {
@@ -715,6 +723,9 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     );
     return; // Exit early without showing next steps
   }
+
+  // Setup tailwind after all components installed (outside spinner to allow prompts)
+  await setupTailwindAndGlobals(process.cwd());
 
   displayFullSendInstructions(selectedComponents);
 }
@@ -855,7 +866,38 @@ export async function handleInit({
   legacyPeerDeps = false,
   yes = false,
   skipAgentDocs = false,
+  apiKey,
+  projectName: _projectName,
+  projectId: _projectId,
 }: InitOptions): Promise<void> {
+  // In non-interactive mode, check if we have what we need
+  if (!isInteractive()) {
+    // If API key is provided directly, we can skip auth entirely
+    if (apiKey) {
+      // Write the API key and continue
+      if (!validateRootPackageJson()) return;
+      const saved = await writeApiKeyToEnv(apiKey);
+      if (!saved) {
+        throw new Error("Failed to write API key to .env file");
+      }
+      console.log(chalk.green("\n✔ API key configured"));
+
+      await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+      console.log(
+        chalk.green("\n✔ API key setup complete.") +
+          chalk.gray(" Run 'tambo init' interactively for full project setup."),
+      );
+      return;
+    }
+
+    // No API key provided - need guidance
+    throw new GuidanceError("API key required in non-interactive mode", [
+      "npx tambo init --api-key=sk_...  # Get key from https://console.tambo.co",
+      "npx tambo init --project-name=myapp   # Create new project (requires browser auth)",
+      "npx tambo init --project-id=abc123    # Use existing project (requires browser auth)",
+    ]);
+  }
+
   try {
     if (fullSend) {
       return await handleFullSendInit({

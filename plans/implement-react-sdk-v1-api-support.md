@@ -863,6 +863,8 @@ After Phase 5 implementation, additional refactoring was done based on code revi
 - [ ] POST tool results to continue run (with `previousRunId`)
 - [ ] Handle multi-tool scenarios (execute all, then continue)
 - [ ] Add configurable timeout for tool execution
+- [x] Add `mcpServers` prop to TamboV1Provider for MCP server registration
+- [x] Add `onCallUnregisteredTool` prop callback for handling unknown tools
 - [ ] Write tests for tool execution flow
 - [ ] Test error handling and recovery
 
@@ -973,6 +975,9 @@ export async function executeAllPendingTools(
 - [ ] Implement `useTamboV1ComponentState()` for component state updates
 - [ ] Implement `useTamboV1RegisterComponent()` for dynamic registration
 - [ ] Implement `useTamboV1RegisterTool()` for dynamic registration
+- [x] Add `userToken` prop for OAuth authentication pass-through to TamboClientProvider
+- [ ] Add `autoGenerateThreadName` prop for automatic thread name generation (requires implementation - v1 uses TamboV1StreamProvider, not TamboThreadProvider)
+- [ ] Add `autoGenerateNameThreshold` prop for message count threshold for auto-naming (requires implementation)
 - [ ] Add hook documentation with JSDoc comments
 - [ ] Write integration tests for full hook flow
 - [ ] Test provider composition and context access
@@ -1079,6 +1084,9 @@ export function useTamboV1() {
 - [ ] POST to `/threads/{id}/components/{componentId}/state` endpoint
 - [ ] Handle conflicts (server updates during client typing)
 - [ ] Add error boundaries around component rendering
+- [ ] Add `resources` prop for static resource registration
+- [ ] Add `listResources` prop for dynamic resource listing callback
+- [ ] Add `getResource` prop for dynamic resource retrieval callback
 - [ ] Write tests for component lifecycle
 - [ ] Test state synchronization scenarios
 
@@ -1180,6 +1188,8 @@ export function useTamboV1ComponentState<S>(
 - [ ] Create example: Component state management
 - [ ] Create example: Error handling and recovery
 - [ ] Write migration guide from current SDK
+- [ ] Add `contextHelpers` prop for context helper configuration
+- [ ] Add `contextKey` prop for thread scoping/isolation
 - [ ] Document differences between beta and v1 APIs
 - [ ] Add troubleshooting section
 - [ ] Review documentation for accuracy

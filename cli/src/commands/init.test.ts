@@ -280,6 +280,15 @@ jest.unstable_mockModule("../utils/interactive.js", () => ({
       this.name = "NonInteractiveError";
     }
   },
+  GuidanceError: class GuidanceError extends Error {
+    constructor(
+      message: string,
+      public readonly guidance: string[],
+    ) {
+      super(message);
+      this.name = "GuidanceError";
+    }
+  },
 }));
 
 // Import after mocking
@@ -597,16 +606,16 @@ describe("handleInit", () => {
         .toMatchInlineSnapshot(`
         "src/
         ├─ components/
-        │  ├─ tambo/
-        │  │  └─ AGENTS.md
-        │  ├─ control-bar.tsx
-        │  ├─ message-input.tsx
-        │  ├─ message-suggestions.tsx
-        │  ├─ message-thread-full.tsx
-        │  ├─ message.tsx
-        │  ├─ scrollable-message-container.tsx
-        │  ├─ thread-content.tsx
-        │  └─ thread-history.tsx
+        │  └─ tambo/
+        │     ├─ AGENTS.md
+        │     ├─ control-bar.tsx
+        │     ├─ message-input.tsx
+        │     ├─ message-suggestions.tsx
+        │     ├─ message-thread-full.tsx
+        │     ├─ message.tsx
+        │     ├─ scrollable-message-container.tsx
+        │     ├─ thread-content.tsx
+        │     └─ thread-history.tsx
         └─ lib/
            ├─ tambo.ts
            └─ utils.ts"
@@ -666,10 +675,11 @@ describe("handleInit", () => {
       await handleInit({ fullSend: true });
 
       // Verify component was actually installed (check for component files)
-      // Components are installed at src/components/component-name.tsx when installPath is provided
-      // (because isExplicitPrefix becomes true when installPath is provided)
+      // Components are installed at src/components/tambo/component-name.tsx
       expect(
-        vol.existsSync("/mock-project/src/components/message-thread-full.tsx"),
+        vol.existsSync(
+          "/mock-project/src/components/tambo/message-thread-full.tsx",
+        ),
       ).toBe(true);
     });
 
@@ -706,15 +716,15 @@ describe("handleInit", () => {
         .toMatchInlineSnapshot(`
         "src/
         ├─ components/
-        │  ├─ tambo/
-        │  │  └─ AGENTS.md
-        │  ├─ message-input.tsx
-        │  ├─ message-suggestions.tsx
-        │  ├─ message-thread-full.tsx
-        │  ├─ message.tsx
-        │  ├─ scrollable-message-container.tsx
-        │  ├─ thread-content.tsx
-        │  └─ thread-history.tsx
+        │  └─ tambo/
+        │     ├─ AGENTS.md
+        │     ├─ message-input.tsx
+        │     ├─ message-suggestions.tsx
+        │     ├─ message-thread-full.tsx
+        │     ├─ message.tsx
+        │     ├─ scrollable-message-container.tsx
+        │     ├─ thread-content.tsx
+        │     └─ thread-history.tsx
         └─ lib/
            ├─ tambo.ts
            └─ utils.ts"
