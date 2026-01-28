@@ -1,5 +1,7 @@
 {
-  "name": "tambo-template-elysia",
+  "name": "bun-elysia-vite-tambo-template",
+  "version": "1.0.0",
+  "description": "Full-stack AI template with Bun, Elysia.js, Vite, and Tambo for building generative UIs",
   "private": true,
   "workspaces": [
     "apps/*"
