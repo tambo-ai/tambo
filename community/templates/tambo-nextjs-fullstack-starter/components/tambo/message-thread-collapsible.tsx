@@ -73,11 +73,23 @@ const useCollapsibleState = (defaultOpen = false) => {
     typeof navigator !== "undefined" && navigator.platform.startsWith("Mac");
   const shortcutText = isMac ? "⌘I" : "Ctrl+I";
 
+  // Use ref to track isOpen state to avoid dependency array issues
+  const isOpenRef = React.useRef(isOpen);
+  React.useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Toggle with Ctrl+I / Cmd+I
       if ((event.metaKey || event.ctrlKey) && event.key === "i") {
         event.preventDefault();
         setIsOpen((prev) => !prev);
+      }
+      // Close with Escape when open
+      if (event.key === "Escape" && isOpenRef.current) {
+        event.preventDefault();
+        setIsOpen(false);
       }
     };
 

@@ -100,6 +100,12 @@
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
   }
+
+  /* Dashboard theme: Same component styling but with neutral white background */
+  .components-theme.dashboard-theme {
+    --background: 0 0% 100%;
+    --container: 0 0% 100%;
+  }
 }
 
 @layer utilities {
