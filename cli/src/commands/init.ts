@@ -1035,7 +1035,7 @@ export async function handleInit({
         } else {
           console.error(chalk.red(`\n✖ Initialization failed: ${error}`));
         }
-        process.exit(1);
+        throw error;
       }
     }
 
@@ -1069,7 +1069,7 @@ export async function handleInit({
         } else {
           console.error(chalk.red(`\n✖ Initialization failed: ${error}`));
         }
-        process.exit(1);
+        throw error;
       }
     }
 

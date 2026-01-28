@@ -105,12 +105,12 @@ export async function runDeviceAuthFlow(
 
   // Open browser with pre-filled code URL (or print it in no-browser mode)
   if (options.noBrowser) {
-    // For CI/agents: output URL in a machine-readable format
-    console.log(chalk.cyan("   Complete URL (pre-filled code):"));
-    console.log(chalk.white.bold(`   ${verificationUriComplete}\n`));
+    // For CI/agents: output raw URL first for machine parsing (no styling, no prefix)
+    console.log(verificationUriComplete);
+    // Then add human-readable guidance
     console.log(
       chalk.gray(
-        "   Open this URL in a browser and complete authentication.\n",
+        "\n   Open this URL in a browser and complete authentication.\n",
       ),
     );
   } else {
