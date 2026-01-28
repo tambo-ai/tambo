@@ -102,10 +102,10 @@ export default function Home() {
           </div>
 
           <div className="flex gap-3">
-            {/* UPDATED BUTTON: Calls window.print() */}
+            {/* UPDATED: Bright Blue Button */}
             <button 
               onClick={() => window.print()}
-              className="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm"
             >
               Download PDF
             </button>
