@@ -1,58 +1,151 @@
+![Template Preview](./public/template-preview.png)
+
 # Tambo Next.js Full-Stack Starter
 
 A production-ready Next.js template with Tambo AI, Google OAuth, and PostgreSQL. Built with modern tools and best practices to help you ship faster.
 
-![Template Preview](./public/template-preview.png)
+## Live Demo
 
-## ✨ Features
+[tambo-nextjs-starter-template.vercel.app](tambo-nextjs-starter-template.vercel.app)
 
-- ** Next.js 16** - Latest App Router with TypeScript
-- ** shadcn/ui** - Beautiful, accessible component library
-- ** Tailwind CSS v4** - Modern utility-first CSS framework
-- ** Tambo AI** - Integrated AI capabilities with user context
-- ** Google OAuth** - Authentication ready to go with session management
-- ** PostgreSQL** - Production-ready database setup
-- ** Prisma** - Type-safe database ORM
-- ** Custom Theme** - Dual theme system (green landing page, neutral dashboard)
-- ** Developer-Friendly Dashboard** - Clean, minimal UI optimized for productivity
-- ** Compact AI Chat Interface** - Fixed bottom chat with keyboard shortcuts
-- ** Responsive Design** - Mobile-first approach
-- ** Optimized** - Fast performance out of the box
+## Table of Contents
 
-## 🚀 Getting Started
+- [Live Demo](#live-demo)
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+- [Environment Variables](#environment-variables)
+  - [Required Variables](#required-variables)
+  - [Optional Variables](#optional-variables)
+  - [Example `.env.local` File](#example-envlocal-file)
+- [Project Structure](#project-structure)
+- [Authentication Setup](#authentication-setup)
+  - [User Session Context](#user-session-context)
+  - [How It Works](#how-it-works)
+- [Theme System](#theme-system)
+  - [Landing Page Theme (Green)](#landing-page-theme-green)
+  - [Dashboard Theme (Neutral)](#dashboard-theme-neutral)
+  - [Customizing Themes](#customizing-themes)
+- [AI Chat Interface](#ai-chat-interface)
+  - [MessageThreadCollapsible Component](#messagethreadcollapsible-component)
+- [Dashboard](#dashboard)
+  - [Features](#features-1)
+  - [Customizing the Dashboard](#customizing-the-dashboard)
+- [Customization Guide](#customization-guide)
+  - [Must Change](#must-change)
+  - [Should Change](#should-change)
+  - [Optional](#optional)
+- [Tech Stack](#tech-stack)
+- [Key Features Explained](#key-features-explained)
+  - [User Context in AI Messages](#user-context-in-ai-messages)
+  - [Keyboard Shortcuts](#keyboard-shortcuts)
+  - [Theme Customization](#theme-customization)
+  - [Tambo Components and Tools](#tambo-components-and-tools)
+- [Scripts](#scripts)
+- [Deployment](#deployment)
+  - [Deploy on Vercel](#deploy-on-vercel)
+  - [Other Platforms](#other-platforms)
+- [Troubleshooting](#troubleshooting)
+  - [Components appear transparent/styled incorrectly](#components-appear-transparentstyled-incorrectly)
+  - [AI doesn't know user's name](#ai-doesnt-know-users-name)
+  - [Chat interface not appearing](#chat-interface-not-appearing)
+  - [Database connection issues](#database-connection-issues)
+- [Learn More](#learn-more)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
+## Features
+
+- **Next.js 16** - Latest App Router with TypeScript
+- **shadcn/ui** - Beautiful, accessible component library
+- **Tailwind CSS v4** - Modern utility-first CSS framework
+- **Tambo AI** - Integrated AI capabilities with user context
+- **Google OAuth** - Authentication ready to go with session management
+- **PostgreSQL** - Production-ready database setup
+- **Prisma** - Type-safe database ORM
+
+- **Developer-Friendly Dashboard** - Clean, minimal UI optimized for productivity
+- **Compact AI Chat Interface** - Fixed bottom chat with keyboard shortcuts
+- **Responsive Design** - Mobile-first approach
+- **Optimized** - Fast performance out of the box
+
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 20+
-- npm, yarn, pnpm, or bun
+- Node.js 20 or higher
+- npm, yarn, pnpm, or bun package manager
 - PostgreSQL database (for production)
 - Tambo AI API key ([Get one here](https://tambo.co))
 - Google OAuth credentials ([Setup guide](https://developers.google.com/identity/protocols/oauth2))
 
 ### Installation
 
-1. **Clone the template:**
+1. Clone the template:
 
 ```bash
 git clone <repository-url>
 cd tambo-nextjs-fullstack-starter
 ```
 
-2. **Install dependencies:**
+2. Install dependencies:
 
 ```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
 ```
 
-3. **Set up environment variables:**
+3. Set up environment variables:
 
-Create a `.env.local` file in the root directory:
+Create a `.env.local` file in the root directory with the required environment variables (see [Environment Variables](#environment-variables) section below).
+
+4. Run database migrations (if using PostgreSQL):
+
+```bash
+npx prisma migrate dev
+```
+
+5. Start the development server:
+
+```bash
+npm run dev
+```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Quick Start
+
+1. Sign in with Google OAuth on the landing page
+2. Access the dashboard at `/dashboard` after authentication
+3. Use the AI chat interface:
+   - Press `Ctrl+I` (Windows/Linux) or `Cmd+I` (Mac) to open
+   - Type your question and press `Enter`
+   - Press `Escape` to close
+4. Test user context by asking "what's my name?" - the AI will respond with your name from the session
+
+## Environment Variables
+
+The following environment variables are required or optional for the template to function properly.
+
+### Required Variables
+
+| Variable                           | Description                               | Example                                    |
+| ---------------------------------- | ----------------------------------------- | ------------------------------------------ |
+| `NEXT_PUBLIC_TAMBO_API_KEY`        | Your Tambo AI API key                     | `tambo_...`                                |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`     | Google OAuth Client ID                    | `123456789-abc.apps.googleusercontent.com` |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret                | `GOCSPX-...`                               |
+| `AUTH_SECRET`                      | Secret for NextAuth.js session encryption | Generate with: `openssl rand -base64 32`   |
+
+### Optional Variables
+
+| Variable              | Description                  | Default                            |
+| --------------------- | ---------------------------- | ---------------------------------- |
+| `DATABASE_URL`        | PostgreSQL connection string | Not required if not using database |
+| `NEXT_PUBLIC_APP_URL` | Base URL for the application | `http://localhost:3000`            |
+
+### Example `.env.local` File
 
 ```env
 # Tambo AI Configuration
@@ -63,40 +156,14 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=your_google_client_secret
 AUTH_SECRET=your_auth_secret_here
 
-# Database (if using PostgreSQL)
-DATABASE_URL=your_database_url_here
+# Database (optional)
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+
+# Application URL (optional)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-> 💡 **Note:** Generate `AUTH_SECRET` using: `openssl rand -base64 32`
-
-4. **Run the development server:**
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-5. **Open your browser:**
-
-Navigate to [http://localhost:3000](http://localhost:3000) to see your app.
-
-### Quick Start Guide
-
-1. **Sign in** - Click "Get Started" on the landing page to sign in with Google
-2. **Access Dashboard** - After authentication, you'll be redirected to `/dashboard`
-3. **Start Chatting** - Use the compact chat interface at the bottom center:
-   - Click the input field or press `Ctrl+I` / `Cmd+I` to open
-   - Type your question and press `Enter`
-   - The chat will automatically move to the right side when opened
-   - Press `Escape` to close
-4. **Try it out** - Ask the AI "what's my name?" - it should know your name from your session!
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 tambo-nextjs-fullstack-starter/
@@ -119,16 +186,23 @@ tambo-nextjs-fullstack-starter/
 │   └── ui/                          # shadcn/ui components
 ├── lib/                             # Utility functions
 │   ├── fonts.ts                     # Font configuration
+│   ├── prisma.ts                    # Prisma client instance
+│   ├── tambo.ts                     # Tambo components and tools registration
 │   └── utils.ts                     # Helper utilities
+├── prisma/                          # Database schema and migrations
+│   ├── schema.prisma                # Prisma schema definition
+│   └── migrations/                  # Database migrations
 ├── public/                          # Static assets
 │   ├── assets/                     # Images, videos, etc.
 │   └── logo/                       # Logo files
 ├── styles/                          # Additional stylesheets
 │   └── components-theme.css        # Theme definitions
+├── auth.ts                          # NextAuth configuration
+├── next.config.ts                   # Next.js configuration
 └── package.json                    # Dependencies
 ```
 
-## 🔐 Authentication Setup
+## Authentication Setup
 
 This template includes Google OAuth authentication with automatic user session management.
 
@@ -166,7 +240,7 @@ This is configured in `components/tamboAuthentication/client-layout.tsx`:
 3. User information is automatically included in every AI message
 4. AI can access user details like name, email, etc.
 
-## 🎨 Theme System
+## Theme System
 
 The template uses a dual-theme system:
 
@@ -189,7 +263,7 @@ Edit `styles/components-theme.css` to customize:
 - **`.components-theme`** - Landing page theme (green)
 - **`.components-theme.dashboard-theme`** - Dashboard theme (neutral)
 
-## 💬 AI Chat Interface
+## AI Chat Interface
 
 The template includes a compact, developer-friendly AI chat interface.
 
@@ -228,7 +302,7 @@ The component can be customized in `components/tambo/message-thread-collapsible.
 - Styling and colors
 - Keyboard shortcuts
 
-## 📊 Dashboard
+## Dashboard
 
 The dashboard provides a clean, minimal interface optimized for developers.
 
@@ -247,11 +321,11 @@ Edit `app/dashboard/page.tsx` to customize:
 - Content sections
 - Layout and styling
 
-## 🎨 Customization Guide
+## Customization Guide
 
 After cloning, you'll want to personalize the template. Here are the key files to update:
 
-### **Must Change:**
+### Must Change
 
 - **`app/layout.tsx`** - Update metadata (title & description)
 - **`app/page.tsx`** - Customize hero content, buttons, and feature list
@@ -260,14 +334,14 @@ After cloning, you'll want to personalize the template. Here are the key files t
 - **`public/logo/wordmark/Tambo-Lockup.svg`** - Replace with your logo
 - **`.env.local`** - Add your API keys and secrets
 
-### **Should Change:**
+### Should Change
 
 - **`styles/components-theme.css`** - Customize color scheme (primary, secondary, background, etc.)
 - **`app/dashboard/page.tsx`** - Customize dashboard content
 - **`app/favicon.ico`** - Replace with your favicon
 - **`public/assets/landing/hero/`** - Replace hero animation assets or remove if not needed
 
-### **Optional:**
+### Optional
 
 - **`components/tambo/message-thread-collapsible.tsx`** - Customize chat interface
 - **`components/tamboAuthentication/client-layout.tsx`** - Add more context helpers
@@ -276,9 +350,9 @@ After cloning, you'll want to personalize the template. Here are the key files t
 - **`next.config.ts`** - Add Next.js-specific configs
 - **`tsconfig.json`** - TypeScript configuration adjustments
 
-> 💡 **Tip:** The landing page includes a visual guide showing all files that need customization. Check it out at `http://localhost:3000` after running the dev server!
+**Note:** The landing page includes a visual guide showing all files that need customization. Check it out at `http://localhost:3000` after running the dev server.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework:** [Next.js 16.1.5](https://nextjs.org/)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
@@ -288,8 +362,10 @@ After cloning, you'll want to personalize the template. Here are the key files t
 - **Fonts:** Geist Sans/Mono (Google Fonts) + Sentient Light (Custom)
 - **AI:** [Tambo AI](https://docs.tambo.co) - Integrated AI with context helpers
 - **Auth:** [NextAuth.js](https://next-auth.js.org/) - Google OAuth authentication
+- **Database:** [Prisma](https://www.prisma.io/) - Type-safe database ORM
+- **Database:** [PostgreSQL](https://www.postgresql.org/) - Production-ready database
 
-## 🚀 Key Features Explained
+## Key Features Explained
 
 ### User Context in AI Messages
 
@@ -321,16 +397,24 @@ The template uses CSS custom properties for theming. Key files:
 - **`app/page.tsx`** - Landing page (uses `components-theme` class)
 - **`app/dashboard/layout.tsx`** - Dashboard (uses `components-theme dashboard-theme` classes)
 
-## 📚 Learn More
+### Tambo Components and Tools
 
-- **Tambo Documentation:** [https://docs.tambo.co](https://docs.tambo.co)
-- **Tambo Context Helpers:** [https://docs.tambo.co/guides/give-context/make-ai-aware-of-state](https://docs.tambo.co/guides/give-context/make-ai-aware-of-state)
-- **Next.js Documentation:** [https://nextjs.org/docs](https://nextjs.org/docs)
-- **NextAuth.js:** [https://next-auth.js.org/](https://next-auth.js.org/)
-- **shadcn/ui Components:** [https://ui.shadcn.com](https://ui.shadcn.com)
-- **Tailwind CSS Docs:** [https://tailwindcss.com/docs](https://tailwindcss.com/docs)
+The template includes registered Tambo components and tools in `lib/tambo.ts`:
 
-## 🚢 Deployment
+- **BarChart** - Component for displaying user statistics
+- **AddUserForm** - Component for adding users to the database
+- **getUsersData** - Tool for fetching user summary data
+
+You can extend this by adding more components and tools to the respective arrays in `lib/tambo.ts`.
+
+## Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+## Deployment
 
 ### Deploy on Vercel
 
@@ -338,8 +422,8 @@ The easiest way to deploy your Next.js app is using the [Vercel Platform](https:
 
 1. Push your code to GitHub
 2. Import your repository in Vercel
-3. Configure environment variables
-4. Deploy!
+3. Configure environment variables in Vercel dashboard
+4. Deploy
 
 For more details, see the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
 
@@ -352,26 +436,7 @@ This template works with any platform that supports Next.js:
 - [Render](https://render.com/)
 - [AWS Amplify](https://aws.amazon.com/amplify/)
 
-## 📝 Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-
-## 🔧 Environment Variables
-
-Required environment variables for the template:
-
-| Variable                           | Description                                                      | Required |
-| ---------------------------------- | ---------------------------------------------------------------- | -------- |
-| `NEXT_PUBLIC_TAMBO_API_KEY`        | Your Tambo AI API key                                            | Yes      |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`     | Google OAuth Client ID                                           | Yes      |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret                                       | Yes      |
-| `AUTH_SECRET`                      | Secret for NextAuth.js (generate with `openssl rand -base64 32`) | Yes      |
-| `DATABASE_URL`                     | PostgreSQL connection string (if using database)                 | Optional |
-
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Components appear transparent/styled incorrectly
 
@@ -391,20 +456,33 @@ Required environment variables for the template:
 - Check that `TamboProvider` is wrapping your app in the root layout
 - Ensure `NEXT_PUBLIC_TAMBO_API_KEY` is set correctly
 
-## 🤝 Contributing
+### Database connection issues
+
+- Verify `DATABASE_URL` is correctly formatted
+- Ensure PostgreSQL is running and accessible
+- Run `npx prisma migrate dev` to set up the database schema
+- Check Prisma client is properly initialized in `lib/prisma.ts`
+
+## Learn More
+
+- **Tambo Documentation:** [https://docs.tambo.co](https://docs.tambo.co)
+- **Tambo Context Helpers:** [https://docs.tambo.co/guides/give-context/make-ai-aware-of-state](https://docs.tambo.co/guides/give-context/make-ai-aware-of-state)
+- **Next.js Documentation:** [https://nextjs.org/docs](https://nextjs.org/docs)
+- **NextAuth.js:** [https://next-auth.js.org/](https://next-auth.js.org/)
+- **shadcn/ui Components:** [https://ui.shadcn.com](https://ui.shadcn.com)
+- **Tailwind CSS Docs:** [https://tailwindcss.com/docs](https://tailwindcss.com/docs)
+- **Prisma Documentation:** [https://www.prisma.io/docs](https://www.prisma.io/docs)
+
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
+## License
 
 This template is open source and available under the [MIT License](LICENSE).
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with [Next.js](https://nextjs.org/)
 - UI components from [shadcn/ui](https://ui.shadcn.com/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
-
----
-
-**Happy coding! 🎉**
