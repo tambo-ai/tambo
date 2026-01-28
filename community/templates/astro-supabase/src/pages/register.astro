@@ -1,0 +1,70 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <main class="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+    <!-- Left side - Branding -->
+    <div class="hidden lg:flex flex-col justify-center items-center bg-muted p-10 relative overflow-hidden">
+      <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+      <div class="relative z-10 max-w-md text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl mb-8 text-primary">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+        </div>
+        <h2 class="text-3xl font-bold tracking-tight mb-4 text-foreground">Join the Community</h2>
+        <p class="text-muted-foreground text-lg">
+            Start building your next big idea with Astro, Supabase, and Tambo AI.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right side - Form -->
+    <div class="flex items-center justify-center p-8 bg-background">
+      <div class="w-full max-w-sm space-y-6">
+        <div class="space-y-2 text-center">
+          <h1 class="text-2xl font-bold tracking-tight text-foreground">Create an account</h1>
+          <p class="text-muted-foreground text-sm">Enter your email below to create your account</p>
+        </div>
+
+        <form action="/api/auth/register" method="post" class="space-y-4">
+          <div class="space-y-2">
+            <label for="email" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground">Email</label>
+            <input 
+                type="email" 
+                name="email" 
+                id="email" 
+                required 
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="m@example.com"
+            />
+          </div>
+          <div class="space-y-2">
+            <label for="password" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground">Password</label>
+            <input 
+                type="password" 
+                name="password" 
+                id="password" 
+                required 
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+          <button 
+            type="submit"
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+          >
+            Create account
+          </button>
+        </form>
+
+        <p className="px-8 text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <a href="/signin" class="underline underline-offset-4 hover:text-primary">
+                Sign in
+            </a>
+        </p>
+      </div>
+    </div>
+  </main>
+</Layout>

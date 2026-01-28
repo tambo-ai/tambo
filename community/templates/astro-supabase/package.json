@@ -1,0 +1,36 @@
+{
+  "name": "astro-supabase",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.5.2",
+    "@astrojs/react": "^4.4.2",
+    "@supabase/supabase-js": "^2.93.2",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tambo-ai/react": "^0.71.0",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^5.16.11",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "recharts": "^3.7.0",
+    "tailwindcss": "^4.1.18",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2"
+  }
+}

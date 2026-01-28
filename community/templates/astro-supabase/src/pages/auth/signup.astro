@@ -1,0 +1,130 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Sign Up">
+  <main>
+    <div class="form-container">
+      <h1>Create Account</h1>
+      <p>Already have an account? <a href="/auth/signin">Sign in</a></p>
+      <form action="/api/auth/register" method="post">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" name="email" id="email" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" name="password" id="password" required minlength="6" />
+          <small>Password must be at least 6 characters</small>
+        </div>
+        <button type="submit">Sign Up</button>
+      </form>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+  }
+
+  .form-container {
+    background: white;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 100%;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+    text-align: center;
+  }
+
+  p {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+  }
+
+  p a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  p a:hover {
+    text-decoration: underline;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 500;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+
+  small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #888;
+    font-size: 0.875rem;
+  }
+
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  button:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+</style>
