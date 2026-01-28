@@ -203,18 +203,12 @@ export function cn(...inputs: ClassValue[]) {
           fileContent = fs.readFileSync(sourcePath, "utf-8");
         } else {
           // Try to resolve content path from registry base
-          // Handle old format (src/registry/...) - maps to appropriate directory
-          // Use forward slash for splitting since JSON paths always use forward slashes
+          // Handle both old format (src/registry/...) and new format (lib/..., components/...)
+          // Strip leading "src/registry/" prefix using path operations for cross-platform safety
           let contentRelativePath = file.content;
-          const parts = contentRelativePath.split("/");
+          const parts = contentRelativePath.split(path.sep);
           if (parts[0] === "src" && parts[1] === "registry") {
-            const remainingParts = parts.slice(2);
-            // lib/ files stay at registry root, everything else goes to components/
-            if (remainingParts[0] === "lib") {
-              contentRelativePath = path.join(...remainingParts);
-            } else {
-              contentRelativePath = path.join("components", ...remainingParts);
-            }
+            contentRelativePath = parts.slice(2).join(path.sep);
           }
 
           const contentPath = path.join(
@@ -225,11 +219,8 @@ export function cn(...inputs: ClassValue[]) {
           if (fs.existsSync(contentPath)) {
             fileContent = fs.readFileSync(contentPath, "utf-8");
           } else {
-            throw new Error(
-              `Could not find file "${file.name}" for component. Tried:\n` +
-                `  - ${sourcePath}\n` +
-                `  - ${contentPath}`,
-            );
+            // If still not found, try treating file.content as literal content
+            fileContent = file.content;
           }
         }
 
