@@ -13,8 +13,11 @@ import type {
   UnsupportedSchemaTamboTool,
 } from "../../model/component-metadata";
 import { schemaToJsonSchema } from "../../schema/schema";
-import type { AvailableComponent } from "../types/component";
-import type { Tool } from "../types/tool";
+import type { RunCreateParams } from "@tambo-ai/typescript-sdk/resources/threads/runs";
+
+// Use the SDK's types for API requests
+type AvailableComponent = RunCreateParams.AvailableComponent;
+type Tool = RunCreateParams.Tool;
 
 /**
  * Convert a registered component to v1 API format.

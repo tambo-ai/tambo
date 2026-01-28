@@ -13,6 +13,10 @@ import {
   type ToolCallResultEvent,
   type ToolCallStartEvent,
 } from "@ag-ui/core";
+import type {
+  ComponentContent,
+  ToolUseContent,
+} from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import {
   createInitialState,
   createInitialThreadState,
@@ -20,6 +24,30 @@ import {
   type StreamState,
   type ThreadState,
 } from "./event-accumulator";
+import type { Content } from "../types/message";
+
+/**
+ * Helper to extract a ToolUseContent from a message content array.
+ * @param content - Content array from a message
+ * @param index - Index of the content item
+ * @returns The content as ToolUseContent
+ */
+function asToolUseContent(content: Content[], index: number): ToolUseContent {
+  return content[index] as ToolUseContent;
+}
+
+/**
+ * Helper to extract a ComponentContent from a message content array.
+ * @param content - Content array from a message
+ * @param index - Index of the content item
+ * @returns The content as ComponentContent
+ */
+function asComponentContent(
+  content: Content[],
+  index: number,
+): ComponentContent {
+  return content[index] as ComponentContent;
+}
 
 // Helper to create a base thread state for testing
 function createTestThreadState(threadId: string): ThreadState {
@@ -79,7 +107,7 @@ describe("streamReducer", () => {
   });
 
   describe("unknown thread handling", () => {
-    it("logs warning and returns unchanged state for unknown thread", () => {
+    it("auto-initializes unknown thread when receiving events", () => {
       const state = createInitialState();
       const event: RunStartedEvent = {
         type: EventType.RUN_STARTED,
@@ -93,10 +121,15 @@ describe("streamReducer", () => {
         threadId: "unknown_thread",
       });
 
-      expect(result).toBe(state);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("unknown thread: unknown_thread"),
+      // Should auto-initialize the thread rather than dropping the event
+      expect(result.threadMap.unknown_thread).toBeDefined();
+      expect(result.threadMap.unknown_thread.thread.id).toBe("unknown_thread");
+      expect(result.threadMap.unknown_thread.streaming.status).toBe(
+        "streaming",
       );
+      expect(result.threadMap.unknown_thread.streaming.runId).toBe("run_1");
+      // No warning should be logged for auto-initialization
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -120,28 +153,21 @@ describe("streamReducer", () => {
       );
     });
 
-    it("logs warning for completely unknown event types", () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "development";
-
+    it("throws for completely unknown event types (fail-fast)", () => {
       const state = createTestStreamState("thread_1");
       // Create an event with an unknown type (not in EventType enum)
+      // This tests fail-fast behavior when SDK returns unexpected event types
       const event = {
         type: "TOTALLY_UNKNOWN_EVENT_TYPE",
       };
 
-      const result = streamReducer(state, {
-        type: "EVENT",
-        event: event as unknown as RunStartedEvent,
-        threadId: "thread_1",
-      });
-
-      expect(result).toBe(state);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Unknown event type"),
-      );
-
-      process.env.NODE_ENV = originalEnv;
+      expect(() =>
+        streamReducer(state, {
+          type: "EVENT",
+          event: event as unknown as RunStartedEvent,
+          threadId: "thread_1",
+        }),
+      ).toThrow("Unreachable case");
     });
 
     it("logs warning for unknown custom event names", () => {
@@ -669,8 +695,10 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      const toolContent = result.threadMap.thread_1.thread.messages[0]
-        .content[0] as { type: "tool_use"; input: unknown };
+      const toolContent = asToolUseContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
       expect(toolContent.input).toEqual({ city: "NYC" });
     });
 
@@ -782,8 +810,10 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      const component = result.threadMap.thread_1.thread.messages[0]
-        .content[0] as { props: Record<string, unknown> };
+      const component = asComponentContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
       expect(component.props).toEqual({ temperature: 72 });
     });
 
@@ -864,8 +894,10 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      const component = result.threadMap.thread_1.thread.messages[0]
-        .content[0] as { state: Record<string, unknown> };
+      const component = asComponentContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
       expect(component.state).toEqual({ count: 42 });
     });
 
