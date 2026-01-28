@@ -1,9 +1,13 @@
-import { Hono } from 'hono';
-import { handle } from 'hono/vercel';
-import { z } from 'zod';
-import { db, contacts } from '../../../db';
+export const runtime = "nodejs";
 
-const app = new Hono().basePath('/api');
+import { Hono } from "hono";
+import { handle } from "hono/vercel";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { db } from "../../../db/db";
+import { contacts } from "../../../db/schema";
+
+const app = new Hono().basePath("/api");
 
 const createContactSchema = z.object({
   name: z.string().min(1),
@@ -12,27 +16,26 @@ const createContactSchema = z.object({
   notes: z.string().optional(),
 });
 
-app.get('/contacts', async (c) => {
+app.get("/contacts", async (c) => {
   try {
     const allContacts = await db.select().from(contacts);
     return c.json(allContacts);
   } catch (_error) {
-    return c.json({ error: 'Failed to fetch contacts' }, 500);
+    return c.json({ error: "Failed to fetch contacts" }, 500);
   }
 });
 
-app.post('/contacts', async (c) => {
+app.post("/contacts", zValidator("json", createContactSchema), async (c) => {
   try {
-    const body = await c.req.json();
-    const validatedData = createContactSchema.parse(body);
-    
-    const [newContact] = await db.insert(contacts).values(validatedData).returning();
+    const validatedData = c.req.valid("json");
+
+    const [newContact] = await db
+      .insert(contacts)
+      .values(validatedData)
+      .returning();
     return c.json(newContact, 201);
   } catch (_error) {
-    if (_error instanceof z.ZodError) {
-      return c.json({ error: 'Invalid input', details: _error.errors }, 400);
-    }
-    return c.json({ error: 'Failed to create contact' }, 500);
+    return c.json({ error: "Failed to create contact" }, 500);
   }
 });
 

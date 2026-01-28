@@ -11,26 +11,35 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tambo-ai/react": "^1.0.0",
-    "hono": "^4.0.0",
-    "drizzle-orm": "^0.45.1",
+    "@hono/zod-validator": "^0.2.0",
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@tambo-ai/react": "file:../../../react-sdk",
+    "@tanstack/react-query": "^5.90.20",
     "better-sqlite3": "^11.0.0",
-    "zod": "^3.22.0",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.1",
+    "eventsource": "^4.1.0",
+    "fast-equals": "^5.4.0",
+    "hono": "^4.0.0",
+    "lucide-react": "^0.400.0",
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-media-recorder": "^1.7.2",
+    "tailwind-merge": "^3.4.0",
     "tailwindcss": "^3.4.0",
-    "lucide-react": "^0.400.0"
+    "use-debounce": "^10.1.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^22.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "typescript": "^5.0.0",
+    "autoprefixer": "^10.4.0",
     "eslint": "^8.0.0",
     "eslint-config-next": "^14.0.0",
-    "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.0"
+    "postcss": "^8.4.0",
+    "typescript": "^5.0.0"
   }
 }

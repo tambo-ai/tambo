@@ -1,8 +1,11 @@
-'use client';
+"use client";
 
-import { useTamboComponentState, useTamboStreamingProps } from '@tambo-ai/react';
-import { User, Mail, Building, FileText } from 'lucide-react';
-import { ContactCardProps, ContactCardPropsSchema } from './schema';
+import {
+  useTamboComponentState,
+  useTamboStreamingProps,
+} from "@tambo-ai/react";
+import { User, Mail, Building, FileText } from "lucide-react";
+import { ContactCardProps, ContactCardPropsSchema } from "./schema";
 
 export default function ContactCard(props: ContactCardProps) {
   const [state] = useTamboComponentState(props);
@@ -17,7 +20,9 @@ export default function ContactCard(props: ContactCardProps) {
           <User className="h-5 w-5 text-gray-500" />
           <div>
             <p className="text-sm text-gray-500">Name</p>
-            <p className="font-medium text-gray-900">{currentProps.name || 'Loading...'}</p>
+            <p className="font-medium text-gray-900">
+              {currentProps.name || "Loading..."}
+            </p>
           </div>
         </div>
 
@@ -25,7 +30,9 @@ export default function ContactCard(props: ContactCardProps) {
           <Mail className="h-5 w-5 text-gray-500" />
           <div>
             <p className="text-sm text-gray-500">Email</p>
-            <p className="text-gray-900">{currentProps.email || 'Loading...'}</p>
+            <p className="text-gray-900">
+              {currentProps.email || "Loading..."}
+            </p>
           </div>
         </div>
 
