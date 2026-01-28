@@ -2,9 +2,10 @@
 
 This is a starter Astro app with Supabase and Tambo hooked up to get your AI app development started quickly.
 
-![App Screenshot](./public/image.png)
+![App Screenshot](https://github.com/user-attachments/assets/4fb968fa-53c9-4ca4-a427-4e0dd8cf5804)
 
-[Watch the Demo Video](https://youtu.be/placeholder)
+Video Demo:
+https://github.com/user-attachments/assets/3f869219-d25e-41ac-bed7-17419e70713a
 
 ## Get Started
 
