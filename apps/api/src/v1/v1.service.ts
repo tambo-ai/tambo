@@ -129,20 +129,16 @@ export class V1Service {
    */
   async listThreads(
     projectId: string,
-    contextKey: string | undefined,
+    contextKey: string,
     query: V1ListThreadsQueryDto,
   ): Promise<V1ListThreadsResponseDto> {
     const effectiveLimit = this.parseLimit(query.limit, 20);
 
     // Build where conditions
-    const conditions = [eq(schema.threads.projectId, projectId)];
-    if (contextKey !== undefined) {
-      if (contextKey.trim() === "") {
-        throw new BadRequestException("contextKey cannot be empty");
-      }
-
-      conditions.push(eq(schema.threads.contextKey, contextKey));
-    }
+    const conditions = [
+      eq(schema.threads.projectId, projectId),
+      eq(schema.threads.contextKey, contextKey),
+    ];
 
     // Cursor-based pagination (using createdAt + id)
     if (query.cursor) {
@@ -185,7 +181,7 @@ export class V1Service {
   async getThread(
     threadId: string,
     projectId: string,
-    contextKey: string | undefined,
+    contextKey: string,
   ): Promise<V1GetThreadResponseDto> {
     const thread = await operations.getThreadForProjectId(
       this.db,
@@ -212,17 +208,13 @@ export class V1Service {
    */
   async createThread(
     projectId: string,
-    contextKey: string | undefined,
+    contextKey: string,
     dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
     if (dto.initialMessages?.length) {
       throw new BadRequestException(
         "initialMessages is not supported yet. Create the thread first, then add messages via runs/message endpoints.",
       );
-    }
-
-    if (contextKey !== undefined && contextKey.trim() === "") {
-      throw new BadRequestException("contextKey cannot be empty");
     }
 
     const thread = await operations.createThread(this.db, {
@@ -608,7 +600,7 @@ export class V1Service {
    * @param runId - The run ID (already created by startRun)
    * @param dto - Run configuration including message, tools, etc.
    * @param projectId - The project ID for the thread
-   * @param contextKey - Optional context key for thread scoping
+   * @param contextKey - Context key for thread scoping
    */
   async executeRun(
     response: Response,
@@ -616,7 +608,7 @@ export class V1Service {
     runId: string,
     dto: V1CreateRunDto,
     projectId: string,
-    contextKey?: string,
+    contextKey: string,
   ): Promise<void> {
     return await Sentry.startSpan(
       {

@@ -39,7 +39,7 @@ describe("V1Controller", () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
-          contextKey: undefined,
+          contextKey: "bearer_context",
         });
         const mockResponse = {
           threads: [{ id: "thr_1", projectId: "prj_123" }],
@@ -51,7 +51,7 @@ describe("V1Controller", () => {
 
         expect(mockV1Service.listThreads).toHaveBeenCalledWith(
           "prj_123",
-          undefined,
+          "bearer_context",
           {},
         );
         expect(result).toEqual(mockResponse);
@@ -125,7 +125,7 @@ describe("V1Controller", () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
-          contextKey: undefined,
+          contextKey: "bearer_context",
         });
         const mockThread = {
           id: "thr_123",
@@ -142,7 +142,7 @@ describe("V1Controller", () => {
         expect(mockV1Service.getThread).toHaveBeenCalledWith(
           "thr_123",
           "prj_123",
-          undefined,
+          "bearer_context",
         );
         expect(result).toEqual(mockThread);
       });
@@ -151,7 +151,7 @@ describe("V1Controller", () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
-          contextKey: undefined,
+          contextKey: "bearer_context",
         });
         mockV1Service.getThread.mockRejectedValue(
           new NotFoundException("Thread thr_nonexistent not found"),
@@ -202,7 +202,7 @@ describe("V1Controller", () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
-          contextKey: undefined,
+          contextKey: "bearer_context",
         });
         const mockThread = {
           id: "thr_new",
@@ -217,7 +217,7 @@ describe("V1Controller", () => {
 
         expect(mockV1Service.createThread).toHaveBeenCalledWith(
           "prj_123",
-          undefined,
+          "bearer_context",
           {},
         );
         expect(result).toEqual(mockThread);
@@ -244,7 +244,7 @@ describe("V1Controller", () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
-          contextKey: undefined,
+          contextKey: "bearer_context",
         });
         mockV1Service.createThread.mockResolvedValue({} as any);
 
@@ -253,7 +253,7 @@ describe("V1Controller", () => {
 
         expect(mockV1Service.createThread).toHaveBeenCalledWith(
           "prj_123",
-          undefined,
+          "bearer_context",
           dto,
         );
       });

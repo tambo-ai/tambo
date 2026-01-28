@@ -210,7 +210,7 @@ describe("V1Service", () => {
     it("should list threads with default pagination", async () => {
       mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
 
-      const result = await service.listThreads("prj_123", undefined, {});
+      const result = await service.listThreads("prj_123", "user_456", {});
 
       expect(mockDb.query.threads.findMany).toHaveBeenCalled();
       expect(result.threads).toHaveLength(1);
@@ -226,11 +226,7 @@ describe("V1Service", () => {
       expect(mockDb.query.threads.findMany).toHaveBeenCalled();
     });
 
-    it("should reject an empty context key", async () => {
-      await expect(service.listThreads("prj_123", "", {})).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+    // Note: Empty context key validation is now handled at the controller level
 
     it("should handle pagination with cursor", async () => {
       mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
@@ -240,7 +236,7 @@ describe("V1Service", () => {
         id: "thr_000",
       });
 
-      const result = await service.listThreads("prj_123", undefined, {
+      const result = await service.listThreads("prj_123", "user_456", {
         cursor,
         limit: "10",
       });
@@ -251,19 +247,19 @@ describe("V1Service", () => {
 
     it("should reject an invalid cursor", async () => {
       await expect(
-        service.listThreads("prj_123", undefined, { cursor: "not-a-cursor" }),
+        service.listThreads("prj_123", "user_456", { cursor: "not-a-cursor" }),
       ).rejects.toThrow(BadRequestException);
     });
 
     it("should reject an invalid limit", async () => {
       await expect(
-        service.listThreads("prj_123", undefined, { limit: "not-a-number" }),
+        service.listThreads("prj_123", "user_456", { limit: "not-a-number" }),
       ).rejects.toThrow(BadRequestException);
     });
 
     it("should reject an empty limit", async () => {
       await expect(
-        service.listThreads("prj_123", undefined, { limit: "" }),
+        service.listThreads("prj_123", "user_456", { limit: "" }),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -280,7 +276,7 @@ describe("V1Service", () => {
         }));
       mockDb.query.threads.findMany.mockResolvedValue(threads);
 
-      const result = await service.listThreads("prj_123", undefined, {});
+      const result = await service.listThreads("prj_123", "user_456", {});
 
       expect(result.hasMore).toBe(true);
       expect(result.threads).toHaveLength(20);
@@ -306,7 +302,7 @@ describe("V1Service", () => {
       };
       mockDb.query.threads.findMany.mockResolvedValue([t1, t2]);
 
-      const result = await service.listThreads("prj_123", undefined, {
+      const result = await service.listThreads("prj_123", "user_456", {
         limit: "1",
       });
 
@@ -322,13 +318,13 @@ describe("V1Service", () => {
         messages: [mockMessage],
       });
 
-      const result = await service.getThread("thr_123", "prj_123", undefined);
+      const result = await service.getThread("thr_123", "prj_123", "user_456");
 
       expect(mockOperations.getThreadForProjectId).toHaveBeenCalledWith(
         mockDb,
         "thr_123",
         "prj_123",
-        undefined,
+        "user_456",
         true,
       );
       expect(result.id).toBe("thr_123");
@@ -340,7 +336,7 @@ describe("V1Service", () => {
       mockOperations.getThreadForProjectId.mockResolvedValue(undefined);
 
       await expect(
-        service.getThread("thr_nonexistent", "prj_123", undefined),
+        service.getThread("thr_nonexistent", "prj_123", "user_456"),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -358,7 +354,7 @@ describe("V1Service", () => {
         threadWithV1Fields,
       );
 
-      const result = await service.getThread("thr_123", "prj_123", undefined);
+      const result = await service.getThread("thr_123", "prj_123", "user_456");
 
       expect(result.runStatus).toBe(V1RunStatus.STREAMING);
       expect(result.currentRunId).toBe("run_123");
@@ -389,11 +385,11 @@ describe("V1Service", () => {
     it("should create a thread with minimal data", async () => {
       mockOperations.createThread.mockResolvedValue(mockThread);
 
-      const result = await service.createThread("prj_123", undefined, {});
+      const result = await service.createThread("prj_123", "user_456", {});
 
       expect(mockOperations.createThread).toHaveBeenCalledWith(mockDb, {
         projectId: "prj_123",
-        contextKey: undefined,
+        contextKey: "user_456",
         metadata: undefined,
       });
       expect(result.id).toBe("thr_123");
@@ -416,7 +412,7 @@ describe("V1Service", () => {
 
     it("should reject initialMessages for now", async () => {
       await expect(
-        service.createThread("prj_123", undefined, {
+        service.createThread("prj_123", "user_456", {
           initialMessages: [
             { role: "user", content: [{ type: "text", text: "Hi" }] },
           ],
@@ -731,7 +727,7 @@ describe("V1Service", () => {
       };
       mockOperations.getThreadForProjectId.mockResolvedValue(threadWithError);
 
-      const result = await service.getThread("thr_123", "prj_123", undefined);
+      const result = await service.getThread("thr_123", "prj_123", "user_456");
 
       expect(result.lastRunError).toEqual({
         code: "RATE_LIMITED",
@@ -747,7 +743,7 @@ describe("V1Service", () => {
       );
 
       await expect(
-        service.createThread("prj_123", undefined, {}),
+        service.createThread("prj_123", "user_456", {}),
       ).rejects.toThrow(/Failed to create thread for project prj_123/);
     });
   });

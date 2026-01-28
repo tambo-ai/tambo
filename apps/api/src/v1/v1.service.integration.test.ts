@@ -118,14 +118,14 @@ describe("V1Service Integration", () => {
         const result = await service.getThread(
           "thread_123",
           "project_123",
-          undefined,
+          "user_456",
         );
 
         expect(mockGetThreadForProjectId).toHaveBeenCalledWith(
           mockDb,
           "thread_123",
           "project_123",
-          undefined,
+          "user_456",
           true,
         );
         expect(result.id).toBe("thread_123");
@@ -140,7 +140,7 @@ describe("V1Service Integration", () => {
         mockGetThreadForProjectId.mockResolvedValue(null);
 
         await expect(
-          service.getThread("nonexistent", "project_123", undefined),
+          service.getThread("nonexistent", "project_123", "user_456"),
         ).rejects.toThrow(NotFoundException);
       });
     });
@@ -153,7 +153,7 @@ describe("V1Service Integration", () => {
         ];
         mockDb.query.threads.findMany.mockResolvedValue(mockThreads);
 
-        const result = await service.listThreads("project_123", undefined, {});
+        const result = await service.listThreads("project_123", "user_456", {});
 
         expect(result.threads).toHaveLength(2);
         expect(result.hasMore).toBe(false);
@@ -166,7 +166,7 @@ describe("V1Service Integration", () => {
         );
         mockDb.query.threads.findMany.mockResolvedValue(mockThreads);
 
-        const result = await service.listThreads("project_123", undefined, {});
+        const result = await service.listThreads("project_123", "user_456", {});
 
         expect(result.threads).toHaveLength(20);
         expect(result.hasMore).toBe(true);
