@@ -44,7 +44,7 @@ _(Note: For the best experience, we recommend watching the high-quality recordin
 _The default Bento Grid view_
 
 ![Context Aware Mode](public/screenshot-context.png)
-_Context-Aware Mode: "Coding" profile activated by AI_
+_Context-Aware Mode: "Travel" profile (Kyoto) activated by AI_
 
 ## 🚀 Quick Start
 
@@ -57,132 +57,75 @@ _Context-Aware Mode: "Coding" profile activated by AI_
     npm run dev
     ```
 
-2.  **Open Dashboard:** Go to `http://localhost:3000`. You'll see the default Bento Grid with Weather, Tasks, and Music widgets.
+2.  **Open Dashboard:** Go to `http://localhost:3000`.
 
-3.  **Ask the AI:** Click "Ask AI to Customize" and try these prompts:
-    - _"Add a weather widget for New York."_
-    - _"Create a checklist for my morning routine."_
-    - _"Show me a music widget for Daft Punk."_
-    - _"Add a stat card for 'Followers' with value '10k' and trending up."_
+3.  **Try Context Switching:**
+    Click "Ask AI to Customize" and try these prompts:
+    - **Coding Mode:**
+      > "I am working on the Personal OS project. Show me my active Pull Requests, a focus timer for 25 minutes, and a lo-fi music player."
+    - **Travel Mode:**
+      > "I'm planning a trip to Kyoto. Show me the weather there, a checklist for packing, and the exchange rate."
 
-## Get Started
+## 📂 Project Structure
 
-1. Run `npm install`
-2. `npx tambo init` (or add your API key to `.env.local`)
-3. `npm run dev`
+A clean, modular structure designed for AI-generated UI.
 
-## Customizing
+```
+src/
+├── app/
+│   └── page.tsx          # Main Entry: Handles AI responses & layout switching
+├── components/
+│   ├── tambo/
+│   │   ├── widgets.tsx       # Basic Widgets (Weather, Tasks, Music)
+│   │   └── more-widgets.tsx  # Context Widgets (GitHub, Timer, News)
+│   └── ui/
+│       └── bento-grid.tsx    # Masonry Grid Layout Component
+└── lib/
+    └── tambo.ts          # 🧠 AI Config: Registers all widgets for the LLM
+```
 
-### Change what components tambo can control
+## 🧠 How It Works
 
-You can see how components are registered with tambo in `src/lib/tambo.ts`:
+### 1. The "Context Switch"
+
+In `src/app/page.tsx`, we use the `useTambo` hook. When the AI returns a component (a new layout), we swap the entire dashboard:
+
+```tsx
+const { thread } = useTambo();
+const latestComponent = thread?.messages.at(-1)?.renderedComponent;
+
+return (
+  <main>
+    {latestComponent ? (
+      // Render AI-generated Layout
+      <div className="animate-in fade-in">{latestComponent}</div>
+    ) : (
+      // Default Static Dashboard
+      <DefaultDashboard />
+    )}
+  </main>
+);
+```
+
+### 2. Widget Registration
+
+We teach the AI about our widgets in `src/lib/tambo.ts`. This allows it to "hallucinate" usages of them with correct props.
 
 ```tsx
 export const components: TamboComponent[] = [
   {
-    name: "Graph",
-    description:
-      "A component that renders various types of charts (bar, line, pie) using Recharts. Supports customizable data visualization with labels, datasets, and styling options.",
-    component: Graph,
-    propsSchema: graphSchema,
+    name: "GithubWidget",
+    description: "Displays GitHub repository status...",
+    component: GithubWidget,
+    propsSchema: githubWidgetSchema, // Zod schema defines the data structure
   },
-  // Add more components here
+  // ...
 ];
 ```
 
-You can install the graph component into any project with:
+### 3. Adding Your Own Widgets
 
-```bash
-npx tambo add graph
-```
-
-The example Graph component demonstrates several key features:
-
-- Different prop types (strings, arrays, enums, nested objects)
-- Multiple chart types (bar, line, pie)
-- Customizable styling (variants, sizes)
-- Optional configurations (title, legend, colors)
-- Data visualization capabilities
-
-Update the `components` array with any component(s) you want tambo to be able to use in a response!
-
-You can find more information about the options [here](https://docs.tambo.co/concepts/generative-interfaces/generative-components)
-
-### Add tools for tambo to use
-
-Tools are defined with `inputSchema` and `outputSchema`:
-
-```tsx
-export const tools: TamboTool[] = [
-  {
-    name: "globalPopulation",
-    description:
-      "A tool to get global population trends with optional year range filtering",
-    tool: getGlobalPopulationTrend,
-    inputSchema: z.object({
-      startYear: z.number().optional(),
-      endYear: z.number().optional(),
-    }),
-    outputSchema: z.array(
-      z.object({
-        year: z.number(),
-        population: z.number(),
-        growthRate: z.number(),
-      }),
-    ),
-  },
-];
-```
-
-Find more information about tools [here.](https://docs.tambo.co/concepts/tools)
-
-### The Magic of Tambo Requires the TamboProvider
-
-Make sure in the TamboProvider wrapped around your app:
-
-```tsx
-...
-<TamboProvider
-  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
-  components={components} // Array of components to control
-  tools={tools} // Array of tools it can use
->
-  {children}
-</TamboProvider>
-```
-
-In this example we do this in the `Layout.tsx` file, but you can do it anywhere in your app that is a client component.
-
-### Voice input
-
-The template includes a `DictationButton` component using the `useTamboVoice` hook for speech-to-text input.
-
-### MCP (Model Context Protocol)
-
-The template includes MCP support for connecting to external tools and resources. You can use the MCP hooks from `@tambo-ai/react/mcp`:
-
-- `useTamboMcpPromptList` - List available prompts from MCP servers
-- `useTamboMcpPrompt` - Get a specific prompt
-- `useTamboMcpResourceList` - List available resources
-
-See `src/components/tambo/mcp-components.tsx` for example usage.
-
-### Change where component responses are shown
-
-The components used by tambo are shown alongside the message response from tambo within the chat thread, but you can have the result components show wherever you like by accessing the latest thread message's `renderedComponent` field:
-
-```tsx
-const { thread } = useTambo();
-const latestComponent =
-  thread?.messages[thread.messages.length - 1]?.renderedComponent;
-
-return (
-  <div>
-    {latestComponent && (
-      <div className="my-custom-wrapper">{latestComponent}</div>
-    )}
-  </div>
-);
-```
-
-For more detailed documentation, visit [Tambo's official docs](https://docs.tambo.co).
+1.  Create a component in `components/tambo/`.
+2.  Define a `zod` schema for its props.
+3.  Add it to the `components` array in `lib/tambo.ts`.
+4.  Ask the AI to use it!
