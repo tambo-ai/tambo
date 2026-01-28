@@ -83,7 +83,7 @@ export const threadRouter = createTRPCRouter({
         ctx.db,
         input.threadId,
         input.projectId,
-        undefined,
+        operations.ANY_CONTEXT_KEY,
         false,
       );
       if (thread?.projectId !== input.projectId) {
@@ -120,6 +120,7 @@ export const threadRouter = createTRPCRouter({
         ctx.db,
         input.threadId,
         input.projectId,
+        operations.ANY_CONTEXT_KEY,
       );
       if (thread?.projectId !== input.projectId) {
         throw new Error("Thread not found");
