@@ -896,4 +896,135 @@ describe("handleAddComponents", () => {
       expect(installWithLegacy).toBeDefined();
     });
   });
+
+  describe("cross-component file references", () => {
+    it("should resolve legacy src/registry/ paths to components/", async () => {
+      // Setup: Create a component with a cross-component file reference using legacy path format
+      vol.fromJSON({
+        ...createBasicProject(),
+        "/mock-project/cli/dist/registry/components/test-component/config.json":
+          JSON.stringify({
+            name: "test-component",
+            description: "Test component with cross-reference",
+            componentName: "TestComponent",
+            dependencies: [],
+            devDependencies: [],
+            requires: [],
+            files: [
+              {
+                name: "test-component.tsx",
+                content: "export const TestComponent = () => <div>Test</div>;",
+              },
+              {
+                // Cross-component reference with legacy path format
+                name: "shared-util.tsx",
+                content: "src/registry/other-component/shared-util.tsx",
+              },
+            ],
+          }),
+        "/mock-project/cli/dist/registry/components/test-component/test-component.tsx":
+          "export const TestComponent = () => <div>Test</div>;",
+        // The actual file in the other component directory
+        "/mock-project/cli/dist/registry/components/other-component/shared-util.tsx":
+          "export const SharedUtil = () => <div>Shared</div>;",
+      });
+
+      // Execute
+      await handleAddComponents(["test-component"], { yes: true });
+
+      // Verify the shared file was installed with correct content
+      const sharedUtilContent = vol.readFileSync(
+        "/mock-project/src/components/tambo/shared-util.tsx",
+        "utf-8",
+      );
+      expect(sharedUtilContent).toContain("SharedUtil");
+    });
+
+    it("should resolve legacy src/registry/lib/ paths to lib/", async () => {
+      // Setup: Create a component with a lib file reference using legacy path format
+      vol.fromJSON({
+        ...createBasicProject(),
+        "/mock-project/cli/dist/registry/components/test-component/config.json":
+          JSON.stringify({
+            name: "test-component",
+            description: "Test component with lib reference",
+            componentName: "TestComponent",
+            dependencies: [],
+            devDependencies: [],
+            requires: [],
+            files: [
+              {
+                name: "test-component.tsx",
+                content: "export const TestComponent = () => <div>Test</div>;",
+              },
+              {
+                // Lib file reference with legacy path format
+                name: "lib/helper.ts",
+                content: "src/registry/lib/helper.ts",
+              },
+            ],
+          }),
+        "/mock-project/cli/dist/registry/components/test-component/test-component.tsx":
+          "export const TestComponent = () => <div>Test</div>;",
+        // The actual lib file
+        "/mock-project/cli/dist/registry/lib/helper.ts":
+          "export const helper = () => 'helper';",
+      });
+
+      // Execute
+      await handleAddComponents(["test-component"], { yes: true });
+
+      // Verify the lib file was installed with correct content
+      const helperContent = vol.readFileSync(
+        "/mock-project/src/lib/helper.ts",
+        "utf-8",
+      );
+      expect(helperContent).toContain("helper");
+    });
+  });
+
+  describe("skipTailwindSetup option", () => {
+    it("should skip tailwind setup when skipTailwindSetup is true", async () => {
+      // Get the mocked setupTailwindAndGlobals
+      const { setupTailwindAndGlobals } = await import("./tailwind-setup.js");
+
+      // Clear any previous calls
+      (setupTailwindAndGlobals as jest.Mock).mockClear();
+
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with skipTailwindSetup: true
+      await handleAddComponents(["message"], {
+        yes: true,
+        skipTailwindSetup: true,
+      });
+
+      // Verify setupTailwindAndGlobals was NOT called
+      expect(setupTailwindAndGlobals).not.toHaveBeenCalled();
+    });
+
+    it("should run tailwind setup when skipTailwindSetup is false/undefined", async () => {
+      // Get the mocked setupTailwindAndGlobals
+      const { setupTailwindAndGlobals } = await import("./tailwind-setup.js");
+
+      // Clear any previous calls
+      (setupTailwindAndGlobals as jest.Mock).mockClear();
+
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute without skipTailwindSetup (default behavior)
+      await handleAddComponents(["message"], { yes: true });
+
+      // Verify setupTailwindAndGlobals WAS called
+      expect(setupTailwindAndGlobals).toHaveBeenCalled();
+    });
+  });
 });
