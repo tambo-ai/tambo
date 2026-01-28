@@ -3,34 +3,44 @@ import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input";
 
 // Create mock functions
 const mockMutateAsync = jest.fn();
+const mockMutate = jest.fn();
 const mockReset = jest.fn();
 
-// Default mock return value
-const createMockMutationReturn = (overrides = {}) => ({
-  mutateAsync: mockMutateAsync,
-  isPending: false,
-  isError: false,
-  error: null,
-  isSuccess: false,
-  reset: mockReset,
-  ...overrides,
-});
-
-// Mock useTamboV1SendMessage
-jest.mock("./use-tambo-v1-send-message", () => ({
-  useTamboV1SendMessage: jest.fn(() => createMockMutationReturn()),
-}));
+// Mock useTamboV1SendMessage module
+jest.mock("./use-tambo-v1-send-message");
 
 import { useTamboV1SendMessage } from "./use-tambo-v1-send-message";
+
+// Helper to set up the mock with default values
+function setupMock(overrides: Record<string, unknown> = {}) {
+  const mockReturn = {
+    mutateAsync: mockMutateAsync,
+    mutate: mockMutate,
+    isPending: false as const,
+    isError: false as const,
+    error: null,
+    isSuccess: false as const,
+    isIdle: true as const,
+    isPaused: false as const,
+    status: "idle" as const,
+    data: undefined,
+    variables: undefined,
+    failureCount: 0,
+    failureReason: null,
+    reset: mockReset,
+    context: undefined,
+    submittedAt: 0,
+    ...overrides,
+  };
+  jest.mocked(useTamboV1SendMessage).mockReturnValue(mockReturn);
+  return mockReturn;
+}
 
 describe("useTamboV1ThreadInput", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMutateAsync.mockResolvedValue({ threadId: "thread_123" });
-    // Reset the mock implementation to default
-    jest
-      .mocked(useTamboV1SendMessage)
-      .mockReturnValue(createMockMutationReturn());
+    setupMock();
   });
 
   describe("State Management", () => {
@@ -172,9 +182,7 @@ describe("useTamboV1ThreadInput", () => {
 
   describe("Mutation State", () => {
     it("exposes isPending state", () => {
-      jest
-        .mocked(useTamboV1SendMessage)
-        .mockReturnValue(createMockMutationReturn({ isPending: true }));
+      setupMock({ isPending: true });
 
       const { result } = renderHook(() => useTamboV1ThreadInput());
 
@@ -182,12 +190,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("exposes isError state", () => {
-      jest.mocked(useTamboV1SendMessage).mockReturnValue(
-        createMockMutationReturn({
-          isError: true,
-          error: new Error("Test error"),
-        }),
-      );
+      setupMock({ isError: true, error: new Error("Test error") });
 
       const { result } = renderHook(() => useTamboV1ThreadInput());
 
@@ -196,9 +199,7 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("exposes isSuccess state", () => {
-      jest
-        .mocked(useTamboV1SendMessage)
-        .mockReturnValue(createMockMutationReturn({ isSuccess: true }));
+      setupMock({ isSuccess: true });
 
       const { result } = renderHook(() => useTamboV1ThreadInput());
 
