@@ -140,12 +140,14 @@ export function SupabaseAdapter(): Adapter {
     async updateUser(data: UpdateUserData) {
       // console.log("AUTH: Updating user", data);
       return await withDbClient(env.DATABASE_URL, async (client) => {
-        // Build metadata update object, only including fields that are provided
-        const metadataUpdates: Record<string, string | null> = {};
-        if (data.name !== undefined) {
+        // Build metadata update object, only including truthy values
+        // This matches createUser behavior and prevents overwriting existing
+        // values with null/empty when OAuth provider omits optional claims
+        const metadataUpdates: Record<string, string> = {};
+        if (data.name) {
           metadataUpdates.name = data.name;
         }
-        if (data.image !== undefined) {
+        if (data.image) {
           metadataUpdates.avatar_url = data.image;
         }
 
