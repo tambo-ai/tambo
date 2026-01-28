@@ -130,6 +130,16 @@ export function strictifyJSONSchemaProperty(
   for (const key of wellKnownKeys) {
     if (key in restOfProperty) {
       const value = restOfProperty[key];
+      // When we have composite types (anyOf/oneOf/allOf/not), we need to remove
+      // `type` from the result since having both `type: "object"` and `anyOf`
+      // at the same level creates an invalid schema
+      const {
+        type: _type,
+        properties: _properties,
+        required: _required,
+        additionalProperties: _additionalProperties,
+        ...restWithoutType
+      } = restOfProperty;
       if (Array.isArray(value)) {
         const sanitizedArray = value
           .map((item, index) => {
@@ -149,7 +159,7 @@ export function strictifyJSONSchemaProperty(
         }
 
         return {
-          ...restOfProperty,
+          ...restWithoutType,
           [key]: sanitizedArray,
         };
       } else {
@@ -168,7 +178,7 @@ export function strictifyJSONSchemaProperty(
           return null;
         }
         return {
-          ...restOfProperty,
+          ...restWithoutType,
           [key]: strictSchema,
         };
       }
