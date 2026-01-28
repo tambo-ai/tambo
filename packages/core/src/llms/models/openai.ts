@@ -23,6 +23,20 @@ const reasoningParameters: LlmParameterMetadata = {
 // Models are sorted by version (newest first). Minor versions (e.g., 5.1) are
 // considered newer than their base versions (e.g., 5), so 5.1 comes before 5.
 export const openaiModels: Partial<LlmModelConfig<OpenAIModelId>> = {
+  "gpt-5.2": {
+    apiName: "gpt-5.2",
+    displayName: "gpt-5.2",
+    status: "tested",
+    notes: "GPT-5.2 model with improved capabilities",
+    docLink: "https://platform.openai.com/docs/models/gpt-5.2",
+    tamboDocLink: "https://docs.tambo.co/models/openai#gpt-52",
+    inputTokenLimit: 400000,
+    modelSpecificParams: reasoningParameters,
+    modelParamsDefaults: {
+      reasoningEffort: "low",
+      reasoningSummary: "auto",
+    },
+  },
   "gpt-5.1": {
     apiName: "gpt-5.1",
     displayName: "gpt-5.1",
