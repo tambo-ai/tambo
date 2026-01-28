@@ -5,6 +5,11 @@ A production-ready starter template combining React Router v7, Clerk authenticat
 ![Screenshot](./screenshot.png)
 *AI-powered chat interface with generative UI components*
 
+## 🎬 Video Demo
+
+<!-- TODO: Replace with your GitHub-hosted video URL -->
+https://github.com/user-attachments/assets/YOUR_VIDEO_ID_HERE
+
 
 ## ✨ What's Included
 
