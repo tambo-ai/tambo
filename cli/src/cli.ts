@@ -45,7 +45,7 @@ interface CLIFlags extends Record<string, any> {
   apiKey?: Flag<"string", string>;
   projectName?: Flag<"string", string>;
   projectId?: Flag<"string", string>;
-  noBrowser?: Flag<"boolean", boolean>;
+  browser?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -428,9 +428,11 @@ const cli = meow(generateGlobalHelp(), {
       type: "string",
       description: "Project ID for init (uses existing project)",
     },
-    noBrowser: {
+    browser: {
       type: "boolean",
-      description: "Print auth URL instead of opening browser (for CI/agents)",
+      default: true,
+      description:
+        "Open browser for auth (use --no-browser to print URL instead)",
     },
   },
   importMeta: import.meta,
@@ -483,7 +485,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       apiKey: flags.apiKey as string | undefined,
       projectName: flags.projectName as string | undefined,
       projectId: flags.projectId as string | undefined,
-      noBrowser: Boolean(flags.noBrowser),
+      noBrowser: flags.browser === false,
     });
     return;
   }
@@ -609,7 +611,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       quiet: Boolean(flags.quiet ?? flags.q),
       force: Boolean(flags.force ?? flags.f),
       all: Boolean(flags.all),
-      noBrowser: Boolean(flags.noBrowser),
+      noBrowser: flags.browser === false,
     });
     return;
   }
