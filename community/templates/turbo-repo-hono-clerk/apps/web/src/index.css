@@ -22,12 +22,20 @@ a:hover {
   color: #535bf2;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
 body {
   margin: 0;
   display: flex;
+  flex-direction: column;
   place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  background-color: transparent; /* theme handled in App.css */
+  -webkit-font-smoothing: antialiased;
 }
 
 h1 {
@@ -35,23 +43,66 @@ h1 {
   line-height: 1.1;
 }
 
+/* Utility: center content container */
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
+  color: inherit;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition:
+    border-color 0.18s ease,
+    transform 0.08s ease;
+  width: auto;
+  min-width: 44px;
+  box-sizing: border-box;
 }
 button:hover {
   border-color: #646cff;
+  transform: translateY(-1px);
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Header buttons and main action buttons should not expand */
+.app-header button,
+.app-header .clerk-button,
+.app-main > button,
+.app-main button,
+.app-main .clerk-button {
+  width: auto !important;
+  max-width: 320px;
+}
+
+/* Signed-out area: center the SignIn button and keep it compact */
+.app-main > :not(p) > button,
+.app-main > button,
+.app-main .clerk-button {
+  align-self: center !important;
+}
+
+/* Ensure buttons inside Clerk components don't stretch */
+.clerk-button,
+.clerk-button * {
+  width: auto !important;
 }
 
 @media (prefers-color-scheme: light) {
