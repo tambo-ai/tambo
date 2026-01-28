@@ -42,7 +42,7 @@ Templates should be focused and minimal:
 
 ### Code Quality
 
-Your template must include linting and type checking appropriate for its stack, and it must pass those checks. Before submitting, make sure your lint and type-check commands run successfully (for example):
+Your template must include linting and type checking appropriate for its stack, and it must pass those checks. Before submitting, make sure your lint and type-check commands (or their equivalents for your tooling) run successfully (for example):
 
 ```bash
 npm run lint      # Must pass with no errors
