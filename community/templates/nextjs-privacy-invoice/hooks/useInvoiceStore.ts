@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
+import { create } from "zustand";
+import { supabase } from "../lib/supabase";
 
 interface InvoiceItem {
   id: string;
@@ -20,7 +20,7 @@ interface InvoiceState {
 }
 
 export const useInvoiceStore = create<InvoiceState>((set, get) => ({
-  clientName: '',
+  clientName: "",
   items: [],
   totalAmount: 0,
   isSaving: false,
@@ -42,24 +42,21 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
 
     try {
       // 2. Send data to the Cloud
-      const { error } = await supabase
-        .from('invoices')
-        .insert([
-          {
-            client_name: state.clientName || 'Unnamed Client', 
-            total_amount: state.totalAmount || 0,
-            items: state.items
-          }
-        ]);
+      const { error } = await supabase.from("invoices").insert([
+        {
+          client_name: state.clientName || "Unnamed Client",
+          total_amount: state.totalAmount || 0,
+          items: state.items,
+        },
+      ]);
 
       if (error) throw error;
       alert("✅ Success! Invoice saved to Supabase Cloud Database.");
-      
     } catch (err: any) {
       console.error("Supabase Error:", err);
       alert("❌ Error saving to cloud: " + err.message);
     } finally {
       set({ isSaving: false });
     }
-  }
+  },
 }));
