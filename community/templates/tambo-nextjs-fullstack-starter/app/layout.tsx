@@ -23,47 +23,9 @@ export const metadata: Metadata = {
     default: "Tambo NextJS Fullstack Starter",
     template: "%s | Tambo Starter",
   },
-  description:
-    "A production-ready Next.js template with Tambo AI, Google OAuth, and PostgreSQL.",
-  keywords: [
-    "Next.js",
-    "Tambo AI",
-    "Google OAuth",
-    "PostgreSQL",
-    "Full-Stack",
-    "TypeScript",
-    "React",
-    "AI Assistant",
-  ],
 
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-  ),
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "/",
-    title: "Tambo NextJS Fullstack Starter",
-    description:
-      "A production-ready Next.js template with Tambo AI, Google OAuth, and PostgreSQL. ",
-    siteName: "Tambo Starter",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Tambo NextJS Fullstack Starter",
-    description:
-      "A production-ready Next.js template with Tambo AI, Google OAuth, and PostgreSQL.",
-    creator: "@yourhandle", // Update with your Twitter handle
-  },
-  // Next.js App Router automatically detects favicon.ico in the app directory
-  // The icons configuration below is optional but helps with browser compatibility
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon.ico", type: "image/x-icon" },
-    ],
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: [{ url: "/favicon.ico", sizes: "any" }],
   },
 };
 

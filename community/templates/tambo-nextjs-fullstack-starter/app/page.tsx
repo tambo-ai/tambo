@@ -1,154 +1,54 @@
 "use client";
-
-import { Button } from "@/components/ui/button";
-import { signIn } from "next-auth/react";
+import { ApiKeyCheck } from "@/components/ApiKeyCheck";
 import Image from "next/image";
-import Link from "next/link";
-import React from "react";
-
-// HeroIllustration component based on apps/web/components/sections/hero.tsx
-function HeroIllustration() {
-  const [isSafari, setIsSafari] = React.useState(false);
-  const [videoError, setVideoError] = React.useState(false);
-
-  React.useEffect(() => {
-    const isSafariBrowser =
-      /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ||
-      /iPad|iPhone|iPod/.test(navigator.userAgent);
-    setIsSafari(isSafariBrowser);
-  }, []);
-
-  const handleVideoError = () => {
-    setVideoError(true);
-  };
-
-  const shouldUseGif = isSafari || videoError;
-
-  return (
-    <div className="w-full h-full flex items-center justify-center overflow-hidden">
-      <div className="w-full h-full relative">
-        <div className="w-full h-full scale-75 sm:scale-90 md:scale-100 lg:scale-110">
-          {shouldUseGif ? (
-            <Image
-              src="/assets/landing/hero/Octo-5-transparent-lossy.gif"
-              alt="Tambo Octopus Animation"
-              unoptimized={true}
-              className="w-full h-full object-contain"
-              width={1000}
-              height={1000}
-            />
-          ) : (
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              onError={handleVideoError}
-              className="w-full h-full object-contain"
-              aria-label="Tambo Octopus Animation"
-            >
-              <source
-                src="/assets/landing/hero/Octo-5-animated-vp9-small.webm"
-                type="video/webm"
-              />
-            </video>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+import { Instructions } from "@/components/Instructions";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Main Hero Section */}
-      <main className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
-        <section className="pt-16 pb-24 lg:pt-24 lg:pb-32">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left Column: Text Content */}
-            <div className="flex flex-col items-start text-left">
-              {/* Tambo Wordmark SVG */}
-              <div className="mb-8">
-                <Image
-                  src="/logo/wordmark/Tambo-Lockup.svg"
-                  alt="Tambo Wordmark"
-                  width={300}
-                  height={82}
-                  priority
-                />
-              </div>
+    <div className="min-h-screen p-8 flex flex-col items-center justify-center font-[family-name:var(--font-geist-sans)]">
+      <main className="max-w-2xl w-full space-y-8">
+        <div className="flex flex-col items-center">
+          <a href="https://tambo.co" target="_blank" rel="noopener noreferrer">
+            <Image
+              src="/logo/Octo-Icon.svg"
+              alt="Tambo AI Logo"
+              width={80}
+              height={160}
+              className="mb-6 mt-7"
+            />
+          </a>
+          <h1 className="text-4xl text-center"> Nextjs Fullstack Template</h1>
+        </div>
 
-              {/* Description */}
-              <div className="mb-7 max-w-xl leading-relaxed font-heading text-foreground">
-                <h2 className="mb-3 text-2xl font-bold tracking-tight">
-                  The <span className="text-primary">Ultimate</span> Full-Stack
-                  Tambo Starter
-                </h2>
-                <p className="mb-4 text-base">
-                  Production-ready template with{" "}
-                  <span className="text-primary font-semibold">Tambo AI</span>,{" "}
-                  <span className="text-primary font-semibold">
-                    Google OAuth
-                  </span>
-                  , and{" "}
-                  <span className="text-primary font-semibold">PostgreSQL</span>
-                  .
-                </p>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <span className="font-semibold text-primary">Next.js</span>{" "}
-                    • TypeScript • App Router
-                  </li>
-                  <li>
-                    <span className="font-semibold text-primary">
-                      shadcn/ui
-                    </span>{" "}
-                    • Tailwind CSS
-                  </li>
-                  <li>
-                    <span className="font-semibold text-primary">Prisma</span> •
-                    PostgreSQL
-                  </li>
-                </ul>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex flex-col gap-4 sm:flex-row mt-4">
+        <div className="w-full space-y-8">
+          <div className="bg-white px-8 py-4">
+            <h2 className="text-xl font-semibold mb-4">Setup Checklist</h2>
+            <ApiKeyCheck>
+              <div className="flex flex-col sm:flex-row gap-4 mt-4 items-center justify-center">
                 <Button
                   size="lg"
-                  className="rounded-full"
+                  className="flex items-center px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#7FFFC3] hover:bg-[#72e6b0] text-gray-800"
                   onClick={() =>
                     signIn("google", { callbackUrl: "/dashboard" })
                   }
                 >
-                  Get Started
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="rounded-full"
-                >
-                  <Link
-                    href="https://docs.tambo.co"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Documentation
-                  </Link>
+                  <span className="flex items-center gap-2">
+                    <Image
+                      src="/logo/google.svg"
+                      alt="Google Logo"
+                      width={24}
+                      height={24}
+                    />
+                    Get Started
+                  </span>
                 </Button>
               </div>
-            </div>
-
-            {/* Right Column: Hero Illustration */}
-            <div className="relative w-full lg:w-auto">
-              <div className="relative w-full aspect-square max-w-[520px] mx-auto">
-                <HeroIllustration />
-              </div>
-            </div>
+            </ApiKeyCheck>
           </div>
-        </section>
+          <Instructions />
+        </div>
       </main>
     </div>
   );
