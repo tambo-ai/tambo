@@ -34,8 +34,8 @@ export default function Home() {
           Generative UI.
         </p>
         <p className="mt-2 text-xs opacity-80">
-          Try asking: <em>"Add google.com to my bookmarks"</em> or{" "}
-          <em>"Show me bookmarks tagged 'docs'"</em>
+          Try asking: <em>&quot;Add google.com to my bookmarks&quot;</em> or{" "}
+          <em>&quot;Show me bookmarks tagged &apos;docs&apos;&quot;</em>
         </p>
       </div>
 
