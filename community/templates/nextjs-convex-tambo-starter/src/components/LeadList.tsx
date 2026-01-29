@@ -20,8 +20,6 @@ export function LeadList() {
     setIsMounted(true);
   }, []);
 
-
-
   if (!isMounted || !leads)
     return (
       <div className="flex items-center justify-center h-64">
