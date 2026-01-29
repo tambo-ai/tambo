@@ -7,9 +7,11 @@ A minimal starter template demonstrating AI-driven component rendering with Tamb
 ![Screenshot](./screenshot.png)
 ## Video Demo
 
-> **TODO**: Add video demo link
 
-<!-- [Watch Demo](https://your-video-link) -->
+
+## Video Demo
+
+🎥 Watch demo: https://github.com/tambo-ai/tambo/pull/2042#issuecomment-3820317165
 
 ## What This Template Demonstrates
 
