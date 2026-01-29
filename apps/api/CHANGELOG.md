@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.133.1](https://github.com/tambo-ai/tambo/compare/api-v0.133.0...api-v0.133.1) (2026-01-29)
+
+
+### Miscellaneous Chores
+
+* **api:** update description ([#2008](https://github.com/tambo-ai/tambo/issues/2008)) ([4a5445d](https://github.com/tambo-ai/tambo/commit/4a5445d00f56e7b9d215f315ae3d5017941001dc))
+
 ## [0.133.0](https://github.com/tambo-ai/tambo/compare/api-v0.132.1...api-v0.133.0) (2026-01-28)
 
 
