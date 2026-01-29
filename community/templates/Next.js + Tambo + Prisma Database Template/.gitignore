@@ -3,3 +3,7 @@ node_modules
 .env.local
 .DS_Store
 *.log
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal

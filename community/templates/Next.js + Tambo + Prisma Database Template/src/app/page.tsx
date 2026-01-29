@@ -1,9 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { databases, DATABASE_ID, NOTES_COLLECTION_ID, Note } from '@/lib/appwrite';
+import { prisma } from '@/lib/prisma';
 import { useTamboThreadInput, useTamboThread, TamboProvider } from '@tambo-ai/react';
 import { tools } from '@/components/tambo/tools';
+
+interface Note {
+  id: string;
+  note: string;
+  content: string;
+  createdAt: Date;
+}
 
 function HomePage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -12,8 +19,9 @@ function HomePage() {
 
   const fetchNotes = async () => {
     try {
-      const response = await databases.listDocuments(DATABASE_ID, NOTES_COLLECTION_ID);
-      setNotes(response.documents as Note[]);
+      const response = await fetch('/api/notes');
+      const data = await response.json();
+      setNotes(data);
     } catch (error) {
       console.error('Error fetching notes:', error);
     }
@@ -24,22 +32,21 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Refresh notes when thread updates (after tool calls)
     fetchNotes();
   }, [thread?.messages?.length]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (value.trim()) {
-      submit({ tools });
+      submit();
     }
   };
 
   return (
     <div className="container">
       <header>
-        <h1>Next.js + Tambo + Appwrite Database Starter</h1>
-        <p>AI-powered note management with Appwrite Database</p>
+        <h1>Tambo + Prisma Database Starter</h1>
+        <p>AI-powered note management with Prisma and SQLite</p>
       </header>
 
       <main>
@@ -66,7 +73,7 @@ function HomePage() {
               type="text"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="Try: 'Add a note called Ship Tambo template' or 'Show all notes'"
+              placeholder="Try: 'Create a note called Ship Tambo template with content Ready to deploy' or 'Show all notes'"
               disabled={isPending}
               className="message-input"
             />
@@ -83,13 +90,13 @@ function HomePage() {
           ) : (
             <ul className="notes-list">
               {notes.map((note) => (
-                <li key={note.$id} className="note-item">
+                <li key={note.id} className="note-item">
                   <div className="note-content">
-                    <span className="note-title">{note.title}</span>
-                    {note.content && <p className="note-text">{note.content}</p>}
+                    <span className="note-title">{note.note}</span>
+                    <p className="note-text">{note.content}</p>
                   </div>
                   <span className="note-date">
-                    {new Date(note.$createdAt).toLocaleDateString()}
+                    {new Date(note.createdAt).toLocaleDateString()}
                   </span>
                 </li>
               ))}
