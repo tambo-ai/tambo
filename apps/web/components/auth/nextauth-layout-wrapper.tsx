@@ -3,7 +3,7 @@
 import { useNextAuthSession } from "@/hooks/nextauth";
 import { useAutoAcceptLegal } from "@/hooks/use-auto-accept-legal";
 import {
-  hasAcceptedLegalBefore,
+  getAcceptedLegalVersion,
   setLegalAcceptedInBrowser,
 } from "@/lib/auth-preferences";
 import { api } from "@/trpc/react";
@@ -40,11 +40,16 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
 
   // Sync localStorage for existing users who already accepted legal in DB
   // This ensures returning users don't see the checkbox on future logins
+  // Also updates stored version when user accepts a newer version
   useEffect(() => {
-    if (legalStatus?.accepted && !hasAcceptedLegalBefore()) {
-      setLegalAcceptedInBrowser();
+    if (legalStatus?.accepted && legalStatus.version) {
+      const storedVersion = getAcceptedLegalVersion();
+      // Sync when no version stored or when server has newer version
+      if (!storedVersion || storedVersion < legalStatus.version) {
+        setLegalAcceptedInBrowser();
+      }
     }
-  }, [legalStatus?.accepted]);
+  }, [legalStatus?.accepted, legalStatus?.version]);
 
   useEffect(() => {
     if (status === "loading") return;

@@ -13,6 +13,7 @@ const PENDING_LEGAL_COOKIE = "pendingLegalAcceptance";
  * Cookie expires in 10 minutes (enough time for OAuth flow).
  */
 export function setPendingLegalCookie() {
+  if (typeof document === "undefined") return;
   const expires = new Date(Date.now() + 10 * 60 * 1000).toUTCString();
   const isSecure =
     typeof window !== "undefined" && window.location.protocol === "https:";
@@ -34,5 +35,6 @@ export function hasPendingLegalCookie(): boolean {
  * Clears the pending legal acceptance cookie.
  */
 export function clearPendingLegalCookie() {
+  if (typeof document === "undefined") return;
   document.cookie = `${PENDING_LEGAL_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
