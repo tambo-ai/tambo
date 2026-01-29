@@ -4,6 +4,14 @@
  * Provides React hooks and providers for building AI-powered applications
  * using the v1 streaming API with AG-UI protocol.
  *
+ * ## Authentication & Thread Ownership
+ *
+ * All thread operations require user identification. Provide ONE of:
+ * - `userKey` - Direct user identifier (for server-side or trusted environments)
+ * - `userToken` - OAuth bearer token containing the userKey (for client-side apps)
+ *
+ * Threads are scoped to the userKey - each user only sees their own threads.
+ *
  * ## Quick Start
  *
  * ```tsx
@@ -17,6 +25,7 @@
  *   return (
  *     <TamboV1Provider
  *       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+ *       userKey={currentUserId} // Required: identifies thread owner
  *       components={[WeatherCard]}
  *       tools={[searchTool]}
  *     >

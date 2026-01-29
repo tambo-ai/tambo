@@ -83,8 +83,9 @@ export interface TamboV1StreamProviderProps {
   children: ReactNode;
 
   /**
-   * User key for thread scoping/isolation.
-   * Threads created with the same userKey are grouped together.
+   * User key for thread ownership and scoping.
+   * All thread operations only access threads owned by this userKey.
+   * Passed down from TamboV1Provider (via userKey prop or extracted from userToken).
    */
   userKey?: string;
 }

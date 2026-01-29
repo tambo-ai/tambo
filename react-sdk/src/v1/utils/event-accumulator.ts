@@ -153,7 +153,7 @@ export function createInitialThreadState(threadId: string): ThreadState {
 
 /**
  * Create initial stream state with empty threadMap.
- * @param userKey - Optional user key for thread scoping/isolation
+ * @param userKey - User key for thread ownership (threads are scoped to this key)
  * @returns Initial stream state
  */
 export function createInitialState(userKey?: string): StreamState {

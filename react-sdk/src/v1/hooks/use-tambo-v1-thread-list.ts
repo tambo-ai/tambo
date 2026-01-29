@@ -15,7 +15,9 @@ import { useTamboClient } from "../../providers/tambo-client-provider";
  */
 export interface ThreadListOptions {
   /**
-   * Optional user key to filter threads by
+   * User key to scope thread list.
+   * Only threads owned by this userKey will be returned.
+   * If not provided here, uses the userKey from TamboV1Provider context.
    */
   userKey?: string;
 

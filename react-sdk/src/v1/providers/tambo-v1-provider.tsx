@@ -91,9 +91,13 @@ export interface TamboV1ProviderProps extends Pick<
   contextHelpers?: ContextHelpers;
 
   /**
-   * Optional user key for thread scoping/isolation.
-   * Threads created with the same userKey are grouped together.
-   * Useful for multi-tenant applications or separating conversation contexts.
+   * User key for thread ownership and scoping.
+   *
+   * **Required**: You must provide either `userKey` OR `userToken` (which contains a userKey).
+   * All thread operations (create, list, fetch) only return threads owned by this userKey.
+   *
+   * - Use `userKey` for server-side or trusted environments where you control the user identity
+   * - Use `userToken` (OAuth bearer token) for client-side apps where the token contains the userKey
    */
   userKey?: string;
 
@@ -132,7 +136,7 @@ export interface TamboV1ProviderProps extends Pick<
  * @param props.listResources - Dynamic resource search function (must be paired with getResource)
  * @param props.getResource - Dynamic resource fetch function (must be paired with listResources)
  * @param props.contextHelpers - Configuration for context helper functions
- * @param props.userKey - Optional user key for thread scoping/isolation
+ * @param props.userKey - User key for thread ownership (required if not using userToken)
  * @param props.queryClient - Optional custom React Query client
  * @param props.children - Child components
  * @returns Provider component tree
