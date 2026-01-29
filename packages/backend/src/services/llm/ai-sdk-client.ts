@@ -613,17 +613,13 @@ export class AISdkClient implements LLMClient {
       let toolCallRequest:
         | OpenAI.Chat.Completions.ChatCompletionMessageToolCall
         | undefined;
-      if (
-        accumulatedToolCall.id &&
-        accumulatedToolCall.name &&
-        accumulatedToolCall.arguments
-      ) {
+      if (accumulatedToolCall.name && accumulatedToolCall.arguments) {
         toolCallRequest = {
           function: {
             name: accumulatedToolCall.name,
             arguments: accumulatedToolCall.arguments,
           },
-          id: accumulatedToolCall.id,
+          id: accumulatedToolCall.id ?? "",
           type: "function",
         };
       }
