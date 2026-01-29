@@ -1,7 +1,7 @@
 export function GithubLogo() {
   return (
     <svg
-      className="w-4.5 h-4.5"
+      className="w-4.5 h-4.5 text-gray-500 hover:text-black transition-colors duration-200"
       viewBox="0 0 1024 1024"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

@@ -8,15 +8,28 @@ export function Footer() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-8">
             {/* Social links - top on mobile, right on desktop */}
             <div className="flex gap-2 sm:gap-3 order-1 lg:order-3">
-              {siteConfig.footer.socialLinks.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.url}
-                  className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
-                >
-                  {link.icon}
-                </a>
-              ))}
+              {siteConfig.footer.socialLinks.map((link, index) => {
+                let hoverClass = "hover:bg-muted/80 hover:text-foreground";
+                if (link.url.includes("discord")) {
+                  hoverClass = "hover:bg-[#5865F2] hover:text-white";
+                } else if (
+                  link.url.includes("github") ||
+                  link.url.includes("x.com")
+                ) {
+                  hoverClass =
+                    "hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black";
+                }
+
+                return (
+                  <a
+                    key={index}
+                    href={link.url}
+                    className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors ${hoverClass}`}
+                  >
+                    {link.icon}
+                  </a>
+                );
+              })}
             </div>
 
             {/* Links - middle on mobile, center on desktop */}

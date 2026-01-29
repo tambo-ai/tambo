@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Easing, motion } from "framer-motion";
 import { Check, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FC } from "react";
+import { FC, useState } from "react";
 import GithubIcon from "../icons/github-icon";
 
 // Animation configuration
@@ -175,15 +175,21 @@ const FeatureItem: FC<{
   );
 };
 
-function PricingTier({
+const PricingTier = ({
   tier,
   className,
   index = 0,
+  isHighlighted,
+  onHover,
+  onLeave,
 }: {
   tier: PricingTier;
   className?: string;
   index?: number;
-}) {
+  isHighlighted: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+}) => {
   const router = useRouter();
 
   const handleClick = () => {
@@ -207,16 +213,19 @@ function PricingTier({
   return (
     <motion.div
       className={cn(
-        "relative h-full w-full rounded-lg",
-        tier.popular
-          ? "p-[2px] bg-gradient-to-r from-primary via-green-200 to-primary animate-border-wave"
-          : "border border-border",
+        "relative h-full w-full rounded-lg transition-all duration-200",
+        "p-[2px]",
+        isHighlighted
+          ? "bg-gradient-to-r from-primary via-green-200 to-primary animate-border-wave"
+          : "bg-border/50",
         className,
       )}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8, delay: 0.1 * index, ease }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
     >
       <div
         className={cn(
@@ -290,11 +299,20 @@ function PricingTier({
       </div>
     </motion.div>
   );
-}
+};
 
 export function Pricing() {
   const paidTiers = pricingData.filter((tier) => !tier.isOpenSource);
   const openSourceTiers = pricingData.filter((tier) => tier.isOpenSource);
+  const [hoveredTier, setHoveredTier] = useState<string | null>(null);
+
+  // Helper to determine if a tier should be highlighted
+  const isHighlighted = (tier: PricingTier) => {
+    if (hoveredTier) {
+      return hoveredTier === tier.name;
+    }
+    return tier.popular;
+  };
 
   return (
     <Section id="pricing" className="scroll-mt-[var(--header-height)]">
@@ -319,6 +337,9 @@ export function Pricing() {
               tier={tier}
               className="h-full"
               index={index}
+              isHighlighted={isHighlighted(tier)}
+              onHover={() => setHoveredTier(tier.name)}
+              onLeave={() => setHoveredTier(null)}
             />
           ))}
         </div>
@@ -332,6 +353,9 @@ export function Pricing() {
                 tier={tier}
                 className="h-full"
                 index={3}
+                isHighlighted={isHighlighted(tier)}
+                onHover={() => setHoveredTier(tier.name)}
+                onLeave={() => setHoveredTier(null)}
               />
             ))}
           </div>

@@ -209,7 +209,7 @@ export function SocialProof() {
           href="https://discord.gg/dJNvPEHth6"
           className={cn(
             buttonVariants({ variant: "outline" }),
-            "text-base sm:text-lg flex items-center gap-2 py-4 sm:py-6 px-6 sm:px-8 rounded-md",
+            "text-base sm:text-lg flex items-center gap-2 py-4 sm:py-6 px-6 sm:px-8 rounded-md hover:bg-[#5865F2] hover:text-white hover:border-[#5865F2]",
           )}
         >
           <Icons.discord className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -221,7 +221,7 @@ export function SocialProof() {
           rel="noopener noreferrer"
           className={cn(
             buttonVariants({ variant: "outline" }),
-            "text-base sm:text-lg flex items-center gap-2 py-4 sm:py-6 px-6 sm:px-8 rounded-md",
+            "text-base sm:text-lg flex items-center gap-2 py-4 sm:py-6 px-6 sm:px-8 rounded-md hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black hover:border-black dark:hover:border-white",
           )}
         >
           <Icons.github className="h-4 w-4 sm:h-5 sm:w-5" />
