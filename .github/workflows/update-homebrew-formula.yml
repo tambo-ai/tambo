@@ -1,0 +1,61 @@
+name: Update Homebrew formula
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 15 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-homebrew-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 22
+
+      - name: Get npm tarball + sha
+        id: npm
+        run: |
+          set -euo pipefail
+
+          version=$(npm view tambo version)
+          tarball=$(npm view tambo dist.tarball)
+          sha256=$(curl -sSL "$tarball" | shasum -a 256 | awk '{print $1}')
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Update Formula/tambo.rb
+        run: |
+          set -euo pipefail
+
+          ruby -pi \
+            -e 'gsub(/^  url ".*"$/, "  url \"#{ENV.fetch(\"TARBALL\")}\"")' \
+            -e 'gsub(/^  sha256 ".*"$/, "  sha256 \"#{ENV.fetch(\"SHA256\")}\"")' \
+            Formula/tambo.rb
+        env:
+          TARBALL: ${{ steps.npm.outputs.tarball }}
+          SHA256: ${{ steps.npm.outputs.sha256 }}
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+        with:
+          commit-message: "chore(homebrew): bump tambo to ${{ steps.npm.outputs.version }}"
+          title: "chore(homebrew): bump tambo to ${{ steps.npm.outputs.version }}"
+          body: |
+            Automated update for Homebrew formula.
+
+            - version: `${{ steps.npm.outputs.version }}`
+            - tarball: `${{ steps.npm.outputs.tarball }}`
+            - sha256: `${{ steps.npm.outputs.sha256 }}`
+          branch: "bot/homebrew-tambo-${{ steps.npm.outputs.version }}"
+          delete-branch: true
