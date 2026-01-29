@@ -2,6 +2,14 @@
 
 A premium starter template for building AI-powered generative UI applications with [Tambo](https://tambo.co), [Astro](https://astro.build), [React](https://react.dev), and [Tailwind CSS](https://tailwindcss.com).
 
+## Screenshot
+
+<img width="1781" height="871" alt="image" src="https://github.com/user-attachments/assets/b6843a2b-978a-4419-83d7-4118a927635a" />
+
+## Video Demo
+
+https://github.com/user-attachments/assets/2e978cdf-a64e-4d6f-aa53-421c3aaf14c0
+
 ## Features
 
 - 🚀 **Astro** - Fast, modern static site generator with partial hydration
