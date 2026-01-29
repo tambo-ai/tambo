@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.72.0](https://github.com/tambo-ai/tambo/compare/react-v0.71.0...react-v0.72.0) (2026-01-29)
+
+
+### Features
+
+* **react-sdk:** implement v1 API Phases 8-9 with API alignment ([#1974](https://github.com/tambo-ai/tambo/issues/1974)) ([4d456d1](https://github.com/tambo-ai/tambo/commit/4d456d19a1c648c7abca6350dae756443b03e7da))
+
 ## [0.71.0](https://github.com/tambo-ai/tambo/compare/react-v0.70.0...react-v0.71.0) (2026-01-28)
 
 
