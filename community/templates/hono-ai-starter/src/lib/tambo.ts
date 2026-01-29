@@ -12,7 +12,8 @@ const TaskSchema = z.object({
 export const components: TamboComponent[] = [
   {
     name: "TaskList",
-    description: "Displays a list of tasks. Use this when the user asks to see their tasks.",
+    description:
+      "Displays a list of tasks. Use this when the user asks to see their tasks.",
     component: TaskList,
     propsSchema: z.object({
       tasks: z.array(TaskSchema).describe("The array of tasks to display"),
@@ -30,12 +31,14 @@ export const tools: TamboTool[] = [
       title: z.string().optional().describe("Task title (required for add)"),
     }),
     // FIX: Mandatory outputSchema required by Tambo SDK
-    outputSchema: z.union([
-      z.array(TaskSchema), // For 'list' action
-      TaskSchema,          // For 'add' action
-      z.object({ error: z.string() })
-    ]).describe("The resulting task data or task list from the API"),
-    
+    outputSchema: z
+      .union([
+        z.array(TaskSchema), // For 'list' action
+        TaskSchema, // For 'add' action
+        z.object({ error: z.string() }),
+      ])
+      .describe("The resulting task data or task list from the API"),
+
     tool: async ({ action, title }) => {
       const endpoint = "/api/tasks";
       if (action === "list") {

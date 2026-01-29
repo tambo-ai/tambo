@@ -21,7 +21,7 @@
   --spacing-panel-left: 400px;
   --spacing-panel-right: 400px;
   --spacing-sidebar: 4rem;
-  
+
   /* Radii for Tambo UI consistency */
   --radius-tambo: 0.75rem;
 }
@@ -74,8 +74,14 @@
 
 /* 5. Generative UI Interaction Animations */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-in {

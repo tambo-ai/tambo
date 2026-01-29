@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Hono AI Starter | Tambo",
-  description: "A high-performance, edge-ready generative UI starter powered by Hono and Tambo AI.",
+  description:
+    "A high-performance, edge-ready generative UI starter powered by Hono and Tambo AI.",
   // Standard metadata for modern AI templates
   icons: {
     icon: "/favicon.ico",

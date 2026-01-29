@@ -20,27 +20,33 @@ A high-performance, edge-native AI starter kit for the [Tambo AI ecosystem](http
 ## 🏁 Getting Started
 
 ### 1. Prerequisites
+
 Ensure you have Node.js 20+ installed.
 
 ### 2. Installation
+
 Clone the repository and install dependencies using the legacy peer deps flag (required for Next 15 + React 19 compatibility):
 
 ## 🚀 Setup Instructions
+
 1. **Install Dependencies**:
+
    ```bash
    npm install
 
+   ```
+
 2. **Set Environment Variables**:
-    Create a `.env.local` file in the root of the project with the following content:
-    ```env
-    NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key_here
-    ```
+   Create a `.env.local` file in the root of the project with the following content:
+   ```env
+   NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key_here
+   ```
 3. **Run the Development Server**:
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 4. **Open Your Browser**:
-    Navigate to `http://localhost:3000` to see the app in action.
+   Navigate to `http://localhost:3000` to see the app in action.
 
 ## 🎥 Video Demo
 

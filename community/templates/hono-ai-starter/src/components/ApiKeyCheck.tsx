@@ -13,17 +13,20 @@ export function ApiKeyCheck({ children }: { children: ReactNode }) {
             <span className="text-primary font-bold">!</span>
           </div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tighter">API Key Required</h2>
+            <h2 className="text-2xl font-bold tracking-tighter">
+              API Key Required
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              To use the Hono Intelligence interface, please add your 
+              To use the Hono Intelligence interface, please add your
               <code className="mx-1 px-1 py-0.5 bg-secondary rounded border border-border text-primary font-mono text-[11px]">
                 NEXT_PUBLIC_TAMBO_API_KEY
-              </code> 
-              to your <code className="font-mono text-[11px]">.env.local</code> file.
+              </code>
+              to your <code className="font-mono text-[11px]">.env.local</code>{" "}
+              file.
             </p>
           </div>
-          <a 
-            href="https://tambo.co" 
+          <a
+            href="https://tambo.co"
             target="_blank"
             className="inline-block text-xs font-bold text-primary hover:underline"
           >
