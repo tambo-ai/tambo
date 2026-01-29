@@ -64,7 +64,7 @@
     "react-markdown": "^10.1.0",
     "recharts": "^3.6.0",
     "remark-gfm": "^4.0.1",
-    "streamdown": "^1.6.11",
+    "streamdown": "^1.6.10",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7",
