@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import type { ComponentProps, ReactNode } from "react";
 
 const getProjectMessageUsageUseQueryMock = jest.fn();
+const getProviderKeysUseQueryMock = jest.fn();
 
 jest.mock("@/trpc/react", () => ({
   api: {
@@ -9,6 +10,9 @@ jest.mock("@/trpc/react", () => ({
       getProjectMessageUsage: {
         useQuery: (...args: unknown[]) =>
           getProjectMessageUsageUseQueryMock(...args),
+      },
+      getProviderKeys: {
+        useQuery: (...args: unknown[]) => getProviderKeysUseQueryMock(...args),
       },
     },
   },
@@ -67,6 +71,12 @@ describe("ProjectInfo", () => {
     jest.clearAllMocks();
     getProjectMessageUsageUseQueryMock.mockReturnValue({
       data: { messageCount: 0 },
+    });
+    getProviderKeysUseQueryMock.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      isError: false,
     });
   });
 
