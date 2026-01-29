@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { setLegalAcceptedInBrowser } from "@/lib/auth-preferences";
 import { LEGAL_CONFIG } from "@/lib/legal-config";
 import { DashboardThemeProvider } from "@/providers/dashboard-theme-provider";
 import { api } from "@/trpc/react";
@@ -37,13 +38,15 @@ export default function LegalAcceptancePage() {
 
   const acceptLegalMutation = api.user.acceptLegal.useMutation({
     onSuccess: async () => {
+      // Remember that this browser has accepted legal
+      setLegalAcceptedInBrowser();
       // Optimistically update cache to avoid redirect loop
       utils.user.hasAcceptedLegal.setData(undefined, (prev) => ({
+        ...(prev ?? {}),
         accepted: true,
         acceptedAt: new Date(),
         version: LEGAL_CONFIG.CURRENT_VERSION,
         needsUpdate: false,
-        ...(prev ?? {}),
       }));
       await utils.user.hasAcceptedLegal.invalidate();
       router.replace(returnUrl);
