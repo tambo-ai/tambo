@@ -17,10 +17,8 @@ import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistry,
 } from "../../providers/tambo-registry-provider";
-import {
-  useStreamDispatch,
-  useStreamState,
-} from "../providers/tambo-v1-stream-context";
+import { useStreamDispatch } from "../providers/tambo-v1-stream-context";
+import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import type { InputMessage } from "../types/message";
 import {
   toAvailableComponents,
@@ -209,7 +207,7 @@ export async function createRunStream(
 export function useTamboV1SendMessage(threadId?: string) {
   const client = useTamboClient();
   const dispatch = useStreamDispatch();
-  const streamState = useStreamState();
+  const { userKey } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useQueryClient();
 
@@ -218,8 +216,6 @@ export function useTamboV1SendMessage(threadId?: string) {
       "useTamboV1SendMessage must be used within TamboRegistryProvider",
     );
   }
-
-  const { userKey } = streamState;
 
   return useMutation({
     mutationFn: async (options: SendMessageOptions) => {

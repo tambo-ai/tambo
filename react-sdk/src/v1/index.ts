@@ -74,6 +74,8 @@
 export {
   TamboV1Provider,
   type TamboV1ProviderProps,
+  useTamboV1Config,
+  type TamboV1Config,
 } from "./providers/tambo-v1-provider";
 
 // Re-export registry provider from beta SDK (works with v1)

@@ -13,7 +13,12 @@
  * that needs access to Tambo v1 functionality.
  */
 
-import React, { type PropsWithChildren, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  type PropsWithChildren,
+  useState,
+} from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   TamboClientProvider,
@@ -31,6 +36,30 @@ import type {
   ResourceSource,
 } from "../../model/resource-info";
 import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
+
+/**
+ * Configuration values for v1 SDK.
+ * These are static values that don't change during the session.
+ */
+export interface TamboV1Config {
+  /** User key for thread ownership and scoping */
+  userKey?: string;
+}
+
+const TamboV1ConfigContext = createContext<TamboV1Config | null>(null);
+
+/**
+ * Hook to access v1 SDK configuration.
+ * @returns Configuration values including userKey
+ * @throws {Error} If used outside TamboV1Provider
+ */
+export function useTamboV1Config(): TamboV1Config {
+  const config = useContext(TamboV1ConfigContext);
+  if (!config) {
+    throw new Error("useTamboV1Config must be used within TamboV1Provider");
+  }
+  return config;
+}
 
 /**
  * Props for TamboV1Provider
@@ -190,6 +219,9 @@ export function TamboV1Provider({
 
   const client = queryClient ?? defaultQueryClient;
 
+  // Config is static - created once and never changes
+  const config: TamboV1Config = { userKey };
+
   return (
     <QueryClientProvider client={client}>
       <TamboClientProvider
@@ -208,9 +240,9 @@ export function TamboV1Provider({
           getResource={getResource}
         >
           <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-            <TamboV1StreamProvider userKey={userKey}>
-              {children}
-            </TamboV1StreamProvider>
+            <TamboV1ConfigContext.Provider value={config}>
+              <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+            </TamboV1ConfigContext.Provider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       </TamboClientProvider>

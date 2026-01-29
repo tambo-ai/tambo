@@ -81,13 +81,6 @@ const ThreadManagementContext = createContext<ThreadManagement | null>(null);
  */
 export interface TamboV1StreamProviderProps {
   children: ReactNode;
-
-  /**
-   * User key for thread ownership and scoping.
-   * All thread operations only access threads owned by this userKey.
-   * Passed down from TamboV1Provider (via userKey prop or extracted from userToken).
-   */
-  userKey?: string;
 }
 
 /**
@@ -103,24 +96,22 @@ export interface TamboV1StreamProviderProps {
  * @returns JSX element wrapping children with stream contexts
  * @example
  * ```tsx
- * <TamboV1StreamProvider userKey="user_123">
+ * <TamboV1StreamProvider>
  *   <ChatInterface />
  * </TamboV1StreamProvider>
  * ```
  */
 export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
-  const { children, userKey } = props;
+  const { children } = props;
 
   // Create stable initial state - only computed once on mount
-  // userKey is stored in state and doesn't change after initialization
   const [state, dispatch] = useReducer(
     streamReducer,
-    userKey,
-    // Lazy initializer function - called once with userKey
-    (initialUserKey) => ({
+    undefined,
+    // Lazy initializer function
+    () => ({
       threadMap: {},
       currentThreadId: null,
-      userKey: initialUserKey,
     }),
   );
 

@@ -34,18 +34,6 @@ describe("TamboV1StreamProvider", () => {
       expect(result.current.currentThreadId).toBeNull();
     });
 
-    it("stores userKey in state", () => {
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider userKey="test-user">
-          {children}
-        </TamboV1StreamProvider>
-      );
-
-      const { result } = renderHook(() => useStreamState(), { wrapper });
-
-      expect(result.current.userKey).toBe("test-user");
-    });
-
     it("initializes thread via dispatch", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
