@@ -1,11 +1,11 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { mysqlTable, varchar, int, text } from 'drizzle-orm/mysql-core';
 
-export const contacts = sqliteTable("contacts", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
-  company: text("company"),
-  notes: text("notes"),
+export const contacts = mysqlTable('contacts', {
+  id: int('id').primaryKey().autoincrement(),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  company: varchar('company', { length: 255 }),
+  notes: text('notes'),
 });
 
 export type Contact = typeof contacts.$inferSelect;

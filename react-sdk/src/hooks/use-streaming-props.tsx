@@ -17,7 +17,7 @@ export function useTamboStreamingProps<T extends Record<string, any>>(
   streamingProps: Partial<T>,
 ) {
   useEffect(() => {
-    if (currentState) {
+    if (currentState && streamingProps) {
       let shouldUpdate = false;
       const updates: Partial<T> = {};
 
@@ -37,5 +37,5 @@ export function useTamboStreamingProps<T extends Record<string, any>>(
     }
     // Only run when streamingProps change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...Object.values(streamingProps)]);
+  }, [streamingProps ? Object.values(streamingProps) : []]);
 }

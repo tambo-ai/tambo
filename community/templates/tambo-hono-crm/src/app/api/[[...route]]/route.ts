@@ -4,8 +4,7 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { db } from "../../../db/db";
-import { contacts } from "../../../db/schema";
+import { db, contacts } from '../../../db';
 
 const app = new Hono().basePath("/api");
 
@@ -28,13 +27,17 @@ app.get("/contacts", async (c) => {
 app.post("/contacts", zValidator("json", createContactSchema), async (c) => {
   try {
     const validatedData = c.req.valid("json");
+    const { name, email, company, notes } = validatedData;
 
-    const [newContact] = await db
-      .insert(contacts)
-      .values(validatedData)
-      .returning();
-    return c.json(newContact, 201);
-  } catch (_error) {
+    await db.insert(contacts).values({ name, email, company, notes });
+    
+    return c.json({ 
+      success: true, 
+      message: `Contact ${name} has been successfully saved to the database.`,
+      contact: { name, email, company, notes } 
+    }, 201);
+  } catch (error) {
+    console.error("DATABASE ERROR:", error);
     return c.json({ error: "Failed to create contact" }, 500);
   }
 });

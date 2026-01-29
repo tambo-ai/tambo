@@ -12,10 +12,11 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.2.0",
-    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@modelcontextprotocol/sdk": "1.25.3",
     "@tambo-ai/react": "file:../../../react-sdk",
     "@tanstack/react-query": "^5.90.20",
-    "better-sqlite3": "^11.0.0",
+    "mysql2": "^3.6.0",
+    "effect": "^3.0.0",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
     "eventsource": "^4.1.0",
@@ -32,7 +33,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.0",
+
     "@types/node": "^22.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",

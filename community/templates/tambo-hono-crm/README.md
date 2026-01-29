@@ -1,16 +1,49 @@
 # Tambo Hono CRM Template
 
-A complete CRM template built with Hono API, Drizzle ORM, better-sqlite3, and Tambo generative UI.
+A complete CRM template built with Hono API, Drizzle ORM, MySQL, and Tambo generative UI.
 
 ## Features
 
-- **Database**: SQLite with Drizzle ORM
+- **Database**: MySQL with Drizzle ORM
 - **API**: Hono framework with type-safe routes
 - **Validation**: Zod schemas for all inputs
 - **TypeScript**: Strict configuration with no `any` types
 - **Generative UI**: ContactCard component with Tambo state management
 - **Styling**: Tailwind CSS with Lucide icons and glassmorphism design
 - **AI Assistant**: CRM-focused system prompt with tool integration
+
+## Setup
+
+### 1. Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```bash
+cp example.env .env.local
+```
+
+Update the following variables:
+
+- `NEXT_PUBLIC_TAMBO_API_KEY`: Your Tambo AI API key (get one from [tambo.co](https://tambo.co))
+- `DATABASE_URL`: Your MySQL connection string
+
+### 2. Database Setup
+
+Ensure you have MySQL running with the credentials specified in your `.env.local` file. The application will automatically create the `contacts` table on startup.
+
+### 3. Install Dependencies
+
+```bash
+npm install
+```
+
+### 4. Run Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see the CRM dashboard.
 
 ## Components
 
@@ -59,13 +92,6 @@ contacts {
   company: string (optional)
   notes: string (optional)
 }
-```
-
-## Getting Started
-
-```bash
-npm install
-npm run dev
 ```
 
 ## Scripts

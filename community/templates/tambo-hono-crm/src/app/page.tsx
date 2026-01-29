@@ -81,6 +81,28 @@ export default function Home() {
   const systemPrompt =
     "You are a CRM assistant. Your job is to help users manage their contacts. When a user provides contact details, use the add_contact tool. Once the tool succeeds, always render the ContactCard to confirm.";
 
+  const apiKey = process.env.NEXT_PUBLIC_TAMBO_API_KEY;
+
+  if (!apiKey) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-8 shadow-lg max-w-md">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Missing API Key</h2>
+          <p className="text-gray-700 mb-4">
+            Please add your Tambo API key to the environment variables.
+          </p>
+          <p className="text-sm text-gray-500">
+            Create a <code className="bg-gray-100 px-2 py-1 rounded">.env.local</code> file with:
+            <br />
+            <code className="bg-gray-100 px-2 py-1 rounded mt-2 block">
+              NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here
+            </code>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-4xl mx-auto">
@@ -90,6 +112,7 @@ export default function Home() {
 
         <div className="backdrop-blur-md bg-white/30 rounded-2xl border border-white/20 shadow-xl p-6">
           <TamboProvider
+            apiKey={apiKey}
             components={tamboComponents}
             tools={tamboTools}
             systemPrompt={systemPrompt}

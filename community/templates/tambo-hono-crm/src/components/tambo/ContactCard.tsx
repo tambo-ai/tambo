@@ -11,7 +11,7 @@ export default function ContactCard(props: ContactCardProps) {
   const [state] = useTamboComponentState(props);
   const streamingProps = useTamboStreamingProps(ContactCardPropsSchema);
 
-  const currentProps = { ...state, ...streamingProps };
+  const currentProps = { ...state, ...(streamingProps || {}) };
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 max-w-md">
