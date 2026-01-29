@@ -1,0 +1,12 @@
+# Used by Wrangler in local development
+# In production, these should be set as Cloudflare Worker Secrets.
+
+BETTER_AUTH_URL=http://localhost:8787
+BETTER_AUTH_SECRET=
+DATABASE_URL=
+
+# Add social provider credentials (optional)
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

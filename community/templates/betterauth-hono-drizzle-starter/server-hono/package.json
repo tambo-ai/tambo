@@ -1,0 +1,23 @@
+{
+  "name": "server-hono",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
+    "better-auth": "^1.4.17",
+    "drizzle-orm": "^0.44.2",
+    "hono": "^4.11.7"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "drizzle-kit": "^0.31.4",
+    "wrangler": "^4.4.0"
+  }
+}
