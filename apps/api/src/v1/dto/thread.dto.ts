@@ -184,7 +184,8 @@ export class V1ThreadWithMessagesDto extends V1ThreadDto {
 @ApiSchema({ name: "CreateThreadRequest" })
 export class V1CreateThreadDto {
   @ApiProperty({
-    description: "Optional user key for thread organization",
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
     required: false,
   })
   @IsOptional()
