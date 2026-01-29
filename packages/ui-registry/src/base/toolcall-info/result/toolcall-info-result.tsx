@@ -36,7 +36,7 @@ export const ToolcallInfoResult = React.forwardRef<
   const Comp = asChild ? Slot : "div";
 
   return (
-    <Comp ref={ref} {...props}>
+    <Comp ref={ref} data-slot="toolcall-info-result" {...props}>
       {children?.({
         content: associatedToolResponse.content,
         hasResult: !!associatedToolResponse.content,

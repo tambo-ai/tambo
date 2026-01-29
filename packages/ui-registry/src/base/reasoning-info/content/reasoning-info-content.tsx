@@ -46,6 +46,7 @@ export const ReasoningInfoContent = React.forwardRef<
     <Comp
       ref={combinedRef}
       id={detailsId}
+      data-slot="reasoning-info-content"
       data-state={isExpanded ? "open" : "closed"}
       {...props}
     >

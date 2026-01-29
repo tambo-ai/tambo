@@ -37,7 +37,12 @@ export const ReasoningInfoStatusText = React.forwardRef<
   const fallback = `${statusText} ${reasoning.length > 1 ? `(${reasoning.length} steps)` : ""}`;
 
   return (
-    <Comp ref={ref} data-loading={isLoading || undefined} {...componentProps}>
+    <Comp
+      ref={ref}
+      data-slot="reasoning-info-status-text"
+      data-loading={isLoading || undefined}
+      {...componentProps}
+    >
       {content ?? fallback}
     </Comp>
   );

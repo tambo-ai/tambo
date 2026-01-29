@@ -33,7 +33,7 @@ export const ReasoningInfoSteps = React.forwardRef<
   if (!content) return null;
 
   return (
-    <Comp ref={ref} {...componentProps}>
+    <Comp ref={ref} data-slot="reasoning-info-steps" {...componentProps}>
       {content}
     </Comp>
   );

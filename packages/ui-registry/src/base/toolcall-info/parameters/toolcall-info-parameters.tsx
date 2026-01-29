@@ -35,7 +35,7 @@ export const ToolcallInfoParameters = React.forwardRef<
     parametersString: JSON.stringify(keyifiedParams, null, 2),
   });
   return (
-    <Comp ref={ref} {...componentProps}>
+    <Comp ref={ref} data-slot="toolcall-info-parameters" {...componentProps}>
       {content}
     </Comp>
   );

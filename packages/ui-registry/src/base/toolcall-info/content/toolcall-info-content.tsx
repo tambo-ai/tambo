@@ -30,6 +30,7 @@ export const ToolcallInfoContent = React.forwardRef<
     <Comp
       ref={ref}
       id={detailsId}
+      data-slot="toolcall-info-content"
       data-state={isExpanded ? "open" : "closed"}
       {...props}
     >

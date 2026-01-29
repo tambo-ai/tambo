@@ -42,7 +42,12 @@ export const ToolcallInfoStatusIcon = React.forwardRef<
   const { content, componentProps } = useRender(props, { status });
 
   return (
-    <Comp ref={ref} data-status={status} {...componentProps}>
+    <Comp
+      ref={ref}
+      data-slot="toolcall-info-status-icon"
+      data-status={status}
+      {...componentProps}
+    >
       {content}
     </Comp>
   );
