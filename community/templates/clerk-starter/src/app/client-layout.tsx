@@ -16,7 +16,9 @@ export default function ClientLayout({
   userToken,
 }: ClientLayoutProps) {
   if (typeof window !== "undefined" && !process.env.NEXT_PUBLIC_TAMBO_API_KEY) {
-    console.error("❌ Missing NEXT_PUBLIC_TAMBO_API_KEY in environment variables");
+    console.error(
+      "❌ Missing NEXT_PUBLIC_TAMBO_API_KEY in environment variables",
+    );
   }
 
   return (

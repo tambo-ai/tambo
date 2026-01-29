@@ -1,9 +1,9 @@
 "use client";
 
 import {
-    useTambo,
-    useTamboGenerationStage,
-    useTamboThreadInput,
+  useTambo,
+  useTamboGenerationStage,
+  useTamboThreadInput,
 } from "@tambo-ai/react";
 import { FormEvent, useState } from "react";
 
@@ -38,9 +38,14 @@ export function MessageThread() {
             <div className="mb-4 p-3 bg-[var(--muted)] rounded-2xl">
               <span className="text-2xl">👋</span>
             </div>
-            <p className="text-lg font-medium text-[var(--foreground)] mb-1">Welcome!</p>
+            <p className="text-lg font-medium text-[var(--foreground)] mb-1">
+              Welcome!
+            </p>
             <p className="text-sm text-[var(--muted-foreground)] max-w-xs">
-              Try asking: <code className="bg-[var(--muted)] px-1.5 py-0.5 rounded text-[var(--foreground)] font-mono text-xs">Show my profile</code>
+              Try asking:{" "}
+              <code className="bg-[var(--muted)] px-1.5 py-0.5 rounded text-[var(--foreground)] font-mono text-xs">
+                Show my profile
+              </code>
             </p>
           </div>
         )}
@@ -62,7 +67,10 @@ export function MessageThread() {
               {message.content.map((part, index) => {
                 if (part.type === "text") {
                   return (
-                    <p key={index} className="whitespace-pre-wrap leading-relaxed">
+                    <p
+                      key={index}
+                      className="whitespace-pre-wrap leading-relaxed"
+                    >
                       {part.text}
                     </p>
                   );

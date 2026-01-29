@@ -1,6 +1,6 @@
 import {
-    ShowUserProfile,
-    showUserProfileSchema,
+  ShowUserProfile,
+  showUserProfileSchema,
 } from "@/components/tambo/show-user-profile";
 import { TamboComponent } from "@tambo-ai/react";
 

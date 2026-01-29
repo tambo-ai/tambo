@@ -5,7 +5,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Clerk + Tambo Starter",
-  description: "A minimal starter template with Clerk authentication and Tambo AI",
+  description:
+    "A minimal starter template with Clerk authentication and Tambo AI",
 };
 
 export default async function RootLayout({

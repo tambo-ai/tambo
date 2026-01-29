@@ -10,7 +10,10 @@ export default async function ChatPage() {
     <main className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-10 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-base font-semibold tracking-tight text-[var(--foreground)] hover:opacity-80 transition-opacity">
+          <Link
+            href="/"
+            className="text-base font-semibold tracking-tight text-[var(--foreground)] hover:opacity-80 transition-opacity"
+          >
             Clerk + Tambo
           </Link>
           <div className="flex items-center gap-2">
