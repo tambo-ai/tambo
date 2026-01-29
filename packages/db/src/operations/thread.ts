@@ -463,7 +463,7 @@ export async function ensureThreadByProjectId(
   db: HydraDb,
   threadId: string,
   projectId: string,
-  contextKey: string | undefined,
+  contextKey: ContextKeyFilter,
 ) {
   const thread = await getThreadForProjectId(
     db,
