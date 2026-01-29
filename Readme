@@ -1,0 +1,10 @@
+# Community Templates
+
+Production-ready starters for Tambo AI + modern frameworks.
+
+## Next.js 16 + tRPC + Tambo Starter
+
+Next.js 16 App Router + Turbopack
+- tRPC v11 end-to-end typesafety  
+- Tambo AI real-time chat + tools
+- Production build verified ✓
