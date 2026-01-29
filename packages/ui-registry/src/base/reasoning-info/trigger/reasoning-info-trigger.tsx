@@ -31,6 +31,7 @@ export const ReasoningInfoTrigger = React.forwardRef<
       aria-expanded={isExpanded}
       aria-controls={detailsId}
       onClick={handleClick}
+      data-slot="reasoning-info-trigger"
       data-state={isExpanded ? "open" : "closed"}
       {...props}
     >

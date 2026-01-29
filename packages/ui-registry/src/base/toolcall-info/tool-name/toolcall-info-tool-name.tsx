@@ -31,7 +31,7 @@ export const ToolcallInfoToolName = React.forwardRef<
   });
 
   return (
-    <Comp ref={ref} {...componentProps}>
+    <Comp ref={ref} data-slot="toolcall-info-tool-name" {...componentProps}>
       {content}
     </Comp>
   );

@@ -21,7 +21,7 @@ export const ToolcallInfoStatusText = React.forwardRef<
   const Comp = asChild ? Slot : "span";
 
   return (
-    <Comp ref={ref} {...props}>
+    <Comp ref={ref} data-slot="toolcall-info-status-text" {...props}>
       {children ?? toolStatusMessage}
     </Comp>
   );

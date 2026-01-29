@@ -32,6 +32,7 @@ export const ToolcallInfoTrigger = React.forwardRef<
       aria-expanded={isExpanded}
       aria-controls={detailsId}
       onClick={handleClick}
+      data-slot="toolcall-info-trigger"
       data-state={isExpanded ? "open" : "closed"}
       {...props}
     >
