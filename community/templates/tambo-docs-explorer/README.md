@@ -20,10 +20,11 @@ An AI-powered documentation explorer template built with Tambo's generative UI c
 
 ## Setup
 
-1. **Clone or download this template**
+1. **Clone the repository**
 
 ```bash
-cd tambo-docs-explorer
+git clone https://github.com/tambo-ai/tambo.git
+cd tambo/community/templates/tambo-docs-explorer
 ```
 
 2. **Install dependencies**
