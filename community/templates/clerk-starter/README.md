@@ -1,14 +1,14 @@
-# Clerk + Tambo Starter
-
 A minimal Next.js starter template with Clerk authentication and Tambo AI integration.
 
 ## Screenshots
 
-![App Screenshot](https://via.placeholder.com/800x400?text=App+Screenshot)
+![App Screenshot](https://github.com/user-attachments/assets/d8489fbb-aed9-425a-90fc-ac2566d775ac)
 
 ## Video Demo
 
-[Watch Demo Video](https://via.placeholder.com/800x400?text=Video+Demo)
+[Watch Demo Video](https://github.com/user-attachments/assets/d726fdc0-b0d6-45ef-b997-471256f50311) 
+
+
 
 ## What's Included
 
