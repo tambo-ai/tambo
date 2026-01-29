@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.133.3](https://github.com/tambo-ai/tambo/compare/api-v0.133.2...api-v0.133.3) (2026-01-29)
+
+
+### Miscellaneous Chores
+
+* small change to trigger api release ([#2045](https://github.com/tambo-ai/tambo/issues/2045)) ([d52f777](https://github.com/tambo-ai/tambo/commit/d52f777da55dcb5e48d43fac1a1842618f187307))
+
 ## [0.133.2](https://github.com/tambo-ai/tambo/compare/api-v0.133.1...api-v0.133.2) (2026-01-29)
 
 
