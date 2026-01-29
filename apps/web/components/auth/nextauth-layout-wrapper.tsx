@@ -31,11 +31,8 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
   });
 
   // Hook for auto-accepting legal terms from pre-auth checkbox
-  const {
-    isPending: isAutoAccepting,
-    tryAutoAccept,
-    shouldRedirectToLegalPage,
-  } = useAutoAcceptLegal(legalStatus);
+  const { isAutoAccepting, triggerAutoAccept, shouldRedirectToLegalPage } =
+    useAutoAcceptLegal(legalStatus);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -46,7 +43,7 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
     }
 
     // Try auto-accept if user checked checkbox before auth
-    if (tryAutoAccept()) {
+    if (triggerAutoAccept()) {
       return;
     }
 
@@ -60,8 +57,7 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
     router,
     pathname,
     returnUrl,
-    legalStatus,
-    tryAutoAccept,
+    triggerAutoAccept,
     shouldRedirectToLegalPage,
   ]);
 

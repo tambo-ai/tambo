@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { LEGAL_CONFIG } from "@/lib/legal-config";
 import {
   hasPendingLegalCookie,
@@ -21,8 +21,6 @@ interface LegalStatus {
  * This handles the case where users check the legal checkbox on the first
  * screen before signing in with Google/GitHub. After OAuth completes,
  * this hook detects the cookie and automatically accepts legal terms.
- *
- * @returns isPending - true while the auto-accept mutation is in progress
  */
 export function useAutoAcceptLegal(legalStatus: LegalStatus | undefined) {
   const utils = api.useUtils();
@@ -48,11 +46,14 @@ export function useAutoAcceptLegal(legalStatus: LegalStatus | undefined) {
     },
   });
 
+  const isAutoAccepting =
+    isAutoAcceptingRef.current || acceptLegalMutation.isPending;
+
   /**
    * Attempts to auto-accept legal terms if conditions are met.
-   * @returns true if auto-accept was triggered or is in progress
+   * @returns true only if mutation was triggered this call
    */
-  function tryAutoAccept(): boolean {
+  const triggerAutoAccept = useCallback((): boolean => {
     if (
       legalStatus &&
       !legalStatus.accepted &&
@@ -64,25 +65,26 @@ export function useAutoAcceptLegal(legalStatus: LegalStatus | undefined) {
       acceptLegalMutation.mutate({ version: LEGAL_CONFIG.CURRENT_VERSION });
       return true;
     }
-    return isAutoAcceptingRef.current || acceptLegalMutation.isPending;
-  }
+    return false;
+  }, [legalStatus, acceptLegalMutation]);
 
   /**
    * Checks if we should redirect to legal acceptance page.
    * Returns false if we have a pending cookie (will auto-accept instead).
    */
-  function shouldRedirectToLegalPage(): boolean {
+  const shouldRedirectToLegalPage = useCallback((): boolean => {
     return (
       !!legalStatus &&
       !legalStatus.accepted &&
       !hasPendingLegalCookie() &&
-      !isAutoAcceptingRef.current
+      !isAutoAcceptingRef.current &&
+      !acceptLegalMutation.isPending
     );
-  }
+  }, [legalStatus, acceptLegalMutation.isPending]);
 
   return {
-    isPending: acceptLegalMutation.isPending,
-    tryAutoAccept,
+    isAutoAccepting,
+    triggerAutoAccept,
     shouldRedirectToLegalPage,
   };
 }

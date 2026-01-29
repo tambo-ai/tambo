@@ -14,7 +14,10 @@ const PENDING_LEGAL_COOKIE = "pendingLegalAcceptance";
  */
 export function setPendingLegalCookie() {
   const expires = new Date(Date.now() + 10 * 60 * 1000).toUTCString();
-  document.cookie = `${PENDING_LEGAL_COOKIE}=true; path=/; expires=${expires}; SameSite=Lax`;
+  const isSecure =
+    typeof window !== "undefined" && window.location.protocol === "https:";
+  const secureAttr = isSecure ? "; Secure" : "";
+  document.cookie = `${PENDING_LEGAL_COOKIE}=true; path=/; expires=${expires}; SameSite=Lax${secureAttr}`;
 }
 
 /**
