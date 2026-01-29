@@ -128,7 +128,7 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
   }
 }
 
-.animate-thinking-gradient {
+@utility animate-thinking-gradient {
   /* Light mode gradient - dark text shimmer */
   background: linear-gradient(
     90deg,
@@ -141,18 +141,19 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: thinking-gradient 2s linear infinite;
-}
 
-.dark .animate-thinking-gradient {
-  /* Dark mode gradient - light text shimmer */
-  background: linear-gradient(
-    90deg,
-    oklch(0.6 0 0) 0%,
-    oklch(0.9 0 0) 50%,
-    oklch(0.6 0 0) 100%
-  );
-  background-size: 200% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  .dark & {
+    /* Dark mode gradient - light text shimmer */
+    background: linear-gradient(
+      90deg,
+      oklch(0.6 0 0) 0%,
+      oklch(0.9 0 0) 50%,
+      oklch(0.6 0 0) 100%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: thinking-gradient 2s linear infinite;
+  }
 }

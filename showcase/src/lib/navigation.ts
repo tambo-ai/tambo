@@ -53,13 +53,21 @@ export const navigation: NavigationItem[] = [
             href: "/components/message",
           },
           {
+            title: "Message (AI Elements)",
+            href: "/components/message-ai-elements",
+          },
+          {
+            title: "Message (Assistant UI)",
+            href: "/components/message-assistant-ui",
+            isNew: true,
+          },
+          {
             title: "Message Input",
             href: "/components/message-input",
           },
           {
             title: "Elicitation",
             href: "/components/elicitation",
-            isNew: true,
           },
           {
             title: "Thread Content",
