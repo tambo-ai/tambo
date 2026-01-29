@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* 1. Define the Dark Mode Variant for Tailwind v4 */
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Core Brand Colors */
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  --color-card: #121215;
+  --color-card-foreground: #fafafa;
+  --color-border: #27272a;
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #27272a;
+  --color-muted: #27272a;
+  --color-muted-foreground: #a1a1aa;
+
+  /* 2. MANDATORY TAMBO LAYOUT VARIABLES */
+  /* These prevent Generative UI components from collapsing */
+  --spacing-panel-left: 400px;
+  --spacing-panel-right: 400px;
+  --spacing-sidebar: 4rem;
+  
+  /* Radii for Tambo UI consistency */
+  --radius-tambo: 0.75rem;
+}
+
+@layer base {
+  * {
+    /* v4 recommendation: use the variable directly or via apply */
+    @apply border-border outline-none;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/30;
+    /* Premium typography settings requested in CLAUDE.md */
+    font-feature-settings: "ss01", "ss03", "cv01", "cv11";
+  }
+}
+
+/* 3. Logic for Dark Mode Overrides */
+/* Even in a dark-first template, standardizing this ensures 
+   compatibility with the Tambo SDK's internal components */
+:root {
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  /* Add other HSL variables if you're using shadcn/ui components too */
+}
+
+/* 4. Optimized Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* 5. Generative UI Interaction Animations */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
