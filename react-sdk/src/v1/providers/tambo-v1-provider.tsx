@@ -38,16 +38,27 @@ import type {
 import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
 
 /**
- * Context for providing contextKey to child components.
+ * Configuration values for v1 SDK.
+ * These are static values that don't change during the session.
  */
-const ContextKeyContext = createContext<string | undefined>(undefined);
+export interface TamboV1Config {
+  /** User key for thread ownership and scoping */
+  userKey?: string;
+}
+
+const TamboV1ConfigContext = createContext<TamboV1Config | null>(null);
 
 /**
- * Hook to access the contextKey from TamboV1Provider.
- * @returns The contextKey if provided, undefined otherwise
+ * Hook to access v1 SDK configuration.
+ * @returns Configuration values including userKey
+ * @throws {Error} If used outside TamboV1Provider
  */
-export function useContextKey(): string | undefined {
-  return useContext(ContextKeyContext);
+export function useTamboV1Config(): TamboV1Config {
+  const config = useContext(TamboV1ConfigContext);
+  if (!config) {
+    throw new Error("useTamboV1Config must be used within TamboV1Provider");
+  }
+  return config;
 }
 
 /**
@@ -109,11 +120,15 @@ export interface TamboV1ProviderProps extends Pick<
   contextHelpers?: ContextHelpers;
 
   /**
-   * Optional context key for thread scoping/isolation.
-   * Threads created with the same contextKey are grouped together.
-   * Useful for multi-tenant applications or separating conversation contexts.
+   * User key for thread ownership and scoping.
+   *
+   * **Required**: You must provide either `userKey` OR `userToken` (which contains a userKey).
+   * All thread operations (create, list, fetch) only return threads owned by this userKey.
+   *
+   * - Use `userKey` for server-side or trusted environments where you control the user identity
+   * - Use `userToken` (OAuth bearer token) for client-side apps where the token contains the userKey
    */
-  contextKey?: string;
+  userKey?: string;
 
   /**
    * Optional custom QueryClient instance.
@@ -150,7 +165,7 @@ export interface TamboV1ProviderProps extends Pick<
  * @param props.listResources - Dynamic resource search function (must be paired with getResource)
  * @param props.getResource - Dynamic resource fetch function (must be paired with listResources)
  * @param props.contextHelpers - Configuration for context helper functions
- * @param props.contextKey - Optional context key for thread scoping/isolation
+ * @param props.userKey - User key for thread ownership (required if not using userToken)
  * @param props.queryClient - Optional custom React Query client
  * @param props.children - Child components
  * @returns Provider component tree
@@ -184,7 +199,7 @@ export function TamboV1Provider({
   listResources,
   getResource,
   contextHelpers,
-  contextKey,
+  userKey,
   queryClient,
   children,
 }: PropsWithChildren<TamboV1ProviderProps>) {
@@ -204,6 +219,9 @@ export function TamboV1Provider({
 
   const client = queryClient ?? defaultQueryClient;
 
+  // Config is static - created once and never changes
+  const config: TamboV1Config = { userKey };
+
   return (
     <QueryClientProvider client={client}>
       <TamboClientProvider
@@ -222,9 +240,9 @@ export function TamboV1Provider({
           getResource={getResource}
         >
           <TamboContextHelpersProvider contextHelpers={contextHelpers}>
-            <ContextKeyContext.Provider value={contextKey}>
+            <TamboV1ConfigContext.Provider value={config}>
               <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
-            </ContextKeyContext.Provider>
+            </TamboV1ConfigContext.Provider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
       </TamboClientProvider>
