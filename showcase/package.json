@@ -16,11 +16,16 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@assistant-ui/react": "^0.12.3",
+    "@assistant-ui/react-markdown": "^0.12.1",
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.4",
-    "@radix-ui/react-tooltip": "^1.1.8",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@react-leaflet/core": "^2.1.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
@@ -36,6 +41,7 @@
     "@tiptap/react": "^3.16.0",
     "@tiptap/suggestion": "^3.11.1",
     "@vercel/og": "^1.0.0",
+    "ai": "^5.0.123",
     "autoprefixer": "^10.4.23",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.1",
@@ -57,11 +63,13 @@
     "react-leaflet": "^4.2.1",
     "react-markdown": "^10.1.0",
     "recharts": "^3.6.0",
-    "streamdown": "^1.6.10",
+    "remark-gfm": "^4.0.1",
+    "streamdown": "^1.6.11",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7",
-    "use-debounce": "^10.1.0"
+    "use-debounce": "^10.1.0",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
