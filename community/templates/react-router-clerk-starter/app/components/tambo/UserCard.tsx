@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Mail, Building, MessageSquare, Eye } from "lucide-react";
+import { Mail, Building, MessageSquare, User as UserIcon } from "lucide-react";
 
 // Schema that tells Tambo AI how to generate this component
 export const userCardSchema = z.object({
@@ -25,9 +25,9 @@ export function UserCard({
   avatarUrl,
 }: UserCardProps) {
   const statusConfig = {
-    active: { color: "bg-emerald-500", glow: "shadow-emerald-500/50", text: "Active", ring: "ring-emerald-500/20" },
-    away: { color: "bg-amber-500", glow: "shadow-amber-500/50", text: "Away", ring: "ring-amber-500/20" },
-    offline: { color: "bg-slate-400", glow: "shadow-slate-400/50", text: "Offline", ring: "ring-slate-400/20" },
+    active: { color: "bg-emerald-500", text: "Active", textColor: "text-emerald-600" },
+    away: { color: "bg-amber-500", text: "Away", textColor: "text-amber-600" },
+    offline: { color: "bg-gray-400", text: "Offline", textColor: "text-gray-500" },
   };
 
   const currentStatus = statusConfig[status];
@@ -41,81 +41,70 @@ export function UserCard({
     .slice(0, 2);
 
   return (
-    <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-xl border border-slate-100 card-hover">
-      {/* Header with animated gradient */}
-      <div className="relative h-28 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 overflow-hidden">
-        {/* Animated pattern overlay */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-white/20 rounded-full -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-40 h-40 bg-white/20 rounded-full translate-x-1/3 translate-y-1/3" />
+    <div className="w-full max-w-sm overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm">
+      {/* Header */}
+      <div className="relative h-20 bg-[#7FFFC3]">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/30 rounded-full translate-x-1/3 -translate-y-1/3" />
         </div>
       </div>
 
       {/* Avatar section */}
-      <div className="relative px-6">
-        <div className="absolute -top-14 flex items-end gap-4">
-          {/* Avatar with status */}
+      <div className="relative px-5">
+        <div className="absolute -top-10">
           <div className="relative">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt={name}
-                className="h-28 w-28 rounded-2xl border-4 border-white object-cover shadow-xl"
+                className="h-20 w-20 rounded-xl border-4 border-white object-cover shadow-md"
               />
             ) : (
-              <div className="flex h-28 w-28 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-indigo-500 to-purple-600 shadow-xl">
-                <span className="text-3xl font-bold text-white">{initials}</span>
+              <div className="flex h-20 w-20 items-center justify-center rounded-xl border-4 border-white bg-gray-900 shadow-md">
+                <span className="text-xl font-bold text-white">{initials}</span>
               </div>
             )}
             {/* Status indicator */}
-            <div className={`absolute -bottom-1 -right-1 flex items-center justify-center w-8 h-8 rounded-full ${currentStatus.color} ring-4 ${currentStatus.ring} shadow-lg ${currentStatus.glow}`}>
-              <div className="w-3 h-3 rounded-full bg-white" />
-            </div>
-          </div>
-
-          {/* Status badge */}
-          <div className={`mb-2 flex items-center gap-1.5 rounded-full ${currentStatus.color}/10 px-3 py-1.5 ring-1 ${currentStatus.ring}`}>
-            <div className={`h-2 w-2 rounded-full ${currentStatus.color} animate-pulse`} />
-            <span className={`text-xs font-semibold ${status === 'active' ? 'text-emerald-600' : status === 'away' ? 'text-amber-600' : 'text-slate-500'}`}>
-              {currentStatus.text}
-            </span>
+            <div className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full ${currentStatus.color} ring-2 ring-white`} />
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-6 pb-6 pt-20">
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{name}</h2>
-        <p className="mt-1 text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
-          {role}
-        </p>
+      <div className="px-5 pb-5 pt-14">
+        {/* Status badge */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${currentStatus.textColor}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${currentStatus.color}`} />
+            {currentStatus.text}
+          </span>
+        </div>
 
-        <div className="mt-5 space-y-3">
-          <div className="flex items-center gap-3 text-slate-600 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-indigo-100 transition-colors">
-              <Mail className="h-4 w-4 text-slate-500 group-hover:text-indigo-600 transition-colors" />
-            </div>
-            <span className="text-sm font-medium">{email}</span>
+        <h2 className="text-xl font-semibold text-gray-900">{name}</h2>
+        <p className="mt-0.5 text-sm text-gray-500">{role}</p>
+
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center gap-2 text-gray-600">
+            <Mail className="h-4 w-4 text-gray-400" />
+            <span className="text-sm">{email}</span>
           </div>
 
           {company && (
-            <div className="flex items-center gap-3 text-slate-600 group">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-purple-100 transition-colors">
-                <Building className="h-4 w-4 text-slate-500 group-hover:text-purple-600 transition-colors" />
-              </div>
-              <span className="text-sm font-medium">{company}</span>
+            <div className="flex items-center gap-2 text-gray-600">
+              <Building className="h-4 w-4 text-gray-400" />
+              <span className="text-sm">{company}</span>
             </div>
           )}
         </div>
 
         {/* Action buttons */}
-        <div className="mt-6 flex gap-3">
-          <button className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all hover:-translate-y-0.5">
+        <div className="mt-5 flex gap-2">
+          <button className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors">
             <MessageSquare className="h-4 w-4" />
             Message
           </button>
-          <button className="flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all">
-            <Eye className="h-4 w-4" />
+          <button className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            <UserIcon className="h-4 w-4" />
             Profile
           </button>
         </div>

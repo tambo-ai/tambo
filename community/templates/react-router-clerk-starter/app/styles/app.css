@@ -2,17 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tambo-style CSS Variables using oklch color system */
 :root {
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.18);
+  /* Default Tailwind CSS Variables customized with tambo colors */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.14 0 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.14 0 285);
+  --primary: oklch(0.31 0.02 281);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.54 0.027 261);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.92 0 260);
+  --muted-foreground: oklch(0.73 0.022 260);
+  --accent: oklch(0.97 0 286);
+  --accent-foreground: oklch(0.21 0 286);
+  --destructive: oklch(0.64 0.2 25);
+  --border: oklch(0.93 0 242);
+  --input: oklch(0.92 0 286);
+  --ring: oklch(0.14 0 285);
+  
+  /* Tambo brand colors */
+  --tambo-mint: #7FFFC3;
+  --tambo-yellow: #FFE17F;
+  
+  --radius: 0.5rem;
 }
 
 body {
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: oklch(1 0 0);
+  color: oklch(0.14 0 285);
 }
 
 /* Custom scrollbar */
@@ -25,12 +49,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #e2e8f0;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #cbd5e1;
 }
 
 /* Animations */
@@ -56,24 +80,6 @@ body {
   }
 }
 
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
 }
@@ -82,58 +88,31 @@ body {
   animation: slideUp 0.5s ease-out forwards;
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* Glassmorphism utilities */
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
-}
-
-.glass-dark {
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 /* Message animations */
 .message-enter {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Button hover effects */
-.btn-glow {
-  transition: all 0.3s ease;
+/* Thinking animation */
+@keyframes thinking-gradient {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
-.btn-glow:hover {
-  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
-  transform: translateY(-2px);
-}
-
-/* Card hover effect */
-.card-hover {
-  transition: all 0.3s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+.animate-thinking-gradient {
+  background: linear-gradient(
+    90deg,
+    oklch(0.14 0 0) 0%,
+    oklch(0.7 0 0) 50%,
+    oklch(0.14 0 0) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: thinking-gradient 2s linear infinite;
 }
