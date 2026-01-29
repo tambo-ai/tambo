@@ -1,0 +1,24 @@
+# Dependencies & build output
+node_modules
+dist
+dist-ssr
+
+# Env files
+.env
+.env.*
+
+# Demo recordings
+*.mov
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editor files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
