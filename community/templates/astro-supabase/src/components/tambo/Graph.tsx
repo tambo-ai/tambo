@@ -1,40 +1,40 @@
-import { cva } from 'class-variance-authority';
-import * as React from 'react';
-import * as RechartsCore from 'recharts';
-import { z } from 'zod';
-import { cn } from '../../lib/utils';
+import { cva } from "class-variance-authority";
+import * as React from "react";
+import * as RechartsCore from "recharts";
+import { z } from "zod";
+import { cn } from "../../lib/utils";
 
 /**
  * Type for graph variant
  */
-type GraphVariant = 'default' | 'solid' | 'bordered';
+type GraphVariant = "default" | "solid" | "bordered";
 
 /**
  * Type for graph size
  */
-type GraphSize = 'default' | 'sm' | 'lg';
+type GraphSize = "default" | "sm" | "lg";
 
 /**
  * Variants for the Graph component
  */
 export const graphVariants = cva(
-  'w-full rounded-lg overflow-hidden transition-all duration-200',
+  "w-full rounded-lg overflow-hidden transition-all duration-200",
   {
     variants: {
       variant: {
-        default: 'bg-white',
-        solid: 'shadow-lg bg-gray-50',
-        bordered: 'border-2 border-gray-200',
+        default: "bg-white",
+        solid: "shadow-lg bg-gray-50",
+        bordered: "border-2 border-gray-200",
       },
       size: {
-        default: 'h-64',
-        sm: 'h-48',
-        lg: 'h-96',
+        default: "h-64",
+        sm: "h-48",
+        lg: "h-96",
       },
     },
     defaultVariants: {
-      variant: 'default',
-      size: 'default',
+      variant: "default",
+      size: "default",
     },
   },
 );
@@ -66,7 +66,7 @@ class GraphErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error rendering chart:', error, errorInfo);
+    console.error("Error rendering chart:", error, errorInfo);
   }
 
   render(): React.ReactNode {
@@ -101,17 +101,17 @@ class GraphErrorBoundary extends React.Component<
  * Zod schema for GraphData
  */
 export const graphDataSchema = z.object({
-  type: z.enum(['bar', 'line', 'pie']).describe('Type of graph to render'),
-  labels: z.array(z.string()).describe('Labels for the graph'),
+  type: z.enum(["bar", "line", "pie"]).describe("Type of graph to render"),
+  labels: z.array(z.string()).describe("Labels for the graph"),
   datasets: z
     .array(
       z.object({
-        label: z.string().describe('Label for the dataset'),
-        data: z.array(z.number()).describe('Data points for the dataset'),
-        color: z.string().optional().describe('Optional color for the dataset'),
+        label: z.string().describe("Label for the dataset"),
+        data: z.array(z.number()).describe("Data points for the dataset"),
+        color: z.string().optional().describe("Optional color for the dataset"),
       }),
     )
-    .describe('Data for the graph'),
+    .describe("Data for the graph"),
 });
 
 /**
@@ -119,25 +119,25 @@ export const graphDataSchema = z.object({
  */
 export const graphSchema = z.object({
   data: graphDataSchema.describe(
-    'Data object containing chart configuration and values',
+    "Data object containing chart configuration and values",
   ),
-  title: z.string().describe('Title for the chart'),
+  title: z.string().describe("Title for the chart"),
   showLegend: z
     .boolean()
     .optional()
-    .describe('Whether to show the legend (default: true)'),
+    .describe("Whether to show the legend (default: true)"),
   variant: z
-    .enum(['default', 'solid', 'bordered'])
+    .enum(["default", "solid", "bordered"])
     .optional()
-    .describe('Visual style variant of the graph'),
+    .describe("Visual style variant of the graph"),
   size: z
-    .enum(['default', 'sm', 'lg'])
+    .enum(["default", "sm", "lg"])
     .optional()
-    .describe('Size of the graph'),
+    .describe("Size of the graph"),
   className: z
     .string()
     .optional()
-    .describe('Additional CSS classes for styling'),
+    .describe("Additional CSS classes for styling"),
 });
 
 /**
@@ -154,10 +154,10 @@ export type GraphDataType = z.infer<typeof graphDataSchema>;
  * Default colors for the Graph component
  */
 const defaultColors = [
-  'hsl(220, 100%, 62%)', // Blue
-  'hsl(160, 82%, 47%)', // Green
-  'hsl(32, 100%, 62%)', // Orange
-  'hsl(340, 82%, 66%)', // Pink
+  "hsl(220, 100%, 62%)", // Blue
+  "hsl(160, 82%, 47%)", // Green
+  "hsl(32, 100%, 62%)", // Orange
+  "hsl(340, 82%, 66%)", // Pink
 ];
 
 /**
@@ -261,7 +261,7 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
       }));
 
     const renderChart = () => {
-      if (!['bar', 'line', 'pie'].includes(data.type)) {
+      if (!["bar", "line", "pie"].includes(data.type)) {
         return (
           <div className="h-full flex items-center justify-center">
             <div className="text-gray-500 text-center">
@@ -272,7 +272,7 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
       }
 
       switch (data.type) {
-        case 'bar':
+        case "bar":
           return (
             <RechartsCore.BarChart data={chartData}>
               <RechartsCore.CartesianGrid
@@ -293,21 +293,21 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
               />
               <RechartsCore.Tooltip
                 cursor={{
-                  fill: '#6b7280',
+                  fill: "#6b7280",
                   fillOpacity: 0.1,
                   radius: 4,
                 }}
                 contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  color: '#111827',
+                  backgroundColor: "white",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  color: "#111827",
                 }}
               />
               {showLegend && (
                 <RechartsCore.Legend
                   wrapperStyle={{
-                    color: '#111827',
+                    color: "#111827",
                   }}
                 />
               )}
@@ -324,7 +324,7 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
             </RechartsCore.BarChart>
           );
 
-        case 'line':
+        case "line":
           return (
             <RechartsCore.LineChart data={chartData}>
               <RechartsCore.CartesianGrid
@@ -345,21 +345,21 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
               />
               <RechartsCore.Tooltip
                 cursor={{
-                  stroke: '#e5e7eb',
+                  stroke: "#e5e7eb",
                   strokeWidth: 2,
                   strokeOpacity: 0.3,
                 }}
                 contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  color: '#111827',
+                  backgroundColor: "white",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  color: "#111827",
                 }}
               />
               {showLegend && (
                 <RechartsCore.Legend
                   wrapperStyle={{
-                    color: '#111827',
+                    color: "#111827",
                   }}
                 />
               )}
@@ -378,7 +378,7 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
             </RechartsCore.LineChart>
           );
 
-        case 'pie': {
+        case "pie": {
           // For pie charts, use the first valid dataset
           const pieDataset = validDatasets[0];
           if (!pieDataset) {
@@ -411,23 +411,23 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
               />
               <RechartsCore.Tooltip
                 contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  color: '#111827',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  backgroundColor: "white",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  color: "#111827",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                 }}
                 itemStyle={{
-                  color: '#111827',
+                  color: "#111827",
                 }}
                 labelStyle={{
-                  color: '#111827',
+                  color: "#111827",
                 }}
               />
               {showLegend && (
                 <RechartsCore.Legend
                   wrapperStyle={{
-                    color: '#111827',
+                    color: "#111827",
                   }}
                 />
               )}
@@ -461,4 +461,4 @@ export const Graph = React.forwardRef<HTMLDivElement, GraphProps>(
     );
   },
 );
-Graph.displayName = 'Graph';
+Graph.displayName = "Graph";

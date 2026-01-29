@@ -14,25 +14,21 @@ https://github.com/user-attachments/assets/3f869219-d25e-41ac-bed7-17419e70713a
 2. `npm install`
 
 3. Create a `.env` file (copy from example if available) with your credentials:
+
    ```env
    PUBLIC_SUPABASE_URL=your-supabase-url
    PUBLIC_SUPABASE_ANON_KEY=your-supabase-public-key
    PUBLIC_TAMBO_API_KEY=your-tambo-api-key
    ```
-   *   Get your Tambo API key for free [here](https://tambo.co/dashboard).
-   *   Get your Supabase URL/Key from your [Supabase Dashboard](https://supabase.com/dashboard).
 
-4. **Supabase Setup**: Run the following SQL in your Supabase SQL Editor to create the users table:
-   ```sql
-   CREATE TABLE users (
-     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-     name TEXT NOT NULL,
-     email TEXT NOT NULL UNIQUE,
-     created_at TIMESTAMPTZ DEFAULT NOW()
-   );
-   ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-   CREATE POLICY "Allow all" ON users FOR ALL USING (true);
+   - Get your Tambo API key for free [here](https://tambo.co/dashboard).
+   - Get your Supabase URL/Key from your [Supabase Dashboard](https://supabase.com/dashboard).
+
+   This template uses Supabase migrations. Run the following to apply the schema:
+   ```bash
+   npx supabase db push
    ```
+   (Or copy the SQL from `supabase/migrations/20260129000000_create_users_table.sql` and run it in your Supabase SQL Editor)
 
 5. Run `npm run dev` and go to `localhost:4321` to use the app!
 
@@ -44,13 +40,13 @@ You can see how components are registered with tambo in `src/lib/tambo.ts`:
 
 ```typescript
 export const components: TamboComponent[] = [
-    {
-        name: "Graph",
-        description: "A component that renders various types of charts...",
-        component: Graph,
-        propsSchema: graphSchema,
-    },
-    // Add more components here
+  {
+    name: "Graph",
+    description: "A component that renders various types of charts...",
+    component: Graph,
+    propsSchema: graphSchema,
+  },
+  // Add more components here
 ];
 ```
 
@@ -62,11 +58,11 @@ Tools are defined with `inputSchema` and `outputSchema` in `src/lib/tambo.ts`:
 
 ```typescript
 export const tools: TamboTool[] = [
-    {
-        name: "fetchUsers",
-        description: "Fetches all users from the database.",
-        // ... implementation
-    },
+  {
+    name: "fetchUsers",
+    description: "Fetches all users from the database.",
+    // ... implementation
+  },
 ];
 ```
 
@@ -78,17 +74,18 @@ Make sure in the TamboProvider wrapped around your app (see `src/components/Tamb
 
 ```tsx
 <TamboProvider
-    apiKey={import.meta.env.PUBLIC_TAMBO_API_KEY}
-    components={components}
-    tools={tools}
+  apiKey={import.meta.env.PUBLIC_TAMBO_API_KEY}
+  components={components}
+  tools={tools}
 >
-    <ChatInterface />
+  <ChatInterface />
 </TamboProvider>
 ```
 
 ### Authentication
 
 This template features built-in authentication using Supabase. The auth flow is handled in:
+
 - `src/pages/register.astro`
 - `src/pages/signin.astro`
 - `src/pages/dashboard.astro`
