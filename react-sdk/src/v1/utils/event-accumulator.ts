@@ -889,7 +889,7 @@ function handleCustomEvent(
 
 /**
  * Handle tambo.component.start event.
- * Adds a component content block to the message.
+ * Adds a component content block to the message with 'started' streaming state.
  * @param threadState - Current thread state
  * @param event - Component start event
  * @returns Updated thread state
@@ -911,12 +911,13 @@ function handleComponentStart(
 
   const message = messages[messageIndex];
 
-  // Add component content block
+  // Add component content block with 'started' streaming state
   const newContent: Content = {
     type: "component",
     id: event.value.componentId,
     name: event.value.componentName,
     props: {},
+    streamingState: "started",
   };
 
   const updatedMessage: TamboV1Message = {
@@ -932,7 +933,7 @@ function handleComponentStart(
 
 /**
  * Handle component delta events (both props_delta and state_delta).
- * Applies JSON Patch to the specified field.
+ * Applies JSON Patch to the specified field and sets streamingState to 'streaming'.
  * @param threadState - Current thread state
  * @param event - Component delta event (props or state)
  * @param field - Which field to update ('props' or 'state')
@@ -974,9 +975,11 @@ function handleComponentDelta(
   // Apply JSON Patch
   const updatedValue = applyJsonPatch(currentValue, operations);
 
+  // Update field and set streaming state to 'streaming'
   const updatedContent: Content = {
     ...componentContent,
     [field]: updatedValue,
+    streamingState: "streaming",
   };
 
   const updatedMessage: TamboV1Message = {
@@ -996,17 +999,54 @@ function handleComponentDelta(
 
 /**
  * Handle tambo.component.end event.
- * Marks component as complete.
+ * Sets component streaming state to 'done'.
  * @param threadState - Current thread state
- * @param _event - Component end event (unused)
+ * @param event - Component end event
  * @returns Updated thread state
  */
 function handleComponentEnd(
   threadState: ThreadState,
-  _event: ComponentEndEvent,
+  event: ComponentEndEvent,
 ): ThreadState {
-  // For now, this doesn't change state
-  return threadState;
+  const componentId = event.value.componentId;
+  const messages = threadState.thread.messages;
+
+  // Find the component content block
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "component",
+    componentId,
+    "tambo.component.end event",
+  );
+
+  const message = messages[messageIndex];
+  const componentContent = message.content[contentIndex];
+
+  if (componentContent.type !== "component") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a component block for tambo.component.end event`,
+    );
+  }
+
+  // Set streaming state to 'done'
+  const updatedContent: Content = {
+    ...componentContent,
+    streamingState: "done",
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**
