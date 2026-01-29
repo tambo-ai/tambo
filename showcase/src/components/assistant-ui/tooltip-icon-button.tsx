@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/assistant-ui/tooltip";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/assistant-ui/button";
 import { cn } from "@/lib/utils";
 
 export type TooltipIconButtonProps = ComponentPropsWithRef<typeof Button> & {
