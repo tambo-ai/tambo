@@ -94,50 +94,90 @@ function Chat({ products, setProducts }: { products: any[]; setProducts: (p: any
           <h2 className="font-semibold text-gray-700 font-mono text-sm tracking-wide">Tambo AI</h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {thread.messages.filter(m => m.role !== 'system' && m.role !== 'tool').map((m) => (
-             <div key={m.id} className={`p-3 rounded-lg text-sm ${
-               m.role === 'user' 
-                 ? 'bg-blue-50 text-blue-900 ml-auto max-w-[90%]' 
-                 : 'bg-gray-50 text-gray-600 mr-auto max-w-[90%]'
-             }`}>
-               <div className={`text-[10px] font-bold mb-1 uppercase tracking-wider ${m.role === 'user' ? 'text-blue-400' : 'text-gray-400'}`}>
-                 {m.role === 'user' ? 'User' : 'System'}
-               </div>
-               {m.content.map((c, i) => c.type === 'text' ? <p key={i}>{c.text}</p> : null)}
-             </div>
-          ))}
+       
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {thread.messages.filter(m => m.role !== 'system' && m.role !== 'tool').map((m) => {
+            const isUser = m.role === 'user';
+            return (
+              <div key={m.id} className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+               
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                  isUser ? 'bg-gray-200 text-gray-600' : 'bg-black text-white'
+                }`}>
+                  {isUser ? <span className="text-xs font-bold">U</span> : <span className="text-xs font-bold">AI</span>}
+                </div>
+
+               
+                <div className={`flex flex-col max-w-[85%] ${isUser ? 'items-end' : 'items-start'}`}>
+                  <div className={`
+                    py-2 px-3 rounded-2xl text-[14px] leading-relaxed shadow-sm
+                    ${isUser 
+                      ? 'bg-gray-100 text-gray-900 rounded-tr-sm' 
+                      : 'bg-white border border-gray-100 text-gray-800 rounded-tl-sm'
+                    }
+                  `}>
+                    {Array.isArray(m.content) && m.content.map((c, i) => {
+                      if (c.type === 'text') {
+                         return <p key={i} className="whitespace-pre-wrap">{c.text}</p>;
+                      }
+                      return null;
+                    })}
+                    {/* Render Interactive Components (Streaming) */}
+                    {m.renderedComponent}
+                  </div>
+                  {/* Timestamp/Label */}
+                  <span className="text-[10px] text-gray-300 mt-1 uppercase tracking-wider font-mono">
+                    {m.role}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+          
+          {/* Typing Indicator / Pending State */}
           {isPending && (
-            <div className="bg-gray-50 text-gray-400 text-xs p-2 rounded-lg animate-pulse mr-auto">
-              System processing...
-            </div>
+             <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-gray-500">AI</span>
+                </div>
+                <div className="flex flex-col items-start">
+                  <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm py-3 px-4 shadow-sm">
+                     <div className="flex space-x-1 h-3 items-center">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                     </div>
+                  </div>
+                </div>
+             </div>
           )}
         </div>
 
+       
         <div className="p-4 border-t border-gray-100 bg-white">
-           <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-md px-3 py-3 focus-within:ring-1 focus-within:ring-gray-300 transition-all">
+           <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-400 transition-all shadow-sm">
             <button
-              className={`icon-btn w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
-                isRecording ? "bg-red-50 text-red-600 animate-pulse border border-red-100" : "text-gray-400 hover:bg-gray-200"
+              className={`icon-btn w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
+                isRecording ? "bg-red-50 text-red-500 animate-pulse" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
               }`}
               onClick={handleMicClick}
               title="Press to speak"
             >
-              <Mic size={16} />
+              <Mic size={18} />
             </button>
             
             <input
-              className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-700 placeholder-gray-400 outline-none font-mono"
+              className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-700 placeholder-gray-400 outline-none font-sans"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder={isRecording ? "Listening..." : "Command..."}
+              placeholder={isRecording ? "Listening..." : "Type a command..."}
               onKeyDown={(e) => e.key === "Enter" && submit()}
               disabled={isPending}
             />
 
             <button 
-              className={`icon-btn w-8 h-8 flex items-center justify-center rounded-md transition-all ${
-                value.trim() ? "bg-gray-900 text-white hover:bg-black" : "text-gray-300 cursor-not-allowed"
+              className={`icon-btn w-8 h-8 flex items-center justify-center rounded-full transition-all ${
+                value.trim() ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md" : "text-gray-300 cursor-not-allowed"
               }`}
               onClick={() => submit()}
               disabled={!value.trim() || isPending}
@@ -145,8 +185,8 @@ function Chat({ products, setProducts }: { products: any[]; setProducts: (p: any
               <Send size={14} />
             </button>
           </div>
-          <div className="text-center mt-2">
-             <p className="text-[10px] text-gray-300 font-mono">SYSTEM READY</p>
+          <div className="text-center mt-3">
+             <p className="text-[10px] text-gray-400 font-medium tracking-wide">AI FLIGHT CONTROL ACTIVE</p>
           </div>
         </div>
       </div>
