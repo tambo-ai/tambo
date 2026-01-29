@@ -7,11 +7,29 @@ OpenAI provides a comprehensive suite of language models optimized for different
 
 ## Supported Models
 
-Tambo supports 13 OpenAI models organized into five families:
+Tambo supports 14 OpenAI models organized into five families:
 
 ### GPT-5 Family
 
 The latest generation of OpenAI models with advanced reasoning capabilities and massive context windows.
+
+#### gpt-5.2
+
+**Status:** Tested
+**API Name:** `gpt-5.2`
+**Context Window:** 400,000 tokens
+**Provider Docs:** [OpenAI GPT-5.2](https://platform.openai.com/docs/models/gpt-5.2)
+
+Latest GPT-5.2 model with improved capabilities. Supports reasoning parameters for exposing internal thought processes.
+
+**Best for:**
+
+- Advanced coding and agentic tasks
+- Complex multi-step reasoning workflows
+- Tasks requiring cutting-edge model capabilities
+- Applications needing the latest improvements
+
+**Notes:** The newest GPT-5 series model. Use [`reasoningEffort`](#reasoningeffort) and [`reasoningSummary`](#reasoningsummary) parameters to control thinking behavior.
 
 #### gpt-5
 
@@ -268,7 +286,7 @@ Configure reasoning capabilities through your project's LLM provider settings in
 |-------|---------|
 | gpt-5.1 | `"none"` |
 | gpt-5.1-chat-latest | `"medium"` |
-| gpt-5, gpt-5-mini, gpt-5-nano | `"low"` |
+| gpt-5.2, gpt-5, gpt-5-mini, gpt-5-nano | `"low"` |
 | o3 | `"medium"` |
 
 #### reasoningSummary
@@ -293,11 +311,12 @@ reasoningSummary: "auto"
 
 Reasoning parameters are available for the following OpenAI models:
 
+- GPT-5.2 (`gpt-5.2`)
+- GPT-5.1 (`gpt-5.1`)
+- GPT-5.1 Chat Latest (`gpt-5.1-chat-latest`)
 - GPT-5 (`gpt-5-2025-08-07`)
 - GPT-5 Mini (`gpt-5-mini-2025-08-07`)
 - GPT-5 Nano (`gpt-5-nano-2025-08-07`)
-- GPT-5.1 (`gpt-5.1`)
-- GPT-5.1 Chat Latest (`gpt-5.1-chat-latest`)
 - o3 (`o3-2025-04-16`)
 
 ## Configuration
