@@ -7,14 +7,7 @@
  * Components can use useV1ComponentContent() to access their context.
  */
 
-// React is used implicitly for JSX transformation (jsx: "react" in tsconfig)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React, {
-  createContext,
-  useContext,
-  useMemo,
-  type ReactNode,
-} from "react";
+import React, { createContext, useContext, useMemo } from "react";
 
 /**
  * Context for component content blocks.
@@ -46,7 +39,7 @@ export function V1ComponentContentProvider({
   threadId,
   messageId,
   componentName,
-}: V1ComponentContentContext & { children: ReactNode }) {
+}: V1ComponentContentContext & { children: React.ReactNode }) {
   // Memoize context value to prevent unnecessary re-renders of consumers
   const value = useMemo(
     () => ({ componentId, threadId, messageId, componentName }),

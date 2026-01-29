@@ -8,16 +8,12 @@
  * following the split-context pattern for optimal re-render performance.
  */
 
-// React is used implicitly for JSX transformation (jsx: "react" in tsconfig)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, {
   createContext,
   useReducer,
   useContext,
   useMemo,
   useCallback,
-  type ReactNode,
-  type Dispatch,
 } from "react";
 import {
   streamReducer,
@@ -66,9 +62,8 @@ const StreamStateContext = createContext<StreamState | null>(null);
  * Context for dispatching events to the stream reducer.
  * Separated from state context to prevent unnecessary re-renders.
  */
-const StreamDispatchContext = createContext<Dispatch<StreamAction> | null>(
-  null,
-);
+const StreamDispatchContext =
+  createContext<React.Dispatch<StreamAction> | null>(null);
 
 /**
  * Context for thread management functions.
@@ -80,7 +75,7 @@ const ThreadManagementContext = createContext<ThreadManagement | null>(null);
  * Props for TamboV1StreamProvider
  */
 export interface TamboV1StreamProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 /**
@@ -209,7 +204,7 @@ export function useStreamState(): StreamState {
  * }
  * ```
  */
-export function useStreamDispatch(): Dispatch<StreamAction> {
+export function useStreamDispatch(): React.Dispatch<StreamAction> {
   const context = useContext(StreamDispatchContext);
 
   if (!context) {

@@ -1,5 +1,3 @@
-// React import needed for JSX transform (jsxImportSource is not set to react-jsx)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import {
@@ -8,7 +6,7 @@ import {
 } from "./component-renderer";
 
 // Test component that uses the content context
-function ContextAwareComponent() {
+const ContextAwareComponent: React.FC = () => {
   const context = useV1ComponentContent();
   return (
     <div data-testid="context-aware">
@@ -18,7 +16,7 @@ function ContextAwareComponent() {
       <span data-testid="componentName">{context.componentName}</span>
     </div>
   );
-}
+};
 
 describe("V1ComponentContentProvider", () => {
   it("provides context to child components", () => {
