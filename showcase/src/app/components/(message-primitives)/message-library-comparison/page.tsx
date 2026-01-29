@@ -10,7 +10,8 @@ import {
   ReasoningInfo,
   type ReasoningInfoStepsRenderFunctionProps,
 } from "@tambo-ai/ui-registry/base/reasoning-info";
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Loader2, Wrench } from "lucide-react";
+import * as React from "react";
 
 // ============================================================================
 // Type Definitions
@@ -20,6 +21,13 @@ type MessageRole = "user" | "assistant";
 
 interface StyleMessageProps {
   message: TamboThreadMessage & { role: MessageRole };
+  isLoading?: boolean;
+}
+
+interface ToolCallDemoProps {
+  toolName: string;
+  parameters: Record<string, unknown>;
+  result?: string;
   isLoading?: boolean;
 }
 
@@ -34,7 +42,7 @@ const mockMessages = {
     content: [
       {
         type: "text" as const,
-        text: "Hello! Can you help me with a React component?",
+        text: "What's the weather like in San Francisco?",
       },
     ],
     createdAt: new Date().toISOString(),
@@ -47,7 +55,7 @@ const mockMessages = {
     content: [
       {
         type: "text" as const,
-        text: "Of course! I'd be happy to help you build a React component. What would you like to create?",
+        text: "Based on the weather data, San Francisco is currently **62°F** (17°C) with partly cloudy skies. Perfect weather for a walk!",
       },
     ],
     createdAt: new Date().toISOString(),
@@ -60,19 +68,179 @@ const mockMessages = {
     content: [
       {
         type: "text" as const,
-        text: "Let me create a button component for you.",
+        text: "I'll check the current weather conditions for you.",
       },
     ],
     reasoning: [
-      "The user is asking for help with a React component. I should consider what type would be most useful and educational.",
-      "A button component is a great starting point - it demonstrates props, styling, event handling, and TypeScript patterns.",
+      "The user is asking about weather in San Francisco. I should use the weather tool to get current conditions.",
+      "I'll fetch temperature, conditions, and any relevant weather alerts.",
     ],
-    reasoningDurationMS: 5000,
+    reasoningDurationMS: 2500,
     createdAt: new Date().toISOString(),
     threadId: "demo-thread",
     componentState: {},
   },
 } satisfies Record<string, TamboThreadMessage>;
+
+// Mock tool call data for demos
+const mockToolCall = {
+  toolName: "get_weather",
+  parameters: { city: "San Francisco", units: "fahrenheit" },
+  result: '{"temperature": 62, "conditions": "partly cloudy", "humidity": 65}',
+};
+
+// ============================================================================
+// Tool Call Demo Components
+// These demonstrate styling patterns without requiring TamboProvider context
+// ============================================================================
+
+function TamboStyleToolCallDemo({
+  toolName,
+  parameters,
+  result,
+  isLoading,
+}: ToolCallDemoProps) {
+  const [isExpanded, setIsExpanded] = React.useState(true);
+  return (
+    <div className="max-w-prose border-l-2 border-accent pl-4">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="mb-2 flex cursor-pointer items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Check className="h-4 w-4 text-green-500" />
+        )}
+        <Wrench className="h-3 w-3" />
+        <span className="font-mono">{toolName}</span>
+        <ChevronDown
+          className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+        />
+      </button>
+      {isExpanded && (
+        <div className="mb-4 space-y-2 rounded-md bg-muted/50 p-3">
+          <div>
+            <div className="text-xs font-medium text-muted-foreground">
+              Parameters
+            </div>
+            <pre className="mt-1 text-xs">
+              {JSON.stringify(parameters, null, 2)}
+            </pre>
+          </div>
+          {result && (
+            <div>
+              <div className="text-xs font-medium text-muted-foreground">
+                Result
+              </div>
+              <pre className="mt-1 text-xs">{result}</pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AIElementsStyleToolCallDemo({
+  toolName,
+  parameters,
+  result,
+  isLoading,
+}: ToolCallDemoProps) {
+  const [isExpanded, setIsExpanded] = React.useState(true);
+  return (
+    <div className="flex justify-start">
+      <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-3 text-sm">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mb-2 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {isLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Check className="h-3 w-3 text-green-500" />
+          )}
+          <Wrench className="h-3 w-3" />
+          <span className="font-mono">{toolName}</span>
+          <ChevronDown
+            className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+          />
+        </button>
+        {isExpanded && (
+          <div className="space-y-2 rounded-md bg-background/50 p-2">
+            <div>
+              <div className="text-xs font-medium text-muted-foreground">
+                Parameters
+              </div>
+              <pre className="mt-1 text-xs">
+                {JSON.stringify(parameters, null, 2)}
+              </pre>
+            </div>
+            {result && (
+              <div>
+                <div className="text-xs font-medium text-muted-foreground">
+                  Result
+                </div>
+                <pre className="mt-1 text-xs">{result}</pre>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AssistantUIStyleToolCallDemo({
+  toolName,
+  parameters,
+  result,
+  isLoading,
+}: ToolCallDemoProps) {
+  const [isExpanded, setIsExpanded] = React.useState(true);
+  return (
+    <div className="mb-3 flex justify-start">
+      <div className="max-w-[70%] rounded-lg border border-border bg-card px-4 py-2 shadow-sm">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mb-2 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {isLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Check className="h-3 w-3 text-green-500" />
+          )}
+          <Wrench className="h-3 w-3" />
+          <span className="font-mono">{toolName}</span>
+          <ChevronDown
+            className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+          />
+        </button>
+        {isExpanded && (
+          <div className="space-y-2 rounded border border-border bg-muted/40 p-2">
+            <div>
+              <div className="text-xs font-medium text-muted-foreground">
+                Parameters
+              </div>
+              <pre className="mt-1 text-xs">
+                {JSON.stringify(parameters, null, 2)}
+              </pre>
+            </div>
+            {result && (
+              <div>
+                <div className="text-xs font-medium text-muted-foreground">
+                  Result
+                </div>
+                <pre className="mt-1 text-xs">{result}</pre>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ============================================================================
 // Tambo Style - "Editorial Clarity"
@@ -89,6 +257,24 @@ function TamboStyleUserMessage({ message }: StyleMessageProps) {
       <Message.Content
         render={({ markdownContent }: MessageContentRenderProps) => (
           <div className="rounded-sm bg-muted/30 px-4 py-2 text-foreground">
+            {markdownContent}
+          </div>
+        )}
+      />
+    </Message.Root>
+  );
+}
+
+function TamboStyleAssistantMessage({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="max-w-prose border-l-2 border-accent pl-4"
+    >
+      <Message.Content
+        render={({ markdownContent }: MessageContentRenderProps) => (
+          <div className="prose prose-lg leading-relaxed text-foreground">
             {markdownContent}
           </div>
         )}
@@ -155,6 +341,24 @@ function AIElementsStyleUserMessage({ message }: StyleMessageProps) {
   );
 }
 
+function AIElementsStyleAssistantMessage({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="flex justify-start"
+    >
+      <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-3 text-sm">
+        <Message.Content
+          render={({ markdownContent }: MessageContentRenderProps) => (
+            <div>{markdownContent}</div>
+          )}
+        />
+      </div>
+    </Message.Root>
+  );
+}
+
 function AIElementsStyleMessageWithReasoning({ message }: StyleMessageProps) {
   return (
     <Message.Root
@@ -203,6 +407,24 @@ function AssistantUIStyleUserMessage({ message }: StyleMessageProps) {
       className="mb-3 flex justify-end"
     >
       <div className="max-w-[70%] rounded-lg border border-primary/20 bg-card px-4 py-2">
+        <Message.Content
+          render={({ markdownContent }: MessageContentRenderProps) => (
+            <div className="prose prose-sm max-w-none">{markdownContent}</div>
+          )}
+        />
+      </div>
+    </Message.Root>
+  );
+}
+
+function AssistantUIStyleAssistantMessage({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="mb-3 flex justify-start"
+    >
+      <div className="max-w-[70%] rounded-lg border border-border bg-card px-4 py-2 shadow-sm">
         <Message.Content
           render={({ markdownContent }: MessageContentRenderProps) => (
             <div className="prose prose-sm max-w-none">{markdownContent}</div>
@@ -411,31 +633,25 @@ export default function MessageLibraryComparisonPage() {
           for assistant messages and right-aligned user messages. No bubbles -
           let typography and whitespace do the work.
         </p>
-        <div className="space-y-6">
-          <ComponentCodePreview
-            title="User Message"
-            component={<TamboStyleUserMessage message={mockMessages.user} />}
-            code={`<Message.Root role="user" message={message} className="ml-auto max-w-prose text-right">
-  <Message.Content
-    render={({ markdownContent }) => (
-      <div className="rounded-sm bg-muted/30 px-4 py-2">{markdownContent}</div>
-    )}
-  />
-</Message.Root>`}
-            previewClassName="p-4"
-          />
-
-          <ComponentCodePreview
-            title="Assistant with Reasoning"
-            component={
+        <ComponentCodePreview
+          title="Complete Conversation"
+          component={
+            <div className="space-y-4">
+              <TamboStyleUserMessage message={mockMessages.user} />
               <TamboStyleMessageWithReasoning
                 message={mockMessages.withReasoning}
               />
-            }
-            code={tamboCode}
-            previewClassName="p-4"
-          />
-        </div>
+              <TamboStyleToolCallDemo
+                toolName={mockToolCall.toolName}
+                parameters={mockToolCall.parameters}
+                result={mockToolCall.result}
+              />
+              <TamboStyleAssistantMessage message={mockMessages.assistant} />
+            </div>
+          }
+          code={tamboCode}
+          previewClassName="p-4"
+        />
       </section>
 
       {/* AI Elements Style Section */}
@@ -448,33 +664,27 @@ export default function MessageLibraryComparisonPage() {
           role-based positioning. User messages are primary-colored and
           right-aligned; assistant messages use muted backgrounds.
         </p>
-        <div className="space-y-6">
-          <ComponentCodePreview
-            title="User Message"
-            component={
+        <ComponentCodePreview
+          title="Complete Conversation"
+          component={
+            <div className="space-y-4">
               <AIElementsStyleUserMessage message={mockMessages.user} />
-            }
-            code={`<Message.Root role="user" message={message} className="flex justify-end">
-  <div className="max-w-[80%] rounded-2xl bg-primary px-4 py-3 text-primary-foreground">
-    <Message.Content
-      render={({ markdownContent }) => <div>{markdownContent}</div>}
-    />
-  </div>
-</Message.Root>`}
-            previewClassName="p-4"
-          />
-
-          <ComponentCodePreview
-            title="Assistant with Reasoning"
-            component={
               <AIElementsStyleMessageWithReasoning
                 message={mockMessages.withReasoning}
               />
-            }
-            code={aiElementsCode}
-            previewClassName="p-4"
-          />
-        </div>
+              <AIElementsStyleToolCallDemo
+                toolName={mockToolCall.toolName}
+                parameters={mockToolCall.parameters}
+                result={mockToolCall.result}
+              />
+              <AIElementsStyleAssistantMessage
+                message={mockMessages.assistant}
+              />
+            </div>
+          }
+          code={aiElementsCode}
+          previewClassName="p-4"
+        />
       </section>
 
       {/* Assistant UI Style Section */}
@@ -487,35 +697,27 @@ export default function MessageLibraryComparisonPage() {
           feel. Uses subtle shadows and border styling to create visual
           separation between messages.
         </p>
-        <div className="space-y-6">
-          <ComponentCodePreview
-            title="User Message"
-            component={
+        <ComponentCodePreview
+          title="Complete Conversation"
+          component={
+            <div className="space-y-4">
               <AssistantUIStyleUserMessage message={mockMessages.user} />
-            }
-            code={`<Message.Root role="user" message={message} className="mb-3 flex justify-end">
-  <div className="max-w-[70%] rounded-lg border border-primary/20 bg-card px-4 py-2">
-    <Message.Content
-      render={({ markdownContent }) => (
-        <div className="prose prose-sm max-w-none">{markdownContent}</div>
-      )}
-    />
-  </div>
-</Message.Root>`}
-            previewClassName="p-4"
-          />
-
-          <ComponentCodePreview
-            title="Assistant with Reasoning"
-            component={
               <AssistantUIStyleMessageWithReasoning
                 message={mockMessages.withReasoning}
               />
-            }
-            code={assistantUICode}
-            previewClassName="p-4"
-          />
-        </div>
+              <AssistantUIStyleToolCallDemo
+                toolName={mockToolCall.toolName}
+                parameters={mockToolCall.parameters}
+                result={mockToolCall.result}
+              />
+              <AssistantUIStyleAssistantMessage
+                message={mockMessages.assistant}
+              />
+            </div>
+          }
+          code={assistantUICode}
+          previewClassName="p-4"
+        />
       </section>
 
       {/* API Comparison Table */}
@@ -588,7 +790,48 @@ export default function MessageLibraryComparisonPage() {
                 </td>
                 <td>Renders reasoning steps</td>
                 <td>
-                  <code>children</code> (render function)
+                  <code>render</code> (render function)
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ToolcallInfo.Root</code>
+                </td>
+                <td>Container for tool call display</td>
+                <td>
+                  <code>message</code>, <code>defaultExpanded</code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ToolcallInfo.Trigger</code>
+                </td>
+                <td>Toggle button for tool call details</td>
+                <td>Standard button props</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ToolcallInfo.ToolName</code>
+                </td>
+                <td>Displays the tool name</td>
+                <td>Auto-generated from context</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ToolcallInfo.Parameters</code>
+                </td>
+                <td>Renders tool call parameters</td>
+                <td>
+                  <code>render</code> (render function)
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ToolcallInfo.Result</code>
+                </td>
+                <td>Renders tool call result</td>
+                <td>
+                  <code>render</code> (render function)
                 </td>
               </tr>
             </tbody>
@@ -601,16 +844,21 @@ export default function MessageLibraryComparisonPage() {
         <h2 className="text-2xl font-semibold">Key Observations</h2>
         <ul className="space-y-2">
           <li>
-            <strong>Same Primitives, Different Styles:</strong> All three
-            examples use identical <code>Message</code> and{" "}
-            <code>ReasoningInfo</code> base primitives. Visual differences come
-            entirely from CSS classes passed to the primitives.
+            <strong>Complete Conversation Flow:</strong> Each style demo shows a
+            full conversation including user messages, assistant reasoning, tool
+            calls, and final responses - all styled consistently.
           </li>
           <li>
-            <strong>Render Props Pattern:</strong> The{" "}
-            <code>Message.Content</code> and <code>ReasoningInfo.Steps</code>{" "}
-            components use render props to give you full control over how
-            content is displayed.
+            <strong>Same Primitives, Different Styles:</strong> All three
+            examples use identical <code>Message</code>,{" "}
+            <code>ReasoningInfo</code>, and <code>ToolcallInfo</code> base
+            primitives. Visual differences come entirely from CSS.
+          </li>
+          <li>
+            <strong>Render Props Pattern:</strong> Components like{" "}
+            <code>Message.Content</code>, <code>ReasoningInfo.Steps</code>, and{" "}
+            <code>ToolcallInfo.Parameters</code> use render props for full
+            control over content display.
           </li>
           <li>
             <strong>Data Attributes:</strong> Base primitives expose{" "}
@@ -618,15 +866,9 @@ export default function MessageLibraryComparisonPage() {
             attributes for CSS-only styling without JavaScript.
           </li>
           <li>
-            <strong>No Runtime Dependencies:</strong> Unlike some libraries that
-            require runtime providers, Tambo primitives accept data directly via
-            props for maximum flexibility.
-          </li>
-          <li>
             <strong>Compound Component Pattern:</strong> The namespace structure
-            (<code>Message.Root</code>, <code>Message.Content</code>) follows
-            the same pattern as Radix UI, Headless UI, and other modern
-            component libraries.
+            (<code>Message.Root</code>, <code>ToolcallInfo.Root</code>) follows
+            the same pattern as Radix UI and other modern component libraries.
           </li>
         </ul>
       </section>
