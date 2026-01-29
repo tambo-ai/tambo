@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { useState, useEffect } from "react";
 
 // Schema for the bookmark card props - used by Tambo for generation
 // Must match the structure returned by search_bookmarks tool
@@ -17,6 +18,13 @@ export type BookmarkCardProps = z.infer<typeof bookmarkCardPropsSchema>;
  * This component is registered with Tambo for generative UI rendering.
  */
 export function BookmarkCard({ url, title, category }: BookmarkCardProps) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Extract domain for display
   const domain = (() => {
     try {
@@ -30,7 +38,11 @@ export function BookmarkCard({ url, title, category }: BookmarkCardProps) {
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
 
   return (
-    <div className="my-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
+    <div
+      className={`my-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+      }`}
+    >
       <a
         href={url}
         target="_blank"
@@ -100,8 +112,14 @@ export function BookmarkList({ bookmarks, title }: BookmarkListProps) {
         <h4 className="mb-2 text-sm font-medium text-gray-700">{title}</h4>
       )}
       <div className="space-y-2">
-        {bookmarks.map((bookmark) => (
-          <BookmarkCard key={bookmark.id} {...bookmark} />
+        {bookmarks.map((bookmark, index) => (
+          <div
+            key={bookmark.id}
+            style={{ animationDelay: `${index * 100}ms` }}
+            className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+          >
+            <BookmarkCard {...bookmark} />
+          </div>
         ))}
       </div>
       <p className="mt-2 text-xs text-gray-400">
@@ -129,7 +147,13 @@ export type CategorySummaryProps = z.infer<typeof categorySummaryPropsSchema>;
  * CategorySummary - Shows a visual breakdown of bookmark categories.
  */
 export function CategorySummary({ categories }: CategorySummaryProps) {
+  const [isVisible, setIsVisible] = useState(false);
   const total = categories.reduce((sum, cat) => sum + cat.count, 0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Color palette for categories
   const colors = [
@@ -144,7 +168,11 @@ export function CategorySummary({ categories }: CategorySummaryProps) {
   ];
 
   return (
-    <div className="my-2 rounded-lg border border-gray-200 bg-white p-4">
+    <div
+      className={`my-2 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-500 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+      }`}
+    >
       <h4 className="mb-3 font-medium text-gray-900">Your Categories</h4>
 
       {/* Progress bar visualization */}
@@ -152,8 +180,11 @@ export function CategorySummary({ categories }: CategorySummaryProps) {
         {categories.map((cat, i) => (
           <div
             key={cat.name}
-            className={`${colors[i % colors.length]} transition-all`}
-            style={{ width: `${(cat.count / total) * 100}%` }}
+            className={`${colors[i % colors.length]} transition-all duration-700`}
+            style={{
+              width: isVisible ? `${(cat.count / total) * 100}%` : "0%",
+              transitionDelay: `${i * 100}ms`,
+            }}
             title={`${cat.name}: ${cat.count}`}
           />
         ))}

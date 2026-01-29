@@ -129,7 +129,107 @@ export default function ChatPage() {
             </div>
           }
         >
-          {tamboApiKey && tamboTools.length > 0 && (
+          {!tamboApiKey ? (
+            <div className="flex h-full items-center justify-center p-8">
+              <div className="max-w-md text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
+                  <svg
+                    className="h-8 w-8 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-2">
+                  Tambo API Key Missing
+                </h2>
+                <p className="text-sm text-slate-600 mb-4">
+                  The Tambo API key is not configured. Please add your{" "}
+                  <code className="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono">
+                    TAMBO_API_KEY
+                  </code>{" "}
+                  to your{" "}
+                  <code className="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono">
+                    .env
+                  </code>{" "}
+                  file.
+                </p>
+                <div className="rounded-lg bg-slate-50 p-4 text-left">
+                  <p className="text-xs font-semibold text-slate-700 mb-2">
+                    Quick Fix:
+                  </p>
+                  <ol className="text-xs text-slate-600 space-y-1 list-decimal list-inside">
+                    <li>
+                      Get your API key from{" "}
+                      <a
+                        href="https://tambo.ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        tambo.ai
+                      </a>
+                    </li>
+                    <li>
+                      Add{" "}
+                      <code className="px-1 py-0.5 bg-white rounded font-mono">
+                        TAMBO_API_KEY=your_key
+                      </code>{" "}
+                      to .env
+                    </li>
+                    <li>Restart the dev server</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          ) : !supabaseClient || tamboTools.length === 0 ? (
+            <div className="flex h-full items-center justify-center p-8">
+              <div className="max-w-md text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50">
+                  <svg
+                    className="h-8 w-8 text-orange-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-2">
+                  Supabase Configuration Missing
+                </h2>
+                <p className="text-sm text-slate-600 mb-4">
+                  Supabase environment variables are not configured. Please
+                  check your{" "}
+                  <code className="px-1.5 py-0.5 bg-slate-100 rounded text-xs font-mono">
+                    .env
+                  </code>{" "}
+                  file.
+                </p>
+                <div className="rounded-lg bg-slate-50 p-4 text-left">
+                  <p className="text-xs font-semibold text-slate-700 mb-2">
+                    Required Variables:
+                  </p>
+                  <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                    <li>SUPABASE_URL</li>
+                    <li>SUPABASE_ANON_KEY</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
             <TamboChat apiKey={tamboApiKey} tools={tamboTools} />
           )}
         </Suspense>

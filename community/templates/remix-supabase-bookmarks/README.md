@@ -4,11 +4,11 @@ A Tambo template for building an AI-powered bookmark manager with Remix and Supa
 
 ### Screenshot
 
-<img width="1915" height="1076" alt="image" src="https://github.com/user-attachments/assets/91c1c940-d64d-4894-9302-660b2eeca064" />
+<img width="1919" height="1078" alt="image" src="https://github.com/user-attachments/assets/c9f032fb-0a8a-458f-8733-5f5dca5bff32" />
 
 ### Video demo
 
-https://github.com/user-attachments/assets/d79c5dde-f58e-45d4-ae47-3f05c7328221
+https://github.com/user-attachments/assets/29d57415-a1ac-46f4-9f9e-cfbf8d3c20fb
 
 ## Prerequisites
 

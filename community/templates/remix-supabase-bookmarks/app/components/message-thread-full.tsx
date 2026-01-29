@@ -18,7 +18,13 @@ import {
   SearchIcon,
   SendHorizonal,
   Loader2,
+  Check,
+  X,
+  ChevronDown,
 } from "lucide-react";
+import DictationButton from "./dictation-button";
+import type TamboAI from "@tambo-ai/typescript-sdk";
+import stringify from "json-stringify-pretty-compact";
 
 // ============================================================================
 // Utilities
@@ -38,6 +44,54 @@ function getMessageTextContent(message: TamboThreadMessage): string {
       .join(" ");
   }
   return "";
+}
+
+function getToolCallRequest(
+  message: TamboThreadMessage,
+): TamboAI.ToolCallRequest | undefined {
+  return message.toolCallRequest ?? message.component?.toolCallRequest;
+}
+
+function keyifyParameters(parameters: TamboAI.ToolCallParameter[] | undefined) {
+  if (!parameters) return undefined;
+  return Object.fromEntries(
+    parameters.map((p) => [p.parameterName, p.parameterValue]),
+  );
+}
+
+function formatToolResult(
+  content: TamboThreadMessage["content"],
+): React.ReactNode {
+  if (!content) return null;
+
+  let contentString: string | null = null;
+  if (typeof content === "string") {
+    contentString = content;
+  } else if (Array.isArray(content)) {
+    contentString = content
+      .map((item) => {
+        if (item?.type === "text") {
+          return item.text ?? "";
+        }
+        return "";
+      })
+      .join("");
+  }
+
+  if (contentString) {
+    try {
+      const parsed = JSON.parse(contentString);
+      return (
+        <pre className="text-xs bg-slate-50 p-2 rounded overflow-auto">
+          {stringify(parsed)}
+        </pre>
+      );
+    } catch {
+      return <div className="text-xs whitespace-pre-wrap">{contentString}</div>;
+    }
+  }
+
+  return null;
 }
 
 // ============================================================================
@@ -195,7 +249,7 @@ function ThreadHistory() {
                       "text-sm font-medium line-clamp-1",
                       currentThread?.id === thread.id
                         ? "text-slate-900"
-                        : "text-blue-600",
+                        : "text-slate-500",
                     )}
                   >
                     {thread.name ?? `Thread ${thread.id.substring(0, 8)}`}
@@ -225,9 +279,9 @@ function ThreadHistory() {
 function LoadingIndicator() {
   return (
     <div className="flex items-center gap-1">
-      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.2s]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.1s]" />
+      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-600 [animation-delay:-0.3s]" />
+      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-600 [animation-delay:-0.2s]" />
+      <span className="h-2 w-2 animate-bounce rounded-full bg-slate-600 [animation-delay:-0.1s]" />
     </div>
   );
 }
@@ -268,7 +322,7 @@ function AssistantMessage({
 
   return (
     <div className="flex justify-start">
-      <div className="max-w-[80%] rounded-2xl bg-slate-100 px-4 py-3 text-slate-900">
+      <div className="max-w-[80%] rounded-2x py-2 text-black">
         {showLoading ? (
           <LoadingIndicator />
         ) : (
@@ -277,6 +331,96 @@ function AssistantMessage({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ToolCallInfo({
+  message,
+  isLoading,
+}: {
+  message: TamboThreadMessage;
+  isLoading: boolean;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const { thread } = useTambo();
+
+  // Find associated tool response
+  const associatedToolResponse = useMemo(() => {
+    if (!thread?.messages) return null;
+    const currentIndex = thread.messages.findIndex((m) => m.id === message.id);
+    if (currentIndex === -1) return null;
+
+    for (let i = currentIndex + 1; i < thread.messages.length; i++) {
+      const nextMessage = thread.messages[i];
+      if (nextMessage.role === "tool") {
+        return nextMessage;
+      }
+      if (nextMessage.role === "assistant" && getToolCallRequest(nextMessage)) {
+        break;
+      }
+    }
+    return null;
+  }, [message.id, thread?.messages]);
+
+  const toolCallRequest = getToolCallRequest(message);
+  if (!toolCallRequest) return null;
+
+  const hasToolError = !!message.error;
+
+  const toolStatusMessage = isLoading
+    ? `Calling ${toolCallRequest.toolName}`
+    : `Called ${toolCallRequest.toolName}`;
+
+  return (
+    <div className="flex flex-col items-start text-xs opacity-70 mt-1">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-1.5 hover:bg-slate-100 rounded px-2 py-1 transition-colors"
+      >
+        {hasToolError ? (
+          <X className="w-3 h-3 text-red-500" />
+        ) : isLoading ? (
+          <Loader2 className="w-3 h-3 animate-spin text-slate-500" />
+        ) : (
+          <Check className="w-3 h-3 text-green-500" />
+        )}
+        <span className="text-slate-600">{toolStatusMessage}</span>
+        <ChevronDown
+          className={cn(
+            "w-3 h-3 transition-transform",
+            !isExpanded && "-rotate-90",
+          )}
+        />
+      </button>
+
+      {isExpanded && (
+        <div className="flex flex-col gap-2 pl-6 pr-2 py-2 text-slate-600 w-full">
+          <div>
+            <span className="font-medium">Tool:</span>{" "}
+            {toolCallRequest.toolName}
+          </div>
+          <div>
+            <span className="font-medium">Parameters:</span>
+            <pre className="text-xs bg-slate-50 p-2 rounded mt-1 overflow-auto">
+              {stringify(keyifyParameters(toolCallRequest.parameters))}
+            </pre>
+          </div>
+          {associatedToolResponse && (
+            <div>
+              <span className="font-medium">Result:</span>
+              <div className="mt-1">
+                {!associatedToolResponse.content ? (
+                  <span className="italic text-slate-400">Empty response</span>
+                ) : (
+                  formatToolResult(associatedToolResponse.content)
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -299,10 +443,11 @@ function Message({
   }
 
   return (
-    <>
+    <div className="space-y-1">
       <AssistantMessage message={message} isLoading={isLoading} />
+      <ToolCallInfo message={message} isLoading={isLoading} />
       <RenderedComponent message={message} />
-    </>
+    </div>
   );
 }
 
@@ -327,21 +472,9 @@ function MessageThread() {
     );
 
     const result: typeof filtered = [];
-    let sawComponent = false;
 
     for (const msg of filtered) {
-      if (msg.role === "user") {
-        sawComponent = false;
-        result.push(msg);
-      } else if (msg.role === "assistant") {
-        if (msg.renderedComponent) {
-          sawComponent = true;
-          result.push(msg);
-        } else if (!sawComponent) {
-          result.push(msg);
-        }
-        // Skip text-only assistant messages after a component
-      }
+      result.push(msg);
     }
 
     return result;
@@ -481,19 +614,22 @@ function MessageInput() {
             placeholder="Type your message..."
             disabled={isPending}
             rows={1}
-            className="w-full resize-none rounded-xl bg-transparent px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:outline-none disabled:opacity-50"
+            className="w-full resize-none rounded-xl bg-transparent px-4 py-3 pr-24 text-sm placeholder:text-slate-400 focus:outline-none disabled:opacity-50"
           />
-          <button
-            type="submit"
-            disabled={isPending || !value.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-slate-900 p-2 text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-slate-900"
-          >
-            {isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <SendHorizonal className="h-4 w-4" />
-            )}
-          </button>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <DictationButton />
+            <button
+              type="submit"
+              disabled={isPending || !value.trim()}
+              className="rounded-lg bg-slate-900 p-2 text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:hover:bg-slate-900"
+            >
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <SendHorizonal className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
