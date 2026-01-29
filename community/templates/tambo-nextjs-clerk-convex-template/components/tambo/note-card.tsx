@@ -1,0 +1,194 @@
+"use client";
+
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Pin, Trash2, Archive, ArchiveRestore } from "lucide-react";
+import { z } from "zod";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+export const noteCardSchema = z.object({
+  id: z.string().describe("The note ID"),
+  title: z.string().describe("The note title"),
+  content: z.string().describe("The note content"),
+  color: z
+    .enum([
+      "default",
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "blue",
+      "purple",
+      "pink",
+    ])
+    .nullable()
+    .optional()
+    .default("default")
+    .describe("The note color"),
+  pinned: z
+    .boolean()
+    .nullable()
+    .optional()
+    .default(false)
+    .describe("Whether the note is pinned"),
+  archived: z
+    .boolean()
+    .nullable()
+    .optional()
+    .default(false)
+    .describe("Whether the note is archived"),
+  showActions: z
+    .boolean()
+    .nullable()
+    .optional()
+    .default(true)
+    .describe("Whether to show action buttons"),
+});
+
+export type NoteCardProps = z.infer<typeof noteCardSchema> & {
+  onEdit?: () => void;
+};
+
+const colorClasses: Record<string, string> = {
+  default: "bg-card hover:bg-accent/50",
+  red: "bg-red-500/10 hover:bg-red-500/20 border-red-500/20",
+  orange: "bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/20",
+  yellow: "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20",
+  green: "bg-green-500/10 hover:bg-green-500/20 border-green-500/20",
+  blue: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20",
+  purple: "bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/20",
+  pink: "bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/20",
+};
+
+export function NoteCard({
+  id,
+  title,
+  content,
+  color,
+  pinned,
+  archived,
+  showActions,
+  onEdit,
+}: NoteCardProps) {
+  const updateNote = useMutation(api.notes.updateNote);
+  const deleteNote = useMutation(api.notes.deleteNote);
+
+  // Normalize null to defaults
+  const normalizedColor = color ?? "default";
+  const normalizedPinned = pinned ?? false;
+  const normalizedArchived = archived ?? false;
+  const normalizedShowActions = showActions ?? true;
+
+  const handlePin = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await updateNote({ id: id as Id<"notes">, pinned: !normalizedPinned });
+      toast.success(normalizedPinned ? "Note unpinned" : "Note pinned");
+    } catch {
+      toast.error("Failed to update note");
+    }
+  };
+
+  const handleArchive = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await updateNote({
+        id: id as Id<"notes">,
+        archived: !normalizedArchived,
+      });
+      toast.success(normalizedArchived ? "Note restored" : "Note archived");
+    } catch {
+      toast.error("Failed to update note");
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await deleteNote({ id: id as Id<"notes"> });
+      toast.success("Note deleted");
+    } catch {
+      toast.error("Failed to delete note");
+    }
+  };
+
+  return (
+    <Card
+      onClick={onEdit}
+      className={cn(
+        "group relative transition-all duration-200 border-border/50 cursor-pointer",
+        colorClasses[normalizedColor],
+      )}
+    >
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-medium text-sm leading-tight line-clamp-2 flex-1">
+            {title}
+          </h3>
+          {normalizedPinned && (
+            <Pin className="h-3.5 w-3.5 text-muted-foreground shrink-0 fill-current" />
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0 pb-3">
+        <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap leading-relaxed">
+          {content}
+        </p>
+
+        {normalizedShowActions && (
+          <div className="flex items-center gap-0.5 mt-3 pt-3 border-t border-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={handlePin}
+              title={normalizedPinned ? "Unpin" : "Pin"}
+            >
+              <Pin
+                className={cn(
+                  "h-3.5 w-3.5",
+                  normalizedPinned && "fill-current",
+                )}
+              />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={handleArchive}
+              title={normalizedArchived ? "Unarchive" : "Archive"}
+            >
+              {normalizedArchived ? (
+                <ArchiveRestore className="h-3.5 w-3.5" />
+              ) : (
+                <Archive className="h-3.5 w-3.5" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={handleDelete}
+              title="Delete"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+            {normalizedColor !== "default" && (
+              <Badge
+                variant="outline"
+                className="ml-auto text-[10px] capitalize h-5 px-1.5"
+              >
+                {normalizedColor}
+              </Badge>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
