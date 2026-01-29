@@ -41,6 +41,7 @@ export const MessageRoot = React.forwardRef<HTMLDivElement, MessageRootProps>(
       <MessageRootContext.Provider value={contextValue}>
         <Comp
           ref={ref}
+          data-slot="message-root"
           data-message-role={role}
           data-message-id={message.id}
           {...props}
