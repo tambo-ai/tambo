@@ -141,11 +141,7 @@ All commands should complete without errors.
 
 ## Demo
 
-https://github.com/user-attachments/assets/demo-video
-
-> **Note:** The video above will be replaced with a GitHub-hosted link after PR submission.
-
-[📺 Watch Demo Video](screenshots/demo.mp4)
+https://github.com/user-attachments/assets/fe9777d2-acb5-4e66-993c-b0bf4199b62c
 
 ## Screenshots
 
