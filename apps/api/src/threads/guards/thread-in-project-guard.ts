@@ -38,8 +38,7 @@ export class ThreadInProjectGuard implements CanActivate {
 
     try {
       // Use ANY_CONTEXT_KEY because this guard only verifies the thread belongs
-      // to the project. The contextKey may come from the request body (which isn't
-      // available here) or may not be relevant for thread-by-ID access.
+      // to the project.
       await operations.ensureThreadByProjectId(
         this.db,
         threadId,
