@@ -2,6 +2,10 @@
 
 import { useNextAuthSession } from "@/hooks/nextauth";
 import { useAutoAcceptLegal } from "@/hooks/use-auto-accept-legal";
+import {
+  hasAcceptedLegalBefore,
+  setLegalAcceptedInBrowser,
+} from "@/lib/auth-preferences";
 import { api } from "@/trpc/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect } from "react";
@@ -33,6 +37,14 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
   // Hook for auto-accepting legal terms from pre-auth checkbox
   const { isAutoAccepting, triggerAutoAccept, shouldRedirectToLegalPage } =
     useAutoAcceptLegal(legalStatus);
+
+  // Sync localStorage for existing users who already accepted legal in DB
+  // This ensures returning users don't see the checkbox on future logins
+  useEffect(() => {
+    if (legalStatus?.accepted && !hasAcceptedLegalBefore()) {
+      setLegalAcceptedInBrowser();
+    }
+  }, [legalStatus?.accepted]);
 
   useEffect(() => {
     if (status === "loading") return;
