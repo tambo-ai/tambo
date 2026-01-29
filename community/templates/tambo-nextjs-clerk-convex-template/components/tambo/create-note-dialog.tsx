@@ -90,13 +90,13 @@ export function CreateNoteDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Create Note</DialogTitle>
+          <DialogDescription>
+            Add a new note to your collection.
+          </DialogDescription>
+        </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Create Note</DialogTitle>
-            <DialogDescription>
-              Add a new note to your collection.
-            </DialogDescription>
-          </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="title">Title</Label>

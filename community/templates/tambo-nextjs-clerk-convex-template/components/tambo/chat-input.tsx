@@ -69,7 +69,7 @@ export function TamboChatInput() {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type your message or paste images..."
-          className="min-h-[40px] max-h-[120px] resize-none pr-10 text-sm bg-background border-border/50 focus-visible:ring-1 focus-visible:ring-ring/50"
+          className="min-h-[40px] max-h-[120px] resize-none pr-10 text-sm bg-white border border-gray-200 focus-visible:ring-1 focus-visible:ring-ring/50"
           disabled={isLoading}
           rows={1}
         />

@@ -5,4 +5,6 @@ export { TamboMessageList } from "./message-list";
 export { DictationButton } from "./dictation-button";
 export { CreateNoteDialog } from "./create-note-dialog";
 export { EditNoteDialog } from "./edit-note-dialog";
+export { AskTamboTrigger } from "./ask-tambo-trigger";
+export { AskTamboSheet } from "./ask-tambo-sheet";
 export { AINotesPage } from "./ai-notes-page";

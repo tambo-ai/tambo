@@ -1,9 +1,8 @@
 "use client";
 
-import { useTamboThread } from "@tambo-ai/react";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bot, User, Loader2 } from "lucide-react";
+import { useTamboThread } from "@tambo-ai/react";
+import { Bot, Loader2, User } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -69,35 +68,34 @@ export function TamboMessageList() {
   if (!thread?.messages?.length && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-4">
-        <div className="rounded-full bg-muted/50 p-3 mb-4 ring-1 ring-border/50">
-          <Bot className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <h3 className="font-medium text-sm mb-1">AI Notes Assistant</h3>
+        <h3 className="font-heading font-medium text-lg mb-1 leading-tight tracking-tighter">
+          AI Notes Assistant
+        </h3>
         <p className="text-xs text-muted-foreground max-w-[240px] mb-5">
           I can help you create and manage notes. Try:
         </p>
-        <div className="flex flex-col gap-2 w-full max-w-[240px]">
-          <Badge
-            variant="outline"
-            className="justify-center py-2 cursor-pointer hover:bg-accent text-xs font-normal"
+        <div className="flex flex-col items-center gap-2 w-full max-w-[240px]">
+          <button
+            type="button"
+            className="w-full py-2 px-2.5 rounded-2xl text-xs font-medium transition-colors border border-gray-200 bg-background hover:bg-accent hover:text-accent-foreground text-left"
             onClick={() => handleSuggestionClick("Create a shopping list")}
           >
             Create a shopping list
-          </Badge>
-          <Badge
-            variant="outline"
-            className="justify-center py-2 cursor-pointer hover:bg-accent text-xs font-normal"
+          </button>
+          <button
+            type="button"
+            className="w-full py-2 px-2.5 rounded-2xl text-xs font-medium transition-colors border border-gray-200 bg-background hover:bg-accent hover:text-accent-foreground text-left"
             onClick={() => handleSuggestionClick("Write a meeting note")}
           >
             Write a meeting note
-          </Badge>
-          <Badge
-            variant="outline"
-            className="justify-center py-2 cursor-pointer hover:bg-accent text-xs font-normal"
+          </button>
+          <button
+            type="button"
+            className="w-full py-2 px-2.5 rounded-2xl text-xs font-medium transition-colors border border-gray-200 bg-background hover:bg-accent hover:text-accent-foreground text-left"
             onClick={() => handleSuggestionClick("Show my notes")}
           >
             Show my notes
-          </Badge>
+          </button>
         </div>
       </div>
     );

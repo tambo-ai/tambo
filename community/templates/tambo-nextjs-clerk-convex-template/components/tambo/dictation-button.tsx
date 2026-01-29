@@ -110,7 +110,7 @@ export function DictationButton() {
           <button
             type="button"
             disabled
-            className="p-2 rounded-md cursor-not-allowed opacity-50"
+            className="h-10 w-10 shrink-0 rounded-md cursor-not-allowed opacity-50 flex items-center justify-center"
             aria-label="Microphone access denied"
           >
             <Mic className="h-4 w-4" />
@@ -126,16 +126,18 @@ export function DictationButton() {
   // Show loading spinner while transcribing
   if (isTranscribing) {
     return (
-      <div className="p-2 rounded-md">
+      <div className="h-10 w-10 shrink-0 rounded-md flex items-center justify-center">
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-row items-center gap-2">
+    <>
       {transcriptionError && (
-        <span className="text-xs text-destructive">{transcriptionError}</span>
+        <span className="text-xs text-destructive absolute -top-6 left-0">
+          {transcriptionError}
+        </span>
       )}
       {isRecording ? (
         <Tooltip>
@@ -144,7 +146,7 @@ export function DictationButton() {
               type="button"
               onClick={handleStopRecording}
               aria-label="Stop dictation"
-              className="p-2 rounded-md cursor-pointer hover:bg-muted transition-colors"
+              className="h-10 w-10 shrink-0 rounded-md cursor-pointer hover:bg-muted transition-colors flex items-center justify-center"
             >
               <Square className="h-4 w-4 text-destructive fill-current animate-pulse" />
             </button>
@@ -160,7 +162,7 @@ export function DictationButton() {
               type="button"
               onClick={handleStartRecording}
               aria-label="Start dictation"
-              className="p-2 rounded-md cursor-pointer hover:bg-muted transition-colors"
+              className="h-10 w-10 shrink-0 rounded-md cursor-pointer hover:bg-muted transition-colors flex items-center justify-center"
             >
               <Mic className="h-4 w-4" />
             </button>
@@ -170,6 +172,6 @@ export function DictationButton() {
           </TooltipContent>
         </Tooltip>
       )}
-    </div>
+    </>
   );
 }

@@ -121,7 +121,7 @@ export function NoteCard({
     <Card
       onClick={onEdit}
       className={cn(
-        "group relative transition-all duration-200 border-border/50 cursor-pointer",
+        "group relative transition-all duration-200 border border-gray-200 bg-white shadow-sm hover:shadow-md cursor-pointer",
         colorClasses[normalizedColor],
       )}
     >
@@ -141,7 +141,7 @@ export function NoteCard({
         </p>
 
         {normalizedShowActions && (
-          <div className="flex items-center gap-0.5 mt-3 pt-3 border-t border-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-0.5 mt-3 pt-3 border-t border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant="ghost"
               size="icon"
