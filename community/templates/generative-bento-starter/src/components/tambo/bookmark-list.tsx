@@ -10,6 +10,10 @@ export const BookmarkList = ({ bookmarks }: { bookmarks: Bookmark[] }) => {
   const { thread } = useTambo();
   const [items, setItems] = React.useState(bookmarks);
 
+  React.useEffect(() => {
+    setItems(bookmarks);
+  }, [bookmarks]);
+
   const handleDelete = async (id: string) => {
     try {
       setItems(items.filter((b) => b.id !== id));

@@ -14,6 +14,7 @@
     "@tambo-ai/typescript-sdk": "^0.84.0",
     "@valibot/to-json-schema": "^1.5.0",
     "clsx": "^2.0.0",
+    "dotenv": "^17.2.3",
     "effect": "^3.19.15",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.294.0",
