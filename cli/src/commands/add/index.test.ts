@@ -105,6 +105,10 @@ jest.unstable_mockModule("./utils.js", () => ({
   checkLegacyComponents: () => null,
   getInstalledComponents: async () => [],
   getComponentList: () => [],
+  getComponentNpmDependencies: (componentNames: string[]) => ({
+    dependencies: componentNames.length > 0 ? ["@tambo-ai/react"] : [],
+    devDependencies: [],
+  }),
 }));
 
 // Mock the interactive module to make tests think they're in an interactive environment
@@ -758,6 +762,98 @@ describe("handleAddComponents", () => {
            ├─ helper.ts
            └─ utils.ts"
       `);
+    });
+  });
+
+  describe("dry-run mode", () => {
+    it("should show files that would be created without making changes", async () => {
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with --dryRun
+      await handleAddComponents(["message"], { yes: true, dryRun: true });
+
+      // Verify output shows dry-run info
+      const output = logs.join("\n");
+      expect(output).toContain("Dry run");
+      expect(output).toContain("Files to be created");
+      expect(output).toContain("message.tsx");
+      expect(output).toContain("No changes made");
+
+      // Verify no files were actually created
+      expect(
+        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
+      ).toBe(false);
+    });
+
+    it("should show npm packages that would be installed", async () => {
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with --dryRun
+      await handleAddComponents(["message"], { yes: true, dryRun: true });
+
+      // Verify output mentions packages section
+      const output = logs.join("\n");
+      expect(output).toContain("Dry run");
+
+      // Verify no npm install was called
+      const npmInstalls = execSyncCalls.filter((cmd) =>
+        cmd.includes("npm install"),
+      );
+      expect(npmInstalls.length).toBe(0);
+    });
+
+    it("should not create directories in dry-run mode", async () => {
+      // Setup
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: {},
+        }),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with --dryRun
+      await handleAddComponents(["message"], { yes: true, dryRun: true });
+
+      // Verify directories were not created
+      expect(vol.existsSync("/mock-project/src/components/tambo")).toBe(false);
+      expect(vol.existsSync("/mock-project/src/lib")).toBe(false);
+    });
+
+    it("should work with multiple components in dry-run mode", async () => {
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message", "form"]),
+      });
+
+      // Execute with --dryRun for multiple components
+      await handleAddComponents(["message", "form"], {
+        yes: true,
+        dryRun: true,
+      });
+
+      // Verify output shows both components
+      const output = logs.join("\n");
+      expect(output).toContain("Dry run");
+      expect(output).toContain("message.tsx");
+      expect(output).toContain("form.tsx");
+
+      // Verify no files were created
+      expect(
+        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
+      ).toBe(false);
+      expect(
+        vol.existsSync("/mock-project/src/components/tambo/form.tsx"),
+      ).toBe(false);
     });
   });
 

@@ -45,6 +45,7 @@ interface CLIFlags extends Record<string, any> {
   apiKey?: Flag<"string", string>;
   projectName?: Flag<"string", string>;
   projectId?: Flag<"string", string>;
+  browser?: Flag<"boolean", boolean>;
 }
 
 // Command help configuration (defined before CLI setup so we can generate help text)
@@ -74,6 +75,7 @@ const OPTION_DOCS: Record<string, string> = {
   "api-key": `${chalk.yellow("--api-key <key>")}      Direct API key input (skips auth)`,
   "project-name": `${chalk.yellow("--project-name <name>")} Create new project with this name`,
   "project-id": `${chalk.yellow("--project-id <id>")}    Use existing project by ID`,
+  "no-browser": `${chalk.yellow("--no-browser")}         Print auth URL instead of opening browser`,
 };
 
 const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
@@ -90,14 +92,15 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
       "api-key",
       "project-name",
       "project-id",
+      "no-browser",
       "skip-agent-docs",
       "legacy-peer-deps",
     ],
     examples: [
       `$ ${chalk.cyan("tambo init")}                              # Interactive mode`,
-      `$ ${chalk.cyan("tambo init --yes --project-name=myapp")}   # Non-interactive`,
-      `$ ${chalk.cyan("tambo init --api-key=sk_...")}             # Direct API key`,
-      `$ ${chalk.cyan("tambo init --project-id=abc123")}          # Existing project`,
+      `$ ${chalk.cyan("tambo init --api-key=sk_...")}             # Direct API key (simplest)`,
+      `$ ${chalk.cyan("tambo init --project-name=myapp")}         # Create new project`,
+      `$ ${chalk.cyan("tambo init --project-id=abc123")}          # Use existing project`,
       `$ ${chalk.cyan("tambo full-send")}                         # Full setup`,
     ],
     exampleTitle: "Getting Started",
@@ -118,11 +121,18 @@ const COMMAND_HELP_CONFIGS: Record<string, CommandHelp> = {
     usage: [
       `$ ${chalk.cyan("tambo add")} <component> [component2] [...] [options]`,
     ],
-    options: ["prefix", "yes", "skip-agent-docs", "legacy-peer-deps"],
+    options: [
+      "prefix",
+      "yes",
+      "dry-run",
+      "skip-agent-docs",
+      "legacy-peer-deps",
+    ],
     examples: [
       `$ ${chalk.cyan("tambo add message")}                    # Add single component`,
       `$ ${chalk.cyan("tambo add message form graph")}         # Add multiple components`,
       `$ ${chalk.cyan("tambo add message --yes")}              # Skip prompts`,
+      `$ ${chalk.cyan("tambo add message --dry-run")}          # Preview without installing`,
       `$ ${chalk.cyan("tambo add message --prefix=src/ui")}    # Custom directory`,
     ],
     showComponents: true,
@@ -242,10 +252,11 @@ ${chalk.bold("Templates")}
     command: "auth-login",
     syntax: "auth login",
     description: "Authenticate via browser",
-    usage: [`$ ${chalk.cyan("tambo auth login")}`],
-    options: [],
+    usage: [`$ ${chalk.cyan("tambo auth login")} [options]`],
+    options: ["no-browser"],
     examples: [
-      `$ ${chalk.cyan("tambo auth login")} # Opens browser to authenticate`,
+      `$ ${chalk.cyan("tambo auth login")}              # Opens browser to authenticate`,
+      `$ ${chalk.cyan("tambo auth login --no-browser")} # Print URL for manual opening (CI/agents)`,
     ],
   },
   "auth-logout": {
@@ -417,6 +428,12 @@ const cli = meow(generateGlobalHelp(), {
       type: "string",
       description: "Project ID for init (uses existing project)",
     },
+    browser: {
+      type: "boolean",
+      default: true,
+      description:
+        "Open browser for auth (use --no-browser to print URL instead)",
+    },
   },
   importMeta: import.meta,
 });
@@ -468,6 +485,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       apiKey: flags.apiKey as string | undefined,
       projectName: flags.projectName as string | undefined,
       projectId: flags.projectId as string | undefined,
+      noBrowser: flags.browser === false,
     });
     return;
   }
@@ -496,6 +514,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       isExplicitPrefix: Boolean(flags.prefix),
       yes: Boolean(flags.yes),
       skipAgentDocs: Boolean(flags.skipAgentDocs),
+      dryRun: Boolean(flags.dryRun),
     });
     return;
   }
@@ -592,6 +611,7 @@ async function handleCommand(cmd: string, flags: Result<CLIFlags>["flags"]) {
       quiet: Boolean(flags.quiet ?? flags.q),
       force: Boolean(flags.force ?? flags.f),
       all: Boolean(flags.all),
+      noBrowser: flags.browser === false,
     });
     return;
   }
