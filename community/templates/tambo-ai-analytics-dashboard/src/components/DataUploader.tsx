@@ -25,6 +25,34 @@ export const DataUploader: React.FC<DataUploaderProps> = ({ onDataUpload, curren
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
+    const downloadSampleCSV = () => {
+        const sampleData = [
+            ['date', 'region', 'category', 'product', 'revenue'],
+            ['2025-12-01', 'North America', 'Electronics', 'Laptop Pro', '1250'],
+            ['2025-12-01', 'Europe', 'Electronics', 'Laptop Pro', '980'],
+            ['2025-12-02', 'Asia', 'Electronics', 'Phone X', '850'],
+            ['2025-12-02', 'North America', 'Furniture', 'Office Chair', '450'],
+            ['2025-12-03', 'Europe', 'Clothing', 'Business Shirt', '85'],
+            ['2025-12-03', 'Asia', 'Electronics', 'Tablet Air', '650'],
+            ['2025-12-04', 'North America', 'Electronics', 'Monitor 4K', '720'],
+            ['2025-12-04', 'Europe', 'Furniture', 'Standing Desk', '890'],
+            ['2025-12-05', 'Asia', 'Clothing', 'Jacket', '120'],
+            ['2025-12-05', 'North America', 'Electronics', 'Keyboard Pro', '180'],
+        ];
+
+        const csvContent = sampleData.map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'sample-sales-data.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -108,11 +136,19 @@ export const DataUploader: React.FC<DataUploaderProps> = ({ onDataUpload, curren
 
     return (
         <div className="rounded-lg border border-border bg-card p-6">
-            <div className="mb-4">
-                <h3 className="text-lg font-semibold text-foreground">Upload Your Data</h3>
-                <p className="text-sm text-muted-foreground">
-                    Upload a CSV file to analyze your own business data
-                </p>
+            <div className="mb-4 flex items-start justify-between">
+                <div>
+                    <h3 className="text-lg font-semibold text-foreground">Upload Your Data</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Upload a CSV file to analyze your own business data
+                    </p>
+                </div>
+                <button
+                    onClick={downloadSampleCSV}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                    Download Sample CSV
+                </button>
             </div>
 
             <div className="space-y-4">

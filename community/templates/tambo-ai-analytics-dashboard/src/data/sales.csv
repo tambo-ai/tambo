@@ -1,0 +1,49 @@
+date,region,category,product,revenue
+2025-01-05,North America,Programming,Full Stack Web Development,145000
+2025-01-06,Europe,Programming,Python for Beginners,82000
+2025-01-07,Asia,Data Science,Data Science Bootcamp,134000
+2025-01-08,India,Programming,Java Masterclass,76000
+2025-01-09,North America,AI & ML,Machine Learning A-Z,158000
+2025-01-10,Europe,Design,UI/UX Design Fundamentals,69000
+2025-01-12,Asia,Programming,React Developer Course,94000
+2025-01-13,India,Data Science,SQL for Data Analysis,52000
+2025-01-14,North America,Business,Product Management Essentials,88000
+2025-01-15,Europe,AI & ML,Deep Learning with TensorFlow,121000
+2025-01-16,Asia,Business,Startup & Entrepreneurship,67000
+2025-01-17,India,Programming,C++ for Competitive Coding,48000
+2025-01-18,North America,Cloud,AWS Certified Solutions Architect,132000
+2025-01-19,Europe,Cloud,Azure Fundamentals,74000
+2025-01-20,Asia,Cloud,Docker & Kubernetes,98000
+2025-01-22,India,Design,Graphic Design Masterclass,59000
+2025-01-23,North America,Programming,Advanced JavaScript,91000
+2025-01-24,Europe,Data Science,Statistics for Data Science,66000
+2025-01-25,Asia,AI & ML,NLP with Python,105000
+2025-01-26,India,Business,Digital Marketing Strategy,72000
+2025-01-27,North America,Cloud,DevOps Engineering Program,149000
+2025-01-28,Europe,Programming,Go Language Fundamentals,63000
+2025-01-29,Asia,Programming,Node.js Backend Development,87000
+2025-01-30,India,AI & ML,AI for Everyone,54000
+2025-02-01,North America,Data Science,Big Data with Spark,128000
+2025-02-02,Europe,Design,UX Research Techniques,61000
+2025-02-03,Asia,Business,Finance for Non-Finance,73000
+2025-02-04,India,Programming,Python Automation,56000
+2025-02-05,North America,AI & ML,Generative AI with LLMs,172000
+2025-02-06,Europe,Cloud,GCP Cloud Engineer,78000
+2025-02-07,Asia,Programming,Android App Development,82000
+2025-02-08,India,Data Science,Power BI Analytics,64000
+2025-02-09,North America,Business,Agile & Scrum Certification,90000
+2025-02-10,Europe,AI & ML,Computer Vision Basics,71000
+2025-02-11,Asia,Cloud,Serverless Architecture,86000
+2025-02-12,India,Programming,DSA with Java,68000
+2025-02-13,North America,Design,Design Systems in Figma,95000
+2025-02-14,Europe,Business,HR Analytics,62000
+2025-02-15,Asia,Data Science,Time Series Forecasting,99000
+2025-02-16,India,AI & ML,ChatGPT Prompt Engineering,58000
+2025-02-17,North America,Programming,System Design Interview Prep,110000
+2025-02-18,Europe,Programming,Rust Programming Essentials,65000
+2025-02-19,Asia,Business,Operations Management,70000
+2025-02-20,India,Cloud,AWS for Beginners,60000
+2025-02-21,North America,AI & ML,Reinforcement Learning,125000
+2025-02-22,Europe,Data Science,Data Visualization with Tableau,74000
+2025-02-23,Asia,Programming,Microservices with Spring Boot,93000
+2025-02-24,India,Business,Startup Valuation Basics,52000

@@ -254,7 +254,7 @@ export const App: React.FC = () => {
                 : 'No data uploaded yet. Please upload a CSV file.',
             value: salesData.length > 0 ? JSON.stringify(salesData.slice(0, 50)) : '[]',
         }),
-    }), [salesData, uploadedData]);
+    }), [salesData]);
 
     return (
         <TamboProvider
