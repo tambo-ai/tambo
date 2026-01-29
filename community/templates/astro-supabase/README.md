@@ -13,7 +13,7 @@ https://github.com/user-attachments/assets/3f869219-d25e-41ac-bed7-17419e70713a
 
 2. `npm install`
 
-3. Create a `.env` file (copy from example if available) with your credentials:
+3. Create a `.env` file with your credentials:
 
    ```env
    PUBLIC_SUPABASE_URL=your-supabase-url
@@ -24,10 +24,12 @@ https://github.com/user-attachments/assets/3f869219-d25e-41ac-bed7-17419e70713a
    - Get your Tambo API key for free [here](https://tambo.co/dashboard).
    - Get your Supabase URL/Key from your [Supabase Dashboard](https://supabase.com/dashboard).
 
-   This template uses Supabase migrations. Run the following to apply the schema:
+4. Apply the database schema using Supabase migrations:
+
    ```bash
-   npx supabase db push
+   npm run db:push
    ```
+
    (Or copy the SQL from `supabase/migrations/20260129000000_create_users_table.sql` and run it in your Supabase SQL Editor)
 
 5. Run `npm run dev` and go to `localhost:4321` to use the app!
@@ -42,50 +44,94 @@ You can see how components are registered with tambo in `src/lib/tambo.ts`:
 export const components: TamboComponent[] = [
   {
     name: "Graph",
-    description: "A component that renders various types of charts...",
+    description:
+      "Renders interactive charts (bar, line, pie) for data visualization with customizable styling",
     component: Graph,
     propsSchema: graphSchema,
+  },
+  {
+    name: "DataTable",
+    description:
+      "Displays data from Supabase in a formatted table with columns and rows",
+    component: DataTable,
+    propsSchema: dataTableSchema,
   },
   // Add more components here
 ];
 ```
 
-You can update this array with any component(s) you want tambo to be able to use in a response!
+The example Graph component demonstrates several key features:
+
+- Different prop types (strings, arrays, enums, nested objects)
+- Multiple chart types (bar, line, pie)
+- Customizable styling (variants, sizes)
+- Optional configurations (title, legend, colors)
+- Data visualization capabilities
+
+Update the `components` array with any component(s) you want tambo to be able to use in a response!
+
+You can find more information about the options [here](https://docs.tambo.co/concepts/generative-interfaces/generative-components)
 
 ### Add tools for tambo to use
 
-Tools are defined with `inputSchema` and `outputSchema` in `src/lib/tambo.ts`:
+Tools are defined with `inputSchema` and `outputSchema`:
 
 ```typescript
 export const tools: TamboTool[] = [
   {
     name: "fetchUsers",
-    description: "Fetches all users from the database.",
-    // ... implementation
+    description: "Fetches all users from the Supabase database",
+    tool: async () => {
+      const { data, error } = await supabase.from("users").select("*");
+      if (error) throw error;
+      return data;
+    },
+    inputSchema: z.object({}),
+    outputSchema: z.array(z.record(z.any())),
   },
 ];
 ```
 
 This template includes tools to `fetchUsers`, `addUser`, `deleteUser`, and `getUserCount` connected to Supabase.
 
+Find more information about tools [here.](https://docs.tambo.co/concepts/tools)
+
 ### The Magic of Tambo Requires the TamboProvider
 
-Make sure in the TamboProvider wrapped around your app (see `src/components/TamboChat.tsx`):
+Make sure in the TamboProvider wrapped around your app:
 
 ```tsx
 <TamboProvider
   apiKey={import.meta.env.PUBLIC_TAMBO_API_KEY}
-  components={components}
-  tools={tools}
+  components={components} // Array of components to control
+  tools={tools} // Array of tools it can use
 >
   <ChatInterface />
 </TamboProvider>
 ```
 
-### Authentication
+In this example we do this in the `TamboChat.tsx` component, but you can do it anywhere in your app that is a client component.
 
-This template features built-in authentication using Supabase. The auth flow is handled in:
+### Voice input
 
-- `src/pages/register.astro`
-- `src/pages/signin.astro`
-- `src/pages/dashboard.astro`
+The template includes a `DictationButton` component using the `useTamboVoice` hook for speech-to-text input.
+
+### Change where component responses are shown
+
+The components used by tambo are shown alongside the message response from tambo within the chat thread, but you can have the result components show wherever you like by accessing the latest thread message's `renderedComponent` field:
+
+```tsx
+const { thread } = useTambo();
+const latestComponent =
+  thread?.messages[thread.messages.length - 1]?.renderedComponent;
+
+return (
+  <div>
+    {latestComponent && (
+      <div className="my-custom-wrapper">{latestComponent}</div>
+    )}
+  </div>
+);
+```
+
+For more detailed documentation, visit [Tambo's official docs](https://docs.tambo.co).

@@ -9,11 +9,17 @@
     "astro": "astro",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:push": "npx supabase db push",
+    "db:pull": "npx supabase db pull",
+    "db:new": "npx supabase migration new",
+    "db:reset": "npx supabase db reset"
   },
   "dependencies": {
     "@astrojs/node": "^9.5.2",
     "@astrojs/react": "^4.4.2",
+    "@fontsource/geist-mono": "^5.2.7",
+    "@fontsource/geist-sans": "^5.2.5",
     "@supabase/supabase-js": "^2.93.2",
     "@tailwindcss/vite": "^4.1.18",
     "@tambo-ai/react": "^0.71.0",

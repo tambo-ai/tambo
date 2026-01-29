@@ -1,129 +1,117 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import ApiKeyCheck from '../components/ApiKeyCheck';
 ---
 
-<Layout title="Astro + Supabase + Tambo">
-	<main class="min-h-screen bg-background text-foreground relative overflow-hidden">
-		<!-- Subtle background gradient -->
-		<div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
-		
-		<div class="relative z-10 py-24 px-6 max-w-6xl mx-auto">
-			<div class="text-center">
-				<!-- Badge -->
-				<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground border border-border text-sm font-medium mb-8 animate-[fadeInDown_0.6s_ease-out]">
-					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-					</svg>
-					<span>Powered by Tambo AI</span>
-				</div>
-				
-				<!-- Hero Title -->
-				<h1 class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-[1.1] animate-[fadeInUp_0.6s_ease-out_0.1s_both]">
-					Build AI-Powered Apps with <br/>
-					<span class="text-primary">Astro</span> & <span class="text-primary">Supabase</span>
-				</h1>
-				
-				<!-- Subtitle -->
-				<p class="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed animate-[fadeInUp_0.6s_ease-out_0.2s_both]">
-					A modern starter template combining Astro's speed, Supabase's backend, and Tambo's generative UI for creating intelligent applications.
-				</p>
+<Layout title="Astro Supabase Tambo Template">
+  <main class="min-h-screen p-8 flex flex-col items-center justify-center font-sans bg-white">
+    <div class="max-w-2xl w-full space-y-8">
+      <div class="flex flex-col items-center">
+        <a href="https://tambo.co" target="_blank" rel="noopener noreferrer">
+          <img
+            src="/Octo-Icon.svg"
+            alt="Tambo AI Logo"
+            width="80"
+            height="80"
+            class="mb-4"
+          />
+        </a>
+        <h1 class="text-4xl text-center">astro-supabase tambo template</h1>
+      </div>
 
-				<!-- CTA Buttons -->
-				<div class="flex gap-4 justify-center items-center flex-wrap mb-24 animate-[fadeInUp_0.6s_ease-out_0.3s_both]">
-					<a href="/register" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium text-base hover:bg-primary/90 transition-colors shadow-sm">
-						Get Started
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-						</svg>
-					</a>
-					<a href="/signin" class="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground border border-input rounded-lg font-medium text-base hover:bg-secondary/80 transition-colors">
-						Sign In
-					</a>
-				</div>
+      <div class="w-full space-y-8">
+        <div class="bg-white px-8 py-4">
+          <h2 class="text-xl font-semibold mb-4">Setup Checklist</h2>
+          <ApiKeyCheck client:only="react">
+            <div class="flex gap-4 flex-wrap">
+              <a
+                href="/chat"
+                class="px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#7FFFC3] hover:bg-[#72e6b0] text-gray-800"
+              >
+                Go to Chat →
+              </a>
+              <a
+                href="/dashboard"
+                class="px-6 py-3 rounded-md font-medium shadow-sm transition-colors text-lg mt-4 bg-[#FFE17F] hover:bg-[#f5d570] text-gray-800"
+              >
+                Dashboard →
+              </a>
+            </div>
+          </ApiKeyCheck>
+        </div>
 
-				<!-- Features Grid -->
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16 animate-[fadeInUp_0.6s_ease-out_0.4s_both]">
-					<!-- Feature 1: AI-Powered UI -->
-					<div class="group p-6 rounded-xl border border-border bg-card text-card-foreground hover:shadow-md transition-all duration-300">
-						<div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-							</svg>
-						</div>
-						<h3 class="text-lg font-semibold mb-2">AI-Powered UI</h3>
-						<p class="text-muted-foreground text-sm leading-relaxed">Generate dynamic interfaces with Tambo's generative components</p>
-					</div>
-
-					<!-- Feature 2: Supabase Backend -->
-					<div class="group p-6 rounded-xl border border-border bg-card text-card-foreground hover:shadow-md transition-all duration-300">
-						<div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-							</svg>
-						</div>
-						<h3 class="text-lg font-semibold mb-2">Supabase Backend</h3>
-						<p class="text-muted-foreground text-sm leading-relaxed">Secure authentication and real-time database out of the box</p>
-					</div>
-
-					<!-- Feature 3: Lightning Fast -->
-					<div class="group p-6 rounded-xl border border-border bg-card text-card-foreground hover:shadow-md transition-all duration-300">
-						<div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-							</svg>
-						</div>
-						<h3 class="text-lg font-semibold mb-2">Lightning Fast</h3>
-						<p class="text-muted-foreground text-sm leading-relaxed">Built with Astro for optimal performance and SEO</p>
-					</div>
-
-					<!-- Feature 4: Data Visualization -->
-					<div class="group p-6 rounded-xl border border-border bg-card text-card-foreground hover:shadow-md transition-all duration-300">
-						<div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-							<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-							</svg>
-						</div>
-						<h3 class="text-lg font-semibold mb-2">Data Visualization</h3>
-						<p class="text-muted-foreground text-sm leading-relaxed">Interactive charts and tables powered by Recharts</p>
-					</div>
-				</div>
-			</div>
-
-			<!-- Tech Stack -->
-			<div class="text-center mt-24 pb-8 animate-[fadeInUp_0.6s_ease-out_0.5s_both]">
-				<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-6">Built with modern stack</p>
-				<div class="flex gap-3 justify-center flex-wrap">
-					<span class="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm font-medium border border-border">Astro</span>
-					<span class="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm font-medium border border-border">Supabase</span>
-					<span class="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm font-medium border border-border">Tambo AI</span>
-					<span class="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm font-medium border border-border">React</span>
-					<span class="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm font-medium border border-border">TypeScript</span>
-				</div>
-			</div>
-		</div>
-	</main>
+        <div class="bg-white px-8 py-4">
+          <h2 class="text-xl font-semibold mb-4">How it works:</h2>
+          <ul class="space-y-4 text-gray-600">
+            <li class="flex items-start gap-2">
+              <span>📄</span>
+              <span>
+                <code class="font-medium">src/components/TamboChat.tsx</code> - Main chat component with TamboProvider
+              </span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span>📄</span>
+              <span>
+                <code class="font-medium font-mono">src/pages/chat.astro</code> - Chat page
+              </span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span>📄</span>
+              <span>
+                <code class="font-medium font-mono">src/pages/dashboard.astro</code> - Protected dashboard page
+              </span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span>📄</span>
+              <span>
+                <code class="font-medium font-mono">src/components/tambo/Graph.tsx</code> - A generative graph component
+              </span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span>📄</span>
+              <span>
+                <code class="font-medium font-mono">src/components/tambo/DataTable.tsx</code> - Data table component
+              </span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span>📄</span>
+              <span>
+                <code class="font-medium font-mono">src/lib/tambo.ts</code> - Component and tool registration
+              </span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-blue-500">📄</span>
+              <span>
+                <code class="font-medium font-mono">src/lib/supabase.ts</code> - Supabase client configuration
+              </span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-blue-500">📄</span>
+              <span>
+                <code class="font-medium font-mono">README.md</code> - For more details check out the README
+              </span>
+            </li>
+          </ul>
+          <div class="flex gap-4 flex-wrap mt-4">
+            <a
+              href="https://docs.tambo.co"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-6 py-3 rounded-md font-medium transition-colors text-lg mt-4 border border-gray-300 hover:bg-gray-50"
+            >
+              View Docs
+            </a>
+            <a
+              href="https://tambo.co/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-6 py-3 rounded-md font-medium transition-colors text-lg mt-4 border border-gray-300 hover:bg-gray-50"
+            >
+              Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </Layout>
-
-<style>
-	@keyframes fadeInUp {
-		from {
-			opacity: 0;
-			transform: translateY(20px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	@keyframes fadeInDown {
-		from {
-			opacity: 0;
-			transform: translateY(-20px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-</style>

@@ -11,31 +11,23 @@ if (accessToken && refreshToken) {
 ---
 
 <Layout title="Sign in">
-  <main class="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-    <!-- Left side - Branding -->
-    <div class="hidden lg:flex flex-col justify-center items-center bg-muted p-10 relative overflow-hidden">
-      <div class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-      <div class="relative z-10 max-w-md text-center">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl mb-8 text-primary">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-        </div>
-        <h2 class="text-3xl font-bold tracking-tight mb-4 text-foreground">Build Faster with Tambo</h2>
-        <p class="text-muted-foreground text-lg">
-            Create intelligent applications with generative UI components and powerful AI capabilities.
-        </p>
+  <main class="min-h-screen p-8 flex flex-col items-center justify-center font-sans bg-background">
+    <div class="w-full max-w-sm space-y-8">
+      <div class="flex flex-col items-center">
+        <a href="https://tambo.co" target="_blank" rel="noopener noreferrer">
+          <img
+            src="/Octo-Icon.svg"
+            alt="Tambo AI Logo"
+            width="80"
+            height="80"
+            class="mb-4"
+          />
+        </a>
+        <h1 class="text-3xl font-bold tracking-tight text-center text-foreground mb-2">Welcome back</h1>
+        <p class="text-muted-foreground text-sm text-center">Enter your credentials to access your account</p>
       </div>
-    </div>
 
-    <!-- Right side - Form -->
-    <div class="flex items-center justify-center p-8 bg-background">
-      <div class="w-full max-w-sm space-y-6">
-        <div class="space-y-2 text-center">
-          <h1 class="text-2xl font-bold tracking-tight text-foreground">Welcome back</h1>
-          <p class="text-muted-foreground text-sm">Enter your credentials to access your account</p>
-        </div>
-
+      <div class="bg-background space-y-6">
         <form action="/api/auth/signin" method="post" class="space-y-4">
           <div class="space-y-2">
             <label for="email" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground">Email</label>
@@ -60,15 +52,15 @@ if (accessToken && refreshToken) {
           </div>
           <button 
             type="submit"
-            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-foreground text-background hover:bg-foreground/90 h-10 px-4 py-2 w-full"
           >
             Sign In
           </button>
         </form>
 
-        <p className="px-8 text-center text-sm text-muted-foreground">
+        <p class="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <a href="/register" class="underline underline-offset-4 hover:text-primary">
+            <a href="/register" class="underline underline-offset-4 hover:text-foreground">
                 Sign up
             </a>
         </p>

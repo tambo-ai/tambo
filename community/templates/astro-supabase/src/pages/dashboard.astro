@@ -33,15 +33,28 @@ const email = session.data.user?.email;
 <Layout title="Dashboard">
   <main class="min-h-screen bg-background text-foreground p-8">
     <div class="max-w-6xl mx-auto">
+      <!-- Header with Logo -->
+      <div class="flex flex-col items-center mb-8">
+        <a href="https://tambo.co" target="_blank" rel="noopener noreferrer">
+          <img
+            src="/Octo-Icon.svg"
+            alt="Tambo AI Logo"
+            width="80"
+            height="80"
+            class="mb-4"
+          />
+        </a>
+      </div>
+
       <!-- Welcome Card -->
-      <div class="bg-card text-card-foreground p-10 rounded-xl border border-border shadow-sm mb-8">
+      <div class="bg-background text-foreground p-10 rounded-xl border border-border shadow-sm mb-8">
         <div class="flex justify-between items-start gap-8 flex-wrap">
           <div>
             <h1 class="text-3xl font-bold tracking-tight mb-2">My Dashboard</h1>
             <p class="text-muted-foreground">Logged in as <span class="font-medium text-foreground">{email}</span></p>
           </div>
           <form action="/api/auth/signout">
-            <button type="submit" class="px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium transition-colors border border-input">
+            <button type="submit" class="px-4 py-2 bg-muted text-foreground hover:bg-muted/80 rounded-md text-sm font-medium transition-colors border border-border">
               Sign out
             </button>
           </form>
@@ -53,17 +66,17 @@ const email = session.data.user?.email;
         <h2 class="text-2xl font-semibold tracking-tight mb-6">Quick Actions</h2>
         <div class="grid grid-cols-1 gap-6">
           <!-- AI Chat Card -->
-          <a href="/chat" class="group relative block p-8 rounded-xl border border-border bg-card hover:bg-accent/5 transition-all duration-200">
+          <a href="/chat" class="group relative block p-8 rounded-xl border border-border bg-background hover:bg-muted transition-all duration-200">
             <div class="flex items-center gap-4 mb-4">
-              <div class="p-3 bg-primary/10 rounded-lg text-primary">
+              <div class="p-3 bg-muted rounded-lg text-foreground">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold">AI Chat</h3>
+              <h3 class="text-xl font-semibold text-foreground">AI Chat</h3>
             </div>
             <p class="text-muted-foreground text-sm leading-relaxed mb-4">Interact with Tambo AI to manage data and create visualizations. Create users, charts, and more.</p>
-            <div class="flex items-center text-sm font-medium text-primary">
+            <div class="flex items-center text-sm font-medium text-foreground">
               Open Chat
               <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -76,29 +89,29 @@ const email = session.data.user?.email;
       </div>
 
       <!-- Info Section -->
-      <div class="p-8 rounded-xl bg-muted/40 border border-border">
+      <div class="p-8 rounded-xl bg-muted border border-border">
         <h2 class="text-xl font-semibold mb-6">What You Can Do</h2>
         <div class="grid gap-4 md:grid-cols-2">
           <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 flex-shrink-0 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
             <span class="text-muted-foreground">Chat with AI to manage users in the database</span>
           </div>
           <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 flex-shrink-0 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
             <span class="text-muted-foreground">Create interactive charts and data visualizations</span>
           </div>
           <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 flex-shrink-0 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
             <span class="text-muted-foreground">View data in beautiful, formatted tables</span>
           </div>
           <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 flex-shrink-0 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
             <span class="text-muted-foreground">Add, fetch, and delete users with natural language</span>

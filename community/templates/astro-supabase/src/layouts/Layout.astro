@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import '@fontsource/geist-sans';
+import '@fontsource/geist-mono';
 
 interface Props {
 	title: string;
@@ -18,7 +20,7 @@ const { title } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 	</head>
-	<body>
+	<body class="font-sans antialiased bg-white">
 		<slot />
 	</body>
 </html>
@@ -29,5 +31,6 @@ const { title } = Astro.props;
 		margin: 0;
 		width: 100%;
 		height: 100%;
+		background-color: white;
 	}
 </style>
