@@ -10,7 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Docs Explorer | AI-Powered Documentation Assistant",
-  description: "Explore React documentation with AI-powered assistance. Get code examples, explanations, and related topics instantly.",
+  description:
+    "Explore React documentation with AI-powered assistance. Get code examples, explanations, and related topics instantly.",
 };
 
 export default function RootLayout({
