@@ -17,5 +17,8 @@ export const ReasoningInfo = {
 export type { ReasoningInfoContentProps } from "./content/reasoning-info-content";
 export type { ReasoningInfoRootProps } from "./root/reasoning-info-root";
 export type { ReasoningInfoStatusTextProps } from "./status-text/reasoning-info-status-text";
-export type { ReasoningInfoStepsProps } from "./steps/reasoning-info-steps";
+export type {
+  ReasoningInfoStepsProps,
+  ReasoningInfoStepsRenderFunctionProps,
+} from "./steps/reasoning-info-steps";
 export type { ReasoningInfoTriggerProps } from "./trigger/reasoning-info-trigger";

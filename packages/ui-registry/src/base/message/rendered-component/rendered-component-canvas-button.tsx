@@ -42,7 +42,7 @@ export const MessageRenderedComponentCanvasButton = React.forwardRef<
     <button
       ref={ref}
       onClick={onShowInCanvas}
-      data-slot="message-show-in-canvas-button"
+      data-slot="rendered-component-canvas-button"
       {...props}
     >
       {children}
