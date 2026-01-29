@@ -1,6 +1,7 @@
 "use client";
 
 import { BookmarkList } from "@/components/tambo/bookmark-list";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { getBookmarks } from "@/lib/supabase";
 import { useTambo } from "@tambo-ai/react";
 import Image from "next/image";
@@ -46,7 +47,7 @@ export default function Home() {
   );
 
   return (
-    <main className="min-h-screen bg-neutral-100 dark:bg-neutral-950 p-8 font-sans">
+    <main className="min-h-screen bg-neutral-100 dark:bg-neutral-950 p-8 font-sans transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -61,12 +62,16 @@ export default function Home() {
               Generative Bookmarks
             </h1>
           </div>
-          <Link
-            href="/chat"
-            className="px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full font-bold hover:opacity-90 transition shadow-lg"
-          >
-            Start Chatting →
-          </Link>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/chat"
+              className="px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full font-bold hover:opacity-90 transition shadow-lg"
+            >
+              Start Chatting →
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
 
         {latestComponent ? (
