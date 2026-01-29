@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import {
+  Children,
   createContext,
   memo,
   useContext,
@@ -31,7 +32,7 @@ import {
 import { Streamdown } from "streamdown";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
-  from: UIMessage["role"];
+  from: Extract<UIMessage["role"], "user" | "assistant">;
 };
 
 export const Message = ({ className, from, ...props }: MessageProps) => (
@@ -152,6 +153,15 @@ export const MessageBranch = ({
   const [currentBranch, setCurrentBranch] = useState(defaultBranch);
   const [branches, setBranches] = useState<ReactElement[]>([]);
 
+  useEffect(() => {
+    if (branches.length === 0) return;
+
+    setCurrentBranch((prev) => {
+      const next = Math.min(prev, branches.length - 1);
+      return next === prev ? prev : next;
+    });
+  }, [branches.length]);
+
   const handleBranchChange = (newBranch: number) => {
     setCurrentBranch(newBranch);
     onBranchChange?.(newBranch);
@@ -192,42 +202,41 @@ export type MessageBranchContentProps = HTMLAttributes<HTMLDivElement>;
 
 export const MessageBranchContent = ({
   children,
+  className,
   ...props
 }: MessageBranchContentProps) => {
-  const { currentBranch, setBranches, branches } = useMessageBranch();
+  const { currentBranch, setBranches } = useMessageBranch();
   const childrenArray = useMemo(
-    () => (Array.isArray(children) ? children : [children]),
+    () => Children.toArray(children) as ReactElement[],
     [children],
   );
 
-  // Use useEffect to update branches when they change
   useEffect(() => {
-    if (branches.length !== childrenArray.length) {
-      setBranches(childrenArray);
-    }
-  }, [childrenArray, branches, setBranches]);
+    setBranches(childrenArray);
+  }, [childrenArray, setBranches]);
 
-  return childrenArray.map((branch, index) => (
-    <div
-      className={cn(
-        "grid gap-2 overflow-hidden [&>div]:pb-0",
-        index === currentBranch ? "block" : "hidden",
-      )}
-      key={branch.key ?? index}
-      {...props}
-    >
-      {branch}
+  return (
+    <div {...props}>
+      {childrenArray.map((branch, index) => (
+        <div
+          className={cn(
+            "grid gap-2 overflow-hidden [&>div]:pb-0",
+            index === currentBranch ? "block" : "hidden",
+            className,
+          )}
+          key={branch.key ?? index}
+        >
+          {branch}
+        </div>
+      ))}
     </div>
-  ));
+  );
 };
 
-export type MessageBranchSelectorProps = HTMLAttributes<HTMLDivElement> & {
-  from: UIMessage["role"];
-};
+export type MessageBranchSelectorProps = HTMLAttributes<HTMLDivElement>;
 
 export const MessageBranchSelector = ({
   className,
-  from,
   ...props
 }: MessageBranchSelectorProps) => {
   const { totalBranches } = useMessageBranch();
@@ -239,7 +248,6 @@ export const MessageBranchSelector = ({
 
   return (
     <ButtonGroup
-      data-message-from={from}
       className={cn(
         "[&>*:not(:first-child)]:rounded-l-md [&>*:not(:last-child)]:rounded-r-md",
         className,
@@ -331,7 +339,6 @@ export const MessageResponse = memo(
       {...props}
     />
   ),
-  (prevProps, nextProps) => prevProps.children === nextProps.children,
 );
 
 MessageResponse.displayName = "MessageResponse";
@@ -389,16 +396,18 @@ export function MessageAttachment({
         </>
       ) : (
         <>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex size-full shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                <PaperclipIcon className="size-4" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{attachmentLabel}</p>
-            </TooltipContent>
-          </Tooltip>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex size-full shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <PaperclipIcon className="size-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{attachmentLabel}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {onRemove && (
             <Button
               aria-label="Remove attachment"

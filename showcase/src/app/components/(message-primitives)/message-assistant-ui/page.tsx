@@ -11,6 +11,7 @@ import {
 
 const demoChatModelAdapter: ChatModelAdapter = {
   async *run({ abortSignal }) {
+    // Demo-only adapter: returns a static response and does not use message history.
     if (abortSignal.aborted) return;
 
     yield {
@@ -81,7 +82,9 @@ export default function MessageAssistantUiPage() {
 import { Thread } from "@/components/assistant-ui/thread";
 
 const chatModelAdapter: ChatModelAdapter = {
-  async *run() {
+  async *run({ abortSignal }) {
+    if (abortSignal.aborted) return;
+
     yield {
       content: [{ type: "text", text: "Hello from the local adapter." }],
       status: { type: "complete", reason: "stop" },
