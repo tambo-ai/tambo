@@ -8,8 +8,17 @@ Build a complete authentication system with BetterAuth, backend powered by Hono 
 
 **Screenshots:**
 
+<img width="1846" height="925" alt="Screenshot from 2026-01-29 19-14-02" src="https://github.com/user-attachments/assets/ccb15274-f2b7-4a93-b3dd-81d2ecc8728e" />
+
+<img width="1846" height="925" alt="Screenshot from 2026-01-29 19-14-18" src="https://github.com/user-attachments/assets/12d782c0-a714-49a6-8b69-6cc1fa069da9" />
+
+<img width="1846" height="925" alt="Screenshot from 2026-01-29 19-14-33" src="https://github.com/user-attachments/assets/6cd4905b-047e-4e10-a6fb-c2c5ef6f7381" />
 
 **Video Demo:**
+
+
+
+https://github.com/user-attachments/assets/6b731c7b-d022-481a-9fe7-afd5f057ec21
 
 
 ## Prerequisites
