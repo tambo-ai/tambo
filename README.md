@@ -41,9 +41,6 @@
   - [Context, Auth, and Suggestions](#context-auth-and-suggestions)
   - [Supported LLM Providers](#supported-llm-providers)
 - [How Tambo Compares](#how-tambo-compares)
-- [Pricing](#pricing)
-  - [Tambo Cloud](#tambo-cloud)
-  - [Self-Hosted](#self-hosted)
 - [Repository Structure](#repository-structure)
 - [Development](#development)
 - [Community](#community)
@@ -316,27 +313,6 @@ OpenAI, Anthropic, Cerebras, Google Gemini, Mistral, and any OpenAI-compatible p
 </p>
 
 ---
-
-## Pricing
-
-### Tambo Cloud
-
-**[Get started for free,](https://console.tambo.co/login)** then pay as you grow.
-
-- **Free**: 10,000 messages/month
-- **Growth**: $25/mo for 200k messages + email support
-- **Enterprise**: Custom volume, SLA, SOC 2, HIPAA
-
-### Self-Hosted
-
-Free forever. MIT licensed. 5-minute Docker setup.
-
-```bash
-npx tambo init
-# Select "Self-hosted"
-```
-
-[Visit our pricing page for more details.](https://tambo.co/pricing)
 
 ## Repository Structure
 
