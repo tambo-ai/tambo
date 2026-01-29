@@ -1,15 +1,30 @@
+import { DataUploader } from '@/components/DataUploader';
 import { Graph } from '@/components/Graph';
 import { SummaryCard } from '@/components/SummaryCard';
 import { MessageThreadCollapsible } from '@/components/tambo/message-thread-collapsible';
-import { salesData } from '@/data/sales';
+import type { SalesRecord } from '@/data/sales';
 import { componentsArray } from '@/tambo/components';
 import { TamboProvider, useTamboThread } from '@tambo-ai/react';
-import React, { useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
+
+interface DataContextType {
+    salesData: SalesRecord[];
+    setUploadedData: (data: SalesRecord[] | null) => void;
+}
+
+const DataContext = createContext<DataContextType | null>(null);
+
+const useDataContext = () => {
+    const context = useContext(DataContext);
+    if (!context) throw new Error('useDataContext must be used within DataContext.Provider');
+    return context;
+};
 
 const Dashboard: React.FC = () => {
     const thread = useTamboThread() as any;
     const hasApiKey = !!import.meta.env.VITE_TAMBO_API_KEY;
     const messages = thread?.thread?.messages ?? thread?.currentThread?.messages ?? [];
+    const { salesData, setUploadedData } = useDataContext();
 
     // Extract all components from assistant messages
     const allComponents = messages
@@ -72,7 +87,7 @@ const Dashboard: React.FC = () => {
             revenueByMonth,
             topProduct: topProduct ? { name: topProduct[0], value: topProduct[1] } : null,
         };
-    }, []);
+    }, [salesData]);
 
     const hasUserInteracted = messages.length > 0;
     const showDefaultDashboard = allComponents.length === 0;
@@ -97,7 +112,24 @@ const Dashboard: React.FC = () => {
 
                     {showDefaultDashboard && (
                         <>
-                            {!hasUserInteracted && (
+                            {/* Data Upload Section */}
+                            <DataUploader
+                                onDataUpload={setUploadedData}
+                                currentRowCount={salesData.length}
+                            />
+
+                            {salesData.length === 0 && (
+                                <div className="rounded-lg border border-yellow-500 bg-yellow-50 p-8 text-center">
+                                    <h2 className="mb-3 text-2xl font-bold text-yellow-900">
+                                        📊 Upload Your Data to Get Started
+                                    </h2>
+                                    <p className="text-base text-yellow-800">
+                                        Please upload a CSV file with your sales data to begin analyzing.
+                                    </p>
+                                </div>
+                            )}
+
+                            {salesData.length > 0 && !hasUserInteracted && (
                                 <div className="rounded-lg border border-border bg-gradient-to-br from-primary/5 to-primary/10 p-6 text-center">
                                     <h2 className="mb-3 text-2xl font-bold text-foreground">
                                         Welcome to your Analytics Dashboard
@@ -123,66 +155,70 @@ const Dashboard: React.FC = () => {
                             )}
 
                             {/* Key Metrics Row */}
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                <div className="rounded-lg border border-border bg-card p-4">
-                                    <SummaryCard
-                                        title="Total Revenue"
-                                        value={`$${overviewStats.totalRevenue.toLocaleString()}`}
-                                        description="Q4 2025"
-                                    />
-                                </div>
-                                <div className="rounded-lg border border-border bg-card p-4">
-                                    <SummaryCard
-                                        title="Transactions"
-                                        value={overviewStats.totalTransactions}
-                                        description="Oct - Dec"
-                                    />
-                                </div>
-                                <div className="rounded-lg border border-border bg-card p-4">
-                                    <SummaryCard
-                                        title="Avg Transaction"
-                                        value={`$${Math.round(overviewStats.avgTransactionValue).toLocaleString()}`}
-                                        description="Per sale"
-                                    />
-                                </div>
-                                <div className="rounded-lg border border-border bg-card p-4">
-                                    <SummaryCard
-                                        title="Top Product"
-                                        value={overviewStats.topProduct?.name || 'N/A'}
-                                        description={`$${overviewStats.topProduct?.value.toLocaleString() || '0'}`}
-                                    />
-                                </div>
-                            </div>
+                            {salesData.length > 0 && (
+                                <>
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                        <div className="rounded-lg border border-border bg-card p-4">
+                                            <SummaryCard
+                                                title="Total Revenue"
+                                                value={`$${overviewStats.totalRevenue.toLocaleString()}`}
+                                                description="Q4 2025"
+                                            />
+                                        </div>
+                                        <div className="rounded-lg border border-border bg-card p-4">
+                                            <SummaryCard
+                                                title="Transactions"
+                                                value={overviewStats.totalTransactions}
+                                                description="Oct - Dec"
+                                            />
+                                        </div>
+                                        <div className="rounded-lg border border-border bg-card p-4">
+                                            <SummaryCard
+                                                title="Avg Transaction"
+                                                value={`$${Math.round(overviewStats.avgTransactionValue).toLocaleString()}`}
+                                                description="Per sale"
+                                            />
+                                        </div>
+                                        <div className="rounded-lg border border-border bg-card p-4">
+                                            <SummaryCard
+                                                title="Top Product"
+                                                value={overviewStats.topProduct?.name || 'N/A'}
+                                                description={`$${overviewStats.topProduct?.value.toLocaleString() || '0'}`}
+                                            />
+                                        </div>
+                                    </div>
 
-                            {/* Charts Row */}
-                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                                <div className="rounded-lg border border-border bg-card p-6">
-                                    <h3 className="mb-4 text-lg font-semibold text-foreground">Revenue by Region</h3>
-                                    <Graph
-                                        data={overviewStats.revenueByRegion}
-                                        type="bar"
-                                        title="Regional Performance"
-                                    />
-                                </div>
+                                    {/* Charts Row */}
+                                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                        <div className="rounded-lg border border-border bg-card p-6">
+                                            <h3 className="mb-4 text-lg font-semibold text-foreground">Revenue by Region</h3>
+                                            <Graph
+                                                data={overviewStats.revenueByRegion}
+                                                type="bar"
+                                                title="Regional Performance"
+                                            />
+                                        </div>
 
-                                <div className="rounded-lg border border-border bg-card p-6">
-                                    <h3 className="mb-4 text-lg font-semibold text-foreground">Revenue by Category</h3>
-                                    <Graph
-                                        data={overviewStats.revenueByCategory}
-                                        type="pie"
-                                        title="Category Distribution"
-                                    />
-                                </div>
+                                        <div className="rounded-lg border border-border bg-card p-6">
+                                            <h3 className="mb-4 text-lg font-semibold text-foreground">Revenue by Category</h3>
+                                            <Graph
+                                                data={overviewStats.revenueByCategory}
+                                                type="pie"
+                                                title="Category Distribution"
+                                            />
+                                        </div>
 
-                                <div className="rounded-lg border border-border bg-card p-6 lg:col-span-2">
-                                    <h3 className="mb-4 text-lg font-semibold text-foreground">Monthly Trend</h3>
-                                    <Graph
-                                        data={overviewStats.revenueByMonth}
-                                        type="line"
-                                        title="Revenue Over Time"
-                                    />
-                                </div>
-                            </div>
+                                        <div className="rounded-lg border border-border bg-card p-6 lg:col-span-2">
+                                            <h3 className="mb-4 text-lg font-semibold text-foreground">Monthly Trend</h3>
+                                            <Graph
+                                                data={overviewStats.revenueByMonth}
+                                                type="line"
+                                                title="Revenue Over Time"
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </>
                     )}
 
@@ -208,13 +244,28 @@ const Dashboard: React.FC = () => {
 };
 
 export const App: React.FC = () => {
+    const [uploadedData, setUploadedData] = useState<SalesRecord[] | null>(null);
+    const salesData = uploadedData ?? [];
+
+    const contextHelpers = useMemo(() => ({
+        dataset: () => ({
+            description: salesData.length > 0
+                ? `Sales dataset with ${salesData.length} transactions from uploaded CSV`
+                : 'No data uploaded yet. Please upload a CSV file.',
+            value: salesData.length > 0 ? JSON.stringify(salesData.slice(0, 50)) : '[]',
+        }),
+    }), [salesData, uploadedData]);
+
     return (
         <TamboProvider
             components={componentsArray}
             apiKey={import.meta.env.VITE_TAMBO_API_KEY || ''}
             contextKey="analytics-chat"
+            contextHelpers={contextHelpers}
         >
-            <Dashboard />
+            <DataContext.Provider value={{ salesData, setUploadedData }}>
+                <Dashboard />
+            </DataContext.Provider>
         </TamboProvider>
     );
 };

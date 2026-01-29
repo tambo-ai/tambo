@@ -57,21 +57,26 @@ export const components = {
     propsSchema: graphPropsSchema,
     description: `Renders a chart visualization (bar, line, or pie chart) for analytics data. 
     Use this to display aggregated revenue data by region, category, product, or time period.
-    The data prop expects an array of {name: string, value: number} objects.`,
+    The data prop expects an array of {name: string, value: number} objects.
+    
+    The user may have uploaded their own CSV data - check the dataset context helper for the current data source.`,
   },
   SummaryCard: {
     component: SummaryCard,
     propsSchema: summaryCardPropsSchema,
     description: `Displays a KPI summary card with title, value, and optional description.
     Use this to show key metrics like total revenue, average sales, or counts.
-    Format currency values with $ sign and commas (e.g., "$1,234,567").`,
+    Format currency values with $ sign and commas (e.g., "$1,234,567").
+    
+    Calculate metrics from the dataset provided in the context helper.`,
   },
   DataTable: {
     component: DataTable,
     propsSchema: dataTablePropsSchema,
     description: `Renders a table with columns and rows for detailed data display.
     Use this to show raw or filtered sales data with multiple fields.
-    The sales dataset has fields: date, region, category, product, revenue.`,
+    The dataset structure is available in the context helper - it may be from uploaded CSV or mock data.
+    Common fields include: date, region, category, product, revenue.`,
   },
   FiltersPanel: {
     component: FiltersPanel,
@@ -80,18 +85,22 @@ export const components = {
     State persists across messages. Use this when users want to filter the data view.
     
     SALES DATA CONTEXT:
-    You have access to a sales dataset with 24 records from Oct-Dec 2025.
-    Regions: North America, Europe, Asia, India
-    Categories: Electronics, Clothing, Home & Garden
-    Products: Laptop Pro, Smartphone X, Tablet Mini, Winter Jacket, Summer Dress, Sofa Set, Garden Tools
+    The user can upload their own CSV data or use the default mock dataset.
+    Check the 'dataset' context helper to see the current data source and available records.
+    
+    Default mock data structure:
+    - Regions: North America, Europe, Asia, India
+    - Categories: Electronics, Clothing, Home & Garden
+    - Date range: Oct-Dec 2025
     
     When users ask about revenue, products, or comparisons:
-    1. Calculate aggregations from the data (sum revenue by region, category, month, etc.)
-    2. Render Graph component with aggregated data
-    3. Optionally add SummaryCard for totals
-    4. For detailed views, use DataTable with relevant rows
+    1. Check the dataset context helper for current data
+    2. Calculate aggregations from the data (sum revenue by region, category, month, etc.)
+    3. Render Graph component with aggregated data
+    4. Optionally add SummaryCard for totals
+    5. For detailed views, use DataTable with relevant rows
     
-    CRITICAL: Always render components with actual calculated data. Never just describe what you would show.`,
+    CRITICAL: Always render components with actual calculated data from the dataset context helper. Never just describe what you would show.`,
     interactable: {
       stateSchema: z.object({
         region: z.string(),
