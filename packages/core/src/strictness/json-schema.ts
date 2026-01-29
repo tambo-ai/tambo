@@ -1,6 +1,33 @@
 import { JSONSchema7, JSONSchema7Definition } from "json-schema";
 
 /**
+ * Checks if an anyOf array looks like it's defining type alternatives
+ * (e.g., from z.any().nullable() which produces [{}, {type: "null"}])
+ * rather than adding constraints to an object.
+ *
+ * Type alternatives pattern: contains empty object {} or {type: "null"}
+ * Constraint pattern: contains objects with properties/required/etc
+ */
+function looksLikeTypeAlternatives(
+  anyOfValue: JSONSchema7Definition[],
+): boolean {
+  return anyOfValue.some((item) => {
+    if (typeof item !== "object" || item === null) {
+      return false;
+    }
+    // Empty object {} means "any type" - this is from z.any()
+    if (Object.keys(item).length === 0) {
+      return true;
+    }
+    // {type: "null"} is the nullable variant
+    if (item.type === "null") {
+      return true;
+    }
+    return false;
+  });
+}
+
+/**
  * Sanitizes a JSON Schema object to ensure it is valid for OpenAI function
  * calling in strict mode.
  *
@@ -123,6 +150,84 @@ export function strictifyJSONSchemaProperty(
     };
   }
 
+  // Check for anyOf/oneOf/allOf/not BEFORE checking type
+  // This prevents invalid schemas where type and anyOf are mixed
+  const restOfProperty = stripValidationProps(property, debugKey);
+  const wellKnownKeys = ["anyOf", "oneOf", "allOf", "not"] as const;
+  for (const key of wellKnownKeys) {
+    if (key in restOfProperty) {
+      const value = restOfProperty[key];
+
+      // Determine if we should strip object-related properties (type, properties, required, additionalProperties).
+      // We only do this for `anyOf` when it looks like type alternatives (e.g., from z.any().nullable()),
+      // NOT for `allOf` which typically adds constraints to an existing object type.
+      const shouldStripObjectProps =
+        key === "anyOf" &&
+        restOfProperty.type === "object" &&
+        Array.isArray(value) &&
+        looksLikeTypeAlternatives(value);
+
+      const propsToSpread = shouldStripObjectProps
+        ? (() => {
+            const {
+              type: _type,
+              properties: _properties,
+              required: _required,
+              additionalProperties: _additionalProperties,
+              ...rest
+            } = restOfProperty;
+            return rest;
+          })()
+        : restOfProperty;
+
+      if (Array.isArray(value)) {
+        const sanitizedArray = value
+          .map((item, index) => {
+            return strictifyJSONSchemaProperty(
+              item,
+              isRequired,
+              `${debugKey}.${key}[${index}]`,
+            );
+          })
+          .filter((value) => value !== null);
+        // Only collapse single-item anyOf/oneOf, NOT allOf.
+        // allOf items are constraints that combine with the parent schema,
+        // so collapsing would lose parent's type/properties.
+        if (
+          (key === "anyOf" || key === "oneOf") &&
+          sanitizedArray.length === 1
+        ) {
+          // no need for the wrapper
+          return sanitizedArray[0];
+        }
+
+        return {
+          ...propsToSpread,
+          [key]: sanitizedArray,
+        };
+      } else {
+        if (key === "not" && (!value || Object.keys(value).length === 0)) {
+          // this is a broken case, "not: {}" which means "not everything" or "never"
+          // so we just ignore it
+          return null;
+        }
+
+        const strictSchema = strictifyJSONSchemaProperty(
+          value as JSONSchema7Definition,
+          isRequired,
+          `${debugKey}.${key}`,
+        );
+        if (!strictSchema) {
+          return null;
+        }
+        return {
+          ...propsToSpread,
+          [key]: strictSchema,
+        };
+      }
+    }
+  }
+
   if (
     property?.type === "boolean" ||
     property?.type === "number" ||
@@ -199,60 +304,9 @@ export function strictifyJSONSchemaProperty(
       anyOf: [{ type: "null" }, arrayProperty],
     };
   }
-  const restOfProperty = stripValidationProps(property, debugKey);
-
-  const wellKnownKeys = ["anyOf", "oneOf", "allOf", "not"] as const;
-  for (const key of wellKnownKeys) {
-    if (!(key in restOfProperty)) {
-      continue;
-    }
-    const value = restOfProperty[key];
-    if (Array.isArray(value)) {
-      const sanitizedArray = value
-        .map((item, index) => {
-          return strictifyJSONSchemaProperty(
-            item,
-            isRequired,
-            `${debugKey}.${key}[${index}]`,
-          );
-        })
-        .filter((value) => value !== null);
-      if (
-        (key === "allOf" || key === "anyOf" || key === "oneOf") &&
-        sanitizedArray.length === 1
-      ) {
-        // no need for the wrapper
-        return sanitizedArray[0];
-      }
-
-      return {
-        ...restOfProperty,
-        [key]: sanitizedArray,
-      };
-    } else {
-      if (key === "not" && (!value || Object.keys(value).length === 0)) {
-        // this is a broken case, "not: {}" which means "not everything" or "never"
-        // so we just ignore it
-        return null;
-      }
-
-      const strictSchema = strictifyJSONSchemaProperty(
-        value as JSONSchema7Definition,
-        isRequired,
-        `${debugKey}.${key}`,
-      );
-      if (!strictSchema) {
-        return null;
-      }
-      return {
-        ...restOfProperty,
-        [key]: strictSchema,
-      };
-    }
-  }
   if (!property?.type) {
     // technically this means "any" type but
-    const restOfProperty = stripValidationProps(property, debugKey);
+    // restOfProperty was already defined above, reuse it
     return {
       anyOf: [
         { type: "null" },
