@@ -97,7 +97,7 @@ export const ThreadDropdown = React.forwardRef<
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="z-50 min-w-[200px] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+            className="z-50 min-w-[200px] overflow-hidden rounded-md border border-border bg-popover bg-white p-1 text-popover-foreground shadow-md"
             side="right"
             align="start"
             sideOffset={5}
