@@ -10,6 +10,7 @@ Starter templates for building AI-powered apps with Tambo.
 | [tambo-template-tanstack](https://github.com/tambo-ai/tambo-template-tanstack)   | TanStack Router     | Vite + TanStack  |
 | [analytics-template](https://github.com/tambo-ai/analytics-template)             | Analytics dashboard | Next.js + Charts |
 | [betterauth-tambo-example](https://github.com/tambo-ai/betterauth-tambo-example) | Auth integration    | BetterAuth       |
+| [tambo-duckdb-wasm-template](https://github.com/g-kannan/tambo-duckdb-wasm-template) | Duckdb WASM integration    | Next.js + Duckdb WASM       |
 
 ## Contributing a Template
 
