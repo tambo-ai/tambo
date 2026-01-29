@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.133.2](https://github.com/tambo-ai/tambo/compare/api-v0.133.1...api-v0.133.2) (2026-01-29)
+
+
+### Bug Fixes
+
+* **api:** use ANY_CONTEXT_KEY for thread lookups when contextKey is not provided ([#2015](https://github.com/tambo-ai/tambo/issues/2015)) ([24a6dbf](https://github.com/tambo-ai/tambo/commit/24a6dbfb65566ab2dabb32431d300b3f81d6fa1b))
+* fetch thread without contextkey ([#2034](https://github.com/tambo-ai/tambo/issues/2034)) ([3ceaa55](https://github.com/tambo-ai/tambo/commit/3ceaa558ec8547c464426b5c56c2c0c787ea1098))
+
+
+### Documentation
+
+* **api:** clarify userKey description in V1 API DTOs ([#2007](https://github.com/tambo-ai/tambo/issues/2007)) ([a348372](https://github.com/tambo-ai/tambo/commit/a34837236456b7946f933ade9bef701139340a9b))
+
 ## [0.133.1](https://github.com/tambo-ai/tambo/compare/api-v0.133.0...api-v0.133.1) (2026-01-29)
 
 
