@@ -27,10 +27,9 @@ const EnvMissingAlert = ({ missing }: { missing: string[] }) => (
     <p className="text-sm">
       Read{" "}
       <a
-        href="/README.md"
         target="_blank"
         rel="noopener noreferrer"
-        className="underline hover:text-yellow-900"
+        className=" hover:text-yellow-900"
       >
         README.md
       </a>{" "}
