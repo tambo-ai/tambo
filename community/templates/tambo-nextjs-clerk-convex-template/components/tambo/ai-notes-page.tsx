@@ -1,5 +1,6 @@
 "use client";
 
+import { TamboThreadProvider } from "@tambo-ai/react";
 import { useConvexAuth } from "convex/react";
 import { SignInButton, UserButton } from "@clerk/clerk-react";
 import {
@@ -11,14 +12,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AIChatDrawer } from "./ai-chat-drawer";
+import { TamboChatInput } from "./chat-input";
+import { TamboMessageList } from "./message-list";
 import { CreateNoteDialog } from "./create-note-dialog";
 import { NotesGrid } from "./notes-grid";
 import { Sparkles, LogIn, Loader2 } from "lucide-react";
 
 /**
  * Main AI Notes page component.
- * Clean notes view with AI assistant in a drawer.
+ * Side-by-side layout showing AI chat and notes grid for real-time updates.
  */
 export function AINotesPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -58,47 +60,81 @@ export function AINotesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container max-w-6xl mx-auto flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-lg">AI Notes</span>
-            <Badge
-              variant="outline"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-normal text-muted-foreground"
-            >
-              <Sparkles className="h-3 w-3" />
-              Tambo
-            </Badge>
+    <TamboThreadProvider>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container max-w-7xl mx-auto flex h-14 items-center justify-between px-4">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-lg">AI Notes</span>
+              <Badge
+                variant="outline"
+                className="hidden sm:flex items-center gap-1.5 text-xs font-normal text-muted-foreground"
+              >
+                <Sparkles className="h-3 w-3" />
+                Tambo
+              </Badge>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <CreateNoteDialog />
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "h-8 w-8",
+                  },
+                }}
+              />
+            </div>
           </div>
+        </header>
 
-          <div className="flex items-center gap-2">
-            <CreateNoteDialog />
-            <AIChatDrawer />
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "h-8 w-8",
-                },
-              }}
-            />
+        {/* Main Content - Side by Side Layout */}
+        <main className="container max-w-7xl mx-auto py-6 px-4">
+          <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+            {/* Left: AI Chat */}
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold">AI Assistant</h2>
+                <p className="text-sm text-muted-foreground">
+                  Tell me what notes to create
+                </p>
+              </div>
+
+              <Card className="overflow-hidden border-border/50 h-[calc(100vh-200px)] flex flex-col">
+                <CardContent className="p-0 flex flex-col h-full">
+                  {/* Messages area */}
+                  <div className="flex-1 overflow-y-auto p-4 min-h-0">
+                    <TamboMessageList />
+                  </div>
+
+                  {/* Input area */}
+                  <div className="border-t border-border/50 p-4 bg-muted/30 shrink-0">
+                    <TamboChatInput />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right: Notes Grid */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight">
+                    Your Notes
+                  </h1>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Updates in real-time as you chat
+                  </p>
+                </div>
+              </div>
+
+              <NotesGrid />
+            </div>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container max-w-6xl mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight">Your Notes</h1>
-          <p className="text-muted-foreground mt-1">
-            Click on a note to edit, or use the AI assistant to create new ones
-          </p>
-        </div>
-
-        <NotesGrid />
-      </main>
-    </div>
+        </main>
+      </div>
+    </TamboThreadProvider>
   );
 }
