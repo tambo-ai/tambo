@@ -71,6 +71,12 @@ export interface StreamState {
    * Current active thread ID (for UI context)
    */
   currentThreadId: string | null;
+
+  /**
+   * User key for thread scoping/isolation.
+   * Used when creating threads and listing threads.
+   */
+  userKey?: string;
 }
 
 /**
@@ -147,12 +153,14 @@ export function createInitialThreadState(threadId: string): ThreadState {
 
 /**
  * Create initial stream state with empty threadMap.
+ * @param userKey - Optional user key for thread scoping/isolation
  * @returns Initial stream state
  */
-export function createInitialState(): StreamState {
+export function createInitialState(userKey?: string): StreamState {
   return {
     threadMap: {},
     currentThreadId: null,
+    userKey,
   };
 }
 

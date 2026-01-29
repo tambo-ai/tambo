@@ -64,7 +64,6 @@
 
 export {
   TamboV1Provider,
-  useContextKey,
   type TamboV1ProviderProps,
 } from "./providers/tambo-v1-provider";
 

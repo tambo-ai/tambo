@@ -21,7 +21,6 @@ import React, {
 } from "react";
 import {
   streamReducer,
-  createInitialThreadState,
   type StreamState,
   type StreamAction,
 } from "../utils/event-accumulator";
@@ -84,56 +83,10 @@ export interface TamboV1StreamProviderProps {
   children: ReactNode;
 
   /**
-   * Initial thread state (optional).
-   * If not provided, an empty thread will be created.
+   * User key for thread scoping/isolation.
+   * Threads created with the same userKey are grouped together.
    */
-  initialThread?: Partial<TamboV1Thread>;
-
-  /**
-   * Thread ID for the stream context.
-   * Used to initialize the thread if initialThread is not provided.
-   */
-  threadId?: string;
-}
-
-/**
- * Creates initial stream state from props.
- * @param props - Provider props
- * @returns Initial stream state
- */
-function createInitialState(props: TamboV1StreamProviderProps): StreamState {
-  const { initialThread, threadId } = props;
-
-  // Initialize with empty threadMap
-  const threadMap: Record<
-    string,
-    ReturnType<typeof createInitialThreadState>
-  > = {};
-
-  // If threadId is provided, initialize that thread
-  if (threadId) {
-    // Create initial thread state (immutably)
-    const baseState = createInitialThreadState(threadId);
-
-    // If initial thread data provided, merge it immutably
-    const threadState = initialThread
-      ? {
-          ...baseState,
-          thread: {
-            ...baseState.thread,
-            ...initialThread,
-            id: threadId, // Always use the provided threadId
-          },
-        }
-      : baseState;
-
-    threadMap[threadId] = threadState;
-  }
-
-  return {
-    threadMap,
-    currentThreadId: threadId ?? null,
-  };
+  userKey?: string;
 }
 
 /**
@@ -141,25 +94,34 @@ function createInitialState(props: TamboV1StreamProviderProps): StreamState {
  *
  * Uses useReducer with streamReducer to accumulate AG-UI events into
  * thread state. Provides state, dispatch, and thread management via separate contexts.
+ *
+ * Thread management is done programmatically via the hooks:
+ * - startNewThread() - Start a new conversation
+ * - switchThread(threadId) - Switch to an existing thread
+ * - initThread(threadId) - Initialize a thread for receiving events
  * @returns JSX element wrapping children with stream contexts
  * @example
  * ```tsx
- * <TamboV1StreamProvider threadId="thread_123">
+ * <TamboV1StreamProvider userKey="user_123">
  *   <ChatInterface />
  * </TamboV1StreamProvider>
  * ```
  */
 export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
-  const { children } = props;
+  const { children, userKey } = props;
 
-  const initialState = useMemo(
-    () => createInitialState(props),
-    // Only recompute if threadId changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [props.threadId],
+  // Create stable initial state - only computed once on mount
+  // userKey is stored in state and doesn't change after initialization
+  const [state, dispatch] = useReducer(
+    streamReducer,
+    userKey,
+    // Lazy initializer function - called once with userKey
+    (initialUserKey) => ({
+      threadMap: {},
+      currentThreadId: null,
+      userKey: initialUserKey,
+    }),
   );
-
-  const [state, dispatch] = useReducer(streamReducer, initialState);
 
   // Thread management functions
   const initThread = useCallback(

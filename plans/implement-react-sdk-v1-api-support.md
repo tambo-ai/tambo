@@ -19,7 +19,7 @@
 
 **Known Blockers:**
 
-- TypeScript SDK doesn't support `additionalContext` or `contextKey` parameters yet
+- TypeScript SDK doesn't support `additionalContext` or `userKey` parameters yet
 - Context helpers infrastructure is ready but can't send to API until SDK is updated
 
 ## Overview
@@ -836,7 +836,7 @@ Created React Query hooks in v1/hooks/:
   - Stale time: 1s for real-time data
 
 - **use-tambo-v1-thread-list.ts**: Query hook for fetching thread list
-  - Supports pagination via cursor, limit, contextKey
+  - Supports pagination via cursor, limit, userKey
   - Returns ThreadListResponse directly from SDK
   - Stale time: 5s for list data
 
@@ -1274,28 +1274,28 @@ export function useTamboV1ComponentState<S>(
 **Goals:**
 
 - Integrate context helpers with v1 API
-- Support contextKey for thread scoping/isolation
+- Support userKey for thread scoping/isolation
 - Align API exports with beta SDK
 
 **Tasks:**
 
 - [x] Add `contextHelpers` prop for context helper configuration - ✅ Via TamboContextHelpersProvider
-- [x] Add `contextKey` prop for thread scoping/isolation - ✅ Via ContextKeyContext
-- [x] Export useContextKey() hook - ✅ Returns contextKey from provider
+- [x] Add `userKey` prop for thread scoping/isolation - ✅ Via ContextKeyContext
+- [x] Export useContextKey() hook - ✅ Returns userKey from provider
 - [x] Re-export context helpers from beta SDK - ✅ TamboContextHelpersProvider, useTamboContextHelpers
 - [x] Re-export built-in context helpers - ✅ currentPageContextHelper, currentTimeContextHelper
 - [x] Export context helper types - ✅ AdditionalContext, ContextHelperFn, ContextHelpers
 - [ ] Send additionalContext to API calls - ⚠️ Blocked: TypeScript SDK doesn't support additionalContext parameter
-- [ ] Send contextKey to thread creation - ⚠️ Blocked: TypeScript SDK doesn't support contextKey parameter
+- [ ] Send userKey to thread creation - ⚠️ Blocked: TypeScript SDK doesn't support userKey parameter
 
 **Actual Implementation:**
 
-Context helpers and contextKey infrastructure is complete:
+Context helpers and userKey infrastructure is complete:
 
-- **providers/tambo-v1-provider.tsx**: Provider supports contextHelpers and contextKey props
+- **providers/tambo-v1-provider.tsx**: Provider supports contextHelpers and userKey props
   - TamboContextHelpersProvider wraps children for context helper registration
-  - ContextKeyContext provides contextKey to descendant components
-  - useContextKey() hook returns contextKey value
+  - ContextKeyContext provides userKey to descendant components
+  - useContextKey() hook returns userKey value
 
 - **v1/index.ts**: Full exports for context helpers
   - TamboContextHelpersProvider and useTamboContextHelpers from beta SDK
@@ -1303,7 +1303,7 @@ Context helpers and contextKey infrastructure is complete:
   - AdditionalContext, ContextHelperFn, ContextHelpers types
 
 **Note:** The context helpers infrastructure is ready, but actually sending additionalContext
-and contextKey to the API is blocked pending TypeScript SDK updates. The SDK's RunCreateParams
+and userKey to the API is blocked pending TypeScript SDK updates. The SDK's RunCreateParams
 and RunRunParams interfaces don't include these parameters yet.
 
 #### Phase 9b: Documentation & Examples (Est: 2-3 days)
