@@ -1,0 +1,39 @@
+{
+  "name": "generative-bento-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "@tambo-ai/react": "^0.70.0",
+    "@tambo-ai/typescript-sdk": "^0.84.0",
+    "@valibot/to-json-schema": "^1.5.0",
+    "clsx": "^2.0.0",
+    "effect": "^3.19.15",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.294.0",
+    "next": "15.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sury": "^10.0.4",
+    "tailwind-merge": "^2.0.0",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.25.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.54.0",
+    "eslint-config-next": "15.0.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.3.2"
+  }
+}
