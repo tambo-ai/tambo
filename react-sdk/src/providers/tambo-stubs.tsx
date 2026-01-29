@@ -6,7 +6,6 @@ import {
   TamboComponent,
   TamboTool,
   TamboToolRegistry,
-  TamboToolWithToolSchema,
 } from "../model/component-metadata";
 import { GenerationStage } from "../model/generate-component-response";
 import { TamboThread } from "../model/tambo-thread";
@@ -41,7 +40,7 @@ export interface TamboStubProviderProps extends Partial<TamboContextProps> {
   /** Optional: Components registry - defaults to empty */
   components?: TamboComponent[];
   /** Optional: Tools registry - defaults to empty */
-  tools?: (TamboTool | TamboToolWithToolSchema)[];
+  tools?: TamboTool[];
   /** Optional: Threads data to populate thread list - overrides useTamboThreadList() */
   threads?: Partial<TamboAI.Beta.Threads.ThreadsOffsetAndLimit>;
   /** Optional: Project ID to use for query cache - defaults to thread.projectId */

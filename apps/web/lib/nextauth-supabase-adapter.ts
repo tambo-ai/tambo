@@ -48,7 +48,10 @@ export function SupabaseAdapter(): Adapter {
             now,
             now,
             now,
-            data.name ? { name: data.name } : {},
+            {
+              ...(data.name && { name: data.name }),
+              ...(data.image && { avatar_url: data.image }),
+            },
           ],
         );
 
@@ -137,13 +140,54 @@ export function SupabaseAdapter(): Adapter {
     async updateUser(data: UpdateUserData) {
       // console.log("AUTH: Updating user", data);
       return await withDbClient(env.DATABASE_URL, async (client) => {
+        // Build metadata update object, only including truthy values
+        // This matches createUser behavior and prevents overwriting existing
+        // values with null/empty when OAuth provider omits optional claims
+        const metadataUpdates: Record<string, string> = {};
+        if (data.name) {
+          metadataUpdates.name = data.name;
+        }
+        if (data.image) {
+          metadataUpdates.avatar_url = data.image;
+        }
+
+        const hasMetadataUpdates = Object.keys(metadataUpdates).length > 0;
+        const hasEmailUpdate = data.email !== undefined;
+
+        // Skip update entirely if nothing to update (avoids unnecessary writes)
+        if (!hasMetadataUpdates && !hasEmailUpdate) {
+          const { rows } = await client.query(
+            `SELECT * FROM auth.users WHERE id = $1`,
+            [data.id],
+          );
+          if (!rows.length) throw new Error("User not found");
+          const user = rows[0];
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.raw_user_meta_data?.name,
+            image: user.raw_user_meta_data?.avatar_url,
+          } as AdapterUser;
+        }
+
+        // Use atomic JSONB merge with || operator to avoid race conditions
+        // Only update metadata if there are actual changes
         const { rows } = await client.query(
-          `UPDATE auth.users SET email = $1, raw_user_meta_data = $2, updated_at = $3 WHERE id = $4 returning *`,
+          `UPDATE auth.users
+           SET email = COALESCE($1, email),
+               raw_user_meta_data = CASE
+                 WHEN $5 THEN COALESCE(raw_user_meta_data, '{}'::jsonb) || $2::jsonb
+                 ELSE raw_user_meta_data
+               END,
+               updated_at = $3
+           WHERE id = $4
+           RETURNING *`,
           [
             data.email,
-            data.name ? { name: data.name } : {},
+            JSON.stringify(metadataUpdates),
             new Date().toISOString(),
             data.id,
+            hasMetadataUpdates,
           ],
         );
 

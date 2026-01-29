@@ -24,6 +24,7 @@ import {
 } from "@nestjs/swagger";
 import * as Sentry from "@sentry/nestjs";
 import { AsyncQueue } from "@tambo-ai-cloud/core";
+import { operations } from "@tambo-ai-cloud/db";
 import { type Request, type Response } from "express";
 import { extractContextInfo } from "../common/utils/extract-context-info";
 import { ApiKeyGuard } from "../projects/guards/apikey.guard";
@@ -36,9 +37,9 @@ import {
   AdvanceThreadDto,
   AdvanceThreadResponseDto,
 } from "./dto/advance-thread.dto";
-import { StreamQueueItem } from "./dto/stream-queue-item";
 import { ProblemDetailsDto } from "./dto/error.dto";
 import { MessageRequest, ThreadMessageDto } from "./dto/message.dto";
+import { StreamQueueItem } from "./dto/stream-queue-item";
 import { SuggestionDto } from "./dto/suggestion.dto";
 import { SuggestionsGenerateDto } from "./dto/suggestions-generate.dto";
 import {
@@ -147,7 +148,11 @@ export class ThreadsController {
       request,
       apiContextKey,
     );
-    return await this.threadsService.findOne(threadId, projectId, contextKey);
+    return await this.threadsService.findOne(
+      threadId,
+      projectId,
+      contextKey ?? operations.ANY_CONTEXT_KEY,
+    );
   }
 
   @UseGuards(ThreadInProjectGuard)

@@ -260,10 +260,10 @@ const mcpServers = [
 
 > **Dependency note**
 >
-> The `@tambo-ai/react/mcp` subpath declares `@modelcontextprotocol/sdk`, `zod`, and `zod-to-json-schema` as optional peer dependencies. If you import this MCP entrypoint in your app, make sure these packages are installed with compatible versions:
+> The `@modelcontextprotocol/sdk` is included automatically when you install `@tambo-ai/react`. However, if you import from the `@tambo-ai/react/mcp` subpath and use features that require schema validation (like component props schemas), you'll need to install `zod` and `zod-to-json-schema` as optional peer dependencies:
 >
 > ```bash
-> npm install @modelcontextprotocol/sdk@^1.24.0 zod@^4.0.0 zod-to-json-schema@^3.25.0
+> npm install zod@^4.0.0 zod-to-json-schema@^3.25.0
 > ```
 >
 > `zod` can also be `^3.25` if you prefer Zod 3; both `^3.25` and `^4.0` satisfy the SDK's `zod/v3` subpath constraints.
@@ -309,14 +309,14 @@ const tools: TamboTool[] = [
   {
     name: "getImageData",
     description: "Fetches image data with metadata",
-    tool: async (imageId: string) => {
-      const data = await fetchImageData(imageId);
+    tool: async (params: { imageId: string }) => {
+      const data = await fetchImageData(params.imageId);
       return { url: data.imageUrl, description: data.description };
     },
-    toolSchema: z.function({
-      input: z.string(),
-      output: z.object({ url: z.string(), description: z.string() }),
+    inputSchema: z.object({
+      imageId: z.string(),
     }),
+    outputSchema: z.object({ url: z.string(), description: z.string() }),
     transformToContent: (result) => [
       { type: "text", text: result.description },
       { type: "image_url", image_url: { url: result.url } },

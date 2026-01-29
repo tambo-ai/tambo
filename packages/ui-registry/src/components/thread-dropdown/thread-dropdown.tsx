@@ -87,14 +87,13 @@ export const ThreadDropdown = React.forwardRef<
     <div className={cn("relative", className)} ref={ref} {...props}>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild>
-          <div
-            role="button"
-            tabIndex={0}
+          <button
+            type="button"
             className="rounded-md px-1 flex items-center gap-2 text-sm border border-border bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
             aria-label="Thread History"
           >
             <ChevronDownIcon className="h-4 w-4" />
-          </div>
+          </button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
@@ -104,7 +103,7 @@ export const ThreadDropdown = React.forwardRef<
             sideOffset={5}
           >
             <DropdownMenu.Item
-              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
               onSelect={(e: Event) => {
                 e.preventDefault();
                 void handleNewThread();
@@ -187,7 +186,7 @@ function ThreadListContent({
       {threads?.items.map((thread) => (
         <DropdownMenu.Item
           key={thread.id}
-          className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+          className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
           onSelect={(e: Event) => {
             e.preventDefault();
             void onSwitchThread(thread.id);

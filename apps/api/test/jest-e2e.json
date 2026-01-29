@@ -1,12 +1,26 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "..",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "useESM": true,
+        "tsconfig": {
+          "module": "esnext"
+        }
+      }
+    ]
   },
+  "extensionsToTreatAsEsm": [".ts"],
   "moduleNameMapper": {
-    "^@tambo-ai-cloud/(.*)$": "<rootDir>/../../../packages/$1/src"
-  }
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^@tambo-ai-cloud/(.*)$": "<rootDir>/../../packages/$1/src"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(superjson|is-what|copy-anything|uuid)/)"
+  ],
+  "testTimeout": 10000
 }

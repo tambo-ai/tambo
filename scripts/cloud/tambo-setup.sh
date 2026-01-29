@@ -22,8 +22,8 @@ if ! command -v docker &> /dev/null; then
       "💡 Visit: https://docs.docker.com/get-docker/"
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker compose &> /dev/null; then
+# Check if Docker Compose is installed (robust)
+if ! docker compose version >/dev/null 2>&1 && ! docker-compose version >/dev/null 2>&1; then
     fail \
       "❌ Docker Compose is not installed. Please install Docker Compose first." \
       "💡 Visit: https://docs.docker.com/compose/install/"
@@ -42,7 +42,7 @@ if [ ! -f "docker.env" ]; then
         fail "❌ docker.env.example not found!"
     fi
 else
-    info "ℹ️  docker.env already exists"
+    info "ℹ️ docker.env already exists"
 fi
 
 echo -e "${GREEN}✅ Setup completed successfully!${NC}"
@@ -67,4 +67,5 @@ echo -e "   - Tambo Web: http://localhost:3210"
 echo -e "   - Tambo API: http://localhost:3211"
 echo -e "   - PostgreSQL Database: localhost:5433"
 echo -e ""
-echo -e "${YELLOW}💡 For help, run: ./scripts/cloud/tambo-logs.sh --help${NC}" 
+echo -e "${YELLOW}💡 Note: This script requires bash (macOS/Linux/WSL). Windows CMD or PowerShell will not work.${NC}"
+echo -e "${YELLOW}💡 For help, run: ./scripts/cloud/tambo-logs.sh --help${NC}"
