@@ -2,41 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tambo-style CSS Variables using oklch color system */
+/* Tambo-style CSS Variables */
 :root {
-  /* Default Tailwind CSS Variables customized with tambo colors */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.14 0 285);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.14 0 285);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.14 0 285);
-  --primary: oklch(0.31 0.02 281);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.54 0.027 261);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.92 0 260);
-  --muted-foreground: oklch(0.73 0.022 260);
-  --accent: oklch(0.97 0 286);
-  --accent-foreground: oklch(0.21 0 286);
-  --destructive: oklch(0.64 0.2 25);
-  --border: oklch(0.93 0 242);
-  --input: oklch(0.92 0 286);
-  --ring: oklch(0.14 0 285);
-  
+  --background: #FAFAFA;
+  --foreground: #18181B;
+  --card: #FFFFFF;
+  --card-foreground: #18181B;
+  --muted: #F4F4F5;
+  --muted-foreground: #71717A;
+  --border: #E4E4E7;
+  --input: #E4E4E7;
+  --ring: #18181B;
+
   /* Tambo brand colors */
   --tambo-mint: #7FFFC3;
+  --tambo-mint-hover: #6ee8b0;
   --tambo-yellow: #FFE17F;
-  
-  --radius: 0.5rem;
+
+  --radius: 0.75rem;
 }
 
 body {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: oklch(1 0 0);
-  color: oklch(0.14 0 285);
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 /* Custom scrollbar */
@@ -49,20 +40,21 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: #E4E4E7;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
+  background: #D4D4D8;
 }
 
 /* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -72,8 +64,9 @@ body {
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -98,18 +91,17 @@ body {
   0% {
     background-position: -200% center;
   }
+
   100% {
     background-position: 200% center;
   }
 }
 
 .animate-thinking-gradient {
-  background: linear-gradient(
-    90deg,
-    oklch(0.14 0 0) 0%,
-    oklch(0.7 0 0) 50%,
-    oklch(0.14 0 0) 100%
-  );
+  background: linear-gradient(90deg,
+      #71717A 0%,
+      #18181B 50%,
+      #71717A 100%);
   background-size: 200% 100%;
   background-clip: text;
   -webkit-background-clip: text;
