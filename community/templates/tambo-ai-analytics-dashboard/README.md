@@ -4,9 +4,11 @@ A production-ready starter template demonstrating how to build AI-powered analyt
 
 ## Demo
 
-![AI Analytics Dashboard Screenshot](https://github.com/user-attachments/assets/YOUR_SCREENSHOT_URL_HERE)
+![1769712397502](image/README/1769712397502.png)
 
-**Video Demo:** [Watch the demo video](https://github.com/user-attachments/assets/YOUR_VIDEO_URL_HERE)
+![1769712453863](image/README/1769712453863.png)![1769712470964](image/README/1769712470964.png)![1769712520432](image/README/1769712520432.png)![1769712545416](image/README/1769712545416.png)![1769712565074](image/README/1769712565074.png)
+
+**Video Demo:** [Watch the demo video](https://www.loom.com/share/a34fac1779b44bc9a130a4f3cf241331)
 
 ## Overview
 
@@ -69,8 +71,8 @@ This template requires CSV data upload to function. No mock data is included.
 
 Your CSV file must include these columns:
 
-| Column     | Type   | Description      | Example         |
-| ---------- | ------ | ---------------- | --------------- |
+| Column       | Type   | Description      | Example           |
+| ------------ | ------ | ---------------- | ----------------- |
 | `date`     | string | Transaction date | `2025-10-01`    |
 | `region`   | string | Sales region     | `North America` |
 | `category` | string | Product category | `Electronics`   |
@@ -142,7 +144,6 @@ npm run dev
 ```
 
 5. Open your browser to the URL shown (typically `http://localhost:5173`)
-
 6. **Upload your CSV data** - The dashboard requires you to upload a CSV file before you can analyze data.
 
 ### Building for Production
@@ -294,7 +295,6 @@ npm run dev
 ```
 
 5. Open your browser to the URL shown (typically `http://localhost:5173`)
-
 6. **Upload your CSV data** - The dashboard requires you to upload a CSV file before you can analyze data. See the "Using Your Own Data" section below.
 
 ## Using Your Own Data
@@ -312,8 +312,8 @@ The dashboard **requires** uploading a CSV file to function. No mock data is inc
 
 Your CSV file must include these columns:
 
-| Column     | Type   | Description      | Example         |
-| ---------- | ------ | ---------------- | --------------- |
+| Column       | Type   | Description      | Example           |
+| ------------ | ------ | ---------------- | ----------------- |
 | `date`     | string | Transaction date | `2025-10-01`    |
 | `region`   | string | Sales region     | `North America` |
 | `category` | string | Product category | `Electronics`   |
