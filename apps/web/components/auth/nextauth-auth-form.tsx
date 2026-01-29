@@ -39,6 +39,7 @@ export function NextAuthAuthForm({
                 routeOnSuccess={routeOnSuccess}
                 variant={index === 0 ? "default" : "outline"}
                 disabled={!legalAccepted}
+                trackLegalAcceptance
               />
             ))
           ) : (

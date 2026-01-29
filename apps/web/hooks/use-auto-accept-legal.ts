@@ -31,12 +31,13 @@ export function useAutoAcceptLegal(legalStatus: LegalStatus | undefined) {
   const acceptLegalMutation = api.user.acceptLegal.useMutation({
     onSuccess: async () => {
       clearPendingLegalCookie();
+      isAutoAcceptingRef.current = false;
       utils.user.hasAcceptedLegal.setData(undefined, (prev) => ({
+        ...(prev ?? {}),
         accepted: true,
         acceptedAt: new Date(),
         version: LEGAL_CONFIG.CURRENT_VERSION,
         needsUpdate: false,
-        ...(prev ?? {}),
       }));
       await utils.user.hasAcceptedLegal.invalidate();
     },

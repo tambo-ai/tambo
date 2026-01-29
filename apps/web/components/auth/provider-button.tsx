@@ -17,6 +17,8 @@ interface ProviderButtonProps {
   routeOnSuccess?: string;
   variant?: "default" | "outline";
   disabled?: boolean;
+  /** When true, sets a cookie to auto-accept legal terms after OAuth completes */
+  trackLegalAcceptance?: boolean;
 }
 
 export function ProviderButton({
@@ -24,6 +26,7 @@ export function ProviderButton({
   routeOnSuccess = "/dashboard",
   variant = "default",
   disabled = false,
+  trackLegalAcceptance = false,
 }: ProviderButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -32,8 +35,10 @@ export function ProviderButton({
   const handleAuth = async () => {
     setIsLoading(true);
     try {
-      // Set cookie to indicate user accepted legal terms before auth
-      setPendingLegalCookie();
+      // Set cookie to auto-accept legal terms after OAuth (only when opted in)
+      if (trackLegalAcceptance) {
+        setPendingLegalCookie();
+      }
 
       await signIn(provider.id, {
         callbackUrl: routeOnSuccess,

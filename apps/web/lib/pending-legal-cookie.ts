@@ -19,10 +19,12 @@ export function setPendingLegalCookie() {
 
 /**
  * Checks if the pending legal acceptance cookie is set.
+ * Uses proper cookie parsing to avoid false positives.
  */
 export function hasPendingLegalCookie(): boolean {
   if (typeof document === "undefined") return false;
-  return document.cookie.includes(`${PENDING_LEGAL_COOKIE}=true`);
+  const cookies = document.cookie.split(";").map((c) => c.trim());
+  return cookies.some((c) => c === `${PENDING_LEGAL_COOKIE}=true`);
 }
 
 /**
