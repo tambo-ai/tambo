@@ -11,16 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertCircle,
-  BookOpen,
-  ChevronRight,
-  Code,
-  ExternalLink,
-  FileCode,
-  Heart,
-  Settings,
-} from "lucide-react";
+
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
@@ -76,7 +67,6 @@ export default function DashboardPage() {
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
       <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 py-16">
-        {/* Welcome Section */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold tracking-tight mb-2">
             {session?.user?.name
@@ -101,9 +91,9 @@ export default function DashboardPage() {
 
         {!loading && !error && (
           <>
-            {/* Tables Side by Side */}
+            {/* table */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Users Table - Left Side */}
+              {/* Users Table  */}
               <div>
                 <h2 className="text-lg font-semibold mb-4">
                   Users ({users.length})
@@ -146,7 +136,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Posts Table - Right Side */}
+              {/* Posts Table*/}
               <div>
                 <h2 className="text-lg font-semibold mb-4">
                   Posts ({allPosts.length})
@@ -210,7 +200,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Message Thread Collapsible - Fixed position (on top of Template Guide) */}
       <MessageThreadCollapsible
         defaultOpen={false}
         className="fixed bottom-6 right-4 z-50"

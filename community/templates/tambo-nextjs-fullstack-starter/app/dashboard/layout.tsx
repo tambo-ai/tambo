@@ -12,11 +12,9 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-background text-foreground font-heading">
-      {/* Navbar Header */}
       <header className="border-b border-border bg-background">
         <nav className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
           <div className="flex h-16 items-center justify-between">
-            {/* Logo on the left */}
             <div className="flex items-center">
               <Image
                 src="/logo/wordmark/Tambo-Lockup.svg"
@@ -28,7 +26,6 @@ export default function DashboardLayout({
               />
             </div>
 
-            {/* Sign Out button on the right */}
             <Button
               variant="outline"
               onClick={() => signOut()}
@@ -41,7 +38,6 @@ export default function DashboardLayout({
         </nav>
       </header>
 
-      {/* Main content */}
       <main>{children}</main>
     </div>
   );

@@ -51,7 +51,17 @@ type ChartBarLabelCustomProps =
     };
 
 export function ChartBarLabelCustom(props: ChartBarLabelCustomProps) {
-  const data = "data" in props ? props.data : [props];
+  const rawData = "data" in props ? props.data : [props];
+  const arr = Array.isArray(rawData) ? rawData : [];
+  const data: ChartBarData[] = arr
+    .filter((item) => item != null && typeof item === "object")
+    .map((item) => {
+      const o = item as { User?: unknown; Posts?: unknown };
+      return {
+        User: typeof o.User === "string" ? o.User : "",
+        Posts: typeof o.Posts === "number" ? o.Posts : 0,
+      };
+    });
   const title = "data" in props ? props.title : undefined;
   const descriptionText = "data" in props ? props.description : undefined;
 
@@ -88,7 +98,7 @@ export function ChartBarLabelCustom(props: ChartBarLabelCustomProps) {
             <Bar
               dataKey="Posts"
               layout="vertical"
-              fill="var(--color-Posts)"
+              fill="#f97316" // orange-500
               radius={4}
             >
               <LabelList

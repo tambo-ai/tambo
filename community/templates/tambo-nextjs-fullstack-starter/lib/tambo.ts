@@ -119,10 +119,12 @@ export const components: TamboComponent[] = [
       data: z
         .array(
           z.object({
-            User: z.string().describe("User name"),
-            Posts: z.number().describe("Number of posts"),
+            User: z.string().optional().default("").describe("User name"),
+            Posts: z.number().optional().default(0).describe("Number of posts"),
           }),
         )
+        .optional()
+        .default([])
         .describe("Array of user data with User names and Posts counts"),
       title: z.string().optional().describe("Optional chart title"),
       description: z.string().optional().describe("Optional chart description"),
