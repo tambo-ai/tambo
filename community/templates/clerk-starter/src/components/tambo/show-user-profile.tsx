@@ -85,6 +85,12 @@ export function ShowUserProfile({ title }: ShowUserProfileProps) {
             {user.primaryEmailAddress?.emailAddress}
           </span>
         </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-sm text-muted-foreground">Tambo Session</span>
+          <span className="text-green-600 dark:text-green-400 font-mono text-sm">
+            isTamboAuthenticated: true
+          </span>
+        </div>
         {user.firstName && (
           <div className="flex flex-col gap-1">
             <span className="text-sm text-muted-foreground">Name</span>

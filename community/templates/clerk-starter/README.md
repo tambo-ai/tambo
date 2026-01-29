@@ -44,20 +44,17 @@ A Next.js starter template that integrates Clerk authentication with Tambo's run
 
 5. Open [http://localhost:3000](http://localhost:3000)
 
-## How Clerk Authentication Integrates with Tambo
+## Authentication Flow
 
-This template demonstrates how to wire Clerk authentication into Tambo's runtime. The integration flow:
+This template demonstrates a proper Clerk → Tambo authentication integration.
 
-1. **Middleware** (`src/middleware.ts`): `clerkMiddleware()` establishes the Clerk session on every request
-2. **Server Layout** (`src/app/layout.tsx`): `auth().getToken()` extracts the Clerk JWT token on the server
-3. **Client Provider** (`src/app/client-layout.tsx`): The JWT is passed to `TamboProvider` as the `userToken` prop
-4. **Tambo Runtime**: Tambo exchanges the Clerk JWT for a Tambo session token internally
-5. **AI Messages**: All AI interactions are authenticated and scoped to the signed-in user
+1. Clerk authenticates the user
+2. A Clerk JWT is extracted server-side
+3. The JWT is passed to `TamboProvider.userToken`
+4. Tambo exchanges it for a session token via `/oauth/token`
+5. All AI messages and threads are authenticated and user-scoped
 
-This ensures:
-- AI messages are associated with the authenticated user
-- AI-rendered components have access to user context
-- Components are scoped to the signed-in user
+The demo video shows this flow end-to-end.
 
 ## Project Structure
 
