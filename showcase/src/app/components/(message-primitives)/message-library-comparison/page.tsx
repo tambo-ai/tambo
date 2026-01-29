@@ -1,38 +1,33 @@
 "use client";
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
-import {
-  Message as AIElementsMessage,
-  MessageContent as AIElementsMessageContent,
-  MessageResponse as AIElementsMessageResponse,
-} from "@/components/ai-elements/message";
-import {
-  Reasoning,
-  ReasoningTrigger,
-  ReasoningContent,
-} from "@/components/ai-elements/reasoning";
+import type { TamboThreadMessage } from "@tambo-ai/react";
 import {
   Message,
-  MessageContent,
+  type MessageContentRenderProps,
+} from "@tambo-ai/ui-registry/base/message";
+import {
   ReasoningInfo,
-} from "@tambo-ai/ui-registry/components/message";
-import {
-  useExternalStoreRuntime,
-  AssistantRuntimeProvider,
-  ThreadPrimitive,
-  MessagePrimitive,
-} from "@assistant-ui/react";
-import type { ThreadMessageLike } from "@assistant-ui/react";
-import { useState, type ReactNode } from "react";
-import {
-  mockMessages,
-  isTextContent,
-  type MockMessage,
-} from "../__fixtures__/mock-messages";
+  type ReasoningInfoStepsRenderFunctionProps,
+} from "@tambo-ai/ui-registry/base/reasoning-info";
+import { ChevronDown } from "lucide-react";
 
-// Local re-definition of mock messages for Tambo components
-// (Avoids readonly type issues with TamboThreadMessage)
-const tamboMessages = {
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+type MessageRole = "user" | "assistant";
+
+interface StyleMessageProps {
+  message: TamboThreadMessage & { role: MessageRole };
+  isLoading?: boolean;
+}
+
+// ============================================================================
+// Mock Messages for Demos
+// ============================================================================
+
+const mockMessages = {
   user: {
     id: "user-1",
     role: "user" as const,
@@ -77,214 +72,178 @@ const tamboMessages = {
     threadId: "demo-thread",
     componentState: {},
   },
-};
+} satisfies Record<string, TamboThreadMessage>;
 
 // ============================================================================
-// Tambo Implementation
+// Tambo Style - "Editorial Clarity"
+// Refined minimalism with typographic focus. No bubbles.
 // ============================================================================
 
-function TamboUserMessage() {
+function TamboStyleUserMessage({ message }: StyleMessageProps) {
   return (
-    <Message
-      role="user"
-      message={tamboMessages.user}
-      variant="default"
-      className="justify-end"
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="ml-auto max-w-prose text-right"
     >
-      <div className="max-w-3xl">
-        <MessageContent className="text-foreground bg-container hover:bg-backdrop font-sans" />
-      </div>
-    </Message>
+      <Message.Content
+        render={({ markdownContent }: MessageContentRenderProps) => (
+          <div className="rounded-sm bg-muted/30 px-4 py-2 text-foreground">
+            {markdownContent}
+          </div>
+        )}
+      />
+    </Message.Root>
   );
 }
 
-function _TamboAssistantMessage() {
+function TamboStyleMessageWithReasoning({ message }: StyleMessageProps) {
   return (
-    <Message
-      role="assistant"
-      message={tamboMessages.assistant}
-      variant="default"
-      className="justify-start"
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="max-w-prose border-l-2 border-accent pl-4"
     >
-      <div className="w-full">
-        <MessageContent className="text-foreground font-sans" />
-      </div>
-    </Message>
-  );
-}
-
-function TamboMessageWithReasoning() {
-  return (
-    <Message
-      role="assistant"
-      message={tamboMessages.withReasoning}
-      variant="default"
-      className="justify-start"
-    >
-      <div className="w-full">
-        <ReasoningInfo />
-        <MessageContent className="text-foreground font-sans" />
-      </div>
-    </Message>
-  );
-}
-
-// ============================================================================
-// AI Elements Implementation
-// ============================================================================
-
-function AIElementsUserMessage() {
-  const textContent = mockMessages.user.content
-    .filter(isTextContent)
-    .map((part) => part.text)
-    .join(" ");
-
-  return (
-    <AIElementsMessage from="user">
-      <AIElementsMessageContent>
-        <AIElementsMessageResponse>{textContent}</AIElementsMessageResponse>
-      </AIElementsMessageContent>
-    </AIElementsMessage>
-  );
-}
-
-function _AIElementsAssistantMessage() {
-  const textContent = mockMessages.assistant.content
-    .filter(isTextContent)
-    .map((part) => part.text)
-    .join(" ");
-
-  return (
-    <AIElementsMessage from="assistant">
-      <AIElementsMessageContent>
-        <AIElementsMessageResponse>{textContent}</AIElementsMessageResponse>
-      </AIElementsMessageContent>
-    </AIElementsMessage>
-  );
-}
-
-function AIElementsMessageWithReasoning() {
-  const message = mockMessages.withReasoning;
-  const textContent = message.content
-    .filter(isTextContent)
-    .map((part) => part.text)
-    .join(" ");
-
-  return (
-    <AIElementsMessage from="assistant">
-      {message.reasoning && (
-        <Reasoning isStreaming={false} defaultOpen={true}>
-          <ReasoningTrigger
-            getThinkingMessage={(streaming, duration) =>
-              streaming ? "Thinking..." : `Thought for ${duration}s`
-            }
-          />
-          <ReasoningContent>
-            {message.reasoning.map((step, i) => (
-              <div key={i} className="mb-2 last:mb-0">
-                {step}
+      <ReasoningInfo.Root message={message} defaultExpanded={true}>
+        <ReasoningInfo.Trigger className="mb-2 flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
+          <ReasoningInfo.StatusText />
+          <ChevronDown className="h-3 w-3 transition-transform data-[state=open]:rotate-180" />
+        </ReasoningInfo.Trigger>
+        <ReasoningInfo.Content className="mb-4 rounded-md bg-muted/50 p-3">
+          <ReasoningInfo.Steps
+            render={({ steps }: ReasoningInfoStepsRenderFunctionProps) => (
+              <div className="space-y-2 text-xs text-muted-foreground">
+                {steps.map((step: string, i: number) => (
+                  <div key={i}>{step}</div>
+                ))}
               </div>
-            ))}
-          </ReasoningContent>
-        </Reasoning>
-      )}
-      <AIElementsMessageContent>
-        <AIElementsMessageResponse>{textContent}</AIElementsMessageResponse>
-      </AIElementsMessageContent>
-    </AIElementsMessage>
-  );
-}
-
-// ============================================================================
-// Assistant UI Implementation
-// ============================================================================
-
-function convertToThreadMessage(msg: MockMessage): ThreadMessageLike {
-  const base = {
-    id: msg.id,
-    role: msg.role,
-    content: msg.content.map((part) => {
-      if (part.type === "text") {
-        return { type: "text" as const, text: part.text };
-      }
-      return { type: "text" as const, text: "" };
-    }),
-    createdAt: new Date(msg.createdAt),
-  };
-
-  // Status is only supported for assistant messages
-  if (msg.role === "assistant") {
-    return {
-      ...base,
-      status: { type: "complete" as const, reason: "stop" as const },
-    };
-  }
-
-  return base;
-}
-
-function StaticAssistantProvider({ children }: { children: ReactNode }) {
-  const [messages] = useState<ThreadMessageLike[]>([
-    convertToThreadMessage(mockMessages.user),
-    convertToThreadMessage(mockMessages.assistant),
-  ]);
-
-  const runtime = useExternalStoreRuntime({
-    isRunning: false,
-    messages,
-    convertMessage: (msg) => msg,
-    onNew: async () => {},
-  });
-
-  return (
-    <AssistantRuntimeProvider runtime={runtime}>
-      {children}
-    </AssistantRuntimeProvider>
-  );
-}
-
-function AssistantUIUserMessage() {
-  return (
-    <MessagePrimitive.Root className="flex justify-end mb-4">
-      <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2 max-w-[80%]">
-        <MessagePrimitive.Content
-          components={{
-            Text: ({ text }) => <p>{text}</p>,
-          }}
-        />
-      </div>
-    </MessagePrimitive.Root>
-  );
-}
-
-function AssistantUIAssistantMessage() {
-  return (
-    <MessagePrimitive.Root className="flex justify-start mb-4">
-      <div className="bg-muted rounded-lg px-4 py-2 max-w-[80%]">
-        <MessagePrimitive.Content
-          components={{
-            Text: ({ text }) => <div className="prose prose-sm">{text}</div>,
-          }}
-        />
-      </div>
-    </MessagePrimitive.Root>
-  );
-}
-
-function AssistantUIThread() {
-  return (
-    <StaticAssistantProvider>
-      <ThreadPrimitive.Root className="flex flex-col">
-        <ThreadPrimitive.Viewport className="flex-1 p-4">
-          <ThreadPrimitive.Messages
-            components={{
-              UserMessage: AssistantUIUserMessage,
-              AssistantMessage: AssistantUIAssistantMessage,
-            }}
+            )}
           />
-        </ThreadPrimitive.Viewport>
-      </ThreadPrimitive.Root>
-    </StaticAssistantProvider>
+        </ReasoningInfo.Content>
+      </ReasoningInfo.Root>
+      <Message.Content
+        render={({ markdownContent }: MessageContentRenderProps) => (
+          <div className="prose prose-lg leading-relaxed text-foreground">
+            {markdownContent}
+          </div>
+        )}
+      />
+    </Message.Root>
+  );
+}
+
+// ============================================================================
+// AI Elements Style - "Geometric Conversation"
+// Flex layout with rounded bubbles and role-based positioning.
+// ============================================================================
+
+function AIElementsStyleUserMessage({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="flex justify-end"
+    >
+      <div className="max-w-[80%] rounded-2xl bg-primary px-4 py-3 text-sm text-primary-foreground">
+        <Message.Content
+          render={({ markdownContent }: MessageContentRenderProps) => (
+            <div>{markdownContent}</div>
+          )}
+        />
+      </div>
+    </Message.Root>
+  );
+}
+
+function AIElementsStyleMessageWithReasoning({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="flex justify-start"
+    >
+      <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-3 text-sm">
+        <ReasoningInfo.Root message={message} defaultExpanded={true}>
+          <ReasoningInfo.Trigger className="mb-2 flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
+            <ReasoningInfo.StatusText />
+            <ChevronDown className="h-3 w-3 transition-transform data-[state=open]:rotate-180" />
+          </ReasoningInfo.Trigger>
+          <ReasoningInfo.Content className="mb-3 rounded-md bg-background/50 p-2">
+            <ReasoningInfo.Steps
+              render={({ steps }: ReasoningInfoStepsRenderFunctionProps) => (
+                <div className="space-y-1 text-xs text-muted-foreground">
+                  {steps.map((step: string, i: number) => (
+                    <div key={i}>{step}</div>
+                  ))}
+                </div>
+              )}
+            />
+          </ReasoningInfo.Content>
+        </ReasoningInfo.Root>
+        <Message.Content
+          render={({ markdownContent }: MessageContentRenderProps) => (
+            <div>{markdownContent}</div>
+          )}
+        />
+      </div>
+    </Message.Root>
+  );
+}
+
+// ============================================================================
+// Assistant UI Style - "Contained Dialogue"
+// Card-like containers with borders. More structured, app-like feel.
+// ============================================================================
+
+function AssistantUIStyleUserMessage({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="mb-3 flex justify-end"
+    >
+      <div className="max-w-[70%] rounded-lg border border-primary/20 bg-card px-4 py-2">
+        <Message.Content
+          render={({ markdownContent }: MessageContentRenderProps) => (
+            <div className="prose prose-sm max-w-none">{markdownContent}</div>
+          )}
+        />
+      </div>
+    </Message.Root>
+  );
+}
+
+function AssistantUIStyleMessageWithReasoning({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="mb-3 flex justify-start"
+    >
+      <div className="max-w-[70%] rounded-lg border border-border bg-card px-4 py-2 shadow-sm">
+        <ReasoningInfo.Root message={message} defaultExpanded={true}>
+          <ReasoningInfo.Trigger className="mb-2 flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
+            <ReasoningInfo.StatusText />
+            <ChevronDown className="h-3 w-3 transition-transform data-[state=open]:rotate-180" />
+          </ReasoningInfo.Trigger>
+          <ReasoningInfo.Content className="mb-3 rounded border border-border bg-muted/40 p-2">
+            <ReasoningInfo.Steps
+              className="space-y-1 text-xs"
+              render={({ steps }) =>
+                steps.map((step: string, i: number) => (
+                  <div key={i}>{step}</div>
+                ))
+              }
+            />
+          </ReasoningInfo.Content>
+        </ReasoningInfo.Root>
+        <Message.Content
+          render={({ markdownContent }: MessageContentRenderProps) => (
+            <div className="prose prose-sm max-w-none">{markdownContent}</div>
+          )}
+        />
+      </div>
+    </Message.Root>
   );
 }
 
@@ -292,120 +251,134 @@ function AssistantUIThread() {
 // Code Snippets
 // ============================================================================
 
-const tamboCode = `import {
-  Message,
-  MessageContent,
-  ReasoningInfo,
-} from "@tambo-ai/ui-registry/components/message";
+const tamboCode = `import { Message } from "@tambo-ai/ui-registry/base/message";
+import { ReasoningInfo } from "@tambo-ai/ui-registry/base/reasoning-info";
+import { ChevronDown } from "lucide-react";
 
-export function MessageWithReasoning({ message }) {
-  return (
-    <Message
-      role="assistant"
-      message={message}
-      variant="default"
-      className="justify-start"
-    >
-      <div className="w-full">
-        <ReasoningInfo />
-        <MessageContent className="text-foreground font-sans" />
-      </div>
-    </Message>
-  );
-}`;
-
-const aiElementsCode = `import {
-  Message,
-  MessageContent,
-  MessageResponse,
-} from "@/components/ai-elements/message";
-import {
-  Reasoning,
-  ReasoningTrigger,
-  ReasoningContent,
-} from "@/components/ai-elements/reasoning";
-
-export function MessageWithReasoning({ message }) {
-  return (
-    <Message from="assistant">
-      {message.reasoning && (
-        <Reasoning isStreaming={false} defaultOpen={true}>
-          <ReasoningTrigger
-            getThinkingMessage={(streaming, duration) =>
-              streaming ? "Thinking..." : \`Thought for \${duration}s\`
-            }
-          />
-          <ReasoningContent>
-            {message.reasoning.map((step, i) => (
-              <div key={i} className="mb-2">{step}</div>
-            ))}
-          </ReasoningContent>
-        </Reasoning>
-      )}
-      <MessageContent>
-        <MessageResponse>{message.text}</MessageResponse>
-      </MessageContent>
-    </Message>
-  );
-}`;
-
-const assistantUICode = `import {
-  useExternalStoreRuntime,
-  AssistantRuntimeProvider,
-  ThreadPrimitive,
-  MessagePrimitive,
-} from "@assistant-ui/react";
-
-// Provider for static mock data
-function StaticAssistantProvider({ children }) {
-  const runtime = useExternalStoreRuntime({
-    isRunning: false,
-    messages: [userMessage, assistantMessage],
-    convertMessage: (msg) => msg,
-    onNew: async () => {},
-  });
-
-  return (
-    <AssistantRuntimeProvider runtime={runtime}>
-      {children}
-    </AssistantRuntimeProvider>
-  );
+interface StyleMessageProps {
+  message: TamboThreadMessage;
 }
 
-function AssistantUIThread() {
+// Tambo Style - Editorial clarity with typography focus
+function TamboStyleMessage({ message }: StyleMessageProps) {
   return (
-    <StaticAssistantProvider>
-      <ThreadPrimitive.Root className="flex flex-col">
-        <ThreadPrimitive.Viewport className="flex-1 p-4">
-          <ThreadPrimitive.Messages
-            components={{
-              UserMessage: () => (
-                <MessagePrimitive.Root className="flex justify-end mb-4">
-                  <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2">
-                    <MessagePrimitive.Content
-                      components={{
-                        Text: ({ text }) => <p>{text}</p>,
-                      }}
-                    />
-                  </div>
-                </MessagePrimitive.Root>
-              ),
-              AssistantMessage: () => (
-                <MessagePrimitive.Root className="flex justify-start mb-4">
-                  <div className="bg-muted rounded-lg px-4 py-2">
-                    <MessagePrimitive.Content
-                      components={{
-                        Text: ({ text }) => <div>{text}</div>,
-                      }}
-                    />
-                  </div>
-                </MessagePrimitive.Root>
-              ),
-            }}
+    <Message.Root
+      role={message.role}
+      message={message}
+      className="max-w-prose border-l-2 border-accent pl-4"
+    >
+      <ReasoningInfo.Root message={message} defaultExpanded={true}>
+        <ReasoningInfo.Trigger className="mb-2 flex items-center gap-1 text-xs">
+          <ReasoningInfo.StatusText />
+          <ChevronDown className="h-3 w-3" />
+        </ReasoningInfo.Trigger>
+        <ReasoningInfo.Content className="mb-4 rounded-md bg-muted/50 p-3">
+          <ReasoningInfo.Steps
+            render={({ steps }) => (
+              <div className="space-y-2 text-xs">
+                {steps.map((step, i) => <div key={i}>{step}</div>)}
+              </div>
+            )}
           />
-        </ThreadPrimitive.Viewport>
-      </ThreadPrimitive.Root>
-    </StaticAssistantProvider>
+        </ReasoningInfo.Content>
+      </ReasoningInfo.Root>
+      <Message.Content
+        render={({ markdownContent }) => (
+          <div className="prose prose-lg">{markdownContent}</div>
+        )}
+      />
+    </Message.Root>
+  );
+}`;
+
+const aiElementsCode = `import { Message } from "@tambo-ai/ui-registry/base/message";
+import { ReasoningInfo } from "@tambo-ai/ui-registry/base/reasoning-info";
+import { ChevronDown } from "lucide-react";
+
+// AI Elements Style - Rounded bubbles with flex layout
+function AIElementsStyleMessage({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className={cn(
+        "flex",
+        message.role === "user" ? "justify-end" : "justify-start"
+      )}
+    >
+      <div className={cn(
+        "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+        message.role === "user"
+          ? "bg-primary text-primary-foreground"
+          : "bg-muted"
+      )}>
+        <ReasoningInfo.Root message={message} defaultExpanded={true}>
+          <ReasoningInfo.Trigger className="mb-2 flex items-center gap-1 text-xs">
+            <ReasoningInfo.StatusText />
+            <ChevronDown className="h-3 w-3" />
+          </ReasoningInfo.Trigger>
+          <ReasoningInfo.Content className="mb-3 rounded-md bg-background/50 p-2">
+            <ReasoningInfo.Steps
+              render={({ steps }) => (
+                <div className="space-y-1 text-xs">
+                  {steps.map((step, i) => <div key={i}>{step}</div>)}
+                </div>
+              )}
+            />
+          </ReasoningInfo.Content>
+        </ReasoningInfo.Root>
+        <Message.Content
+          render={({ markdownContent }) => <div>{markdownContent}</div>}
+        />
+      </div>
+    </Message.Root>
+  );
+}`;
+
+const assistantUICode = `import { Message } from "@tambo-ai/ui-registry/base/message";
+import { ReasoningInfo } from "@tambo-ai/ui-registry/base/reasoning-info";
+import { ChevronDown } from "lucide-react";
+
+// Assistant UI Style - Card-like containers with borders
+function AssistantUIStyleMessage({ message }: StyleMessageProps) {
+  return (
+    <Message.Root
+      role={message.role}
+      message={message}
+      className={cn(
+        "mb-3 flex",
+        message.role === "user" ? "justify-end" : "justify-start"
+      )}
+    >
+      <div className={cn(
+        "max-w-[70%] rounded-lg border px-4 py-2",
+        message.role === "user"
+          ? "border-primary/20 bg-card"
+          : "border-border bg-card shadow-sm"
+      )}>
+        <ReasoningInfo.Root message={message} defaultExpanded={true}>
+          <ReasoningInfo.Trigger className="mb-2 flex items-center gap-1 text-xs">
+            <ReasoningInfo.StatusText />
+            <ChevronDown className="h-3 w-3" />
+          </ReasoningInfo.Trigger>
+          <ReasoningInfo.Content className="mb-3 rounded border bg-muted/40 p-2">
+            <ReasoningInfo.Steps
+              className="space-y-1 text-xs"
+              render={({ steps }) =>
+                steps.map((step: string, i: number) => (
+                  <div key={i}>{step}</div>
+                ))
+              }
+            />
+          </ReasoningInfo.Content>
+        </ReasoningInfo.Root>
+        <Message.Content
+          render={({ markdownContent }) => (
+            <div className="prose prose-sm max-w-none">{markdownContent}</div>
+          )}
+        />
+      </div>
+    </Message.Root>
   );
 }`;
 
@@ -417,161 +390,206 @@ export default function MessageLibraryComparisonPage() {
   return (
     <div className="prose max-w-8xl space-y-12">
       <header className="space-y-4">
-        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-          Message Library Comparison
+        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+          Base Primitives Demo
         </h1>
         <p className="text-lg text-muted-foreground">
-          Compare how Tambo&apos;s compound component primitives align with
-          popular AI chat libraries. All three follow similar architectural
-          patterns based on the compound component pattern.
+          Tambo&apos;s base primitives can be styled to match any design system.
+          All three examples below use the same <code>Message.Root</code>,{" "}
+          <code>Message.Content</code>, and <code>ReasoningInfo</code>{" "}
+          primitives with different CSS styling.
         </p>
       </header>
 
-      {/* Tambo Section */}
+      {/* Tambo Style Section */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">Tambo Primitives</h2>
+        <h2 className="text-2xl font-semibold">
+          Tambo Style - &quot;Editorial Clarity&quot;
+        </h2>
         <p className="text-muted-foreground">
-          The default implementation using Tambo&apos;s compound Message
-          components. Passes the entire message object to the root component
-          which provides context to children.
+          Refined minimalism with typographic focus. Uses a left border accent
+          for assistant messages and right-aligned user messages. No bubbles -
+          let typography and whitespace do the work.
         </p>
         <div className="space-y-6">
           <ComponentCodePreview
             title="User Message"
-            component={<TamboUserMessage />}
-            code={`<Message role="user" message={message} className="justify-end">
-  <div className="max-w-3xl">
-    <MessageContent className="text-foreground bg-container" />
-  </div>
-</Message>;`}
+            component={<TamboStyleUserMessage message={mockMessages.user} />}
+            code={`<Message.Root role="user" message={message} className="ml-auto max-w-prose text-right">
+  <Message.Content
+    render={({ markdownContent }) => (
+      <div className="rounded-sm bg-muted/30 px-4 py-2">{markdownContent}</div>
+    )}
+  />
+</Message.Root>`}
             previewClassName="p-4"
           />
 
           <ComponentCodePreview
             title="Assistant with Reasoning"
-            component={<TamboMessageWithReasoning />}
+            component={
+              <TamboStyleMessageWithReasoning
+                message={mockMessages.withReasoning}
+              />
+            }
             code={tamboCode}
             previewClassName="p-4"
           />
         </div>
       </section>
 
-      {/* AI Elements Section */}
+      {/* AI Elements Style Section */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">AI Elements (Vercel)</h2>
+        <h2 className="text-2xl font-semibold">
+          AI Elements Style - &quot;Geometric Conversation&quot;
+        </h2>
         <p className="text-muted-foreground">
-          Same compound component pattern using Vercel&apos;s AI Elements
-          library. Uses a <code>from</code> prop instead of <code>role</code>{" "}
-          and separates reasoning into a dedicated compound component.
+          Modern SaaS chat aesthetic with flex layout, rounded bubbles, and
+          role-based positioning. User messages are primary-colored and
+          right-aligned; assistant messages use muted backgrounds.
         </p>
         <div className="space-y-6">
           <ComponentCodePreview
             title="User Message"
-            component={<AIElementsUserMessage />}
-            code={`<Message from="user">
-  <MessageContent>
-    <MessageResponse>{text}</MessageResponse>
-  </MessageContent>
-</Message>;`}
+            component={
+              <AIElementsStyleUserMessage message={mockMessages.user} />
+            }
+            code={`<Message.Root role="user" message={message} className="flex justify-end">
+  <div className="max-w-[80%] rounded-2xl bg-primary px-4 py-3 text-primary-foreground">
+    <Message.Content
+      render={({ markdownContent }) => <div>{markdownContent}</div>}
+    />
+  </div>
+</Message.Root>`}
             previewClassName="p-4"
           />
 
           <ComponentCodePreview
             title="Assistant with Reasoning"
-            component={<AIElementsMessageWithReasoning />}
+            component={
+              <AIElementsStyleMessageWithReasoning
+                message={mockMessages.withReasoning}
+              />
+            }
             code={aiElementsCode}
             previewClassName="p-4"
           />
         </div>
       </section>
 
-      {/* Assistant UI Section */}
+      {/* Assistant UI Style Section */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">Assistant UI</h2>
+        <h2 className="text-2xl font-semibold">
+          Assistant UI Style - &quot;Contained Dialogue&quot;
+        </h2>
         <p className="text-muted-foreground">
-          Runtime-centric architecture using Assistant UI&apos;s primitives.
-          Requires a runtime provider context; messages flow through the runtime
-          rather than being passed directly to components.
+          Card-like containers with borders for a more structured, app-like
+          feel. Uses subtle shadows and border styling to create visual
+          separation between messages.
         </p>
-        <ComponentCodePreview
-          title="Message Thread"
-          component={<AssistantUIThread />}
-          code={assistantUICode}
-          previewClassName="p-4"
-        />
+        <div className="space-y-6">
+          <ComponentCodePreview
+            title="User Message"
+            component={
+              <AssistantUIStyleUserMessage message={mockMessages.user} />
+            }
+            code={`<Message.Root role="user" message={message} className="mb-3 flex justify-end">
+  <div className="max-w-[70%] rounded-lg border border-primary/20 bg-card px-4 py-2">
+    <Message.Content
+      render={({ markdownContent }) => (
+        <div className="prose prose-sm max-w-none">{markdownContent}</div>
+      )}
+    />
+  </div>
+</Message.Root>`}
+            previewClassName="p-4"
+          />
+
+          <ComponentCodePreview
+            title="Assistant with Reasoning"
+            component={
+              <AssistantUIStyleMessageWithReasoning
+                message={mockMessages.withReasoning}
+              />
+            }
+            code={assistantUICode}
+            previewClassName="p-4"
+          />
+        </div>
       </section>
 
       {/* API Comparison Table */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">API Comparison</h2>
+        <h2 className="text-2xl font-semibold">Base Primitive API</h2>
         <div className="overflow-x-auto">
           <table>
             <thead>
               <tr>
-                <th>Concept</th>
-                <th>Tambo</th>
-                <th>AI Elements</th>
-                <th>Assistant UI</th>
+                <th>Component</th>
+                <th>Purpose</th>
+                <th>Key Props</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Root Container</td>
                 <td>
-                  <code>Message</code>
+                  <code>Message.Root</code>
                 </td>
+                <td>Container that provides message context</td>
                 <td>
-                  <code>Message</code>
-                </td>
-                <td>
-                  <code>MessagePrimitive.Root</code>
+                  <code>role</code>, <code>message</code>,{" "}
+                  <code>isLoading</code>
                 </td>
               </tr>
               <tr>
-                <td>Content Area</td>
                 <td>
-                  <code>MessageContent</code>
+                  <code>Message.Content</code>
                 </td>
+                <td>Renders message text with render props</td>
                 <td>
-                  <code>MessageContent</code>
-                </td>
-                <td>
-                  <code>MessagePrimitive.Content</code>
+                  <code>children</code> (render function)
                 </td>
               </tr>
               <tr>
-                <td>Reasoning Root</td>
                 <td>
-                  <code>ReasoningInfo</code>
+                  <code>ReasoningInfo.Root</code>
                 </td>
+                <td>Container for reasoning display</td>
                 <td>
-                  <code>Reasoning</code>
-                </td>
-                <td>
-                  <code>ReasoningGroup</code>
+                  <code>message</code>, <code>defaultExpanded</code>
                 </td>
               </tr>
               <tr>
-                <td>Role Prop</td>
                 <td>
-                  <code>role=&quot;user&quot;</code>
+                  <code>ReasoningInfo.Trigger</code>
                 </td>
-                <td>
-                  <code>from=&quot;user&quot;</code>
-                </td>
-                <td>Via component type</td>
+                <td>Toggle button for expand/collapse</td>
+                <td>Standard button props</td>
               </tr>
               <tr>
-                <td>Data Source</td>
-                <td>Message prop</td>
-                <td>Props or useChat</td>
-                <td>Runtime context</td>
+                <td>
+                  <code>ReasoningInfo.StatusText</code>
+                </td>
+                <td>Displays &quot;Thinking...&quot; or duration</td>
+                <td>Auto-generated from context</td>
               </tr>
               <tr>
-                <td>Context Required</td>
-                <td>Optional</td>
-                <td>No</td>
-                <td>Yes (RuntimeProvider)</td>
+                <td>
+                  <code>ReasoningInfo.Content</code>
+                </td>
+                <td>Collapsible content area</td>
+                <td>
+                  <code>forceMount</code>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ReasoningInfo.Steps</code>
+                </td>
+                <td>Renders reasoning steps</td>
+                <td>
+                  <code>children</code> (render function)
+                </td>
               </tr>
             </tbody>
           </table>
@@ -583,30 +601,32 @@ export default function MessageLibraryComparisonPage() {
         <h2 className="text-2xl font-semibold">Key Observations</h2>
         <ul className="space-y-2">
           <li>
-            <strong>Compound Components:</strong> All three libraries use the
-            same pattern - a root component providing context with specialized
-            children. This validates Tambo&apos;s architectural approach.
+            <strong>Same Primitives, Different Styles:</strong> All three
+            examples use identical <code>Message</code> and{" "}
+            <code>ReasoningInfo</code> base primitives. Visual differences come
+            entirely from CSS classes passed to the primitives.
           </li>
           <li>
-            <strong>Role-Based Styling:</strong> Each library handles user vs
-            assistant styling through the root component&apos;s props or
-            context. Tambo and AI Elements use props; Assistant UI infers from
-            component type.
+            <strong>Render Props Pattern:</strong> The{" "}
+            <code>Message.Content</code> and <code>ReasoningInfo.Steps</code>{" "}
+            components use render props to give you full control over how
+            content is displayed.
           </li>
           <li>
-            <strong>Reasoning Support:</strong> All provide collapsible
-            reasoning/thinking displays with similar trigger/content patterns.
-            This is becoming a standard feature in AI chat interfaces.
+            <strong>Data Attributes:</strong> Base primitives expose{" "}
+            <code>data-message-role</code>, <code>data-state</code>, and other
+            attributes for CSS-only styling without JavaScript.
           </li>
           <li>
-            <strong>Data Flow:</strong> Tambo and AI Elements accept data via
-            props (flexible, explicit). Assistant UI requires a runtime provider
-            (more structured, opinionated).
+            <strong>No Runtime Dependencies:</strong> Unlike some libraries that
+            require runtime providers, Tambo primitives accept data directly via
+            props for maximum flexibility.
           </li>
           <li>
-            <strong>Portability:</strong> The similarity in patterns means
-            components can be migrated between libraries with minimal structural
-            changes - mainly prop renaming and context wrapping.
+            <strong>Compound Component Pattern:</strong> The namespace structure
+            (<code>Message.Root</code>, <code>Message.Content</code>) follows
+            the same pattern as Radix UI, Headless UI, and other modern
+            component libraries.
           </li>
         </ul>
       </section>
