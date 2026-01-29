@@ -1,9 +1,9 @@
 "use client";
 import { ApiKeyCheck } from "@/components/ApiKeyCheck";
-import Image from "next/image";
 import { Instructions } from "@/components/Instructions";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { signIn } from "next-auth/react";
+import Image from "next/image";
 
 export default function Home() {
   return (

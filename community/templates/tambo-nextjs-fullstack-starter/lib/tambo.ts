@@ -138,6 +138,5 @@ export const components: TamboComponent[] = [
     propsSchema: z.object({}),
   },
 ];
-
 // Import your custom components that utilize the Tambo SDK
 // import { CustomChart } from "../components/tambo/custom-chart";

@@ -68,6 +68,20 @@ DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 
 ---
 
+## Project structure
+
+| Path                                               | Purpose                           |
+| -------------------------------------------------- | --------------------------------- |
+| `app/layout.tsx`                                   | Root layout, providers            |
+| `app/page.tsx`                                     | Landing page                      |
+| `app/dashboard/`                                   | Dashboard layout and page         |
+| `components/tamboAuthentication/client-layout.tsx` | `TamboProvider`, user context     |
+| `components/tambo/message-thread-collapsible.tsx`  | AI chat UI (`Ctrl+I` / `Cmd+I`)   |
+| `lib/tambo.ts`                                     | Components and tools registration |
+| `auth.ts`                                          | NextAuth (Google OAuth)           |
+
+---
+
 ## Customizing
 
 ### Change what components Tambo can control
@@ -147,16 +161,6 @@ Use a client component. Pass `components` and `tools`; use `userToken` for auth 
 ### Voice input
 
 The template includes a `DictationButton` component using the `useTamboVoice` hook for speech-to-text input.
-
-### MCP (Model Context Protocol)
-
-MCP support is included. Use the hooks from `@tambo-ai/react/mcp`:
-
-- `useTamboMcpPromptList` – list available prompts from MCP servers
-- `useTamboMcpPrompt` – get a specific prompt
-- `useTamboMcpResourceList` – list available resources
-
-See `components/tambo/mcp-components.tsx` for example usage.
 
 ---
 

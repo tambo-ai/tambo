@@ -17,12 +17,6 @@ export default function ClientLayout({
   const { data: session } = useSession();
 
   return (
-    //  TamboProvider need :
-    //   Usertoken in order to deal with user authentication
-    // apikey in order to deal with the api calls
-    // tools in order to deal with the tools
-    // components in order to deal with the components
-    // contextHelpers in order to deal with the context helpers
     <TamboProvider
       userToken={userToken}
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
