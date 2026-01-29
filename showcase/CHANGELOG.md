@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.36.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.35.0...showcase-v0.36.0) (2026-01-29)
+
+
+### Features
+
+* **react-sdk:** implement v1 API Phases 6-7 with code review fixes ([#1954](https://github.com/tambo-ai/tambo/issues/1954)) ([9a7e098](https://github.com/tambo-ai/tambo/commit/9a7e098e0f969ec1512d6705c020dc46f625ac95))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @testing-library/react from 16.3.1 to 16.3.2 in the testing group ([#1929](https://github.com/tambo-ai/tambo/issues/1929)) ([7ff6aa6](https://github.com/tambo-ai/tambo/commit/7ff6aa6c42aefc9d009bc8aaacbd511cd19ed3af))
+* **deps-dev:** bump the eslint group with 3 updates ([#1928](https://github.com/tambo-ai/tambo/issues/1928)) ([4a4bf57](https://github.com/tambo-ai/tambo/commit/4a4bf578a9cb1caddde17c1c4e62024510973b2e))
+* **deps:** bump framer-motion from 12.23.26 to 12.29.0 ([#1936](https://github.com/tambo-ai/tambo/issues/1936)) ([59fca7a](https://github.com/tambo-ai/tambo/commit/59fca7ad50454e6a2845de0dec5a782c8be65b3e))
+* **deps:** bump the small-safe-packages group with 10 updates ([#1932](https://github.com/tambo-ai/tambo/issues/1932)) ([66f8ee8](https://github.com/tambo-ai/tambo/commit/66f8ee83adbcdb8c64d5c85159bc6574d4166f7b))
+* **deps:** bump the tiptap group with 9 updates ([#1935](https://github.com/tambo-ai/tambo/issues/1935)) ([a041ae4](https://github.com/tambo-ai/tambo/commit/a041ae4599a389dc581c07f49769c85707b42201))
+* **test:** bump coverage thresholds (2026-01-26) ([#1918](https://github.com/tambo-ai/tambo/issues/1918)) ([3173795](https://github.com/tambo-ai/tambo/commit/3173795837258192e183144b3c5c48c901990d26))
+
 ## [0.35.0](https://github.com/tambo-ai/tambo/compare/showcase-v0.34.1...showcase-v0.35.0) (2026-01-21)
 
 
