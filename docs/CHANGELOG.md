@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.24.0](https://github.com/tambo-ai/tambo/compare/docs-v1.23.1...docs-v1.24.0) (2026-01-29)
+
+
+### Features
+
+* **react-sdk:** implement v1 API Phases 6-7 with code review fixes ([#1954](https://github.com/tambo-ai/tambo/issues/1954)) ([9a7e098](https://github.com/tambo-ai/tambo/commit/9a7e098e0f969ec1512d6705c020dc46f625ac95))
+
+
+### Bug Fixes
+
+* set valid `reasoningEffort` for openAI models ([#1965](https://github.com/tambo-ai/tambo/issues/1965)) ([daf6c34](https://github.com/tambo-ai/tambo/commit/daf6c34c6afc6f2cafd764d21775bcc03dcedc76))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump framer-motion from 12.23.26 to 12.29.0 ([#1936](https://github.com/tambo-ai/tambo/issues/1936)) ([59fca7a](https://github.com/tambo-ai/tambo/commit/59fca7ad50454e6a2845de0dec5a782c8be65b3e))
+* **deps:** bump the small-safe-packages group with 10 updates ([#1932](https://github.com/tambo-ai/tambo/issues/1932)) ([66f8ee8](https://github.com/tambo-ai/tambo/commit/66f8ee83adbcdb8c64d5c85159bc6574d4166f7b))
+* **docs:** Organize reference section ([#1916](https://github.com/tambo-ai/tambo/issues/1916)) ([46154a5](https://github.com/tambo-ai/tambo/commit/46154a5fd22525f9d6dc601119d09c8f8909d841))
+
 ## [1.23.1](https://github.com/tambo-ai/tambo/compare/docs-v1.23.0...docs-v1.23.1) (2026-01-22)
 
 
