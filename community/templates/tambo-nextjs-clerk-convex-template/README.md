@@ -4,19 +4,17 @@ An AI-powered notes application that lets users create and manage notes using na
 
 ## Screenshots
 
-![AI Notes App - Main View](public/ss/ss1.png)
+![AI Notes App - Sign In Page](public/ss/ss1.png)
+
+_Welcome page with clean design and "Get Started" button for authentication._
+
+![AI Notes App - Main View](public/ss/ss2.png)
 
 _Main view showing the notes grid with AI assistant button and manual note creation._
 
-![AI Notes App - AI Assistant](public/ss/ss2.png)
+![AI Notes App - AI Assistant](public/ss/ss3.png)
 
 _AI assistant drawer open, demonstrating natural language note creation with Tambo AI._
-
-## Video Demo
-
-📹 [Watch the Video Demo](https://www.youtube.com/watch?v=DdiIsZaW42k)
-
-_Video demonstrating AI interaction: creating notes via natural language, editing notes, and using the AI assistant features._
 
 ## Prerequisites
 

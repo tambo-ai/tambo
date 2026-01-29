@@ -30,7 +30,7 @@ function SignInPage() {
           <SignInButton mode="modal">
             <Button
               variant="default"
-              className="w-full h-12 text-base font-medium active:scale-95 transition-transform"
+              className="w-full h-12 text-base font-medium active:scale-95 transition-transform bg-[#7FFFC4] text-[#023A41] hover:bg-[#7FFFC4]/90"
             >
               Get Started
             </Button>
