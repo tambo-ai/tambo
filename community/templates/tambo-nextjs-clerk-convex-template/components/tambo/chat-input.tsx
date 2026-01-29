@@ -61,32 +61,32 @@ export function TamboChatInput() {
   };
 
   return (
-    <div className="flex items-end gap-2">
-      <div className="flex-1 relative">
-        <Textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your message or paste images..."
-          className="min-h-[40px] max-h-[120px] resize-none pr-10 text-sm bg-white border border-gray-200 focus-visible:ring-1 focus-visible:ring-ring/50"
-          disabled={isLoading}
-          rows={1}
-        />
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm px-3 py-2 flex flex-col gap-2">
+      <Textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Type your message or paste images..."
+        className="min-h-[40px] max-h-[120px] resize-none border-0 p-0 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        disabled={isLoading}
+        rows={1}
+      />
+      <div className="flex items-center justify-end gap-2 pt-1">
+        <LazyDictationButton />
+        <Button
+          onClick={() => void handleSubmit()}
+          disabled={!value.trim() || isLoading}
+          size="icon"
+          className="h-9 w-9 shrink-0 rounded-lg"
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <SendHorizontal className="h-4 w-4" />
+          )}
+        </Button>
       </div>
-      <LazyDictationButton />
-      <Button
-        onClick={() => void handleSubmit()}
-        disabled={!value.trim() || isLoading}
-        size="icon"
-        className="h-10 w-10 shrink-0"
-      >
-        {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <SendHorizontal className="h-4 w-4" />
-        )}
-      </Button>
     </div>
   );
 }

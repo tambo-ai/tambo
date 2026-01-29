@@ -15,9 +15,9 @@
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 162 30% 8%; /* #0E1A17 */
 
-    /* Primary colors (from logo) */
-    --primary: 157 100% 75%; /* #7FFFC4 */
-    --primary-foreground: 186 94% 13%; /* #023A41 */
+    /* Primary colors (dark charcoal like dashboard) */
+    --primary: 240 5.9% 10%; /* Dark charcoal #1a1a1a */
+    --primary-foreground: 0 0% 98%; /* White text */
 
     /* Secondary colors */
     --secondary: 217 91% 67%; /* #5C94F7 */
