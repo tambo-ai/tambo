@@ -11,10 +11,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    // Dashboard uses components-theme for proper component styling but with
-    // neutral white background (not green). The dashboard-theme class overrides
-    // only the background color while keeping all component styling.
-    <div className="components-theme dashboard-theme min-h-screen bg-background text-foreground font-heading">
+    <div className="min-h-screen bg-background text-foreground font-heading">
       {/* Navbar Header */}
       <header className="border-b border-border bg-background">
         <nav className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">

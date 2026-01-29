@@ -1,7 +1,7 @@
 import { authOptions } from "@/auth";
 import Providers from "@/components/authentication/providers";
 import ClientLayout from "@/components/tamboAuthentication/client-layout";
-import { sentientLight } from "@/lib/fonts";
+
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
@@ -78,7 +78,7 @@ export default async function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          `${geistSans.variable} ${geistMono.variable} ${sentientLight.variable} antialiased`,
+          `${geistSans.variable} ${geistMono.variable}  antialiased`,
         )}
       >
         <Providers>

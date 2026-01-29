@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import React from "react";
 
 // HeroIllustration component based on apps/web/components/sections/hero.tsx
@@ -61,7 +61,7 @@ function HeroIllustration() {
 
 export default function Home() {
   return (
-    <div className="components-theme min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Main Hero Section */}
       <main className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
         <section className="pt-16 pb-24 lg:pt-24 lg:pb-32">
