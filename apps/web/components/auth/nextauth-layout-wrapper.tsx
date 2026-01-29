@@ -1,6 +1,7 @@
 "use client";
 
 import { useNextAuthSession } from "@/hooks/nextauth";
+import { useAutoAcceptLegal } from "@/hooks/use-auto-accept-legal";
 import { api } from "@/trpc/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FC, useEffect } from "react";
@@ -29,25 +30,43 @@ export const NextAuthLayoutWrapper: FC<NextAuthLayoutWrapperProps> = ({
     enabled: !!session && pathname !== "/legal-acceptance",
   });
 
-  useEffect(() => {
-    if (status === "loading") return; // Still loading
+  // Hook for auto-accepting legal terms from pre-auth checkbox
+  const {
+    isPending: isAutoAccepting,
+    tryAutoAccept,
+    shouldRedirectToLegalPage,
+  } = useAutoAcceptLegal(legalStatus);
 
-    // No session, redirect to login
+  useEffect(() => {
+    if (status === "loading") return;
+
     if (!session) {
       router.replace(`/login?returnUrl=${returnUrl}`);
-    } else if (
-      // Check if user has accepted legal
-      legalStatus &&
-      !legalStatus.accepted &&
-      pathname !== "/legal-acceptance"
-    ) {
-      // Redirect to legal acceptance if not accepted, preserving the return URL
+      return;
+    }
+
+    // Try auto-accept if user checked checkbox before auth
+    if (tryAutoAccept()) {
+      return;
+    }
+
+    // Redirect to legal acceptance if not accepted and no pending cookie
+    if (shouldRedirectToLegalPage() && pathname !== "/legal-acceptance") {
       router.push(`/legal-acceptance?returnUrl=${returnUrl}`);
     }
-  }, [session, status, router, legalStatus, pathname, returnUrl]);
+  }, [
+    session,
+    status,
+    router,
+    pathname,
+    returnUrl,
+    legalStatus,
+    tryAutoAccept,
+    shouldRedirectToLegalPage,
+  ]);
 
-  // Show loading state while checking session
-  if (status === "loading" || (session && !legalStatus)) {
+  // Show loading state while checking session or auto-accepting legal
+  if (status === "loading" || (session && !legalStatus) || isAutoAccepting) {
     return (
       fallback || (
         <div className="flex items-center justify-center min-h-screen">

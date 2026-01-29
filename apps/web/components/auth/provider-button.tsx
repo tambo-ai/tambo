@@ -4,6 +4,7 @@ import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useSignIn } from "@/hooks/nextauth";
 import { useToast } from "@/hooks/use-toast";
+import { setPendingLegalCookie } from "@/lib/pending-legal-cookie";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -15,12 +16,14 @@ interface ProviderButtonProps {
   };
   routeOnSuccess?: string;
   variant?: "default" | "outline";
+  disabled?: boolean;
 }
 
 export function ProviderButton({
   provider,
   routeOnSuccess = "/dashboard",
   variant = "default",
+  disabled = false,
 }: ProviderButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -29,6 +32,9 @@ export function ProviderButton({
   const handleAuth = async () => {
     setIsLoading(true);
     try {
+      // Set cookie to indicate user accepted legal terms before auth
+      setPendingLegalCookie();
+
       await signIn(provider.id, {
         callbackUrl: routeOnSuccess,
         // TODO: when the provider is email, we need to pass the email
@@ -53,7 +59,7 @@ export function ProviderButton({
     <Button
       variant={variant}
       onClick={handleAuth}
-      disabled={isLoading}
+      disabled={disabled || isLoading}
       className={cn(
         "w-full h-12 text-base font-medium active:scale-95 transition-transform",
       )}
