@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Tambo CRM",
-  description: "AI-powered CRM with generative UI",
+  title: "CRM Intelligence - AI-Powered Relationship Management",
+  description: "Build relationships that adapt to your business with AI-powered CRM intelligence",
 };
 
 export default function RootLayout({
