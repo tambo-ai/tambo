@@ -1,20 +1,54 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import {
-  useTambo,
-  useTamboGenerationStage,
-  useTamboThreadInput,
+    useTambo,
+    useTamboGenerationStage,
+    useTamboThreadInput,
 } from "@tambo-ai/react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
+/**
+ * MessageThread - Streaming-First Chat Interface
+ *
+ * This component demonstrates Tambo's streaming-first chat UX:
+ *
+ * 1. Streaming responses: Messages appear in real-time as the AI generates them
+ *    - useTamboGenerationStage() tracks streaming state
+ *    - "Thinking..." indicator reserves space during generation
+ *    - Auto-scroll keeps conversation in view
+ *
+ * 2. Runtime-driven components: AI-rendered components appear inline
+ *    - Components render as part of the streaming response
+ *    - No separate API calls or page reloads
+ *    - Seamless integration with text messages
+ *
+ * 3. Authenticated context: All messages are scoped to the signed-in user
+ *    - useTambo() provides thread context (authenticated via userToken)
+ *    - Messages are associated with the authenticated user
+ *    - Components have access to user context
+ *
+ * Layout structure:
+ * - Centered container (max-w-4xl) - constrained, intentional spacing
+ * - User messages constrained to max-w-[70%] - clear visual distinction
+ * - Assistant messages max-w-full - comfortable for streaming text and components
+ * - Input anchored to bottom - visually connected to thread
+ * - Streaming UX reserves space - avoids layout jumps, feels intentional
+ */
 export function MessageThread() {
+  const { user } = useUser();
   const { thread } = useTambo();
   const { isIdle } = useTamboGenerationStage();
   const { value: input, setValue: setInput, submit } = useTamboThreadInput();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // isIdle is true when not generating, false when streaming
   const isStreaming = !isIdle;
+
+  // Auto-scroll to bottom when messages change or streaming
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [thread?.messages, isStreaming]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -28,109 +62,125 @@ export function MessageThread() {
     }
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion);
+  };
+
   const messages = thread?.messages ?? [];
+  const filteredMessages = messages.filter(
+    (message) => message.role !== "system"
+  );
 
   return (
-    <div className="flex flex-col h-full relative max-w-3xl mx-auto w-full">
-      <div className="flex-1 overflow-y-auto px-4 sm:px-0 space-y-6 pb-24 scroll-smooth">
-        {messages.length === 0 && !isStreaming && (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <div className="mb-4 p-3 bg-[var(--muted)] rounded-2xl">
-              <span className="text-2xl">👋</span>
-            </div>
-            <p className="text-lg font-medium text-[var(--foreground)] mb-1">
-              Welcome!
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)] max-w-xs">
-              Try asking:{" "}
-              <code className="bg-[var(--muted)] px-1.5 py-0.5 rounded text-[var(--foreground)] font-mono text-xs">
-                Show my profile
-              </code>
-            </p>
-          </div>
-        )}
-
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex w-full ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div
-              className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-5 py-3.5 ${
-                message.role === "user"
-                  ? "bg-[var(--foreground)] text-[var(--background)] rounded-br-sm"
-                  : "bg-[var(--card)] border border-[var(--border)] text-[var(--card-foreground)] rounded-bl-sm"
-              }`}
-            >
-              {message.content.map((part, index) => {
-                if (part.type === "text") {
-                  return (
-                    <p
-                      key={index}
-                      className="whitespace-pre-wrap leading-relaxed"
-                    >
-                      {part.text}
-                    </p>
-                  );
-                }
-                return null;
-              })}
-              {message.renderedComponent && (
-                <div className="mt-4">{message.renderedComponent}</div>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {isStreaming && (
-          <div className="flex justify-start w-full">
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl rounded-bl-sm px-5 py-4">
-              <div className="flex gap-1.5">
-                <div className="w-1.5 h-1.5 bg-[var(--muted-foreground)] rounded-full animate-bounce" />
-                <div className="w-1.5 h-1.5 bg-[var(--muted-foreground)] rounded-full animate-bounce [animation-delay:0.2s]" />
-                <div className="w-1.5 h-1.5 bg-[var(--muted-foreground)] rounded-full animate-bounce [animation-delay:0.4s]" />
+    <div className="flex flex-col h-full bg-background">
+      {/* Centered conversation container - max-w-4xl constraint */}
+      <div className="flex-1 flex flex-col max-w-4xl w-full mx-auto">
+        {/* Scrollable message area - intentional spacing */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col gap-6">
+            {/* Empty state - reduced whitespace */}
+            {filteredMessages.length === 0 && !isStreaming && (
+              <div className="py-6 space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  Signed in as{" "}
+                  <span className="text-foreground font-medium">
+                    {user?.primaryEmailAddress?.emailAddress}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground">
+                    Try asking:
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSuggestionClick("Show my profile")}
+                    className="text-sm px-4 py-2 border border-border rounded-md bg-background hover:bg-muted text-foreground"
+                  >
+                    &ldquo;Show my profile&rdquo;
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-      </div>
+            )}
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/90 to-transparent pt-10">
-        <form
-          onSubmit={handleSubmit}
-          className="flex gap-2 items-center bg-[var(--card)] p-1.5 rounded-full border border-[var(--border)] focus-within:ring-2 focus-within:ring-[var(--foreground)]/5 focus-within:border-[var(--foreground)]/20 transition-all shadow-sm"
-        >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
-            disabled={isSubmitting || isStreaming}
-            className="flex-1 px-4 py-2 bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none disabled:opacity-50 text-base sm:text-sm"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isSubmitting || isStreaming}
-            className="p-2.5 bg-[var(--foreground)] text-[var(--background)] rounded-full hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"
+            {/* Messages - clear user/assistant distinction */}
+            {filteredMessages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`flex flex-col gap-3 ${
+                    message.role === "user" ? "max-w-[70%]" : "max-w-full"
+                  }`}
+                >
+                  {/* Message text content */}
+                  {message.content.map((part, index) => {
+                    if (part.type === "text" && part.text) {
+                      return (
+                        <div
+                          key={index}
+                          className={`text-[15px] leading-relaxed whitespace-pre-wrap ${
+                            message.role === "user"
+                              ? "bg-muted text-foreground px-4 py-2.5 rounded-lg"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {part.text}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+
+                  {/* AI-rendered components - comfortable spacing for runtime-driven UI */}
+                  {message.renderedComponent && (
+                    <div className="w-full mt-1">
+                      {message.renderedComponent}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Streaming indicator - reserves space to avoid layout jumps */}
+            {/* This makes streaming feel intentional, not accidental */}
+            {isStreaming && (
+              <div className="flex justify-start">
+                <div className="text-sm text-muted-foreground py-2">
+                  Assistant is thinking...
+                </div>
+              </div>
+            )}
+
+            {/* Scroll anchor - ensures smooth auto-scroll */}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+
+        {/* Input area - anchored to bottom, visually connected to thread */}
+        <div className="border-t border-border bg-background px-4 sm:px-6 py-4">
+          <form onSubmit={handleSubmit}>
+            <div className="flex items-center gap-2 border border-border rounded-lg bg-background px-3 py-2.5">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type a message..."
+                disabled={isSubmitting || isStreaming}
+                className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-[15px] disabled:opacity-50"
               />
-            </svg>
-          </button>
-        </form>
+              <button
+                type="submit"
+                disabled={!input.trim() || isSubmitting || isStreaming}
+                className="px-4 py-1.5 bg-foreground text-background rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

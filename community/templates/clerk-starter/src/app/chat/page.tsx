@@ -3,33 +3,42 @@ import { UserButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 
+/**
+ * ChatPage - Protected chat route with polished runtime-driven UI layout.
+ *
+ * Layout principles:
+ * - Full viewport height (h-screen) - chat thread is primary surface
+ * - Minimal header with max-w-4xl alignment - matches chat container
+ * - MessageThread fills remaining space - no wasted whitespace
+ * - Centered, constrained experience - max-w-4xl throughout
+ */
 export default async function ChatPage() {
   const user = await currentUser();
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-10 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div className="h-screen flex flex-col bg-background">
+      {/* Minimal header - aligned with chat container */}
+      <header className="border-b border-border bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <Link
             href="/"
-            className="text-base font-semibold tracking-tight text-[var(--foreground)] hover:opacity-80 transition-opacity"
+            className="text-sm font-medium text-foreground hover:opacity-80"
           >
             Clerk + Tambo
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-[var(--muted-foreground)] px-2 py-1">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
               {user?.emailAddresses[0]?.emailAddress}
             </span>
-            <div className="scale-90">
-              <UserButton afterSignOutUrl="/" />
-            </div>
+            <UserButton afterSignOutUrl="/" />
           </div>
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full p-4">
+      {/* Chat thread - primary surface, fills remaining space */}
+      <main className="flex-1 overflow-hidden">
         <MessageThread />
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
