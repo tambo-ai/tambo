@@ -53,8 +53,8 @@ This template demonstrates a deep integration between Tambo AI and a real-time d
 
 ## Screenshot
 
-<img width="1366" height="641" alt="screenshot" src="https://github.com/user-attachments/assets/38bf1e96-7ec6-48e5-974e-e433c345ea8f" />
+<img width="1366" height="641" alt="scrnli_bHU66wVO7wLH4r" src="https://github.com/user-attachments/assets/63011927-58de-4d5a-8a77-71fbd11e52c4" />
 
 ## Video Demo
 
-[Link to Video Demo](https://github.com/user-attachments/assets/5fa82e1b-245d-455f-a6b9-3887dc85e35d)
+[Link to Video Demo]()

@@ -1,5 +1,5 @@
 import { LeadList } from "@/components/LeadList";
-import { MessageThreadFull } from "@/components/ui-registry/MessageThreadFull";
+import { SimpleChat } from "@/components/SimpleChat";
 
 export default function Home() {
   return (
@@ -42,7 +42,7 @@ export default function Home() {
         {/* AI Assistant Sidebar */}
         <aside className="w-[400px] border-l border-white/5 bg-[#080808] flex flex-col">
           <div className="flex-1 overflow-hidden">
-            <MessageThreadFull />
+            <SimpleChat />
           </div>
         </aside>
       </div>
