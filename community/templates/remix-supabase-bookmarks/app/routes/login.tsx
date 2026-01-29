@@ -16,7 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const result = await getUserFromSession(request);
 
   if (result) {
-    return redirect("/bookmarks");
+    return redirect("/chat");
   }
 
   return json({});
@@ -49,7 +49,7 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
         data.session.access_token,
         data.session.refresh_token,
-        "/bookmarks",
+        "/chat",
       );
     }
 
@@ -72,7 +72,7 @@ export async function action({ request }: ActionFunctionArgs) {
     request,
     data.session.access_token,
     data.session.refresh_token,
-    "/bookmarks",
+    "/chat",
   );
 }
 

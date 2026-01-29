@@ -1,128 +1,129 @@
 # Remix + Supabase Bookmark Manager
 
-An AI-powered bookmark manager built with Remix, Supabase, and Tambo.
-
-Save, organize, and search your bookmarks using natural language. The AI assistant can automatically categorize your links, find saved articles, and help manage your collection.
+A Tambo template for building an AI-powered bookmark manager with Remix and Supabase.
 
 ### Screenshot
 
-<img width="1916" height="1079" alt="Screenshot 2026-01-28 140640" src="https://github.com/user-attachments/assets/4e0f1e40-c380-4e72-8ca5-7b9a2acf2b24" />
+<img width="1915" height="1076" alt="image" src="https://github.com/user-attachments/assets/91c1c940-d64d-4894-9302-660b2eeca064" />
 
 ### Video demo
 
-https://github.com/user-attachments/assets/73c55390-c3db-4f47-b558-4f728f62304d
-
-## What's Included
-
-- **Remix** - Full-stack React framework with server-side rendering
-- **Supabase** - PostgreSQL database with authentication
-- **Tambo** - AI-powered chat interface for managing bookmarks
-- **Tailwind CSS** - Utility-first styling
+https://github.com/user-attachments/assets/d79c5dde-f58e-45d4-ae47-3f05c7328221
 
 ## Prerequisites
 
-- Node.js 20+
-- A [Supabase](https://supabase.com) account (free tier works)
-- A [Tambo](https://tambo.co) API key
+- [Node.js](https://nodejs.org/) v18+
+- [Supabase account](https://supabase.com) (free tier works)
+- [Tambo API key](https://tambo.co)
 
 ## Setup
 
-### 1. Clone and install dependencies
+1. **Install dependencies**
 
-```bash
-cd community/templates/remix-supabase-bookmarks
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-### 2. Set up Supabase
+2. **Set up Supabase**
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Go to **SQL Editor** and run the migration:
 
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** and run the migration in `supabase/migrations/001_create_bookmarks.sql`
-3. Go to **Settings > API** and copy your Project URL and `anon` public key
+   ```sql
+   -- Create bookmarks table
+   CREATE TABLE bookmarks (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+     url TEXT NOT NULL,
+     title TEXT,
+     category TEXT,
+     created_at TIMESTAMPTZ DEFAULT now()
+   );
 
-### 3. Configure environment variables
+   -- Enable Row Level Security
+   ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
 
-Copy the example env file and fill in your values:
+   -- Users can only access their own bookmarks
+   CREATE POLICY "Users can manage own bookmarks"
+     ON bookmarks FOR ALL
+     USING (auth.uid() = user_id);
+   ```
 
-```bash
-cp .env.example .env
-```
+   - Copy your **Project URL** and **anon key** from **Settings > API**
 
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SESSION_SECRET=any-random-string-here
-TAMBO_API_KEY=your-tambo-api-key
-```
+3. **Configure environment**
 
-Get your Tambo API key from [tambo.co](https://tambo.co).
+   ```bash
+   cp .env.example .env
+   ```
 
-### 4. Run the development server
+   Edit `.env`:
 
-```bash
-npm run dev
-```
+   ```env
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
+   SESSION_SECRET=any-random-string-for-cookies
+   TAMBO_API_KEY=your-tambo-api-key
+   ```
 
-Open [http://localhost:5173](http://localhost:5173) to see the app.
+4. **Run the app**
 
-## Features
+   ```bash
+   npm run dev
+   ```
 
-### Phase 1 ✅
+   Open [http://localhost:5173](http://localhost:5173)
 
-- [x] User authentication (sign up / sign in)
-- [x] Add bookmarks manually with URL, title, and category
-- [x] View and delete bookmarks
-- [x] Row-level security (users only see their own bookmarks)
+## What's Included
 
-### Phase 2 ✅
+- **Remix** - Full-stack React framework with Vite
+- **Supabase** - PostgreSQL database with email/password auth and Row Level Security
+- **Tambo** - AI chat with streaming responses and generative UI components
 
-- [x] Tambo AI chat integration
-- [x] Natural language bookmark creation ("Save this React article")
-- [x] Search bookmarks ("Find my cooking recipes")
-- [x] Bulk categorization ("Categorize all uncategorized links")
-- [x] Delete bookmarks via chat
+## Tambo Integration
 
-### Phase 3 ✅
+### Components
 
-- [x] Generative UI components (BookmarkCard, BookmarkList, CategorySummary)
-- [x] AI renders visual bookmark cards in chat responses
-- [x] Category statistics visualization
+Three generative UI components registered in `app/tambo/components.ts`:
+
+- `BookmarkCard` - Displays a single bookmark with favicon and category
+- `BookmarkList` - Shows multiple bookmarks in a list
+- `CategorySummary` - Visual breakdown of bookmark categories
+
+### Tools
+
+Seven tools for natural language bookmark management in `app/tambo/tools.ts`:
+
+| Tool                          | Description                   |
+| ----------------------------- | ----------------------------- |
+| `add_bookmark`                | Save a new bookmark           |
+| `search_bookmarks`            | Find bookmarks by keyword     |
+| `update_bookmark`             | Edit bookmark properties      |
+| `delete_bookmark`             | Remove a bookmark             |
+| `categorize_bookmarks`        | Bulk update categories        |
+| `get_uncategorized_bookmarks` | List items without categories |
+| `get_category_stats`          | View category breakdown       |
 
 ## Project Structure
 
 ```
 app/
 ├── components/
-│   ├── bookmark-card.tsx    # Generative UI components for chat
-│   ├── chat-panel.tsx       # AI chat sidebar component
-│   └── tambo-chat.client.tsx # Client-only Tambo wrapper
-├── lib/
-│   ├── database.types.ts    # TypeScript types for Supabase
-│   ├── session.server.ts    # Cookie session management
-│   ├── supabase.client.ts   # Browser Supabase client
-│   └── supabase.server.ts   # Server Supabase client
-├── routes/
-│   ├── _index.tsx           # Landing page
-│   ├── bookmarks.tsx        # Main bookmarks page with AI chat
-│   ├── login.tsx            # Auth page
-│   └── logout.tsx           # Logout action
+│   ├── bookmark-card.tsx       # Generative UI components
+│   ├── message-thread-full.tsx # Chat interface with thread history
+│   └── tambo-chat.client.tsx   # TamboProvider wrapper
 ├── tambo/
-│   ├── components.ts        # Tambo component registry
-│   └── tools.ts             # AI tools for bookmark operations
-├── root.tsx                 # App shell
-└── tailwind.css             # Global styles
+│   ├── components.ts           # Component registration
+│   └── tools.ts                # Tool definitions
+├── routes/
+│   ├── chat.tsx                # Main chat page
+│   ├── login.tsx               # Auth page
+│   └── _index.tsx              # Landing page
+└── lib/
+    └── supabase.server.ts      # Supabase client
 ```
 
-## AI Tools
+## Learn More
 
-The template includes these Tambo tools:
-
-| Tool                          | Description                           | Example prompts                        |
-| ----------------------------- | ------------------------------------- | -------------------------------------- |
-| `add_bookmark`                | Save a new bookmark                   | "Save https://remix.run as Remix Docs" |
-| `search_bookmarks`            | Find bookmarks by keyword or category | "Find my React articles"               |
-| `update_bookmark`             | Edit title, URL, or category          | "Rename that bookmark to 'New Title'"  |
-| `categorize_bookmarks`        | Update bookmark categories            | "Categorize these as Tech"             |
-| `delete_bookmark`             | Remove a bookmark                     | "Delete that bookmark"                 |
-| `get_uncategorized_bookmarks` | List uncategorized items              | "Show uncategorized bookmarks"         |
-| `get_category_stats`          | View category breakdown               | "Show my categories"                   |
+- [Tambo Docs](https://tambo.co/docs)
+- [Remix Docs](https://remix.run/docs)
+- [Supabase Docs](https://supabase.com/docs)

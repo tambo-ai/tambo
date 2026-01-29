@@ -1,20 +1,20 @@
-// This file is client-only (.client.tsx suffix) to avoid SSR issues
-// with @tambo-ai/react's dependency on react-media-recorder
+// Client-only Tambo wrapper with full chat experience
 import { TamboProvider } from "@tambo-ai/react";
 import type { TamboTool } from "@tambo-ai/react";
-import { ChatPanel } from "./chat-panel";
+import { MessageThreadFull } from "./message-thread-full";
 import { tamboComponents } from "~/tambo/components";
 
 interface TamboChatProps {
   apiKey: string;
   tools: TamboTool[];
-  onClose?: () => void;
 }
 
-export function TamboChat({ apiKey, tools, onClose }: TamboChatProps) {
+export function TamboChat({ apiKey, tools }: TamboChatProps) {
   return (
     <TamboProvider apiKey={apiKey} tools={tools} components={tamboComponents}>
-      <ChatPanel onClose={onClose} />
+      <div className="flex h-full">
+        <MessageThreadFull />
+      </div>
     </TamboProvider>
   );
 }
