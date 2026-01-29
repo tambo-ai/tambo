@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { setLegalAcceptedInBrowser } from "@/lib/auth-preferences";
 import { LEGAL_CONFIG } from "@/lib/legal-config";
 import {
   hasPendingLegalCookie,
@@ -29,6 +30,7 @@ export function useAutoAcceptLegal(legalStatus: LegalStatus | undefined) {
   const acceptLegalMutation = api.user.acceptLegal.useMutation({
     onSuccess: async () => {
       clearPendingLegalCookie();
+      setLegalAcceptedInBrowser();
       isAutoAcceptingRef.current = false;
       utils.user.hasAcceptedLegal.setData(undefined, (prev) => ({
         ...(prev ?? {}),
