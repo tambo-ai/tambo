@@ -813,7 +813,7 @@ export class ThreadsService {
       this.getDb(),
       threadId,
       projectId,
-      contextKey,
+      contextKey ?? operations.ANY_CONTEXT_KEY,
     );
     if (!thread) {
       throw new NotFoundException("Thread not found");
@@ -1974,7 +1974,7 @@ export class ThreadsService {
         this.getDb(),
         threadId,
         projectId,
-        contextKey,
+        contextKey ?? operations.ANY_CONTEXT_KEY,
       );
       // TODO: should we update contextKey?
       const thread = await this.findOne(
