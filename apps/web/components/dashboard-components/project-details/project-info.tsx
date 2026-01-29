@@ -127,9 +127,13 @@ function ProjectInfoLoaded({
   const isUsageUnavailable =
     isLoadingUsage || isUsageError || remainingMessages === null;
 
-  const starterQuotaCopy = isUsageUnavailable
-    ? "Starter LLM usage unavailable — bring your own key to keep going"
-    : `${remainingMessages} starter LLM calls left — bring your own key to keep going`;
+  const starterQuotaCompactLabel = isUsageUnavailable
+    ? "Starter usage unavailable"
+    : "starter LLM calls left";
+
+  const starterQuotaCompactValueClassName = isLowMessages
+    ? "text-red-500"
+    : "text-foreground";
 
   const hasProviderKey = (storedApiKeys?.length ?? 0) > 0;
   const isKeyStatusUnknown = isLoadingKeys || isFetchingKeys || isKeysError;
@@ -229,11 +233,20 @@ function ProjectInfoLoaded({
 
             {shouldShowStarterQuota ? (
               <div className="flex items-center gap-2">
-                <span
-                  className={`font-medium ${isLowMessages ? "text-red-500" : "text-foreground"}`}
-                >
-                  {starterQuotaCopy}
-                </span>
+                {isUsageUnavailable ? (
+                  <span className="font-medium">
+                    {starterQuotaCompactLabel}
+                  </span>
+                ) : (
+                  <>
+                    <span
+                      className={`font-medium ${starterQuotaCompactValueClassName}`}
+                    >
+                      {remainingMessages}
+                    </span>
+                    <span>{starterQuotaCompactLabel}</span>
+                  </>
+                )}
                 <Link
                   href={settingsHref}
                   className="text-primary hover:underline font-medium"
