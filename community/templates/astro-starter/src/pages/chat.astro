@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ChatInterface } from '../components/chat/ChatInterface';
+---
+
+<Layout title="Tambo Chat">
+  <main class="min-h-screen p-4">
+    <div class="mb-4 text-center">
+       <a href="/" class="text-xs font-semibold text-zinc-500 hover:text-zinc-900 transition-colors uppercase tracking-wider">
+        &larr; Back to Home
+       </a>
+    </div>
+    <ChatInterface client:only="react" />
+  </main>
+</Layout>
