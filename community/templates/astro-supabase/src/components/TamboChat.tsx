@@ -45,7 +45,12 @@ function ChatInterface() {
     <div className="flex flex-col h-screen bg-background text-foreground font-sans">
       {/* Header */}
       <div className="border-b border-border bg-background px-6 py-4 sticky top-0 z-10 flex items-center justify-center gap-4">
-        <a href="https://tambo.co" target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+        <a
+          href="https://tambo.co"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-shrink-0"
+        >
           <img
             src="/Octo-Icon.svg"
             alt="Tambo AI Logo"
@@ -54,7 +59,9 @@ function ChatInterface() {
             className="w-8 h-8"
           />
         </a>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Tambo AI Chat</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Tambo AI Chat
+        </h1>
         <a
           href="/dashboard"
           className="ml-auto px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
@@ -108,20 +115,22 @@ function ChatInterface() {
               (m) =>
                 (m.role as string) !== "tool" &&
                 (m.role as string) !== "function" &&
-                (m.role as string) !== "system"
+                (m.role as string) !== "system",
             )
             .map((message) => (
               <div
                 key={message.id}
                 className={cn(
                   "flex w-full",
-                  message.role === "assistant" ? "justify-start" : "justify-end"
+                  message.role === "assistant"
+                    ? "justify-start"
+                    : "justify-end",
                 )}
               >
                 <div
                   className={cn(
                     "flex flex-col",
-                    message.role === "assistant" ? "w-full" : "max-w-3xl"
+                    message.role === "assistant" ? "w-full" : "max-w-3xl",
                   )}
                 >
                   <div
@@ -129,7 +138,7 @@ function ChatInterface() {
                       "relative block rounded-3xl px-4 py-2 text-[15px] leading-relaxed transition-all duration-200 font-medium max-w-full whitespace-pre-wrap break-words",
                       message.role === "assistant"
                         ? "text-foreground font-sans"
-                        : "text-foreground bg-container hover:bg-backdrop font-sans"
+                        : "text-foreground bg-container hover:bg-backdrop font-sans",
                     )}
                   >
                     {Array.isArray(message.content)
@@ -138,7 +147,7 @@ function ChatInterface() {
                             <span key={i}>
                               {(part.text || "").replace(/^\[\]\s*/, "").trim()}
                             </span>
-                          ) : null
+                          ) : null,
                         )
                       : String(message.content)}
                   </div>
@@ -191,8 +200,14 @@ function ChatInterface() {
               onInput={(e) => {
                 e.currentTarget.style.height = "auto";
                 // eslint-disable-next-line no-undef
-                const maxHeight = typeof window !== "undefined" ? window.innerHeight * 0.4 : 200;
-                e.currentTarget.style.height = `${Math.min(e.currentTarget.scrollHeight, maxHeight)}px`;
+                const maxHeight =
+                  typeof window !== "undefined"
+                    ? window.innerHeight * 0.4
+                    : 200;
+                e.currentTarget.style.height = `${Math.min(
+                  e.currentTarget.scrollHeight,
+                  maxHeight,
+                )}px`;
               }}
               disabled={isPending}
             />

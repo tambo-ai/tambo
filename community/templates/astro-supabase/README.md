@@ -1,13 +1,18 @@
 # Astro Supabase Tambo Template
 
-This is a starter Astro app with Supabase and Tambo hooked up to get your AI app development started quickly.
+This is a starter Astro app with Supabase and Tambo hooked up to get your AI
+app development started quickly.
 
-<img width="1891" height="1022" alt="Screenshot from 2026-01-30 01-00-40" src="https://github.com/user-attachments/assets/346b6194-f01e-4e33-8e30-f0d23c36e363" />
+<img
+  width="1891"
+  height="1022"
+  alt="Screenshot from 2026-01-30 01-00-40"
+  src="https://github.com/user-attachments/assets/346b6194-f01e-4e33-8e30-f0d23c36e363"
+/>
 
 ## Video Demo
+
 [![Video Demo](https://github.com/user-attachments/assets/346b6194-f01e-4e33-8e30-f0d23c36e363)](https://github.com/user-attachments/assets/1aa0af8a-ba23-41bd-b3bc-79ff6cb8710b)
-
-
 
 ## Get Started
 
@@ -24,7 +29,8 @@ This is a starter Astro app with Supabase and Tambo hooked up to get your AI app
    ```
 
    - Get your Tambo API key for free [here](https://tambo.co/dashboard).
-   - Get your Supabase URL/Key from your [Supabase Dashboard](https://supabase.com/dashboard).
+   - Get your Supabase URL/Key from your [Supabase
+     Dashboard](https://supabase.com/dashboard).
 
 4. Apply the database schema using Supabase migrations:
 
@@ -32,7 +38,9 @@ This is a starter Astro app with Supabase and Tambo hooked up to get your AI app
    npm run db:push
    ```
 
-   (Or copy the SQL from `supabase/migrations/20260129000000_create_users_table.sql` and run it in your Supabase SQL Editor)
+   (Or copy the SQL from
+   `supabase/migrations/20260129000000_create_users_table.sql` and run it in
+   your Supabase SQL Editor)
 
 5. Run `npm run dev` and go to `localhost:4321` to use the app!
 
@@ -70,9 +78,11 @@ The example Graph component demonstrates several key features:
 - Optional configurations (title, legend, colors)
 - Data visualization capabilities
 
-Update the `components` array with any component(s) you want tambo to be able to use in a response!
+Update the `components` array with any component(s) you want tambo to be able
+to use in a response!
 
-You can find more information about the options [here](https://docs.tambo.co/concepts/generative-interfaces/generative-components)
+You can find more information about the options
+[here](https://docs.tambo.co/concepts/generative-interfaces/generative-components)
 
 ### Add tools for tambo to use
 
@@ -94,7 +104,8 @@ export const tools: TamboTool[] = [
 ];
 ```
 
-This template includes tools to `fetchUsers`, `addUser`, `deleteUser`, and `getUserCount` connected to Supabase.
+This template includes tools to `fetchUsers`, `addUser`, `deleteUser`, and
+`getUserCount` connected to Supabase.
 
 Find more information about tools [here.](https://docs.tambo.co/concepts/tools)
 
@@ -112,15 +123,20 @@ Make sure in the TamboProvider wrapped around your app:
 </TamboProvider>
 ```
 
-In this example we do this in the `TamboChat.tsx` component, but you can do it anywhere in your app that is a client component.
+In this example we do this in the `TamboChat.tsx` component, but you can do
+it anywhere in your app that is a client component.
 
 ### Voice input
 
-The template includes a `DictationButton` component using the `useTamboVoice` hook for speech-to-text input.
+The template includes a `DictationButton` component using the `useTamboVoice`
+hook for speech-to-text input.
 
 ### Change where component responses are shown
 
-The components used by tambo are shown alongside the message response from tambo within the chat thread, but you can have the result components show wherever you like by accessing the latest thread message's `renderedComponent` field:
+The components used by tambo are shown alongside the message response from
+tambo within the chat thread, but you can have the result components show
+wherever you like by accessing the latest thread message's `renderedComponent`
+field:
 
 ```tsx
 const { thread } = useTambo();
@@ -136,4 +152,5 @@ return (
 );
 ```
 
-For more detailed documentation, visit [Tambo's official docs](https://docs.tambo.co).
+For more detailed documentation, visit [Tambo's official
+docs](https://docs.tambo.co).
