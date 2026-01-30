@@ -22,16 +22,22 @@ export const notesGridSchema = z.object({
     .describe("Maximum number of notes to display"),
 });
 
-export type NotesGridProps = z.infer<typeof notesGridSchema>;
+export type NotesGridProps = z.infer<typeof notesGridSchema> & {
+  /** When true, use single column so notes are not squished (e.g. tablet with sheet open). */
+  isSheetOpen?: boolean;
+};
 
 interface EditableNote {
   id: string;
   title: string;
   content: string;
-  color?: string | null;
 }
 
-export function NotesGrid({ showArchived, maxNotes }: NotesGridProps) {
+export function NotesGrid({
+  showArchived,
+  maxNotes,
+  isSheetOpen,
+}: NotesGridProps) {
   const notes = useQuery(api.notes.getNotes, {
     includeArchived: showArchived ?? false,
   });
@@ -43,9 +49,13 @@ export function NotesGrid({ showArchived, maxNotes }: NotesGridProps) {
     setEditDialogOpen(true);
   };
 
+  const gridClass = isSheetOpen
+    ? "grid gap-4 grid-cols-1"
+    : "grid gap-4 sm:grid-cols-2 xl:grid-cols-3";
+
   if (notes === undefined) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className={gridClass}>
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div
             key={i}
@@ -74,14 +84,13 @@ export function NotesGrid({ showArchived, maxNotes }: NotesGridProps) {
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className={gridClass}>
         {displayNotes.map((note) => (
           <NoteCard
             key={note._id}
             id={note._id}
             title={note.title}
             content={note.content}
-            color={note.color}
             pinned={note.pinned}
             archived={note.archived}
             onEdit={() =>
@@ -89,7 +98,6 @@ export function NotesGrid({ showArchived, maxNotes }: NotesGridProps) {
                 id: note._id,
                 title: note.title,
                 content: note.content,
-                color: note.color,
               })
             }
           />

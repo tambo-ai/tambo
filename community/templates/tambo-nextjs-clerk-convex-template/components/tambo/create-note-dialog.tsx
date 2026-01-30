@@ -15,29 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Plus, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-
-const colors = [
-  { value: "default", label: "Default" },
-  { value: "red", label: "Red" },
-  { value: "orange", label: "Orange" },
-  { value: "yellow", label: "Yellow" },
-  { value: "green", label: "Green" },
-  { value: "blue", label: "Blue" },
-  { value: "purple", label: "Purple" },
-  { value: "pink", label: "Pink" },
-] as const;
-
-type NoteColor = (typeof colors)[number]["value"];
 
 /**
  * Dialog for creating a new note manually.
@@ -46,7 +26,6 @@ export function CreateNoteDialog() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [color, setColor] = useState<NoteColor>("default");
   const [isLoading, setIsLoading] = useState(false);
 
   const createNote = useMutation(api.notes.createNote);
@@ -63,7 +42,6 @@ export function CreateNoteDialog() {
       await createNote({
         title: title.trim(),
         content: content.trim(),
-        color: color === "default" ? undefined : color,
       });
       toast.success("Note created");
       setOpen(false);
@@ -78,7 +56,6 @@ export function CreateNoteDialog() {
   const resetForm = () => {
     setTitle("");
     setContent("");
-    setColor("default");
   };
 
   return (
@@ -118,39 +95,6 @@ export function CreateNoteDialog() {
                 rows={5}
                 className="resize-none"
               />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="color">Color</Label>
-              <Select
-                value={color}
-                onValueChange={(v) => setColor(v as NoteColor)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a color" />
-                </SelectTrigger>
-                <SelectContent>
-                  {colors.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      <span className="flex items-center gap-2">
-                        <span
-                          className={`h-3 w-3 rounded-full ${
-                            c.value === "default"
-                              ? "bg-muted border border-border"
-                              : `bg-${c.value}-500`
-                          }`}
-                          style={{
-                            backgroundColor:
-                              c.value !== "default"
-                                ? `var(--color-${c.value}-500, ${c.value})`
-                                : undefined,
-                          }}
-                        />
-                        {c.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <DialogFooter>

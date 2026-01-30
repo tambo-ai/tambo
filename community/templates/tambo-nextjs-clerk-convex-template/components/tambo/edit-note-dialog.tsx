@@ -15,29 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
-const colors = [
-  { value: "default", label: "Default" },
-  { value: "red", label: "Red" },
-  { value: "orange", label: "Orange" },
-  { value: "yellow", label: "Yellow" },
-  { value: "green", label: "Green" },
-  { value: "blue", label: "Blue" },
-  { value: "purple", label: "Purple" },
-  { value: "pink", label: "Pink" },
-] as const;
-
-type NoteColor = (typeof colors)[number]["value"];
 
 interface EditNoteDialogProps {
   open: boolean;
@@ -46,7 +26,6 @@ interface EditNoteDialogProps {
     id: string;
     title: string;
     content: string;
-    color?: string | null;
   } | null;
 }
 
@@ -60,7 +39,6 @@ export function EditNoteDialog({
 }: EditNoteDialogProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [color, setColor] = useState<NoteColor>("default");
   const [isLoading, setIsLoading] = useState(false);
 
   const updateNote = useMutation(api.notes.updateNote);
@@ -70,7 +48,6 @@ export function EditNoteDialog({
     if (note) {
       setTitle(note.title);
       setContent(note.content);
-      setColor((note.color as NoteColor) ?? "default");
     }
   }, [note]);
 
@@ -87,7 +64,6 @@ export function EditNoteDialog({
         id: note.id as Id<"notes">,
         title: title.trim(),
         content: content.trim(),
-        color: color === "default" ? "default" : color,
       });
       toast.success("Note updated");
       onOpenChange(false);
@@ -127,39 +103,6 @@ export function EditNoteDialog({
                 rows={5}
                 className="resize-none"
               />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-color">Color</Label>
-              <Select
-                value={color}
-                onValueChange={(v) => setColor(v as NoteColor)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a color" />
-                </SelectTrigger>
-                <SelectContent>
-                  {colors.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      <span className="flex items-center gap-2">
-                        <span
-                          className={`h-3 w-3 rounded-full ${
-                            c.value === "default"
-                              ? "bg-muted border border-border"
-                              : ""
-                          }`}
-                          style={{
-                            backgroundColor:
-                              c.value !== "default"
-                                ? `var(--color-${c.value}-500, ${c.value})`
-                                : undefined,
-                          }}
-                        />
-                        {c.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <DialogFooter>

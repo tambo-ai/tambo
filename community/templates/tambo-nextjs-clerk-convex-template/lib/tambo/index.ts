@@ -10,9 +10,9 @@ export const tamboComponents: TamboComponent[] = [
   {
     name: "NoteCard",
     description:
-      "Displays a single note with title, content, color, and action buttons (pin, archive, delete). " +
+      "Displays a single note with title, content, and action buttons (pin, archive, delete). " +
       "ALWAYS render this component after creating a note with the createNote tool to show the user their new note. " +
-      "Use the noteId returned from createNote as the 'id' prop, and include the title, content, and color.",
+      "Use the noteId returned from createNote as the 'id' prop, and include the title and content.",
     component: NoteCard,
     propsSchema: noteCardSchema,
   },

@@ -2,10 +2,15 @@
 
 import { TamboChatInput } from "./chat-input";
 import { TamboMessageList } from "./message-list";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+
+const PANEL_BREAKPOINT_PX = 768;
+const PANEL_DEFAULT_WIDTH_PX = 400;
+/** On mobile/small screens: leave this many px so notes stay visible behind. */
+const PANEL_MOBILE_MIN_VISIBLE_PX = 56;
+const PANEL_MOBILE_MAX_WIDTH_PX = 380;
 
 interface AskTamboSheetProps {
   open: boolean;
@@ -13,33 +18,40 @@ interface AskTamboSheetProps {
 }
 
 /**
- * Shared chat content component used in both Sheet and Drawer.
+ * Returns panel width when open. Desktop: fixed width. Mobile/tablet: viewport minus a sliver so notes stay visible behind.
+ */
+function getOpenPanelWidth(): number {
+  if (typeof window === "undefined") return PANEL_DEFAULT_WIDTH_PX;
+  if (window.innerWidth >= PANEL_BREAKPOINT_PX) {
+    return PANEL_DEFAULT_WIDTH_PX;
+  }
+  const width = window.innerWidth - PANEL_MOBILE_MIN_VISIBLE_PX;
+  return Math.min(PANEL_MOBILE_MAX_WIDTH_PX, Math.max(280, width));
+}
+
+/**
+ * Shared chat content: header, messages, input.
  */
 function ChatContent({ onClose }: { onClose: () => void }) {
   return (
     <>
-      {/* Header */}
-      <div className="flex items-center justify-between w-full p-4 border-b border-gray-200 shadow-sm">
-        <span className="font-heading text-base font-semibold leading-tight tracking-tighter">
+      <div className="flex items-center justify-between w-full p-4 border-b border-border bg-background">
+        <span className="font-heading text-base font-semibold leading-tight tracking-tighter text-foreground">
           ask tambo
         </span>
         <button
           type="button"
-          className="p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+          className="p-1 rounded-md hover:bg-muted transition-colors cursor-pointer text-foreground"
           onClick={onClose}
           aria-label="Close"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
-
-      {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 min-h-0">
         <TamboMessageList />
       </div>
-
-      {/* Input area */}
-      <div className="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
+      <div className="p-4 border-t border-border flex-shrink-0 bg-background">
         <TamboChatInput />
       </div>
     </>
@@ -47,45 +59,40 @@ function ChatContent({ onClose }: { onClose: () => void }) {
 }
 
 /**
- * Responsive component for "ask tambo" chat interface.
- * Uses Sheet (right side) on desktop and Drawer (bottom, half height) on mobile.
+ * "Ask tambo" panel: slides in from the right and pushes the entire page left.
+ * On mobile/tablet uses fixed width so notes remain visible behind.
  */
 export function AskTamboSheet({ open, onOpenChange }: AskTamboSheetProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [width, setWidth] = useState(open ? getOpenPanelWidth() : 0);
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
-    };
+    const t = setTimeout(() => setWidth(open ? getOpenPanelWidth() : 0), 0);
+    return () => clearTimeout(t);
+  }, [open]);
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const handleResize = () => setWidth(getOpenPanelWidth());
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [open]);
 
-  // Mobile: Use Drawer (bottom, half height)
-  if (isMobile) {
-    return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="flex flex-col p-0 bg-white max-h-[50vh] border-t border-gray-200">
-          <DrawerTitle className="sr-only">ask tambo</DrawerTitle>
-          <ChatContent />
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
-  // Desktop: Use Sheet (right side)
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        showCloseButton={false}
-        className="flex flex-col p-0 bg-white w-full max-w-lg border-l border-gray-200"
-      >
-        <SheetTitle className="sr-only">ask tambo</SheetTitle>
-        <ChatContent onClose={() => onOpenChange(false)} />
-      </SheetContent>
-    </Sheet>
+    <div
+      className={cn(
+        "h-full min-h-0 flex flex-col bg-background border-l border-border overflow-hidden shrink-0 transition-[width] duration-300 ease-in-out",
+      )}
+      style={{
+        width,
+        maxWidth: width > 0 ? Math.min(width, 600) : undefined,
+      }}
+      aria-hidden={!open}
+    >
+      {width > 0 && (
+        <div className="flex flex-col h-full min-h-0 min-w-0">
+          <ChatContent onClose={() => onOpenChange(false)} />
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,19 +1,6 @@
 import { defineTool, type TamboTool } from "@tambo-ai/react";
 import { z } from "zod";
 
-const noteColorSchema = z
-  .enum([
-    "default",
-    "red",
-    "orange",
-    "yellow",
-    "green",
-    "blue",
-    "purple",
-    "pink",
-  ])
-  .describe("Color for the note");
-
 /**
  * Creates Tambo tools for notes management.
  * These tools allow the AI to create, update, and manage notes.
@@ -22,14 +9,12 @@ export function createNotesTools(
   createNote: (args: {
     title: string;
     content: string;
-    color?: string;
     pinned?: boolean;
   }) => Promise<{ id: string; title: string }>,
   updateNote: (args: {
     id: string;
     title?: string;
     content?: string;
-    color?: string;
     pinned?: boolean;
     archived?: boolean;
   }) => Promise<unknown>,
@@ -41,14 +26,13 @@ export function createNotesTools(
       description:
         "Creates a new note with a title and content. " +
         "Use this when the user asks to create, add, or write a note. " +
-        "You can optionally set a color and pin status. " +
+        "You can optionally pin the note. " +
         "After creating, ALWAYS render the NoteCard component to show the created note.",
       tool: async (params) => {
         try {
           const result = await createNote({
             title: params.title,
             content: params.content,
-            color: params.color,
             pinned: params.pinned,
           });
           return {
@@ -56,7 +40,6 @@ export function createNotesTools(
             noteId: result.id,
             title: result.title,
             content: params.content,
-            color: params.color ?? "default",
             pinned: params.pinned ?? false,
           };
         } catch (error) {
@@ -70,7 +53,6 @@ export function createNotesTools(
       inputSchema: z.object({
         title: z.string().describe("The title of the note"),
         content: z.string().describe("The content/body of the note"),
-        color: noteColorSchema.optional(),
         pinned: z.boolean().optional().describe("Whether to pin the note"),
       }),
       outputSchema: z.object({
@@ -78,7 +60,6 @@ export function createNotesTools(
         noteId: z.string().optional(),
         title: z.string().optional(),
         content: z.string().optional(),
-        color: z.string().optional(),
         pinned: z.boolean().optional(),
         error: z.string().optional(),
       }),
@@ -87,15 +68,14 @@ export function createNotesTools(
     defineTool({
       name: "updateNote",
       description:
-        "Updates an existing note. Can change title, content, color, pin status, or archive it. " +
-        "Use this when the user wants to edit, modify, change color, pin, unpin, or archive a note.",
+        "Updates an existing note. Can change title, content, pin status, or archive it. " +
+        "Use this when the user wants to edit, modify, pin, unpin, or archive a note.",
       tool: async (params) => {
         try {
           await updateNote({
             id: params.noteId,
             title: params.title,
             content: params.content,
-            color: params.color,
             pinned: params.pinned,
             archived: params.archived,
           });
@@ -114,7 +94,6 @@ export function createNotesTools(
         noteId: z.string().describe("The ID of the note to update"),
         title: z.string().optional().describe("New title for the note"),
         content: z.string().optional().describe("New content for the note"),
-        color: noteColorSchema.optional(),
         pinned: z
           .boolean()
           .optional()

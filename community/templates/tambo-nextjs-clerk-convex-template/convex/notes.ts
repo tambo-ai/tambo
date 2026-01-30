@@ -1,17 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-const noteColors = v.union(
-  v.literal("default"),
-  v.literal("red"),
-  v.literal("orange"),
-  v.literal("yellow"),
-  v.literal("green"),
-  v.literal("blue"),
-  v.literal("purple"),
-  v.literal("pink"),
-);
-
 /**
  * Get all notes for the current user
  */
@@ -73,7 +62,6 @@ export const createNote = mutation({
   args: {
     title: v.string(),
     content: v.string(),
-    color: v.optional(noteColors),
     pinned: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -87,7 +75,6 @@ export const createNote = mutation({
       clerkUserId: identity.subject,
       title: args.title,
       content: args.content,
-      color: args.color ?? "default",
       pinned: args.pinned ?? false,
       archived: false,
       createdAt: now,
@@ -106,7 +93,6 @@ export const updateNote = mutation({
     id: v.id("notes"),
     title: v.optional(v.string()),
     content: v.optional(v.string()),
-    color: v.optional(noteColors),
     pinned: v.optional(v.boolean()),
     archived: v.optional(v.boolean()),
   },

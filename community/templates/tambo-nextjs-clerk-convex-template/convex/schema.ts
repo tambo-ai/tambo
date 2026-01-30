@@ -6,18 +6,6 @@ export default defineSchema({
     clerkUserId: v.string(),
     title: v.string(),
     content: v.string(),
-    color: v.optional(
-      v.union(
-        v.literal("default"),
-        v.literal("red"),
-        v.literal("orange"),
-        v.literal("yellow"),
-        v.literal("green"),
-        v.literal("blue"),
-        v.literal("purple"),
-        v.literal("pink"),
-      ),
-    ),
     pinned: v.optional(v.boolean()),
     archived: v.optional(v.boolean()),
     createdAt: v.number(),

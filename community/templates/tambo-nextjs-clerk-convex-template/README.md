@@ -1,20 +1,6 @@
 # Tambo AI Notes App Template
 
-An AI-powered notes application that lets users create and manage notes using natural language, with real-time synchronization powered by Convex and authentication via Clerk.
-
-## Screenshots
-
-![AI Notes App - Sign In Page](public/ss/ss1.png)
-
-_Welcome page with clean design and "Get Started" button for authentication._
-
-![AI Notes App - Main View](public/ss/ss2.png)
-
-_Main view showing the notes grid with AI assistant button and manual note creation._
-
-![AI Notes App - AI Assistant](public/ss/ss3.png)
-
-_AI assistant drawer open, demonstrating natural language note creation with Tambo AI._
+An AI-powered notes application that lets users create and manage notes using natural language, with real-time synchronization powered by Convex and authentication via Clerk. Uses a **neutral design** (grays, whites, subtle accents) and **side-by-side layout** on desktop so notes stay visible while you chat.
 
 ## Prerequisites
 
@@ -38,6 +24,8 @@ cd community/templates/tambo-nextjs-clerk-convex-template
 ```bash
 npm install
 ```
+
+Use the **latest `@tambo-ai/react`** (e.g. `npm install @tambo-ai/react@latest`). The z.record validation fix is in the latest release; do not copy workarounds from `apps/web/lib/tambo/tools/` into this template.
 
 ### 3. Get your Tambo AI API key
 
@@ -119,11 +107,11 @@ This template includes the following technologies and their purposes:
 ## Features
 
 - 🤖 **AI-Powered Note Creation**: Create notes by describing them in natural language
-- 📝 **Manual Note Creation**: Traditional form-based note creation with color selection
-- ✏️ **Editable Notes**: Click any note to edit title, content, and color
-- 🎨 **Color-Coded Organization**: 8 different color options for visual organization
+- 🎤 **Voice Input**: Use the microphone in the chat input (via `useTamboVoice` and the dictation button) to speak notes
+- 📝 **Manual Note Creation**: Form-based note creation from the header
+- ✏️ **Editable Notes**: Click any note to edit title and content
 - 📌 **Pin & Archive**: Organize notes with pin and archive features
-- 🔄 **Real-time Sync**: Changes appear instantly across all devices
+- 🔄 **Real-time Sync**: Notes and chat side-by-side on desktop so you see Convex updates while chatting
 - 🎯 **Type-Safe**: Full TypeScript support with auto-generated Convex types
 
 ## Project Structure
@@ -138,10 +126,12 @@ tambo-nextjs-clerk-convex-template/
 │   │   ├── convex-provider.tsx    # Convex + Clerk integration
 │   │   └── tambo-provider.tsx     # Tambo AI provider
 │   ├── tambo/             # Tambo AI components
-│   │   ├── ai-chat-drawer.tsx     # AI assistant drawer
-│   │   ├── ai-notes-page.tsx      # Main page component
-│   │   ├── chat-input.tsx         # Chat input field
+│   │   ├── ai-notes-page.tsx      # Main page (side-by-side layout)
+│   │   ├── ask-tambo-sheet.tsx    # AI chat panel (inline on desktop, drawer on mobile)
+│   │   ├── ask-tambo-trigger.tsx  # Button to open chat
+│   │   ├── chat-input.tsx         # Chat input + voice (dictation-button)
 │   │   ├── create-note-dialog.tsx # Manual note creation
+│   │   ├── dictation-button.tsx   # Voice input (useTamboVoice)
 │   │   ├── edit-note-dialog.tsx   # Note editing
 │   │   ├── message-list.tsx       # AI conversation display
 │   │   ├── note-card.tsx          # Individual note card

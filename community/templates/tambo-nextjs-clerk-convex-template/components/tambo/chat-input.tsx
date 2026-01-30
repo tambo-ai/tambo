@@ -8,6 +8,8 @@ import { useRef, useEffect } from "react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 
+const DEFERRED_TOAST_MS = 400;
+
 // Lazy load DictationButton to avoid SSR issues (uses browser APIs like Worker)
 const LazyDictationButton = dynamic(
   () =>
@@ -25,10 +27,17 @@ const LazyDictationButton = dynamic(
  * Supports multi-line input, keyboard shortcuts, and voice dictation.
  */
 export function TamboChatInput() {
-  const { sendThreadMessage, isIdle } = useTamboThread();
+  const { thread, sendThreadMessage, isIdle } = useTamboThread();
   const { value, setValue } = useTamboThreadInput();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isLoading = !isIdle;
+
+  const threadRef = useRef(thread);
+  const messageCountBeforeSendRef = useRef(0);
+
+  useEffect(() => {
+    threadRef.current = thread;
+  }, [thread]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -43,13 +52,23 @@ export function TamboChatInput() {
     if (!value.trim() || isLoading) return;
 
     const message = value.trim();
+    messageCountBeforeSendRef.current = thread?.messages?.length ?? 0;
     setValue("");
 
     try {
-      await sendThreadMessage(message);
+      await sendThreadMessage(message, { streamResponse: true });
     } catch {
-      toast.error("Failed to send message. Please try again.");
       setValue(message);
+      const countBefore = messageCountBeforeSendRef.current;
+      // Only show toast if thread didn't progress (avoids false positive when note was created but SDK threw later)
+      setTimeout(() => {
+        const countNow = threadRef.current?.messages?.length ?? 0;
+        if (countNow <= countBefore) {
+          toast.error(
+            "Failed to send message. If you asked to create or edit a note, check Your Notes.",
+          );
+        }
+      }, DEFERRED_TOAST_MS);
     }
   };
 

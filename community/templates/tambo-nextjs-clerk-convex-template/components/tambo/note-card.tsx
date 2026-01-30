@@ -5,7 +5,6 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Pin, Trash2, Archive, ArchiveRestore } from "lucide-react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
@@ -15,21 +14,6 @@ export const noteCardSchema = z.object({
   id: z.string().describe("The note ID"),
   title: z.string().describe("The note title"),
   content: z.string().describe("The note content"),
-  color: z
-    .enum([
-      "default",
-      "red",
-      "orange",
-      "yellow",
-      "green",
-      "blue",
-      "purple",
-      "pink",
-    ])
-    .nullable()
-    .optional()
-    .default("default")
-    .describe("The note color"),
   pinned: z
     .boolean()
     .nullable()
@@ -54,22 +38,13 @@ export type NoteCardProps = z.infer<typeof noteCardSchema> & {
   onEdit?: () => void;
 };
 
-const colorClasses: Record<string, string> = {
-  default: "bg-card hover:bg-accent/50",
-  red: "bg-red-500/10 hover:bg-red-500/20 border-red-500/20",
-  orange: "bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/20",
-  yellow: "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20",
-  green: "bg-green-500/10 hover:bg-green-500/20 border-green-500/20",
-  blue: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20",
-  purple: "bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/20",
-  pink: "bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/20",
-};
+/** Single white/default style for all notes (no colored variants). */
+const cardStyle = "bg-card hover:bg-accent/50";
 
 export function NoteCard({
   id,
   title,
   content,
-  color,
   pinned,
   archived,
   showActions,
@@ -78,8 +53,6 @@ export function NoteCard({
   const updateNote = useMutation(api.notes.updateNote);
   const deleteNote = useMutation(api.notes.deleteNote);
 
-  // Normalize null to defaults
-  const normalizedColor = color ?? "default";
   const normalizedPinned = pinned ?? false;
   const normalizedArchived = archived ?? false;
   const normalizedShowActions = showActions ?? true;
@@ -122,7 +95,7 @@ export function NoteCard({
       onClick={onEdit}
       className={cn(
         "group relative transition-all duration-200 border border-gray-200 bg-white shadow-sm hover:shadow-md cursor-pointer",
-        colorClasses[normalizedColor],
+        cardStyle,
       )}
     >
       <CardHeader className="pb-2">
@@ -178,14 +151,6 @@ export function NoteCard({
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
-            {normalizedColor !== "default" && (
-              <Badge
-                variant="outline"
-                className="ml-auto text-[10px] capitalize h-5 px-1.5"
-              >
-                {normalizedColor}
-              </Badge>
-            )}
           </div>
         )}
       </CardContent>

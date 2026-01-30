@@ -5,50 +5,41 @@
 
 @layer base {
   :root {
-    /* Main background and text colors */
-    --background: 150 30% 96%; /* #F2F8F6 */
-    --foreground: 162 30% 8%; /* #0E1A17 */
+    /* Neutral palette: grays, whites, subtle accents (per official template) */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 4%;
 
-    /* Card and popover styling */
-    --card: 0 0% 100%; /* White cards */
-    --card-foreground: 162 30% 8%; /* #0E1A17 */
-    --popover: 0 0% 100%; /* White */
-    --popover-foreground: 162 30% 8%; /* #0E1A17 */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
 
-    /* Primary colors (dark charcoal like dashboard) */
-    --primary: 240 5.9% 10%; /* Dark charcoal #1a1a1a */
-    --primary-foreground: 0 0% 98%; /* White text */
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
 
-    /* Secondary colors */
-    --secondary: 217 91% 67%; /* #5C94F7 */
-    --secondary-foreground: 0 0% 100%; /* #FFF */
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
 
-    /* Muted colors */
-    --muted: 157 25% 88%; /* #D8E9E4 */
-    --muted-foreground: 186 94% 13%; /* #023A41 */
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    /* Accent colors */
-    --accent: 320 100% 80%; /* Brighter pink */
-    --accent-foreground: 162 30% 8%; /* #0E1A17 */
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
-    /* Destructive colors */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%; /* #FFF */
+    --destructive-foreground: 0 0% 98%;
 
-    /* Border and input styling */
-    --border: 207 22% 90%; /* Light gray border like web app */
-    --input: 207 22% 90%;
-    --ring: 157 100% 75%; /* #7FFFC4 */
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
 
-    /* Radius */
     --radius: 0.5rem;
 
-    /* Chart colors */
-    --chart-1: 157 100% 75%; /* #7FFFC4 */
-    --chart-2: 320 100% 88%; /* #FFC4EB */
-    --chart-3: 217 91% 67%; /* #5C94F7 */
-    --chart-4: 49 97% 51%; /* #FED807 */
-    --chart-5: 186 94% 13%; /* #023A41 */
+    --chart-1: 240 5.9% 10%;
+    --chart-2: 240 4.8% 95.9%;
+    --chart-3: 240 3.8% 46.1%;
+    --chart-4: 240 5.3% 26.7%;
+    --chart-5: 0 0% 100%;
   }
 
   .dark {
