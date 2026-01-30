@@ -26,6 +26,28 @@ import {
 import { useTamboV1 } from "./use-tambo-v1";
 import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input";
 
+type Suggestion = TamboAI.Beta.Threads.Suggestion;
+
+// The SDK defines this as an alias of `Suggestion[]`.
+type SuggestionGenerateResponse =
+  TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse;
+
+function normalizeSuggestionGenerateResponse(
+  response: unknown,
+): SuggestionGenerateResponse {
+  if (response === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(response)) {
+    return response as SuggestionGenerateResponse;
+  }
+
+  throw new Error(
+    "Unexpected suggestions.generate response shape; expected an array",
+  );
+}
+
 /**
  * Configuration options for the useTamboV1Suggestions hook
  */
@@ -39,7 +61,7 @@ export interface UseTamboV1SuggestionsOptions {
  */
 export interface UseTamboV1SuggestionsResultInternal {
   /** List of available suggestions */
-  suggestions: TamboAI.Beta.Threads.Suggestion[];
+  suggestions: Suggestion[];
 
   /** ID of the currently selected suggestion */
   selectedSuggestionId: string | null;
@@ -52,7 +74,7 @@ export interface UseTamboV1SuggestionsResultInternal {
    * @param shouldSubmit - Whether to automatically submit after accepting (default: false)
    */
   accept: (acceptOptions: {
-    suggestion: TamboAI.Beta.Threads.Suggestion;
+    suggestion: Suggestion;
     shouldSubmit?: boolean;
   }) => Promise<void>;
 
@@ -60,20 +82,18 @@ export interface UseTamboV1SuggestionsResultInternal {
   acceptResult: UseTamboMutationResult<
     void,
     Error,
-    { suggestion: TamboAI.Beta.Threads.Suggestion; shouldSubmit?: boolean }
+    { suggestion: Suggestion; shouldSubmit?: boolean }
   >;
 
   /** Result and network state for generating suggestions */
   generateResult: UseTamboMutationResult<
-    TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse | undefined,
+    SuggestionGenerateResponse,
     Error,
     AbortController
   >;
 
   /** The full suggestions query object from React Query */
-  suggestionsResult: UseTamboQueryResult<
-    TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse | undefined
-  >;
+  suggestionsResult: UseTamboQueryResult<SuggestionGenerateResponse>;
 }
 
 type UseTamboV1SuggestionsResult = CombinedMutationResult<any, Error> &
@@ -147,13 +167,13 @@ export function useTamboV1Suggestions(
     latestMessageId && isLatestFromAssistant && isIdle && threadId;
 
   // Use React Query to fetch suggestions when conditions are met
-  const suggestionsResult = useTamboQuery({
+  const suggestionsResult = useTamboQuery<SuggestionGenerateResponse>({
     queryKey: [
       "v1-suggestions",
       shouldGenerateSuggestions ? latestMessageId : null,
     ],
     queryFn: async () => {
-      if (!shouldGenerateSuggestions || !threadId) {
+      if (!shouldGenerateSuggestions || !threadId || !latestMessageId) {
         return [];
       }
 
@@ -164,7 +184,7 @@ export function useTamboV1Suggestions(
         componentToolAssociations,
       );
 
-      return await tamboClient.beta.threads.suggestions.generate(
+      const response = await tamboClient.beta.threads.suggestions.generate(
         latestMessageId,
         {
           id: threadId,
@@ -172,6 +192,8 @@ export function useTamboV1Suggestions(
           availableComponents: components,
         },
       );
+
+      return normalizeSuggestionGenerateResponse(response);
     },
     enabled: Boolean(shouldGenerateSuggestions),
     refetchOnWindowFocus: false,
@@ -183,7 +205,7 @@ export function useTamboV1Suggestions(
   const acceptMutationState = useTamboMutation<
     void,
     Error,
-    { suggestion: TamboAI.Beta.Threads.Suggestion; shouldSubmit?: boolean }
+    { suggestion: Suggestion; shouldSubmit?: boolean }
   >({
     mutationFn: async ({ suggestion, shouldSubmit = false }) => {
       const text = suggestion.detailedSuggestion?.trim();
@@ -205,13 +227,13 @@ export function useTamboV1Suggestions(
 
   // Generate suggestions mutation (for manual refresh)
   const generateMutationState = useTamboMutation<
-    TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse | undefined,
+    SuggestionGenerateResponse,
     Error,
     AbortController
   >({
     mutationFn: async (abortController: AbortController) => {
       if (!shouldGenerateSuggestions || !threadId || !latestMessageId) {
-        return undefined;
+        return [];
       }
 
       const components = getAvailableComponents(
@@ -220,7 +242,7 @@ export function useTamboV1Suggestions(
         componentToolAssociations,
       );
 
-      return await tamboClient.beta.threads.suggestions.generate(
+      const response = await tamboClient.beta.threads.suggestions.generate(
         latestMessageId,
         {
           id: threadId,
@@ -229,6 +251,8 @@ export function useTamboV1Suggestions(
         },
         { signal: abortController.signal },
       );
+
+      return normalizeSuggestionGenerateResponse(response);
     },
     retry: false,
   });
@@ -240,7 +264,7 @@ export function useTamboV1Suggestions(
 
   const accept = useCallback(
     async (acceptOptions: {
-      suggestion: TamboAI.Beta.Threads.Suggestion;
+      suggestion: Suggestion;
       shouldSubmit?: boolean;
     }) => {
       await acceptMutationState.mutateAsync(acceptOptions);

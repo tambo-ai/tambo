@@ -25,6 +25,7 @@ import {
   type UseTamboMutationResult,
 } from "../../hooks/react-query-hooks";
 import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message";
+import type { InputMessage } from "../types/message";
 import { useStreamState } from "./tambo-v1-stream-context";
 
 /**
@@ -129,6 +130,39 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
     threadId ?? streamState.currentThreadId ?? undefined;
   const sendMessage = useTamboV1SendMessage(effectiveThreadId);
 
+  const stagedImageToResourceContent = useCallback(
+    (image: StagedImage): InputMessage["content"][number] => {
+      if (!image.dataUrl.startsWith("data:")) {
+        throw new Error(INPUT_ERROR_MESSAGES.VALIDATION);
+      }
+
+      const commaIndex = image.dataUrl.indexOf(",");
+      if (commaIndex === -1) {
+        throw new Error(INPUT_ERROR_MESSAGES.VALIDATION);
+      }
+
+      const header = image.dataUrl.slice("data:".length, commaIndex);
+      const [mimeType, ...params] = header.split(";");
+      const isBase64 = params.includes("base64");
+
+      if (mimeType !== image.type || !isBase64) {
+        throw new Error(INPUT_ERROR_MESSAGES.VALIDATION);
+      }
+
+      return {
+        type: "resource",
+        resource: {
+          name: image.name,
+          mimeType: image.type,
+          // Shared.Resource.blob expects base64-encoded data; this is the base64
+          // payload from the `data:` URL.
+          blob: image.dataUrl.slice(commaIndex + 1),
+        },
+      };
+    },
+    [],
+  );
+
   const submitFn = useCallback(
     async (
       options?: SubmitOptions,
@@ -140,12 +174,20 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
         throw new Error(INPUT_ERROR_MESSAGES.EMPTY);
       }
 
-      // Build message content
-      // For now, just handle text. Image support can be added later.
+      const content: InputMessage["content"] = [];
+
+      if (trimmedValue) {
+        content.push({ type: "text", text: trimmedValue });
+      }
+
+      for (const image of imageState.images) {
+        content.push(stagedImageToResourceContent(image));
+      }
+
       const result = await sendMessage.mutateAsync({
         message: {
           role: "user",
-          content: [{ type: "text", text: trimmedValue || "Image message" }],
+          content,
         },
         debug: options?.debug,
       });
@@ -161,7 +203,13 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
 
       return result;
     },
-    [inputValue, imageState, sendMessage, threadId],
+    [
+      inputValue,
+      imageState,
+      sendMessage,
+      stagedImageToResourceContent,
+      threadId,
+    ],
   );
 
   const {
@@ -222,7 +270,7 @@ export function useTamboV1ThreadInput(): TamboV1ThreadInputContextProps {
   const context = useContext(TamboV1ThreadInputContext);
   if (!context) {
     throw new Error(
-      "useTamboV1ThreadInput must be used within TamboV1Provider",
+      "useTamboV1ThreadInput must be used within TamboV1ThreadInputProvider",
     );
   }
   return context;

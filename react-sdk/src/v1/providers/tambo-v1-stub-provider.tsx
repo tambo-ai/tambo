@@ -40,12 +40,14 @@ import { TamboClientContext } from "../../providers/tambo-client-provider";
 import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
 import type { TamboV1Message } from "../types/message";
 import type { TamboV1Thread } from "../types/thread";
-import type { StreamState, ThreadState } from "../utils/event-accumulator";
+import type {
+  StreamAction,
+  StreamState,
+  ThreadState,
+} from "../utils/event-accumulator";
 import { TamboV1ConfigContext, type TamboV1Config } from "./tambo-v1-provider";
 import {
-  StreamStateContext,
-  StreamDispatchContext,
-  ThreadManagementContext,
+  TamboV1StreamProvider,
   type ThreadManagement,
 } from "./tambo-v1-stream-context";
 import {
@@ -122,6 +124,7 @@ export interface TamboV1StubProviderProps {
 
 /**
  * Creates a default TamboV1Thread from messages or returns the full thread.
+ * @returns A normalized thread object
  */
 function normalizeThread(
   threadData: TamboV1Thread | { messages: TamboV1Message[] } | undefined,
@@ -156,6 +159,8 @@ function normalizeThread(
  *
  * All operations are no-ops by default, returning stub data.
  * Override specific behaviors via props as needed for testing.
+ * Stream state is derived once from props and is not updated by thread management.
+ * @returns A provider wrapper suitable for tests
  */
 export function TamboV1StubProvider({
   children,
@@ -238,7 +243,10 @@ export function TamboV1StubProvider({
   }, [thread, threadId, isStreaming]);
 
   // Stream dispatch (no-op)
-  const streamDispatch = useMemo(() => () => {}, []);
+  const streamDispatch = useMemo<React.Dispatch<StreamAction>>(
+    () => () => {},
+    [],
+  );
 
   // Thread management
   const threadManagement = useMemo<ThreadManagement>(
@@ -340,17 +348,15 @@ export function TamboV1StubProvider({
       <TamboClientContext.Provider value={clientContext}>
         <TamboRegistryContext.Provider value={registryContext as any}>
           <TamboV1ConfigContext.Provider value={config}>
-            <StreamStateContext.Provider value={streamState}>
-              <StreamDispatchContext.Provider value={streamDispatch as any}>
-                <ThreadManagementContext.Provider value={threadManagement}>
-                  <TamboV1ThreadInputContext.Provider
-                    value={threadInputContext}
-                  >
-                    {children}
-                  </TamboV1ThreadInputContext.Provider>
-                </ThreadManagementContext.Provider>
-              </StreamDispatchContext.Provider>
-            </StreamStateContext.Provider>
+            <TamboV1StreamProvider
+              state={streamState}
+              dispatch={streamDispatch}
+              threadManagement={threadManagement}
+            >
+              <TamboV1ThreadInputContext.Provider value={threadInputContext}>
+                {children}
+              </TamboV1ThreadInputContext.Provider>
+            </TamboV1StreamProvider>
           </TamboV1ConfigContext.Provider>
         </TamboRegistryContext.Provider>
       </TamboClientContext.Provider>

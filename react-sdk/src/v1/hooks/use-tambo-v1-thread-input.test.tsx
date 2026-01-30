@@ -19,6 +19,25 @@ jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
 }));
 
+const createSuccessfulFileReader = () => {
+  const reader = {
+    readAsDataURL: jest.fn(),
+    onload: null as ((e: unknown) => void) | null,
+    onerror: null as ((e: unknown) => void) | null,
+    result: "data:image/png;base64,mock-data",
+  };
+
+  reader.readAsDataURL = jest.fn(() => {
+    setTimeout(() => {
+      reader.onload?.({});
+    }, 0);
+  });
+
+  return reader;
+};
+
+const originalFileReader = (global as any).FileReader;
+
 describe("useTamboV1ThreadInput", () => {
   const mockMutateAsync = jest.fn();
   let queryClient: QueryClient;
@@ -37,6 +56,8 @@ describe("useTamboV1ThreadInput", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (global as any).FileReader = jest.fn(() => createSuccessfulFileReader());
+
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -62,6 +83,10 @@ describe("useTamboV1ThreadInput", () => {
       context: undefined,
       submittedAt: 0,
     } as any);
+  });
+
+  afterEach(() => {
+    (global as any).FileReader = originalFileReader;
   });
 
   describe("State Management", () => {
@@ -181,6 +206,81 @@ describe("useTamboV1ThreadInput", () => {
         debug: true,
       });
     });
+
+    it("submits image-only messages as resource content", async () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.addImage(
+          new File(["image"], "photo.png", { type: "image/png" }),
+        );
+      });
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        message: {
+          role: "user",
+          content: [
+            {
+              type: "resource",
+              resource: {
+                blob: "mock-data",
+                mimeType: "image/png",
+                name: "photo.png",
+              },
+            },
+          ],
+        },
+        debug: undefined,
+      });
+
+      await waitFor(() => {
+        expect(result.current.images).toEqual([]);
+      });
+    });
+
+    it("includes both text and image resource content when both are present", async () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setValue("Test message");
+      });
+
+      await act(async () => {
+        await result.current.addImage(
+          new File(["image"], "photo.png", { type: "image/png" }),
+        );
+      });
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        message: {
+          role: "user",
+          content: [
+            { type: "text", text: "Test message" },
+            {
+              type: "resource",
+              resource: {
+                blob: "mock-data",
+                mimeType: "image/png",
+                name: "photo.png",
+              },
+            },
+          ],
+        },
+        debug: undefined,
+      });
+    });
   });
 
   describe("Thread ID Management", () => {
@@ -235,7 +335,9 @@ describe("useTamboV1ThreadInput", () => {
 
       expect(() => {
         renderHook(() => useTamboV1ThreadInput());
-      }).toThrow("useTamboV1ThreadInput must be used within TamboV1Provider");
+      }).toThrow(
+        "useTamboV1ThreadInput must be used within TamboV1ThreadInputProvider",
+      );
 
       consoleSpy.mockRestore();
     });
