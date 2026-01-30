@@ -59,6 +59,10 @@ export const navigation: NavigationItem[] = [
           {
             title: "Elicitation",
             href: "/components/elicitation",
+          },
+          {
+            title: "Library Comparison",
+            href: "/components/message-library-comparison",
             isNew: true,
           },
           {
