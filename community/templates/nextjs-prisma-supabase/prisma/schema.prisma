@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Observation {
+  id        String   @id @default(cuid())
+  process   String
+  finding   String
+  severity  String
+  createdAt DateTime @default(now())
+}
