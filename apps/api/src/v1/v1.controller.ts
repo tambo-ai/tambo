@@ -53,6 +53,7 @@ import {
 import { V1BaseEventDto } from "./dto/event.dto";
 import {
   V1GenerateSuggestionsDto,
+  V1GenerateSuggestionsResponseDto,
   V1ListSuggestionsQueryDto,
   V1ListSuggestionsResponseDto,
 } from "./dto/suggestion.dto";
@@ -644,11 +645,12 @@ export class V1Controller {
   }
 
   @Post("threads/:threadId/messages/:messageId/suggestions")
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(ThreadInProjectGuard)
   @ApiOperation({
     summary: "Generate suggestions for a message",
     description:
-      "Generate AI-powered suggestions for the next action based on the thread context. Suggestions are persisted and can be retrieved later via the list endpoint.",
+      "Generate AI-powered suggestions for the next action based on the thread context. Suggestions are persisted and can be retrieved later via the list endpoint. Calling this endpoint replaces any existing suggestions for the message.",
   })
   @ApiParam({
     name: "threadId",
@@ -663,7 +665,7 @@ export class V1Controller {
   @ApiResponse({
     status: 201,
     description: "Suggestions generated successfully",
-    type: V1ListSuggestionsResponseDto,
+    type: V1GenerateSuggestionsResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -678,7 +680,7 @@ export class V1Controller {
     @Param("threadId") threadId: string,
     @Param("messageId") messageId: string,
     @Body() dto: V1GenerateSuggestionsDto,
-  ): Promise<V1ListSuggestionsResponseDto> {
+  ): Promise<V1GenerateSuggestionsResponseDto> {
     const { projectId, contextKey: bearerUserKey } = extractContextInfo(
       request,
       dto.userKey,

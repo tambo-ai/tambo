@@ -81,6 +81,7 @@ import {
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
 import {
   V1GenerateSuggestionsDto,
+  V1GenerateSuggestionsResponseDto,
   V1ListSuggestionsQueryDto,
   V1ListSuggestionsResponseDto,
   V1SuggestionDto,
@@ -1138,9 +1139,30 @@ export class V1Service {
 
     const effectiveLimit = this.parseLimit(query.limit, 10);
 
-    const cursor = query.cursor
-      ? parseV1CompoundCursor(query.cursor)
-      : undefined;
+    // Parse and validate cursor
+    let cursor: ReturnType<typeof parseV1CompoundCursor> | undefined;
+    if (query.cursor) {
+      try {
+        cursor = parseV1CompoundCursor(query.cursor);
+      } catch {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_CURSOR,
+            "Invalid pagination cursor",
+          ),
+        );
+      }
+
+      // Validate cursor is scoped to this message
+      if (cursor.messageId && cursor.messageId !== messageId) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_CURSOR,
+            "Cursor does not belong to this message",
+          ),
+        );
+      }
+    }
 
     const suggestions = await operations.listSuggestionsPaginated(
       this.db,
@@ -1163,6 +1185,7 @@ export class V1Service {
             createdAt:
               resultSuggestions[resultSuggestions.length - 1].createdAt,
             id: resultSuggestions[resultSuggestions.length - 1].id,
+            messageId, // Include messageId for cursor scoping validation
           })
         : undefined,
       hasMore,
@@ -1170,10 +1193,17 @@ export class V1Service {
   }
 
   /**
+   * Maximum number of messages to use as context for suggestion generation.
+   * Limits DB read size and token usage for long threads.
+   */
+  private static readonly SUGGESTION_CONTEXT_MESSAGE_LIMIT = 5;
+
+  /**
    * Generate suggestions for a message.
    *
    * Calls the AI to analyze the thread and generate suggested next actions.
-   * Suggestions are persisted and returned.
+   * Suggestions are persisted and returned. Any existing suggestions for the
+   * message are replaced (delete-before-insert semantics).
    *
    * @param threadId - Thread containing the message
    * @param messageId - Message to generate suggestions for
@@ -1188,7 +1218,7 @@ export class V1Service {
     projectId: string,
     userKey: string,
     dto: V1GenerateSuggestionsDto,
-  ): Promise<V1ListSuggestionsResponseDto> {
+  ): Promise<V1GenerateSuggestionsResponseDto> {
     return await Sentry.startSpan(
       {
         op: "v1.generateSuggestions",
@@ -1221,9 +1251,13 @@ export class V1Service {
           );
         }
 
-        // Get thread messages for context and convert to ThreadMessage format
+        // Get recent thread messages for context (limited to avoid performance issues)
+        // and convert to ThreadMessage format
         const dbMessages = await operations.getMessages(this.db, threadId);
-        const threadMessages = dbMessages.map((m) =>
+        const recentMessages = dbMessages.slice(
+          -V1Service.SUGGESTION_CONTEXT_MESSAGE_LIMIT,
+        );
+        const threadMessages = recentMessages.map((m) =>
           dbMessageToThreadMessage(m),
         );
 
@@ -1250,6 +1284,17 @@ export class V1Service {
           false, // includeTokenCount
         );
 
+        // Delete existing suggestions before creating new ones (replace semantics)
+        const deletedCount = await operations.deleteSuggestionsForMessage(
+          this.db,
+          messageId,
+        );
+        if (deletedCount > 0) {
+          this.logger.log(
+            `Deleted ${deletedCount} existing suggestions for message ${messageId}`,
+          );
+        }
+
         if (!result.suggestions?.length) {
           this.logger.warn(
             `No suggestions generated for message ${messageId} in thread ${threadId}`,
@@ -1260,7 +1305,7 @@ export class V1Service {
           };
         }
 
-        // Persist suggestions
+        // Persist new suggestions
         const savedSuggestions = await operations.createSuggestions(
           this.db,
           result.suggestions.map((suggestion) => ({

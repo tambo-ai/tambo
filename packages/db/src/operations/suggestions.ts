@@ -19,6 +19,14 @@ export async function getSuggestions(db: HydraDatabase, messageId: string) {
 /**
  * List suggestions for a message with cursor-based pagination.
  *
+ * Uses a compound cursor based on (createdAt, id) for stable pagination.
+ *
+ * IMPORTANT: This pagination assumes `createdAt` is always server-generated
+ * via DEFAULT now() at the database layer and never user-supplied or backfilled.
+ * Violating this invariant (e.g., inserting with older timestamps) will cause
+ * records to be permanently skipped for clients who have already paged past
+ * that cursor position.
+ *
  * @param db - Database instance
  * @param messageId - Message ID to get suggestions for
  * @param options - Pagination options
@@ -98,4 +106,22 @@ export async function createSuggestions(
       })),
     )
     .returning();
+}
+
+/**
+ * Delete all suggestions for a message.
+ * Used to implement replace-on-generate semantics.
+ *
+ * @param db - Database instance
+ * @param messageId - Message ID to delete suggestions for
+ * @returns Number of deleted suggestions
+ */
+export async function deleteSuggestionsForMessage(
+  db: HydraDatabase,
+  messageId: string,
+): Promise<number> {
+  const result = await db
+    .delete(suggestions)
+    .where(eq(suggestions.messageId, messageId));
+  return result.rowCount ?? 0;
 }
