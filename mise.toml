@@ -6,7 +6,7 @@ shellcheck = "0.11.0"
 
 [tools."npm:corepack"]
 # Use Corepack to manage package managers like npm, yarn, and pnpm
-version = "0.34.5"
+version = "0.34.6"
 # Enable corepack for all package managers (npm doesn't enable by default)
 postinstall = "corepack enable && corepack enable npm"
 
