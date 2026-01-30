@@ -471,10 +471,9 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("throws error when detailedSuggestion is undefined", async () => {
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       const undefinedSuggestion = {
         id: "undefined_suggestion",
