@@ -4,11 +4,32 @@ import {
   CreateBookmarkRequest,
   UpdateBookmarkRequest,
 } from "../types.js";
-
-const bookmarks: Bookmark[] = [];
+import {
+  bookmarkQueries,
+  serializeTags,
+  deserializeTags,
+} from "../db/database.js";
 
 export const bookmarksRouter = new Hono()
   .get("/", (c) => {
+    const rows = bookmarkQueries.getAll.all() as Array<{
+      id: string;
+      title: string;
+      url: string;
+      description: string | null;
+      tags: string | null;
+      created_at: string;
+    }>;
+
+    const bookmarks: Bookmark[] = rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      url: row.url,
+      description: row.description || undefined,
+      tags: deserializeTags(row.tags),
+      createdAt: row.created_at,
+    }));
+
     return c.json({ bookmarks });
   })
   .post("/", async (c) => {
@@ -29,28 +50,47 @@ export const bookmarksRouter = new Hono()
       return c.json({ error: "Invalid URL format" }, 400);
     }
 
+    const id = crypto.randomUUID();
+    const createdAt = new Date().toISOString();
+
+    bookmarkQueries.create.run(
+      id,
+      title.trim(),
+      url.trim(),
+      description?.trim() || null,
+      serializeTags(tags),
+      createdAt,
+    );
+
     const newBookmark: Bookmark = {
-      id: crypto.randomUUID(),
+      id,
       title: title.trim(),
       url: url.trim(),
       description: description?.trim(),
       tags: tags || [],
-      createdAt: new Date().toISOString(),
+      createdAt,
     };
 
-    bookmarks.push(newBookmark);
     return c.json({ bookmark: newBookmark }, 201);
   })
   .put("/:id", async (c) => {
     const id = c.req.param("id");
     const body = await c.req.json<UpdateBookmarkRequest>();
 
-    const bookmarkIndex = bookmarks.findIndex((b) => b.id === id);
-    if (bookmarkIndex === -1) {
+    const existing = bookmarkQueries.getById.get(id) as
+      | {
+          id: string;
+          title: string;
+          url: string;
+          description: string | null;
+          tags: string | null;
+          created_at: string;
+        }
+      | undefined;
+
+    if (!existing) {
       return c.json({ error: "Bookmark not found" }, 404);
     }
-
-    const existingBookmark = bookmarks[bookmarkIndex];
 
     if (body.url) {
       try {
@@ -60,27 +100,42 @@ export const bookmarksRouter = new Hono()
       }
     }
 
+    const updatedTitle = body.title?.trim() ?? existing.title;
+    const updatedUrl = body.url?.trim() ?? existing.url;
+    const updatedDescription =
+      body.description !== undefined
+        ? body.description?.trim()
+        : existing.description;
+    const updatedTags =
+      body.tags !== undefined ? serializeTags(body.tags) : existing.tags;
+
+    bookmarkQueries.update.run(
+      updatedTitle,
+      updatedUrl,
+      updatedDescription,
+      updatedTags,
+      id,
+    );
+
     const updatedBookmark: Bookmark = {
-      ...existingBookmark,
-      ...(body.title !== undefined && { title: body.title.trim() }),
-      ...(body.url !== undefined && { url: body.url.trim() }),
-      ...(body.description !== undefined && {
-        description: body.description?.trim(),
-      }),
-      ...(body.tags !== undefined && { tags: body.tags }),
+      id: existing.id,
+      title: updatedTitle,
+      url: updatedUrl,
+      description: updatedDescription || undefined,
+      tags: deserializeTags(updatedTags),
+      createdAt: existing.created_at,
     };
 
-    bookmarks[bookmarkIndex] = updatedBookmark;
     return c.json({ bookmark: updatedBookmark });
   })
   .delete("/:id", (c) => {
     const id = c.req.param("id");
-    const bookmarkIndex = bookmarks.findIndex((b) => b.id === id);
 
-    if (bookmarkIndex === -1) {
+    const existing = bookmarkQueries.getById.get(id);
+    if (!existing) {
       return c.json({ error: "Bookmark not found" }, 404);
     }
 
-    bookmarks.splice(bookmarkIndex, 1);
-    return c.json({ message: "Bookmark deleted" });
+    bookmarkQueries.delete.run(id);
+    return c.json({ message: "Bookmark deleted successfully" });
   });

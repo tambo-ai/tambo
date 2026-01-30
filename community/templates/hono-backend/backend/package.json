@@ -9,9 +9,11 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "better-sqlite3": "^11.7.0",
     "hono": "^4.6.11"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.19.5",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3"

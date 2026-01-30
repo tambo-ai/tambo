@@ -2,8 +2,18 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createServer } from "node:http";
 import { bookmarksRouter } from "./routes/bookmarks.js";
+import { logger } from "./middleware/logger.js";
+import { errorHandler } from "./middleware/error-handler.js";
+import { initDatabase } from "./db/database.js";
+
+// Initialize database
+initDatabase();
 
 const app = new Hono();
+
+// Global middleware
+app.use("*", errorHandler);
+app.use("*", logger);
 
 app.use(
   "*",
@@ -15,11 +25,12 @@ app.use(
 );
 
 app.get("/health", (c) => {
-  return c.json({ status: "ok" });
+  return c.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 app.route("/api/bookmarks", bookmarksRouter);
 
+// eslint-disable-next-line turbo/no-undeclared-env-vars
 const port = Number(process.env.BACKEND_PORT) || 3001;
 
 const server = createServer(async (req, res) => {
@@ -51,5 +62,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, () => {
-  console.log(`Hono server running on http://localhost:${port}`);
+  console.log(`\n🚀 Hono server running on http://localhost:${port}`);
+  console.log(`📝 Health check: http://localhost:${port}/health`);
+  console.log(`🔖 Bookmarks API: http://localhost:${port}/api/bookmarks\n`);
 });

@@ -1,0 +1,11 @@
+# Build output
+**/dist/
+**/build/
+
+# Config files
+postcss.config.*
+tailwind.config.*
+vite.config.*
+
+# Dependencies
+**/node_modules/
