@@ -50,9 +50,9 @@ export function ArticleCarousel({
     );
   }
 
-  // Bento grid: assign random sizes to articles
+  // Bento grid:random sizes to articles
   const getCardSize = (index: number) => {
-    const sizes = ["normal", "large", "wide", "tall"];
+    const sizes = ["wide", "tall", "normal", "wide", "normal", "tall"];
     return sizes[index % sizes.length];
   };
 
@@ -69,7 +69,7 @@ export function ArticleCarousel({
               rel="noreferrer"
               className={cn(
                 "transition-transform duration-300 hover:-translate-y-1 block h-full w-full",
-                size === "large" && "md:col-span-2 md:row-span-2",
+                size === "large" && "md:col-span-2 md:row-span-2", // Kept just in case, but unused in pattern
                 size === "wide" && "md:col-span-2",
                 size === "tall" && "md:row-span-2"
               )}
