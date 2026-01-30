@@ -213,20 +213,18 @@ const tools: TamboTool[] = [
   {
     name: "getWeather",
     description: "Fetches weather for a location",
-    tool: async (location: string) =>
-      fetch(`/api/weather?q=${encodeURIComponent(location)}`).then((r) =>
+    tool: async (params: { location: string }) =>
+      fetch(`/api/weather?q=${encodeURIComponent(params.location)}`).then((r) =>
         r.json(),
       ),
-    toolSchema: z
-      .function()
-      .args(z.string())
-      .returns(
-        z.object({
-          temperature: z.number(),
-          condition: z.string(),
-          location: z.string(),
-        }),
-      ),
+    inputSchema: z.object({
+      location: z.string(),
+    }),
+    outputSchema: z.object({
+      temperature: z.number(),
+      condition: z.string(),
+      location: z.string(),
+    }),
   },
 ];
 

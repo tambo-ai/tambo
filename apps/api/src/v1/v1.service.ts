@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
@@ -23,11 +24,24 @@ import {
   type UnsavedThreadToolMessage,
 } from "@tambo-ai-cloud/core";
 import { sanitizeEvent } from "@tambo-ai-cloud/backend";
-import type { HydraDatabase } from "@tambo-ai-cloud/db";
-import { operations, schema } from "@tambo-ai-cloud/db";
-import { and, asc, desc, eq, gt, lt, or } from "drizzle-orm";
+import type { HydraDatabase, HydraDb } from "@tambo-ai-cloud/db";
+import {
+  dbMessageToThreadMessage,
+  operations,
+  schema,
+} from "@tambo-ai-cloud/db";
+import { and, eq, sql } from "drizzle-orm";
 import type { Response } from "express";
+import {
+  applyPatch,
+  type Operation,
+  validate as validateJsonPatch,
+} from "fast-json-patch";
 import { createProblemDetail, V1ErrorCodes } from "./v1.errors";
+import {
+  UpdateComponentStateDto,
+  UpdateComponentStateResponseDto,
+} from "./dto/component-state.dto";
 import { V1CreateRunDto } from "./dto/run.dto";
 import {
   convertV1ComponentsToInternal,
@@ -65,6 +79,13 @@ import {
   ContentConversionOptions,
 } from "./v1-conversions";
 import { encodeV1CompoundCursor, parseV1CompoundCursor } from "./v1-pagination";
+import {
+  V1GenerateSuggestionsDto,
+  V1GenerateSuggestionsResponseDto,
+  V1ListSuggestionsQueryDto,
+  V1ListSuggestionsResponseDto,
+  V1SuggestionDto,
+} from "./dto/suggestion.dto";
 
 /**
  * Result type for startRun - either success with runId or failure with HttpException
@@ -119,40 +140,24 @@ export class V1Service {
    */
   async listThreads(
     projectId: string,
-    contextKey: string | undefined,
+    contextKey: string,
     query: V1ListThreadsQueryDto,
   ): Promise<V1ListThreadsResponseDto> {
     const effectiveLimit = this.parseLimit(query.limit, 20);
 
-    // Build where conditions
-    const conditions = [eq(schema.threads.projectId, projectId)];
-    if (contextKey !== undefined) {
-      if (contextKey.trim() === "") {
-        throw new BadRequestException("contextKey cannot be empty");
-      }
+    const cursor = query.cursor
+      ? parseV1CompoundCursor(query.cursor)
+      : undefined;
 
-      conditions.push(eq(schema.threads.contextKey, contextKey));
-    }
-
-    // Cursor-based pagination (using createdAt + id)
-    if (query.cursor) {
-      const cursor = parseV1CompoundCursor(query.cursor);
-      const cursorCondition = or(
-        lt(schema.threads.createdAt, cursor.createdAt),
-        and(
-          eq(schema.threads.createdAt, cursor.createdAt),
-          lt(schema.threads.id, cursor.id),
-        ),
-      )!;
-
-      conditions.push(cursorCondition);
-    }
-
-    const threads = await this.db.query.threads.findMany({
-      where: and(...conditions),
-      orderBy: [desc(schema.threads.createdAt), desc(schema.threads.id)],
-      limit: effectiveLimit + 1, // Fetch one extra to determine hasMore
-    });
+    const threads = await operations.listThreadsPaginated(
+      this.db,
+      projectId,
+      contextKey,
+      {
+        cursor,
+        limit: effectiveLimit + 1, // Fetch one extra to determine hasMore
+      },
+    );
 
     const hasMore = threads.length > effectiveLimit;
     const resultThreads = hasMore ? threads.slice(0, effectiveLimit) : threads;
@@ -172,15 +177,18 @@ export class V1Service {
   /**
    * Get a thread by ID with all messages.
    */
-  async getThread(threadId: string): Promise<V1GetThreadResponseDto> {
-    const thread = await this.db.query.threads.findFirst({
-      where: eq(schema.threads.id, threadId),
-      with: {
-        messages: {
-          orderBy: [asc(schema.messages.createdAt)],
-        },
-      },
-    });
+  async getThread(
+    threadId: string,
+    projectId: string,
+    contextKey: string,
+  ): Promise<V1GetThreadResponseDto> {
+    const thread = await operations.getThreadForProjectId(
+      this.db,
+      threadId,
+      projectId,
+      contextKey,
+      true, // includeSystem
+    );
 
     if (!thread) {
       throw new NotFoundException(`Thread ${threadId} not found`);
@@ -199,17 +207,13 @@ export class V1Service {
    */
   async createThread(
     projectId: string,
-    contextKey: string | undefined,
+    contextKey: string,
     dto: V1CreateThreadDto,
   ): Promise<V1CreateThreadResponseDto> {
     if (dto.initialMessages?.length) {
       throw new BadRequestException(
         "initialMessages is not supported yet. Create the thread first, then add messages via runs/message endpoints.",
       );
-    }
-
-    if (contextKey !== undefined && contextKey.trim() === "") {
-      throw new BadRequestException("contextKey cannot be empty");
     }
 
     const thread = await operations.createThread(this.db, {
@@ -252,41 +256,14 @@ export class V1Service {
       throw new BadRequestException(`Invalid order: ${order}`);
     }
 
-    // Build where conditions
-    const conditions = [eq(schema.messages.threadId, threadId)];
+    const cursor = query.cursor
+      ? parseV1CompoundCursor(query.cursor)
+      : undefined;
 
-    // Cursor-based pagination (using createdAt + id)
-    if (query.cursor) {
-      const cursor = parseV1CompoundCursor(query.cursor);
-      const cursorCondition =
-        order === "asc"
-          ? or(
-              gt(schema.messages.createdAt, cursor.createdAt),
-              and(
-                eq(schema.messages.createdAt, cursor.createdAt),
-                gt(schema.messages.id, cursor.id),
-              ),
-            )
-          : or(
-              lt(schema.messages.createdAt, cursor.createdAt),
-              and(
-                eq(schema.messages.createdAt, cursor.createdAt),
-                lt(schema.messages.id, cursor.id),
-              ),
-            );
-
-      conditions.push(cursorCondition!);
-    }
-
-    const messages = await this.db.query.messages.findMany({
-      where: and(...conditions),
-      orderBy: [
-        order === "asc"
-          ? asc(schema.messages.createdAt)
-          : desc(schema.messages.createdAt),
-        order === "asc" ? asc(schema.messages.id) : desc(schema.messages.id),
-      ],
+    const messages = await operations.listMessagesPaginated(this.db, threadId, {
+      cursor,
       limit: effectiveLimit + 1,
+      order,
     });
 
     const hasMore = messages.length > effectiveLimit;
@@ -315,12 +292,11 @@ export class V1Service {
     threadId: string,
     messageId: string,
   ): Promise<V1GetMessageResponseDto> {
-    const message = await this.db.query.messages.findFirst({
-      where: and(
-        eq(schema.messages.id, messageId),
-        eq(schema.messages.threadId, threadId),
-      ),
-    });
+    const message = await operations.getMessageByIdInThread(
+      this.db,
+      threadId,
+      messageId,
+    );
 
     if (!message) {
       throw new NotFoundException(
@@ -595,7 +571,7 @@ export class V1Service {
    * @param runId - The run ID (already created by startRun)
    * @param dto - Run configuration including message, tools, etc.
    * @param projectId - The project ID for the thread
-   * @param contextKey - Optional context key for thread scoping
+   * @param contextKey - Context key for thread scoping
    */
   async executeRun(
     response: Response,
@@ -603,7 +579,7 @@ export class V1Service {
     runId: string,
     dto: V1CreateRunDto,
     projectId: string,
-    contextKey?: string,
+    contextKey: string,
   ): Promise<void> {
     return await Sentry.startSpan(
       {
@@ -829,6 +805,538 @@ export class V1Service {
             );
         }
       }),
+    };
+  }
+
+  // ==========================================
+  // Component state operations
+  // ==========================================
+
+  /**
+   * Update component state in a thread.
+   * Supports both full replacement and JSON Patch operations.
+   *
+   * Constraints:
+   * - Thread must be idle (no active run)
+   * - Component must exist in the thread
+   * - Either state (full replacement) or patch (JSON Patch) must be provided
+   *
+   * @param threadId - Thread containing the component
+   * @param componentId - Component ID to update
+   * @param dto - Update request (state or patch)
+   * @returns Updated component state
+   */
+  async updateComponentState(
+    threadId: string,
+    componentId: string,
+    dto: UpdateComponentStateDto,
+  ): Promise<UpdateComponentStateResponseDto> {
+    return await this.db.transaction(async (tx) => {
+      // Lock thread row so `runStatus` can't flip mid-update.
+      const threads = await tx
+        .select({
+          id: schema.threads.id,
+          runStatus: schema.threads.runStatus,
+        })
+        .from(schema.threads)
+        .where(eq(schema.threads.id, threadId))
+        .limit(1)
+        .for("update")
+        .execute();
+
+      const thread = threads[0];
+
+      if (!thread) {
+        throw new NotFoundException(`Thread ${threadId} not found`);
+      }
+
+      if (thread.runStatus !== V1RunStatus.IDLE) {
+        throw new ConflictException(
+          createProblemDetail(
+            V1ErrorCodes.RUN_ACTIVE,
+            "Cannot update component state while a run is active",
+            { threadId, runStatus: thread.runStatus },
+          ),
+        );
+      }
+
+      const patch = Array.isArray(dto.patch) ? dto.patch : undefined;
+      const state = dto.state;
+      const hasState = state !== undefined && state !== null;
+      const hasPatch = patch !== undefined;
+
+      const isJsonObject = (value: unknown): value is Record<string, unknown> =>
+        value !== null && typeof value === "object" && !Array.isArray(value);
+
+      if (hasState && hasPatch) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.VALIDATION_ERROR,
+            "Provide either 'state' or 'patch', not both",
+            { threadId, componentId },
+          ),
+        );
+      }
+
+      if (!hasState && !hasPatch) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.VALIDATION_ERROR,
+            "Either 'state' or 'patch' must be provided",
+            { threadId, componentId },
+          ),
+        );
+      }
+
+      if (hasState && !isJsonObject(state)) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.VALIDATION_ERROR,
+            "'state' must be a JSON object",
+            { threadId, componentId },
+          ),
+        );
+      }
+
+      if (hasPatch && patch.length === 0) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.VALIDATION_ERROR,
+            "'patch' must not be empty",
+            { threadId, componentId },
+          ),
+        );
+      }
+
+      // 2. Verify component exists in thread by searching content array for component blocks
+      const message = await this.findMessageWithComponent(
+        tx,
+        threadId,
+        componentId,
+      );
+
+      if (!message) {
+        throw new NotFoundException(
+          `Component ${componentId} not found in thread ${threadId}`,
+        );
+      }
+
+      // 3. Get current state
+      const rawState = message.componentState;
+      let currentState: Record<string, unknown> = {};
+      if (rawState !== null && rawState !== undefined) {
+        if (!isJsonObject(rawState)) {
+          throw new HttpException(
+            createProblemDetail(
+              V1ErrorCodes.INTERNAL_ERROR,
+              "Stored component state is invalid",
+              { threadId, componentId, messageId: message.id },
+            ),
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
+
+        currentState = rawState;
+      }
+
+      // 4. Apply update (full replacement or JSON Patch)
+      let newState: Record<string, unknown>;
+
+      if (patch !== undefined) {
+        const patchOperations = this.convertJsonPatchDtoToOperations(
+          patch,
+          threadId,
+          componentId,
+        );
+
+        // JSON Patch mode
+        const validation = validateJsonPatch(patchOperations, currentState);
+        if (validation) {
+          throw new BadRequestException(
+            createProblemDetail(
+              V1ErrorCodes.INVALID_JSON_PATCH,
+              `Invalid JSON Patch: ${validation.message}`,
+              { errors: validation },
+            ),
+          );
+        }
+
+        const patchResult = applyPatch(
+          currentState,
+          patchOperations,
+          false,
+          false,
+        );
+        newState = patchResult.newDocument;
+      } else if (hasState) {
+        // Full replacement mode
+        newState = state;
+      } else {
+        throw new Error("Unreachable: request shape already validated");
+      }
+
+      // 5. Persist the new state
+      await this.persistComponentState(tx, message.id, newState);
+
+      return { state: newState };
+    });
+  }
+
+  private convertJsonPatchDtoToOperations(
+    patch: NonNullable<UpdateComponentStateDto["patch"]>,
+    threadId: string,
+    componentId: string,
+  ): ReadonlyArray<Operation> {
+    return patch.map((operation) => {
+      switch (operation.op) {
+        case "add":
+        case "replace":
+        case "test":
+          return {
+            op: operation.op,
+            path: operation.path,
+            value: operation.value,
+          };
+        case "remove":
+          return {
+            op: operation.op,
+            path: operation.path,
+          };
+        case "copy":
+        case "move":
+          if (typeof operation.from !== "string") {
+            throw new BadRequestException(
+              createProblemDetail(
+                V1ErrorCodes.INVALID_JSON_PATCH,
+                "Invalid JSON Patch: operation requires 'from'",
+                { threadId, componentId, operation },
+              ),
+            );
+          }
+          return {
+            op: operation.op,
+            from: operation.from,
+            path: operation.path,
+          };
+        default:
+          throw new Error("Unreachable: unknown JSON Patch operation");
+      }
+    });
+  }
+
+  /**
+   * Find the first message in a thread containing a component block with the given ID.
+   *
+   * The `content` column is stored as JSONB and expected to be a JSON array of blocks.
+   * Non-array content is treated as empty.
+   *
+   * @param threadId - Thread to search
+   * @param componentId - Component ID to find
+   * @returns Message `id` and `componentState`, or undefined if not found
+   */
+  private async findMessageWithComponent(
+    db: HydraDb,
+    threadId: string,
+    componentId: string,
+  ): Promise<
+    | Pick<typeof schema.messages.$inferSelect, "id" | "componentState">
+    | undefined
+  > {
+    // `content` is expected to be a JSON array of blocks. Non-array content is treated as empty.
+    const messages = await db
+      .select({
+        id: schema.messages.id,
+        componentState: schema.messages.componentState,
+      })
+      .from(schema.messages)
+      .where(
+        and(
+          eq(schema.messages.threadId, threadId),
+          sql`exists (
+            select 1
+            from jsonb_array_elements(
+              case when jsonb_typeof(content) = 'array' then content else '[]'::jsonb end
+            ) as elem
+            where elem->>'type' = 'component'
+              and elem->>'id' = ${componentId}
+          )`,
+        ),
+      )
+      .limit(1)
+      .for("update")
+      .execute();
+
+    return messages[0];
+  }
+
+  /**
+   * Persist component state to the database.
+   *
+   * Uses full replacement of componentState field for simplicity.
+   * For JSON Patch mode, we already applied the patch in-memory before calling this.
+   *
+   * @param messageId - Message ID containing the component
+   * @param newState - New complete state to persist
+   */
+  private async persistComponentState(
+    db: HydraDb,
+    messageId: string,
+    newState: Record<string, unknown>,
+  ): Promise<void> {
+    await operations.updateMessage(db, messageId, {
+      componentState: newState,
+    });
+  }
+
+  // ==========================================
+  // Suggestion operations
+  // ==========================================
+
+  /**
+   * List suggestions for a message with cursor-based pagination.
+   *
+   * Unlike the beta API which returns 404 for no suggestions,
+   * V1 returns an empty array for consistency with other list endpoints.
+   *
+   * @param threadId - Thread containing the message
+   * @param messageId - Message to get suggestions for
+   * @param projectId - Project ID for access validation
+   * @param userKey - User key for access validation
+   * @param query - Pagination parameters
+   * @returns Paginated list of suggestions
+   */
+  async listSuggestions(
+    threadId: string,
+    messageId: string,
+    projectId: string,
+    userKey: string,
+    query: V1ListSuggestionsQueryDto,
+  ): Promise<V1ListSuggestionsResponseDto> {
+    // Verify thread belongs to project and user
+    const thread = await operations.getThreadForProjectId(
+      this.db,
+      threadId,
+      projectId,
+      userKey,
+    );
+
+    if (!thread) {
+      throw new NotFoundException(`Thread ${threadId} not found`);
+    }
+
+    // Verify message exists in thread
+    const message = await operations.getMessageByIdInThread(
+      this.db,
+      threadId,
+      messageId,
+    );
+
+    if (!message) {
+      throw new NotFoundException(
+        `Message ${messageId} not found in thread ${threadId}`,
+      );
+    }
+
+    const effectiveLimit = this.parseLimit(query.limit, 10);
+
+    // Parse and validate cursor
+    let cursor: ReturnType<typeof parseV1CompoundCursor> | undefined;
+    if (query.cursor) {
+      try {
+        cursor = parseV1CompoundCursor(query.cursor);
+      } catch {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_CURSOR,
+            "Invalid pagination cursor",
+          ),
+        );
+      }
+
+      // Validate cursor is scoped to this message
+      if (cursor.messageId && cursor.messageId !== messageId) {
+        throw new BadRequestException(
+          createProblemDetail(
+            V1ErrorCodes.INVALID_CURSOR,
+            "Cursor does not belong to this message",
+          ),
+        );
+      }
+    }
+
+    const suggestions = await operations.listSuggestionsPaginated(
+      this.db,
+      messageId,
+      {
+        cursor,
+        limit: effectiveLimit + 1,
+      },
+    );
+
+    const hasMore = suggestions.length > effectiveLimit;
+    const resultSuggestions = hasMore
+      ? suggestions.slice(0, effectiveLimit)
+      : suggestions;
+
+    return {
+      suggestions: resultSuggestions.map((s) => this.suggestionToDto(s)),
+      nextCursor: hasMore
+        ? encodeV1CompoundCursor({
+            createdAt:
+              resultSuggestions[resultSuggestions.length - 1].createdAt,
+            id: resultSuggestions[resultSuggestions.length - 1].id,
+            messageId, // Include messageId for cursor scoping validation
+          })
+        : undefined,
+      hasMore,
+    };
+  }
+
+  /**
+   * Maximum number of messages to use as context for suggestion generation.
+   * Limits DB read size and token usage for long threads.
+   */
+  private static readonly SUGGESTION_CONTEXT_MESSAGE_LIMIT = 5;
+
+  /**
+   * Generate suggestions for a message.
+   *
+   * Calls the AI to analyze the thread and generate suggested next actions.
+   * Suggestions are persisted and returned. Any existing suggestions for the
+   * message are replaced (delete-before-insert semantics).
+   *
+   * @param threadId - Thread containing the message
+   * @param messageId - Message to generate suggestions for
+   * @param projectId - Project ID for access validation
+   * @param userKey - User key for access validation
+   * @param dto - Generation parameters
+   * @returns Generated suggestions
+   */
+  async generateSuggestions(
+    threadId: string,
+    messageId: string,
+    projectId: string,
+    userKey: string,
+    dto: V1GenerateSuggestionsDto,
+  ): Promise<V1GenerateSuggestionsResponseDto> {
+    return await Sentry.startSpan(
+      {
+        op: "v1.generateSuggestions",
+        name: `V1 Generate Suggestions`,
+        attributes: { threadId, messageId, maxSuggestions: dto.maxSuggestions },
+      },
+      async () => {
+        // Verify thread belongs to project and user
+        const thread = await operations.getThreadForProjectId(
+          this.db,
+          threadId,
+          projectId,
+          userKey,
+        );
+
+        if (!thread) {
+          throw new NotFoundException(`Thread ${threadId} not found`);
+        }
+
+        // Verify message exists in thread
+        const message = await operations.getMessageByIdInThread(
+          this.db,
+          threadId,
+          messageId,
+        );
+
+        if (!message) {
+          throw new NotFoundException(
+            `Message ${messageId} not found in thread ${threadId}`,
+          );
+        }
+
+        // Get recent thread messages for context (limited to avoid performance issues)
+        // and convert to ThreadMessage format
+        const dbMessages = await operations.getMessages(this.db, threadId);
+        const recentMessages = dbMessages.slice(
+          -V1Service.SUGGESTION_CONTEXT_MESSAGE_LIMIT,
+        );
+        const threadMessages = recentMessages.map((m) =>
+          dbMessageToThreadMessage(m),
+        );
+
+        // Create TamboBackend and generate suggestions
+        const tamboBackend =
+          await this.threadsService.createTamboBackendForThread(
+            threadId,
+            userKey,
+          );
+
+        // Convert V1 available components to internal format
+        const availableComponents = dto.availableComponents ?? [];
+
+        const result = await tamboBackend.generateSuggestions(
+          threadMessages,
+          dto.maxSuggestions ?? 3,
+          availableComponents.map((c) => ({
+            name: c.name,
+            description: c.description,
+            props: c.propsSchema as Record<string, unknown>,
+            contextTools: [],
+          })),
+          threadId,
+          false, // includeTokenCount
+        );
+
+        // Delete existing suggestions before creating new ones (replace semantics)
+        const deletedCount = await operations.deleteSuggestionsForMessage(
+          this.db,
+          messageId,
+        );
+        if (deletedCount > 0) {
+          this.logger.log(
+            `Deleted ${deletedCount} existing suggestions for message ${messageId}`,
+          );
+        }
+
+        if (!result.suggestions?.length) {
+          this.logger.warn(
+            `No suggestions generated for message ${messageId} in thread ${threadId}`,
+          );
+          return {
+            suggestions: [],
+            hasMore: false,
+          };
+        }
+
+        // Persist new suggestions
+        const savedSuggestions = await operations.createSuggestions(
+          this.db,
+          result.suggestions.map((suggestion) => ({
+            messageId,
+            title: suggestion.title,
+            detailedSuggestion: suggestion.detailedSuggestion,
+          })),
+        );
+
+        this.logger.log(
+          `Generated ${savedSuggestions.length} suggestions for message ${messageId}`,
+        );
+
+        return {
+          suggestions: savedSuggestions.map((s) => this.suggestionToDto(s)),
+          hasMore: false,
+        };
+      },
+    );
+  }
+
+  /**
+   * Convert a database suggestion to V1 DTO.
+   */
+  private suggestionToDto(suggestion: schema.DBSuggestion): V1SuggestionDto {
+    return {
+      id: suggestion.id,
+      messageId: suggestion.messageId,
+      title: suggestion.title,
+      description: suggestion.detailedSuggestion,
+      createdAt: suggestion.createdAt.toISOString(),
     };
   }
 }

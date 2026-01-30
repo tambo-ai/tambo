@@ -110,7 +110,15 @@ export class ThreadsService {
     return this.db;
   }
 
-  private async createTamboBackendForThread(
+  /**
+   * Create a TamboBackend instance configured for a specific thread.
+   * Used by V1 API and internal thread operations for AI generation.
+   *
+   * @param threadId - Thread ID to create backend for
+   * @param userId - User/context key for the backend
+   * @returns Configured TamboBackend instance
+   */
+  async createTamboBackendForThread(
     threadId: string,
     userId: string,
   ): Promise<ITamboBackend> {
@@ -319,7 +327,7 @@ export class ThreadsService {
   async findOne(
     id: string,
     projectId: string,
-    contextKey?: string,
+    contextKey?: operations.ContextKeyFilter,
   ): Promise<ThreadWithMessagesDto> {
     const thread = await operations.getThreadForProjectId(
       this.getDb(),
@@ -813,7 +821,7 @@ export class ThreadsService {
       this.getDb(),
       threadId,
       projectId,
-      contextKey,
+      contextKey ?? operations.ANY_CONTEXT_KEY,
     );
     if (!thread) {
       throw new NotFoundException("Thread not found");
@@ -1363,7 +1371,7 @@ export class ThreadsService {
         const resourceFetchers = createResourceFetcherMap(mcpClients);
         if (this.storageConfig.hasStorageConfig()) {
           resourceFetchers["attachment"] = createAttachmentFetcher(
-            this.storageConfig.s3Client!,
+            this.storageConfig.s3Client,
             this.storageConfig.bucket,
             projectId,
             this.storageConfig.signingSecret,
@@ -1445,7 +1453,7 @@ export class ThreadsService {
       const resourceFetchers = createResourceFetcherMap(mcpClients);
       if (this.storageConfig.hasStorageConfig()) {
         resourceFetchers["attachment"] = createAttachmentFetcher(
-          this.storageConfig.s3Client!,
+          this.storageConfig.s3Client,
           this.storageConfig.bucket,
           projectId,
           this.storageConfig.signingSecret,
@@ -1561,7 +1569,11 @@ export class ThreadsService {
         data: { threadId, projectId },
       });
 
-      const thread = await this.findOne(threadId, projectId);
+      const thread = await this.findOne(
+        threadId,
+        projectId,
+        operations.ANY_CONTEXT_KEY,
+      );
       if (thread.generationStage === GenerationStage.CANCELLED) {
         Sentry.addBreadcrumb({
           message: "Stream cancelled before processing",
@@ -1970,10 +1982,14 @@ export class ThreadsService {
         this.getDb(),
         threadId,
         projectId,
-        contextKey,
+        contextKey ?? operations.ANY_CONTEXT_KEY,
       );
       // TODO: should we update contextKey?
-      const thread = await this.findOne(threadId, projectId);
+      const thread = await this.findOne(
+        threadId,
+        projectId,
+        operations.ANY_CONTEXT_KEY,
+      );
       return thread;
     }
 

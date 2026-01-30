@@ -162,6 +162,17 @@ Email login requires at minimum `RESEND_API_KEY` and `EMAIL_FROM_DEFAULT`.
 
 ## Production Deployment
 
+### Self-hosting with npm (Convenience Scripts)
+
+These npm scripts are **convenience aliases** for Docker-based commands.  
+They require **bash**, so Windows users should run them in **WSL** or **Git Bash**.
+
+```bash
+npm run tambo:setup   # Initial setup
+npm run tambo:start   # Start services
+npm run tambo:stop    # Stop services
+```
+
 ### Using Docker Compose
 
 For production, update `docker.env`:

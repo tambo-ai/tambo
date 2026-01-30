@@ -36,7 +36,7 @@
     "drizzle-orm": "^0.45.1",
     "jsonwebtoken": "^9.0.2",
     "openai": "^6.16.0",
-    "pg": "^8.16.3",
+    "pg": "^8.17.2",
     "superjson": "^2.2.6"
   }
 }

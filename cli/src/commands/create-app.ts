@@ -5,7 +5,9 @@ import path from "path";
 import {
   execFileSync,
   execSync,
+  GuidanceError,
   interactivePrompt,
+  isInteractive,
 } from "../utils/interactive.js";
 import {
   detectPackageManager,
@@ -98,6 +100,18 @@ function updatePackageJson(targetDir: string, appName: string): void {
 export async function handleCreateApp(
   options: CreateAppOptions = {},
 ): Promise<void> {
+  // In non-interactive mode, check if we have what we need
+  if (!isInteractive() && !options.name) {
+    throw new GuidanceError(
+      "App name and template required in non-interactive mode",
+      [
+        "npx tambo create-app my-app --template=standard  # Recommended",
+        "npx tambo create-app my-app --template=analytics # Analytics template",
+        "npx tambo create-app . --template=standard       # Current directory",
+      ],
+    );
+  }
+
   console.log("");
 
   let appName: string;
@@ -292,13 +306,13 @@ export async function handleCreateApp(
     }).start();
 
     try {
-      const args = [installCmd, ...legacyPeerDepsFlag];
+      const args = [...installCmd, ...legacyPeerDepsFlag];
       execFileSync(pm, args, { stdio: "ignore", allowNonInteractive: true });
       installSpinner.succeed("Dependencies installed successfully");
     } catch (_error) {
       installSpinner.fail("Failed to install dependencies");
       throw new Error(
-        `Failed to install dependencies. Please try running '${pm} ${installCmd}' manually.`,
+        `Failed to install dependencies. Please try running '${pm} ${installCmd.join(" ")}' manually.`,
       );
     }
 
