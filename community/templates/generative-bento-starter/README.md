@@ -12,6 +12,8 @@ A premium "Generative UI" starter kit for building context-aware CRUD applicatio
 
 ### 🎥 Video Demo
 
+[![Watch on YouTube](https://img.shields.io/badge/Watch-on%20YouTube-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=1QJjMeEqjpA&autoplay=1)
+
 [![Watch the demo](https://img.youtube.com/vi/1QJjMeEqjpA/maxresdefault.jpg)](https://www.youtube.com/watch?v=1QJjMeEqjpA&autoplay=1)
 
 ## 📂 Project Structure
