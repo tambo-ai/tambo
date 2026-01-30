@@ -13,16 +13,18 @@ import { cn } from "@/lib/utils";
 import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import {
   ArrowUp,
-  AudioWaveform,
   Globe,
-  Mic,
   Paperclip,
   Plus,
   Sparkles
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export function ChatInput() {
+interface ChatInputProps {
+  onMessageSent?: (content: string) => void;
+}
+
+export function ChatInput({ onMessageSent }: ChatInputProps) {
   const { value, setValue, submit, isPending } = useTamboThreadInput();
   const { thread } = useTamboThread();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -42,7 +44,9 @@ export function ChatInput() {
     e?.preventDefault();
 
     if (value.trim() && !isPending) {
+      const content = value;
       submit();
+      onMessageSent?.(content);
       setIsExpanded(false);
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
@@ -85,8 +89,8 @@ export function ChatInput() {
           className={cn(
             "w-full bg-[#18181b] cursor-text overflow-hidden p-2.5 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5)] border-0 transition-all duration-300 ease-out",
             {
-              "rounded-3xl grid grid-cols-1 grid-rows-[auto_1fr_auto] gap-2": isExpanded,
-              "rounded-[32px] grid grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr_auto] items-end": !isExpanded,
+              "rounded-[24px] grid grid-cols-1 grid-rows-[auto_1fr_auto] gap-2": isExpanded,
+              "rounded-full grid grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr_auto] items-end": !isExpanded,
             }
           )}
           style={{
@@ -174,23 +178,7 @@ export function ChatInput() {
                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
               </div>
 
-              <Button
-                type="button"
-                size="icon"
-                className="h-10 w-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white shadow-sm border border-white/5 transition-all duration-200 hover:scale-105"
-                title="Voice Input"
-              >
-                <Mic className="h-4 w-4" strokeWidth={1.5} />
-              </Button>
 
-              <Button
-                type="button"
-                size="icon"
-                className="h-10 w-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white shadow-sm border border-white/5 transition-all duration-200 hover:scale-105"
-                title="Audio Mode"
-              >
-                <AudioWaveform className="h-4 w-4" strokeWidth={1.5} />
-              </Button>
 
               <Button
                 type="button"
@@ -198,10 +186,10 @@ export function ChatInput() {
                 disabled={!value.trim() || isPending}
                 size="icon"
                 className={cn(
-                  "h-10 w-10 transition-all duration-200 shadow-sm border border-white/5",
+                  "h-10 w-10 transition-all duration-200 shadow-sm border border-white/5 disabled:opacity-50",
                   value.trim() 
-                    ? "bg-black text-white hover:bg-zinc-900 shadow-md hover:scale-105 rounded-xl" 
-                    : "bg-zinc-800 text-zinc-600 cursor-not-allowed rounded-xl"
+                    ? "bg-white text-black hover:bg-zinc-200 shadow-md hover:scale-105 rounded-full" 
+                    : "bg-zinc-800 text-zinc-600 cursor-not-allowed rounded-full"
                 )}
               >
                 <ArrowUp className="h-5 w-5" strokeWidth={3} />

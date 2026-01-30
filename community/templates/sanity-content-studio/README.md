@@ -6,11 +6,7 @@ A minimal **Next.js + Tambo + Sanity** template for AI-powered content managemen
 
 ## What It Does
 
-Manage your Sanity CMS content through natural language conversations:
-
-- **"Show me all articles"** → Displays a grid of your Sanity content
-- **"Create an article about AI trends"** → Drafts and saves new content
-- **"Show only drafts"** → Filters content by status
+Manage your Sanity CMS content through natural language conversations. This template demonstrates how to integrate Tambo's generative UI with a headless CMS to create, view, and update content via chat.
 
 ## Video Demo
 
@@ -18,85 +14,63 @@ Manage your Sanity CMS content through natural language conversations:
 
 ## Prerequisites
 
-- Node.js 18+
-- [Tambo API key](https://tambo.co/dashboard) (free)
-- [Sanity project](https://sanity.io/manage) with API token
+- **Node.js 18+**
+- **Tambo Account**: Get your free API key at [tambo.co/dashboard](https://tambo.co/dashboard)
+- **Sanity Account**: Create a project at [sanity.io/manage](https://sanity.io/manage) and get a **Viewer** or **Editor** token
 
 ## Setup
 
-1. Clone and install:
+1. **Clone the repository:**
 
-```bash
-cd community/templates/sanity-content-studio
-npm install
-```
+   ```bash
+   npx create-next-app -e https://github.com/tambo-ai/tambo-template/tree/main/community/templates/sanity-content-studio my-app
+   cd my-app
+   ```
 
-2. Copy environment variables:
+2. **Install dependencies:**
 
-```bash
-cp example.env.local .env.local
-```
+   ```bash
+   npm install
+   ```
 
-3. Add your keys to `.env.local`:
+3. **Configure Environment:**
 
-```env
-NEXT_PUBLIC_TAMBO_API_KEY=your-tambo-key
-NEXT_PUBLIC_SANITY_PROJECT_ID=your-project-id
-NEXT_PUBLIC_SANITY_DATASET=production
-SANITY_API_TOKEN=your-write-token
-```
+   ```bash
+   cp example.env.local .env.local
+   ```
 
-4. Create the article schema in Sanity Studio:
+   Add your keys to `.env.local`:
 
-```js
-// In your Sanity schema
-export default {
-  name: 'article',
-  title: 'Article',
-  type: 'document',
-  fields: [
-    { name: 'title', type: 'string' },
-    { name: 'slug', type: 'slug', options: { source: 'title' } },
-    { name: 'excerpt', type: 'text' },
-    { name: 'body', type: 'text' },
-    { name: 'status', type: 'string', options: { list: ['draft', 'published'] } },
-    { name: 'publishedAt', type: 'datetime' }
-  ]
-}
-```
+   ```env
+   NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key
+   NEXT_PUBLIC_SANITY_PROJECT_ID=your_sanity_project_id
+   NEXT_PUBLIC_SANITY_DATASET=production
+   SANITY_API_TOKEN=your_sanity_write_token
+   NEXT_PUBLIC_SANITY_STUDIO_URL=https://your-studio-url.sanity.studio
+   ```
 
-5. Start development:
+4. **Run the Development Server:**
 
-```bash
-npm run dev
-```
+   ```bash
+   npm run dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000)
+   Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## What's Included
 
-| Technology | Purpose |
-|------------|---------|
-| **Next.js 15** | React framework |
-| **Tambo AI** | Generative UI SDK |
-| **Sanity** | Headless CMS |
-| **Tailwind CSS 4** | Styling |
+- **Next.js 15**: App Router and Server Actions
+- **Tambo SDK**: Generative UI and AI Chat
+- **Sanity Client**: Headless CMS integration
+- **Tailwind CSS 4**: Styling and Typography
 
 ## Tambo Integration
 
-### Components
+We strictly use Tambo's official APIs for tool calling and component rendering.
 
-- `ArticleCard` - Single article display
-- `ArticleList` - Grid/list of articles
-- `ContentPreview` - Rich markdown preview
-
-### Tools
-
-- `fetchArticles` - Query Sanity content
-- `createArticle` - Create new drafts
-- `updateArticle` - Update existing content
-
-See `src/lib/tambo.ts` for the full configuration.
+- **Tools Config**: `src/lib/tambo.ts` - Registers `fetchArticles`, `createArticle`, and `updateArticle` tools.
+- **Components**: `src/components/tambo/` - Custom UI components (`ArticleCard`, `ArticleList`) registered for AI use.
+- **Provider**: `src/app/page.tsx` - Wraps the app with `TamboThreadProvider`.
 
 ## License
 
