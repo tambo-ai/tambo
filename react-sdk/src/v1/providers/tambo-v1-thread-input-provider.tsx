@@ -101,7 +101,11 @@ export interface TamboV1ThreadInputContextProps extends Omit<
   setThreadId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-const TamboV1ThreadInputContext = createContext<
+/**
+ * Context for thread input state.
+ * @internal
+ */
+export const TamboV1ThreadInputContext = createContext<
   TamboV1ThreadInputContextProps | undefined
 >(undefined);
 

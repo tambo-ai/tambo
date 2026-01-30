@@ -47,7 +47,11 @@ export interface TamboV1Config {
   userKey?: string;
 }
 
-const TamboV1ConfigContext = createContext<TamboV1Config | null>(null);
+/**
+ * Context for v1 SDK configuration.
+ * @internal
+ */
+export const TamboV1ConfigContext = createContext<TamboV1Config | null>(null);
 
 /**
  * Hook to access v1 SDK configuration.

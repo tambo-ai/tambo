@@ -100,6 +100,12 @@ export {
   type SubmitOptions,
 } from "./providers/tambo-v1-thread-input-provider";
 
+// Export v1 stub provider for testing
+export {
+  TamboV1StubProvider,
+  type TamboV1StubProviderProps,
+} from "./providers/tambo-v1-stub-provider";
+
 // =============================================================================
 // Hooks
 // =============================================================================
