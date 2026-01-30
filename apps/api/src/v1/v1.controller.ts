@@ -51,6 +51,11 @@ import {
   V1ListThreadsResponseDto,
 } from "./dto/thread.dto";
 import { V1BaseEventDto } from "./dto/event.dto";
+import {
+  V1GenerateSuggestionsDto,
+  V1ListSuggestionsQueryDto,
+  V1ListSuggestionsResponseDto,
+} from "./dto/suggestion.dto";
 import { V1Service } from "./v1.service";
 
 /**
@@ -580,5 +585,81 @@ export class V1Controller {
       componentId,
       dto,
     );
+  }
+
+  // ==========================================
+  // Suggestion endpoints
+  // ==========================================
+
+  @Get("threads/:threadId/messages/:messageId/suggestions")
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "List suggestions for a message",
+    description:
+      "List suggestions that have been generated for a specific message. Supports cursor-based pagination.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "messageId",
+    description: "Message ID",
+    example: "msg_xyz789abc",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "List of suggestions",
+    type: V1ListSuggestionsResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Message not found",
+  })
+  async listSuggestions(
+    @Param("threadId") threadId: string,
+    @Param("messageId") messageId: string,
+    @Query() query: V1ListSuggestionsQueryDto,
+  ): Promise<V1ListSuggestionsResponseDto> {
+    return await this.v1Service.listSuggestions(threadId, messageId, query);
+  }
+
+  @Post("threads/:threadId/messages/:messageId/suggestions")
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "Generate suggestions for a message",
+    description:
+      "Generate AI-powered suggestions for the next action based on the thread context. Suggestions are persisted and can be retrieved later via the list endpoint.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "messageId",
+    description: "Message ID",
+    example: "msg_xyz789abc",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "Suggestions generated successfully",
+    type: V1ListSuggestionsResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid request parameters",
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Message not found",
+  })
+  async generateSuggestions(
+    @Param("threadId") threadId: string,
+    @Param("messageId") messageId: string,
+    @Body() dto: V1GenerateSuggestionsDto,
+  ): Promise<V1ListSuggestionsResponseDto> {
+    return await this.v1Service.generateSuggestions(threadId, messageId, dto);
   }
 }
