@@ -272,9 +272,7 @@ export function SettingsPanel() {
         shareAnalytics: false,
         personalizationEnabled: true,
       }}
-      onPropsUpdate={(p) =>
-        console.log("SETTINGS UPDATED:", p)
-      }
     />
   );
 }
+
