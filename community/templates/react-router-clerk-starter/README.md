@@ -8,7 +8,7 @@ A production-ready starter template combining React Router v7, Clerk authenticat
 ## 🎬 Video Demo
 
 <!-- TODO: Replace with your GitHub-hosted video URL -->
-https://github.com/user-attachments/assets/c5940b3c-575d-4f51-9619-371a865368cf
+https://github.com/user-attachments/assets/ea7ada81-4e40-427b-96eb-91f92179c2db
 
 
 ## ✨ What's Included
@@ -59,16 +59,19 @@ Open [http://localhost:3000](http://localhost:3000) 🎉
 ## 📁 Project Structure
 
 ```
-react-router-clerk-starter/
 ├── app/
 │   ├── components/
 │   │   ├── ClientTamboProvider.tsx  # SSR-safe Tambo wrapper
 │   │   └── tambo/
-│   │       └── UserCard.tsx         # Example generative component
+│   │       ├── graph.tsx            # Generative graph component
+│   │       ├── mcp-components.tsx   # MCP integration components
+│   │       ├── thread-history.tsx   # Sidebar with thread persistence
+│   │       └── user-card.tsx        # User profile & authentication
 │   ├── lib/
 │   │   └── tambo.ts                 # Component & tool registration
 │   ├── routes/
-│   │   └── home.tsx                 # Main chat interface
+│   │   ├── chat.tsx                 # Main chat interface
+│   │   └── home.tsx                 # Landing page
 │   └── root.tsx                     # App root with providers
 ├── .env.example
 ├── package.json
@@ -79,9 +82,9 @@ react-router-clerk-starter/
 
 After signing in, try these prompts:
 
-- "Show me a user card for Sarah Johnson"
-- "Get user info for john.doe@example.com"  
-- "Create a user card for Mike Chen, UX Designer"
+- "Show me population growth in Asia"
+- "Compare population of top 5 European countries"
+- "Show me a pie chart of global population distribution"
 
 ## 🔧 Tambo Integration
 
@@ -92,10 +95,10 @@ Components are registered in `app/lib/tambo.ts`:
 ```typescript
 export const components: TamboComponent[] = [
   {
-    name: "UserCard",
-    description: "A professional user card component...",
-    component: UserCard,
-    propsSchema: userCardSchema,
+    name: "Graph",
+    description: "A component that renders various types of charts...",
+    component: Graph,
+    propsSchema: graphSchema,
   },
 ];
 ```
@@ -107,10 +110,10 @@ Tools fetch data that AI can use:
 ```typescript
 export const tools: TamboTool[] = [
   defineTool({
-    name: "getUserInfo",
-    description: "Fetch user information by email or name",
-    inputSchema: z.object({ email: z.string().optional() }),
-    tool: async (params) => { /* ... */ },
+    name: "countryPopulation",
+    description: "A tool to get population statistics...",
+    tool: getCountryPopulations,
+    toolSchema: z.function().args(...),
   }),
 ];
 ```
