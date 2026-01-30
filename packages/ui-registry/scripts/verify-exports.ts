@@ -50,6 +50,10 @@ function verifyExportsPointToFiles(exports: Map<string, string>): string[] {
   const errors: string[] = [];
 
   for (const [exportPath, filePath] of exports) {
+    // TODO: Remove this exception when base components are moved to their own package
+    // This is a temporary workaround to avoid false positives in CI checks
+    if (exportPath === "./base/*") continue;
+
     const fullPath = path.join(PACKAGE_ROOT, filePath);
     if (!fs.existsSync(fullPath)) {
       errors.push(
