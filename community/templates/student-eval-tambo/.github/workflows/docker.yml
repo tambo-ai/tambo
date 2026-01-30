@@ -1,0 +1,81 @@
+# Docker Build and Push Workflow
+#
+# NOTE: This workflow is designed for the PRODUCTION repository, not the starter template.
+# It is intentionally set to MANUAL TRIGGER ONLY (workflow_dispatch) to avoid failures
+# in template repositories that lack Docker infrastructure, credentials, or production services.
+#
+# Template users can enable this workflow when they:
+# - Add a Dockerfile to their project
+# - Configure Docker registry secrets (DOCKER_USERNAME, DOCKER_PASSWORD, etc.)
+# - Set up production deployment infrastructure
+#
+# To run this workflow manually:
+# - Go to Actions tab in GitHub
+# - Select "Docker Build and Push"
+# - Click "Run workflow"
+
+name: Docker Build and Push
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+      tag:
+        description: "Docker image tag (leave empty for auto-generated)"
+        required: false
+        type: string
+
+jobs:
+  docker:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    # Only run if Dockerfile exists (safety check for template repos)
+    if: hashFiles('Dockerfile') != ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_REGISTRY }}/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            ENVIRONMENT=${{ inputs.environment }}
+
+      - name: Image digest
+        run: echo "Image pushed with digest ${{ steps.docker_build.outputs.digest }}"

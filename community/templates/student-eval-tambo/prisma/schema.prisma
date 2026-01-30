@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+  // Database Configuration
+  // =====================================================
+  // This template uses SQLite for local development by default.
+  // For production, switch to PostgreSQL or MySQL.
+  //
+  // SQLite (Default - Local Development):
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+  // PostgreSQL (Production):
+  // Uncomment below and update DATABASE_URL in .env.local
+  // datasource db {
+  //   provider = "postgresql"
+  //   url      = env("DATABASE_URL")
+  // }
+
+  // MySQL (Production):
+  // Uncomment below and update DATABASE_URL in .env.local
+  // datasource db {
+  //   provider = "mysql"
+  //   url      = env("DATABASE_URL")
+  // }
+
+  // =====================================================
+  // Database Models
+  // =====================================================
+
+model Student {
+  id      Int    @id @default(autoincrement())
+  name    String
+  subject String
+  score   Int
+}
