@@ -121,19 +121,16 @@ const Message = React.forwardRef<HTMLDivElement, MessageProps>(
     return (
       <MessageBase.Root
         ref={ref}
-        className={cn(messageVariants({ variant }), "group", className)}
+        className={cn(
+          messageVariants({ variant }),
+          "data-[message-role=assistant]:w-full",
+          className,
+        )}
         message={message}
         role={role}
         {...props}
       >
-        <div
-          className={cn(
-            "flex flex-col max-w-full group-data-[role=assistant]:w-full",
-            className,
-          )}
-        >
-          {children}
-        </div>
+        {children}
       </MessageBase.Root>
     );
   },
