@@ -124,7 +124,10 @@
     },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["^test"] },
+    "test": {
+      "dependsOn": ["^test"],
+      "outputs": ["coverage/**"]
+    },
     "@tambo-ai-cloud/web#test": {
       "dependsOn": ["@tambo-ai/react#build", "^test"]
     }

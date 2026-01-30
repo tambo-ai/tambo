@@ -66,12 +66,19 @@ tambo create-app my-app --template=standard
 
 ```bash
 tambo add <component> --yes --prefix=src/components/tambo
+tambo add <component> --dry-run  # Preview without installing
 ```
 
 **List components (no prompts needed):**
 
 ```bash
 tambo list --yes
+```
+
+**Authenticate (for --project-name/--project-id flows):**
+
+```bash
+tambo auth login --no-browser  # Prints URL instead of opening browser
 ```
 
 ### Detection Logic

@@ -4,19 +4,28 @@
  * Provides React hooks and providers for building AI-powered applications
  * using the v1 streaming API with AG-UI protocol.
  *
+ * ## Authentication & Thread Ownership
+ *
+ * All thread operations require user identification. Provide ONE of:
+ * - `userKey` - Direct user identifier (for server-side or trusted environments)
+ * - `userToken` - OAuth bearer token containing the userKey (for client-side apps)
+ *
+ * Threads are scoped to the userKey - each user only sees their own threads.
+ *
  * ## Quick Start
  *
  * ```tsx
  * import {
  *   TamboV1Provider,
  *   useTamboV1,
- *   useTamboV1SendMessage,
+ *   useTamboV1ThreadInput,
  * } from '@tambo-ai/react/v1';
  *
  * function App() {
  *   return (
  *     <TamboV1Provider
  *       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+ *       userKey={currentUserId} // Required: identifies thread owner
  *       components={[WeatherCard]}
  *       tools={[searchTool]}
  *     >
@@ -28,21 +37,21 @@
  * function ChatInterface() {
  *   const [threadId, setThreadId] = useState<string>();
  *   const { messages, isStreaming } = useTamboV1(threadId);
- *   const sendMessage = useTamboV1SendMessage(threadId);
+ *   const { value, setValue, submit, isPending } = useTamboV1ThreadInput(threadId);
  *
- *   const handleSend = async (text: string) => {
- *     const result = await sendMessage.mutateAsync({
- *       message: { role: 'user', content: [{ type: 'text', text }] },
- *     });
+ *   const handleSubmit = async (e: React.FormEvent) => {
+ *     e.preventDefault();
+ *     const result = await submit();
  *     if (!threadId) setThreadId(result.threadId);
  *   };
  *
  *   return (
- *     <div>
+ *     <form onSubmit={handleSubmit}>
  *       {messages.map(msg => <Message key={msg.id} message={msg} />)}
  *       {isStreaming && <LoadingIndicator />}
- *       <MessageInput onSend={handleSend} />
- *     </div>
+ *       <input value={value} onChange={(e) => setValue(e.target.value)} />
+ *       <button disabled={isPending}>Send</button>
+ *     </form>
  *   );
  * }
  * ```
@@ -65,58 +74,76 @@
 export {
   TamboV1Provider,
   type TamboV1ProviderProps,
+  useTamboV1Config,
+  type TamboV1Config,
 } from "./providers/tambo-v1-provider";
-
-export {
-  TamboV1StreamProvider,
-  useStreamState,
-  useStreamDispatch,
-  useThreadManagement,
-  type ThreadManagement,
-} from "./providers/tambo-v1-stream-context";
 
 // Re-export registry provider from beta SDK (works with v1)
 export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
+
+// Re-export context helpers from beta SDK (works with v1)
+export {
+  TamboContextHelpersProvider,
+  useTamboContextHelpers,
+} from "../providers/tambo-context-helpers-provider";
 
 // =============================================================================
 // Hooks
 // =============================================================================
 
-export { useTamboV1, type UseTamboV1Return } from "./hooks/use-tambo-v1";
+export { useTamboV1 } from "./hooks/use-tambo-v1";
 
-export {
-  useTamboV1Messages,
-  type UseTamboV1MessagesReturn,
-} from "./hooks/use-tambo-v1-messages";
-
-export {
-  useTamboV1SendMessage,
-  type SendMessageOptions,
-} from "./hooks/use-tambo-v1-send-message";
+export { useTamboV1ThreadInput } from "./hooks/use-tambo-v1-thread-input";
 
 export { useTamboV1Thread } from "./hooks/use-tambo-v1-thread";
 
 export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list";
 
+export { useTamboV1ComponentState } from "./hooks/use-tambo-v1-component-state";
+
+// Re-export client hook from beta SDK (works with v1)
+export { useTamboClient } from "../providers/tambo-client-provider";
+
 // =============================================================================
-// Utilities
+// Re-exports from Beta SDK (compatible with v1)
 // =============================================================================
 
-export { applyJsonPatch } from "./utils/json-patch";
+// Tool definition helper
+export { defineTool } from "../util/registry";
 
+// Built-in context helpers
 export {
-  toAvailableComponent,
-  toAvailableComponents,
-  toAvailableTool,
-  toAvailableTools,
-} from "./utils/registry-conversion";
+  currentPageContextHelper,
+  currentTimeContextHelper,
+} from "../context-helpers";
 
-export {
-  executeClientTool,
-  executeAllPendingTools,
-  type PendingToolCall,
-} from "./utils/tool-executor";
+// Context helper types
+export type {
+  AdditionalContext,
+  ContextHelperFn,
+  ContextHelpers,
+} from "../context-helpers";
 
-export { ToolCallTracker } from "./utils/tool-call-tracker";
+// Component and tool types
+export type {
+  ComponentContextToolMetadata,
+  ComponentRegistry,
+  ParameterSpec,
+  RegisteredComponent,
+  TamboTool,
+  ToolAnnotations,
+} from "../model/component-metadata";
 
-export { handleEventStream } from "./utils/stream-handler";
+// MCP server types
+export { MCPTransport } from "../model/mcp-server-info";
+export type {
+  McpServerInfo,
+  NormalizedMcpServerInfo,
+} from "../model/mcp-server-info";
+
+// Resource types
+export type {
+  ListResourceItem,
+  ReadResourceResult,
+  ResourceSource,
+} from "../model/resource-info";

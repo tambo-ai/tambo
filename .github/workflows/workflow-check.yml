@@ -1,0 +1,36 @@
+name: check
+
+permissions: {}
+
+on:
+  workflow_call:
+    inputs:
+      pass-condition:
+        type: boolean
+        description: "The condition to check"
+        required: true
+      error-message:
+        type: string
+        description: "The error message to display if the condition fails"
+        required: false
+        default: "The specified condition for the workflow has failed. Please check the previous jobs for details."
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      RESULT: ${{ inputs.pass-condition == true && 'success' || 'failure' }}
+      ERROR_MESSAGE: ${{ inputs.error-message }}
+    steps:
+      - name: Job Result
+        id: result
+        shell: bash
+        run: | # shell
+          # Job Result
+
+          if [[ $RESULT == 'failure' ]]; then
+            echo "::error title=Condition Failed::${ERROR_MESSAGE}"
+            exit 1
+          else
+            exit 0
+          fi

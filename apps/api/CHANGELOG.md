@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.133.4](https://github.com/tambo-ai/tambo/compare/api-v0.133.3...api-v0.133.4) (2026-01-30)
+
+
+### Bug Fixes
+
+* **api:** remove langfuse span processing ([#2052](https://github.com/tambo-ai/tambo/issues/2052)) ([4a715ad](https://github.com/tambo-ai/tambo/commit/4a715ad16d707d0110e861258de08bd6367f809c))
+
+## [0.133.3](https://github.com/tambo-ai/tambo/compare/api-v0.133.2...api-v0.133.3) (2026-01-29)
+
+
+### Miscellaneous Chores
+
+* small change to trigger api release ([#2045](https://github.com/tambo-ai/tambo/issues/2045)) ([d52f777](https://github.com/tambo-ai/tambo/commit/d52f777da55dcb5e48d43fac1a1842618f187307))
+
+## [0.133.2](https://github.com/tambo-ai/tambo/compare/api-v0.133.1...api-v0.133.2) (2026-01-29)
+
+
+### Bug Fixes
+
+* **api:** use ANY_CONTEXT_KEY for thread lookups when contextKey is not provided ([#2015](https://github.com/tambo-ai/tambo/issues/2015)) ([24a6dbf](https://github.com/tambo-ai/tambo/commit/24a6dbfb65566ab2dabb32431d300b3f81d6fa1b))
+* fetch thread without contextkey ([#2034](https://github.com/tambo-ai/tambo/issues/2034)) ([3ceaa55](https://github.com/tambo-ai/tambo/commit/3ceaa558ec8547c464426b5c56c2c0c787ea1098))
+
+
+### Documentation
+
+* **api:** clarify userKey description in V1 API DTOs ([#2007](https://github.com/tambo-ai/tambo/issues/2007)) ([a348372](https://github.com/tambo-ai/tambo/commit/a34837236456b7946f933ade9bef701139340a9b))
+
+## [0.133.1](https://github.com/tambo-ai/tambo/compare/api-v0.133.0...api-v0.133.1) (2026-01-29)
+
+
+### Miscellaneous Chores
+
+* **api:** update description ([#2008](https://github.com/tambo-ai/tambo/issues/2008)) ([4a5445d](https://github.com/tambo-ai/tambo/commit/4a5445d00f56e7b9d215f315ae3d5017941001dc))
+
+## [0.133.0](https://github.com/tambo-ai/tambo/compare/api-v0.132.1...api-v0.133.0) (2026-01-28)
+
+
+### Features
+
+* **api:** add userKey support to V1 API endpoints ([#1994](https://github.com/tambo-ai/tambo/issues/1994)) ([02e7169](https://github.com/tambo-ai/tambo/commit/02e7169e63422961a68bd0c40cec2cf7acf11f8d))
+
+
+### Bug Fixes
+
+* **api:** remove inline oneOf schema from component state endpoint ([#1961](https://github.com/tambo-ai/tambo/issues/1961)) ([c79be8e](https://github.com/tambo-ai/tambo/commit/c79be8ec7de12df6ccb0049a95990e05cf4b871f))
+
 ## [0.132.1](https://github.com/tambo-ai/tambo/compare/api-v0.132.0...api-v0.132.1) (2026-01-27)
 
 
