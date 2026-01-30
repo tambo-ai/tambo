@@ -202,6 +202,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
 
       return result;
     },
+    // `stagedImageToResourceContent` is a pure module-level helper (not a hook value).
     [inputValue, imageState, sendMessage, threadId],
   );
 
