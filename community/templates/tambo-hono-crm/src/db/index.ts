@@ -3,10 +3,11 @@ import { drizzle } from 'drizzle-orm/mysql2';
 import * as schema from './schema';
 
 const poolConnection = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '8858',
-  database: 'root1',
+  host: process.env.DATABASE_HOST || 'localhost',
+  user: process.env.DATABASE_USER || 'root',
+  password: process.env.DATABASE_PASSWORD || '',
+  database: process.env.DATABASE_NAME || 'tambo_crm',
+  port: parseInt(process.env.DATABASE_PORT || '3306'),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

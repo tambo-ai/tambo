@@ -89,6 +89,29 @@ app.patch("/contacts/:id", zValidator("json", updateContactSchema), async (c) =>
   }
 });
 
+app.delete("/contacts/:id", async (c) => {
+  try {
+    const id = parseInt(c.req.param("id"));
+    
+    if (isNaN(id)) {
+      return c.json({ error: "Invalid contact ID" }, 400);
+    }
+    
+    await db
+      .delete(contacts)
+      .where(eq(contacts.id, id));
+    
+    return c.json({ 
+      success: true, 
+      id 
+    });
+  } catch (error) {
+    console.error("DELETE CONTACT ERROR:", error);
+    return c.json({ error: "Failed to delete contact" }, 500);
+  }
+});
+
 export const GET = handle(app);
 export const POST = handle(app);
 export const PATCH = handle(app);
+export const DELETE = handle(app);

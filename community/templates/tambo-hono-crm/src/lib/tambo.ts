@@ -1,16 +1,9 @@
 
 /* eslint-disable */
 import { z } from "zod";
-import { ContactCard, ContactCardPropsSchema, ContactList, ContactListPropsSchema } from "../components/tambo";
+import { ContactList, ContactListPropsSchema } from "../components/tambo";
 
 export const tamboComponents = [
-  {
-    name: "ContactCard",
-    description:
-      "A professional card for displaying and managing contact leads. Use this when the user asks to see a person's details or when a contact is successfully created.",
-    component: ContactCard,
-    propsSchema: ContactCardPropsSchema,
-  },
   {
     name: "ContactList",
     description:
@@ -38,6 +31,10 @@ const addContactSchema = z.object({
 
 const searchContactsSchema = z.object({
   query: z.string().describe('Search term to find contacts by name or company'),
+});
+
+const deleteContactSchema = z.object({
+  id: z.number().describe('The ID of the contact to delete'),
 });
 
 const updateContactSchema = z.object({
@@ -70,8 +67,6 @@ export const tamboTools = [
         const result = await response.json();
         return {
           success: true,
-          contact: result,
-          message: `Contact ${params.name} has been successfully saved to the database.`,
         };
       } catch (_error) {
         return {
@@ -116,7 +111,6 @@ export const tamboTools = [
         return {
           success: true,
           contacts,
-          message: `Found ${contacts.length} contact(s). Displaying results in ContactList.`,
         };
       } catch (_error) {
         return {
@@ -160,8 +154,6 @@ export const tamboTools = [
         const result = await response.json();
         return {
           success: true,
-          message: `Contact updated successfully.`,
-          id,
         };
       } catch (_error) {
         return {
@@ -174,6 +166,37 @@ export const tamboTools = [
     outputSchema: z.object({
       success: z.boolean(),
       message: z.string().optional(),
+      id: z.number().optional(),
+      error: z.string().optional(),
+    }),
+  },
+  {
+    name: "delete_contact",
+    description: "Delete/remove a contact from the database permanently. Use this when user asks to remove, delete, or get rid of contacts.",
+    tool: async (params: z.infer<typeof deleteContactSchema>) => {
+      try {
+        const response = await fetch(`/api/contacts/${params.id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return {
+          success: true,
+        };
+      } catch (error) {
+        console.error('DELETE CONTACT ERROR:', error);
+        return {
+          success: false,
+          error: 'Failed to delete contact',
+        };
+      }
+    },
+    inputSchema: deleteContactSchema,
+    outputSchema: z.object({
+      success: z.boolean(),
       id: z.number().optional(),
       error: z.string().optional(),
     }),

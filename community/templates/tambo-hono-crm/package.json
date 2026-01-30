@@ -1,14 +1,16 @@
 {
   "name": "tambo-hono-crm",
   "version": "1.0.0",
-  "description": "Tambo CRM template with Hono API",
-  "main": "index.js",
+  "description": "Minimal CRM starter with Tambo AI, Hono API, and MySQL",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.2.0",
@@ -33,11 +35,11 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-
     "@types/node": "^22.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "autoprefixer": "^10.4.0",
+    "drizzle-kit": "^0.30.0",
     "eslint": "^8.0.0",
     "eslint-config-next": "^14.0.0",
     "postcss": "^8.4.0",
