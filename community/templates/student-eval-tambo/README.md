@@ -1,37 +1,39 @@
-# Tambo Database Starter Template
+# Student Performance Analytics with Tambo AI
 
-This is a starter Next.js app with Tambo + **Prisma ORM database integration** to get your AI-powered data applications started quickly.
+A Next.js starter template for AI-powered student performance analytics using **Tambo AI**, **Prisma ORM**, and **Generative UI**. Analyze student data, identify low performers, and generate insights in real-time.
 
-Unlike the standard Next.js template, this starter demonstrates how to integrate a real database with Tambo AI tools, using SQLite locally and providing clear migration paths to PostgreSQL or MySQL for production.
+## 🎯 Features
 
-## 🎯 What Makes This Template Different
+- ✅ **AI-Powered Analytics** - Use Tambo generative UI to query student data naturally
+- ✅ **Database Integration** - Prisma ORM with SQLite (local) and PostgreSQL/MySQL (production)
+- ✅ **Student Performance Tools** - Fetch all students, identify low performers, aggregate by subject
+- ✅ **Type-Safe API Routes** - Server-side data access with Zod validation
+- ✅ **Real-Time Data** - Seed sample data and run migrations instantly
+- ✅ **Production-Ready** - Migration paths for PostgreSQL and MySQL
 
-This template's **primary value** is demonstrating **database integration** with Tambo:
+## 🚀 Quick Start
 
-- ✅ **Prisma ORM** with SQLite for local development
-- ✅ **Production-ready** database configuration for PostgreSQL/MySQL
-- ✅ **Server-side data fetching** via Next.js API routes
-- ✅ **Type-safe queries** with Prisma Client
-- ✅ **AI-powered data analysis** using Tambo tools
-- ✅ **Database migration** management with Prisma Migrate
-
-## Get Started
-
-1. **Install dependencies**
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-2. **Set up Tambo**
+### 2. Set Up Tambo
+
+Get your API key from [tambo.ai/dashboard](https://tambo.ai/dashboard), then:
 
 ```bash
 npx tambo init
 ```
 
-Or rename `.env.local.example` to `.env.local` and add your Tambo API key from [tambo.ai/dashboard](https://tambo.ai/dashboard)
+Or manually add to `.env.local`:
 
-3. **Initialize database**
+```env
+NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here
+```
+
+### 3. Initialize Database
 
 ```bash
 npx prisma generate
@@ -39,163 +41,138 @@ npx prisma migrate dev
 npm run seed
 ```
 
-4. **Start development server**
+### 4. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app!
+Open [http://localhost:3000](http://localhost:3000) in your browser!
 
-## 📊 Database Configuration
+## 📊 How It Works
 
-### Local Development (SQLite)
+### Data Architecture
 
-By default, this template uses **SQLite** for local development - no setup required!
+```
+Tambo AI (Frontend)
+    ↓
+Generative UI Components
+    ↓
+Tambo Tools (Natural Language Interface)
+    ↓
+API Routes (app/api/students/)
+    ↓
+Prisma Client (Type-Safe ORM)
+    ↓
+SQLite (Local) / PostgreSQL (Production)
+```
 
-Your database file is created at `prisma/dev.db` and works immediately after running migrations.
+### Student Performance Tools
 
-### Production (PostgreSQL or MySQL)
+The template includes three pre-built Tambo tools:
 
-When you're ready for production, switch to PostgreSQL or MySQL:
+| Tool                | Description                    | Use Case                  |
+| ------------------- | ------------------------------ | ------------------------- |
+| `getAllStudents`    | Fetch all students with scores | Overview and analysis     |
+| `getLowPerformers`  | Get students below threshold   | Identify at-risk students |
+| `getSubjectSummary` | Aggregate scores by subject    | Subject-level insights    |
 
-**Option 1: PostgreSQL (Recommended)**
+Ask Tambo naturally: _"Show me all students with low Math scores"_ or _"Which subject needs the most attention?"_
 
-1. Update `prisma/schema.prisma`:
+## 🛠️ Database Configuration
 
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
+### Development (SQLite)
 
-2. Add connection string to `.env.local`:
+Default setup - no configuration needed. Database file: `prisma/dev.db`
 
-   ```
-   DATABASE_URL="postgresql://user:password@localhost:5432/mydb?schema=public"
-   ```
+### Production (PostgreSQL Recommended)
 
-3. Run migrations:
-   ```bash
-   npx prisma migrate dev
-   ```
-
-**Option 2: MySQL**
-
-1. Update `prisma/schema.prisma`:
-
-   ```prisma
-   datasource db {
-     provider = "mysql"
-     url      = env("DATABASE_URL")
-   }
-   ```
-
-2. Add connection string to `.env.local`:
-
-   ```
-   DATABASE_URL="mysql://user:password@localhost:3306/mydb"
-   ```
-
-3. Run migrations:
-   ```bash
-   npx prisma migrate dev
-   ```
-
-> **💡 Tip:** The `prisma/schema.prisma` file includes commented examples for all three database providers.
-
-## Customizing
-
-### Database Integration Pattern
-
-This template demonstrates the recommended pattern for database integration with Tambo:
-
-**1. Prisma Schema** (`prisma/schema.prisma`)
-
-Define your data models:
+Update `prisma/schema.prisma`:
 
 ```prisma
-model Student {
-  id      Int    @id @default(autoincrement())
-  name    String
-  subject String
-  score   Int
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 ```
 
-**2. API Routes** (`app/api/students/`)
+Add to `.env.local`:
 
-API routes handle server-side Prisma queries safely:
+```env
+DATABASE_URL="postgresql://user:password@host:5432/dbname?schema=public"
+```
 
-```typescript
-// app/api/students/all/route.ts
-export async function GET() {
-  const students = await prisma.student.findMany({
-    orderBy: { score: "desc" },
-  });
-  return Response.json(students);
+Run migrations:
+
+```bash
+npx prisma migrate deploy
+```
+
+## 📚 Project Structure
+
+```
+student-eval-tambo/
+├── app/
+│   ├── api/students/          # API routes for data access
+│   │   ├── all/               # Fetch all students
+│   │   ├── low-performers/    # Filter by score threshold
+│   │   └── subject-summary/   # Aggregate by subject
+│   ├── globals.css            # Tailwind styles
+│   ├── layout.tsx             # Root layout with Tambo provider
+│   └── page.tsx               # Main page
+├── lib/
+│   └── prisma.ts              # Prisma Client singleton
+├── prisma/
+│   ├── schema.prisma          # Database models
+│   ├── seed.ts                # Sample data
+│   └── migrations/            # Migration history
+├── tools/
+│   └── studentTools.ts        # Tambo tool definitions
+└── package.json
+```
+
+## 🔧 Common Tasks
+
+### Add New Data Models
+
+1. Update `prisma/schema.prisma`:
+
+```prisma
+model YourModel {
+  id    Int     @id @default(autoincrement())
+  name  String
 }
 ```
 
-**3. Tambo Tools** (`tools/studentTools.ts`)
+2. Create migration:
 
-Tools call API routes to fetch data for AI processing:
+```bash
+npx prisma migrate dev --name add_your_model
+```
+
+3. Update seed in `prisma/seed.ts` and run:
+
+```bash
+npm run seed
+```
+
+### Create New Tambo Tool
+
+1. Add API route in `app/api/` (e.g., `app/api/your-endpoint/route.ts`)
+2. Define tool in `tools/studentTools.ts`:
 
 ```typescript
-const getAllStudentsTool: TamboTool = {
-  name: "getAllStudents",
-  description: "Fetch all students with their scores",
+const yourTool: TamboTool = {
+  name: "yourTool",
+  description: "What this tool does",
   tool: async () => {
-    const response = await fetch("/api/students/all");
+    const response = await fetch("/api/your-endpoint");
     return await response.json();
   },
 };
 ```
 
-**Why This Pattern?**
-
-- ✅ Keeps Prisma on the server (can't run in browser)
-- ✅ Type-safe end-to-end with Zod schemas
-- ✅ Separates data access from AI logic
-- ✅ Easy to test and maintain
-
-### Included Tools
-
-- `getAllStudents` - Fetch all student records
-- `getLowPerformers` - Filter students below a score threshold
-- `getSubjectSummary` - Aggregate performance by subject
-
-Sample data includes 6 students across Math, Science, and History subjects.
-
-### Add Your Own Data Models
-
-1. Update `prisma/schema.prisma` with your models
-2. Run `npx prisma migrate dev --name your_migration`
-3. Update seed data in `prisma/seed.ts`
-4. Run `npm run seed`
-
-### Add More Tambo Tools
-
-1. Create API routes in `app/api/` for data access
-2. Define tools in `tools/studentTools.ts`
-3. Register tools in `app/providers.tsx`
-
-### Change what components tambo can control
-
-You can register Tambo components in `app/providers.tsx`:
-
-```tsx
-<TamboProvider
-  apiKey={apiKey}
-  tools={tools}
-  components={components} // Add your components here
->
-  {children}
-</TamboProvider>
-```
-
-Read more about components at [https://docs.tambo.co/concepts/generative-interfaces/generative-components](https://docs.tambo.co/concepts/generative-interfaces/generative-components)
+3. Register in `app/providers.tsx` in the tools array
 
 ### Database Commands
 
@@ -203,17 +180,51 @@ Read more about components at [https://docs.tambo.co/concepts/generative-interfa
 npm run db:generate    # Generate Prisma Client
 npm run db:migrate     # Run migrations
 npm run db:studio      # Open Prisma Studio (GUI)
-npm run seed           # Seed database with sample data
+npm run seed           # Seed database
 ```
 
-## Learn More
+## 📖 Learn More
 
-- [Tambo Documentation](https://docs.tambo.co/)
-- [Tambo Tools](https://docs.tambo.co/concepts/tools)
+- [Tambo AI Docs](https://docs.tambo.co/)
+- [Tambo Tools Guide](https://docs.tambo.co/concepts/tools)
+- [Generative Components](https://docs.tambo.co/concepts/generative-interfaces/generative-components)
 - [Prisma Documentation](https://www.prisma.io/docs)
-- [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
 - [Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
+
+## 📝 Environment Setup
+
+Create `.env.local` in the root directory:
+
+```env
+# Tambo API Key
+NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here
+
+# Optional: For production database
+# DATABASE_URL=postgresql://...
+```
+
+## 🎓 Sample Data
+
+The template seeds 6 students across three subjects:
+
+- **Math**: Alex (95), Jordan (72), Sam (88)
+- **Science**: Casey (85), Morgan (68)
+- **History**: Taylor (92)
+
+Run `npm run seed` to populate the database with sample data.
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. Connect your GitHub repo to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push
+
+### Other Platforms
+
+Ensure your hosting supports Node.js 18+. Set `DATABASE_URL` environment variable to your production database.
 
 ---
 
-**Built with [Tambo AI](https://tambo.co)**
+**Happy building with Tambo AI! 🎉**
