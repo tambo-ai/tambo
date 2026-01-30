@@ -202,20 +202,20 @@ export function TamboV1StubProvider({
 
   // Build component registry
   const componentList = useMemo(() => {
-    return components.reduce(
-      (acc, component) => {
-        acc[component.name] = {
-          component: component.component,
-          loadingComponent: component.loadingComponent,
-          name: component.name,
-          description: component.description,
-          props: component.propsDefinition ?? {},
-          contextTools: [],
-        };
-        return acc;
-      },
-      {} as Record<string, any>,
-    );
+    const list: TamboRegistryContext["componentList"] = {};
+
+    for (const component of components) {
+      list[component.name] = {
+        component: component.component,
+        loadingComponent: component.loadingComponent,
+        name: component.name,
+        description: component.description,
+        props: component.propsDefinition ?? {},
+        contextTools: [],
+      };
+    }
+
+    return list;
   }, [components]);
 
   // Build tool registry
@@ -270,27 +270,30 @@ export function TamboV1StubProvider({
   const [inputValue, setInputValueInternal] = React.useState(initialInputValue);
 
   // Thread input context
-  const threadInputContext = useMemo(() => {
-    const setValue = onSetValue ?? setInputValueInternal;
+  const threadInputContext = useMemo<TamboV1ThreadInputContextProps>(() => {
+    const setValue: React.Dispatch<React.SetStateAction<string>> =
+      onSetValue ?? setInputValueInternal;
+
+    const submit: TamboV1ThreadInputContextProps["submit"] =
+      onSubmit ??
+      (async () => {
+        return { threadId };
+      });
 
     return {
       value: inputValue,
-      setValue: setValue as any,
-      submit:
-        onSubmit ??
-        (async () => {
-          return { threadId };
-        }),
+      setValue,
+      submit,
       threadId,
       setThreadId: () => {},
       images: [],
-      addImage: () => {},
-      addImages: () => {},
+      addImage: async () => {},
+      addImages: async () => {},
       removeImage: () => {},
       clearImages: () => {},
       isPending: false,
       isError: false,
-      error: undefined,
+      error: null,
       isIdle: true,
       isSuccess: false,
       status: "idle",
@@ -302,11 +305,11 @@ export function TamboV1StubProvider({
       context: undefined,
       submittedAt: 0,
       isPaused: false,
-    } as unknown as TamboV1ThreadInputContextProps;
-  }, [inputValue, threadId, onSubmit, onSetValue]);
+    };
+  }, [inputValue, threadId, onSubmit, onSetValue, setInputValueInternal]);
 
   // Registry context
-  const registryContext = useMemo(
+  const registryContext = useMemo<TamboRegistryContext>(
     () => ({
       componentList,
       toolRegistry,
@@ -316,19 +319,14 @@ export function TamboV1StubProvider({
       resourceSource: null,
       onCallUnregisteredTool: undefined,
       registerComponent: () => {},
-      unregisterComponent: () => {},
       registerTool: () => {},
-      unregisterTool: () => {},
       registerTools: () => {},
+      addToolAssociation: () => {},
       registerMcpServer: () => {},
       registerMcpServers: () => {},
-      unregisterMcpServer: () => {},
       registerResource: () => {},
       registerResources: () => {},
-      unregisterResource: () => {},
       registerResourceSource: () => {},
-      setResourceSource: () => {},
-      addToolAssociation: () => {},
     }),
     [componentList, toolRegistry],
   );
@@ -346,7 +344,7 @@ export function TamboV1StubProvider({
   return (
     <QueryClientProvider client={queryClient}>
       <TamboClientContext.Provider value={clientContext}>
-        <TamboRegistryContext.Provider value={registryContext as any}>
+        <TamboRegistryContext.Provider value={registryContext}>
           <TamboV1ConfigContext.Provider value={config}>
             <TamboV1StreamProvider
               state={streamState}

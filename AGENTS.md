@@ -56,6 +56,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - Node.js >=22
 - npm >=11
 
+It is OK to use `crypto.randomUUID()` without a fallback in runtime and test code (Node.js >=22 and modern browsers).
+
 **Recommended:** Install [mise](https://mise.jdx.dev) for automatic version management. See [mise getting started](https://mise.jdx.dev/getting-started.html) for installation instructions.
 
 ### Tool Versions

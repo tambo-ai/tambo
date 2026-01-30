@@ -34,7 +34,7 @@ describe("TamboV1Provider", () => {
   const mockClient = {
     apiKey: "test-api-key",
     threads: {},
-  } as unknown as TamboAI;
+  } as any as TamboAI;
 
   beforeEach(() => {
     jest.mocked(useTamboClient).mockReturnValue(mockClient);
