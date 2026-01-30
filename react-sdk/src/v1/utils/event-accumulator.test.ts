@@ -13,10 +13,7 @@ import {
   type ToolCallResultEvent,
   type ToolCallStartEvent,
 } from "@ag-ui/core";
-import type {
-  ComponentContent,
-  ToolUseContent,
-} from "@tambo-ai/typescript-sdk/resources/threads/threads";
+import type { ToolUseContent } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import {
   createInitialState,
   createInitialThreadState,
@@ -24,7 +21,7 @@ import {
   type StreamState,
   type ThreadState,
 } from "./event-accumulator";
-import type { Content } from "../types/message";
+import type { Content, V1ComponentContent } from "../types/message";
 
 /**
  * Helper to extract a ToolUseContent from a message content array.
@@ -37,16 +34,16 @@ function asToolUseContent(content: Content[], index: number): ToolUseContent {
 }
 
 /**
- * Helper to extract a ComponentContent from a message content array.
+ * Helper to extract a V1ComponentContent from a message content array.
  * @param content - Content array from a message
  * @param index - Index of the content item
- * @returns The content as ComponentContent
+ * @returns The content as V1ComponentContent
  */
 function asComponentContent(
   content: Content[],
   index: number,
-): ComponentContent {
-  return content[index] as ComponentContent;
+): V1ComponentContent {
+  return content[index] as V1ComponentContent;
 }
 
 // Helper to create a base thread state for testing
@@ -779,6 +776,7 @@ describe("streamReducer", () => {
         id: "comp_1",
         name: "WeatherCard",
         props: {},
+        streamingState: "started",
       });
     });
 
@@ -789,7 +787,13 @@ describe("streamReducer", () => {
           id: "msg_1",
           role: "assistant",
           content: [
-            { type: "component", id: "comp_1", name: "Test", props: {} },
+            {
+              type: "component",
+              id: "comp_1",
+              name: "Test",
+              props: {},
+              streamingState: "started",
+            },
           ],
           createdAt: "2024-01-01T00:00:00.000Z",
         },
@@ -815,6 +819,7 @@ describe("streamReducer", () => {
         0,
       );
       expect(component.props).toEqual({ temperature: 72 });
+      expect(component.streamingState).toBe("streaming");
     });
 
     it("throws when component not found for props_delta", () => {
@@ -873,7 +878,13 @@ describe("streamReducer", () => {
           id: "msg_1",
           role: "assistant",
           content: [
-            { type: "component", id: "comp_1", name: "Counter", props: {} },
+            {
+              type: "component",
+              id: "comp_1",
+              name: "Counter",
+              props: {},
+              streamingState: "started",
+            },
           ],
           createdAt: "2024-01-01T00:00:00.000Z",
         },
@@ -899,6 +910,7 @@ describe("streamReducer", () => {
         0,
       );
       expect(component.state).toEqual({ count: 42 });
+      expect(component.streamingState).toBe("streaming");
     });
 
     it("handles tambo.component.end event", () => {
@@ -908,7 +920,13 @@ describe("streamReducer", () => {
           id: "msg_1",
           role: "assistant",
           content: [
-            { type: "component", id: "comp_1", name: "Test", props: {} },
+            {
+              type: "component",
+              id: "comp_1",
+              name: "Test",
+              props: {},
+              streamingState: "streaming",
+            },
           ],
           createdAt: "2024-01-01T00:00:00.000Z",
         },
@@ -926,13 +944,210 @@ describe("streamReducer", () => {
         threadId: "thread_1",
       });
 
-      // component.end doesn't change state currently, just returns unchanged
+      // component.end sets streamingState to 'done'
       expect(result.threadMap.thread_1.thread.messages[0].content[0]).toEqual({
         type: "component",
         id: "comp_1",
         name: "Test",
         props: {},
+        streamingState: "done",
       });
+    });
+
+    it("throws when message not found for tambo.component.start", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.start",
+        value: {
+          messageId: "unknown_msg",
+          componentId: "comp_1",
+          componentName: "Test",
+        },
+      };
+
+      expect(() => {
+        streamReducer(state, {
+          type: "EVENT",
+          event,
+          threadId: "thread_1",
+        });
+      }).toThrow(
+        "Message unknown_msg not found for tambo.component.start event",
+      );
+    });
+
+    it("throws when component not found for tambo.component.end", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.end",
+        value: { componentId: "unknown_comp" },
+      };
+
+      expect(() => {
+        streamReducer(state, {
+          type: "EVENT",
+          event,
+          threadId: "thread_1",
+        });
+      }).toThrow("component unknown_comp not found");
+    });
+
+    it("handles multiple component props_delta operations", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            {
+              type: "component",
+              id: "comp_1",
+              name: "Test",
+              props: { existing: "value" },
+              streamingState: "started",
+            },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.props_delta",
+        value: {
+          componentId: "comp_1",
+          operations: [
+            { op: "add", path: "/newProp", value: "new" },
+            { op: "replace", path: "/existing", value: "updated" },
+          ],
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const component = asComponentContent(
+        result.threadMap.thread_1.thread.messages[0].content,
+        0,
+      );
+      expect(component.props).toEqual({
+        existing: "updated",
+        newProp: "new",
+      });
+    });
+
+    it("handles multiple components in same message", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            {
+              type: "component",
+              id: "comp_1",
+              name: "First",
+              props: {},
+              streamingState: "done",
+            },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // Add second component
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.start",
+        value: {
+          messageId: "msg_1",
+          componentId: "comp_2",
+          componentName: "Second",
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const content = result.threadMap.thread_1.thread.messages[0].content;
+      expect(content).toHaveLength(2);
+      expect(asComponentContent(content, 0).id).toBe("comp_1");
+      expect(asComponentContent(content, 1).id).toBe("comp_2");
+    });
+
+    it("updates correct component when multiple exist", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "assistant",
+          content: [
+            {
+              type: "component",
+              id: "comp_1",
+              name: "First",
+              props: { value: 1 },
+              streamingState: "done",
+            },
+            {
+              type: "component",
+              id: "comp_2",
+              name: "Second",
+              props: { value: 2 },
+              streamingState: "streaming",
+            },
+          ],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      // Update second component
+      const event: CustomEvent = {
+        type: EventType.CUSTOM,
+        name: "tambo.component.props_delta",
+        value: {
+          componentId: "comp_2",
+          operations: [{ op: "replace", path: "/value", value: 99 }],
+        },
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const content = result.threadMap.thread_1.thread.messages[0].content;
+      // First component unchanged
+      expect(asComponentContent(content, 0).props).toEqual({ value: 1 });
+      // Second component updated
+      expect(asComponentContent(content, 1).props).toEqual({ value: 99 });
     });
   });
 

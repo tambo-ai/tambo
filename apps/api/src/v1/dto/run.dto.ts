@@ -32,6 +32,15 @@ export class V1CreateRunDto {
   message!: V1InputMessageDto;
 
   @ApiProperty({
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  userKey?: string;
+
+  @ApiProperty({
     description: "Available UI components the model can render",
     type: [V1AvailableComponentDto],
     required: false,

@@ -14,6 +14,7 @@ import {
   ilike,
   inArray,
   isNull,
+  lt,
   not,
   or,
   type SQL,
@@ -23,6 +24,18 @@ import { type SubqueryWithSelection } from "drizzle-orm/pg-core";
 import { mergeSuperJson } from "../drizzleUtil";
 import * as schema from "../schema";
 import type { HydraDb } from "../types";
+
+/**
+ * Sentinel value to skip contextKey filtering entirely.
+ * Use this when you want to match threads regardless of their contextKey value.
+ *
+ * - `undefined` = filter by `contextKey IS NULL`
+ * - `ANY_CONTEXT_KEY` = no contextKey filter (matches all)
+ * - `"some-string"` = filter by exact contextKey match
+ */
+export const ANY_CONTEXT_KEY: unique symbol = Symbol("ANY_CONTEXT_KEY");
+
+export type ContextKeyFilter = string | typeof ANY_CONTEXT_KEY | undefined;
 
 export type ThreadMetadata = Record<string, unknown>;
 export type MessageContent = string | Record<string, unknown>;
@@ -79,24 +92,29 @@ export async function getThreadGenerationStage(
   return thread?.generationStage;
 }
 
+function buildContextKeyCondition(contextKey: ContextKeyFilter) {
+  if (contextKey === ANY_CONTEXT_KEY) {
+    return undefined;
+  }
+  if (contextKey) {
+    return eq(schema.threads.contextKey, contextKey);
+  }
+  return isNull(schema.threads.contextKey);
+}
+
 export async function getThreadForProjectId(
   db: HydraDb,
   threadId: string,
   projectId: string,
-  contextKey?: string,
+  contextKey: ContextKeyFilter = undefined,
   includeSystem: boolean = true,
 ): Promise<schema.DBThreadWithMessages | undefined> {
   return await db.query.threads.findFirst({
-    where: contextKey
-      ? and(
-          eq(schema.threads.id, threadId),
-          eq(schema.threads.projectId, projectId),
-          eq(schema.threads.contextKey, contextKey),
-        )
-      : and(
-          eq(schema.threads.id, threadId),
-          eq(schema.threads.projectId, projectId),
-        ),
+    where: and(
+      eq(schema.threads.id, threadId),
+      eq(schema.threads.projectId, projectId),
+      buildContextKeyCondition(contextKey),
+    ),
     with: {
       messages: {
         where: includeSystem
@@ -120,19 +138,17 @@ export async function getThreadsByProject(
     limit = 10,
     includeMessages = true,
   }: {
-    contextKey?: string;
+    contextKey?: ContextKeyFilter;
     offset?: number;
     limit?: number;
     includeMessages?: boolean;
   } = {},
 ) {
   return await db.query.threads.findMany({
-    where: contextKey
-      ? and(
-          eq(schema.threads.projectId, projectId),
-          eq(schema.threads.contextKey, contextKey),
-        )
-      : eq(schema.threads.projectId, projectId),
+    where: and(
+      eq(schema.threads.projectId, projectId),
+      buildContextKeyCondition(contextKey),
+    ),
     with: includeMessages
       ? {
           messages: true,
@@ -143,16 +159,73 @@ export async function getThreadsByProject(
     limit,
   });
 }
+
+/**
+ * Cursor for paginated thread queries.
+ */
+export interface ThreadCursor {
+  createdAt: Date;
+  id: string;
+}
+
+/**
+ * List threads for a project with cursor-based pagination.
+ * Uses compound cursor (createdAt + id) for stable pagination.
+ *
+ * @param db - Database connection
+ * @param projectId - Project to list threads from
+ * @param contextKey - Context key filter (required for V1 API)
+ * @param options - Pagination options
+ * @returns Array of threads (caller should handle hasMore logic by requesting limit+1)
+ */
+export async function listThreadsPaginated(
+  db: HydraDb,
+  projectId: string,
+  contextKey: string,
+  {
+    cursor,
+    limit,
+  }: {
+    cursor?: ThreadCursor;
+    limit: number;
+  },
+): Promise<schema.DBThread[]> {
+  const conditions = [
+    eq(schema.threads.projectId, projectId),
+    eq(schema.threads.contextKey, contextKey),
+  ];
+
+  if (cursor) {
+    const cursorCondition = or(
+      lt(schema.threads.createdAt, cursor.createdAt),
+      and(
+        eq(schema.threads.createdAt, cursor.createdAt),
+        lt(schema.threads.id, cursor.id),
+      ),
+    );
+    if (cursorCondition) {
+      conditions.push(cursorCondition);
+    }
+  }
+
+  return await db.query.threads.findMany({
+    where: and(...conditions),
+    orderBy: [desc(schema.threads.createdAt), desc(schema.threads.id)],
+    limit,
+  });
+}
+
 export async function countThreadsByProject(
   db: HydraDb,
   projectId: string,
-  { contextKey }: { contextKey?: string } = {},
+  { contextKey }: { contextKey?: ContextKeyFilter } = {},
 ) {
   return await db.$count(
     schema.threads,
-    contextKey
-      ? eq(schema.threads.contextKey, contextKey)
-      : eq(schema.threads.projectId, projectId),
+    and(
+      eq(schema.threads.projectId, projectId),
+      buildContextKeyCondition(contextKey),
+    ),
   );
 }
 
@@ -390,7 +463,7 @@ export async function ensureThreadByProjectId(
   db: HydraDb,
   threadId: string,
   projectId: string,
-  contextKey: string | undefined,
+  contextKey: ContextKeyFilter,
 ) {
   const thread = await getThreadForProjectId(
     db,

@@ -246,6 +246,10 @@ jest.unstable_mockModule("./add/utils.js", () => ({
   checkLegacyComponents: () => null,
   getInstalledComponents: async () => [],
   getComponentList: () => [],
+  getComponentNpmDependencies: () => ({
+    dependencies: [],
+    devDependencies: [],
+  }),
 }));
 
 // Mock tailwind setup (same as add.test.ts)

@@ -10,6 +10,7 @@ import {
 import { MessageRole, ContentPartType } from "@tambo-ai-cloud/core";
 
 // Mock the operations module at the top level while preserving schema
+const mockGetThreadForProjectId = jest.fn();
 const mockGetThreadForRunStart = jest.fn();
 const mockDeleteThread = jest.fn();
 
@@ -22,6 +23,8 @@ jest.mock("@tambo-ai-cloud/db", () => {
     ...actual,
     operations: {
       ...actual.operations,
+      getThreadForProjectId: (...args: unknown[]) =>
+        mockGetThreadForProjectId(...args),
       getThreadForRunStart: (...args: unknown[]) =>
         mockGetThreadForRunStart(...args),
       deleteThread: (...args: unknown[]) => mockDeleteThread(...args),
@@ -107,13 +110,24 @@ describe("V1Service Integration", () => {
           ]),
         ];
 
-        mockDb.query.threads.findFirst.mockResolvedValue({
+        mockGetThreadForProjectId.mockResolvedValue({
           ...mockThread,
           messages: mockMessages,
         });
 
-        const result = await service.getThread("thread_123");
+        const result = await service.getThread(
+          "thread_123",
+          "project_123",
+          "user_456",
+        );
 
+        expect(mockGetThreadForProjectId).toHaveBeenCalledWith(
+          mockDb,
+          "thread_123",
+          "project_123",
+          "user_456",
+          true,
+        );
         expect(result.id).toBe("thread_123");
         expect(result.messages).toHaveLength(2);
         expect(result.messages[0].content[0]).toEqual({
@@ -123,11 +137,11 @@ describe("V1Service Integration", () => {
       });
 
       it("throws NotFoundException when thread not found", async () => {
-        mockDb.query.threads.findFirst.mockResolvedValue(null);
+        mockGetThreadForProjectId.mockResolvedValue(null);
 
-        await expect(service.getThread("nonexistent")).rejects.toThrow(
-          NotFoundException,
-        );
+        await expect(
+          service.getThread("nonexistent", "project_123", "user_456"),
+        ).rejects.toThrow(NotFoundException);
       });
     });
 
@@ -139,7 +153,7 @@ describe("V1Service Integration", () => {
         ];
         mockDb.query.threads.findMany.mockResolvedValue(mockThreads);
 
-        const result = await service.listThreads("project_123", undefined, {});
+        const result = await service.listThreads("project_123", "user_456", {});
 
         expect(result.threads).toHaveLength(2);
         expect(result.hasMore).toBe(false);
@@ -152,7 +166,7 @@ describe("V1Service Integration", () => {
         );
         mockDb.query.threads.findMany.mockResolvedValue(mockThreads);
 
-        const result = await service.listThreads("project_123", undefined, {});
+        const result = await service.listThreads("project_123", "user_456", {});
 
         expect(result.threads).toHaveLength(20);
         expect(result.hasMore).toBe(true);
