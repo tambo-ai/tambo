@@ -196,6 +196,134 @@ describe("V1Service - Suggestions", () => {
         }),
       ).rejects.toThrow();
     });
+
+    it("returns hasMore=false when results exactly match limit", async () => {
+      const suggestion = {
+        id: "sug_1",
+        messageId,
+        title: "Suggestion 1",
+        detailedSuggestion: "Description 1",
+        createdAt: new Date("2024-01-15T12:00:00Z"),
+        updatedAt: new Date("2024-01-15T12:00:00Z"),
+      };
+
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
+        id: messageId,
+        threadId,
+      });
+      // Return exactly limit (not limit + 1), so hasMore=false
+      (operations.listSuggestionsPaginated as jest.Mock).mockResolvedValue([
+        suggestion,
+      ]);
+
+      const result = await service.listSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {
+          limit: "1",
+        },
+      );
+
+      expect(result.suggestions).toHaveLength(1);
+      expect(result.hasMore).toBe(false);
+      expect(result.nextCursor).toBeUndefined();
+    });
+
+    it("passes valid cursor to database operation", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
+        id: messageId,
+        threadId,
+      });
+      (operations.listSuggestionsPaginated as jest.Mock).mockResolvedValue([]);
+
+      // Create a valid base64 cursor
+      const cursorData = {
+        createdAt: "2024-01-15T12:00:00.000Z",
+        id: "sug_previous",
+      };
+      const validCursor = Buffer.from(JSON.stringify(cursorData)).toString(
+        "base64",
+      );
+
+      await service.listSuggestions(threadId, messageId, projectId, userKey, {
+        cursor: validCursor,
+      });
+
+      expect(operations.listSuggestionsPaginated).toHaveBeenCalledWith(
+        expect.anything(),
+        messageId,
+        {
+          cursor: expect.objectContaining({
+            id: "sug_previous",
+          }),
+          limit: 11, // default 10 + 1
+        },
+      );
+    });
+
+    it("throws BadRequestException for empty limit string", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
+        id: messageId,
+        threadId,
+      });
+
+      await expect(
+        service.listSuggestions(threadId, messageId, projectId, userKey, {
+          limit: "",
+        }),
+      ).rejects.toThrow("Invalid limit");
+    });
+
+    it("throws BadRequestException for non-integer limit", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
+        id: messageId,
+        threadId,
+      });
+
+      await expect(
+        service.listSuggestions(threadId, messageId, projectId, userKey, {
+          limit: "abc",
+        }),
+      ).rejects.toThrow("Invalid limit");
+    });
+
+    it("clamps limit to max of 100", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
+        id: messageId,
+        threadId,
+      });
+      (operations.listSuggestionsPaginated as jest.Mock).mockResolvedValue([]);
+
+      await service.listSuggestions(threadId, messageId, projectId, userKey, {
+        limit: "500",
+      });
+
+      expect(operations.listSuggestionsPaginated).toHaveBeenCalledWith(
+        expect.anything(),
+        messageId,
+        {
+          cursor: undefined,
+          limit: 101, // clamped to 100 + 1
+        },
+      );
+    });
   });
 
   describe("generateSuggestions", () => {
@@ -470,6 +598,162 @@ describe("V1Service - Suggestions", () => {
         threadId,
         false,
       );
+    });
+
+    it("fetches and passes thread messages to suggestion generator", async () => {
+      const mockMessages = [
+        {
+          id: "msg_1",
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+        },
+        {
+          id: "msg_2",
+          role: "assistant",
+          content: [{ type: "text", text: "Hi there" }],
+        },
+      ];
+
+      const mockTamboBackend = {
+        generateSuggestions: jest.fn().mockResolvedValue({
+          suggestions: [],
+        }),
+      };
+
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: userKey,
+      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
+        id: messageId,
+        threadId,
+      });
+      (operations.getMessages as jest.Mock).mockResolvedValue(mockMessages);
+      mockThreadsService.createTamboBackendForThread.mockResolvedValue(
+        mockTamboBackend as unknown as ReturnType<
+          ThreadsService["createTamboBackendForThread"]
+        >,
+      );
+
+      await service.generateSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {},
+      );
+
+      // Verify messages are fetched for the correct thread
+      expect(operations.getMessages).toHaveBeenCalledWith(
+        expect.anything(),
+        threadId,
+      );
+      // Verify generateSuggestions is called with an array (messages are converted via dbMessageToThreadMessage)
+      expect(mockTamboBackend.generateSuggestions).toHaveBeenCalledWith(
+        expect.any(Array),
+        3,
+        [],
+        threadId,
+        false,
+      );
+    });
+
+    it("generates and persists multiple suggestions", async () => {
+      const mockGeneratedSuggestions = [
+        { title: "Suggestion 1", detailedSuggestion: "Description 1" },
+        { title: "Suggestion 2", detailedSuggestion: "Description 2" },
+        { title: "Suggestion 3", detailedSuggestion: "Description 3" },
+      ];
+      const mockSavedSuggestions = mockGeneratedSuggestions.map((s, i) => ({
+        id: `sug_${i + 1}`,
+        messageId,
+        title: s.title,
+        detailedSuggestion: s.detailedSuggestion,
+        createdAt: new Date("2024-01-15T12:00:00Z"),
+        updatedAt: new Date("2024-01-15T12:00:00Z"),
+      }));
+
+      const mockTamboBackend = {
+        generateSuggestions: jest.fn().mockResolvedValue({
+          suggestions: mockGeneratedSuggestions,
+        }),
+      };
+
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: userKey,
+      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
+        id: messageId,
+        threadId,
+      });
+      (operations.getMessages as jest.Mock).mockResolvedValue([]);
+      mockThreadsService.createTamboBackendForThread.mockResolvedValue(
+        mockTamboBackend as unknown as ReturnType<
+          ThreadsService["createTamboBackendForThread"]
+        >,
+      );
+      (operations.createSuggestions as jest.Mock).mockResolvedValue(
+        mockSavedSuggestions,
+      );
+
+      const result = await service.generateSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {},
+      );
+
+      expect(operations.createSuggestions).toHaveBeenCalledWith(
+        expect.anything(),
+        mockGeneratedSuggestions.map((s) => ({
+          messageId,
+          title: s.title,
+          detailedSuggestion: s.detailedSuggestion,
+        })),
+      );
+      expect(result.suggestions).toHaveLength(3);
+      expect(result.suggestions.map((s) => s.title)).toEqual([
+        "Suggestion 1",
+        "Suggestion 2",
+        "Suggestion 3",
+      ]);
+    });
+
+    it("passes userKey to createTamboBackendForThread", async () => {
+      const mockTamboBackend = {
+        generateSuggestions: jest.fn().mockResolvedValue({
+          suggestions: [],
+        }),
+      };
+
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: userKey,
+      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
+        id: messageId,
+        threadId,
+      });
+      (operations.getMessages as jest.Mock).mockResolvedValue([]);
+      mockThreadsService.createTamboBackendForThread.mockResolvedValue(
+        mockTamboBackend as unknown as ReturnType<
+          ThreadsService["createTamboBackendForThread"]
+        >,
+      );
+
+      await service.generateSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {},
+      );
+
+      expect(
+        mockThreadsService.createTamboBackendForThread,
+      ).toHaveBeenCalledWith(threadId, userKey);
     });
   });
 });
