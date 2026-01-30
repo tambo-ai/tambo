@@ -286,12 +286,13 @@ function checkMentionExists(editor: Editor, label: string): boolean {
 
 /**
  * Creates the resource mention configuration for TipTap Mention extension.
- * The items() function triggers the search - actual items come from props via stateRef.
+ * The items() function triggers the search - actual items come from props via getStateRef.
+ * Uses a getter function instead of passing the ref directly to avoid reading refs during render.
  */
 function createResourceMentionConfig(
   onSearchChange: (query: string) => void,
   onSelect: (item: ResourceItem) => void,
-  stateRef: React.MutableRefObject<SuggestionRef<ResourceItem>>,
+  getStateRef: () => SuggestionRef<ResourceItem>,
 ): Omit<SuggestionOptions, "editor"> {
   return {
     char: "@",
@@ -314,7 +315,7 @@ function createResourceMentionConfig(
 
       return {
         onStart: (props) => {
-          stateRef.current.setState({
+          getStateRef().setState({
             isOpen: true,
             selectedIndex: 0,
             position: getPositionFromClientRect(props.clientRect),
@@ -322,14 +323,14 @@ function createResourceMentionConfig(
           });
         },
         onUpdate: (props) => {
-          stateRef.current.setState({
+          getStateRef().setState({
             position: getPositionFromClientRect(props.clientRect),
             command: createWrapCommand(props.editor, props.command),
             selectedIndex: 0,
           });
         },
         onKeyDown: ({ event }) => {
-          const { state, setState } = stateRef.current;
+          const { state, setState } = getStateRef();
           if (!state.isOpen) return false;
 
           const handlers: Record<string, () => boolean> = {
@@ -371,7 +372,7 @@ function createResourceMentionConfig(
           return false;
         },
         onExit: () => {
-          stateRef.current.setState({ isOpen: false });
+          getStateRef().setState({ isOpen: false });
         },
       };
     },
@@ -380,12 +381,13 @@ function createResourceMentionConfig(
 
 /**
  * Creates a custom TipTap extension for prompt commands using the Suggestion plugin.
- * The items() function triggers the search - actual items come from props via stateRef.
+ * The items() function triggers the search - actual items come from props via getStateRef.
+ * Uses a getter function instead of passing the ref directly to avoid reading refs during render.
  */
 function createPromptCommandExtension(
   onSearchChange: (query: string) => void,
   onSelect: (item: PromptItem) => void,
-  stateRef: React.MutableRefObject<SuggestionRef<PromptItem>>,
+  getStateRef: () => SuggestionRef<PromptItem>,
 ) {
   return Extension.create({
     name: "promptCommand",
@@ -399,10 +401,10 @@ function createPromptCommandExtension(
             // Only show prompts when editor is empty (except for the "/" and query)
             const editorValue = editor.getText().replace("/", "").trim();
             if (editorValue.length > 0) {
-              stateRef.current.setState({ isOpen: false });
+              getStateRef().setState({ isOpen: false });
               return [];
             }
-            // Trigger search - actual items come from props via stateRef
+            // Trigger search - actual items come from props via getStateRef
             onSearchChange(query);
             return [];
           },
@@ -419,7 +421,7 @@ function createPromptCommandExtension(
                   });
                   onSelect(item);
                 };
-                stateRef.current.setState({
+                getStateRef().setState({
                   isOpen: true,
                   selectedIndex: 0,
                   position: getPositionFromClientRect(props.clientRect),
@@ -434,14 +436,14 @@ function createPromptCommandExtension(
                   });
                   onSelect(item);
                 };
-                stateRef.current.setState({
+                getStateRef().setState({
                   position: getPositionFromClientRect(props.clientRect),
                   command: createCommand,
                   selectedIndex: 0,
                 });
               },
               onKeyDown: ({ event }) => {
-                const { state, setState } = stateRef.current;
+                const { state, setState } = getStateRef();
                 if (!state.isOpen) return false;
 
                 const handlers: Record<string, () => boolean> = {
@@ -484,7 +486,7 @@ function createPromptCommandExtension(
                 return false;
               },
               onExit: () => {
-                stateRef.current.setState({ isOpen: false });
+                getStateRef().setState({ isOpen: false });
               },
             };
           },
@@ -664,6 +666,17 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
       [onSubmit, value, onKeyDown],
     );
 
+    // Create stable getter functions that don't change on re-render
+    // This avoids passing refs directly during render phase
+    const getResourceRef = React.useCallback(
+      () => resourceRef.current,
+      [resourceRef],
+    );
+    const getPromptRef = React.useCallback(
+      () => promptRef.current,
+      [promptRef],
+    );
+
     const editor = useEditor({
       immediatelyRender: false,
       extensions: [
@@ -680,14 +693,14 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
           suggestion: createResourceMentionConfig(
             stableSearchResources,
             handleResourceSelect,
-            resourceRef,
+            getResourceRef,
           ),
           renderLabel: ({ node }) => `@${(node.attrs.label as string) ?? ""}`,
         }),
         createPromptCommandExtension(
           stableSearchPrompts,
           handlePromptSelect,
-          promptRef,
+          getPromptRef,
         ),
       ],
       content: value,
