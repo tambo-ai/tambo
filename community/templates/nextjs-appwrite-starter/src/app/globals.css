@@ -1,64 +1,162 @@
 @import "tailwindcss";
 
-@theme {
-  /* Colors */
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(240 10% 3.9%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(240 10% 3.9%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(240 10% 3.9%);
-  --color-primary: hsl(240 5.9% 10%);
-  --color-primary-foreground: hsl(0 0% 98%);
-  --color-secondary: hsl(240 4.8% 95.9%);
-  --color-secondary-foreground: hsl(240 5.9% 10%);
-  --color-muted: hsl(240 4.8% 95.9%);
-  --color-muted-foreground: hsl(240 3.8% 46.1%);
-  --color-accent: hsl(240 4.8% 95.9%);
-  --color-accent-foreground: hsl(240 5.9% 10%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --color-border: hsl(240 5.9% 90%);
-  --color-input: hsl(240 5.9% 90%);
-  --color-ring: hsl(240 5.9% 10%);
+@custom-variant dark (&:is(.dark *));
 
-  /* Border Radius */
-  --radius-lg: 0.5rem;
-  --radius-md: calc(var(--radius-lg) - 2px);
-  --radius-sm: calc(var(--radius-lg) - 4px);
+@theme inline {
+  /* Tailwind CSS Variables customized with tambo colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Tambo Specific Variables */
+  --color-container: var(--container);
+  --color-backdrop: var(--backdrop);
+  --color-muted-backdrop: var(--muted-backdrop);
 }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-background: hsl(240 10% 3.9%);
-    --color-foreground: hsl(0 0% 98%);
-    --color-card: hsl(240 10% 3.9%);
-    --color-card-foreground: hsl(0 0% 98%);
-    --color-popover: hsl(240 10% 3.9%);
-    --color-popover-foreground: hsl(0 0% 98%);
-    --color-primary: hsl(0 0% 98%);
-    --color-primary-foreground: hsl(240 5.9% 10%);
-    --color-secondary: hsl(240 3.7% 15.9%);
-    --color-secondary-foreground: hsl(0 0% 98%);
-    --color-muted: hsl(240 3.7% 15.9%);
-    --color-muted-foreground: hsl(240 5% 64.9%);
-    --color-accent: hsl(240 3.7% 15.9%);
-    --color-accent-foreground: hsl(0 0% 98%);
-    --color-destructive: hsl(0 62.8% 30.6%);
-    --color-destructive-foreground: hsl(0 0% 98%);
-    --color-border: hsl(240 3.7% 15.9%);
-    --color-input: hsl(240 3.7% 15.9%);
-    --color-ring: hsl(240 4.9% 83.9%);
+:root {
+  /* Default Tailwind CSS Variables customized with tambo colors */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.14 0 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.14 0 285);
+  --primary: oklch(0.31 0.02 281);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.54 0.027 261);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.92 0 260);
+  --muted-foreground: oklch(0.73 0.022 260);
+  --accent: oklch(0.97 0 286);
+  --accent-foreground: oklch(0.21 0 286);
+  --destructive: oklch(0.64 0.2 25);
+  --border: oklch(0.93 0 242);
+  --input: oklch(0.92 0 286);
+  --ring: oklch(0.14 0 285);
+
+  /* Tambo Specific Variables */
+  --container: oklch(0.98 0 247);
+  --backdrop: oklch(0.25 0.07 252 / 0.25);
+  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Dark Mode Tailwind CSS Variables customized with tambo colors */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+
+  /* Tambo Specific Variables */
+  --container: oklch(0.98 0 247);
+  --backdrop: oklch(0.25 0.07 252 / 0.25);
+  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      var(--font-geist-sans),
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 }
 
-/* Base styles */
-* {
-  border-color: var(--color-border);
+/* Animations */
+@keyframes flash {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgb(59 130 246 / 0.3);
+  }
 }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+.animate-flash {
+  animation: flash 1s ease-in-out;
+}
+
+@keyframes thinking-gradient {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-thinking-gradient {
+  background: linear-gradient(90deg, #666 0%, #bbb 50%, #666 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: thinking-gradient 2s linear infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }

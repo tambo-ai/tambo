@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { account } from "@/lib/appwrite";
 import { ID } from "appwrite";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -46,13 +47,32 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-accent/20 to-background p-4">
+      {/* Brand Header */}
+      <div className="flex items-center gap-3 mb-8 animate-fade-in">
+        <Image
+          src="/Tambo-Lockup.svg"
+          alt="Tambo"
+          width={120}
+          height={40}
+          className="h-8 w-auto"
+        />
+        <span className="text-2xl font-light text-muted-foreground">+</span>
+        <Image
+          src="/appwrite-icon.svg"
+          alt="Appwrite"
+          width={32}
+          height={32}
+          className="h-8 w-8"
+        />
+      </div>
+
+      <Card className="w-full max-w-md border-border/50 shadow-xl shadow-muted-backdrop animate-fade-in">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-bold tracking-tight">
             {isSignUp ? "Create an account" : "Welcome back"}
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-muted-foreground">
             {isSignUp
               ? "Enter your details to get started"
               : "Sign in to your account"}
@@ -62,7 +82,9 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             {isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Name
+                </Label>
                 <Input
                   id="name"
                   type="text"
@@ -70,11 +92,14 @@ export default function LoginPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required={isSignUp}
+                  className="transition-all duration-200"
                 />
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -82,10 +107,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="transition-all duration-200"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -94,14 +122,21 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
+                className="transition-all duration-200"
               />
             </div>
             {error && (
-              <p className="text-sm text-destructive text-center">{error}</p>
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                <p className="text-sm text-destructive text-center">{error}</p>
+              </div>
             )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full font-medium transition-all duration-200 hover:scale-[1.02]"
+              disabled={isLoading}
+            >
               {isLoading
                 ? "Loading..."
                 : isSignUp
@@ -113,7 +148,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setIsSignUp(!isSignUp)}
-                className="text-primary underline-offset-4 hover:underline"
+                className="text-primary font-medium underline-offset-4 hover:underline transition-colors"
               >
                 {isSignUp ? "Sign in" : "Sign up"}
               </button>
@@ -121,6 +156,28 @@ export default function LoginPage() {
           </CardFooter>
         </form>
       </Card>
+
+      {/* Footer */}
+      <p className="mt-8 text-sm text-muted-foreground animate-fade-in">
+        Powered by{" "}
+        <a
+          href="https://tambo.co"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium hover:text-foreground transition-colors"
+        >
+          Tambo
+        </a>{" "}
+        &{" "}
+        <a
+          href="https://appwrite.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium hover:text-foreground transition-colors"
+        >
+          Appwrite
+        </a>
+      </p>
     </div>
   );
 }

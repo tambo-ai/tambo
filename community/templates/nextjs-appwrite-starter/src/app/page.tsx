@@ -2,6 +2,7 @@
 
 import { ChatInterface } from "@/components/chat-interface";
 import { account } from "@/lib/appwrite";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -26,8 +27,25 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="flex items-center gap-3 animate-pulse-soft">
+          <Image
+            src="/Tambo-Lockup.svg"
+            alt="Tambo"
+            width={120}
+            height={40}
+            className="h-8 w-auto opacity-50"
+          />
+          <span className="text-2xl font-light text-muted-foreground">+</span>
+          <Image
+            src="/appwrite-icon.svg"
+            alt="Appwrite"
+            width={32}
+            height={32}
+            className="h-8 w-8 opacity-50"
+          />
+        </div>
+        <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -36,5 +54,9 @@ export default function Home() {
     return null;
   }
 
-  return <ChatInterface />;
+  return (
+    <div className="min-h-screen bg-background">
+      <ChatInterface />
+    </div>
+  );
 }
