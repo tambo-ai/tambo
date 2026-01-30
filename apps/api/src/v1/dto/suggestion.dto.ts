@@ -72,6 +72,15 @@ export class V1SuggestionDto {
 @ApiSchema({ name: "GenerateSuggestionsRequest" })
 export class V1GenerateSuggestionsDto {
   @ApiProperty({
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  userKey?: string;
+
+  @ApiProperty({
     description: "Maximum number of suggestions to generate (1-10)",
     required: false,
     default: 3,

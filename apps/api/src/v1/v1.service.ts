@@ -1099,14 +1099,30 @@ export class V1Service {
    *
    * @param threadId - Thread containing the message
    * @param messageId - Message to get suggestions for
+   * @param projectId - Project ID for access validation
+   * @param userKey - User key for access validation
    * @param query - Pagination parameters
    * @returns Paginated list of suggestions
    */
   async listSuggestions(
     threadId: string,
     messageId: string,
+    projectId: string,
+    userKey: string,
     query: V1ListSuggestionsQueryDto,
   ): Promise<V1ListSuggestionsResponseDto> {
+    // Verify thread belongs to project and user
+    const thread = await operations.getThreadForProjectId(
+      this.db,
+      threadId,
+      projectId,
+      userKey,
+    );
+
+    if (!thread) {
+      throw new NotFoundException(`Thread ${threadId} not found`);
+    }
+
     // Verify message exists in thread
     const message = await operations.getMessageByIdInThread(
       this.db,
@@ -1161,12 +1177,16 @@ export class V1Service {
    *
    * @param threadId - Thread containing the message
    * @param messageId - Message to generate suggestions for
+   * @param projectId - Project ID for access validation
+   * @param userKey - User key for access validation
    * @param dto - Generation parameters
    * @returns Generated suggestions
    */
   async generateSuggestions(
     threadId: string,
     messageId: string,
+    projectId: string,
+    userKey: string,
     dto: V1GenerateSuggestionsDto,
   ): Promise<V1ListSuggestionsResponseDto> {
     return await Sentry.startSpan(
@@ -1176,6 +1196,18 @@ export class V1Service {
         attributes: { threadId, messageId, maxSuggestions: dto.maxSuggestions },
       },
       async () => {
+        // Verify thread belongs to project and user
+        const thread = await operations.getThreadForProjectId(
+          this.db,
+          threadId,
+          projectId,
+          userKey,
+        );
+
+        if (!thread) {
+          throw new NotFoundException(`Thread ${threadId} not found`);
+        }
+
         // Verify message exists in thread
         const message = await operations.getMessageByIdInThread(
           this.db,
@@ -1189,17 +1221,6 @@ export class V1Service {
           );
         }
 
-        // Get thread for context key
-        const { thread } = await operations.getThreadForRunStart(
-          this.db,
-          threadId,
-        );
-        if (!thread) {
-          throw new NotFoundException(`Thread ${threadId} not found`);
-        }
-
-        const contextKey = thread.contextKey ?? "anonymous";
-
         // Get thread messages for context and convert to ThreadMessage format
         const dbMessages = await operations.getMessages(this.db, threadId);
         const threadMessages = dbMessages.map((m) =>
@@ -1210,7 +1231,7 @@ export class V1Service {
         const tamboBackend =
           await this.threadsService.createTamboBackendForThread(
             threadId,
-            contextKey,
+            userKey,
           );
 
         // Convert V1 available components to internal format

@@ -8,6 +8,7 @@ import { operations } from "@tambo-ai-cloud/db";
 jest.mock("@tambo-ai-cloud/db", () => ({
   operations: {
     getMessageByIdInThread: jest.fn(),
+    getThreadForProjectId: jest.fn(),
     getThreadForRunStart: jest.fn(),
     getMessages: jest.fn(),
     listSuggestionsPaginated: jest.fn(),
@@ -29,6 +30,9 @@ describe("V1Service - Suggestions", () => {
   let mockDb: jest.Mocked<HydraDatabase>;
   let mockThreadsService: jest.Mocked<ThreadsService>;
 
+  const projectId = "prj_test789";
+  const userKey = "user_abc123";
+
   beforeEach(() => {
     mockDb = {} as jest.Mocked<HydraDatabase>;
     mockThreadsService = {
@@ -47,13 +51,22 @@ describe("V1Service - Suggestions", () => {
     const messageId = "msg_test456";
 
     it("returns empty list when no suggestions exist", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
       });
       (operations.listSuggestionsPaginated as jest.Mock).mockResolvedValue([]);
 
-      const result = await service.listSuggestions(threadId, messageId, {});
+      const result = await service.listSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {},
+      );
 
       expect(result).toEqual({
         suggestions: [],
@@ -62,11 +75,22 @@ describe("V1Service - Suggestions", () => {
       });
     });
 
+    it("throws NotFoundException when thread does not exist", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue(null);
+
+      await expect(
+        service.listSuggestions(threadId, messageId, projectId, userKey, {}),
+      ).rejects.toThrow(NotFoundException);
+    });
+
     it("throws NotFoundException when message does not exist", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        service.listSuggestions(threadId, messageId, {}),
+        service.listSuggestions(threadId, messageId, projectId, userKey, {}),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -80,6 +104,9 @@ describe("V1Service - Suggestions", () => {
         updatedAt: new Date("2024-01-15T12:00:00Z"),
       };
 
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
@@ -88,7 +115,13 @@ describe("V1Service - Suggestions", () => {
         mockSuggestion,
       ]);
 
-      const result = await service.listSuggestions(threadId, messageId, {});
+      const result = await service.listSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {},
+      );
 
       expect(result.suggestions).toHaveLength(1);
       expect(result.suggestions[0]).toEqual({
@@ -120,6 +153,9 @@ describe("V1Service - Suggestions", () => {
         },
       ];
 
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
@@ -129,9 +165,15 @@ describe("V1Service - Suggestions", () => {
         suggestions,
       );
 
-      const result = await service.listSuggestions(threadId, messageId, {
-        limit: "1",
-      });
+      const result = await service.listSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {
+          limit: "1",
+        },
+      );
 
       expect(result.suggestions).toHaveLength(1);
       expect(result.hasMore).toBe(true);
@@ -139,6 +181,9 @@ describe("V1Service - Suggestions", () => {
     });
 
     it("throws BadRequestException for invalid cursor", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
@@ -146,7 +191,7 @@ describe("V1Service - Suggestions", () => {
 
       // Invalid base64 cursor should throw
       await expect(
-        service.listSuggestions(threadId, messageId, {
+        service.listSuggestions(threadId, messageId, projectId, userKey, {
           cursor: "invalid-cursor-not-base64",
         }),
       ).rejects.toThrow();
@@ -157,26 +202,35 @@ describe("V1Service - Suggestions", () => {
     const threadId = "thr_test123";
     const messageId = "msg_test456";
 
-    it("throws NotFoundException when message does not exist", async () => {
-      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue(null);
+    it("throws NotFoundException when thread does not exist", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        service.generateSuggestions(threadId, messageId, {}),
+        service.generateSuggestions(
+          threadId,
+          messageId,
+          projectId,
+          userKey,
+          {},
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it("throws NotFoundException when thread does not exist", async () => {
-      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
-        id: messageId,
-        threadId,
+    it("throws NotFoundException when message does not exist", async () => {
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: userKey,
       });
-      (operations.getThreadForRunStart as jest.Mock).mockResolvedValue({
-        thread: null,
-        hasMessages: false,
-      });
+      (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        service.generateSuggestions(threadId, messageId, {}),
+        service.generateSuggestions(
+          threadId,
+          messageId,
+          projectId,
+          userKey,
+          {},
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -187,13 +241,13 @@ describe("V1Service - Suggestions", () => {
         }),
       };
 
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: userKey,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
-      });
-      (operations.getThreadForRunStart as jest.Mock).mockResolvedValue({
-        thread: { id: threadId, contextKey: "test-context" },
-        hasMessages: true,
       });
       (operations.getMessages as jest.Mock).mockResolvedValue([]);
       mockThreadsService.createTamboBackendForThread.mockResolvedValue(
@@ -202,7 +256,13 @@ describe("V1Service - Suggestions", () => {
         >,
       );
 
-      const result = await service.generateSuggestions(threadId, messageId, {});
+      const result = await service.generateSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {},
+      );
 
       expect(result).toEqual({
         suggestions: [],
@@ -217,13 +277,13 @@ describe("V1Service - Suggestions", () => {
         }),
       };
 
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: userKey,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
-      });
-      (operations.getThreadForRunStart as jest.Mock).mockResolvedValue({
-        thread: { id: threadId, contextKey: "test-context" },
-        hasMessages: true,
       });
       (operations.getMessages as jest.Mock).mockResolvedValue([]);
       mockThreadsService.createTamboBackendForThread.mockResolvedValue(
@@ -232,7 +292,13 @@ describe("V1Service - Suggestions", () => {
         >,
       );
 
-      const result = await service.generateSuggestions(threadId, messageId, {});
+      const result = await service.generateSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {},
+      );
 
       expect(result).toEqual({
         suggestions: [],
@@ -260,13 +326,13 @@ describe("V1Service - Suggestions", () => {
         }),
       };
 
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: userKey,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
-      });
-      (operations.getThreadForRunStart as jest.Mock).mockResolvedValue({
-        thread: { id: threadId, contextKey: "test-context" },
-        hasMessages: true,
       });
       (operations.getMessages as jest.Mock).mockResolvedValue([]);
       mockThreadsService.createTamboBackendForThread.mockResolvedValue(
@@ -278,9 +344,15 @@ describe("V1Service - Suggestions", () => {
         mockSavedSuggestion,
       ]);
 
-      const result = await service.generateSuggestions(threadId, messageId, {
-        maxSuggestions: 5,
-      });
+      const result = await service.generateSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {
+          maxSuggestions: 5,
+        },
+      );
 
       expect(mockTamboBackend.generateSuggestions).toHaveBeenCalledWith(
         expect.any(Array),
@@ -310,13 +382,13 @@ describe("V1Service - Suggestions", () => {
         }),
       };
 
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: null, // contextKey null -> defaults to "anonymous"
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
-      });
-      (operations.getThreadForRunStart as jest.Mock).mockResolvedValue({
-        thread: { id: threadId, contextKey: null }, // contextKey null -> defaults to "anonymous"
-        hasMessages: true,
       });
       (operations.getMessages as jest.Mock).mockResolvedValue([]);
       mockThreadsService.createTamboBackendForThread.mockResolvedValue(
@@ -325,7 +397,13 @@ describe("V1Service - Suggestions", () => {
         >,
       );
 
-      await service.generateSuggestions(threadId, messageId, {});
+      await service.generateSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {},
+      );
 
       // Default maxSuggestions is 3
       expect(mockTamboBackend.generateSuggestions).toHaveBeenCalledWith(
@@ -344,13 +422,13 @@ describe("V1Service - Suggestions", () => {
         }),
       };
 
+      (operations.getThreadForProjectId as jest.Mock).mockResolvedValue({
+        id: threadId,
+        contextKey: userKey,
+      });
       (operations.getMessageByIdInThread as jest.Mock).mockResolvedValue({
         id: messageId,
         threadId,
-      });
-      (operations.getThreadForRunStart as jest.Mock).mockResolvedValue({
-        thread: { id: threadId, contextKey: "test" },
-        hasMessages: true,
       });
       (operations.getMessages as jest.Mock).mockResolvedValue([]);
       mockThreadsService.createTamboBackendForThread.mockResolvedValue(
@@ -359,18 +437,24 @@ describe("V1Service - Suggestions", () => {
         >,
       );
 
-      await service.generateSuggestions(threadId, messageId, {
-        availableComponents: [
-          {
-            name: "WeatherCard",
-            description: "Shows weather info",
-            propsSchema: {
-              type: "object",
-              properties: { temp: { type: "number" } },
+      await service.generateSuggestions(
+        threadId,
+        messageId,
+        projectId,
+        userKey,
+        {
+          availableComponents: [
+            {
+              name: "WeatherCard",
+              description: "Shows weather info",
+              propsSchema: {
+                type: "object",
+                properties: { temp: { type: "number" } },
+              },
             },
-          },
-        ],
-      });
+          ],
+        },
+      );
 
       expect(mockTamboBackend.generateSuggestions).toHaveBeenCalledWith(
         expect.any(Array),

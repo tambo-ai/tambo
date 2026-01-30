@@ -608,6 +608,11 @@ export class V1Controller {
     description: "Message ID",
     example: "msg_xyz789abc",
   })
+  @ApiQuery({
+    name: "userKey",
+    description: "Optional user key for thread organization",
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: "List of suggestions",
@@ -618,11 +623,24 @@ export class V1Controller {
     description: "Message not found",
   })
   async listSuggestions(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
     @Param("messageId") messageId: string,
     @Query() query: V1ListSuggestionsQueryDto,
+    @Query("userKey") userKey?: string,
   ): Promise<V1ListSuggestionsResponseDto> {
-    return await this.v1Service.listSuggestions(threadId, messageId, query);
+    const { projectId, contextKey: bearerUserKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    const effectiveUserKey = requireUserKey(userKey, bearerUserKey);
+    return await this.v1Service.listSuggestions(
+      threadId,
+      messageId,
+      projectId,
+      effectiveUserKey,
+      query,
+    );
   }
 
   @Post("threads/:threadId/messages/:messageId/suggestions")
@@ -656,10 +674,22 @@ export class V1Controller {
     description: "Message not found",
   })
   async generateSuggestions(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
     @Param("messageId") messageId: string,
     @Body() dto: V1GenerateSuggestionsDto,
   ): Promise<V1ListSuggestionsResponseDto> {
-    return await this.v1Service.generateSuggestions(threadId, messageId, dto);
+    const { projectId, contextKey: bearerUserKey } = extractContextInfo(
+      request,
+      dto.userKey,
+    );
+    const effectiveUserKey = requireUserKey(dto.userKey, bearerUserKey);
+    return await this.v1Service.generateSuggestions(
+      threadId,
+      messageId,
+      projectId,
+      effectiveUserKey,
+      dto,
+    );
   }
 }
