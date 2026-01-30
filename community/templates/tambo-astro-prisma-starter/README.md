@@ -10,7 +10,8 @@ This template demonstrates the **State Lifting Pattern** for Generative UI.
 Instead of the AI hallucinating UI components, it acts as a "Tambo Controller" that mutates your real database. The UI then reacts to these state changes in real-time.
 
 **The Loop:**
-1.  User Intent: *"Add a gaming mouse"*
+
+1.  User Intent: _"Add a gaming mouse"_
 2.  AI Tool: Calls `POST /api/products`
 3.  State Sync: Tool returns the fresh list
 4.  UI Update: React grid re-renders instantly
@@ -23,37 +24,43 @@ This aligns with Tambo’s model where tools perform deterministic work and the 
 - **Database**: Prisma ORM with SQLite (Zero-config)
 - **AI Integration**: Tambo SDK (`@tambo-ai/react`)
 - **Tools Included**:
-    - `addProduct`: Create inventory with natural language.
-    - `updateProduct`: Name-based updates with tolerant matching.
-    - `deleteProduct`: Remove items by name.
-    - `searchProducts`: Server-side filtering by category/price.
+  - `addProduct`: Create inventory with natural language.
+  - `updateProduct`: Name-based updates with tolerant matching.
+  - `deleteProduct`: Remove items by name.
+  - `searchProducts`: Server-side filtering by category/price.
 - **Voice Input**: Uses Tambo’s voice hooks for speech-to-text input.
 - **Design**: "Flight Log" sidebar aesthetic with high-fidelity UI.
 
 ## Getting Started
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 2. Configure Environment
+
 ```bash
 cp example.env.local .env.local
 # Edit .env.local and add your TAMBO_API_KEY from https://tambo.co/dashboard
 ```
 
 ### 3. Initialize Database
+
 Create migration and seed initial data:
+
 ```bash
 npx prisma migrate dev --name init
 npx prisma db seed
 ```
 
 ### 4. Start Development Server
+
 ```bash
 npm run dev
 ```
+
 Visit http://localhost:4321
 
 ## Project Structure
@@ -85,8 +92,7 @@ src/
 ## What This Template Is (and Isn’t)
 
 **This is:**
+
 - A starter demonstrating AI-driven CRUD via tools
 - A reference for state lifting with Generative UI
 - A foundation to build real inventory or admin systems
-
-

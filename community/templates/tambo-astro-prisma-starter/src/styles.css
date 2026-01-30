@@ -3,7 +3,7 @@
 @theme {
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
 }
 
 body {
@@ -15,9 +15,9 @@ body {
 
 /* Custom scrollbar for chat history if needed */
 .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

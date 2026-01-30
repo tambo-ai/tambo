@@ -6,8 +6,15 @@ export const searchProducts: TamboTool = {
   description:
     "Searches for products. Returns a list of matches. CRITICAL: Do NOT list the products in your response. Just say 'Here are the results' or 'Filtered by...'. The UI will update automatically.",
   inputSchema: z.object({
-    useCase: z.string().optional().describe("What the user wants the product for (e.g. 'coding', 'camera')"),
-    category: z.enum(["Laptop", "Phone", "Camera", "Tablet", "Headphones", "Accessory"]).optional(),
+    useCase: z
+      .string()
+      .optional()
+      .describe(
+        "What the user wants the product for (e.g. 'coding', 'camera')",
+      ),
+    category: z
+      .enum(["Laptop", "Phone", "Camera", "Tablet", "Headphones", "Accessory"])
+      .optional(),
     maxPrice: z.number().optional(),
   }),
   outputSchema: z.object({
@@ -18,7 +25,7 @@ export const searchProducts: TamboTool = {
         category: z.string(),
         price: z.number(),
         tags: z.string(),
-      })
+      }),
     ),
     message: z.string().optional(),
   }),
@@ -31,13 +38,14 @@ export const searchProducts: TamboTool = {
     try {
       const response = await fetch(`/api/search?${params.toString()}`);
       if (!response.ok) throw new Error("API request failed");
-      
+
       const products = await response.json();
 
       if (products.length === 0) {
         return {
           products: [],
-          message: "No products matched. Try 'gaming', 'camera', or 'battery-focused'.",
+          message:
+            "No products matched. Try 'gaming', 'camera', or 'battery-focused'.",
         };
       }
 

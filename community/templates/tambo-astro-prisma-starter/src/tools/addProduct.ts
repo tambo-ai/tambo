@@ -3,7 +3,8 @@ import { z } from "zod";
 
 export const addProduct: TamboTool = {
   name: "addProduct",
-  description: "Adds a new product to the inventory. Returns the updated product list. CRITICAL: Do NOT list the products in your response. Just confirm the action (e.g., 'Added Bluetooth Speaker'). The UI will update automatically.",
+  description:
+    "Adds a new product to the inventory. Returns the updated product list. CRITICAL: Do NOT list the products in your response. Just confirm the action (e.g., 'Added Bluetooth Speaker'). The UI will update automatically.",
   inputSchema: z.object({
     name: z.string(),
     category: z.string(),
@@ -18,7 +19,7 @@ export const addProduct: TamboTool = {
         category: z.string(),
         price: z.number(),
         tags: z.string(),
-      })
+      }),
     ),
     message: z.string().optional(),
   }),
@@ -35,15 +36,15 @@ export const addProduct: TamboTool = {
       }
 
       const products = await response.json();
-      return { 
-        products, 
-        message: `Added ${name} to inventory.` 
+      return {
+        products,
+        message: `Added ${name} to inventory.`,
       };
     } catch (error) {
       console.error(error);
-      return { 
+      return {
         products: [],
-        error: "Failed to add product" 
+        error: "Failed to add product",
       };
     }
   },

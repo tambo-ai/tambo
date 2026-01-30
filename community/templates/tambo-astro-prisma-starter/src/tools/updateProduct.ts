@@ -3,9 +3,13 @@ import { z } from "zod";
 
 export const updateProduct: TamboTool = {
   name: "updateProduct",
-  description: "Updates an existing product's price or tags. Returns the updated product list. CRITICAL: Do NOT list the products in your response. Just confirm the action. The UI will update automatically.",
+  description:
+    "Updates an existing product's price or tags. Returns the updated product list. CRITICAL: Do NOT list the products in your response. Just confirm the action. The UI will update automatically.",
   inputSchema: z.object({
-    name: z.string().optional().describe("Name of the product to update (fuzzy match)"),
+    name: z
+      .string()
+      .optional()
+      .describe("Name of the product to update (fuzzy match)"),
     id: z.number().optional(),
     price: z.number().optional(),
     tags: z.string().optional(),
@@ -18,7 +22,7 @@ export const updateProduct: TamboTool = {
         category: z.string(),
         price: z.number(),
         tags: z.string(),
-      })
+      }),
     ),
     message: z.string().optional(),
   }),
@@ -35,15 +39,15 @@ export const updateProduct: TamboTool = {
       }
 
       const products = await response.json();
-      return { 
+      return {
         products,
-        message: `Updated product details.` 
+        message: `Updated product details.`,
       };
     } catch (error) {
       console.error(error);
-      return { 
+      return {
         products: [],
-        error: "Failed to update product" 
+        error: "Failed to update product",
       };
     }
   },

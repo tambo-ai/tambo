@@ -3,7 +3,8 @@ import { z } from "zod";
 
 export const deleteProduct: TamboTool = {
   name: "deleteProduct",
-  description: "Deletes a product from the inventory. Returns the updated product list. CRITICAL: Do NOT list the products in your response. Just confirm the action. The UI will update automatically.",
+  description:
+    "Deletes a product from the inventory. Returns the updated product list. CRITICAL: Do NOT list the products in your response. Just confirm the action. The UI will update automatically.",
   inputSchema: z.object({
     name: z.string().optional(),
     id: z.number().optional(),
@@ -16,7 +17,7 @@ export const deleteProduct: TamboTool = {
         category: z.string(),
         price: z.number(),
         tags: z.string(),
-      })
+      }),
     ),
     message: z.string().optional(),
   }),
@@ -33,15 +34,15 @@ export const deleteProduct: TamboTool = {
       }
 
       const products = await response.json();
-      return { 
+      return {
         products,
-        message: `Deleted product from inventory.` 
+        message: `Deleted product from inventory.`,
       };
     } catch (error) {
       console.error(error);
-      return { 
+      return {
         products: [],
-        error: "Failed to delete product" 
+        error: "Failed to delete product",
       };
     }
   },
