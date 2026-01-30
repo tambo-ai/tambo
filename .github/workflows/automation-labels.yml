@@ -114,21 +114,37 @@ jobs:
           script: |
             // For push events, we need to get the files from the commit
             // For pull_request_target events, we get files from the PR
-            let changedPaths = [];
+            const changedPathSet = new Set();
 
             if (context.eventName === 'push') {
               // Get files changed in the push commits (avoid per-commit API calls)
               const commits = context.payload.commits || [];
-              const files = [];
               for (const commit of commits) {
-                files.push(
-                  ...(commit.added || []),
-                  ...(commit.modified || []),
-                  ...(commit.removed || []),
-                );
+                for (const file of commit.added || []) {
+                  changedPathSet.add(file);
+                }
+                for (const file of commit.modified || []) {
+                  changedPathSet.add(file);
+                }
+                for (const file of commit.removed || []) {
+                  changedPathSet.add(file);
+                }
               }
 
-              changedPaths = [...new Set(files)];
+              if (changedPathSet.size === 0 && commits.length > 0) {
+                // Large pushes can have truncated commit payloads.
+                // Fall back to a single compare call rather than N per-commit calls.
+                const { data: compareData } = await github.rest.repos.compareCommits({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  base: context.payload.before,
+                  head: context.payload.after
+                });
+
+                for (const file of compareData.files || []) {
+                  changedPathSet.add(file.filename);
+                }
+              }
             } else if (context.eventName === 'pull_request_target') {
               // Get files changed in the PR via API (safe - no checkout needed)
               const perPage = 100;
@@ -141,15 +157,17 @@ jobs:
                   page
                 });
 
-                changedPaths.push(...files.map((f) => f.filename));
+                for (const file of files) {
+                  changedPathSet.add(file.filename);
+                }
 
                 if (files.length < perPage) {
                   break;
                 }
               }
-
-              changedPaths = [...new Set(changedPaths)];
             }
+
+            const changedPaths = Array.from(changedPathSet);
 
             // Area detection patterns (matching the previous tj-actions/changed-files config)
             const areaPatterns = {
