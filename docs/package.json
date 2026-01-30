@@ -1,6 +1,6 @@
 {
   "name": "@tambo-ai/docs",
-  "version": "1.23.1",
+  "version": "1.24.0",
   "license": "MIT",
   "scripts": {
     "build": "next build",
