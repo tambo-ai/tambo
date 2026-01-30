@@ -31,7 +31,7 @@ const config: Config = {
   ],
 
   // The directory where Jest should output its coverage files
-  coverageDirectory: "<rootDir>/../coverage",
+  coverageDirectory: "<rootDir>/coverage",
 
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
