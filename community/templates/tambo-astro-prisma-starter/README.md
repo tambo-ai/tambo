@@ -4,10 +4,10 @@ A high-quality starter template for building **AI-Driven State Mutation** apps w
 
 ![TechnoStore AI](https://placehold.co/1200x600/e2e8f0/475569?text=AI-Controlled+Inventory)
 
-## 🚀 The Concept: "Flight Control"
+## 🚀 The Concept: "Tambo Control"
 
 This template demonstrates the **State Lifting Pattern** for Generative UI.
-Instead of the AI hallucinating UI components, it acts as a "Flight Controller" that mutates your real database. The UI then reacts to these state changes in real-time.
+Instead of the AI hallucinating UI components, it acts as a "Tambo Controller" that mutates your real database. The UI then reacts to these state changes in real-time.
 
 **The Loop:**
 1.  User Intent: *"Add a gaming mouse"*
@@ -17,7 +17,7 @@ Instead of the AI hallucinating UI components, it acts as a "Flight Controller" 
 
 This aligns with Tambo’s model where tools perform deterministic work and the UI remains authoritative.
 
-## ✨ Features
+## Features
 
 - **Framework**: Astro v5 + React (Islands Architecture)
 - **Database**: Prisma ORM with SQLite (Zero-config)
@@ -30,27 +30,33 @@ This aligns with Tambo’s model where tools perform deterministic work and the 
 - **Voice Input**: Uses Tambo’s voice hooks for speech-to-text input.
 - **Design**: "Flight Log" sidebar aesthetic with high-fidelity UI.
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Initialize Database
-Push the schema and seed initial data:
+### 2. Configure Environment
 ```bash
-npx prisma db push
+cp example.env.local .env.local
+# Edit .env.local and add your TAMBO_API_KEY from https://tambo.co/dashboard
+```
+
+### 3. Initialize Database
+Create migration and seed initial data:
+```bash
+npx prisma migrate dev --name init
 npx prisma db seed
 ```
 
-### 3. Start Development Server
+### 4. Start Development Server
 ```bash
 npm run dev
 ```
 Visit http://localhost:4321
 
-## 🧩 Project Structure
+## Project Structure
 
 ```
 src/
@@ -69,7 +75,7 @@ src/
     └── searchProducts.ts
 ```
 
-## 📝 Template Guidelines (Checked)
+## Template Guidelines (Checked)
 
 - **Minimalism**: Single-page, no auth, no routing complexity.
 - **Real Integration**: All actions persist to SQLite via Prisma.

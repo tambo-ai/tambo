@@ -7,9 +7,9 @@ import {
 import { Mic, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { tools } from "../lib/tambo";
-import { ProductGrid } from "./ProductGrid";
+import { ProductGrid, type Product } from "./ProductGrid";
 
-function Chat({ products, setProducts }: { products: any[]; setProducts: (p: any[]) => void }) {
+function Chat({ products, setProducts }: { products: Product[]; setProducts: (p: Product[]) => void }) {
   const { thread } = useTamboThread();
   const { value, setValue, submit, isPending } = useTamboThreadInput();
   const { isRecording, startRecording, stopRecording, transcript } = useTamboVoice();
@@ -195,7 +195,7 @@ function Chat({ products, setProducts }: { products: any[]; setProducts: (p: any
 }
 
 export function ChatInterface() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     fetch('/api/search')

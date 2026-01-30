@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import type { APIRoute } from 'astro';
 
 export const prerender = false;
@@ -58,7 +58,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Product not found (need ID or valid name)' }), { status: 404 });
     }
 
-    const data: any = {};
+    const data: Prisma.ProductUpdateInput = {};
     if (price !== undefined) data.price = Number(price);
     if (tags !== undefined) data.tags = tags;
     // We could allow name updates too but usually we just update props

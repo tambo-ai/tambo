@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import type { APIRoute } from 'astro';
 
 const prisma = new PrismaClient();
@@ -14,7 +14,7 @@ export const GET: APIRoute = async ({ request }) => {
   console.log('API Search:', { useCase, category, maxPrice });
 
   try {
-    const where: any = {};
+    const where: Prisma.ProductWhereInput = {};
 
     if (category) {
       where.category = category;

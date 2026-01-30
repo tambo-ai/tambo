@@ -7,7 +7,7 @@ export const searchProducts: TamboTool = {
     "Searches for products. Returns a list of matches. CRITICAL: Do NOT list the products in your response. Just say 'Here are the results' or 'Filtered by...'. The UI will update automatically.",
   inputSchema: z.object({
     useCase: z.string().optional().describe("What the user wants the product for (e.g. 'coding', 'camera')"),
-    category: z.enum(["Laptop", "Phone", "Tablet", "Headphones"]).optional(),
+    category: z.enum(["Laptop", "Phone", "Camera", "Tablet", "Headphones", "Accessory"]).optional(),
     maxPrice: z.number().optional(),
   }),
   outputSchema: z.object({
