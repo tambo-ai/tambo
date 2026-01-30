@@ -81,12 +81,6 @@ export interface UseTamboV1SuggestionsReturn {
   /** List of available suggestions for the current message (convenience accessor) */
   suggestions: Suggestion[];
 
-  /** Whether there are more suggestions available (pagination) */
-  hasMore: boolean;
-
-  /** Cursor for fetching the next page of suggestions */
-  nextCursor: string | undefined;
-
   // ---------------------------------------------------------------------------
   // Query state (matches react-query UseQueryResult)
   // ---------------------------------------------------------------------------
@@ -296,7 +290,7 @@ export function useTamboV1Suggestions(
       suggestion,
       shouldSubmit = false,
     }: AcceptSuggestionOptions) => {
-      const text = suggestion.detailedSuggestion.trim();
+      const text = suggestion.detailedSuggestion?.trim();
       if (!text) {
         throw new Error("Suggestion has no content");
       }
@@ -341,8 +335,6 @@ export function useTamboV1Suggestions(
     // Data
     data: currentData,
     suggestions,
-    hasMore: currentData?.hasMore ?? false,
-    nextCursor: currentData?.nextCursor,
 
     // Query state (matches react-query patterns)
     isLoading: suggestionsQuery.isLoading,

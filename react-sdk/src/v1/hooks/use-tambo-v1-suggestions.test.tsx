@@ -469,6 +469,23 @@ describe("useTamboV1Suggestions", () => {
         result.current.accept({ suggestion: whitespaceSuggestion as any }),
       ).rejects.toThrow("Suggestion has no content");
     });
+
+    it("throws error when detailedSuggestion is undefined", async () => {
+      const { result } = renderHook(
+        () => useTamboV1Suggestions("thread_123"),
+        { wrapper: createWrapper() },
+      );
+
+      const undefinedSuggestion = {
+        id: "undefined_suggestion",
+        messageId: "msg_1",
+        title: "Undefined",
+      };
+
+      await expect(
+        result.current.accept({ suggestion: undefinedSuggestion as any }),
+      ).rejects.toThrow("Suggestion has no content");
+    });
   });
 
   describe("State Management", () => {
@@ -543,7 +560,7 @@ describe("useTamboV1Suggestions", () => {
       });
     });
 
-    it("provides pagination info from response", async () => {
+    it("includes pagination info on raw data", async () => {
       mockListSuggestions.mockResolvedValue({
         suggestions: mockSuggestions,
         hasMore: true,
@@ -573,8 +590,8 @@ describe("useTamboV1Suggestions", () => {
       });
 
       await waitFor(() => {
-        expect(result.current.hasMore).toBe(true);
-        expect(result.current.nextCursor).toBe("cursor_abc");
+        expect(result.current.data?.hasMore).toBe(true);
+        expect(result.current.data?.nextCursor).toBe("cursor_abc");
       });
     });
 
