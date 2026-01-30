@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Check, List, Loader2 } from "lucide-react";
+import { ArrowRight, Check, List, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export type GenerationStage = "planning" | "drafting" | "syncing" | "finalizing" | "completed";
@@ -20,10 +21,9 @@ const STAGES: StageItem[] = [
 
 interface GenerationStatusProps {
   isVisible: boolean;
-  onComplete?: () => void;
 }
 
-export function GenerationStatus({ isVisible, onComplete }: GenerationStatusProps) {
+export function GenerationStatus({ isVisible }: GenerationStatusProps) {
   const [currentStage, setCurrentStage] = useState<GenerationStage>("planning");
 
   useEffect(() => {
@@ -32,12 +32,12 @@ export function GenerationStatus({ isVisible, onComplete }: GenerationStatusProp
       return;
     }
 
-    // Simulate progress
+    // Simulate progress (timings match actual API ~2s + buffer for dashboard sync)
     const timings = [
-      { stage: "drafting", delay: 1500 },
-      { stage: "syncing", delay: 3500 },
-      { stage: "finalizing", delay: 5000 },
-      { stage: "completed", delay: 6000 },
+      { stage: "drafting", delay: 500 },
+      { stage: "syncing", delay: 1200 },
+      { stage: "finalizing", delay: 2000 },
+      { stage: "completed", delay: 3000 },
     ];
 
     const timeouts: NodeJS.Timeout[] = [];
@@ -45,9 +45,6 @@ export function GenerationStatus({ isVisible, onComplete }: GenerationStatusProp
     timings.forEach(({ stage, delay }) => {
       const timeout = setTimeout(() => {
         setCurrentStage(stage as GenerationStage);
-        if (stage === "completed" && onComplete) {
-            onComplete();
-        }
       }, delay);
       timeouts.push(timeout);
     });
@@ -55,7 +52,7 @@ export function GenerationStatus({ isVisible, onComplete }: GenerationStatusProp
     return () => {
       timeouts.forEach(clearTimeout);
     };
-  }, [isVisible, onComplete]);
+  }, [isVisible]);
 
   if (!isVisible) return null;
 
@@ -100,7 +97,7 @@ export function GenerationStatus({ isVisible, onComplete }: GenerationStatusProp
                 {isActive ? (
                   <Loader2 className="w-3.5 h-3.5 text-zinc-400 animate-spin" />
                 ) : isCompleted ? (
-                   <Check className="w-2.5 h-2.5 stroke-[3]" />
+                   <Check className="w-2.5 h-2.5 stroke-3" />
                 ) : null}
               </div>
 
@@ -122,15 +119,19 @@ export function GenerationStatus({ isVisible, onComplete }: GenerationStatusProp
         })}
       </div>
 
-      {/* Completion Footer */}
+      {/* Completion Footer with Read Button */}
       {isAllComplete && (
          <div className="px-5 pb-4 flex items-center gap-x-3 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="text-emerald-500">
                <Check className="w-4 h-4" />
             </div>
-            <div className="text-zinc-400 tracking-wider text-[13px]">
-               Completed
-            </div>
+            <Link
+               href="/dashboard"
+               className="flex-1 flex items-center justify-center gap-x-2 rounded-lg bg-white text-black px-4 py-2.5 text-sm font-semibold hover:bg-zinc-200 transition-all hover:scale-105 active:scale-95 shadow-lg"
+            >
+               Read
+               <ArrowRight className="w-4 h-4" />
+            </Link>
          </div>
       )}
     </div>

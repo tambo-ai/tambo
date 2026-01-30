@@ -65,11 +65,8 @@ function StudioContent() {
           <div className="w-full max-w-2xl space-y-8">
             {isGenerating ? (
                <div className="flex flex-col items-center justify-center w-full">
-                  <GenerationStatus 
-                      isVisible={isGenerating} 
-                      onComplete={() => {
-                          setTimeout(() => setIsGenerating(false), 1000);
-                      }} 
+                  <GenerationStatus
+                      isVisible={isGenerating}
                   />
                </div>
             ) : messages.length === 0 ? (

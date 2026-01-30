@@ -1,9 +1,10 @@
 "use client";
 
 import { ArticleCarousel } from "@/components/dashboard/article-carousel";
-import { sanityClient, type Article } from "@/lib/sanity";
+import { sanityRealtimeClient, type Article } from "@/lib/sanity";
 import { TamboThreadProvider } from "@tambo-ai/react";
-import { ArrowLeft, ExternalLink, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, ExternalLink, Grid3x3, List, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -11,33 +12,13 @@ import { useEffect, useState } from "react";
 const SANITY_STUDIO_URL =
   process.env.NEXT_PUBLIC_SANITY_STUDIO_URL || "https://sanity.io/manage";
 
+type StatusFilter = "all" | "published" | "draft";
+
 export default function DashboardPage() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [recentReads, setRecentReads] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Load recent reads from local storage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("tambo_recent_reads");
-    if (saved) {
-      try {
-        setRecentReads(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse recent reads", e);
-      }
-    }
-  }, []);
-
-  const handleArticleClick = (article: Article) => {
-    // Prevent duplicates and keep mostly recent
-    const newRecent = [
-        article,
-        ...recentReads.filter(r => r._id !== article._id)
-    ].slice(0, 10); 
-    
-    setRecentReads(newRecent);
-    localStorage.setItem("tambo_recent_reads", JSON.stringify(newRecent));
-  };
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   useEffect(() => {
     // Initial fetch
@@ -55,7 +36,7 @@ export default function DashboardPage() {
           _createdAt,
           _updatedAt
         }`;
-        const result = await sanityClient.fetch(query);
+        const result = await sanityRealtimeClient.fetch(query);
         setArticles(result);
         setLoading(false);
       } catch (error) {
@@ -67,94 +48,151 @@ export default function DashboardPage() {
     fetchInitial();
 
     // Real-time listener
-    const subscription = sanityClient
+    const subscription = sanityRealtimeClient
       .listen(`*[_type == "article"]`)
       .subscribe(() => {
-        // Simple approach: re-fetch on any update to ensure correct ordering/data
-        // For production apps, you might optimize this to only splice the list
         fetchInitial();
       });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // Filter articles by status
+  const filteredArticles = articles.filter((article) => {
+    if (statusFilter === "all") return true;
+    return article.status === statusFilter;
+  });
+
   return (
     <TamboThreadProvider>
       <main className="relative flex min-h-screen flex-col items-center bg-zinc-950 text-zinc-300 selection:bg-violet-500/30 overflow-hidden">
 
-
-        {/* Branding - Top Left */}
-        <div className="absolute top-6 left-6 z-50 flex items-center gap-3 select-none pointer-events-none opacity-50">
-             <div className="relative h-6 w-6 overflow-hidden rounded-md grayscale">
-                <Image 
-                  src="/application.png" 
-                  alt="Logo" 
-                  fill
-                  className="object-cover"
-                />
-             </div>
-             <span className="text-sm font-bold tracking-[0.2em] text-white/50">
-               STUDIO
-             </span>
+        {/* Branding - Top Left with Studio Link */}
+        <div className="absolute top-6 left-6 z-50 flex items-center gap-3 select-none">
+          <div className="relative h-6 w-6 overflow-hidden rounded-md grayscale">
+            <Image
+              src="/application.png"
+              alt="Logo"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <span className="text-sm font-bold tracking-[0.2em] text-white/50">
+            STUDIO
+          </span>
+          <a
+            href={SANITY_STUDIO_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-zinc-600 flex items-center gap-1.5 cursor-pointer hover:text-zinc-400 transition-colors uppercase tracking-wider font-medium"
+          >
+            Studio
+            <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="flex-1 w-full max-w-[85%] mt-20 gap-y-8 z-10 flex flex-col pb-12">
-           
-           {/* Section: User Articles */}
-           <div className="flex flex-col gap-6">
-              <div className="flex justify-between items-baseline px-1">
-                 <h2 className="text-zinc-100 font-medium tracking-wide">User Articles</h2>
-                 <div className="flex items-center gap-4">
-                      <Link href="/" className="text-xs text-zinc-500 flex items-center gap-1.5 cursor-pointer hover:text-zinc-300 transition-colors uppercase tracking-wider font-medium">
-                        <ArrowLeft className="w-3 h-3" />
-                        Back
-                      </Link>
-                      <a 
-                        href={SANITY_STUDIO_URL} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="text-xs text-zinc-500 flex items-center gap-1.5 cursor-pointer hover:text-zinc-300 transition-colors uppercase tracking-wider font-medium"
-                      >
-                         Studio
-                         <ExternalLink className="w-3 h-3" />
-                      </a>
-                  </div>
-              </div>
-              
-              <div className="w-full min-h-[220px]">
-                {loading ? (
-                    <div className="flex h-[200px] w-full items-center justify-center border border-zinc-800/50 rounded-[4px] bg-zinc-900/20">
-                    <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
-                    </div>
-                ) : (
-                    <ArticleCarousel 
-                        articles={articles} 
-                        sanityStudioUrl={SANITY_STUDIO_URL} 
-                        onArticleClick={handleArticleClick}
-                        emptyMessage="No articles found. Start by generating one."
-                    />
-                )}
-              </div>
-           </div>
+        {/* Main Content */}
+        <div className="flex-1 w-full max-w-[85%] mt-20 z-10 flex flex-col pb-12">
 
-           {/* Divider */}
-           <div className="border-t border-zinc-800/60 w-full" />
+          {/* Header with Back, Tabs, and Toggle */}
+          <div className="flex flex-col gap-6 mb-8">
+            <div className="flex justify-between items-center">
+              <Link
+                href="/"
+                className="text-xs text-zinc-500 flex items-center gap-1.5 cursor-pointer hover:text-zinc-300 transition-colors uppercase tracking-wider font-medium"
+              >
+                <ArrowLeft className="w-3 h-3" />
+                Back
+              </Link>
 
-           {/* Section: Recent Reads */}
-           <div className="flex flex-col gap-6">
-              <div className="flex justify-between items-baseline px-1">
-                 <h2 className="text-zinc-100 font-medium tracking-wide">Recent Reads</h2>
+              {/* View Mode Toggle */}
+              <div className="flex items-center bg-zinc-900/50 border border-zinc-800 rounded-full p-0.5">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={cn(
+                    "p-1.5 rounded-full transition-all",
+                    viewMode === "list"
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  <List className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={cn(
+                    "p-1.5 rounded-full transition-all",
+                    viewMode === "grid"
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  <Grid3x3 className="w-3 h-3" />
+                </button>
               </div>
-              <div className="w-full min-h-[180px]">
-                 <ArticleCarousel 
-                        articles={recentReads} 
-                        sanityStudioUrl={SANITY_STUDIO_URL} 
-                        onArticleClick={handleArticleClick} // Clicking a recent read bumps it to top
-                        emptyMessage="No recently viewed articles."
-                    />
+            </div>
+
+            {/* Status Filter Tabs */}
+            <div className="flex items-center justify-center">
+              <div className="inline-flex items-center bg-zinc-900/50 border border-zinc-800 rounded-full p-1 gap-1">
+                <button
+                  onClick={() => setStatusFilter("all")}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-xs font-medium transition-all",
+                    statusFilter === "all"
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setStatusFilter("published")}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-xs font-medium transition-all",
+                    statusFilter === "published"
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  Published
+                </button>
+                <button
+                  onClick={() => setStatusFilter("draft")}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-xs font-medium transition-all",
+                    statusFilter === "draft"
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  Drafts
+                </button>
               </div>
-           </div>
+            </div>
+          </div>
+
+          {/* Articles View */}
+          <div className="w-full">
+            {loading ? (
+              <div className="flex h-[200px] w-full items-center justify-center border border-zinc-800/50 rounded-[4px] bg-zinc-900/20">
+                <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+              </div>
+            ) : (
+              <ArticleCarousel
+                articles={filteredArticles}
+                sanityStudioUrl={SANITY_STUDIO_URL}
+                viewMode={viewMode}
+                emptyMessage={
+                  statusFilter === "all"
+                    ? "No articles found. Start by generating one."
+                    : statusFilter === "published"
+                      ? "No published articles yet."
+                      : "No drafts found."
+                }
+              />
+            )}
+          </div>
 
         </div>
       </main>

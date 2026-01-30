@@ -4,12 +4,20 @@ if (!process.env.NEXT_PUBLIC_SANITY_PROJECT_ID) {
   throw new Error("Missing NEXT_PUBLIC_SANITY_PROJECT_ID environment variable");
 }
 
-// Public client for read operations
+// Public client for read operations (CDN enabled for performance)
 export const sanityClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production",
   apiVersion: "2024-01-01",
   useCdn: true,
+});
+
+// Real-time client without CDN for fresh data (dashboard, live updates)
+export const sanityRealtimeClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production",
+  apiVersion: "2024-01-01",
+  useCdn: false,
 });
 
 // Authenticated client for mutations (server-side only)
