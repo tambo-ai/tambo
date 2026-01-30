@@ -12,7 +12,7 @@ app development started quickly.
 
 ## Video Demo
 
-[![Video Demo](https://github.com/user-attachments/assets/346b6194-f01e-4e33-8e30-f0d23c36e363)](https://github.com/user-attachments/assets/1aa0af8a-ba23-41bd-b3bc-79ff6cb8710b)
+[![Video Demo](https://github.com/user-attachments/assets/835a7a58-febe-4ff3-8963-029961449ac7)](https://github.com/user-attachments/assets/835a7a58-febe-4ff3-8963-029961449ac7)
 
 ## Get Started
 
