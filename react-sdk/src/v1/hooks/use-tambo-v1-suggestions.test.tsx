@@ -153,10 +153,9 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("returns empty suggestions when no messages", () => {
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.suggestions).toEqual([]);
       expect(result.current.selectedSuggestionId).toBeNull();
@@ -181,10 +180,9 @@ describe("useTamboV1Suggestions", () => {
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.suggestions).toEqual([]);
     });
@@ -210,10 +208,9 @@ describe("useTamboV1Suggestions", () => {
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.suggestions).toHaveLength(2);
@@ -255,10 +252,9 @@ describe("useTamboV1Suggestions", () => {
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.suggestions).toHaveLength(2);
@@ -378,10 +374,9 @@ describe("useTamboV1Suggestions", () => {
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.suggestions).toHaveLength(2);
@@ -421,10 +416,9 @@ describe("useTamboV1Suggestions", () => {
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.suggestions).toHaveLength(2);
@@ -443,10 +437,9 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("throws error when suggestion has no content", async () => {
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       const emptySuggestion = {
         id: "empty_suggestion",
@@ -461,10 +454,9 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("throws error when detailedSuggestion is only whitespace", async () => {
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       const whitespaceSuggestion = {
         id: "whitespace_suggestion",
@@ -576,10 +568,9 @@ describe("useTamboV1Suggestions", () => {
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.hasMore).toBe(true);
@@ -588,10 +579,9 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("exposes loading and error states", () => {
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.isLoading).toBeDefined();
       expect(result.current.isSuccess).toBeDefined();
@@ -655,10 +645,9 @@ describe("useTamboV1Suggestions", () => {
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
 
       let generateResult: any;
       await act(async () => {
