@@ -64,25 +64,22 @@ describe("useTamboV1Suggestions", () => {
       clearImages: jest.fn(),
       isPending: false,
       isError: false,
-      error: null,
-    });
+      error: undefined,
+    } as any);
 
     // Default mock for useTamboV1
     jest.mocked(useTamboV1).mockReturnValue({
       messages: [],
-      thread: null,
+      thread: undefined,
       isIdle: true,
       isStreaming: false,
       startNewThread: jest.fn(),
       switchThread: jest.fn(),
       initThread: jest.fn(),
-      streamState: {
+      streamingState: {
         status: "idle",
-        error: null,
-        threadId: null,
-        runId: null,
       },
-    });
+    } as any);
 
     // Default mock for registry
     jest.mocked(useTamboRegistry).mockReturnValue({
@@ -91,7 +88,7 @@ describe("useTamboV1Suggestions", () => {
       componentToolAssociations: {},
       mcpServerInfos: [],
       resources: [],
-      resourceSource: undefined,
+      resourceSource: null,
       onCallUnregisteredTool: undefined,
       registerComponent: jest.fn(),
       unregisterComponent: jest.fn(),
@@ -102,7 +99,7 @@ describe("useTamboV1Suggestions", () => {
       registerResource: jest.fn(),
       unregisterResource: jest.fn(),
       setResourceSource: jest.fn(),
-    });
+    } as any);
 
     // Default mock for client
     mockGenerateSuggestions.mockResolvedValue([
@@ -141,20 +138,24 @@ describe("useTamboV1Suggestions", () => {
 
     it("returns empty suggestions when latest message is from user", () => {
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "user", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "user",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -167,20 +168,24 @@ describe("useTamboV1Suggestions", () => {
   describe("Suggestion Generation", () => {
     it("generates suggestions when latest message is from assistant and thread is idle", async () => {
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -201,20 +206,25 @@ describe("useTamboV1Suggestions", () => {
 
     it("does not generate suggestions when thread is streaming", () => {
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: false,
         isStreaming: true,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "streaming",
-          error: null,
-          threadId: "thread_123",
           runId: "run_1",
         },
-      });
+      } as any);
 
       renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -237,24 +247,28 @@ describe("useTamboV1Suggestions", () => {
         clearImages: jest.fn(),
         isPending: false,
         isError: false,
-        error: null,
-      });
+        error: undefined,
+      } as any);
 
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -265,20 +279,24 @@ describe("useTamboV1Suggestions", () => {
 
     it("uses custom maxSuggestions option", async () => {
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result } = renderHook(
         () => useTamboV1Suggestions({ maxSuggestions: 5 }),
@@ -301,20 +319,24 @@ describe("useTamboV1Suggestions", () => {
   describe("Accepting Suggestions", () => {
     it("updates shared input value when accepting without submit", async () => {
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -341,20 +363,24 @@ describe("useTamboV1Suggestions", () => {
       mockSubmit.mockResolvedValue({ threadId: "thread_123" });
 
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -378,20 +404,24 @@ describe("useTamboV1Suggestions", () => {
 
     it("throws error when suggestion has no detailed content", async () => {
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -410,20 +440,24 @@ describe("useTamboV1Suggestions", () => {
 
     it("throws error when detailedSuggestion is only whitespace", async () => {
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -446,20 +480,24 @@ describe("useTamboV1Suggestions", () => {
       const mockUseTamboV1 = jest.mocked(useTamboV1);
 
       mockUseTamboV1.mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result, rerender } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
@@ -481,22 +519,29 @@ describe("useTamboV1Suggestions", () => {
       // Change the latest message
       mockUseTamboV1.mockReturnValue({
         messages: [
-          { id: "msg_1", role: "assistant", content: [] },
-          { id: "msg_2", role: "assistant", content: [] },
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+          {
+            id: "msg_2",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:01Z",
+          },
         ],
-        thread: null,
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       rerender();
 
@@ -507,20 +552,24 @@ describe("useTamboV1Suggestions", () => {
 
     it("exposes mutation and query results", async () => {
       jest.mocked(useTamboV1).mockReturnValue({
-        messages: [{ id: "msg_1", role: "assistant", content: [] }],
-        thread: null,
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
         isIdle: true,
         isStreaming: false,
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamState: {
+        streamingState: {
           status: "idle",
-          error: null,
-          threadId: null,
-          runId: null,
         },
-      });
+      } as any);
 
       const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),

@@ -81,11 +81,24 @@ export {
 // Re-export registry provider from beta SDK (works with v1)
 export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
 
+// Re-export client provider from beta SDK (works with v1)
+export {
+  TamboClientProvider,
+  useIsTamboTokenUpdating,
+} from "../providers/tambo-client-provider";
+
 // Re-export context helpers from beta SDK (works with v1)
 export {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
 } from "../providers/tambo-context-helpers-provider";
+
+// Export v1 thread input provider for advanced composition
+export {
+  TamboV1ThreadInputProvider,
+  type TamboV1ThreadInputContextProps,
+  type SubmitOptions,
+} from "./providers/tambo-v1-thread-input-provider";
 
 // =============================================================================
 // Hooks
