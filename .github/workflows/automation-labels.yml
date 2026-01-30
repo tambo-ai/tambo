@@ -117,23 +117,7 @@ jobs:
             const changedPathSet = new Set();
 
             if (context.eventName === 'push') {
-              // Get files changed in the push commits (avoid per-commit API calls)
-              const commits = context.payload.commits || [];
-              for (const commit of commits) {
-                for (const file of commit.added || []) {
-                  changedPathSet.add(file);
-                }
-                for (const file of commit.modified || []) {
-                  changedPathSet.add(file);
-                }
-                for (const file of commit.removed || []) {
-                  changedPathSet.add(file);
-                }
-              }
-
-              if (changedPathSet.size === 0 && commits.length > 0) {
-                // Large pushes can have truncated commit payloads.
-                // Fall back to a single compare call rather than N per-commit calls.
+              if (context.payload.before && context.payload.after) {
                 const { data: compareData } = await github.rest.repos.compareCommits({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -144,11 +128,26 @@ jobs:
                 for (const file of compareData.files || []) {
                   changedPathSet.add(file.filename);
                 }
+              } else {
+                // Get files changed in the push commits (avoid per-commit API calls)
+                const commits = context.payload.commits || [];
+                for (const commit of commits) {
+                  for (const file of commit.added || []) {
+                    changedPathSet.add(file);
+                  }
+                  for (const file of commit.modified || []) {
+                    changedPathSet.add(file);
+                  }
+                  for (const file of commit.removed || []) {
+                    changedPathSet.add(file);
+                  }
+                }
               }
             } else if (context.eventName === 'pull_request_target') {
               // Get files changed in the PR via API (safe - no checkout needed)
               const perPage = 100;
-              for (let page = 1; ; page++) {
+              const maxPages = 50;
+              for (let page = 1; page <= maxPages; page++) {
                 const { data: files } = await github.rest.pulls.listFiles({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -163,6 +162,12 @@ jobs:
 
                 if (files.length < perPage) {
                   break;
+                }
+
+                if (page === maxPages) {
+                  core.warning(
+                    `Reached maxPages=${maxPages} while listing PR files; area detection may be incomplete`,
+                  );
                 }
               }
             }
