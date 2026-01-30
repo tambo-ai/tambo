@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.129.0](https://github.com/tambo-ai/tambo/compare/web-v0.128.0...web-v0.129.0) (2026-01-29)
+
+
+### Features
+
+* **api:** add userKey support to V1 API endpoints ([#1994](https://github.com/tambo-ai/tambo/issues/1994)) ([02e7169](https://github.com/tambo-ai/tambo/commit/02e7169e63422961a68bd0c40cec2cf7acf11f8d))
+* **react-sdk:** implement v1 API Phases 6-7 with code review fixes ([#1954](https://github.com/tambo-ai/tambo/issues/1954)) ([9a7e098](https://github.com/tambo-ai/tambo/commit/9a7e098e0f969ec1512d6705c020dc46f625ac95))
+
+
+### Bug Fixes
+
+* set valid `reasoningEffort` for openAI models ([#1965](https://github.com/tambo-ai/tambo/issues/1965)) ([daf6c34](https://github.com/tambo-ai/tambo/commit/daf6c34c6afc6f2cafd764d21775bcc03dcedc76))
+* **web:** store Google auth name and image in user metadata ([#2002](https://github.com/tambo-ai/tambo/issues/2002)) ([949b8c9](https://github.com/tambo-ai/tambo/commit/949b8c9ca7f5f122342262a3a7830b5ebc970f33))
+* **web:** use typed array schema for agentHeaders in tool input ([#1957](https://github.com/tambo-ai/tambo/issues/1957)) ([22f5ddf](https://github.com/tambo-ai/tambo/commit/22f5ddfe844176bc4047da131f8e7976c19aa2ed))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump framer-motion from 12.23.26 to 12.29.0 ([#1936](https://github.com/tambo-ai/tambo/issues/1936)) ([59fca7a](https://github.com/tambo-ai/tambo/commit/59fca7ad50454e6a2845de0dec5a782c8be65b3e))
+* **deps:** bump the sentry group with 3 updates ([#1933](https://github.com/tambo-ai/tambo/issues/1933)) ([5bec612](https://github.com/tambo-ai/tambo/commit/5bec6126512078ee8f8bff2845d1660f73357d88))
+* **deps:** bump the small-safe-packages group with 10 updates ([#1932](https://github.com/tambo-ai/tambo/issues/1932)) ([66f8ee8](https://github.com/tambo-ai/tambo/commit/66f8ee83adbcdb8c64d5c85159bc6574d4166f7b))
+* **deps:** bump the tiptap group with 9 updates ([#1935](https://github.com/tambo-ai/tambo/issues/1935)) ([a041ae4](https://github.com/tambo-ai/tambo/commit/a041ae4599a389dc581c07f49769c85707b42201))
+
 ## [0.128.0](https://github.com/tambo-ai/tambo/compare/web-v0.127.0...web-v0.128.0) (2026-01-22)
 
 

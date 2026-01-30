@@ -1,7 +1,7 @@
 {
   "name": "@tambo-ai-cloud/api",
-  "version": "0.133.1",
-  "description": "Tambo AI API",
+  "version": "0.133.4",
+  "description": "Tambo ai API",
   "author": "",
   "private": true,
   "license": "Apache-2.0",
