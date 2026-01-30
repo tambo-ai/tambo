@@ -16,8 +16,6 @@ export default function DictationButton() {
     transcriptionError,
   } = useTamboVoice();
   const { setValue } = useTamboThreadInput();
-  // Use a ref instead of state to track the last processed transcript
-  // This avoids setState in useEffect and unnecessary re-renders
   const lastProcessedTranscriptRef = useRef<string>("");
 
   const handleStartRecording = () => {

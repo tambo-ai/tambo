@@ -133,7 +133,6 @@ const StringField: React.FC<FieldProps> = ({
   autoFocus,
   validationError,
 }) => {
-  // Hooks must be called unconditionally before any early returns
   const inputId = React.useId();
 
   if (schema.type !== "string") {
@@ -208,7 +207,6 @@ const NumberField: React.FC<FieldProps> = ({
   autoFocus,
   validationError,
 }) => {
-  // Hooks must be called unconditionally before any early returns
   const inputId = React.useId();
 
   if (schema.type !== "number" && schema.type !== "integer") {
