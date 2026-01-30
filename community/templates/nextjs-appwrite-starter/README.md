@@ -6,7 +6,7 @@ A minimal starter template for building AI-powered apps with **Next.js 15**, **A
 
 <!-- TODO: Add screenshot before PR submission -->
 
-![App Screenshot](screenshot.png)
+![App Screenshot](screenshot1.png)
 
 ## Video Demo
 
