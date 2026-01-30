@@ -69,7 +69,7 @@ Or just generate the Prisma client (if migrations are problematic):
 npx prisma generate
 ```
 
-4. **Start the development server**
+3. **Start the development server**
 
 ```bash
 npm run dev

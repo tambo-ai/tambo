@@ -21,8 +21,6 @@ interface TopBarProps {
 export function TopBar({ onNewTicket, onToggleChat }: TopBarProps) {
   const { data: session } = useSession();
 
-  console.log(session?.user?.image);
-
   return (
     <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
