@@ -6,12 +6,18 @@ import { tamboComponents } from "~/tambo/components";
 
 interface TamboChatProps {
   apiKey: string;
+  userToken: string;
   tools: TamboTool[];
 }
 
-export function TamboChat({ apiKey, tools }: TamboChatProps) {
+export function TamboChat({ apiKey, userToken, tools }: TamboChatProps) {
   return (
-    <TamboProvider apiKey={apiKey} tools={tools} components={tamboComponents}>
+    <TamboProvider
+      apiKey={apiKey}
+      userToken={userToken}
+      tools={tools}
+      components={tamboComponents}
+    >
       <div className="flex h-full">
         <MessageThreadFull />
       </div>

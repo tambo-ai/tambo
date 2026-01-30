@@ -3,11 +3,20 @@ import { useState, useEffect } from "react";
 
 // Schema for the bookmark card props - used by Tambo for generation
 // Must match the structure returned by search_bookmarks tool
+// All fields have defaults to handle partial props during streaming
 export const bookmarkCardPropsSchema = z.object({
-  id: z.string().describe("Unique identifier for the bookmark"),
-  url: z.string().describe("The bookmark URL"),
-  title: z.string().nullable().describe("Display title for the bookmark"),
-  category: z.string().nullable().describe("Category/tag for organization"),
+  id: z.string().default("").describe("Unique identifier for the bookmark"),
+  url: z.string().default("").describe("The bookmark URL"),
+  title: z
+    .string()
+    .nullable()
+    .default(null)
+    .describe("Display title for the bookmark"),
+  category: z
+    .string()
+    .nullable()
+    .default(null)
+    .describe("Category/tag for organization"),
   created_at: z.string().optional().describe("When the bookmark was created"),
 });
 
@@ -24,6 +33,11 @@ export function BookmarkCard({ url, title, category }: BookmarkCardProps) {
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
   }, []);
+
+  // Don't render if URL is missing (can happen during streaming)
+  if (!url) {
+    return null;
+  }
 
   // Extract domain for display
   const domain = (() => {
@@ -87,6 +101,7 @@ export function BookmarkCard({ url, title, category }: BookmarkCardProps) {
 export const bookmarkListPropsSchema = z.object({
   bookmarks: z
     .array(bookmarkCardPropsSchema)
+    .default([])
     .describe("Array of bookmarks to display"),
   title: z.string().optional().describe("Optional title for the list"),
 });
@@ -98,10 +113,30 @@ export type BookmarkListProps = z.infer<typeof bookmarkListPropsSchema>;
  * Useful when the AI wants to show multiple search results.
  */
 export function BookmarkList({ bookmarks, title }: BookmarkListProps) {
+  // Show loading skeleton when bookmarks array is empty (during streaming)
   if (bookmarks.length === 0) {
     return (
-      <div className="my-2 rounded-lg border border-gray-200 bg-gray-50 p-4 text-center text-gray-500">
-        No bookmarks found
+      <div className="my-2 space-y-2">
+        {title && (
+          <h4 className="mb-2 text-sm font-medium text-gray-700">{title}</h4>
+        )}
+        {/* Loading skeleton - 3 placeholder cards */}
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="animate-pulse rounded-lg border border-gray-200 bg-white p-3"
+          >
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded bg-gray-200" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-3/4 rounded bg-gray-200" />
+                <div className="h-3 w-1/2 rounded bg-gray-100" />
+              </div>
+              <div className="h-5 w-16 rounded-full bg-gray-100" />
+            </div>
+          </div>
+        ))}
+        <p className="mt-2 text-xs text-gray-400">Loading bookmarks...</p>
       </div>
     );
   }
@@ -114,7 +149,7 @@ export function BookmarkList({ bookmarks, title }: BookmarkListProps) {
       <div className="space-y-2">
         {bookmarks.map((bookmark, index) => (
           <div
-            key={bookmark.id}
+            key={bookmark.id || index}
             style={{ animationDelay: `${index * 100}ms` }}
             className="animate-in fade-in slide-in-from-bottom-2 duration-300"
           >
@@ -134,10 +169,14 @@ export const categorySummaryPropsSchema = z.object({
   categories: z
     .array(
       z.object({
-        name: z.string().describe("Category name"),
-        count: z.number().describe("Number of bookmarks in this category"),
+        name: z.string().default("").describe("Category name"),
+        count: z
+          .number()
+          .default(0)
+          .describe("Number of bookmarks in this category"),
       }),
     )
+    .default([])
     .describe("Array of category summaries"),
 });
 
@@ -154,6 +193,25 @@ export function CategorySummary({ categories }: CategorySummaryProps) {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Show loading skeleton when categories array is empty (during streaming)
+  if (categories.length === 0) {
+    return (
+      <div className="my-2 animate-pulse rounded-lg border border-gray-200 bg-white p-4">
+        <div className="mb-3 h-5 w-32 rounded bg-gray-200" />
+        <div className="mb-3 h-3 w-full rounded-full bg-gray-100" />
+        <div className="flex flex-wrap gap-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <div className="h-2.5 w-2.5 rounded-full bg-gray-200" />
+              <div className="h-4 w-16 rounded bg-gray-100" />
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-gray-400">Loading categories...</p>
+      </div>
+    );
+  }
 
   // Color palette for categories
   const colors = [

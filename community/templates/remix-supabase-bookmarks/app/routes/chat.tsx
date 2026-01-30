@@ -230,7 +230,11 @@ export default function ChatPage() {
               </div>
             </div>
           ) : (
-            <TamboChat apiKey={tamboApiKey} tools={tamboTools} />
+            <TamboChat
+              apiKey={tamboApiKey}
+              userToken={accessToken}
+              tools={tamboTools}
+            />
           )}
         </Suspense>
       </div>

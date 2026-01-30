@@ -65,7 +65,17 @@ https://github.com/user-attachments/assets/29d57415-a1ac-46f4-9f9e-cfbf8d3c20fb
    TAMBO_API_KEY=your-tambo-api-key
    ```
 
-4. **Run the app**
+4. **Configure Tambo authentication**
+
+   ⚠️ **Important**: Supabase doesn't support OpenID Connect auto-discovery for JWT verification.
+   1. Go to your [Tambo dashboard](https://tambo.ai/dashboard)
+   2. Navigate to **Settings > User Authentication**
+   3. Under **Validation Mode**, select **"None"**
+   4. Click **Save**
+
+   Without this configuration, user authentication will fail and threads won't be properly scoped to individual users.
+
+5. **Run the app**
 
    ```bash
    npm run dev
