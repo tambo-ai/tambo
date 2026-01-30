@@ -56,6 +56,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - Node.js >=22
 - npm >=11
 
+It is OK to use `crypto.randomUUID()` without a fallback in runtime and test code (Node.js >=22 and modern browsers).
+
 **Recommended:** Install [mise](https://mise.jdx.dev) for automatic version management. See [mise getting started](https://mise.jdx.dev/getting-started.html) for installation instructions.
 
 ### Tool Versions
@@ -229,7 +231,8 @@ Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `Requ
 ### State Management & Data Fetching
 
 - Local UI elements should use useState.
-- For shared state between components, use React Context.
+- For shared state between components, use React Context - but prefer props over new contexts when values only need to pass through 1-2 component levels.
+- Don't create contexts for static config that doesn't change (user IDs, API keys). Pass these as props instead.
 - Minimize use of useEffect; derive state or memoize instead. Memoize callbacks with useCallback when passed to children.
 - When making network requests, use tRPC/React Query loading states instead of manually tracking separate loading flags. Follow devdocs/LOADING_STATES.md patterns for skeletons and disabling controls.
 - During loading, use Skeleton components or show real components in a disabled/blank state, rather than only showing a loading spinner.
