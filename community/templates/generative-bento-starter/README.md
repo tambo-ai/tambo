@@ -10,7 +10,7 @@ A premium "Generative UI" starter kit for building context-aware CRUD applicatio
   <img src="/screenshot-3.png" height="300" alt="Generative Bento Screenshot 3" />
 </div>
 
-<video src="/demo.mp4" controls width="100%"></video>
+[![Watch the demo](https://img.youtube.com/vi/1QJjMeEqjpA/maxresdefault.jpg)](https://youtu.be/1QJjMeEqjpA)
 
 ## 📂 Project Structure
 
