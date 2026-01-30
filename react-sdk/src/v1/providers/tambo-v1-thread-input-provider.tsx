@@ -29,9 +29,9 @@ import type { InputMessage } from "../types/message";
 import { useStreamState } from "./tambo-v1-stream-context";
 
 // Error messages for various input-related error scenarios.
-// TODO: Add explicit `NETWORK` and `SERVER` cases once `submit()` maps known
-// failure modes (e.g., network failures vs 5xx responses) into stable,
-// user-facing error messages.
+// TODO: Reintroduce explicit `NETWORK` and `SERVER` keys once `submit()` maps
+// failures into a small, stable set of user-facing error codes (at minimum:
+// connectivity failures vs non-2xx responses).
 export const INPUT_ERROR_MESSAGES = {
   EMPTY: "Message cannot be empty",
   VALIDATION: "Invalid message format",
