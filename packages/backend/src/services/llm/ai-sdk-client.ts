@@ -1,10 +1,3 @@
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createGroq } from "@ai-sdk/groq";
-import { createMistral } from "@ai-sdk/mistral";
-import { createOpenAI } from "@ai-sdk/openai";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { LanguageModelV2 } from "@ai-sdk/provider";
 import {
   EventType,
   type BaseEvent,
@@ -18,6 +11,13 @@ import {
   type ToolCallEndEvent,
   type ToolCallStartEvent,
 } from "@ag-ui/core";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGroq } from "@ai-sdk/groq";
+import { createMistral } from "@ai-sdk/mistral";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { LanguageModelV2 } from "@ai-sdk/provider";
 import {
   CustomLlmParameters,
   getToolDescription,
@@ -42,6 +42,10 @@ import type OpenAI from "openai";
 import { z } from "zod/v3";
 import { createLangfuseTelemetryConfig } from "../../config/langfuse.config";
 import { Provider } from "../../model/providers";
+import {
+  ComponentStreamTracker,
+  tryExtractComponentName,
+} from "../../util/component-streaming";
 import { formatTemplate, ObjectTemplate } from "../../util/template";
 import { threadMessagesToModelMessages } from "../../util/thread-to-model-message-conversion";
 import {
@@ -53,10 +57,6 @@ import {
 } from "./llm-client";
 import { generateMessageId } from "./message-id-generator";
 import { limitTokens } from "./token-limiter";
-import {
-  ComponentStreamTracker,
-  tryExtractComponentName,
-} from "../../util/component-streaming";
 
 type AICompleteParams = Parameters<typeof streamText<ToolSet, never>>[0] &
   Parameters<typeof generateText<ToolSet, never>>[0];
@@ -292,12 +292,18 @@ export class AISdkClient implements LLMClient {
       }),
       /**
        * Provider-specific configuration
+       * Merge hierarchy (later overrides earlier):
+       * 1. Provider-level defaults (e.g., parallelToolCalls)
+       * 2. Model-level defaults (e.g., reasoningEffort for reasoning models)
+       * 3. User-specified model-specific params (highest priority)
        */
       providerOptions: {
         [providerKey]: {
           // Provider-specific params from config as base defaults (e.g., disable parallel tool calls for OpenAI/Anthropic)
           ...providerCfg?.providerSpecificParams,
-          // Model-specific provider parameters (e.g., reasoning parameters for specific models)
+          // Model-level defaults for provider params (e.g., reasoningEffort: "none" for gpt-5.1)
+          ...modelCfg?.modelParamsDefaults,
+          // Model-specific provider parameters from user (e.g., reasoning parameters for specific models)
           ...modelSpecificProviderParams,
           // For openai-compatible, add custom user-defined keys here
           ...(providerKey === "openai-compatible" &&
@@ -607,17 +613,13 @@ export class AISdkClient implements LLMClient {
       let toolCallRequest:
         | OpenAI.Chat.Completions.ChatCompletionMessageToolCall
         | undefined;
-      if (
-        accumulatedToolCall.id &&
-        accumulatedToolCall.name &&
-        accumulatedToolCall.arguments
-      ) {
+      if (accumulatedToolCall.name && accumulatedToolCall.arguments) {
         toolCallRequest = {
           function: {
             name: accumulatedToolCall.name,
             arguments: accumulatedToolCall.arguments,
           },
-          id: accumulatedToolCall.id,
+          id: accumulatedToolCall.id ?? "",
           type: "function",
         };
       }

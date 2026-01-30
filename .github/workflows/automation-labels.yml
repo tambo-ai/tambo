@@ -263,7 +263,7 @@ jobs:
     outputs:
       added_labels: ${{ steps.determine_labels.outputs.added_labels || '' }}
     steps:
-      # NOTE: No checkout needed - we only use gh CLI and jq (pre-installed on runners)
+      # NOTE: No checkout step for speed and security - we only use gh CLI and jq (pre-installed on runners)
 
       - name: Determine Labels
         id: determine_labels

@@ -29,6 +29,69 @@ tambo update                 # Update existing components
 tambo upgrade               # Upgrade Tambo dependencies
 ```
 
+## Non-Interactive Mode (for AI Agents)
+
+The CLI automatically detects non-interactive environments (piped stdin/stdout, CI systems) and provides guidance instead of hanging on prompts.
+
+### Exit Codes
+
+| Code | Meaning                                          |
+| ---- | ------------------------------------------------ |
+| 0    | Success                                          |
+| 1    | Error (network, invalid args, etc.)              |
+| 2    | User action required - check stderr for guidance |
+
+### Commands for Agents
+
+**Initialize a project (pick one):**
+
+```bash
+# Option 1: Direct API key (simplest)
+tambo init --api-key=sk_...
+
+# Option 2: Create new project (requires auth)
+tambo init --project-name=myapp
+
+# Option 3: Use existing project (requires auth)
+tambo init --project-id=abc123
+```
+
+**Create a new app:**
+
+```bash
+tambo create-app my-app --template=standard
+```
+
+**Add components:**
+
+```bash
+tambo add <component> --yes --prefix=src/components/tambo
+tambo add <component> --dry-run  # Preview without installing
+```
+
+**List components (no prompts needed):**
+
+```bash
+tambo list --yes
+```
+
+**Authenticate (for --project-name/--project-id flows):**
+
+```bash
+tambo auth login --no-browser  # Prints URL instead of opening browser
+```
+
+### Detection Logic
+
+The CLI is non-interactive when ANY of these are true:
+
+- `process.stdin.isTTY` is false (piped input)
+- `process.stdout.isTTY` is false (piped output)
+- `CI` environment variable is set
+- `GITHUB_ACTIONS=true`
+
+Override with `FORCE_INTERACTIVE=1` if needed (requires real TTY).
+
 ## Architecture Overview
 
 ### Command Structure

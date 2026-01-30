@@ -16,10 +16,14 @@ import {
   getLegacyComponentDirectoryPath,
   resolveComponentPaths,
 } from "../shared/path-utils.js";
+// Note: getComponentDirectoryPath is used both in imports and in dry-run display
 import { installComponents } from "./component.js";
 import { setupTailwindAndGlobals } from "./tailwind-setup.js";
 import type { InstallComponentOptions } from "./types.js";
-import { getKnownComponentNames } from "./utils.js";
+import {
+  getComponentNpmDependencies,
+  getKnownComponentNames,
+} from "./utils.js";
 
 /**
  * Main function to handle component installation
@@ -203,6 +207,37 @@ export async function handleAddComponents(
         existingComponents.forEach((comp) => console.log(`  - ${comp}`));
       }
 
+      // Handle dry-run mode
+      if (options.dryRun) {
+        const { dependencies, devDependencies } =
+          getComponentNpmDependencies(newComponents);
+
+        console.log(chalk.cyan("\n📋 Dry run - changes that would be made:\n"));
+
+        console.log(chalk.bold("Files to be created:"));
+        newComponents.forEach((comp) => {
+          const targetDir = getComponentDirectoryPath(
+            projectRoot,
+            installPath,
+            isExplicitPrefix,
+          );
+          console.log(`  ${targetDir}/${comp}.tsx`);
+        });
+
+        if (dependencies.length > 0) {
+          console.log(chalk.bold("\nNpm packages to install:"));
+          dependencies.forEach((dep) => console.log(`  ${dep}`));
+        }
+
+        if (devDependencies.length > 0) {
+          console.log(chalk.bold("\nDev dependencies to install:"));
+          devDependencies.forEach((dep) => console.log(`  ${dep}`));
+        }
+
+        console.log(chalk.gray("\n(No changes made - this was a dry run)\n"));
+        return;
+      }
+
       if (!options.yes) {
         const { proceed } = await interactivePrompt<{ proceed: boolean }>(
           {
@@ -234,7 +269,9 @@ export async function handleAddComponents(
     });
 
     // 7. Setup Tailwind and globals.css after all components are installed
-    await setupTailwindAndGlobals(process.cwd());
+    if (!options.skipTailwindSetup) {
+      await setupTailwindAndGlobals(process.cwd());
+    }
 
     if (!options.silent) {
       console.log(chalk.green("\n✨ Installation complete!"));

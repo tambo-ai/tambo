@@ -1,0 +1,58 @@
+---
+title: Endpoint Deprecated
+description: Error response when calling a deprecated API endpoint
+---
+
+The API returns a `410 Gone` status with this problem type when you call an endpoint that has been deprecated and removed.
+
+## Response Format
+
+```json
+{
+  "type": "https://docs.tambo.co/reference/problems/endpoint-deprecated",
+  "status": 410,
+  "title": "Endpoint Deprecated",
+  "detail": "The non-streaming /advance endpoint has been deprecated. Please use /advancestream instead.",
+  "code": "ENDPOINT_DEPRECATED",
+  "instance": "/threads/advance",
+  "details": {
+    "migrateToEndpoint": "POST /advancestream"
+  }
+}
+```
+
+## Fields
+
+- **`type`** - Stable URI identifying this problem type
+- **`status`** - HTTP status code (always `410`)
+- **`title`** - Short summary of the problem
+- **`detail`** - Human-readable description explaining what was deprecated
+- **`code`** - Stable identifier (`ENDPOINT_DEPRECATED`) for programmatic error handling
+- **`instance`** - The specific request path that triggered this error
+- **`details.migrateToEndpoint`** - Migration guidance showing the HTTP method and replacement endpoint path
+
+## Handling
+
+When you receive this error:
+
+1. Check the `details.migrateToEndpoint` field for the replacement endpoint
+2. Update your code to use the new endpoint
+3. Review the [REST API documentation](/reference/rest-api) for the correct request format
+
+## Example
+
+```bash
+# Old endpoint (deprecated)
+curl -X POST https://api.tambo.co/threads/advance \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# New endpoint (use this instead)
+curl -X POST https://api.tambo.co/threads/advancestream \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+## See Also
+
+- [REST API Reference](/reference/rest-api) - Complete API documentation
+- [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) - Standard for error responses

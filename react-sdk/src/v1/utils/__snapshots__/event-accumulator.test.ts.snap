@@ -1,0 +1,126 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`streamReducer snapshot tests for complex state transitions matches snapshot for component streaming flow 1`] = `
+{
+  "currentThreadId": "thread_1",
+  "threadMap": {
+    "thread_1": {
+      "accumulatingToolArgs": Map {},
+      "streaming": {
+        "messageId": "msg_1",
+        "status": "streaming",
+      },
+      "thread": {
+        "createdAt": "[TIMESTAMP]",
+        "id": "thread_1",
+        "messages": [
+          {
+            "content": [
+              {
+                "id": "comp_1",
+                "name": "WeatherCard",
+                "props": {
+                  "city": "New York",
+                  "temperature": 72,
+                },
+                "streamingState": "done",
+                "type": "component",
+              },
+            ],
+            "createdAt": "[TIMESTAMP]",
+            "id": "msg_1",
+            "role": "assistant",
+          },
+        ],
+        "status": "idle",
+        "updatedAt": "[TIMESTAMP]",
+      },
+    },
+  },
+}
+`;
+
+exports[`streamReducer snapshot tests for complex state transitions matches snapshot for full message flow 1`] = `
+{
+  "currentThreadId": "thread_1",
+  "threadMap": {
+    "thread_1": {
+      "accumulatingToolArgs": Map {},
+      "streaming": {
+        "messageId": undefined,
+        "runId": "run_1",
+        "startTime": 1704067200000,
+        "status": "complete",
+      },
+      "thread": {
+        "createdAt": "[TIMESTAMP]",
+        "id": "thread_1",
+        "messages": [
+          {
+            "content": [
+              {
+                "text": "Hello, how can I help?",
+                "type": "text",
+              },
+            ],
+            "createdAt": "[TIMESTAMP]",
+            "id": "msg_1",
+            "role": "assistant",
+          },
+        ],
+        "status": "complete",
+        "updatedAt": "[TIMESTAMP]",
+      },
+    },
+  },
+}
+`;
+
+exports[`streamReducer snapshot tests for complex state transitions matches snapshot for tool call flow 1`] = `
+{
+  "currentThreadId": "thread_1",
+  "threadMap": {
+    "thread_1": {
+      "accumulatingToolArgs": Map {},
+      "streaming": {
+        "messageId": "msg_1",
+        "status": "streaming",
+      },
+      "thread": {
+        "createdAt": "[TIMESTAMP]",
+        "id": "thread_1",
+        "messages": [
+          {
+            "content": [
+              {
+                "id": "tool_1",
+                "input": {
+                  "city": "San Francisco",
+                  "units": "fahrenheit",
+                },
+                "name": "get_weather",
+                "type": "tool_use",
+              },
+              {
+                "content": [
+                  {
+                    "text": "Temperature: 65°F, Sunny",
+                    "type": "text",
+                  },
+                ],
+                "toolUseId": "tool_1",
+                "type": "tool_result",
+              },
+            ],
+            "createdAt": "[TIMESTAMP]",
+            "id": "msg_1",
+            "role": "assistant",
+          },
+        ],
+        "status": "idle",
+        "updatedAt": "[TIMESTAMP]",
+      },
+    },
+  },
+}
+`;

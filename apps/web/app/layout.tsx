@@ -56,6 +56,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const docsUrl = "https://docs.tambo.co";
+  const llmsUrl = "https://docs.tambo.co/llms.txt";
+  const llmsFullUrl = "https://docs.tambo.co/llms-full.txt";
+
   // Generate schema for the website and organization
   const websiteSchema = generateWebsiteSchema();
   const organizationSchema = generateOrganizationSchema();
@@ -71,6 +75,9 @@ export default async function RootLayout({
     >
       <head>
         <PreloadResources />
+        <link rel="help" href={docsUrl} />
+        <link rel="alternate" type="text/plain" href={llmsUrl} />
+        <link rel="alternate" type="text/plain" href={llmsFullUrl} />
       </head>
       <TamboProviderWrapper userId={session?.user?.id}>
         <Suspense>

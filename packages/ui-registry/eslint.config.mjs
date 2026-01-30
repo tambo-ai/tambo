@@ -4,13 +4,23 @@ import { defineConfig } from "eslint/config";
 export default defineConfig([
   ...reactInternal,
   {
-    // Ignore test files and jest config - they use @jest/globals types not in the main tsconfig
+    // Ignore test files and jest config - they use different tsconfig
     ignores: [
       "**/*.test.ts",
       "**/*.test.tsx",
       "__tests__/**/*",
       "jest.config.ts",
     ],
+  },
+  {
+    // Allow scripts and config files to be linted without being in the main tsconfig
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ["*.mjs", "scripts/*.ts"],
+        },
+      },
+    },
   },
   {
     rules: {

@@ -1,0 +1,1075 @@
+/**
+ * Event Accumulation Logic for v1 Streaming API
+ *
+ * Implements a reducer that transforms AG-UI event streams into React state.
+ * Used with useReducer to accumulate events into thread state.
+ */
+
+import type {
+  AGUIEvent,
+  CustomEvent,
+  RunErrorEvent,
+  RunFinishedEvent,
+  RunStartedEvent,
+  TextMessageContentEvent,
+  TextMessageEndEvent,
+  TextMessageStartEvent,
+  ToolCallArgsEvent,
+  ToolCallEndEvent,
+  ToolCallResultEvent,
+  ToolCallStartEvent,
+} from "@ag-ui/core";
+import { EventType } from "@ag-ui/core";
+import {
+  asTamboCustomEvent,
+  type ComponentEndEvent,
+  type ComponentPropsDeltaEvent,
+  type ComponentStartEvent,
+  type ComponentStateDeltaEvent,
+  type RunAwaitingInputEvent,
+} from "../types/event";
+import type { Content, TamboV1Message } from "../types/message";
+import type { StreamingState, TamboV1Thread } from "../types/thread";
+import { applyJsonPatch } from "./json-patch";
+
+/**
+ * Error thrown when an unreachable case is reached in a switch statement.
+ * This indicates a programming error where not all cases were handled.
+ */
+export class UnreachableCaseError extends Error {
+  constructor(value: never) {
+    super(`Unreachable case: ${JSON.stringify(value)}`);
+    this.name = "UnreachableCaseError";
+  }
+}
+
+/**
+ * Per-thread state managed by the stream reducer.
+ * Tracks thread data, streaming status, and accumulating data.
+ */
+export interface ThreadState {
+  thread: TamboV1Thread;
+  streaming: StreamingState;
+  /**
+   * Accumulating tool call arguments as JSON strings (for streaming).
+   * Maps tool call ID to accumulated JSON string.
+   */
+  accumulatingToolArgs: Map<string, string>;
+}
+
+/**
+ * State managed by the stream reducer.
+ * Maintains a map of all threads being tracked.
+ */
+export interface StreamState {
+  /**
+   * Map of thread ID to thread state
+   */
+  threadMap: Record<string, ThreadState>;
+
+  /**
+   * Current active thread ID (for UI context)
+   */
+  currentThreadId: string | null;
+}
+
+/**
+ * Event action - dispatches an AG-UI event to update thread state.
+ */
+export interface EventAction {
+  type: "EVENT";
+  event: AGUIEvent;
+  threadId: string;
+}
+
+/**
+ * Initialize thread action - creates a new thread in the threadMap.
+ */
+export interface InitThreadAction {
+  type: "INIT_THREAD";
+  threadId: string;
+  initialThread?: Partial<TamboV1Thread>;
+}
+
+/**
+ * Set current thread action - changes the active thread.
+ */
+export interface SetCurrentThreadAction {
+  type: "SET_CURRENT_THREAD";
+  threadId: string | null;
+}
+
+/**
+ * Start new thread action - atomically creates and switches to a new thread.
+ * This prevents race conditions when multiple calls happen concurrently.
+ */
+export interface StartNewThreadAction {
+  type: "START_NEW_THREAD";
+  threadId: string;
+  initialThread?: Partial<TamboV1Thread>;
+}
+
+/**
+ * Action type for the stream reducer.
+ */
+export type StreamAction =
+  | EventAction
+  | InitThreadAction
+  | SetCurrentThreadAction
+  | StartNewThreadAction;
+
+/**
+ * Initial streaming state.
+ */
+const initialStreamingState: StreamingState = {
+  status: "idle",
+};
+
+/**
+ * Create initial thread state for a new thread.
+ * @param threadId - Unique thread identifier
+ * @returns Initial thread state
+ */
+export function createInitialThreadState(threadId: string): ThreadState {
+  const now = new Date().toISOString();
+  return {
+    thread: {
+      id: threadId,
+      messages: [],
+      status: "idle",
+      createdAt: now,
+      updatedAt: now,
+    },
+    streaming: initialStreamingState,
+    accumulatingToolArgs: new Map(),
+  };
+}
+
+/**
+ * Create initial stream state with empty threadMap.
+ * @returns Initial stream state
+ */
+export function createInitialState(): StreamState {
+  return {
+    threadMap: {},
+    currentThreadId: null,
+  };
+}
+
+// ============================================================================
+// Helper Functions for Immutable State Updates
+// ============================================================================
+
+/**
+ * Location of a content block within messages.
+ */
+interface ContentLocation {
+  messageIndex: number;
+  contentIndex: number;
+}
+
+/**
+ * Replace a message at a specific index immutably.
+ * @param messages - Current messages array
+ * @param index - Index of message to replace
+ * @param updatedMessage - New message to insert
+ * @returns New messages array with the message replaced
+ */
+function updateMessageAtIndex(
+  messages: TamboV1Message[],
+  index: number,
+  updatedMessage: TamboV1Message,
+): TamboV1Message[] {
+  return [
+    ...messages.slice(0, index),
+    updatedMessage,
+    ...messages.slice(index + 1),
+  ];
+}
+
+/**
+ * Replace a content block at a specific index within a message's content immutably.
+ * @param content - Current content array
+ * @param index - Index of content to replace
+ * @param updatedContent - New content to insert
+ * @returns New content array with the content replaced
+ */
+function updateContentAtIndex(
+  content: Content[],
+  index: number,
+  updatedContent: Content,
+): Content[] {
+  return [
+    ...content.slice(0, index),
+    updatedContent,
+    ...content.slice(index + 1),
+  ];
+}
+
+/**
+ * Find a content block by ID across all messages, searching from most recent.
+ *
+ * TODO: This is O(n*m) where n = messages and m = content blocks per message.
+ * For high-frequency streaming with many messages, consider maintaining an
+ * index map of contentId -> {messageIndex, contentIndex} that gets updated
+ * when content blocks are created.
+ * @param messages - Messages to search
+ * @param contentType - Type of content to find ("component" or "tool_use")
+ * @param contentId - ID of the content block
+ * @param eventName - Name of the event (for error messages)
+ * @returns Location of the content block
+ * @throws {Error} If content not found
+ */
+function findContentById(
+  messages: TamboV1Message[],
+  contentType: "component" | "tool_use",
+  contentId: string,
+  eventName: string,
+): ContentLocation {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const idx = messages[i].content.findIndex(
+      (c) => c.type === contentType && c.id === contentId,
+    );
+    if (idx !== -1) {
+      return { messageIndex: i, contentIndex: idx };
+    }
+  }
+  throw new Error(`${contentType} ${contentId} not found for ${eventName}`);
+}
+
+/**
+ * Create updated thread state with new messages.
+ * @param threadState - Current thread state
+ * @param messages - New messages array
+ * @returns Updated thread state
+ */
+function updateThreadMessages(
+  threadState: ThreadState,
+  messages: TamboV1Message[],
+): ThreadState {
+  return {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      messages,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
+/**
+ * Stream reducer that accumulates events into thread state.
+ *
+ * This reducer handles all AG-UI events and Tambo custom events,
+ * transforming them into immutable state updates per thread.
+ * @param state - Current stream state
+ * @param action - Action to process
+ * @returns Updated stream state
+ */
+export function streamReducer(
+  state: StreamState,
+  action: StreamAction,
+): StreamState {
+  // Handle non-event actions first
+  switch (action.type) {
+    case "INIT_THREAD": {
+      const { threadId, initialThread } = action;
+      // Don't overwrite existing thread
+      if (state.threadMap[threadId]) {
+        return state;
+      }
+      const baseState = createInitialThreadState(threadId);
+      const threadState = initialThread
+        ? {
+            ...baseState,
+            thread: {
+              ...baseState.thread,
+              ...initialThread,
+              id: threadId,
+            },
+          }
+        : baseState;
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [threadId]: threadState,
+        },
+      };
+    }
+
+    case "SET_CURRENT_THREAD": {
+      return {
+        ...state,
+        currentThreadId: action.threadId,
+      };
+    }
+
+    case "START_NEW_THREAD": {
+      // Atomic action: initialize thread AND set as current in one reducer pass
+      // This prevents race conditions when multiple startNewThread() calls happen
+      const { threadId, initialThread } = action;
+      // Don't overwrite existing thread
+      if (state.threadMap[threadId]) {
+        return {
+          ...state,
+          currentThreadId: threadId,
+        };
+      }
+      const baseState = createInitialThreadState(threadId);
+      const threadState = initialThread
+        ? {
+            ...baseState,
+            thread: {
+              ...baseState.thread,
+              ...initialThread,
+              id: threadId,
+            },
+          }
+        : baseState;
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [threadId]: threadState,
+        },
+        currentThreadId: threadId,
+      };
+    }
+
+    case "EVENT":
+      // Fall through to event handling below
+      break;
+  }
+
+  // Handle EVENT action
+  const { event, threadId } = action;
+
+  // Get the current thread state, auto-initializing if needed
+  // Auto-initialization handles the case where events arrive before explicit thread init
+  // (e.g., when creating a new thread and RUN_STARTED is the first event)
+  let threadState = state.threadMap[threadId];
+  let updatedState = state;
+
+  if (!threadState) {
+    // Auto-initialize the thread to avoid dropping events
+    threadState = createInitialThreadState(threadId);
+    updatedState = {
+      ...state,
+      threadMap: {
+        ...state.threadMap,
+        [threadId]: threadState,
+      },
+    };
+  }
+
+  // Process the event for this specific thread
+  let updatedThreadState: ThreadState;
+
+  // Switch on event.type - AGUIEvent is a discriminated union so TypeScript
+  // automatically narrows the type in each case branch
+  switch (event.type) {
+    case EventType.RUN_STARTED:
+      updatedThreadState = handleRunStarted(threadState, event);
+      break;
+
+    case EventType.RUN_FINISHED:
+      updatedThreadState = handleRunFinished(threadState, event);
+      break;
+
+    case EventType.RUN_ERROR:
+      updatedThreadState = handleRunError(threadState, event);
+      break;
+
+    case EventType.TEXT_MESSAGE_START:
+      updatedThreadState = handleTextMessageStart(threadState, event);
+      break;
+
+    case EventType.TEXT_MESSAGE_CONTENT:
+      updatedThreadState = handleTextMessageContent(threadState, event);
+      break;
+
+    case EventType.TEXT_MESSAGE_END:
+      updatedThreadState = handleTextMessageEnd(threadState, event);
+      break;
+
+    case EventType.TOOL_CALL_START:
+      updatedThreadState = handleToolCallStart(threadState, event);
+      break;
+
+    case EventType.TOOL_CALL_ARGS:
+      updatedThreadState = handleToolCallArgs(threadState, event);
+      break;
+
+    case EventType.TOOL_CALL_END:
+      updatedThreadState = handleToolCallEnd(threadState, event);
+      break;
+
+    case EventType.TOOL_CALL_RESULT:
+      updatedThreadState = handleToolCallResult(threadState, event);
+      break;
+
+    case EventType.CUSTOM:
+      updatedThreadState = handleCustomEvent(threadState, event);
+      break;
+
+    // Unsupported AG-UI event types - may be added in future phases
+    case EventType.TEXT_MESSAGE_CHUNK:
+    case EventType.THINKING_TEXT_MESSAGE_START:
+    case EventType.THINKING_TEXT_MESSAGE_CONTENT:
+    case EventType.THINKING_TEXT_MESSAGE_END:
+    case EventType.TOOL_CALL_CHUNK:
+    case EventType.THINKING_START:
+    case EventType.THINKING_END:
+    case EventType.STATE_SNAPSHOT:
+    case EventType.STATE_DELTA:
+    case EventType.MESSAGES_SNAPSHOT:
+    case EventType.ACTIVITY_SNAPSHOT:
+    case EventType.ACTIVITY_DELTA:
+    case EventType.RAW:
+    case EventType.STEP_STARTED:
+    case EventType.STEP_FINISHED:
+      // Log warning - these events are being ignored
+
+      console.warn(
+        `[StreamReducer] Received unsupported event type: ${event.type}. ` +
+          `This event will be ignored.`,
+      );
+      return updatedState;
+
+    default: {
+      // Exhaustiveness check: if a new event type is added to AGUIEvent
+      // and not handled above, TypeScript will error here
+      const _exhaustiveCheck: never = event;
+      throw new UnreachableCaseError(_exhaustiveCheck);
+    }
+  }
+
+  // Return updated state with modified thread
+  return {
+    ...updatedState,
+    threadMap: {
+      ...updatedState.threadMap,
+      [threadId]: updatedThreadState,
+    },
+  };
+}
+
+/**
+ * Handle RUN_STARTED event.
+ * @param threadState - Current thread state
+ * @param event - Run started event
+ * @returns Updated thread state
+ */
+function handleRunStarted(
+  threadState: ThreadState,
+  event: RunStartedEvent,
+): ThreadState {
+  return {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      status: "streaming",
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      status: "streaming",
+      runId: event.runId,
+      startTime: event.timestamp ?? Date.now(),
+    },
+  };
+}
+
+/**
+ * Handle RUN_FINISHED event.
+ * @param threadState - Current thread state
+ * @param _event - Run finished event (unused)
+ * @returns Updated thread state
+ */
+function handleRunFinished(
+  threadState: ThreadState,
+  _event: RunFinishedEvent,
+): ThreadState {
+  return {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      status: "complete",
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      ...threadState.streaming,
+      status: "complete",
+    },
+  };
+}
+
+/**
+ * Handle RUN_ERROR event.
+ * @param threadState - Current thread state
+ * @param event - Run error event
+ * @returns Updated thread state
+ */
+function handleRunError(
+  threadState: ThreadState,
+  event: RunErrorEvent,
+): ThreadState {
+  return {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      status: "error",
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      ...threadState.streaming,
+      status: "error",
+      error: {
+        message: event.message,
+        code: event.code,
+      },
+    },
+  };
+}
+
+/**
+ * Handle TEXT_MESSAGE_START event.
+ * Creates a new message in the thread.
+ * @param threadState - Current thread state
+ * @param event - Text message start event
+ * @returns Updated thread state
+ */
+function handleTextMessageStart(
+  threadState: ThreadState,
+  event: TextMessageStartEvent,
+): ThreadState {
+  const newMessage: TamboV1Message = {
+    id: event.messageId,
+    role: event.role === "user" ? "user" : "assistant",
+    content: [],
+    createdAt: new Date().toISOString(),
+  };
+
+  return {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      messages: [...threadState.thread.messages, newMessage],
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      ...threadState.streaming,
+      messageId: event.messageId,
+    },
+  };
+}
+
+/**
+ * Handle TEXT_MESSAGE_CONTENT event.
+ * Appends text content to the current message.
+ * @param threadState - Current thread state
+ * @param event - Text message content event
+ * @returns Updated thread state
+ */
+function handleTextMessageContent(
+  threadState: ThreadState,
+  event: TextMessageContentEvent,
+): ThreadState {
+  const messageId = event.messageId;
+  const messages = threadState.thread.messages;
+
+  // Find the message to update
+  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  if (messageIndex === -1) {
+    throw new Error(
+      `Message ${messageId} not found for TEXT_MESSAGE_CONTENT event`,
+    );
+  }
+
+  const message = messages[messageIndex];
+  const content = message.content;
+
+  // Find or create text content block
+  const lastContent = content[content.length - 1];
+  const isTextBlock = lastContent?.type === "text";
+
+  const updatedContent: Content[] = isTextBlock
+    ? [
+        ...content.slice(0, -1),
+        {
+          ...lastContent,
+          text: lastContent.text + event.delta,
+        },
+      ]
+    : [
+        ...content,
+        {
+          type: "text",
+          text: event.delta,
+        },
+      ];
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: updatedContent,
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle TEXT_MESSAGE_END event.
+ * Marks the message as complete.
+ * @param threadState - Current thread state
+ * @param event - Text message end event
+ * @returns Updated thread state
+ */
+function handleTextMessageEnd(
+  threadState: ThreadState,
+  event: TextMessageEndEvent,
+): ThreadState {
+  const activeMessageId = threadState.streaming.messageId;
+
+  if (activeMessageId && event.messageId !== activeMessageId) {
+    throw new Error(
+      `TEXT_MESSAGE_END messageId mismatch (thread ${threadState.thread.id}): expected ${activeMessageId}, got ${event.messageId}`,
+    );
+  }
+
+  return {
+    ...threadState,
+    streaming: {
+      ...threadState.streaming,
+      messageId: undefined,
+    },
+  };
+}
+
+/**
+ * Handle TOOL_CALL_START event.
+ * Adds a tool use content block to the current message.
+ * @param threadState - Current thread state
+ * @param event - Tool call start event
+ * @returns Updated thread state
+ */
+function handleToolCallStart(
+  threadState: ThreadState,
+  event: ToolCallStartEvent,
+): ThreadState {
+  const messageId = event.parentMessageId;
+  const messages = threadState.thread.messages;
+
+  // If no parent message ID, use the last message
+  const messageIndex = messageId
+    ? messages.findIndex((m) => m.id === messageId)
+    : messages.length - 1;
+
+  if (messageIndex === -1) {
+    throw new Error(
+      messageId
+        ? `Message ${messageId} not found for TOOL_CALL_START event`
+        : `No messages exist for TOOL_CALL_START event`,
+    );
+  }
+
+  const message = messages[messageIndex];
+  const newContent: Content = {
+    type: "tool_use",
+    id: event.toolCallId,
+    name: event.toolCallName,
+    input: {},
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: [...message.content, newContent],
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle TOOL_CALL_ARGS event.
+ * Accumulates JSON string deltas for tool call arguments.
+ * The accumulated string will be parsed at TOOL_CALL_END.
+ * @param threadState - Current thread state
+ * @param event - Tool call args event
+ * @returns Updated thread state
+ */
+function handleToolCallArgs(
+  threadState: ThreadState,
+  event: ToolCallArgsEvent,
+): ThreadState {
+  const toolCallId = event.toolCallId;
+
+  // Accumulate the JSON string delta
+  const accumulatedArgs = threadState.accumulatingToolArgs;
+  const existingArgs = accumulatedArgs.get(toolCallId) ?? "";
+  const newAccumulatedArgs = new Map(accumulatedArgs);
+  newAccumulatedArgs.set(toolCallId, existingArgs + event.delta);
+
+  return {
+    ...threadState,
+    accumulatingToolArgs: newAccumulatedArgs,
+  };
+}
+
+/**
+ * Handle TOOL_CALL_END event.
+ * Parses the accumulated JSON arguments and updates the tool_use content block.
+ * @param threadState - Current thread state
+ * @param event - Tool call end event
+ * @returns Updated thread state
+ */
+function handleToolCallEnd(
+  threadState: ThreadState,
+  event: ToolCallEndEvent,
+): ThreadState {
+  const toolCallId = event.toolCallId;
+  const messages = threadState.thread.messages;
+
+  // Get accumulated JSON args string
+  const accumulatedJson = threadState.accumulatingToolArgs.get(toolCallId);
+  if (!accumulatedJson) {
+    // No args accumulated - tool call has empty input
+    return threadState;
+  }
+
+  // Parse the accumulated JSON
+  let parsedInput: unknown;
+  try {
+    parsedInput = JSON.parse(accumulatedJson);
+  } catch (error) {
+    throw new Error(
+      `Failed to parse tool call arguments for ${toolCallId}: ${error instanceof Error ? error.message : String(error)}. JSON: ${accumulatedJson}`,
+    );
+  }
+
+  // Find the tool_use content block
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "tool_use",
+    toolCallId,
+    "TOOL_CALL_END event",
+  );
+
+  const message = messages[messageIndex];
+  const toolUseContent = message.content[contentIndex];
+
+  if (toolUseContent.type !== "tool_use") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a tool_use block for TOOL_CALL_END event`,
+    );
+  }
+
+  // Update the tool_use content with parsed input
+  const updatedContent: Content = {
+    ...toolUseContent,
+    input: parsedInput,
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
+
+  // Clear accumulated args for this tool call
+  const newAccumulatingToolArgs = new Map(threadState.accumulatingToolArgs);
+  newAccumulatingToolArgs.delete(toolCallId);
+
+  return {
+    ...updateThreadMessages(
+      threadState,
+      updateMessageAtIndex(messages, messageIndex, updatedMessage),
+    ),
+    accumulatingToolArgs: newAccumulatingToolArgs,
+  };
+}
+
+/**
+ * Handle TOOL_CALL_RESULT event.
+ * Adds tool result to the message.
+ * @param threadState - Current thread state
+ * @param event - Tool call result event
+ * @returns Updated thread state
+ */
+function handleToolCallResult(
+  threadState: ThreadState,
+  event: ToolCallResultEvent,
+): ThreadState {
+  const messageId = event.messageId;
+  const messages = threadState.thread.messages;
+
+  // Find the message
+  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  if (messageIndex === -1) {
+    throw new Error(
+      `Message ${messageId} not found for TOOL_CALL_RESULT event`,
+    );
+  }
+
+  const message = messages[messageIndex];
+
+  // Add tool result content
+  const newContent: Content = {
+    type: "tool_result",
+    toolUseId: event.toolCallId,
+    content: [
+      {
+        type: "text",
+        text: event.content,
+      },
+    ],
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: [...message.content, newContent],
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle custom events (Tambo-specific).
+ * @param threadState - Current thread state
+ * @param event - Custom event (already narrowed from AGUIEvent)
+ * @returns Updated thread state
+ */
+function handleCustomEvent(
+  threadState: ThreadState,
+  event: CustomEvent,
+): ThreadState {
+  // Use centralized casting function to get properly typed Tambo event
+  const customEvent = asTamboCustomEvent(event);
+
+  if (!customEvent) {
+    // Unknown custom event - log and return unchanged
+    console.warn(`[StreamReducer] Unknown custom event name: ${event.name}`);
+    return threadState;
+  }
+
+  switch (customEvent.name) {
+    case "tambo.component.start":
+      return handleComponentStart(threadState, customEvent);
+
+    case "tambo.component.props_delta":
+      return handleComponentDelta(threadState, customEvent, "props");
+
+    case "tambo.component.state_delta":
+      return handleComponentDelta(threadState, customEvent, "state");
+
+    case "tambo.component.end":
+      return handleComponentEnd(threadState, customEvent);
+
+    case "tambo.run.awaiting_input":
+      return handleRunAwaitingInput(threadState, customEvent);
+
+    default: {
+      // Exhaustiveness check: if a new event type is added to TamboCustomEvent
+      // and not handled here, TypeScript will error
+      const _exhaustiveCheck: never = customEvent;
+      throw new UnreachableCaseError(_exhaustiveCheck);
+    }
+  }
+}
+
+/**
+ * Handle tambo.component.start event.
+ * Adds a component content block to the message with 'started' streaming state.
+ * @param threadState - Current thread state
+ * @param event - Component start event
+ * @returns Updated thread state
+ */
+function handleComponentStart(
+  threadState: ThreadState,
+  event: ComponentStartEvent,
+): ThreadState {
+  const messageId = event.value.messageId;
+  const messages = threadState.thread.messages;
+
+  // Find the message
+  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  if (messageIndex === -1) {
+    throw new Error(
+      `Message ${messageId} not found for tambo.component.start event`,
+    );
+  }
+
+  const message = messages[messageIndex];
+
+  // Add component content block with 'started' streaming state
+  const newContent: Content = {
+    type: "component",
+    id: event.value.componentId,
+    name: event.value.componentName,
+    props: {},
+    streamingState: "started",
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: [...message.content, newContent],
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle component delta events (both props_delta and state_delta).
+ * Applies JSON Patch to the specified field and sets streamingState to 'streaming'.
+ * @param threadState - Current thread state
+ * @param event - Component delta event (props or state)
+ * @param field - Which field to update ('props' or 'state')
+ * @returns Updated thread state
+ */
+function handleComponentDelta(
+  threadState: ThreadState,
+  event: ComponentPropsDeltaEvent | ComponentStateDeltaEvent,
+  field: "props" | "state",
+): ThreadState {
+  const componentId = event.value.componentId;
+  const operations = event.value.operations;
+  const messages = threadState.thread.messages;
+  const eventName = `tambo.component.${field}_delta`;
+
+  // Find the component content block
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "component",
+    componentId,
+    `${eventName} event`,
+  );
+
+  const message = messages[messageIndex];
+  const componentContent = message.content[contentIndex];
+
+  if (componentContent.type !== "component") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a component block for ${eventName} event`,
+    );
+  }
+
+  // Get current value (state defaults to {} if undefined)
+  const currentValue =
+    field === "props"
+      ? (componentContent.props as Record<string, unknown>)
+      : ((componentContent.state as Record<string, unknown>) ?? {});
+
+  // Apply JSON Patch
+  const updatedValue = applyJsonPatch(currentValue, operations);
+
+  // Update field and set streaming state to 'streaming'
+  const updatedContent: Content = {
+    ...componentContent,
+    [field]: updatedValue,
+    streamingState: "streaming",
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle tambo.component.end event.
+ * Sets component streaming state to 'done'.
+ * @param threadState - Current thread state
+ * @param event - Component end event
+ * @returns Updated thread state
+ */
+function handleComponentEnd(
+  threadState: ThreadState,
+  event: ComponentEndEvent,
+): ThreadState {
+  const componentId = event.value.componentId;
+  const messages = threadState.thread.messages;
+
+  // Find the component content block
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "component",
+    componentId,
+    "tambo.component.end event",
+  );
+
+  const message = messages[messageIndex];
+  const componentContent = message.content[contentIndex];
+
+  if (componentContent.type !== "component") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a component block for tambo.component.end event`,
+    );
+  }
+
+  // Set streaming state to 'done'
+  const updatedContent: Content = {
+    ...componentContent,
+    streamingState: "done",
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
+}
+
+/**
+ * Handle tambo.run.awaiting_input event.
+ * Sets thread status to waiting for client-side tool execution.
+ * @param threadState - Current thread state
+ * @param _event - Run awaiting input event (unused)
+ * @returns Updated thread state
+ */
+function handleRunAwaitingInput(
+  threadState: ThreadState,
+  _event: RunAwaitingInputEvent,
+): ThreadState {
+  return {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      status: "waiting",
+      updatedAt: new Date().toISOString(),
+    },
+    streaming: {
+      ...threadState.streaming,
+      status: "waiting",
+    },
+  };
+}

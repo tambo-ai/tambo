@@ -14,7 +14,9 @@ import {
 } from "../lib/device-auth.js";
 import { tamboTsTemplate } from "../templates/tambo-template.js";
 import {
+  GuidanceError,
   interactivePrompt,
+  isInteractive,
   NonInteractiveError,
 } from "../utils/interactive.js";
 import {
@@ -28,6 +30,7 @@ import {
   getTamboApiKeyEnvVar,
 } from "../utils/framework-detection.js";
 import { handleAddComponent } from "./add/index.js";
+import { setupTailwindAndGlobals } from "./add/tailwind-setup.js";
 import { handleAgentDocsUpdate } from "./shared/agent-docs.js";
 import { getLibDirectory } from "./shared/path-utils.js";
 
@@ -67,6 +70,10 @@ interface InitOptions {
   legacyPeerDeps?: boolean;
   yes?: boolean;
   skipAgentDocs?: boolean;
+  apiKey?: string;
+  projectName?: string;
+  projectId?: string;
+  noBrowser?: boolean;
 }
 
 /**
@@ -346,6 +353,119 @@ async function handleAuthentication(): Promise<boolean> {
       console.error(chalk.red(`\nFailed to authenticate: ${error}`));
     }
     return false;
+  }
+}
+
+/**
+ * Creates a project with the given name and generates an API key
+ * Used in non-interactive mode with --project-name flag
+ */
+async function createProjectAndGenerateKey(
+  projectName: string,
+): Promise<boolean> {
+  try {
+    console.log(chalk.cyan("\nCreating project..."));
+    const createSpinner = ora(`Creating project: ${projectName}`).start();
+
+    try {
+      const project = await api.project.createProject2.mutate({
+        name: projectName.trim(),
+      });
+      createSpinner.succeed(`Created project: ${project.name}`);
+
+      // Generate API key
+      return await generateApiKeyForProject(project.id, project.name);
+    } catch (error) {
+      createSpinner.fail("Failed to create project");
+      throw error;
+    }
+  } catch (error) {
+    console.error(chalk.red(`\nProject creation failed: ${error}`));
+    return false;
+  }
+}
+
+/**
+ * Uses an existing project by ID and generates an API key
+ * Used in non-interactive mode with --project-id flag
+ */
+async function useExistingProjectAndGenerateKey(
+  projectId: string,
+): Promise<boolean> {
+  try {
+    console.log(chalk.cyan("\nLooking up project..."));
+    const spinner = ora("Fetching project details...").start();
+
+    try {
+      // Try to fetch the project to verify it exists and get its name
+      const projects = await api.project.getUserProjects.query({});
+      const project = projects.find(
+        (p: { id: string; name: string }) => p.id === projectId,
+      );
+
+      if (!project) {
+        spinner.fail("Project not found");
+        console.error(
+          chalk.red(`\nProject with ID "${projectId}" was not found.`),
+        );
+        console.error(
+          chalk.gray(
+            "Make sure you have access to this project and the ID is correct.",
+          ),
+        );
+        return false;
+      }
+
+      spinner.succeed(`Found project: ${project.name}`);
+
+      // Generate API key
+      return await generateApiKeyForProject(project.id, project.name);
+    } catch (error) {
+      spinner.fail("Failed to fetch project");
+      throw error;
+    }
+  } catch (error) {
+    console.error(chalk.red(`\nProject lookup failed: ${error}`));
+    return false;
+  }
+}
+
+/**
+ * Generates an API key for the given project and saves it to .env
+ */
+async function generateApiKeyForProject(
+  projectId: string,
+  projectName: string,
+): Promise<boolean> {
+  console.log(chalk.cyan("\nGenerating API key..."));
+  const keySpinner = ora("Generating API key...").start();
+
+  try {
+    const timestamp = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const result = await api.project.generateApiKey.mutate({
+      projectId,
+      name: `CLI Key (${timestamp})`,
+    });
+    keySpinner.succeed("API key generated");
+
+    // Save to .env file
+    const saved = await writeApiKeyToEnv(result.apiKey);
+    if (saved) {
+      console.log(
+        chalk.gray(
+          `\n   Project: ${projectName}\n   Key saved to your .env file`,
+        ),
+      );
+    }
+    return saved;
+  } catch (error) {
+    keySpinner.fail("Failed to generate API key");
+    throw error;
   }
 }
 
@@ -695,6 +815,8 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
         silent: true,
         legacyPeerDeps: options.legacyPeerDeps,
         installPath,
+        isExplicitPrefix: false, // Ensure COMPONENT_SUBDIR is appended
+        skipTailwindSetup: true, // Handle tailwind setup after spinner completes
       });
       spinner.succeed(`Installed ${component}`);
     } catch (error) {
@@ -715,6 +837,9 @@ async function handleFullSendInit(options: InitOptions): Promise<void> {
     );
     return; // Exit early without showing next steps
   }
+
+  // Setup tailwind after all components installed (outside spinner to allow prompts)
+  await setupTailwindAndGlobals(process.cwd());
 
   displayFullSendInstructions(selectedComponents);
 }
@@ -855,7 +980,107 @@ export async function handleInit({
   legacyPeerDeps = false,
   yes = false,
   skipAgentDocs = false,
+  apiKey,
+  projectName,
+  projectId,
+  noBrowser = false,
 }: InitOptions): Promise<void> {
+  // In non-interactive mode, check if we have what we need
+  if (!isInteractive()) {
+    // If API key is provided directly, we can skip auth entirely
+    if (apiKey) {
+      // Write the API key and continue
+      if (!validateRootPackageJson()) return;
+      const saved = await writeApiKeyToEnv(apiKey);
+      if (!saved) {
+        throw new Error("Failed to write API key to .env file");
+      }
+      console.log(chalk.green("\n✔ API key configured"));
+
+      await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+      console.log(
+        chalk.green("\n✔ API key setup complete.") +
+          chalk.gray(" Run 'tambo init' interactively for full project setup."),
+      );
+      return;
+    }
+
+    // Handle --project-name: auth + create project + generate key
+    if (projectName) {
+      if (!validateRootPackageJson()) return;
+
+      console.log(
+        chalk.blue("\nInitializing with new project via device auth...\n"),
+      );
+
+      try {
+        // Run device auth with noBrowser option
+        await runDeviceAuthFlow({ noBrowser });
+        console.log(chalk.green("\n✔ Authentication successful"));
+
+        // Create project and generate key
+        const success = await createProjectAndGenerateKey(projectName);
+        if (!success) {
+          throw new Error("Failed to create project and generate API key");
+        }
+
+        await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+        console.log(chalk.green("\n✨ Initialization complete!"));
+        return;
+      } catch (error) {
+        if (error instanceof DeviceAuthError) {
+          console.error(
+            chalk.red(`\n✖ Authentication failed: ${error.message}`),
+          );
+        } else {
+          console.error(chalk.red(`\n✖ Initialization failed: ${error}`));
+        }
+        throw error;
+      }
+    }
+
+    // Handle --project-id: auth + select project + generate key
+    if (projectId) {
+      if (!validateRootPackageJson()) return;
+
+      console.log(
+        chalk.blue("\nInitializing with existing project via device auth...\n"),
+      );
+
+      try {
+        // Run device auth with noBrowser option
+        await runDeviceAuthFlow({ noBrowser });
+        console.log(chalk.green("\n✔ Authentication successful"));
+
+        // Use existing project and generate key
+        const success = await useExistingProjectAndGenerateKey(projectId);
+        if (!success) {
+          throw new Error("Failed to use project and generate API key");
+        }
+
+        await handleAgentDocsUpdate({ yes: true, skipAgentDocs });
+        console.log(chalk.green("\n✨ Initialization complete!"));
+        return;
+      } catch (error) {
+        if (error instanceof DeviceAuthError) {
+          console.error(
+            chalk.red(`\n✖ Authentication failed: ${error.message}`),
+          );
+        } else {
+          console.error(chalk.red(`\n✖ Initialization failed: ${error}`));
+        }
+        throw error;
+      }
+    }
+
+    // No API key or project info provided - need guidance
+    throw new GuidanceError("API key required in non-interactive mode", [
+      "npx tambo init --api-key=sk_...  # Get key from https://console.tambo.co",
+      "npx tambo init --project-name=myapp   # Create new project (requires browser auth)",
+      "npx tambo init --project-id=abc123    # Use existing project (requires browser auth)",
+    ]);
+  }
+
   try {
     if (fullSend) {
       return await handleFullSendInit({

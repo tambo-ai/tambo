@@ -1,7 +1,7 @@
 /**
  * Thread Types for v1 API
  *
- * Re-exports thread types from @tambo-ai/typescript-sdk and defines
+ * Re-exports thread types from `@tambo-ai/typescript-sdk` and defines
  * React-specific extensions for streaming state management.
  */
 
@@ -29,9 +29,6 @@ export interface TamboV1Thread {
 
   /** Thread title/name */
   title?: string;
-
-  /** Project ID this thread belongs to */
-  projectId: string;
 
   /** Messages in the thread */
   messages: TamboV1Message[];
