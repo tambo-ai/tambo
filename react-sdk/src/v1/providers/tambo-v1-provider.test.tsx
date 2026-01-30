@@ -12,8 +12,22 @@ import { TamboV1Provider, useTamboV1Config } from "./tambo-v1-provider";
 // Mock the client provider to capture the apiKey
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(() => new QueryClient()),
   TamboClientProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+}));
+
+// Mock useTamboV1SendMessage to avoid complex dependencies
+jest.mock("../hooks/use-tambo-v1-send-message", () => ({
+  useTamboV1SendMessage: jest.fn(() => ({
+    mutateAsync: jest.fn(),
+    mutate: jest.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+    isSuccess: false,
+    reset: jest.fn(),
+  })),
 }));
 
 describe("TamboV1Provider", () => {

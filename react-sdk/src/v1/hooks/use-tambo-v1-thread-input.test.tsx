@@ -1,57 +1,82 @@
-import { renderHook, act } from "@testing-library/react";
-import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input";
-
-// Create mock functions
-const mockMutateAsync = jest.fn();
-const mockMutate = jest.fn();
-const mockReset = jest.fn();
-
-// Mock useTamboV1SendMessage module
-jest.mock("./use-tambo-v1-send-message");
-
+import { renderHook, act, waitFor } from "@testing-library/react";
+import React from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  TamboV1ThreadInputProvider,
+  useTamboV1ThreadInput,
+} from "../providers/tambo-v1-thread-input-provider";
+import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
 import { useTamboV1SendMessage } from "./use-tambo-v1-send-message";
 
-// Helper to set up the mock with default values
-function setupMock(overrides: Record<string, unknown> = {}) {
-  const mockReturn = {
-    mutateAsync: mockMutateAsync,
-    mutate: mockMutate,
-    isPending: false as const,
-    isError: false as const,
-    error: null,
-    isSuccess: false as const,
-    isIdle: true as const,
-    isPaused: false as const,
-    status: "idle" as const,
-    data: undefined,
-    variables: undefined,
-    failureCount: 0,
-    failureReason: null,
-    reset: mockReset,
-    context: undefined,
-    submittedAt: 0,
-    ...overrides,
-  };
-  jest.mocked(useTamboV1SendMessage).mockReturnValue(mockReturn);
-  return mockReturn;
-}
+// Mock useTamboV1SendMessage
+jest.mock("./use-tambo-v1-send-message", () => ({
+  useTamboV1SendMessage: jest.fn(),
+}));
+
+// Mock useTamboQueryClient to avoid TamboClientProvider dependency
+jest.mock("../../providers/tambo-client-provider", () => ({
+  useTamboQueryClient: jest.fn(() => new QueryClient()),
+  useTamboClient: jest.fn(),
+}));
 
 describe("useTamboV1ThreadInput", () => {
+  const mockMutateAsync = jest.fn();
+  let queryClient: QueryClient;
+
+  function createWrapper() {
+    return function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <TamboV1StreamProvider>
+            <TamboV1ThreadInputProvider>{children}</TamboV1ThreadInputProvider>
+          </TamboV1StreamProvider>
+        </QueryClientProvider>
+      );
+    };
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
     mockMutateAsync.mockResolvedValue({ threadId: "thread_123" });
-    setupMock();
+    jest.mocked(useTamboV1SendMessage).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      mutate: jest.fn(),
+      isPending: false,
+      isError: false,
+      error: null,
+      isSuccess: false,
+      isIdle: true,
+      isPaused: false,
+      status: "idle",
+      data: undefined,
+      variables: undefined,
+      failureCount: 0,
+      failureReason: null,
+      reset: jest.fn(),
+      context: undefined,
+      submittedAt: 0,
+    } as any);
   });
 
   describe("State Management", () => {
     it("initializes with empty value", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput());
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.value).toBe("");
     });
 
     it("updates value via setValue", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput());
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.setValue("Hello world");
@@ -61,7 +86,9 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("supports functional updates for setValue", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput());
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.setValue("Hello");
@@ -77,7 +104,9 @@ describe("useTamboV1ThreadInput", () => {
 
   describe("Submit Behavior", () => {
     it("submits message and clears input on success", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput("thread_123"));
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.setValue("Test message");
@@ -89,7 +118,9 @@ describe("useTamboV1ThreadInput", () => {
       });
 
       // Input should be cleared
-      expect(result.current.value).toBe("");
+      await waitFor(() => {
+        expect(result.current.value).toBe("");
+      });
 
       // Should have called mutateAsync with correct message format
       expect(mockMutateAsync).toHaveBeenCalledWith({
@@ -102,7 +133,9 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("throws error when submitting empty message", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput());
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
       await expect(result.current.submit()).rejects.toThrow(
         "Message cannot be empty",
@@ -112,7 +145,9 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("throws error when submitting whitespace-only message", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput());
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.setValue("   ");
@@ -126,7 +161,9 @@ describe("useTamboV1ThreadInput", () => {
     });
 
     it("passes debug option to mutation", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput());
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
         result.current.setValue("Debug message");
@@ -144,76 +181,63 @@ describe("useTamboV1ThreadInput", () => {
         debug: true,
       });
     });
+  });
 
-    it("trims whitespace from message", async () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput());
+  describe("Thread ID Management", () => {
+    it("initializes with undefined threadId", () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.threadId).toBeUndefined();
+    });
+
+    it("allows setting threadId via setThreadId", () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
       act(() => {
-        result.current.setValue("  Trimmed message  ");
+        result.current.setThreadId("custom_thread_id");
       });
 
-      await act(async () => {
-        await result.current.submit();
-      });
-
-      expect(mockMutateAsync).toHaveBeenCalledWith({
-        message: {
-          role: "user",
-          content: [{ type: "text", text: "Trimmed message" }],
-        },
-        debug: undefined,
-      });
+      expect(result.current.threadId).toBe("custom_thread_id");
     });
   });
 
-  describe("Thread ID Handling", () => {
-    it("passes threadId to useTamboV1SendMessage", () => {
-      renderHook(() => useTamboV1ThreadInput("custom_thread_id"));
+  describe("Image State", () => {
+    it("initializes with empty images array", () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
-      expect(useTamboV1SendMessage).toHaveBeenCalledWith("custom_thread_id");
+      expect(result.current.images).toEqual([]);
     });
 
-    it("passes undefined threadId when not provided", () => {
-      renderHook(() => useTamboV1ThreadInput());
+    it("exposes image management functions", () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper(),
+      });
 
-      expect(useTamboV1SendMessage).toHaveBeenCalledWith(undefined);
+      expect(typeof result.current.addImage).toBe("function");
+      expect(typeof result.current.addImages).toBe("function");
+      expect(typeof result.current.removeImage).toBe("function");
+      expect(typeof result.current.clearImages).toBe("function");
     });
   });
 
-  describe("Mutation State", () => {
-    it("exposes isPending state", () => {
-      setupMock({ isPending: true });
+  describe("Error handling", () => {
+    it("throws error when used outside provider", () => {
+      // Suppress console.error for this test
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
-      const { result } = renderHook(() => useTamboV1ThreadInput());
+      expect(() => {
+        renderHook(() => useTamboV1ThreadInput());
+      }).toThrow("useTamboV1ThreadInput must be used within TamboV1Provider");
 
-      expect(result.current.isPending).toBe(true);
-    });
-
-    it("exposes isError state", () => {
-      setupMock({ isError: true, error: new Error("Test error") });
-
-      const { result } = renderHook(() => useTamboV1ThreadInput());
-
-      expect(result.current.isError).toBe(true);
-      expect(result.current.error?.message).toBe("Test error");
-    });
-
-    it("exposes isSuccess state", () => {
-      setupMock({ isSuccess: true });
-
-      const { result } = renderHook(() => useTamboV1ThreadInput());
-
-      expect(result.current.isSuccess).toBe(true);
-    });
-
-    it("exposes reset function", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput());
-
-      act(() => {
-        result.current.reset();
-      });
-
-      expect(mockReset).toHaveBeenCalled();
+      consoleSpy.mockRestore();
     });
   });
 });

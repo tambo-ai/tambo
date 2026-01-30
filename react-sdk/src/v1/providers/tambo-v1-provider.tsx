@@ -36,6 +36,7 @@ import type {
   ResourceSource,
 } from "../../model/resource-info";
 import { TamboV1StreamProvider } from "./tambo-v1-stream-context";
+import { TamboV1ThreadInputProvider } from "./tambo-v1-thread-input-provider";
 
 /**
  * Configuration values for v1 SDK.
@@ -241,7 +242,11 @@ export function TamboV1Provider({
         >
           <TamboContextHelpersProvider contextHelpers={contextHelpers}>
             <TamboV1ConfigContext.Provider value={config}>
-              <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+              <TamboV1StreamProvider>
+                <TamboV1ThreadInputProvider>
+                  {children}
+                </TamboV1ThreadInputProvider>
+              </TamboV1StreamProvider>
             </TamboV1ConfigContext.Provider>
           </TamboContextHelpersProvider>
         </TamboRegistryProvider>
