@@ -5,9 +5,9 @@
 A premium "Generative UI" starter kit for building context-aware CRUD applications. This template demonstrates a **Context-Aware Bookmark Manager**, but the underlying pattern (Generative List + AI Tools) can be adapted for any resource type (Notes, Contacts, Products, etc.).
 
 <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
-  <img src="/screenshot-1.png" height="300" alt="Generative Bento Screenshot 1" />
-  <img src="/screenshot-2.png" height="300" alt="Generative Bento Screenshot 2" />
-  <img src="/screenshot-3.png" height="300" alt="Generative Bento Screenshot 3" />
+  <img src="public/screenshot-1.png" height="300" alt="Generative Bento Screenshot 1" />
+  <img src="public/screenshot-2.png" height="300" alt="Generative Bento Screenshot 2" />
+  <img src="public/screenshot-3.png" height="300" alt="Generative Bento Screenshot 3" />
 </div>
 
 [![Watch the demo](https://img.youtube.com/vi/1QJjMeEqjpA/maxresdefault.jpg)](https://youtu.be/1QJjMeEqjpA)
