@@ -8,9 +8,19 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+/**
+ * ChatInterface component - the main chat UI for the Tambo + Appwrite starter.
+ * Shows messages from both user and AI, including rendered Tambo components.
+ */
 export function ChatInterface() {
-  const { thread } = useTamboThread();
-  const { value, setValue, submit, isPending } = useTamboThreadInput();
+  const { thread, error: threadError } = useTamboThread();
+  const {
+    value,
+    setValue,
+    submit,
+    isPending,
+    error: inputError,
+  } = useTamboThreadInput();
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -20,7 +30,16 @@ export function ChatInterface() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [thread.messages]);
+  }, [thread?.messages]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("=== THREAD STATE ===");
+    console.log("Thread ID:", thread?.id);
+    console.log("Messages count:", thread?.messages?.length || 0);
+    console.log("Thread error:", threadError);
+    console.log("isPending:", isPending);
+  }, [thread, isPending, threadError]);
 
   const handleLogout = async () => {
     try {
@@ -37,11 +56,34 @@ export function ChatInterface() {
     "Create a todo note titled 'Tasks' with 'Review PR, Deploy app'",
   ];
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!value.trim() || isPending) return;
+
+    try {
+      // Must set streamResponse: true for messages to persist in thread
+      await submit({
+        streamResponse: true,
+      });
+      console.log("Submit completed successfully");
+    } catch (error) {
+      console.error("Submit error:", error);
+    }
+  };
+
+  if (!thread) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading conversation...
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/80 backdrop-blur-sm">
+        <div className="flex items-center gap-4">
           <Image
             src="/Tambo-Lockup.svg"
             alt="Tambo"
@@ -49,14 +91,19 @@ export function ChatInterface() {
             height={32}
             className="h-6 w-auto"
           />
-          <span className="text-lg font-light text-muted-foreground">+</span>
-          <Image
-            src="/appwrite-icon.svg"
-            alt="Appwrite"
-            width={24}
-            height={24}
-            className="h-6 w-6"
-          />
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <span className="text-lg font-light">+</span>
+            <div className="flex items-center gap-1.5">
+              <Image
+                src="/appwrite-icon.svg"
+                alt="Appwrite"
+                width={20}
+                height={20}
+                className="h-5 w-5"
+              />
+              <span className="text-sm font-medium">Appwrite</span>
+            </div>
+          </div>
         </div>
         <Button
           variant="ghost"
@@ -72,6 +119,16 @@ export function ChatInterface() {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto p-6 space-y-6">
+          {/* Show errors if any */}
+          {(threadError || inputError) && (
+            <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-xl">
+              <p className="font-semibold">Error:</p>
+              <p className="text-sm">
+                {threadError?.message || inputError?.message}
+              </p>
+            </div>
+          )}
+
           {thread.messages.length === 0 ? (
             <div className="text-center py-16 animate-fade-in">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-6">
@@ -81,8 +138,8 @@ export function ChatInterface() {
                 Welcome to Tambo + Appwrite
               </h2>
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                Ask the AI to create notes. They'll be saved to your Appwrite
-                database automatically.
+                Ask the AI to create notes. They&apos;ll be saved to your
+                Appwrite database automatically.
               </p>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground mb-3">
@@ -94,7 +151,7 @@ export function ChatInterface() {
                     onClick={() => setValue(suggestion)}
                     className="block w-full max-w-md mx-auto text-left px-4 py-3 rounded-xl border border-border bg-card hover:bg-accent hover:border-accent-foreground/20 transition-all duration-200 text-sm"
                   >
-                    "{suggestion}"
+                    &ldquo;{suggestion}&rdquo;
                   </button>
                 ))}
               </div>
@@ -114,6 +171,7 @@ export function ChatInterface() {
                       : "bg-card border border-border shadow-sm"
                   }`}
                 >
+                  {/* Render text content */}
                   {Array.isArray(message.content) ? (
                     message.content.map((part, i) =>
                       part.type === "text" ? (
@@ -130,6 +188,8 @@ export function ChatInterface() {
                       {String(message.content)}
                     </p>
                   )}
+
+                  {/* Render component if present */}
                   {message.renderedComponent && (
                     <div className="mt-3">{message.renderedComponent}</div>
                   )}
@@ -151,14 +211,8 @@ export function ChatInterface() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-border bg-card p-4">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            submit();
-          }}
-          className="max-w-3xl mx-auto flex gap-3"
-        >
+      <div className="border-t border-border bg-card/80 backdrop-blur-sm p-4">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-3">
           <input
             value={value}
             onChange={(e) => setValue(e.target.value)}

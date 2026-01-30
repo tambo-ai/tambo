@@ -49,7 +49,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-accent/20 to-background p-4">
       {/* Brand Header */}
-      <div className="flex items-center gap-3 mb-8 animate-fade-in">
+      <div className="flex items-center gap-4 mb-8 animate-fade-in">
         <Image
           src="/Tambo-Lockup.svg"
           alt="Tambo"
@@ -58,13 +58,16 @@ export default function LoginPage() {
           className="h-8 w-auto"
         />
         <span className="text-2xl font-light text-muted-foreground">+</span>
-        <Image
-          src="/appwrite-icon.svg"
-          alt="Appwrite"
-          width={32}
-          height={32}
-          className="h-8 w-8"
-        />
+        <div className="flex items-center gap-1.5">
+          <Image
+            src="/appwrite-icon.svg"
+            alt="Appwrite"
+            width={28}
+            height={28}
+            className="h-7 w-7"
+          />
+          <span className="text-2xl font-medium text-foreground">Appwrite</span>
+        </div>
       </div>
 
       <Card className="w-full max-w-md border-border/50 shadow-xl shadow-muted-backdrop animate-fade-in">
@@ -167,8 +170,8 @@ export default function LoginPage() {
           className="font-medium hover:text-foreground transition-colors"
         >
           Tambo
-        </a>{" "}
-        &{" "}
+        </a>
+        ,{" "}
         <a
           href="https://appwrite.io"
           target="_blank"
@@ -176,6 +179,15 @@ export default function LoginPage() {
           className="font-medium hover:text-foreground transition-colors"
         >
           Appwrite
+        </a>
+        {" & "}
+        <a
+          href="https://nextjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium hover:text-foreground transition-colors"
+        >
+          Next.js
         </a>
       </p>
     </div>

@@ -27,25 +27,33 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="flex items-center gap-3 animate-pulse-soft">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-6 bg-background">
+        <div className="flex items-center gap-4 animate-pulse-soft">
           <Image
             src="/Tambo-Lockup.svg"
             alt="Tambo"
             width={120}
             height={40}
-            className="h-8 w-auto opacity-50"
+            className="h-8 w-auto"
           />
           <span className="text-2xl font-light text-muted-foreground">+</span>
-          <Image
-            src="/appwrite-icon.svg"
-            alt="Appwrite"
-            width={32}
-            height={32}
-            className="h-8 w-8 opacity-50"
-          />
+          <div className="flex items-center gap-1.5">
+            <Image
+              src="/appwrite-icon.svg"
+              alt="Appwrite"
+              width={28}
+              height={28}
+              className="h-7 w-7"
+            />
+            <span className="text-lg font-medium text-muted-foreground">
+              Appwrite
+            </span>
+          </div>
         </div>
-        <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+        <div className="flex items-center gap-2">
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
+          <span className="text-sm text-muted-foreground">Loading...</span>
+        </div>
       </div>
     );
   }

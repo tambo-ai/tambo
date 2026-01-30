@@ -19,7 +19,7 @@ export const components: TamboComponent[] = [
   {
     name: "NoteCard",
     description:
-      "A card component that displays a note with a title and content. Use this when the user wants to create or display a note.",
+      "A card component that displays a note with a title and content. Use this to show the note that was just created.",
     component: NoteCard,
     propsSchema: noteCardSchema,
   },
@@ -61,7 +61,7 @@ export const tools: TamboTool[] = [
   {
     name: "create_user_note",
     description:
-      "Creates a new note in the Appwrite database for the current user",
+      "Creates a new note in the Appwrite database. After creating the note, provide a friendly confirmation message to the user and render a NoteCard component to show them the note that was created.",
     tool: createUserNote,
     inputSchema: z.object({
       title: z.string().describe("The title of the note"),
