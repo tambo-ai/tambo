@@ -2,10 +2,6 @@
 
 A comprehensive template demonstrating how to integrate Tambo AI with a Hono backend API. Shows the complete pattern for connecting AI-powered tools to any backend service through type-safe, well-structured tool definitions.
 
-![Screenshot showing the Hono backend template with full-screen chat interface](https://github.com/user-attachments/assets/e91d8e55-7518-441d-b441-ee4d458e028d)
-
-![Screenshot showing bookmark management with AI assistant](https://github.com/user-attachments/assets/7c89e8c6-a683-4275-94f0-d3a1459fb9a1)
-
 ## Video Demo
 
 **Watch the demo**: https://youtu.be/nUG0nhBf3bc
