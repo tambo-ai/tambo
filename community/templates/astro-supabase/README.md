@@ -28,6 +28,7 @@ app development started quickly.
    PUBLIC_TAMBO_API_KEY=your-tambo-api-key
    ```
 
+   **Note:** The `PUBLIC_` prefix is required for Astro to expose these variables to client-side code.
    - Get your Tambo API key for free [here](https://tambo.co/dashboard).
    - Get your Supabase URL/Key from your [Supabase
      Dashboard](https://supabase.com/dashboard).
@@ -118,6 +119,7 @@ Make sure in the TamboProvider wrapped around your app:
   apiKey={import.meta.env.PUBLIC_TAMBO_API_KEY}
   components={components} // Array of components to control
   tools={tools} // Array of tools it can use
+  userToken={userToken} // Supabase session token for thread scoping
 >
   <ChatInterface />
 </TamboProvider>

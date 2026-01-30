@@ -33,10 +33,8 @@ const CopyButton = ({ text }: { text: string }) => {
   const [showCopied, setShowCopied] = useState(false);
 
   const copyToClipboard = () => {
-    // eslint-disable-next-line no-undef
     navigator.clipboard.writeText(text);
     setShowCopied(true);
-    // eslint-disable-next-line no-undef
     setTimeout(() => setShowCopied(false), 2000);
   };
 
