@@ -57,9 +57,9 @@ CREATE TABLE IF NOT EXISTS verification (
 `;
 
 function init() {
-    console.log("🛠️  Initializing Complete BetterAuth + Admin Schema...");
-    db.exec(schema);
-    console.log("✅ Tables synchronized successfully.");
+  console.log("🛠️  Initializing Complete BetterAuth + Admin Schema...");
+  db.exec(schema);
+  console.log("✅ Tables synchronized successfully.");
 }
 
 init();

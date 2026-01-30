@@ -98,7 +98,10 @@ body {
 }
 
 .bg-dot-pattern {
-  background-image: radial-gradient(hsl(var(--muted-foreground)) 1px, transparent 1px);
+  background-image: radial-gradient(
+    hsl(var(--muted-foreground)) 1px,
+    transparent 1px
+  );
   background-size: 24px 24px;
   mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
 }

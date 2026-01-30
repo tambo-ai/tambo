@@ -8,6 +8,7 @@
     "start": "dotenv -e .env.local -- next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "prettier-check": "prettier --check .",
     "db:setup": "node scripts/setup-sqlite.mjs",
     "postinstall": "node scripts/setup-sqlite.mjs"
   },
@@ -19,6 +20,7 @@
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "node-fetch": "^3.3.2",
+    "prettier-check": "^2.0.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.4.0",
