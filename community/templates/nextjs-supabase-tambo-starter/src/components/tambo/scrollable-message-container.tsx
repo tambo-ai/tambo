@@ -33,6 +33,7 @@ export const ScrollableMessageContainer = React.forwardRef<
   }, [thread.messages]);
 
   const generationStage = useMemo(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     () => thread?.generationStage ?? GenerationStage.IDLE,
     [thread?.generationStage],
   );

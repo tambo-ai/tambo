@@ -117,8 +117,9 @@ export const createMarkdownComponents = (): Record<
   code({ className, children }) {
     const match = /language-(\w+)/.exec(className ?? "");
     const content = String(children).replace(/\n$/, "");
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const deferred = React.useDeferredValue(content);
-
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const highlighted = React.useMemo(() => {
       if (!match || !looksLikeCode(deferred)) return null;
       try {

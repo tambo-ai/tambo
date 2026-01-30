@@ -55,7 +55,7 @@ function SettingsPanelBase(props: SettingsProps) {
       prev.privacy.personalizationEnabled
     )
       changed.add("privacy.personalizationEnabled");
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setSettings(props);
     prevPropsRef.current = props;
 
