@@ -131,8 +131,23 @@ jobs:
                   changedPathSet.add(file.filename);
                 }
               } else {
-                // Get files changed in the push commits (avoid per-commit API calls)
                 const commits = context.payload.commits || [];
+
+                core.warning(
+                  'Push payload missing before/after; falling back to commit file lists which may be incomplete.',
+                );
+
+                if (
+                  typeof context.payload.size === 'number' &&
+                  commits.length > 0 &&
+                  commits.length !== context.payload.size
+                ) {
+                  core.warning(
+                    `Push commits payload is truncated (got ${commits.length} commits, expected ${context.payload.size}); area detection may be incomplete.`,
+                  );
+                }
+
+                // Get files changed in the push commits (avoid per-commit API calls)
                 for (const commit of commits) {
                   for (const file of commit.added || []) {
                     changedPathSet.add(file);
