@@ -7,6 +7,7 @@ import {
 } from "../providers/tambo-v1-thread-input-provider";
 import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
 import { useTamboV1SendMessage } from "./use-tambo-v1-send-message";
+import type { StreamAction, StreamState } from "../utils/event-accumulator";
 
 // Mock useTamboV1SendMessage
 jest.mock("./use-tambo-v1-send-message", () => ({
@@ -42,11 +43,18 @@ describe("useTamboV1ThreadInput", () => {
   const mockMutateAsync = jest.fn();
   let queryClient: QueryClient;
 
-  function createWrapper() {
+  function createWrapper({ streamState }: { streamState?: StreamState } = {}) {
+    const noopDispatch: React.Dispatch<StreamAction> = () => {};
+
     return function Wrapper({ children }: { children: React.ReactNode }) {
+      const streamProviderProps =
+        streamState === undefined
+          ? {}
+          : { state: streamState, dispatch: noopDispatch };
+
       return (
         <QueryClientProvider client={queryClient}>
-          <TamboV1StreamProvider>
+          <TamboV1StreamProvider {...streamProviderProps}>
             <TamboV1ThreadInputProvider>{children}</TamboV1ThreadInputProvider>
           </TamboV1StreamProvider>
         </QueryClientProvider>
@@ -302,6 +310,32 @@ describe("useTamboV1ThreadInput", () => {
       });
 
       expect(result.current.threadId).toBe("custom_thread_id");
+    });
+
+    it("does not take ownership of threadId when inheriting stream selection", async () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper({
+          streamState: { threadMap: {}, currentThreadId: "thread_stream" },
+        }),
+      });
+
+      expect(result.current.threadId).toBe("thread_stream");
+      expect(
+        jest.mocked(useTamboV1SendMessage).mock.calls.map((call) => call[0]),
+      ).toContain("thread_stream");
+
+      act(() => {
+        result.current.setValue("Test message");
+      });
+
+      await act(async () => {
+        await result.current.submit();
+      });
+
+      expect(result.current.threadId).toBe("thread_stream");
+      expect(
+        jest.mocked(useTamboV1SendMessage).mock.calls.map((call) => call[0]),
+      ).not.toContain("thread_123");
     });
   });
 

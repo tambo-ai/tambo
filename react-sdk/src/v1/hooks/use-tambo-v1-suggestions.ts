@@ -32,6 +32,8 @@ type Suggestion = TamboAI.Beta.Threads.Suggestion;
 type SuggestionGenerateResponse =
   TamboAI.Beta.Threads.Suggestions.SuggestionGenerateResponse;
 
+type SuggestionsMutationData = void | SuggestionGenerateResponse;
+
 function normalizeSuggestionGenerateResponse(
   response: unknown,
 ): SuggestionGenerateResponse {
@@ -96,7 +98,10 @@ export interface UseTamboV1SuggestionsResultInternal {
   suggestionsResult: UseTamboQueryResult<SuggestionGenerateResponse>;
 }
 
-type UseTamboV1SuggestionsResult = CombinedMutationResult<any, Error> &
+type UseTamboV1SuggestionsResult = CombinedMutationResult<
+  SuggestionsMutationData,
+  Error
+> &
   UseTamboV1SuggestionsResultInternal;
 
 /**
