@@ -1,0 +1,69 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+
+comment:
+  layout: "header, diff, components"
+  behavior: default
+  require_changes: true
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+
+  individual_components:
+    - component_id: api
+      name: API
+      paths:
+        - apps/api/**
+
+    - component_id: web
+      name: Web
+      paths:
+        - apps/web/**
+
+    - component_id: react-sdk
+      name: React SDK
+      paths:
+        - react-sdk/**
+
+    - component_id: cli
+      name: CLI
+      paths:
+        - cli/**
+
+    - component_id: core
+      name: Core
+      paths:
+        - packages/core/**
+
+    - component_id: backend
+      name: Backend
+      paths:
+        - packages/backend/**
+
+    - component_id: showcase
+      name: Showcase
+      paths:
+        - showcase/**
+
+ignore:
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/test/**"
+  - "**/tests/**"
+  - "**/__tests__/**"
+  - "**/node_modules/**"
+  - "**/dist/**"
