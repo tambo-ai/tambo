@@ -7,6 +7,7 @@ This template shows how an AI assistant can safely **create, read, update, and d
 ---
 
 ## Screenshot
+
 <img width="1680" height="900" alt="Screenshot 2026-01-30 at 11 15 15 AM" src="https://github.com/user-attachments/assets/55a05f63-795e-4db6-9545-10254da6fb14" />
 
 <img width="3" height="2" alt="Screenshot 2026-01-30 at 11 15 00 AM" src="https://github.com/user-attachments/assets/542475dd-942b-46f4-aa98-47dbd8d4291f" />
@@ -15,11 +16,7 @@ This template shows how an AI assistant can safely **create, read, update, and d
 
 ## Video Demo
 
-
-
-
 https://github.com/user-attachments/assets/ba573220-4833-494a-895a-68a09764cb23
-
 
 ---
 

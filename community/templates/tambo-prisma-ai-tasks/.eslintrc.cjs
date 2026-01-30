@@ -3,10 +3,7 @@ module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",
   plugins: ["@typescript-eslint"],
-  extends: [
-    "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended",
-  ],
+  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
   rules: {
     "@next/next/no-img-element": "off",
   },
