@@ -1,10 +1,15 @@
 "use client";
 
-export const DataTableViewer = ({ data = [], title }: { data?: Record<string, unknown>[], title?: string }) => {
+export const DataTableViewer = ({
+  data = [],
+  title,
+}: {
+  data?: Record<string, unknown>[];
+  title?: string;
+}) => {
   if (!data || data.length === 0 || !data[0]) {
-  return null;
-}
-
+    return null;
+  }
 
   const columns = Object.keys(data[0]);
 
@@ -31,7 +36,9 @@ export const DataTableViewer = ({ data = [], title }: { data?: Record<string, un
               <tr key={i} className="hover:bg-zinc-900/20 transition-colors">
                 {columns.map((c) => (
                   <td key={c} className="px-4 py-2.5 text-zinc-300 font-mono">
-                    {row[c] !== null && row[c] !== undefined ? String(row[c]) : "-"}
+                    {row[c] !== null && row[c] !== undefined
+                      ? String(row[c])
+                      : "-"}
                   </td>
                 ))}
               </tr>

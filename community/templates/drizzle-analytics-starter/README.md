@@ -3,6 +3,7 @@
 A high-performance foundation for data-heavy AI applications using **Next.js**, **Drizzle ORM**, and **Tambo**.
 
 ## 🎯 What this template demonstrates
+
 This template shows how to create a "Source of Truth" architecture where an AI assistant queries a local SQLite database and renders the results in a generative, high-fidelity UI component.
 
 - **Generative UI**: Uses a virtualized `DataTableViewer` component for data display.
@@ -10,19 +11,21 @@ This template shows how to create a "Source of Truth" architecture where an AI a
 - **Official Structure**: Strictly follows the directory and centralization patterns of the official Tambo templates.
 
 ## 🛠️ Tech Stack
+
 - **Framework**: Next.js 15 (App Router)
 - **Database**: Drizzle ORM + SQLite (Better-SQLite3)
 - **AI SDK**: @tambo-ai/react
 - **Styling**: Tailwind CSS
 
-
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
+
 Ensure you have a Tambo API Key from the [Tambo Dashboard](https://tambo.co).
 
 ### 2. Setup
-```bash
+
+````bash
 # Install dependencies
 npm install
 
@@ -35,7 +38,7 @@ npm run db:seed
  **Run the Development Server**:
    ```bash
    npm run dev
-   ```
+````
 
 ## 🎥 Video Demo
 

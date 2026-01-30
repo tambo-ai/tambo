@@ -13,7 +13,9 @@ interface MessageContent {
   parts?: MessageContentPart[];
 }
 
-function extractText(content: string | MessageContent | MessageContentPart[] | null | undefined): string {
+function extractText(
+  content: string | MessageContent | MessageContentPart[] | null | undefined,
+): string {
   if (!content) return "";
 
   if (typeof content === "string") return content;
@@ -27,7 +29,9 @@ function extractText(content: string | MessageContent | MessageContentPart[] | n
       return content.text;
     }
     if ("parts" in content && Array.isArray(content.parts)) {
-      return content.parts.map((p: MessageContentPart) => p?.text ?? "").join("");
+      return content.parts
+        .map((p: MessageContentPart) => p?.text ?? "")
+        .join("");
     }
   }
 
@@ -60,7 +64,7 @@ export default function ChatPage() {
               key={m.id}
               className={cn(
                 "flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500",
-                m.role === "user" ? "items-end" : "items-start"
+                m.role === "user" ? "items-end" : "items-start",
               )}
             >
               <div
@@ -68,7 +72,7 @@ export default function ChatPage() {
                   "px-6 py-4 rounded-2xl max-w-[85%] text-[14px] leading-relaxed shadow-lg",
                   m.role === "user"
                     ? "bg-blue-600 text-white rounded-tr-none"
-                    : "bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-none"
+                    : "bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-none",
                 )}
               >
                 <div className="whitespace-pre-wrap font-medium">
