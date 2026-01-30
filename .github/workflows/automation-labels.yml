@@ -117,6 +117,8 @@ jobs:
             const changedPathSet = new Set();
 
             if (context.eventName === 'push') {
+              // Prefer compareCommits for push events to match the workflow's `paths:`
+              // filter semantics and avoid truncated commit payloads.
               if (context.payload.before && context.payload.after) {
                 const { data: compareData } = await github.rest.repos.compareCommits({
                   owner: context.repo.owner,
@@ -145,30 +147,15 @@ jobs:
               }
             } else if (context.eventName === 'pull_request_target') {
               // Get files changed in the PR via API (safe - no checkout needed)
-              const perPage = 100;
-              const maxPages = 50;
-              for (let page = 1; page <= maxPages; page++) {
-                const { data: files } = await github.rest.pulls.listFiles({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: context.payload.pull_request.number,
-                  per_page: perPage,
-                  page
-                });
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                per_page: 100
+              });
 
-                for (const file of files) {
-                  changedPathSet.add(file.filename);
-                }
-
-                if (files.length < perPage) {
-                  break;
-                }
-
-                if (page === maxPages) {
-                  core.warning(
-                    `Reached maxPages=${maxPages} while listing PR files; area detection may be incomplete`,
-                  );
-                }
+              for (const file of files) {
+                changedPathSet.add(file.filename);
               }
             }
 
