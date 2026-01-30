@@ -46,25 +46,28 @@ export default function Chat() {
               Start a conversation to manage your contacts
             </p>
             <p className="text-gray-400 text-xs mt-1">
-              Try: &quot;Add a new contact&quot; or &quot;Show all contacts&quot;
+              Try: &quot;Add a new contact&quot; or &quot;Show all
+              contacts&quot;
             </p>
           </div>
         )}
 
         {thread.messages.map((message) => {
           // Check if message should be hidden
-          const shouldHideMessage = Array.isArray(message.content) 
-            ? message.content.every(part => 
-                part.type === "text" && part.text && 
-                (part.text.trim() === "}" || 
-                 part.text.includes('{"success"') || 
-                 part.text.includes('{"error"') ||
-                 part.text.trim() === "")
+          const shouldHideMessage = Array.isArray(message.content)
+            ? message.content.every(
+                (part) =>
+                  part.type === "text" &&
+                  part.text &&
+                  (part.text.trim() === "}" ||
+                    part.text.includes('{"success"') ||
+                    part.text.includes('{"error"') ||
+                    part.text.trim() === ""),
               )
-            : (String(message.content).trim() === "}" || 
-               String(message.content).includes('{"success"') || 
-               String(message.content).includes('{"error"') ||
-               String(message.content).trim() === "");
+            : String(message.content).trim() === "}" ||
+              String(message.content).includes('{"success"') ||
+              String(message.content).includes('{"error"') ||
+              String(message.content).trim() === "";
 
           // Skip message if it should be hidden and has no component
           if (shouldHideMessage && !message.renderedComponent) {
@@ -107,40 +110,40 @@ export default function Chat() {
                         : "bg-gray-100 text-gray-900 rounded-bl-md"
                     }`}
                   >
-                    {Array.isArray(message.content) ? (
-                      message.content.map((part, i) => {
-                        if (part.type === "text" && part.text) {
-                          // Hide unwanted content
-                          if (part.text.includes('{"success"') || 
+                    {Array.isArray(message.content)
+                      ? message.content.map((part, i) => {
+                          if (part.type === "text" && part.text) {
+                            // Hide unwanted content
+                            if (
+                              part.text.includes('{"success"') ||
                               part.text.includes('{"error"') ||
                               part.text.trim() === "}" ||
-                              part.text.trim() === "") {
+                              part.text.trim() === ""
+                            ) {
+                              return null;
+                            }
+                            return (
+                              <p key={i} className="text-sm leading-relaxed">
+                                {part.text}
+                              </p>
+                            );
+                          }
+                          return null;
+                        })
+                      : (() => {
+                          const content = String(message.content);
+                          if (
+                            content.includes('{"success"') ||
+                            content.includes('{"error"') ||
+                            content.trim() === "}" ||
+                            content.trim() === ""
+                          ) {
                             return null;
                           }
                           return (
-                            <p key={i} className="text-sm leading-relaxed">
-                              {part.text}
-                            </p>
+                            <p className="text-sm leading-relaxed">{content}</p>
                           );
-                        }
-                        return null;
-                      })
-                    ) : (
-                      (() => {
-                        const content = String(message.content);
-                        if (content.includes('{"success"') || 
-                            content.includes('{"error"') ||
-                            content.trim() === "}" ||
-                            content.trim() === "") {
-                          return null;
-                        }
-                        return (
-                          <p className="text-sm leading-relaxed">
-                            {content}
-                          </p>
-                        );
-                      })()
-                    )}
+                        })()}
                   </div>
                 )}
 

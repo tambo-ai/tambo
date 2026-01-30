@@ -26,15 +26,17 @@ A minimal CRM starter demonstrating Tambo AI integration with Hono API and MySQL
 ## Setup
 
 1. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 2. **Setup MySQL database**
+
    ```sql
    CREATE DATABASE tambo_crm;
    USE tambo_crm;
-   
+
    CREATE TABLE contacts (
      id INT AUTO_INCREMENT PRIMARY KEY,
      name VARCHAR(255) NOT NULL,
@@ -45,11 +47,13 @@ A minimal CRM starter demonstrating Tambo AI integration with Hono API and MySQL
    ```
 
 3. **Configure environment**
+
    ```bash
    cp .env.example .env.local
    ```
-   
+
    Update `.env.local` with your credentials:
+
    ```
    NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key
    DATABASE_HOST=localhost

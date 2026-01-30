@@ -5,7 +5,7 @@ import { handle } from "hono/vercel";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { like, eq } from "drizzle-orm";
-import { db, contacts } from '../../../db';
+import { db, contacts } from "../../../db";
 
 const app = new Hono().basePath("/api");
 
@@ -30,19 +30,17 @@ const searchContactsSchema = z.object({
 app.get("/contacts", zValidator("query", searchContactsSchema), async (c) => {
   try {
     const { query } = c.req.valid("query");
-    
+
     let allContacts;
     if (query) {
       allContacts = await db
         .select()
         .from(contacts)
-        .where(
-          like(contacts.name, `%${query}%`)
-        );
+        .where(like(contacts.name, `%${query}%`));
     } else {
       allContacts = await db.select().from(contacts);
     }
-    
+
     return c.json(allContacts);
   } catch (error) {
     console.error("DATABASE ERROR:", error);
@@ -56,54 +54,56 @@ app.post("/contacts", zValidator("json", createContactSchema), async (c) => {
     const { name, email, company, notes } = validatedData;
 
     await db.insert(contacts).values({ name, email, company, notes });
-    
-    return c.json({ 
-      success: true, 
-      message: `Contact ${name} has been successfully saved to the database.`,
-      contact: { name, email, company, notes } 
-    }, 201);
+
+    return c.json(
+      {
+        success: true,
+        message: `Contact ${name} has been successfully saved to the database.`,
+        contact: { name, email, company, notes },
+      },
+      201,
+    );
   } catch (error) {
     console.error("DATABASE ERROR:", error);
     return c.json({ error: "Failed to create contact" }, 500);
   }
 });
 
-app.patch("/contacts/:id", zValidator("json", updateContactSchema), async (c) => {
-  try {
-    const id = parseInt(c.req.param("id"));
-    const validatedData = c.req.valid("json");
-    
-    await db
-      .update(contacts)
-      .set(validatedData)
-      .where(eq(contacts.id, id));
-    
-    return c.json({ 
-      success: true, 
-      message: `Contact updated successfully.`,
-      id 
-    });
-  } catch (error) {
-    console.error("DATABASE ERROR:", error);
-    return c.json({ error: "Failed to update contact" }, 500);
-  }
-});
+app.patch(
+  "/contacts/:id",
+  zValidator("json", updateContactSchema),
+  async (c) => {
+    try {
+      const id = parseInt(c.req.param("id"));
+      const validatedData = c.req.valid("json");
+
+      await db.update(contacts).set(validatedData).where(eq(contacts.id, id));
+
+      return c.json({
+        success: true,
+        message: `Contact updated successfully.`,
+        id,
+      });
+    } catch (error) {
+      console.error("DATABASE ERROR:", error);
+      return c.json({ error: "Failed to update contact" }, 500);
+    }
+  },
+);
 
 app.delete("/contacts/:id", async (c) => {
   try {
     const id = parseInt(c.req.param("id"));
-    
+
     if (isNaN(id)) {
       return c.json({ error: "Invalid contact ID" }, 400);
     }
-    
-    await db
-      .delete(contacts)
-      .where(eq(contacts.id, id));
-    
-    return c.json({ 
-      success: true, 
-      id 
+
+    await db.delete(contacts).where(eq(contacts.id, id));
+
+    return c.json({
+      success: true,
+      id,
     });
   } catch (error) {
     console.error("DELETE CONTACT ERROR:", error);

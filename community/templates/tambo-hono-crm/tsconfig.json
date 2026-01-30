@@ -17,16 +17,29 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@modelcontextprotocol/sdk": ["./node_modules/@modelcontextprotocol/sdk/dist"],
-      "@modelcontextprotocol/sdk/*": ["./node_modules/@modelcontextprotocol/sdk/dist/*"],
-      "@modelcontextprotocol/sdk/client/index.js": ["./node_modules/@modelcontextprotocol/sdk/dist/client/index.js"],
-      "@modelcontextprotocol/sdk/client/auth.js": ["./node_modules/@modelcontextprotocol/sdk/dist/client/auth.js"],
-      "@modelcontextprotocol/sdk/client/sse.js": ["./node_modules/@modelcontextprotocol/sdk/dist/client/sse.js"],
-      "@modelcontextprotocol/sdk/client/streamableHttp.js": ["./node_modules/@modelcontextprotocol/sdk/dist/client/streamableHttp.js"],
-      "@modelcontextprotocol/sdk/shared/protocol.js": ["./node_modules/@modelcontextprotocol/sdk/dist/shared/protocol.js"]
+      "@modelcontextprotocol/sdk": [
+        "./node_modules/@modelcontextprotocol/sdk/dist"
+      ],
+      "@modelcontextprotocol/sdk/*": [
+        "./node_modules/@modelcontextprotocol/sdk/dist/*"
+      ],
+      "@modelcontextprotocol/sdk/client/index.js": [
+        "./node_modules/@modelcontextprotocol/sdk/dist/client/index.js"
+      ],
+      "@modelcontextprotocol/sdk/client/auth.js": [
+        "./node_modules/@modelcontextprotocol/sdk/dist/client/auth.js"
+      ],
+      "@modelcontextprotocol/sdk/client/sse.js": [
+        "./node_modules/@modelcontextprotocol/sdk/dist/client/sse.js"
+      ],
+      "@modelcontextprotocol/sdk/client/streamableHttp.js": [
+        "./node_modules/@modelcontextprotocol/sdk/dist/client/streamableHttp.js"
+      ],
+      "@modelcontextprotocol/sdk/shared/protocol.js": [
+        "./node_modules/@modelcontextprotocol/sdk/dist/shared/protocol.js"
+      ]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
-

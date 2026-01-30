@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CRM Intelligence - AI-Powered Relationship Management",
-  description: "Build relationships that adapt to your business with AI-powered CRM intelligence",
+  description:
+    "Build relationships that adapt to your business with AI-powered CRM intelligence",
 };
 
 export default function RootLayout({
