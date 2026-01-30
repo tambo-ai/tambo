@@ -117,17 +117,18 @@ export interface MessageProps extends MessageRootProps {
  * ```
  */
 const Message = React.forwardRef<HTMLDivElement, MessageProps>(
-  ({ className, variant, message, children, ...props }, ref) => {
+  ({ className, variant, message, children, role, ...props }, ref) => {
     return (
       <MessageBase.Root
         ref={ref}
-        className={cn(messageVariants({ variant }), className)}
+        className={cn(messageVariants({ variant }), "group", className)}
         message={message}
+        role={role}
         {...props}
       >
         <div
           className={cn(
-            "flex flex-col max-w-full *:data-[message-role=assistant]:w-full",
+            "flex flex-col max-w-full group-data-[role=assistant]:w-full",
             className,
           )}
         >
@@ -411,12 +412,13 @@ type ToolcallInfoTriggerProps = React.ComponentProps<
 const ToolcallInfoTrigger = React.forwardRef<
   HTMLButtonElement,
   ToolcallInfoTriggerProps
->(function ToolcallInfoTrigger({ children, ...props }, ref) {
+>(function ToolcallInfoTrigger({ children, className, ...props }, ref) {
   return (
     <ToolcallInfoBase.Trigger
       ref={ref}
       className={cn(
-        "flex items-center gap-1 cursor-pointer hover:bg-muted rounded-md p-1 select-none w-fit",
+        "group/trigger flex items-center gap-1 cursor-pointer hover:bg-muted rounded-md p-1 select-none w-fit",
+        className,
       )}
       {...props}
     >
@@ -448,7 +450,7 @@ const ToolcallInfo = React.forwardRef<HTMLDivElement, ToolcallInfoProps>(
           <ToolcallInfoTrigger>
             <ToolcallStatusIcon />
             <ToolcallInfoBase.StatusText />
-            <ChevronDown className="h-3 w-3 transition-transform duration-200 *:data-[state=open]:-rotate-90" />
+            <ChevronDown className="h-3 w-3 transition-transform duration-200 group-data-[state=closed]/trigger:-rotate-90" />
           </ToolcallInfoTrigger>
           <ToolcallInfoContent markdown={markdown} message={message} />
         </div>
@@ -562,13 +564,13 @@ const ReasoningInfo = React.forwardRef<HTMLDivElement, ReasoningInfoProps>(
         <div className="flex flex-col w-full">
           <ReasoningInfoBase.Trigger
             className={
-              "flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md px-3 py-1 select-none w-fit"
+              "group/trigger flex items-center gap-1 cursor-pointer hover:bg-muted-foreground/10 rounded-md px-3 py-1 select-none w-fit"
             }
           >
             <ReasoningInfoBase.StatusText
               className={"data-loading:animate-thinking-gradient"}
             />
-            <ChevronDown className="h-3 w-3 transition-transform duration-200 *:data-[state=open]:-rotate-90" />
+            <ChevronDown className="h-3 w-3 transition-transform duration-200 group-data-[state=closed]/trigger:-rotate-90" />
           </ReasoningInfoBase.Trigger>
           <ReasoningInfoBase.Content
             forceMount
