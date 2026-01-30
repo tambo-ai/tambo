@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.133.4](https://github.com/tambo-ai/tambo/compare/api-v0.133.3...api-v0.133.4) (2026-01-30)
+
+
+### Bug Fixes
+
+* **api:** remove langfuse span processing ([#2052](https://github.com/tambo-ai/tambo/issues/2052)) ([4a715ad](https://github.com/tambo-ai/tambo/commit/4a715ad16d707d0110e861258de08bd6367f809c))
+
 ## [0.133.3](https://github.com/tambo-ai/tambo/compare/api-v0.133.2...api-v0.133.3) (2026-01-29)
 
 
