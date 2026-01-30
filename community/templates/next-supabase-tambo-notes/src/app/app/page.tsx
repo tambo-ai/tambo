@@ -709,7 +709,8 @@ function AppContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                   <p className="text-xs text-white/90 leading-relaxed">
-                    This is an educational simulation only. No real neural data is being processed. Enable a backend to unlock AI-powered analysis.
+                  This is a chat interface for the NeuroDesk brain simulation!
+                    
                   </p>
                 </div>
               </div>

@@ -121,7 +121,7 @@ export default function SplashPage() {
   const currentLanguage = NEU_LANGUAGES[currentIndex]
 
   return (
-    <div className="min-h-screen bg-[#02060c] flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center relative overflow-hidden">
       {/* 3D Neural Visualization Background */}
       <Neural3DBackground />
       

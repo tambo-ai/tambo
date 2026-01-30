@@ -18,6 +18,7 @@ out
 # env files
 .env
 .env.*
+.env.local
 docker.env
 !.env.example
 
