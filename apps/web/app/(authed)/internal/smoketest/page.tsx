@@ -18,21 +18,22 @@ import {
   useState,
 } from "react";
 import { z } from "zod/v3";
-import { AirQuality } from "./components/air-quality";
 import {
   ApiActivityMonitor,
   type ApiState,
-} from "./components/api-activity-monitor";
-import { LinearIssue } from "./components/linear-issue";
-import { LinearIssueList } from "./components/linear-issue-list";
-import { LinearProjectList } from "./components/linear-project-list";
-import { LocalFileContents, LocalFileList } from "./components/local-file-list";
+  LinearIssue,
+  LinearIssueList,
+  LinearProjectList,
+  LocalFileContents,
+  LocalFileList,
+  ThreadList,
+  wrapApiCall,
+} from "@/components/smoketest";
+import { AirQuality } from "./components/air-quality";
 import { MessageSuggestions } from "./components/message-suggestions";
-import { ThreadList } from "./components/thread-list";
 import { ThreadMessageInput } from "./components/thread-message-input";
 import { WeatherDay } from "./components/weather-day";
 import { StreamingTools } from "./features/streaming-tools";
-import { wrapApiCall } from "./utils/apiWrapper";
 
 export default function SmokePage() {
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
