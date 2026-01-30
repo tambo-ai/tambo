@@ -117,29 +117,38 @@ jobs:
             let changedPaths = [];
 
             if (context.eventName === 'push') {
-              // Get files changed in the push commits
+              // Get files changed in the push commits (avoid per-commit API calls)
               const commits = context.payload.commits || [];
+              const files = [];
               for (const commit of commits) {
-                const { data: commitData } = await github.rest.repos.getCommit({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  ref: commit.id
-                });
-                for (const file of commitData.files || []) {
-                  if (!changedPaths.includes(file.filename)) {
-                    changedPaths.push(file.filename);
-                  }
-                }
+                files.push(
+                  ...(commit.added || []),
+                  ...(commit.modified || []),
+                  ...(commit.removed || []),
+                );
               }
+
+              changedPaths = [...new Set(files)];
             } else if (context.eventName === 'pull_request_target') {
               // Get files changed in the PR via API (safe - no checkout needed)
-              const { data: files } = await github.rest.pulls.listFiles({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.pull_request.number,
-                per_page: 100
-              });
-              changedPaths = files.map(f => f.filename);
+              const perPage = 100;
+              for (let page = 1; ; page++) {
+                const { data: files } = await github.rest.pulls.listFiles({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number,
+                  per_page: perPage,
+                  page
+                });
+
+                changedPaths.push(...files.map((f) => f.filename));
+
+                if (files.length < perPage) {
+                  break;
+                }
+              }
+
+              changedPaths = [...new Set(changedPaths)];
             }
 
             // Area detection patterns (matching the previous tj-actions/changed-files config)
