@@ -31,10 +31,14 @@ jest.mock("../hooks/use-tambo-v1-send-message", () => ({
 }));
 
 describe("TamboV1Provider", () => {
-  const mockClient = {
+  const mockFetch: typeof fetch = async (..._args) => {
+    throw new Error("fetch not implemented");
+  };
+
+  const mockClient = new TamboAI({
     apiKey: "test-api-key",
-    threads: {},
-  } as any as TamboAI;
+    fetch: mockFetch,
+  });
 
   beforeEach(() => {
     jest.mocked(useTamboClient).mockReturnValue(mockClient);
