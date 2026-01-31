@@ -13,18 +13,25 @@ const BookmarkSchema = z.object({
 export const tools = [
   defineTool({
     name: "getBookmarks",
-    description: "Fetches all bookmarks from the backend API",
+    description:
+      "Fetches all bookmarks from the backend API. After calling this tool, you MUST IMMEDIATELY render the BookmarkList component with the returned bookmarks data to display the beautiful bookmark cards. The BookmarkList component will show magnificent cards with website favicons, gradient accents, 3D hover effects, tags, and statistics footer. NEVER just show the raw JSON - ALWAYS render the BookmarkList component.",
     tool: async () => {
       const response = await fetch("/api/bookmarks");
       if (!response.ok) {
         throw new Error(`Failed to fetch bookmarks: ${response.statusText}`);
       }
       const data = await response.json();
-      return data;
+
+      // Return data in a format that triggers BookmarkList rendering
+      return {
+        bookmarks: data.bookmarks,
+        _component: "BookmarkList",
+      };
     },
     inputSchema: z.object({}),
     outputSchema: z.object({
       bookmarks: z.array(BookmarkSchema),
+      _component: z.string().optional(),
     }),
   }),
   defineTool({

@@ -1,6 +1,6 @@
 # Hono Backend Template
 
-A comprehensive template demonstrating how to integrate Tambo AI with a Hono backend API. Shows the complete pattern for connecting AI-powered tools to any backend service through type-safe, well-structured tool definitions.
+A **professional, production-ready** template demonstrating how to integrate Tambo AI with a Hono backend API. Features a stunning chat interface with theme toggle, file attachments, and magnificent bookmark cards that match Tambo's official design standards.
 
 ## Video Demo
 
@@ -24,6 +24,34 @@ This template shows the **backend integration pattern** for connecting Tambo wit
 - **Voice input** - Speech-to-text with DictationButton component
 
 This pattern is reusable for any backend API — swap out the data model and endpoints to integrate with your own services.
+
+## ✨ Design Features
+
+This template includes a **professional, modern UI** that matches Tambo's official design standards:
+
+### 🎨 **Professional Chat Interface**
+
+- **Tambo AI Branding** - Header with gradient logo and official Tambo colors (#7FFFC3 → #FFE17F)
+- **Theme Toggle** - Working light/dark mode switcher with sun/moon icons in header
+- **Beautiful Messages** - Gradient avatars, rounded bubbles, smart empty message filtering
+- **File Attachments** - Full image upload support with previews, remove buttons, and error handling
+- **Voice Input** - DictationButton for speech-to-text functionality
+- **Smooth Animations** - Hover effects, transitions, and polished interactions
+
+### 🎴 **Magnificent Bookmark Cards**
+
+- **Website Favicons** - Auto-fetched from URLs
+- **3D Hover Effects** - Cards lift up with shadows
+- **Gradient Accents** - Tambo brand colors on hover
+- **Rich Details** - Title, description, URL, tags, and date
+- **Smart Footer Stats** - Total bookmarks and unique tags count
+- **Beautiful Empty State** - Large icon with friendly message
+
+### 🌓 **Theme System**
+
+- **Official Tambo Colors** - Exact match from tambo-template using OKLCH color space
+- **Light & Dark Modes** - Full support for both themes
+- **Instant Toggle** - Click sun/moon icon to switch themes
 
 ## Prerequisites
 
@@ -98,9 +126,11 @@ This pattern is reusable for any backend API — swap out the data model and end
 - **Vite** - Fast build tool and dev server with HMR
 - **React 18** - Modern React with hooks
 - **Tambo AI SDK** - AI-powered component generation and tool execution
+- **Professional Chat UI** - Beautiful interface with theme toggle and file attachments
 - **Voice Input** - DictationButton using `useTamboVoice` hook
+- **Image Upload** - Full support with previews using `addImages()` API
 - **Zod** - Runtime schema validation for tools and components
-- **Tailwind CSS v4** - Utility-first styling with dark mode support
+- **Tailwind CSS v4** - Utility-first styling with official Tambo colors
 
 ### Tambo Integration
 
@@ -111,14 +141,18 @@ This pattern is reusable for any backend API — swap out the data model and end
   - `deleteBookmark` - Delete a bookmark by ID
 
 - **2 Components** - Showing different rendering patterns:
-  - `BookmarkList` - Displays bookmarks in a responsive card grid
+  - `BookmarkList` - **Magnificent cards** with favicons, gradient accents, 3D hover effects, tags, and stats footer
   - `StatsCard` - Shows statistics with optional percentage change and variants
 
-- **Modern UI** - Full-screen responsive chat interface with:
-  - Clean message bubbles
+- **Professional Chat UI** - Full-screen interface with Tambo branding:
+  - Header with theme toggle (light/dark mode)
+  - Gradient avatars for user and AI
+  - Beautiful message bubbles with shadows
+  - File attachment support with image previews
+  - Voice input button for speech-to-text
   - Loading states with animated typing indicator
-  - Voice input button
-  - Responsive design
+  - Smart empty message filtering
+  - Fully responsive design
 
 ## Usage Examples
 
@@ -147,6 +181,16 @@ Try these commands to see the backend integration in action:
 **Stats (example):**
 
 - "Show me a stat card with title 'Total Bookmarks', value 42, and +12% change"
+
+**File attachments:**
+
+- Click the paperclip icon to upload images
+- Hover over thumbnails to see remove button (×)
+- Supports up to 10 images at once
+
+**Theme toggle:**
+
+- Click the sun icon (dark mode) or moon icon (light mode) in the header to switch themes
 
 ## Project Structure
 
