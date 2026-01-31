@@ -117,9 +117,9 @@ The CLI will automatically create/update your `.env.local` file with:
 NEXT_PUBLIC_TAMBO_API_KEY=your-api-key
 ```
 
-## CI/CD and Non-Interactive Mode
+## CI/CD, AI Agents, and Non-Interactive Mode
 
-The CLI automatically detects non-interactive environments (CI/CD, piped input) and provides guidance instead of hanging on prompts.
+The CLI automatically detects non-interactive environments (CI/CD, AI coding assistants like Claude Code, piped input) and provides guidance instead of hanging on prompts. This makes the CLI agent-friendly for use with AI-powered development tools.
 
 ### Exit Codes
 
