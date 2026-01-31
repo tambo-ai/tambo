@@ -3,21 +3,35 @@
 import { cn } from "@/lib/utils";
 import { useTamboComponentState } from "@tambo-ai/react";
 import { z } from "zod";
-import { Play, Pause, RotateCcw, SkipForward, SkipBack, ListOrdered } from "lucide-react";
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  SkipForward,
+  SkipBack,
+  ListOrdered,
+} from "lucide-react";
 
 /**
  * Schema for StepController props
  * Used by Tambo to validate and generate props
  */
 export const stepControllerSchema = z.object({
-  algorithmName: z.string().describe("Name of the algorithm being stepped through"),
+  algorithmName: z
+    .string()
+    .describe("Name of the algorithm being stepped through"),
   totalSteps: z.number().describe("Total number of steps in the algorithm"),
   steps: z
     .array(
       z.object({
-        description: z.string().describe("Description of what happens in this step"),
-        data: z.unknown().optional().describe("Optional data associated with this step"),
-      })
+        description: z
+          .string()
+          .describe("Description of what happens in this step"),
+        data: z
+          .unknown()
+          .optional()
+          .describe("Optional data associated with this step"),
+      }),
     )
     .describe("Array of step descriptions"),
 });
@@ -29,7 +43,7 @@ export type StepControllerProps = z.infer<typeof stepControllerSchema>;
  *
  * Controls step-by-step algorithm execution.
  * Uses useTamboComponentState for persistent state across messages.
- * 
+ *
  * Note: This component uses Tambo's component state to persist the current step
  * across conversation turns. Users can advance through steps manually.
  */
@@ -41,11 +55,11 @@ export function StepController({
   // Persistent state using Tambo's component state hook
   const [currentStepState, setCurrentStep] = useTamboComponentState<number>(
     "currentStep",
-    0
+    0,
   );
   const [isPlayingState, setIsPlaying] = useTamboComponentState<boolean>(
     "isPlaying",
-    false
+    false,
   );
 
   // Default values for state
@@ -85,7 +99,9 @@ export function StepController({
           <h3 className="text-sm font-semibold">Step Controller</h3>
         </div>
         <div className="p-6 text-center">
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading steps...</p>
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">
+            Loading steps...
+          </p>
         </div>
       </div>
     );
@@ -119,8 +135,12 @@ export function StepController({
             />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-xs text-[hsl(var(--muted-foreground))]">Start</span>
-            <span className="text-xs text-[hsl(var(--muted-foreground))]">End</span>
+            <span className="text-xs text-[hsl(var(--muted-foreground))]">
+              Start
+            </span>
+            <span className="text-xs text-[hsl(var(--muted-foreground))]">
+              End
+            </span>
           </div>
         </div>
 
@@ -128,7 +148,9 @@ export function StepController({
         <div className="p-4 rounded-lg bg-[hsl(var(--muted))] border border-[hsl(var(--border))]">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center">
-              <span className="text-sm font-bold text-white">{currentStep + 1}</span>
+              <span className="text-sm font-bold text-white">
+                {currentStep + 1}
+              </span>
             </div>
             <div className="flex-1">
               <p className="text-sm leading-relaxed">
@@ -144,7 +166,7 @@ export function StepController({
             onClick={handleReset}
             className={cn(
               "p-2.5 rounded-lg transition-all",
-              "hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+              "hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]",
             )}
             title="Reset"
           >
@@ -158,7 +180,7 @@ export function StepController({
               "p-2.5 rounded-lg transition-all",
               canGoBack
                 ? "hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
-                : "text-[hsl(var(--muted-foreground))]/30 cursor-not-allowed"
+                : "text-[hsl(var(--muted-foreground))]/30 cursor-not-allowed",
             )}
             title="Previous step"
           >
@@ -170,7 +192,7 @@ export function StepController({
             className={cn(
               "p-4 rounded-full transition-all btn-glow",
               "bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary))]/90",
-              "shadow-lg shadow-[hsl(var(--primary))]/20"
+              "shadow-lg shadow-[hsl(var(--primary))]/20",
             )}
             title={isPlaying ? "Pause" : "Play"}
           >
@@ -188,7 +210,7 @@ export function StepController({
               "p-2.5 rounded-lg transition-all",
               canGoForward
                 ? "hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
-                : "text-[hsl(var(--muted-foreground))]/30 cursor-not-allowed"
+                : "text-[hsl(var(--muted-foreground))]/30 cursor-not-allowed",
             )}
             title="Next step"
           >
@@ -208,7 +230,7 @@ export function StepController({
                   ? "bg-[hsl(var(--primary))] scale-125"
                   : index < currentStep
                     ? "bg-[hsl(var(--primary))]/50"
-                    : "bg-[hsl(var(--muted-foreground))]/30 hover:bg-[hsl(var(--muted-foreground))]/50"
+                    : "bg-[hsl(var(--muted-foreground))]/30 hover:bg-[hsl(var(--muted-foreground))]/50",
               )}
               title={`Go to step ${index + 1}`}
             />

@@ -26,7 +26,7 @@ export const computeNextStepTool: TamboTool = {
         algorithm: z
           .string()
           .describe(
-            "Name of the algorithm (e.g., 'bubbleSort', 'binarySearch')"
+            "Name of the algorithm (e.g., 'bubbleSort', 'binarySearch')",
           ),
         currentState: z
           .object({
@@ -38,7 +38,7 @@ export const computeNextStepTool: TamboTool = {
               .describe("Current pointer positions"),
           })
           .describe("Current state of the algorithm execution"),
-      })
+      }),
     )
     .returns(
       z.object({
@@ -56,7 +56,7 @@ export const computeNextStepTool: TamboTool = {
         description: z
           .string()
           .describe("Description of what happened in this step"),
-      })
+      }),
     ),
   tool: (input: {
     algorithm: string;
@@ -194,7 +194,7 @@ export const resetExecutionTool: TamboTool = {
           .array(z.number())
           .optional()
           .describe("Optional new initial array"),
-      })
+      }),
     )
     .returns(
       z.object({
@@ -205,7 +205,7 @@ export const resetExecutionTool: TamboTool = {
           isComplete: z.boolean().describe("Always false after reset"),
         }),
         message: z.string().describe("Confirmation message"),
-      })
+      }),
     ),
   tool: (input: { algorithm: string; initialArray?: number[] }) => {
     const array = input.initialArray || [64, 34, 25, 12, 22, 11, 90];
@@ -245,15 +245,13 @@ export const generateArrayDataTool: TamboTool = {
           .describe("Type of array to generate"),
         min: z.number().optional().describe("Minimum value"),
         max: z.number().optional().describe("Maximum value"),
-      })
+      }),
     )
     .returns(
       z.object({
         array: z.array(z.number()).describe("Generated array"),
-        description: z
-          .string()
-          .describe("Description of the generated array"),
-      })
+        description: z.string().describe("Description of the generated array"),
+      }),
     ),
   tool: (input: {
     size?: number;
@@ -272,22 +270,22 @@ export const generateArrayDataTool: TamboTool = {
       case "sorted":
         array = Array.from({ length: actualSize }, (_, i) =>
           Math.floor(
-            actualMin + ((actualMax - actualMin) * i) / (actualSize - 1)
-          )
+            actualMin + ((actualMax - actualMin) * i) / (actualSize - 1),
+          ),
         );
         break;
       case "reversed":
         array = Array.from({ length: actualSize }, (_, i) =>
           Math.floor(
-            actualMax - ((actualMax - actualMin) * i) / (actualSize - 1)
-          )
+            actualMax - ((actualMax - actualMin) * i) / (actualSize - 1),
+          ),
         );
         break;
       case "nearlySorted":
         array = Array.from({ length: actualSize }, (_, i) =>
           Math.floor(
-            actualMin + ((actualMax - actualMin) * i) / (actualSize - 1)
-          )
+            actualMin + ((actualMax - actualMin) * i) / (actualSize - 1),
+          ),
         );
         // Swap a couple of elements
         if (actualSize > 2) {
@@ -299,8 +297,10 @@ export const generateArrayDataTool: TamboTool = {
         }
         break;
       default:
-        array = Array.from({ length: actualSize }, () =>
-          Math.floor(Math.random() * (actualMax - actualMin + 1)) + actualMin
+        array = Array.from(
+          { length: actualSize },
+          () =>
+            Math.floor(Math.random() * (actualMax - actualMin + 1)) + actualMin,
         );
     }
 

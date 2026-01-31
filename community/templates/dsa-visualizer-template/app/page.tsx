@@ -1,7 +1,16 @@
 "use client";
 
 import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
-import { Send, Bot, User, Loader2, Sparkles, Code2, Zap, BookOpen } from "lucide-react";
+import {
+  Send,
+  Bot,
+  User,
+  Loader2,
+  Sparkles,
+  Code2,
+  Zap,
+  BookOpen,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -26,26 +35,54 @@ export default function Home() {
           </div>
           <div>
             <h1 className="font-bold gradient-text">DSA Visualizer</h1>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">Powered by Tambo AI</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              Powered by Tambo AI
+            </p>
           </div>
         </div>
 
         {/* Features */}
         <div className="p-4 space-y-3">
-          <h2 className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">Features</h2>
+          <h2 className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+            Features
+          </h2>
           <div className="space-y-2">
-            <FeatureItem icon={Zap} label="Array Visualization" desc="See sorting algorithms in action" />
-            <FeatureItem icon={BookOpen} label="DP Tables" desc="Understand dynamic programming" />
-            <FeatureItem icon={Sparkles} label="Step-by-Step" desc="Walk through any algorithm" />
+            <FeatureItem
+              icon={Zap}
+              label="Array Visualization"
+              desc="See sorting algorithms in action"
+            />
+            <FeatureItem
+              icon={BookOpen}
+              label="DP Tables"
+              desc="Understand dynamic programming"
+            />
+            <FeatureItem
+              icon={Sparkles}
+              label="Step-by-Step"
+              desc="Walk through any algorithm"
+            />
           </div>
         </div>
 
         {/* Quick Topics */}
         <div className="p-4 space-y-3 border-t border-border">
-          <h2 className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">Popular Topics</h2>
+          <h2 className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+            Popular Topics
+          </h2>
           <div className="flex flex-wrap gap-2">
-            {["Two Pointers", "Sliding Window", "Binary Search", "BFS/DFS", "Dynamic Programming", "Backtracking"].map((topic) => (
-              <span key={topic} className="px-2 py-1 text-xs rounded-md bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted-foreground))]/20 cursor-pointer transition-colors">
+            {[
+              "Two Pointers",
+              "Sliding Window",
+              "Binary Search",
+              "BFS/DFS",
+              "Dynamic Programming",
+              "Backtracking",
+            ].map((topic) => (
+              <span
+                key={topic}
+                className="px-2 py-1 text-xs rounded-md bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted-foreground))]/20 cursor-pointer transition-colors"
+              >
                 {topic}
               </span>
             ))}
@@ -56,12 +93,20 @@ export default function Home() {
         <div className="mt-auto p-4 border-t border-border">
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 rounded-lg bg-[hsl(var(--muted))]">
-              <div className="text-lg font-bold text-[hsl(var(--primary))]">50+</div>
-              <div className="text-xs text-[hsl(var(--muted-foreground))]">Algorithms</div>
+              <div className="text-lg font-bold text-[hsl(var(--primary))]">
+                50+
+              </div>
+              <div className="text-xs text-[hsl(var(--muted-foreground))]">
+                Algorithms
+              </div>
             </div>
             <div className="p-3 rounded-lg bg-[hsl(var(--muted))]">
-              <div className="text-lg font-bold text-[hsl(var(--accent))]">∞</div>
-              <div className="text-xs text-[hsl(var(--muted-foreground))]">Visualizations</div>
+              <div className="text-lg font-bold text-[hsl(var(--accent))]">
+                ∞
+              </div>
+              <div className="text-xs text-[hsl(var(--muted-foreground))]">
+                Visualizations
+              </div>
             </div>
           </div>
         </div>
@@ -76,7 +121,9 @@ export default function Home() {
           </div>
           <div>
             <h1 className="font-bold gradient-text">DSA Visualizer</h1>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">by Tambo AI</p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              by Tambo AI
+            </p>
           </div>
         </header>
 
@@ -91,16 +138,18 @@ export default function Home() {
                   key={message.id}
                   className={cn(
                     "flex gap-4",
-                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                    message.role === "user" ? "flex-row-reverse" : "flex-row",
                   )}
                 >
                   {/* Avatar */}
-                  <div className={cn(
-                    "flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center",
-                    message.role === "user" 
-                      ? "bg-[hsl(var(--accent))]/10" 
-                      : "bg-[hsl(var(--primary))]/10"
-                  )}>
+                  <div
+                    className={cn(
+                      "flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center",
+                      message.role === "user"
+                        ? "bg-[hsl(var(--accent))]/10"
+                        : "bg-[hsl(var(--primary))]/10",
+                    )}
+                  >
                     {message.role === "user" ? (
                       <User className="w-5 h-5 text-[hsl(var(--accent))]" />
                     ) : (
@@ -109,10 +158,12 @@ export default function Home() {
                   </div>
 
                   {/* Content */}
-                  <div className={cn(
-                    "flex-1 space-y-3",
-                    message.role === "user" ? "text-right" : "text-left"
-                  )}>
+                  <div
+                    className={cn(
+                      "flex-1 space-y-3",
+                      message.role === "user" ? "text-right" : "text-left",
+                    )}
+                  >
                     {/* Role label */}
                     <span className="text-xs font-medium text-[hsl(var(--muted-foreground))]">
                       {message.role === "user" ? "You" : "Tambo AI"}
@@ -128,12 +179,12 @@ export default function Home() {
                               "inline-block px-4 py-3 rounded-2xl text-sm",
                               message.role === "user"
                                 ? "bg-[hsl(var(--primary))] text-white rounded-br-md"
-                                : "bg-[hsl(var(--card))] border border-border rounded-bl-md"
+                                : "bg-[hsl(var(--card))] border border-border rounded-bl-md",
                             )}
                           >
                             <p className="whitespace-pre-wrap">{part.text}</p>
                           </div>
-                        ) : null
+                        ) : null,
                       )
                     ) : (
                       <div
@@ -141,19 +192,23 @@ export default function Home() {
                           "inline-block px-4 py-3 rounded-2xl text-sm",
                           message.role === "user"
                             ? "bg-[hsl(var(--primary))] text-white rounded-br-md"
-                            : "bg-[hsl(var(--card))] border border-border rounded-bl-md"
+                            : "bg-[hsl(var(--card))] border border-border rounded-bl-md",
                         )}
                       >
-                        <p className="whitespace-pre-wrap">{String(message.content)}</p>
+                        <p className="whitespace-pre-wrap">
+                          {String(message.content)}
+                        </p>
                       </div>
                     )}
 
                     {/* Rendered component */}
                     {message.renderedComponent && (
-                      <div className={cn(
-                        "mt-3",
-                        message.role === "user" ? "text-left" : ""
-                      )}>
+                      <div
+                        className={cn(
+                          "mt-3",
+                          message.role === "user" ? "text-left" : "",
+                        )}
+                      >
                         {message.renderedComponent}
                       </div>
                     )}
@@ -170,7 +225,9 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2 px-4 py-3 rounded-2xl rounded-bl-md bg-[hsl(var(--card))] border border-border">
                   <Loader2 className="w-4 h-4 animate-spin text-[hsl(var(--primary))]" />
-                  <span className="text-sm text-[hsl(var(--muted-foreground))]">Thinking...</span>
+                  <span className="text-sm text-[hsl(var(--muted-foreground))]">
+                    Thinking...
+                  </span>
                 </div>
               </div>
             )}
@@ -209,7 +266,15 @@ export default function Home() {
   );
 }
 
-function FeatureItem({ icon: Icon, label, desc }: { icon: React.ElementType; label: string; desc: string }) {
+function FeatureItem({
+  icon: Icon,
+  label,
+  desc,
+}: {
+  icon: React.ElementType;
+  label: string;
+  desc: string;
+}) {
   return (
     <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-[hsl(var(--muted))] transition-colors cursor-pointer">
       <div className="p-1.5 rounded-md bg-[hsl(var(--primary))]/10">
@@ -217,7 +282,9 @@ function FeatureItem({ icon: Icon, label, desc }: { icon: React.ElementType; lab
       </div>
       <div>
         <div className="text-sm font-medium">{label}</div>
-        <div className="text-xs text-[hsl(var(--muted-foreground))]">{desc}</div>
+        <div className="text-xs text-[hsl(var(--muted-foreground))]">
+          {desc}
+        </div>
       </div>
     </div>
   );
@@ -238,27 +305,22 @@ function EmptyState() {
         <span className="gradient-text">Master DSA</span> with AI
       </h2>
       <p className="text-[hsl(var(--muted-foreground))] mb-8 max-w-md">
-        Get interactive visualizations and step-by-step explanations for any algorithm. Just ask!
+        Get interactive visualizations and step-by-step explanations for any
+        algorithm. Just ask!
       </p>
 
       {/* Example prompts */}
       <div className="grid gap-3 w-full max-w-lg">
-        <ExamplePrompt 
-          text="Visualize binary search on [1, 3, 5, 7, 9, 11] finding 7" 
-          icon="🔍" 
+        <ExamplePrompt
+          text="Visualize binary search on [1, 3, 5, 7, 9, 11] finding 7"
+          icon="🔍"
         />
-        <ExamplePrompt 
-          text="Explain Two Sum with a dry run" 
-          icon="🎯" 
+        <ExamplePrompt text="Explain Two Sum with a dry run" icon="🎯" />
+        <ExamplePrompt
+          text="Show DP table for 0/1 Knapsack with weights [1,2,3] and values [6,10,12]"
+          icon="📊"
         />
-        <ExamplePrompt 
-          text="Show DP table for 0/1 Knapsack with weights [1,2,3] and values [6,10,12]" 
-          icon="📊" 
-        />
-        <ExamplePrompt 
-          text="Visualize sliding window technique" 
-          icon="🪟" 
-        />
+        <ExamplePrompt text="Visualize sliding window technique" icon="🪟" />
       </div>
     </div>
   );

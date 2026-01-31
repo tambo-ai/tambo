@@ -49,11 +49,7 @@ export function TamboWrapper({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <TamboProvider
-      apiKey={apiKey}
-      components={components}
-      tools={tools}
-    >
+    <TamboProvider apiKey={apiKey} components={components} tools={tools}>
       {children}
     </TamboProvider>
   );

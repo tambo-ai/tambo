@@ -30,7 +30,7 @@ export const dpTableSchema = z.object({
           .enum(["blue", "green", "red", "yellow"])
           .optional()
           .describe("Highlight color"),
-      })
+      }),
     )
     .optional()
     .describe("Cells to highlight showing the DP transition path"),
@@ -120,9 +120,9 @@ export function DPTable({
                           highlight
                             ? cn(
                                 cellHighlightColors[highlight.color || "blue"],
-                                "border-2 font-bold"
+                                "border-2 font-bold",
                               )
-                            : "bg-[hsl(var(--background))]/50 hover:bg-[hsl(var(--muted))]/50"
+                            : "bg-[hsl(var(--background))]/50 hover:bg-[hsl(var(--muted))]/50",
                         )}
                       >
                         {cell}
@@ -140,15 +140,21 @@ export function DPTable({
           <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-[hsl(var(--border))]">
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded bg-blue-500/20 border-2 border-blue-400" />
-              <span className="text-xs text-[hsl(var(--muted-foreground))]">Current cell</span>
+              <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                Current cell
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded bg-emerald-500/20 border-2 border-emerald-400" />
-              <span className="text-xs text-[hsl(var(--muted-foreground))]">Optimal path</span>
+              <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                Optimal path
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded bg-amber-500/20 border-2 border-amber-400" />
-              <span className="text-xs text-[hsl(var(--muted-foreground))]">Subproblem</span>
+              <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                Subproblem
+              </span>
             </div>
           </div>
         )}

@@ -4,10 +4,10 @@ A Tambo starter template for building DSA (Data Structures & Algorithms) visuali
 
 <!-- TODO: Replace with actual screenshot after PR is created -->
 <!-- Upload screenshot by dragging into PR description, then paste the generated URL here -->
-![DSA Visualizer Screenshot] <img width="1783" height="961" alt="image" src="https://github.com/user-attachments/assets/0ed51300-3f5b-46fe-9a69-f6d2912844d7" />
 
+![DSA Visualizer Screenshot](https://github.com/user-attachments/assets/0ed51300-3f5b-46fe-9a69-f6d2912844d7)
 
-> 
+>
 
 ## What's Included
 
@@ -42,19 +42,19 @@ With Tambo's generative UI, the **AI decides**:
 
 Components that Tambo selects and renders based on user intent:
 
-| Component           | When AI Uses It                                    |
-| ------------------- | -------------------------------------------------- |
-| `ArrayVisualizer`   | Sorting, searching, two-pointer visualizations     |
-| `DPTable`           | Dynamic programming table visualizations           |
-| `CodeExplanation`   | Algorithm explanations with code and complexity    |
+| Component         | When AI Uses It                                 |
+| ----------------- | ----------------------------------------------- |
+| `ArrayVisualizer` | Sorting, searching, two-pointer visualizations  |
+| `DPTable`         | Dynamic programming table visualizations        |
+| `CodeExplanation` | Algorithm explanations with code and complexity |
 
 ### 2. Interactable Components
 
 Components that persist and update across messages:
 
-| Component        | Purpose                                         |
-| ---------------- | ----------------------------------------------- |
-| `StepController` | Step-by-step algorithm execution with controls  |
+| Component        | Purpose                                        |
+| ---------------- | ---------------------------------------------- |
+| `StepController` | Step-by-step algorithm execution with controls |
 
 Users can say "next step" or "reset" and the component responds.
 
@@ -62,11 +62,11 @@ Users can say "next step" or "reset" and the component responds.
 
 Pure functions that implement algorithm logic:
 
-| Tool                 | Purpose                              |
-| -------------------- | ------------------------------------ |
-| `computeNextStep`    | Advances algorithm execution state   |
-| `resetExecution`     | Resets to initial state              |
-| `generateArrayData`  | Creates sample arrays for demos      |
+| Tool                | Purpose                            |
+| ------------------- | ---------------------------------- |
+| `computeNextStep`   | Advances algorithm execution state |
+| `resetExecution`    | Resets to initial state            |
+| `generateArrayData` | Creates sample arrays for demos    |
 
 **Critical Architecture Rule:** Tools implement logic. AI orchestrates. Components render.
 
@@ -99,13 +99,13 @@ Open [http://localhost:3000](http://localhost:3000)
 
 Try these prompts to see generative UI in action:
 
-| Prompt                                                        | Component Rendered     |
-| ------------------------------------------------------------- | ---------------------- |
-| "Explain Two Sum with a dry run"                              | CodeExplanation        |
-| "Visualize bubble sort on [5, 3, 8, 1]"                       | ArrayVisualizer        |
-| "Show DP table for 0/1 Knapsack"                              | DPTable                |
-| "Walk me through binary search step by step"                  | StepController         |
-| "Demonstrate sliding window technique"                        | ArrayVisualizer        |
+| Prompt                                       | Component Rendered |
+| -------------------------------------------- | ------------------ |
+| "Explain Two Sum with a dry run"             | CodeExplanation    |
+| "Visualize bubble sort on [5, 3, 8, 1]"      | ArrayVisualizer    |
+| "Show DP table for 0/1 Knapsack"             | DPTable            |
+| "Walk me through binary search step by step" | StepController     |
+| "Demonstrate sliding window technique"       | ArrayVisualizer    |
 
 ## Project Structure
 
@@ -189,12 +189,12 @@ export const StepController = withInteractable(StepControllerBase, {
 
 ### Tools vs Components
 
-| Tools                          | Components                      |
-| ------------------------------ | ------------------------------- |
-| Implement algorithm logic      | Render visual output            |
-| Return structured JSON         | Accept props                    |
-| Called by AI when needed       | Selected by AI based on intent  |
-| No UI code                     | No business logic               |
+| Tools                     | Components                     |
+| ------------------------- | ------------------------------ |
+| Implement algorithm logic | Render visual output           |
+| Return structured JSON    | Accept props                   |
+| Called by AI when needed  | Selected by AI based on intent |
+| No UI code                | No business logic              |
 
 ## Extending This Template
 

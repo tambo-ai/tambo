@@ -14,7 +14,9 @@ export const codeExplanationSchema = z.object({
   language: z
     .string()
     .optional()
-    .describe("Programming language for syntax context (e.g., 'python', 'javascript')"),
+    .describe(
+      "Programming language for syntax context (e.g., 'python', 'javascript')",
+    ),
   explanation: z
     .string()
     .describe("Step-by-step explanation of how the algorithm works"),
@@ -100,7 +102,9 @@ export function CodeExplanation({
           {timeComplexity && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[hsl(var(--primary))]/10 border border-[hsl(var(--primary))]/20">
               <Clock className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
-              <span className="text-xs text-[hsl(var(--muted-foreground))]">Time:</span>
+              <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                Time:
+              </span>
               <span className="text-sm font-mono font-semibold text-[hsl(var(--primary))]">
                 {timeComplexity}
               </span>
@@ -109,7 +113,9 @@ export function CodeExplanation({
           {spaceComplexity && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[hsl(var(--accent))]/10 border border-[hsl(var(--accent))]/20">
               <HardDrive className="w-3.5 h-3.5 text-[hsl(var(--accent))]" />
-              <span className="text-xs text-[hsl(var(--muted-foreground))]">Space:</span>
+              <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                Space:
+              </span>
               <span className="text-sm font-mono font-semibold text-[hsl(var(--accent))]">
                 {spaceComplexity}
               </span>
@@ -146,7 +152,9 @@ export function CodeExplanation({
                   <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[hsl(var(--primary))]/10 flex items-center justify-center text-xs font-semibold text-[hsl(var(--primary))]">
                     {index + 1}
                   </span>
-                  <span className="text-[hsl(var(--foreground))]/90">{insight}</span>
+                  <span className="text-[hsl(var(--foreground))]/90">
+                    {insight}
+                  </span>
                 </li>
               ))}
             </ul>

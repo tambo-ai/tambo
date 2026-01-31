@@ -19,12 +19,14 @@ export const arrayVisualizerSchema = z.object({
     .array(
       z.object({
         index: z.number().describe("Index position of the pointer"),
-        label: z.string().describe("Label for the pointer (e.g., 'i', 'j', 'left', 'right')"),
+        label: z
+          .string()
+          .describe("Label for the pointer (e.g., 'i', 'j', 'left', 'right')"),
         color: z
           .enum(["blue", "green", "red", "yellow", "purple"])
           .optional()
           .describe("Color of the pointer"),
-      })
+      }),
     )
     .optional()
     .describe("Pointers to show below specific indices"),
@@ -66,7 +68,9 @@ export function ArrayVisualizer({
           <h3 className="text-sm font-semibold">{title}</h3>
         </div>
         <div className="p-6 text-center">
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">No array data to display</p>
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">
+            No array data to display
+          </p>
         </div>
       </div>
     );
@@ -100,14 +104,16 @@ export function ArrayVisualizer({
                     "w-12 rounded-t-lg transition-all duration-300 flex items-end justify-center pb-1 relative",
                     isHighlighted
                       ? "bg-gradient-to-t from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 shadow-lg shadow-[hsl(var(--primary))]/20"
-                      : "bg-gradient-to-t from-[hsl(var(--muted-foreground))]/40 to-[hsl(var(--muted-foreground))]/20"
+                      : "bg-gradient-to-t from-[hsl(var(--muted-foreground))]/40 to-[hsl(var(--muted-foreground))]/20",
                   )}
                   style={{ height: `${height}px` }}
                 >
                   <span
                     className={cn(
                       "text-xs font-mono font-bold",
-                      isHighlighted ? "text-white" : "text-[hsl(var(--foreground))]"
+                      isHighlighted
+                        ? "text-white"
+                        : "text-[hsl(var(--foreground))]",
                     )}
                   >
                     {value}
@@ -115,12 +121,14 @@ export function ArrayVisualizer({
                 </div>
 
                 {/* Index badge */}
-                <span className={cn(
-                  "text-xs font-mono px-2 py-0.5 rounded-md",
-                  isHighlighted 
-                    ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] font-semibold" 
-                    : "text-[hsl(var(--muted-foreground))]"
-                )}>
+                <span
+                  className={cn(
+                    "text-xs font-mono px-2 py-0.5 rounded-md",
+                    isHighlighted
+                      ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] font-semibold"
+                      : "text-[hsl(var(--muted-foreground))]",
+                  )}
+                >
                   [{index}]
                 </span>
               </div>
@@ -139,7 +147,7 @@ export function ArrayVisualizer({
                     <div
                       className={cn(
                         "flex flex-col items-center px-2 py-1 rounded-lg border",
-                        pointerColors[pointer.color || "blue"]
+                        pointerColors[pointer.color || "blue"],
                       )}
                     >
                       <span className="text-sm">↑</span>
