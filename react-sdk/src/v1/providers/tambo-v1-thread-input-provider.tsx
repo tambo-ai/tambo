@@ -13,6 +13,8 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useRef,
   useState,
   type PropsWithChildren,
 } from "react";
@@ -156,6 +158,22 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
   const imageState = useMessageImages();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
+
+  // Track the previous currentThreadId to detect thread switches
+  const prevCurrentThreadIdRef = useRef(streamState.currentThreadId);
+
+  // Reset local threadId when the stream's currentThreadId changes externally
+  // (e.g., when user clicks "New Thread" or switches to a different thread)
+  useEffect(() => {
+    const prevId = prevCurrentThreadIdRef.current;
+    const currentId = streamState.currentThreadId;
+
+    if (prevId !== currentId) {
+      // Thread changed externally - reset local state to follow stream state
+      setThreadId(undefined);
+      prevCurrentThreadIdRef.current = currentId;
+    }
+  }, [streamState.currentThreadId]);
 
   // Use the current thread from stream state if no explicit threadId is set
   const inheritedThreadId = streamState.currentThreadId ?? undefined;
