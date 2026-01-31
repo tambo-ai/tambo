@@ -1,7 +1,7 @@
-import { NextResponse, NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
 
-export default async function proxy(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const secret = process.env.NEXTAUTH_SECRET;
 
@@ -16,6 +16,10 @@ export default async function proxy(req: NextRequest) {
       const url = new URL("/", req.url);
       url.searchParams.set("callbackUrl", req.url);
       return NextResponse.redirect(url);
+    }
+
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
   }
 
