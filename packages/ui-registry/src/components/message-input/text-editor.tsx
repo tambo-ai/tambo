@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@tambo-ai/ui-registry/utils";
 import * as Popover from "@radix-ui/react-popover";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import Document from "@tiptap/extension-document";
 import HardBreak from "@tiptap/extension-hard-break";
 import Mention from "@tiptap/extension-mention";
@@ -830,14 +830,14 @@ export const TextEditor = React.forwardRef<TamboEditor, TextEditorProps>(
         <SuggestionPopover
           state={resourceState}
           onClose={() => resourceRef.current.setState({ isOpen: false })}
-          defaultIcon={<Cuboid className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+          defaultIcon={<Cuboid className="w-4 h-4 shrink-0 mt-0.5" />}
           emptyMessage="No results found"
           monoSecondary
         />
         <SuggestionPopover
           state={promptState}
           onClose={() => promptRef.current.setState({ isOpen: false })}
-          defaultIcon={<FileText className="w-4 h-4 flex-shrink-0 mt-0.5" />}
+          defaultIcon={<FileText className="w-4 h-4 shrink-0 mt-0.5" />}
           emptyMessage="No prompts found"
         />
         <EditorContent editor={editor} />

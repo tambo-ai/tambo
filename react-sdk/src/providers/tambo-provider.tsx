@@ -61,6 +61,9 @@ import {
  * @param props.contextKey - Optional context key passed to thread input provider for scoping threads
  * @param props.onCallUnregisteredTool - Callback function called when an unregistered tool is called
  * @param props.initialMessages - Initial messages to be included in new threads
+ * @param props.getResource - Optional getResource function for registry resources
+ * @param props.listResources - Optional listResources function for registry resources
+ * @param props.resources - Optional static resources for the registry
  * @returns The TamboProvider component
  */
 export const TamboProvider: React.FC<
