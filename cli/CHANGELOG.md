@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.50.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.49.0...tambo-v0.50.0) (2026-01-31)
+
+
+### Features
+
+* **cli:** add Phase 2 agent-friendly CLI features ([#1979](https://github.com/tambo-ai/tambo/issues/1979)) ([7e232d6](https://github.com/tambo-ai/tambo/commit/7e232d688f37787400c0dece8749460b5c7d1c3a))
+* **react-sdk:** implement v1 API Phase 9-10 with userKey and API cleanup ([#2032](https://github.com/tambo-ai/tambo/issues/2032)) ([9e055ab](https://github.com/tambo-ai/tambo/commit/9e055abddab6390498e5f2c6cb1224efbb556dfc))
+* **react-sdk:** implement v1 API Phases 6-7 with code review fixes ([#1954](https://github.com/tambo-ai/tambo/issues/1954)) ([9a7e098](https://github.com/tambo-ai/tambo/commit/9a7e098e0f969ec1512d6705c020dc46f625ac95))
+
+
+### Bug Fixes
+
+* **cli:** install components to tambo/ subdirectory in full-send mode ([#1968](https://github.com/tambo-ai/tambo/issues/1968)) ([c27dc7b](https://github.com/tambo-ai/tambo/commit/c27dc7b42d4a3e2406c8392d8ef4b574f337732d))
+
+
+### Tests
+
+* **cli:** add tests for cross-component file references and skipTailwindSetup ([#1972](https://github.com/tambo-ai/tambo/issues/1972)) ([8a301af](https://github.com/tambo-ai/tambo/commit/8a301af2977337a5cc3552ec935914628df81c31))
+
 ## [0.49.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.48.0...tambo-v0.49.0) (2026-01-27)
 
 
