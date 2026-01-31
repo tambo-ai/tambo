@@ -243,9 +243,9 @@ describe("TamboV1StreamProvider", () => {
         tempId = result.current.management.startNewThread();
       });
 
-      expect(tempId!).toMatch(/^temp_/);
-      expect(result.current.state.currentThreadId).toBe(tempId!);
-      expect(result.current.state.threadMap[tempId!]).toBeDefined();
+      expect(tempId!).toBe("placeholder");
+      expect(result.current.state.currentThreadId).toBe("placeholder");
+      expect(result.current.state.threadMap.placeholder).toBeDefined();
     });
   });
 });
