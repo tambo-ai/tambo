@@ -1,20 +1,25 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/actions/*"
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "07:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
     labels: ["area: github actions", "status: ready"]
-    ignore:
-      - dependency-name: "actions/setup-node"
-      - dependency-name: "actions/checkout"
-      - dependency-name: "actions/upload-artifact"
+    groups:
+      composite-actions:
+        patterns:
+          # Dependency names for actions all contain the path to the action
+          - ".github/actions/*"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
