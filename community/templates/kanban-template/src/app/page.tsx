@@ -40,6 +40,8 @@ function DarkModeToggle() {
   );
 }
 
+type PriorityFilter = "all" | "high" | "medium" | "low";
+
 function TaskCount() {
   const tasks = useTaskStore((state) => state.tasks);
   const doneCount = tasks.filter((t) => t.status === "done").length;
@@ -60,7 +62,30 @@ function TaskCount() {
   );
 }
 
+function PriorityFilterSelect({
+  value,
+  onChange,
+}: {
+  value: PriorityFilter;
+  onChange: (v: PriorityFilter) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as PriorityFilter)}
+      className="text-xs bg-muted border-0 rounded px-2 py-1 text-muted-foreground focus:ring-1 focus:ring-primary"
+    >
+      <option value="all">All priorities</option>
+      <option value="high">High only</option>
+      <option value="medium">Medium only</option>
+      <option value="low">Low only</option>
+    </select>
+  );
+}
+
 export default function Home() {
+  const [priorityFilter, setPriorityFilter] = React.useState<PriorityFilter>("all");
+
   return (
     <TamboProvider
       apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
@@ -90,6 +115,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <TaskCount />
+            <PriorityFilterSelect value={priorityFilter} onChange={setPriorityFilter} />
             <DarkModeToggle />
             <a
               href="https://tambo.co"
@@ -106,7 +132,7 @@ export default function Home() {
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Kanban Board */}
           <div className="flex-1 lg:flex-[7] overflow-auto bg-muted/30 bg-dot-pattern">
-            <KanbanBoard />
+            <KanbanBoard priorityFilter={priorityFilter} />
           </div>
 
           {/* Chat Panel */}

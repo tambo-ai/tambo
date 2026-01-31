@@ -161,11 +161,16 @@ const EmptyState = () => (
   </div>
 );
 
-export type KanbanBoardProps = React.HTMLAttributes<HTMLDivElement>;
+export type KanbanBoardProps = React.HTMLAttributes<HTMLDivElement> & {
+  priorityFilter?: "all" | "high" | "medium" | "low";
+};
 
 export const KanbanBoard = React.forwardRef<HTMLDivElement, KanbanBoardProps>(
-  ({ className, ...props }, ref) => {
-    const tasks = useTaskStore((state) => state.tasks);
+  ({ className, priorityFilter = "all", ...props }, ref) => {
+    const allTasks = useTaskStore((state) => state.tasks);
+    const tasks = priorityFilter === "all"
+      ? allTasks
+      : allTasks.filter((t) => t.priority === priorityFilter);
     const moveTask = useTaskStore((state) => state.moveTask);
     const [dragOverColumn, setDragOverColumn] = React.useState<Status | null>(
       null
@@ -225,7 +230,7 @@ export const KanbanBoard = React.forwardRef<HTMLDivElement, KanbanBoardProps>(
       setDraggedTask(null);
     };
 
-    if (tasks.length === 0) {
+    if (allTasks.length === 0) {
       return (
         <div ref={ref} className={cn("h-full", className)} {...props}>
           <EmptyState />
