@@ -211,9 +211,17 @@ jobs:
 ### Docker Build
 
 ```dockerfile
-# In your Dockerfile
+# Pass API key as build argument
+ARG TAMBO_API_KEY
+
 RUN npx tambo init --api-key="$TAMBO_API_KEY"
 RUN npx tambo add message-thread-full --yes
+```
+
+Build with:
+
+```bash
+docker build --build-arg TAMBO_API_KEY="$TAMBO_API_KEY" .
 ```
 
 ### Non-Interactive Flags

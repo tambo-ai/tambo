@@ -135,7 +135,7 @@ The CLI automatically detects non-interactive environments (CI/CD, AI coding ass
 # Initialize with direct API key
 npx tambo init --api-key="$TAMBO_API_KEY"
 
-# Create new project (requires browser auth)
+# Create new project (prints auth URL for headless CI)
 npx tambo init --project-name=myapp --no-browser
 
 # Add components without prompts
