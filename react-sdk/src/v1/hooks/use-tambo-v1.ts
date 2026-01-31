@@ -23,6 +23,7 @@ import {
 import type { StreamingState } from "../types/thread";
 import type { TamboV1Message } from "../types/message";
 import type { ThreadState } from "../utils/event-accumulator";
+import { renderComponentsInMessages } from "../utils/render-component";
 
 /**
  * Return type for useTamboV1 hook
@@ -156,10 +157,16 @@ export function useTamboV1(threadId?: string): UseTamboV1Return {
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => {
     const thread = threadState;
-    const messages = thread?.thread.messages ?? [];
+    const rawMessages = thread?.thread.messages ?? [];
     const streamingState: StreamingState = thread?.streaming ?? {
       status: "idle" as const,
     };
+
+    // Transform messages to render components from the registry
+    const messages = renderComponentsInMessages(
+      rawMessages,
+      registry.componentList,
+    );
 
     return {
       client,
