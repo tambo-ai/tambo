@@ -1,11 +1,13 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { Suggestion } from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";
 import { useTamboV1Suggestions } from "./use-tambo-v1-suggestions";
 import { useTamboV1ThreadInput } from "./use-tambo-v1-thread-input";
 import { useTamboV1 } from "./use-tambo-v1";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
+import { useTamboV1Config } from "../providers/tambo-v1-provider";
 
 // Mock dependencies
 jest.mock("./use-tambo-v1-thread-input", () => ({
@@ -25,11 +27,37 @@ jest.mock("../../providers/tambo-registry-provider", () => ({
   useTamboRegistry: jest.fn(),
 }));
 
+jest.mock("../providers/tambo-v1-provider", () => ({
+  useTamboV1Config: jest.fn(),
+}));
+
 describe("useTamboV1Suggestions", () => {
   let queryClient: QueryClient;
   const mockSetValue = jest.fn();
   const mockSubmit = jest.fn();
-  const mockGenerateSuggestions = jest.fn();
+  const mockListSuggestions = jest.fn();
+  const mockCreateSuggestions = jest.fn();
+
+  const mockSuggestions: Suggestion[] = [
+    {
+      id: "suggestion_1",
+      messageId: "msg_1",
+      title: "What's the weather?",
+      detailedSuggestion: "What's the weather like today?",
+    },
+    {
+      id: "suggestion_2",
+      messageId: "msg_1",
+      title: "Tell me a joke",
+      detailedSuggestion: "Can you tell me a funny joke?",
+    },
+  ];
+
+  const mockSuggestionsResponse = {
+    suggestions: mockSuggestions,
+    hasMore: false,
+    nextCursor: undefined,
+  };
 
   function createWrapper() {
     return function Wrapper({ children }: { children: React.ReactNode }) {
@@ -50,21 +78,19 @@ describe("useTamboV1Suggestions", () => {
       },
     });
 
+    // Default mock for v1 config
+    jest.mocked(useTamboV1Config).mockReturnValue({ userKey: "user_123" });
+
     // Default mock for thread input
     jest.mocked(useTamboV1ThreadInput).mockReturnValue({
       value: "",
       setValue: mockSetValue,
       submit: mockSubmit,
-      threadId: "thread_123",
-      setThreadId: jest.fn(),
-      images: [],
-      addImage: jest.fn(),
-      addImages: jest.fn(),
-      removeImage: jest.fn(),
-      clearImages: jest.fn(),
       isPending: false,
       isError: false,
-      error: undefined,
+      error: null,
+      isSuccess: false,
+      reset: jest.fn(),
     } as any);
 
     // Default mock for useTamboV1
@@ -101,34 +127,33 @@ describe("useTamboV1Suggestions", () => {
       setResourceSource: jest.fn(),
     } as any);
 
-    // Default mock for client
-    mockGenerateSuggestions.mockResolvedValue([
-      {
-        id: "suggestion_1",
-        suggestion: "What's the weather?",
-        detailedSuggestion: "What's the weather like today?",
-      },
-      {
-        id: "suggestion_2",
-        suggestion: "Tell me a joke",
-        detailedSuggestion: "Can you tell me a funny joke?",
-      },
-    ]);
+    // Default mock for client - using v1 API structure
+    mockListSuggestions.mockResolvedValue({ suggestions: [], hasMore: false });
+    mockCreateSuggestions.mockResolvedValue(mockSuggestionsResponse);
 
     jest.mocked(useTamboClient).mockReturnValue({
-      beta: {
-        threads: {
-          suggestions: {
-            generate: mockGenerateSuggestions,
-          },
+      threads: {
+        suggestions: {
+          list: mockListSuggestions,
+          create: mockCreateSuggestions,
         },
       },
     } as any);
   });
 
   describe("Initial State", () => {
+    it("returns empty suggestions when no threadId provided", () => {
+      const { result } = renderHook(() => useTamboV1Suggestions(undefined), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.suggestions).toEqual([]);
+      expect(result.current.selectedSuggestionId).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
     it("returns empty suggestions when no messages", () => {
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
@@ -152,12 +177,10 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
@@ -182,12 +205,10 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
@@ -195,13 +216,52 @@ describe("useTamboV1Suggestions", () => {
         expect(result.current.suggestions).toHaveLength(2);
       });
 
-      expect(mockGenerateSuggestions).toHaveBeenCalledWith(
+      // Should first call list, then create since list returns empty
+      expect(mockListSuggestions).toHaveBeenCalledWith("msg_1", {
+        threadId: "thread_123",
+        userKey: "user_123",
+      });
+      expect(mockCreateSuggestions).toHaveBeenCalledWith(
         "msg_1",
         expect.objectContaining({
-          id: "thread_123",
+          threadId: "thread_123",
           maxSuggestions: 3,
+          userKey: "user_123",
         }),
       );
+    });
+
+    it("returns existing suggestions from list without calling create", async () => {
+      mockListSuggestions.mockResolvedValue(mockSuggestionsResponse);
+
+      jest.mocked(useTamboV1).mockReturnValue({
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
+        isIdle: true,
+        isStreaming: false,
+        startNewThread: jest.fn(),
+        switchThread: jest.fn(),
+        initThread: jest.fn(),
+        streamingState: { status: "idle" },
+      } as any);
+
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.suggestions).toHaveLength(2);
+      });
+
+      expect(mockListSuggestions).toHaveBeenCalled();
+      expect(mockCreateSuggestions).not.toHaveBeenCalled();
     });
 
     it("does not generate suggestions when thread is streaming", () => {
@@ -220,36 +280,18 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "streaming",
-          runId: "run_1",
-        },
+        streamingState: { status: "streaming", runId: "run_1" },
       } as any);
 
-      renderHook(() => useTamboV1Suggestions(), {
+      renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
-      expect(mockGenerateSuggestions).not.toHaveBeenCalled();
+      expect(mockListSuggestions).not.toHaveBeenCalled();
+      expect(mockCreateSuggestions).not.toHaveBeenCalled();
     });
 
-    it("does not generate suggestions when no threadId", () => {
-      jest.mocked(useTamboV1ThreadInput).mockReturnValue({
-        value: "",
-        setValue: mockSetValue,
-        submit: mockSubmit,
-        threadId: undefined,
-        setThreadId: jest.fn(),
-        images: [],
-        addImage: jest.fn(),
-        addImages: jest.fn(),
-        removeImage: jest.fn(),
-        clearImages: jest.fn(),
-        isPending: false,
-        isError: false,
-        error: undefined,
-      } as any);
-
+    it("does not generate suggestions when autoGenerate is false", () => {
       jest.mocked(useTamboV1).mockReturnValue({
         messages: [
           {
@@ -265,16 +307,16 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
-      renderHook(() => useTamboV1Suggestions(), {
-        wrapper: createWrapper(),
-      });
+      renderHook(
+        () => useTamboV1Suggestions("thread_123", { autoGenerate: false }),
+        { wrapper: createWrapper() },
+      );
 
-      expect(mockGenerateSuggestions).not.toHaveBeenCalled();
+      expect(mockListSuggestions).not.toHaveBeenCalled();
+      expect(mockCreateSuggestions).not.toHaveBeenCalled();
     });
 
     it("uses custom maxSuggestions option", async () => {
@@ -293,13 +335,11 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
       const { result } = renderHook(
-        () => useTamboV1Suggestions({ maxSuggestions: 5 }),
+        () => useTamboV1Suggestions("thread_123", { maxSuggestions: 5 }),
         { wrapper: createWrapper() },
       );
 
@@ -307,17 +347,15 @@ describe("useTamboV1Suggestions", () => {
         expect(result.current.suggestions).toHaveLength(2);
       });
 
-      expect(mockGenerateSuggestions).toHaveBeenCalledWith(
+      expect(mockCreateSuggestions).toHaveBeenCalledWith(
         "msg_1",
-        expect.objectContaining({
-          maxSuggestions: 5,
-        }),
+        expect.objectContaining({ maxSuggestions: 5 }),
       );
     });
   });
 
   describe("Accepting Suggestions", () => {
-    it("updates shared input value when accepting without submit", async () => {
+    it("updates input value when accepting without submit", async () => {
       jest.mocked(useTamboV1).mockReturnValue({
         messages: [
           {
@@ -333,12 +371,10 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
@@ -377,12 +413,10 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
@@ -402,76 +436,54 @@ describe("useTamboV1Suggestions", () => {
       expect(mockSubmit).toHaveBeenCalled();
     });
 
-    it("throws error when suggestion has no detailed content", async () => {
-      jest.mocked(useTamboV1).mockReturnValue({
-        messages: [
-          {
-            id: "msg_1",
-            role: "assistant",
-            content: [],
-            createdAt: "2024-01-01T00:00:00Z",
-          },
-        ],
-        thread: undefined,
-        isIdle: true,
-        isStreaming: false,
-        startNewThread: jest.fn(),
-        switchThread: jest.fn(),
-        initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
-      } as any);
-
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+    it("throws error when suggestion has no content", async () => {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
       const emptySuggestion = {
         id: "empty_suggestion",
-        suggestion: "Empty",
+        messageId: "msg_1",
+        title: "Empty",
         detailedSuggestion: "",
       };
 
       await expect(
         result.current.accept({ suggestion: emptySuggestion as any }),
-      ).rejects.toThrow("Suggestion has no detailed content");
+      ).rejects.toThrow("Suggestion has no content");
     });
 
     it("throws error when detailedSuggestion is only whitespace", async () => {
-      jest.mocked(useTamboV1).mockReturnValue({
-        messages: [
-          {
-            id: "msg_1",
-            role: "assistant",
-            content: [],
-            createdAt: "2024-01-01T00:00:00Z",
-          },
-        ],
-        thread: undefined,
-        isIdle: true,
-        isStreaming: false,
-        startNewThread: jest.fn(),
-        switchThread: jest.fn(),
-        initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
-      } as any);
-
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
       const whitespaceSuggestion = {
         id: "whitespace_suggestion",
-        suggestion: "Whitespace",
+        messageId: "msg_1",
+        title: "Whitespace",
         detailedSuggestion: "   ",
       };
 
       await expect(
         result.current.accept({ suggestion: whitespaceSuggestion as any }),
-      ).rejects.toThrow("Suggestion has no detailed content");
+      ).rejects.toThrow("Suggestion has no content");
+    });
+
+    it("throws error when detailedSuggestion is undefined", async () => {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
+
+      const undefinedSuggestion = {
+        id: "undefined_suggestion",
+        messageId: "msg_1",
+        title: "Undefined",
+      };
+
+      await expect(
+        result.current.accept({ suggestion: undefinedSuggestion as any }),
+      ).rejects.toThrow("Suggestion has no content");
     });
   });
 
@@ -494,14 +506,13 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
-      const { result, rerender } = renderHook(() => useTamboV1Suggestions(), {
-        wrapper: createWrapper(),
-      });
+      const { result, rerender } = renderHook(
+        () => useTamboV1Suggestions("thread_123"),
+        { wrapper: createWrapper() },
+      );
 
       await waitFor(() => {
         expect(result.current.suggestions).toHaveLength(2);
@@ -538,9 +549,7 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
       rerender();
@@ -550,7 +559,13 @@ describe("useTamboV1Suggestions", () => {
       });
     });
 
-    it("exposes mutation and query results", async () => {
+    it("includes pagination info on raw data", async () => {
+      mockListSuggestions.mockResolvedValue({
+        suggestions: mockSuggestions,
+        hasMore: true,
+        nextCursor: "cursor_abc",
+      });
+
       jest.mocked(useTamboV1).mockReturnValue({
         messages: [
           {
@@ -566,28 +581,96 @@ describe("useTamboV1Suggestions", () => {
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
-        streamingState: {
-          status: "idle",
-        },
+        streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
-      expect(result.current.acceptResult).toBeDefined();
-      expect(result.current.generateResult).toBeDefined();
-      expect(result.current.suggestionsResult).toBeDefined();
+      await waitFor(() => {
+        expect(result.current.data?.hasMore).toBe(true);
+        expect(result.current.data?.nextCursor).toBe("cursor_abc");
+      });
     });
 
-    it("exposes combined mutation results (isPending, isError, error)", () => {
-      const { result } = renderHook(() => useTamboV1Suggestions(), {
+    it("exposes loading and error states", () => {
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
         wrapper: createWrapper(),
       });
 
-      expect(result.current.isPending).toBe(false);
-      expect(result.current.isError).toBe(false);
-      expect(result.current.error).toBeNull();
+      expect(result.current.isLoading).toBeDefined();
+      expect(result.current.isSuccess).toBeDefined();
+      expect(result.current.isError).toBeDefined();
+      expect(result.current.error).toBeDefined();
+      expect(result.current.isAccepting).toBe(false);
+      expect(result.current.isGenerating).toBe(false);
+    });
+  });
+
+  describe("Manual Generation", () => {
+    it("allows manual generation via generate function", async () => {
+      jest.mocked(useTamboV1).mockReturnValue({
+        messages: [
+          {
+            id: "msg_1",
+            role: "assistant",
+            content: [],
+            createdAt: "2024-01-01T00:00:00Z",
+          },
+        ],
+        thread: undefined,
+        isIdle: true,
+        isStreaming: false,
+        startNewThread: jest.fn(),
+        switchThread: jest.fn(),
+        initThread: jest.fn(),
+        streamingState: { status: "idle" },
+      } as any);
+
+      const { result } = renderHook(
+        () => useTamboV1Suggestions("thread_123", { autoGenerate: false }),
+        { wrapper: createWrapper() },
+      );
+
+      // No auto-generation
+      expect(mockCreateSuggestions).not.toHaveBeenCalled();
+
+      // Manual generation
+      await act(async () => {
+        await result.current.generate();
+      });
+
+      expect(mockCreateSuggestions).toHaveBeenCalledWith(
+        "msg_1",
+        expect.objectContaining({
+          threadId: "thread_123",
+        }),
+      );
+    });
+
+    it("returns undefined from generate when no assistant message", async () => {
+      jest.mocked(useTamboV1).mockReturnValue({
+        messages: [],
+        thread: undefined,
+        isIdle: true,
+        isStreaming: false,
+        startNewThread: jest.fn(),
+        switchThread: jest.fn(),
+        initThread: jest.fn(),
+        streamingState: { status: "idle" },
+      } as any);
+
+      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+        wrapper: createWrapper(),
+      });
+
+      let generateResult: any;
+      await act(async () => {
+        generateResult = await result.current.generate();
+      });
+
+      expect(generateResult).toBeUndefined();
     });
   });
 });

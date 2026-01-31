@@ -123,6 +123,8 @@ export { useTamboV1ComponentState } from "./hooks/use-tambo-v1-component-state";
 export {
   useTamboV1Suggestions,
   type UseTamboV1SuggestionsOptions,
+  type UseTamboV1SuggestionsReturn,
+  type AcceptSuggestionOptions,
 } from "./hooks/use-tambo-v1-suggestions";
 
 // Re-export client hook from beta SDK (works with v1)
