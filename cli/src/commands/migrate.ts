@@ -49,6 +49,20 @@ export function updateImportPaths(
     `@/components/${componentSubdir}/`,
   );
 
+  // @tambo-ai/ui-registry/base/* -> @/components/tambo/base/* (or ui/base/)
+  // Base components are headless primitives that styled components depend on
+  result = result.replace(
+    /@tambo-ai\/ui-registry\/base\//g,
+    `@/components/${componentSubdir}/base/`,
+  );
+
+  // Transform relative ../../base/ imports to absolute paths
+  // These occur in styled components that reference base primitives
+  result = result.replace(
+    /from ["']\.\.\/\.\.\/base\//g,
+    `from "@/components/${componentSubdir}/base/`,
+  );
+
   // Also handle legacy @/components/ui/ -> @/components/tambo/ transformations
   if (targetLocation === "tambo") {
     result = result.replace(
