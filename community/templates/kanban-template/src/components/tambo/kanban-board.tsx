@@ -118,6 +118,39 @@ const ColumnView = ({
   </div>
 );
 
+const EmptyState = () => (
+  <div className="flex-1 flex items-center justify-center p-12">
+    <div className="text-center max-w-sm">
+      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+        <svg
+          className="w-8 h-8 text-emerald-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+      </div>
+      <h3 className="text-lg font-display font-medium text-foreground mb-2">
+        No tasks yet
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Start by asking the AI to create a task. Try:
+      </p>
+      <div className="space-y-2 text-xs text-muted-foreground">
+        <p className="bg-muted/50 rounded px-3 py-2">"Create a task to review the PR"</p>
+        <p className="bg-muted/50 rounded px-3 py-2">"Add a high priority bug fix task"</p>
+        <p className="bg-muted/50 rounded px-3 py-2">"Create task: Update documentation"</p>
+      </div>
+    </div>
+  </div>
+);
+
 export type KanbanBoardProps = React.HTMLAttributes<HTMLDivElement>;
 
 export const KanbanBoard = React.forwardRef<HTMLDivElement, KanbanBoardProps>(
@@ -177,6 +210,14 @@ export const KanbanBoard = React.forwardRef<HTMLDivElement, KanbanBoardProps>(
       }
       setDraggedTask(null);
     };
+
+    if (tasks.length === 0) {
+      return (
+        <div ref={ref} className={cn("h-full", className)} {...props}>
+          <EmptyState />
+        </div>
+      );
+    }
 
     return (
       <div
