@@ -19,7 +19,7 @@ export default function ClientLayout({
   return (
     <TamboProvider
       userToken={userToken}
-      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      apiKey={process.env.TAMBO_API_KEY!}
       tools={tools}
       components={components}
       contextHelpers={{
