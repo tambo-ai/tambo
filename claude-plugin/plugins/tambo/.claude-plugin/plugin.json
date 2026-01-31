@@ -1,0 +1,14 @@
+{
+  "name": "tambo",
+  "version": "1.0.0",
+  "description": "Build agents that speak your UI",
+  "author": {
+    "name": "Tambo AI",
+    "email": "support@tambo.co",
+    "url": "https://tambo.co"
+  },
+  "homepage": "https://docs.tambo.co",
+  "repository": "https://github.com/tambo-ai/tambo",
+  "license": "MIT",
+  "keywords": ["ai", "react", "generative-ui", "components", "streaming", "mcp"]
+}
