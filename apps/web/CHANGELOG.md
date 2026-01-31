@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.130.0](https://github.com/tambo-ai/tambo/compare/web-v0.129.0...web-v0.130.0) (2026-01-31)
+
+
+### Features
+
+* **react-sdk:** implement v1 API Phase 9-10 with userKey and API cleanup ([#2032](https://github.com/tambo-ai/tambo/issues/2032)) ([9e055ab](https://github.com/tambo-ai/tambo/commit/9e055abddab6390498e5f2c6cb1224efbb556dfc))
+* **react-sdk:** update useTamboV1Suggestions to use v1 API endpoints ([#2096](https://github.com/tambo-ai/tambo/issues/2096)) ([afa26c3](https://github.com/tambo-ai/tambo/commit/afa26c36335ad235ef0fb04675b2713e380d8354))
+* **web:** move legal checkbox to first screen with returning user flow ([#2004](https://github.com/tambo-ai/tambo/issues/2004)) ([2c2eafa](https://github.com/tambo-ai/tambo/commit/2c2eafa93108bfffe0f815c216e6225fee1d1026))
+
 ## [0.129.0](https://github.com/tambo-ai/tambo/compare/web-v0.128.0...web-v0.129.0) (2026-01-29)
 
 
