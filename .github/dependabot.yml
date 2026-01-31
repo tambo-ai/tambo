@@ -10,7 +10,7 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-    labels: [] # automation-labels.yml handles labeling
+    labels: ["area: github actions", "status: ready"]
     ignore:
       - dependency-name: "actions/setup-node"
       - dependency-name: "actions/checkout"
@@ -25,7 +25,7 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-    labels: [] # automation-labels.yml handles labeling
+    labels: ["area: dependencies", "status: ready"]
     # Let package releases bake for a bit before updating,
     # in case there is a bad release. However, always update
     # the latest version of the Tambo packages.
@@ -119,7 +119,7 @@ updates:
         patterns:
           - "@ag-ui/*"
           - "@mastra/*"
-      nexstra:
+      nextra:
         patterns:
           - "nextra"
           - "nextra-*"
