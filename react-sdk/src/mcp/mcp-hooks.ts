@@ -67,6 +67,8 @@ function toPublicResourceEntry(
 
 /**
  * Type guard for narrowing a `ListResourceEntry` to an MCP-backed resource.
+ * @param entry - The resource entry to check
+ * @returns True if the entry is from an MCP server, false if it's from the registry
  */
 export function isMcpResourceEntry(
   entry: ListResourceEntry,
@@ -189,6 +191,8 @@ function combineArrayResults<T>(results: UseQueryResult<T[]>[]): {
 /**
  * Type guard for narrowing McpServer to ConnectedMcpServer.
  * A connected server has a non-null client.
+ * @param server - The MCP server to check
+ * @returns True if the server is connected, false otherwise
  */
 export function isConnectedMcpServer(
   server: McpServer,
