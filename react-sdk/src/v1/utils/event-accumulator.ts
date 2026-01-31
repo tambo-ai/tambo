@@ -6,7 +6,8 @@
  */
 
 import type {
-  BaseEvent,
+  AGUIEvent,
+  CustomEvent,
   RunErrorEvent,
   RunFinishedEvent,
   RunStartedEvent,
@@ -20,7 +21,7 @@ import type {
 } from "@ag-ui/core";
 import { EventType } from "@ag-ui/core";
 import {
-  isTamboCustomEvent,
+  asTamboCustomEvent,
   type ComponentEndEvent,
   type ComponentPropsDeltaEvent,
   type ComponentStartEvent,
@@ -73,14 +74,49 @@ export interface StreamState {
 }
 
 /**
- * Action type for the stream reducer.
- * Includes threadId to ensure events update the correct thread.
+ * Event action - dispatches an AG-UI event to update thread state.
  */
-export interface StreamAction {
+export interface EventAction {
   type: "EVENT";
-  event: BaseEvent;
+  event: AGUIEvent;
   threadId: string;
 }
+
+/**
+ * Initialize thread action - creates a new thread in the threadMap.
+ */
+export interface InitThreadAction {
+  type: "INIT_THREAD";
+  threadId: string;
+  initialThread?: Partial<TamboV1Thread>;
+}
+
+/**
+ * Set current thread action - changes the active thread.
+ */
+export interface SetCurrentThreadAction {
+  type: "SET_CURRENT_THREAD";
+  threadId: string | null;
+}
+
+/**
+ * Start new thread action - atomically creates and switches to a new thread.
+ * This prevents race conditions when multiple calls happen concurrently.
+ */
+export interface StartNewThreadAction {
+  type: "START_NEW_THREAD";
+  threadId: string;
+  initialThread?: Partial<TamboV1Thread>;
+}
+
+/**
+ * Action type for the stream reducer.
+ */
+export type StreamAction =
+  | EventAction
+  | InitThreadAction
+  | SetCurrentThreadAction
+  | StartNewThreadAction;
 
 /**
  * Initial streaming state.
@@ -172,6 +208,11 @@ function updateContentAtIndex(
 
 /**
  * Find a content block by ID across all messages, searching from most recent.
+ *
+ * TODO: This is O(n*m) where n = messages and m = content blocks per message.
+ * For high-frequency streaming with many messages, consider maintaining an
+ * index map of contentId -> {messageIndex, contentIndex} that gets updated
+ * when content blocks are created.
  * @param messages - Messages to search
  * @param contentType - Type of content to find ("component" or "tool_use")
  * @param contentId - ID of the content block
@@ -222,100 +263,150 @@ function updateThreadMessages(
  * This reducer handles all AG-UI events and Tambo custom events,
  * transforming them into immutable state updates per thread.
  * @param state - Current stream state
- * @param action - Action containing the event and threadId to process
+ * @param action - Action to process
  * @returns Updated stream state
  */
 export function streamReducer(
   state: StreamState,
   action: StreamAction,
 ): StreamState {
+  // Handle non-event actions first
+  switch (action.type) {
+    case "INIT_THREAD": {
+      const { threadId, initialThread } = action;
+      // Don't overwrite existing thread
+      if (state.threadMap[threadId]) {
+        return state;
+      }
+      const baseState = createInitialThreadState(threadId);
+      const threadState = initialThread
+        ? {
+            ...baseState,
+            thread: {
+              ...baseState.thread,
+              ...initialThread,
+              id: threadId,
+            },
+          }
+        : baseState;
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [threadId]: threadState,
+        },
+      };
+    }
+
+    case "SET_CURRENT_THREAD": {
+      return {
+        ...state,
+        currentThreadId: action.threadId,
+      };
+    }
+
+    case "START_NEW_THREAD": {
+      // Atomic action: initialize thread AND set as current in one reducer pass
+      // This prevents race conditions when multiple startNewThread() calls happen
+      const { threadId, initialThread } = action;
+      // Don't overwrite existing thread
+      if (state.threadMap[threadId]) {
+        return {
+          ...state,
+          currentThreadId: threadId,
+        };
+      }
+      const baseState = createInitialThreadState(threadId);
+      const threadState = initialThread
+        ? {
+            ...baseState,
+            thread: {
+              ...baseState.thread,
+              ...initialThread,
+              id: threadId,
+            },
+          }
+        : baseState;
+      return {
+        ...state,
+        threadMap: {
+          ...state.threadMap,
+          [threadId]: threadState,
+        },
+        currentThreadId: threadId,
+      };
+    }
+
+    case "EVENT":
+      // Fall through to event handling below
+      break;
+  }
+
+  // Handle EVENT action
   const { event, threadId } = action;
 
-  // Get the current thread state (or undefined if thread doesn't exist yet)
-  const threadState = state.threadMap[threadId];
+  // Get the current thread state, auto-initializing if needed
+  // Auto-initialization handles the case where events arrive before explicit thread init
+  // (e.g., when creating a new thread and RUN_STARTED is the first event)
+  let threadState = state.threadMap[threadId];
+  let updatedState = state;
 
-  // If thread doesn't exist, we need to create it first
-  // This can happen when events arrive before thread initialization
   if (!threadState) {
-    // Log warning in all environments - this indicates a race condition or misconfiguration
-
-    console.warn(
-      `[StreamReducer] Received event for unknown thread: ${threadId}. ` +
-        `Ensure the thread is initialized before dispatching events.`,
-    );
-    return state;
+    // Auto-initialize the thread to avoid dropping events
+    threadState = createInitialThreadState(threadId);
+    updatedState = {
+      ...state,
+      threadMap: {
+        ...state.threadMap,
+        [threadId]: threadState,
+      },
+    };
   }
 
   // Process the event for this specific thread
   let updatedThreadState: ThreadState;
 
-  // Switch on event.type (string) - values match EventType enum
+  // Switch on event.type - AGUIEvent is a discriminated union so TypeScript
+  // automatically narrows the type in each case branch
   switch (event.type) {
     case EventType.RUN_STARTED:
-      updatedThreadState = handleRunStarted(
-        threadState,
-        event as RunStartedEvent,
-      );
+      updatedThreadState = handleRunStarted(threadState, event);
       break;
 
     case EventType.RUN_FINISHED:
-      updatedThreadState = handleRunFinished(
-        threadState,
-        event as RunFinishedEvent,
-      );
+      updatedThreadState = handleRunFinished(threadState, event);
       break;
 
     case EventType.RUN_ERROR:
-      updatedThreadState = handleRunError(threadState, event as RunErrorEvent);
+      updatedThreadState = handleRunError(threadState, event);
       break;
 
     case EventType.TEXT_MESSAGE_START:
-      updatedThreadState = handleTextMessageStart(
-        threadState,
-        event as TextMessageStartEvent,
-      );
+      updatedThreadState = handleTextMessageStart(threadState, event);
       break;
 
     case EventType.TEXT_MESSAGE_CONTENT:
-      updatedThreadState = handleTextMessageContent(
-        threadState,
-        event as TextMessageContentEvent,
-      );
+      updatedThreadState = handleTextMessageContent(threadState, event);
       break;
 
     case EventType.TEXT_MESSAGE_END:
-      updatedThreadState = handleTextMessageEnd(
-        threadState,
-        event as TextMessageEndEvent,
-      );
+      updatedThreadState = handleTextMessageEnd(threadState, event);
       break;
 
     case EventType.TOOL_CALL_START:
-      updatedThreadState = handleToolCallStart(
-        threadState,
-        event as ToolCallStartEvent,
-      );
+      updatedThreadState = handleToolCallStart(threadState, event);
       break;
 
     case EventType.TOOL_CALL_ARGS:
-      updatedThreadState = handleToolCallArgs(
-        threadState,
-        event as ToolCallArgsEvent,
-      );
+      updatedThreadState = handleToolCallArgs(threadState, event);
       break;
 
     case EventType.TOOL_CALL_END:
-      updatedThreadState = handleToolCallEnd(
-        threadState,
-        event as ToolCallEndEvent,
-      );
+      updatedThreadState = handleToolCallEnd(threadState, event);
       break;
 
     case EventType.TOOL_CALL_RESULT:
-      updatedThreadState = handleToolCallResult(
-        threadState,
-        event as ToolCallResultEvent,
-      );
+      updatedThreadState = handleToolCallResult(threadState, event);
       break;
 
     case EventType.CUSTOM:
@@ -344,22 +435,21 @@ export function streamReducer(
         `[StreamReducer] Received unsupported event type: ${event.type}. ` +
           `This event will be ignored.`,
       );
-      return state;
+      return updatedState;
 
-    default:
-      // Unknown event type - log warning and return state unchanged
-      // Note: Cannot use exhaustiveness check with string types from SDK
-      if (process.env.NODE_ENV !== "production") {
-        console.warn(`[StreamReducer] Unknown event type: ${event.type}`);
-      }
-      return state;
+    default: {
+      // Exhaustiveness check: if a new event type is added to AGUIEvent
+      // and not handled above, TypeScript will error here
+      const _exhaustiveCheck: never = event;
+      throw new UnreachableCaseError(_exhaustiveCheck);
+    }
   }
 
   // Return updated state with modified thread
   return {
-    ...state,
+    ...updatedState,
     threadMap: {
-      ...state.threadMap,
+      ...updatedState.threadMap,
       [threadId]: updatedThreadState,
     },
   };
@@ -756,41 +846,31 @@ function handleToolCallResult(
 /**
  * Handle custom events (Tambo-specific).
  * @param threadState - Current thread state
- * @param event - Base event (must be CUSTOM type)
+ * @param event - Custom event (already narrowed from AGUIEvent)
  * @returns Updated thread state
  */
 function handleCustomEvent(
   threadState: ThreadState,
-  event: BaseEvent,
+  event: CustomEvent,
 ): ThreadState {
-  if (event.type !== EventType.CUSTOM) {
-    return threadState;
-  }
+  // Use centralized casting function to get properly typed Tambo event
+  const customEvent = asTamboCustomEvent(event);
 
-  // Cast to CustomEvent type (which has name property) for type guard check
-  const customEventBase = event as { name?: string };
-
-  // Use type guard to validate this is a known Tambo custom event
-  if (!isTamboCustomEvent(customEventBase)) {
+  if (!customEvent) {
     // Unknown custom event - log and return unchanged
-
-    console.warn(
-      `[StreamReducer] Unknown custom event name: ${customEventBase.name}`,
-    );
+    console.warn(`[StreamReducer] Unknown custom event name: ${event.name}`);
     return threadState;
   }
-
-  const customEvent = customEventBase;
 
   switch (customEvent.name) {
     case "tambo.component.start":
       return handleComponentStart(threadState, customEvent);
 
     case "tambo.component.props_delta":
-      return handleComponentPropsDelta(threadState, customEvent);
+      return handleComponentDelta(threadState, customEvent, "props");
 
     case "tambo.component.state_delta":
-      return handleComponentStateDelta(threadState, customEvent);
+      return handleComponentDelta(threadState, customEvent, "state");
 
     case "tambo.component.end":
       return handleComponentEnd(threadState, customEvent);
@@ -809,7 +889,7 @@ function handleCustomEvent(
 
 /**
  * Handle tambo.component.start event.
- * Adds a component content block to the message.
+ * Adds a component content block to the message with 'started' streaming state.
  * @param threadState - Current thread state
  * @param event - Component start event
  * @returns Updated thread state
@@ -831,12 +911,13 @@ function handleComponentStart(
 
   const message = messages[messageIndex];
 
-  // Add component content block
+  // Add component content block with 'started' streaming state
   const newContent: Content = {
     type: "component",
     id: event.value.componentId,
     name: event.value.componentName,
     props: {},
+    streamingState: "started",
   };
 
   const updatedMessage: TamboV1Message = {
@@ -851,26 +932,29 @@ function handleComponentStart(
 }
 
 /**
- * Handle tambo.component.props_delta event.
- * Applies JSON Patch to component props.
+ * Handle component delta events (both props_delta and state_delta).
+ * Applies JSON Patch to the specified field and sets streamingState to 'streaming'.
  * @param threadState - Current thread state
- * @param event - Component props delta event
+ * @param event - Component delta event (props or state)
+ * @param field - Which field to update ('props' or 'state')
  * @returns Updated thread state
  */
-function handleComponentPropsDelta(
+function handleComponentDelta(
   threadState: ThreadState,
-  event: ComponentPropsDeltaEvent,
+  event: ComponentPropsDeltaEvent | ComponentStateDeltaEvent,
+  field: "props" | "state",
 ): ThreadState {
   const componentId = event.value.componentId;
   const operations = event.value.operations;
   const messages = threadState.thread.messages;
+  const eventName = `tambo.component.${field}_delta`;
 
   // Find the component content block
   const { messageIndex, contentIndex } = findContentById(
     messages,
     "component",
     componentId,
-    "tambo.component.props_delta event",
+    `${eventName} event`,
   );
 
   const message = messages[messageIndex];
@@ -878,76 +962,24 @@ function handleComponentPropsDelta(
 
   if (componentContent.type !== "component") {
     throw new Error(
-      `Content at index ${contentIndex} is not a component block for tambo.component.props_delta event`,
+      `Content at index ${contentIndex} is not a component block for ${eventName} event`,
     );
   }
 
-  // Apply JSON Patch to props
-  const updatedProps = applyJsonPatch(
-    componentContent.props as Record<string, unknown>,
-    operations,
-  );
+  // Get current value (state defaults to {} if undefined)
+  const currentValue =
+    field === "props"
+      ? (componentContent.props as Record<string, unknown>)
+      : ((componentContent.state as Record<string, unknown>) ?? {});
 
+  // Apply JSON Patch
+  const updatedValue = applyJsonPatch(currentValue, operations);
+
+  // Update field and set streaming state to 'streaming'
   const updatedContent: Content = {
     ...componentContent,
-    props: updatedProps,
-  };
-
-  const updatedMessage: TamboV1Message = {
-    ...message,
-    content: updateContentAtIndex(
-      message.content,
-      contentIndex,
-      updatedContent,
-    ),
-  };
-
-  return updateThreadMessages(
-    threadState,
-    updateMessageAtIndex(messages, messageIndex, updatedMessage),
-  );
-}
-
-/**
- * Handle tambo.component.state_delta event.
- * Applies JSON Patch to component state.
- * @param threadState - Current thread state
- * @param event - Component state delta event
- * @returns Updated thread state
- */
-function handleComponentStateDelta(
-  threadState: ThreadState,
-  event: ComponentStateDeltaEvent,
-): ThreadState {
-  const componentId = event.value.componentId;
-  const operations = event.value.operations;
-  const messages = threadState.thread.messages;
-
-  // Find the component content block
-  const { messageIndex, contentIndex } = findContentById(
-    messages,
-    "component",
-    componentId,
-    "tambo.component.state_delta event",
-  );
-
-  const message = messages[messageIndex];
-  const componentContent = message.content[contentIndex];
-
-  if (componentContent.type !== "component") {
-    throw new Error(
-      `Content at index ${contentIndex} is not a component block for tambo.component.state_delta event`,
-    );
-  }
-
-  // Apply JSON Patch to state
-  const currentState =
-    (componentContent.state as Record<string, unknown>) ?? {};
-  const updatedState = applyJsonPatch(currentState, operations);
-
-  const updatedContent: Content = {
-    ...componentContent,
-    state: updatedState,
+    [field]: updatedValue,
+    streamingState: "streaming",
   };
 
   const updatedMessage: TamboV1Message = {
@@ -967,17 +999,54 @@ function handleComponentStateDelta(
 
 /**
  * Handle tambo.component.end event.
- * Marks component as complete.
+ * Sets component streaming state to 'done'.
  * @param threadState - Current thread state
- * @param _event - Component end event (unused)
+ * @param event - Component end event
  * @returns Updated thread state
  */
 function handleComponentEnd(
   threadState: ThreadState,
-  _event: ComponentEndEvent,
+  event: ComponentEndEvent,
 ): ThreadState {
-  // For now, this doesn't change state
-  return threadState;
+  const componentId = event.value.componentId;
+  const messages = threadState.thread.messages;
+
+  // Find the component content block
+  const { messageIndex, contentIndex } = findContentById(
+    messages,
+    "component",
+    componentId,
+    "tambo.component.end event",
+  );
+
+  const message = messages[messageIndex];
+  const componentContent = message.content[contentIndex];
+
+  if (componentContent.type !== "component") {
+    throw new Error(
+      `Content at index ${contentIndex} is not a component block for tambo.component.end event`,
+    );
+  }
+
+  // Set streaming state to 'done'
+  const updatedContent: Content = {
+    ...componentContent,
+    streamingState: "done",
+  };
+
+  const updatedMessage: TamboV1Message = {
+    ...message,
+    content: updateContentAtIndex(
+      message.content,
+      contentIndex,
+      updatedContent,
+    ),
+  };
+
+  return updateThreadMessages(
+    threadState,
+    updateMessageAtIndex(messages, messageIndex, updatedMessage),
+  );
 }
 
 /**

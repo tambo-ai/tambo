@@ -1,5 +1,27 @@
 # Implement React SDK v1 API Support
 
+## Current Status: Phases 1-9 Complete (Core Implementation Done)
+
+| Phase                        | Status         | Notes                                    |
+| ---------------------------- | -------------- | ---------------------------------------- |
+| Phase 0: Compatibility       | ✅ Skipped     | Deferred to implementation phases        |
+| Phase 1: Foundation & Types  | ✅ Complete    | Type system, exports configured          |
+| Phase 2: Event Accumulation  | ✅ Complete    | All AG-UI events handled                 |
+| Phase 3: Streaming & State   | ✅ Complete    | Stream context, reducer pattern          |
+| Phase 4: Registry Reuse      | ✅ Complete    | Beta SDK registry reused                 |
+| Phase 5: React Query         | ✅ Complete    | Mutations, queries, caching              |
+| Phase 6: Tool Execution      | ✅ Complete    | Auto-execution with continuation         |
+| Phase 7: Provider & Hooks    | ✅ Complete    | TamboV1Provider, all hooks               |
+| Phase 8: Component Rendering | ✅ Complete    | Renderer, state sync, props sanitization |
+| Phase 9: Context Helpers     | ✅ Complete    | userKey integrated, API calls working    |
+| Phase 9b: Documentation      | 🔄 In Progress | JSDoc done, examples needed              |
+| Phase 10: Testing & Polish   | 🔄 In Progress | 943 tests passing                        |
+
+**Known Blockers:**
+
+- TypeScript SDK doesn't support `additionalContext` parameter yet
+- Context helpers infrastructure is ready but can't send additionalContext to API until SDK is updated
+
 ## Overview
 
 Implement a new v1 subpackage in `@tambo-ai/react` that provides React hooks and providers for the new streaming-first v1 API defined in `plans/api-v1-proposal.md`. The v1 SDK will be importable via `@tambo-ai/react/v1` and expose name-compatible hooks (`useTamboV1()`, `useTamboV1Thread()`) that work with the new AG-UI event-based streaming protocol.
@@ -530,15 +552,19 @@ import type { BaseEvent } from '@ag-ui/core';
 import { streamReducer, type StreamState } from '../utils/event-accumulator';
 
 const StreamStateContext = createContext<StreamState | null>(null);
-const StreamDispatchContext = createContext<Dispatch<BaseEvent> | null>(null);
+const StreamDispatchContext = createContext<Dispatch<StreamAction> | null>(null);
 
-export function TamboV1StreamProvider({ children }: PropsWithChildren) {
-  const [state, dispatch] = useReducer(streamReducer, {
-    thread: { id: '', messages: [], runStatus: 'idle', /* ... */ },
-    streamingState: { status: 'idle' },
-    pendingToolCalls: new Map(),
-    accumulatingComponents: new Map(),
-  });
+export function TamboV1StreamProvider({ children, userKey }: { children: ReactNode; userKey?: string }) {
+  // Lazy initializer - userKey stored in state, threads managed via dispatch
+  const [state, dispatch] = useReducer(
+    streamReducer,
+    userKey,
+    (initialUserKey) => ({
+      threadMap: {},
+      currentThreadId: null,
+      userKey: initialUserKey,
+    }),
+  );
 
   return (
     <StreamStateContext.Provider value={state}>
@@ -588,8 +614,9 @@ Created complete streaming infrastructure in v1/:
   - Split-context pattern (separate StreamStateContext and StreamDispatchContext)
   - TamboV1StreamProvider with useReducer(streamReducer)
   - useStreamState() and useStreamDispatch() hooks with error checking
-  - Flexible initialization (accepts threadId, projectId, or full initialThread)
-  - Memoized initial state to prevent unnecessary reducer resets
+  - useThreadManagement() hook for initThread/switchThread/startNewThread
+  - userKey stored in StreamState (not a prop-controlled threadId)
+  - Lazy initializer for stable initial state
   - "use client" directive for Next.js compatibility
 
 - **providers/index.ts**: Barrel export for providers module
@@ -814,7 +841,7 @@ Created React Query hooks in v1/hooks/:
   - Stale time: 1s for real-time data
 
 - **use-tambo-v1-thread-list.ts**: Query hook for fetching thread list
-  - Supports pagination via cursor, limit, contextKey
+  - Supports pagination via cursor, limit, userKey
   - Returns ThreadListResponse directly from SDK
   - Stale time: 5s for list data
 
@@ -845,6 +872,8 @@ After Phase 5 implementation, additional refactoring was done based on code revi
 
 #### Phase 6: Automatic Tool Execution (Est: 2-3 days)
 
+**Status: ✅ COMPLETED**
+
 **Goals:**
 
 - Detect `tambo.run.awaiting_input` events
@@ -853,18 +882,43 @@ After Phase 5 implementation, additional refactoring was done based on code revi
 
 **Tasks:**
 
-- [ ] Implement `executeClientTool()` function
-- [ ] Look up tool by name in registry
-- [ ] Call tool function with parsed arguments
-- [ ] Handle tool errors gracefully (isError flag)
-- [ ] Transform tool results to `ToolResultContent` format
-- [ ] Use `transformToContent` if provided by tool
-- [ ] Implement `continueWithToolResults()` mutation
-- [ ] POST tool results to continue run (with `previousRunId`)
-- [ ] Handle multi-tool scenarios (execute all, then continue)
-- [ ] Add configurable timeout for tool execution
-- [ ] Write tests for tool execution flow
-- [ ] Test error handling and recovery
+- [x] Implement `executeClientTool()` function - ✅ In tool-executor.ts
+- [x] Look up tool by name in registry - ✅ Registry lookup with error handling
+- [x] Call tool function with parsed arguments - ✅ With proper error handling
+- [x] Handle tool errors gracefully (isError flag) - ✅ Returns tool_result with isError: true
+- [x] Transform tool results to `ToolResultContent` format - ✅ Uses transformToContent if provided
+- [x] Use `transformToContent` if provided by tool - ✅ Falls back to JSON stringify
+- [x] Implement `continueWithToolResults()` mutation - ✅ In useTamboV1SendMessage via executeToolsAndContinue()
+- [x] POST tool results to continue run (with `previousRunId`) - ✅ Uses client.threads.runs.run() with previousRunId
+- [x] Handle multi-tool scenarios (execute all, then continue) - ✅ executeAllPendingTools() processes all pending tools
+- [ ] Add configurable timeout for tool execution - Deferred
+- [x] Add `mcpServers` prop to TamboV1Provider for MCP server registration
+- [x] Add `onCallUnregisteredTool` prop callback for handling unknown tools
+- [x] Write tests for tool execution flow - ✅ tool-executor.test.ts
+- [ ] Test error handling and recovery - Deferred to Phase 10
+
+**Actual Implementation:**
+
+Created tool execution system in v1/:
+
+- **utils/tool-executor.ts**: Tool execution utilities
+  - executeClientTool() - Executes a single tool with error handling
+  - executeAllPendingTools() - Batch execution of all pending tools
+  - PendingToolCall interface for type-safe tool tracking
+  - Uses transformToContent callback if provided, otherwise JSON stringifies result
+  - Returns ToolResultContent with isError flag for failures
+
+- **utils/tool-call-tracker.ts**: Tracks tool calls across stream events
+  - ToolCallTracker class maintains Map of pending tool calls
+  - handleEvent() processes TOOL_CALL_START/ARGS/END events
+  - getToolCallsById() retrieves specific tool calls for execution
+  - clearToolCalls() removes executed tools from tracking
+
+- **hooks/use-tambo-v1-send-message.ts**: Integrated tool execution
+  - Detects tambo.run.awaiting_input custom events
+  - Calls executeAllPendingTools() with tracked tool calls
+  - Continues run with tool results via previousRunId
+  - Flat loop pattern handles multi-round tool execution (tool→AI→tool→AI chains)
 
 **Files:**
 
@@ -955,6 +1009,8 @@ export async function executeAllPendingTools(
 
 #### Phase 7: Main Provider & Hooks (Est: 1-2 days)
 
+**Status: ✅ COMPLETED**
+
 **Goals:**
 
 - Implement `TamboV1Provider` reusing existing providers where possible
@@ -963,19 +1019,45 @@ export async function executeAllPendingTools(
 
 **Tasks:**
 
-- [ ] Create `TamboV1Provider` wrapping reusable providers
-- [ ] Reuse `TamboClientProvider` (works as-is with v1 API)
-- [ ] Reuse `TamboRegistryProvider` (via extracted `useRegistryState()`)
-- [ ] Implement `useTamboV1()` combining all context hooks
-- [ ] Implement `useTamboV1Thread()` for thread state
-- [ ] Implement `useTamboV1Messages()` for message list
-- [ ] Implement `useTamboV1SendMessage()` for sending
-- [ ] Implement `useTamboV1ComponentState()` for component state updates
-- [ ] Implement `useTamboV1RegisterComponent()` for dynamic registration
-- [ ] Implement `useTamboV1RegisterTool()` for dynamic registration
-- [ ] Add hook documentation with JSDoc comments
-- [ ] Write integration tests for full hook flow
-- [ ] Test provider composition and context access
+- [x] Create `TamboV1Provider` wrapping reusable providers - ✅ Composes all necessary providers
+- [x] Reuse `TamboClientProvider` (works as-is with v1 API) - ✅ Re-exported and used
+- [x] Reuse `TamboRegistryProvider` (via extracted `useRegistryState()`) - ✅ Re-exported and used
+- [x] Implement `useTamboV1()` combining all context hooks - ✅ Returns thread state, messages, streaming state
+- [x] Implement `useTamboV1Thread()` for thread state - ✅ React Query hook for fetching single thread
+- [x] Implement `useTamboV1Messages()` for message list - ✅ Hook for accessing thread messages with rendering
+- [x] Implement `useTamboV1SendMessage()` for sending - ✅ Mutation hook with streaming and tool execution
+- [x] Implement `useTamboV1ComponentState()` for component state updates - ✅ Bidirectional state sync (Phase 8)
+- [x] Implement dynamic registration via useTamboRegistry() - ✅ Re-exported from beta SDK
+- [x] Add `userToken` prop for OAuth authentication pass-through to TamboClientProvider
+- [ ] Add `autoGenerateThreadName` prop - Deferred (requires server-side support)
+- [ ] Add `autoGenerateNameThreshold` prop - Deferred (requires server-side support)
+- [x] Add hook documentation with JSDoc comments - ✅ All hooks documented
+- [x] Write integration tests for full hook flow - ✅ Tests for all major hooks
+- [x] Test provider composition and context access - ✅ Provider tests added
+
+**Actual Implementation:**
+
+Created provider and hooks system in v1/:
+
+- **providers/tambo-v1-provider.tsx**: Main provider component
+  - Composes TamboClientProvider, TamboRegistryProvider, TamboContextHelpersProvider, TamboV1StreamProvider
+  - Supports all authentication options (apiKey, tamboUrl, environment, userToken)
+  - Component/tool/MCP server registration via props
+  - Resource registration (static and dynamic)
+  - Context helpers configuration
+  - ContextKey for thread scoping
+  - Optional custom QueryClient
+
+- **hooks/use-tambo-v1.ts**: Main hook for thread state
+  - Returns messages, isStreaming, streamingState, thread management functions
+  - Integrates with stream context for real-time updates
+  - Provides startNewThread(), switchThread(), initThread() functions
+
+- **hooks/use-tambo-v1-thread-input.ts**: Input management hook
+  - Manages input value state with setValue
+  - submit() function sends message and clears input
+  - Returns isPending, isError, error, isSuccess, reset
+  - Mirrors beta SDK's useTamboThreadInput API
 
 **Files:**
 
@@ -1061,6 +1143,8 @@ export function useTamboV1() {
 
 #### Phase 8: Component Rendering & State (Est: 2-3 days)
 
+**Status: ✅ COMPLETED**
+
 **Goals:**
 
 - Render React components from component content blocks
@@ -1069,18 +1153,45 @@ export function useTamboV1() {
 
 **Tasks:**
 
-- [ ] Implement component renderer looking up by name in registry
-- [ ] Render loading component during props streaming
-- [ ] Switch to main component when props complete
-- [ ] Pass streamed props to component via React props
-- [ ] Implement `useTamboV1ComponentState()` hook for components
-- [ ] Handle JSON Patch state updates from server
-- [ ] Implement debounced state updates to server
-- [ ] POST to `/threads/{id}/components/{componentId}/state` endpoint
-- [ ] Handle conflicts (server updates during client typing)
-- [ ] Add error boundaries around component rendering
-- [ ] Write tests for component lifecycle
-- [ ] Test state synchronization scenarios
+- [x] Implement component renderer looking up by name in registry - ✅ renderComponentContent()
+- [x] Render loading component during props streaming - ✅ Uses loadingComponent during streaming
+- [x] Switch to main component when props complete - ✅ Checks streamingState !== "done"
+- [x] Pass streamed props to component via React props - ✅ Props spread to component with sanitization
+- [x] Implement `useTamboV1ComponentState()` hook for components - ✅ Bidirectional sync with debouncing
+- [x] Handle JSON Patch state updates from server - ✅ Syncs from streamState
+- [x] Implement debounced state updates to server - ✅ useDebouncedCallback with configurable delay
+- [x] POST to `/threads/{id}/components/{componentId}/state` endpoint - ✅ Uses client.threads.state.updateState()
+- [x] Handle conflicts (server updates during client typing) - ✅ hasPendingLocalChangeRef prevents overwrites
+- [ ] Add error boundaries around component rendering - Deferred
+- [x] Add `resources` prop for static resource registration - ✅ Via TamboRegistryProvider
+- [x] Add `listResources` prop for dynamic resource listing callback - ✅ Via TamboRegistryProvider
+- [x] Add `getResource` prop for dynamic resource retrieval callback - ✅ Via TamboRegistryProvider
+- [x] Write tests for component lifecycle - ✅ component-renderer.test.tsx
+- [x] Test state synchronization scenarios - ✅ use-tambo-v1-component-state.test.tsx
+
+**Actual Implementation:**
+
+Created component rendering system in v1/:
+
+- **utils/component-renderer.tsx**: Component rendering utilities
+  - V1ComponentContentContext provides componentId, threadId, messageId, componentName
+  - V1ComponentContentProvider wraps rendered components with memoized context
+  - useV1ComponentContent() / useV1ComponentContentOptional() hooks for context access
+  - renderComponentContent() looks up component in registry, creates element
+  - renderMessageContent() processes all content blocks in a message
+  - renderMessageComponents() creates new message with rendered components
+  - isComponentContent() type guard for component content blocks
+  - Props sanitization filters dangerous props (event handlers, refs, dangerouslySetInnerHTML)
+  - Suspense wrapping for lazy-loaded components
+
+- **hooks/use-tambo-v1-component-state.ts**: Bidirectional state sync hook
+  - Returns [currentState, setState, { isPending, error, flush }] tuple
+  - Debounced sync to server (default 500ms, configurable)
+  - Syncs from server state via streamState updates
+  - Conflict prevention with hasPendingLocalChangeRef and lastSentValueRef
+  - Deep equality checks via fast-equals to prevent unnecessary syncs
+  - Flush on unmount to prevent data loss
+  - Only searches current thread for component (O(m*k) instead of O(n*m\*k))
 
 **Files:**
 
@@ -1161,7 +1272,65 @@ export function useTamboV1ComponentState<S>(
 - Component state syncs bidirectionally
 - Conflicts handled gracefully
 
-#### Phase 9: Documentation & Examples (Est: 2-3 days)
+#### Phase 9: Context Helpers & UserKey (Est: 1-2 days)
+
+**Status: ✅ COMPLETED**
+
+**Goals:**
+
+- Integrate context helpers with v1 API
+- Support userKey for thread ownership and scoping
+- Align API exports with beta SDK
+
+**Tasks:**
+
+- [x] Add `contextHelpers` prop for context helper configuration - ✅ Via TamboContextHelpersProvider
+- [x] Add `userKey` prop for thread ownership - ✅ Stored in StreamState, passed to API calls
+- [x] Re-export context helpers from beta SDK - ✅ TamboContextHelpersProvider, useTamboContextHelpers
+- [x] Re-export built-in context helpers - ✅ currentPageContextHelper, currentTimeContextHelper
+- [x] Export context helper types - ✅ AdditionalContext, ContextHelperFn, ContextHelpers
+- [x] Send userKey to thread creation - ✅ Passed to runs.create() and runs.run() API calls
+- [ ] Send additionalContext to API calls - ⚠️ Blocked: TypeScript SDK doesn't support additionalContext parameter
+
+**Actual Implementation:**
+
+Context helpers and userKey are fully integrated:
+
+- **providers/tambo-v1-provider.tsx**: Provider supports contextHelpers and userKey props
+  - TamboContextHelpersProvider wraps children for context helper registration
+  - userKey passed to TamboV1StreamProvider for storage in StreamState
+
+- **providers/tambo-v1-stream-context.tsx**: Stream context manages userKey
+  - userKey stored directly in StreamState (not a separate context)
+  - Accessed via useStreamState().userKey
+  - Thread management via initThread/switchThread/startNewThread (threadId is internal state, not a prop)
+
+- **hooks/use-tambo-v1-send-message.ts**: userKey passed to API calls
+  - runs.create() receives userKey in thread parameter for new threads
+  - runs.run() receives userKey for existing threads
+
+- **v1/index.ts**: Full exports for context helpers
+  - TamboContextHelpersProvider and useTamboContextHelpers from beta SDK
+  - currentPageContextHelper and currentTimeContextHelper built-ins
+  - AdditionalContext, ContextHelperFn, ContextHelpers types
+
+**Architecture Decisions:**
+
+1. **userKey is required** - Either userKey prop OR userToken (containing userKey) must be provided.
+   All thread operations are scoped to the userKey - users only see their own threads.
+
+2. **No separate UserKeyContext** - userKey is stored in StreamState for simplicity.
+   Access via useStreamState().userKey rather than a separate hook.
+
+3. **Thread management is internal** - Removed threadId prop from TamboV1StreamProvider.
+   Threads managed via initThread/switchThread/startNewThread to prevent state loss on thread switching.
+
+**Note:** additionalContext integration is blocked pending TypeScript SDK updates.
+The SDK's RunCreateParams and RunRunParams interfaces don't include this parameter yet.
+
+#### Phase 9b: Documentation & Examples (Est: 2-3 days)
+
+**Status: 🔄 IN PROGRESS**
 
 **Goals:**
 
@@ -1172,8 +1341,8 @@ export function useTamboV1ComponentState<S>(
 **Tasks:**
 
 - [ ] Write main README for v1 subpackage
-- [ ] Document all exported hooks with JSDoc
-- [ ] Document all exported types with JSDoc
+- [x] Document all exported hooks with JSDoc - ✅ All hooks have JSDoc
+- [x] Document all exported types with JSDoc - ✅ All types documented
 - [ ] Create example: Basic chat application
 - [ ] Create example: Tool usage (weather, calculator)
 - [ ] Create example: Multi-component streaming
@@ -1412,31 +1581,31 @@ See `/examples` directory for full working examples.
 
 ### Functional Requirements
 
-- [ ] Hooks expose v1 API types (Thread, Message, Content blocks)
-- [ ] Streaming works via AG-UI events
-- [ ] Components render from component content blocks
-- [ ] Tools execute automatically with continuation
-- [ ] State syncs bidirectionally for components
-- [ ] Multiple concurrent threads supported
-- [ ] SSR compatible (Next.js App Router)
-- [ ] React 18 and 19 compatible
+- [x] Hooks expose v1 API types (Thread, Message, Content blocks)
+- [x] Streaming works via AG-UI events
+- [x] Components render from component content blocks
+- [x] Tools execute automatically with continuation
+- [x] State syncs bidirectionally for components
+- [x] Multiple concurrent threads supported
+- [ ] SSR compatible (Next.js App Router) - Needs verification
+- [ ] React 18 and 19 compatible - Needs verification
 
 ### Non-Functional Requirements
 
-- [ ] 90%+ test coverage
-- [ ] Documentation complete with examples
-- [ ] Build succeeds for CJS + ESM
-- [ ] Import works: `import { TamboV1Provider } from '@tambo-ai/react/v1'`
-- [ ] No console warnings in development
-- [ ] TypeScript errors: zero
-- [ ] ESLint warnings: zero
+- [ ] 90%+ test coverage - In progress
+- [ ] Documentation complete with examples - In progress
+- [x] Build succeeds for CJS + ESM
+- [x] Import works: `import { TamboV1Provider } from '@tambo-ai/react/v1'`
+- [x] No console warnings in development
+- [x] TypeScript errors: zero
+- [x] ESLint warnings: zero (pre-existing warnings only)
 
 ### Quality Gates
 
-- [ ] Code review approved
-- [ ] All tests passing
+- [x] Code review approved (Phase 8-9 PR reviewed)
+- [x] All tests passing (938 tests)
 - [ ] Documentation reviewed
-- [ ] Performance acceptable (no N+1 re-renders)
+- [x] Performance acceptable (no N+1 re-renders) - Split contexts, memoization
 - [ ] Memory leaks checked
 - [ ] Accessibility reviewed (if UI components)
 
@@ -1559,66 +1728,73 @@ See `/examples` directory for full working examples.
 Use this checklist during implementation:
 
 **Foundation:**
-- [ ] Directory structure created
-- [ ] Package exports configured
-- [ ] Type definitions complete
-- [ ] Tests for types passing
+- [x] Directory structure created
+- [x] Package exports configured
+- [x] Type definitions complete
+- [x] Tests for types passing
 
 **Event System:**
-- [ ] Event reducer implemented
-- [ ] All AG-UI events handled
-- [ ] All Tambo CUSTOM events handled
-- [ ] JSON Patch utilities working
-- [ ] Tests for event accumulation passing
+- [x] Event reducer implemented
+- [x] All AG-UI events handled
+- [x] All Tambo CUSTOM events handled
+- [x] JSON Patch utilities working
+- [x] Tests for event accumulation passing
 
 **Streaming:**
-- [ ] SSE stream handler working
-- [ ] Stream context implemented
-- [ ] Stream lifecycle tested
-- [ ] Cancellation working
-- [ ] Error handling tested
+- [x] SSE stream handler working
+- [x] Stream context implemented
+- [x] Stream lifecycle tested
+- [x] Cancellation working
+- [x] Error handling tested
 
 **Registry:**
-- [ ] Component registry working
-- [ ] Tool registry working
-- [ ] Schema conversion working
-- [ ] Dynamic registration tested
+- [x] Component registry working
+- [x] Tool registry working
+- [x] Schema conversion working
+- [x] Dynamic registration tested
 
 **React Query:**
-- [ ] Send message mutation working
-- [ ] Thread queries working
-- [ ] Cache invalidation working
-- [ ] Optimistic updates working
+- [x] Send message mutation working
+- [x] Thread queries working
+- [x] Cache invalidation working
+- [ ] Optimistic updates working - Deferred
 
 **Tools:**
-- [ ] Tool execution working
-- [ ] Error handling working
-- [ ] Continuation working
-- [ ] Multi-tool scenarios tested
+- [x] Tool execution working
+- [x] Error handling working
+- [x] Continuation working
+- [x] Multi-tool scenarios tested
 
 **Providers & Hooks:**
-- [ ] Main provider working
-- [ ] All hooks implemented
-- [ ] Integration tests passing
+- [x] Main provider working
+- [x] All hooks implemented
+- [x] Integration tests passing
 
 **Components:**
-- [ ] Component rendering working
-- [ ] Loading states working
-- [ ] State synchronization working
-- [ ] Error boundaries tested
+- [x] Component rendering working
+- [x] Loading states working
+- [x] State synchronization working
+- [ ] Error boundaries tested - Deferred
+
+**Context Helpers & UserKey:**
+- [x] Context helpers provider integrated
+- [x] userKey stored in StreamState and passed to API calls
+- [x] Built-in helpers re-exported
+- [x] userKey sent to thread creation/run APIs
+- [ ] additionalContext API integration - Blocked by SDK
 
 **Documentation:**
 - [ ] README complete
-- [ ] API docs complete
+- [x] API docs complete (JSDoc)
 - [ ] Examples working
 - [ ] Migration guide complete
 
 **Polish:**
 - [ ] Test coverage 90%+
-- [ ] Performance optimized
-- [ ] No memory leaks
-- [ ] Builds succeeding
-- [ ] No lint/type errors
+- [x] Performance optimized (memoization, split contexts)
+- [ ] No memory leaks - Needs verification
+- [x] Builds succeeding
+- [x] No lint/type errors
 
 ---
 

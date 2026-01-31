@@ -69,7 +69,7 @@ describe("useTamboV1ThreadList", () => {
     const { result } = renderHook(
       () =>
         useTamboV1ThreadList({
-          contextKey: "test-context",
+          userKey: "test-context",
           limit: "10",
         }),
       { wrapper: TestWrapper },
@@ -80,7 +80,7 @@ describe("useTamboV1ThreadList", () => {
     });
 
     expect(mockThreadsApi.list).toHaveBeenCalledWith({
-      contextKey: "test-context",
+      userKey: "test-context",
       limit: "10",
     });
   });

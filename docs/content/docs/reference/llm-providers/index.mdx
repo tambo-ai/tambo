@@ -1,0 +1,109 @@
+---
+title: Models and Providers
+description: Understanding AI model providers and how they integrate with Tambo
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+
+AI models are the foundation of agent behavior in Tambo. Different models excel at different tasks—some are optimized for speed, others for reasoning depth, and others for cost efficiency. Understanding the characteristics of available models helps you choose the right tool for your application's needs.
+
+## Why Model Selection Matters
+
+The model you choose significantly impacts:
+
+- **Response Quality** - More capable models handle complex tasks better
+- **Latency** - Smaller, faster models respond quicker
+- **Cost** - Larger models cost more per token
+- **Capabilities** - Some models support vision, reasoning, or extended context windows
+- **Behavior** - Models have different "personalities" and instruction-following abilities
+
+Tambo makes it easy to switch between providers and models, letting you optimize for your specific use case.
+
+## Available Providers
+
+Tambo integrates with five major AI providers, each with unique strengths:
+
+| Provider      | Description                                                                        | Best For                                                            |
+| ------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **OpenAI**    | Industry-leading models including GPT-4.1, GPT-5, GPT-5.1, and o3 reasoning models | General-purpose tasks, reasoning, and state-of-the-art performance  |
+| **Anthropic** | Claude models with strong safety and reasoning capabilities                        | Complex reasoning, analysis, and safety-critical applications       |
+| **Cerebras**  | Ultra-fast inference (2,000+ tokens/sec) powered by Wafer-Scale Engine hardware    | Real-time applications, high-throughput processing                  |
+| **Google**    | Gemini models with multimodal support and extended thinking capabilities           | Multimodal tasks, vision-based applications, and advanced reasoning |
+| **Mistral**   | Fast, efficient open-source models with strong performance                         | Cost-effective alternatives with reliable performance               |
+
+For detailed capabilities of each provider's models, see the official docs of the provider.
+
+## Provider Configuration
+
+Model providers are configured at the project level in Tambo Cloud. Each project has:
+
+- A default provider and model
+- API keys for authentication
+- Custom parameters for fine-tuning behavior (temperature, max tokens, etc.)
+- Token and tool call limits
+
+Configuration is inherited by all threads within that project unless specifically overridden (when enabled).
+
+Learn how to configure providers in the [Configure LLM Provider guide](/guides/setup-project/llm-provider).
+
+## Model Status Labels
+
+Each model carries a status label indicating how thoroughly it has been tested with Tambo:
+
+- **Tested** - Validated on common Tambo tasks; recommended for production
+- **Untested** - Available but not yet validated; use with caution and test in your context
+- **Known Issues** - Usable but with observed behaviors worth noting
+
+For detailed information about each label and specific model behaviors, see [Labels](/reference/llm-providers/labels).
+
+<Callout type="warning" title="Streaming Considerations">
+  Streaming may behave inconsistently in models other than OpenAI. We're aware
+  of the issue and actively working on a fix. Please proceed with caution when
+  using streaming on non-OpenAI models.
+</Callout>
+
+## Model Capabilities
+
+### Custom Parameters
+
+Models can be customized with parameters that control their behavior:
+
+- **temperature** - Controls randomness and creativity (0.0 = deterministic, 1.0+ = creative)
+- **top_p** - Nucleus sampling threshold for response diversity
+- **max_tokens** - Maximum length of generated responses
+- **presence_penalty** - Discourages topic repetition
+- **frequency_penalty** - Reduces word/phrase repetition
+
+These parameters are configured at the project level and apply to all threads using that project's configuration.
+
+### Reasoning Models
+
+Some models expose their internal thinking process, excelling at complex problem-solving:
+
+- **OpenAI**: GPT-5, GPT-5.1, O3 models with adjustable reasoning effort
+- **Google**: Gemini 3.0 Pro, Gemini 3.0 Deep Think with extended thinking
+
+Reasoning models spend additional compute time analyzing problems before responding, enabling:
+
+- Multi-step problem decomposition
+- Solution exploration and verification
+- Detailed reasoning token access
+
+Learn more in [Reasoning Models](/reference/llm-providers/reasoning-models).
+
+## Related Concepts
+
+<Cards>
+  <Card href="/concepts/agent-configuration" title="Agent Configuration">
+    How projects, models, and instructions combine to control agent behavior
+  </Card>
+  <Card href="/reference/llm-providers/labels" title="Model Labels & Status">
+    Understand model testing status and known behaviors with Tambo
+  </Card>
+  <Card
+    href="/reference/llm-providers/reasoning-models"
+    title="Reasoning Models"
+  >
+    Deep dive into advanced reasoning capabilities
+  </Card>
+</Cards>

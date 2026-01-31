@@ -8,7 +8,6 @@ import {
 } from "@nestjs/common";
 import {
   V1RunStatus,
-  ContentPartType,
   GenerationStage,
   MessageRole,
 } from "@tambo-ai-cloud/core";
@@ -23,6 +22,7 @@ jest.mock("@tambo-ai-cloud/db", () => ({
   operations: {
     createThread: jest.fn(),
     deleteThread: jest.fn(),
+    getThreadForProjectId: jest.fn(),
     getThreadForRunStart: jest.fn(),
     acquireRunLock: jest.fn(),
     createRun: jest.fn(),
@@ -34,6 +34,9 @@ jest.mock("@tambo-ai-cloud/db", () => ({
     updateThreadRunStatus: jest.fn(),
     completeRun: jest.fn(),
     updateMessage: jest.fn(),
+    listThreadsPaginated: jest.fn(),
+    listMessagesPaginated: jest.fn(),
+    getMessageByIdInThread: jest.fn(),
   },
   schema: {
     threads: {
@@ -121,12 +124,24 @@ describe("V1Service", () => {
   const mockMessage = {
     id: "msg_123",
     threadId: "thr_123",
-    role: "user",
-    content: [{ type: ContentPartType.Text, text: "Hello" }],
+    role: MessageRole.User,
+    content: [{ type: "text" as const, text: "Hello" }],
     componentDecision: null,
     componentState: null,
     metadata: null,
     createdAt: new Date("2024-01-01T00:00:00Z"),
+    toolCallRequest: null,
+    reasoning: null,
+    reasoningDurationMS: null,
+    parentMessageId: null,
+    toolCallId: null,
+    error: null,
+    additionalContext: null,
+    isCancelled: false,
+    actionType: null,
+    tokenUsage: null,
+    llmModel: null,
+    suggestions: [],
   };
 
   beforeEach(() => {
@@ -196,62 +211,79 @@ describe("V1Service", () => {
 
   describe("listThreads", () => {
     it("should list threads with default pagination", async () => {
-      mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
+      mockOperations.listThreadsPaginated.mockResolvedValue([mockThread]);
 
-      const result = await service.listThreads("prj_123", undefined, {});
+      const result = await service.listThreads("prj_123", "user_456", {});
 
-      expect(mockDb.query.threads.findMany).toHaveBeenCalled();
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        { cursor: undefined, limit: 21 },
+      );
       expect(result.threads).toHaveLength(1);
       expect(result.threads[0].id).toBe("thr_123");
       expect(result.hasMore).toBe(false);
     });
 
     it("should filter by context key", async () => {
-      mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
+      mockOperations.listThreadsPaginated.mockResolvedValue([mockThread]);
 
       await service.listThreads("prj_123", "user_456", {});
 
-      expect(mockDb.query.threads.findMany).toHaveBeenCalled();
-    });
-
-    it("should reject an empty context key", async () => {
-      await expect(service.listThreads("prj_123", "", {})).rejects.toThrow(
-        BadRequestException,
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        expect.any(Object),
       );
     });
 
+    // Note: Empty context key validation is now handled at the controller level
+
     it("should handle pagination with cursor", async () => {
-      mockDb.query.threads.findMany.mockResolvedValue([mockThread]);
+      mockOperations.listThreadsPaginated.mockResolvedValue([mockThread]);
 
       const cursor = encodeV1CompoundCursor({
         createdAt: new Date("2024-01-01T00:00:00Z"),
         id: "thr_000",
       });
 
-      const result = await service.listThreads("prj_123", undefined, {
+      const result = await service.listThreads("prj_123", "user_456", {
         cursor,
         limit: "10",
       });
 
-      expect(mockDb.query.threads.findMany).toHaveBeenCalled();
+      expect(mockOperations.listThreadsPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "prj_123",
+        "user_456",
+        {
+          cursor: {
+            createdAt: new Date("2024-01-01T00:00:00Z"),
+            id: "thr_000",
+          },
+          limit: 11,
+        },
+      );
       expect(result).toBeDefined();
     });
 
     it("should reject an invalid cursor", async () => {
       await expect(
-        service.listThreads("prj_123", undefined, { cursor: "not-a-cursor" }),
+        service.listThreads("prj_123", "user_456", { cursor: "not-a-cursor" }),
       ).rejects.toThrow(BadRequestException);
     });
 
     it("should reject an invalid limit", async () => {
       await expect(
-        service.listThreads("prj_123", undefined, { limit: "not-a-number" }),
+        service.listThreads("prj_123", "user_456", { limit: "not-a-number" }),
       ).rejects.toThrow(BadRequestException);
     });
 
     it("should reject an empty limit", async () => {
       await expect(
-        service.listThreads("prj_123", undefined, { limit: "" }),
+        service.listThreads("prj_123", "user_456", { limit: "" }),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -266,9 +298,9 @@ describe("V1Service", () => {
             `2024-01-${String(i + 1).padStart(2, "0")}T00:00:00Z`,
           ),
         }));
-      mockDb.query.threads.findMany.mockResolvedValue(threads);
+      mockOperations.listThreadsPaginated.mockResolvedValue(threads);
 
-      const result = await service.listThreads("prj_123", undefined, {});
+      const result = await service.listThreads("prj_123", "user_456", {});
 
       expect(result.hasMore).toBe(true);
       expect(result.threads).toHaveLength(20);
@@ -292,9 +324,9 @@ describe("V1Service", () => {
         id: "thr_a",
         createdAt: new Date("2024-01-02T00:00:00Z"),
       };
-      mockDb.query.threads.findMany.mockResolvedValue([t1, t2]);
+      mockOperations.listThreadsPaginated.mockResolvedValue([t1, t2]);
 
-      const result = await service.listThreads("prj_123", undefined, {
+      const result = await service.listThreads("prj_123", "user_456", {
         limit: "1",
       });
 
@@ -305,24 +337,31 @@ describe("V1Service", () => {
 
   describe("getThread", () => {
     it("should return thread with messages", async () => {
-      mockDb.query.threads.findFirst.mockResolvedValue({
+      mockOperations.getThreadForProjectId.mockResolvedValue({
         ...mockThread,
         messages: [mockMessage],
       });
 
-      const result = await service.getThread("thr_123");
+      const result = await service.getThread("thr_123", "prj_123", "user_456");
 
+      expect(mockOperations.getThreadForProjectId).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        "prj_123",
+        "user_456",
+        true,
+      );
       expect(result.id).toBe("thr_123");
       expect(result.messages).toHaveLength(1);
       expect(result.messages[0].id).toBe("msg_123");
     });
 
     it("should throw NotFoundException for non-existent thread", async () => {
-      mockDb.query.threads.findFirst.mockResolvedValue(null);
+      mockOperations.getThreadForProjectId.mockResolvedValue(undefined);
 
-      await expect(service.getThread("thr_nonexistent")).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.getThread("thr_nonexistent", "prj_123", "user_456"),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it("should map V1 fields correctly", async () => {
@@ -335,9 +374,11 @@ describe("V1Service", () => {
         lastCompletedRunId: "run_prev",
         messages: [],
       };
-      mockDb.query.threads.findFirst.mockResolvedValue(threadWithV1Fields);
+      mockOperations.getThreadForProjectId.mockResolvedValue(
+        threadWithV1Fields,
+      );
 
-      const result = await service.getThread("thr_123");
+      const result = await service.getThread("thr_123", "prj_123", "user_456");
 
       expect(result.runStatus).toBe(V1RunStatus.STREAMING);
       expect(result.currentRunId).toBe("run_123");
@@ -345,17 +386,34 @@ describe("V1Service", () => {
       expect(result.pendingToolCallIds).toEqual(["call_1", "call_2"]);
       expect(result.lastCompletedRunId).toBe("run_prev");
     });
+
+    it("should pass contextKey to operation when provided", async () => {
+      mockOperations.getThreadForProjectId.mockResolvedValue({
+        ...mockThread,
+        messages: [],
+      });
+
+      await service.getThread("thr_123", "prj_123", "user_456");
+
+      expect(mockOperations.getThreadForProjectId).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        "prj_123",
+        "user_456",
+        true,
+      );
+    });
   });
 
   describe("createThread", () => {
     it("should create a thread with minimal data", async () => {
       mockOperations.createThread.mockResolvedValue(mockThread);
 
-      const result = await service.createThread("prj_123", undefined, {});
+      const result = await service.createThread("prj_123", "user_456", {});
 
       expect(mockOperations.createThread).toHaveBeenCalledWith(mockDb, {
         projectId: "prj_123",
-        contextKey: undefined,
+        contextKey: "user_456",
         metadata: undefined,
       });
       expect(result.id).toBe("thr_123");
@@ -372,13 +430,13 @@ describe("V1Service", () => {
         metadata: { custom: "data" },
       });
 
-      expect(result.contextKey).toBe("user_456");
+      expect(result.userKey).toBe("user_456");
       expect(result.metadata).toEqual({ custom: "data" });
     });
 
     it("should reject initialMessages for now", async () => {
       await expect(
-        service.createThread("prj_123", undefined, {
+        service.createThread("prj_123", "user_456", {
           initialMessages: [
             { role: "user", content: [{ type: "text", text: "Hi" }] },
           ],
@@ -408,33 +466,46 @@ describe("V1Service", () => {
 
   describe("listMessages", () => {
     it("should list messages with default pagination", async () => {
-      mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
+      mockOperations.listMessagesPaginated.mockResolvedValue([mockMessage]);
 
       const result = await service.listMessages("thr_123", {});
 
+      expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        { cursor: undefined, limit: 51, order: "asc" },
+      );
       expect(result.messages).toHaveLength(1);
       expect(result.messages[0].role).toBe("user");
       expect(result.hasMore).toBe(false);
     });
 
     it("should support ascending order (oldest first)", async () => {
-      mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
+      mockOperations.listMessagesPaginated.mockResolvedValue([mockMessage]);
 
       await service.listMessages("thr_123", { order: "asc" });
 
-      expect(mockDb.query.messages.findMany).toHaveBeenCalled();
+      expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        expect.objectContaining({ order: "asc" }),
+      );
     });
 
     it("should support descending order (newest first)", async () => {
-      mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
+      mockOperations.listMessagesPaginated.mockResolvedValue([mockMessage]);
 
       await service.listMessages("thr_123", { order: "desc" });
 
-      expect(mockDb.query.messages.findMany).toHaveBeenCalled();
+      expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        expect.objectContaining({ order: "desc" }),
+      );
     });
 
     it("should handle pagination with cursor", async () => {
-      mockDb.query.messages.findMany.mockResolvedValue([mockMessage]);
+      mockOperations.listMessagesPaginated.mockResolvedValue([mockMessage]);
 
       const cursor = encodeV1CompoundCursor({
         createdAt: new Date("2024-01-01T00:00:00Z"),
@@ -446,7 +517,18 @@ describe("V1Service", () => {
         limit: "10",
       });
 
-      expect(mockDb.query.messages.findMany).toHaveBeenCalled();
+      expect(mockOperations.listMessagesPaginated).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        {
+          cursor: {
+            createdAt: new Date("2024-01-01T00:00:00Z"),
+            id: "msg_000",
+          },
+          limit: 11,
+          order: "asc",
+        },
+      );
     });
 
     it("should reject an invalid cursor", async () => {
@@ -484,7 +566,11 @@ describe("V1Service", () => {
         createdAt: new Date("2024-01-03T00:00:00Z"),
       };
 
-      mockDb.query.messages.findMany.mockResolvedValueOnce([msg1, msg2, msg3]);
+      mockOperations.listMessagesPaginated.mockResolvedValueOnce([
+        msg1,
+        msg2,
+        msg3,
+      ]);
       const ascPage = await service.listMessages("thr_123", {
         limit: "2",
         order: "asc",
@@ -493,7 +579,11 @@ describe("V1Service", () => {
       expect(ascPage.messages).toHaveLength(2);
       expect(parseV1CompoundCursor(ascPage.nextCursor!).id).toBe("msg_2");
 
-      mockDb.query.messages.findMany.mockResolvedValueOnce([msg3, msg2, msg1]);
+      mockOperations.listMessagesPaginated.mockResolvedValueOnce([
+        msg3,
+        msg2,
+        msg1,
+      ]);
       const descPage = await service.listMessages("thr_123", {
         limit: "2",
         order: "desc",
@@ -506,16 +596,21 @@ describe("V1Service", () => {
 
   describe("getMessage", () => {
     it("should return a single message", async () => {
-      mockDb.query.messages.findFirst.mockResolvedValue(mockMessage);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(mockMessage);
 
       const result = await service.getMessage("thr_123", "msg_123");
 
+      expect(mockOperations.getMessageByIdInThread).toHaveBeenCalledWith(
+        mockDb,
+        "thr_123",
+        "msg_123",
+      );
       expect(result.id).toBe("msg_123");
       expect(result.role).toBe("user");
     });
 
     it("should throw NotFoundException for non-existent message", async () => {
-      mockDb.query.messages.findFirst.mockResolvedValue(null);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(undefined);
 
       await expect(
         service.getMessage("thr_123", "msg_nonexistent"),
@@ -529,7 +624,9 @@ describe("V1Service", () => {
         ...mockMessage,
         content: [{ type: "text", text: "Hello world" }],
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithText);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithText as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -553,7 +650,9 @@ describe("V1Service", () => {
           },
         ],
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithResource);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithResource as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -571,7 +670,9 @@ describe("V1Service", () => {
           },
         ],
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithImage);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithImage as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -589,7 +690,9 @@ describe("V1Service", () => {
         },
         componentState: { expanded: true },
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithComponent);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithComponent as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -603,8 +706,8 @@ describe("V1Service", () => {
 
     it("should handle message with empty content array", async () => {
       const messageWithEmptyContent = { ...mockMessage, content: [] };
-      mockDb.query.messages.findFirst.mockResolvedValue(
-        messageWithEmptyContent,
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithEmptyContent as any,
       );
 
       const result = await service.getMessage("thr_123", "msg_123");
@@ -620,13 +723,13 @@ describe("V1Service", () => {
       const messageWithUnknownContent = {
         ...mockMessage,
         content: [
-          { type: "text", text: "Hello" },
+          { type: "text" as const, text: "Hello" },
           { type: "unknown_future_type", data: "something" },
-          { type: "text", text: "World" },
+          { type: "text" as const, text: "World" },
         ],
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(
-        messageWithUnknownContent,
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithUnknownContent as any,
       );
 
       const result = await service.getMessage("thr_123", "msg_123");
@@ -651,8 +754,8 @@ describe("V1Service", () => {
           props: { foo: "bar" },
         },
       };
-      mockDb.query.messages.findFirst.mockResolvedValue(
-        messageWithBadComponent,
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithBadComponent as any,
       );
 
       await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
@@ -664,7 +767,9 @@ describe("V1Service", () => {
   describe("Role mapping", () => {
     it("should map 'tool' role to 'assistant'", async () => {
       const messageWithToolRole = { ...mockMessage, role: "tool" };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithToolRole);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolRole as any,
+      );
 
       const result = await service.getMessage("thr_123", "msg_123");
 
@@ -673,7 +778,9 @@ describe("V1Service", () => {
 
     it("should throw error for unknown role", async () => {
       const messageWithUnknownRole = { ...mockMessage, role: "invalid_role" };
-      mockDb.query.messages.findFirst.mockResolvedValue(messageWithUnknownRole);
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithUnknownRole as any,
+      );
 
       await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
         /Unknown message role "invalid_role"/,
@@ -691,9 +798,9 @@ describe("V1Service", () => {
         },
         messages: [],
       };
-      mockDb.query.threads.findFirst.mockResolvedValue(threadWithError);
+      mockOperations.getThreadForProjectId.mockResolvedValue(threadWithError);
 
-      const result = await service.getThread("thr_123");
+      const result = await service.getThread("thr_123", "prj_123", "user_456");
 
       expect(result.lastRunError).toEqual({
         code: "RATE_LIMITED",
@@ -709,7 +816,7 @@ describe("V1Service", () => {
       );
 
       await expect(
-        service.createThread("prj_123", undefined, {}),
+        service.createThread("prj_123", "user_456", {}),
       ).rejects.toThrow(/Failed to create thread for project prj_123/);
     });
   });

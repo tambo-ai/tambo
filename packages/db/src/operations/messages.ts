@@ -1,8 +1,84 @@
 import { MessageRole } from "@tambo-ai-cloud/core";
-import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNotNull, isNull, lt, or } from "drizzle-orm";
 import { schema } from "..";
 import { messages, projectMembers } from "../schema";
 import type { HydraDb } from "../types";
+
+/**
+ * Get a single message by ID within a specific thread.
+ */
+export async function getMessageByIdInThread(
+  db: HydraDb,
+  threadId: string,
+  messageId: string,
+): Promise<schema.DBMessage | undefined> {
+  return await db.query.messages.findFirst({
+    where: and(eq(messages.id, messageId), eq(messages.threadId, threadId)),
+  });
+}
+
+/**
+ * Cursor for paginated message queries.
+ */
+export interface MessageCursor {
+  createdAt: Date;
+  id: string;
+}
+
+/**
+ * List messages in a thread with cursor-based pagination.
+ *
+ * @param db - Database connection
+ * @param threadId - Thread to list messages from
+ * @param options - Pagination options
+ * @returns Array of messages (caller should handle hasMore logic by requesting limit+1)
+ */
+export async function listMessagesPaginated(
+  db: HydraDb,
+  threadId: string,
+  {
+    cursor,
+    limit,
+    order = "asc",
+  }: {
+    cursor?: MessageCursor;
+    limit: number;
+    order?: "asc" | "desc";
+  },
+): Promise<schema.DBMessage[]> {
+  const conditions = [eq(messages.threadId, threadId)];
+
+  if (cursor) {
+    const cursorCondition =
+      order === "asc"
+        ? or(
+            gt(messages.createdAt, cursor.createdAt),
+            and(
+              eq(messages.createdAt, cursor.createdAt),
+              gt(messages.id, cursor.id),
+            ),
+          )
+        : or(
+            lt(messages.createdAt, cursor.createdAt),
+            and(
+              eq(messages.createdAt, cursor.createdAt),
+              lt(messages.id, cursor.id),
+            ),
+          );
+    if (cursorCondition) {
+      conditions.push(cursorCondition);
+    }
+  }
+
+  return await db.query.messages.findMany({
+    where: and(...conditions),
+    orderBy: [
+      order === "asc" ? asc(messages.createdAt) : desc(messages.createdAt),
+      order === "asc" ? asc(messages.id) : desc(messages.id),
+    ],
+    limit,
+  });
+}
 
 /**
  * Retrieves a message with its associated thread and project information.

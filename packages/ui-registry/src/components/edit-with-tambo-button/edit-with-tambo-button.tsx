@@ -1,7 +1,5 @@
 "use client";
 
-import { MessageGenerationStage } from "@tambo-ai/ui-registry/components/message-suggestions";
-import { cn } from "@tambo-ai/ui-registry/utils";
 import {
   Content as PopoverContent,
   Portal as PopoverPortal,
@@ -19,6 +17,8 @@ import {
   useTamboCurrentComponent,
   useTamboThreadInput,
 } from "@tambo-ai/react";
+import { MessageGenerationStage } from "@tambo-ai/ui-registry/components/message-suggestions";
+import { cn } from "@tambo-ai/ui-registry/utils";
 import type { Editor } from "@tiptap/react";
 import { Bot, ChevronDown, X } from "lucide-react";
 import * as React from "react";
@@ -93,16 +93,6 @@ export function EditWithTamboButton({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // If no component, the current component is not an interactable - don't render.
-  if (!component) {
-    return null;
-  }
-
-  // If in a Tambo thread (message with threadId), don't show the button
-  if (component.threadId) {
-    return null;
-  }
-
   const isGenerating = !isIdle;
 
   // Close popover when generation completes
@@ -115,7 +105,7 @@ export function EditWithTamboButton({
   }, [shouldCloseOnComplete, isGenerating]);
 
   const handleSend = useCallback(async () => {
-    if (!prompt.trim() || isGenerating) {
+    if (!prompt.trim() || isGenerating || !component) {
       return;
     }
 
@@ -194,6 +184,16 @@ export function EditWithTamboButton({
     },
     [handleMainAction],
   );
+
+  // If no component, the current component is not an interactable - don't render.
+  if (!component) {
+    return null;
+  }
+
+  // If in a Tambo thread (message with threadId), don't show the button
+  if (component.threadId) {
+    return null;
+  }
 
   return (
     <TooltipProvider>

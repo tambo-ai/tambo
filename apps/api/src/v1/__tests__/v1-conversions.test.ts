@@ -57,7 +57,7 @@ describe("v1-conversions", () => {
       const result = threadToDto(baseThread);
 
       expect(result.id).toBe("thr_123");
-      expect(result.contextKey).toBe("user_456");
+      expect(result.userKey).toBe("user_456");
       expect(result.runStatus).toBe(V1RunStatus.IDLE);
       expect(result.metadata).toEqual({ key: "value" });
       expect(result.createdAt).toBe("2024-01-01T00:00:00.000Z");

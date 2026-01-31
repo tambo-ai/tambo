@@ -1,0 +1,207 @@
+---
+title: upgrade
+description: Upgrade your entire Tambo project—including packages, components, and configuration—to known-safe versions with the `tambo upgrade` command.
+---
+
+`npx tambo upgrade`
+
+Upgrades your entire tambo project including npm packages, components, and AI coding assistant guidance to the latest versions.
+
+**What it upgrades:**
+
+1. **NPM Packages**: Updates known safe packages (UI components, utilities, and tambo dependencies)
+2. **Components**: Updates all installed tambo components to latest versions
+3. **Agent Docs**: Updates `AGENTS.md` and `CLAUDE.md` for AI coding assistants and removes legacy cursor rules
+4. **Configuration**: Updates CSS variables and Tailwind configuration as needed
+
+**Examples:**
+
+```bash
+# Interactive upgrade - select components to upgrade
+npx tambo upgrade
+
+# Auto-accept all changes and skip prompts (required for CI/CD)
+npx tambo upgrade --yes
+
+# Upgrade with custom component directory
+npx tambo upgrade --yes --prefix=src/components/ui
+
+# Use legacy peer deps
+npx tambo upgrade --yes --legacy-peer-deps
+
+# Skip agent docs updates
+npx tambo upgrade --yes --skip-agent-docs
+```
+
+## Safe Package Updates
+
+The upgrade command only updates packages that are known to be safe for automatic updates:
+
+<Callout type="info" title="Smart Package Filtering">
+  The CLI automatically filters to only show updates for UI components,
+  utilities, and tambo-specific packages. Core framework packages (like React,
+  Next.js, TypeScript) are excluded to prevent breaking changes.
+</Callout>
+
+**Safe packages include:**
+
+- tambo packages (`@tambo-ai/react`, `@tambo-ai/typescript-sdk`)
+- UI components (`@radix-ui/*`, `framer-motion`, `lucide-react`)
+- Styling utilities (`tailwindcss`, `clsx`, `tailwind-merge`)
+- Development tools (`eslint-config-next`, selected @types packages such as `@types/dompurify`)
+
+## Configuration Updates
+
+The upgrade command performs comprehensive updates to your project configuration:
+
+### CSS & Tailwind Updates
+
+The CLI will update your `globals.css` and `tailwind.config.ts` files to ensure they're compatible with the latest tambo components and your current Tailwind CSS version.
+
+<Callout type="info" title="Safe Configuration Updates">
+  The upgrade process preserves your existing styles and configuration while
+  adding any new CSS variables required by updated components.
+</Callout>
+
+### What Gets Updated
+
+- **CSS Variables**: New variables required by component updates
+- **Tailwind Configuration**: Basic configuration for v3 projects
+- **Component Dependencies**: Latest versions of all component dependencies
+- **Package Versions**: Updates to known safe packages only
+
+<Callout type="warn" title="Backup Recommendation">
+  While the CLI creates automatic backups, consider committing your changes to
+  version control before running `upgrade` to ensure you can easily revert if
+  needed.
+</Callout>
+
+For detailed information about configuration changes, see:
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+
+<Card href="/reference/cli/configuration" title="CSS & Tailwind Configuration">
+  Complete guide to CSS variables and Tailwind configuration changes
+</Card>
+
+## Interactive Component Selection
+
+By default, the upgrade command shows an interactive checkbox list of all components that can be upgraded:
+
+```bash
+npx tambo upgrade
+
+# Output:
+? Select components to upgrade: (Press <space> to select, <a> to toggle all)
+❯ ◯ message-thread-full (v2.3.0 → v2.4.1)
+  ◯ message-thread-panel (v1.5.2 → v1.6.0)
+  ◯ control-bar (v1.2.0 → v1.3.0)
+  ◯ form (v2.1.0 → v2.2.0)
+```
+
+**Selection options:**
+
+- Press `<space>` to select/deselect individual components
+- Press `<a>` to toggle all components at once
+- Press `<enter>` to confirm your selection
+
+To skip the selection and upgrade all components automatically, use the `--yes` flag:
+
+```bash
+# Upgrade all components without prompting
+npx tambo upgrade --yes
+```
+
+<Callout type="info" title="Non-Interactive Environments">
+  The `--yes` flag is **required** in CI/CD pipelines and other non-interactive
+  environments. The upgrade command will fail without it if no terminal is
+  available.
+</Callout>
+
+## Automatic Dependency Resolution
+
+When you select components to upgrade, the CLI automatically resolves and includes all their dependencies:
+
+```bash
+npx tambo upgrade
+
+# After selecting components:
+✓ Selected 2 components
+ℹ Including dependencies:
+  • button (required by form)
+  • card (required by message-thread-panel)
+
+✓ Will upgrade 4 components total
+```
+
+This ensures that your components have all the dependencies they need to work correctly. You don't need to manually track which components depend on others.
+
+**What happens:**
+
+1. You select the components you want to upgrade
+2. CLI analyzes component dependencies
+3. All required dependencies are automatically included
+4. CLI shows you the complete list before proceeding
+
+## Cross-Location Migration Detection
+
+If the upgrade command detects that your components are split across different locations (some in `components/tambo/`, others in `components/ui/`), it will offer to migrate them:
+
+```bash
+⚠ Warning: Found components in both locations:
+  • components/tambo/: message-thread-full, control-bar
+  • components/ui/: form, button
+
+? Components should be in the same location. Would you like to:
+  ❯ Migrate to components/tambo/ (recommended)
+    Continue without migrating
+    Cancel upgrade
+```
+
+**Why this matters:**
+
+- Tambo components should live in `components/tambo/` (current standard)
+- Legacy projects may have components in `components/ui/`
+- Having components in both locations can cause import confusion
+
+**Recommended action:**
+Run the migration before upgrading:
+
+```bash
+npx tambo migrate
+npx tambo upgrade
+```
+
+See the [migrate command documentation](/reference/cli/commands/migrate) for details.
+
+## Agent Docs and Legacy Cursor Rules
+
+Recent versions of the CLI use `AGENTS.md` and `CLAUDE.md` files for AI coding assistant guidance instead of cursor-specific rule files. These work across multiple AI tools (Claude Code, Cursor, Windsurf, etc.).
+
+During upgrade, the CLI will prompt:
+
+```bash
+? Found legacy tambo-ai.mdc cursor rules. Replace with AGENTS.md/CLAUDE.md? (Y/n)
+# or if no legacy rules exist:
+? Add/update AGENTS.md and CLAUDE.md guidance for LLMs? (Y/n)
+```
+
+**What happens:**
+
+- Removes the legacy `.cursor/rules/tambo-ai.mdc` file if it was created by older Tambo templates
+- Cleans up an empty `.cursor/rules/` directory (but keeps `.cursor/` itself)
+- Leaves any other cursor rule files (including `.cursorrules` and custom `.cursor/rules/*.md`) untouched
+- Creates or updates `AGENTS.md` and `CLAUDE.md` with current Tambo guidance
+
+**Skip this step:**
+
+```bash
+# Skip agent docs update entirely
+npx tambo upgrade --yes --skip-agent-docs
+```
+
+<Callout type="info" title="Cross-Tool Compatibility">
+  The `AGENTS.md` and `CLAUDE.md` files provide guidance that works with Claude
+  Code, Cursor, Windsurf, and other AI coding assistants, replacing the
+  cursor-specific rule files from older versions.
+</Callout>

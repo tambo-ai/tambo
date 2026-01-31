@@ -60,6 +60,21 @@ async function withTimeout<T>(
   });
 }
 
+/**
+ * Google OIDC ID token claims. Profile claims (name, picture, etc.) are included
+ * when the `profile` scope is requested.
+ * @see https://developers.google.com/identity/openid-connect/openid-connect#obtainuserinfo
+ */
+interface GoogleProfile {
+  sub: string;
+  email: string;
+  email_verified?: boolean;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  picture?: string;
+}
+
 const ProviderConfig = {
   google: {
     clientId: env.GOOGLE_CLIENT_ID!,
@@ -72,6 +87,20 @@ const ProviderConfig = {
         access_type: "offline", // ask for a refresh_token
         response_type: "code",
       },
+    },
+    // Note: email_verified is handled in the signIn callback via isEmailAllowed()
+    profile(profile: GoogleProfile) {
+      // Fallback to given_name + family_name if name is not provided
+      const name =
+        profile.name ||
+        [profile.given_name, profile.family_name].filter(Boolean).join(" ");
+
+      return {
+        id: profile.sub,
+        name: name || null,
+        email: profile.email,
+        image: profile.picture ?? null,
+      };
     },
   },
   github: {

@@ -98,6 +98,7 @@ export class AppController {
         this.authService.getDb(),
         threadId,
         projectId,
+        operations.ANY_CONTEXT_KEY,
       );
       if (!thread) {
         throw new NotFoundException("Thread not found");

@@ -6,7 +6,7 @@
  * so this module just adds optional debug logging.
  */
 
-import type { BaseEvent } from "@ag-ui/core";
+import type { AGUIEvent } from "@ag-ui/core";
 
 /**
  * Options for stream handling.
@@ -20,10 +20,10 @@ export interface StreamHandlerOptions {
 }
 
 /**
- * Handle an event stream from the TypeScript SDK and yield AG-UI BaseEvent types.
+ * Handle an event stream from the TypeScript SDK and yield AG-UI event types.
  *
  * The TypeScript SDK's client.threads.runs.run() and client.threads.runs.create()
- * return async iterables that yield events compatible with AG-UI's BaseEvent.
+ * return async iterables that yield events compatible with AG-UI's AGUIEvent.
  * This function wraps the stream to add optional debug logging and ensures
  * proper typing.
  *
@@ -31,8 +31,8 @@ export interface StreamHandlerOptions {
  * but the values are compatible with AG-UI event types.
  * @param stream - Async iterable of events from SDK
  * @param options - Optional configuration for stream handling
- * @yields {BaseEvent} AG-UI BaseEvent types from the stream
- * @returns Async iterable of AG-UI BaseEvent types
+ * @yields {AGUIEvent} AG-UI event types from the stream
+ * @returns Async iterable of AG-UI event types
  * @example
  * ```typescript
  * const stream = await client.threads.runs.run(threadId, {
@@ -47,7 +47,7 @@ export interface StreamHandlerOptions {
 export async function* handleEventStream(
   stream: AsyncIterable<unknown>,
   options?: StreamHandlerOptions,
-): AsyncIterable<BaseEvent> {
+): AsyncIterable<AGUIEvent> {
   const { debug = false } = options ?? {};
 
   for await (const event of stream) {
@@ -56,7 +56,7 @@ export async function* handleEventStream(
       console.log("[StreamHandler] Event:", event);
     }
 
-    // SDK events are compatible with AG-UI BaseEvent
-    yield event as BaseEvent;
+    // SDK events are compatible with AG-UI AGUIEvent discriminated union
+    yield event as AGUIEvent;
   }
 }

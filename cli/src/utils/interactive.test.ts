@@ -44,6 +44,7 @@ describe("isInteractive", () => {
     GITHUB_ACTIONS?: string;
     FORCE_INTERACTIVE?: string;
   };
+  let originalStdinIsTTY: boolean | undefined;
 
   beforeEach(() => {
     originalEnv = {
@@ -52,11 +53,19 @@ describe("isInteractive", () => {
       GITHUB_ACTIONS: process.env.GITHUB_ACTIONS,
       FORCE_INTERACTIVE: process.env.FORCE_INTERACTIVE,
     };
+    originalStdinIsTTY = process.stdin.isTTY;
 
     process.env.TERM = "xterm-256color";
     delete process.env.CI;
     delete process.env.GITHUB_ACTIONS;
     delete process.env.FORCE_INTERACTIVE;
+
+    // Mock stdin as TTY for tests (isInteractive checks both stdin and stdout)
+    Object.defineProperty(process.stdin, "isTTY", {
+      value: true,
+      writable: true,
+      configurable: true,
+    });
   });
 
   afterEach(() => {
@@ -73,6 +82,13 @@ describe("isInteractive", () => {
     if (originalEnv.FORCE_INTERACTIVE === undefined)
       delete process.env.FORCE_INTERACTIVE;
     else process.env.FORCE_INTERACTIVE = originalEnv.FORCE_INTERACTIVE;
+
+    // Restore stdin TTY status
+    Object.defineProperty(process.stdin, "isTTY", {
+      value: originalStdinIsTTY,
+      writable: true,
+      configurable: true,
+    });
   });
 
   it("returns true for TTY streams with TERM set and no CI", () => {

@@ -33,6 +33,10 @@ export interface AuthRevokeSessionOptions {
   all?: boolean;
 }
 
+export interface AuthLoginOptions {
+  noBrowser?: boolean;
+}
+
 // ============================================================================
 // Common auth message helpers
 // ============================================================================
@@ -140,7 +144,9 @@ export async function handleAuthStatus(
  * Login via device auth flow
  * @returns Exit code: 0 on success, 1 on failure
  */
-export async function handleAuthLogin(): Promise<number> {
+export async function handleAuthLogin(
+  options: AuthLoginOptions = {},
+): Promise<number> {
   console.log(chalk.bold("\n🔐 Login to tambo\n"));
 
   // Check if already authenticated
@@ -151,6 +157,12 @@ export async function handleAuthLogin(): Promise<number> {
         `Already authenticated${user?.email ? ` as ${user.email}` : ""}.`,
       ),
     );
+
+    // In non-interactive mode (--no-browser), skip the re-auth prompt
+    if (options.noBrowser) {
+      console.log(chalk.gray("\nUse --force to re-authenticate.\n"));
+      return 0;
+    }
 
     const shouldReauth = await confirm({
       message: "Do you want to re-authenticate?",
@@ -164,7 +176,7 @@ export async function handleAuthLogin(): Promise<number> {
   }
 
   try {
-    await runDeviceAuthFlow();
+    await runDeviceAuthFlow({ noBrowser: options.noBrowser });
     console.log(chalk.green("\n✓ Successfully authenticated!\n"));
     return 0;
   } catch (error) {
@@ -471,6 +483,7 @@ export async function handleAuth(
     force?: boolean;
     all?: boolean;
     help?: boolean;
+    noBrowser?: boolean;
   },
 ): Promise<void> {
   let exitCode = 0;
@@ -479,7 +492,7 @@ export async function handleAuth(
   if (!subcommand || subcommand === "status") {
     exitCode = await handleAuthStatus({ quiet: flags.quiet });
   } else if (subcommand === "login") {
-    exitCode = await handleAuthLogin();
+    exitCode = await handleAuthLogin({ noBrowser: flags.noBrowser });
   } else if (subcommand === "logout") {
     exitCode = await handleAuthLogout({ force: flags.force });
   } else if (subcommand === "sessions") {
@@ -521,11 +534,13 @@ ${chalk.bold("Options")}
   ${chalk.yellow("--quiet, -q")}     Exit with code 0 if authenticated, 1 otherwise (status only)
   ${chalk.yellow("--force, -f")}     Skip confirmation prompts (logout only)
   ${chalk.yellow("--all")}           Revoke all sessions (revoke-session only)
+  ${chalk.yellow("--no-browser")}    Print auth URL instead of opening browser (login only)
 
 ${chalk.bold("Examples")}
   $ ${chalk.cyan("tambo auth")}                            # Show auth status
   $ ${chalk.cyan("tambo auth status --quiet")}             # Check auth in scripts
   $ ${chalk.cyan("tambo auth login")}                      # Authenticate
+  $ ${chalk.cyan("tambo auth login --no-browser")}         # Print URL for CI/agents
   $ ${chalk.cyan("tambo auth logout")}                     # Clear credentials
   $ ${chalk.cyan("tambo auth sessions")}                   # List all CLI sessions
   $ ${chalk.cyan("tambo auth revoke-session")}             # Select session to revoke

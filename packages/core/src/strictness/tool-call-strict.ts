@@ -1,10 +1,10 @@
-import type { ToolCallRequest } from "../ComponentDecision";
 import {
   JSONSchema7,
   JSONSchema7Definition,
   JSONSchema7Object,
 } from "json-schema";
 import OpenAI from "openai";
+import type { ToolCallRequest } from "../ComponentDecision";
 
 /** Take a tool call request that was built from a strict JSON Schema, and try
  * to re-apply the original schema to the parameters.
@@ -136,12 +136,42 @@ function unstrictifyToolCallParams(
         typeof originalParamSchema === "object" &&
         originalParamSchema.type === "object"
       ) {
-        // parameter value better itself be an object
-        const newParamValue = unstrictifyToolCallParams(
-          originalParamSchema,
-          parameterValue as Record<string, unknown>,
-        );
-        return [parameterName, newParamValue] as const;
+        // If the LLM sent a JSON string instead of an object (common with z.any() schemas),
+        // try to parse it
+        let objectValue = parameterValue;
+        if (typeof parameterValue === "string") {
+          try {
+            const parsed = JSON.parse(parameterValue);
+            if (typeof parsed === "object" && parsed !== null) {
+              objectValue = parsed;
+            }
+          } catch {
+            // Not valid JSON, keep original value
+          }
+        }
+
+        // Only recurse if we have an actual object AND the schema has properties defined.
+        // If the schema has no properties (e.g., z.any() which produces {type: 'object', anyOf: [...]}),
+        // just return the value as-is without recursing.
+        const hasProperties =
+          originalParamSchema.properties &&
+          Object.keys(originalParamSchema.properties).length > 0;
+
+        if (
+          hasProperties &&
+          typeof objectValue === "object" &&
+          objectValue !== null &&
+          !Array.isArray(objectValue)
+        ) {
+          const newParamValue = unstrictifyToolCallParams(
+            originalParamSchema,
+            objectValue as Record<string, unknown>,
+          );
+          return [parameterName, newParamValue] as const;
+        }
+
+        // Return the (possibly parsed) object value without recursing
+        return [parameterName, objectValue] as const;
       }
 
       return [parameterName, parameterValue] as const;

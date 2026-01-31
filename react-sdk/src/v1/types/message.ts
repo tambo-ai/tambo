@@ -6,6 +6,8 @@
  * contains an array of content blocks (text, tool calls, tool results, components).
  */
 
+import type { ReactElement } from "react";
+
 // Re-export content block types from TypeScript SDK
 export type {
   TextContent,
@@ -33,18 +35,45 @@ import type {
 } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 
 /**
+ * Streaming state for component content blocks.
+ * Tracks the lifecycle of component prop/state streaming.
+ */
+export type ComponentStreamingState = "started" | "streaming" | "done";
+
+/**
+ * Extended ComponentContent with streaming state and rendered element.
+ * Used by the v1 SDK to track component rendering lifecycle.
+ */
+export interface V1ComponentContent extends ComponentContent {
+  /**
+   * Current streaming state of this component's props.
+   * - 'started': Component block created, awaiting props
+   * - 'streaming': Props are being streamed
+   * - 'done': Props streaming complete
+   */
+  streamingState: ComponentStreamingState;
+
+  /**
+   * The rendered React element for this component.
+   * undefined if not yet rendered, null if the component couldn't be found in the registry.
+   */
+  renderedComponent?: ReactElement | null;
+}
+
+/**
  * Message role (from SDK)
  */
 export type MessageRole = "user" | "assistant";
 
 /**
- * Union type of all content block types
+ * Union type of all content block types.
+ * Uses V1ComponentContent which includes streaming state and rendered component.
  */
 export type Content =
   | TextContent
   | ToolUseContent
   | ToolResultContent
-  | ComponentContent
+  | V1ComponentContent
   | ResourceContent;
 
 /**

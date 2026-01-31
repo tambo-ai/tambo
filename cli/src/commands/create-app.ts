@@ -5,7 +5,9 @@ import path from "path";
 import {
   execFileSync,
   execSync,
+  GuidanceError,
   interactivePrompt,
+  isInteractive,
 } from "../utils/interactive.js";
 import {
   detectPackageManager,
@@ -98,6 +100,18 @@ function updatePackageJson(targetDir: string, appName: string): void {
 export async function handleCreateApp(
   options: CreateAppOptions = {},
 ): Promise<void> {
+  // In non-interactive mode, check if we have what we need
+  if (!isInteractive() && !options.name) {
+    throw new GuidanceError(
+      "App name and template required in non-interactive mode",
+      [
+        "npx tambo create-app my-app --template=standard  # Recommended",
+        "npx tambo create-app my-app --template=analytics # Analytics template",
+        "npx tambo create-app . --template=standard       # Current directory",
+      ],
+    );
+  }
+
   console.log("");
 
   let appName: string;

@@ -1,0 +1,400 @@
+---
+title: MCP Reference
+description: Model Context Protocol hooks, types, and utilities from @tambo-ai/react/mcp
+---
+
+The `@tambo-ai/react/mcp` subpath provides hooks and types for Model Context Protocol (MCP) integrations. MCP enables AI models to interact with external tools, resources, and prompts through a standardized protocol.
+
+## Installation
+
+MCP functionality requires additional peer dependencies:
+
+```bash
+npm install @modelcontextprotocol/sdk zod zod-to-json-schema
+```
+
+Then import from the `/mcp` subpath:
+
+```tsx
+import { TamboMcpProvider, useTamboMcpServers } from "@tambo-ai/react/mcp";
+```
+
+## Provider Setup
+
+MCP servers are configured on `TamboProvider` and connected via `TamboMcpProvider`:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import { TamboMcpProvider } from "@tambo-ai/react/mcp";
+
+function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.TAMBO_API_KEY}
+      mcpServers={[
+        {
+          name: "my-server",
+          url: "https://mcp.example.com",
+          transport: "http",
+          serverKey: "my-server",
+        },
+      ]}
+    >
+      <TamboMcpProvider>
+        <YourApp />
+      </TamboMcpProvider>
+    </TamboProvider>
+  );
+}
+```
+
+## Hooks
+
+### useTamboMcpServers
+
+Access connected MCP servers and their clients.
+
+```tsx
+const mcpServers = useTamboMcpServers();
+```
+
+Returns `McpServer[]` - an array of connected (or failed) MCP servers.
+
+```tsx
+function McpStatus() {
+  const servers = useTamboMcpServers();
+
+  return (
+    <ul>
+      {servers.map((server) => (
+        <li key={server.key}>
+          {server.name}: {server.client ? "Connected" : "Failed"}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### useTamboMcpResourceList
+
+Get resources from all connected MCP servers and the local registry.
+
+```tsx
+const {
+  data,         // ListResourceEntry[]
+  isPending,
+  isSuccess,
+  isError,
+  error,
+  refetch,
+} = useTamboMcpResourceList(search?: string);
+```
+
+| Parameter | Type     | Description                                |
+| --------- | -------- | ------------------------------------------ |
+| `search`  | `string` | Optional search string to filter resources |
+
+```tsx
+function ResourceList() {
+  const { data: resources, isPending } = useTamboMcpResourceList();
+
+  if (isPending) return <Spinner />;
+
+  return (
+    <ul>
+      {resources.map((entry) => (
+        <li key={entry.resource.uri}>
+          {entry.resource.name} ({entry.server?.name ?? "local"})
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### useTamboMcpResource
+
+Fetch a specific resource by URI.
+
+```tsx
+const {
+  data,         // ReadResourceResult | null
+  isPending,
+  isSuccess,
+  isError,
+  error,
+} = useTamboMcpResource(resourceUri?: string);
+```
+
+| Parameter     | Type     | Description                                         |
+| ------------- | -------- | --------------------------------------------------- |
+| `resourceUri` | `string` | Prefixed resource URI (e.g., `"linear:file://foo"`) |
+
+### useTamboMcpPromptList
+
+Get prompts from all connected MCP servers.
+
+```tsx
+const {
+  data,         // ListPromptEntry[]
+  isPending,
+  isSuccess,
+  isError,
+  error,
+  refetch,
+} = useTamboMcpPromptList(search?: string);
+```
+
+| Parameter | Type     | Description                              |
+| --------- | -------- | ---------------------------------------- |
+| `search`  | `string` | Optional search string to filter prompts |
+
+### useTamboMcpPrompt
+
+Fetch a specific prompt by name with arguments.
+
+```tsx
+const {
+  data,         // GetPromptResult | null
+  isPending,
+  isSuccess,
+  isError,
+  error,
+} = useTamboMcpPrompt(promptName?: string, args?: Record<string, string>);
+```
+
+| Parameter    | Type                     | Description                                  |
+| ------------ | ------------------------ | -------------------------------------------- |
+| `promptName` | `string`                 | Prompt name (can be prefixed with serverKey) |
+| `args`       | `Record<string, string>` | Arguments to pass to the prompt              |
+
+### useTamboMcpElicitation
+
+Access MCP elicitation state for handling user input requests from servers.
+
+```tsx
+const { elicitation, resolveElicitation } = useTamboMcpElicitation();
+```
+
+Returns:
+
+- `elicitation` - Current elicitation request (or `null`)
+- `resolveElicitation` - Function to respond to the elicitation
+
+```tsx
+function ElicitationHandler() {
+  const { elicitation, resolveElicitation } = useTamboMcpElicitation();
+
+  if (!elicitation) return null;
+
+  return (
+    <Dialog>
+      <p>{elicitation.message}</p>
+      <button
+        onClick={() => resolveElicitation?.({ action: "accept", content: {} })}
+      >
+        Accept
+      </button>
+      <button onClick={() => resolveElicitation?.({ action: "decline" })}>
+        Decline
+      </button>
+    </Dialog>
+  );
+}
+```
+
+### useTamboElicitationContext
+
+**Deprecated**: Use `useTamboMcpElicitation` instead.
+
+## Types
+
+### McpServer
+
+Union type for connected or failed MCP servers.
+
+```typescript
+type McpServer = ConnectedMcpServer | FailedMcpServer;
+```
+
+### ConnectedMcpServer
+
+A successfully connected MCP server with an active client.
+
+```typescript
+interface ConnectedMcpServer {
+  name: string;
+  url: string;
+  transport: MCPTransport;
+  serverKey: string;
+  customHeaders?: Record<string, string>;
+  handlers?: Partial<MCPHandlers>;
+  key: string; // Stable identity key
+  serverType: ServerType;
+  client: MCPClient; // Active MCP client
+}
+```
+
+### FailedMcpServer
+
+An MCP server that failed to connect.
+
+```typescript
+interface FailedMcpServer {
+  name: string;
+  url: string;
+  transport: MCPTransport;
+  serverKey: string;
+  customHeaders?: Record<string, string>;
+  handlers?: Partial<MCPHandlers>;
+  key: string;
+  serverType: ServerType;
+  connectionError: Error; // The connection error
+}
+```
+
+### MCPTransport
+
+Transport protocol for MCP connections.
+
+```typescript
+enum MCPTransport {
+  HTTP = "http",
+  SSE = "sse",
+  STDIO = "stdio",
+}
+```
+
+### MCPHandlers
+
+Handlers for MCP server requests.
+
+```typescript
+interface MCPHandlers {
+  elicitation: MCPElicitationHandler;
+  sampling: MCPSamplingHandler;
+}
+```
+
+### ProviderMCPHandlers
+
+Provider-level handlers that receive server info as context.
+
+```typescript
+interface ProviderMCPHandlers {
+  elicitation?: (
+    request: ElicitationRequest,
+    extra: RequestHandlerExtra,
+    serverInfo: McpServerConfig,
+  ) => Promise<ElicitationResponse>;
+  sampling?: (
+    request: SamplingRequest,
+    extra: RequestHandlerExtra,
+    serverInfo: McpServerConfig,
+  ) => Promise<SamplingResponse>;
+}
+```
+
+### ListResourceEntry
+
+A resource entry from `useTamboMcpResourceList`.
+
+```typescript
+type ListResourceEntry = RegistryResourceEntry | McpResourceEntry;
+
+interface RegistryResourceEntry {
+  server: null; // Local registry resource
+  resource: ListResourceItem;
+}
+
+interface McpResourceEntry {
+  server: ConnectedMcpServer;
+  resource: ListResourceItem;
+}
+```
+
+### ListPromptEntry
+
+A prompt entry from `useTamboMcpPromptList`.
+
+```typescript
+interface ListPromptEntry {
+  server: ConnectedMcpServer;
+  prompt: ListPromptItem;
+}
+```
+
+### TamboElicitationRequest
+
+An elicitation request from an MCP server.
+
+```typescript
+interface TamboElicitationRequest {
+  message: string;
+  requestedSchema?: ElicitationRequestedSchema;
+}
+```
+
+### TamboElicitationResponse
+
+Response to an elicitation request.
+
+```typescript
+interface TamboElicitationResponse {
+  action: "accept" | "decline";
+  content?: Record<string, unknown>;
+}
+```
+
+### McpServerInfo
+
+Configuration for an MCP server (passed to `TamboProvider`).
+
+```typescript
+interface McpServerInfo {
+  name: string;
+  url: string;
+  transport?: MCPTransport | "http" | "sse" | "stdio";
+  serverKey?: string;
+  customHeaders?: Record<string, string>;
+  handlers?: Partial<MCPHandlers>;
+}
+```
+
+### NormalizedMcpServerInfo
+
+Normalized server info with required fields.
+
+```typescript
+interface NormalizedMcpServerInfo {
+  name: string;
+  url: string;
+  transport: MCPTransport; // Always defined
+  serverKey: string; // Always defined
+  customHeaders?: Record<string, string>;
+  handlers?: unknown;
+}
+```
+
+## Type Guards
+
+### isMcpResourceEntry
+
+Type guard to narrow a `ListResourceEntry` to an MCP-backed resource.
+
+```typescript
+import { isMcpResourceEntry } from "@tambo-ai/react/mcp";
+
+const { data: resources } = useTamboMcpResourceList();
+
+resources.forEach((entry) => {
+  if (isMcpResourceEntry(entry)) {
+    // entry.server is ConnectedMcpServer
+    console.log(`MCP resource from ${entry.server.name}`);
+  } else {
+    // entry.server is null (local registry)
+    console.log("Local registry resource");
+  }
+});
+```

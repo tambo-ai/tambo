@@ -23,6 +23,7 @@ exports[`streamReducer snapshot tests for complex state transitions matches snap
                   "city": "New York",
                   "temperature": 72,
                 },
+                "streamingState": "done",
                 "type": "component",
               },
             ],

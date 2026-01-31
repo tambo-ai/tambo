@@ -7,13 +7,16 @@ import { z } from "zod/v3";
  * Used by both tRPC routers and tool definitions.
  */
 
-// Tool-compatible agent headers schema (must use object with explicit keys, not record)
-// This is a permissive schema for tool inputs; validation happens server-side
-const agentHeadersToolSchema = z
-  .unknown()
-  .describe(
-    "Custom headers for agent requests as key-value pairs (e.g., {Authorization: 'Bearer token', 'X-Custom': 'value'})",
-  );
+// Tool-compatible agent headers schema using array of key-value objects
+// Records (objects with dynamic keys) are not supported in tool schemas
+const agentHeadersToolSchema = z.array(
+  z.object({
+    name: z.string().describe("Header name (e.g., 'Authorization')"),
+    value: z.string().describe("Header value (e.g., 'Bearer token')"),
+  }),
+);
+
+export type AgentHeadersToolInput = z.infer<typeof agentHeadersToolSchema>;
 
 // Input schema for tRPC router (uses proper validation)
 export const updateProjectAgentSettingsInput = z.object({
@@ -45,7 +48,7 @@ export const updateProjectAgentSettingsInput = z.object({
     .describe("Custom headers for agent requests"),
 });
 
-// Input schema for tools (uses unknown for compatibility)
+// Input schema for tools (uses array format for headers since records are not supported)
 export const updateProjectAgentSettingsToolInput = z.object({
   projectId: z
     .string()

@@ -10,6 +10,14 @@ import {
 } from "./token-storage.js";
 
 /**
+ * Options for the device auth flow
+ */
+export interface DeviceAuthOptions {
+  /** If true, print the auth URL instead of opening browser (for CI/agents) */
+  noBrowser?: boolean;
+}
+
+/**
  * Result of a successful device auth flow
  */
 export interface DeviceAuthResult {
@@ -49,10 +57,13 @@ async function sleep(ms: number): Promise<void> {
  * 3. Polls api.deviceAuth.poll until user verifies or code expires
  * 4. Saves the session token to disk
  *
+ * @param options - Options for the auth flow
  * @returns The auth result with session token and user info
  * @throws DeviceAuthError if auth fails
  */
-export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
+export async function runDeviceAuthFlow(
+  options: DeviceAuthOptions = {},
+): Promise<DeviceAuthResult> {
   // Step 1: Initiate the device auth flow
   console.log(chalk.gray("\nInitiating device authentication..."));
 
@@ -82,24 +93,37 @@ export async function runDeviceAuthFlow(): Promise<DeviceAuthResult> {
   console.log(chalk.white(`   Visit: ${chalk.bold(verificationUri)}`));
   console.log(chalk.white(`   Enter code: ${chalk.bold.green(userCode)}\n`));
 
-  // Copy code to clipboard
-  try {
-    await clipboard.write(userCode);
-    console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
-  } catch {
-    // Clipboard might not be available in all environments
+  // Copy code to clipboard (skip in no-browser mode as it may not be available)
+  if (!options.noBrowser) {
+    try {
+      await clipboard.write(userCode);
+      console.log(chalk.gray("   ✓ User code copied to clipboard!\n"));
+    } catch {
+      // Clipboard might not be available in all environments
+    }
   }
 
-  // Open browser with pre-filled code URL
-  try {
-    await open(verificationUriComplete);
-    console.log(chalk.gray("   Browser opened for authentication\n"));
-  } catch {
+  // Open browser with pre-filled code URL (or print it in no-browser mode)
+  if (options.noBrowser) {
+    // For CI/agents: output raw URL first for machine parsing (no styling, no prefix)
+    console.log(verificationUriComplete);
+    // Then add human-readable guidance
     console.log(
-      chalk.yellow(
-        `   Could not open browser automatically. Please visit the URL above.\n`,
+      chalk.gray(
+        "\n   Open this URL in a browser and complete authentication.\n",
       ),
     );
+  } else {
+    try {
+      await open(verificationUriComplete);
+      console.log(chalk.gray("   Browser opened for authentication\n"));
+    } catch {
+      console.log(
+        chalk.yellow(
+          `   Could not open browser automatically. Please visit the URL above.\n`,
+        ),
+      );
+    }
   }
 
   // Step 3: Poll for completion

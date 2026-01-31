@@ -54,12 +54,12 @@ export class V1ThreadDto {
   id!: string;
 
   @ApiProperty({
-    description: "Optional context key for thread organization",
+    description: "Optional user key for thread organization",
     required: false,
   })
   @IsOptional()
   @IsString()
-  contextKey?: string;
+  userKey?: string;
 
   // ==========================================
   // 1. Current run lifecycle
@@ -184,12 +184,13 @@ export class V1ThreadWithMessagesDto extends V1ThreadDto {
 @ApiSchema({ name: "CreateThreadRequest" })
 export class V1CreateThreadDto {
   @ApiProperty({
-    description: "Optional context key for thread organization",
+    description:
+      "Identifier for a user in your system. Required if no bearer token is provided.",
     required: false,
   })
   @IsOptional()
   @IsString()
-  contextKey?: string;
+  userKey?: string;
 
   @ApiProperty({
     description: "Additional metadata to attach to the thread",
@@ -246,12 +247,12 @@ export class V1ListThreadsQueryDto {
   cursor?: string;
 
   @ApiProperty({
-    description: "Filter by context key",
+    description: "Filter by user key",
     required: false,
   })
   @IsOptional()
   @IsString()
-  contextKey?: string;
+  userKey?: string;
 }
 
 /**

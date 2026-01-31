@@ -25,7 +25,9 @@ describe("registry-conversion", () => {
       expect(result.name).toBe("WeatherCard");
       expect(result.description).toBe("Displays weather information");
       expect(result.propsSchema).toBeDefined();
-      expect(result.propsSchema.type).toBe("object");
+      expect((result.propsSchema as Record<string, unknown>).type).toBe(
+        "object",
+      );
     });
 
     it("throws when propsSchema is missing", () => {
@@ -128,7 +130,9 @@ describe("registry-conversion", () => {
       expect(result.name).toBe("get_weather");
       expect(result.description).toBe("Gets weather for a city");
       expect(result.inputSchema).toBeDefined();
-      expect(result.inputSchema.type).toBe("object");
+      expect((result.inputSchema as Record<string, unknown>).type).toBe(
+        "object",
+      );
     });
 
     it("throws when schema is missing", () => {

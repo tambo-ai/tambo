@@ -5,9 +5,11 @@ import {
   OnModuleInit,
 } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { SentryModule } from "@sentry/nestjs/setup";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AudioModule } from "./audio/audio.module";
+import { AnalyticsModule } from "./common/analytics.module";
 import { LoggerModule } from "./common/logger.module";
 import {
   DATABASE,
@@ -16,7 +18,6 @@ import {
   TransactionProvider,
 } from "./common/middleware/db-transaction-middleware";
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware";
-import { AnalyticsModule } from "./common/analytics.module";
 import { AuthService } from "./common/services/auth.service";
 import { EmailService } from "./common/services/email.service";
 import { StorageConfigService } from "./common/services/storage-config.service";
@@ -32,7 +33,7 @@ import { V1Module } from "./v1/v1.module";
 
 @Global()
 @Module({
-  imports: [ConfigModule],
+  imports: [SentryModule.forRoot(), ConfigModule],
   providers: [TransactionProvider, DatabaseProvider, StorageConfigService],
   exports: [TRANSACTION, DATABASE, StorageConfigService],
 })

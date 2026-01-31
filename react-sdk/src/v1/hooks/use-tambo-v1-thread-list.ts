@@ -15,9 +15,11 @@ import { useTamboClient } from "../../providers/tambo-client-provider";
  */
 export interface ThreadListOptions {
   /**
-   * Optional context key to filter threads by
+   * User key to scope thread list.
+   * Only threads owned by this userKey will be returned.
+   * If not provided here, uses the userKey from TamboV1Provider context.
    */
-  contextKey?: string;
+  userKey?: string;
 
   /**
    * Maximum number of threads to return (as string per SDK)
@@ -43,9 +45,9 @@ export interface ThreadListOptions {
  * @returns React Query query object with thread list
  * @example
  * ```tsx
- * function ThreadList({ contextKey }: { contextKey?: string }) {
+ * function ThreadList({ userKey }: { userKey?: string }) {
  *   const { data, isLoading, isError } = useTamboV1ThreadList({
- *     contextKey,
+ *     userKey,
  *     limit: "20",
  *   });
  *

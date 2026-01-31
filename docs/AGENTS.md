@@ -137,32 +137,35 @@ In general, try to fit changes into the following categories. If you can't find 
    - coding-agent-generative-ui-rules
    - component-data-props - Optimization guidance
 
-5. **API Reference** (4 pages)
-   - react-hooks - Complete signatures, parameters, return values
-   - typescript-types - TypeScript interfaces and types
+5. **Reference** (5 subsections)
+   - **react-sdk/** (6 pages including index)
+     - hooks - React hooks for thread management, component state, streaming
+     - types - TypeScript interfaces and types
+     - utilities - Helper functions like defineTool() and withInteractable()
+     - providers - Provider components for configuring Tambo
+     - mcp - Model Context Protocol hooks and types
+     - **migration/** (1 page)
+       - toolschema - Migration guide for tool schemas
+   - rest-api - OpenAPI specification for Tambo Cloud REST API
    - **problems/** (1 page)
-     - endpoint-deprecated
+     - endpoint-deprecated - Documentation for endpoint deprecation errors (410 Gone)
+   - **cli/** (5 pages including index)
+     - global-options - Global CLI options
+     - configuration - CSS and Tailwind configuration
+     - workflows - Common CLI usage patterns
+     - **commands/** (8 pages)
+       - create-app, init, full-send, add, list, update, upgrade, migrate
+   - **llm-providers/** (8 pages including index)
+     - openai, anthropic, google, groq, mistral, cerebras
+     - labels - Model status labels and observed behaviors
+     - reasoning-models - Advanced reasoning capabilities for OpenAI and Gemini
 
-6. **CLI** (9 pages)
-   - index, global-options, configuration, workflows
-   - **commands/** (8 pages)
-     - create-app, init, full-send, add, list, update, upgrade, migrate
-
-7. **Models** (3 pages)
-   - index
-   - labels - Organizing and categorizing interactions
-   - reasoning-models - Advanced thinking/reasoning capabilities for OpenAI and Gemini
-
-8. **Reference** (6 pages)
-   - **providers/** (6 pages)
-     - OpenAI, Anthropic, Google, Groq, Mistral, Cerebras
-
-9. **Examples and Templates** (2 pages)
+6. **Examples and Templates** (2 pages)
    - chat-starter-app - Chat starter applications
    - supabase-mcp-client - Integration examples
 
-10. **Tambo MCP Server** (1 page)
-    - index - MCP server documentation
+7. **Tambo MCP Server** (1 page)
+   - index - MCP server documentation
 
 Please update the `Information Architecture` section in the AGENTS.md file to reflect changes when you make them. Keeping this up to date is VERY IMPORTANT.
 
