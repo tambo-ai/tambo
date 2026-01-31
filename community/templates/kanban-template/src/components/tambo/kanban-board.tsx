@@ -3,75 +3,63 @@
 import { cn } from "@/lib/utils";
 import { useTaskStore } from "@/lib/task-store";
 import type { Status, Task } from "@/types/task";
-import { CheckCircle2, Circle, Clock } from "lucide-react";
 import * as React from "react";
 
 interface Column {
   id: Status;
   title: string;
-  icon: React.ReactNode;
-  className: string;
+  accentColor: string;
 }
 
 const columns: Column[] = [
-  {
-    id: "todo",
-    title: "To Do",
-    icon: <Circle className="w-4 h-4" />,
-    className: "border-t-gray-400",
-  },
-  {
-    id: "in-progress",
-    title: "In Progress",
-    icon: <Clock className="w-4 h-4" />,
-    className: "border-t-blue-500",
-  },
-  {
-    id: "done",
-    title: "Done",
-    icon: <CheckCircle2 className="w-4 h-4" />,
-    className: "border-t-green-500",
-  },
+  { id: "todo", title: "To Do", accentColor: "bg-zinc-400" },
+  { id: "in-progress", title: "In Progress", accentColor: "bg-amber-400" },
+  { id: "done", title: "Done", accentColor: "bg-emerald-400" },
 ];
 
 const priorityColors: Record<string, string> = {
-  low: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  high: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  low: "bg-emerald-500/10 text-emerald-600",
+  medium: "bg-amber-500/10 text-amber-600",
+  high: "bg-rose-500/10 text-rose-600",
 };
 
 interface TaskItemProps {
   task: Task;
+  onDragStart: (e: React.DragEvent, task: Task) => void;
 }
 
-const TaskItem = ({ task }: TaskItemProps) => (
+const TaskItem = ({ task, onDragStart }: TaskItemProps) => (
   <div
+    draggable
+    onDragStart={(e) => onDragStart(e, task)}
     className={cn(
-      "bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700",
-      "p-3 shadow-sm hover:shadow-md transition-shadow duration-200",
+      "bg-card rounded border border-border",
+      "p-3 cursor-grab active:cursor-grabbing",
+      "hover:border-foreground/20 transition-all duration-150",
+      "select-none"
     )}
   >
-    <div className="flex items-start justify-between gap-2 mb-1">
-      <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm leading-tight">
+    <div className="flex items-start justify-between gap-2 mb-1.5">
+      <h4 className="font-medium text-sm leading-tight text-foreground">
         {task.title}
       </h4>
       <span
         className={cn(
-          "px-1.5 py-0.5 text-xs font-medium rounded shrink-0",
-          priorityColors[task.priority],
+          "px-1.5 py-0.5 text-[10px] font-medium rounded shrink-0 uppercase tracking-wide",
+          priorityColors[task.priority] ?? priorityColors.medium
         )}
       >
         {task.priority}
       </span>
     </div>
     {task.description && (
-      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
         {task.description}
       </p>
     )}
     {task.dueDate && (
-      <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-        Due: {task.dueDate}
+      <p className="text-[10px] text-muted-foreground mt-2 font-light">
+        {task.dueDate}
       </p>
     )}
   </div>
@@ -80,35 +68,51 @@ const TaskItem = ({ task }: TaskItemProps) => (
 interface ColumnViewProps {
   column: Column;
   tasks: Task[];
+  onDragStart: (e: React.DragEvent, task: Task) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent, status: Status) => void;
+  isDragOver: boolean;
 }
 
-const ColumnView = ({ column, tasks }: ColumnViewProps) => (
+const ColumnView = ({
+  column,
+  tasks,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  isDragOver,
+}: ColumnViewProps) => (
   <div
     className={cn(
-      "flex-1 min-w-[280px] bg-gray-50 dark:bg-gray-900 rounded-lg",
-      "border-t-4",
-      column.className,
+      "flex-1 min-w-[260px] max-w-[320px] flex flex-col",
+      "rounded-lg bg-muted/50",
+      "transition-colors duration-150",
+      isDragOver && "bg-primary/5 ring-1 ring-primary/20"
     )}
+    onDragOver={onDragOver}
+    onDrop={(e) => onDrop(e, column.id)}
   >
-    <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-          {column.icon}
-          <h3 className="font-semibold">{column.title}</h3>
-        </div>
-        <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium px-2 py-0.5 rounded-full">
-          {tasks.length}
-        </span>
-      </div>
+    {/* Column Header */}
+    <div className="p-3 flex items-center gap-2">
+      <div className={cn("w-2 h-2 rounded-full", column.accentColor)} />
+      <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {column.title}
+      </h3>
+      <span className="text-xs text-muted-foreground/60 ml-auto">
+        {tasks.length}
+      </span>
     </div>
 
-    <div className="p-3 space-y-3 min-h-[200px]">
+    {/* Tasks */}
+    <div className="flex-1 p-2 pt-0 space-y-2 overflow-y-auto">
       {tasks.length === 0 ? (
-        <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">
-          No tasks
-        </p>
+        <div className="h-24 flex items-center justify-center">
+          <p className="text-xs text-muted-foreground/50">Drop tasks here</p>
+        </div>
       ) : (
-        tasks.map((task) => <TaskItem key={task.id} task={task} />)
+        tasks.map((task) => (
+          <TaskItem key={task.id} task={task} onDragStart={onDragStart} />
+        ))
       )}
     </div>
   </div>
@@ -119,6 +123,11 @@ export type KanbanBoardProps = React.HTMLAttributes<HTMLDivElement>;
 export const KanbanBoard = React.forwardRef<HTMLDivElement, KanbanBoardProps>(
   ({ className, ...props }, ref) => {
     const tasks = useTaskStore((state) => state.tasks);
+    const moveTask = useTaskStore((state) => state.moveTask);
+    const [dragOverColumn, setDragOverColumn] = React.useState<Status | null>(
+      null
+    );
+    const [draggedTask, setDraggedTask] = React.useState<Task | null>(null);
 
     const tasksByStatus = React.useMemo(() => {
       const grouped: Record<Status, Task[]> = {
@@ -134,22 +143,71 @@ export const KanbanBoard = React.forwardRef<HTMLDivElement, KanbanBoardProps>(
       return grouped;
     }, [tasks]);
 
+    const handleDragStart = (e: React.DragEvent, task: Task) => {
+      setDraggedTask(task);
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", task.id);
+
+      // Add dragging class after a short delay for visual feedback
+      requestAnimationFrame(() => {
+        (e.target as HTMLElement).classList.add("dragging");
+      });
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    };
+
+    const handleDragEnter = (status: Status) => {
+      setDragOverColumn(status);
+    };
+
+    const handleDragLeave = () => {
+      setDragOverColumn(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, newStatus: Status) => {
+      e.preventDefault();
+      setDragOverColumn(null);
+
+      const taskId = e.dataTransfer.getData("text/plain");
+      if (taskId && draggedTask && draggedTask.status !== newStatus) {
+        moveTask(taskId, newStatus);
+      }
+      setDraggedTask(null);
+    };
+
     return (
       <div
         ref={ref}
-        className={cn("flex gap-4 overflow-x-auto p-4", className)}
+        className={cn("flex gap-4 p-6 h-full", className)}
+        onDragEnd={() => {
+          setDraggedTask(null);
+          setDragOverColumn(null);
+        }}
         {...props}
       >
         {columns.map((column) => (
-          <ColumnView
+          <div
             key={column.id}
-            column={column}
-            tasks={tasksByStatus[column.id]}
-          />
+            onDragEnter={() => handleDragEnter(column.id)}
+            onDragLeave={handleDragLeave}
+            className="flex-1 min-w-0"
+          >
+            <ColumnView
+              column={column}
+              tasks={tasksByStatus[column.id]}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              isDragOver={dragOverColumn === column.id}
+            />
+          </div>
         ))}
       </div>
     );
-  },
+  }
 );
 
 KanbanBoard.displayName = "KanbanBoard";

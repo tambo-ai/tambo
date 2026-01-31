@@ -4,7 +4,7 @@ import { KanbanBoard } from "@/components/tambo/kanban-board";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { components, tools } from "@/lib/tambo";
 import { TamboProvider } from "@tambo-ai/react";
-import { LayoutGrid } from "lucide-react";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -14,26 +14,45 @@ export default function Home() {
       tools={tools}
       tamboUrl={process.env.NEXT_PUBLIC_TAMBO_URL}
     >
-      <div className="h-screen flex flex-col bg-gray-100 dark:bg-gray-950">
+      <div className="h-screen flex flex-col bg-background">
         {/* Header */}
-        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+        <header className="border-b border-border px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <LayoutGrid className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Kanban Board
-            </h1>
+            <Image
+              src="/Octo-Icon.svg"
+              alt="Tambo"
+              width={28}
+              height={28}
+              className="opacity-90"
+            />
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-lg font-display font-semibold tracking-tight">
+                kanban
+              </h1>
+              <span className="text-xs text-muted-foreground font-light">
+                powered by tambo
+              </span>
+            </div>
           </div>
+          <a
+            href="https://tambo.co"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            docs →
+          </a>
         </header>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          {/* Kanban Board - 70% on desktop */}
-          <div className="flex-1 lg:flex-[7] overflow-auto">
-            <KanbanBoard className="h-full" />
+          {/* Kanban Board */}
+          <div className="flex-1 lg:flex-[7] overflow-auto bg-muted/30">
+            <KanbanBoard />
           </div>
 
-          {/* Chat Panel - 30% on desktop */}
-          <div className="h-[50vh] lg:h-full lg:flex-[3] border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          {/* Chat Panel */}
+          <div className="h-[45vh] lg:h-full lg:flex-[3] border-t lg:border-t-0 lg:border-l border-border bg-background">
             <MessageThreadFull />
           </div>
         </div>

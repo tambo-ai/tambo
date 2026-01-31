@@ -3,7 +3,7 @@
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { components, tools } from "@/lib/tambo";
 import { TamboProvider } from "@tambo-ai/react";
-import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function ChatPage() {
@@ -14,15 +14,31 @@ export default function ChatPage() {
       tools={tools}
       tamboUrl={process.env.NEXT_PUBLIC_TAMBO_URL}
     >
-      <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
+      <div className="h-screen flex flex-col bg-background">
         {/* Header */}
-        <header className="border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+        <header className="border-b border-border px-6 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Image
+              src="/Octo-Icon.svg"
+              alt="Tambo"
+              width={28}
+              height={28}
+              className="opacity-90"
+            />
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-lg font-display font-semibold tracking-tight">
+                kanban
+              </h1>
+              <span className="text-xs text-muted-foreground font-light">
+                chat
+              </span>
+            </div>
+          </Link>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to Board</span>
+            ← board
           </Link>
         </header>
 

@@ -3,6 +3,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: var(--font-roboto-mono), ui-monospace, monospace;
+  --font-mono: var(--font-roboto-mono), ui-monospace, monospace;
+  --font-display: var(--font-josefin), system-ui, sans-serif;
+
   /* Tailwind CSS Variables customized with tambo colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -36,24 +40,24 @@
 
 :root {
   /* Default Tailwind CSS Variables customized with tambo colors */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.14 0 285);
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.14 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.14 0 285);
+  --card-foreground: oklch(0.14 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.14 0 285);
-  --primary: oklch(0.31 0.02 281);
+  --popover-foreground: oklch(0.14 0 0);
+  --primary: oklch(0.45 0.2 145);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.54 0.027 261);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.92 0 260);
-  --muted-foreground: oklch(0.73 0.022 260);
-  --accent: oklch(0.97 0 286);
-  --accent-foreground: oklch(0.21 0 286);
-  --destructive: oklch(0.64 0.2 25);
-  --border: oklch(0.93 0 242);
-  --input: oklch(0.92 0 286);
-  --ring: oklch(0.14 0 285);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.14 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.14 0 0);
+  --destructive: oklch(0.55 0.2 25);
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.45 0.2 145);
   --chart-1: oklch(0.72 0.15 60);
   --chart-2: oklch(0.62 0.2 6);
   --chart-3: oklch(0.53 0.2 262);
@@ -61,7 +65,7 @@
   --chart-5: oklch(0.62 0.2 313);
 
   /* Tambo Specific Variables needed for tambo components */
-  --container: oklch(0.98 0 247);
+  --container: oklch(0.98 0 0);
   --backdrop: oklch(0.25 0.07 252 / 0.25);
   --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
   --radius: 0.5rem;
@@ -72,24 +76,24 @@
 
 .dark {
   /* Dark Mode Tailwind CSS Variables customized with tambo colors */
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: oklch(0.12 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.16 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.16 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.65 0.2 145);
+  --primary-foreground: oklch(0.12 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.6 0 0);
+  --accent: oklch(0.22 0 0);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.65 0.2 25);
+  --border: oklch(0.25 0 0);
+  --input: oklch(0.25 0 0);
+  --ring: oklch(0.65 0.2 145);
   --chart-1: oklch(0.72 0.15 60);
   --chart-2: oklch(0.62 0.2 6);
   --chart-3: oklch(0.53 0.2 262);
@@ -97,13 +101,9 @@
   --chart-5: oklch(0.62 0.2 313);
 
   /* Tambo Specific Variables needed for tambo components */
-  --container: oklch(0.98 0 247);
+  --container: oklch(0.16 0 0);
   --backdrop: oklch(0.25 0.07 252 / 0.25);
   --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
-  --radius: 0.5rem;
-  --panel-left-width: 500px;
-  --panel-right-width: 500px;
-  --sidebar-width: 3rem;
 }
 
 @layer base {
@@ -112,14 +112,22 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-roboto-mono), ui-monospace, monospace;
   }
+}
+
+/* Drag and drop styles */
+.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+}
+
+.drag-over {
+  background-color: oklch(0.45 0.2 145 / 0.1);
 }
 
 /*
 This is a custom animation for the interactable components.
-It's used to highlight the fields that have been updated.
-You can remove this if you don't want to use it.
 */
 
 @keyframes flash {
@@ -137,7 +145,7 @@ You can remove this if you don't want to use it.
 }
 
 /*
-Animated gradient for thinking text, creates a shimmering effect that moves across the text.
+Animated gradient for thinking text
 */
 @keyframes thinking-gradient {
   0% {
@@ -149,9 +157,7 @@ Animated gradient for thinking text, creates a shimmering effect that moves acro
 }
 
 .animate-thinking-gradient {
-  /* Fallback */
   background: linear-gradient(90deg, #666 0%, #bbb 50%, #666 100%);
-  /* Preferred (overrides when supported) */
   background: linear-gradient(
     90deg,
     oklch(0.14 0 0) 0%,
