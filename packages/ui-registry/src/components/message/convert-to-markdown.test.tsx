@@ -1,6 +1,6 @@
 /// <reference types="@testing-library/jest-dom" />
 import { describe, expect, it } from "@jest/globals";
-import { convertContentToMarkdown } from "./message";
+import { convertContentToMarkdown } from "../../lib/thread-hooks";
 
 describe("convertContentToMarkdown", () => {
   describe("empty/null content", () => {
