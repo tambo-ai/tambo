@@ -214,13 +214,15 @@ export function useTamboV1Suggestions(
     isIdle &&
     autoGenerate;
 
+  const suggestionsQueryKey = [
+    "v1-suggestions",
+    threadId ?? null,
+    latestMessageId ?? null,
+  ] as const;
+
   // Query to list existing suggestions
   const suggestionsQuery = useQuery({
-    queryKey: [
-      "v1-suggestions",
-      threadId,
-      shouldFetchSuggestions ? latestMessageId : null,
-    ],
+    queryKey: suggestionsQueryKey,
     queryFn: async (): Promise<SuggestionsQueryResponse> => {
       if (!shouldFetchSuggestions || !latestMessageId || !threadId) {
         return { suggestions: [], hasMore: false };
@@ -276,10 +278,7 @@ export function useTamboV1Suggestions(
     onSuccess: (data) => {
       if (data && threadId && latestMessageId) {
         // Update the query cache with new suggestions
-        queryClient.setQueryData(
-          ["v1-suggestions", threadId, latestMessageId],
-          data,
-        );
+        queryClient.setQueryData(suggestionsQueryKey, data);
       }
     },
   });
