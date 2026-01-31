@@ -63,8 +63,7 @@ Clone the repository and install dependencies using the legacy peer deps flag (r
 
 Click the thumbnail below to watch the demo:
 
-[![App Demo](https://github.com/user-attachments/assets/34bf37bc-aab7-463d-b59f-0cb7b1e7d930)](https://github.com/user-attachments/assets/34bf37bc-aab7-463d-b59f-0cb7b1e7d930
-)
+[![App Demo](https://github.com/user-attachments/assets/34bf37bc-aab7-463d-b59f-0cb7b1e7d930)](https://github.com/user-attachments/assets/34bf37bc-aab7-463d-b59f-0cb7b1e7d930)
 
 ---
 
