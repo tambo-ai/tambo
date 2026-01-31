@@ -269,6 +269,24 @@ packages/
 
 Before creating the base package, refactor existing components to separate "dumb-display" (presentation) from "base-functional" (state/logic) parts. This is done within the existing `ui-registry` package without changing functionality.
 
+#### Progress (Step 1)
+
+**Base Primitives Created** (in `packages/ui-registry/src/base/`):
+
+- [x] `message/` - MessageBase compound components (Root, Content, Avatar, Group)
+- [x] `reasoning-info/` - ReasoningInfoBase compound components
+- [x] `toolcall-info/` - ToolcallInfoBase compound components
+- [x] `types/` - Shared type definitions
+- [x] `use-render/` - Render utility hook
+
+**Package Exports Added**:
+
+- [x] `"./base/*": "./src/base/*/index.tsx"` added to ui-registry package.json
+
+**Data Attributes**:
+
+- [x] `data-slot` attributes added to all base components for CSS targeting
+
 **Goal:** Each component directory exports both:
 
 - **Display components** - Pure presentation, receive all data via props, no state management
@@ -283,11 +301,11 @@ Before creating the base package, refactor existing components to separate "dumb
 
 **Components to refactor (in order of complexity):**
 
-1. `message-suggestions` (simplest - mostly display)
-2. `scrollable-message-container` (auto-scroll logic extraction)
-3. `thread-dropdown` (thread management logic)
-4. `message` (content transformation, tool response logic)
-5. `message-input` (most complex - input state, MCP resources, draft persistence)
+1. [ ] `message-suggestions` (simplest - mostly display)
+2. [ ] `scrollable-message-container` (auto-scroll logic extraction)
+3. [ ] `thread-dropdown` (thread management logic)
+4. [x] `message` (content transformation, tool response logic) - **DONE**: Refactored to use MessageBase compound primitives. Visual parity verified via screenshot comparison.
+5. [ ] `message-input` (most complex - input state, MCP resources, draft persistence)
 
 **Per-component refactoring pattern:**
 
