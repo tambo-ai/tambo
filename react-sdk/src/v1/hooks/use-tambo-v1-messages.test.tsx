@@ -14,24 +14,29 @@ import { useTamboV1Messages } from "./use-tambo-v1-messages";
 
 describe("useTamboV1Messages", () => {
   function TestWrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <TamboV1StreamProvider threadId="thread_123">
-        {children}
-      </TamboV1StreamProvider>
-    );
+    return <TamboV1StreamProvider>{children}</TamboV1StreamProvider>;
   }
 
   it("returns empty messages when thread has no messages", () => {
-    const { result } = renderHook(() => useTamboV1Messages("thread_123"), {
-      wrapper: TestWrapper,
+    const { result } = renderHook(
+      () => ({
+        messages: useTamboV1Messages("thread_123"),
+        dispatch: useStreamDispatch(),
+      }),
+      { wrapper: TestWrapper },
+    );
+
+    // Initialize thread first
+    act(() => {
+      result.current.dispatch({ type: "INIT_THREAD", threadId: "thread_123" });
     });
 
-    expect(result.current.messages).toEqual([]);
-    expect(result.current.hasMessages).toBe(false);
-    expect(result.current.messageCount).toBe(0);
-    expect(result.current.lastMessage).toBeUndefined();
-    expect(result.current.userMessages).toEqual([]);
-    expect(result.current.assistantMessages).toEqual([]);
+    expect(result.current.messages.messages).toEqual([]);
+    expect(result.current.messages.hasMessages).toBe(false);
+    expect(result.current.messages.messageCount).toBe(0);
+    expect(result.current.messages.lastMessage).toBeUndefined();
+    expect(result.current.messages.userMessages).toEqual([]);
+    expect(result.current.messages.assistantMessages).toEqual([]);
   });
 
   it("returns messages after events are dispatched", () => {
@@ -42,6 +47,11 @@ describe("useTamboV1Messages", () => {
       }),
       { wrapper: TestWrapper },
     );
+
+    // Initialize thread first
+    act(() => {
+      result.current.dispatch({ type: "INIT_THREAD", threadId: "thread_123" });
+    });
 
     // Simulate a text message being received
     act(() => {
@@ -96,6 +106,11 @@ describe("useTamboV1Messages", () => {
       }),
       { wrapper: TestWrapper },
     );
+
+    // Initialize thread first
+    act(() => {
+      result.current.dispatch({ type: "INIT_THREAD", threadId: "thread_123" });
+    });
 
     // Add user message
     act(() => {

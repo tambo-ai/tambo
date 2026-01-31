@@ -7,20 +7,38 @@ import { useTamboClient } from "../../providers/tambo-client-provider";
 import { useTamboRegistry } from "../../providers/tambo-registry-provider";
 import { useTamboContextHelpers } from "../../providers/tambo-context-helpers-provider";
 import { useStreamState, useThreadManagement } from "./tambo-v1-stream-context";
-import { TamboV1Provider, useContextKey } from "./tambo-v1-provider";
+import { TamboV1Provider, useTamboV1Config } from "./tambo-v1-provider";
 
 // Mock the client provider to capture the apiKey
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+  useTamboQueryClient: jest.fn(() => new QueryClient()),
   TamboClientProvider: ({ children }: { children: React.ReactNode }) =>
     children,
 }));
 
+// Mock useTamboV1SendMessage to avoid complex dependencies
+jest.mock("../hooks/use-tambo-v1-send-message", () => ({
+  useTamboV1SendMessage: jest.fn(() => ({
+    mutateAsync: jest.fn(),
+    mutate: jest.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+    isSuccess: false,
+    reset: jest.fn(),
+  })),
+}));
+
 describe("TamboV1Provider", () => {
-  const mockClient = {
+  const mockFetch: typeof fetch = async (..._args) => {
+    throw new Error("fetch not implemented");
+  };
+
+  const mockClient = new TamboAI({
     apiKey: "test-api-key",
-    threads: {},
-  } as unknown as TamboAI;
+    fetch: mockFetch,
+  });
 
   beforeEach(() => {
     jest.mocked(useTamboClient).mockReturnValue(mockClient);
@@ -236,26 +254,26 @@ describe("TamboV1Provider", () => {
     expect(result.current.resourceSource?.getResource).toBe(getResource);
   });
 
-  it("provides contextKey via useContextKey hook", () => {
+  it("provides userKey via useTamboV1Config", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <TamboV1Provider apiKey="test-api-key" contextKey="my-context-key">
+      <TamboV1Provider apiKey="test-api-key" userKey="my-user-key">
         {children}
       </TamboV1Provider>
     );
 
-    const { result } = renderHook(() => useContextKey(), { wrapper });
+    const { result } = renderHook(() => useTamboV1Config(), { wrapper });
 
-    expect(result.current).toBe("my-context-key");
+    expect(result.current.userKey).toBe("my-user-key");
   });
 
-  it("returns undefined from useContextKey when no contextKey provided", () => {
+  it("returns undefined userKey from useTamboV1Config when no userKey provided", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
     );
 
-    const { result } = renderHook(() => useContextKey(), { wrapper });
+    const { result } = renderHook(() => useTamboV1Config(), { wrapper });
 
-    expect(result.current).toBeUndefined();
+    expect(result.current.userKey).toBeUndefined();
   });
 
   it("provides context helpers via useTamboContextHelpers hook", async () => {

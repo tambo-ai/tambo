@@ -45,20 +45,6 @@ describe("useTamboV1", () => {
     );
   }
 
-  function TestWrapperWithThreadId({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) {
-    return (
-      <TamboRegistryContext.Provider value={mockRegistry}>
-        <TamboV1StreamProvider threadId="thread_123">
-          {children}
-        </TamboV1StreamProvider>
-      </TamboRegistryContext.Provider>
-    );
-  }
-
   beforeEach(() => {
     jest.mocked(useTamboClient).mockReturnValue(mockTamboClient);
     jest.clearAllMocks();
@@ -97,7 +83,12 @@ describe("useTamboV1", () => {
 
   it("returns thread state when threadId provided", () => {
     const { result } = renderHook(() => useTamboV1("thread_123"), {
-      wrapper: TestWrapperWithThreadId,
+      wrapper: TestWrapper,
+    });
+
+    // Initialize thread first
+    act(() => {
+      result.current.initThread("thread_123");
     });
 
     expect(result.current.thread).toBeDefined();
@@ -118,7 +109,12 @@ describe("useTamboV1", () => {
 
   it("returns thread streaming state when thread loaded", () => {
     const { result } = renderHook(() => useTamboV1("thread_123"), {
-      wrapper: TestWrapperWithThreadId,
+      wrapper: TestWrapper,
+    });
+
+    // Initialize thread first
+    act(() => {
+      result.current.initThread("thread_123");
     });
 
     expect(result.current.streamingState.status).toBe("idle");
@@ -184,7 +180,13 @@ describe("useTamboV1", () => {
 
   it("uses current thread when no threadId argument provided", () => {
     const { result } = renderHook(() => useTamboV1(), {
-      wrapper: TestWrapperWithThreadId,
+      wrapper: TestWrapper,
+    });
+
+    // Initialize and switch to a thread
+    act(() => {
+      result.current.initThread("thread_123");
+      result.current.switchThread("thread_123");
     });
 
     // Should use current thread from context (thread_123)

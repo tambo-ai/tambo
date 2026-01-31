@@ -3,6 +3,8 @@ import { BadRequestException } from "@nestjs/common";
 export interface V1CompoundCursor {
   createdAt: Date;
   id: string;
+  /** Optional scope identifier (e.g., messageId) for cursor validation */
+  messageId?: string;
 }
 
 export function encodeV1CompoundCursor(cursor: V1CompoundCursor): string {
@@ -14,13 +16,17 @@ export function encodeV1CompoundCursor(cursor: V1CompoundCursor): string {
     throw new Error("Cannot encode cursor: createdAt is invalid");
   }
 
-  return Buffer.from(
-    JSON.stringify({
-      createdAt: cursor.createdAt.toISOString(),
-      id: cursor.id,
-    }),
-    "utf8",
-  ).toString("base64url");
+  const payload: Record<string, string> = {
+    createdAt: cursor.createdAt.toISOString(),
+    id: cursor.id,
+  };
+
+  // Include messageId if provided for cursor scoping
+  if (cursor.messageId) {
+    payload.messageId = cursor.messageId;
+  }
+
+  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
 }
 
 export function parseV1CompoundCursor(encoded: string): V1CompoundCursor {
@@ -37,8 +43,17 @@ export function parseV1CompoundCursor(encoded: string): V1CompoundCursor {
 
   const createdAt = (parsed as { createdAt?: unknown }).createdAt;
   const id = (parsed as { id?: unknown }).id;
+  const messageId = (parsed as { messageId?: unknown }).messageId;
 
   if (typeof createdAt !== "string" || typeof id !== "string" || id === "") {
+    throw new BadRequestException("Invalid cursor");
+  }
+
+  // messageId is optional but must be a non-empty string if present
+  if (
+    messageId !== undefined &&
+    (typeof messageId !== "string" || messageId === "")
+  ) {
     throw new BadRequestException("Invalid cursor");
   }
 
@@ -50,5 +65,6 @@ export function parseV1CompoundCursor(encoded: string): V1CompoundCursor {
   return {
     createdAt: createdAtDate,
     id,
+    messageId,
   };
 }

@@ -18,6 +18,7 @@ import {
   type TamboRegistryContext as TamboRegistry,
 } from "../../providers/tambo-registry-provider";
 import { useStreamDispatch } from "../providers/tambo-v1-stream-context";
+import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import type { InputMessage } from "../types/message";
 import {
   toAvailableComponents,
@@ -50,6 +51,7 @@ export interface CreateRunStreamParams {
   threadId: string | undefined;
   message: InputMessage;
   registry: TamboRegistry;
+  userKey: string | undefined;
 }
 
 /**
@@ -76,6 +78,7 @@ interface ExecuteToolsParams {
   client: TamboAI;
   threadId: string;
   runId: string;
+  userKey: string | undefined;
 }
 
 /**
@@ -90,7 +93,8 @@ interface ExecuteToolsParams {
 async function executeToolsAndContinue(
   params: ExecuteToolsParams,
 ): Promise<RunStream> {
-  const { event, toolTracker, registry, client, threadId, runId } = params;
+  const { event, toolTracker, registry, client, threadId, runId, userKey } =
+    params;
 
   const { pendingToolCallIds } = event.value;
   const toolCallsToExecute = toolTracker.getToolCallsById(pendingToolCallIds);
@@ -113,6 +117,7 @@ async function executeToolsAndContinue(
     previousRunId: runId,
     availableComponents: toAvailableComponents(registry.componentList),
     tools: toAvailableTools(registry.toolRegistry),
+    userKey,
   });
 }
 
@@ -127,7 +132,7 @@ async function executeToolsAndContinue(
 export async function createRunStream(
   params: CreateRunStreamParams,
 ): Promise<CreateRunStreamResult> {
-  const { client, threadId, message, registry } = params;
+  const { client, threadId, message, registry, userKey } = params;
 
   // Convert registry components/tools to v1 API format
   const availableComponents = toAvailableComponents(registry.componentList);
@@ -139,6 +144,7 @@ export async function createRunStream(
       message,
       availableComponents,
       tools: availableTools,
+      userKey,
     });
     return { stream, initialThreadId: threadId };
   } else {
@@ -147,6 +153,7 @@ export async function createRunStream(
       message,
       availableComponents,
       tools: availableTools,
+      thread: userKey ? { userKey } : undefined,
     });
     // threadId will be extracted from first event (RUN_STARTED)
     return { stream, initialThreadId: undefined };
@@ -200,6 +207,7 @@ export async function createRunStream(
 export function useTamboV1SendMessage(threadId?: string) {
   const client = useTamboClient();
   const dispatch = useStreamDispatch();
+  const { userKey } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useQueryClient();
 
@@ -221,6 +229,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         threadId,
         message,
         registry,
+        userKey,
       });
 
       let actualThreadId = initialThreadId;
@@ -281,6 +290,7 @@ export function useTamboV1SendMessage(threadId?: string) {
             client,
             threadId: actualThreadId,
             runId,
+            userKey,
           });
         }
 

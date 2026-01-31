@@ -7,6 +7,7 @@ import { z } from "zod";
 import type { TamboTool } from "../../model/component-metadata";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import { TamboRegistryContext } from "../../providers/tambo-registry-provider";
+import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
 import {
   createRunStream,
@@ -15,6 +16,10 @@ import {
 
 jest.mock("../../providers/tambo-client-provider", () => ({
   useTamboClient: jest.fn(),
+}));
+
+jest.mock("../providers/tambo-v1-provider", () => ({
+  useTamboV1Config: jest.fn(),
 }));
 
 describe("useTamboV1SendMessage", () => {
@@ -41,9 +46,7 @@ describe("useTamboV1SendMessage", () => {
     return (
       <QueryClientProvider client={queryClient}>
         <TamboRegistryContext.Provider value={mockRegistry as any}>
-          <TamboV1StreamProvider threadId="thread_123">
-            {children}
-          </TamboV1StreamProvider>
+          <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
         </TamboRegistryContext.Provider>
       </QueryClientProvider>
     );
@@ -57,6 +60,7 @@ describe("useTamboV1SendMessage", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboV1Config).mockReturnValue({ userKey: undefined });
     mockThreadsRunsApi.run.mockReset();
     mockThreadsRunsApi.create.mockReset();
   });
@@ -142,12 +146,14 @@ describe("createRunStream", () => {
       threadId: "thread_123",
       message: testMessage,
       registry: mockRegistry as any,
+      userKey: undefined,
     });
 
     expect(mockThreadsRunsApi.run).toHaveBeenCalledWith("thread_123", {
       message: testMessage,
       availableComponents: expect.any(Array),
       tools: expect.any(Array),
+      userKey: undefined,
     });
     expect(mockThreadsRunsApi.create).not.toHaveBeenCalled();
     expect(result.stream).toBe(mockStream);
@@ -162,12 +168,14 @@ describe("createRunStream", () => {
       threadId: undefined,
       message: testMessage,
       registry: mockRegistry as any,
+      userKey: undefined,
     });
 
     expect(mockThreadsRunsApi.create).toHaveBeenCalledWith({
       message: testMessage,
       availableComponents: expect.any(Array),
       tools: expect.any(Array),
+      thread: undefined,
     });
     expect(mockThreadsRunsApi.run).not.toHaveBeenCalled();
     expect(result.stream).toBe(mockStream);
@@ -182,6 +190,7 @@ describe("createRunStream", () => {
       threadId: "thread_123",
       message: testMessage,
       registry: mockRegistry as any,
+      userKey: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];
@@ -202,6 +211,7 @@ describe("createRunStream", () => {
       threadId: "thread_123",
       message: testMessage,
       registry: mockRegistry as any,
+      userKey: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];
@@ -226,6 +236,7 @@ describe("createRunStream", () => {
       threadId: "thread_123",
       message: testMessage,
       registry: emptyRegistry as any,
+      userKey: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];
@@ -267,6 +278,7 @@ describe("useTamboV1SendMessage mutation", () => {
       },
     });
     jest.mocked(useTamboClient).mockReturnValue(mockTamboAI);
+    jest.mocked(useTamboV1Config).mockReturnValue({ userKey: undefined });
     mockThreadsRunsApi.run.mockReset();
     mockThreadsRunsApi.create.mockReset();
   });
@@ -419,9 +431,7 @@ describe("useTamboV1SendMessage mutation", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry as any}>
-            <TamboV1StreamProvider threadId="thread_123">
-              {children}
-            </TamboV1StreamProvider>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );
@@ -530,9 +540,7 @@ describe("useTamboV1SendMessage mutation", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry as any}>
-            <TamboV1StreamProvider threadId="thread_123">
-              {children}
-            </TamboV1StreamProvider>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );
@@ -618,9 +626,7 @@ describe("useTamboV1SendMessage mutation", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry as any}>
-            <TamboV1StreamProvider threadId="thread_123">
-              {children}
-            </TamboV1StreamProvider>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );
@@ -699,9 +705,7 @@ describe("useTamboV1SendMessage mutation", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry as any}>
-            <TamboV1StreamProvider threadId="thread_123">
-              {children}
-            </TamboV1StreamProvider>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );
@@ -744,9 +748,7 @@ describe("useTamboV1SendMessage mutation", () => {
     }) {
       return (
         <QueryClientProvider client={queryClient}>
-          <TamboV1StreamProvider threadId="thread_123">
-            {children}
-          </TamboV1StreamProvider>
+          <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
         </QueryClientProvider>
       );
     }
@@ -780,9 +782,7 @@ describe("useTamboV1SendMessage mutation", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry as any}>
-            <TamboV1StreamProvider threadId="thread_123">
-              {children}
-            </TamboV1StreamProvider>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );
@@ -919,9 +919,7 @@ describe("useTamboV1SendMessage mutation", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry as any}>
-            <TamboV1StreamProvider threadId="thread_123">
-              {children}
-            </TamboV1StreamProvider>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );
@@ -982,9 +980,7 @@ describe("useTamboV1SendMessage mutation", () => {
       return (
         <QueryClientProvider client={queryClient}>
           <TamboRegistryContext.Provider value={mockRegistry as any}>
-            <TamboV1StreamProvider threadId="thread_123">
-              {children}
-            </TamboV1StreamProvider>
+            <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
           </TamboRegistryContext.Provider>
         </QueryClientProvider>
       );

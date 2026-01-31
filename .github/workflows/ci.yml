@@ -10,16 +10,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
     env:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
-    runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
       - name: Setup tools
         uses: ./.github/actions/setup-tools
@@ -30,12 +32,61 @@ jobs:
       - name: Run Lint
         run: npm run lint
 
+      - name: Build React SDK types
+        run: npm -w @tambo-ai/react run build:cjs
+
+      - name: Run Type Check
+        run: npm run check-types
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
+
       - name: Run Tests
-        # Have to use extra -- -- because of turbo wrapping
         run: npm run test -- -- --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          fail_ci_if_error: false
+          codecov_yml_path: ".github/codecov.yml"
+
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
 
       - name: Run E2E Tests
         run: npm run test:e2e -w @tambo-ai-cloud/api
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Setup tools
+        uses: ./.github/actions/setup-tools
 
       - name: Build
         run: npm run build
@@ -46,3 +97,11 @@ jobs:
           NEXTAUTH_SECRET: "dummy-nextauth-secret"
           NEXTAUTH_URL: "http://localhost:8260"
           SKIP_ENV_VALIDATION: "true"
+
+  status:
+    needs: [lint, test, e2e, build]
+    if: ${{ always() }}
+    uses: ./.github/workflows/workflow-check.yml
+    with:
+      pass-condition: ${{ contains(needs.*.result, 'failure') == false }}
+      error-message: "One or more of the CI jobs have failed. Please view the jobs for this workflow run for more details."
