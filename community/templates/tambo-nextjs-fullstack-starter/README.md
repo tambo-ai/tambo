@@ -46,21 +46,21 @@ A production-ready Next.js template with Tambo AI, Google OAuth, and PostgreSQL.
 
 Create a `.env.local` file (e.g. by copying `.env.example`) and set these variables. Here’s what each one is and **how to generate or obtain it**:
 
-| Variable                           | Description                           | How to generate / obtain                                                                                                                                                                                                                                          |
-| ---------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_TAMBO_API_KEY`        | Tambo AI API key                      | Run `npx tambo init` or get one for free at [tambo.co/dashboard](https://tambo.co/dashboard).                                                                                                                                                                     |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`     | Google OAuth 2.0 Client ID            | [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services** → **Credentials** → **Create credentials** → **OAuth client ID**. Choose “Web application”, add authorized redirect URIs (e.g. `http://localhost:3000/api/auth/callback/google`). |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client secret        | Same OAuth client as above. Copy the “Client secret” from the client details.                                                                                                                                                                                     |
-| `AUTH_SECRET`                      | NextAuth.js session encryption secret | Generate a random string: `openssl rand -base64 32` (run in terminal).                                                                                                                                                                                            |
-| `AUTH_URL`                         | Your app’s base URL                   | Use your app URL, e.g. `http://localhost:3000` for local dev, or your production URL (e.g. `https://your-app.vercel.app`).                                                                                                                                        |
-| `DATABASE_URL`                     | PostgreSQL connection string          | **(Optional.)** Create a Postgres DB (e.g. [Vercel Postgres](https://vercel.com/storage/postgres), [Supabase](https://supabase.com), or local). Format: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`.                                                          |
+| Variable                    | Description                           | How to generate / obtain                                                                                                                                                                                                                                          |
+| --------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_TAMBO_API_KEY` | Tambo AI API key                      | Run `npx tambo init` or get one for free at [tambo.co/dashboard](https://tambo.co/dashboard).                                                                                                                                                                     |
+| `GOOGLE_CLIENT_ID`          | Google OAuth 2.0 Client ID            | [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services** → **Credentials** → **Create credentials** → **OAuth client ID**. Choose “Web application”, add authorized redirect URIs (e.g. `http://localhost:3000/api/auth/callback/google`). |
+| `GOOGLE_CLIENT_SECRET`      | Google OAuth 2.0 Client secret        | Same OAuth client as above. Copy the “Client secret” from the client details.                                                                                                                                                                                     |
+| `AUTH_SECRET`               | NextAuth.js session encryption secret | Generate a random string: `openssl rand -base64 32` (run in terminal).                                                                                                                                                                                            |
+| `AUTH_URL`                  | Your app’s base URL                   | Use your app URL, e.g. `http://localhost:3000` for local dev, or your production URL (e.g. `https://your-app.vercel.app`).                                                                                                                                        |
+| `DATABASE_URL`              | PostgreSQL connection string          | **(Optional.)** Create a Postgres DB (e.g. [Vercel Postgres](https://vercel.com/storage/postgres), [Supabase](https://supabase.com), or local). Format: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`.                                                          |
 
 **Example `.env.local`:**
 
 ```env
 NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
-NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 AUTH_SECRET=your_generated_secret
 AUTH_URL=http://localhost:3000
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname
