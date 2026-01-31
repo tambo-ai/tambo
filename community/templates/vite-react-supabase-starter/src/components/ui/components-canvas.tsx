@@ -1,5 +1,6 @@
 import { useCanvasStore, type CanvasComponent } from "@/lib/canvas-storage";
 import { components } from "@/lib/tambo";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import {
     DndContext,
@@ -167,8 +168,17 @@ export const ComponentsCanvas: React.FC<React.HTMLAttributes<HTMLDivElement>> = 
             };
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const handleDelete = (_id: string) => {
+            const handleDelete = async (_id: string) => {
                 if (canvasId) {
+                    const { error } = await supabase
+                        .from("sticky_notes")
+                        .delete()
+                        .eq("id", componentId);
+
+                    if (error) {
+                        console.error("Failed to delete note from Supabase:", error);
+                    }
+
                     removeComponent(canvasId, componentId);
                 }
             };
@@ -205,8 +215,8 @@ export const ComponentsCanvas: React.FC<React.HTMLAttributes<HTMLDivElement>> = 
                 {...attributes}
                 {...listeners}
                 className={cn(
-                    "cursor-grab active:cursor-grabbing select-none",
-                    isDragging && "opacity-80 scale-[1.01]"
+                    "cursor-grab active:cursor-grabbing select-none h-fit",
+                    isDragging && "opacity-80 scale-[1.01] shadow-lg"
                 )}
             >
                 {renderComponent(componentProps)}
@@ -368,7 +378,7 @@ export const ComponentsCanvas: React.FC<React.HTMLAttributes<HTMLDivElement>> = 
                             items={activeCanvas.components.map((c) => c.componentId)}
                             strategy={rectSortingStrategy}
                         >
-                            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            <div className="flex flex-wrap gap-6 items-start">
                                 {activeCanvas.components.map((c) => (
                                     <SortableItem key={c.componentId} componentProps={c} />
                                 ))}

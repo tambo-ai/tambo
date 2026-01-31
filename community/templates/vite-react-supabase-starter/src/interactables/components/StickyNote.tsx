@@ -3,13 +3,15 @@ import { useTamboComponentState } from "@tambo-ai/react";
 import { Pencil, Trash2, X, Check } from "lucide-react";
 import * as React from "react";
 import { z } from "zod";
+import { Streamdown } from "streamdown";
+import { markdownComponents } from "@/components/tambo/markdown-components";
 
 /**
  * StickyNote Schema for Tambo AI 
  */
 export const stickyNoteSchema = z.object({
-    title: z.string().describe("The title/heading of the sticky note"),
-    content: z.string().describe("The main content/body of the sticky note"),
+    title: z.string().optional().default("").describe("The title/heading of the sticky note"),
+    content: z.string().optional().default("").describe("The main content/body of the sticky note"),
     color: z
         .enum(["default", "accent", "muted"])
         .optional()
@@ -32,7 +34,7 @@ export type StickyNoteState = {
 };
 
 export const StickyNote = React.forwardRef<HTMLDivElement, StickyNoteProps>(
-    ({ id, title, content, color = "default", createdAt, className, onUpdate, onDelete }, ref) => {
+    ({ id, title = "", content = "", color = "default", createdAt, className, onUpdate, onDelete }, ref) => {
         const [stableId] = React.useState(() => id || `note-${Date.now()}`);
 
         const [state, setState] = useTamboComponentState<StickyNoteState>(
@@ -92,10 +94,10 @@ export const StickyNote = React.forwardRef<HTMLDivElement, StickyNoteProps>(
                 className={cn(
                     "group relative",
                     "bg-white rounded-lg",
-                    "border border-gray-100 border-t-2",
+                    "border border-gray-300 border-t-2",
                     accentStyles[color],
-                    "w-full",
-                    "hover:border-gray-200",
+                    "min-w-[280px] max-w-[350px] w-full",
+                    "hover:border-gray-400",
                     "transition-colors duration-150",
                     className
                 )}
@@ -163,9 +165,11 @@ export const StickyNote = React.forwardRef<HTMLDivElement, StickyNoteProps>(
                                 </h3>
                             )}
 
-                            <p className="text-[13px] text-gray-600 whitespace-pre-wrap break-words leading-relaxed">
-                                {content}
-                            </p>
+                            <div className="text-[13px] text-gray-600 break-words leading-relaxed prose prose-sm prose-gray max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>pre]:my-2 [&>pre]:text-xs [&>pre]:p-2 [&>pre]:bg-gray-50 [&>pre]:rounded [&_code]:text-xs [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded">
+                                <Streamdown components={markdownComponents}>
+                                    {content}
+                                </Streamdown>
+                            </div>
 
                             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
                                 <span className="text-[10px] text-gray-300 font-mono">
