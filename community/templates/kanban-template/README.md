@@ -8,7 +8,7 @@ A conversational kanban board powered by [Tambo](https://tambo.co). Create, move
 
 **Live Demo:** [tambo-kanban.vercel.app](https://tambo-kanban.vercel.app)
 
-https://github.com/user-attachments/assets/tambo.mp4
+https://github.com/user-attachments/assets/04cbd93c-569b-49ca-bb36-964bbe5bd5ca
 
 ## Features
 
