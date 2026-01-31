@@ -2,6 +2,18 @@
 
 This is a starter Next.js app with Tambo and Prisma hooked up for AI-powered task management. Natural language can create and list tasks, persisted with SQLite.
 
+# Screen Shot
+<img width="1920" height="898" alt="HomePage" src="https://github.com/user-attachments/assets/da2d4d7c-81ba-4a30-a689-efdc860f13c3" />
+<img width="1920" height="912" alt="chatPage" src="https://github.com/user-attachments/assets/e18783ab-dede-4266-8de9-e6cd89873b36" />
+
+# Demo Video
+
+
+https://github.com/user-attachments/assets/b91d51d2-5157-400a-a423-7eb963d1387d
+
+
+
+
 ## Get Started
 
 1. Run `npm create-tambo@latest my-tambo-app` for a new project, or clone this template.
