@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/tambo-ai/tambo/compare/docs-v1.24.0...docs-v1.25.0) (2026-01-31)
+
+
+### Features
+
+* **react-sdk:** update useTamboV1Suggestions to use v1 API endpoints ([#2096](https://github.com/tambo-ai/tambo/issues/2096)) ([afa26c3](https://github.com/tambo-ai/tambo/commit/afa26c36335ad235ef0fb04675b2713e380d8354))
+
 ## [1.24.0](https://github.com/tambo-ai/tambo/compare/docs-v1.23.1...docs-v1.24.0) (2026-01-30)
 
 
