@@ -68,7 +68,11 @@ describe("component-streaming", () => {
 
   describe("ComponentStreamTracker", () => {
     it("emits start event on first delta", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeatherCard",
+      );
 
       const events = tracker.processJsonDelta("{");
 
@@ -80,17 +84,26 @@ describe("component-streaming", () => {
       expect(
         (
           events[0] as unknown as {
-            value: { componentId: string; name: string };
+            value: {
+              messageId: string;
+              componentId: string;
+              componentName: string;
+            };
           }
         ).value,
       ).toEqual({
+        messageId: "msg_123",
         componentId: "comp_123",
-        name: "WeatherCard",
+        componentName: "WeatherCard",
       });
     });
 
     it("emits props_delta when new property is detected", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeatherCard",
+      );
 
       // First delta - start event
       tracker.processJsonDelta('{"tem');
@@ -116,7 +129,11 @@ describe("component-streaming", () => {
     });
 
     it("escapes JSON Pointer segments in patch paths", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeirdKeys",
+      );
 
       const events = tracker.processJsonDelta('{"foo/bar": 1, "til~de": 2}');
 
@@ -146,7 +163,11 @@ describe("component-streaming", () => {
     });
 
     it("escapes JSON Pointer segments in replace patches", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeirdKeys",
+      );
 
       tracker.processJsonDelta('{"foo/bar": "Hel');
       const events = tracker.processJsonDelta('lo"}');
@@ -169,7 +190,11 @@ describe("component-streaming", () => {
     });
 
     it("handles empty-string keys in JSON Pointer paths", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeirdKeys",
+      );
 
       const events = tracker.processJsonDelta('{"": 1}');
       const propsDeltaEvent = events.find(
@@ -190,7 +215,11 @@ describe("component-streaming", () => {
     });
 
     it("tracks streaming status correctly", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeatherCard",
+      );
 
       // First delta: temperature is seen, starts as "started"
       tracker.processJsonDelta('{"temperature": 72');
@@ -217,7 +246,11 @@ describe("component-streaming", () => {
     });
 
     it("emits end event on finalize", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeatherCard",
+      );
 
       tracker.processJsonDelta('{"temperature": 72, "location": "NYC"}');
       const endEvents = tracker.finalize();
@@ -239,7 +272,11 @@ describe("component-streaming", () => {
     });
 
     it("handles incremental string property streaming", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "TextDisplay");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "TextDisplay",
+      );
 
       // Start with partial string
       tracker.processJsonDelta('{"text": "Hello');
@@ -258,7 +295,11 @@ describe("component-streaming", () => {
     });
 
     it("handles nested object properties", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "DataCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "DataCard",
+      );
 
       // Collect all events across the streaming
       const allEvents = [
@@ -302,7 +343,11 @@ describe("component-streaming", () => {
     });
 
     it("handles array properties", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "ListComponent");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "ListComponent",
+      );
 
       tracker.processJsonDelta('{"items": [1, 2');
       const events = tracker.processJsonDelta(", 3]}");
@@ -324,7 +369,11 @@ describe("component-streaming", () => {
     });
 
     it("handles empty JSON gracefully", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "EmptyComponent");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "EmptyComponent",
+      );
 
       tracker.processJsonDelta("{}");
       const endEvents = tracker.finalize();
@@ -340,7 +389,7 @@ describe("component-streaming", () => {
     });
 
     it("returns empty events for invalid JSON during streaming", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "Test");
+      const tracker = new ComponentStreamTracker("msg_123", "comp_123", "Test");
 
       // First call gets start event
       const startEvents = tracker.processJsonDelta("{");
@@ -352,14 +401,22 @@ describe("component-streaming", () => {
     });
 
     it("detects property updates", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "Counter");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "Counter",
+      );
 
       // Initial value
       tracker.processJsonDelta('{"count": 1}');
 
       // This won't actually update in normal streaming, but let's test the replace logic
       // by simulating a scenario where we start fresh tracking
-      const tracker2 = new ComponentStreamTracker("comp_456", "Counter");
+      const tracker2 = new ComponentStreamTracker(
+        "msg_456",
+        "comp_456",
+        "Counter",
+      );
       tracker2.processJsonDelta('{"count": 1}');
       // Since we can't directly test replace in streaming (JSON only grows),
       // we test that the tracker handles the case correctly
@@ -369,6 +426,7 @@ describe("component-streaming", () => {
 
     it("throws error when JSON exceeds 10MB limit", () => {
       const tracker = new ComponentStreamTracker(
+        "msg_large",
         "comp_large",
         "LargeComponent",
       );
@@ -385,6 +443,7 @@ describe("component-streaming", () => {
 
     it("throws error when accumulated JSON exceeds 10MB limit", () => {
       const tracker = new ComponentStreamTracker(
+        "msg_large",
         "comp_large",
         "LargeComponent",
       );
@@ -403,6 +462,7 @@ describe("component-streaming", () => {
 
     it("throws error when finalize receives unparseable JSON", () => {
       const tracker = new ComponentStreamTracker(
+        "msg_broken",
         "comp_broken",
         "BrokenComponent",
       );
