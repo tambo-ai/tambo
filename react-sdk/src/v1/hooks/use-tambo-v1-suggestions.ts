@@ -252,11 +252,11 @@ export function useTamboV1Suggestions(
         userKey,
       });
     },
+    ...queryOptions,
     enabled: Boolean(shouldFetchSuggestions),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
-    ...queryOptions,
   });
 
   // Mutation to manually generate suggestions
