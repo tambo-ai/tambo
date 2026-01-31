@@ -2,7 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Optional base styles */
+/* Design tokens aligned with official Tambo template */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --primary: #3b0764;
+  --primary-foreground: #faf5ff;
+  --secondary: #7c3aed;
+  --secondary-foreground: #ffffff;
+  --muted: #f5f3ff;
+  --muted-foreground: #6b7280;
+  --accent: #f5f3ff;
+  --accent-foreground: #3b0764;
+  --border: #e9e5f0;
+  --input: #e9e5f0;
+  --ring: #171717;
+  --container: #faf5ff;
+}
+
+.dark {
+  --background: #0f0a14;
+  --foreground: #faf5ff;
+  --card: #1a1220;
+  --card-foreground: #faf5ff;
+  --primary: #e9d5ff;
+  --primary-foreground: #1a1220;
+  --secondary: #4c1d95;
+  --secondary-foreground: #faf5ff;
+  --muted: #2d1f3d;
+  --muted-foreground: #c4b5fd;
+  --accent: #2d1f3d;
+  --accent-foreground: #faf5ff;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #c4b5fd;
+  --container: #1a1220;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
 html,
 body {
   height: 100%;

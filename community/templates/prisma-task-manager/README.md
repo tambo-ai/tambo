@@ -1,143 +1,143 @@
-Prisma Task Manager (Tambo Template)
+# Prisma Task Manager (Tambo Template)
 
-A minimal starter template demonstrating how to use Tambo with Prisma to build AI-powered apps where natural language can create and fetch database records and render React components.
+This is a starter Next.js app with Tambo and Prisma hooked up for AI-powered task management. Natural language can create and list tasks, persisted with SQLite.
 
-This template connects:
+## Get Started
 
-Tambo tools
+1. Run `npm create-tambo@latest my-tambo-app` for a new project, or clone this template.
+2. `npm install`
+3. `npx tambo init` — or rename `example.env.local` to `.env.local` and add your [Tambo API key](https://tambo.co/dashboard) (free).
+4. `npx prisma migrate dev` to set up the database.
+5. `npm run dev` and go to [localhost:3000](http://localhost:3000).
 
-Prisma ORM (SQLite)
+## Customizing
 
-API routes
+### Change what components Tambo can control
 
-AI-driven component rendering
+Components are registered in `src/lib/tambo.ts`:
 
-into a clean, production-style setup.
+```ts
+export const components: TamboComponent[] = [
+  {
+    name: "TaskList",
+    description: "Displays a list of tasks...",
+    component: TaskList,
+    propsSchema: taskListPropsSchema,
+  },
+  // Add more components here
+];
+```
 
-✨ What This Template Demonstrates
+Update the `components` array to add or change components Tambo can render.
 
-Registering Tambo tools that read/write to a database
+You can find more information about the options [here](https://docs.tambo.co/concepts/generative-interfaces/generative-components).
 
-Using Prisma with SQLite
+### Add tools for Tambo to use
 
-Returning structured data from tools
+Tools are defined in `src/lib/tambo.ts` with `inputSchema` and `outputSchema`:
 
-Rendering React components from AI responses
+```ts
+export const tools: TamboTool[] = [
+  {
+    name: "createTask",
+    description: "Create a new task",
+    inputSchema: z.object({ title: z.string() }),
+    outputSchema: z.object({ message: z.string() }),
+    tool: async ({ title }) => { ... },
+  },
+  {
+    name: "getTasks",
+    description: "Get all tasks",
+    ...
+  },
+];
+```
 
-Building a simple chat interface using Tambo hooks
+Find more information about [tools](https://docs.tambo.co/concepts/tools) in the docs.
 
-🖼 Screenshot
+### TamboProvider
 
-Add a screenshot of the chat UI showing a task list rendered by Tambo.
-(Drag screenshot into PR, copy the GitHub link, and paste here)
+The chat page wraps the UI in `TamboProvider` with `components` and `tools` from `src/lib/tambo.ts`:
 
-🎥 Video Demo
+```tsx
+<TamboProvider
+  apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+  components={components}
+  tools={tools}
+>
+  <ChatClient />
+</TamboProvider>
+```
 
-Add a short screen recording showing:
+In this example we do this in the chat page (`src/app/chat/page.tsx`), but you can do it anywhere in your app that is a client component.
 
-Opening the app
+### Change where component responses are shown
 
-Adding a task via chat
+The components used by Tambo are shown alongside the message response from Tambo within the chat thread, but you can have the result components show wherever you like by accessing the latest thread message's `renderedComponent` field:
 
-Listing tasks
-(Paste GitHub video link here)
+```tsx
+const { thread } = useTamboThread();
+const latestComponent =
+  thread?.messages[thread.messages.length - 1]?.renderedComponent;
 
-🧰 Tech Stack
+return (
+  <div>
+    {latestComponent && (
+      <div className="my-custom-wrapper">{latestComponent}</div>
+    )}
+  </div>
+);
+```
 
-Next.js (App Router)
+## Video Demo
 
-Tambo
+Please add a short screen recording (e.g. Loom, GitHub video) showing:
 
-Prisma ORM
+1. Opening the app (home page and setup checklist).
+2. Going to Chat and adding a task via natural language (e.g. “Add task Buy milk”).
+3. Asking to list tasks and seeing the TaskList component render.
 
-SQLite
+Paste the video link in your PR description.
 
-Tailwind CSS
+## Tech Stack
 
-📦 Prerequisites
+- Next.js (App Router)
+- Tambo
+- Prisma ORM
+- SQLite
+- Tailwind CSS
 
-Node.js 18.17+
+## Project Structure
 
-A Tambo API key
-
-⚙️ Setup
-
-Install dependencies:
-
-npm install
-
-
-Create environment file:
-
-cp .env.example .env.local
-
-
-Add your keys in .env.local:
-
-NEXT_PUBLIC_TAMBO_API_KEY=your_key_here
-DATABASE_URL="file:./dev.db"
-
-
-Initialize database:
-
-npx prisma migrate dev
-
-
-Start dev server:
-
-npm run dev
-
-
-Open:
-
-http://localhost:3000
-
-🧪 Try It
-
-In chat, type:
-
-Add task Buy milk
-Show my tasks
-
-
-You should see tasks rendered as a UI component.
-
-📁 Project Structure
+```
 src/
   app/
-    page.tsx            # Landing page
+    page.tsx           # Landing page (ApiKeyCheck, KeyFilesSection)
+    layout.tsx         # Root layout (fonts, globals)
     chat/
-      page.tsx
-      ChatClient.tsx
-      tools.ts
+      page.tsx        # Chat page (TamboProvider + ChatClient)
+      ChatClient.tsx  # Chat UI (thread + input)
     api/
       tasks/
-        route.ts
+        route.ts      # GET/POST tasks
   components/
+    ApiKeyCheck.tsx   # API key setup prompt
     tambo/
-      TaskList.tsx
+      TaskList.tsx    # Task list component
   lib/
-    prisma.ts
-
+    tambo.ts          # Components + tools registration
+    prisma.ts         # Prisma client
 prisma/
   schema.prisma
+```
 
-💡 Why This Template Exists
+## Try It
 
-This template provides a minimal reference for building database-backed AI apps using Tambo, without extra complexity or multiple integrations.
+In chat, try:
 
-It is intended as a starting point that can be easily adapted for other schemas, models, and use cases.
+- **Add task Buy milk**
+- **Show my tasks** / **List tasks**
 
-✅ .env.example
+Tasks are stored in SQLite and rendered as the TaskList component.
 
-Create a file named:
-
-.env.example
-
-
-With:
-
-NEXT_PUBLIC_TAMBO_API_KEY=
-DATABASE_URL="file:./dev.db"
-
-
+For more details, see [Tambo’s official docs](https://docs.tambo.co).

@@ -1,25 +1,22 @@
-type Task = {
-  id: string;
-  title: string;
-  createdAt: string;
-};
-
-export default function TaskList({ tasks }: { tasks: any[] }) {
+export default function TaskList({
+  tasks = [],
+}: {
+  tasks?: Array<{ id: string; title: string }>;
+}) {
+  const list = tasks ?? [];
   return (
-    <div className="bg-slate-800 border border-slate-600 rounded-lg p-3">
-      <p className="font-semibold mb-2">📋 Tasks</p>
-
+    <div className="rounded-lg border border-border bg-card p-4 text-card-foreground">
+      <p className="mb-2 font-semibold">📋 Tasks</p>
       <ul className="space-y-2">
-        {tasks.map((t) => (
+        {list.map((t, i) => (
           <li
-            key={t.id}
-            className="flex items-center gap-2 bg-slate-700 px-2 py-1 rounded"
+            key={t.id || `task-${i}`}
+            className="flex items-center gap-2 rounded border border-border bg-muted/50 px-3 py-2 text-sm"
           >
-            ✅ {t.title}
+            ✅ {t.title ?? ""}
           </li>
         ))}
       </ul>
     </div>
   );
 }
-
