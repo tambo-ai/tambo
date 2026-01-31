@@ -3,7 +3,17 @@
 import { cn } from "@/lib/utils";
 import { useTaskStore } from "@/lib/task-store";
 import type { Status, Task } from "@/types/task";
+import confetti from "canvas-confetti";
 import * as React from "react";
+
+const triggerConfetti = () => {
+  confetti({
+    particleCount: 80,
+    spread: 60,
+    origin: { y: 0.7 },
+    colors: ["#10b981", "#34d399", "#6ee7b7"],
+  });
+};
 
 interface Column {
   id: Status;
@@ -207,6 +217,10 @@ export const KanbanBoard = React.forwardRef<HTMLDivElement, KanbanBoardProps>(
       const taskId = e.dataTransfer.getData("text/plain");
       if (taskId && draggedTask && draggedTask.status !== newStatus) {
         moveTask(taskId, newStatus);
+        // Celebrate when task is completed
+        if (newStatus === "done") {
+          triggerConfetti();
+        }
       }
       setDraggedTask(null);
     };
