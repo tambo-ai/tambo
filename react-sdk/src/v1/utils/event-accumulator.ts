@@ -146,13 +146,33 @@ export function createInitialThreadState(threadId: string): ThreadState {
 }
 
 /**
- * Create initial stream state with empty threadMap.
+ * Placeholder thread ID used for new threads before they get a real ID from the server.
+ * This allows optimistic UI updates (showing user messages immediately) before the
+ * server responds with the actual thread ID.
+ */
+export const PLACEHOLDER_THREAD_ID = "placeholder";
+
+/**
+ * Check if a thread ID is a placeholder (not a real API thread ID).
+ * @param threadId - Thread ID to check
+ * @returns True if this is a placeholder thread ID
+ */
+export function isPlaceholderThreadId(
+  threadId: string | null | undefined,
+): boolean {
+  return threadId === PLACEHOLDER_THREAD_ID;
+}
+
+/**
+ * Create initial stream state with placeholder thread.
  * @returns Initial stream state
  */
 export function createInitialState(): StreamState {
   return {
-    threadMap: {},
-    currentThreadId: null,
+    threadMap: {
+      [PLACEHOLDER_THREAD_ID]: createInitialThreadState(PLACEHOLDER_THREAD_ID),
+    },
+    currentThreadId: PLACEHOLDER_THREAD_ID,
   };
 }
 
@@ -363,37 +383,36 @@ export function streamReducer(
     };
   }
 
-  // Handle temp thread migration for RUN_STARTED events
-  // When a new thread is created, messages may have been added to a temp thread
+  // Handle placeholder thread migration for RUN_STARTED events
+  // When a new thread is created, messages may have been added to the placeholder thread
   // for immediate UI feedback. Now that we have the real threadId, migrate those messages.
   if (
     event.type === EventType.RUN_STARTED &&
-    updatedState.currentThreadId &&
-    updatedState.currentThreadId.startsWith("temp_") &&
+    isPlaceholderThreadId(updatedState.currentThreadId) &&
     updatedState.currentThreadId !== threadId
   ) {
-    const tempThreadState =
-      updatedState.threadMap[updatedState.currentThreadId];
-    if (tempThreadState && tempThreadState.thread.messages.length > 0) {
-      // Prepend temp thread messages to the real thread
+    const placeholderState =
+      updatedState.threadMap[updatedState.currentThreadId!];
+    if (placeholderState && placeholderState.thread.messages.length > 0) {
+      // Prepend placeholder thread messages to the real thread
       threadState = {
         ...threadState,
         thread: {
           ...threadState.thread,
           messages: [
-            ...tempThreadState.thread.messages,
+            ...placeholderState.thread.messages,
             ...threadState.thread.messages,
           ],
         },
       };
 
-      // Remove temp thread and update currentThreadId
-      const { [updatedState.currentThreadId]: _removed, ...restThreadMap } =
-        updatedState.threadMap;
+      // Reset placeholder thread to empty state and update currentThreadId
+      const resetPlaceholder = createInitialThreadState(PLACEHOLDER_THREAD_ID);
       updatedState = {
         ...updatedState,
         threadMap: {
-          ...restThreadMap,
+          ...updatedState.threadMap,
+          [PLACEHOLDER_THREAD_ID]: resetPlaceholder,
           [threadId]: threadState,
         },
         currentThreadId: threadId,

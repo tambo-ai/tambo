@@ -83,11 +83,14 @@ describe("createInitialThreadState", () => {
 });
 
 describe("createInitialState", () => {
-  it("creates empty stream state", () => {
+  it("creates initial state with placeholder thread", () => {
     const state = createInitialState();
 
-    expect(state.threadMap).toEqual({});
-    expect(state.currentThreadId).toBeNull();
+    expect(state.currentThreadId).toBe("placeholder");
+    expect(state.threadMap.placeholder).toBeDefined();
+    expect(state.threadMap.placeholder.thread.id).toBe("placeholder");
+    expect(state.threadMap.placeholder.thread.messages).toEqual([]);
+    expect(state.threadMap.placeholder.streaming.status).toBe("idle");
   });
 });
 
@@ -227,18 +230,14 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.streaming.startTime).toBe(1704067200000);
     });
 
-    it("migrates messages from temp thread to real thread", () => {
-      // Start with a temp thread that has a user message (for optimistic UI)
+    it("migrates messages from placeholder thread to real thread", () => {
+      // Start with initial state (which has placeholder thread)
       const state = createInitialState();
 
-      // Create temp thread with a user message
-      const tempThreadId = "temp_abc123";
-      const stateWithTempThread = streamReducer(state, {
-        type: "START_NEW_THREAD",
-        threadId: tempThreadId,
-      });
+      // Verify placeholder thread exists
+      expect(state.currentThreadId).toBe("placeholder");
 
-      // Add a user message to the temp thread
+      // Add a user message to the placeholder thread
       const userMsgStart: TextMessageStartEvent = {
         type: EventType.TEXT_MESSAGE_START,
         messageId: "user_msg_1",
@@ -254,29 +253,29 @@ describe("streamReducer", () => {
         messageId: "user_msg_1",
       };
 
-      let stateWithUserMsg = streamReducer(stateWithTempThread, {
+      let stateWithUserMsg = streamReducer(state, {
         type: "EVENT",
         event: userMsgStart,
-        threadId: tempThreadId,
+        threadId: "placeholder",
       });
       stateWithUserMsg = streamReducer(stateWithUserMsg, {
         type: "EVENT",
         event: userMsgContent,
-        threadId: tempThreadId,
+        threadId: "placeholder",
       });
       stateWithUserMsg = streamReducer(stateWithUserMsg, {
         type: "EVENT",
         event: userMsgEnd,
-        threadId: tempThreadId,
+        threadId: "placeholder",
       });
 
-      // Verify temp thread has the message
-      expect(stateWithUserMsg.currentThreadId).toBe(tempThreadId);
+      // Verify placeholder thread has the message
+      expect(stateWithUserMsg.currentThreadId).toBe("placeholder");
       expect(
-        stateWithUserMsg.threadMap[tempThreadId].thread.messages,
+        stateWithUserMsg.threadMap.placeholder.thread.messages,
       ).toHaveLength(1);
       expect(
-        stateWithUserMsg.threadMap[tempThreadId].thread.messages[0].content[0],
+        stateWithUserMsg.threadMap.placeholder.thread.messages[0].content[0],
       ).toEqual({
         type: "text",
         text: "Hello",
@@ -297,8 +296,11 @@ describe("streamReducer", () => {
         threadId: realThreadId,
       });
 
-      // Temp thread should be removed
-      expect(finalState.threadMap[tempThreadId]).toBeUndefined();
+      // Placeholder thread should be reset to empty (not removed)
+      expect(finalState.threadMap.placeholder).toBeDefined();
+      expect(finalState.threadMap.placeholder.thread.messages).toHaveLength(
+        0,
+      );
 
       // Real thread should have the migrated user message
       expect(finalState.threadMap[realThreadId]).toBeDefined();
@@ -324,7 +326,7 @@ describe("streamReducer", () => {
       );
     });
 
-    it("does not migrate when currentThreadId is not a temp thread", () => {
+    it("does not migrate when currentThreadId is not placeholder", () => {
       // Start with a real thread
       const state = createTestStreamState("thread_1");
       state.currentThreadId = "thread_1";

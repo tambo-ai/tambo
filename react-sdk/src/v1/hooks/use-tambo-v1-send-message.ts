@@ -23,6 +23,7 @@ import {
 } from "../providers/tambo-v1-stream-context";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import type { InputMessage } from "../types/message";
+import { isPlaceholderThreadId } from "../utils/event-accumulator";
 import {
   toAvailableComponents,
   toAvailableTools,
@@ -237,8 +238,8 @@ export function useTamboV1SendMessage(threadId?: string) {
     );
   }
 
-  // Temp IDs (from startNewThread) aren't valid API thread IDs - treat as new thread creation
-  const isNewThread = !threadId || threadId.startsWith("temp_");
+  // Placeholder ID isn't a valid API thread ID - treat as new thread creation
+  const isNewThread = isPlaceholderThreadId(threadId);
   const apiThreadId = isNewThread ? undefined : threadId;
 
   // Get previousRunId from the thread's streaming state (if thread exists and has messages)

@@ -173,7 +173,7 @@ describe("useTamboV1", () => {
       newThreadId = result.current.startNewThread();
     });
 
-    expect(newThreadId!).toMatch(/^temp_/);
+    expect(newThreadId!).toBe("placeholder");
     expect(result.current.currentThreadId).toBe(newThreadId!);
     expect(result.current.thread).toBeDefined();
   });

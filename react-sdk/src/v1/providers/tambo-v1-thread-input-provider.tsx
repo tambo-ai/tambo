@@ -26,6 +26,7 @@ import {
 } from "../../hooks/react-query-hooks";
 import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message";
 import type { InputMessage } from "../types/message";
+import { isPlaceholderThreadId } from "../utils/event-accumulator";
 import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
 
 // Error messages for various input-related error scenarios.
@@ -151,9 +152,9 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
   const dispatch = useStreamDispatch();
 
   // Use the current thread from stream state directly
-  // Temp IDs (from startNewThread()) indicate a new thread should be created
+  // Placeholder ID indicates a new thread should be created
   const currentThreadId = streamState.currentThreadId ?? undefined;
-  const isNewThread = !currentThreadId || currentThreadId.startsWith("temp_");
+  const isNewThread = isPlaceholderThreadId(currentThreadId);
   const sendMessage = useTamboV1SendMessage(currentThreadId);
 
   const submitFn = useCallback(
