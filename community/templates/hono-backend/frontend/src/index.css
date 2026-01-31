@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -22,25 +24,48 @@
 }
 
 :root {
-  /* Dark mode - easier on the eyes with true black background */
-  --background: oklch(0 0 0); /* Pure black background */
-  --foreground: oklch(0.95 0 0); /* Light gray text */
-  --card: oklch(0.12 0 0); /* Very dark gray for cards */
-  --card-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.65 0.15 265); /* Purple accent */
-  --primary-foreground: oklch(1 0 0); /* White text on primary */
-  --secondary: oklch(0.25 0.02 265); /* Dark purple */
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.2 0 0); /* Dark gray */
-  --muted-foreground: oklch(0.6 0 0); /* Medium gray */
-  --accent: oklch(0.18 0.02 265); /* Darker purple accent */
-  --accent-foreground: oklch(0.95 0 0);
-  --border: oklch(0.25 0 0); /* Subtle border */
-  --input: oklch(0.15 0 0); /* Dark input background */
-  --ring: oklch(0.65 0.15 265); /* Purple focus ring */
-  --container: oklch(0.1 0 0);
-  --backdrop: oklch(0 0 0 / 0.5);
-  --muted-backdrop: oklch(0 0 0 / 0.3);
+  /* Light Mode - Tambo Official Colors */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.14 0 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0 285);
+  --primary: oklch(0.31 0.02 281);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.54 0.027 261);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.92 0 260);
+  --muted-foreground: oklch(0.73 0.022 260);
+  --accent: oklch(0.97 0 286);
+  --accent-foreground: oklch(0.21 0 286);
+  --border: oklch(0.93 0 242);
+  --input: oklch(0.92 0 286);
+  --ring: oklch(0.14 0 285);
+  --container: oklch(0.98 0 247);
+  --backdrop: oklch(0.25 0.07 252 / 0.25);
+  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Dark Mode - Tambo Official Colors */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --container: oklch(0.98 0 247);
+  --backdrop: oklch(0.25 0.07 252 / 0.25);
+  --muted-backdrop: oklch(0.25 0.07 252 / 0.1);
   --radius: 0.5rem;
 }
 
@@ -50,8 +75,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family:
-      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-      Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
   }
 }
