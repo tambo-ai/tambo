@@ -297,10 +297,13 @@ describe("component-streaming", () => {
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      const addOperation = propsDeltaEvent!.value.operations.find(
+      // The second delta updates the existing array, so it's a "replace" operation
+      const itemsOperation = propsDeltaEvent!.value.operations.find(
         (p) => p.path === "/items",
       );
-      expect(addOperation?.value).toEqual([1, 2, 3]);
+      expect(itemsOperation).toBeDefined();
+      expect(itemsOperation!.op).toBe("replace");
+      expect((itemsOperation as { value: unknown }).value).toEqual([1, 2, 3]);
     });
 
     it("handles empty JSON gracefully", () => {
