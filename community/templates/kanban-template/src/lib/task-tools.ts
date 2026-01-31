@@ -110,6 +110,50 @@ export const getTasksTool: TamboTool = {
   },
 };
 
+export const updateTaskTool: TamboTool = {
+  name: "updateTask",
+  description:
+    "Update a task's details like title, description, priority, or due date. Use when the user wants to modify an existing task.",
+  inputSchema: z.object({
+    taskId: z.string().describe("The ID of the task to update"),
+    title: z.string().optional().describe("New title for the task"),
+    description: z.string().optional().describe("New description for the task"),
+    priority: prioritySchema.optional().describe("New priority: low, medium, or high"),
+    dueDate: z.string().optional().describe("New due date"),
+  }),
+  outputSchema: z.object({
+    success: z.boolean(),
+    task: taskSchema.optional(),
+    error: z.string().optional(),
+  }),
+  tool: async (input: {
+    taskId: string;
+    title?: string;
+    description?: string;
+    priority?: Priority;
+    dueDate?: string;
+  }): Promise<{ success: boolean; task?: Task; error?: string }> => {
+    const store = useTaskStore.getState();
+    const existingTask = store.getTaskById(input.taskId);
+
+    if (!existingTask) {
+      return {
+        success: false,
+        error: `Task with ID "${input.taskId}" not found`,
+      };
+    }
+
+    const updates: Partial<Task> = {};
+    if (input.title !== undefined) updates.title = input.title;
+    if (input.description !== undefined) updates.description = input.description;
+    if (input.priority !== undefined) updates.priority = input.priority;
+    if (input.dueDate !== undefined) updates.dueDate = input.dueDate;
+
+    const task = store.updateTask(input.taskId, updates);
+    return { success: true, task: task ?? undefined };
+  },
+};
+
 export const deleteTaskTool: TamboTool = {
   name: "deleteTask",
   description:
@@ -146,5 +190,6 @@ export const taskTools: TamboTool[] = [
   createTaskTool,
   moveTaskTool,
   getTasksTool,
+  updateTaskTool,
   deleteTaskTool,
 ];
