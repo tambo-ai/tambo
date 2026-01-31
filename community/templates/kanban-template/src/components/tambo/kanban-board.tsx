@@ -85,9 +85,9 @@ const ColumnView = ({
   <div
     className={cn(
       "flex-1 min-w-[260px] max-w-[320px] flex flex-col",
-      "rounded-lg bg-muted/50",
+      "rounded-lg bg-emerald-500/5 border border-emerald-500/10",
       "transition-colors duration-150",
-      isDragOver && "bg-primary/5 ring-1 ring-primary/20"
+      isDragOver && "bg-emerald-500/10 ring-1 ring-emerald-500/30"
     )}
     onDragOver={onDragOver}
     onDrop={(e) => onDrop(e, column.id)}
