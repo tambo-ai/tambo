@@ -6,6 +6,10 @@ import {
   tryExtractComponentName,
   extractComponentName,
 } from "./component-streaming";
+import type {
+  ComponentStartEvent,
+  ComponentEndEvent,
+} from "./tambo-custom-events";
 
 describe("component-streaming", () => {
   it("partial-json parse returns fresh objects for identical input", () => {
@@ -77,21 +81,10 @@ describe("component-streaming", () => {
       const events = tracker.processJsonDelta("{");
 
       expect(events).toHaveLength(1);
-      expect(events[0].type).toBe(EventType.CUSTOM);
-      expect((events[0] as unknown as { name: string }).name).toBe(
-        "tambo.component.start",
-      );
-      expect(
-        (
-          events[0] as unknown as {
-            value: {
-              messageId: string;
-              componentId: string;
-              componentName: string;
-            };
-          }
-        ).value,
-      ).toEqual({
+      const startEvent = events[0] as ComponentStartEvent;
+      expect(startEvent.type).toBe(EventType.CUSTOM);
+      expect(startEvent.name).toBe("tambo.component.start");
+      expect(startEvent.value).toEqual({
         messageId: "msg_123",
         componentId: "comp_123",
         componentName: "WeatherCard",
@@ -112,16 +105,11 @@ describe("component-streaming", () => {
 
       // Should have props_delta event for the complete property
       const propsDeltaEvent = events2.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "add",
         path: "/temperature",
         value: 72,
@@ -138,24 +126,16 @@ describe("component-streaming", () => {
       const events = tracker.processJsonDelta('{"foo/bar": 1, "til~de": 2}');
 
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "add",
         path: "/foo~1bar",
         value: 1,
       });
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "add",
         path: "/til~0de",
         value: 2,
@@ -173,16 +153,11 @@ describe("component-streaming", () => {
       const events = tracker.processJsonDelta('lo"}');
 
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "replace",
         path: "/foo~1bar",
         value: "Hello",
@@ -198,16 +173,11 @@ describe("component-streaming", () => {
 
       const events = tracker.processJsonDelta('{"": 1}');
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "add",
         path: "/",
         value: 1,
@@ -228,21 +198,14 @@ describe("component-streaming", () => {
       const events = tracker.processJsonDelta(', "location": "NYC"}');
 
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      const value = (
-        propsDeltaEvent as unknown as {
-          value: { streamingStatus: Record<string, string> };
-        }
-      ).value;
       // temperature should be "done" because location was seen after it
-      expect(value.streamingStatus.temperature).toBe("done");
+      expect(propsDeltaEvent!.value.streamingStatus.temperature).toBe("done");
       // location should be "started" because no property has been seen after it yet
-      expect(value.streamingStatus.location).toBe("started");
+      expect(propsDeltaEvent!.value.streamingStatus.location).toBe("started");
     });
 
     it("emits end event on finalize", () => {
@@ -256,16 +219,9 @@ describe("component-streaming", () => {
       const endEvents = tracker.finalize();
 
       expect(endEvents).toHaveLength(1);
-      expect((endEvents[0] as unknown as { name: string }).name).toBe(
-        "tambo.component.end",
-      );
-      expect(
-        (
-          endEvents[0] as unknown as {
-            value: { finalProps: Record<string, unknown> };
-          }
-        ).value.finalProps,
-      ).toEqual({
+      const endEvent = endEvents[0] as ComponentEndEvent;
+      expect(endEvent.name).toBe("tambo.component.end");
+      expect(endEvent.value.finalProps).toEqual({
         temperature: 72,
         location: "NYC",
       });
@@ -286,9 +242,7 @@ describe("component-streaming", () => {
 
       // Should detect the change
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
@@ -309,37 +263,23 @@ describe("component-streaming", () => {
 
       // Find any props_delta event
       const propsDeltaEvents = allEvents.filter(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       // At least one props_delta should have been emitted
       expect(propsDeltaEvents.length).toBeGreaterThan(0);
 
-      // Check that data property was included in at least one patch
-      const hasDataPatch = propsDeltaEvents.some((event) => {
-        const value = (
-          event as unknown as { value: { patch: Array<{ path: string }> } }
-        ).value;
-        return value.patch.some((p) => p.path === "/data");
-      });
-      expect(hasDataPatch).toBe(true);
+      // Check that data property was included in at least one operations array
+      const hasDataOperation = propsDeltaEvents.some((event) =>
+        event.value.operations.some((p) => p.path === "/data"),
+      );
+      expect(hasDataOperation).toBe(true);
 
       // Verify the final state through finalize
       const endEvents = tracker.finalize();
-      const endEvent = endEvents.find(
-        (e) =>
-          (e as unknown as { name: string }).name === "tambo.component.end",
-      );
+      const endEvent = endEvents.find((e) => e.name === "tambo.component.end");
       expect(endEvent).toBeDefined();
-      expect(
-        (
-          endEvent as unknown as {
-            value: { finalProps: Record<string, unknown> };
-          }
-        ).value.finalProps,
-      ).toEqual({ data: { x: 1, y: 2 } });
+      expect(endEvent!.value.finalProps).toEqual({ data: { x: 1, y: 2 } });
     });
 
     it("handles array properties", () => {
@@ -353,19 +293,14 @@ describe("component-streaming", () => {
       const events = tracker.processJsonDelta(", 3]}");
 
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      const value = (
-        propsDeltaEvent as unknown as {
-          value: { patch: Array<{ path: string; value: unknown }> };
-        }
-      ).value;
-      const addPatch = value.patch.find((p) => p.path === "/items");
-      expect(addPatch?.value).toEqual([1, 2, 3]);
+      const addOperation = propsDeltaEvent!.value.operations.find(
+        (p) => p.path === "/items",
+      );
+      expect(addOperation?.value).toEqual([1, 2, 3]);
     });
 
     it("handles empty JSON gracefully", () => {
@@ -379,13 +314,8 @@ describe("component-streaming", () => {
       const endEvents = tracker.finalize();
 
       expect(endEvents).toHaveLength(1);
-      expect(
-        (
-          endEvents[0] as unknown as {
-            value: { finalProps: Record<string, unknown> };
-          }
-        ).value.finalProps,
-      ).toEqual({});
+      const endEvent = endEvents[0] as ComponentEndEvent;
+      expect(endEvent.value.finalProps).toEqual({});
     });
 
     it("returns empty events for invalid JSON during streaming", () => {
