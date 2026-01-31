@@ -1,11 +1,19 @@
 ---
 name: managing-threads
-description: Use this skill when working with Tambo threads, messages, suggestions, voice input, and image attachments. Triggers on "useTamboThread", "useTamboThreadList", "sendThreadMessage", "useTamboSuggestions", "useTamboVoice", "useMessageImages", "switchCurrentThread", "thread management", "multi-thread", "userToken", "user authentication".
+description: Manages Tambo threads, messages, suggestions, voice input, and image attachments. Triggers on useTamboThread, sendThreadMessage, useTamboSuggestions, useTamboVoice.
 ---
 
 # Threads and Input
 
-Manage conversations, AI-generated suggestions, and voice input.
+Manages conversations, suggestions, voice input, and image attachments.
+
+## Quick Start
+
+```tsx
+const { thread, sendThreadMessage, isIdle } = useTamboThread();
+
+await sendThreadMessage("Hello", { streamResponse: true });
+```
 
 ## Thread Management
 

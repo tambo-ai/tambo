@@ -1,11 +1,29 @@
 ---
 name: creating-tambo-components
-description: Use this skill when creating Tambo components - both generative (AI creates on-demand) and interactable (pre-placed, AI updates). Triggers on "TamboComponent", "withInteractable", "propsSchema", "register component", "generative component", "interactable", "pre-placed component".
+description: Creates and registers Tambo components - generative (AI creates on-demand) and interactable (pre-placed, AI updates). Triggers on TamboComponent, withInteractable, propsSchema, register component.
 ---
 
 # Tambo Components
 
-Two ways to use components with Tambo: **generative** (AI creates on-demand) and **interactable** (pre-placed, AI updates).
+Two component types: **generative** (AI creates on-demand) and **interactable** (pre-placed, AI updates).
+
+## Quick Start
+
+```tsx
+// Generative: AI creates when needed
+const components: TamboComponent[] = [
+  {
+    name: "WeatherCard",
+    component: WeatherCard,
+    description: "Shows weather. Use when user asks about weather.",
+    propsSchema: z.object({ city: z.string(), temp: z.number() }),
+  },
+];
+
+<TamboProvider components={components}>
+  <App />
+</TamboProvider>;
+```
 
 ## Generative Components
 

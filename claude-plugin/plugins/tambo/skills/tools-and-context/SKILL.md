@@ -1,11 +1,27 @@
 ---
 name: providing-context
-description: Use this skill when giving Tambo access to data and capabilities - custom tools, MCP servers, context helpers, context attachments, and local resources. Triggers on "defineTool", "MCP", "contextHelpers", "useTamboContextAttachment", "mcpServers", "register tool", "additional context", "@ mention", "resources", "listResources", "getResource".
+description: Provides Tambo with data and capabilities via custom tools, MCP servers, context helpers, and resources. Triggers on defineTool, mcpServers, contextHelpers, useTamboContextAttachment.
 ---
 
 # Tools and Context
 
-Give Tambo access to data and capabilities through custom tools, MCP servers, and context.
+Gives Tambo access to data and capabilities through tools, MCP servers, and context.
+
+## Quick Start
+
+```tsx
+// Custom tool Tambo can call
+const fetchUserTool = defineTool({
+  name: "fetchUser",
+  description: "Fetch user by ID",
+  inputSchema: z.object({ userId: z.string() }),
+  tool: async ({ userId }) => fetchUser(userId),
+});
+
+<TamboProvider tools={[fetchUserTool]}>
+  <App />
+</TamboProvider>;
+```
 
 ## Custom Tools
 

@@ -1,11 +1,20 @@
 ---
 name: rendering-components
-description: Use this skill when handling Tambo component streaming, loading states, and persistent state. Triggers on "useTamboStreamStatus", "useTamboComponentState", "streaming", "partial props", "loading state", "propStatus", "setFromProp", "state persistence".
+description: Handles Tambo component streaming, loading states, and persistent state. Triggers on useTamboStreamStatus, useTamboComponentState, streaming, partial props.
 ---
 
 # Component Rendering
 
-Handle streaming props and persistent component state in Tambo.
+Handles streaming props and persistent component state.
+
+## Quick Start
+
+```tsx
+const { streamStatus, propStatus } = useTamboStreamStatus<Props>();
+
+if (streamStatus.isPending) return <Skeleton />;
+if (streamStatus.isStreaming) return <LoadingIndicator />;
+```
 
 ## Stream Status
 

@@ -1,11 +1,19 @@
 ---
 name: using-tambo-cli
-description: Manages Tambo project setup, component library, and component installation via CLI. Agent-friendly with non-interactive mode, exit codes, and guidance errors. Use when working with tambo init, tambo add, tambo list, full-send, create-tambo-app, npx tambo, component library, or ui.tambo.co.
+description: Manages Tambo project setup and component installation via CLI. Agent-friendly with non-interactive mode and exit codes. Triggers on tambo init, tambo add, npx tambo, component library.
 ---
 
 # Tambo CLI
 
-Agent-friendly CLI for project setup and component management. Auto-detects non-interactive environments.
+Agent-friendly CLI for project setup and component management.
+
+## Quick Start
+
+```bash
+npx tambo init --api-key=sk_...              # Initialize with API key
+npx tambo add message-thread-full --yes      # Add a component
+npx tambo create-app my-app --template=standard  # New app from template
+```
 
 ## Non-Interactive Mode
 
