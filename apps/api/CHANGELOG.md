@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.134.0](https://github.com/tambo-ai/tambo/compare/api-v0.133.4...api-v0.134.0) (2026-01-30)
+
+
+### Features
+
+* **api:** add V1 suggestions API endpoints ([#2092](https://github.com/tambo-ai/tambo/issues/2092)) ([e80b99d](https://github.com/tambo-ai/tambo/commit/e80b99d3db9fda166e49dcb83274c898efa8cdae))
+* **ci:** split CI into parallel jobs with Codecov ([#1908](https://github.com/tambo-ai/tambo/issues/1908)) ([9ba2ea8](https://github.com/tambo-ai/tambo/commit/9ba2ea876e014e95fe7e00543cd63595c3cd73ca))
+
+## [0.133.4](https://github.com/tambo-ai/tambo/compare/api-v0.133.3...api-v0.133.4) (2026-01-30)
+
+
+### Bug Fixes
+
+* **api:** remove langfuse span processing ([#2052](https://github.com/tambo-ai/tambo/issues/2052)) ([4a715ad](https://github.com/tambo-ai/tambo/commit/4a715ad16d707d0110e861258de08bd6367f809c))
+
+## [0.133.3](https://github.com/tambo-ai/tambo/compare/api-v0.133.2...api-v0.133.3) (2026-01-29)
+
+
+### Miscellaneous Chores
+
+* small change to trigger api release ([#2045](https://github.com/tambo-ai/tambo/issues/2045)) ([d52f777](https://github.com/tambo-ai/tambo/commit/d52f777da55dcb5e48d43fac1a1842618f187307))
+
 ## [0.133.2](https://github.com/tambo-ai/tambo/compare/api-v0.133.1...api-v0.133.2) (2026-01-29)
 
 

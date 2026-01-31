@@ -7,5 +7,14 @@
   "trailingComma": "all",
   "bracketSpacing": true,
   "arrowParens": "always",
-  "endOfLine": "lf"
+  "endOfLine": "lf",
+  "overrides": [
+    {
+      "files": "*.json5",
+      "options": {
+        "quoteProps": "preserve",
+        "trailingComma": "none"
+      }
+    }
+  ]
 }

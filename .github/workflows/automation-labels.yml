@@ -1,7 +1,18 @@
 name: Automation / Labels
 
+# SECURITY NOTE: This workflow uses pull_request_target to gain write permissions
+# for labeling PRs from forks. This is safe because:
+# 1. We do NOT checkout fork code (no ref: parameter pointing to fork)
+# 2. We use GitHub API for file detection (no tj-actions/changed-files)
+# 3. We only read PR metadata (title, author, file paths) - never execute PR code
+#
+# DO NOT add any step that:
+# - Uses ref: ${{ github.event.pull_request.head.sha }}
+# - Runs npm install/test/build on checked-out code
+# - Executes scripts from the PR
+
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
 
   issues:
@@ -27,15 +38,12 @@ jobs:
     outputs:
       author: ${{ steps.author.outputs.author }}
       status: ${{ steps.status.outputs.status }}
-      areas: ${{ steps.files_changed.outputs.changed_keys || '[]' }}
+      areas: ${{ steps.files_changed.outputs.areas || '[]' }}
       change_type: ${{ steps.change_type.outputs.change_type }}
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Set up Mise
-        uses: jdx/mise-action@v3.6.1
+      # NOTE: No checkout step - this is intentional for security with pull_request_target.
+      # We use GitHub API instead to detect changed files.
 
       - name: Determine Author
         id: author
@@ -70,7 +78,7 @@ jobs:
 
       - name: Check Status
         id: status
-        if: github.event_name == 'pull_request' || github.event_name == 'issues'
+        if: github.event_name == 'pull_request_target' || github.event_name == 'issues'
         env:
           EXISTING_LABELS: ${{ toJson(github.event.issue.labels || github.event.pull_request.labels || '[]') }}
         run: | # shell
@@ -87,7 +95,7 @@ jobs:
 
       - name: Determine Change Type
         id: change_type
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         env:
           PR_TITLE: "${{ github.event.pull_request.title }}"
         run: | # shell
@@ -98,80 +106,149 @@ jobs:
           fi
           echo "change_type=${CHANGE_TYPE}" >> "${GITHUB_OUTPUT}"
 
-      - name: Determine Areas
+      - name: Determine Areas via GitHub API
         id: files_changed
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        uses: tj-actions/changed-files@v47
+        if: github.event_name == 'pull_request_target' || github.event_name == 'push'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
-          json: true
-          escape_json: false
-          files_yaml: |- # yaml
-            api:
-              - "apps/api/**"
-            web:
-              - "apps/web/**"
-            showcase:
-              - "showcase/**"
-            cli:
-              - "cli/**"
-            community:
-              - "community/**"
-            db:
-              - "packages/db/**"
-            core:
-              - "packages/core/**"
-            backend:
-              - "packages/backend/**"
-            ui:
-              - "packages/ui-registry/**"
-            react-sdk:
-              - "react-sdk/**"
-            config:
-              - "packages/eslint-config/**"
-              - "packages/typescript-config/**"
-              - "turbo.json"
-              - ".nvmrc"
-              - ".node-version"
-              - "mise.toml"
-              - ".prettier*"
-              - "*.config.{js,cjs,mjs,ts,cts,mts,json}"
-            documentation:
-              - "docs/**"
-              - "devdocs/**"
-              - "**/*.md"
-              - "**/README.*"
-            github_actions:
-              - ".github/workflows/**"
-              - ".github/actions/**"
-            labels:
-              - ".github/labels.yml"
-              - ".github/workflows/automation-labels.yml"
+          script: |
+            // For push events, we need to get the files from the commit
+            // For pull_request_target events, we get files from the PR
+            const changedPathSet = new Set();
+
+            if (context.eventName === 'push') {
+              // Prefer compareCommits for push events to match the workflow's `paths:`
+              // filter semantics and avoid truncated commit payloads.
+              if (context.payload.before && context.payload.after) {
+                const { data: compareData } = await github.rest.repos.compareCommits({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  base: context.payload.before,
+                  head: context.payload.after
+                });
+
+                for (const file of compareData.files || []) {
+                  changedPathSet.add(file.filename);
+                }
+              } else {
+                const commits = context.payload.commits || [];
+
+                core.warning(
+                  'Push payload missing before/after; falling back to commit file lists which may be incomplete.',
+                );
+
+                if (
+                  typeof context.payload.size === 'number' &&
+                  commits.length > 0 &&
+                  commits.length !== context.payload.size
+                ) {
+                  core.warning(
+                    `Push commits payload is truncated (got ${commits.length} commits, expected ${context.payload.size}); area detection may be incomplete.`,
+                  );
+                }
+
+                // Get files changed in the push commits (avoid per-commit API calls)
+                for (const commit of commits) {
+                  for (const file of commit.added || []) {
+                    changedPathSet.add(file);
+                  }
+                  for (const file of commit.modified || []) {
+                    changedPathSet.add(file);
+                  }
+                  for (const file of commit.removed || []) {
+                    changedPathSet.add(file);
+                  }
+                }
+              }
+            } else if (context.eventName === 'pull_request_target') {
+              // Get files changed in the PR via API (safe - no checkout needed)
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                per_page: 100
+              });
+
+              for (const file of files) {
+                changedPathSet.add(file.filename);
+              }
+            }
+
+            const changedPaths = Array.from(changedPathSet);
+
+            // Area detection patterns (matching the previous tj-actions/changed-files config)
+            const areaPatterns = {
+              api: [/^apps\/api\//],
+              web: [/^apps\/web\//],
+              showcase: [/^showcase\//],
+              cli: [/^cli\//],
+              community: [/^community\//],
+              db: [/^packages\/db\//],
+              core: [/^packages\/core\//],
+              backend: [/^packages\/backend\//],
+              ui: [/^packages\/ui-registry\//],
+              'react-sdk': [/^react-sdk\//],
+              config: [
+                /^packages\/eslint-config\//,
+                /^packages\/typescript-config\//,
+                /^turbo\.json$/,
+                /^\.nvmrc$/,
+                /^\.node-version$/,
+                /^mise\.toml$/,
+                /^\.prettier/,
+                /\.config\.(js|cjs|mjs|ts|cts|mts|json)$/
+              ],
+              documentation: [
+                /^docs\//,
+                /^devdocs\//,
+                /\.mdx?$/,
+                /README\./i
+              ],
+              github_actions: [
+                /^\.github\/workflows\//,
+                /^\.github\/actions\//
+              ],
+              labels: [
+                /^\.github\/labels\.yml$/,
+                /^\.github\/workflows\/automation-labels\.yml$/
+              ]
+            };
+
+            const areas = [];
+            for (const [area, patterns] of Object.entries(areaPatterns)) {
+              if (changedPaths.some(path => patterns.some(pattern => pattern.test(path)))) {
+                areas.push(area);
+              }
+            }
+
+            core.setOutput('areas', JSON.stringify(areas));
 
   repo-labels:
     name: "Repository Labels"
     runs-on: ubuntu-latest
     needs: [meta]
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request_target' }}
     permissions:
       contents: read # to fetch repository content
       issues: write # to create and update labels
       pull-requests: write # to comment on PRs
     steps:
+      # Checkout base branch only (safe with pull_request_target - no fork code)
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Update Labels
-        uses: crazy-max/ghaction-github-labeler@v5.3.0
+        uses: crazy-max/ghaction-github-labeler@24d110aa46a59976b8a7f35518cb7f14f434c916 # v5.3.0
         if: ${{ contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels') }}
         with:
-          dry-run: ${{ github.event_name == 'pull_request' }}
+          dry-run: ${{ github.event_name == 'pull_request_target' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           skip-delete: true
           yaml-file: .github/labels.yml
 
       - name: Comment on PR about label updates
-        if: github.event_name == 'pull_request' && contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
-        uses: marocchino/sticky-pull-request-comment@v2.9.4
+        if: github.event_name == 'pull_request_target' && contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
+        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: "## :label: Repository Labels Updated"
@@ -181,8 +258,8 @@ jobs:
             https://github.com/tambo-ai/tambo/pull/${{ github.event.pull_request.number }}/changes#diff-${{ github.event.pull_request.head.sha }}
 
       - name: Delete Comment on PR if no label updates
-        if: github.event_name == 'pull_request' && !contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
-        uses: marocchino/sticky-pull-request-comment@v2.9.4
+        if: github.event_name == 'pull_request_target' && !contains(fromJson(needs.meta.outputs.areas || '[]'), 'labels')
+        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: "## :label: Repository Labels Updated"
@@ -191,7 +268,7 @@ jobs:
   do-not-merge:
     name: "Do Not Merge"
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request_target'
     permissions:
       contents: read
     steps:
@@ -210,7 +287,7 @@ jobs:
     name: "Sync Labels"
     needs: [meta, repo-labels]
     runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' || github.event_name == 'issues') && (github.event.action != 'labeled' && github.event.action != 'unlabeled')
+    if: (github.event_name == 'pull_request_target' || github.event_name == 'issues') && (github.event.action != 'labeled' && github.event.action != 'unlabeled')
     permissions:
       contents: read
       issues: write
@@ -220,11 +297,7 @@ jobs:
     outputs:
       added_labels: ${{ steps.determine_labels.outputs.added_labels || '' }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Mise
-        uses: jdx/mise-action@v3.6.1
+      # NOTE: No checkout step for speed and security - we only use gh CLI and jq (pre-installed on runners)
 
       - name: Determine Labels
         id: determine_labels
@@ -303,8 +376,8 @@ jobs:
 
       - name: Apply Label Changes
         env:
-          PR_OR_ISSUE_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.event.issue.number }}
-          GH_SUBCOMMAND: ${{ github.event_name == 'pull_request' && 'pr' || 'issue' }}
+          PR_OR_ISSUE_NUMBER: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.number || github.event.issue.number }}
+          GH_SUBCOMMAND: ${{ github.event_name == 'pull_request_target' && 'pr' || 'issue' }}
           LABEL_CHANGES: |-
             ${{ steps.determine_labels.outputs.added_labels || '{}' }}
         run: | # shell

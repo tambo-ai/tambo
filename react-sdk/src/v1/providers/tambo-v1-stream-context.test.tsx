@@ -5,6 +5,7 @@ import {
   TamboV1StreamProvider,
   useStreamState,
   useStreamDispatch,
+  useThreadManagement,
 } from "./tambo-v1-stream-context";
 
 describe("TamboV1StreamProvider", () => {
@@ -22,7 +23,7 @@ describe("TamboV1StreamProvider", () => {
       consoleSpy.mockRestore();
     });
 
-    it("returns initial state with empty threadMap when no threadId", () => {
+    it("returns initial state with empty threadMap", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
       );
@@ -33,45 +34,74 @@ describe("TamboV1StreamProvider", () => {
       expect(result.current.currentThreadId).toBeNull();
     });
 
-    it("initializes thread when threadId is provided", () => {
+    it("initializes thread via dispatch", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider threadId="thread_123">
-          {children}
-        </TamboV1StreamProvider>
+        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
       );
 
-      const { result } = renderHook(() => useStreamState(), { wrapper });
+      const { result } = renderHook(
+        () => ({
+          state: useStreamState(),
+          dispatch: useStreamDispatch(),
+        }),
+        { wrapper },
+      );
 
-      expect(result.current.currentThreadId).toBe("thread_123");
-      expect(result.current.threadMap.thread_123).toBeDefined();
-      expect(result.current.threadMap.thread_123.thread.id).toBe("thread_123");
-      expect(result.current.threadMap.thread_123.thread.status).toBe("idle");
-      expect(result.current.threadMap.thread_123.thread.messages).toEqual([]);
+      act(() => {
+        result.current.dispatch({
+          type: "INIT_THREAD",
+          threadId: "thread_123",
+        });
+      });
+
+      expect(result.current.state.threadMap.thread_123).toBeDefined();
+      expect(result.current.state.threadMap.thread_123.thread.id).toBe(
+        "thread_123",
+      );
+      expect(result.current.state.threadMap.thread_123.thread.status).toBe(
+        "idle",
+      );
+      expect(result.current.state.threadMap.thread_123.thread.messages).toEqual(
+        [],
+      );
     });
 
-    it("merges initialThread with default state", () => {
+    it("initializes thread with initial data via dispatch", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider
-          threadId="thread_123"
-          initialThread={{
+        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+      );
+
+      const { result } = renderHook(
+        () => ({
+          state: useStreamState(),
+          dispatch: useStreamDispatch(),
+        }),
+        { wrapper },
+      );
+
+      act(() => {
+        result.current.dispatch({
+          type: "INIT_THREAD",
+          threadId: "thread_123",
+          initialThread: {
             title: "Test Thread",
             metadata: { key: "value" },
-          }}
-        >
-          {children}
-        </TamboV1StreamProvider>
-      );
+          },
+        });
+      });
 
-      const { result } = renderHook(() => useStreamState(), { wrapper });
-
-      expect(result.current.threadMap.thread_123.thread.title).toBe(
+      expect(result.current.state.threadMap.thread_123.thread.title).toBe(
         "Test Thread",
       );
-      expect(result.current.threadMap.thread_123.thread.metadata).toEqual({
-        key: "value",
-      });
+      expect(result.current.state.threadMap.thread_123.thread.metadata).toEqual(
+        {
+          key: "value",
+        },
+      );
       // Default values should still be set
-      expect(result.current.threadMap.thread_123.thread.status).toBe("idle");
+      expect(result.current.state.threadMap.thread_123.thread.status).toBe(
+        "idle",
+      );
     });
   });
 
@@ -90,9 +120,7 @@ describe("TamboV1StreamProvider", () => {
 
     it("dispatches events to update state", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <TamboV1StreamProvider threadId="thread_123">
-          {children}
-        </TamboV1StreamProvider>
+        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
       );
 
       const { result } = renderHook(
@@ -102,6 +130,14 @@ describe("TamboV1StreamProvider", () => {
         }),
         { wrapper },
       );
+
+      // Initialize the thread first
+      act(() => {
+        result.current.dispatch({
+          type: "INIT_THREAD",
+          threadId: "thread_123",
+        });
+      });
 
       const runStartedEvent: RunStartedEvent = {
         type: EventType.RUN_STARTED,
@@ -126,6 +162,90 @@ describe("TamboV1StreamProvider", () => {
       expect(result.current.state.threadMap.thread_123.streaming.runId).toBe(
         "run_1",
       );
+    });
+  });
+
+  describe("useThreadManagement", () => {
+    it("throws when used outside provider", () => {
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      expect(() => {
+        renderHook(() => useThreadManagement());
+      }).toThrow(
+        "useThreadManagement must be used within TamboV1StreamProvider",
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it("initThread creates a new thread", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+      );
+
+      const { result } = renderHook(
+        () => ({
+          state: useStreamState(),
+          management: useThreadManagement(),
+        }),
+        { wrapper },
+      );
+
+      act(() => {
+        result.current.management.initThread("thread_456");
+      });
+
+      expect(result.current.state.threadMap.thread_456).toBeDefined();
+      expect(result.current.state.threadMap.thread_456.thread.id).toBe(
+        "thread_456",
+      );
+    });
+
+    it("switchThread changes currentThreadId", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+      );
+
+      const { result } = renderHook(
+        () => ({
+          state: useStreamState(),
+          management: useThreadManagement(),
+        }),
+        { wrapper },
+      );
+
+      // Initialize and switch to a thread
+      act(() => {
+        result.current.management.initThread("thread_789");
+        result.current.management.switchThread("thread_789");
+      });
+
+      expect(result.current.state.currentThreadId).toBe("thread_789");
+    });
+
+    it("startNewThread creates temp thread and switches to it", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
+      );
+
+      const { result } = renderHook(
+        () => ({
+          state: useStreamState(),
+          management: useThreadManagement(),
+        }),
+        { wrapper },
+      );
+
+      let tempId: string;
+      act(() => {
+        tempId = result.current.management.startNewThread();
+      });
+
+      expect(tempId!).toMatch(/^temp_/);
+      expect(result.current.state.currentThreadId).toBe(tempId!);
+      expect(result.current.state.threadMap[tempId!]).toBeDefined();
     });
   });
 });

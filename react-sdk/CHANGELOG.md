@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.73.1](https://github.com/tambo-ai/tambo/compare/react-v0.73.0...react-v0.73.1) (2026-01-31)
+
+
+### Bug Fixes
+
+* **ui-registry:** resolve React hooks ESLint violations ([#2081](https://github.com/tambo-ai/tambo/issues/2081)) ([f628c0c](https://github.com/tambo-ai/tambo/commit/f628c0cb294e0ccfc596bda9394a3399263025c6))
+
+## [0.73.0](https://github.com/tambo-ai/tambo/compare/react-v0.72.0...react-v0.73.0) (2026-01-30)
+
+
+### Features
+
+* **react-sdk:** add v1 suggestions hook, shared input context, and stub provider ([#2084](https://github.com/tambo-ai/tambo/issues/2084)) ([2a2ad25](https://github.com/tambo-ai/tambo/commit/2a2ad256b9280ce9f47ab2c12d993eb50af45c38))
+* **react-sdk:** implement v1 API Phase 9-10 with userKey and API cleanup ([#2032](https://github.com/tambo-ai/tambo/issues/2032)) ([9e055ab](https://github.com/tambo-ai/tambo/commit/9e055abddab6390498e5f2c6cb1224efbb556dfc))
+
 ## [0.72.0](https://github.com/tambo-ai/tambo/compare/react-v0.71.0...react-v0.72.0) (2026-01-29)
 
 
