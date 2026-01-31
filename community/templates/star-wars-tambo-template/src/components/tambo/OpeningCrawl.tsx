@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface OpeningCrawlProps {
   title: string;
@@ -37,7 +37,9 @@ export function OpeningCrawl({ title, episode, content }: OpeningCrawlProps) {
             className="text-center mb-8"
           >
             {episode && (
-              <p className="text-4xl md:text-5xl text-sw-blue mb-4">Episode {episode}</p>
+              <p className="text-4xl md:text-5xl text-sw-blue mb-4">
+                Episode {episode}
+              </p>
             )}
             <h2 className="text-5xl md:text-7xl font-bold text-sw-yellow tracking-wider">
               {title}
@@ -46,14 +48,14 @@ export function OpeningCrawl({ title, episode, content }: OpeningCrawlProps) {
 
           {/* Scrolling text */}
           <motion.div
-            initial={{ top: '100%' }}
-            animate={{ top: '-200%' }}
-            transition={{ duration: 40, ease: 'linear' }}
+            initial={{ top: "100%" }}
+            animate={{ top: "-200%" }}
+            transition={{ duration: 40, ease: "linear" }}
             className="absolute w-full max-w-3xl px-8"
             style={{
-              transformStyle: 'preserve-3d',
-              transform: 'rotateX(25deg)',
-              transformOrigin: 'center bottom',
+              transformStyle: "preserve-3d",
+              transform: "rotateX(25deg)",
+              transformOrigin: "center bottom",
             }}
           >
             <p className="text-xl md:text-2xl text-sw-yellow leading-relaxed text-center whitespace-pre-line">

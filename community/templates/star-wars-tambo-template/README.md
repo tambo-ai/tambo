@@ -78,16 +78,16 @@ npm run dev
 
 ### Components
 
-| Component | Description |
-|-----------|-------------|
+| Component       | Description                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------ |
 | `CharacterCard` | Displays Star Wars characters with hologram effect, species, homeworld, and Force strength |
-| `StarshipCard` | Shows starship specifications with animated UI and detailed stats |
-| `OpeningCrawl` | Iconic scrolling text intro with perspective tilt (auto-dismisses after 20s) |
+| `StarshipCard`  | Shows starship specifications with animated UI and detailed stats                          |
+| `OpeningCrawl`  | Iconic scrolling text intro with perspective tilt (auto-dismisses after 20s)               |
 
 ### Tools
 
-| Tool | Description |
-|------|-------------|
+| Tool                | Description                                                                     |
+| ------------------- | ------------------------------------------------------------------------------- |
 | `fetchStarWarsData` | Fetches real character and starship data from SWAPI before rendering components |
 
 ## 📁 Project Structure
@@ -136,6 +136,7 @@ Edit `tailwind.config.js` to customize colors, animations, and spacing. Current 
 ### Adding More Tools
 
 Create new tools in `src/lib/` and register them in `tambo-config.ts`. Tools can:
+
 - Fetch external APIs
 - Process data
 - Trigger animations

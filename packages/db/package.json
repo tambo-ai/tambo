@@ -29,9 +29,11 @@
     "@tambo-ai/typescript-config": "*",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.16.0",
-    "drizzle-kit": "^0.31.8"
+    "drizzle-kit": "^0.18.1"
   },
   "dependencies": {
+    "@nestjs/config": "1.1.5",
+    "@nestjs/swagger": "2.5.1",
     "@tambo-ai-cloud/core": "*",
     "drizzle-orm": "^0.45.1",
     "jsonwebtoken": "^9.0.2",

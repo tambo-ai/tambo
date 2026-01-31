@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Users, Zap, Shield } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Users, Zap, Shield } from "lucide-react";
 
 interface CharacterCardProps {
   name: string;
   species: string;
   homeworld: string;
-  affiliation: 'light' | 'dark' | 'neutral';
+  affiliation: "light" | "dark" | "neutral";
   forceStrength?: number;
 }
 
@@ -19,9 +19,9 @@ export function CharacterCard({
   forceStrength = 0,
 }: CharacterCardProps) {
   const affiliationColors = {
-    light: 'text-sw-light border-sw-light',
-    dark: 'text-sw-dark border-sw-dark',
-    neutral: 'text-sw-yellow border-sw-yellow',
+    light: "text-sw-light border-sw-light",
+    dark: "text-sw-dark border-sw-dark",
+    neutral: "text-sw-yellow border-sw-yellow",
   };
 
   const affiliationIcons = {
@@ -52,7 +52,7 @@ export function CharacterCard({
                 duration: 3,
                 repeat: Infinity,
                 delay: i * 0.2,
-                ease: 'linear',
+                ease: "linear",
               }}
             />
           ))}
@@ -64,7 +64,9 @@ export function CharacterCard({
               <h3 className="text-2xl font-bold glow-text mb-1">{name}</h3>
               <p className="text-sm opacity-80">{species}</p>
             </div>
-            <div className="animate-pulse-glow">{affiliationIcons[affiliation]}</div>
+            <div className="animate-pulse-glow">
+              {affiliationIcons[affiliation]}
+            </div>
           </div>
 
           <div className="space-y-2 text-sm">
@@ -91,9 +93,9 @@ export function CharacterCard({
             )}
 
             <div className="pt-2 text-xs opacity-60 uppercase tracking-wider">
-              {affiliation === 'light' && '✦ Light Side'}
-              {affiliation === 'dark' && '✦ Dark Side'}
-              {affiliation === 'neutral' && '✦ Neutral'}
+              {affiliation === "light" && "✦ Light Side"}
+              {affiliation === "dark" && "✦ Dark Side"}
+              {affiliation === "neutral" && "✦ Neutral"}
             </div>
           </div>
         </div>

@@ -10,7 +10,8 @@
 
 @layer components {
   .starfield {
-    background: radial-gradient(2px 2px at 20px 30px, white, rgba(0, 0, 0, 0)),
+    background:
+      radial-gradient(2px 2px at 20px 30px, white, rgba(0, 0, 0, 0)),
       radial-gradient(2px 2px at 60px 70px, white, rgba(0, 0, 0, 0)),
       radial-gradient(1px 1px at 50px 50px, white, rgba(0, 0, 0, 0)),
       radial-gradient(1px 1px at 130px 80px, white, rgba(0, 0, 0, 0)),
@@ -31,12 +32,12 @@
 
   .hologram-effect {
     position: relative;
-    color: #00D9FF;
+    color: #00d9ff;
     text-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
   }
 
   .hologram-effect::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -62,6 +63,9 @@
   }
 
   .glow-text {
-    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+    text-shadow:
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor;
   }
 }

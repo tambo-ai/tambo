@@ -63,11 +63,18 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
-    "streamdown": "^1.6.10",
+    "streamdown": "^2.1.0",
     "tailwind-merge": "^2.0.0",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@nestjs/config": "1.1.5",
+    "@nestjs/swagger": "2.5.1",
+    "@theguild/remark-mermaid": "0.0.7",
+    "drizzle-kit": "0.18.1",
+    "mermaid": "10.9.5"
   }
 }

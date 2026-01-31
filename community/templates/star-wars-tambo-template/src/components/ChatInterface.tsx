@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useTamboThread, useTamboThreadInput } from '@tambo-ai/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, Loader2 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, Sparkles, Loader2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export function ChatInterface() {
   const { thread } = useTamboThread();
@@ -11,7 +11,7 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -26,10 +26,10 @@ export function ChatInterface() {
   };
 
   const examplePrompts = [
-    'Show me Luke Skywalker',
-    'Tell me about the Millennium Falcon',
-    'Create an opening crawl for a new episode',
-    'Compare X-Wing and TIE Fighter',
+    "Show me Luke Skywalker",
+    "Tell me about the Millennium Falcon",
+    "Create an opening crawl for a new episode",
+    "Compare X-Wing and TIE Fighter",
   ];
 
   return (
@@ -40,7 +40,9 @@ export function ChatInterface() {
           <div className="flex items-center gap-3">
             <Sparkles className="w-6 h-6 text-sw-yellow animate-pulse-glow" />
             <div>
-              <h1 className="text-xl font-bold text-sw-yellow">Star Wars Archive</h1>
+              <h1 className="text-xl font-bold text-sw-yellow">
+                Star Wars Archive
+              </h1>
               <p className="text-xs text-gray-400">Powered by Tambo AI</p>
             </div>
           </div>
@@ -86,20 +88,23 @@ export function ChatInterface() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
                     className={`max-w-2xl ${
-                      message.role === 'user'
-                        ? 'bg-sw-yellow/10 border-sw-yellow/30'
-                        : 'bg-sw-blue/10 border-sw-blue/30'
+                      message.role === "user"
+                        ? "bg-sw-yellow/10 border-sw-yellow/30"
+                        : "bg-sw-blue/10 border-sw-blue/30"
                     } border rounded-lg p-4`}
                   >
                     {Array.isArray(message.content) ? (
                       <div className="space-y-3">
                         {message.content.map((part, i) =>
-                          part.type === 'text' ? (
-                            <p key={i} className="text-gray-200 whitespace-pre-wrap">
+                          part.type === "text" ? (
+                            <p
+                              key={i}
+                              className="text-gray-200 whitespace-pre-wrap"
+                            >
                               {part.text}
                             </p>
                           ) : null,

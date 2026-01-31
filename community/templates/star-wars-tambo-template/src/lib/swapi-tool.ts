@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 interface SWAPICharacter {
   name: string;
@@ -33,22 +33,26 @@ export async function getCharacter(nameOrId: string) {
     )) as { results: SWAPICharacter[] };
 
     if (searchData.results.length === 0) {
-      return { error: 'Character not found' };
+      return { error: "Character not found" };
     }
 
     const character = searchData.results[0];
 
     // Fetch homeworld name
     const homeworldUrl = character.homeworld;
-    const homeworldId = homeworldUrl.split('/').filter(Boolean).pop();
-    const homeworld = (await fetchFromSWAPI(`planets/${homeworldId}`)) as { name: string };
+    const homeworldId = homeworldUrl.split("/").filter(Boolean).pop();
+    const homeworld = (await fetchFromSWAPI(`planets/${homeworldId}`)) as {
+      name: string;
+    };
 
     // Fetch species name
-    let speciesName = 'Human';
+    let speciesName = "Human";
     if (character.species.length > 0) {
       const speciesUrl = character.species[0];
-      const speciesId = speciesUrl.split('/').filter(Boolean).pop();
-      const species = (await fetchFromSWAPI(`species/${speciesId}`)) as { name: string };
+      const speciesId = speciesUrl.split("/").filter(Boolean).pop();
+      const species = (await fetchFromSWAPI(`species/${speciesId}`)) as {
+        name: string;
+      };
       speciesName = species.name;
     }
 
@@ -59,7 +63,7 @@ export async function getCharacter(nameOrId: string) {
       films: character.films.length,
     };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Unknown error' };
+    return { error: error instanceof Error ? error.message : "Unknown error" };
   }
 }
 
@@ -70,7 +74,7 @@ export async function getStarship(nameOrId: string) {
     )) as { results: SWAPIStarship[] };
 
     if (searchData.results.length === 0) {
-      return { error: 'Starship not found' };
+      return { error: "Starship not found" };
     }
 
     const starship = searchData.results[0];
@@ -85,7 +89,7 @@ export async function getStarship(nameOrId: string) {
       hyperdriveRating: starship.hyperdrive_rating,
     };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Unknown error' };
+    return { error: error instanceof Error ? error.message : "Unknown error" };
   }
 }
 
@@ -93,7 +97,7 @@ export const swapiToolSchema = z
   .function()
   .args(
     z.object({
-      type: z.enum(['character', 'starship']),
+      type: z.enum(["character", "starship"]),
       name: z.string(),
     }),
   )
