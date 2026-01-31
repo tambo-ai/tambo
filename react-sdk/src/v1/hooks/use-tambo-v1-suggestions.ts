@@ -7,7 +7,7 @@
  * Uses the v1 API endpoints for listing and creating suggestions.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useQuery,
   useMutation,
@@ -228,29 +228,13 @@ export function useTamboV1Suggestions(
         return { suggestions: [], hasMore: false };
       }
 
-      // First try to list existing suggestions
-      const existingResponse = await client.threads.suggestions.list(
+      return await client.threads.suggestions.list(
         latestMessageId,
         {
           threadId,
           userKey,
         },
       );
-
-      // If we have existing suggestions, return them
-      if (existingResponse.suggestions.length > 0) {
-        return existingResponse;
-      }
-
-      // No existing suggestions - generate new ones
-      const availableComponents = toAvailableComponents(componentList);
-
-      return await client.threads.suggestions.create(latestMessageId, {
-        threadId,
-        maxSuggestions,
-        availableComponents,
-        userKey,
-      });
     },
     ...queryOptions,
     enabled: Boolean(shouldFetchSuggestions),
@@ -283,6 +267,48 @@ export function useTamboV1Suggestions(
     },
   });
 
+  const lastAutoGenerateMessageIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    lastAutoGenerateMessageIdRef.current = null;
+  }, [latestMessageId]);
+
+  const listSuggestionsCount = suggestionsQuery.data?.suggestions.length ?? 0;
+  const generateMutate = generateMutation.mutate;
+  const isGenerating = generateMutation.isPending;
+
+  useEffect(() => {
+    if (!shouldFetchSuggestions || !latestMessageId) {
+      return;
+    }
+
+    if (!suggestionsQuery.isSuccess) {
+      return;
+    }
+
+    if (listSuggestionsCount > 0) {
+      return;
+    }
+
+    if (isGenerating) {
+      return;
+    }
+
+    if (lastAutoGenerateMessageIdRef.current === latestMessageId) {
+      return;
+    }
+
+    lastAutoGenerateMessageIdRef.current = latestMessageId;
+    generateMutate();
+  }, [
+    generateMutate,
+    isGenerating,
+    latestMessageId,
+    listSuggestionsCount,
+    shouldFetchSuggestions,
+    suggestionsQuery.isSuccess,
+  ]);
+
   // Mutation to accept a suggestion
   const acceptMutation = useMutation({
     mutationFn: async ({
@@ -308,9 +334,10 @@ export function useTamboV1Suggestions(
   });
 
   // Generate callback
+  const generateMutateAsync = generateMutation.mutateAsync;
   const generate = useCallback(async () => {
-    return await generateMutation.mutateAsync();
-  }, [generateMutation]);
+    return await generateMutateAsync();
+  }, [generateMutateAsync]);
 
   // Accept callback
   const accept = useCallback(
