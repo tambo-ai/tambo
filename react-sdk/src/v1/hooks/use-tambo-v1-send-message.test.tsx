@@ -147,6 +147,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: mockRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     expect(mockThreadsRunsApi.run).toHaveBeenCalledWith("thread_123", {
@@ -154,8 +155,32 @@ describe("createRunStream", () => {
       availableComponents: expect.any(Array),
       tools: expect.any(Array),
       userKey: undefined,
+      previousRunId: undefined,
     });
     expect(mockThreadsRunsApi.create).not.toHaveBeenCalled();
+    expect(result.stream).toBe(mockStream);
+    expect(result.initialThreadId).toBe("thread_123");
+  });
+
+  it("calls client.threads.runs.run with previousRunId when provided", async () => {
+    mockThreadsRunsApi.run.mockResolvedValue(mockStream);
+
+    const result = await createRunStream({
+      client: mockClient,
+      threadId: "thread_123",
+      message: testMessage,
+      registry: mockRegistry as any,
+      userKey: undefined,
+      previousRunId: "run_456",
+    });
+
+    expect(mockThreadsRunsApi.run).toHaveBeenCalledWith("thread_123", {
+      message: testMessage,
+      availableComponents: expect.any(Array),
+      tools: expect.any(Array),
+      userKey: undefined,
+      previousRunId: "run_456",
+    });
     expect(result.stream).toBe(mockStream);
     expect(result.initialThreadId).toBe("thread_123");
   });
@@ -169,6 +194,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: mockRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     expect(mockThreadsRunsApi.create).toHaveBeenCalledWith({
@@ -191,6 +217,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: mockRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];
@@ -212,6 +239,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: mockRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];
@@ -237,6 +265,7 @@ describe("createRunStream", () => {
       message: testMessage,
       registry: emptyRegistry as any,
       userKey: undefined,
+      previousRunId: undefined,
     });
 
     const callArgs = mockThreadsRunsApi.run.mock.calls[0][1];

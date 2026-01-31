@@ -17,7 +17,10 @@ import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistry,
 } from "../../providers/tambo-registry-provider";
-import { useStreamDispatch } from "../providers/tambo-v1-stream-context";
+import {
+  useStreamDispatch,
+  useStreamState,
+} from "../providers/tambo-v1-stream-context";
 import { useTamboV1Config } from "../providers/tambo-v1-provider";
 import type { InputMessage } from "../types/message";
 import {
@@ -52,6 +55,11 @@ export interface CreateRunStreamParams {
   message: InputMessage;
   registry: TamboRegistry;
   userKey: string | undefined;
+  /**
+   * Previous run ID for continuing a thread with existing messages.
+   * Required when threadId is provided and the thread has previous runs.
+   */
+  previousRunId: string | undefined;
 }
 
 /**
@@ -132,7 +140,8 @@ async function executeToolsAndContinue(
 export async function createRunStream(
   params: CreateRunStreamParams,
 ): Promise<CreateRunStreamResult> {
-  const { client, threadId, message, registry, userKey } = params;
+  const { client, threadId, message, registry, userKey, previousRunId } =
+    params;
 
   // Convert registry components/tools to v1 API format
   const availableComponents = toAvailableComponents(registry.componentList);
@@ -145,6 +154,7 @@ export async function createRunStream(
       availableComponents,
       tools: availableTools,
       userKey,
+      previousRunId,
     });
     return { stream, initialThreadId: threadId };
   } else {
@@ -207,6 +217,7 @@ export async function createRunStream(
 export function useTamboV1SendMessage(threadId?: string) {
   const client = useTamboClient();
   const dispatch = useStreamDispatch();
+  const streamState = useStreamState();
   const { userKey } = useTamboV1Config();
   const registry = useContext(TamboRegistryContext);
   const queryClient = useQueryClient();
@@ -216,6 +227,10 @@ export function useTamboV1SendMessage(threadId?: string) {
       "useTamboV1SendMessage must be used within TamboRegistryProvider",
     );
   }
+
+  // Get previousRunId from the thread's streaming state (if thread exists)
+  const threadState = threadId ? streamState.threadMap[threadId] : undefined;
+  const previousRunId = threadState?.streaming.runId;
 
   return useMutation({
     mutationFn: async (options: SendMessageOptions) => {
@@ -230,6 +245,7 @@ export function useTamboV1SendMessage(threadId?: string) {
         message,
         registry,
         userKey,
+        previousRunId,
       });
 
       let actualThreadId = initialThreadId;
