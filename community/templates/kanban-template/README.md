@@ -1,88 +1,94 @@
-# Kanban Task Management Template
+# Kanban Board
 
-A conversational kanban board built with Tambo. Create, move, and manage tasks using natural language.
+A conversational kanban board powered by [Tambo](https://tambo.co). Create, move, and manage tasks using natural language.
+
+![Kanban Board Screenshot](public/snapshots.png)
+
+## Demo
+
+**Live Demo:** [tambo-kanban.vercel.app](https://tambo-kanban.vercel.app)
+
+https://github.com/user-attachments/assets/tambo.mp4
 
 ## Features
 
-- Create tasks with priority and due dates via conversation
-- Move tasks between columns naturally ("move X to done")
-- View tasks filtered by status
-- Persistent storage with localStorage
+- **Natural Language Task Management** — Create, update, delete, and move tasks through conversation
+- **Drag & Drop** — Intuitive drag-and-drop between columns
+- **Priority Filtering** — Filter tasks by high, medium, or low priority
+- **Dark Mode** — Toggle between light and dark themes
+- **Confetti Celebration** — Fun feedback when completing tasks
+- **Persistent Storage** — Tasks saved to localStorage
+- **Real-time Updates** — Board updates instantly as you chat
 
-## Setup
+## Tech Stack
 
-1. Clone and install:
-
-   ```bash
-   cd community/templates/kanban-template
-   npm install
-   ```
-
-2. Copy environment file and add your Tambo API key:
-
-   ```bash
-   cp example.env.local .env.local
-   ```
-
-   Get your API key for free at [tambo.co/dashboard](https://tambo.co/dashboard).
-
-3. Run development server:
-
-   ```bash
-   npm run dev
-   ```
-
-4. Open http://localhost:3000
-
-## What's Included
-
-- **Tambo Components:** TaskCard (generative)
-- **Tambo Tools:** createTask, moveTask, getTasks
-- **State Management:** Zustand with localStorage persistence
+- **Framework:** Next.js 15 + React 19
+- **AI:** [Tambo](https://tambo.co) for generative UI
+- **State:** Zustand with localStorage persistence
 - **Styling:** Tailwind CSS
+- **Fonts:** Roboto Mono + Josefin Sans
 
-## Example Conversations
+## Quick Start
 
-- "Create a task called Review PR with high priority"
-- "Add a documentation task due Friday"
-- "Move Review PR to in progress"
-- "Show me all high priority tasks"
-- "What's in the done column?"
+```bash
+# Clone the repo
+git clone https://github.com/tambo-ai/tambo.git
+cd tambo/community/templates/kanban-template
 
-## Customizing
+# Install dependencies
+npm install
 
-### Adding New Tools
+# Add your Tambo API key
+cp example.env.local .env.local
+# Edit .env.local and add NEXT_PUBLIC_TAMBO_API_KEY
 
-Tools are defined in `src/lib/task-tools.ts` with `inputSchema` and `outputSchema`:
-
-```tsx
-export const createTaskTool: TamboTool = {
-  name: "createTask",
-  description: "Create a new task in the kanban board",
-  inputSchema: z.object({
-    title: z.string(),
-    priority: z.enum(["low", "medium", "high"]).optional(),
-  }),
-  outputSchema: taskSchema,
-  tool: async (input) => {
-    // Implementation
-  },
-};
+# Start dev server
+npm run dev
 ```
 
-### Registering Components
+Get your free API key at [tambo.co/dashboard](https://tambo.co/dashboard)
 
-Components are registered in `src/lib/tambo.ts`:
+## Example Prompts
 
-```tsx
-export const components: TamboComponent[] = [
-  {
-    name: "TaskCard",
-    description: "Displays a task with title, description, and priority",
-    component: TaskCard,
-    propsSchema: taskCardPropsSchema,
-  },
-];
+| Say this | What happens |
+|----------|--------------|
+| "Create a task to review the PR" | Creates task in To Do |
+| "Add a high priority bug fix" | Creates high priority task |
+| "Move review PR to in progress" | Moves task to In Progress |
+| "Mark bug fix as done" | Moves to Done + confetti |
+| "Delete the review task" | Removes task |
+| "Change bug fix priority to low" | Updates priority |
+| "Show all high priority tasks" | Lists filtered tasks |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx              # Main layout: board + chat
+│   └── chat/page.tsx         # Full-screen chat
+├── components/tambo/
+│   ├── kanban-board.tsx      # Drag-drop board with columns
+│   ├── task-card.tsx         # Task card component
+│   └── message-*.tsx         # Chat UI components
+├── lib/
+│   ├── tambo.ts              # Component & tool registration
+│   ├── task-store.ts         # Zustand store
+│   └── task-tools.ts         # AI tools (create, move, update, delete)
+└── types/
+    └── task.ts               # TypeScript types
 ```
 
-For more detailed documentation, visit [Tambo's official docs](https://docs.tambo.co).
+## Tambo Tools
+
+| Tool | Description |
+|------|-------------|
+| `createTask` | Create a new task with title, description, priority, due date |
+| `moveTask` | Move task to different column (todo, in-progress, done) |
+| `updateTask` | Update task details (title, description, priority) |
+| `deleteTask` | Remove a task from the board |
+| `getTasks` | Get all tasks, optionally filtered by status |
+
+## License
+
+MIT — Built with [Tambo](https://tambo.co)
