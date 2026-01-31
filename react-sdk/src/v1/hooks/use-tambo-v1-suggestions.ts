@@ -228,13 +228,10 @@ export function useTamboV1Suggestions(
         return { suggestions: [], hasMore: false };
       }
 
-      return await client.threads.suggestions.list(
-        latestMessageId,
-        {
-          threadId,
-          userKey,
-        },
-      );
+      return await client.threads.suggestions.list(latestMessageId, {
+        threadId,
+        userKey,
+      });
     },
     ...queryOptions,
     enabled: Boolean(shouldFetchSuggestions),
@@ -276,17 +273,22 @@ export function useTamboV1Suggestions(
   const listSuggestionsCount = suggestionsQuery.data?.suggestions.length ?? 0;
   const generateMutate = generateMutation.mutate;
   const isGenerating = generateMutation.isPending;
+  const isListError = suggestionsQuery.isError;
+  const isListSuccess = suggestionsQuery.isSuccess;
 
   useEffect(() => {
     if (!shouldFetchSuggestions || !latestMessageId) {
       return;
     }
 
-    if (!suggestionsQuery.isSuccess) {
+    if (listSuggestionsCount > 0) {
       return;
     }
 
-    if (listSuggestionsCount > 0) {
+    const shouldAutoGenerate =
+      (isListSuccess && listSuggestionsCount === 0) || isListError;
+
+    if (!shouldAutoGenerate) {
       return;
     }
 
@@ -303,10 +305,11 @@ export function useTamboV1Suggestions(
   }, [
     generateMutate,
     isGenerating,
+    isListError,
+    isListSuccess,
     latestMessageId,
     listSuggestionsCount,
     shouldFetchSuggestions,
-    suggestionsQuery.isSuccess,
   ]);
 
   // Mutation to accept a suggestion
