@@ -444,8 +444,9 @@ export class AISdkClient implements LLMClient {
       id?: string;
     } = { arguments: "" };
 
-    // Track message ID for AG-UI events
-    let textMessageId: string | undefined;
+    // Track message ID for AG-UI events. A single ID is shared across all content
+    // (text, components) in the same assistant turn.
+    let assistantMessageId: string | undefined;
     // Local mutable accumulator for tool call args deltas (reset per tool call);
     // do not reuse outside this scope.
     let toolCallArgDeltas: string[] = [];
@@ -460,31 +461,34 @@ export class AISdkClient implements LLMClient {
       switch (delta.type) {
         case "text-start":
           accumulatedMessage = "";
-          // Generate message ID for this text stream
-          textMessageId = generateMessageId();
+          // Generate message ID if not already set (may have been created by
+          // a component tool call earlier in the same turn)
+          if (!assistantMessageId) {
+            assistantMessageId = generateMessageId();
+          }
           aguiEvents.push({
             type: EventType.TEXT_MESSAGE_START,
-            messageId: textMessageId,
+            messageId: assistantMessageId,
             role: "assistant",
             timestamp: Date.now(),
           } as TextMessageStartEvent);
           break;
         case "text-delta":
           accumulatedMessage += delta.text;
-          if (textMessageId) {
+          if (assistantMessageId) {
             aguiEvents.push({
               type: EventType.TEXT_MESSAGE_CONTENT,
-              messageId: textMessageId,
+              messageId: assistantMessageId,
               delta: delta.text,
               timestamp: Date.now(),
             } as TextMessageContentEvent);
           }
           break;
         case "text-end":
-          if (textMessageId) {
+          if (assistantMessageId) {
             aguiEvents.push({
               type: EventType.TEXT_MESSAGE_END,
-              messageId: textMessageId,
+              messageId: assistantMessageId,
               timestamp: Date.now(),
             } as TextMessageEndEvent);
           }
@@ -500,12 +504,15 @@ export class AISdkClient implements LLMClient {
           // TOOL_CALL_* events - the tool mechanism is an internal detail.
           const componentName = tryExtractComponentName(delta.toolName);
           if (componentName) {
-            // Generate a message ID for component events. The SDK will create
-            // the message on-demand when it receives tambo.component.start.
-            const componentMessageId = generateMessageId();
+            // Generate message ID if not already set (may have been created by
+            // text content earlier in the same turn). This allows text and
+            // components to be grouped in the same message.
+            if (!assistantMessageId) {
+              assistantMessageId = generateMessageId();
+            }
             const componentId = generateMessageId();
             componentTracker = new ComponentStreamTracker(
-              componentMessageId,
+              assistantMessageId,
               componentId,
               componentName,
             );
@@ -545,7 +552,7 @@ export class AISdkClient implements LLMClient {
                 type: EventType.TOOL_CALL_START,
                 toolCallId: delta.toolCallId,
                 toolCallName: accumulatedToolCall.name,
-                parentMessageId: textMessageId,
+                parentMessageId: assistantMessageId,
                 timestamp: Date.now(),
               } as ToolCallStartEvent);
 
