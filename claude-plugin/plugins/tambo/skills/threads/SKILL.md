@@ -1,5 +1,5 @@
 ---
-name: Threads and Input
+name: managing-threads
 description: Use this skill when working with Tambo threads, messages, suggestions, voice input, and image attachments. Triggers on "useTamboThread", "useTamboThreadList", "sendThreadMessage", "useTamboSuggestions", "useTamboVoice", "useMessageImages", "switchCurrentThread", "thread management", "multi-thread", "userToken", "user authentication".
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: Tools and Context
+name: providing-context
 description: Use this skill when giving Tambo access to data and capabilities - custom tools, MCP servers, context helpers, context attachments, and local resources. Triggers on "defineTool", "MCP", "contextHelpers", "useTamboContextAttachment", "mcpServers", "register tool", "additional context", "@ mention", "resources", "listResources", "getResource".
 ---
 

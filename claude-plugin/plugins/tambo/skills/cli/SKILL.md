@@ -1,6 +1,6 @@
 ---
-name: Tambo CLI
-description: Use this skill when working with the Tambo CLI for project setup, component library, and component management. The CLI is agent-friendly with non-interactive mode, exit codes, and guidance errors. Triggers on "tambo init", "tambo add", "tambo list", "full-send", "create-tambo-app", "npx tambo", "non-interactive", "CI mode", "component library", "ui.tambo.co", "message-thread", "control-bar".
+name: using-tambo-cli
+description: Manages Tambo project setup, component library, and component installation via CLI. Agent-friendly with non-interactive mode, exit codes, and guidance errors. Use when working with tambo init, tambo add, tambo list, full-send, create-tambo-app, npx tambo, component library, or ui.tambo.co.
 ---
 
 # Tambo CLI

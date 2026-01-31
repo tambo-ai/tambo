@@ -1,5 +1,5 @@
 ---
-name: Tambo Components
+name: creating-tambo-components
 description: Use this skill when creating Tambo components - both generative (AI creates on-demand) and interactable (pre-placed, AI updates). Triggers on "TamboComponent", "withInteractable", "propsSchema", "register component", "generative component", "interactable", "pre-placed component".
 ---
 

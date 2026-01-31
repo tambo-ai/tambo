@@ -1,5 +1,5 @@
 ---
-name: Component Rendering
+name: rendering-components
 description: Use this skill when handling Tambo component streaming, loading states, and persistent state. Triggers on "useTamboStreamStatus", "useTamboComponentState", "streaming", "partial props", "loading state", "propStatus", "setFromProp", "state persistence".
 ---
 
