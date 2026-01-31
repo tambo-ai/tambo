@@ -27,13 +27,19 @@ https://drive.google.com/file/d/1gkfWfGEdeQtzXakuG0dSu8oeD049n985/view?usp=shari
 1. Go to the template folder:
 bash
 cd community/templates/tambo-dashboard-starter
+
 2.Install dependencies:
+
 npm install
+
 3.Initialize Tambo and add your API key:
+
 npx tambo init
+
 4.Start the development server:
 
 npm run dev
+
 5.Open in browser:
 
 http://localhost:3000
