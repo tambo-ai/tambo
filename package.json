@@ -66,5 +66,8 @@
   "volta": {
     "node": "22.21.1",
     "npm": "11.7.0"
+  },
+  "dependencies": {
+    "@tambo-ai/react": "^0.70.0"
   }
 }
