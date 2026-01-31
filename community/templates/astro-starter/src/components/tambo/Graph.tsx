@@ -76,7 +76,15 @@ export const Graph = memo(function Graph({
     bordered: "bg-white border border-zinc-200",
   };
 
-  if (!streamStatus.isSuccess) {
+  // Check if we have enough data to render
+  const hasData =
+    data &&
+    data.labels &&
+    data.labels.length > 0 &&
+    data.datasets &&
+    data.datasets.length > 0;
+
+  if (!hasData) {
     return (
       <div
         className={`flex items-center justify-center ${heightClasses[size]} ${variantClasses[variant]} rounded-xl`}

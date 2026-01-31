@@ -6,6 +6,8 @@ import type { TamboComponent, TamboTool } from "@tambo-ai/react";
 import { z } from "zod";
 import { Graph } from "../components/tambo/Graph";
 
+import { DataCard } from "../components/tambo/DataCard";
+
 // Graph Component Schema
 /**
  * Schema for the Graph component, defining which props the AI can pass to it.
@@ -22,17 +24,52 @@ const graphSchema = z.object({
             data: z.array(z.number()).describe("Numerical data points"),
             color: z
               .string()
-              .optional()
+              .nullish()
               .describe("Hex color code (e.g., #3b82f6)"),
           }),
         )
         .describe("Data series to display"),
     })
     .describe("Chart configuration and data"),
-  title: z.string().optional().describe("Chart title displayed at top"),
-  showLegend: z.boolean().optional().describe("Whether to show the legend"),
-  variant: z.enum(["default", "solid", "bordered"]).optional(),
-  size: z.enum(["sm", "default", "lg"]).optional(),
+  title: z.string().nullish().describe("Chart title displayed at top"),
+  showLegend: z.boolean().nullish().describe("Whether to show the legend"),
+  variant: z.enum(["default", "solid", "bordered"]).nullish(),
+  size: z.enum(["sm", "default", "lg"]).nullish(),
+});
+
+// DataCard Component Schema
+/**
+ * Schema for the DataCard component.
+ */
+const dataCardSchema = z.object({
+  title: z.string().nullish().describe("Title of the data card section"),
+  items: z
+    .array(
+      z.object({
+        label: z.string().describe("Label for the data point"),
+        value: z
+          .union([z.string(), z.number()])
+          .describe("Value of the data point"),
+        trend: z
+          .object({
+            value: z.number().describe("Percentage change"),
+            direction: z
+              .enum(["up", "down", "neutral"])
+              .describe("Direction of the trend"),
+          })
+          .nullish()
+          .describe("Trend indicator"),
+        description: z
+          .string()
+          .nullish()
+          .describe("Helper text or description"),
+      }),
+    )
+    .describe("List of data items to display"),
+  variant: z
+    .enum(["default", "grid", "list"])
+    .nullish()
+    .describe("Layout variant"),
 });
 
 // Tool: Global Population Data
@@ -78,6 +115,13 @@ export const components: TamboComponent[] = [
       "Renders interactive charts (bar, line, pie) using Recharts. Perfect for visualizing data trends, comparisons, and distributions. Supports multiple datasets, custom colors, and responsive sizing.",
     component: Graph,
     propsSchema: graphSchema,
+  },
+  {
+    name: "DataCard",
+    description:
+      "Displays a set of key-value data points, statistics, or metrics in a card format. Useful for summaries, quick stats, or dashboard-like views.",
+    component: DataCard,
+    propsSchema: dataCardSchema,
   },
 ];
 

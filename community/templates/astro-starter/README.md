@@ -8,7 +8,7 @@ A premium starter template for building AI-powered generative UI applications wi
 
 ## Video Demo
 
-https://github.com/user-attachments/assets/2e978cdf-a64e-4d6f-aa53-421c3aaf14c0
+https://github.com/user-attachments/assets/5fa21a42-bd69-4ecb-a51e-c5926d6e15c7
 
 ## Features
 
