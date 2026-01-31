@@ -1,0 +1,75 @@
+[
+  {
+    "id": "inc-1007",
+    "title": "Case creation failing for new audits",
+    "severity": "P0",
+    "status": "open",
+    "startTime": "2026-01-31T03:55:00Z",
+    "endTime": null,
+    "impactedServices": ["case-service", "api-gateway"],
+    "symptoms": [
+      "HTTP 500 on /cases",
+      "Spike in error rate",
+      "No new cases created"
+    ],
+    "timelineEvents": [
+      {
+        "time": "2026-01-31T03:55:00Z",
+        "event": "Alerts fired: case-service errorRate > 10%"
+      },
+      {
+        "time": "2026-01-31T04:02:00Z",
+        "event": "On-call acknowledged and started triage"
+      },
+      {
+        "time": "2026-01-31T04:10:00Z",
+        "event": "Suspected DB connection pool exhaustion"
+      }
+    ],
+    "resolution": ""
+  },
+  {
+    "id": "inc-1006",
+    "title": "Risk score latency regression after deployment",
+    "severity": "P1",
+    "status": "mitigated",
+    "startTime": "2026-01-31T02:25:00Z",
+    "endTime": null,
+    "impactedServices": ["risk-engine"],
+    "symptoms": ["p95 latency > 900ms", "CPU high", "Queue backlog increasing"],
+    "timelineEvents": [
+      {
+        "time": "2026-01-31T02:25:00Z",
+        "event": "Latency alert triggered for risk-engine"
+      },
+      {
+        "time": "2026-01-31T02:40:00Z",
+        "event": "Rolled back to previous version for 1 pod"
+      },
+      { "time": "2026-01-31T03:05:00Z", "event": "Scaled replicas from 4 to 8" }
+    ],
+    "resolution": "Scaled out risk-engine and rolled back one pod to stabilize latency."
+  },
+  {
+    "id": "inc-1005",
+    "title": "Intermittent auth token validation failures",
+    "severity": "P2",
+    "status": "resolved",
+    "startTime": "2026-01-29T10:10:00Z",
+    "endTime": "2026-01-29T11:05:00Z",
+    "impactedServices": ["auth-service", "api-gateway"],
+    "symptoms": ["401 spikes", "JWT validation errors", "Clock skew warnings"],
+    "timelineEvents": [
+      { "time": "2026-01-29T10:10:00Z", "event": "401 spike detected" },
+      {
+        "time": "2026-01-29T10:22:00Z",
+        "event": "Found 2 nodes with time drift"
+      },
+      {
+        "time": "2026-01-29T11:05:00Z",
+        "event": "NTP sync applied; errors normalized"
+      }
+    ],
+    "resolution": "Fixed node time drift (NTP sync) which stabilized JWT validation."
+  }
+]
