@@ -7,7 +7,7 @@ interface ApiKeyCheckProps {
 }
 
 const REQUIRED_KEYS = [
-  "TAMBO_API_KEY",
+  "NEXT_PUBLIC_TAMBO_API_KEY",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
   "AUTH_SECRET",
