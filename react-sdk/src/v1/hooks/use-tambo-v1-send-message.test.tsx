@@ -111,7 +111,13 @@ describe("createRunStream", () => {
           name: "TestComponent",
           description: "A test component",
           component: () => null,
-          propsSchema: z.object({ title: z.string() }),
+          // RegisteredComponent has props as JSON Schema (already converted from propsSchema)
+          props: {
+            type: "object",
+            properties: { title: { type: "string" } },
+            required: ["title"],
+          },
+          contextTools: [],
         },
       ],
     ]),
@@ -439,7 +445,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -548,7 +558,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -634,7 +648,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -713,7 +731,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -894,7 +916,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_1"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_1", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 
@@ -925,7 +951,11 @@ describe("useTamboV1SendMessage mutation", () => {
       {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["call_2"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "call_2", toolName: "test", arguments: "{}" },
+          ],
+        },
       },
     ]);
 

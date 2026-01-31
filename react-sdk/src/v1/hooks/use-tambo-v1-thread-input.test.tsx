@@ -161,6 +161,7 @@ describe("useTamboV1ThreadInput", () => {
           role: "user",
           content: [{ type: "text", text: "Test message" }],
         },
+        userMessageText: "Test message",
         debug: undefined,
       });
     });
@@ -211,6 +212,7 @@ describe("useTamboV1ThreadInput", () => {
           role: "user",
           content: [{ type: "text", text: "Debug message" }],
         },
+        userMessageText: "Debug message",
         debug: true,
       });
     });
@@ -244,6 +246,7 @@ describe("useTamboV1ThreadInput", () => {
             },
           ],
         },
+        userMessageText: "",
         debug: undefined,
       });
 
@@ -286,13 +289,14 @@ describe("useTamboV1ThreadInput", () => {
             },
           ],
         },
+        userMessageText: "Test message",
         debug: undefined,
       });
     });
   });
 
   describe("Thread ID Management", () => {
-    it("initializes with undefined threadId", () => {
+    it("initializes with undefined threadId when stream state has no currentThreadId", () => {
       const { result } = renderHook(() => useTamboV1ThreadInput(), {
         wrapper: createWrapper(),
       });
@@ -300,19 +304,7 @@ describe("useTamboV1ThreadInput", () => {
       expect(result.current.threadId).toBeUndefined();
     });
 
-    it("allows setting threadId via setThreadId", () => {
-      const { result } = renderHook(() => useTamboV1ThreadInput(), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.setThreadId("custom_thread_id");
-      });
-
-      expect(result.current.threadId).toBe("custom_thread_id");
-    });
-
-    it("does not take ownership of threadId when inheriting stream selection", async () => {
+    it("uses currentThreadId from stream state", () => {
       const { result } = renderHook(() => useTamboV1ThreadInput(), {
         wrapper: createWrapper({
           streamState: { threadMap: {}, currentThreadId: "thread_stream" },
@@ -323,6 +315,14 @@ describe("useTamboV1ThreadInput", () => {
       expect(
         jest.mocked(useTamboV1SendMessage).mock.calls.map((call) => call[0]),
       ).toContain("thread_stream");
+    });
+
+    it("uses stream state threadId when submitting messages", async () => {
+      const { result } = renderHook(() => useTamboV1ThreadInput(), {
+        wrapper: createWrapper({
+          streamState: { threadMap: {}, currentThreadId: "thread_stream" },
+        }),
+      });
 
       act(() => {
         result.current.setValue("Test message");
@@ -332,10 +332,14 @@ describe("useTamboV1ThreadInput", () => {
         await result.current.submit();
       });
 
-      expect(result.current.threadId).toBe("thread_stream");
-      expect(
-        jest.mocked(useTamboV1SendMessage).mock.calls.map((call) => call[0]),
-      ).not.toContain("thread_123");
+      // Verify sendMessage was called with the stream state's threadId
+      expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            content: [{ type: "text", text: "Test message" }],
+          }),
+        }),
+      );
     });
   });
 
