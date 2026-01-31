@@ -1,11 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/refs/heads/main/schemas/config.json",
-  "always-link-local": false,
+  "always-link-local": true,
   "separate-pull-requests": true,
   "always-update": true,
   "bootstrap-sha": "afad6013a55f7614de2c2e5c9b090d271e821e01",
   "commit-search-depth": 50,
-  "plugins": ["node-workspace"],
   "packages": {
     "react-sdk": {
       "component": "react"
