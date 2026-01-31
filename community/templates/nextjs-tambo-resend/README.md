@@ -444,13 +444,14 @@ CREATE INDEX idx_emails_status ON emails(user_id, status);
 
 ![Email preview rendered in chat](https://github.com/user-attachments/assets/e57c660d-a219-430e-8a61-4095892993b6)
 
-![page ](https://github.com/user-attachments/assets/52552c8a-d22e-41ff-aace-bea90b533043)
-
 ![Email sent confirmation](https://github.com/user-attachments/assets/7633e3b4-773d-42a7-b659-59b6d612c84a)
+
+![page ](https://github.com/user-attachments/assets/eee0edef-1d2f-41dd-919a-0a3b477ff9cf)
 
 ### Demo
 
-- **Video demo:** https://github.com/user-attachments/assets/eb948c79-ed8f-4df5-be5d-efa3233bc75b
+- **Video demo:**
+- https://github.com/user-attachments/assets/eb948c79-ed8f-4df5-be5d-efa3233bc75b
 
 - https://github.com/user-attachments/assets/1d809c0d-f0da-41d5-a991-0674f8cd5f2e
 
