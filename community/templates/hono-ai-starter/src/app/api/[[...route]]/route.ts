@@ -1,43 +1,39 @@
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
-import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 
-export const runtime = "edge";
+export const runtime = "edge"; // Crucial for Tambo performance
 
 const app = new Hono().basePath("/api");
 
-// 1. Data Contract matching TaskList.tsx and lib/tambo.ts
-let tasks = [
-  { id: "1", title: "Integrate Hono Edge", completed: true },
-  { id: "2", title: "Register Generative UI Components", completed: false },
-];
-
-// 2. Fetch Tasks
-app.get("/tasks", (c) => {
-  return c.json(tasks);
-});
-
-// 3. Add Task with Zod Validation
-app.post(
-  "/tasks",
-  zValidator(
-    "json",
-    z.object({
-      title: z.string().min(1).describe("The name of the task to be added"),
-    }),
-  ),
+// 1. Status Route
+app.get(
+  "/status",
+  zValidator("query", z.object({ service: z.string().min(1) })),
   async (c) => {
-    const { title } = c.req.valid("json");
+    const { service } = c.req.valid("query");
+    return c.json({
+      title: `${service.toUpperCase()} Status`,
+      status: "active",
+      message: `Service ${service} is running optimally on Hono Edge.`,
+    });
+  },
+);
 
-    const newTask = {
-      id: crypto.randomUUID(), // More robust than Math.random
-      title,
-      completed: false,
-    };
+// 2. Logs Route
+app.get(
+  "/logs",
+  zValidator("query", z.object({ limit: z.string().optional() })),
+  async (c) => {
+    const limit = Number(c.req.query("limit")) || 3;
+    const logs = [
+      { id: 1, event: "Database Backup", time: "2 mins ago", type: "info" },
+      { id: 2, event: "High CPU Usage", time: "15 mins ago", type: "warning" },
+      { id: 3, event: "New User Registered", time: "1 hour ago", type: "info" },
+    ].slice(0, limit);
 
-    tasks = [newTask, ...tasks]; // Push to top for better UI feel
-    return c.json(newTask, 201);
+    return c.json({ logs });
   },
 );
 

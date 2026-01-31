@@ -1,13 +1,24 @@
-# Hono AI Starter Template
+# ⚡ Hono AI Starter
 
-A high-performance, edge-native AI starter kit for the [Tambo AI ecosystem](https://tambo.co). This template combines **Next.js 15**, **Hono**, and **Tailwind CSS v4** to create a seamless Generative UI experience.
+A professional, edge-native starter template for building AI applications using Hono and Tambo. This template provides a clean production foundation with pre-configured Edge routes, Zod validation, and Generative UI components.
 
-## 🚀 Features
+---
 
-- **Edge-Ready Backend**: Powered by Hono and deployed on the Edge Runtime for sub-millisecond latency.
-- **Generative UI**: Includes a pre-configured `TaskList` component that the AI renders automatically using Tambo's tool-calling logic.
-- **Type Safety**: Built with **TypeScript**, **React 19**, and strict **Zod** validation for both tool inputs and outputs.
-- **Modern Styling**: Uses **Tailwind CSS v4** with native theme variables and dark mode support.
+## 📝 Overview
+
+Hono AI Starter is designed for developers who want to build fast, type-safe AI applications on the Edge. It ships with a minimal but extensible architecture, demonstrating Generative UI, schema-validated tools, and a neutral Tailwind v4 interface that’s easy to customize.
+
+---
+
+## ✨ Features
+
+- Edge-native Hono backend
+- Pre-configured Next.js API routes
+- Zod-powered validation for all tools
+- Generative UI components
+- Clean, minimalist Tailwind v4 chat interface
+- TypeScript-first architecture
+- Simple extension model for adding tools and components
 
 ## 🛠️ Tech Stack
 
@@ -52,7 +63,8 @@ Clone the repository and install dependencies using the legacy peer deps flag (r
 
 Click the thumbnail below to watch the demo:
 
-[![App Demo](https://github.com/user-attachments/assets/5d5d8013-dd53-49d1-9827-2daf9db8f747)](https://github.com/user-attachments/assets/5d5d8013-dd53-49d1-9827-2daf9db8f747)
+[![App Demo](https://github.com/user-attachments/assets/34bf37bc-aab7-463d-b59f-0cb7b1e7d930)](https://github.com/user-attachments/assets/34bf37bc-aab7-463d-b59f-0cb7b1e7d930
+)
 
 ---
 
@@ -60,8 +72,6 @@ Click the thumbnail below to watch the demo:
 
 ![Dashboard](https://github.com/user-attachments/assets/a96005cb-96a4-4bfd-b6ea-7ab2daaaa995)
 
-![Chat Interface](https://github.com/user-attachments/assets/126d9878-caf9-4850-a562-c362a85ba0bb)
+![Chat Interface](https://github.com/user-attachments/assets/7d9807aa-242b-4a29-8597-8408289d7d02)
 
-![Workflow View](https://github.com/user-attachments/assets/491f1122-c80f-4b2d-8e50-0db93b18c0b7)
-
-![backend update View](https://github.com/user-attachments/assets/c039a0cc-f936-46be-92b7-32ba65d75509)
+![backend View](https://github.com/user-attachments/assets/ec20c0b7-5a5a-40c3-abbc-80cf4e77d09a)

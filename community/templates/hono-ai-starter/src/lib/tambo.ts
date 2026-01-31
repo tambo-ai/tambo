@@ -1,58 +1,57 @@
 import { TamboComponent, TamboTool } from "@tambo-ai/react";
 import { z } from "zod";
-import TaskList from "@/components/tambo/TaskList";
-
-// 1. Define the Task Schema once to reuse it in both registries
-const TaskSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  completed: z.boolean(),
-});
+import StatusCard from "@/components/tambo/StatusCard";
+import LogViewer from "@/components/tambo/LogViewer";
 
 export const components: TamboComponent[] = [
   {
-    name: "TaskList",
-    description:
-      "Displays a list of tasks. Use this when the user asks to see their tasks.",
-    component: TaskList,
+    name: "StatusCard",
+    description: "Displays a neutral status card with a title and message.",
+    component: StatusCard,
     propsSchema: z.object({
-      tasks: z.array(TaskSchema).describe("The array of tasks to display"),
-      loading: z.boolean().optional(),
+      title: z.string(),
+      status: z.enum(["active", "pending", "error"]),
+      message: z.string(),
+    }),
+  },
+  {
+    name: "LogViewer",
+    description: "Displays a list of system activity logs.",
+    component: LogViewer,
+    propsSchema: z.object({
+      logs: z.array(
+        z.object({
+          id: z.number(),
+          event: z.string(),
+          time: z.string(),
+          type: z.string(),
+        }),
+      ),
     }),
   },
 ];
 
 export const tools: TamboTool[] = [
   {
-    name: "manage_tasks",
-    description: "Fetch the task list or add a new task via the Hono API.",
-    inputSchema: z.object({
-      action: z.enum(["list", "add"]).describe("The action to perform"),
-      title: z.string().optional().describe("Task title (required for add)"),
-    }),
-    // FIX: Mandatory outputSchema required by Tambo SDK
-    outputSchema: z
-      .union([
-        z.array(TaskSchema), // For 'list' action
-        TaskSchema, // For 'add' action
-        z.object({ error: z.string() }),
-      ])
-      .describe("The resulting task data or task list from the API"),
-
-    tool: async ({ action, title }) => {
-      const endpoint = "/api/tasks";
-      if (action === "list") {
-        const res = await fetch(endpoint);
-        return res.json();
-      }
-      if (action === "add" && title) {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title }),
-        });
-        return res.json();
-      }
+    name: "get_status",
+    description: "Fetches system status from the Hono Edge API.",
+    inputSchema: z.object({ service: z.string() }),
+    outputSchema: z.any(),
+    tool: async ({ service }) => {
+      const res = await fetch(
+        `/api/status?service=${encodeURIComponent(service)}`,
+      );
+      return res.json();
+    },
+  },
+  {
+    name: "get_logs",
+    description: "Fetches recent system activity logs from the Hono API.",
+    inputSchema: z.object({ limit: z.number().optional() }),
+    outputSchema: z.any(),
+    tool: async ({ limit }) => {
+      const res = await fetch(`/api/logs?limit=${limit || 3}`);
+      return res.json();
     },
   },
 ];
