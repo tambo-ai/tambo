@@ -99,7 +99,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       throw new Error('API key not configured');
     }
 
-    // Log what we're sending
     console.log('Sending to AI:', {
       messageCount: messages.length,
       lastMessage: messages[messages.length - 1]?.content,
@@ -151,7 +150,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     } catch (parseError) {
       console.error('JSON parse error:', parseError, 'Response:', assistantMessage);
 
-      // If AI returns text instead of JSON, wrap it
+     
       return NextResponse.json({
         type: 'component',
         component: 'DataTable',

@@ -1,4 +1,3 @@
-// ===== FILE: src/components/tambo/ComponentParser.tsx =====
 'use client';
 
 import React from 'react';
@@ -25,8 +24,8 @@ export function parseAndRenderComponents(content: string): {
     try {
       // Clean up the JSON string
       const cleanedRows = rowsString
-        .replace(/'/g, '"') // Replace single quotes with double quotes
-        .replace(/(\w+):/g, '"$1":'); // Add quotes to property names if missing
+        .replace(/'/g, '"') 
+        .replace(/(\w+):/g, '"$1":'); 
 
       const rows = JSON.parse(cleanedRows);
 
@@ -34,7 +33,7 @@ export function parseAndRenderComponents(content: string): {
         <DataTableComponent key={`datatable-${componentIndex++}`} title={title} rows={rows} />
       );
 
-      // Remove the component tag from text content
+     
       textContent = textContent.replace(match[0], '');
     } catch (e) {
       console.error('Failed to parse DataTable:', e, rowsString);
@@ -85,7 +84,7 @@ export function parseAndRenderComponents(content: string): {
     textContent = textContent.replace(match[0], '');
   }
 
-  // Clean up the text content
+
   textContent = textContent.trim();
 
   return { components, textContent };

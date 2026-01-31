@@ -59,29 +59,21 @@ export function Dashboard() {
   // Fixed getMessageContent function
   const getMessageContent = (message: MessageContent): string => {
     try {
-      // First, check if message.content is a string
       if (typeof message.content === 'string') {
         const contentStr = message.content;
-
-        // Check if it's a JSON array string like [{"type":"text","text":"..."}]
         if (contentStr.startsWith('[') && contentStr.includes('"type":"text"')) {
           try {
-            // Parse the JSON array
             const parsedArray = JSON.parse(contentStr) as Array<{ text?: string }>;
             if (Array.isArray(parsedArray) && parsedArray.length > 0) {
-              // Get the first item's text
               const firstItem = parsedArray[0];
               if (firstItem && firstItem.text) {
                 return firstItem.text;
               }
             }
           } catch (e) {
-            // If JSON parsing fails, return original string
             console.log('JSON parse failed:', e);
           }
         }
-
-        // If it's a JSON object string like {"type":"text","text":"..."}
         if (contentStr.startsWith('{') && contentStr.includes('"text"')) {
           try {
             const parsedObj = JSON.parse(contentStr) as { text?: string };
@@ -93,24 +85,20 @@ export function Dashboard() {
           }
         }
 
-        // If it's just plain text, return it
         return contentStr;
       }
 
-      // If message.content is an object
       if (
         message.content &&
         typeof message.content === 'object' &&
         !Array.isArray(message.content)
       ) {
         const contentObj = message.content as { text?: string };
-        // Check if it has a text property
         if (contentObj.text) {
           return contentObj.text;
         }
       }
 
-      // Check if it's an array
       if (message.content && Array.isArray(message.content)) {
         const contentArray = message.content as Array<{ text?: string }>;
         if (contentArray.length > 0) {
@@ -121,12 +109,10 @@ export function Dashboard() {
         }
       }
 
-      // If message has a direct text property (some formats)
       if (message.text) {
         return message.text;
       }
 
-      // Fallback: stringify if it's an object
       if (message.content && typeof message.content === 'object') {
         return JSON.stringify(message.content);
       }

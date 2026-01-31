@@ -1,8 +1,6 @@
-// ===== FILE: src/components/tambo/DataTable.tsx =====
 import React from 'react';
 import { z } from 'zod';
 
-// FIXED: Removed .passthrough() and fixed the schema
 export const DataTablePropsSchema = z.object({
   title: z.string().default('Data Table'),
   rows: z

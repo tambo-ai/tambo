@@ -1,9 +1,7 @@
-// ===== FILE: src/components/tambo/index.ts =====
 import { MetricCard } from './MetricCard';
 import { StatusBadge } from './StatusBadge';
 import { DataTable } from './DataTable';
 
-// Export the array that Tambo expects
 export const components = [
   {
     name: DataTable.name,
@@ -25,5 +23,4 @@ export const components = [
   },
 ];
 
-// Also export individual components if needed elsewhere
 export { MetricCard, StatusBadge, DataTable };

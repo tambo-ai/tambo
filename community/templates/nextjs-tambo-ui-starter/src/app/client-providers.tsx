@@ -1,9 +1,8 @@
-// ===== FILE: src/app/client-providers.tsx =====
 'use client';
 
 import { TamboProvider } from '@tambo-ai/react';
 import { ReactNode } from 'react';
-import { components } from '@/components/tambo'; // Import the pre-built array
+import { components } from '@/components/tambo';
 
 interface ClientProvidersProps {
   children: ReactNode;

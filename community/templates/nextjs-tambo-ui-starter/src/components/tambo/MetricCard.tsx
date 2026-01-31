@@ -1,8 +1,6 @@
-// ===== FILE: src/components/tambo/MetricCard.tsx =====
 import React from 'react';
 import { z } from 'zod';
 
-// FIXED: Removed .passthrough() and fixed schema
 export const MetricCardPropsSchema = z.object({
   title: z.string().default('Metric'),
   value: z.string().default('0'),

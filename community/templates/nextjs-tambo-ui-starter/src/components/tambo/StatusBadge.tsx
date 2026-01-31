@@ -1,8 +1,6 @@
-// ===== FILE: src/components/tambo/StatusBadge.tsx =====
 import React from 'react';
 import { z } from 'zod';
 
-// FIXED: Removed .passthrough() and fixed transform
 export const StatusBadgePropsSchema = z.object({
   label: z.string().default('Status'),
   status: z.enum(['success', 'warning', 'error', 'info']).default('success'),
