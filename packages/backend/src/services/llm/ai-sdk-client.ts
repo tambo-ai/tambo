@@ -460,8 +460,12 @@ export class AISdkClient implements LLMClient {
       switch (delta.type) {
         case "text-start":
           accumulatedMessage = "";
-          // Generate message ID for this text stream
-          textMessageId = generateMessageId();
+          // Generate message ID for this text stream if we don't have one yet.
+          // A message ID may already exist if a tool call was processed first
+          // (LLMs can output tool calls before text in the same response).
+          if (!textMessageId) {
+            textMessageId = generateMessageId();
+          }
           aguiEvents.push({
             type: EventType.TEXT_MESSAGE_START,
             messageId: textMessageId,
@@ -498,7 +502,12 @@ export class AISdkClient implements LLMClient {
           // Initialize component tracker for UI tools
           // Component streaming is only emitted for valid `show_component_*` tool names.
           const componentName = tryExtractComponentName(delta.toolName);
-          if (componentName && textMessageId) {
+          if (componentName) {
+            // Generate a message ID if we don't have one yet (happens when LLM
+            // outputs a tool call without preceding text content)
+            if (!textMessageId) {
+              textMessageId = generateMessageId();
+            }
             const componentId = generateMessageId();
             componentTracker = new ComponentStreamTracker(
               textMessageId,
