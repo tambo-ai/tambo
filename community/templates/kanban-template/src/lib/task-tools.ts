@@ -110,8 +110,41 @@ export const getTasksTool: TamboTool = {
   },
 };
 
+export const deleteTaskTool: TamboTool = {
+  name: "deleteTask",
+  description:
+    "Delete a task from the kanban board. Use when the user wants to remove a task completely.",
+  inputSchema: z.object({
+    taskId: z.string().describe("The ID of the task to delete"),
+  }),
+  outputSchema: z.object({
+    success: z.boolean(),
+    message: z.string(),
+  }),
+  tool: async (input: {
+    taskId: string;
+  }): Promise<{ success: boolean; message: string }> => {
+    const store = useTaskStore.getState();
+    const task = store.getTaskById(input.taskId);
+
+    if (!task) {
+      return {
+        success: false,
+        message: `Task with ID "${input.taskId}" not found`,
+      };
+    }
+
+    store.deleteTask(input.taskId);
+    return {
+      success: true,
+      message: `Task "${task.title}" has been deleted`,
+    };
+  },
+};
+
 export const taskTools: TamboTool[] = [
   createTaskTool,
   moveTaskTool,
   getTasksTool,
+  deleteTaskTool,
 ];
