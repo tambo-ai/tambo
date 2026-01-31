@@ -5,47 +5,39 @@ Build agents that speak your UI.
 ## Installation
 
 ```bash
-# Step 1: Add the marketplace (one time)
+# Add the marketplace and install (one time)
 /plugin marketplace add tambo-ai/tambo/claude-plugin
-
-# Step 2: Install the plugin
 /plugin install tambo
 ```
 
 ## Available Skills
 
-| Skill                         | Description                                  | Triggers                                                  |
-| ----------------------------- | -------------------------------------------- | --------------------------------------------------------- |
-| `tambo:generative-components` | Create components dynamically rendered by AI | "create component", "register component", "TamboProvider" |
-| `tambo:mcp-integration`       | Set up MCP servers with Tambo                | "MCP", "model context protocol", "external tools"         |
-| `tambo:streaming-patterns`    | Implement streaming UIs                      | "streaming", "partial props", "loading states"            |
-| `tambo:component-state`       | Manage persistent component state            | "useTamboComponentState", "state persistence"             |
-| `tambo:interactables`         | Create pre-placed UI connected to Tambo      | "withInteractable", "bidirectional"                       |
-| `tambo:tools`                 | Register tools Tambo can call                | "register tool", "useTamboRegistry"                       |
-| `tambo:cli`                   | Project setup and component management       | "tambo init", "tambo add", "tambo auth"                   |
+| Skill                       | Description                                    | Triggers                                                       |
+| --------------------------- | ---------------------------------------------- | -------------------------------------------------------------- |
+| `tambo:components`          | Create generative and interactable components  | "TamboComponent", "withInteractable", "propsSchema"            |
+| `tambo:component-rendering` | Handle streaming props and persistent state    | "useTamboStreamStatus", "useTamboComponentState", "propStatus" |
+| `tambo:threads`             | Manage threads, suggestions, voice, and images | "useTamboThread", "useTamboSuggestions", "useTamboVoice"       |
+| `tambo:tools-and-context`   | Register tools, MCP servers, and context       | "defineTool", "MCP", "contextHelpers", "resources"             |
+| `tambo:cli`                 | Project setup and component management         | "tambo init", "tambo add", "non-interactive"                   |
 
 ## Usage
 
-Invoke skills directly:
+Skills are automatically selected based on your question, or invoke directly:
 
 ```
-/tambo:generative-components    # Help with component creation
-/tambo:mcp-integration          # Help with MCP setup
-/tambo:streaming-patterns       # Help with streaming UIs
-/tambo:component-state          # Help with state management
-/tambo:interactables            # Help with interactable components
-/tambo:tools                    # Help with tool registration
-/tambo:cli                      # Help with CLI commands
+/tambo:components           # Generative and interactable components
+/tambo:component-rendering  # Streaming and state management
+/tambo:threads              # Thread management, suggestions, voice
+/tambo:tools-and-context    # Tools, MCP, context helpers
+/tambo:cli                  # CLI commands
 ```
-
-Or let Claude automatically select the relevant skill based on your question.
 
 ## Managing the Plugin
 
 ```bash
-/plugin enable tambo            # Enable if disabled
-/plugin disable tambo           # Temporarily disable
-/plugin uninstall tambo         # Remove completely
+/plugin enable tambo        # Enable if disabled
+/plugin disable tambo       # Temporarily disable
+/plugin uninstall tambo     # Remove completely
 ```
 
 ## Links

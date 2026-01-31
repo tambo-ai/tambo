@@ -174,15 +174,15 @@ function VoiceButton() {
 
 ### Voice Hook Returns
 
-| Property             | Type         | Description                       |
-| -------------------- | ------------ | --------------------------------- | ------------------- |
-| `startRecording`     | `() => void` | Start recording, reset transcript |
-| `stopRecording`      | `() => void` | Stop and start transcription      |
-| `isRecording`        | `boolean`    | Currently recording               |
-| `isTranscribing`     | `boolean`    | Processing audio                  |
-| `transcript`         | `string      | null`                             | Transcribed text    |
-| `transcriptionError` | `string      | null`                             | Transcription error |
-| `mediaAccessError`   | `string      | null`                             | Mic access error    |
+| Property             | Type             | Description                       |
+| -------------------- | ---------------- | --------------------------------- |
+| `startRecording`     | `() => void`     | Start recording, reset transcript |
+| `stopRecording`      | `() => void`     | Stop and start transcription      |
+| `isRecording`        | `boolean`        | Currently recording               |
+| `isTranscribing`     | `boolean`        | Processing audio                  |
+| `transcript`         | `string \| null` | Transcribed text                  |
+| `transcriptionError` | `string \| null` | Transcription error               |
+| `mediaAccessError`   | `string \| null` | Mic access error                  |
 
 ## Image Attachments
 

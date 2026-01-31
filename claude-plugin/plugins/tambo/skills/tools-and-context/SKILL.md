@@ -110,7 +110,7 @@ const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
 useEffect(() => {
   addContextHelper("project", () => ({ projectId, projectName }));
   return () => removeContextHelper("project");
-}, [projectId]);
+}, [projectId, projectName, addContextHelper, removeContextHelper]);
 ```
 
 ## Context Attachments

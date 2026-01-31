@@ -55,7 +55,12 @@ function MyComponent({ title, items }: Props) {
 Make state visible to AI and persist across sessions:
 
 ```tsx
+import { useEffect } from "react";
 import { useTamboComponentState, useTamboStreamStatus } from "@tambo-ai/react";
+
+interface Props {
+  title?: string;
+}
 
 function EditableCard({ title: streamedTitle }: Props) {
   const [title, setTitle, setFromProp] = useTamboComponentState("title", "");
