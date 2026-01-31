@@ -974,14 +974,25 @@ function handleComponentStart(
   event: ComponentStartEvent,
 ): ThreadState {
   const messageId = event.value.messageId;
-  const messages = threadState.thread.messages;
+  let messages = threadState.thread.messages;
 
-  // Find the message
-  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  // Find the message, or create it if it doesn't exist.
+  // The backend may emit component events before TEXT_MESSAGE_START when
+  // the LLM outputs a component tool call without preceding text.
+  let messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
-    throw new Error(
-      `Message ${messageId} not found for tambo.component.start event`,
-    );
+    // Create a new assistant message for this component
+    const newMessage: TamboV1Message = {
+      id: messageId,
+      role: "assistant",
+      content: [],
+      createdAt: new Date().toISOString(),
+    };
+    messages = [...messages, newMessage];
+    messageIndex = messages.length - 1;
+
+    // Update thread state with the new message before adding the component
+    threadState = updateThreadMessages(threadState, messages);
   }
 
   const message = messages[messageIndex];

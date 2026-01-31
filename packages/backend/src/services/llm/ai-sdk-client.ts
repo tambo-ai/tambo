@@ -460,12 +460,8 @@ export class AISdkClient implements LLMClient {
       switch (delta.type) {
         case "text-start":
           accumulatedMessage = "";
-          // Generate message ID for this text stream if we don't have one yet.
-          // A message ID may already exist if a tool call was processed first
-          // (LLMs can output tool calls before text in the same response).
-          if (!textMessageId) {
-            textMessageId = generateMessageId();
-          }
+          // Generate message ID for this text stream
+          textMessageId = generateMessageId();
           aguiEvents.push({
             type: EventType.TEXT_MESSAGE_START,
             messageId: textMessageId,
@@ -499,18 +495,17 @@ export class AISdkClient implements LLMClient {
           accumulatedToolCall.id = undefined;
           toolCallArgDeltas = [];
 
-          // Initialize component tracker for UI tools
-          // Component streaming is only emitted for valid `show_component_*` tool names.
+          // Initialize component tracker for UI tools (show_component_* tools).
+          // Component tools emit tambo.component.* custom events instead of
+          // TOOL_CALL_* events - the tool mechanism is an internal detail.
           const componentName = tryExtractComponentName(delta.toolName);
           if (componentName) {
-            // Generate a message ID if we don't have one yet (happens when LLM
-            // outputs a tool call without preceding text content)
-            if (!textMessageId) {
-              textMessageId = generateMessageId();
-            }
+            // Generate a message ID for component events. The SDK will create
+            // the message on-demand when it receives tambo.component.start.
+            const componentMessageId = generateMessageId();
             const componentId = generateMessageId();
             componentTracker = new ComponentStreamTracker(
-              textMessageId,
+              componentMessageId,
               componentId,
               componentName,
             );
@@ -536,34 +531,38 @@ export class AISdkClient implements LLMClient {
         case "tool-call":
           accumulatedToolCall.id = delta.toolCallId;
           if (accumulatedToolCall.name) {
-            aguiEvents.push({
-              type: EventType.TOOL_CALL_START,
-              toolCallId: delta.toolCallId,
-              toolCallName: accumulatedToolCall.name,
-              parentMessageId: textMessageId,
-              timestamp: Date.now(),
-            } as ToolCallStartEvent);
-
-            for (const toolCallArgDelta of toolCallArgDeltas) {
-              aguiEvents.push({
-                type: EventType.TOOL_CALL_ARGS,
-                toolCallId: delta.toolCallId,
-                delta: toolCallArgDelta,
-                timestamp: Date.now(),
-              } as ToolCallArgsEvent);
-            }
-
-            aguiEvents.push({
-              type: EventType.TOOL_CALL_END,
-              toolCallId: delta.toolCallId,
-              timestamp: Date.now(),
-            } as ToolCallEndEvent);
-
-            // Finalize component tracker and emit end event
+            // For component tools (show_component_*), we only emit tambo.component.*
+            // custom events, not TOOL_CALL_* events. The tool mechanism is an
+            // internal implementation detail.
             if (componentTracker) {
+              // Finalize component tracker and emit end event
               const endEvents = componentTracker.finalize();
               aguiEvents.push(...endEvents);
               componentTracker = undefined;
+            } else {
+              // Non-component tool: emit standard TOOL_CALL_* events
+              aguiEvents.push({
+                type: EventType.TOOL_CALL_START,
+                toolCallId: delta.toolCallId,
+                toolCallName: accumulatedToolCall.name,
+                parentMessageId: textMessageId,
+                timestamp: Date.now(),
+              } as ToolCallStartEvent);
+
+              for (const toolCallArgDelta of toolCallArgDeltas) {
+                aguiEvents.push({
+                  type: EventType.TOOL_CALL_ARGS,
+                  toolCallId: delta.toolCallId,
+                  delta: toolCallArgDelta,
+                  timestamp: Date.now(),
+                } as ToolCallArgsEvent);
+              }
+
+              aguiEvents.push({
+                type: EventType.TOOL_CALL_END,
+                toolCallId: delta.toolCallId,
+                timestamp: Date.now(),
+              } as ToolCallEndEvent);
             }
           }
 

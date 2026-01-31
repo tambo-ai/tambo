@@ -298,9 +298,7 @@ describe("streamReducer", () => {
 
       // Placeholder thread should be reset to empty (not removed)
       expect(finalState.threadMap.placeholder).toBeDefined();
-      expect(finalState.threadMap.placeholder.thread.messages).toHaveLength(
-        0,
-      );
+      expect(finalState.threadMap.placeholder.thread.messages).toHaveLength(0);
 
       // Real thread should have the migrated user message
       expect(finalState.threadMap[realThreadId]).toBeDefined();
@@ -1102,7 +1100,7 @@ describe("streamReducer", () => {
       });
     });
 
-    it("throws when message not found for tambo.component.start", () => {
+    it("creates message on-demand when not found for tambo.component.start", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [
         {
@@ -1123,15 +1121,25 @@ describe("streamReducer", () => {
         },
       };
 
-      expect(() => {
-        streamReducer(state, {
-          type: "EVENT",
-          event,
-          threadId: "thread_1",
-        });
-      }).toThrow(
-        "Message unknown_msg not found for tambo.component.start event",
-      );
+      // Should create the message on-demand instead of throwing
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // Verify the message was created
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(2);
+      expect(messages[1].id).toBe("unknown_msg");
+      expect(messages[1].role).toBe("assistant");
+      // And the component was added to it
+      expect(messages[1].content).toHaveLength(1);
+      expect(messages[1].content[0]).toMatchObject({
+        type: "component",
+        id: "comp_1",
+        name: "Test",
+      });
     });
 
     it("throws when component not found for tambo.component.end", () => {
