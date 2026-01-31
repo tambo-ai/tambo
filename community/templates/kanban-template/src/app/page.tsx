@@ -3,8 +3,29 @@
 import { KanbanBoard } from "@/components/tambo/kanban-board";
 import { MessageThreadFull } from "@/components/tambo/message-thread-full";
 import { components, tools } from "@/lib/tambo";
+import { useTaskStore } from "@/lib/task-store";
 import { TamboProvider } from "@tambo-ai/react";
 import Image from "next/image";
+
+function TaskCount() {
+  const tasks = useTaskStore((state) => state.tasks);
+  const doneCount = tasks.filter((t) => t.status === "done").length;
+
+  if (tasks.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <span className="bg-muted px-2 py-0.5 rounded">
+        {tasks.length} task{tasks.length !== 1 ? "s" : ""}
+      </span>
+      {doneCount > 0 && (
+        <span className="text-emerald-600">
+          {doneCount} done
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   return (
@@ -34,14 +55,17 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <a
-            href="https://tambo.co"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            docs →
-          </a>
+          <div className="flex items-center gap-4">
+            <TaskCount />
+            <a
+              href="https://tambo.co"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              docs →
+            </a>
+          </div>
         </header>
 
         {/* Main Content */}
