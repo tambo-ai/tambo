@@ -17,6 +17,7 @@ import React, {
 } from "react";
 import {
   streamReducer,
+  createInitialState,
   createInitialThreadState,
   PLACEHOLDER_THREAD_ID,
   type StreamState,
@@ -141,14 +142,11 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
   }
 
   // Create stable initial state - only computed once on mount
+  // Uses createInitialState which sets up placeholder thread for optimistic UI
   const [state, dispatch] = useReducer(
     streamReducer,
     undefined,
-    // Lazy initializer function
-    () => ({
-      threadMap: {},
-      currentThreadId: null,
-    }),
+    createInitialState,
   );
 
   const activeState = providedState ?? state;
