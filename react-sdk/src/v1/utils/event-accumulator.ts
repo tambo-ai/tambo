@@ -363,6 +363,44 @@ export function streamReducer(
     };
   }
 
+  // Handle temp thread migration for RUN_STARTED events
+  // When a new thread is created, messages may have been added to a temp thread
+  // for immediate UI feedback. Now that we have the real threadId, migrate those messages.
+  if (
+    event.type === EventType.RUN_STARTED &&
+    updatedState.currentThreadId &&
+    updatedState.currentThreadId.startsWith("temp_") &&
+    updatedState.currentThreadId !== threadId
+  ) {
+    const tempThreadState =
+      updatedState.threadMap[updatedState.currentThreadId];
+    if (tempThreadState && tempThreadState.thread.messages.length > 0) {
+      // Prepend temp thread messages to the real thread
+      threadState = {
+        ...threadState,
+        thread: {
+          ...threadState.thread,
+          messages: [
+            ...tempThreadState.thread.messages,
+            ...threadState.thread.messages,
+          ],
+        },
+      };
+
+      // Remove temp thread and update currentThreadId
+      const { [updatedState.currentThreadId]: _removed, ...restThreadMap } =
+        updatedState.threadMap;
+      updatedState = {
+        ...updatedState,
+        threadMap: {
+          ...restThreadMap,
+          [threadId]: threadState,
+        },
+        currentThreadId: threadId,
+      };
+    }
+  }
+
   // Process the event for this specific thread
   let updatedThreadState: ThreadState;
 
@@ -651,6 +689,7 @@ function handleTextMessageEnd(
 /**
  * Handle TOOL_CALL_START event.
  * Adds a tool use content block to the current message.
+ * If no message exists, creates a synthetic assistant message to hold the tool call.
  * @param threadState - Current thread state
  * @param event - Tool call start event
  * @returns Updated thread state
@@ -667,21 +706,38 @@ function handleToolCallStart(
     ? messages.findIndex((m) => m.id === messageId)
     : messages.length - 1;
 
-  if (messageIndex === -1) {
-    throw new Error(
-      messageId
-        ? `Message ${messageId} not found for TOOL_CALL_START event`
-        : `No messages exist for TOOL_CALL_START event`,
-    );
-  }
-
-  const message = messages[messageIndex];
   const newContent: Content = {
     type: "tool_use",
     id: event.toolCallId,
     name: event.toolCallName,
     input: {},
   };
+
+  // If no message found, create a synthetic assistant message for the tool call
+  if (messageIndex === -1) {
+    const syntheticMessageId = messageId ?? `msg_tool_${event.toolCallId}`;
+    const syntheticMessage: TamboV1Message = {
+      id: syntheticMessageId,
+      role: "assistant",
+      content: [newContent],
+      createdAt: new Date().toISOString(),
+    };
+
+    return {
+      ...threadState,
+      thread: {
+        ...threadState.thread,
+        messages: [...messages, syntheticMessage],
+        updatedAt: new Date().toISOString(),
+      },
+      streaming: {
+        ...threadState.streaming,
+        messageId: syntheticMessageId,
+      },
+    };
+  }
+
+  const message = messages[messageIndex];
 
   const updatedMessage: TamboV1Message = {
     ...message,

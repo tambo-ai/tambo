@@ -13,8 +13,6 @@ import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
-  useRef,
   useState,
   type PropsWithChildren,
 } from "react";
@@ -125,14 +123,8 @@ export interface TamboV1ThreadInputContextProps extends Omit<
   /** Clear all staged images */
   clearImages: () => void;
 
-  /** Current thread ID being used for input */
+  /** Current thread ID being used for input (from stream state) */
   threadId: string | undefined;
-
-  /**
-   * Set the thread ID for input submission.
-   * If not set, a new thread will be created on submit.
-   */
-  setThreadId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
 /**
@@ -154,35 +146,15 @@ export const TamboV1ThreadInputContext = createContext<
  */
 export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
   const [inputValue, setInputValue] = useState("");
-  const [threadId, setThreadId] = useState<string | undefined>(undefined);
   const imageState = useMessageImages();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
 
-  // Track the previous currentThreadId to detect thread switches
-  const prevCurrentThreadIdRef = useRef(streamState.currentThreadId);
-
-  // Reset local threadId when the stream's currentThreadId changes externally
-  // (e.g., when user clicks "New Thread" or switches to a different thread)
-  useEffect(() => {
-    const prevId = prevCurrentThreadIdRef.current;
-    const currentId = streamState.currentThreadId;
-
-    if (prevId !== currentId) {
-      // Thread changed externally - reset local state to follow stream state
-      setThreadId(undefined);
-      prevCurrentThreadIdRef.current = currentId;
-    }
-  }, [streamState.currentThreadId]);
-
-  // Use the current thread from stream state if no explicit threadId is set
-  const inheritedThreadId = streamState.currentThreadId ?? undefined;
-  const effectiveThreadId = threadId ?? inheritedThreadId;
-  // Adopt the returned thread ID if we don't have a real thread ID yet
-  // (either no thread, or a temp thread from startNewThread())
-  const isNewThread =
-    !effectiveThreadId || effectiveThreadId.startsWith("temp_");
-  const sendMessage = useTamboV1SendMessage(effectiveThreadId);
+  // Use the current thread from stream state directly
+  // Temp IDs (from startNewThread()) indicate a new thread should be created
+  const currentThreadId = streamState.currentThreadId ?? undefined;
+  const isNewThread = !currentThreadId || currentThreadId.startsWith("temp_");
+  const sendMessage = useTamboV1SendMessage(currentThreadId);
 
   const submitFn = useCallback(
     async (
@@ -210,6 +182,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
           role: "user",
           content,
         },
+        userMessageText: trimmedValue, // Pass text for optimistic display
         debug: options?.debug,
       });
 
@@ -217,10 +190,8 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
       setInputValue("");
       imageState.clearImages();
 
-      // Update threadId if a new thread was created (or if we were using a temp thread)
+      // Update stream context's currentThreadId if a new thread was created
       if (result.threadId && isNewThread) {
-        setThreadId(result.threadId);
-        // Also update the stream context's currentThreadId so useTamboV1() shows the new thread
         dispatch({ type: "SET_CURRENT_THREAD", threadId: result.threadId });
       }
 
@@ -248,8 +219,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
     addImages: imageState.addImages,
     removeImage: imageState.removeImage,
     clearImages: imageState.clearImages,
-    threadId: effectiveThreadId,
-    setThreadId,
+    threadId: currentThreadId,
   };
 
   return (

@@ -41,6 +41,13 @@ export interface SendMessageOptions {
   message: InputMessage;
 
   /**
+   * User message text for optimistic display.
+   * If provided, synthetic AG-UI events will be dispatched to show
+   * the user message in the thread immediately after getting the threadId.
+   */
+  userMessageText?: string;
+
+  /**
    * Enable debug logging for the stream
    */
   debug?: boolean;
@@ -104,7 +111,9 @@ async function executeToolsAndContinue(
   const { event, toolTracker, registry, client, threadId, runId, userKey } =
     params;
 
-  const { pendingToolCallIds } = event.value;
+  const pendingToolCallIds = event.value.pendingToolCalls.map(
+    (tc) => tc.toolCallId,
+  );
   const toolCallsToExecute = toolTracker.getToolCallsById(pendingToolCallIds);
 
   // Execute tools
@@ -240,9 +249,57 @@ export function useTamboV1SendMessage(threadId?: string) {
 
   return useMutation({
     mutationFn: async (options: SendMessageOptions) => {
-      const { message, debug = false } = options;
+      const { message, userMessageText, debug = false } = options;
 
       const toolTracker = new ToolCallTracker();
+
+      // Generate a stable message ID for the user message
+      const userMessageId = userMessageText
+        ? `user_msg_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+        : undefined;
+
+      // Helper to add user message via synthetic AG-UI events
+      const dispatchUserMessage = (targetThreadId: string) => {
+        if (!userMessageText || !userMessageId) return;
+
+        // TEXT_MESSAGE_START - creates the message
+        dispatch({
+          type: "EVENT",
+          threadId: targetThreadId,
+          event: {
+            type: EventType.TEXT_MESSAGE_START,
+            messageId: userMessageId,
+            role: "user" as const,
+          },
+        });
+
+        // TEXT_MESSAGE_CONTENT - adds the text content
+        dispatch({
+          type: "EVENT",
+          threadId: targetThreadId,
+          event: {
+            type: EventType.TEXT_MESSAGE_CONTENT,
+            messageId: userMessageId,
+            delta: userMessageText,
+          },
+        });
+
+        // TEXT_MESSAGE_END - marks the message as complete
+        dispatch({
+          type: "EVENT",
+          threadId: targetThreadId,
+          event: {
+            type: EventType.TEXT_MESSAGE_END,
+            messageId: userMessageId,
+          },
+        });
+      };
+
+      // Add user message immediately for instant feedback
+      // Use threadId (which could be temp_xxx for new threads) for display
+      if (threadId) {
+        dispatchUserMessage(threadId);
+      }
 
       // Create the run stream
       const { stream, initialThreadId } = await createRunStream({
@@ -273,6 +330,13 @@ export function useTamboV1SendMessage(threadId?: string) {
             if (event.type === EventType.RUN_STARTED) {
               runId = event.runId;
               actualThreadId ??= event.threadId;
+
+              // For threads with no ID at all: add user message now that we have the real threadId
+              // Note: temp thread migration (temp_xxx -> real ID) is handled automatically
+              // by the reducer when it sees RUN_STARTED with a different threadId
+              if (!threadId) {
+                dispatchUserMessage(actualThreadId);
+              }
             } else if (!actualThreadId) {
               throw new Error(
                 `Expected first event to be RUN_STARTED with threadId, got: ${event.type}`,

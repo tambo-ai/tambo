@@ -226,6 +226,126 @@ describe("streamReducer", () => {
 
       expect(result.threadMap.thread_1.streaming.startTime).toBe(1704067200000);
     });
+
+    it("migrates messages from temp thread to real thread", () => {
+      // Start with a temp thread that has a user message (for optimistic UI)
+      const state = createInitialState();
+
+      // Create temp thread with a user message
+      const tempThreadId = "temp_abc123";
+      const stateWithTempThread = streamReducer(state, {
+        type: "START_NEW_THREAD",
+        threadId: tempThreadId,
+      });
+
+      // Add a user message to the temp thread
+      const userMsgStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "user_msg_1",
+        role: "user",
+      };
+      const userMsgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "user_msg_1",
+        delta: "Hello",
+      };
+      const userMsgEnd: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "user_msg_1",
+      };
+
+      let stateWithUserMsg = streamReducer(stateWithTempThread, {
+        type: "EVENT",
+        event: userMsgStart,
+        threadId: tempThreadId,
+      });
+      stateWithUserMsg = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: userMsgContent,
+        threadId: tempThreadId,
+      });
+      stateWithUserMsg = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: userMsgEnd,
+        threadId: tempThreadId,
+      });
+
+      // Verify temp thread has the message
+      expect(stateWithUserMsg.currentThreadId).toBe(tempThreadId);
+      expect(
+        stateWithUserMsg.threadMap[tempThreadId].thread.messages,
+      ).toHaveLength(1);
+      expect(
+        stateWithUserMsg.threadMap[tempThreadId].thread.messages[0].content[0],
+      ).toEqual({
+        type: "text",
+        text: "Hello",
+      });
+
+      // Now RUN_STARTED arrives with the real thread ID
+      const realThreadId = "thread_real_123";
+      const runStartedEvent: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_456",
+        threadId: realThreadId,
+        timestamp: 1704067200000,
+      };
+
+      const finalState = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: runStartedEvent,
+        threadId: realThreadId,
+      });
+
+      // Temp thread should be removed
+      expect(finalState.threadMap[tempThreadId]).toBeUndefined();
+
+      // Real thread should have the migrated user message
+      expect(finalState.threadMap[realThreadId]).toBeDefined();
+      expect(finalState.threadMap[realThreadId].thread.messages).toHaveLength(
+        1,
+      );
+      expect(
+        finalState.threadMap[realThreadId].thread.messages[0].content[0],
+      ).toEqual({
+        type: "text",
+        text: "Hello",
+      });
+
+      // currentThreadId should be updated to real thread
+      expect(finalState.currentThreadId).toBe(realThreadId);
+
+      // Real thread should be in streaming state
+      expect(finalState.threadMap[realThreadId].thread.status).toBe(
+        "streaming",
+      );
+      expect(finalState.threadMap[realThreadId].streaming.runId).toBe(
+        "run_456",
+      );
+    });
+
+    it("does not migrate when currentThreadId is not a temp thread", () => {
+      // Start with a real thread
+      const state = createTestStreamState("thread_1");
+      state.currentThreadId = "thread_1";
+
+      const event: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_123",
+        threadId: "thread_1",
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // Should just update the existing thread, no migration
+      expect(result.threadMap.thread_1).toBeDefined();
+      expect(result.currentThreadId).toBe("thread_1");
+    });
   });
 
   describe("RUN_FINISHED event", () => {
@@ -564,7 +684,7 @@ describe("streamReducer", () => {
       });
     });
 
-    it("throws when parentMessageId message not found", () => {
+    it("creates synthetic message when parentMessageId not found", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [
         {
@@ -582,16 +702,27 @@ describe("streamReducer", () => {
         parentMessageId: "unknown_msg",
       };
 
-      expect(() => {
-        streamReducer(state, {
-          type: "EVENT",
-          event,
-          threadId: "thread_1",
-        });
-      }).toThrow("Message unknown_msg not found for TOOL_CALL_START event");
+      // When parentMessageId not found, creates a synthetic message
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // Should create a synthetic message with the tool call
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(2); // Original + synthetic
+      expect(messages[1].id).toBe("unknown_msg");
+      expect(messages[1].role).toBe("assistant");
+      expect(messages[1].content).toHaveLength(1);
+      expect(messages[1].content[0]).toMatchObject({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+      });
     });
 
-    it("throws when no messages exist", () => {
+    it("creates synthetic message when no messages exist", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [];
 
@@ -602,13 +733,23 @@ describe("streamReducer", () => {
         // No parentMessageId, no messages
       };
 
-      expect(() => {
-        streamReducer(state, {
-          type: "EVENT",
-          event,
-          threadId: "thread_1",
-        });
-      }).toThrow("No messages exist for TOOL_CALL_START event");
+      // When no messages exist, creates a synthetic message
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_tool_tool_1");
+      expect(messages[0].role).toBe("assistant");
+      expect(messages[0].content).toHaveLength(1);
+      expect(messages[0].content[0]).toMatchObject({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+      });
     });
   });
 
@@ -858,7 +999,12 @@ describe("streamReducer", () => {
       const event: CustomEvent = {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["tool_1", "tool_2"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "tool_1", toolName: "test1", arguments: "{}" },
+            { toolCallId: "tool_2", toolName: "test2", arguments: "{}" },
+          ],
+        },
       };
 
       const result = streamReducer(state, {
