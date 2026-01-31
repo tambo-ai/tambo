@@ -1,6 +1,6 @@
 ---
 name: Tambo CLI
-description: Use this skill when working with the Tambo CLI for project setup and component management. The CLI is agent-friendly with non-interactive mode, exit codes, and guidance errors. Triggers on "tambo init", "tambo add", "tambo list", "full-send", "create-tambo-app", "npx tambo", "non-interactive", "CI mode".
+description: Use this skill when working with the Tambo CLI for project setup, component library, and component management. The CLI is agent-friendly with non-interactive mode, exit codes, and guidance errors. Triggers on "tambo init", "tambo add", "tambo list", "full-send", "create-tambo-app", "npx tambo", "non-interactive", "CI mode", "component library", "ui.tambo.co", "message-thread", "control-bar".
 ---
 
 # Tambo CLI
@@ -67,7 +67,55 @@ npx tambo add form --dry-run                # Preview changes
 npx tambo add form --legacy-peer-deps       # For dependency conflicts
 ```
 
-**Available components**: `message-thread-full`, `message-thread-panel`, `message-thread-collapsible`, `control-bar`, `form`, `graph`, `canvas-space`, `input-fields`
+## Component Library
+
+Browse and preview all components at [ui.tambo.co](https://ui.tambo.co).
+
+### Available Components
+
+| Component                      | Description                                               |
+| ------------------------------ | --------------------------------------------------------- |
+| `message-thread-full`          | Complete message thread with all content and interactions |
+| `message-thread-panel`         | Message thread in a side panel or modal context           |
+| `message-thread-collapsible`   | Message threads that can be expanded or collapsed         |
+| `message`                      | Individual messages with markdown support                 |
+| `message-input`                | Composes and sends messages in a conversation             |
+| `message-suggestions`          | AI-generated suggestions to help users compose responses  |
+| `control-bar`                  | Controls and actions in the interface                     |
+| `input-fields`                 | Reusable input fields with styles and validation          |
+| `graph`                        | Visualizes graph-based data structures                    |
+| `form`                         | Collects user input with validation support               |
+| `map`                          | Interactive map with clustering and heatmap support       |
+| `canvas-space`                 | Displays rendered components from chat messages           |
+| `thread-history`               | Chronological history of a conversation thread            |
+| `thread-dropdown`              | Dropdown menu for collapsible chat threads                |
+| `thread-content`               | Displays messages within a thread                         |
+| `scrollable-message-container` | Container that auto-scrolls to new messages               |
+| `edit-with-tambo-button`       | Inline AI editor button for interactable components       |
+| `elicitation-ui`               | MCP elicitation UI for user input requests                |
+| `mcp-components`               | MCP prompt and resource picker buttons                    |
+
+### What You Get
+
+Each component includes:
+
+- **Source code** copied to your project (not a dependency)
+- **Tambo integration** pre-configured with hooks
+- **Styling** via Tailwind CSS (customizable)
+- **TypeScript** with full type definitions
+
+### Example: Full Chat Interface
+
+```bash
+npx tambo add message-thread-full control-bar --yes
+```
+
+This adds a complete chat UI with:
+
+- Message history display
+- AI-generated component rendering
+- Input bar with send button
+- Streaming status indicators
 
 ### List Components (No Prompts)
 
