@@ -117,6 +117,41 @@ The CLI will automatically create/update your `.env.local` file with:
 NEXT_PUBLIC_TAMBO_API_KEY=your-api-key
 ```
 
+## CI/CD and Non-Interactive Mode
+
+The CLI automatically detects non-interactive environments (CI/CD, piped input) and provides guidance instead of hanging on prompts.
+
+### Exit Codes
+
+| Code | Meaning              | Action                                    |
+| ---- | -------------------- | ----------------------------------------- |
+| 0    | Success              | Command completed                         |
+| 1    | Error                | Check output for error details            |
+| 2    | User action required | Missing flags - check stderr for guidance |
+
+### Non-Interactive Commands
+
+```bash
+# Initialize with direct API key
+npx tambo init --api-key="$TAMBO_API_KEY"
+
+# Create new project (requires browser auth)
+npx tambo init --project-name=myapp --no-browser
+
+# Add components without prompts
+npx tambo add form graph --yes --prefix=src/components/tambo
+```
+
+### GitHub Actions Example
+
+```yaml
+- name: Initialize Tambo
+  run: npx tambo init --api-key="${{ secrets.TAMBO_API_KEY }}"
+
+- name: Add components
+  run: npx tambo add message-thread-full --yes
+```
+
 ## TamboProvider Setup
 
 After initialization, you can add the TamboProvider in one of two ways:

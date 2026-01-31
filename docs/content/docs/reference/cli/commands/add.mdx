@@ -38,6 +38,19 @@ npx tambo add form --yes
 npx tambo add form --legacy-peer-deps
 ```
 
+**CI/CD Usage:**
+
+```bash
+# Non-interactive: skip all prompts and specify directory
+npx tambo add form graph --yes --prefix=src/components/tambo
+```
+
+<Callout type="info" title="Non-Interactive Mode">
+  In CI/CD or piped environments, use `--yes` to skip confirmation prompts and
+  `--prefix` to specify the component directory. See [global
+  options](/reference/cli/global-options#non-interactive-mode) for details.
+</Callout>
+
 ## Automatic Configuration
 
 The `add` command automatically configures your CSS and Tailwind setup based on your project's Tailwind CSS version:
