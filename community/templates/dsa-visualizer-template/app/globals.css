@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* LeetCode-inspired dark theme */
+  --background: 220 13% 10%;
+  --foreground: 210 20% 95%;
+  --primary: 142 71% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 13% 15%;
+  --secondary-foreground: 210 20% 95%;
+  --muted: 220 13% 18%;
+  --muted-foreground: 215 15% 55%;
+  --accent: 38 92% 50%;
+  --accent-foreground: 0 0% 100%;
+  --border: 220 13% 20%;
+  --card: 220 13% 12%;
+  --card-foreground: 210 20% 95%;
+  --destructive: 0 84% 60%;
+  --success: 142 71% 45%;
+  --warning: 38 92% 50%;
+  --info: 199 89% 48%;
+}
+
+/* Light mode option */
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 85%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84% 60%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --info: 199 89% 48%;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans",
+    Ubuntu, "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Custom scrollbar - LeetCode style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Code block styling */
+pre, code {
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+}
+
+/* Animation for highlighting */
+@keyframes highlight-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-highlight-pulse {
+  animation: highlight-pulse 1.5s ease-in-out infinite;
+}
+
+/* Gradient text for branding */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect for cards */
+.glass-card {
+  background: hsl(var(--card) / 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid hsl(var(--border));
+}
+
+/* Button hover effects */
+.btn-glow:hover {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);}
