@@ -64,6 +64,7 @@ function createJsonPatchPath(key: string): string {
  * those values as immutable snapshots.
  */
 export class ComponentStreamTracker {
+  private messageId: string;
   private componentId: string;
   private componentName: string;
   private accumulatedJson: string = "";
@@ -79,7 +80,8 @@ export class ComponentStreamTracker {
   /** Properties that were seen in the last parse, used to detect new properties */
   private previousPropertyKeys: Set<string> = new Set();
 
-  constructor(componentId: string, componentName: string) {
+  constructor(messageId: string, componentId: string, componentName: string) {
+    this.messageId = messageId;
     this.componentId = componentId;
     this.componentName = componentName;
   }
@@ -267,8 +269,9 @@ export class ComponentStreamTracker {
       type: EventType.CUSTOM,
       name: "tambo.component.start",
       value: {
+        messageId: this.messageId,
         componentId: this.componentId,
-        name: this.componentName,
+        componentName: this.componentName,
       },
       timestamp: Date.now(),
     } as BaseEvent;

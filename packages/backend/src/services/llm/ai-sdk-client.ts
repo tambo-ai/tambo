@@ -498,9 +498,10 @@ export class AISdkClient implements LLMClient {
           // Initialize component tracker for UI tools
           // Component streaming is only emitted for valid `show_component_*` tool names.
           const componentName = tryExtractComponentName(delta.toolName);
-          if (componentName) {
+          if (componentName && textMessageId) {
             const componentId = generateMessageId();
             componentTracker = new ComponentStreamTracker(
+              textMessageId,
               componentId,
               componentName,
             );
