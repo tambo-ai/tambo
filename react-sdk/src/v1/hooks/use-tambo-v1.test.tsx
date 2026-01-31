@@ -72,12 +72,14 @@ describe("useTamboV1", () => {
     expect(result.current.toolRegistry).toBe(mockRegistry.toolRegistry);
   });
 
-  it("returns undefined thread when no threadId provided", () => {
+  it("returns placeholder thread when no threadId provided", () => {
     const { result } = renderHook(() => useTamboV1(), {
       wrapper: TestWrapper,
     });
 
-    expect(result.current.thread).toBeUndefined();
+    // Default state has placeholder thread for optimistic UI
+    expect(result.current.thread).toBeDefined();
+    expect(result.current.thread?.thread.id).toBe("placeholder");
     expect(result.current.messages).toEqual([]);
   });
 
@@ -146,9 +148,10 @@ describe("useTamboV1", () => {
       wrapper: TestWrapper,
     });
 
-    // Initially no current thread
-    expect(result.current.currentThreadId).toBeNull();
-    expect(result.current.thread).toBeUndefined();
+    // Initially has placeholder thread for optimistic UI
+    expect(result.current.currentThreadId).toBe("placeholder");
+    expect(result.current.thread).toBeDefined();
+    expect(result.current.thread?.thread.id).toBe("placeholder");
 
     // Initialize a new thread
     act(() => {

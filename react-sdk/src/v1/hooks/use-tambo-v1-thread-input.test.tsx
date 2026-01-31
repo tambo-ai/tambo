@@ -296,12 +296,13 @@ describe("useTamboV1ThreadInput", () => {
   });
 
   describe("Thread ID Management", () => {
-    it("initializes with undefined threadId when stream state has no currentThreadId", () => {
+    it("initializes with placeholder threadId for optimistic UI", () => {
       const { result } = renderHook(() => useTamboV1ThreadInput(), {
         wrapper: createWrapper(),
       });
 
-      expect(result.current.threadId).toBeUndefined();
+      // Default state has placeholder thread for optimistic UI
+      expect(result.current.threadId).toBe("placeholder");
     });
 
     it("uses currentThreadId from stream state", () => {
