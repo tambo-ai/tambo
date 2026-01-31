@@ -55,10 +55,13 @@ const statusConfig: Record<Status, { label: string; className: string }> = {
   },
 };
 
+const defaultPriorityStyle = { label: "Medium", className: "bg-gray-100 text-gray-800" };
+const defaultStatusStyle = { label: "To Do", className: "bg-gray-100 text-gray-800" };
+
 export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
   ({ id, title, description, priority, status, dueDate, className, ...props }, ref) => {
-    const priorityStyle = priorityConfig[priority];
-    const statusStyle = statusConfig[status];
+    const priorityStyle = priorityConfig[priority] ?? defaultPriorityStyle;
+    const statusStyle = statusConfig[status] ?? defaultStatusStyle;
 
     return (
       <div
@@ -109,11 +112,13 @@ export const TaskCard = React.forwardRef<HTMLDivElement, TaskCardProps>(
           )}
         </div>
 
-        <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-          <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-            {id.slice(0, 8)}
-          </span>
-        </div>
+        {id && (
+          <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
+              {id.slice(0, 8)}
+            </span>
+          </div>
+        )}
       </div>
     );
   },
