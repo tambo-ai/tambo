@@ -1,0 +1,37 @@
+{
+  "name": "nextjs-tambo-ui-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "prettier-check": "prettier --check ."
+  },
+  "dependencies": {
+    "@tambo-ai/react": "^0.72.0",
+    "@valibot/to-json-schema": "^1.5.0",
+    "effect": "^3.19.15",
+    "next": "15.1.11",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "25.1.0",
+    "@types/react": "19.2.10",
+    "@types/react-dom": "19.0.2",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.6",
+    "eslint-config-prettier": "^10.1.8",
+    "postcss": "^8.5.6",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.1.18",
+    "typescript": "5.9.3"
+  }
+}
