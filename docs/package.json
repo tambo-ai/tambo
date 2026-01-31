@@ -13,11 +13,15 @@
     "clean": "rimraf .next"
   },
   "dependencies": {
+    "@nestjs/config": "1.1.5",
+    "@nestjs/swagger": "2.5.1",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.87.0",
     "@tambo-ai/ui-registry": "*",
+    "@theguild/remark-mermaid": "0.0.7",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.3.1",
+    "drizzle-kit": "0.18.1",
     "framer-motion": "^12.29.0",
     "fumadocs-core": "15.8.5",
     "fumadocs-mdx": "^13.0.8",
@@ -25,7 +29,7 @@
     "highlight.js": "^11.11.1",
     "json-stringify-pretty-compact": "^4.0.0",
     "lucide-react": "^0.562.0",
-    "mermaid": "^11.12.1",
+    "mermaid": "^10.9.5",
     "next": "^15.5.9",
     "next-themes": "^0.4.6",
     "posthog-js": "^1.334.1",
@@ -36,7 +40,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "remark-mdx": "^3.1.0",
-    "streamdown": "^1.6.10"
+    "streamdown": "^2.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",

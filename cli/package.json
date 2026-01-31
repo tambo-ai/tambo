@@ -55,8 +55,11 @@
     ]
   },
   "dependencies": {
+    "@nestjs/config": "1.1.5",
+    "@nestjs/swagger": "2.5.1",
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.87.0",
+    "@theguild/remark-mermaid": "0.0.7",
     "@trpc/client": "^11.7.2",
     "@trpc/server": "^11.7.2",
     "chalk": "^5.6.0",
@@ -67,10 +70,12 @@
     "deepmerge": "^4.3.1",
     "diff": "^8.0.3",
     "dotenv": "^17.2.3",
+    "drizzle-kit": "0.18.1",
     "env-paths": "^3.0.0",
     "fast-equals": "^5.3.3",
     "inquirer": "^13.2.1",
     "meow": "^14.0.0",
+    "mermaid": "10.9.5",
     "open": "^11.0.0",
     "ora": "^9.0.0",
     "postcss": "^8.5.3",
@@ -78,7 +83,7 @@
     "rehype-harden": "^1.1.7",
     "sanitize-html": "^2.17.0",
     "semver": "^7.7.3",
-    "streamdown": "^1.6.10",
+    "streamdown": "^2.1.0",
     "superjson": "^2.2.6",
     "ts-morph": "^27.0.2"
   },

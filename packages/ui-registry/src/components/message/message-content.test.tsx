@@ -62,7 +62,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             Hello, world!
           </p>
@@ -86,7 +86,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             First part. Second part.
           </p>
@@ -109,7 +109,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             This is
             <span
@@ -151,14 +151,13 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///path/to/document.txt"
-              title="file:///path/to/document.txt"
+              title="Blocked URL: undefined"
+              class="text-gray-500"
             >
-              @document.txt
+              document.txt [blocked]
             </span>
           </p>
         </div>
@@ -185,14 +184,13 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///path/to/file.md"
-              title="file:///path/to/file.md"
+              title="Blocked URL: undefined"
+              class="text-gray-500"
             >
-              @file:///path/to/file.md
+              file:///path/to/file.md [blocked]
             </span>
           </p>
         </div>
@@ -220,14 +218,13 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///path/with spaces/and#special&amp;chars.txt"
-              title="file:///path/with spaces/and#special&amp;chars.txt"
+              title="Blocked URL: undefined"
+              class="text-gray-500"
             >
-              @special file
+              special file [blocked]
             </span>
           </p>
         </div>
@@ -258,15 +255,14 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             Check out this file:
             <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///docs/readme.md"
-              title="file:///docs/readme.md"
+              title="Blocked URL: undefined"
+              class="text-gray-500"
             >
-              @readme.md
+              readme.md [blocked]
             </span>
           </p>
         </div>
@@ -295,14 +291,13 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///config.json"
-              title="file:///config.json"
+              title="Blocked URL: undefined"
+              class="text-gray-500"
             >
-              @config.json
+              config.json [blocked]
             </span>
             contains the settings you need.
           </p>
@@ -341,23 +336,21 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             Compare
             <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///old.ts"
-              title="file:///old.ts"
+              title="Blocked URL: undefined"
+              class="text-gray-500"
             >
-              @old.ts
+              old.ts [blocked]
             </span>
             with
             <span
-              class="mention resource inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground cursor-default"
-              data-resource-uri="file:///new.ts"
-              title="file:///new.ts"
+              title="Blocked URL: undefined"
+              class="text-gray-500"
             >
-              @new.ts
+              new.ts [blocked]
             </span>
             for the differences.
           </p>
@@ -382,7 +375,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
         </div>
       `);
     });
@@ -400,7 +393,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
         </div>
       `);
     });
@@ -428,7 +421,7 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       // Resource without URI should be skipped, text parts joined with space
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             Before After
           </p>
@@ -451,7 +444,7 @@ describe("MessageContent rendering", () => {
 
       const contentElement = getMessageContentTextSlot(container);
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             Plain string content
           </p>
@@ -477,7 +470,7 @@ describe("MessageContent rendering", () => {
       const contentElement = getMessageContentTextSlot(container);
       // Regular links should render as <a> tags with external link icon
       expect(contentElement.innerHTML).toMatchInlineSnapshot(`
-        <div class="space-y-4 whitespace-normal">
+        <div class="space-y-4 whitespace-normal *:first:mt-0 *:last:mb-0">
           <p class="my-0">
             Check out
             <a
