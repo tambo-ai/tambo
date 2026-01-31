@@ -7,7 +7,7 @@
  * to thread state, streaming status, registry, and client.
  */
 
-import { useContext, useMemo } from "react";
+import { useContext, useMemo, useRef } from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
@@ -23,7 +23,10 @@ import {
 import type { StreamingState } from "../types/thread";
 import type { TamboV1Message } from "../types/message";
 import type { ThreadState } from "../utils/event-accumulator";
-import { renderComponentsInMessages } from "../utils/render-component";
+import {
+  createComponentRenderCache,
+  renderComponentsInMessages,
+} from "../utils/render-component";
 
 /**
  * Return type for useTamboV1 hook
@@ -148,6 +151,10 @@ export function useTamboV1(threadId?: string): UseTamboV1Return {
   const registry = useContext(TamboRegistryContext);
   const threadManagement = useThreadManagement();
 
+  // Cache for rendered components - persists across renders to avoid recreating
+  // React elements when props haven't changed
+  const componentCacheRef = useRef(createComponentRenderCache());
+
   // Get thread state for the given threadId (or current thread if not specified)
   const effectiveThreadId = threadId ?? streamState.currentThreadId;
   const threadState = effectiveThreadId
@@ -163,9 +170,11 @@ export function useTamboV1(threadId?: string): UseTamboV1Return {
     };
 
     // Transform messages to render components from the registry
+    // Uses cache to avoid recreating elements when props haven't changed
     const messages = renderComponentsInMessages(
       rawMessages,
       registry.componentList,
+      componentCacheRef.current,
     );
 
     return {
