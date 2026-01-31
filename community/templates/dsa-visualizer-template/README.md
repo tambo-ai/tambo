@@ -4,9 +4,10 @@ A Tambo starter template for building DSA (Data Structures & Algorithms) visuali
 
 <!-- TODO: Replace with actual screenshot after PR is created -->
 <!-- Upload screenshot by dragging into PR description, then paste the generated URL here -->
-![DSA Visualizer Screenshot](screenshot-placeholder.png)
+![DSA Visualizer Screenshot] <img width="1783" height="961" alt="image" src="https://github.com/user-attachments/assets/0ed51300-3f5b-46fe-9a69-f6d2912844d7" />
 
-> **Video Demo:** <!-- TODO: Add video demo link - upload to GitHub by dragging into PR -->
+
+> 
 
 ## What's Included
 
