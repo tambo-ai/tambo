@@ -47,7 +47,7 @@ export default function Home() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Kanban Board */}
-          <div className="flex-1 lg:flex-[7] overflow-auto bg-muted/30">
+          <div className="flex-1 lg:flex-[7] overflow-auto bg-muted/30 bg-dot-pattern">
             <KanbanBoard />
           </div>
 

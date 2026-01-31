@@ -126,6 +126,16 @@
   background-color: oklch(0.45 0.2 145 / 0.1);
 }
 
+/* Minimal dot grid background */
+.bg-dot-pattern {
+  background-image: radial-gradient(circle, oklch(0.7 0 0 / 0.3) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .bg-dot-pattern {
+  background-image: radial-gradient(circle, oklch(0.4 0 0 / 0.3) 1px, transparent 1px);
+}
+
 /*
 This is a custom animation for the interactable components.
 */
