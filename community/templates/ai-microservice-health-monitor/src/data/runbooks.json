@@ -1,0 +1,20 @@
+[
+  {
+    "id": "rb-kafka-lag",
+    "title": "Kafka Consumer Lag: Triage & Mitigation",
+    "tags": ["kafka", "lag", "throughput", "backpressure"],
+    "contentMarkdown": "## When to use\n- Consumer lag spikes or keeps increasing\n\n## Quick checks\n1. Check consumer group lag per partition\n2. Look for hot partitions (one partition lagging much more)\n3. Check processing time per message (p95/p99)\n4. Verify retry/DLQ rates\n\n## Common causes\n- Downstream DB slow / connection pool exhausted\n- Hot partition due to skewed keys\n- Too few consumers or too low max.poll.records\n- GC pauses / CPU throttling\n\n## Mitigation\n- Scale consumer replicas\n- Add backpressure (pause/resume or rate limit)\n- Increase partitions (long-term)\n- Optimize DB writes / batching\n- Enable DLQ for poison-pill messages\n"
+  },
+  {
+    "id": "rb-db-pool",
+    "title": "DB Connection Pool Exhaustion",
+    "tags": ["database", "hikari", "timeouts", "performance"],
+    "contentMarkdown": "## Symptoms\n- Increased request latency\n- Errors like: timeout acquiring connection\n- Threads waiting on pool\n\n## Quick checks\n1. Check active connections vs pool max\n2. Check slow queries / locks\n3. Verify transaction boundaries (@Transactional)\n4. Check connection leaks\n\n## Mitigation\n- Increase pool size temporarily\n- Reduce concurrency / apply rate limits\n- Kill long-running queries (carefully)\n- Add indexes / optimize slow queries\n- Ensure connections are closed properly\n"
+  },
+  {
+    "id": "rb-rca-template",
+    "title": "Postmortem / RCA Template",
+    "tags": ["incident", "rca", "postmortem"],
+    "contentMarkdown": "## Summary\n- What happened?\n- Duration\n- Impacted customers/systems\n\n## Timeline\n- Detection\n- Triage\n- Mitigation\n- Resolution\n\n## Root cause\n- Primary cause\n- Contributing factors\n\n## Corrective actions\n- Immediate fixes\n- Long-term prevention\n- Owners and due dates\n"
+  }
+]

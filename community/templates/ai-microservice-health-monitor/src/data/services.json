@@ -1,0 +1,142 @@
+[
+  {
+    "id": "gateway",
+    "name": "api-gateway",
+    "ownerTeam": "platform",
+    "env": "prod",
+    "version": "1.18.3",
+    "status": "healthy",
+    "sla": "99.9",
+    "lastDeployAt": "2026-01-30T18:10:00Z",
+    "metrics": {
+      "latencyP95": 120,
+      "errorRate": 0.12,
+      "rps": 980,
+      "cpu": 42,
+      "memory": 61
+    },
+    "links": {
+      "runbook": "/runbooks",
+      "repo": "https://github.com/example/api-gateway",
+      "dashboards": "https://grafana.example.com/d/api-gateway",
+      "logs": "https://kibana.example.com/app/logs/api-gateway",
+      "traces": "https://apm.example.com/services/api-gateway"
+    },
+    "dependencies": {
+      "upstream": [],
+      "downstream": ["auth-service", "risk-engine", "case-service"]
+    }
+  },
+  {
+    "id": "auth-service",
+    "name": "auth-service",
+    "ownerTeam": "security",
+    "env": "prod",
+    "version": "2.9.0",
+    "status": "healthy",
+    "sla": "99.95",
+    "lastDeployAt": "2026-01-29T09:55:00Z",
+    "metrics": {
+      "latencyP95": 85,
+      "errorRate": 0.05,
+      "rps": 420,
+      "cpu": 29,
+      "memory": 48
+    },
+    "links": {
+      "runbook": "/runbooks",
+      "repo": "https://github.com/example/auth-service",
+      "dashboards": "https://grafana.example.com/d/auth-service",
+      "logs": "https://kibana.example.com/app/logs/auth-service",
+      "traces": "https://apm.example.com/services/auth-service"
+    },
+    "dependencies": {
+      "upstream": ["api-gateway"],
+      "downstream": ["user-db"]
+    }
+  },
+  {
+    "id": "risk-engine",
+    "name": "risk-engine",
+    "ownerTeam": "risk",
+    "env": "prod",
+    "version": "3.4.1",
+    "status": "degraded",
+    "sla": "99.9",
+    "lastDeployAt": "2026-01-31T02:20:00Z",
+    "metrics": {
+      "latencyP95": 920,
+      "errorRate": 1.8,
+      "rps": 150,
+      "cpu": 78,
+      "memory": 83
+    },
+    "links": {
+      "runbook": "/runbooks",
+      "repo": "https://github.com/example/risk-engine",
+      "dashboards": "https://grafana.example.com/d/risk-engine",
+      "logs": "https://kibana.example.com/app/logs/risk-engine",
+      "traces": "https://apm.example.com/services/risk-engine"
+    },
+    "dependencies": {
+      "upstream": ["api-gateway", "ingestion-service"],
+      "downstream": ["risk-db", "notification-service"]
+    }
+  },
+  {
+    "id": "ingestion-service",
+    "name": "ingestion-service",
+    "ownerTeam": "data",
+    "env": "prod",
+    "version": "1.12.0",
+    "status": "healthy",
+    "sla": "99.9",
+    "lastDeployAt": "2026-01-30T13:05:00Z",
+    "metrics": {
+      "latencyP95": 210,
+      "errorRate": 0.22,
+      "rps": 260,
+      "cpu": 55,
+      "memory": 62
+    },
+    "links": {
+      "runbook": "/runbooks",
+      "repo": "https://github.com/example/ingestion-service",
+      "dashboards": "https://grafana.example.com/d/ingestion-service",
+      "logs": "https://kibana.example.com/app/logs/ingestion-service",
+      "traces": "https://apm.example.com/services/ingestion-service"
+    },
+    "dependencies": {
+      "upstream": [],
+      "downstream": ["risk-engine"]
+    }
+  },
+  {
+    "id": "case-service",
+    "name": "case-service",
+    "ownerTeam": "workflow",
+    "env": "prod",
+    "version": "2.1.7",
+    "status": "down",
+    "sla": "99.9",
+    "lastDeployAt": "2026-01-31T03:40:00Z",
+    "metrics": {
+      "latencyP95": 0,
+      "errorRate": 12.5,
+      "rps": 0,
+      "cpu": 0,
+      "memory": 0
+    },
+    "links": {
+      "runbook": "/runbooks",
+      "repo": "https://github.com/example/case-service",
+      "dashboards": "https://grafana.example.com/d/case-service",
+      "logs": "https://kibana.example.com/app/logs/case-service",
+      "traces": "https://apm.example.com/services/case-service"
+    },
+    "dependencies": {
+      "upstream": ["api-gateway"],
+      "downstream": ["case-db"]
+    }
+  }
+]
