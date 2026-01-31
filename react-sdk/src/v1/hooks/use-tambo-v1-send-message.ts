@@ -228,8 +228,14 @@ export function useTamboV1SendMessage(threadId?: string) {
     );
   }
 
-  // Get previousRunId from the thread's streaming state (if thread exists)
-  const threadState = threadId ? streamState.threadMap[threadId] : undefined;
+  // Temp IDs (from startNewThread) aren't valid API thread IDs - treat as new thread creation
+  const isNewThread = !threadId || threadId.startsWith("temp_");
+  const apiThreadId = isNewThread ? undefined : threadId;
+
+  // Get previousRunId from the thread's streaming state (if thread exists and has messages)
+  const threadState = apiThreadId
+    ? streamState.threadMap[apiThreadId]
+    : undefined;
   const previousRunId = threadState?.streaming.runId;
 
   return useMutation({
@@ -241,7 +247,7 @@ export function useTamboV1SendMessage(threadId?: string) {
       // Create the run stream
       const { stream, initialThreadId } = await createRunStream({
         client,
-        threadId,
+        threadId: apiThreadId,
         message,
         registry,
         userKey,
