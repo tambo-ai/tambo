@@ -18,10 +18,16 @@ This command will:
 
 ## Installation
 
-While you can install globally, we recommend using `npx` to ensure you're always using the latest version:
+### Homebrew (macOS)
 
 ```bash
-# Using npx (recommended)
+brew tap tambo-ai/tambo
+brew install tambo
+```
+
+### Using npx
+
+```bash
 npx tambo <command>
 ```
 

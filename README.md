@@ -49,10 +49,23 @@ const components: TamboComponent[] = [{
 
 ## Get Started
 
+### Using Homebrew (macOS)
+
+```bash
+brew tap tambo-ai/tambo
+brew install tambo
+tambo create-app my-tambo-app
+cd my-tambo-app
+tambo init
+npm run dev
+```
+
+### Using npx
+
 ```bash
 npx tambo create-app my-tambo-app
 cd my-tambo-app
-npx tambo init      # choose cloud or self-hosted
+npx tambo init
 npm run dev
 ```
 

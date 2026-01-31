@@ -1,0 +1,68 @@
+name: Update Homebrew Formula
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'NPM version to update to (e.g., 0.49.0)'
+        required: true
+        type: string
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.release.tag_name, 'tambo-v') || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Get NPM package info
+        id: npm-info
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=$(echo "${{ github.event.release.tag_name }}" | sed 's/tambo-v//')
+          fi
+          
+          TARBALL_URL="https://registry.npmjs.org/tambo/-/tambo-${VERSION}.tgz"
+          SHA256=$(curl -sL "$TARBALL_URL" | sha256sum | awk '{print $1}')
+          
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tarball_url=${TARBALL_URL}" >> $GITHUB_OUTPUT
+          echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
+
+      - name: Update formula
+        run: |
+          VERSION="${{ steps.npm-info.outputs.version }}"
+          TARBALL_URL="${{ steps.npm-info.outputs.tarball_url }}"
+          SHA256="${{ steps.npm-info.outputs.sha256 }}"
+          
+          sed -i "s|url \"https://registry.npmjs.org/tambo/-/tambo-.*\.tgz\"|url \"${TARBALL_URL}\"|" Formula/tambo.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/tambo.rb
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update Homebrew formula to v${{ steps.npm-info.outputs.version }}"
+          title: "chore: update Homebrew formula to v${{ steps.npm-info.outputs.version }}"
+          body: |
+            Updates Homebrew formula to version ${{ steps.npm-info.outputs.version }}
+            
+            - URL: ${{ steps.npm-info.outputs.tarball_url }}
+            - SHA256: ${{ steps.npm-info.outputs.sha256 }}
+            
+            Triggered by: ${{ github.event_name == 'workflow_dispatch' && 'manual workflow dispatch' || github.event.release.html_url }}
+          branch: update-homebrew-formula-${{ steps.npm-info.outputs.version }}
+          delete-branch: true
