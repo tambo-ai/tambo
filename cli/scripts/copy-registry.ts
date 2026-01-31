@@ -99,6 +99,12 @@ function main(): void {
     console.log("  ✓ Copied lib/");
   }
 
+  const baseDir = path.join(UI_REGISTRY_SRC, "base");
+  if (fs.existsSync(baseDir)) {
+    copyDirectory(baseDir, path.join(DIST_REGISTRY, "base"));
+    console.log("  ✓ Copied base/");
+  }
+
   const stylesDir = path.join(UI_REGISTRY_SRC, "styles");
   if (fs.existsSync(stylesDir)) {
     copyDirectory(stylesDir, path.join(DIST_REGISTRY, "styles"));

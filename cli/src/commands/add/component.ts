@@ -215,9 +215,10 @@ export function cn(...inputs: ClassValue[]) {
           const parts = contentRelativePath.split("/");
           if (parts[0] === "src" && parts[1] === "registry") {
             const remainingParts = parts.slice(2);
-            // Check if it's a lib file (src/registry/lib/...) or component file
-            if (remainingParts[0] === "lib") {
+            // Check if it's a lib or base file, or a component file
+            if (remainingParts[0] === "lib" || remainingParts[0] === "base") {
               // src/registry/lib/file.ts -> lib/file.ts
+              // src/registry/base/message/index.tsx -> base/message/index.tsx
               contentRelativePath = path.join(...remainingParts);
             } else {
               // src/registry/component-name/file.tsx -> components/component-name/file.tsx
