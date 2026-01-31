@@ -74,7 +74,8 @@ export const tamboTools = [
         company: input.company,
       });
 
-      // Decrease available spots (mock)
+      // DEMO ONLY: This in-memory mutation is not persisted across requests
+      // In production, use a database or proper state management
       eventData.spotsRemaining -= 1;
 
       return {

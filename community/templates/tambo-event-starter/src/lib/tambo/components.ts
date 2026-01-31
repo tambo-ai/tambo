@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { TamboComponent } from "@tambo-ai/react";
 
 import { EventHero } from "@/components/tambo/EventHero";

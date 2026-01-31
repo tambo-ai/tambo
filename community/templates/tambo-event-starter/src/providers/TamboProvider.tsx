@@ -48,23 +48,40 @@ When rendering UI components:
 - Use PrizeShowcase for prize information
 - Use SponsorsGrid for sponsor information
 - Use TicketCard for ticket/pricing information
-`
+`;
 };
 
 interface TamboProviderProps {
   children: React.ReactNode;
 }
 
+// Fallback component when API key is not configured
+function ApiKeyMissing({ children }: { children: React.ReactNode }) {
+  return (
+    <div>
+      {children}
+      <div className="fixed bottom-4 left-4 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-lg text-sm max-w-sm">
+        <strong>Setup Required:</strong> Add your Tambo API key to <code className="bg-yellow-200 px-1 rounded">.env.local</code> to enable chat functionality.
+      </div>
+    </div>
+  );
+}
+
 export function TamboProvider({ children }: TamboProviderProps) {
   const apiKey = process.env.NEXT_PUBLIC_TAMBO_API_KEY;
 
+  // Show warning UI if API key is missing
   if (!apiKey) {
-    console.warn('NEXT_PUBLIC_TAMBO_API_KEY is not set. Chat functionality will be limited.');
+    console.warn(
+      'NEXT_PUBLIC_TAMBO_API_KEY is not set. Chat functionality will be limited.\n' +
+      'Get your API key at https://tambo.ai and add it to .env.local'
+    );
+    return <ApiKeyMissing>{children}</ApiKeyMissing>;
   }
 
   return (
     <BaseTamboProvider
-      apiKey={apiKey || ''}
+      apiKey={apiKey}
       components={tamboComponents}
       tools={tamboTools}
       contextHelpers={{

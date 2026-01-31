@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { MapPin, Navigation, Car, Train, Wifi, Coffee, Utensils, BatteryCharging } from "lucide-react";
-import { Card, CardContent, Button, Badge } from "@/components/ui";
+import { Card, CardContent, Button } from "@/components/ui";
 import { VenueMapProps } from "@/types";
 import { eventData } from "@/lib/mock-data";
 
@@ -22,9 +22,11 @@ export const VenueMap: React.FC<VenueMapProps> = ({
   // Use venue data from mock data
   const venue = eventData.venue;
 
-  const mapEmbedUrl = `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(
-    `${venue.address}, ${venue.city}, ${venue.country}`
-  )}`;
+  // NOTE: To enable Google Maps embed, replace YOUR_API_KEY with your actual API key
+  // Get a key from: https://console.cloud.google.com/apis/credentials
+  // const mapEmbedUrl = `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(
+  //   `${venue.address}, ${venue.city}, ${venue.country}`
+  // )}`;
 
   return (
     <motion.div
@@ -44,7 +46,7 @@ export const VenueMap: React.FC<VenueMapProps> = ({
         </div>
 
         <CardContent className="p-0">
-          {/* Map Placeholder */}
+          {/* Map Placeholder - Replace with actual Google Maps embed if API key is available */}
           <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">

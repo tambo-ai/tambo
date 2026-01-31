@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Building2, ExternalLink } from "lucide-react";
-import { Card, CardContent, Badge } from "@/components/ui";
+import { Card, CardContent } from "@/components/ui";
 import { SponsorsGridProps, SponsorTier, Sponsor } from "@/types";
 import { sponsorsData } from "@/lib/mock-data";
 
