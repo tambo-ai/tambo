@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.0](https://github.com/tambo-ai/tambo/compare/react-v0.73.1...react-v0.74.0) (2026-01-31)
+
+
+### Features
+
+* **react-sdk:** update useTamboV1Suggestions to use v1 API endpoints ([#2096](https://github.com/tambo-ai/tambo/issues/2096)) ([afa26c3](https://github.com/tambo-ai/tambo/commit/afa26c36335ad235ef0fb04675b2713e380d8354))
+
 ## [0.73.1](https://github.com/tambo-ai/tambo/compare/react-v0.73.0...react-v0.73.1) (2026-01-31)
 
 
