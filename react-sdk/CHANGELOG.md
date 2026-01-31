@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.73.1](https://github.com/tambo-ai/tambo/compare/react-v0.73.0...react-v0.73.1) (2026-01-31)
+
+
+### Bug Fixes
+
+* **ui-registry:** resolve React hooks ESLint violations ([#2081](https://github.com/tambo-ai/tambo/issues/2081)) ([f628c0c](https://github.com/tambo-ai/tambo/commit/f628c0cb294e0ccfc596bda9394a3399263025c6))
+
 ## [0.73.0](https://github.com/tambo-ai/tambo/compare/react-v0.72.0...react-v0.73.0) (2026-01-30)
 
 
