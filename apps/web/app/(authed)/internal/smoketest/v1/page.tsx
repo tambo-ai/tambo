@@ -3,22 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  ThreadContent,
-  ThreadContentMessages,
-} from "@tambo-ai/ui-registry/components/thread-content";
-import { api } from "@/trpc/react";
-import { TamboTool, useTambo, useTamboThreadList } from "@tambo-ai/react";
-import { TRPCClientErrorLike } from "@trpc/client";
-import { PlusCircle, RefreshCcw, X } from "lucide-react";
-import {
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { z } from "zod/v3";
-import {
   ApiActivityMonitor,
   type ApiState,
   LinearIssue,
@@ -29,23 +13,36 @@ import {
   ThreadList,
   wrapApiCall,
 } from "@/components/smoketest";
+import { api } from "@/trpc/react";
+import type { TamboTool } from "@tambo-ai/react/v1";
+import { useTamboV1, useTamboV1ThreadList } from "@tambo-ai/react/v1";
+import { TRPCClientErrorLike } from "@trpc/client";
+import { PlusCircle, RefreshCcw, X } from "lucide-react";
+import {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { z } from "zod/v3";
 import { AirQuality } from "./components/air-quality";
 import { MessageSuggestions } from "./components/message-suggestions";
 import { ThreadMessageInput } from "./components/thread-message-input";
+import { V1ThreadContent } from "./components/v1-thread-content";
 import { WeatherDay } from "./components/weather-day";
-import { StreamingTools } from "./features/streaming-tools";
 
-export default function SmokePage() {
+export default function SmokePageV1() {
   const [errors, setErrors] = useState<(TRPCClientErrorLike<any> | Error)[]>(
     [],
   );
   const {
     registerComponent,
-    generationStage,
-    thread,
-    switchCurrentThread,
+    streamingState,
+    currentThreadId,
+    switchThread,
     startNewThread,
-  } = useTambo();
+  } = useTamboV1();
 
   const { mutateAsync: getAirQuality, isPending: isAqiPending } =
     api.demo.aqi.useMutation({
@@ -290,7 +287,7 @@ export default function SmokePage() {
     data: threadInfo,
     isLoading: isThreadInfoLoading,
     refetch: refetchThreadInfo,
-  } = useTamboThreadList();
+  } = useTamboV1ThreadList();
 
   const isLoading =
     isAqiPending ||
@@ -299,8 +296,20 @@ export default function SmokePage() {
     isCurrentWeatherPending ||
     isThreadInfoLoading;
 
+  // Map v1 thread list data to shared ThreadList interface
+  const threads = (threadInfo?.threads ?? []).map((t) => ({
+    id: t.id,
+    createdAt: t.createdAt,
+  }));
+
   return (
     <div className="tambo-theme container max-w-7xl py-8 space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <h1 className="text-2xl font-bold">V1 API Smoketest</h1>
+        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+          V1
+        </span>
+      </div>
       <div className="flex gap-4">
         <Card className="p-4 flex flex-col flex-1">
           <div className="flex justify-between items-center mb-4 gap-2">
@@ -333,23 +342,21 @@ export default function SmokePage() {
             </div>
           </div>
           <ThreadList
-            threads={threadInfo?.items ?? []}
-            selectedThreadId={thread.id}
+            threads={threads}
+            selectedThreadId={currentThreadId}
             onThreadSelect={(threadId) => {
-              switchCurrentThread(threadId);
+              switchThread(threadId);
             }}
             isLoading={isLoading}
           />
         </Card>
         <div className="flex-col gap-2 flex-1">
           <Card className="p-4 min-h-[500px] flex flex-col">
-            <ThreadContent variant={"solid"}>
-              <ThreadContentMessages />
-            </ThreadContent>
+            <V1ThreadContent className="flex-1 mb-4" />
             <MessageSuggestions maxSuggestions={3} />
             <div>
               <p className="text-sm text-muted-foreground p-2">
-                Generation stage: {generationStage}
+                Streaming status: {streamingState.status}
               </p>
             </div>
             <ThreadMessageInput
@@ -454,9 +461,8 @@ export default function SmokePage() {
               />
             </div>
           </Card>
-          <StreamingTools />
           <div>
-            <p>Thread ID: &apos;{thread.id}&apos;</p>
+            <p>Thread ID: &apos;{currentThreadId ?? "none"}&apos;</p>
           </div>
         </div>
       </div>

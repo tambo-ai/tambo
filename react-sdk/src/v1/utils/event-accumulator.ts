@@ -146,13 +146,33 @@ export function createInitialThreadState(threadId: string): ThreadState {
 }
 
 /**
- * Create initial stream state with empty threadMap.
+ * Placeholder thread ID used for new threads before they get a real ID from the server.
+ * This allows optimistic UI updates (showing user messages immediately) before the
+ * server responds with the actual thread ID.
+ */
+export const PLACEHOLDER_THREAD_ID = "placeholder";
+
+/**
+ * Check if a thread ID is a placeholder (not a real API thread ID).
+ * @param threadId - Thread ID to check
+ * @returns True if this is a placeholder thread ID
+ */
+export function isPlaceholderThreadId(
+  threadId: string | null | undefined,
+): boolean {
+  return threadId === PLACEHOLDER_THREAD_ID;
+}
+
+/**
+ * Create initial stream state with placeholder thread.
  * @returns Initial stream state
  */
 export function createInitialState(): StreamState {
   return {
-    threadMap: {},
-    currentThreadId: null,
+    threadMap: {
+      [PLACEHOLDER_THREAD_ID]: createInitialThreadState(PLACEHOLDER_THREAD_ID),
+    },
+    currentThreadId: PLACEHOLDER_THREAD_ID,
   };
 }
 
@@ -363,6 +383,43 @@ export function streamReducer(
     };
   }
 
+  // Handle placeholder thread migration for RUN_STARTED events
+  // When a new thread is created, messages may have been added to the placeholder thread
+  // for immediate UI feedback. Now that we have the real threadId, migrate those messages.
+  if (
+    event.type === EventType.RUN_STARTED &&
+    isPlaceholderThreadId(updatedState.currentThreadId) &&
+    updatedState.currentThreadId !== threadId
+  ) {
+    const placeholderState =
+      updatedState.threadMap[updatedState.currentThreadId!];
+    if (placeholderState && placeholderState.thread.messages.length > 0) {
+      // Prepend placeholder thread messages to the real thread
+      threadState = {
+        ...threadState,
+        thread: {
+          ...threadState.thread,
+          messages: [
+            ...placeholderState.thread.messages,
+            ...threadState.thread.messages,
+          ],
+        },
+      };
+
+      // Reset placeholder thread to empty state and update currentThreadId
+      const resetPlaceholder = createInitialThreadState(PLACEHOLDER_THREAD_ID);
+      updatedState = {
+        ...updatedState,
+        threadMap: {
+          ...updatedState.threadMap,
+          [PLACEHOLDER_THREAD_ID]: resetPlaceholder,
+          [threadId]: threadState,
+        },
+        currentThreadId: threadId,
+      };
+    }
+  }
+
   // Process the event for this specific thread
   let updatedThreadState: ThreadState;
 
@@ -543,6 +600,22 @@ function handleTextMessageStart(
   threadState: ThreadState,
   event: TextMessageStartEvent,
 ): ThreadState {
+  const messages = threadState.thread.messages;
+
+  // Check if message already exists (may have been created by component events
+  // earlier in the same turn). In that case, just update streaming state.
+  const existingIndex = messages.findIndex((m) => m.id === event.messageId);
+  if (existingIndex !== -1) {
+    return {
+      ...threadState,
+      streaming: {
+        ...threadState.streaming,
+        messageId: event.messageId,
+      },
+    };
+  }
+
+  // Create new message
   const newMessage: TamboV1Message = {
     id: event.messageId,
     role: event.role === "user" ? "user" : "assistant",
@@ -554,7 +627,7 @@ function handleTextMessageStart(
     ...threadState,
     thread: {
       ...threadState.thread,
-      messages: [...threadState.thread.messages, newMessage],
+      messages: [...messages, newMessage],
       updatedAt: new Date().toISOString(),
     },
     streaming: {
@@ -651,6 +724,7 @@ function handleTextMessageEnd(
 /**
  * Handle TOOL_CALL_START event.
  * Adds a tool use content block to the current message.
+ * If no message exists, creates a synthetic assistant message to hold the tool call.
  * @param threadState - Current thread state
  * @param event - Tool call start event
  * @returns Updated thread state
@@ -667,21 +741,38 @@ function handleToolCallStart(
     ? messages.findIndex((m) => m.id === messageId)
     : messages.length - 1;
 
-  if (messageIndex === -1) {
-    throw new Error(
-      messageId
-        ? `Message ${messageId} not found for TOOL_CALL_START event`
-        : `No messages exist for TOOL_CALL_START event`,
-    );
-  }
-
-  const message = messages[messageIndex];
   const newContent: Content = {
     type: "tool_use",
     id: event.toolCallId,
     name: event.toolCallName,
     input: {},
   };
+
+  // If no message found, create a synthetic assistant message for the tool call
+  if (messageIndex === -1) {
+    const syntheticMessageId = messageId ?? `msg_tool_${event.toolCallId}`;
+    const syntheticMessage: TamboV1Message = {
+      id: syntheticMessageId,
+      role: "assistant",
+      content: [newContent],
+      createdAt: new Date().toISOString(),
+    };
+
+    return {
+      ...threadState,
+      thread: {
+        ...threadState.thread,
+        messages: [...messages, syntheticMessage],
+        updatedAt: new Date().toISOString(),
+      },
+      streaming: {
+        ...threadState.streaming,
+        messageId: syntheticMessageId,
+      },
+    };
+  }
+
+  const message = messages[messageIndex];
 
   const updatedMessage: TamboV1Message = {
     ...message,
@@ -899,14 +990,25 @@ function handleComponentStart(
   event: ComponentStartEvent,
 ): ThreadState {
   const messageId = event.value.messageId;
-  const messages = threadState.thread.messages;
+  let messages = threadState.thread.messages;
 
-  // Find the message
-  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  // Find the message, or create it if it doesn't exist.
+  // The backend may emit component events before TEXT_MESSAGE_START when
+  // the LLM outputs a component tool call without preceding text.
+  let messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
-    throw new Error(
-      `Message ${messageId} not found for tambo.component.start event`,
-    );
+    // Create a new assistant message for this component
+    const newMessage: TamboV1Message = {
+      id: messageId,
+      role: "assistant",
+      content: [],
+      createdAt: new Date().toISOString(),
+    };
+    messages = [...messages, newMessage];
+    messageIndex = messages.length - 1;
+
+    // Update thread state with the new message before adding the component
+    threadState = updateThreadMessages(threadState, messages);
   }
 
   const message = messages[messageIndex];

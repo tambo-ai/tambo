@@ -17,6 +17,9 @@ import React, {
 } from "react";
 import {
   streamReducer,
+  createInitialState,
+  createInitialThreadState,
+  PLACEHOLDER_THREAD_ID,
   type StreamState,
   type StreamAction,
 } from "../utils/event-accumulator";
@@ -139,14 +142,11 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
   }
 
   // Create stable initial state - only computed once on mount
+  // Uses createInitialState which sets up placeholder thread for optimistic UI
   const [state, dispatch] = useReducer(
     streamReducer,
     undefined,
-    // Lazy initializer function
-    () => ({
-      threadMap: {},
-      currentThreadId: null,
-    }),
+    createInitialState,
   );
 
   const activeState = providedState ?? state;
@@ -168,11 +168,14 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
   );
 
   const startNewThread = useCallback(() => {
-    const tempId = `temp_${crypto.randomUUID()}`;
-    // Use atomic START_NEW_THREAD action to prevent race conditions
-    // when multiple calls happen concurrently (e.g., double-click)
-    activeDispatch({ type: "START_NEW_THREAD", threadId: tempId });
-    return tempId;
+    // Reset placeholder thread to empty state and switch to it
+    // This prepares for a new conversation while preserving existing threads
+    activeDispatch({
+      type: "START_NEW_THREAD",
+      threadId: PLACEHOLDER_THREAD_ID,
+      initialThread: createInitialThreadState(PLACEHOLDER_THREAD_ID).thread,
+    });
+    return PLACEHOLDER_THREAD_ID;
   }, [activeDispatch]);
 
   const threadManagement = useMemo<ThreadManagement>(() => {

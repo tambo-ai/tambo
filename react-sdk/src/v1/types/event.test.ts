@@ -42,7 +42,11 @@ describe("isTamboCustomEvent", () => {
     const event = {
       type: EventType.CUSTOM,
       name: "tambo.run.awaiting_input",
-      value: { pendingToolCallIds: ["tool1"] },
+      value: {
+        pendingToolCalls: [
+          { toolCallId: "tool1", toolName: "test", arguments: "{}" },
+        ],
+      },
     };
     expect(isTamboCustomEvent(event)).toBe(true);
   });

@@ -2,6 +2,8 @@ import { Logger } from "@nestjs/common";
 import type { DecisionStreamItem } from "@tambo-ai-cloud/backend";
 import {
   ActionType,
+  type ChatCompletionContentPart,
+  type ChatCompletionContentPartComponent,
   ContentPartType,
   GenerationStage,
   isUiToolName,
@@ -192,6 +194,29 @@ export function updateThreadMessageFromLegacyDecision(
     component = componentWithoutToolCall;
   }
 
+  // Build content array: text content + optional component content block.
+  // Component content blocks are stored in the content array so V1 API can
+  // reference them by componentId for state updates. Legacy API should filter
+  // these out if needed.
+  const content: ChatCompletionContentPart[] = [
+    {
+      type: ContentPartType.Text as const,
+      text: chunk.message,
+    },
+  ];
+
+  // Add component content block if componentId is present (V1 API support)
+  if (chunk.componentId && chunk.componentName && chunk.props) {
+    const componentContent: ChatCompletionContentPartComponent = {
+      type: "component",
+      id: chunk.componentId,
+      name: chunk.componentName,
+      props: chunk.props,
+      state: chunk.componentState ?? {},
+    };
+    content.push(componentContent);
+  }
+
   const commonFields = {
     id: initialMessage.id,
     threadId: initialMessage.threadId,
@@ -203,12 +228,7 @@ export function updateThreadMessageFromLegacyDecision(
     additionalContext: initialMessage.additionalContext,
     actionType: initialMessage.actionType,
     componentState: chunk.componentState ?? {},
-    content: [
-      {
-        type: ContentPartType.Text as const,
-        text: chunk.message,
-      },
-    ],
+    content,
     component,
   };
 

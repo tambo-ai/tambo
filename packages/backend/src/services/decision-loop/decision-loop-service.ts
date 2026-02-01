@@ -1,4 +1,4 @@
-import type { BaseEvent } from "@ag-ui/core";
+import { EventType, type BaseEvent } from "@ag-ui/core";
 import {
   ContentPartType,
   getToolName,
@@ -211,6 +211,11 @@ export async function* runDecisionLoop(
         false,
       );
 
+      // Extract componentId from tambo.component.start event if present.
+      // This ID is generated during streaming and used by V1 API for component
+      // state updates.
+      const componentId = extractComponentIdFromEvents(streamItem.aguiEvents);
+
       const parsedChunk: Partial<LegacyComponentDecision> = {
         // For LLM responses, we can always assume the role is assistant
         role: MessageRole.Assistant,
@@ -218,6 +223,7 @@ export async function* runDecisionLoop(
         componentName: isUITool
           ? toolCall.function.name.slice(UI_TOOLNAME_PREFIX.length)
           : "",
+        componentId: isUITool ? componentId : undefined,
         props: isUITool ? filteredToolArgs : null,
         toolCallRequest: clientToolRequest,
         toolCallId: toolCall
@@ -299,4 +305,32 @@ function buildToolCallRequest(
     toolName: toolCall.function.name,
     parameters: filteredArgs,
   };
+}
+
+/**
+ * Extract componentId from tambo.component.start event if present.
+ *
+ * The componentId is generated during streaming by ComponentStreamTracker
+ * and emitted in tambo.component.start custom events. This ID is used by
+ * V1 API to reference components for state updates.
+ *
+ * @param events - AG-UI events from the current stream item
+ * @returns The componentId if a tambo.component.start event is present
+ */
+function extractComponentIdFromEvents(events: BaseEvent[]): string | undefined {
+  for (const event of events) {
+    if (event.type === EventType.CUSTOM) {
+      const customEvent = event as BaseEvent & {
+        name?: string;
+        value?: { componentId?: string };
+      };
+      if (
+        customEvent.name === "tambo.component.start" &&
+        customEvent.value?.componentId
+      ) {
+        return customEvent.value.componentId;
+      }
+    }
+  }
+  return undefined;
 }

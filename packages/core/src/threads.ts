@@ -77,15 +77,34 @@ export interface ChatCompletionContentPartResource {
 }
 
 /**
+ * Component content part type - for AI-generated UI components.
+ * Used by V1 API to store component content blocks that can be referenced
+ * by componentId for state updates.
+ */
+export interface ChatCompletionContentPartComponent {
+  type: "component";
+  /** Unique identifier for this component instance */
+  id: string;
+  /** Name of the component to render */
+  name: string;
+  /** Props to pass to the component */
+  props: Record<string, unknown>;
+  /** Current state of the component */
+  state?: Record<string, unknown>;
+}
+
+/**
  * Represents a single content part in a chat completion message
- * Can be text, image, audio, or resource
+ * Can be text, image, audio, resource, or component
  *
- * Note: ChatCompletionContentPartResource is our custom extension for MCP resources
- * and should be converted to appropriate SDK-compatible types when passing to LLM providers.
+ * Note: ChatCompletionContentPartResource and ChatCompletionContentPartComponent
+ * are our custom extensions. They should be converted to appropriate SDK-compatible
+ * types when passing to LLM providers (components are filtered out for LLM calls).
  */
 export type ChatCompletionContentPart =
   | OpenAI.Chat.Completions.ChatCompletionContentPart
-  | ChatCompletionContentPartResource;
+  | ChatCompletionContentPartResource
+  | ChatCompletionContentPartComponent;
 
 /**
  * A "static" type that combines all the content part types without any

@@ -6,6 +6,10 @@ import {
   tryExtractComponentName,
   extractComponentName,
 } from "./component-streaming";
+import type {
+  ComponentStartEvent,
+  ComponentEndEvent,
+} from "./tambo-custom-events";
 
 describe("component-streaming", () => {
   it("partial-json parse returns fresh objects for identical input", () => {
@@ -68,29 +72,31 @@ describe("component-streaming", () => {
 
   describe("ComponentStreamTracker", () => {
     it("emits start event on first delta", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeatherCard",
+      );
 
       const events = tracker.processJsonDelta("{");
 
       expect(events).toHaveLength(1);
-      expect(events[0].type).toBe(EventType.CUSTOM);
-      expect((events[0] as unknown as { name: string }).name).toBe(
-        "tambo.component.start",
-      );
-      expect(
-        (
-          events[0] as unknown as {
-            value: { componentId: string; name: string };
-          }
-        ).value,
-      ).toEqual({
+      const startEvent = events[0] as ComponentStartEvent;
+      expect(startEvent.type).toBe(EventType.CUSTOM);
+      expect(startEvent.name).toBe("tambo.component.start");
+      expect(startEvent.value).toEqual({
+        messageId: "msg_123",
         componentId: "comp_123",
-        name: "WeatherCard",
+        componentName: "WeatherCard",
       });
     });
 
     it("emits props_delta when new property is detected", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeatherCard",
+      );
 
       // First delta - start event
       tracker.processJsonDelta('{"tem');
@@ -99,16 +105,11 @@ describe("component-streaming", () => {
 
       // Should have props_delta event for the complete property
       const propsDeltaEvent = events2.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "add",
         path: "/temperature",
         value: 72,
@@ -116,29 +117,25 @@ describe("component-streaming", () => {
     });
 
     it("escapes JSON Pointer segments in patch paths", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeirdKeys",
+      );
 
       const events = tracker.processJsonDelta('{"foo/bar": 1, "til~de": 2}');
 
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "add",
         path: "/foo~1bar",
         value: 1,
       });
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "add",
         path: "/til~0de",
         value: 2,
@@ -146,22 +143,21 @@ describe("component-streaming", () => {
     });
 
     it("escapes JSON Pointer segments in replace patches", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeirdKeys",
+      );
 
       tracker.processJsonDelta('{"foo/bar": "Hel');
       const events = tracker.processJsonDelta('lo"}');
 
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "replace",
         path: "/foo~1bar",
         value: "Hello",
@@ -169,20 +165,19 @@ describe("component-streaming", () => {
     });
 
     it("handles empty-string keys in JSON Pointer paths", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeirdKeys");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeirdKeys",
+      );
 
       const events = tracker.processJsonDelta('{"": 1}');
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      expect(
-        (propsDeltaEvent as unknown as { value: { patch: unknown[] } }).value
-          .patch,
-      ).toContainEqual({
+      expect(propsDeltaEvent!.value.operations).toContainEqual({
         op: "add",
         path: "/",
         value: 1,
@@ -190,7 +185,11 @@ describe("component-streaming", () => {
     });
 
     it("tracks streaming status correctly", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeatherCard",
+      );
 
       // First delta: temperature is seen, starts as "started"
       tracker.processJsonDelta('{"temperature": 72');
@@ -199,47 +198,41 @@ describe("component-streaming", () => {
       const events = tracker.processJsonDelta(', "location": "NYC"}');
 
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      const value = (
-        propsDeltaEvent as unknown as {
-          value: { streamingStatus: Record<string, string> };
-        }
-      ).value;
       // temperature should be "done" because location was seen after it
-      expect(value.streamingStatus.temperature).toBe("done");
+      expect(propsDeltaEvent!.value.streamingStatus.temperature).toBe("done");
       // location should be "started" because no property has been seen after it yet
-      expect(value.streamingStatus.location).toBe("started");
+      expect(propsDeltaEvent!.value.streamingStatus.location).toBe("started");
     });
 
     it("emits end event on finalize", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "WeatherCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "WeatherCard",
+      );
 
       tracker.processJsonDelta('{"temperature": 72, "location": "NYC"}');
       const endEvents = tracker.finalize();
 
       expect(endEvents).toHaveLength(1);
-      expect((endEvents[0] as unknown as { name: string }).name).toBe(
-        "tambo.component.end",
-      );
-      expect(
-        (
-          endEvents[0] as unknown as {
-            value: { finalProps: Record<string, unknown> };
-          }
-        ).value.finalProps,
-      ).toEqual({
+      const endEvent = endEvents[0] as ComponentEndEvent;
+      expect(endEvent.name).toBe("tambo.component.end");
+      expect(endEvent.value.finalProps).toEqual({
         temperature: 72,
         location: "NYC",
       });
     });
 
     it("handles incremental string property streaming", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "TextDisplay");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "TextDisplay",
+      );
 
       // Start with partial string
       tracker.processJsonDelta('{"text": "Hello');
@@ -249,16 +242,18 @@ describe("component-streaming", () => {
 
       // Should detect the change
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
     });
 
     it("handles nested object properties", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "DataCard");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "DataCard",
+      );
 
       // Collect all events across the streaming
       const allEvents = [
@@ -268,79 +263,66 @@ describe("component-streaming", () => {
 
       // Find any props_delta event
       const propsDeltaEvents = allEvents.filter(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       // At least one props_delta should have been emitted
       expect(propsDeltaEvents.length).toBeGreaterThan(0);
 
-      // Check that data property was included in at least one patch
-      const hasDataPatch = propsDeltaEvents.some((event) => {
-        const value = (
-          event as unknown as { value: { patch: Array<{ path: string }> } }
-        ).value;
-        return value.patch.some((p) => p.path === "/data");
-      });
-      expect(hasDataPatch).toBe(true);
+      // Check that data property was included in at least one operations array
+      const hasDataOperation = propsDeltaEvents.some((event) =>
+        event.value.operations.some((p) => p.path === "/data"),
+      );
+      expect(hasDataOperation).toBe(true);
 
       // Verify the final state through finalize
       const endEvents = tracker.finalize();
-      const endEvent = endEvents.find(
-        (e) =>
-          (e as unknown as { name: string }).name === "tambo.component.end",
-      );
+      const endEvent = endEvents.find((e) => e.name === "tambo.component.end");
       expect(endEvent).toBeDefined();
-      expect(
-        (
-          endEvent as unknown as {
-            value: { finalProps: Record<string, unknown> };
-          }
-        ).value.finalProps,
-      ).toEqual({ data: { x: 1, y: 2 } });
+      expect(endEvent!.value.finalProps).toEqual({ data: { x: 1, y: 2 } });
     });
 
     it("handles array properties", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "ListComponent");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "ListComponent",
+      );
 
       tracker.processJsonDelta('{"items": [1, 2');
       const events = tracker.processJsonDelta(", 3]}");
 
       const propsDeltaEvent = events.find(
-        (e) =>
-          (e as unknown as { name: string }).name ===
-          "tambo.component.props_delta",
+        (e) => e.name === "tambo.component.props_delta",
       );
 
       expect(propsDeltaEvent).toBeDefined();
-      const value = (
-        propsDeltaEvent as unknown as {
-          value: { patch: Array<{ path: string; value: unknown }> };
-        }
-      ).value;
-      const addPatch = value.patch.find((p) => p.path === "/items");
-      expect(addPatch?.value).toEqual([1, 2, 3]);
+      // The second delta updates the existing array, so it's a "replace" operation
+      const itemsOperation = propsDeltaEvent!.value.operations.find(
+        (p) => p.path === "/items",
+      );
+      expect(itemsOperation).toBeDefined();
+      expect(itemsOperation!.op).toBe("replace");
+      expect((itemsOperation as { value: unknown }).value).toEqual([1, 2, 3]);
     });
 
     it("handles empty JSON gracefully", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "EmptyComponent");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "EmptyComponent",
+      );
 
       tracker.processJsonDelta("{}");
       const endEvents = tracker.finalize();
 
       expect(endEvents).toHaveLength(1);
-      expect(
-        (
-          endEvents[0] as unknown as {
-            value: { finalProps: Record<string, unknown> };
-          }
-        ).value.finalProps,
-      ).toEqual({});
+      const endEvent = endEvents[0] as ComponentEndEvent;
+      expect(endEvent.value.finalProps).toEqual({});
     });
 
     it("returns empty events for invalid JSON during streaming", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "Test");
+      const tracker = new ComponentStreamTracker("msg_123", "comp_123", "Test");
 
       // First call gets start event
       const startEvents = tracker.processJsonDelta("{");
@@ -352,14 +334,22 @@ describe("component-streaming", () => {
     });
 
     it("detects property updates", () => {
-      const tracker = new ComponentStreamTracker("comp_123", "Counter");
+      const tracker = new ComponentStreamTracker(
+        "msg_123",
+        "comp_123",
+        "Counter",
+      );
 
       // Initial value
       tracker.processJsonDelta('{"count": 1}');
 
       // This won't actually update in normal streaming, but let's test the replace logic
       // by simulating a scenario where we start fresh tracking
-      const tracker2 = new ComponentStreamTracker("comp_456", "Counter");
+      const tracker2 = new ComponentStreamTracker(
+        "msg_456",
+        "comp_456",
+        "Counter",
+      );
       tracker2.processJsonDelta('{"count": 1}');
       // Since we can't directly test replace in streaming (JSON only grows),
       // we test that the tracker handles the case correctly
@@ -369,6 +359,7 @@ describe("component-streaming", () => {
 
     it("throws error when JSON exceeds 10MB limit", () => {
       const tracker = new ComponentStreamTracker(
+        "msg_large",
         "comp_large",
         "LargeComponent",
       );
@@ -385,6 +376,7 @@ describe("component-streaming", () => {
 
     it("throws error when accumulated JSON exceeds 10MB limit", () => {
       const tracker = new ComponentStreamTracker(
+        "msg_large",
         "comp_large",
         "LargeComponent",
       );
@@ -403,6 +395,7 @@ describe("component-streaming", () => {
 
     it("throws error when finalize receives unparseable JSON", () => {
       const tracker = new ComponentStreamTracker(
+        "msg_broken",
         "comp_broken",
         "BrokenComponent",
       );

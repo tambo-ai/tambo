@@ -57,7 +57,7 @@ describe("TamboV1Provider", () => {
     expect(typeof result.current.registerTool).toBe("function");
   });
 
-  it("provides access to stream context", () => {
+  it("provides access to stream context with placeholder thread ready", () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <TamboV1Provider apiKey="test-api-key">{children}</TamboV1Provider>
     );
@@ -65,7 +65,9 @@ describe("TamboV1Provider", () => {
     const { result } = renderHook(() => useStreamState(), { wrapper });
 
     expect(result.current.threadMap).toBeDefined();
-    expect(result.current.currentThreadId).toBeNull();
+    // Initial state has placeholder thread for optimistic UI
+    expect(result.current.currentThreadId).toBe("placeholder");
+    expect(result.current.threadMap.placeholder).toBeDefined();
   });
 
   it("manages threads via useThreadManagement", () => {
@@ -81,10 +83,10 @@ describe("TamboV1Provider", () => {
       { wrapper },
     );
 
-    // Initially no thread
-    expect(result.current.state.currentThreadId).toBeNull();
+    // Initially has placeholder thread for optimistic UI
+    expect(result.current.state.currentThreadId).toBe("placeholder");
 
-    // Initialize and switch to a thread
+    // Initialize and switch to a different thread
     act(() => {
       result.current.management.initThread("thread_123");
       result.current.management.switchThread("thread_123");
