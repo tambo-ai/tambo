@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ======================================================
+   THEME TOKENS — TACTICAL OPS (NO NEON, NO GLOW)
+   ====================================================== */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Charts */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Layout */
+  --radius: 0.375rem;
+  --sidebar-width: 260px;
+}
+
+/* ======================================================
+   ROOT — TACTICAL DARK (DEFAULT)
+   ====================================================== */
+
+:root {
+  /* Core surfaces */
+  --background: #0b0d10;
+  --foreground: #e5e7eb;
+
+  --card: #0f1115;
+  --card-foreground: #e5e7eb;
+
+  --popover: #0f1115;
+  --popover-foreground: #e5e7eb;
+
+  /* Primary = COMMAND ORANGE */
+  --primary: #ff7a18;
+  --primary-foreground: #0b0d10;
+
+  /* Secondary = neutral gray */
+  --secondary: #1a1d23;
+  --secondary-foreground: #d1d5db;
+
+  /* Muted */
+  --muted: #14161b;
+  --muted-foreground: #8b8f97;
+
+  /* Accent (used sparingly) */
+  --accent: #ff7a18;
+  --accent-foreground: #0b0d10;
+
+  /* Status */
+  --destructive: #dc2626;
+
+  /* Borders & inputs */
+  --border: #24262b;
+  --input: #24262b;
+  --ring: #ff7a18;
+
+  /* Charts (Ops-style) */
+  --chart-1: #ff7a18;
+  --chart-2: #22c55e;
+  --chart-3: #eab308;
+  --chart-4: #ef4444;
+  --chart-5: #3b82f6;
+}
+
+/* ======================================================
+   DARK MODE (same palette, explicit)
+   ====================================================== */
+
+.dark {
+  --background: #0b0d10;
+  --foreground: #e5e7eb;
+
+  --card: #0f1115;
+  --card-foreground: #e5e7eb;
+
+  --popover: #0f1115;
+  --popover-foreground: #e5e7eb;
+
+  --primary: #ff7a18;
+  --primary-foreground: #0b0d10;
+
+  --secondary: #1a1d23;
+  --secondary-foreground: #d1d5db;
+
+  --muted: #14161b;
+  --muted-foreground: #8b8f97;
+
+  --accent: #ff7a18;
+  --accent-foreground: #0b0d10;
+
+  --destructive: #dc2626;
+
+  --border: #24262b;
+  --input: #24262b;
+  --ring: #ff7a18;
+}
+
+/* ======================================================
+   BASE LAYER
+   ====================================================== */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      Inter,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+}
+
+/* ======================================================
+   FEEDBACK (SUBTLE, NO FLASH / NO GLOW)
+   ====================================================== */
+
+@keyframes subtlePulse {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(255, 122, 24, 0.08);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-pulse-soft {
+  animation: subtlePulse 0.8s ease-in-out;
+}
+
+/* ======================================================
+   RENDERING
+   ====================================================== */
+
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes gridShift {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 40px 40px, 40px 40px; }
+}
