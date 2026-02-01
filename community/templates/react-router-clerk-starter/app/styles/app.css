@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Default Tailwind CSS Variables customized with tambo colors */
+    --background: 1 0 0;
+    --foreground: 0.14 0 285;
+    --card: 1 0 0;
+    --card-foreground: 0.14 0 285;
+    --popover: 1 0 0;
+    --popover-foreground: 0.14 0 285;
+    --primary: 0.31 0.02 281;
+    --primary-foreground: 0.98 0 0;
+    --secondary: 0.54 0.027 261;
+    --secondary-foreground: 1 0 0;
+    --muted: 0.92 0 260;
+    --muted-foreground: 0.73 0.022 260;
+    --accent: 0.97 0 286;
+    --accent-foreground: 0.21 0 286;
+    --destructive: 0.64 0.2 25;
+    --border: 0.93 0 242;
+    --input: 0.92 0 286;
+    --ring: 0.14 0 285;
+    --chart-1: 0.72 0.15 60;
+    --chart-2: 0.62 0.2 6;
+    --chart-3: 0.53 0.2 262;
+    --chart-4: 0.7 0.13 165;
+    --chart-5: 0.62 0.2 313;
+
+    /* Tambo Specific Variables needed for tambo components */
+    --container: 0.98 0 247;
+    --backdrop: 0.25 0.07 252 / 0.25;
+    --muted-backdrop: 0.25 0.07 252 / 0.1;
+    --radius: 0.5rem;
+    --panel-left-width: 500px;
+    --panel-right-width: 500px;
+    --sidebar-width: 3rem;
+  }
+
+  .dark {
+    /* Dark Mode Tailwind CSS Variables customized with tambo colors */
+    --background: 0.145 0 0;
+    --foreground: 0.985 0 0;
+    --card: 0.205 0 0;
+    --card-foreground: 0.985 0 0;
+    --popover: 0.205 0 0;
+    --popover-foreground: 0.985 0 0;
+    --primary: 0.922 0 0;
+    --primary-foreground: 0.205 0 0;
+    --secondary: 0.269 0 0;
+    --secondary-foreground: 0.985 0 0;
+    --muted: 0.269 0 0;
+    --muted-foreground: 0.708 0 0;
+    --accent: 0.269 0 0;
+    --accent-foreground: 0.985 0 0;
+    --destructive: 0.704 0.191 22.216;
+    --border: 1 0 0 / 10%;
+    --input: 1 0 0 / 15%;
+    --ring: 0.556 0 0;
+    --chart-1: 0.72 0.15 60;
+    --chart-2: 0.62 0.2 6;
+    --chart-3: 0.53 0.2 262;
+    --chart-4: 0.7 0.13 165;
+    --chart-5: 0.62 0.2 313;
+
+    /* Tambo Specific Variables needed for tambo components */
+    --container: 0.98 0 247;
+    --backdrop: 0.25 0.07 252 / 0.25;
+    --muted-backdrop: 0.25 0.07 252 / 0.1;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/*
+This is a custom animation for the interactable components.
+It's used to highlight the fields that have been updated.
+You can remove this if you don't want to use it.
+*/
+
+@keyframes flash {
+
+  0%,
+  100% {
+    background-color: transparent;
+  }
+
+  50% {
+    background-color: rgb(59 130 246 / 0.3);
+  }
+}
+
+.animate-flash {
+  animation: flash 1s ease-in-out;
+}
+
+/*
+Animated gradient for thinking text, creates a shimmering effect that moves across the text.
+*/
+@keyframes thinking-gradient {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-thinking-gradient {
+  /* Fallback */
+  background: linear-gradient(90deg, #666 0%, #bbb 50%, #666 100%);
+  /* Preferred (overrides when supported) */
+  background: linear-gradient(90deg,
+      oklch(0.14 0 0) 0%,
+      oklch(0.7 0 0) 50%,
+      oklch(0.14 0 0) 100%);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: thinking-gradient 2s linear infinite;
+}
