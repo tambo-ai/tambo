@@ -1,0 +1,157 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Tambo Astro Template">
+  <main class="min-h-screen bg-white selection:bg-zinc-900 selection:text-white relative overflow-hidden">
+    <!-- Background Decor -->
+    <div class="absolute inset-0 z-0 pointer-events-none">
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-zinc-50 rounded-full blur-[120px] opacity-50"></div>
+      <div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-zinc-50 rounded-full blur-[100px] opacity-50"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 border-b border-zinc-100 bg-white/80 backdrop-blur-xl">
+      <div class="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
+        <div class="flex items-center gap-3 group cursor-pointer">
+          <a href="https://tambo.co/" class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center group-hover:rotate-6 transition-transform">
+            <img src="/Octo-Icon.svg" alt="Tambo Logo" class="w-6 h-6 invert" />
+          </a>
+          <span class="font-bold text-xl tracking-tighter text-zinc-900">tambo.</span>
+        </div>
+        <div class="flex items-center gap-10">
+          <a href="https://tambo.co/docs" target="_blank" class="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors">Docs</a>
+          <a href="https://tambo.co/dashboard" target="_blank" class="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors">Dashboard</a>
+          <a href="/chat" class="h-10 px-6 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest flex items-center justify-center hover:bg-black transition-all hover:scale-[1.05] active:scale-[0.95] shadow-lg shadow-zinc-200">
+            Chat Now
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-40 pb-20 px-6 relative z-10">
+      <div class="max-w-7xl mx-auto text-center">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-zinc-950 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-10 animate-fade-in border border-white/10 shadow-xl">
+           <span class="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-pulse"></span>
+           Template Engine v1.0
+        </div>
+        
+        <h1 class="text-6xl md:text-8xl font-black tracking-tight text-zinc-900 mb-10 max-w-5xl mx-auto leading-[0.9] text-balance">
+          Master the <span class="text-zinc-300">Generative</span> Frontier.
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-zinc-400 max-w-2xl mx-auto mb-16 leading-relaxed font-medium">
+          The premium Astro foundation for building high-performance AI interfaces with Tambo UI.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+          <a href="/chat" class="w-full sm:w-auto h-16 px-10 rounded-2xl bg-zinc-900 text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-black transition-all hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]">
+            Launch Assistant
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          </a>
+          <a href="https://tambo.co/dashboard" target="_blank" class="w-full sm:w-auto h-16 px-10 rounded-2xl bg-white border border-zinc-200 text-zinc-900 font-bold text-lg flex items-center justify-center hover:bg-zinc-50 transition-all">
+            See Dashboard
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Bento Grid -->
+    <section class="py-20 px-6 relative z-10">
+      <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <!-- Main Chat Info -->
+          <div class="md:col-span-12 group">
+             <div class="p-10 md:p-16 rounded-[3rem] bg-zinc-50 border border-zinc-100 flex flex-col md:flex-row items-center gap-12 group-hover:bg-zinc-100/50 transition-colors">
+                <div class="flex-1">
+                  <h3 class="text-4xl font-black text-zinc-900 mb-6 leading-tight">Intelligent Thread Management</h3>
+                  <p class="text-zinc-500 text-lg leading-relaxed mb-10">
+                    Our `/chat` page leverages Tambo's advanced streaming context to manage multiple conversation threads, real-time UI generation, and seamless tool execution.
+                  </p>
+                  <div class="flex gap-4">
+                    <span class="px-5 py-2.5 rounded-2xl bg-white border border-zinc-200 text-xs font-bold text-zinc-900 shadow-sm">Real-time Streaming</span>
+                    <span class="px-5 py-2.5 rounded-2xl bg-white border border-zinc-200 text-xs font-bold text-zinc-900 shadow-sm">Zod Validation</span>
+                  </div>
+                </div>
+                <div class="w-full md:w-96 aspect-square rounded-[2.5rem] bg-white border border-zinc-200 shadow-2xl p-8 flex flex-col justify-center">
+                    <div class="space-y-4">
+                      <div class="h-4 w-3/4 bg-zinc-100 rounded-full animate-pulse"></div>
+                      <div class="h-4 w-1/2 bg-zinc-50 rounded-full"></div>
+                      <div class="h-40 w-full bg-zinc-900 rounded-3xl mt-4 flex items-center justify-center">
+                        <img src="/Octo-Icon.svg" class="w-12 h-12 invert opacity-20" alt="" />
+                      </div>
+                    </div>
+                </div>
+             </div>
+          </div>
+
+          <!-- Documentation Explorer -->
+          <div class="md:col-span-6 p-10 rounded-[3rem] bg-zinc-900 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group">
+            <div>
+              <div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mb-8 border border-white/5 transition-transform group-hover:-rotate-6">
+                <svg class="w-6 h-6 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+              </div>
+              <h3 class="text-3xl font-black mb-4">Explore Documentation</h3>
+              <p class="text-zinc-400 leading-relaxed mb-8">
+                Deep dive into component registration, tool orchestration, and the Astro hydration model for Tambo.
+              </p>
+            </div>
+            <a href="https://tambo.co/docs" target="_blank" class="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-white hover:gap-4 transition-all">
+              View Specs <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </a>
+          </div>
+
+          <!-- Components Gallery -->
+          <div class="md:col-span-6 p-10 rounded-[3rem] bg-white border border-zinc-200 flex flex-col justify-between hover:border-zinc-900 transition-colors cursor-pointer group">
+            <div>
+              <div class="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center mb-8 border border-zinc-100 transition-transform group-hover:rotate-6">
+                <svg class="w-6 h-6 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+              </div>
+              <h3 class="text-3xl font-black text-zinc-900 mb-4">Dynamic Components</h3>
+              <p class="text-zinc-500 leading-relaxed mb-8">
+                Utilize `Graph`, `TamboSession`, and `TamboProvider` to build reactive AI experiences that adapt to every user prompt.
+              </p>
+            </div>
+            <a href="/chat" class="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-zinc-900">
+              Demo Library <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final Footer -->
+    <footer class="py-20 border-t border-zinc-100 bg-white relative z-10">
+      <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div class="col-span-2">
+          <a href="https://tambo.co/" class="flex items-center gap-2 mb-6 w-fit">
+            <div class="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center">
+              <img src="/Octo-Icon.svg" alt="Tambo Logo" class="w-5 h-5 invert" />
+            </div>
+            <span class="font-black text-xl tracking-tighter text-zinc-900">tambo.</span>
+          </a>
+          <p class="text-zinc-400 text-sm max-w-sm leading-relaxed mb-8 font-medium">
+An open-source AI orchestration framework for your React front end.
+          </p>
+        </div>
+        <div>
+          <h4 class="text-xs font-black uppercase tracking-[0.2em] text-zinc-900 mb-6">Product</h4>
+          <ul class="space-y-4 text-sm font-semibold text-zinc-400">
+            <li><a href="/chat" class="hover:text-zinc-900 transition-colors">Chat Interface</a></li>
+            <li><a href="https://tambo.co/dashboard" class="hover:text-zinc-900 transition-colors">Tambo Dashboard</a></li>
+            <li><a href="https://tambo.co/docs" class="hover:text-zinc-900 transition-colors">SDK Documentation</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs font-black uppercase tracking-[0.2em] text-zinc-900 mb-6">Connect</h4>
+          <ul class="space-y-4 text-sm font-semibold text-zinc-400">
+             <li><a href="https://x.com/tambo_ai" class="hover:text-zinc-900 transition-colors">X (Twitter)</a></li>
+             <li><a href="https://tambo.co/discord" class="hover:text-zinc-900 transition-colors">Discord</a></li>
+             <li><a href="https://github.com/tambo-ai/tambo" class="hover:text-zinc-900 transition-colors">GitHub</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </main>
+</Layout>
