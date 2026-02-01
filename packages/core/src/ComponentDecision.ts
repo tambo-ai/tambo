@@ -6,6 +6,12 @@ export interface LegacyComponentDecision {
   role?: MessageRole;
   parentMessageId?: string;
   componentName: string | null;
+  /**
+   * Unique ID for the component content block.
+   * Used by V1 API to reference components for state updates.
+   * Generated during streaming and stored in the content array.
+   */
+  componentId?: string;
   props: Record<string, unknown> | null;
   message: string;
   toolCallRequest?: ToolCallRequest;
