@@ -2,9 +2,9 @@
 
 import { useUser } from "@clerk/nextjs";
 import {
-    useTambo,
-    useTamboGenerationStage,
-    useTamboThreadInput,
+  useTambo,
+  useTamboGenerationStage,
+  useTamboThreadInput,
 } from "@tambo-ai/react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
@@ -68,7 +68,7 @@ export function MessageThread() {
 
   const messages = thread?.messages ?? [];
   const filteredMessages = messages.filter(
-    (message) => message.role !== "system"
+    (message) => message.role !== "system",
   );
 
   return (

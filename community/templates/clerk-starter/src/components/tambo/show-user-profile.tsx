@@ -102,9 +102,9 @@ export function ShowUserProfile({ title }: ShowUserProfileProps) {
       </div>
 
       <div className="mt-4 pt-3 border-t border-border text-sm text-muted-foreground">
-        🔐 This data comes from your authenticated Clerk session. The AI rendered
-        this component because you asked to see your profile, proving that AI
-        messages are authenticated and scoped to your user identity.
+        🔐 This data comes from your authenticated Clerk session. The AI
+        rendered this component because you asked to see your profile, proving
+        that AI messages are authenticated and scoped to your user identity.
       </div>
     </div>
   );

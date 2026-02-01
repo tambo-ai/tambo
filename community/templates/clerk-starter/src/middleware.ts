@@ -17,11 +17,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
  *
  * This ensures AI-rendered components are scoped to the signed-in user.
  */
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-]);
+const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
   // Protect all routes except public ones
