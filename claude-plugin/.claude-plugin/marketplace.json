@@ -1,0 +1,25 @@
+{
+  "name": "tambo-marketplace",
+  "owner": {
+    "name": "Tambo AI",
+    "email": "support@tambo.co"
+  },
+  "metadata": {
+    "description": "Official Tambo plugins for Claude Code",
+    "homepage": "https://tambo.co"
+  },
+  "plugins": [
+    {
+      "name": "tambo",
+      "source": "./plugins/tambo",
+      "description": "Build agents that speak your UI",
+      "version": "1.0.0",
+      "author": {
+        "name": "Tambo AI",
+        "email": "support@tambo.co"
+      },
+      "category": "frameworks",
+      "keywords": ["ai", "react", "generative-ui", "components", "streaming"]
+    }
+  ]
+}
