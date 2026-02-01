@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-<a href="https://console.tambo.co/login">Start For Free</a> •
+<a href="https://tambo.link/yXkF0hQ">Start For Free</a> •
   <a href="https://docs.tambo.co">Docs</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
@@ -78,7 +78,7 @@ npx tambo init      # choose cloud or self-hosted
 npm run dev
 ```
 
-**Tambo Cloud** is a hosted backend, free to get started with plenty of credits to start building. **Self-hosted** runs on your own infrastructure.
+[**Tambo Cloud**](https://tambo.link/yXkF0hQ) is a hosted backend, free to get started with plenty of credits to start building. **Self-hosted** runs on your own infrastructure.
 
 Check out the [pre-built component library](https://ui.tambo.co) for chatbot and agent primitives, or fork a template:
 
