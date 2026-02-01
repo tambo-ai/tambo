@@ -31,7 +31,7 @@ type StateUpdateResult<T> = [currentState: T, setState: (newState: T) => void];
  * user edits take precedence over the original prop value.
  *
  * Pair with `useTamboStreamStatus` to disable inputs while streaming.
- * @see {@link https://docs.tambo.co/concepts/streaming/streaming-best-practices}
+ * @see {@link https://docs.tambo.co/concepts/generative-interfaces/component-state}
  */
 export function useTamboComponentState<S = undefined>(
   keyName: string,

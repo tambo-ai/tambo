@@ -298,7 +298,7 @@ function deriveGlobalStreamStatus<Props extends Record<string, any>>(
  * Use `propStatus.<field>?.isSuccess` before treating a prop as complete.
  *
  * Pair with `useTamboComponentState` to disable inputs while streaming.
- * @see {@link https://docs.tambo.co/concepts/streaming/streaming-best-practices}
+ * @see {@link https://docs.tambo.co/concepts/generative-interfaces/component-state}
  * @template Props - Component props type
  * @returns `streamStatus` (overall) and `propStatus` (per-prop) flags
  * @throws {Error} When used during SSR/SSG
