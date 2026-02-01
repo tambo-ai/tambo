@@ -42,6 +42,10 @@
   color: "26b5ce"
   description: "Changes to the web app (apps/web)"
 
+- name: "area: templates"
+  color: "26b5ce"
+  description: "Changes to templates"
+
 - name: "area: community"
   color: "26b5ce"
   description: "Changes to community resources"
@@ -154,6 +158,30 @@
   color: "fef2c0"
   description: "Needs to be triaged by a maintainer"
 
+- name: "status: complete"
+  color: "339E62"
+  description: "Work is complete"
+
+- name: "status: interest check"
+  color: "cd2b90"
+  description: "Expression of interest only. Not looking for contributors."
+
+- name: "status: maintainers only"
+  color: "aaaaaa"
+  description: "Only maintainers should work on this"
+
+- name: "status: response requested"
+  color: "DF2386"
+  description: "Waiting for response from author"
+
+- name: "status: stalled"
+  color: "FFA657"
+  description: "No recent activity. May be closed soon."
+
+- name: "status: ready"
+  color: "339E62"
+  description: "Ready for review"
+
 # Priority labels
 - name: "priority: 0"
   color: "b60205"
@@ -180,13 +208,14 @@
   color: "0366d6"
   description: "Created by a bot"
 
-- name: "contributor: community"
-  color: "6f42c1"
-  description: "Created by a community member"
-
 - name: "contributor: tambo-team"
   color: "80ffce"
   description: "Created by a Tambo team member"
+
+- name: "contributor: external"
+  color: "6f42c1"
+  description: "Created by an external contributor"
+  from_name: "contributor: community"
 
 # Community labels
 - name: "good first issue"

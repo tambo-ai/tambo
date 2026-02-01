@@ -103,5 +103,5 @@ jobs:
     if: ${{ always() }}
     uses: ./.github/workflows/workflow-check.yml
     with:
-      pass-condition: ${{ contains(needs.*.result, 'failure') == false }}
+      json-needs: ${{ toJSON(needs) }}
       error-message: "One or more of the CI jobs have failed. Please view the jobs for this workflow run for more details."

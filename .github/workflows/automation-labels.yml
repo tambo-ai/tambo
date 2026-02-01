@@ -64,7 +64,7 @@ jobs:
               "CharlieHelps"
             ]
         run: | # shell
-          AUTHOR="community"
+          AUTHOR="external"
 
           if jq -e ". | index(\"${AUTHOR_LOGIN}\")" <<< "${TAMBO_TEAM_MEMBERS}" > /dev/null; then
             AUTHOR="tambo-team"
@@ -81,8 +81,13 @@ jobs:
         if: github.event_name == 'pull_request_target' || github.event_name == 'issues'
         env:
           EXISTING_LABELS: ${{ toJson(github.event.issue.labels || github.event.pull_request.labels || '[]') }}
+          AUTHOR: ${{ steps.author.outputs.author }}
         run: | # shell
-          ISSUE_STATUS="triage"
+          ISSUE_STATUS="in progress"
+
+          if [[ "${AUTHOR}" != "tambo-team" ]]; then
+            ISSUE_STATUS="triage"
+          fi
 
           # Only apply one status label
           if jq -e '.[] | select(.name | startswith("status: "))' <<< "${EXISTING_LABELS}" > /dev/null; then
@@ -111,7 +116,7 @@ jobs:
         if: github.event_name == 'pull_request_target' || github.event_name == 'push'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
-          script: |
+          script: | # javascript
             // For push events, we need to get the files from the commit
             // For pull_request_target events, we get files from the PR
             const changedPathSet = new Set();
@@ -182,7 +187,8 @@ jobs:
               web: [/^apps\/web\//],
               showcase: [/^showcase\//],
               cli: [/^cli\//],
-              community: [/^community\//],
+              community: [/^community\/(?!templates)/],
+              templates: [/^community\/templates\//],
               db: [/^packages\/db\//],
               core: [/^packages\/core\//],
               backend: [/^packages\/backend\//],
@@ -211,7 +217,7 @@ jobs:
               labels: [
                 /^\.github\/labels\.yml$/,
                 /^\.github\/workflows\/automation-labels\.yml$/
-              ]
+              ],
             };
 
             const areas = [];
@@ -387,8 +393,19 @@ jobs:
           LABELS_TO_ADD=$(jq -r '[to_entries[] | select(.value == true) | .key] | join(",")' <<< "${LABEL_CHANGES}")
           LABELS_TO_REMOVE=$(jq -r '[to_entries[] | select(.value == false) | .key] | join(",")' <<< "${LABEL_CHANGES}")
 
-          echo "Adding labels: ${LABELS_TO_ADD:-none}"
-          echo "Removing labels: ${LABELS_TO_REMOVE:-none}"
+          echo "Adding labels:"
+          if [[ -n "${LABELS_TO_ADD}" ]]; then
+            jq -r 'to_entries[] | select(.value == true) | "- \(.key)"' <<< "${LABEL_CHANGES}"
+          else
+            echo "- none"
+          fi
+
+          echo "Removing labels:"
+          if [[ -n "${LABELS_TO_REMOVE}" ]]; then
+            jq -r 'to_entries[] | select(.value == false) | "- \(.key)"' <<< "${LABEL_CHANGES}"
+          else
+            echo "- none"
+          fi
 
           CMD_ARGS=()
           if [[ -n "${LABELS_TO_ADD}" ]]; then
