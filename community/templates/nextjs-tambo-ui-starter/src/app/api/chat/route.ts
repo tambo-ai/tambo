@@ -93,7 +93,7 @@ CRITICAL: If user asks for data/table/comparison, use DataTable. For single metr
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const { messages } = await request.json();
-    const apiKey = process.env.TAMBO_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_TAMBO_API_KEY;
 
     if (!apiKey) {
       throw new Error('API key not configured');

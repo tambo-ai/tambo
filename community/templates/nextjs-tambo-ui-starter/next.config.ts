@@ -1,17 +1,18 @@
-// ===== FILE: next.config.ts =====
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
-  // Simple webpack config - just ignore the sury module
+  images: {
+    unoptimized: true,
+    remotePatterns: [],
+  },
+
   webpack: (config) => {
-    // Ignore the sury module completely
     config.resolve.fallback = {
       ...config.resolve.fallback,
       sury: false,
     };
-
     return config;
   },
 
