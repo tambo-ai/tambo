@@ -1,0 +1,34 @@
+{
+  "name": "drizzle-analytics-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:push": "drizzle-kit push",
+    "db:seed": "npx tsx seed.ts"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tambo-ai/react": "latest",
+    "better-sqlite3": "latest",
+    "clsx": "latest",
+    "drizzle-orm": "latest",
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tailwind-merge": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "drizzle-kit": "latest",
+    "postcss": "latest",
+    "tailwindcss": "latest",
+    "typescript": "latest"
+  }
+}
