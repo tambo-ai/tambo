@@ -39,6 +39,7 @@ export {
   useTamboStream,
   useTamboThread,
   useTamboThreadInput,
+  useTamboRegistry,
   type ContextAttachment,
   type ContextAttachmentState,
   type RegisterToolFn,
