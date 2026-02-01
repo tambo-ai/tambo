@@ -97,8 +97,6 @@ Tambo supports two kinds of components.
 
 https://github.com/user-attachments/assets/3bd340e7-e226-4151-ae40-aab9b3660d8b
 
-
-
 https://github.com/user-attachments/assets/12d957cd-97f1-488e-911f-0ff900ef4062
 
 ### Registering Components
