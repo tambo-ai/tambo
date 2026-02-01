@@ -1,0 +1,14 @@
+# Ignore Prettier config file
+.prettierrc
+
+# Ignore package files
+package-lock.json
+package.json
+
+# Ignore build files
+.next
+dist
+build
+
+# Ignore node modules
+node_modules

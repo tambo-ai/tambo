@@ -42,10 +42,11 @@ npm
 A Tambo AI API key
 
 Getting Started
+
 1. Clone the Repository
-git clone 
-cd nextjs-tambo-ui-starter
-npm install
+   git clone
+   cd nextjs-tambo-ui-starter
+   npm install
 
 2. Environment Variables
 
@@ -54,28 +55,27 @@ Create a .env.local file in the root:
 NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key_here
 
 3. Run the App
-npm run dev
-
+   npm run dev
 
 Open http://localhost:3000 to view the dashboard.
 
 Project Structure
 src/
 ├── app/
-│   ├── api/chat/route.ts      # Tambo AI chat endpoint
-│   ├── client-providers.tsx   # Tambo provider setup
-│   ├── globals.css            # Global styles
-│   ├── layout.tsx             # Root layout
-│   └── page.tsx               # Main dashboard page
+│ ├── api/chat/route.ts # Tambo AI chat endpoint
+│ ├── client-providers.tsx # Tambo provider setup
+│ ├── globals.css # Global styles
+│ ├── layout.tsx # Root layout
+│ └── page.tsx # Main dashboard page
 │
 └── components/
-    └── tambo/
-        ├── Dashboard.tsx      # Main AI dashboard UI
-        ├── DataTable.tsx      # Tabular data component
-        ├── MetricCard.tsx     # Metric display component
-        ├── StatusBadge.tsx    # Status indicator component
-        ├── ComponentParser.tsx# Maps AI output to components
-        └── index.ts           # Component registry
+└── tambo/
+├── Dashboard.tsx # Main AI dashboard UI
+├── DataTable.tsx # Tabular data component
+├── MetricCard.tsx # Metric display component
+├── StatusBadge.tsx # Status indicator component
+├── ComponentParser.tsx# Maps AI output to components
+└── index.ts # Component registry
 
 How It Works
 
@@ -151,12 +151,11 @@ Define a strict Zod schema for props
 Export the component in this format:
 
 export const YourComponent = {
-  name: "YourComponent",
-  description: "Used to display ...",
-  component: YourComponentFunction,
-  propsSchema: YourComponentSchema,
+name: "YourComponent",
+description: "Used to display ...",
+component: YourComponentFunction,
+propsSchema: YourComponentSchema,
 };
-
 
 Register it in components/tambo/index.ts
 
