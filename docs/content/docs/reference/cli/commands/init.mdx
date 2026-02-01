@@ -30,6 +30,65 @@ npx tambo init --yes
 npx tambo init --legacy-peer-deps
 ```
 
+## Non-Interactive Mode (CI/CD and AI Agents)
+
+When running in CI/CD pipelines, AI coding assistants (Claude Code, Cursor), or other non-interactive environments, use these flags to provide required input without prompts:
+
+### `--api-key`
+
+Directly set the API key without prompts. The simplest option for CI/CD:
+
+```bash
+npx tambo init --api-key="$TAMBO_API_KEY"
+```
+
+### `--project-name`
+
+Create a new Tambo Cloud project and generate an API key. Requires authentication:
+
+```bash
+npx tambo init --project-name=myapp
+```
+
+### `--project-id`
+
+Use an existing project by ID and generate an API key. Requires authentication:
+
+```bash
+npx tambo init --project-id=abc123
+```
+
+### `--no-browser`
+
+When authentication is needed but you can't open a browser (headless CI), this flag prints the auth URL instead:
+
+```bash
+npx tambo init --project-name=myapp --no-browser
+# Prints: Visit https://tambo.co/device?code=XXXX to authenticate
+```
+
+### CI/CD Examples
+
+**GitHub Actions:**
+
+```yaml
+- name: Initialize Tambo
+  run: npx tambo init --api-key="${{ secrets.TAMBO_API_KEY }}"
+```
+
+**Direct API key setup (any CI):**
+
+```bash
+export TAMBO_API_KEY=sk_...
+npx tambo init --api-key="$TAMBO_API_KEY"
+```
+
+<Callout type="info" title="Exit Codes">
+  In non-interactive mode, if required arguments are missing, the CLI exits with
+  code 2 and prints guidance on what flags to provide. See [global
+  options](/reference/cli/global-options#exit-codes) for details.
+</Callout>
+
 ## Hosting Options
 
 The init command offers two hosting options for your Tambo project:
