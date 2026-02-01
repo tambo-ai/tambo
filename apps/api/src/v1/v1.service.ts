@@ -653,13 +653,28 @@ export class V1Service {
           const clientToolNames = new Set(dto.tools?.map((t) => t.name) ?? []);
           const toolCallTracker = new ClientToolCallTracker(clientToolNames);
 
+          // Track temp→real message ID mapping. The LLM client generates temporary
+          // IDs (e.g., "message-xyz") because it doesn't have DB access. advanceThread
+          // creates the real message in DB with IDs like "msg_abc123". We map temp IDs
+          // to real IDs so the client SDK can reference messages correctly.
+          const messageIdMapping = new Map<string, string>();
+
           for await (const item of queue) {
-            // Emit all AG-UI events from this stream item
+            // Extract real message ID from the response (persisted by advanceThread)
+            const realMessageId = item.response?.responseMessageDto?.id;
+
             if (item.aguiEvents) {
               for (const event of item.aguiEvents) {
+                // Transform temp IDs to real DB IDs
+                const transformedEvent = transformEventMessageIds(
+                  event,
+                  realMessageId,
+                  messageIdMapping,
+                );
+
                 // Track tool calls to detect pending client-side tools
-                toolCallTracker.processEvent(event);
-                this.emitEvent(response, event);
+                toolCallTracker.processEvent(transformedEvent);
+                this.emitEvent(response, transformedEvent);
               }
             }
           }
@@ -1339,4 +1354,70 @@ export class V1Service {
       createdAt: suggestion.createdAt.toISOString(),
     };
   }
+}
+
+/**
+ * Transform temporary message IDs in AG-UI events to real database IDs.
+ *
+ * The LLM client (ai-sdk-client) generates temporary IDs like "message-xyz"
+ * because it doesn't have database access. advanceThread creates real messages
+ * in the DB with IDs like "msg_abc123". This function maps temp IDs to real IDs
+ * so the client SDK can correctly reference messages for operations like
+ * component state updates.
+ *
+ * @param event - The AG-UI event to transform
+ * @param realMessageId - The real DB message ID from advanceThread
+ * @param mapping - Map tracking temp→real ID associations
+ * @returns The event with real message IDs
+ */
+function transformEventMessageIds(
+  event: BaseEvent,
+  realMessageId: string | undefined,
+  mapping: Map<string, string>,
+): BaseEvent {
+  if (!realMessageId) {
+    return event;
+  }
+
+  // Handle TEXT_MESSAGE_* events (messageId at top level)
+  if ("messageId" in event && typeof event.messageId === "string") {
+    const tempId = event.messageId;
+
+    // Record mapping on first encounter
+    if (!mapping.has(tempId)) {
+      mapping.set(tempId, realMessageId);
+    }
+
+    return { ...event, messageId: mapping.get(tempId) ?? tempId };
+  }
+
+  // Handle tambo.component.start custom event (messageId in value)
+  if (event.type === EventType.CUSTOM) {
+    const customEvent = event as BaseEvent & {
+      name?: string;
+      value?: { messageId?: string };
+    };
+
+    if (
+      customEvent.name === "tambo.component.start" &&
+      customEvent.value?.messageId
+    ) {
+      const tempId = customEvent.value.messageId;
+
+      // Record mapping on first encounter
+      if (!mapping.has(tempId)) {
+        mapping.set(tempId, realMessageId);
+      }
+
+      return {
+        ...event,
+        value: {
+          ...customEvent.value,
+          messageId: mapping.get(tempId) ?? tempId,
+        },
+      };
+    }
+  }
+
+  return event;
 }
