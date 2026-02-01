@@ -6,7 +6,7 @@ import { useEffect } from "react";
  * Low-level helper that merges streamed props into state.
  * @deprecated Use `useTamboComponentState` with `setFromProp` instead.
  * This hook will be removed in 1.0.0.
- * @see {@link https://docs.tambo.co/concepts/streaming/streaming-props}
+ * @see {@link https://docs.tambo.co/concepts/generative-interfaces/component-state}
  * @param currentState - Current state object
  * @param setState - State setter function
  * @param streamingProps - Props to merge into state when they change

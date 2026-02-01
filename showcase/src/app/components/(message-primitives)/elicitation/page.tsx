@@ -269,7 +269,7 @@ export default function ElicitationPage() {
             from MCP servers. For detailed information about elicitation in MCP,
             see the{" "}
             <a
-              href="https://docs.tambo.co/concepts/model-context-protocol/features/elicitation"
+              href="https://docs.tambo.co/concepts/model-context-protocol/features#elicitations"
               className="text-primary-link hover:underline"
             >
               elicitation documentation
