@@ -1,6 +1,6 @@
-import { MetricCard } from './MetricCard';
-import { StatusBadge } from './StatusBadge';
-import { DataTable } from './DataTable';
+import { MetricCard } from "./MetricCard";
+import { StatusBadge } from "./StatusBadge";
+import { DataTable } from "./DataTable";
 
 export const components = [
   {

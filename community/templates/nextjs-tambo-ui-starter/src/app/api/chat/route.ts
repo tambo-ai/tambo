@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 const SYSTEM_PROMPT = `You are an AI assistant that MUST return structured JSON for Tambo to render UI components.
 
@@ -96,25 +96,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const apiKey = process.env.NEXT_PUBLIC_TAMBO_API_KEY;
 
     if (!apiKey) {
-      throw new Error('API key not configured');
+      throw new Error("API key not configured");
     }
 
-    console.log('Sending to AI:', {
+    console.log("Sending to AI:", {
       messageCount: messages.length,
       lastMessage: messages[messages.length - 1]?.content,
     });
 
-    const response = await fetch('https://api.tambo.ai/v1/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://api.tambo.ai/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
+        model: "gpt-4o-mini",
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
         temperature: 0.3, // Low for consistency
-        response_format: { type: 'json_object' },
+        response_format: { type: "json_object" },
       }),
     });
 
@@ -124,54 +124,64 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const data = await response.json();
-    const assistantMessage = data.choices[0]?.message.content ?? '{}';
+    const assistantMessage = data.choices[0]?.message.content ?? "{}";
 
-    console.log('AI Response raw:', assistantMessage);
+    console.log("AI Response raw:", assistantMessage);
 
     try {
       const parsed = JSON.parse(assistantMessage);
 
       // Validate structure
       if (!parsed.type || !parsed.component) {
-        console.error('Invalid response structure:', parsed);
+        console.error("Invalid response structure:", parsed);
         // Create a fallback DataTable
         return NextResponse.json({
-          type: 'component',
-          component: 'DataTable',
+          type: "component",
+          component: "DataTable",
           props: {
-            title: 'Data Response',
-            rows: [{ name: 'Request', value: 'Processing', status: 'Active' }],
+            title: "Data Response",
+            rows: [{ name: "Request", value: "Processing", status: "Active" }],
           },
-          text: 'Processing your request...',
+          text: "Processing your request...",
         });
       }
 
       return NextResponse.json(parsed);
     } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Response:', assistantMessage);
+      console.error(
+        "JSON parse error:",
+        parseError,
+        "Response:",
+        assistantMessage,
+      );
 
-     
       return NextResponse.json({
-        type: 'component',
-        component: 'DataTable',
+        type: "component",
+        component: "DataTable",
         props: {
-          title: 'Response',
-          rows: [{ name: 'Message', value: assistantMessage.substring(0, 100), status: 'Active' }],
+          title: "Response",
+          rows: [
+            {
+              name: "Message",
+              value: assistantMessage.substring(0, 100),
+              status: "Active",
+            },
+          ],
         },
-        text: 'AI Response',
+        text: "AI Response",
       });
     }
   } catch (error) {
-    console.error('Chat API error:', error);
+    console.error("Chat API error:", error);
     return NextResponse.json({
-      type: 'component',
-      component: 'StatusBadge',
+      type: "component",
+      component: "StatusBadge",
       props: {
-        label: 'Error',
-        status: 'error',
-        description: 'Failed to process request',
+        label: "Error",
+        status: "error",
+        description: "Failed to process request",
       },
-      text: 'There was an error processing your request.',
+      text: "There was an error processing your request.",
     });
   }
 }

@@ -1,6 +1,5 @@
-@import 'tailwindcss';
-/* ===== FILE: src/app/globals.css =====
-
+@import "tailwindcss";
+/* 
 :root {
   --background: #ffffff;
   --foreground: #0f172a;

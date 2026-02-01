@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useTamboThread, useTamboThreadInput } from '@tambo-ai/react';
-import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+import { useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 interface MessageContent {
   content?: string | { text?: string } | Array<{ text?: string }>;
   text?: string;
@@ -16,42 +16,44 @@ export function Dashboard() {
 
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [thread.messages]);
 
   // Log thread changes for debugging
   useEffect(() => {
-    console.log('Thread updated:', {
+    console.log("Thread updated:", {
       messageCount: thread.messages.length,
       lastMessage: thread.messages[thread.messages.length - 1],
     });
   }, [thread.messages]);
 
   const [suggestions] = useState([
-    'Show a dashboard for Kaushalendra using https://github.com/Kaushalendra-Marcus data to highlight performance and impact',
-    'Compare Kaushalendra vs Meenakshi expenses, savings, burn rate, and financial risk',
-    'Show sales metrics with growth rate 117% in $',
-    'Analyze Tambo AI revenue, burn rate, runway, and overall growth health',
-    'Display system performance metrics (CPU, memory, uptime)',
-    'Display system health status',
+    "Create a dashboard for Kaushalendra using https://github.com/Kaushalendra-Marcus data to highlight performance and impact",
+    "Compare Kaushalendra vs Meenakshi expenses, savings, burn rate, and financial risk",
+    "Show sales metrics with growth rate 117% in $",
+    "Analyze Tambo AI revenue, burn rate, runway, and overall growth health",
+    "Display system performance metrics (CPU, memory, uptime)",
+    "Display system health status",
   ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (value.trim()) {
-      console.log('Submitting:', value);
+      console.log("Submitting:", value);
       submit();
-      setValue('');
+      setValue("");
     }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
     setValue(suggestion);
     setTimeout(() => {
-      const form = document.querySelector('form');
+      const form = document.querySelector("form");
       if (form) {
-        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        form.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true }),
+        );
       }
     }, 50);
   };
@@ -59,11 +61,16 @@ export function Dashboard() {
   // Fixed getMessageContent function
   const getMessageContent = (message: MessageContent): string => {
     try {
-      if (typeof message.content === 'string') {
+      if (typeof message.content === "string") {
         const contentStr = message.content;
-        if (contentStr.startsWith('[') && contentStr.includes('"type":"text"')) {
+        if (
+          contentStr.startsWith("[") &&
+          contentStr.includes('"type":"text"')
+        ) {
           try {
-            const parsedArray = JSON.parse(contentStr) as Array<{ text?: string }>;
+            const parsedArray = JSON.parse(contentStr) as Array<{
+              text?: string;
+            }>;
             if (Array.isArray(parsedArray) && parsedArray.length > 0) {
               const firstItem = parsedArray[0];
               if (firstItem && firstItem.text) {
@@ -71,17 +78,17 @@ export function Dashboard() {
               }
             }
           } catch (e) {
-            console.log('JSON parse failed:', e);
+            console.log("JSON parse failed:", e);
           }
         }
-        if (contentStr.startsWith('{') && contentStr.includes('"text"')) {
+        if (contentStr.startsWith("{") && contentStr.includes('"text"')) {
           try {
             const parsedObj = JSON.parse(contentStr) as { text?: string };
             if (parsedObj && parsedObj.text) {
               return parsedObj.text;
             }
           } catch (e) {
-            console.log('JSON parse failed:', e);
+            console.log("JSON parse failed:", e);
           }
         }
 
@@ -90,7 +97,7 @@ export function Dashboard() {
 
       if (
         message.content &&
-        typeof message.content === 'object' &&
+        typeof message.content === "object" &&
         !Array.isArray(message.content)
       ) {
         const contentObj = message.content as { text?: string };
@@ -113,14 +120,14 @@ export function Dashboard() {
         return message.text;
       }
 
-      if (message.content && typeof message.content === 'object') {
+      if (message.content && typeof message.content === "object") {
         return JSON.stringify(message.content);
       }
 
-      return '';
+      return "";
     } catch (error) {
-      console.error('Error getting message content:', error);
-      return '';
+      console.error("Error getting message content:", error);
+      return "";
     }
   };
 
@@ -131,38 +138,60 @@ export function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative h-9 w-9 overflow-hidden rounded-lg border border-gray-200 bg-gradient-to-br from-blue-500 to-purple-600">
-                <Image src="/logo.png" alt="Logo" fill className="object-cover" priority />
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
               <div className="text-sm">
-                <span className="font-semibold text-gray-900">AI Dashboard Assistant</span>
+                <span className="font-semibold text-gray-900">
+                  AI Dashboard Assistant
+                </span>
                 <span className="mx-2 text-gray-400">•</span>
-                <span className="text-gray-600">Ask for data visualizations</span>
+                <span className="text-gray-600">
+                  Ask for data visualizations
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-2 rounded-full bg-green-50 px-3 py-1.5">
               <div className="h-2 w-2 rounded-full bg-green-500"></div>
-              <span className="text-xs font-medium text-green-700">Connected</span>
+              <span className="text-xs font-medium text-green-700">
+                Connected
+              </span>
             </div>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
-        {thread.messages.filter((m) => m.role !== 'system').length === 0 && (
+        {thread.messages.filter((m) => m.role !== "system").length === 0 && (
           <div className="mb-8 rounded-xl border border-gray-200 bg-gradient-to-r from-blue-50 to-white p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-3">
               <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white shadow-md">
-                <Image src="/logo.png" alt="AI Assistant" fill className="object-cover" />
+                <Image
+                  src="/logo.png"
+                  alt="AI Assistant"
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Welcome to AI Dashboard</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Welcome to AI Dashboard
+                </h2>
                 <p className="text-sm text-gray-600">
-                  I can create data visualizations, analyze metrics, and generate reports.
+                  I can create data visualizations, analyze metrics, and
+                  generate reports.
                 </p>
               </div>
             </div>
             <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-700">Try asking me to:</p>
+              <p className="text-sm font-medium text-gray-700">
+                Try asking me to:
+              </p>
               <div className="flex flex-wrap gap-2">
                 {suggestions.map((suggestion, index) => (
                   <button
@@ -180,14 +209,14 @@ export function Dashboard() {
 
         <div className="mb-6 space-y-4">
           {thread.messages
-            .filter((msg) => msg.role !== 'system')
+            .filter((msg) => msg.role !== "system")
             .map((message) => {
               const content = getMessageContent(message);
 
               return (
                 <div key={message.id}>
                   {/* User message */}
-                  {message.role === 'user' && content && (
+                  {message.role === "user" && content && (
                     <div className="mb-4 flex justify-end">
                       <div className="max-w-[80%] rounded-2xl rounded-br-none bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-3 shadow-md">
                         <p className="text-white font-medium">{content}</p>
@@ -196,22 +225,31 @@ export function Dashboard() {
                   )}
 
                   {/* Assistant message */}
-                  {message.role === 'assistant' && (
+                  {message.role === "assistant" && (
                     <div className="mb-6">
                       <div className="mb-3 flex items-start gap-3">
                         <div className="relative mt-1 h-9 w-9 flex-shrink-0 overflow-hidden rounded-full border-2 border-white shadow-sm">
-                          <Image src="/logo.png" alt="AI Assistant" fill className="object-cover" />
+                          <Image
+                            src="/logo.png"
+                            alt="AI Assistant"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           {/* Render component */}
                           {message.renderedComponent && (
-                            <div className="mb-4">{message.renderedComponent}</div>
+                            <div className="mb-4">
+                              {message.renderedComponent}
+                            </div>
                           )}
 
                           {/* Text explanation */}
                           {content && (
                             <div className="rounded-xl bg-white border border-gray-200 p-4 shadow-sm">
-                              <p className="text-gray-700 leading-relaxed">{content}</p>
+                              <p className="text-gray-700 leading-relaxed">
+                                {content}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -233,7 +271,7 @@ export function Dashboard() {
                 type="text"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="Example: 'Show a dashboard for Kaushalendra using https://github.com/Kaushalendra-Marcus data to highlight performance and impact'"
+                placeholder="Example: 'Create a dashboard for Kaushalendra using https://github.com/Kaushalendra-Marcus data to highlight performance and impact'"
                 className="flex-1 rounded-xl border border-gray-300 bg-white px-5 py-3.5 text-gray-900 placeholder-gray-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 disabled={isPending}
                 autoFocus
@@ -249,12 +287,12 @@ export function Dashboard() {
                     <span>Processing...</span>
                   </span>
                 ) : (
-                  'Send'
+                  "Send"
                 )}
               </button>
             </div>
 
-            {thread.messages.filter((m) => m.role !== 'system').length > 0 && (
+            {thread.messages.filter((m) => m.role !== "system").length > 0 && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs font-medium text-gray-500">Try:</span>
                 {suggestions.slice(0, 3).map((suggestion, index) => (
