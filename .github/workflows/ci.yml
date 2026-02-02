@@ -38,6 +38,31 @@ jobs:
       - name: Run Type Check
         run: npm run check-types
 
+      - name: Validate docs.tambo.co links
+        run: |
+          # Extract all docs.tambo.co URLs and validate against MDX file structure
+          broken=""
+          for url in $(grep -rho 'https://docs\.tambo\.co/[^"'"'"'`)\s>]*' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.mdx' . 2>/dev/null | sort -u); do
+            path="${url#https://docs.tambo.co}"
+            path="${path%%#*}"  # strip hash
+            path="${path%/}"    # strip trailing slash
+
+            # Skip static files
+            case "$path" in
+              /llms.txt|/llms-full.txt|/sitemap.xml|/sitemap-0.xml) continue ;;
+            esac
+
+            # Check if MDX file exists
+            if [ ! -f "docs/content/docs${path}.mdx" ] && [ ! -f "docs/content/docs${path}/index.mdx" ]; then
+              broken="$broken\n  $url"
+            fi
+          done
+
+          if [ -n "$broken" ]; then
+            echo "::error::Broken docs.tambo.co links found:$broken"
+            exit 1
+          fi
+
   test:
     runs-on: ubuntu-latest
     env:
