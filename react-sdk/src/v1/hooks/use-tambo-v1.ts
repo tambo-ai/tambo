@@ -155,6 +155,7 @@ interface ComponentCacheEntry {
 
 /**
  *
+ * @returns The combined Tambo context
  */
 export function useTamboV1(): UseTamboV1Return {
   const client = useTamboClient();
