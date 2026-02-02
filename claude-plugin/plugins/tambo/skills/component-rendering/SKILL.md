@@ -1,6 +1,6 @@
 ---
-name: rendering-components
-description: Handles Tambo component streaming, loading states, and persistent state. Triggers on useTamboStreamStatus, useTamboComponentState, streaming, partial props.
+name: component-rendering
+description: Handles Tambo component streaming, loading states, and persistent state. Use when implementing streaming UI feedback, tracking prop streaming status, managing partial props, or persisting component state across sessions with useTamboStreamStatus or useTamboComponentState.
 ---
 
 # Component Rendering

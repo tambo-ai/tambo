@@ -1,6 +1,6 @@
 ---
-name: providing-context
-description: Provides Tambo with data and capabilities via custom tools, MCP servers, context helpers, and resources. Triggers on defineTool, mcpServers, contextHelpers, useTamboContextAttachment.
+name: tools-and-context
+description: Provides Tambo with data and capabilities via custom tools, MCP servers, context helpers, and resources. Use when registering tools Tambo can call, connecting MCP servers, adding context to messages, implementing @mentions, or providing additional data sources with defineTool, mcpServers, contextHelpers, or useTamboContextAttachment.
 ---
 
 # Tools and Context

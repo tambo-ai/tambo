@@ -1,6 +1,6 @@
 ---
-name: using-tambo-cli
-description: Manages Tambo project setup and component installation via CLI. Agent-friendly with non-interactive mode and exit codes. Triggers on tambo init, tambo add, npx tambo, component library.
+name: cli
+description: Manages Tambo project setup and component installation via CLI. Agent-friendly with non-interactive mode and exit codes. Use when initializing projects, adding components, creating apps, or working with tambo init, tambo add, npx tambo, or the component library.
 ---
 
 # Tambo CLI

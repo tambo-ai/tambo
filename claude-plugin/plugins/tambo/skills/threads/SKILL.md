@@ -1,6 +1,6 @@
 ---
-name: managing-threads
-description: Manages Tambo threads, messages, suggestions, voice input, and image attachments. Triggers on useTamboThread, sendThreadMessage, useTamboSuggestions, useTamboVoice.
+name: threads
+description: Manages Tambo threads, messages, suggestions, voice input, and image attachments. Use when working with conversations, sending messages, implementing AI suggestions, adding voice input, managing multi-thread UIs, or handling image attachments with useTamboThread, useTamboSuggestions, or useTamboVoice.
 ---
 
 # Threads and Input
