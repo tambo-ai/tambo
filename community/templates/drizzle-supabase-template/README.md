@@ -2,13 +2,15 @@
 
 AI-powered database operations through natural language using Drizzle ORM and Supabase.
 
-# Demo Screenshot
+### Demo Screenshot
 
 <img width="754" height="484" alt="demo" src="https://github.com/user-attachments/assets/10bdf1e5-6845-4aeb-baae-143e6ee4d078" />
 
+### Demo Video
+
 [Watch Demo Video](https://github.com/user-attachments/assets/ec09a08f-4463-41e4-85c3-a3cd2d899224)
 
-## What This Demonstrates
+### What This Demonstrates
 
 This template shows how to integrate **Drizzle ORM** with **Supabase Postgres** in a Tambo application, enabling users to query and modify database records through natural language conversations.
 
