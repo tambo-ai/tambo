@@ -57,7 +57,7 @@
   "dependencies": {
     "@tambo-ai/react": "*",
     "@tambo-ai/typescript-sdk": "^0.88.0",
-    "@trpc/client": "^11.7.2",
+    "@trpc/client": "^11.9.0",
     "@trpc/server": "^11.7.2",
     "chalk": "^5.6.0",
     "cli-table3": "^0.6.5",
