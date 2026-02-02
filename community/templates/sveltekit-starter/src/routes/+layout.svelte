@@ -12,10 +12,6 @@
   <title>SvelteKit Tambo Starter</title>
 </svelte:head>
 
-<TamboProvider
-  apiKey={import.meta.env.VITE_TAMBO_API_KEY}
-  {components}
-  {tools}
->
+<TamboProvider apiKey={import.meta.env.VITE_TAMBO_API_KEY} {components} {tools}>
   {@render children()}
 </TamboProvider>

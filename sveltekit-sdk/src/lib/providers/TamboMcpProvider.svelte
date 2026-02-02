@@ -103,7 +103,9 @@
   // Full MCP support requires @modelcontextprotocol/sdk which is optional
 
   onMount(async () => {
-    if (mcpServers.length === 0) {return;}
+    if (mcpServers.length === 0) {
+      return;
+    }
 
     isConnecting = true;
 
