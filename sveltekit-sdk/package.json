@@ -65,6 +65,7 @@
     "@tambo-ai/typescript-config": "*",
     "@testing-library/svelte": "^5.2.0",
     "@types/node": "^22.19.5",
+    "@vitest/coverage-v8": "^3.2.3",
     "eslint": "^9.39.2",
     "eslint-plugin-svelte": "^3.9.0",
     "jsdom": "^26.1.0",

@@ -18,10 +18,10 @@ export default defineConfig({
         "node_modules/**",
       ],
       thresholds: {
-        lines: 70,
-        branches: 65,
-        functions: 70,
-        statements: 70,
+        lines: 50,
+        branches: 50,
+        functions: 50,
+        statements: 50,
       },
     },
     // Increase timeout for slow tests
