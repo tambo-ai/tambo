@@ -427,7 +427,7 @@ function MyApp() {
               >
                 MCP configuration guide
               </a>
-              .
+              {"."}
             </p>
           </div>
         </div>
