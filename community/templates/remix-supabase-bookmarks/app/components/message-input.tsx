@@ -103,7 +103,6 @@ export function MessageInput() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const MAX_IMAGES = 10;
-  const IMAGE_CLEAR_DELAY_MS = 100;
 
   const clearAllImages = useCallback(() => {
     images.forEach((image) => {
@@ -111,25 +110,26 @@ export function MessageInput() {
     });
   }, [images, removeImage]);
 
-  const doSubmit = useCallback(() => {
+  const doSubmit = useCallback(async () => {
     if ((value.trim() || images.length > 0) && !isPending) {
-      submit();
-      // Manually clear images after submit
-      setTimeout(() => {
+      try {
+        await submit();
         clearAllImages();
-      }, IMAGE_CLEAR_DELAY_MS);
+      } catch (error) {
+        console.error("Failed to submit message:", error);
+      }
     }
   }, [value, images.length, isPending, submit, clearAllImages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    doSubmit();
+    void doSubmit();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      doSubmit();
+      void doSubmit();
     }
   };
 
@@ -233,3 +233,5 @@ export function MessageInput() {
     </div>
   );
 }
+
+MessageInput.displayName = "MessageInput";

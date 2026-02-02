@@ -146,17 +146,19 @@ export function ThreadHistory() {
           ) : (
             <div className="space-y-1">
               {filteredThreads.map((thread) => (
-                <div
+                <button
+                  type="button"
                   key={thread.id}
                   onClick={() => switchCurrentThread(thread.id)}
+                  aria-pressed={currentThread?.id === thread.id}
                   className={cn(
-                    "p-2 rounded-md hover:bg-slate-100 cursor-pointer group",
+                    "w-full text-left p-2 rounded-md hover:bg-slate-100 cursor-pointer group",
                     currentThread?.id === thread.id ? "bg-slate-100" : "",
                   )}
                 >
                   <span
                     className={cn(
-                      "text-sm font-medium line-clamp-1",
+                      "text-sm font-medium line-clamp-1 block",
                       currentThread?.id === thread.id
                         ? "text-slate-900"
                         : "text-slate-500",
@@ -172,7 +174,7 @@ export function ThreadHistory() {
                       minute: "2-digit",
                     })}
                   </p>
-                </div>
+                </button>
               ))}
             </div>
           )}

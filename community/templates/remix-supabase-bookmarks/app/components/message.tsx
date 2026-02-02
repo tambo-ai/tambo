@@ -311,3 +311,5 @@ export function Message({
     </div>
   );
 }
+
+Message.displayName = "Message";

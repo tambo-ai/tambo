@@ -122,3 +122,5 @@ export function MessageThreadFull() {
     </div>
   );
 }
+
+MessageThreadFull.displayName = "MessageThreadFull";

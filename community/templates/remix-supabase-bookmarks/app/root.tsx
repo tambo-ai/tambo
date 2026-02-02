@@ -25,14 +25,40 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
 
+function getEnvVars() {
+  const envVars = {
+    TAMBO_API_KEY: process.env.TAMBO_API_KEY ?? "",
+    SUPABASE_URL: process.env.SUPABASE_URL ?? "",
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "",
+  };
+
+  if (typeof process !== "undefined" && process.env.NODE_ENV !== "production") {
+    const missing = Object.entries(envVars)
+      .filter(([, v]) => !v)
+      .map(([k]) => k);
+
+    if (missing.length > 0) {
+      console.warn(
+        `[remix-supabase-bookmarks] Missing environment variables: ${missing.join(", ")}`,
+      );
+    }
+  }
+
+  return envVars;
+}
+
 export async function loader(_args: LoaderFunctionArgs) {
   return json({
-    ENV: {
-      TAMBO_API_KEY: process.env.TAMBO_API_KEY ?? "",
-      SUPABASE_URL: process.env.SUPABASE_URL ?? "",
-      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "",
-    },
+    ENV: getEnvVars(),
   });
+}
+
+function safeJsonStringify(obj: unknown): string {
+  return JSON.stringify(obj)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/'/g, "\\u0027");
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -61,7 +87,7 @@ export default function App() {
       <Outlet />
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(ENV)}`,
+          __html: `window.ENV = ${safeJsonStringify(ENV)}`,
         }}
       />
     </>
