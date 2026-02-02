@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "@tambo-ai/typescript-sdk": "^0.86.0",
+    "@tambo-ai/typescript-sdk": "^0.88.0",
     "fast-equals": "^5.3.3",
     "type-fest": "^5.4.1"
   },
