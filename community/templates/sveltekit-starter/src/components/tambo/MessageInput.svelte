@@ -1,6 +1,6 @@
 <script lang="ts">
   import { cn } from "$lib/utils.js";
-  import { getTamboContext } from "$lib/tambo/context.js";
+  import { useTamboThread, useTamboThreadInput } from "@tambo-ai/svelte";
   import {
     ArrowUp,
     Paperclip,
@@ -8,7 +8,6 @@
     X,
     Image as ImageIcon,
   } from "lucide-svelte";
-  import type { StagedImage } from "$lib/tambo/types.js";
 
   interface Props {
     contextKey?: string;
@@ -24,8 +23,8 @@
     class: className,
   }: Props = $props();
 
-  const tambo = getTamboContext();
-  const { thread, input } = tambo;
+  const thread = useTamboThread();
+  const input = useTamboThreadInput();
 
   let textareaRef = $state<HTMLTextAreaElement | null>(null);
   let isDragging = $state(false);
@@ -56,7 +55,7 @@
     input.clearImages();
 
     try {
-      await thread.sendMessage(messageText, messageImages, true);
+      await thread.sendMessage(messageText, messageImages);
       textareaRef?.focus();
     } catch (err) {
       submitError =

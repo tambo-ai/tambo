@@ -1,10 +1,7 @@
 <script lang="ts">
   import MessageThreadFull from "../components/tambo/MessageThreadFull.svelte";
-  import { getTamboContext } from "$lib/tambo/context.js";
   import { Sun, Moon } from "lucide-svelte";
   import { onMount } from "svelte";
-
-  const tambo = getTamboContext();
 
   // Dark mode state
   let isDark = $state(false);

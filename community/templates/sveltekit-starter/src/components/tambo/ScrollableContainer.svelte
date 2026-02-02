@@ -1,6 +1,6 @@
 <script lang="ts">
   import { cn } from "$lib/utils.js";
-  import { getTamboContext } from "$lib/tambo/context.js";
+  import { useTamboThread } from "@tambo-ai/svelte";
   import type { Snippet } from "svelte";
 
   interface Props {
@@ -10,8 +10,7 @@
 
   let { class: className, children }: Props = $props();
 
-  const tambo = getTamboContext();
-  const { thread } = tambo;
+  const thread = useTamboThread();
 
   let containerRef = $state<HTMLDivElement | null>(null);
   let isNearBottom = $state(true);

@@ -14,7 +14,7 @@ import {
   getCountryPopulations,
   getGlobalPopulationTrend,
 } from "../services/population-stats.js";
-import type { TamboComponent, TamboTool } from "$lib/tambo/types.js";
+import type { TamboComponent, TamboTool } from "@tambo-ai/svelte";
 import { z } from "zod";
 
 /**

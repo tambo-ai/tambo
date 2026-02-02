@@ -4,7 +4,7 @@
   import MessageInput from "./MessageInput.svelte";
   import ScrollableContainer from "./ScrollableContainer.svelte";
   import ThreadHistory from "./ThreadHistory.svelte";
-  import type { Suggestion } from "$lib/tambo/types.js";
+  import type { Suggestion } from "@tambo-ai/svelte";
 
   interface Props {
     contextKey?: string;

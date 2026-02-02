@@ -58,5 +58,5 @@ export default defineConfig([
       },
     },
   },
-  globalIgnores(["examples/**", "community/templates/**"]),
+  globalIgnores(["examples/**", "community/templates/**", "sveltekit-sdk/**"]),
 ]);

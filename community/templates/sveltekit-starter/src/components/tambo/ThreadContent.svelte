@@ -1,8 +1,7 @@
 <script lang="ts">
   import { cn } from "$lib/utils.js";
-  import { getTamboContext } from "$lib/tambo/context.js";
+  import { useTamboThread, type TamboThreadMessage } from "@tambo-ai/svelte";
   import Message from "./Message.svelte";
-  import type { TamboThreadMessage } from "$lib/tambo/types.js";
 
   interface Props {
     variant?: "default" | "solid";
@@ -11,8 +10,7 @@
 
   let { variant = "default", class: className }: Props = $props();
 
-  const tambo = getTamboContext();
-  const { thread } = tambo;
+  const thread = useTamboThread();
 
   // Filter messages to exclude system messages and child messages
   const filteredMessages = $derived(

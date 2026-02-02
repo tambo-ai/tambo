@@ -2,8 +2,11 @@
   import { cn } from "$lib/utils.js";
   import MessageContent from "./MessageContent.svelte";
   import { ChevronDown, Check, Loader2, X } from "lucide-svelte";
-  import type { TamboThreadMessage, ContentPart } from "$lib/tambo/types.js";
-  import { getTamboContext } from "$lib/tambo/context.js";
+  import {
+    useTamboRegistry,
+    type TamboThreadMessage,
+    type ContentPart,
+  } from "@tambo-ai/svelte";
   import type { Snippet } from "svelte";
 
   type ToolCallRequest = NonNullable<TamboThreadMessage["toolCallRequest"]>;
@@ -60,11 +63,11 @@
   const toolCallRequest = $derived(getToolCallRequest());
 
   // Get component from registry if rendered
-  const tambo = getTamboContext();
+  const registry = useTamboRegistry();
 
   const registeredComponent = $derived(
     message.component?.name
-      ? tambo.thread.getComponent(message.component.name)
+      ? registry.getComponent(message.component.name)
       : undefined,
   );
 

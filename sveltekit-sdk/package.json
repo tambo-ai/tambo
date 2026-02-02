@@ -1,0 +1,81 @@
+{
+  "name": "@tambo-ai/svelte",
+  "version": "0.1.0",
+  "description": "Svelte SDK for Tambo AI - Build AI-powered generative UI applications",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tambo-ai/tambo.git",
+    "directory": "sveltekit-sdk"
+  },
+  "homepage": "https://tambo.co",
+  "svelte": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp/index.d.ts",
+      "svelte": "./dist/mcp/index.js",
+      "default": "./dist/mcp/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite dev",
+    "build": "svelte-kit sync && svelte-package -o dist",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "rimraf dist .svelte-kit"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0",
+    "zod": "^3.25.0 || ^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@standard-schema/spec": "^1.1.0",
+    "@tambo-ai/typescript-sdk": "^0.86.0",
+    "fast-equals": "^5.3.3",
+    "type-fest": "^5.4.1"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "^4.0.0",
+    "@sveltejs/kit": "^2.21.0",
+    "@sveltejs/package": "^2.3.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tambo-ai/eslint-config": "*",
+    "@tambo-ai/typescript-config": "*",
+    "@testing-library/svelte": "^5.2.0",
+    "@types/node": "^22.19.5",
+    "eslint": "^9.39.2",
+    "eslint-plugin-svelte": "^3.9.0",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-svelte": "^3.4.0",
+    "rimraf": "^6.0.1",
+    "svelte": "^5.28.0",
+    "svelte-check": "^4.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.0",
+    "vitest": "^3.2.3",
+    "zod": "^3.25.76"
+  }
+}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { cn } from "$lib/utils.js";
-  import { getTamboContext } from "$lib/tambo/context.js";
+  import { useTamboThread, type TamboThread } from "@tambo-ai/svelte";
   import {
     ArrowLeftToLine,
     ArrowRightToLine,
@@ -10,7 +10,6 @@
     SearchIcon,
     Sparkles,
   } from "lucide-svelte";
-  import type { TamboThread } from "$lib/tambo/types.js";
   import { onMount } from "svelte";
 
   interface Props {
@@ -29,8 +28,7 @@
     class: className,
   }: Props = $props();
 
-  const tambo = getTamboContext();
-  const { thread } = tambo;
+  const thread = useTamboThread();
 
   let isCollapsed = $state(true);
   let searchQuery = $state("");
@@ -64,7 +62,7 @@
 
   async function handleNewThread() {
     try {
-      await thread.startNewThread(contextKey);
+      thread.startNewThread(contextKey);
       await fetchThreads();
       onThreadChange?.();
     } catch (err) {

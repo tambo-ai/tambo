@@ -5,7 +5,7 @@
   import DOMPurify from "dompurify";
   import hljs from "highlight.js";
   import LoadingIndicator from "./LoadingIndicator.svelte";
-  import type { ContentPart } from "$lib/tambo/types.js";
+  import type { ContentPart } from "@tambo-ai/svelte";
 
   interface Props {
     content?: string | ContentPart[] | null;
