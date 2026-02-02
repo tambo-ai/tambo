@@ -10,6 +10,7 @@ import { json, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
+import { SentryContextInterceptor } from "./common/interceptors/sentry-context.interceptor";
 import { generateOpenAPIConfig } from "./common/openapi";
 import { registerHandler } from "./mcp-server/server";
 
@@ -18,6 +19,7 @@ async function bootstrap() {
 
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new SentryExceptionFilter(httpAdapter));
+  app.useGlobalInterceptors(new SentryContextInterceptor());
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   // Security headers via Helmet (applies to all responses)
