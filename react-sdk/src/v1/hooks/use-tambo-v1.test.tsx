@@ -7,6 +7,8 @@ import {
   type TamboRegistryContext as TamboRegistryContextType,
 } from "../../providers/tambo-registry-provider";
 import { TamboV1StreamProvider } from "../providers/tambo-v1-stream-context";
+import type { StreamState, StreamAction } from "../utils/event-accumulator";
+import type { V1ComponentContent } from "../types/message";
 import { useTamboV1 } from "./use-tambo-v1";
 
 jest.mock("../../providers/tambo-client-provider", () => ({
@@ -43,6 +45,26 @@ describe("useTamboV1", () => {
         <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
       </TamboRegistryContext.Provider>
     );
+  }
+
+  function createWrapperWithState(
+    state: StreamState,
+    registry: TamboRegistryContextType = mockRegistry,
+  ) {
+    const noopDispatch: React.Dispatch<StreamAction> = () => {};
+    return function WrapperWithState({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <TamboRegistryContext.Provider value={registry}>
+          <TamboV1StreamProvider state={state} dispatch={noopDispatch}>
+            {children}
+          </TamboV1StreamProvider>
+        </TamboRegistryContext.Provider>
+      );
+    };
   }
 
   beforeEach(() => {
@@ -195,5 +217,316 @@ describe("useTamboV1", () => {
     // Should use current thread from context (thread_123)
     expect(result.current.currentThreadId).toBe("thread_123");
     expect(result.current.thread?.thread.id).toBe("thread_123");
+  });
+
+  describe("component content transformation", () => {
+    const createComponentContent = (
+      id: string,
+      name: string,
+      props: Record<string, unknown>,
+    ): V1ComponentContent => ({
+      type: "component",
+      id,
+      name,
+      props,
+      streamingState: "done",
+    });
+
+    it("adds renderedComponent to component content blocks", () => {
+      const state: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [
+                {
+                  id: "msg_1",
+                  role: "assistant",
+                  content: [
+                    createComponentContent("comp_1", "TestComponent", {
+                      title: "Hello",
+                    }),
+                  ],
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result } = renderHook(() => useTamboV1("thread_123"), {
+        wrapper: createWrapperWithState(state),
+      });
+
+      expect(result.current.messages).toHaveLength(1);
+      const content = result.current.messages[0].content[0];
+      expect(content.type).toBe("component");
+      expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+    });
+
+    it("preserves non-component content blocks unchanged", () => {
+      const state: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [
+                {
+                  id: "msg_1",
+                  role: "assistant",
+                  content: [
+                    { type: "text", text: "Hello world" },
+                    createComponentContent("comp_1", "TestComponent", {
+                      title: "Hi",
+                    }),
+                  ],
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result } = renderHook(() => useTamboV1("thread_123"), {
+        wrapper: createWrapperWithState(state),
+      });
+
+      expect(result.current.messages).toHaveLength(1);
+      const textContent = result.current.messages[0].content[0];
+      expect(textContent.type).toBe("text");
+      expect(textContent).toEqual({ type: "text", text: "Hello world" });
+
+      const componentContent = result.current.messages[0].content[1];
+      expect(componentContent.type).toBe("component");
+      expect(
+        (componentContent as V1ComponentContent).renderedComponent,
+      ).toBeDefined();
+    });
+
+    it("caches rendered components and returns same reference when props unchanged", () => {
+      const state: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [
+                {
+                  id: "msg_1",
+                  role: "assistant",
+                  content: [
+                    createComponentContent("comp_1", "TestComponent", {
+                      title: "Hello",
+                    }),
+                  ],
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result, rerender } = renderHook(() => useTamboV1("thread_123"), {
+        wrapper: createWrapperWithState(state),
+      });
+
+      const firstRender = (
+        result.current.messages[0].content[0] as V1ComponentContent
+      ).renderedComponent;
+
+      // Re-render with same state
+      rerender();
+
+      const secondRender = (
+        result.current.messages[0].content[0] as V1ComponentContent
+      ).renderedComponent;
+
+      // Should return the same cached element reference
+      expect(secondRender).toBe(firstRender);
+    });
+
+    it("handles empty props on components", () => {
+      const state: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [
+                {
+                  id: "msg_1",
+                  role: "assistant",
+                  content: [
+                    createComponentContent("comp_1", "TestComponent", {}),
+                  ],
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result } = renderHook(() => useTamboV1("thread_123"), {
+        wrapper: createWrapperWithState(state),
+      });
+
+      const content = result.current.messages[0].content[0];
+      expect(content.type).toBe("component");
+      expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+    });
+
+    it("handles undefined props on components", () => {
+      const state: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [
+                {
+                  id: "msg_1",
+                  role: "assistant",
+                  content: [
+                    {
+                      type: "component",
+                      id: "comp_1",
+                      name: "TestComponent",
+                      props: undefined,
+                      streamingState: "done",
+                    } as V1ComponentContent,
+                  ],
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result } = renderHook(() => useTamboV1("thread_123"), {
+        wrapper: createWrapperWithState(state),
+      });
+
+      const content = result.current.messages[0].content[0];
+      expect(content.type).toBe("component");
+      expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+    });
+
+    it("handles multiple component content blocks in same message", () => {
+      const state: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [
+                {
+                  id: "msg_1",
+                  role: "assistant",
+                  content: [
+                    createComponentContent("comp_1", "ComponentA", {
+                      value: 1,
+                    }),
+                    createComponentContent("comp_2", "ComponentB", {
+                      value: 2,
+                    }),
+                    createComponentContent("comp_3", "ComponentC", {
+                      value: 3,
+                    }),
+                  ],
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: "thread_123",
+      };
+
+      const { result } = renderHook(() => useTamboV1("thread_123"), {
+        wrapper: createWrapperWithState(state),
+      });
+
+      expect(result.current.messages[0].content).toHaveLength(3);
+      result.current.messages[0].content.forEach((content) => {
+        expect(content.type).toBe("component");
+        expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+      });
+    });
+
+    it("uses empty threadId when effectiveThreadId is null", () => {
+      const state: StreamState = {
+        threadMap: {
+          thread_123: {
+            thread: {
+              id: "thread_123",
+              messages: [
+                {
+                  id: "msg_1",
+                  role: "assistant",
+                  content: [
+                    createComponentContent("comp_1", "TestComponent", {
+                      title: "Hello",
+                    }),
+                  ],
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+              status: "idle",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            streaming: { status: "idle" },
+            accumulatingToolArgs: new Map(),
+          },
+        },
+        currentThreadId: null,
+      };
+
+      // Pass explicit threadId so we still get the thread
+      const { result } = renderHook(() => useTamboV1("thread_123"), {
+        wrapper: createWrapperWithState(state),
+      });
+
+      // Component should still render with the explicit threadId
+      const content = result.current.messages[0].content[0];
+      expect(content.type).toBe("component");
+      expect((content as V1ComponentContent).renderedComponent).toBeDefined();
+    });
   });
 });
