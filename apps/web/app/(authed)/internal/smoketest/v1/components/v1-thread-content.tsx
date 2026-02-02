@@ -2,8 +2,9 @@
 
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useTamboV1 } from "@tambo-ai/react/v1";
+import { useTamboV1, V1ComponentRenderer } from "@tambo-ai/react/v1";
 import type { TamboV1Message } from "@tambo-ai/react/v1/types/message";
+import type { V1ComponentContent } from "@tambo-ai/react/v1/types/message";
 import { FC } from "react";
 
 interface V1ThreadContentProps {
@@ -85,14 +86,17 @@ const V1ContentPart: FC<V1ContentPartProps> = ({ content }) => {
     case "component":
       return (
         <div className="my-2">
-          <Card className="p-2 bg-background">
-            <p className="text-sm font-medium text-muted-foreground">
-              Component: {content.name}
-            </p>
-            {content.renderedComponent && (
-              <div className="mt-2">{content.renderedComponent}</div>
-            )}
-          </Card>
+          <V1ComponentRenderer
+            key={content.id}
+            content={content}
+            fallback={
+              <Card className="p-2 bg-background">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Unknown component: {content.name}
+                </p>
+              </Card>
+            }
+          />
         </div>
       );
     case "tool_use":
