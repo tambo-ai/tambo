@@ -51,6 +51,12 @@ import {
   V1ListThreadsResponseDto,
 } from "./dto/thread.dto";
 import { V1BaseEventDto } from "./dto/event.dto";
+import {
+  V1GenerateSuggestionsDto,
+  V1GenerateSuggestionsResponseDto,
+  V1ListSuggestionsQueryDto,
+  V1ListSuggestionsResponseDto,
+} from "./dto/suggestion.dto";
 import { V1Service } from "./v1.service";
 
 /**
@@ -578,6 +584,113 @@ export class V1Controller {
     return await this.v1Service.updateComponentState(
       threadId,
       componentId,
+      dto,
+    );
+  }
+
+  // ==========================================
+  // Suggestion endpoints
+  // ==========================================
+
+  @Get("threads/:threadId/messages/:messageId/suggestions")
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "List suggestions for a message",
+    description:
+      "List suggestions that have been generated for a specific message. Supports cursor-based pagination.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "messageId",
+    description: "Message ID",
+    example: "msg_xyz789abc",
+  })
+  @ApiQuery({
+    name: "userKey",
+    description: "Optional user key for thread organization",
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "List of suggestions",
+    type: V1ListSuggestionsResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Message not found",
+  })
+  async listSuggestions(
+    @Req() request: Request,
+    @Param("threadId") threadId: string,
+    @Param("messageId") messageId: string,
+    @Query() query: V1ListSuggestionsQueryDto,
+    @Query("userKey") userKey?: string,
+  ): Promise<V1ListSuggestionsResponseDto> {
+    const { projectId, contextKey: bearerUserKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    const effectiveUserKey = requireUserKey(userKey, bearerUserKey);
+    return await this.v1Service.listSuggestions(
+      threadId,
+      messageId,
+      projectId,
+      effectiveUserKey,
+      query,
+    );
+  }
+
+  @Post("threads/:threadId/messages/:messageId/suggestions")
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "Generate suggestions for a message",
+    description:
+      "Generate AI-powered suggestions for the next action based on the thread context. Suggestions are persisted and can be retrieved later via the list endpoint. Calling this endpoint replaces any existing suggestions for the message.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "messageId",
+    description: "Message ID",
+    example: "msg_xyz789abc",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "Suggestions generated successfully",
+    type: V1GenerateSuggestionsResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid request parameters",
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Message not found",
+  })
+  async generateSuggestions(
+    @Req() request: Request,
+    @Param("threadId") threadId: string,
+    @Param("messageId") messageId: string,
+    @Body() dto: V1GenerateSuggestionsDto,
+  ): Promise<V1GenerateSuggestionsResponseDto> {
+    const { projectId, contextKey: bearerUserKey } = extractContextInfo(
+      request,
+      dto.userKey,
+    );
+    const effectiveUserKey = requireUserKey(dto.userKey, bearerUserKey);
+    return await this.v1Service.generateSuggestions(
+      threadId,
+      messageId,
+      projectId,
+      effectiveUserKey,
       dto,
     );
   }

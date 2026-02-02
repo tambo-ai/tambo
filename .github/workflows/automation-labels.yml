@@ -378,20 +378,31 @@ jobs:
         env:
           PR_OR_ISSUE_NUMBER: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.number || github.event.issue.number }}
           GH_SUBCOMMAND: ${{ github.event_name == 'pull_request_target' && 'pr' || 'issue' }}
+          GH_REPO: ${{ github.repository }}
           LABEL_CHANGES: |-
             ${{ steps.determine_labels.outputs.added_labels || '{}' }}
         run: | # shell
-          # Apply Label Changes
-          set +e;
+          # Apply Label Changes - batch all labels into a single gh command
 
-          while IFS= read -r LABEL; do
-            SHOULD_ADD=$(jq -r --arg key "$LABEL" '.[$key]' <<< "${LABEL_CHANGES}")
-            ACTION=$([[ "${SHOULD_ADD}" == "true" ]] && echo "--add-label" || echo "--remove-label")
+          LABELS_TO_ADD=$(jq -r '[to_entries[] | select(.value == true) | .key] | join(",")' <<< "${LABEL_CHANGES}")
+          LABELS_TO_REMOVE=$(jq -r '[to_entries[] | select(.value == false) | .key] | join(",")' <<< "${LABEL_CHANGES}")
 
-            echo "$([[ "${SHOULD_ADD}" == "true" ]] && echo "Adding" || echo "Removing") '$LABEL' to $GH_SUBCOMMAND: #$PR_OR_ISSUE_NUMBER"
+          echo "Adding labels: ${LABELS_TO_ADD:-none}"
+          echo "Removing labels: ${LABELS_TO_REMOVE:-none}"
 
-            RESULT=$(gh $GH_SUBCOMMAND edit "$PR_OR_ISSUE_NUMBER" $ACTION "$LABEL"  2>&1)
+          CMD_ARGS=()
+          if [[ -n "${LABELS_TO_ADD}" ]]; then
+            CMD_ARGS+=(--add-label "${LABELS_TO_ADD}")
+          fi
+          if [[ -n "${LABELS_TO_REMOVE}" ]]; then
+            CMD_ARGS+=(--remove-label "${LABELS_TO_REMOVE}")
+          fi
+
+          if [[ ${#CMD_ARGS[@]} -gt 0 ]]; then
+            RESULT=$(gh "${GH_SUBCOMMAND}" edit "${PR_OR_ISSUE_NUMBER}" -R "${GH_REPO}" "${CMD_ARGS[@]}" 2>&1)
             if [[ $? -ne 0 ]]; then
-              echo "::error title=Failed to sync labels: labels::Failed to sync label '$LABEL'. Error: $RESULT"
+              echo "::error title=Failed to sync labels::Failed to sync labels. Error: ${RESULT}"
             fi
-          done < <(jq -r 'keys[]' <<< "${LABEL_CHANGES}")
+          else
+            echo "No label changes to apply"
+          fi

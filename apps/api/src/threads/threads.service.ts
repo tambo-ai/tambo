@@ -110,7 +110,15 @@ export class ThreadsService {
     return this.db;
   }
 
-  private async createTamboBackendForThread(
+  /**
+   * Create a TamboBackend instance configured for a specific thread.
+   * Used by V1 API and internal thread operations for AI generation.
+   *
+   * @param threadId - Thread ID to create backend for
+   * @param userId - User/context key for the backend
+   * @returns Configured TamboBackend instance
+   */
+  async createTamboBackendForThread(
     threadId: string,
     userId: string,
   ): Promise<ITamboBackend> {

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.134.0](https://github.com/tambo-ai/tambo/compare/api-v0.133.4...api-v0.134.0) (2026-01-30)
+
+
+### Features
+
+* **api:** add V1 suggestions API endpoints ([#2092](https://github.com/tambo-ai/tambo/issues/2092)) ([e80b99d](https://github.com/tambo-ai/tambo/commit/e80b99d3db9fda166e49dcb83274c898efa8cdae))
+* **ci:** split CI into parallel jobs with Codecov ([#1908](https://github.com/tambo-ai/tambo/issues/1908)) ([9ba2ea8](https://github.com/tambo-ai/tambo/commit/9ba2ea876e014e95fe7e00543cd63595c3cd73ca))
+
 ## [0.133.4](https://github.com/tambo-ai/tambo/compare/api-v0.133.3...api-v0.133.4) (2026-01-30)
 
 

@@ -76,6 +76,23 @@ const ThreadManagementContext = createContext<ThreadManagement | null>(null);
  */
 export interface TamboV1StreamProviderProps {
   children: React.ReactNode;
+
+  /**
+   * Optional override for stream state (primarily for tests).
+   * If provided, you must also provide `dispatch`.
+   */
+  state?: StreamState;
+
+  /**
+   * Optional override for stream dispatch (primarily for tests).
+   * If provided, you must also provide `state`.
+   */
+  dispatch?: React.Dispatch<StreamAction>;
+
+  /**
+   * Optional override for thread management functions (primarily for tests).
+   */
+  threadManagement?: ThreadManagement;
 }
 
 /**
@@ -97,7 +114,29 @@ export interface TamboV1StreamProviderProps {
  * ```
  */
 export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
-  const { children } = props;
+  const { children, state: providedState, dispatch: providedDispatch } = props;
+
+  if (
+    (providedState && !providedDispatch) ||
+    (!providedState && providedDispatch)
+  ) {
+    throw new Error(
+      "TamboV1StreamProvider requires both state and dispatch when overriding",
+    );
+  }
+
+  if (props.threadManagement) {
+    const { initThread, switchThread, startNewThread } = props.threadManagement;
+    if (
+      typeof initThread !== "function" ||
+      typeof switchThread !== "function" ||
+      typeof startNewThread !== "function"
+    ) {
+      throw new Error(
+        "TamboV1StreamProvider: threadManagement override is missing required methods",
+      );
+    }
+  }
 
   // Create stable initial state - only computed once on mount
   const [state, dispatch] = useReducer(
@@ -110,38 +149,45 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
     }),
   );
 
+  const activeState = providedState ?? state;
+  const activeDispatch = providedDispatch ?? dispatch;
+
   // Thread management functions
   const initThread = useCallback(
     (threadId: string, initialThread?: Partial<TamboV1Thread>) => {
-      dispatch({ type: "INIT_THREAD", threadId, initialThread });
+      activeDispatch({ type: "INIT_THREAD", threadId, initialThread });
     },
-    [],
+    [activeDispatch],
   );
 
-  const switchThread = useCallback((threadId: string | null) => {
-    dispatch({ type: "SET_CURRENT_THREAD", threadId });
-  }, []);
+  const switchThread = useCallback(
+    (threadId: string | null) => {
+      activeDispatch({ type: "SET_CURRENT_THREAD", threadId });
+    },
+    [activeDispatch],
+  );
 
   const startNewThread = useCallback(() => {
     const tempId = `temp_${crypto.randomUUID()}`;
     // Use atomic START_NEW_THREAD action to prevent race conditions
     // when multiple calls happen concurrently (e.g., double-click)
-    dispatch({ type: "START_NEW_THREAD", threadId: tempId });
+    activeDispatch({ type: "START_NEW_THREAD", threadId: tempId });
     return tempId;
-  }, []);
+  }, [activeDispatch]);
 
-  const threadManagement = useMemo<ThreadManagement>(
-    () => ({
-      initThread,
-      switchThread,
-      startNewThread,
-    }),
-    [initThread, switchThread, startNewThread],
-  );
+  const threadManagement = useMemo<ThreadManagement>(() => {
+    return (
+      props.threadManagement ?? {
+        initThread,
+        switchThread,
+        startNewThread,
+      }
+    );
+  }, [props.threadManagement, initThread, switchThread, startNewThread]);
 
   return (
-    <StreamStateContext.Provider value={state}>
-      <StreamDispatchContext.Provider value={dispatch}>
+    <StreamStateContext.Provider value={activeState}>
+      <StreamDispatchContext.Provider value={activeDispatch}>
         <ThreadManagementContext.Provider value={threadManagement}>
           {children}
         </ThreadManagementContext.Provider>

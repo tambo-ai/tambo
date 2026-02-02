@@ -47,6 +47,8 @@ export const V1ErrorCodes = {
   INVALID_PREVIOUS_RUN: "INVALID_PREVIOUS_RUN",
   /** Invalid JSON Patch operations */
   INVALID_JSON_PATCH: "INVALID_JSON_PATCH",
+  /** Invalid pagination cursor */
+  INVALID_CURSOR: "INVALID_CURSOR",
   /** Request validation failed */
   VALIDATION_ERROR: "VALIDATION_ERROR",
   /** Internal server error */
@@ -97,6 +99,10 @@ const errorMetadata: Record<V1ErrorCode, { title: string; status: number }> = {
   },
   [V1ErrorCodes.INVALID_JSON_PATCH]: {
     title: "Invalid JSON Patch",
+    status: 400,
+  },
+  [V1ErrorCodes.INVALID_CURSOR]: {
+    title: "Invalid Cursor",
     status: 400,
   },
   [V1ErrorCodes.VALIDATION_ERROR]: {
