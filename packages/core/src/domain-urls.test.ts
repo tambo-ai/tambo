@@ -1,12 +1,12 @@
 /**
- * Tests to ensure hardcoded URLs use the correct domain (tambo.co, not tambo.ai)
+ * Tests to ensure hardcoded URLs use the correct domain (tambo.co)
  */
 import { describe, expect, it } from "vitest";
 
 import { TAMBO_MCP_ACCESS_KEY_CLAIM } from "./mcp-auth";
 
-const INCORRECT_DOMAIN = "tambo.ai";
 const CORRECT_DOMAIN = "tambo.co";
+const INCORRECT_DOMAINS = ["tambo.ai", "tambo.com"];
 
 /**
  * Asserts that a URL string uses the correct tambo.co domain
@@ -15,11 +15,13 @@ function assertCorrectDomain(
   url: string,
   context: string,
 ): asserts url is string {
-  if (url.includes(INCORRECT_DOMAIN)) {
-    throw new Error(
-      `${context} uses incorrect domain '${INCORRECT_DOMAIN}'. ` +
-        `Should use '${CORRECT_DOMAIN}'. Value: ${url}`,
-    );
+  for (const incorrectDomain of INCORRECT_DOMAINS) {
+    if (url.includes(incorrectDomain)) {
+      throw new Error(
+        `${context} uses incorrect domain '${incorrectDomain}'. ` +
+          `Should use '${CORRECT_DOMAIN}'. Value: ${url}`,
+      );
+    }
   }
 }
 
@@ -48,20 +50,24 @@ describe("domain URL validation", () => {
       "should recognize %s as valid",
       (url: string) => {
         expect(url).toContain(CORRECT_DOMAIN);
-        expect(url).not.toContain(INCORRECT_DOMAIN);
+        for (const incorrectDomain of INCORRECT_DOMAINS) {
+          expect(url).not.toContain(incorrectDomain);
+        }
       },
     );
 
-    const invalidDomainPatterns = [
-      "https://tambo.ai",
-      "https://docs.tambo.ai",
-      "https://api.tambo.ai",
-    ];
-
-    it.each(invalidDomainPatterns)(
-      "should reject %s as invalid",
-      (url: string) => {
-        expect(url).toContain(INCORRECT_DOMAIN);
+    it.each(INCORRECT_DOMAINS)(
+      "should reject URLs using %s domain",
+      (incorrectDomain: string) => {
+        const testUrls = [
+          `https://${incorrectDomain}`,
+          `https://docs.${incorrectDomain}`,
+          `https://api.${incorrectDomain}`,
+        ];
+        for (const url of testUrls) {
+          expect(url).toContain(incorrectDomain);
+          expect(url).not.toContain(CORRECT_DOMAIN);
+        }
       },
     );
   });
