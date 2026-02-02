@@ -147,18 +147,17 @@ export interface UseTamboV1SuggestionsReturn {
  * - Automatically generate suggestions when an assistant message arrives
  * - Manually generate suggestions on demand
  * - Accept suggestions by setting them as input or auto-submitting
- * @param threadId - The thread ID to manage suggestions for
  * @param options - Configuration options
  * @returns Suggestions state and control functions
  * @example
  * ```tsx
- * function SuggestionsPanel({ threadId }: { threadId: string }) {
+ * function SuggestionsPanel() {
  *   const {
  *     suggestions,
  *     accept,
  *     isLoading,
  *     selectedSuggestionId,
- *   } = useTamboV1Suggestions(threadId);
+ *   } = useTamboV1Suggestions();
  *
  *   if (isLoading) return <Spinner />;
  *
@@ -179,7 +178,6 @@ export interface UseTamboV1SuggestionsReturn {
  * ```
  */
 export function useTamboV1Suggestions(
-  threadId: string | undefined,
   options: UseTamboV1SuggestionsOptions = {},
 ): UseTamboV1SuggestionsReturn {
   const { maxSuggestions = 3, autoGenerate = true, queryOptions } = options;
@@ -189,7 +187,7 @@ export function useTamboV1Suggestions(
   const { componentList } = useTamboRegistry();
   const queryClient = useQueryClient();
 
-  const { messages, isIdle } = useTamboV1(threadId);
+  const { messages, isIdle, currentThreadId } = useTamboV1();
   const { setValue: setInputValue, submit } = useTamboV1ThreadInput();
 
   const [selectedSuggestionId, setSelectedSuggestionId] = useState<
@@ -208,7 +206,7 @@ export function useTamboV1Suggestions(
 
   // Determine if we should fetch/generate suggestions
   const shouldFetchSuggestions =
-    threadId &&
+    currentThreadId &&
     latestMessageId &&
     isLatestFromAssistant &&
     isIdle &&
@@ -216,7 +214,7 @@ export function useTamboV1Suggestions(
 
   const suggestionsQueryKey = [
     "v1-suggestions",
-    threadId ?? null,
+    currentThreadId ?? null,
     latestMessageId ?? null,
   ] as const;
 
@@ -224,12 +222,12 @@ export function useTamboV1Suggestions(
   const suggestionsQuery = useQuery({
     queryKey: suggestionsQueryKey,
     queryFn: async (): Promise<SuggestionsQueryResponse> => {
-      if (!shouldFetchSuggestions || !latestMessageId || !threadId) {
+      if (!shouldFetchSuggestions || !latestMessageId || !currentThreadId) {
         return { suggestions: [], hasMore: false };
       }
 
       return await client.threads.suggestions.list(latestMessageId, {
-        threadId,
+        threadId: currentThreadId,
         userKey,
       });
     },
@@ -243,21 +241,21 @@ export function useTamboV1Suggestions(
   // Mutation to manually generate suggestions
   const generateMutation = useMutation({
     mutationFn: async () => {
-      if (!threadId || !latestMessageId || !isLatestFromAssistant) {
+      if (!currentThreadId || !latestMessageId || !isLatestFromAssistant) {
         return undefined;
       }
 
       const availableComponents = toAvailableComponents(componentList);
 
       return await client.threads.suggestions.create(latestMessageId, {
-        threadId,
+        threadId: currentThreadId,
         maxSuggestions,
         availableComponents,
         userKey,
       });
     },
     onSuccess: (data) => {
-      if (data && threadId && latestMessageId) {
+      if (data && currentThreadId && latestMessageId) {
         // Update the query cache with new suggestions
         queryClient.setQueryData(suggestionsQueryKey, data);
       }

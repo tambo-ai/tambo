@@ -10,20 +10,20 @@
 
 import React, {
   createContext,
-  useReducer,
+  useCallback,
   useContext,
   useMemo,
-  useCallback,
+  useReducer,
 } from "react";
+import type { TamboV1Thread } from "../types/thread";
 import {
-  streamReducer,
   createInitialState,
   createInitialThreadState,
   PLACEHOLDER_THREAD_ID,
-  type StreamState,
+  streamReducer,
   type StreamAction,
+  type StreamState,
 } from "../utils/event-accumulator";
-import type { TamboV1Thread } from "../types/thread";
 
 /**
  * Thread management functions exposed by the stream context.
@@ -43,9 +43,9 @@ export interface ThreadManagement {
   /**
    * Switch the current active thread.
    * Does not fetch thread data - use useTamboV1Thread for that.
-   * @param threadId - The thread ID to switch to, or null to clear
+   * @param threadId - The thread ID to switch to
    */
-  switchThread: (threadId: string | null) => void;
+  switchThread: (threadId: string) => void;
 
   /**
    * Start a new thread (generates a temporary ID).
@@ -161,7 +161,7 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
   );
 
   const switchThread = useCallback(
-    (threadId: string | null) => {
+    (threadId: string) => {
       activeDispatch({ type: "SET_CURRENT_THREAD", threadId });
     },
     [activeDispatch],

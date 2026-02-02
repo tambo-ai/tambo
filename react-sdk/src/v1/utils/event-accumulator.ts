@@ -70,7 +70,7 @@ export interface StreamState {
   /**
    * Current active thread ID (for UI context)
    */
-  currentThreadId: string | null;
+  currentThreadId: string;
 }
 
 /**
@@ -96,7 +96,7 @@ export interface InitThreadAction {
  */
 export interface SetCurrentThreadAction {
   type: "SET_CURRENT_THREAD";
-  threadId: string | null;
+  threadId: string;
 }
 
 /**

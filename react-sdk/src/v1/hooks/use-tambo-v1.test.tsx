@@ -105,14 +105,15 @@ describe("useTamboV1", () => {
     expect(result.current.messages).toEqual([]);
   });
 
-  it("returns thread state when threadId provided", () => {
-    const { result } = renderHook(() => useTamboV1("thread_123"), {
+  it("returns thread state when switched to a thread", () => {
+    const { result } = renderHook(() => useTamboV1(), {
       wrapper: TestWrapper,
     });
 
-    // Initialize thread first
+    // Initialize and switch to thread
     act(() => {
       result.current.initThread("thread_123");
+      result.current.switchThread("thread_123");
     });
 
     expect(result.current.thread).toBeDefined();
@@ -132,13 +133,14 @@ describe("useTamboV1", () => {
   });
 
   it("returns thread streaming state when thread loaded", () => {
-    const { result } = renderHook(() => useTamboV1("thread_123"), {
+    const { result } = renderHook(() => useTamboV1(), {
       wrapper: TestWrapper,
     });
 
-    // Initialize thread first
+    // Initialize and switch to thread
     act(() => {
       result.current.initThread("thread_123");
+      result.current.switchThread("thread_123");
     });
 
     expect(result.current.streamingState.status).toBe("idle");
@@ -261,7 +263,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper: createWrapperWithState(state),
       });
 
@@ -301,7 +303,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper: createWrapperWithState(state),
       });
 
@@ -346,7 +348,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result, rerender } = renderHook(() => useTamboV1("thread_123"), {
+      const { result, rerender } = renderHook(() => useTamboV1(), {
         wrapper: createWrapperWithState(state),
       });
 
@@ -392,7 +394,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper: createWrapperWithState(state),
       });
 
@@ -434,7 +436,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper: createWrapperWithState(state),
       });
 
@@ -478,7 +480,7 @@ describe("useTamboV1", () => {
         currentThreadId: "thread_123",
       };
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper: createWrapperWithState(state),
       });
 
@@ -489,12 +491,12 @@ describe("useTamboV1", () => {
       });
     });
 
-    it("uses empty threadId when effectiveThreadId is null", () => {
+    it("uses currentThreadId from stream state", () => {
       const state: StreamState = {
         threadMap: {
-          thread_123: {
+          placeholder: {
             thread: {
-              id: "thread_123",
+              id: "placeholder",
               messages: [
                 {
                   id: "msg_1",
@@ -515,15 +517,15 @@ describe("useTamboV1", () => {
             accumulatingToolArgs: new Map(),
           },
         },
-        currentThreadId: null,
+        currentThreadId: "placeholder",
       };
 
-      // Pass explicit threadId so we still get the thread
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      // No explicit threadId - uses currentThreadId from state
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper: createWrapperWithState(state),
       });
 
-      // Component should still render with the explicit threadId
+      // Component should render using the placeholder thread
       const content = result.current.messages[0].content[0];
       expect(content.type).toBe("component");
       expect((content as V1ComponentContent).renderedComponent).toBeDefined();

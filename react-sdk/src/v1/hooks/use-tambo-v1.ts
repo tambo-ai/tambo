@@ -7,23 +7,23 @@
  * to thread state, streaming status, registry, and client.
  */
 
-import React, { useContext, useMemo, useRef, type ReactElement } from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
+import React, { useContext, useMemo, useRef, type ReactElement } from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
 } from "../../providers/tambo-registry-provider";
+import { V1ComponentRenderer } from "../components/v1-component-renderer";
 import {
-  useStreamState,
   useStreamDispatch,
+  useStreamState,
   useThreadManagement,
   type ThreadManagement,
 } from "../providers/tambo-v1-stream-context";
-import type { StreamingState } from "../types/thread";
 import type { Content, TamboV1Message } from "../types/message";
+import type { StreamingState } from "../types/thread";
 import type { ThreadState } from "../utils/event-accumulator";
-import { V1ComponentRenderer } from "../components/v1-component-renderer";
 
 /**
  * Return type for useTamboV1 hook
@@ -90,9 +90,9 @@ export interface UseTamboV1Return {
   toolRegistry: TamboRegistryContextType["toolRegistry"];
 
   /**
-   * Current thread ID (may be null if no thread is active)
+   * Current thread ID (always available - uses "placeholder" for new threads)
    */
-  currentThreadId: string | null;
+  currentThreadId: string;
 
   /**
    * Initialize a new thread in the stream context
@@ -156,7 +156,7 @@ interface ComponentCacheEntry {
 /**
  *
  */
-export function useTamboV1(threadId?: string): UseTamboV1Return {
+export function useTamboV1(): UseTamboV1Return {
   const client = useTamboClient();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
@@ -167,11 +167,8 @@ export function useTamboV1(threadId?: string): UseTamboV1Return {
   // across renders when props haven't changed
   const componentCacheRef = useRef<Map<string, ComponentCacheEntry>>(new Map());
 
-  // Get thread state for the given threadId (or current thread if not specified)
-  const effectiveThreadId = threadId ?? streamState.currentThreadId;
-  const threadState = effectiveThreadId
-    ? streamState.threadMap[effectiveThreadId]
-    : undefined;
+  // Get thread state for the current thread
+  const threadState = streamState.threadMap[streamState.currentThreadId];
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => {
@@ -205,7 +202,7 @@ export function useTamboV1(threadId?: string): UseTamboV1Return {
         const element = React.createElement(V1ComponentRenderer, {
           key: componentContent.id,
           content: componentContent,
-          threadId: effectiveThreadId ?? "",
+          threadId: streamState.currentThreadId,
           messageId: message.id,
         });
 
@@ -248,7 +245,6 @@ export function useTamboV1(threadId?: string): UseTamboV1Return {
     threadState,
     registry,
     streamState.currentThreadId,
-    effectiveThreadId,
     threadManagement,
     dispatch,
   ]);
