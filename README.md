@@ -3,7 +3,7 @@
   <h1>Tambo AI</h1>
   <h3>Generative UI for React</h3>
   <p>Build apps that adapt to your users.</p>
-</div>
+</div> 
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@tambo-ai/react"><img src="https://img.shields.io/npm/v/%40tambo-ai%2Freact?logo=npm" alt="npm version" /></a>
