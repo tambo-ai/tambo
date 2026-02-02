@@ -16,6 +16,7 @@ export const ClientLayout: FC<
       tamboUrl={env.NEXT_PUBLIC_TAMBO_API_URL}
       apiKey={env.NEXT_PUBLIC_SMOKETEST_TAMBO_API_KEY!}
       userToken={userToken}
+      userKey="smoketest-v1-user" // TODO: Remove hardcoded userKey once token exchange is working
       mcpServers={mcpServersArray}
     >
       {children}
