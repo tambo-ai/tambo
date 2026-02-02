@@ -68,5 +68,8 @@
   "volta": {
     "node": "22.21.1",
     "npm": "11.7.0"
+  },
+  "dependencies": {
+    "quansync": "^0.2.11"
   }
 }
