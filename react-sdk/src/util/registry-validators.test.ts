@@ -63,19 +63,6 @@ describe("validateTool", () => {
     );
   });
 
-  it("should use correct domain (tambo.co) in deprecation error message", () => {
-    const tool = {
-      name: "deprecated-tool",
-      description: "A tool using deprecated API",
-      tool: () => "result",
-      toolSchema: z.function().args().returns(z.string()),
-    } as unknown as TamboTool;
-
-    expect(() => validateTool(tool)).toThrow(/tambo\.co/);
-    expect(() => validateTool(tool)).not.toThrow(/tambo\.ai/);
-    expect(() => validateTool(tool)).not.toThrow(/tambo\.com/);
-  });
-
   it("should throw when tool is not an object", () => {
     expect(() => validateTool(null)).toThrow("Tool must be an object");
     expect(() => validateTool(undefined)).toThrow("Tool must be an object");

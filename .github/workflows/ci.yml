@@ -28,17 +28,19 @@ jobs:
 
       - name: Check for incorrect domain
         run: |
-          # Correct domain is tambo.co - check for common typos
+          # Correct domain is tambo.co - catch common typos (.ai, .com)
+          # Patterns constructed via variable so this file doesn't match itself
           # Pattern ([^p]|$) matches .com but NOT .component
+          # NOTE: If this becomes slow on large repos, move to pre-commit hook only
           found=0
+          BASE="tambo"
           INCLUDES="--include=*.ts --include=*.tsx --include=*.md --include=*.mdx --include=*.yml --include=*.yaml --include=*.json --include=*.html"
-          EXCLUDES="--exclude-dir=node_modules --exclude=ci.yml"
-          if grep -r 'tambo\.ai' $INCLUDES $EXCLUDES .; then
-            echo "::error::Found tambo + .ai - use tambo.co instead"
+          if grep -r "${BASE}\.ai" $INCLUDES --exclude-dir=node_modules .; then
+            echo "::error::Found incorrect domain - use tambo.co instead"
             found=1
           fi
-          if grep -rE 'tambo\.com([^p]|$)' $INCLUDES $EXCLUDES .; then
-            echo "::error::Found tambo + .com - use tambo.co instead"
+          if grep -rE "${BASE}\.com([^p]|$)" $INCLUDES --exclude-dir=node_modules .; then
+            echo "::error::Found incorrect domain - use tambo.co instead"
             found=1
           fi
           exit $found

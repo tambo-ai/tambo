@@ -1,3 +1,14 @@
+# Check for incorrect domain (tambo.co is correct, not .ai or .com)
+BASE="tambo"
+if git diff --cached --name-only | xargs grep -l "${BASE}\.ai" 2>/dev/null; then
+  echo "Error: Found ${BASE}.ai - use ${BASE}.co instead"
+  exit 1
+fi
+if git diff --cached --name-only | xargs grep -lE "${BASE}\.com([^p]|$)" 2>/dev/null; then
+  echo "Error: Found ${BASE}.com - use ${BASE}.co instead"
+  exit 1
+fi
+
 # Run lint-staged
 npx lint-staged
 
