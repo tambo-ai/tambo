@@ -24,30 +24,54 @@ https://github.com/user-attachments/assets/29d57415-a1ac-46f4-9f9e-cfbf8d3c20fb
    npm install
    ```
 
-2. **Set up Supabase**
+2. **Set up Supabase Database**
    - Create a new project at [supabase.com](https://supabase.com)
-   - Go to **SQL Editor** and run the migration:
+   - Go to **SQL Editor** and run the following migration:
 
    ```sql
    -- Create bookmarks table
-   CREATE TABLE bookmarks (
+   CREATE TABLE IF NOT EXISTS public.bookmarks (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
      user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
      url TEXT NOT NULL,
      title TEXT,
      category TEXT,
-     created_at TIMESTAMPTZ DEFAULT now()
+     created_at TIMESTAMPTZ DEFAULT now() NOT NULL
    );
 
    -- Enable Row Level Security
-   ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE public.bookmarks ENABLE ROW LEVEL SECURITY;
 
-   -- Users can only access their own bookmarks
-   CREATE POLICY "Users can manage own bookmarks"
-     ON bookmarks FOR ALL
+   -- Policy: Users can view their own bookmarks
+   CREATE POLICY "Users can view own bookmarks"
+     ON public.bookmarks
+     FOR SELECT
      USING (auth.uid() = user_id);
+
+   -- Policy: Users can insert their own bookmarks
+   CREATE POLICY "Users can insert own bookmarks"
+     ON public.bookmarks
+     FOR INSERT
+     WITH CHECK (auth.uid() = user_id);
+
+   -- Policy: Users can update their own bookmarks
+   CREATE POLICY "Users can update own bookmarks"
+     ON public.bookmarks
+     FOR UPDATE
+     USING (auth.uid() = user_id);
+
+   -- Policy: Users can delete their own bookmarks
+   CREATE POLICY "Users can delete own bookmarks"
+     ON public.bookmarks
+     FOR DELETE
+     USING (auth.uid() = user_id);
+
+   -- Indexes for faster queries
+   CREATE INDEX IF NOT EXISTS bookmarks_user_id_idx ON public.bookmarks(user_id);
+   CREATE INDEX IF NOT EXISTS bookmarks_category_idx ON public.bookmarks(category);
    ```
 
+   > **Note**: The complete migration file is also available at `supabase/migrations/001_create_bookmarks.sql`
    - Copy your **Project URL** and **anon key** from **Settings > API**
 
 3. **Configure environment**
