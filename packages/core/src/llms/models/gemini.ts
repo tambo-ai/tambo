@@ -27,7 +27,8 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
       "Google's most powerful model as of November 2025, best for multimodal understanding and agentic use cases",
     docLink:
       "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/3-0-pro",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/google#gemini-3-pro-preview",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/google#gemini-3-pro-preview",
     inputTokenLimit: 1048576,
     modelSpecificParams: reasoningParameters,
   },
@@ -39,7 +40,8 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
       "Gemini 2.5 Pro is Google's most advanced reasoning model, capable of solving complex problems.",
     docLink:
       "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-pro",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/google#gemini-2-5-pro",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/google#gemini-2-5-pro",
     inputTokenLimit: 1048576,
     modelSpecificParams: reasoningParameters,
   },
@@ -51,7 +53,8 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
       "Gemini 2.5 Flash is Google's best model in terms of price and performance, and offers well-rounded capabilities.",
     docLink:
       "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/google#gemini-2-5-flash",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/google#gemini-2-5-flash",
     inputTokenLimit: 1048576,
     modelSpecificParams: reasoningParameters,
   },
@@ -63,7 +66,8 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
       "Gemini 2.0 Flash delivers next-generation features and improved capabilities designed for the agentic era, including superior speed, built-in tool use, multimodal generation, and a 1M token context window.",
     docLink:
       "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/google#gemini-2-0-flash",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/google#gemini-2-0-flash",
     inputTokenLimit: 1048576,
   },
   "gemini-2.0-flash-lite": {
@@ -74,7 +78,8 @@ export const geminiModels: Partial<LlmModelConfig<GeminiModelId>> = {
       "Gemini 2.0 Flash Lite is a model optimized for cost efficiency and low latency.",
     docLink:
       "https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash-lite",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/google#gemini-2-0-flash-lite",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/google#gemini-2-0-flash-lite",
     inputTokenLimit: 1048576,
   },
 };

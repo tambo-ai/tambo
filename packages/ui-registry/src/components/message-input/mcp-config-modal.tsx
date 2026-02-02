@@ -426,7 +426,8 @@ function MyApp() {
                 className="text-muted-foreground hover:text-foreground underline underline-offset-2"
               >
                 MCP configuration guide
-              </a>.
+              </a>
+              .
             </p>
           </div>
         </div>

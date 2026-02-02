@@ -20,7 +20,8 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     notes:
       "Meta's Llama 3.1 8B model on Cerebras, ideal for fast inference at 2,000+ tokens/sec. Best for simple tasks and cost-effective deployments.",
     docLink: "https://inference-docs.cerebras.ai/",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/cerebras#llama31-8b",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/cerebras#llama31-8b",
     inputTokenLimit: 128000,
   },
   "llama-3.3-70b": {
@@ -30,7 +31,8 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     notes:
       "Meta's Llama 3.3 70B model on Cerebras, offering balanced performance with ultra-fast inference. Suitable for complex reasoning and multi-step tasks.",
     docLink: "https://inference-docs.cerebras.ai/",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/cerebras#llama-33-70b",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/cerebras#llama-33-70b",
     inputTokenLimit: 128000,
   },
   "qwen-3-32b": {
@@ -40,7 +42,8 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     notes:
       "Alibaba's Qwen 3 32B model with hybrid reasoning capabilities on Cerebras. Good for multilingual tasks and structured outputs.",
     docLink: "https://inference-docs.cerebras.ai/",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/cerebras#qwen-3-32b",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/cerebras#qwen-3-32b",
     inputTokenLimit: 32768,
   },
   "gpt-oss-120b": {
@@ -50,7 +53,8 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     notes:
       "OpenAI open-weight 120B parameter model on Cerebras. Powerful capabilities for demanding applications with Cerebras's fast inference.",
     docLink: "https://inference-docs.cerebras.ai/",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/cerebras#gpt-oss-120b",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/cerebras#gpt-oss-120b",
     inputTokenLimit: 8192,
   },
   "qwen-3-235b-a22b-instruct-2507": {
@@ -71,7 +75,8 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     notes:
       "Zhipu AI's GLM 4.6 model on Cerebras with fast inference capabilities.",
     docLink: "https://inference-docs.cerebras.ai/",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/cerebras#zai-glm-46",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/cerebras#zai-glm-46",
     inputTokenLimit: 128000,
   },
   "zai-glm-4.7": {
@@ -81,7 +86,8 @@ export const cerebrasModels: Partial<LlmModelConfig<CerebrasModelId>> = {
     notes:
       "Zhipu AI's GLM 4.7 model on Cerebras, the latest iteration with improved capabilities.",
     docLink: "https://inference-docs.cerebras.ai/",
-    tamboDocLink: "https://docs.tambo.co/reference/llm-providers/cerebras#zai-glm-47",
+    tamboDocLink:
+      "https://docs.tambo.co/reference/llm-providers/cerebras#zai-glm-47",
     inputTokenLimit: 128000,
   },
 };
