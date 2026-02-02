@@ -26,12 +26,18 @@ jobs:
       - name: Setup tools
         uses: ./.github/actions/setup-tools
 
-      - name: Check for incorrect domain (tambo.ai)
+      - name: Check for incorrect domain
         run: |
+          found=0
           if grep -r 'tambo\.ai' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.mdx' --exclude-dir=node_modules .; then
             echo "::error::Found 'tambo.ai' - use 'tambo.co' instead"
-            exit 1
+            found=1
           fi
+          if grep -rE 'tambo\.com([^p]|$)' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.mdx' --exclude-dir=node_modules .; then
+            echo "::error::Found 'tambo.com' - use 'tambo.co' instead"
+            found=1
+          fi
+          exit $found
 
       - name: Run Prettier
         run: npm run prettier-check
