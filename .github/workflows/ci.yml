@@ -30,19 +30,25 @@ jobs:
         run: |
           # Correct domain is tambo.co - catch common typos (.ai, .com)
           # Patterns constructed via variable so this file doesn't match itself
-          # Pattern ([^p]|$) matches .com but NOT .component
-          # NOTE: If this becomes slow on large repos, move to pre-commit hook only
+          # Pattern ([^[:alnum:]-]|$) matches .com but NOT .component
           found=0
           BASE="tambo"
-          INCLUDES="--include=*.ts --include=*.tsx --include=*.md --include=*.mdx --include=*.yml --include=*.yaml --include=*.json --include=*.html"
-          if grep -r "${BASE}\.ai" $INCLUDES --exclude-dir=node_modules .; then
-            echo "::error::Found incorrect domain - use tambo.co instead"
+          PAT_AI="${BASE}\.ai"
+          PAT_COM="${BASE}\.com([^[:alnum:]-]|$)"
+
+          files_file="$(mktemp)"
+          git ls-files -z '*.ts' '*.tsx' '*.md' '*.mdx' '*.yml' '*.yaml' '*.json' '*.html' >"$files_file"
+
+          if [ -s "$files_file" ] && xargs -0 -r -a "$files_file" grep -nH "$PAT_AI" --; then
+            echo "::error::Found incorrect domain - use ${BASE}.co instead"
             found=1
           fi
-          if grep -rE "${BASE}\.com([^p]|$)" $INCLUDES --exclude-dir=node_modules .; then
-            echo "::error::Found incorrect domain - use tambo.co instead"
+          if [ -s "$files_file" ] && xargs -0 -r -a "$files_file" grep -nHE "$PAT_COM" --; then
+            echo "::error::Found incorrect domain - use ${BASE}.co instead"
             found=1
           fi
+
+          rm -f "$files_file"
           exit $found
 
       - name: Run Prettier
