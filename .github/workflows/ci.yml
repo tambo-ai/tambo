@@ -30,25 +30,35 @@ jobs:
         run: |
           # Correct domain is tambo.co - catch common typos (.ai, .com)
           # Patterns constructed via variable so this file doesn't match itself
+          # This uses `git grep`, so it only scans tracked files.
           # Pattern ([^[:alnum:]-]|$) matches .com but NOT .component
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
           found=0
           BASE="tambo"
           PAT_AI="${BASE}\.ai"
           PAT_COM="${BASE}\.com([^[:alnum:]-]|$)"
 
-          files_file="$(mktemp)"
-          git ls-files -z '*.ts' '*.tsx' '*.md' '*.mdx' '*.yml' '*.yaml' '*.json' '*.html' >"$files_file"
-
-          if [ -s "$files_file" ] && xargs -0 -r -a "$files_file" grep -nH "$PAT_AI" --; then
+          if git grep -nI "$PAT_AI" -- '*.ts' '*.tsx' '*.md' '*.mdx' '*.yml' '*.yaml' '*.json' '*.html'; then
             echo "::error::Found incorrect domain - use ${BASE}.co instead"
             found=1
+          else
+            status=$?
+            if [ "$status" -ne 1 ]; then
+              echo "::error::Domain check failed unexpectedly (git grep exit $status)"
+              exit "$status"
+            fi
           fi
-          if [ -s "$files_file" ] && xargs -0 -r -a "$files_file" grep -nHE "$PAT_COM" --; then
+          if git grep -nIE "$PAT_COM" -- '*.ts' '*.tsx' '*.md' '*.mdx' '*.yml' '*.yaml' '*.json' '*.html'; then
             echo "::error::Found incorrect domain - use ${BASE}.co instead"
             found=1
+          else
+            status=$?
+            if [ "$status" -ne 1 ]; then
+              echo "::error::Domain check failed unexpectedly (git grep exit $status)"
+              exit "$status"
+            fi
           fi
-
-          rm -f "$files_file"
           exit $found
 
       - name: Run Prettier
