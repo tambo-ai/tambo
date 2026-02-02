@@ -1,1 +1,7 @@
-export { Graph, type GraphDataType, type GraphProps } from "./graph";
+export {
+  Graph,
+  graphDataSchema,
+  graphSchema,
+  type GraphDataType,
+  type GraphProps,
+} from "./graph";

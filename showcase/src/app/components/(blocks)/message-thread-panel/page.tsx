@@ -1,8 +1,8 @@
 "use client";
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
+import { MessageThreadPanelWithMcp } from "@/components/generative/MessageThreadPanelWithMcp";
 import { InstallationSection } from "@/components/installation-section";
-import { MessageThreadPanelWithMcp } from "@/components/tambo/message-thread-panel-with-mcp";
 
 export default function MessageThreadPanelPage() {
   return (

@@ -1,8 +1,8 @@
 "use client";
 
-import { CanvasSpace } from "@/components/tambo/canvas-space";
-import { Graph, graphSchema } from "@/components/tambo/graph";
-import { MessageThreadPanel } from "@/components/tambo/message-thread-panel";
+import { CanvasSpace } from "@tambo-ai/ui-registry/components/canvas-space";
+import { Graph, graphSchema } from "@tambo-ai/ui-registry/components/graph";
+import { MessageThreadPanel } from "@tambo-ai/ui-registry/components/message-thread-panel";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 

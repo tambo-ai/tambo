@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import Link from "next/link";
 import { DemoWrapper } from "./components/demo-wrapper";
 

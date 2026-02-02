@@ -2,7 +2,7 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
-import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 
 export default function MessageThreadFullPage() {
   return (

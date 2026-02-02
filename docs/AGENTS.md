@@ -94,50 +94,78 @@ The documentation follows a **progressive disclosure** pattern - starting with q
 
 In general, try to fit changes into the following categories. If you can't find a good fit, suggest a new category but ask the user for confirmation.
 
-1. **Getting Started** - Immediate value with working examples
-   - Quickstart: Template installation and first interactions
-   - Integration: Adding Tambo to existing projects
-   - Component basics: Understanding registration patterns
+1. **Getting Started** (3 pages)
+   - quickstart - Template installation and first interactions
+   - integrate - Adding Tambo to existing projects
+   - components - Understanding registration patterns
 
-2. **Concepts** - Core architectural understanding (components, threads, tools, resources, streaming)
-   - Components: Registration, schemas, lifecycle, interactables
-   - Message Threads: Sending messages, responses, history management, status tracking
-   - Tools: Function calling, schemas, orchestration
-   - Resources: Local resource registration (static, dynamic, programmatic), content types, MCP integration
-   - Model Context Protocol: Overview, providers overview (client-side and server-side comparison, rich content support), client-side connections, server-side connections, features overview (elicitations, tools, sampling, prompts)
-   - Streaming: Real-time responses, component streaming, status monitoring
-   - User Authentication: OAuth providers, session management, context keys
-   - Additional Context: Dynamic helpers, page context, interactable tracking, context attachments
-   - Suggestions: AI-generated action recommendations
+2. **Concepts** (10 pages across subsections)
+   - **generative-interfaces/** (4 pages including index)
+     - generative-components
+     - interactable-components
+     - component-state
+   - **model-context-protocol/** (2 pages including index)
+     - features - Tools, prompts, resources, elicitations, sampling
+   - tools - Function calling, schemas, orchestration
+   - additional-context - Configuration, custom helpers, context attachments
+   - conversation-storage - Message threads, history management, status tracking
+   - agent-configuration - AI personality and behavior
+   - user-authentication - OAuth providers, session management, context keys
 
-3. **Best Practices** - Guidance for production implementations
-   - Component data props optimization
-   - Performance considerations
-   - Error handling patterns
-   - Security best practices
+3. **Guides** (17 pages across 7 subsections)
+   - **setup-project/** (3 pages)
+     - create-project
+     - agent-behavior
+     - llm-provider
+   - **enable-generative-ui/** (2 pages)
+     - register-components
+     - register-interactables
+   - **build-interfaces/** (2 pages)
+     - build-chat-interface
+     - customize-mcp-display
+   - **give-context/** (3 pages)
+     - make-ai-aware-of-state
+     - let-users-attach-context
+     - make-context-referenceable
+   - **take-actions/** (1 page)
+     - register-tools
+   - **add-authentication/** (8 pages including index)
+     - Auth.js, Auth0, Clerk, Supabase, Neon, WorkOS, Better Auth
+   - connect-mcp-servers - Single page (not in subfolder)
 
-4. **API Reference** - Technical specifications
-   - React hooks: Complete signatures, parameters, return values
-   - TypeScript interfaces and types
-   - Provider configurations
+4. **Best Practices** (2 pages)
+   - coding-agent-generative-ui-rules
+   - component-data-props - Optimization guidance
 
-5. **CLI** - Command-line tooling documentation
-   - Commands: add, create-app, init, list, migrate, update, upgrade
-   - Configuration: Project setup, customization options
-   - Workflows: Development patterns, component management
-   - Global options: Flags and environment variables
+5. **Reference** (5 subsections)
+   - **react-sdk/** (6 pages including index)
+     - hooks - React hooks for thread management, component state, streaming
+     - types - TypeScript interfaces and types
+     - utilities - Helper functions like defineTool() and withInteractable()
+     - providers - Provider components for configuring Tambo
+     - mcp - Model Context Protocol hooks and types
+     - **migration/** (1 page)
+       - toolschema - Migration guide for tool schemas
+   - rest-api - OpenAPI specification for Tambo Cloud REST API
+   - **problems/** (1 page)
+     - endpoint-deprecated - Documentation for endpoint deprecation errors (410 Gone)
+   - **cli/** (5 pages including index)
+     - global-options - Global CLI options
+     - configuration - CSS and Tailwind configuration
+     - workflows - Common CLI usage patterns
+     - **commands/** (8 pages)
+       - create-app, init, full-send, add, list, update, upgrade, migrate
+   - **llm-providers/** (8 pages including index)
+     - openai, anthropic, google, groq, mistral, cerebras
+     - labels - Model status labels and observed behaviors
+     - reasoning-models - Advanced reasoning capabilities for OpenAI and Gemini
 
-6. **Models** - Configuration and customization
-   - Custom LLM parameters: Temperature, max tokens, model selection
-   - Labels: Organizing and categorizing interactions
-   - Reasoning Models: Advanced thinking/reasoning capabilities for OpenAI and Gemini models
-   - Provider-specific configurations
+6. **Examples and Templates** (2 pages)
+   - chat-starter-app - Chat starter applications
+   - supabase-mcp-client - Integration examples
 
-7. **Examples & Templates** - Real-world implementations
-   - Chat starter applications
-   - Integration examples (Supabase MCP client)
-   - Use case demonstrations
-   - Community templates and patterns
+7. **Tambo MCP Server** (1 page)
+   - index - MCP server documentation
 
 Please update the `Information Architecture` section in the AGENTS.md file to reflect changes when you make them. Keeping this up to date is VERY IMPORTANT.
 

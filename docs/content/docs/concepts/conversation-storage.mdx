@@ -1,0 +1,64 @@
+---
+title: Conversation Storage
+description: How Tambo automatically persists conversations and makes them accessible across your application
+---
+
+Every conversation with Tambo is automatically stored. When a user sends a message, Tambo persists the message content, any additional context, and the complete response including text, tool calls, and generated components. You don't need to configure databases or write persistence logic. Conversations are immediately available through the React SDK and visible in your project dashboard.
+
+This automatic persistence enables users to return to previous conversations, and the full conversation history informs future Tambo responses.
+
+## What Gets Stored
+
+### Threads
+
+Threads are the containers for conversations. Each thread tracks a single conversation with its own unique ID and maintains metadata about that conversation. A thread knows which project it belongs to, when it was created and last updated, and what stage of generation it's currently in (idle, processing, complete, or error).
+
+Threads can include optional metadata like custom properties or a context key for organizing related conversations. When Tambo is generating a response, the thread tracks what stage it's in and provides a human-readable status message describing what's happening.
+
+### Messages
+
+Messages are the actual content within threads. Each message belongs to a specific thread and has a role indicating who sent it: the user, Tambo (assistant), the system (for instructions), or a tool (for function results).
+
+Messages contain content parts that can be text, images, audio, or other media types. When Tambo responds with a [generative component](/concepts/generative-interfaces/generative-components), the component definition and props are attached to the message. This allows the component to be re-rendered when loading conversation history.
+
+If components use `useTamboComponentState` to track state, that state is also persisted with the message. When re-rendering a thread, components restore their state from storage, showing users exactly what they last saw.
+
+Messages can also include additional context that was provided when they were sent, any errors that occurred during generation, and metadata like whether the message was cancelled.
+
+## Accessing Stored Conversations
+
+### Through the React SDK
+
+The React SDK provides hooks for accessing stored conversations. Use `useTamboThread()` to work with the current thread, or `useTamboThreads()` to access all threads for a user:
+
+```tsx
+import { useTamboThread, useTamboThreads } from "@tambo-ai/react";
+
+// Access current thread and its messages
+const { thread } = useTamboThread();
+
+// Access all stored threads for the current project
+const { data: threads, isLoading, error, refetch } = useTamboThreadList();
+```
+
+The SDK automatically fetches thread data, provides real-time updates as new messages arrive, caches data to minimize network requests, and triggers re-renders when thread state changes.
+
+### Through the Project Dashboard
+
+Your Tambo Cloud dashboard provides visibility into all conversations stored in your project. You can see the list of all threads, view complete message history for each thread, check thread status and metadata, and search or filter conversations. This is useful for monitoring how users interact with your application and debugging issues.
+
+## Building Conversation Interfaces
+
+Tambo offers pre-built UI components for common conversation patterns like chat interfaces, thread navigation, and input forms. These connect directly to stored conversations and handle all data fetching and rendering automatically.
+
+For custom interfaces, the React SDK provides direct access to stored conversation data. You can build any UI pattern (chat, canvas, dashboard, or hybrid) with full control over presentation while Tambo handles storage and retrieval.
+
+import LearnMore from "@/components/learn-more";
+import { Rocket } from "lucide-react";
+
+<LearnMore
+  title="Build Custom Conversation UI"
+  description="Step-by-step guide to building your own interface with the React SDK"
+  href="/guides/build-interfaces/build-chat-interface"
+  icon={Rocket}
+/>

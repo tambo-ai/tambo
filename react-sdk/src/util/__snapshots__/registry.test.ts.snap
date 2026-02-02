@@ -69,7 +69,7 @@ exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) Direct sche
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) JSON Schema object schemas should extract parameters from object schema properties 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) inputSchema interface (object schemas) JSON Schema object schemas should extract parameters from object schema properties 1`] = `
 [
   {
     "description": "User name",
@@ -94,7 +94,7 @@ exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSc
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 3 object schemas should extract parameters from object schema properties 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) inputSchema interface (object schemas) Zod 3 object schemas should extract parameters from object schema properties 1`] = `
 [
   {
     "description": "User name",
@@ -119,7 +119,7 @@ exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSc
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 4 object schemas should extract parameters from object schema properties 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) inputSchema interface (object schemas) Zod 4 object schemas should extract parameters from object schema properties 1`] = `
 [
   {
     "description": "User name",
@@ -144,7 +144,7 @@ exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSc
 ]
 `;
 
-exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) New inputSchema interface (object schemas) Zod 4 object schemas should handle complex nested objects 1`] = `
+exports[`getParametersFromToolSchema (via mapTamboToolToContextTool) inputSchema interface (object schemas) Zod 4 object schemas should handle complex nested objects 1`] = `
 [
   {
     "description": "",

@@ -56,6 +56,11 @@ const ViewModeContent: FC<ViewModeContentProps> = ({
           <div className="flex items-center gap-2">
             <span className="font-mono font-medium text-sm">{p.key}:</span>
             <span className="text-xs text-muted-foreground">({p.type})</span>
+            {p.source && p.source !== "custom" && (
+              <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                {p.source === "model-default" ? "model default" : "default"}
+              </span>
+            )}
           </div>
           {shouldUseTextarea(p.type) ? (
             <pre className="text-xs bg-muted/50 p-2 rounded border font-mono whitespace-pre-wrap break-words max-h-32 overflow-y-auto">

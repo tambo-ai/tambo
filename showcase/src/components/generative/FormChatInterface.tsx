@@ -1,5 +1,8 @@
-import { FormComponent, formSchema } from "@/components/tambo/form";
-import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import {
+  FormComponent,
+  formSchema,
+} from "@tambo-ai/ui-registry/components/form";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 

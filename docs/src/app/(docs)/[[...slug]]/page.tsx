@@ -1,7 +1,7 @@
-import { Suspense } from "react";
+import { LLMCopyButton, OpenDropdown } from "@/components/ai-actions";
 import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
-import { source } from "@/lib/source";
 import { getLLMText } from "@/lib/get-llm-text";
+import { source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import {
@@ -10,9 +10,8 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
-
 import { notFound } from "next/navigation";
-import { LLMCopyButton, OpenDropdown } from "@/components/ai-actions";
+import { Suspense } from "react";
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;

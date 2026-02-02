@@ -3,13 +3,18 @@ import { z } from "zod/v3";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**
- * Zod schema for the `fetchProjectApiKeys` function.
- * Defines the argument as a project ID string and the return type as an array of API key details.
+ * Input schema for the `fetchProjectApiKeys` function.
+ * Requires a project ID string.
  */
-export const fetchProjectApiKeysSchema = z
-  .function()
-  .args(getApiKeysInput)
-  .returns(z.array(apiKeySchema));
+export const fetchProjectApiKeysInputSchema = z.object({
+  projectId: getApiKeysInput,
+});
+
+/**
+ * Output schema for the `fetchProjectApiKeys` function.
+ * Returns an array of API key details.
+ */
+export const fetchProjectApiKeysOutputSchema = z.array(apiKeySchema);
 
 /**
  * Register API key management tools
@@ -20,15 +25,17 @@ export function registerApiKeyTools(
 ) {
   /**
    * Registers a tool to fetch all API keys for a specific project.
-   * @param {string} projectId - The project ID to fetch API keys for
+   * @param {Object} params - Parameters object
+   * @param {string} params.projectId - The project ID to fetch API keys for
    * @returns {Array} Array of API key details
    */
   registerTool({
     name: "fetchProjectApiKeys",
     description: "get all api keys for the current project",
-    tool: async (projectId: string) => {
-      return await ctx.trpcClient.project.getApiKeys.query(projectId);
+    tool: async (params) => {
+      return await ctx.trpcClient.project.getApiKeys.query(params.projectId);
     },
-    toolSchema: fetchProjectApiKeysSchema,
+    inputSchema: fetchProjectApiKeysInputSchema,
+    outputSchema: fetchProjectApiKeysOutputSchema,
   });
 }

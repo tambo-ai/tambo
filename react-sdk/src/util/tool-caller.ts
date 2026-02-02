@@ -3,9 +3,7 @@ import {
   ComponentContextTool,
   TamboTool,
   TamboToolRegistry,
-  TamboToolWithToolSchema,
 } from "../model/component-metadata";
-import { hasInputSchema } from "../schema";
 import { mapTamboToolToContextTool } from "./registry";
 
 /**
@@ -24,7 +22,7 @@ export const handleToolCall = async (
 ): Promise<{
   result: unknown;
   error?: string;
-  tamboTool?: TamboTool | TamboToolWithToolSchema;
+  tamboTool?: TamboTool;
 }> => {
   if (!toolCallRequest?.toolName) {
     throw new Error("Tool name is required");
@@ -48,7 +46,7 @@ export const handleToolCall = async (
       throw new Error(`Tool ${toolCallRequest.toolName} not found in registry`);
     }
     return {
-      result: await runToolChoice(toolCallRequest, tool, tamboTool),
+      result: await runToolChoice(toolCallRequest, tool),
       tamboTool,
     };
   } catch (error) {
@@ -66,7 +64,7 @@ const findTool = (
 ):
   | {
       tool: ComponentContextTool;
-      tamboTool: TamboTool | TamboToolWithToolSchema;
+      tamboTool: TamboTool;
     }
   | { tool: null; tamboTool: null } => {
   const registryTool = toolRegistry[toolName];
@@ -88,20 +86,12 @@ const findTool = (
 const runToolChoice = async (
   toolCallRequest: TamboAI.ToolCallRequest,
   tool: ComponentContextTool,
-  tamboTool: TamboTool | TamboToolWithToolSchema,
 ): Promise<unknown> => {
   const parameters = toolCallRequest.parameters ?? [];
 
-  // New interface (inputSchema): pass single object argument
-  if (hasInputSchema(tamboTool)) {
-    // Reconstruct the object from parameter name-value pairs
-    const inputObject = Object.fromEntries(
-      parameters.map((param) => [param.parameterName, param.parameterValue]),
-    );
-    return await tool.getComponentContext(inputObject);
-  }
-
-  // Deprecated interface (toolSchema): spread positional arguments
-  const parameterValues = parameters.map((param) => param.parameterValue);
-  return await tool.getComponentContext(...parameterValues);
+  // Reconstruct the object from parameter name-value pairs
+  const inputObject = Object.fromEntries(
+    parameters.map((param) => [param.parameterName, param.parameterValue]),
+  );
+  return await tool.getComponentContext(inputObject);
 };

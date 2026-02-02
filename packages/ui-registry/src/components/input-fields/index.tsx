@@ -1,1 +1,7 @@
-export { InputFields, type InputFieldsProps } from "./input-fields";
+export {
+  fieldSchema,
+  InputFields,
+  inputFieldsSchema,
+  type Field,
+  type InputFieldsProps,
+} from "./input-fields";

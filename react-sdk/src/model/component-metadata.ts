@@ -3,18 +3,6 @@ import type { StandardSchemaV1 } from "@standard-schema/spec";
 import TamboAI from "@tambo-ai/typescript-sdk";
 import { JSONSchema7 } from "json-schema";
 import { ComponentType } from "react";
-import {
-  ZodFunction as Zod3Function,
-  ZodTuple as Zod3FunctionArgs,
-  ZodType as Zod3FunctionReturns,
-  infer as Zod3Infer,
-} from "zod/v3";
-import {
-  $ZodFunction as Zod4Function,
-  $ZodFunctionArgs as Zod4FunctionArgs,
-  $ZodType as Zod4FunctionReturns,
-  infer as Zod4Infer,
-} from "zod/v4/core";
 
 /**
  * A schema type that accepts either a Standard Schema compliant validator
@@ -25,8 +13,8 @@ import {
  * allowing us to accept any compliant validator without depending on a specific library.
  * @see https://standardschema.dev/
  */
-export type SupportedSchema<Shape = unknown> =
-  | StandardSchemaV1<Shape, Shape>
+export type SupportedSchema<Input = unknown, Output = Input> =
+  | StandardSchemaV1<Input, Output>
   | JSONSchema7;
 
 /**
@@ -82,10 +70,7 @@ export interface RegisteredComponent extends TamboAI.AvailableComponent {
 
 export type ComponentRegistry = Record<string, RegisteredComponent>;
 
-export type TamboToolRegistry = Record<
-  string,
-  TamboTool | TamboToolWithToolSchema
->;
+export type TamboToolRegistry = Record<string, TamboTool>;
 
 /**
  * A JSON Schema that is compatible with the MCP.
@@ -110,26 +95,6 @@ type MaybeAsync<T> = T | Promise<T>;
  * import { z } from "zod";
  *
  * const locationToLatLon = defineTool({
- *   name: "location_to_latlon",
- *   description:
- *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
- *   tool: async ({ location }) => getLatLonFromLocation(location),
- *   inputSchema: z.object({
- *     location: z.string(),
- *   }),
- *   outputSchema: z.object({
- *     lat: z.number(),
- *     lon: z.number(),
- *   }),
- * });
- * ```
- * Alternatively, you manually construct a TamboTool with type safety by passing
- * the expected parameter and return types as generics:
- * ```ts
- * import { TamboTool } from "@tambo-ai/react";
- * import { z } from "zod";
- *
- * const locationToLatLon: TamboTool<{ location: string }, { lat: number; lon: number }> = {
  *   name: "location_to_latlon",
  *   description:
  *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
@@ -201,22 +166,22 @@ export interface TamboTool<
 
   /**
    * The schema for the tool's input parameters. This can be a validator from
-   * any Standard Schema compliant library (Zod, Valibot, ArkType, etc.) or a
+   * any Standard Schema compliant library (Zod 3.24+, Zod 4.x) or a
    * raw JSON Schema object.
    *
    * This schema is used to validate and parse the parameters before passing
    * them to the tool function.
    */
-  inputSchema: SupportedSchema | unknown;
+  inputSchema: SupportedSchema<Params>;
 
   /**
    * The schema for the tool's output/return value. This can be any Standard Schema
-   * compliant validator (Zod, Valibot, ArkType, etc.) or a raw JSON Schema object.
+   * compliant validator (Zod 3.24+, Zod 4.x) or a raw JSON Schema object.
    *
    * This is used to inform the model about the structure of the tool's return value
    * and is not used for runtime validation at this stage.
    */
-  outputSchema: SupportedSchema | unknown;
+  outputSchema: SupportedSchema<Returns>;
 
   /**
    * Optional function to transform the tool's return value into an array of content parts.
@@ -230,71 +195,6 @@ export interface TamboTool<
     | Promise<TamboAI.Beta.Threads.ChatCompletionContentPart[]>
     | TamboAI.Beta.Threads.ChatCompletionContentPart[];
 }
-
-/**
- * Simplified interface for tools using the deprecated toolSchema format.
- * This interface uses simple `any` types to avoid complex type instantiation.
- * Use `defineTamboTool()` for full type inference when creating tools.
- * @deprecated Use TamboTool with `inputSchema`/`outputSchema` instead.
- */
-export type TamboToolWithToolSchema<
-  Args extends any[] = any[],
-  Returns = any,
-> = Omit<TamboTool, "tool" | "inputSchema" | "outputSchema"> & {
-  tool: (...args: Args) => MaybeAsync<Returns>;
-  /** @deprecated Use `inputSchema`/`outputSchema` properties instead. */
-  toolSchema: unknown;
-};
-
-// NOTE(lachieh): this comment mirrors the one from `TamboTool` above
-/**
- * TamboTool is a type that represents a tool that can be registered with Tambo.
- *
- * It is preferable to use the `defineTool` helper function to create tools, as
- * it provides better type inference and safety.
- * @example
- * ```ts
- * import { TamboTool, defineTool } from "@tambo-ai/react";
- * import { z } from "zod";
- *
- * const locationToLatLon = defineTool({
- *   name: "location_to_latlon",
- *   description:
- *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
- *   tool: async ({ location }) => getLatLonFromLocation(location),
- *   inputSchema: z.object({
- *     location: z.string(),
- *   }),
- *   outputSchema: z.object({
- *     lat: z.number(),
- *     lon: z.number(),
- *   }),
- * });
- * ```
- * Alternatively, you manually construct a TamboTool with type safety by passing
- * the expected parameter and return types as generics:
- * ```ts
- * import { TamboTool } from "@tambo-ai/react";
- * import { z } from "zod";
- *
- * const locationToLatLon: TamboTool<{ location: string }, { lat: number; lon: number }> = {
- *   name: "location_to_latlon",
- *   description:
- *     "Fetch latitude and longitude from a location string. Returns an object with 'lat' and 'lon' properties.",
- *   tool: async ({ location }) => getLatLonFromLocation(location),
- *   inputSchema: z.object({
- *     location: z.string(),
- *   }),
- *   outputSchema: z.object({
- *     lat: z.number(),
- *     lon: z.number(),
- *   }),
- * });
- * ```
- */
-export type TamboToolBase<Params = any, Returns = any> =
-  | TamboToolWithToolSchema
-  | TamboTool<Params, Returns>;
 
 /**
  * A tool that uses JSON Schema compliant input and output schemas.
@@ -320,8 +220,8 @@ export type TamboToolUnknown = Omit<
   "tool" | "inputSchema" | "outputSchema"
 > & {
   tool: (...args: unknown[]) => MaybeAsync<unknown>;
-  inputSchema: unknown;
-  outputSchema: unknown;
+  inputSchema: SupportedSchema;
+  outputSchema: SupportedSchema;
 };
 
 /**
@@ -346,28 +246,27 @@ export type TamboToolStandardSchema<
   outputSchema: Output;
 };
 
-type TamboToolZod3Function<
-  Args extends Zod3FunctionArgs,
-  Returns extends Zod3FunctionReturns,
-> = Omit<
-  TamboToolWithToolSchema<Zod3Infer<Args>, Zod3Infer<Returns>>,
-  "toolSchema"
+/**
+ * If you're seeing this type, it means that you are using a deprecated and now
+ * unsupported schema type for defining Tambo tools.
+ *
+ * Follow the migration guide to update your tool definitions to use
+ * inputSchema and outputSchema with either Standard Schema compliant validators
+ * (like Zod 3.25.76, Zod 4.x) or raw JSON Schema objects.
+ * @deprecated replace `toolSchema` with `inputSchema` and `outputSchema` instead.
+ * @see {@link https://docs.tambo.ai/api-reference/migration/toolschema}
+ */
+export type UnsupportedSchemaTamboTool = Omit<
+  TamboTool,
+  "tool" | "inputSchema" | "outputSchema"
 > & {
-  tool: (...args: Zod3Infer<Args>) => MaybeAsync<Zod3Infer<Returns>>;
-  /** @deprecated Use `inputSchema`/`outputSchema` properties instead. */
-  toolSchema: Zod3Function<Args, Returns>;
-};
-
-type TamboToolZod4Function<
-  Args extends Zod4FunctionArgs,
-  Returns extends Zod4FunctionReturns,
-> = Omit<
-  TamboToolWithToolSchema<Zod4Infer<Args>, Zod4Infer<Returns>>,
-  "toolSchema"
-> & {
-  tool: (...args: Zod4Infer<Args>) => MaybeAsync<Zod4Infer<Returns>>;
-  /** @deprecated Use `inputSchema`/`outputSchema` properties instead. */
-  toolSchema: Zod4Function<Args, Returns>;
+  /**
+   * @deprecated replace `toolSchema` with `inputSchema` and `outputSchema` instead.
+   */
+  toolSchema: any;
+  tool: (...args: any[]) => MaybeAsync<any>;
+  inputSchema?: never;
+  outputSchema?: never;
 };
 
 export type TamboToolAssociations = Record<string, string[]>;
@@ -432,18 +331,42 @@ export interface TamboComponent {
   /** The loading component to render while the component is loading */
   loadingComponent?: ComponentType<any>;
   /** The tools that are associated with the component */
-  associatedTools?: (TamboTool | TamboToolWithToolSchema)[];
+  associatedTools?: TamboTool[];
   /** Annotations describing the component's behavior. */
   annotations?: ToolAnnotations;
 }
 
+type OptionalSchemaProps<T> = Omit<T, "inputSchema" | "outputSchema"> & {
+  inputSchema?: T extends { inputSchema: infer I } ? I : never;
+  outputSchema?: T extends { outputSchema: infer O } ? O : never;
+};
+
+/**
+ * Registers one or more Tambo tools.
+ * @param tools - An array of Tambo tools to register
+ * @param warnOnOverwrite - Whether to warn if any tool is being overwritten
+ */
 export interface RegisterToolsFn {
   /**
-   * Registers one or more Tambo tools.
-   * @param tools - An array of Tambo tools to register
+   * @deprecated Follow the {@link https://docs.tambo.ai/api-reference/migration/toolschema | Migration Guide} to update
+   * your tool definitions to use `inputSchema` and `outputSchema` instead.
    */
-  (tools: TamboTool[]): void;
-  (tools: (TamboTool | TamboToolWithToolSchema)[]): void;
+  (tools: UnsupportedSchemaTamboTool[], warnOnOverwrite?: boolean): void;
+  /**
+   * Register one or more Tambo tools. For better type inference, consider registering tools individually using the
+   * `registerTool` function or use the `defineTool` helper when defining your tools.
+   * @example
+   * ```typescript
+   * import { defineTool } from "@tambo-ai/react";
+   * const tools = [
+   *   defineTool({...});
+   *   defineTool({...});
+   * ];
+   * registerTools(tools);
+   * @param tools - An array of Tambo tools to register
+   * @param warnOnOverwrite - Whether to warn if any tool is being overwritten
+   */
+  (tools: TamboTool[], warnOnOverwrite?: boolean): void;
 }
 
 /**
@@ -452,50 +375,6 @@ export interface RegisterToolsFn {
  * is a utility function and does not perform any runtime logic.
  */
 export interface RegisterToolFn {
-  /**
-   * @deprecated Use `inputSchema`/`outputSchema` instead. toolSchema is deprecated
-   * and will be removed in future versions.
-   * @example
-   * ```diff
-   * import { z } from "zod/v3";
-   * const myTool = defineTamboTool({
-   *   ...
-   * -  toolSchema: z.function()
-   * -    .arguments(z.tuple([z.string()]))
-   * -    .returns(z.number()),
-   * +  inputSchema: z.object({
-   * +    input: z.string().describe("Input description")
-   * +  }),
-   * +  outputSchema: z.number().describe("Result description"),
-   * });
-   */
-  <Args extends Zod3FunctionArgs, Returns extends Zod3FunctionReturns>(
-    tool: TamboToolZod3Function<Args, Returns>,
-    warnOnOverwrite?: boolean,
-  ): void;
-  /**
-   * @deprecated Use `inputSchema`/`outputSchema` instead. toolSchema is deprecated
-   * and will be removed in future versions.
-   * @example
-   * ```diff
-   * import { z } from "zod/v4";
-   * const myTool = defineTamboTool({
-   *   ...
-   * -  toolSchema: z.function({
-   * -    input: z.tuple([z.string()]),
-   * -    output: z.number(),
-   * -  }),
-   * +  inputSchema: z.object({
-   * +    input: z.string().describe("Input description")
-   * +  }),
-   * +  outputSchema: z.number().describe("Result description"),
-   * });
-   */
-  <Args extends Zod4FunctionArgs, Returns extends Zod4FunctionReturns>(
-    tool: TamboToolZod4Function<Args, Returns>,
-    warnOnOverwrite?: boolean,
-  ): void;
-  (tool: TamboToolWithToolSchema, warnOnOverwrite?: boolean): void;
   <Args extends StandardSchemaV1, Returns extends StandardSchemaV1>(
     tool: TamboToolStandardSchema<Args, Returns>,
     warnOnOverwrite?: boolean,
@@ -506,30 +385,45 @@ export interface RegisterToolFn {
   ): void;
   (tool: TamboToolUnknown, warnOnOverwrite?: boolean): void;
   (tool: TamboTool, warnOnOverwrite?: boolean): void;
+  /**
+   * @deprecated Follow the {@link https://docs.tambo.ai/api-reference/migration/toolschema | Migration Guide} to update
+   * your tool definitions to use `inputSchema` and `outputSchema` instead.
+   * @param tool - The unsupported schema Tambo tool to register
+   * @param warnOnOverwrite - Whether to warn if the tool is being overwritten
+   */
+  (tool: UnsupportedSchemaTamboTool, warnOnOverwrite?: boolean): void;
 }
 
 /**
- * Function interface for defining a Tambo tool with full type inference. This
- * function has multiple overloads to handle different schema types. This is a
- * utility function and does not perform any runtime logic.
+ * Function interface for defining a Tambo tool with full type inference. This function has multiple overloads to handle
+ * different schema types. This is a utility function and does not perform any runtime logic.
  */
 export interface DefineToolFn {
+  /**
+   * @deprecated Follow the {@link https://docs.tambo.ai/api-reference/migration/toolschema | Migration Guide} to update
+   * your tool definitions to use `inputSchema` and `outputSchema` instead.
+   * @param tool The tool definition to register
+   * @returns The registered tool definition
+   */
+  (tool: UnsupportedSchemaTamboTool): typeof tool;
   /**
    * Provides type safety for defining a Tambo Tool.
    *
    * Tambo uses the [standard-schema.dev](https://standard-schema.dev) spec which means you can use any Standard Schema
-   * compliant validator (Zod, Valibot, ArkType, etc.). This definition ensures the input and output types are correctly
+   * compliant validator (Zod 3.24+, Zod 4.x). This definition ensures the input and output types are correctly
    * inferred from the provided schemas.
    * @example
    * ```typescript
    * import { z } from "zod/v4";
    *
-   * const myTool = defineTamboTool({
-   *   // ...
+   * const myTool = defineTool({
+   *   name: "myTool",
+   *   description: "An example tool",
    *   inputSchema: z.object({
    *     input: z.string().describe("Input description")
    *   }),
    *   outputSchema: z.number().describe("Result description"),
+   *   tool: ({ input }) => input.length,
    * });
    * ```
    * @see {@link https://standard-schema.dev/}
@@ -537,126 +431,35 @@ export interface DefineToolFn {
    * @returns The registered tool definition
    */
   <Input extends StandardSchemaV1, Output extends StandardSchemaV1>(
-    tool: TamboToolStandardSchema<Input, Output>,
+    tool: OptionalSchemaProps<TamboToolStandardSchema<Input, Output>>,
   ): TamboToolStandardSchema<Input, Output>;
   /**
-   * Provides type safety for defining a Tambo Tool.
+   * Provides type safety for defining a Tambo Tool with JSON Schema input and output.
    *
-   * This tool uses the deprecated `toolSchema` format which uses a zod function schema. If you are using a validation
-   * library that implements StandardSchema.dev, please switch to using separate `inputSchema` and `outputSchema`
-   * properties instead. See example below.
-   * @example
-   * ```diff
-   * import { z } from "zod/v4";
-   *
-   * const myTool = defineTamboTool({
-   *   // ...
-   * -  toolSchema: z.function({
-   * -    input: z.tuple([z.string()]),
-   * -    output: z.number(),
-   * -  })
-   * +  inputSchema: z.object({
-   * +    input: z.string().describe("Input description")
-   * +  }),
-   * +  outputSchema: z.number().describe("Result description"),
-   * });
-   * @see {@link https://standard-schema.dev/}
-   * @param tool The tool definition to register
-   * @returns The registered tool definition
-   * @deprecated Using `toolSchema` is deprecated. Please use separate `inputSchema` and `outputSchema` properties instead.
-   * Note that use of `toolSchema` will be removed in a future release.
-   * ```
-   */
-  <Args extends Zod3FunctionArgs, Returns extends Zod3FunctionReturns>(
-    tool: TamboToolZod3Function<Args, Returns>,
-  ): TamboToolZod3Function<Args, Returns>;
-  /**
-   * Provides type safety for defining a Tambo Tool.
-   *
-   * This tool uses the deprecated `toolSchema` format which uses a zod function schema. If you are using a validation
-   * library that implements standard-schema.dev, please switch to using separate `inputSchema` and `outputSchema`
-   * properties instead. See example below.
-   * @param tool The tool definition to register
-   * @returns The registered tool definition
-   * @deprecated Using `toolSchema` is deprecated. Please use separate `inputSchema` and `outputSchema` properties instead.
-   * Note that use of `toolSchema` will be removed in a future release.
-   * @example
-   * ```diff
-   * import { z } from "zod/v4";
-   *
-   * const myTool = defineTamboTool({
-   *   // ...
-   * -  toolSchema: z.function({
-   * -    input: z.tuple([z.string()]),
-   * -    output: z.number(),
-   * -  })
-   * +  inputSchema: z.object({
-   * +    input: z.string().describe("Input description")
-   * +  }),
-   * +  outputSchema: z.number().describe("Result description"),
-   * });
-   * ```
-   */
-  <Args extends Zod4FunctionArgs, Returns extends Zod4FunctionReturns>(
-    tool: TamboToolZod4Function<Args, Returns>,
-  ): TamboToolZod4Function<Args, Returns>;
-  /**
-   * Provides type safety for defining a Tambo Tool.
-   *
-   * This tool uses the deprecated `toolSchema` property which uses a zod function schema. If you are using a validation
-   * library that implements standard-schema.dev, please switch to using separate `inputSchema` and `outputSchema`
-   * properties instead. See example below.
-   * @param tool The tool definition to register
-   * @returns The registered tool definition
-   * @deprecated Using `toolSchema` is deprecated. Please use separate `inputSchema` and `outputSchema` properties instead.
-   * Note that use of `toolSchema` will be removed in a future release.
-   * @example
-   * ```diff
-   * import { z } from "zod/v4";
-   *
-   * const myTool = defineTamboTool({
-   *   // ...
-   * -  toolSchema: { ... }
-   * +  inputSchema: z.object({ ... }),
-   * +  outputSchema: z.number(),
-   * });
-   * ```
-   */
-  (tool: TamboToolWithToolSchema): TamboToolWithToolSchema;
-  /**
-   * Provides type safety for defining a Tambo Tool.
-   *
-   * This tool definition matched to JSON Schema input and output schemas which allows does not guarantee type
-   * safety. If you are using a validation library that implements
-   * [Standard Schema](https://standardschema.dev/#what-tools-frameworks-accept-speccompliant-schemas), please ensure
-   * your schemas are correctly typed.
+   * This overload is used when providing raw JSON Schema objects instead of StandardSchema validators.
+   * Type inference is limited when using raw JSON Schema.
    * @see {@link https://standard-schema.dev/}
    * @param tool The tool definition to register
    * @returns The registered tool definition
    */
   <I extends any[], O = any>(
-    tool: TamboToolJSONSchema<I, O>,
+    tool: OptionalSchemaProps<TamboToolJSONSchema<I, O>>,
   ): TamboToolJSONSchema<I, O>;
   /**
    * Provides type safety for defining a Tambo Tool.
    *
-   * This tool definition could not be matched to any known schema types which means type safety cannot be
-   * guaranteed. If you are using a validation library that implements
-   * [Standard Schema](https://standardschema.dev/#what-tools-frameworks-accept-speccompliant-schemas), please ensure
-   * your schemas are correctly typed.
-   * @example
-   * ```typescript
-   * const myTool = defineTamboTool({
-   *   name: "myTool",
-   *   description: "An example tool",
-   *   tool: (input) => { ... },
-   *   inputSchema: yourInputSchema,
-   *   outputSchema: yourOutputSchema,
-   * });
+   * This overload is used when the schema types could not be matched to known types.
+   * Type safety cannot be guaranteed.
    * @param tool The tool definition to register
    * @returns The registered tool definition
-   * ```
    */
-  (tool: TamboToolUnknown): TamboToolUnknown;
-  (tool: TamboTool): TamboTool;
+  (tool: OptionalSchemaProps<TamboToolUnknown>): TamboToolUnknown;
+  /**
+   * Provides type safety for defining a Tambo Tool.
+   *
+   * This overload is used when providing a fully defined TamboTool.
+   * @param tool The tool definition to register
+   * @returns The registered tool definition
+   */
+  (tool: OptionalSchemaProps<TamboTool>): TamboTool;
 }

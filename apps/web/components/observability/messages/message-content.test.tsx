@@ -6,8 +6,8 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import * as utils from "../utils";
 
-// Mock the markdown components
-jest.mock("@/components/ui/tambo/markdown-components", () => ({
+// Mock the markdown components from ui-registry
+jest.mock("@tambo-ai/ui-registry/components/message", () => ({
   createMarkdownComponents: () => ({}),
 }));
 

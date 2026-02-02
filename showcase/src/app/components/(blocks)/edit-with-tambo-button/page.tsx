@@ -3,7 +3,6 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { EditWithTamboInterface } from "@/components/generative/EditWithTamboInterface";
 import { InstallationSection } from "@/components/installation-section";
-import { TamboProvider } from "@tambo-ai/react";
 
 export default function EditWithTamboButtonPage() {
   return (
@@ -24,17 +23,16 @@ export default function EditWithTamboButtonPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-semibold">Examples</h2>
 
+        <p className="text-sm text-muted-foreground">
+          This interactive demo runs inside the showcase&apos;s app-level
+          TamboProvider, which sets a per-user context key (persisted in
+          localStorage).
+        </p>
+
         <div className="space-y-6">
           <ComponentCodePreview
             title="Basic Usage"
-            component={
-              <TamboProvider
-                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-                tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
-              >
-                <EditWithTamboInterface />
-              </TamboProvider>
-            }
+            component={<EditWithTamboInterface />}
             code={`import { EditWithTamboButton } from "@/components/tambo/edit-with-tambo-button";
 import { withInteractable } from "@tambo-ai/react";
 import { z } from "zod";

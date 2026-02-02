@@ -157,6 +157,57 @@ describe("TamboRegistryProvider", () => {
       expect(result.current.toolRegistry["max-tool"].maxCalls).toBe(4);
     });
 
+    it("should warn when overwriting an existing tool by default", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+      // Register a tool
+      act(() => {
+        result.current.registerTool(mockTools[0]);
+      });
+
+      // Register the same tool again (should warn by default)
+      act(() => {
+        result.current.registerTool(mockTools[0]);
+      });
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Overwriting tool test-tool-1"),
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it("should not warn when overwriting a tool if warnOnOverwrite is false", () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <TamboRegistryProvider>{children}</TamboRegistryProvider>
+      );
+
+      const { result } = renderHook(() => useTamboRegistry(), { wrapper });
+      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+      // Register a tool
+      act(() => {
+        result.current.registerTool(mockTools[0], false);
+      });
+
+      // Register the same tool again with warnOnOverwrite=false
+      act(() => {
+        result.current.registerTool(mockTools[0], false);
+      });
+
+      // Should not warn about "Registering new tool"
+      expect(consoleWarnSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining("Overwriting tool test-tool-1"),
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
     it("should handle tool association with components", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboRegistryProvider components={mockComponents}>

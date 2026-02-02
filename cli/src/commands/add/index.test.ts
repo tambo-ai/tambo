@@ -105,6 +105,10 @@ jest.unstable_mockModule("./utils.js", () => ({
   checkLegacyComponents: () => null,
   getInstalledComponents: async () => [],
   getComponentList: () => [],
+  getComponentNpmDependencies: (componentNames: string[]) => ({
+    dependencies: componentNames.length > 0 ? ["@tambo-ai/react"] : [],
+    devDependencies: [],
+  }),
 }));
 
 // Mock the interactive module to make tests think they're in an interactive environment
@@ -117,6 +121,15 @@ jest.unstable_mockModule("../../utils/interactive.js", () => ({
     constructor(message: string) {
       super(message);
       this.name = "NonInteractiveError";
+    }
+  },
+  GuidanceError: class GuidanceError extends Error {
+    constructor(
+      message: string,
+      public readonly guidance: string[],
+    ) {
+      super(message);
+      this.name = "GuidanceError";
     }
   },
 }));
@@ -752,6 +765,98 @@ describe("handleAddComponents", () => {
     });
   });
 
+  describe("dry-run mode", () => {
+    it("should show files that would be created without making changes", async () => {
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with --dryRun
+      await handleAddComponents(["message"], { yes: true, dryRun: true });
+
+      // Verify output shows dry-run info
+      const output = logs.join("\n");
+      expect(output).toContain("Dry run");
+      expect(output).toContain("Files to be created");
+      expect(output).toContain("message.tsx");
+      expect(output).toContain("No changes made");
+
+      // Verify no files were actually created
+      expect(
+        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
+      ).toBe(false);
+    });
+
+    it("should show npm packages that would be installed", async () => {
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with --dryRun
+      await handleAddComponents(["message"], { yes: true, dryRun: true });
+
+      // Verify output mentions packages section
+      const output = logs.join("\n");
+      expect(output).toContain("Dry run");
+
+      // Verify no npm install was called
+      const npmInstalls = execSyncCalls.filter((cmd) =>
+        cmd.includes("npm install"),
+      );
+      expect(npmInstalls.length).toBe(0);
+    });
+
+    it("should not create directories in dry-run mode", async () => {
+      // Setup
+      vol.fromJSON({
+        "/mock-project/package.json": JSON.stringify({
+          name: "test-project",
+          dependencies: {},
+        }),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with --dryRun
+      await handleAddComponents(["message"], { yes: true, dryRun: true });
+
+      // Verify directories were not created
+      expect(vol.existsSync("/mock-project/src/components/tambo")).toBe(false);
+      expect(vol.existsSync("/mock-project/src/lib")).toBe(false);
+    });
+
+    it("should work with multiple components in dry-run mode", async () => {
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message", "form"]),
+      });
+
+      // Execute with --dryRun for multiple components
+      await handleAddComponents(["message", "form"], {
+        yes: true,
+        dryRun: true,
+      });
+
+      // Verify output shows both components
+      const output = logs.join("\n");
+      expect(output).toContain("Dry run");
+      expect(output).toContain("message.tsx");
+      expect(output).toContain("form.tsx");
+
+      // Verify no files were created
+      expect(
+        vol.existsSync("/mock-project/src/components/tambo/message.tsx"),
+      ).toBe(false);
+      expect(
+        vol.existsSync("/mock-project/src/components/tambo/form.tsx"),
+      ).toBe(false);
+    });
+  });
+
   describe("npm dependency management", () => {
     it("should install production dependencies", async () => {
       // Setup
@@ -885,6 +990,137 @@ describe("handleAddComponents", () => {
         cmd.includes("--legacy-peer-deps"),
       );
       expect(installWithLegacy).toBeDefined();
+    });
+  });
+
+  describe("cross-component file references", () => {
+    it("should resolve legacy src/registry/ paths to components/", async () => {
+      // Setup: Create a component with a cross-component file reference using legacy path format
+      vol.fromJSON({
+        ...createBasicProject(),
+        "/mock-project/cli/dist/registry/components/test-component/config.json":
+          JSON.stringify({
+            name: "test-component",
+            description: "Test component with cross-reference",
+            componentName: "TestComponent",
+            dependencies: [],
+            devDependencies: [],
+            requires: [],
+            files: [
+              {
+                name: "test-component.tsx",
+                content: "export const TestComponent = () => <div>Test</div>;",
+              },
+              {
+                // Cross-component reference with legacy path format
+                name: "shared-util.tsx",
+                content: "src/registry/other-component/shared-util.tsx",
+              },
+            ],
+          }),
+        "/mock-project/cli/dist/registry/components/test-component/test-component.tsx":
+          "export const TestComponent = () => <div>Test</div>;",
+        // The actual file in the other component directory
+        "/mock-project/cli/dist/registry/components/other-component/shared-util.tsx":
+          "export const SharedUtil = () => <div>Shared</div>;",
+      });
+
+      // Execute
+      await handleAddComponents(["test-component"], { yes: true });
+
+      // Verify the shared file was installed with correct content
+      const sharedUtilContent = vol.readFileSync(
+        "/mock-project/src/components/tambo/shared-util.tsx",
+        "utf-8",
+      );
+      expect(sharedUtilContent).toContain("SharedUtil");
+    });
+
+    it("should resolve legacy src/registry/lib/ paths to lib/", async () => {
+      // Setup: Create a component with a lib file reference using legacy path format
+      vol.fromJSON({
+        ...createBasicProject(),
+        "/mock-project/cli/dist/registry/components/test-component/config.json":
+          JSON.stringify({
+            name: "test-component",
+            description: "Test component with lib reference",
+            componentName: "TestComponent",
+            dependencies: [],
+            devDependencies: [],
+            requires: [],
+            files: [
+              {
+                name: "test-component.tsx",
+                content: "export const TestComponent = () => <div>Test</div>;",
+              },
+              {
+                // Lib file reference with legacy path format
+                name: "lib/helper.ts",
+                content: "src/registry/lib/helper.ts",
+              },
+            ],
+          }),
+        "/mock-project/cli/dist/registry/components/test-component/test-component.tsx":
+          "export const TestComponent = () => <div>Test</div>;",
+        // The actual lib file
+        "/mock-project/cli/dist/registry/lib/helper.ts":
+          "export const helper = () => 'helper';",
+      });
+
+      // Execute
+      await handleAddComponents(["test-component"], { yes: true });
+
+      // Verify the lib file was installed with correct content
+      const helperContent = vol.readFileSync(
+        "/mock-project/src/lib/helper.ts",
+        "utf-8",
+      );
+      expect(helperContent).toContain("helper");
+    });
+  });
+
+  describe("skipTailwindSetup option", () => {
+    it("should skip tailwind setup when skipTailwindSetup is true", async () => {
+      // Get the mocked setupTailwindAndGlobals
+      const { setupTailwindAndGlobals } = await import("./tailwind-setup.js");
+
+      // Clear any previous calls
+      (setupTailwindAndGlobals as jest.Mock).mockClear();
+
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute with skipTailwindSetup: true
+      await handleAddComponents(["message"], {
+        yes: true,
+        skipTailwindSetup: true,
+      });
+
+      // Verify setupTailwindAndGlobals was NOT called
+      expect(setupTailwindAndGlobals).not.toHaveBeenCalled();
+    });
+
+    it("should run tailwind setup when skipTailwindSetup is false/undefined", async () => {
+      // Get the mocked setupTailwindAndGlobals
+      const { setupTailwindAndGlobals } = await import("./tailwind-setup.js");
+
+      // Clear any previous calls
+      (setupTailwindAndGlobals as jest.Mock).mockClear();
+
+      // Setup
+      vol.fromJSON({
+        ...createBasicProject(),
+        ...createRegistryFiles(["message"]),
+      });
+
+      // Execute without skipTailwindSetup (default behavior)
+      await handleAddComponents(["message"], { yes: true });
+
+      // Verify setupTailwindAndGlobals WAS called
+      expect(setupTailwindAndGlobals).toHaveBeenCalled();
     });
   });
 });

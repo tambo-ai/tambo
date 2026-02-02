@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -18,6 +19,7 @@ import {
   ApiOperation,
   ApiParam,
   ApiProduces,
+  ApiQuery,
   ApiResponse,
   ApiSecurity,
   ApiTags,
@@ -38,13 +40,45 @@ import {
   V1CreateThreadWithRunDto,
 } from "./dto/run.dto";
 import {
+  UpdateComponentStateDto,
+  UpdateComponentStateResponseDto,
+} from "./dto/component-state.dto";
+import {
   V1CreateThreadDto,
   V1CreateThreadResponseDto,
   V1GetThreadResponseDto,
   V1ListThreadsQueryDto,
   V1ListThreadsResponseDto,
 } from "./dto/thread.dto";
+import { V1BaseEventDto } from "./dto/event.dto";
+import {
+  V1GenerateSuggestionsDto,
+  V1GenerateSuggestionsResponseDto,
+  V1ListSuggestionsQueryDto,
+  V1ListSuggestionsResponseDto,
+} from "./dto/suggestion.dto";
 import { V1Service } from "./v1.service";
+
+/**
+ * Validates that a userKey is provided either via request parameter or bearer token.
+ * @throws BadRequestException if no userKey is available from either source, or if it's empty
+ */
+function requireUserKey(
+  paramUserKey: string | undefined,
+  bearerContextKey: string | undefined,
+): string {
+  // Check for empty string explicitly
+  if (paramUserKey === "") {
+    throw new BadRequestException("userKey cannot be an empty string.");
+  }
+  const effectiveUserKey = paramUserKey ?? bearerContextKey;
+  if (!effectiveUserKey) {
+    throw new BadRequestException(
+      "userKey is required. Provide it as a query/body parameter or use a bearer token with a context key.",
+    );
+  }
+  return effectiveUserKey;
+}
 
 @ApiTags("v1")
 @ApiSecurity("apiKey")
@@ -64,7 +98,7 @@ export class V1Controller {
   @ApiOperation({
     summary: "List threads",
     description:
-      "List all threads for the authenticated project. Supports cursor-based pagination and filtering by context key.",
+      "List all threads for the authenticated project. Supports cursor-based pagination and filtering by user key.",
   })
   @ApiResponse({
     status: 200,
@@ -77,10 +111,9 @@ export class V1Controller {
   ): Promise<V1ListThreadsResponseDto> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      query.contextKey,
+      query.userKey,
     );
-    // Use context key from query if provided, otherwise fall back to bearer token context
-    const effectiveContextKey = query.contextKey ?? bearerContextKey;
+    const effectiveContextKey = requireUserKey(query.userKey, bearerContextKey);
     return await this.v1Service.listThreads(
       projectId,
       effectiveContextKey,
@@ -100,6 +133,11 @@ export class V1Controller {
     description: "Thread ID",
     example: "thr_abc123xyz",
   })
+  @ApiQuery({
+    name: "userKey",
+    description: "Optional user key for thread organization",
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: "Thread with messages",
@@ -110,9 +148,20 @@ export class V1Controller {
     description: "Thread not found",
   })
   async getThread(
+    @Req() request: Request,
     @Param("threadId") threadId: string,
+    @Query("userKey") userKey?: string,
   ): Promise<V1GetThreadResponseDto> {
-    return await this.v1Service.getThread(threadId);
+    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    const effectiveContextKey = requireUserKey(userKey, bearerContextKey);
+    return await this.v1Service.getThread(
+      threadId,
+      projectId,
+      effectiveContextKey,
+    );
   }
 
   @Post("threads")
@@ -132,10 +181,9 @@ export class V1Controller {
   ): Promise<V1CreateThreadResponseDto> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      dto.contextKey,
+      dto.userKey,
     );
-    // Use context key from body if provided, otherwise fall back to bearer token context
-    const effectiveContextKey = dto.contextKey ?? bearerContextKey;
+    const effectiveContextKey = requireUserKey(dto.userKey, bearerContextKey);
     return await this.v1Service.createThread(
       projectId,
       effectiveContextKey,
@@ -245,7 +293,9 @@ export class V1Controller {
   @ApiProduces("text/event-stream")
   @ApiResponse({
     status: 200,
-    description: "SSE stream of AG-UI events",
+    description:
+      "SSE stream of AG-UI events. Each event is sent as 'data: <json>\\n\\n' where <json> is a BaseEvent object.",
+    type: V1BaseEventDto,
     headers: {
       "X-Thread-Id": {
         description: "The created thread ID",
@@ -268,16 +318,19 @@ export class V1Controller {
   ): Promise<void> {
     const { projectId, contextKey: bearerContextKey } = extractContextInfo(
       request,
-      dto.thread?.contextKey,
+      dto.thread?.userKey,
     );
 
     // Create thread first
-    const effectiveContextKey = dto.thread?.contextKey ?? bearerContextKey;
+    const effectiveContextKey = requireUserKey(
+      dto.thread?.userKey,
+      bearerContextKey,
+    );
     const thread = await this.v1Service.createThread(
       projectId,
       effectiveContextKey,
       {
-        contextKey: dto.thread?.contextKey,
+        userKey: dto.thread?.userKey,
         metadata: dto.threadMetadata ?? dto.thread?.metadata,
       },
     );
@@ -360,7 +413,9 @@ export class V1Controller {
   @ApiProduces("text/event-stream")
   @ApiResponse({
     status: 200,
-    description: "SSE stream of AG-UI events",
+    description:
+      "SSE stream of AG-UI events. Each event is sent as 'data: <json>\\n\\n' where <json> is a BaseEvent object.",
+    type: V1BaseEventDto,
     headers: {
       "X-Run-Id": {
         description: "The created run ID",
@@ -382,9 +437,11 @@ export class V1Controller {
     @Body() dto: V1CreateRunDto,
     @Res() response: Response,
   ): Promise<void> {
-    // Extract project and context info from the request
-    // Note: V1CreateRunDto doesn't have contextKey, so we only use bearer token context
-    const { projectId, contextKey } = extractContextInfo(request, undefined);
+    const { projectId, contextKey: bearerContextKey } = extractContextInfo(
+      request,
+      dto.userKey,
+    );
+    const effectiveContextKey = requireUserKey(dto.userKey, bearerContextKey);
 
     // Start run (handles concurrency atomically)
     const startResult = await this.v1Service.startRun(threadId, dto);
@@ -428,7 +485,7 @@ export class V1Controller {
         startResult.runId,
         dto,
         projectId,
-        contextKey,
+        effectiveContextKey,
       );
     } catch (error) {
       // Emit error event if headers already sent
@@ -479,5 +536,162 @@ export class V1Controller {
     @Param("runId") runId: string,
   ): Promise<V1CancelRunResponseDto> {
     return await this.v1Service.cancelRun(threadId, runId, "user_cancelled");
+  }
+
+  // ==========================================
+  // Component state endpoint
+  // ==========================================
+
+  @Post("threads/:threadId/components/:componentId/state")
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "Update component state",
+    description:
+      "Update the state of a component in a thread. Supports both full replacement and JSON Patch operations. Thread must not have an active run.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "componentId",
+    description: "Component ID",
+    example: "comp_xyz789abc",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Component state updated successfully",
+    type: UpdateComponentStateResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid request (missing state/patch, or invalid patch)",
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Component not found in thread",
+  })
+  @ApiResponse({
+    status: 409,
+    description: "Cannot update state while run is active",
+  })
+  async updateComponentState(
+    @Param("threadId") threadId: string,
+    @Param("componentId") componentId: string,
+    @Body() dto: UpdateComponentStateDto,
+  ): Promise<UpdateComponentStateResponseDto> {
+    return await this.v1Service.updateComponentState(
+      threadId,
+      componentId,
+      dto,
+    );
+  }
+
+  // ==========================================
+  // Suggestion endpoints
+  // ==========================================
+
+  @Get("threads/:threadId/messages/:messageId/suggestions")
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "List suggestions for a message",
+    description:
+      "List suggestions that have been generated for a specific message. Supports cursor-based pagination.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "messageId",
+    description: "Message ID",
+    example: "msg_xyz789abc",
+  })
+  @ApiQuery({
+    name: "userKey",
+    description: "Optional user key for thread organization",
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "List of suggestions",
+    type: V1ListSuggestionsResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Message not found",
+  })
+  async listSuggestions(
+    @Req() request: Request,
+    @Param("threadId") threadId: string,
+    @Param("messageId") messageId: string,
+    @Query() query: V1ListSuggestionsQueryDto,
+    @Query("userKey") userKey?: string,
+  ): Promise<V1ListSuggestionsResponseDto> {
+    const { projectId, contextKey: bearerUserKey } = extractContextInfo(
+      request,
+      userKey,
+    );
+    const effectiveUserKey = requireUserKey(userKey, bearerUserKey);
+    return await this.v1Service.listSuggestions(
+      threadId,
+      messageId,
+      projectId,
+      effectiveUserKey,
+      query,
+    );
+  }
+
+  @Post("threads/:threadId/messages/:messageId/suggestions")
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(ThreadInProjectGuard)
+  @ApiOperation({
+    summary: "Generate suggestions for a message",
+    description:
+      "Generate AI-powered suggestions for the next action based on the thread context. Suggestions are persisted and can be retrieved later via the list endpoint. Calling this endpoint replaces any existing suggestions for the message.",
+  })
+  @ApiParam({
+    name: "threadId",
+    description: "Thread ID",
+    example: "thr_abc123xyz",
+  })
+  @ApiParam({
+    name: "messageId",
+    description: "Message ID",
+    example: "msg_xyz789abc",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "Suggestions generated successfully",
+    type: V1GenerateSuggestionsResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid request parameters",
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Message not found",
+  })
+  async generateSuggestions(
+    @Req() request: Request,
+    @Param("threadId") threadId: string,
+    @Param("messageId") messageId: string,
+    @Body() dto: V1GenerateSuggestionsDto,
+  ): Promise<V1GenerateSuggestionsResponseDto> {
+    const { projectId, contextKey: bearerUserKey } = extractContextInfo(
+      request,
+      dto.userKey,
+    );
+    const effectiveUserKey = requireUserKey(dto.userKey, bearerUserKey);
+    return await this.v1Service.generateSuggestions(
+      threadId,
+      messageId,
+      projectId,
+      effectiveUserKey,
+      dto,
+    );
   }
 }

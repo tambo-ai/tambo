@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.3](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.2.2...create-tambo-app-v0.2.3) (2026-01-27)
+
+
+### Bug Fixes
+
+* **create-tambo-app:** resolve npx not found error on Windows ([#1925](https://github.com/tambo-ai/tambo/issues/1925)) ([f62f144](https://github.com/tambo-ai/tambo/commit/f62f144991722d35af7df62092d07ce8256e6197))
+
+## [0.2.2](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.2.1...create-tambo-app-v0.2.2) (2026-01-26)
+
+
+### Bug Fixes
+
+* **create-tambo-app:** use cross-spawn for Windows compatibility ([#1905](https://github.com/tambo-ai/tambo/issues/1905)) ([b3568a1](https://github.com/tambo-ai/tambo/commit/b3568a16eea921fba2ae6b74e015291e9ab34cb5))
+
 ## [0.2.1](https://github.com/tambo-ai/tambo/compare/create-tambo-app-v0.2.0...create-tambo-app-v0.2.1) (2026-01-21)
 
 

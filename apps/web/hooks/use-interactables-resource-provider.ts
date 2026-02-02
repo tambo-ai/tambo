@@ -1,5 +1,7 @@
-import type { ResourceProvider } from "@/components/ui/tambo/message-input";
-import type { ResourceItem } from "@/components/ui/tambo/text-editor";
+import type {
+  ResourceItem,
+  ResourceProvider,
+} from "@tambo-ai/ui-registry/components/message-input";
 import {
   useCurrentInteractablesSnapshot,
   useTamboContextAttachment,

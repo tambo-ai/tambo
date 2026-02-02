@@ -56,6 +56,8 @@ This is a Turborepo monorepo containing both the Tambo AI framework packages and
 - Node.js >=22
 - npm >=11
 
+It is OK to use `crypto.randomUUID()` without a fallback in runtime and test code (Node.js >=22 and modern browsers).
+
 **Recommended:** Install [mise](https://mise.jdx.dev) for automatic version management. See [mise getting started](https://mise.jdx.dev/getting-started.html) for installation instructions.
 
 ### Tool Versions
@@ -229,7 +231,8 @@ Most types do exactly what they sound like: `PartialDeep`, `ReadonlyDeep`, `Requ
 ### State Management & Data Fetching
 
 - Local UI elements should use useState.
-- For shared state between components, use React Context.
+- For shared state between components, use React Context - but prefer props over new contexts when values only need to pass through 1-2 component levels.
+- Don't create contexts for static config that doesn't change (user IDs, API keys). Pass these as props instead.
 - Minimize use of useEffect; derive state or memoize instead. Memoize callbacks with useCallback when passed to children.
 - When making network requests, use tRPC/React Query loading states instead of manually tracking separate loading flags. Follow devdocs/LOADING_STATES.md patterns for skeletons and disabling controls.
 - During loading, use Skeleton components or show real components in a disabled/blank state, rather than only showing a loading spinner.
@@ -309,6 +312,8 @@ npm run db:studio -w packages/db    # Open Drizzle Studio
 # Development (two different apps!)
 npm run dev:cloud        # Start Tambo Cloud (web + API) - ports 8260 + 8261
 npm run dev              # Start React SDK (showcase + docs)
+npm run dev:sdk          # Start React SDK in watch mode + showcase (for SDK development)
+npm run build:sdk        # One-time build of React SDK
 
 # Quality checks
 npm run lint             # Lint all packages
@@ -352,7 +357,7 @@ turbo check-types       # Type-check all packages
 
 When working across multiple packages:
 
-1. **react-sdk changes** → Run tests, rebuild, check showcase integration
+1. **react-sdk changes** → Use `npm run dev:sdk` for watch mode development, or `npm run build:sdk` for one-time builds. Run tests, check showcase integration.
 2. **cli changes** → Test component generation, verify registry updates, sync to showcase
 3. **showcase changes** → Edit CLI registry (auto-syncs to showcase)
 4. **docs changes** → Ensure examples match current API
@@ -362,6 +367,11 @@ When working across multiple packages:
 - `turbo.json` - Turborepo task pipeline and caching
 - `package.json` - Workspace configuration and scripts
 - Individual package.json files for package-specific configuration
+
+### Knowledge Base
+
+- Refer to `devdocs/` for detailed guidelines on coding standards, naming conventions, loading states, and more.
+- When adding knowledge for specific solutions, document it and place it in the appropriate `devdocs/solutions/` folder.
 
 ## 9. Testing & Quality
 
@@ -465,3 +475,4 @@ Common scopes: api, web, core, db, deps, ci, config, react-sdk, cli, showcase, d
 - EVERY PIECE OF CODE YOU WRITE IS MISSION CRITICAL AND COULD COST YOU YOUR JOB.
 - When adding/editing JSDoc comments, make sure to add @returns to provide a description of the function return (the type should not be specified since TS will infer the return from the code, not the comment.)
 - Never reference planning documents, proposals, or design docs in code comments (e.g., `// See plans/foo.md`). These artifacts are short-lived but comments persist indefinitely. Code comments should be self-contained.
+- Store planning documents, proposals, and design docs in the `devdocs/` folder. Solutions go in `devdocs/solutions/`, brainstorming goes in `devdocs/brainstorms/`, etc. The only exception is `plans/` which stays at the repo root for visibility.

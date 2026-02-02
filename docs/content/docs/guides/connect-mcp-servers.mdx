@@ -1,0 +1,195 @@
+---
+title: Connect MCP Servers
+description: Connect external tools and data sources to Tambo using the Model Context Protocol (MCP).
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+Learn how to connect MCP servers to Tambo, giving your AI access to external tools, data sources, and services.
+
+<LearnMore
+  title="Learn about MCP concepts"
+  description="Understand how MCP works and its capabilities"
+  href="/concepts/model-context-protocol"
+  icon={BookOpen}
+/>
+
+## What You Can Do With MCP
+
+MCP servers extend Tambo's capabilities by providing:
+
+- **Tools** - Functions the AI can execute (query databases, call APIs, perform calculations)
+- **Resources** - Access to files, documentation, and data sources
+- **Prompts** - Pre-configured prompt templates with context
+- **Elicitations** - Interactive data collection from users
+
+## Connection Methods
+
+Tambo supports two ways to connect MCP servers:
+
+### Server-Side Connections (Recommended)
+
+Configure MCP servers through the Tambo dashboard. These run on Tambo's backend infrastructure and provide the most efficient communication.
+
+**Best for:** Production applications, shared services, OAuth-authenticated services
+
+**Setup:**
+
+1. Navigate to your project in the [Tambo Cloud dashboard](https://console.tambo.co)
+2. Go to the "MCP Servers" section
+3. Click "Add Server"
+4. Enter the server connection details:
+   - **Server Name** - A descriptive name for your reference
+   - **Server URL** - The MCP server endpoint
+   - **Authentication** - Configure OAuth or API key headers if required
+5. Click "Connect" to establish the connection
+6. Test the connection by viewing available tools and resources
+
+**Server features are now available to your AI agent automatically.** When users ask questions or request actions that match the server's capabilities, Tambo will use the appropriate tools and resources.
+
+### Client-Side Connections
+
+Connect MCP servers from your browser using the `@tambo-ai/react` SDK. This approach runs the MCP connection in the user's browser.
+
+**Best for:** Development, testing, user-specific credentials, local services
+
+**Setup:**
+
+> **Dependency note**
+>
+> The `@tambo-ai/react/mcp` subpath declares `@modelcontextprotocol/sdk`, `zod`, and `zod-to-json-schema` as optional peer dependencies. If you import this subpath, install these packages:
+>
+> ```bash
+> npm install @modelcontextprotocol/sdk@^1.24.0 zod@^4.0.0 zod-to-json-schema@^3.25.0
+> ```
+
+Configure MCP servers in your React application:
+
+```tsx title="app/layout.tsx"
+import { TamboProvider } from "@tambo-ai/react";
+import { MCPTransport } from "@tambo-ai/react/mcp";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <TamboProvider
+          projectKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
+          mcpServers={[
+            {
+              url: "http://localhost:8123/",
+              serverKey: "local", // Optional: stable prefix for namespacing
+              customHeaders: {}, // Optional: custom headers like API keys
+              transport: MCPTransport.HTTP, // Optional: defaults to HTTP
+            },
+          ]}
+        >
+          {children}
+        </TamboProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+`TamboProvider` automatically establishes connections to the specified MCP servers and makes their capabilities available to Tambo.
+
+**Transport options:**
+
+- `MCPTransport.HTTP` (default) - For HTTP-based MCP servers
+- `MCPTransport.SSE` - For Server-Sent Events transport
+
+**Note:** Client-side connections require the MCP server to support browser-based connections. Most MCP servers support HTTP transport, which works well from browsers.
+
+## Authentication
+
+### OAuth Authentication (Server-Side Only)
+
+For OAuth-protected MCP servers:
+
+1. Configure the OAuth flow in the Tambo dashboard
+2. Complete the OAuth authorization when prompted
+3. Tambo will handle token refresh automatically
+
+**Current limitation:** OAuth tokens are shared across all users in your project. All users will act as the same identity when using OAuth-authenticated servers. Per-user OAuth is planned for a future release.
+
+### API Key Authentication
+
+For API key-based servers:
+
+**Server-side:** Configure custom headers in the dashboard with your API key.
+
+**Client-side:** Pass headers in the `customHeaders` field:
+
+```tsx
+<TamboProvider
+  projectKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}
+  mcpServers={[
+    {
+      url: "https://your-mcp-server.com/",
+      serverKey: "myserver",
+      customHeaders: {
+        Authorization: `Bearer ${yourApiKey}`,
+      },
+      transport: MCPTransport.HTTP,
+    },
+  ]}
+>
+  {children}
+</TamboProvider>
+```
+
+## Testing Your Connection
+
+After connecting an MCP server, verify it's working:
+
+1. In the Tambo dashboard, view the "Tools" and "Resources" tabs to see what's available
+2. Test a simple tool execution from the dashboard
+3. In your application, ask the AI a question that requires the MCP server's capabilities
+4. Check that the AI successfully uses the tools and returns results
+
+## Common MCP Servers
+
+Popular MCP servers you can connect:
+
+- **GitHub** - Access repositories, issues, and pull requests
+- **Linear** - Manage issues and projects
+- **Supabase** - Query your database
+- **Filesystem** - Access local files and documents
+- **Google Drive** - Read and search documents
+- **Slack** - Send messages and search conversations
+
+Many applications provide MCP servers. Check the [MCP server directory](https://modelcontextprotocol.io/servers) for available integrations.
+
+## Troubleshooting
+
+### Server won't connect
+
+- Verify the server URL is correct and accessible
+- Check that authentication credentials are valid
+- For client-side connections, ensure the server supports HTTP or SSE transport
+- Review browser console for connection errors
+
+### Tools aren't being used
+
+- Verify the server connection is active in the dashboard
+- Check that tool descriptions clearly explain what they do
+- Ensure the user's question matches the tool's capabilities
+- Review the AI's instructions to ensure it's allowed to use tools
+
+### OAuth errors
+
+- Re-authenticate the OAuth connection in the dashboard
+- Verify the OAuth app has the required scopes
+- Check that the OAuth redirect URL matches your configuration
+
+## Next Steps
+
+- [Understand MCP concepts](/concepts/model-context-protocol) - Learn how MCP works architecturally
+- [Give Tambo Components to Generate](/guides/enable-generative-ui/register-components) - Display MCP data in custom UI components
+- [Build a Custom Chat Interface](/guides/build-interfaces/build-chat-interface) - Create conversation UI with MCP features

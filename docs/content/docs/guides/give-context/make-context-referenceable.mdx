@@ -1,0 +1,448 @@
+---
+title: Make Context Referenceable
+description: Register resources that users can @ mention in messages
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+Use resources to give users a library of documentation, files, or knowledge that they can explicitly reference in their messages using @ mentions.
+
+<LearnMore
+  title="Understanding Resources"
+  description="Learn about resources and when to use them"
+  href="/concepts/additional-context"
+  icon={BookOpen}
+/>
+
+## When to Use This
+
+Resources are perfect when:
+
+- ✅ Users should be able to @ mention documentation or data
+- ✅ You have a library of referenceable content (docs, guides, files)
+- ✅ Context is discoverable through search
+- ✅ Users explicitly control when to include specific resources
+
+**Don't use resources for:**
+
+- ❌ Automatic ambient context (use [Context Helpers](/guides/give-context/make-ai-aware-of-state))
+- ❌ Temporary user-selected files (use [Context Attachments](/guides/give-context/let-users-attach-context))
+
+**For server-side integrations** with databases, file systems, or external APIs, consider using [MCP servers](/concepts/model-context-protocol) instead. MCP servers provide additional capabilities like tools, prompts, and sampling.
+
+## Prerequisites
+
+- A Tambo application with `TamboRegistryProvider` configured
+- Understanding of React providers
+
+## Static Resources
+
+The simplest way to register resources is to provide a static array via the `resources` prop. This is useful when you have a fixed set of resources that don't change:
+
+```tsx
+import { TamboRegistryProvider, ListResourceItem } from "@tambo-ai/react";
+
+const resources: ListResourceItem[] = [
+  {
+    uri: "docs://api-reference",
+    name: "API Reference",
+    description: "Complete API documentation",
+    mimeType: "text/plain",
+  },
+  {
+    uri: "docs://faq",
+    name: "Frequently Asked Questions",
+    description: "Common questions and answers",
+    mimeType: "text/plain",
+  },
+];
+
+export function App() {
+  return (
+    <TamboRegistryProvider resources={resources}>
+      <YourApp />
+    </TamboRegistryProvider>
+  );
+}
+```
+
+With static resources, you must also provide a `getResource` function to retrieve the content:
+
+```tsx
+import { ReadResourceResult } from "@tambo-ai/react";
+
+const getResource = async (uri: string): Promise<ReadResourceResult> => {
+  if (uri === "docs://api-reference") {
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: "text/plain",
+          text: "API Reference: GET /api/users - Returns a list of users...",
+        },
+      ],
+    };
+  }
+  if (uri === "docs://faq") {
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: "text/plain",
+          text: "Q: How do I reset my password? A: Click the reset link...",
+        },
+      ],
+    };
+  }
+  throw new Error(`Resource not found: ${uri}`);
+};
+
+export function App() {
+  return (
+    <TamboRegistryProvider resources={resources} getResource={getResource}>
+      <YourApp />
+    </TamboRegistryProvider>
+  );
+}
+```
+
+## Dynamic Resources
+
+For resources that change based on search queries or other dynamic conditions, provide `listResources` and `getResource` functions. Both functions must be provided together:
+
+```tsx
+import {
+  TamboRegistryProvider,
+  ListResourceItem,
+  ReadResourceResult,
+} from "@tambo-ai/react";
+
+const listResources = async (search?: string): Promise<ListResourceItem[]> => {
+  // Fetch available resources, optionally filtered by search
+  const allDocs = await fetchDocumentation();
+
+  if (search) {
+    return allDocs.filter((doc) =>
+      doc.name.toLowerCase().includes(search.toLowerCase()),
+    );
+  }
+
+  return allDocs.map((doc) => ({
+    uri: `docs://${doc.id}`,
+    name: doc.title,
+    description: doc.summary,
+    mimeType: "text/plain",
+  }));
+};
+
+const getResource = async (uri: string): Promise<ReadResourceResult> => {
+  const docId = uri.replace("docs://", "");
+  const doc = await fetchDocument(docId);
+
+  if (!doc) {
+    throw new Error(`Document not found: ${uri}`);
+  }
+
+  return {
+    contents: [
+      {
+        uri,
+        mimeType: "text/plain",
+        text: doc.content,
+      },
+    ],
+  };
+};
+
+export function App() {
+  return (
+    <TamboRegistryProvider
+      listResources={listResources}
+      getResource={getResource}
+    >
+      <YourApp />
+    </TamboRegistryProvider>
+  );
+}
+```
+
+> Note: `listResources` and `getResource` must be provided together. If you provide one, you must provide the other. This validation ensures resources can be both discovered and retrieved.
+
+## Programmatic Registration
+
+You can also register resources programmatically using the registry context. This is useful for adding resources based on user actions or application state:
+
+```tsx
+import { useTamboRegistry } from "@tambo-ai/react";
+
+function DocumentUploader() {
+  const { registerResource } = useTamboRegistry();
+
+  const handleUpload = async (file: File) => {
+    const content = await file.text();
+
+    // Register the uploaded document as a resource
+    registerResource({
+      uri: `user-docs://${file.name}`,
+      name: file.name,
+      description: `User uploaded: ${file.name}`,
+      mimeType: file.type,
+    });
+  };
+
+  return (
+    <input
+      type="file"
+      onChange={(e) => {
+        if (e.target.files?.[0]) {
+          handleUpload(e.target.files[0]);
+        }
+      }}
+    />
+  );
+}
+```
+
+For batch registration, use `registerResources`:
+
+```tsx
+import { useTamboRegistry } from "@tambo-ai/react";
+
+function DocumentLibrary() {
+  const { registerResources } = useTamboRegistry();
+
+  const loadLibrary = async () => {
+    const docs = await fetchAllDocuments();
+
+    registerResources(
+      docs.map((doc) => ({
+        uri: `library://${doc.id}`,
+        name: doc.title,
+        description: doc.summary,
+        mimeType: "text/plain",
+      })),
+    );
+  };
+
+  // Load on mount
+  useEffect(() => {
+    loadLibrary();
+  }, []);
+
+  return <div>Library loaded</div>;
+}
+```
+
+## Resource Content Types
+
+Resources can return various content types through the `contents` array. Each content item must include a `uri` and `mimeType`:
+
+### Text Content
+
+```tsx
+const getResource = async (uri: string): Promise<ReadResourceResult> => {
+  return {
+    contents: [
+      {
+        uri,
+        mimeType: "text/plain",
+        text: "This is plain text content",
+      },
+    ],
+  };
+};
+```
+
+### Binary Content (Base64)
+
+```tsx
+const getResource = async (uri: string): Promise<ReadResourceResult> => {
+  const imageData = await fetchImageAsBase64(uri);
+
+  return {
+    contents: [
+      {
+        uri,
+        mimeType: "image/png",
+        blob: imageData, // Base64-encoded binary data
+      },
+    ],
+  };
+};
+```
+
+### Multiple Content Items
+
+A single resource can return multiple content items:
+
+```tsx
+const getResource = async (uri: string): Promise<ReadResourceResult> => {
+  return {
+    contents: [
+      {
+        uri: `${uri}/readme`,
+        mimeType: "text/plain",
+        text: "README content...",
+      },
+      {
+        uri: `${uri}/diagram`,
+        mimeType: "image/png",
+        blob: "base64-encoded-image-data...",
+      },
+    ],
+  };
+};
+```
+
+## Resource URIs and Prefixing
+
+Local resources registered through `TamboRegistryProvider` are **never prefixed** with a server key. This distinguishes them from MCP resources, which are always prefixed with their server key to prevent URI conflicts.
+
+```tsx
+// Local resource URI (no prefix)
+uri: "docs://getting-started";
+
+// MCP resource URI (always prefixed)
+uri: "filesystem:file:///path/to/document";
+```
+
+When using `useTamboMcpResourceList()`, local resources appear alongside MCP resources in the combined list, with local resources easily identifiable by their unprefixed URIs.
+
+## Validation and Error Handling
+
+Tambo validates resource registrations to ensure data integrity:
+
+- **Resource objects**: Must have `uri`, `name`, and `mimeType` properties
+- **Function pairing**: `listResources` and `getResource` must both be provided or both omitted
+- **URI uniqueness**: Each resource should have a unique URI within your application
+
+```tsx
+// ✅ Valid - both functions provided
+<TamboRegistryProvider
+  listResources={listResources}
+  getResource={getResource}
+>
+
+// ✅ Valid - neither function provided (static only)
+<TamboRegistryProvider resources={staticResources}>
+
+// ❌ Invalid - only one function provided
+<TamboRegistryProvider listResources={listResources}>
+// Error: Both listResources and getResource must be provided together
+```
+
+## Integration with MCP Hooks
+
+Local resources integrate seamlessly with existing MCP hooks:
+
+### Listing All Resources
+
+```tsx
+import { useTamboMcpResourceList } from "@tambo-ai/react";
+
+function ResourceBrowser() {
+  const { data: resources } = useTamboMcpResourceList();
+
+  return (
+    <ul>
+      {resources?.map((entry) => (
+        <li key={entry.resource.uri}>
+          {entry.resource.name}
+          {entry.server === null && " (local)"}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Reading a Resource
+
+```tsx
+import { useTamboMcpResource } from "@tambo-ai/react";
+
+function ResourceViewer({ uri }: { uri: string }) {
+  const { data: resource } = useTamboMcpResource(uri);
+
+  if (!resource) return <div>Loading...</div>;
+
+  return (
+    <div>
+      {resource.contents.map((content, i) => (
+        <div key={i}>
+          {content.text && <pre>{content.text}</pre>}
+          {content.blob && (
+            <img
+              src={`data:${content.mimeType};base64,${content.blob}`}
+              alt=""
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Combining Registration Methods
+
+You can combine static resources with dynamic functions for maximum flexibility:
+
+```tsx
+import { TamboRegistryProvider } from "@tambo-ai/react";
+
+// Static resources that are always available
+const staticResources = [
+  {
+    uri: "docs://privacy-policy",
+    name: "Privacy Policy",
+    mimeType: "text/plain",
+  },
+];
+
+// Dynamic function to list all resources (static + dynamic)
+const listResources = async (search?: string) => {
+  const dynamicDocs = await fetchUserDocuments();
+  const allResources = [
+    ...staticResources,
+    ...dynamicDocs.map((doc) => ({
+      uri: `user-docs://${doc.id}`,
+      name: doc.title,
+      mimeType: "text/plain",
+    })),
+  ];
+
+  if (search) {
+    return allResources.filter((r) =>
+      r.name.toLowerCase().includes(search.toLowerCase()),
+    );
+  }
+
+  return allResources;
+};
+
+const getResource = async (uri: string) => {
+  if (uri === "docs://privacy-policy") {
+    return {
+      contents: [
+        { uri, mimeType: "text/plain", text: "Privacy policy text..." },
+      ],
+    };
+  }
+
+  // Handle dynamic resources
+  const doc = await fetchDocument(uri);
+  return {
+    contents: [{ uri, mimeType: "text/plain", text: doc.content }],
+  };
+};
+
+<TamboRegistryProvider
+  resources={staticResources}
+  listResources={listResources}
+  getResource={getResource}
+>
+  <App />
+</TamboRegistryProvider>;
+```

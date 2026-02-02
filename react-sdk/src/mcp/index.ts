@@ -1,11 +1,10 @@
 /**
  * Entry point for MCP (Model Context Protocol) support in the React SDK.
  *
- * Note: Importing from `@tambo-ai/react/mcp` requires installing the optional
- * peer dependencies `@modelcontextprotocol/sdk`, `zod`, and `zod-to-json-schema`
- * in your application. They are marked as optional so apps that do not use MCP
- * do not need to include them. See the React SDK README for the recommended
- * version ranges.
+ * Note: The `@modelcontextprotocol/sdk` is included automatically with `@tambo-ai/react`.
+ * If you use features that require schema validation (like component props schemas),
+ * you'll need to install `zod` and `zod-to-json-schema` as optional peer dependencies.
+ * See the React SDK README for the recommended version ranges.
  */
 export { MCPTransport } from "./mcp-client";
 export type {

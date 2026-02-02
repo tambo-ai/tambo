@@ -1,5 +1,113 @@
 # Changelog
 
+## [0.134.0](https://github.com/tambo-ai/tambo/compare/api-v0.133.4...api-v0.134.0) (2026-01-30)
+
+
+### Features
+
+* **api:** add V1 suggestions API endpoints ([#2092](https://github.com/tambo-ai/tambo/issues/2092)) ([e80b99d](https://github.com/tambo-ai/tambo/commit/e80b99d3db9fda166e49dcb83274c898efa8cdae))
+* **ci:** split CI into parallel jobs with Codecov ([#1908](https://github.com/tambo-ai/tambo/issues/1908)) ([9ba2ea8](https://github.com/tambo-ai/tambo/commit/9ba2ea876e014e95fe7e00543cd63595c3cd73ca))
+
+## [0.133.4](https://github.com/tambo-ai/tambo/compare/api-v0.133.3...api-v0.133.4) (2026-01-30)
+
+
+### Bug Fixes
+
+* **api:** remove langfuse span processing ([#2052](https://github.com/tambo-ai/tambo/issues/2052)) ([4a715ad](https://github.com/tambo-ai/tambo/commit/4a715ad16d707d0110e861258de08bd6367f809c))
+
+## [0.133.3](https://github.com/tambo-ai/tambo/compare/api-v0.133.2...api-v0.133.3) (2026-01-29)
+
+
+### Miscellaneous Chores
+
+* small change to trigger api release ([#2045](https://github.com/tambo-ai/tambo/issues/2045)) ([d52f777](https://github.com/tambo-ai/tambo/commit/d52f777da55dcb5e48d43fac1a1842618f187307))
+
+## [0.133.2](https://github.com/tambo-ai/tambo/compare/api-v0.133.1...api-v0.133.2) (2026-01-29)
+
+
+### Bug Fixes
+
+* **api:** use ANY_CONTEXT_KEY for thread lookups when contextKey is not provided ([#2015](https://github.com/tambo-ai/tambo/issues/2015)) ([24a6dbf](https://github.com/tambo-ai/tambo/commit/24a6dbfb65566ab2dabb32431d300b3f81d6fa1b))
+* fetch thread without contextkey ([#2034](https://github.com/tambo-ai/tambo/issues/2034)) ([3ceaa55](https://github.com/tambo-ai/tambo/commit/3ceaa558ec8547c464426b5c56c2c0c787ea1098))
+
+
+### Documentation
+
+* **api:** clarify userKey description in V1 API DTOs ([#2007](https://github.com/tambo-ai/tambo/issues/2007)) ([a348372](https://github.com/tambo-ai/tambo/commit/a34837236456b7946f933ade9bef701139340a9b))
+
+## [0.133.1](https://github.com/tambo-ai/tambo/compare/api-v0.133.0...api-v0.133.1) (2026-01-29)
+
+
+### Miscellaneous Chores
+
+* **api:** update description ([#2008](https://github.com/tambo-ai/tambo/issues/2008)) ([4a5445d](https://github.com/tambo-ai/tambo/commit/4a5445d00f56e7b9d215f315ae3d5017941001dc))
+
+## [0.133.0](https://github.com/tambo-ai/tambo/compare/api-v0.132.1...api-v0.133.0) (2026-01-28)
+
+
+### Features
+
+* **api:** add userKey support to V1 API endpoints ([#1994](https://github.com/tambo-ai/tambo/issues/1994)) ([02e7169](https://github.com/tambo-ai/tambo/commit/02e7169e63422961a68bd0c40cec2cf7acf11f8d))
+
+
+### Bug Fixes
+
+* **api:** remove inline oneOf schema from component state endpoint ([#1961](https://github.com/tambo-ai/tambo/issues/1961)) ([c79be8e](https://github.com/tambo-ai/tambo/commit/c79be8ec7de12df6ccb0049a95990e05cf4b871f))
+
+## [0.132.1](https://github.com/tambo-ai/tambo/compare/api-v0.132.0...api-v0.132.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* **api:** add ApiExtraModels to DTOs for OpenAPI schema generation ([#1953](https://github.com/tambo-ai/tambo/issues/1953)) ([c345c72](https://github.com/tambo-ai/tambo/commit/c345c725c321ea3517805daf7f2a044ce6ade2f6))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump posthog-node from 5.21.2 to 5.24.1 ([#1938](https://github.com/tambo-ai/tambo/issues/1938)) ([b9790dd](https://github.com/tambo-ai/tambo/commit/b9790dd427ab59321f227efe281d335df2fba53c))
+* **deps:** bump the sentry group with 3 updates ([#1933](https://github.com/tambo-ai/tambo/issues/1933)) ([5bec612](https://github.com/tambo-ai/tambo/commit/5bec6126512078ee8f8bff2845d1660f73357d88))
+* **deps:** bump the small-safe-packages group with 10 updates ([#1932](https://github.com/tambo-ai/tambo/issues/1932)) ([66f8ee8](https://github.com/tambo-ai/tambo/commit/66f8ee83adbcdb8c64d5c85159bc6574d4166f7b))
+* **docs:** Organize reference section ([#1916](https://github.com/tambo-ai/tambo/issues/1916)) ([46154a5](https://github.com/tambo-ai/tambo/commit/46154a5fd22525f9d6dc601119d09c8f8909d841))
+
+## [0.132.0](https://github.com/tambo-ai/tambo/compare/api-v0.131.0...api-v0.132.0) (2026-01-27)
+
+
+### Features
+
+* **api:** implement component state update endpoint (Phase 4) ([#1844](https://github.com/tambo-ai/tambo/issues/1844)) ([32c2425](https://github.com/tambo-ai/tambo/commit/32c242517f36b8e33a15ce78e87131cdca94a8c2))
+
+
+### Bug Fixes
+
+* **api:** add ApiDiscriminatedUnion decorator to eliminate boilerplate ([#1860](https://github.com/tambo-ai/tambo/issues/1860)) ([9834ce6](https://github.com/tambo-ai/tambo/commit/9834ce68d8fbe354dbf4bdf8a9629ac64f3dabaf))
+* **api:** remove projectId from V1 public API thread DTO ([#1897](https://github.com/tambo-ai/tambo/issues/1897)) ([76ba68c](https://github.com/tambo-ai/tambo/commit/76ba68ce097b00b807ec47a7d9033e88d00d4778))
+* **api:** restore e2e tests and add them to CI ([#1910](https://github.com/tambo-ai/tambo/issues/1910)) ([b085089](https://github.com/tambo-ai/tambo/commit/b085089b693c3b6f19a75296f6dccf30a4b4dd2a))
+* **cli:** optimization to ScrollableMessageContainer [#1706](https://github.com/tambo-ai/tambo/issues/1706) ([#1887](https://github.com/tambo-ai/tambo/issues/1887)) ([3e05258](https://github.com/tambo-ai/tambo/commit/3e052587b3e016439206d229b433fc0c2c666ba2))
+* update openapi name to tambo ([#1873](https://github.com/tambo-ai/tambo/issues/1873)) ([7433605](https://github.com/tambo-ai/tambo/commit/74336052746987f6e725504c197c6f931e80416c))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the ag-ui group with 2 updates ([#1833](https://github.com/tambo-ai/tambo/issues/1833)) ([dacef94](https://github.com/tambo-ai/tambo/commit/dacef94c7e5d4ca917f6232542fd93cd84cfd4fb))
+* **test:** bump coverage thresholds (2026-01-26) ([#1918](https://github.com/tambo-ai/tambo/issues/1918)) ([3173795](https://github.com/tambo-ai/tambo/commit/3173795837258192e183144b3c5c48c901990d26))
+
+
+### Code Refactoring
+
+* **api:** type-narrow StorageConfigService.hasStorageConfig [#1770](https://github.com/tambo-ai/tambo/issues/1770) ([#1854](https://github.com/tambo-ai/tambo/issues/1854)) ([4d64067](https://github.com/tambo-ai/tambo/commit/4d6406701f5cb347f6fcad87dadcec591733ad8f))
+
+## [0.131.0](https://github.com/tambo-ai/tambo/compare/api-v0.130.0...api-v0.131.0) (2026-01-21)
+
+
+### Features
+
+* **api:** add Swagger documentation for SSE event streams ([#1865](https://github.com/tambo-ai/tambo/issues/1865)) ([34645f7](https://github.com/tambo-ai/tambo/commit/34645f70a661f4a6e7c404e6dc95073cdf07eb4f))
+
+
+### Miscellaneous Chores
+
+* **api:** add NestJS testing helpers ([#1777](https://github.com/tambo-ai/tambo/issues/1777)) ([0331a9f](https://github.com/tambo-ai/tambo/commit/0331a9f0346f718d7cbaad6b3819b43289557eb9))
+
 ## [0.130.0](https://github.com/tambo-ai/tambo/compare/api-v0.129.1...api-v0.130.0) (2026-01-21)
 
 

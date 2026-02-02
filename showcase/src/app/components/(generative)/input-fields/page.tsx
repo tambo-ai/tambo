@@ -3,7 +3,6 @@
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
 import { InputFieldsChatInterface } from "@/components/generative/InputFieldsChatInterface";
-import { TamboProvider } from "@tambo-ai/react";
 
 export default function InputFieldsComponentPage() {
   return (
@@ -25,17 +24,16 @@ export default function InputFieldsComponentPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-semibold">Examples</h2>
 
+        <p className="text-sm text-muted-foreground">
+          This interactive demo runs inside the showcase&apos;s app-level
+          TamboProvider, which sets a per-user context key (persisted in
+          localStorage).
+        </p>
+
         <div className="space-y-6">
           <ComponentCodePreview
             title="User Registration Fields"
-            component={
-              <TamboProvider
-                apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? ""}
-                tamboUrl={process.env.NEXT_PUBLIC_TAMBO_API_URL ?? ""}
-              >
-                <InputFieldsChatInterface />
-              </TamboProvider>
-            }
+            component={<InputFieldsChatInterface />}
             code={`import { InputFields } from "@/components/tambo/input-fields";
 
 export function UserRegistrationFields() {

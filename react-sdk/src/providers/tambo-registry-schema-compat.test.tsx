@@ -321,83 +321,58 @@ describe("Schema Compatibility", () => {
   });
 
   describe("registerTool with different schema types", () => {
-    describe("Zod 3 function schemas", () => {
-      it("should register tool with Zod 3 function schema", () => {
+    describe("Deprecated toolSchema throws error", () => {
+      const deprecatedTool = {
+        name: "deprecated-tool",
+        description: "Tool with deprecated toolSchema",
+        tool: jest.fn().mockResolvedValue("result"),
+        toolSchema: z3
+          .function()
+          .args(z3.string().describe("input parameter"))
+          .returns(z3.string()),
+      };
+
+      it("should throw error when using deprecated toolSchema", () => {
         const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
-        const tool = defineTool({
-          name: "zod3-function-tool",
-          description: "Tool with Zod 3 function schema",
-          tool: jest.fn().mockResolvedValue("result"),
-          toolSchema: z3
-            .function()
-            .args(z3.string().describe("input parameter"))
-            .returns(z3.string()),
-        });
-
-        act(() => {
-          result.current.registerTool(tool);
-        });
-
-        expect(result.current.toolRegistry).toHaveProperty(
-          "zod3-function-tool",
+        expect(() => {
+          act(() => result.current.registerTool(deprecatedTool));
+        }).toThrow(
+          'Tool "deprecated-tool" uses deprecated "toolSchema" property.',
         );
       });
 
-      it("should register tool with Zod 3 function schema with multiple args", () => {
+      it("registerTools should throw error when using deprecated toolSchema", () => {
         const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
-        const tool = defineTool({
-          name: "zod3-multi-arg-tool",
-          description: "Tool with multiple arguments",
-          tool: jest.fn().mockResolvedValue("result"),
-          toolSchema: z3
-            .function()
-            .args(
-              z3.string().describe("first argument"),
-              z3.number().describe("second argument"),
-              z3.boolean().optional().describe("optional third argument"),
-            )
-            .returns(z3.object({ success: z3.boolean() })),
-        });
-
-        act(() => {
-          result.current.registerTool(tool);
-        });
-
-        expect(result.current.toolRegistry).toHaveProperty(
-          "zod3-multi-arg-tool",
+        expect(() => {
+          act(() => result.current.registerTools([deprecatedTool]));
+        }).toThrow(
+          'Tool "deprecated-tool" uses deprecated "toolSchema" property.',
         );
       });
+    });
 
-      it("should register tool with Zod 3 function schema with object arg", () => {
+    describe("Zod 3 object schemas for tools", () => {
+      it("should register tool with Zod 3 object inputSchema", () => {
         const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
         const tool = defineTool({
-          name: "zod3-object-arg-tool",
-          description: "Tool with object argument",
+          name: "zod3-object-tool",
+          description: "Tool with Zod 3 object schema",
           tool: jest.fn().mockResolvedValue("result"),
-          toolSchema: z3
-            .function()
-            .args(
-              z3
-                .object({
-                  query: z3.string().describe("search query"),
-                  limit: z3.number().optional().describe("max results"),
-                  filters: z3.array(z3.string()).optional(),
-                })
-                .describe("search options"),
-            )
-            .returns(z3.array(z3.string())),
+          inputSchema: z3.object({
+            query: z3.string().describe("search query"),
+            limit: z3.number().optional().describe("max results"),
+          }),
+          outputSchema: z3.string(),
         });
 
         act(() => {
           result.current.registerTool(tool);
         });
 
-        expect(result.current.toolRegistry).toHaveProperty(
-          "zod3-object-arg-tool",
-        );
+        expect(result.current.toolRegistry).toHaveProperty("zod3-object-tool");
       });
     });
 
@@ -712,12 +687,15 @@ describe("Schema Compatibility", () => {
     it("should register tools with mixed Zod 3, Zod 4, and JSON Schema", () => {
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
-      // Zod 3 tool (using function schema)
+      // Zod 3 tool (using object inputSchema)
       const zod3Tool = defineTool({
         name: "mixed-zod3-tool",
         description: "Zod 3 tool",
         tool: jest.fn().mockResolvedValue("result"),
-        toolSchema: z3.function().args(z3.string()).returns(z3.string()),
+        inputSchema: z3.object({
+          input: z3.string(),
+        }),
+        outputSchema: z3.string(),
       });
 
       // Zod 4 tool (using Standard Schema with object inputSchema)
@@ -777,14 +755,15 @@ describe("Schema Compatibility", () => {
     });
   });
   describe("registerTool preserves maxCalls", () => {
-    it("should preserve maxCalls for legacy toolSchema tools", () => {
+    it("should preserve maxCalls for Zod 3 inputSchema tools", () => {
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
       const tool = defineTool({
-        name: "legacy-max-tool",
-        description: "Legacy tool with maxCalls",
+        name: "zod3-max-tool",
+        description: "Zod 3 tool with maxCalls",
         tool: jest.fn().mockResolvedValue("ok"),
-        toolSchema: z3.function().args(z3.string()).returns(z3.string()),
+        inputSchema: z3.object({ q: z3.string() }),
+        outputSchema: z3.string(),
         maxCalls: 2,
       });
 
@@ -792,15 +771,15 @@ describe("Schema Compatibility", () => {
         result.current.registerTool(tool);
       });
 
-      expect(result.current.toolRegistry["legacy-max-tool"].maxCalls).toBe(2);
+      expect(result.current.toolRegistry["zod3-max-tool"].maxCalls).toBe(2);
     });
 
-    it("should preserve maxCalls for inputSchema tools", () => {
+    it("should preserve maxCalls for Zod 4 inputSchema tools", () => {
       const { result } = renderHook(() => useTamboRegistry(), { wrapper });
 
       const tool = defineTool({
-        name: "input-max-tool",
-        description: "Input-schema tool with maxCalls",
+        name: "zod4-max-tool",
+        description: "Zod 4 tool with maxCalls",
         tool: jest.fn().mockResolvedValue("ok"),
         inputSchema: z4.object({ q: z4.string() }),
         outputSchema: z4.string(),
@@ -811,7 +790,7 @@ describe("Schema Compatibility", () => {
         result.current.registerTool(tool);
       });
 
-      expect(result.current.toolRegistry["input-max-tool"].maxCalls).toBe(3);
+      expect(result.current.toolRegistry["zod4-max-tool"].maxCalls).toBe(3);
     });
   });
 });

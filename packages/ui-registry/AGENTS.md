@@ -17,7 +17,17 @@ npm run lint -w packages/ui-registry       # ESLint code checking
 npm run lint:fix -w packages/ui-registry   # Fix lint issues
 npm run check-types -w packages/ui-registry # TypeScript type checking
 npm run test -w packages/ui-registry        # Run component tests
+npm run verify-exports -w packages/ui-registry # Validate package.json exports
 ```
+
+## CI Verification
+
+The `verify-exports` script validates that `package.json` exports match the filesystem:
+
+- All exports point to files that exist
+- All component directories have a corresponding export
+
+This runs automatically before lint via turbo.json. If you add a new component and forget to add its export, CI will fail.
 
 ## Architecture Overview
 
@@ -56,6 +66,20 @@ Each component directory contains:
 - `*.tsx` files - React component source
 - `*.test.tsx` files - Jest tests (alongside components)
 - `index.tsx` - Public exports
+
+## Package Relationships
+
+**Data Flow:**
+
+1. Components are authored here in `src/components/`
+2. At CLI build time, `cli/scripts/copy-registry.ts` copies them to `cli/dist/registry/`
+3. Users run `tambo add <component>` which reads from `cli/dist/registry/`
+
+**Build Dependencies:**
+
+- `turbo.json` configures `tambo#build` to watch this package's source files
+- Changes here invalidate CLI's build cache automatically
+- Showcase and docs import directly (no copy step)
 
 ## Testing
 
@@ -142,6 +166,12 @@ Focus on:
 1. Edit the component source in `src/components/`
 2. Run tests: `npm test -w packages/ui-registry`
 3. The CLI will pick up changes on next build
+
+## Gotchas
+
+- **Add exports for new components**: New component directories must be added to `package.json` exports field. The `verify-exports` script will catch this in CI.
+- **Don't edit `cli/dist/registry/`**: Those files are copied from here at build time and will be overwritten.
+- **Rebuild CLI after changes**: Run `npm run build -w cli` to copy updated components to the CLI's dist folder.
 
 ## Important Development Rules
 

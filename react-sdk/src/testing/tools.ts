@@ -1,10 +1,6 @@
-import { TamboToolWithToolSchema } from "../model/component-metadata";
 import { TamboComponent, TamboTool } from "../providers";
 import { isStandardSchema, safeSchemaToJsonSchema } from "../schema";
-import {
-  adaptToolFromFnSchema,
-  mapTamboToolToContextTool,
-} from "../util/registry";
+import { mapTamboToolToContextTool } from "../util/registry";
 
 /**
  * Serializes the registry for testing purposes.
@@ -26,7 +22,7 @@ export function serializeRegistry(mockRegistry: TamboComponent[]) {
         ? safeSchemaToJsonSchema(propsSchema)
         : propsSchema,
       contextTools: associatedTools?.map((tool) =>
-        mapTamboToolToContextTool(adaptToolFromFnSchema(tool)),
+        mapTamboToolToContextTool(tool),
       ),
     }),
   );
@@ -84,26 +80,4 @@ export function createMockTool(
     inputSchema: schemaOrOptions,
     outputSchema: { type: "object", properties: {} },
   };
-}
-
-// Helper to create a minimal TamboTool for testing -- uses toolSchema field as function instead of inputSchema
-/**
- * Creates a mock TamboToolWithToolSchema for testing purposes.
- * Does NOT adapt to inputSchema format - preserves the deprecated toolSchema interface.
- * @param toolSchema - The tool schema for the tool
- * @param maxCalls - Optional max calls override
- * @returns A mock TamboToolWithToolSchema instance (NOT adapted)
- * @internal
- */
-export function createMockToolWithToolSchema(
-  toolSchema: TamboToolWithToolSchema["toolSchema"],
-  maxCalls?: number,
-): TamboToolWithToolSchema {
-  return {
-    name: "testTool",
-    description: "A test tool",
-    tool: jest.fn().mockImplementation(() => {}),
-    toolSchema,
-    ...(maxCalls !== undefined ? { maxCalls } : {}),
-  } as TamboToolWithToolSchema;
 }

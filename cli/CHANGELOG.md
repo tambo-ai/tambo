@@ -1,5 +1,76 @@
 # Changelog
 
+## [0.51.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.50.0...tambo-v0.51.0) (2026-01-31)
+
+
+### Features
+
+* **react-sdk:** update useTamboV1Suggestions to use v1 API endpoints ([#2096](https://github.com/tambo-ai/tambo/issues/2096)) ([afa26c3](https://github.com/tambo-ai/tambo/commit/afa26c36335ad235ef0fb04675b2713e380d8354))
+
+
+### Bug Fixes
+
+* **cli:** add message base components as message config dependencies ([#2106](https://github.com/tambo-ai/tambo/issues/2106)) ([ee3509e](https://github.com/tambo-ai/tambo/commit/ee3509ecd2b0cdc2071546939d05cda918e3c3b2))
+
+## [0.50.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.49.0...tambo-v0.50.0) (2026-01-31)
+
+
+### Features
+
+* **cli:** add Phase 2 agent-friendly CLI features ([#1979](https://github.com/tambo-ai/tambo/issues/1979)) ([7e232d6](https://github.com/tambo-ai/tambo/commit/7e232d688f37787400c0dece8749460b5c7d1c3a))
+* **react-sdk:** implement v1 API Phase 9-10 with userKey and API cleanup ([#2032](https://github.com/tambo-ai/tambo/issues/2032)) ([9e055ab](https://github.com/tambo-ai/tambo/commit/9e055abddab6390498e5f2c6cb1224efbb556dfc))
+* **react-sdk:** implement v1 API Phases 6-7 with code review fixes ([#1954](https://github.com/tambo-ai/tambo/issues/1954)) ([9a7e098](https://github.com/tambo-ai/tambo/commit/9a7e098e0f969ec1512d6705c020dc46f625ac95))
+
+
+### Bug Fixes
+
+* **cli:** install components to tambo/ subdirectory in full-send mode ([#1968](https://github.com/tambo-ai/tambo/issues/1968)) ([c27dc7b](https://github.com/tambo-ai/tambo/commit/c27dc7b42d4a3e2406c8392d8ef4b574f337732d))
+
+
+### Tests
+
+* **cli:** add tests for cross-component file references and skipTailwindSetup ([#1972](https://github.com/tambo-ai/tambo/issues/1972)) ([8a301af](https://github.com/tambo-ai/tambo/commit/8a301af2977337a5cc3552ec935914628df81c31))
+
+## [0.49.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.48.0...tambo-v0.49.0) (2026-01-27)
+
+
+### Features
+
+* **cli:** add Rush.js package manager support ([#1825](https://github.com/tambo-ai/tambo/issues/1825)) ([8d004c5](https://github.com/tambo-ai/tambo/commit/8d004c5450cf9b5996d6f5d07d21ca656aa8580d))
+
+
+### Bug Fixes
+
+* **create-tambo-app:** resolve npx not found error on Windows ([#1925](https://github.com/tambo-ai/tambo/issues/1925)) ([f62f144](https://github.com/tambo-ai/tambo/commit/f62f144991722d35af7df62092d07ce8256e6197))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump inquirer from 13.1.0 to 13.2.1 ([#1937](https://github.com/tambo-ai/tambo/issues/1937)) ([c800a4d](https://github.com/tambo-ai/tambo/commit/c800a4de60b9caca59280b2b536f6aa52b8cae65))
+* **test:** bump coverage thresholds (2026-01-26) ([#1918](https://github.com/tambo-ai/tambo/issues/1918)) ([3173795](https://github.com/tambo-ai/tambo/commit/3173795837258192e183144b3c5c48c901990d26))
+
+
+### Tests
+
+* **cli:** add tests for critical utility modules ([#1858](https://github.com/tambo-ai/tambo/issues/1858)) ([613b445](https://github.com/tambo-ai/tambo/commit/613b445d650e3ac04e6537fc16b9ea2775844a6a))
+
+## [0.48.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.47.0...tambo-v0.48.0) (2026-01-21)
+
+
+### Features
+
+* **ui-registry:** create centralized component registry package ([#1793](https://github.com/tambo-ai/tambo/issues/1793)) ([ac0dd75](https://github.com/tambo-ai/tambo/commit/ac0dd75a35cc2f37f0635cba48b6983c544c70a4))
+
+
+### Bug Fixes
+
+* **cli:** allow git clone in non-interactive mode ([#1811](https://github.com/tambo-ai/tambo/issues/1811)) ([68035e2](https://github.com/tambo-ai/tambo/commit/68035e27becd6669bfca1c8e77e0cc374ae2dda2))
+
+
+### Miscellaneous Chores
+
+* **test:** bump coverage thresholds (2026-01-19) ([#1822](https://github.com/tambo-ai/tambo/issues/1822)) ([acf34a5](https://github.com/tambo-ai/tambo/commit/acf34a58b3cda7d8ed0b1313998ecf53e8463ad3))
+
 ## [0.47.0](https://github.com/tambo-ai/tambo/compare/tambo-v0.46.1...tambo-v0.47.0) (2026-01-16)
 
 

@@ -5,28 +5,33 @@ import {
   updateProjectLlmSettingsInput,
   updateProjectLlmSettingsOutputSchema,
 } from "@/lib/schemas/llm";
-import type { CustomLlmParameters } from "@tambo-ai-cloud/core";
 import { z } from "zod/v3";
 import { invalidateLlmSettingsCache } from "./helpers";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**
- * Zod schema for the `fetchAvailableLlmModels` function.
- * Returns all available LLM providers and their models with IDs.
+ * Input schema for the `fetchAvailableLlmModels` function.
+ * No arguments required.
  */
-export const fetchAvailableLlmModelsSchema = z
-  .function()
-  .args()
-  .returns(llmProviderConfigSchema);
+export const fetchAvailableLlmModelsInputSchema = z.object({});
 
 /**
- * Zod schema for the `fetchProjectLlmSettings` function.
- * Defines the argument as a project ID string and the return type as an object containing LLM settings.
+ * Output schema for the `fetchAvailableLlmModels` function.
+ * Returns all available LLM providers and their models with IDs.
  */
-export const fetchProjectLlmSettingsSchema = z
-  .function()
-  .args(getProjectLlmSettingsInput)
-  .returns(projectLlmSettingsSchema);
+export const fetchAvailableLlmModelsOutputSchema = llmProviderConfigSchema;
+
+/**
+ * Input schema for the `fetchProjectLlmSettings` function.
+ * Requires a project ID string.
+ */
+export const fetchProjectLlmSettingsInputSchema = getProjectLlmSettingsInput;
+
+/**
+ * Output schema for the `fetchProjectLlmSettings` function.
+ * Returns LLM settings.
+ */
+export const fetchProjectLlmSettingsOutputSchema = projectLlmSettingsSchema;
 
 /**
  * Tool-specific input schema for updateProjectLlmSettings.
@@ -34,25 +39,16 @@ export const fetchProjectLlmSettingsSchema = z
  * nested z.record() is not supported in Vercel AI SDK tool schemas.
  * The actual validation happens in the tRPC layer.
  */
-const updateProjectLlmSettingsToolInput = updateProjectLlmSettingsInput.extend({
-  customLlmParameters: z
-    .any()
-    .nullable()
-    .optional()
-    .describe(
-      'Custom LLM parameters. Structure: { "providerName": { "modelName": { "parameterName": parameterValue } } }',
-    ),
-});
-
-/**
- * Zod schema for the `updateProjectLlmSettings` function.
- * Defines arguments as the project ID string and an LLM settings object,
- * and the return type as an object representing the updated LLM settings.
- */
-export const updateProjectLlmSettingsSchema = z
-  .function()
-  .args(updateProjectLlmSettingsToolInput)
-  .returns(updateProjectLlmSettingsOutputSchema);
+export const updateProjectLlmSettingsInputSchema =
+  updateProjectLlmSettingsInput.extend({
+    customLlmParameters: z
+      .any()
+      .nullable()
+      .optional()
+      .describe(
+        'Custom LLM parameters. Structure: { "providerName": { "modelName": { "parameterName": parameterValue } } }',
+      ),
+  });
 
 /**
  * Register LLM provider settings management tools
@@ -74,7 +70,8 @@ export function registerLlmTools(
     tool: async () => {
       return await ctx.trpcClient.llm.getLlmProviderConfig.query();
     },
-    toolSchema: fetchAvailableLlmModelsSchema,
+    inputSchema: fetchAvailableLlmModelsInputSchema,
+    outputSchema: fetchAvailableLlmModelsOutputSchema,
   });
 
   /**
@@ -88,10 +85,11 @@ export function registerLlmTools(
     name: "fetchProjectLlmSettings",
     description:
       "Fetches LLM configuration settings for a project. Requires the complete project ID.",
-    tool: async (params: { projectId: string }) => {
+    tool: async (params) => {
       return await ctx.trpcClient.project.getProjectLlmSettings.query(params);
     },
-    toolSchema: fetchProjectLlmSettingsSchema,
+    inputSchema: fetchProjectLlmSettingsInputSchema,
+    outputSchema: fetchProjectLlmSettingsOutputSchema,
   });
 
   /**
@@ -112,15 +110,7 @@ export function registerLlmTools(
     name: "updateProjectLlmSettings",
     description:
       'Updates LLM configuration settings for a project, including provider, model, and custom LLM parameters. For customLlmParameters, use the structure: { "providerName": { "modelName": { "parameterName": parameterValue } } }. Example: { "openai": { "gpt-5-2025-08-07": { "reasoningEffort": "high" } } }. IMPORTANT: After this tool completes, show a NEW ProviderKeySection component to display the updated settings. The component will automatically fetch the latest data.',
-    tool: async (params: {
-      projectId: string;
-      defaultLlmProviderName?: string;
-      defaultLlmModelName?: string | null;
-      customLlmModelName?: string | null;
-      customLlmBaseURL?: string | null;
-      maxInputTokens?: number | null;
-      customLlmParameters?: CustomLlmParameters | null;
-    }) => {
+    tool: async (params) => {
       const result =
         await ctx.trpcClient.project.updateProjectLlmSettings.mutate({
           projectId: params.projectId,
@@ -153,6 +143,7 @@ export function registerLlmTools(
 
       return result;
     },
-    toolSchema: updateProjectLlmSettingsSchema,
+    inputSchema: updateProjectLlmSettingsInputSchema,
+    outputSchema: updateProjectLlmSettingsOutputSchema,
   });
 }

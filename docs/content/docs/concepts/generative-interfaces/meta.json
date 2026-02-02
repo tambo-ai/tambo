@@ -1,0 +1,8 @@
+{
+  "title": "Generative User Interfaces",
+  "pages": [
+    "generative-components",
+    "interactable-components",
+    "component-state"
+  ]
+}

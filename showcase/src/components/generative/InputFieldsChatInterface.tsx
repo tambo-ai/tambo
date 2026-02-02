@@ -1,8 +1,8 @@
 import {
   InputFields,
   inputFieldsSchema,
-} from "@/components/tambo/input-fields";
-import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+} from "@tambo-ai/ui-registry/components/input-fields";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 

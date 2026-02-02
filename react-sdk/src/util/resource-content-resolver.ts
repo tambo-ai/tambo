@@ -6,6 +6,8 @@ import type { ResourceSource } from "../model/resource-info";
 /**
  * Type guard for narrowing McpServer to a connected server.
  * A connected server has a non-null client.
+ * @param server - The MCP server to check
+ * @returns True if the server is connected, false otherwise
  */
 function isConnectedMcpServer(server: McpServer): server is ConnectedMcpServer {
   return "client" in server && server.client != null;

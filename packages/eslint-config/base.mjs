@@ -58,5 +58,5 @@ export default defineConfig([
       },
     },
   },
-  globalIgnores(["examples/**"]),
+  globalIgnores(["examples/**", "community/templates/**"]),
 ]);

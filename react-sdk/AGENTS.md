@@ -54,11 +54,14 @@ const tools: TamboTool[] = [
   {
     name: "toolName",
     description: "Tool description for AI",
-    tool: async (args) => {
+    tool: async (params) => {
       // Tool implementation
       return result;
     },
-    toolSchema: zodSchema, // Zod function schema
+    inputSchema: z.object({
+      // Input parameters schema
+    }),
+    outputSchema: z.any(), // Output schema
     // Optional: Transform tool response to content parts
     transformToContent: (result) => [
       { type: "text", text: result.text },
@@ -137,10 +140,9 @@ The SDK supports real-time streaming of AI responses:
 ### Dependencies
 
 - **Peer Dependencies** - React 18/19, React DOM, TypeScript types
-- **Core Dependencies** - Tambo TypeScript SDK, React Query
+- **Core Dependencies** - Tambo TypeScript SDK, React Query, `@modelcontextprotocol/sdk`
 - **Optional Peer Dependencies**
-  - `zod` (`^3.25` or `^4.0`) and `zod-to-json-schema` (`^3.25.0`) for component schemas and JSON Schema generation
-  - `@modelcontextprotocol/sdk` (`^1.24.0`) for MCP integrations exposed from the `@tambo-ai/react/mcp` subpath
+  - `zod` (`^3.25` or `^4.0`) and `zod-to-json-schema` (`^3.25.0`) for component schemas and JSON Schema generation when using the `@tambo-ai/react/mcp` subpath
 
 ## Testing
 

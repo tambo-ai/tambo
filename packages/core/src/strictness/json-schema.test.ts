@@ -1,6 +1,6 @@
 import { JSONSchema7Definition } from "json-schema";
-import { z } from "zod/v3";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod/v3";
 import {
   strictifyJSONSchemaProperties,
   strictifyJSONSchemaProperty,
@@ -362,6 +362,127 @@ describe("strictifyJSONSchemaProperties", () => {
 
     // Deep equality check
     expect(secondPass).toEqual(firstPass);
+  });
+
+  it("should handle schemas with both type: object and anyOf by prioritizing anyOf", () => {
+    // This tests the fix for the bug where z.any().nullable().optional() creates
+    // a schema with both type: "object" and anyOf at the same level, which is invalid
+    const property: JSONSchema7Definition = {
+      type: "object",
+      anyOf: [{}, { type: "null" }],
+      description: "Test property",
+    };
+
+    const result = strictifyJSONSchemaProperty(property, false, "$.test");
+
+    // Should process anyOf first, not mix type: "object" with anyOf
+    expect(result).toBeDefined();
+    expect(result).not.toBeNull();
+
+    // Type guard: ensure it's an object schema, not a boolean
+    expect(typeof result === "object" && result !== null).toBe(true);
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      !Array.isArray(result)
+    ) {
+      expect(result).toHaveProperty("anyOf");
+
+      // Should not have both type: "object" and anyOf at the same level
+      if ("type" in result && "anyOf" in result) {
+        expect(result.type).not.toBe("object");
+      }
+      // The anyOf should be processed and sanitized
+      expect(Array.isArray(result.anyOf)).toBe(true);
+    }
+  });
+
+  it("should preserve object properties when allOf is used to add constraints", () => {
+    // allOf is typically used to add constraints to an object, NOT as type alternatives
+    // We should NOT strip type/properties/required when allOf is present
+    const property: JSONSchema7Definition = {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        email: { type: "string" },
+      },
+      allOf: [{ required: ["name"] }],
+    };
+
+    const result = strictifyJSONSchemaProperty(property, true, "$.test");
+
+    expect(result).toBeDefined();
+    expect(typeof result === "object" && result !== null).toBe(true);
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      !Array.isArray(result)
+    ) {
+      // Should preserve type: "object" since allOf is adding constraints, not type alternatives
+      expect(result.type).toBe("object");
+      // Should preserve properties
+      expect(result.properties).toBeDefined();
+      // Should have allOf
+      expect(result.allOf).toBeDefined();
+    }
+  });
+
+  it("should preserve object properties when anyOf does not contain type alternatives", () => {
+    // If anyOf contains object schemas (not empty {} or {type: "null"}),
+    // it's defining alternative object shapes, not replacing the type
+    const property: JSONSchema7Definition = {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+      },
+      anyOf: [
+        { properties: { role: { type: "string", enum: ["admin"] } } },
+        { properties: { role: { type: "string", enum: ["user"] } } },
+      ],
+    };
+
+    const result = strictifyJSONSchemaProperty(property, true, "$.test");
+
+    expect(result).toBeDefined();
+    expect(typeof result === "object" && result !== null).toBe(true);
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      !Array.isArray(result)
+    ) {
+      // Should preserve type: "object" since anyOf is adding alternative constraints
+      expect(result.type).toBe("object");
+      // Should preserve base properties
+      expect(result.properties).toBeDefined();
+      // Should have anyOf
+      expect(result.anyOf).toBeDefined();
+    }
+  });
+
+  it("should strip object properties only when anyOf contains type alternatives like {} or {type: null}", () => {
+    // This is the z.any().nullable() pattern - anyOf with {} (any) and {type: "null"}
+    const property: JSONSchema7Definition = {
+      type: "object",
+      properties: {},
+      required: [],
+      additionalProperties: false,
+      anyOf: [{}, { type: "null" }],
+    };
+
+    const result = strictifyJSONSchemaProperty(property, false, "$.test");
+
+    expect(result).toBeDefined();
+    expect(typeof result === "object" && result !== null).toBe(true);
+    if (
+      typeof result === "object" &&
+      result !== null &&
+      !Array.isArray(result)
+    ) {
+      // Should NOT have type: "object" since anyOf has type alternatives
+      expect(result.type).not.toBe("object");
+      // Should have anyOf
+      expect(result.anyOf).toBeDefined();
+    }
   });
 
   it("should handle anyOf with nested objects that have non-required properties", () => {
@@ -788,6 +909,153 @@ describe("strictifyJSONSchemaProperties", () => {
             additionalProperties: false,
           },
         },
+      });
+    });
+
+    it("should handle z.any().nullable().optional() from Zod without mixing type and anyOf", () => {
+      // This is the problematic case that was fixed - z.any() creates an object type
+      // and nullable/optional create anyOf structures, which should not be mixed
+      const zodSchema = z.object({
+        customParams: z.any().nullable().optional(),
+      });
+
+      const jsonSchema = zodToJsonSchema(zodSchema) as {
+        properties?: Record<string, JSONSchema7Definition>;
+        required?: string[];
+      };
+      const properties = jsonSchema.properties ?? {};
+      const required = jsonSchema.required ?? [];
+
+      const result = strictifyJSONSchemaProperties(properties, required);
+
+      // The result should have anyOf at the top level, not type: "object" mixed with anyOf
+      expect(result.customParams).toBeDefined();
+      const customParams = result.customParams;
+
+      // Type guard: ensure it's an object schema, not a boolean
+      expect(typeof customParams === "object" && customParams !== null).toBe(
+        true,
+      );
+      if (
+        typeof customParams === "object" &&
+        customParams !== null &&
+        !Array.isArray(customParams)
+      ) {
+        expect(customParams).toHaveProperty("anyOf");
+        expect(Array.isArray(customParams.anyOf)).toBe(true);
+
+        // Should not have both type: "object" and anyOf at the same level
+        if ("type" in customParams && "anyOf" in customParams) {
+          // If both exist, anyOf should be processed first and type should not be at top level
+          expect(customParams.type).not.toBe("object");
+        }
+      }
+    });
+
+    it("should handle z.any().nullable() from Zod", () => {
+      const zodSchema = z.object({
+        customData: z.any().nullable(),
+      });
+
+      const jsonSchema = zodToJsonSchema(zodSchema) as {
+        properties?: Record<string, JSONSchema7Definition>;
+        required?: string[];
+      };
+      const properties = jsonSchema.properties ?? {};
+      const required = jsonSchema.required ?? [];
+
+      const result = strictifyJSONSchemaProperties(properties, required);
+
+      // Should have anyOf structure, not type: "object" mixed with anyOf
+      expect(result.customData).toBeDefined();
+      const customData = result.customData;
+
+      // Type guard: ensure it's an object schema, not a boolean
+      expect(typeof customData === "object" && customData !== null).toBe(true);
+      if (
+        typeof customData === "object" &&
+        customData !== null &&
+        !Array.isArray(customData)
+      ) {
+        expect(customData).toHaveProperty("anyOf");
+
+        // Should not have both type: "object" and anyOf at the same level
+        if ("type" in customData && "anyOf" in customData) {
+          expect(customData.type).not.toBe("object");
+        }
+      }
+    });
+
+    it("should handle z.any().optional() from Zod", () => {
+      const zodSchema = z.object({
+        customData: z.any().optional(),
+      });
+
+      const jsonSchema = zodToJsonSchema(zodSchema) as {
+        properties?: Record<string, JSONSchema7Definition>;
+        required?: string[];
+      };
+      const properties = jsonSchema.properties ?? {};
+      const required = jsonSchema.required ?? [];
+
+      const result = strictifyJSONSchemaProperties(properties, required);
+
+      // Should have anyOf structure for optional field
+      expect(result.customData).toBeDefined();
+      const customData = result.customData;
+
+      // Type guard: ensure it's an object schema, not a boolean
+      expect(typeof customData === "object" && customData !== null).toBe(true);
+      if (
+        typeof customData === "object" &&
+        customData !== null &&
+        !Array.isArray(customData)
+      ) {
+        expect(customData).toHaveProperty("anyOf");
+
+        // Should not have both type: "object" and anyOf at the same level
+        if ("type" in customData && "anyOf" in customData) {
+          expect(customData.type).not.toBe("object");
+        }
+      }
+    });
+
+    it("should handle z.any() in object properties without creating invalid schemas", () => {
+      const zodSchema = z.object({
+        required: z.string(),
+        customParams: z.any().nullable().optional(),
+        metadata: z.any().optional(),
+      });
+
+      const jsonSchema = zodToJsonSchema(zodSchema) as {
+        properties?: Record<string, JSONSchema7Definition>;
+        required?: string[];
+      };
+      const properties = jsonSchema.properties ?? {};
+      const required = jsonSchema.required ?? [];
+
+      const result = strictifyJSONSchemaProperties(properties, required);
+
+      // Required field should not have anyOf
+      expect(result.required).toEqual({ type: "string" });
+
+      // Optional z.any() fields should have anyOf, not mixed type/anyOf
+      expect(result.customParams).toBeDefined();
+      expect(result.customParams).toHaveProperty("anyOf");
+
+      expect(result.metadata).toBeDefined();
+
+      // Type guard: ensure they're object schemas, not booleans
+      [result.customParams, result.metadata].forEach((prop) => {
+        expect(typeof prop === "object" && prop !== null).toBe(true);
+        if (typeof prop === "object" && prop !== null && !Array.isArray(prop)) {
+          expect(prop).toHaveProperty("anyOf");
+
+          // Verify no invalid mixing of type: "object" and anyOf
+          if ("type" in prop && "anyOf" in prop) {
+            expect(prop.type).not.toBe("object");
+          }
+        }
       });
     });
 

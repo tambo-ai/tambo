@@ -250,6 +250,47 @@ export function checkLegacyComponents(installPath: string): string | null {
 }
 
 /**
+ * Gets the npm dependencies for a list of components
+ * @param componentNames Array of component names
+ * @returns Object with dependencies and devDependencies arrays
+ */
+export function getComponentNpmDependencies(componentNames: string[]): {
+  dependencies: string[];
+  devDependencies: string[];
+} {
+  const dependencies = new Set<string>();
+  const devDependencies = new Set<string>();
+
+  for (const componentName of componentNames) {
+    const configPath = getConfigPath(componentName);
+    if (!fs.existsSync(configPath)) {
+      continue;
+    }
+
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+
+      if (config.dependencies && Array.isArray(config.dependencies)) {
+        config.dependencies.forEach((dep: string) => dependencies.add(dep));
+      }
+
+      if (config.devDependencies && Array.isArray(config.devDependencies)) {
+        config.devDependencies.forEach((dep: string) =>
+          devDependencies.add(dep),
+        );
+      }
+    } catch (_error) {
+      // Skip if config parsing fails
+    }
+  }
+
+  return {
+    dependencies: Array.from(dependencies),
+    devDependencies: Array.from(devDependencies),
+  };
+}
+
+/**
  * Gets a list of all installed component names in the project
  * @param installPath The installation path for components
  * @param isExplicitPrefix Whether the installPath was explicitly provided via --prefix

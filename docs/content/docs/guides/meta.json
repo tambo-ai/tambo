@@ -1,0 +1,12 @@
+{
+  "title": "Guides",
+  "pages": [
+    "setup-project",
+    "enable-generative-ui",
+    "build-interfaces",
+    "give-context",
+    "take-actions",
+    "add-authentication",
+    "connect-mcp-servers"
+  ]
+}

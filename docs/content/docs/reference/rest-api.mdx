@@ -1,0 +1,55 @@
+---
+title: REST API
+description: OpenAPI specification for the Tambo Cloud REST API
+---
+
+The Tambo Cloud REST API provides programmatic access to threads, messages, and AI generation capabilities.
+
+## OpenAPI Specification
+
+The complete REST API is documented via an interactive OpenAPI specification available at:
+
+**[api.tambo.co/api](https://api.tambo.co/api)**
+
+The OpenAPI spec includes:
+
+- All available endpoints with request/response schemas
+- Authentication requirements
+- Interactive "Try it out" functionality
+- Code generation for multiple languages
+
+## Authentication
+
+All API requests require a Bearer token in the Authorization header:
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.tambo.co/threads
+```
+
+Get your API key from the [Tambo Cloud dashboard](https://tambo.co).
+
+## Common Endpoints
+
+| Endpoint                     | Method | Description                            |
+| ---------------------------- | ------ | -------------------------------------- |
+| `/threads`                   | GET    | List all threads for your project      |
+| `/threads`                   | POST   | Create a new thread                    |
+| `/threads/:id`               | GET    | Get a specific thread with messages    |
+| `/threads/:id/advance`       | POST   | Send a message and get AI response     |
+| `/threads/:id/advancestream` | POST   | Send a message with streaming response |
+
+## Error Responses
+
+The API uses [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) for error responses. Each error response includes a `type` field with a URI that links to detailed documentation about that specific problem.
+
+### Common Problem Types
+
+- **[Endpoint Deprecated](/reference/problems/endpoint-deprecated)** - Returned when calling a deprecated endpoint (410 Gone)
+
+## SDKs
+
+For most use cases, we recommend using one of the official SDKs instead of direct REST calls:
+
+- **React**: [`@tambo-ai/react`](/reference/react-sdk) - Full-featured React SDK with hooks and providers
+- **TypeScript/Node**: [`@tambo-ai/typescript-sdk`](https://www.npmjs.com/package/@tambo-ai/typescript-sdk) - Core TypeScript client

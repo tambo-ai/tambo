@@ -1,9 +1,5 @@
 import { z } from "zod/v3";
-import type {
-  TamboComponent,
-  TamboTool,
-  TamboToolWithToolSchema,
-} from "../model/component-metadata";
+import type { TamboComponent, TamboTool } from "../model/component-metadata";
 import {
   validateAndPrepareComponent,
   validateTool,
@@ -12,22 +8,24 @@ import {
 
 describe("validateTool", () => {
   it("should validate tool with valid name", () => {
-    const tool: TamboToolWithToolSchema = {
+    const tool: TamboTool = {
       name: "valid-tool-name",
       description: "A valid tool",
       tool: () => "result",
-      toolSchema: z.function().args().returns(z.string()),
+      inputSchema: z.object({ query: z.string() }),
+      outputSchema: z.string(),
     };
 
     expect(() => validateTool(tool)).not.toThrow();
   });
 
   it("should throw when tool name contains invalid characters", () => {
-    const tool: TamboToolWithToolSchema = {
+    const tool: TamboTool = {
       name: "invalid tool name",
       description: "A tool",
       tool: () => "result",
-      toolSchema: z.function().args().returns(z.string()),
+      inputSchema: z.object({ query: z.string() }),
+      outputSchema: z.string(),
     };
 
     expect(() => validateTool(tool)).toThrow(
@@ -36,11 +34,12 @@ describe("validateTool", () => {
   });
 
   it("should throw when tool name contains special characters", () => {
-    const tool: TamboToolWithToolSchema = {
+    const tool: TamboTool = {
       name: "tool@name",
       description: "A tool",
       tool: () => "result",
-      toolSchema: z.function().args().returns(z.string()),
+      inputSchema: z.object({ query: z.string() }),
+      outputSchema: z.string(),
     };
 
     expect(() => validateTool(tool)).toThrow(
@@ -48,51 +47,108 @@ describe("validateTool", () => {
     );
   });
 
-  it("should validate tool with valid Zod schema", () => {
-    const tool: TamboToolWithToolSchema = {
-      name: "valid-tool",
-      description: "A tool",
+  it("should throw when deprecated toolSchema is used", () => {
+    const tool = {
+      name: "deprecated-tool",
+      description: "A tool using deprecated API",
       tool: () => "result",
       toolSchema: z.function().args().returns(z.string()),
-    };
-
-    expect(() => validateTool(tool)).not.toThrow();
-  });
-
-  it("should throw when tool schema contains z.record()", () => {
-    const tool: TamboToolWithToolSchema = {
-      name: "invalid-tool",
-      description: "A tool",
-      tool: () => "result",
-      toolSchema: z
-        .function()
-        .args(
-          z.object({
-            metadata: z.record(z.string()),
-          }),
-        )
-        .returns(z.string()),
-    };
+    } as unknown as TamboTool;
 
     expect(() => validateTool(tool)).toThrow(
-      'Record types (objects with dynamic keys) are not supported in toolSchema of tool "invalid-tool".',
+      'Tool "deprecated-tool" uses deprecated "toolSchema" property.',
+    );
+    expect(() => validateTool(tool)).toThrow(
+      'Migrate to "inputSchema" and "outputSchema" properties.',
     );
   });
 
-  it("should allow tool with JSON Schema (non-Zod)", () => {
-    const tool: TamboToolWithToolSchema = {
-      name: "tool-with-json-schema",
+  it("should throw when tool is not an object", () => {
+    expect(() => validateTool(null)).toThrow("Tool must be an object");
+    expect(() => validateTool(undefined)).toThrow("Tool must be an object");
+    expect(() => validateTool("string")).toThrow("Tool must be an object");
+    expect(() => validateTool(42)).toThrow("Tool must be an object");
+  });
+
+  it("should throw when tool name is missing", () => {
+    const tool = {
       description: "A tool",
       tool: () => "result",
-      toolSchema: {
-        type: "object",
-        properties: {
-          query: { type: "string" },
-        },
-      },
+      inputSchema: z.object({}),
+      outputSchema: z.string(),
     };
 
-    expect(() => validateTool(tool)).not.toThrow();
+    expect(() => validateTool(tool)).toThrow(
+      "Tool must have a 'name' property of type string",
+    );
+  });
+
+  it("should throw when tool description is missing", () => {
+    const tool = {
+      name: "my-tool",
+      tool: () => "result",
+      inputSchema: z.object({}),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool \"my-tool\" must have a 'description' property of type string",
+    );
+  });
+
+  it("should throw when tool function is missing", () => {
+    const tool = {
+      name: "my-tool",
+      description: "A tool",
+      inputSchema: z.object({}),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool \"my-tool\" must have a 'tool' property of type function",
+    );
+  });
+
+  it("should throw when inputSchema is missing", () => {
+    const tool = {
+      name: "my-tool",
+      description: "A tool",
+      tool: () => "result",
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool \"my-tool\" must have an 'inputSchema' property",
+    );
+  });
+
+  it("should throw when outputSchema is missing", () => {
+    const tool = {
+      name: "my-tool",
+      description: "A tool",
+      tool: () => "result",
+      inputSchema: z.object({}),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      "Tool \"my-tool\" must have an 'outputSchema' property",
+    );
+  });
+
+  it("should throw when inputSchema contains z.record()", () => {
+    const tool: TamboTool = {
+      name: "invalid-tool",
+      description: "A tool",
+      tool: () => "result",
+      inputSchema: z.object({
+        metadata: z.record(z.string()),
+      }),
+      outputSchema: z.string(),
+    };
+
+    expect(() => validateTool(tool)).toThrow(
+      'Record types (objects with dynamic keys) are not supported in inputSchema of tool "invalid-tool".',
+    );
   });
 
   it("should validate tool with inputSchema (new interface)", () => {

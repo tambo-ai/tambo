@@ -5,15 +5,16 @@ import { LEGACY_COMPONENT_SUBDIR } from "../../constants/paths.js";
 import { execFileSync } from "../../utils/interactive.js";
 import {
   detectPackageManager,
+  formatPackageArgs,
   getDevFlag,
   getInstallCommand,
 } from "../../utils/package-manager.js";
+import { updateImportPaths } from "../migrate.js";
+import { handleAgentDocsUpdate } from "../shared/agent-docs.js";
 import {
   getComponentDirectoryPath,
   getLibDirectory,
 } from "../shared/path-utils.js";
-import { updateImportPaths } from "../migrate.js";
-import { handleAgentDocsUpdate } from "../shared/agent-docs.js";
 import type { ComponentConfig, InstallComponentOptions } from "./types.js";
 import {
   componentExists,
@@ -132,7 +133,11 @@ export function cn(...inputs: ClassValue[]) {
       const allowNonInteractive = Boolean(options.yes);
 
       if (prodDeps.length > 0) {
-        const args = [installCmd, ...legacyPeerDepsFlag, ...prodDeps];
+        const args = [
+          ...installCmd,
+          ...legacyPeerDepsFlag,
+          ...formatPackageArgs(pm, prodDeps),
+        ];
         execFileSync(pm, args, {
           stdio: "inherit",
           encoding: "utf-8",
@@ -140,7 +145,12 @@ export function cn(...inputs: ClassValue[]) {
         });
       }
       if (devDeps.length > 0) {
-        const args = [installCmd, devFlag, ...legacyPeerDepsFlag, ...devDeps];
+        const args = [
+          ...installCmd,
+          devFlag,
+          ...legacyPeerDepsFlag,
+          ...formatPackageArgs(pm, devDeps),
+        ];
         execFileSync(pm, args, {
           stdio: "inherit",
           encoding: "utf-8",
@@ -193,12 +203,27 @@ export function cn(...inputs: ClassValue[]) {
           fileContent = fs.readFileSync(sourcePath, "utf-8");
         } else {
           // Try to resolve content path from registry base
-          // Handle both old format (src/registry/...) and new format (lib/..., components/...)
-          // Strip leading "src/registry/" prefix using path operations for cross-platform safety
+          // Content paths can be in two formats:
+          // - New format: "components/..." or "lib/..." (relative to registry base)
+          // - Legacy format: "src/registry/..." (needs prefix added)
+          //   - "src/registry/lib/..." -> "lib/..."
+          //   - "src/registry/component-name/..." -> "components/component-name/..."
           let contentRelativePath = file.content;
-          const parts = contentRelativePath.split(path.sep);
+
+          // Handle legacy "src/registry/" prefix
+          // Use "/" for splitting since config.json always uses forward slashes
+          const parts = contentRelativePath.split("/");
           if (parts[0] === "src" && parts[1] === "registry") {
-            contentRelativePath = parts.slice(2).join(path.sep);
+            const remainingParts = parts.slice(2);
+            // Check if it's a lib or base file, or a component file
+            if (remainingParts[0] === "lib" || remainingParts[0] === "base") {
+              // src/registry/lib/file.ts -> lib/file.ts
+              // src/registry/base/message/index.tsx -> base/message/index.tsx
+              contentRelativePath = path.join(...remainingParts);
+            } else {
+              // src/registry/component-name/file.tsx -> components/component-name/file.tsx
+              contentRelativePath = path.join("components", ...remainingParts);
+            }
           }
 
           const contentPath = path.join(

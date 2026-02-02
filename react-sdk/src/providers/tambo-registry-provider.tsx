@@ -16,7 +16,6 @@ import type {
   TamboComponent,
   TamboTool,
   TamboToolRegistry,
-  TamboToolWithToolSchema,
 } from "../model/component-metadata";
 import type {
   McpServerInfo,
@@ -44,13 +43,13 @@ export interface TamboRegistryContext {
   mcpServerInfos: NormalizedMcpServerInfo[];
   resources: ListResourceItem[];
   resourceSource: ResourceSource | null;
-  registerComponent: (options: TamboComponent) => void;
+  registerComponent: (
+    options: TamboComponent,
+    warnOnOverwrite?: boolean,
+  ) => void;
   registerTool: RegisterToolFn;
   registerTools: RegisterToolsFn;
-  addToolAssociation: (
-    componentName: string,
-    tool: TamboTool | TamboToolWithToolSchema,
-  ) => void;
+  addToolAssociation: (componentName: string, tool: TamboTool) => void;
   registerMcpServer: (info: McpServerInfo) => void;
   registerMcpServers: (infos: McpServerInfo[]) => void;
   registerResource: (resource: ListResourceItem) => void;
@@ -111,7 +110,7 @@ export interface TamboRegistryProviderProps {
   /** The components to register */
   components?: TamboComponent[];
   /** The tools to register */
-  tools?: (TamboTool | TamboToolWithToolSchema)[];
+  tools?: TamboTool[];
   /** The MCP servers to register */
   mcpServers?: (McpServerInfo | string)[];
   /** The static resources to register */
@@ -187,31 +186,37 @@ export const TamboRegistryProvider: React.FC<
     null,
   );
 
-  const registerTool = useCallback(
-    (tool: TamboTool | TamboToolWithToolSchema, warnOnOverwrite = true) => {
+  const registryWithTool = useCallback((warnOnOverwrite: boolean) => {
+    return (registry: TamboToolRegistry, tool: unknown): TamboToolRegistry => {
       validateTool(tool);
 
-      setToolRegistry((prev) => {
-        if (prev[tool.name] && warnOnOverwrite) {
-          console.warn(`Overwriting tool ${tool.name}`);
-        }
-        return {
-          ...prev,
-          [tool.name]: tool,
-        };
-      });
+      if (registry[tool.name] && warnOnOverwrite) {
+        console.warn(`Overwriting tool ${tool.name}`);
+      }
+
+      return {
+        ...registry,
+        [tool.name]: tool,
+      };
+    };
+  }, []);
+
+  const registerTool = useCallback<RegisterToolFn>(
+    (tool: unknown, warnOnOverwrite = true) => {
+      setToolRegistry((registry) =>
+        registryWithTool(warnOnOverwrite)(registry, tool),
+      );
     },
-    [],
+    [registryWithTool],
   );
 
-  const registerTools = useCallback(
-    (
-      tools: (TamboTool | TamboToolWithToolSchema)[],
-      warnOnOverwrite = true,
-    ) => {
-      tools.forEach((tool) => registerTool(tool, warnOnOverwrite));
+  const registerTools = useCallback<RegisterToolsFn>(
+    (tools, warnOnOverwrite = true) => {
+      setToolRegistry((existingRegistry) =>
+        tools.reduce(registryWithTool(warnOnOverwrite), existingRegistry),
+      );
     },
-    [registerTool],
+    [registryWithTool],
   );
 
   const registerMcpServer = useCallback((info: McpServerInfo | string) => {
@@ -228,7 +233,7 @@ export const TamboRegistryProvider: React.FC<
   );
 
   const addToolAssociation = useCallback(
-    (componentName: string, tool: TamboTool | TamboToolWithToolSchema) => {
+    (componentName: string, tool: TamboTool) => {
       validateToolAssociation(
         componentName,
         tool.name,

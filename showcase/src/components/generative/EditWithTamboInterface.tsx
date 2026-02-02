@@ -1,5 +1,5 @@
-import { EditWithTamboButton } from "@/components/tambo/edit-with-tambo-button";
-import { MessageThreadCollapsible } from "@/components/tambo/message-thread-collapsible";
+import { EditWithTamboButton } from "@tambo-ai/ui-registry/components/edit-with-tambo-button";
+import { MessageThreadCollapsible } from "@tambo-ai/ui-registry/components/message-thread-collapsible";
 import {
   Select,
   SelectContent,

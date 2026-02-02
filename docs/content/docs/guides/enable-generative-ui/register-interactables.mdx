@@ -1,0 +1,191 @@
+---
+title: Let Users Edit Components Through Chat
+description: This guide helps you make pre-placed components editable by Tambo through natural language conversations.
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+This guide shows you how to register React components as "Interactable" so Tambo can modify their props in response to user messages. Unlike generative components that Tambo creates on-demand, Interactable components are pre-placed by you and allow Tambo to update them in place.
+
+<LearnMore
+  title="Learn more about Interactable components"
+  description="Understand what Interactable components are and when to use them"
+  href="/concepts/generative-interfaces/interactable-components"
+  icon={BookOpen}
+/>
+
+## Step 1: Build Your React Component
+
+Create a standard React component that accepts props.
+
+If you're using `useState` and your component has state values that depend on the props, use `useEffect` to sync state with updated prop values as they stream in from Tambo.
+
+If you want Tambo to be able to see and update state values rather than just props, replace `useState` with `useTamboComponentState`, and use the `setFromProp` parameter to sync state from props during streaming rather than `useEffect`.
+
+```tsx
+import { useTamboComponentState } from "@tambo-ai/react";
+
+type NoteProps = {
+  title: string;
+  content: string;
+};
+
+function Note({ title, content }: NoteProps) {
+  // useTamboComponentState allows Tambo to see and update the draft content
+  // The setFromProp parameter syncs state from props during streaming
+  const [draftContent, setDraftContent] = useTamboComponentState(
+    "draftContent",
+    content,
+    content,
+  );
+  return (
+    <section className={`rounded-md p-4 bg-blue-500`}>
+      <h3>{title}</h3>
+      <textarea
+        value={draftContent}
+        onChange={(event) => setDraftContent(event.currentTarget.value)}
+      />
+    </section>
+  );
+}
+```
+
+## Step 2: Define Your Props Schema
+
+Create a Zod schema that describes which props Tambo can modify:
+
+```tsx
+import { z } from "zod";
+
+export const NotePropsSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+});
+```
+
+This schema tells Tambo:
+
+- Which props it can update
+- What types and values are valid
+- Which props are optional
+
+## Step 3: Wrap with `withInteractable`
+
+Use `withInteractable` to create an Interactable version of your component:
+
+```tsx
+import { withInteractable } from "@tambo-ai/react";
+import { Note } from "./note";
+import { NotePropsSchema } from "./note-schema";
+
+export const InteractableNote = withInteractable(Note, {
+  componentName: "Note",
+  description: "A simple note that can change title, and content",
+  propsSchema: NotePropsSchema,
+});
+```
+
+**Configuration options:**
+
+- `componentName`: Name Tambo uses to reference this component
+- `description`: What the component does (helps Tambo decide when to use it)
+- `propsSchema`: Zod schema defining editable props
+
+<Callout type="info" title="Automatic Registration">
+
+Unlike generative components, Interactable components register themselves automatically when they mount. You don't need to add them to `TamboProvider`'s components array.
+
+</Callout>
+
+## Step 4: Render in Your App
+
+Place the Interactable component in your app where you want it to appear, within the `TamboProvider`:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import { InteractableNote } from "./interactable-note";
+
+function App() {
+  return (
+    <TamboProvider>
+      <main>
+        <InteractableNote
+          title="Release plan"
+          content="Ask Tambo to keep this note up to date."
+        />
+      </main>
+    </TamboProvider>
+  );
+}
+```
+
+Tambo can now see and modify this component when users send messages like:
+
+- "Change the note title to 'Important Reminder'"
+- "Update the note content to 'Don't forget the meeting at 3pm'"
+
+## Complete Example
+
+Here's a complete working example:
+
+```tsx
+import {
+  useTamboComponentState,
+  withInteractable,
+  TamboProvider,
+} from "@tambo-ai/react";
+import { z } from "zod";
+
+// Step 1: Define Component
+type NoteProps = {
+  title: string;
+  content: string;
+};
+
+function Note({ title, content }: NoteProps) {
+  // useTamboComponentState allows Tambo to see and update the draft content
+  // The setFromProp parameter syncs state from props during streaming
+  const [draftContent, setDraftContent] = useTamboComponentState(
+    "draftContent",
+    content,
+    content,
+  );
+  return (
+    <section className={`rounded-md p-4 bg-blue-500`}>
+      <h3>{title}</h3>
+      <textarea
+        value={draftContent}
+        onChange={(event) => setDraftContent(event.currentTarget.value)}
+      />
+    </section>
+  );
+}
+
+// Step 2 & 3: Schema and wrap with withInteractable
+const NotePropsSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+});
+
+export const InteractableNote = withInteractable(Note, {
+  componentName: "Note",
+  description: "A simple note that can change title, and content",
+  propsSchema: NotePropsSchema,
+});
+
+// Step 4: Use in app
+export default function Page() {
+  return (
+    <TamboProvider>
+      <main>
+        <InteractableNote
+          title="Release plan"
+          content="Ask Tambo to keep this note up to date."
+          color="yellow"
+        />
+      </main>
+    </TamboProvider>
+  );
+}
+```

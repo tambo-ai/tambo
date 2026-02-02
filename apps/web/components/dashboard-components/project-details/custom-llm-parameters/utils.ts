@@ -2,6 +2,7 @@ import {
   CustomLlmParameters,
   JSONValue,
   LlmParameterUIType,
+  llmProviderConfig,
 } from "@tambo-ai-cloud/core";
 import { ParameterEntry } from "./types";
 
@@ -179,22 +180,51 @@ export const getDefaultValueForType = (
 };
 
 /**
- * Extracts parameters from the nested storage structure (provider -> model -> parameters)
- * and converts them to the UI format for editing
+ * Extracts parameters including defaults from model configuration and user-defined parameters.
+ * Shows all available parameters with their source and allows users to see/edit defaults.
+ *
+ * Merge hierarchy (later overrides earlier):
+ * 2. Model-level defaults (modelParamsDefaults)
+ * 3. User-specified custom params (highest priority)
+ *
+ * @returns ParameterEntry[] with source tracking
  */
-export const extractParameters = (
+export const extractCustomParameters = (
   customParams: CustomLlmParameters | null | undefined,
   provider?: string | null,
   model?: string | null,
 ): ParameterEntry[] => {
   if (!provider || !model) return [];
 
-  const modelParams = customParams?.[provider]?.[model] ?? {};
+  const providerInfo = llmProviderConfig[provider];
+  const modelInfo = providerInfo?.models?.[model];
 
-  return Object.entries(modelParams).map(([key, value]) => ({
-    id: generateParameterId(key),
-    key,
-    value: valueToString(value),
-    type: detectType(value),
-  }));
+  // Get defaults from model and user levels
+  const modelDefaults = modelInfo?.modelParamsDefaults ?? {};
+  const userParams = customParams?.[provider]?.[model] ?? {};
+
+  // Merge: model defaults and user params (model defaults are already model-specific)
+  const allKeys = new Set([
+    ...Object.keys(modelDefaults),
+    ...Object.keys(userParams),
+  ]);
+
+  return Array.from(allKeys).map((key) => {
+    const modelValue = modelDefaults[key];
+    const userValue = userParams[key];
+
+    const effectiveValue = userValue ?? modelValue;
+    const defaultValue = modelValue;
+    const hasUserValue = userValue !== undefined;
+
+    return {
+      id: generateParameterId(key),
+      key,
+      value: valueToString(effectiveValue),
+      type: detectType(effectiveValue),
+      source: hasUserValue ? "custom" : "model-default",
+      defaultValue:
+        defaultValue !== undefined ? valueToString(defaultValue) : undefined,
+    };
+  });
 };

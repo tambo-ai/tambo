@@ -1,0 +1,652 @@
+---
+title: Make Tambo Aware of State
+description: Automatically include information about the user's current state on every message
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+Use context helpers to automatically include information about the user's current state on every message.
+
+<LearnMore
+  title="Additional Context Concepts"
+  description="Understand context helpers and how they work with other context methods"
+  href="/concepts/additional-context"
+  icon={BookOpen}
+/>
+
+## When to Use This
+
+Context helpers are perfect when:
+
+- ✅ AI needs to know current page or section
+- ✅ AI needs user session information (ID, role, permissions)
+- ✅ Context is relevant to all messages in a conversation
+- ✅ You want zero-effort automatic context inclusion
+- ✅ Data changes based on navigation or app state
+
+**Don't use context helpers for:**
+
+- ❌ User-selected files or text (use [Context Attachments](/guides/give-context/let-users-attach-context))
+- ❌ @ mentionable documentation (use [Resources](/guides/give-context/make-context-referenceable))
+
+## How It Works
+
+Context helpers are functions that run automatically before sending each message. Their results are merged into the message context and sent to Tambo along with the user's message.
+
+```tsx
+// Helper function (runs automatically)
+const sessionHelper = async () => ({
+  userId: getCurrentUserId(),
+  role: getUserRole(),
+});
+
+// Registered in provider
+<TamboProvider
+  contextHelpers={{
+    session: sessionHelper, // Key becomes context name
+  }}
+>
+
+// Result sent with every message:
+{
+  "session": {
+    "userId": "user123",
+    "role": "admin"
+  }
+}
+```
+
+### Step 1: Configure at the Root
+
+The most common approach is to configure context helpers at your application root:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+import {
+  currentTimeContextHelper,
+  currentPageContextHelper,
+} from "@tambo-ai/react";
+
+function AppRoot({ children }: { children: React.ReactNode }) {
+  return (
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      contextHelpers={{
+        userTime: currentTimeContextHelper,
+        userPage: currentPageContextHelper,
+      }}
+    >
+      {children}
+    </TamboProvider>
+  );
+}
+```
+
+### Step 2: Use Prebuilt Helpers
+
+Tambo provides these prebuilt context helpers:
+
+- **`currentTimeContextHelper`**: Provides current timestamp
+- **`currentPageContextHelper`**: Provides current URL and page title
+- **`currentInteractablesContextHelper`**: Automatically enabled when using interactable components
+
+### Step 3: Add Custom Helpers
+
+Add your own helpers inline or as separate functions:
+
+```tsx
+<TamboProvider
+  contextHelpers={{
+    // Prebuilt helpers
+    userTime: currentTimeContextHelper,
+    userPage: currentPageContextHelper,
+
+    // Inline custom helper
+    session: async () => ({
+      userId: getCurrentUserId(),
+      role: getUserRole(),
+      permissions: await getPermissions(),
+    }),
+
+    // Another inline helper
+    appState: () => ({
+      selectedItems: getSelectedItems(),
+      activeFilters: getActiveFilters(),
+    }),
+  }}
+>
+```
+
+## Creating Custom Helpers
+
+### Basic Pattern
+
+A context helper is simply a function that returns data:
+
+```tsx
+// Synchronous helper
+const themeHelper = () => ({
+  theme: getTheme(),
+  language: getLanguage(),
+});
+
+// Asynchronous helper
+const sessionHelper = async () => ({
+  sessionId: getSessionId(),
+  user: await getCurrentUser(),
+});
+```
+
+### Helper Function Rules
+
+- Return an object, primitive value, or `null`/`undefined`
+- Returning `null` or `undefined` skips including the context
+- Can be sync or async (Tambo waits for async helpers)
+- Should not throw errors (wrap in try/catch if needed)
+- Keep them fast—they run on every message
+
+### Common Patterns
+
+#### Pattern 1: User Session Context
+
+Provide information about the current user and session:
+
+```tsx
+const sessionHelper = async () => {
+  const user = await getCurrentUser();
+  if (!user) return null; // Skip if no user logged in
+
+  return {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    sessionId: getSessionId(),
+    sessionDuration: getSessionDuration(),
+  };
+};
+```
+
+#### Pattern 2: Environment and Feature Flags
+
+Include environment information and feature flags:
+
+```tsx
+const environmentHelper = async () => ({
+  env: process.env.NODE_ENV,
+  version: process.env.NEXT_PUBLIC_APP_VERSION,
+  features: {
+    betaAccess: await checkFeatureFlag("beta-access"),
+    darkMode: await checkFeatureFlag("dark-mode"),
+    advancedTools: await checkFeatureFlag("advanced-tools"),
+  },
+});
+```
+
+#### Pattern 3: Device and Browser Information
+
+Provide device context for responsive AI responses:
+
+```tsx
+const deviceHelper = () => {
+  // Skip on server-side
+  if (typeof window === "undefined") return null;
+
+  return {
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    screen: {
+      width: window.screen.width,
+      height: window.screen.height,
+    },
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    },
+  };
+};
+```
+
+#### Pattern 4: Application State
+
+Share relevant application state with the AI:
+
+```tsx
+const appStateHelper = () => ({
+  currentProject: getCurrentProjectId(),
+  selectedItems: getSelectedItemIds(),
+  filterSettings: getActiveFilters(),
+  sortOrder: getCurrentSortOrder(),
+});
+```
+
+### Error Handling
+
+Handle errors gracefully to prevent helpers from breaking message sending:
+
+```tsx
+const safeHelper = async () => {
+  try {
+    const data = await fetchData();
+    return {
+      data,
+      status: "success",
+    };
+  } catch (error) {
+    console.error("Helper failed:", error);
+    // Return partial data or skip
+    return null;
+  }
+};
+```
+
+### Overriding Prebuilt Helpers
+
+Replace a prebuilt helper by using the same key:
+
+```tsx
+<TamboProvider
+  contextHelpers={{
+    // Override built-in userTime helper with custom formatting
+    userTime: () => ({
+      formattedTime: new Date().toLocaleString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      }),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      isDaytime: new Date().getHours() >= 6 && new Date().getHours() < 18,
+    }),
+  }}
+>
+```
+
+## Managing Context Dynamically
+
+### Using the Hook API
+
+For runtime control over context helpers, use the `useTamboContextHelpers` hook:
+
+```tsx
+import { useTamboContextHelpers } from "@tambo-ai/react";
+
+const {
+  getContextHelpers, // Get current map of helpers
+  addContextHelper, // Add or replace a helper
+  removeContextHelper, // Remove a helper
+} = useTamboContextHelpers();
+```
+
+### Pattern: State-Based Context
+
+Add or update helpers when application state changes:
+
+```tsx
+function ProjectContextController({ projectId }: { projectId: string }) {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+
+  useEffect(() => {
+    // Skip if no project selected
+    if (!projectId) return;
+
+    // Add helper for current project
+    addContextHelper("currentProject", async () => ({
+      projectId,
+      projectName: await getProjectName(projectId),
+      projectData: await getProjectData(projectId),
+      permissions: await getProjectPermissions(projectId),
+    }));
+
+    // Cleanup when project changes or component unmounts
+    return () => {
+      removeContextHelper("currentProject");
+    };
+  }, [projectId, addContextHelper, removeContextHelper]);
+
+  return null; // This is a logic-only component
+}
+```
+
+Use this pattern in your application:
+
+```tsx
+function App() {
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
+  return (
+    <TamboProvider apiKey={apiKey}>
+      <ProjectContextController projectId={currentProjectId} />
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+### Pattern: User Session Management
+
+Add session context on login and remove on logout:
+
+```tsx
+function SessionContextManager() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const { user, session } = useAuth();
+
+  useEffect(() => {
+    if (!user || !session) {
+      // User logged out - remove session context
+      removeContextHelper("session");
+      return;
+    }
+
+    // User logged in - add session context
+    addContextHelper("session", async () => ({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      sessionId: session.id,
+      sessionStartTime: session.startTime,
+    }));
+
+    return () => {
+      removeContextHelper("session");
+    };
+  }, [user, session, addContextHelper, removeContextHelper]);
+
+  return null;
+}
+```
+
+### Pattern: Conditional Context
+
+Add helpers only when certain conditions are met:
+
+```tsx
+function FeatureContextManager() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const { features } = useFeatureFlags();
+
+  useEffect(() => {
+    if (features.advancedMode) {
+      // Add extra context for advanced users
+      addContextHelper("advancedFeatures", () => ({
+        mode: "advanced",
+        capabilities: ["bulk-operations", "custom-scripts", "api-access"],
+        limits: {
+          maxOperations: 1000,
+          rateLimitPerHour: 10000,
+        },
+      }));
+    } else {
+      removeContextHelper("advancedFeatures");
+    }
+  }, [features.advancedMode, addContextHelper, removeContextHelper]);
+
+  return null;
+}
+```
+
+## Page-Specific Context
+
+### Using TamboContextHelpersProvider
+
+For page-scoped context, use `TamboContextHelpersProvider` to add helpers only while specific routes or layouts are mounted:
+
+```tsx title="app/dashboard/page.tsx"
+import { TamboContextHelpersProvider } from "@tambo-ai/react";
+
+export default function DashboardPage() {
+  return (
+    <TamboContextHelpersProvider
+      contextHelpers={{
+        dashboardData: async () => ({
+          widgets: await getActiveWidgets(),
+          filters: getCurrentFilters(),
+          dateRange: getSelectedDateRange(),
+        }),
+      }}
+    >
+      <DashboardContent />
+    </TamboContextHelpersProvider>
+  );
+}
+```
+
+**When to use this pattern:**
+
+- You don't want to configure helpers at the root
+- You need different helpers for different pages
+- You want to experiment with helpers on specific routes
+
+**Important notes:**
+
+- You still need `TamboProvider` higher in the component tree
+- If the same key is registered in multiple places, the most recently mounted registration takes effect
+- Helpers are only active while the provider is mounted
+
+## Best Practices
+
+### 1. Keep Helpers Fast
+
+Helpers run on every message, so avoid expensive operations:
+
+```tsx
+// ❌ Slow - fetches on every message
+const slowHelper = async () => ({
+  data: await fetchExpensiveData(),
+});
+
+// ✅ Fast - uses cached data
+const cachedData = new Map();
+const fastHelper = async () => {
+  if (!cachedData.has("key")) {
+    cachedData.set("key", await fetchExpensiveData());
+  }
+  return cachedData.get("key");
+};
+```
+
+### 2. Return Null When Not Applicable
+
+Don't include context that's not relevant:
+
+```tsx
+const projectHelper = () => {
+  const projectId = getCurrentProjectId();
+  if (!projectId) return null; // Skip if no project
+
+  return {
+    projectId,
+    projectName: getProjectName(projectId),
+  };
+};
+```
+
+### 3. Avoid Large Payloads
+
+Only include data the AI actually needs:
+
+```tsx
+// ❌ Too much data
+const heavyHelper = () => ({
+  allUsers: getAllUsers(), // Thousands of records
+  completeHistory: getFullHistory(),
+});
+
+// ✅ Essential data only
+const lightHelper = () => ({
+  currentUserId: getCurrentUserId(),
+  recentActivityCount: getRecentActivityCount(),
+});
+```
+
+### 4. Clean Up in useEffect
+
+Always remove helpers in the cleanup function:
+
+```tsx
+useEffect(() => {
+  addContextHelper("myHelper", myHelperFunction);
+
+  return () => {
+    removeContextHelper("myHelper"); // Clean up!
+  };
+}, [dependencies]);
+```
+
+### 5. Handle Dependencies Correctly
+
+Include all hook methods in dependencies:
+
+```tsx
+useEffect(() => {
+  addContextHelper("key", helperFunction);
+  return () => removeContextHelper("key");
+}, [addContextHelper, removeContextHelper /* other deps */]);
+```
+
+### 6. Namespace Keys
+
+Avoid conflicts by namespacing helper keys:
+
+```tsx
+addContextHelper("dashboard:filters", filtersHelper);
+addContextHelper("settings:preferences", preferencesHelper);
+```
+
+## Complete Example
+
+Full implementation with root helpers, custom helpers, and dynamic management:
+
+```tsx
+import { TamboProvider, useTamboContextHelpers } from "@tambo-ai/react";
+import {
+  currentTimeContextHelper,
+  currentPageContextHelper,
+} from "@tambo-ai/react";
+import { useEffect } from "react";
+
+// Root-level helpers
+function App() {
+  return (
+    <TamboProvider
+      apiKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY!}
+      contextHelpers={{
+        // Prebuilt helpers
+        userTime: currentTimeContextHelper,
+        userPage: currentPageContextHelper,
+
+        // Custom inline helpers
+        environment: () => ({
+          env: process.env.NODE_ENV,
+          version: process.env.NEXT_PUBLIC_APP_VERSION,
+        }),
+
+        device: () => {
+          if (typeof window === "undefined") return null;
+          return {
+            viewport: {
+              width: window.innerWidth,
+              height: window.innerHeight,
+            },
+          };
+        },
+      }}
+    >
+      <SessionManager />
+      <ProjectManager />
+      <AppContent />
+    </TamboProvider>
+  );
+}
+
+// Dynamic session management
+function SessionManager() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      removeContextHelper("session");
+      return;
+    }
+
+    addContextHelper("session", async () => ({
+      userId: user.id,
+      role: user.role,
+      permissions: await getUserPermissions(user.id),
+    }));
+
+    return () => {
+      removeContextHelper("session");
+    };
+  }, [user, addContextHelper, removeContextHelper]);
+
+  return null;
+}
+
+// Dynamic project context
+function ProjectManager() {
+  const { addContextHelper, removeContextHelper } = useTamboContextHelpers();
+  const { projectId } = useCurrentProject();
+
+  useEffect(() => {
+    if (!projectId) {
+      removeContextHelper("project");
+      return;
+    }
+
+    addContextHelper("project", async () => {
+      try {
+        const [name, members, settings] = await Promise.all([
+          fetchProjectName(projectId),
+          fetchProjectMembers(projectId),
+          fetchProjectSettings(projectId),
+        ]);
+
+        return {
+          id: projectId,
+          name,
+          memberCount: members.length,
+          settings,
+        };
+      } catch (error) {
+        console.error("Failed to fetch project context:", error);
+        return null;
+      }
+    });
+
+    return () => {
+      removeContextHelper("project");
+    };
+  }, [projectId, addContextHelper, removeContextHelper]);
+
+  return null;
+}
+```
+
+## Next Steps
+
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "1rem",
+    marginTop: "1.5rem",
+  }}
+>
+  <LearnMore
+    title="Let Users Attach Context"
+    description="User-driven temporary context with files and selections"
+    href="/guides/give-context/let-users-attach-context"
+    icon={BookOpen}
+  />
+  <LearnMore
+    title="Make Context Referenceable"
+    description="Let users @ mention documentation and data"
+    href="/guides/give-context/make-context-referenceable"
+    icon={BookOpen}
+  />
+</div>

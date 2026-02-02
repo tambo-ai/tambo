@@ -85,7 +85,7 @@ export async function upgradeNpmPackages(
     // --legacy-peer-deps is npm-specific
     const legacyPeerDepsFlag =
       options.legacyPeerDeps && pm === "npm" ? ["--legacy-peer-deps"] : [];
-    const installArgs = [installCmd, ...legacyPeerDepsFlag];
+    const installArgs = [...installCmd, ...legacyPeerDepsFlag];
 
     execFileSync(pm, installArgs, {
       stdio: options.silent ? "ignore" : "inherit",

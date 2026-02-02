@@ -1,0 +1,4 @@
+{
+  "title": "Setup a New Project",
+  "pages": ["create-project", "agent-behavior", "llm-provider"]
+}

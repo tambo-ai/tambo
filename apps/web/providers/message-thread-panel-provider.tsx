@@ -1,6 +1,6 @@
 "use client";
 
-import type { TamboEditor } from "@/components/ui/tambo/text-editor";
+import type { TamboEditor } from "@tambo-ai/ui-registry/components/message-input";
 import * as React from "react";
 
 interface MessageThreadPanelContextType {

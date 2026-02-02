@@ -77,16 +77,6 @@
     "TAMBO_TOKEN"
   ],
   "tasks": {
-    "//#sync:showcase": {
-      "cache": false,
-      "inputs": [
-        "cli/src/registry/**/*.tsx",
-        "cli/src/registry/**/*.ts",
-        "cli/src/registry/**/*.css",
-        "cli/src/registry/**/config.json"
-      ],
-      "outputs": ["showcase/src/components/tambo/**"]
-    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
@@ -105,25 +95,39 @@
       "outputs": ["dist/**"]
     },
     "@tambo-ai/showcase#build": {
-      "dependsOn": ["^build", "//#sync:showcase"],
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": { "dependsOn": ["^lint"] },
+    "@tambo-ai/ui-registry#lint": {
+      "dependsOn": ["@tambo-ai/ui-registry#verify-exports"]
+    },
+    "verify-exports": {
+      "inputs": ["package.json", "src/**", "scripts/**"],
+      "outputs": []
+    },
     "check-types": { "dependsOn": ["^check-types"] },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
+    "@tambo-ai/react#dev": {
+      "cache": false,
+      "persistent": true
+    },
     "@tambo-ai/showcase#dev": {
-      "dependsOn": ["^build", "//#sync:showcase"],
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
     "clean": { "cache": false },
     "start": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["^test"] },
+    "test": {
+      "dependsOn": ["^test"],
+      "outputs": ["coverage/**"]
+    },
     "@tambo-ai-cloud/web#test": {
       "dependsOn": ["@tambo-ai/react#build", "^test"]
     }

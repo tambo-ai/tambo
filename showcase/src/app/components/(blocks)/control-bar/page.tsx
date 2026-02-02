@@ -2,7 +2,7 @@
 
 import { ComponentCodePreview } from "@/components/component-code-preview";
 import { InstallationSection } from "@/components/installation-section";
-import { ControlBar } from "@/components/tambo/control-bar";
+import { ControlBar } from "@tambo-ai/ui-registry/components/control-bar";
 
 export default function ControlBarPage() {
   return (

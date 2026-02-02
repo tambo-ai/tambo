@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.24.0](https://github.com/tambo-ai/tambo/compare/docs-v1.23.1...docs-v1.24.0) (2026-01-30)
+
+
+### Features
+
+* add gpt-5.2 to models list ([#1978](https://github.com/tambo-ai/tambo/issues/1978)) ([edd9ad9](https://github.com/tambo-ai/tambo/commit/edd9ad9605188d90406978505abaf801c44ea410))
+* **react-sdk:** implement v1 API Phase 9-10 with userKey and API cleanup ([#2032](https://github.com/tambo-ai/tambo/issues/2032)) ([9e055ab](https://github.com/tambo-ai/tambo/commit/9e055abddab6390498e5f2c6cb1224efbb556dfc))
+* **react-sdk:** implement v1 API Phases 6-7 with code review fixes ([#1954](https://github.com/tambo-ai/tambo/issues/1954)) ([9a7e098](https://github.com/tambo-ai/tambo/commit/9a7e098e0f969ec1512d6705c020dc46f625ac95))
+
+
+### Bug Fixes
+
+* set valid `reasoningEffort` for openAI models ([#1965](https://github.com/tambo-ai/tambo/issues/1965)) ([daf6c34](https://github.com/tambo-ai/tambo/commit/daf6c34c6afc6f2cafd764d21775bcc03dcedc76))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the small-safe-packages group with 10 updates ([#1932](https://github.com/tambo-ai/tambo/issues/1932)) ([66f8ee8](https://github.com/tambo-ai/tambo/commit/66f8ee83adbcdb8c64d5c85159bc6574d4166f7b))
+* **docs:** Organize reference section ([#1916](https://github.com/tambo-ai/tambo/issues/1916)) ([46154a5](https://github.com/tambo-ai/tambo/commit/46154a5fd22525f9d6dc601119d09c8f8909d841))
+
+## [1.23.1](https://github.com/tambo-ai/tambo/compare/docs-v1.23.0...docs-v1.23.1) (2026-01-22)
+
+
+### Miscellaneous Chores
+
+* **docs:** Split concepts into explanations and guides  ([#1747](https://github.com/tambo-ai/tambo/issues/1747)) ([a2cc494](https://github.com/tambo-ai/tambo/commit/a2cc4940d8a924e62c6cbfd07c849b503ec4eef1))
+* **react:** bump to new @tambo-ai/typescript-sdk ([#1864](https://github.com/tambo-ai/tambo/issues/1864)) ([7643415](https://github.com/tambo-ai/tambo/commit/76434157aeaa2f4fb6501702403262025614931b))
+* **sdk:** Bump again: get SSE streaming types ([#1870](https://github.com/tambo-ai/tambo/issues/1870)) ([e6fbb44](https://github.com/tambo-ai/tambo/commit/e6fbb4432bc3ba07fe8b660206a1c514ffb98ea8))
+
 ## [1.23.0](https://github.com/tambo-ai/tambo/compare/docs-v1.22.0...docs-v1.23.0) (2026-01-21)
 
 

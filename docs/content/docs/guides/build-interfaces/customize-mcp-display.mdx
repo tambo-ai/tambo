@@ -1,0 +1,567 @@
+---
+title: Customize How MCP Features Display
+description: This guide helps you build custom user interfaces for MCP prompts, resources, and elicitations that match your application design.
+---
+
+This guide shows you how to build custom UI components for MCP features using the React SDK hooks. While Tambo provides built-in UI components for prompts, resources, and elicitations, you can create your own interfaces that match your application's design.
+
+For an overview of MCP features, see [MCP Features](/concepts/model-context-protocol/features).
+
+## Prerequisites
+
+- MCP servers connected (see [Connect MCP Servers](/guides/connect-mcp-servers))
+- Peer dependencies installed:
+
+```bash
+npm install @modelcontextprotocol/sdk@^1.24.0 zod@^4.0.0 zod-to-json-schema@^3.25.0
+```
+
+## Custom Prompt Picker
+
+Build a custom interface for browsing and inserting MCP prompts.
+
+### Step 1: List Available Prompts
+
+Use `useTamboMcpPromptList` to fetch all prompts from connected servers:
+
+```tsx
+import { useTamboMcpPromptList } from "@tambo-ai/react/mcp";
+
+function CustomPromptPicker() {
+  const { data: prompts, isLoading, error } = useTamboMcpPromptList();
+
+  if (isLoading) {
+    return <div className="loading">Loading prompts...</div>;
+  }
+
+  if (error) {
+    return <div className="error">Failed to load prompts</div>;
+  }
+
+  if (!prompts || prompts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="prompt-picker">
+      <h3>Available Prompts</h3>
+      <ul>
+        {prompts.map((entry) => (
+          <li key={`${entry.server.url}-${entry.prompt.name}`}>
+            <button onClick={() => handlePromptSelect(entry.prompt.name)}>
+              <strong>{entry.prompt.name}</strong>
+              {entry.prompt.description && <p>{entry.prompt.description}</p>}
+              <small>From: {entry.server.name}</small>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### Step 2: Fetch and Insert Prompt Content
+
+Use `useTamboMcpPrompt` to get the full prompt content when a user selects a prompt:
+
+```tsx
+import { useTamboMcpPrompt } from "@tambo-ai/react/mcp";
+import { useState } from "react";
+
+function PromptInserter() {
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const { data: prompt } = useTamboMcpPrompt(selectedPrompt ?? "", {
+    enabled: !!selectedPrompt,
+  });
+
+  const insertPromptIntoInput = (promptContent: string) => {
+    // Insert into your message input component
+    // Implementation depends on your input component's API
+  };
+
+  if (prompt) {
+    const promptText = prompt.messages
+      .map((msg) => (msg.content.type === "text" ? msg.content.text : ""))
+      .filter(Boolean)
+      .join("\n");
+
+    insertPromptIntoInput(promptText);
+  }
+
+  return null;
+}
+```
+
+### Step 3: Integrate with Message Input
+
+Combine the prompt picker with your message input:
+
+```tsx
+function ChatInterface() {
+  const [inputValue, setInputValue] = useState("");
+  const [showPrompts, setShowPrompts] = useState(false);
+
+  const handlePromptSelect = async (promptName: string) => {
+    // Fetch and insert prompt
+    const prompt = await fetchPrompt(promptName);
+    setInputValue(prompt.text);
+    setShowPrompts(false);
+  };
+
+  return (
+    <div className="chat-interface">
+      <textarea
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Type your message..."
+      />
+      <button onClick={() => setShowPrompts(!showPrompts)}>📄 Prompts</button>
+      {showPrompts && <CustomPromptPicker onSelect={handlePromptSelect} />}
+    </div>
+  );
+}
+```
+
+## Custom Resource Selector
+
+Build a custom interface for browsing and referencing MCP resources.
+
+### Step 1: List Available Resources
+
+Use `useTamboMcpResourceList` to fetch all resources:
+
+```tsx
+import { useTamboMcpResourceList } from "@tambo-ai/react/mcp";
+import { useState } from "react";
+
+function CustomResourceSelector() {
+  const { data: resources, isLoading, error } = useTamboMcpResourceList();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  if (isLoading) {
+    return <div className="loading">Loading resources...</div>;
+  }
+
+  if (error) {
+    return <div className="error">Failed to load resources</div>;
+  }
+
+  if (!resources || resources.length === 0) {
+    return null;
+  }
+
+  const filteredResources = resources.filter(
+    (entry) =>
+      entry.resource.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.resource.uri.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  return (
+    <div className="resource-selector">
+      <input
+        type="text"
+        placeholder="Search resources..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+      <ul>
+        {filteredResources.map((entry) => (
+          <li key={entry.resource.uri}>
+            <button onClick={() => handleResourceSelect(entry.resource.uri)}>
+              <strong>{entry.resource.name || entry.resource.uri}</strong>
+              {entry.resource.description && (
+                <p>{entry.resource.description}</p>
+              )}
+              <small>From: {entry.server.name}</small>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### Step 2: Insert Resource References
+
+When a user selects a resource, insert its reference with the `@` syntax:
+
+```tsx
+function ResourceInserter({ onInsert }: { onInsert: (text: string) => void }) {
+  const handleResourceSelect = (resourceUri: string) => {
+    // Insert resource reference with @ syntax
+    onInsert(`@${resourceUri} `);
+  };
+
+  return <CustomResourceSelector onSelect={handleResourceSelect} />;
+}
+```
+
+### Step 3: Display Resource Content (Optional)
+
+Use `useTamboMcpResource` to fetch and display resource content:
+
+```tsx
+import { useTamboMcpResource } from "@tambo-ai/react/mcp";
+
+function ResourcePreview({ resourceUri }: { resourceUri: string }) {
+  const { data: resource, isLoading } = useTamboMcpResource(resourceUri);
+
+  if (isLoading) {
+    return <div className="loading">Loading resource...</div>;
+  }
+
+  if (!resource) {
+    return null;
+  }
+
+  return (
+    <div className="resource-preview">
+      <h4>Resource Preview</h4>
+      {resource.contents.map((content, idx) => (
+        <div key={idx}>
+          {content.mimeType && <small>Type: {content.mimeType}</small>}
+          {content.text && <pre>{content.text}</pre>}
+          {content.blob && (
+            <div>Binary content ({content.blob.length} bytes)</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Step 4: Integrate with Message Input
+
+Combine the resource selector with your message input:
+
+```tsx
+function ChatInterface() {
+  const [inputValue, setInputValue] = useState("");
+  const [showResources, setShowResources] = useState(false);
+
+  const handleResourceInsert = (resourceReference: string) => {
+    setInputValue(inputValue + resourceReference);
+    setShowResources(false);
+  };
+
+  return (
+    <div className="chat-interface">
+      <textarea
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Type your message..."
+      />
+      <button onClick={() => setShowResources(!showResources)}>
+        @ Resources
+      </button>
+      {showResources && <ResourceInserter onInsert={handleResourceInsert} />}
+    </div>
+  );
+}
+```
+
+## Custom Elicitation Handler
+
+Build custom UI for handling elicitation requests from MCP servers.
+
+### Step 1: Access Elicitation Context
+
+Use `useTamboElicitationContext` to access the current elicitation request:
+
+```tsx
+import { useTamboElicitationContext } from "@tambo-ai/react/mcp";
+
+function CustomElicitationUI() {
+  const { elicitation, resolveElicitation } = useTamboElicitationContext();
+
+  if (!elicitation) {
+    return null;
+  }
+
+  const { message, requestedSchema } = elicitation.params;
+
+  return (
+    <div className="elicitation-form">
+      <h3>Additional Information Needed</h3>
+      <p>{message}</p>
+      {/* Render form fields based on requestedSchema */}
+    </div>
+  );
+}
+```
+
+### Step 2: Build Dynamic Form Fields
+
+Render form fields based on the requested schema:
+
+```tsx
+function ElicitationForm() {
+  const { elicitation, resolveElicitation } = useTamboElicitationContext();
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
+
+  if (!elicitation) return null;
+
+  const { message, requestedSchema } = elicitation.params;
+  const properties = requestedSchema.properties;
+
+  return (
+    <div className="elicitation-form">
+      <p>{message}</p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          resolveElicitation?.({ action: "accept", content: formData });
+        }}
+      >
+        {Object.entries(properties).map(([fieldName, fieldSchema]) => (
+          <div key={fieldName} className="form-field">
+            <label htmlFor={fieldName}>{fieldName}</label>
+            {renderField(fieldName, fieldSchema, formData, setFormData)}
+          </div>
+        ))}
+        <div className="form-actions">
+          <button type="submit">Accept</button>
+          <button
+            type="button"
+            onClick={() => resolveElicitation?.({ action: "decline" })}
+          >
+            Decline
+          </button>
+          <button
+            type="button"
+            onClick={() => resolveElicitation?.({ action: "cancel" })}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function renderField(
+  fieldName: string,
+  fieldSchema: any,
+  formData: Record<string, unknown>,
+  setFormData: (data: Record<string, unknown>) => void,
+) {
+  const value = formData[fieldName] ?? "";
+
+  const handleChange = (newValue: unknown) => {
+    setFormData({ ...formData, [fieldName]: newValue });
+  };
+
+  // Text field
+  if (fieldSchema.type === "string") {
+    return (
+      <input
+        type="text"
+        value={String(value)}
+        onChange={(e) => handleChange(e.target.value)}
+      />
+    );
+  }
+
+  // Number field
+  if (fieldSchema.type === "number" || fieldSchema.type === "integer") {
+    return (
+      <input
+        type="number"
+        value={Number(value)}
+        onChange={(e) => handleChange(Number(e.target.value))}
+      />
+    );
+  }
+
+  // Boolean field
+  if (fieldSchema.type === "boolean") {
+    return (
+      <input
+        type="checkbox"
+        checked={Boolean(value)}
+        onChange={(e) => handleChange(e.target.checked)}
+      />
+    );
+  }
+
+  // Enum field
+  if (fieldSchema.enum) {
+    return (
+      <select
+        value={String(value)}
+        onChange={(e) => handleChange(e.target.value)}
+      >
+        <option value="">Select...</option>
+        {fieldSchema.enum.map((option: string) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  return null;
+}
+```
+
+### Step 3: Provider-level Handler (Advanced)
+
+For programmatic control over elicitation flow, provide a handler function:
+
+```tsx
+import { TamboProvider } from "@tambo-ai/react";
+
+function App() {
+  const handleElicitation = async (request, extra, serverInfo) => {
+    console.log(`Elicitation from ${serverInfo.name}: ${request.params.message}`);
+
+    // Show custom UI and collect user input
+    const userInput = await showCustomElicitationDialog(request.params);
+
+    return {
+      action: "accept",
+      content: userInput,
+    };
+  };
+
+  return (
+    <TamboProvider
+      mcpServers={[...]}
+      mcpHandlers={{
+        elicitation: handleElicitation,
+      }}
+    >
+      <YourApp />
+    </TamboProvider>
+  );
+}
+```
+
+Per-server handlers take precedence over provider-level handlers:
+
+```tsx
+<TamboProvider
+  mcpServers={[
+    {
+      url: "https://github-mcp.example.com",
+      serverKey: "github",
+      handlers: {
+        elicitation: async (request) => {
+          // Custom handling for GitHub MCP only
+          return { action: "accept", content: { confirmed: true } };
+        },
+      },
+    },
+  ]}
+>
+  <YourApp />
+</TamboProvider>
+```
+
+## Complete Example
+
+Here's a complete example integrating all MCP UI customizations:
+
+```tsx
+import { useState } from "react";
+import {
+  useTamboMcpPromptList,
+  useTamboMcpResourceList,
+} from "@tambo-ai/react/mcp";
+
+function MCPEnabledChatInput() {
+  const [message, setMessage] = useState("");
+  const [showPrompts, setShowPrompts] = useState(false);
+  const [showResources, setShowResources] = useState(false);
+
+  const { data: prompts } = useTamboMcpPromptList();
+  const { data: resources } = useTamboMcpResourceList();
+
+  const hasPrompts = prompts && prompts.length > 0;
+  const hasResources = resources && resources.length > 0;
+
+  return (
+    <div className="mcp-chat-input">
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type your message... (/ for prompts, @ for resources)"
+      />
+
+      <div className="toolbar">
+        {hasPrompts && (
+          <button onClick={() => setShowPrompts(!showPrompts)}>
+            📄 Prompts
+          </button>
+        )}
+        {hasResources && (
+          <button onClick={() => setShowResources(!showResources)}>
+            @ Resources
+          </button>
+        )}
+        <button onClick={() => sendMessage(message)}>Send</button>
+      </div>
+
+      {showPrompts && (
+        <CustomPromptPicker
+          onSelect={(text) => {
+            setMessage(text);
+            setShowPrompts(false);
+          }}
+        />
+      )}
+
+      {showResources && (
+        <CustomResourceSelector
+          onSelect={(uri) => {
+            setMessage(message + `@${uri} `);
+            setShowResources(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+### Performance
+
+- Use the built-in query caching from React Query (hooks use it internally)
+- Debounce search inputs when filtering large resource or prompt lists
+- Lazy load resource content only when needed
+
+### User Experience
+
+- Show loading states while fetching prompts or resources
+- Provide search and filtering for large lists
+- Display clear error messages when connections fail
+- Group items by MCP server for better organization
+
+### Accessibility
+
+- Use semantic HTML elements (buttons, forms, labels)
+- Add keyboard navigation support (arrow keys, Enter, Escape)
+- Include ARIA labels for screen readers
+- Ensure form validation messages are accessible
+
+## What's Next
+
+import LearnMore from "@/components/learn-more";
+
+<LearnMore
+  title="MCP Features"
+  description="Understand how tools, prompts, resources, elicitations, and sampling work"
+  href="/concepts/model-context-protocol/features"
+/>
+
+<LearnMore
+  title="Build Custom Conversation UI"
+  description="Learn how to build custom chat interfaces from scratch"
+  href="/guides/build-interfaces/build-chat-interface"
+/>

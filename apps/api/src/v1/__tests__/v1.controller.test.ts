@@ -1,4 +1,8 @@
-import { NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from "@nestjs/common";
 import { Request } from "express";
 import { V1Controller } from "../v1.controller";
 import { V1Service } from "../v1.service";
@@ -21,6 +25,7 @@ describe("V1Controller", () => {
       deleteThread: jest.fn(),
       listMessages: jest.fn(),
       getMessage: jest.fn(),
+      updateComponentState: jest.fn(),
     } as unknown as jest.Mocked<V1Service>;
 
     // Create controller directly with mocked service
@@ -34,7 +39,7 @@ describe("V1Controller", () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
-          contextKey: undefined,
+          contextKey: "bearer_context",
         });
         const mockResponse = {
           threads: [{ id: "thr_1", projectId: "prj_123" }],
@@ -46,13 +51,13 @@ describe("V1Controller", () => {
 
         expect(mockV1Service.listThreads).toHaveBeenCalledWith(
           "prj_123",
-          undefined,
+          "bearer_context",
           {},
         );
         expect(result).toEqual(mockResponse);
       });
 
-      it("should filter by context key from query", async () => {
+      it("should filter by user key from query", async () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
@@ -63,16 +68,16 @@ describe("V1Controller", () => {
           hasMore: false,
         } as any);
 
-        await controller.listThreads(mockRequest, { contextKey: "user_456" });
+        await controller.listThreads(mockRequest, { userKey: "user_456" });
 
         expect(mockV1Service.listThreads).toHaveBeenCalledWith(
           "prj_123",
           "user_456",
-          { contextKey: "user_456" },
+          { userKey: "user_456" },
         );
       });
 
-      it("should use bearer token context key when query contextKey is not provided", async () => {
+      it("should use bearer token context key when query userKey is not provided", async () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
@@ -92,7 +97,7 @@ describe("V1Controller", () => {
         );
       });
 
-      it("should prefer query contextKey over bearer token context key", async () => {
+      it("should prefer query userKey over bearer token context key", async () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
@@ -104,19 +109,24 @@ describe("V1Controller", () => {
         } as any);
 
         await controller.listThreads(mockRequest, {
-          contextKey: "query_context",
+          userKey: "query_context",
         });
 
         expect(mockV1Service.listThreads).toHaveBeenCalledWith(
           "prj_123",
           "query_context",
-          { contextKey: "query_context" },
+          { userKey: "query_context" },
         );
       });
     });
 
     describe("getThread", () => {
       it("should return thread with messages", async () => {
+        const mockRequest = {} as Request;
+        mockExtractContextInfo.mockReturnValue({
+          projectId: "prj_123",
+          contextKey: "bearer_context",
+        });
         const mockThread = {
           id: "thr_123",
           projectId: "prj_123",
@@ -127,19 +137,62 @@ describe("V1Controller", () => {
         };
         mockV1Service.getThread.mockResolvedValue(mockThread as any);
 
-        const result = await controller.getThread("thr_123");
+        const result = await controller.getThread(mockRequest, "thr_123");
 
-        expect(mockV1Service.getThread).toHaveBeenCalledWith("thr_123");
+        expect(mockV1Service.getThread).toHaveBeenCalledWith(
+          "thr_123",
+          "prj_123",
+          "bearer_context",
+        );
         expect(result).toEqual(mockThread);
       });
 
       it("should throw NotFoundException for non-existent thread", async () => {
+        const mockRequest = {} as Request;
+        mockExtractContextInfo.mockReturnValue({
+          projectId: "prj_123",
+          contextKey: "bearer_context",
+        });
         mockV1Service.getThread.mockRejectedValue(
           new NotFoundException("Thread thr_nonexistent not found"),
         );
 
-        await expect(controller.getThread("thr_nonexistent")).rejects.toThrow(
-          NotFoundException,
+        await expect(
+          controller.getThread(mockRequest, "thr_nonexistent"),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it("should pass userKey to service when provided", async () => {
+        const mockRequest = {} as Request;
+        mockExtractContextInfo.mockReturnValue({
+          projectId: "prj_123",
+          contextKey: undefined,
+        });
+        mockV1Service.getThread.mockResolvedValue({} as any);
+
+        await controller.getThread(mockRequest, "thr_123", "user_456");
+
+        expect(mockV1Service.getThread).toHaveBeenCalledWith(
+          "thr_123",
+          "prj_123",
+          "user_456",
+        );
+      });
+
+      it("should use bearer token context when userKey not provided", async () => {
+        const mockRequest = {} as Request;
+        mockExtractContextInfo.mockReturnValue({
+          projectId: "prj_123",
+          contextKey: "bearer_context",
+        });
+        mockV1Service.getThread.mockResolvedValue({} as any);
+
+        await controller.getThread(mockRequest, "thr_123");
+
+        expect(mockV1Service.getThread).toHaveBeenCalledWith(
+          "thr_123",
+          "prj_123",
+          "bearer_context",
         );
       });
     });
@@ -149,7 +202,7 @@ describe("V1Controller", () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
-          contextKey: undefined,
+          contextKey: "bearer_context",
         });
         const mockThread = {
           id: "thr_new",
@@ -164,13 +217,13 @@ describe("V1Controller", () => {
 
         expect(mockV1Service.createThread).toHaveBeenCalledWith(
           "prj_123",
-          undefined,
+          "bearer_context",
           {},
         );
         expect(result).toEqual(mockThread);
       });
 
-      it("should create thread with context key from body", async () => {
+      it("should create thread with user key from body", async () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
@@ -178,12 +231,12 @@ describe("V1Controller", () => {
         });
         mockV1Service.createThread.mockResolvedValue({} as any);
 
-        await controller.createThread(mockRequest, { contextKey: "user_456" });
+        await controller.createThread(mockRequest, { userKey: "user_456" });
 
         expect(mockV1Service.createThread).toHaveBeenCalledWith(
           "prj_123",
           "user_456",
-          { contextKey: "user_456" },
+          { userKey: "user_456" },
         );
       });
 
@@ -191,7 +244,7 @@ describe("V1Controller", () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
-          contextKey: undefined,
+          contextKey: "bearer_context",
         });
         mockV1Service.createThread.mockResolvedValue({} as any);
 
@@ -200,12 +253,12 @@ describe("V1Controller", () => {
 
         expect(mockV1Service.createThread).toHaveBeenCalledWith(
           "prj_123",
-          undefined,
+          "bearer_context",
           dto,
         );
       });
 
-      it("should use bearer token context key when body contextKey is not provided", async () => {
+      it("should use bearer token context key when body userKey is not provided", async () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
@@ -222,7 +275,7 @@ describe("V1Controller", () => {
         );
       });
 
-      it("should prefer body contextKey over bearer token context key", async () => {
+      it("should prefer body userKey over bearer token context key", async () => {
         const mockRequest = {} as Request;
         mockExtractContextInfo.mockReturnValue({
           projectId: "prj_123",
@@ -231,13 +284,13 @@ describe("V1Controller", () => {
         mockV1Service.createThread.mockResolvedValue({} as any);
 
         await controller.createThread(mockRequest, {
-          contextKey: "body_context",
+          userKey: "body_context",
         });
 
         expect(mockV1Service.createThread).toHaveBeenCalledWith(
           "prj_123",
           "body_context",
-          { contextKey: "body_context" },
+          { userKey: "body_context" },
         );
       });
     });
@@ -334,6 +387,103 @@ describe("V1Controller", () => {
         await expect(
           controller.getMessage("thr_123", "msg_nonexistent"),
         ).rejects.toThrow(NotFoundException);
+      });
+    });
+  });
+
+  describe("Component State endpoints", () => {
+    describe("updateComponentState", () => {
+      it("should update component state with full replacement", async () => {
+        const mockResponse = {
+          state: { loading: false, data: [1, 2, 3] },
+        };
+        mockV1Service.updateComponentState.mockResolvedValue(mockResponse);
+
+        const result = await controller.updateComponentState(
+          "thr_123",
+          "comp_456",
+          { state: { loading: false, data: [1, 2, 3] } },
+        );
+
+        expect(mockV1Service.updateComponentState).toHaveBeenCalledWith(
+          "thr_123",
+          "comp_456",
+          { state: { loading: false, data: [1, 2, 3] } },
+        );
+        expect(result).toEqual(mockResponse);
+      });
+
+      it("should update component state with JSON Patch", async () => {
+        const mockResponse = {
+          state: { loading: false, data: [1, 2, 3, 4] },
+        };
+        mockV1Service.updateComponentState.mockResolvedValue(mockResponse);
+
+        const patch = [
+          { op: "replace" as const, path: "/loading", value: false },
+          { op: "add" as const, path: "/data/-", value: 4 },
+        ];
+
+        const result = await controller.updateComponentState(
+          "thr_123",
+          "comp_456",
+          { patch },
+        );
+
+        expect(mockV1Service.updateComponentState).toHaveBeenCalledWith(
+          "thr_123",
+          "comp_456",
+          { patch },
+        );
+        expect(result).toEqual(mockResponse);
+      });
+
+      it("should throw ConflictException when thread has active run", async () => {
+        mockV1Service.updateComponentState.mockRejectedValue(
+          new ConflictException("Cannot update state while run is active"),
+        );
+
+        await expect(
+          controller.updateComponentState("thr_123", "comp_456", {
+            state: { loading: false },
+          }),
+        ).rejects.toThrow(ConflictException);
+      });
+
+      it("should throw NotFoundException for non-existent component", async () => {
+        mockV1Service.updateComponentState.mockRejectedValue(
+          new NotFoundException(
+            "Component comp_nonexistent not found in thread thr_123",
+          ),
+        );
+
+        await expect(
+          controller.updateComponentState("thr_123", "comp_nonexistent", {
+            state: { loading: false },
+          }),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it("should throw BadRequestException for invalid JSON Patch", async () => {
+        mockV1Service.updateComponentState.mockRejectedValue(
+          new BadRequestException("Invalid JSON Patch"),
+        );
+
+        await expect(
+          controller.updateComponentState("thr_123", "comp_456", {
+            patch: [{ op: "move", path: "/foo" }],
+          }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it("should throw BadRequestException when neither state nor patch provided", async () => {
+        mockV1Service.updateComponentState.mockRejectedValue(
+          new BadRequestException("Either state or patch must be provided"),
+        );
+
+        await expect(
+          controller.updateComponentState("thr_123", "comp_456", {}),
+        ).rejects.toThrow(BadRequestException);
       });
     });
   });

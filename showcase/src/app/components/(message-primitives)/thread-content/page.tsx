@@ -5,7 +5,7 @@ import { InstallationSection } from "@/components/installation-section";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/tambo/thread-content";
+} from "@tambo-ai/ui-registry/components/thread-content";
 import { TamboStubProvider, TamboThread } from "@tambo-ai/react";
 
 const mockThread: TamboThread = {
@@ -116,7 +116,7 @@ export default function ThreadContentPage() {
             code={`import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/tambo/thread-content";
+} from "@tambo-ai/ui-registry/components/thread-content";
 
 export function ChatDemo() {
   return (
@@ -140,7 +140,7 @@ export function ChatDemo() {
             code={`import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/tambo/thread-content";
+} from "@tambo-ai/ui-registry/components/thread-content";
 
 export function ChatDemo() {
   return (
@@ -164,7 +164,7 @@ export function ChatDemo() {
             code={`import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/tambo/thread-content";
+} from "@tambo-ai/ui-registry/components/thread-content";
 
 export function EmptyThread() {
   return (

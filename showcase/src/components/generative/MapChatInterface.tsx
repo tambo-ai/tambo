@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageThreadFull } from "@/components/tambo/message-thread-full";
+import { MessageThreadFull } from "@tambo-ai/ui-registry/components/message-thread-full";
 import { useTambo } from "@tambo-ai/react";
 import { useEffect } from "react";
 
@@ -10,7 +10,7 @@ export const MapChatInterface = () => {
   useEffect(() => {
     const register = async () => {
       /* Dynamically import the Map component and its schema */
-      const mod = await import("@/components/tambo/map");
+      const mod = await import("@tambo-ai/ui-registry/components/map");
       const mapSchema = mod.mapSchema;
       const Map = mod.Map;
 

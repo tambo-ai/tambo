@@ -1,12 +1,11 @@
 "use client";
 
+import { useInteractablesResourceProvider } from "@/hooks/use-interactables-resource-provider";
 import {
   MessageInputTextarea,
   type MessageInputTextareaProps,
   type ResourceProvider,
-} from "@/components/ui/tambo/message-input";
-import { useInteractablesResourceProvider } from "@/hooks/use-interactables-resource-provider";
-import * as React from "react";
+} from "@tambo-ai/ui-registry/components/message-input";
 
 /**
  * MessageInputTextarea wrapper that automatically integrates with Tambo interactables.

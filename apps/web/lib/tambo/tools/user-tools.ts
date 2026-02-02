@@ -2,20 +2,21 @@ import { z } from "zod/v3";
 import type { RegisterToolFn, ToolContext } from "./types";
 
 /**
- * Zod schema for the `fetchCurrentUser` function.
- * Defines no arguments and a return type as an object containing user details (id, email, createdAt, imageUrl).
+ * Input schema for the `fetchCurrentUser` function.
+ * No arguments required.
  */
-export const fetchCurrentUserSchema = z
-  .function()
-  .args()
-  .returns(
-    z.object({
-      id: z.string(),
-      email: z.string().optional(),
-      createdAt: z.string(),
-      imageUrl: z.string().optional(),
-    }),
-  );
+export const fetchCurrentUserInputSchema = z.object({});
+
+/**
+ * Output schema for the `fetchCurrentUser` function.
+ * Returns user details (id, email, createdAt, imageUrl).
+ */
+export const fetchCurrentUserOutputSchema = z.object({
+  id: z.string(),
+  email: z.string().optional(),
+  createdAt: z.string(),
+  imageUrl: z.string().optional(),
+});
 
 /**
  * Register user management tools
@@ -36,6 +37,7 @@ export function registerUserTools(
     tool: async () => {
       return await ctx.trpcClient.user.getUser.query();
     },
-    toolSchema: fetchCurrentUserSchema,
+    inputSchema: fetchCurrentUserInputSchema,
+    outputSchema: fetchCurrentUserOutputSchema,
   });
 }

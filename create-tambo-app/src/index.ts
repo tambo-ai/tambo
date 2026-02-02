@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
-import { spawn } from "child_process";
+import spawn from "cross-spawn";
 
 // Use npx to ensure we get the latest version of tambo
 const args = ["-y", "tambo@latest", "create-app", ...process.argv.slice(2)];
-const child = spawn("npx", args, {
+
+// On Windows, npx is a .cmd batch file - use explicit extension
+const command = process.platform === "win32" ? "npx.cmd" : "npx";
+
+const child = spawn(command, args, {
   stdio: "inherit",
 });
 
@@ -27,6 +31,6 @@ child.on("error", (err: NodeJS.ErrnoException) => {
   process.exit(1);
 });
 
-child.on("exit", (code) => {
+child.on("exit", (code: number | null) => {
   process.exit(code ?? 0);
 });

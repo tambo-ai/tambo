@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://docs.tambo.co">Documentation</a> •
-  <a href="https://docs.tambo.co/api-reference">API Reference</a> •
+  <a href="https://docs.tambo.co/reference/react-sdk">API Reference</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
 
@@ -159,7 +159,7 @@ const components: TamboComponent[] = [
 ];
 ```
 
-[→ Learn more about components](https://docs.tambo.co/concepts/components)
+[→ Learn more about components](https://docs.tambo.co/concepts/generative-interfaces)
 
 ### Provider Setup
 
@@ -176,7 +176,7 @@ Wrap your app with `TamboProvider` to enable AI capabilities:
 </TamboProvider>
 ```
 
-[→ See all provider options](https://docs.tambo.co/api-reference/tambo-provider)
+[→ See all provider options](https://docs.tambo.co/reference/react-sdk/providers)
 
 ### Hooks
 
@@ -189,7 +189,7 @@ Wrap your app with `TamboProvider` to enable AI capabilities:
 | `useTamboStreamStatus()`   | Monitor streaming status for progressive loading   |
 | `useTamboSuggestions()`    | Generate contextual suggestions                    |
 
-[→ API Reference](https://docs.tambo.co/api-reference)
+[→ API Reference](https://docs.tambo.co/reference/react-sdk)
 
 ## Key Features
 
@@ -211,7 +211,7 @@ const components: TamboComponent[] = [
 ];
 ```
 
-[→ Learn more about components](https://docs.tambo.co/concepts/components)
+[→ Learn more about components](https://docs.tambo.co/concepts/generative-interfaces)
 
 ### Interactable Components
 
@@ -234,7 +234,7 @@ const InteractableNote = withInteractable(Note, {
 <InteractableNote id="note-1" title="My Note" content="Content here" />;
 ```
 
-[→ Learn more about interactable components](https://docs.tambo.co/concepts/components/interactable-components)
+[→ Learn more about interactable components](https://docs.tambo.co/concepts/generative-interfaces/interactable-components)
 
 ### MCP Integration
 
@@ -260,10 +260,10 @@ const mcpServers = [
 
 > **Dependency note**
 >
-> The `@tambo-ai/react/mcp` subpath declares `@modelcontextprotocol/sdk`, `zod`, and `zod-to-json-schema` as optional peer dependencies. If you import this MCP entrypoint in your app, make sure these packages are installed with compatible versions:
+> The `@modelcontextprotocol/sdk` is included automatically when you install `@tambo-ai/react`. However, if you import from the `@tambo-ai/react/mcp` subpath and use features that require schema validation (like component props schemas), you'll need to install `zod` and `zod-to-json-schema` as optional peer dependencies:
 >
 > ```bash
-> npm install @modelcontextprotocol/sdk@^1.24.0 zod@^4.0.0 zod-to-json-schema@^3.25.0
+> npm install zod@^4.0.0 zod-to-json-schema@^3.25.0
 > ```
 >
 > `zod` can also be `^3.25` if you prefer Zod 3; both `^3.25` and `^4.0` satisfy the SDK's `zod/v3` subpath constraints.
@@ -298,7 +298,7 @@ const tools = [
 </TamboProvider>;
 ```
 
-[→ Learn more about tools](https://docs.tambo.co/concepts/tools/adding-tools)
+[→ Learn more about tools](https://docs.tambo.co/guides/take-actions/register-tools)
 
 #### Advanced: Transforming Tool Responses
 
@@ -309,14 +309,14 @@ const tools: TamboTool[] = [
   {
     name: "getImageData",
     description: "Fetches image data with metadata",
-    tool: async (imageId: string) => {
-      const data = await fetchImageData(imageId);
+    tool: async (params: { imageId: string }) => {
+      const data = await fetchImageData(params.imageId);
       return { url: data.imageUrl, description: data.description };
     },
-    toolSchema: z.function({
-      input: z.string(),
-      output: z.object({ url: z.string(), description: z.string() }),
+    inputSchema: z.object({
+      imageId: z.string(),
     }),
+    outputSchema: z.object({ url: z.string(), description: z.string() }),
     transformToContent: (result) => [
       { type: "text", text: result.description },
       { type: "image_url", image_url: { url: result.url } },
@@ -426,7 +426,7 @@ registerResourceSource({
 
 Local resources appear in `useTamboMcpResourceList()` alongside MCP resources, with MCP resources always prefixed by their serverKey.
 
-[→ Learn more about resources](https://docs.tambo.co/concepts/resources)
+[→ Learn more about resources](https://docs.tambo.co/concepts/model-context-protocol/features#resources)
 
 ### Streaming Status
 
@@ -451,7 +451,7 @@ function LoadingComponent({ title, data }) {
 }
 ```
 
-[→ Learn more about streaming](https://docs.tambo.co/concepts/streaming/component-streaming-status)
+[→ Learn more about streaming](https://docs.tambo.co/concepts/generative-interfaces/component-state)
 
 ### Context, Auth, and Suggestions
 
@@ -484,7 +484,7 @@ suggestions.map((s) => (
 
 ### Supported LLM Providers
 
-OpenAI, Anthropic, Google Gemini, Mistral, Groq, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/models). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
+OpenAI, Anthropic, Google Gemini, Mistral, Groq, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/reference/llm-providers). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
 
 ## When to Use This SDK
 
@@ -519,8 +519,8 @@ TypeScript definitions included for both outputs.
 
 - [Full Documentation](https://docs.tambo.co)
 - [Getting Started Guide](https://docs.tambo.co/getting-started/quickstart)
-- [API Reference](https://docs.tambo.co/api-reference)
-- [Component Guides](https://docs.tambo.co/concepts/components)
+- [API Reference](https://docs.tambo.co/reference/react-sdk)
+- [Component Guides](https://docs.tambo.co/concepts/generative-interfaces)
 - [UI Library](https://ui.tambo.co)
 
 ## License

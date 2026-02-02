@@ -1,31 +1,34 @@
 "use client";
 
-import type { messageVariants } from "@/components/tambo/message";
-import { Message, MessageContent } from "@/components/tambo/message";
-import {
-  MessageInput,
-  MessageInputError,
-  MessageInputSubmitButton,
-  MessageInputTextarea,
-  MessageInputToolbar,
-  MessageInputFileButton,
-} from "@/components/tambo/message-input";
-import {
-  MessageSuggestions,
-  MessageSuggestionsList,
-  MessageSuggestionsStatus,
-} from "@/components/tambo/message-suggestions";
-import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
-import {
-  ThreadContent,
-  ThreadContentMessages,
-} from "@/components/tambo/thread-content";
 import { cn } from "@/lib/utils";
 import {
   useTambo,
   type Suggestion,
   type TamboThreadMessage,
 } from "@tambo-ai/react";
+import type { messageVariants } from "@tambo-ai/ui-registry/components/message";
+import {
+  Message,
+  MessageContent,
+} from "@tambo-ai/ui-registry/components/message";
+import {
+  MessageInput,
+  MessageInputError,
+  MessageInputFileButton,
+  MessageInputSubmitButton,
+  MessageInputTextarea,
+  MessageInputToolbar,
+} from "@tambo-ai/ui-registry/components/message-input";
+import {
+  MessageSuggestions,
+  MessageSuggestionsList,
+  MessageSuggestionsStatus,
+} from "@tambo-ai/ui-registry/components/message-suggestions";
+import { ScrollableMessageContainer } from "@tambo-ai/ui-registry/components/scrollable-message-container";
+import {
+  ThreadContent,
+  ThreadContentMessages,
+} from "@tambo-ai/ui-registry/components/thread-content";
 import { type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import Image from "next/image";
@@ -46,7 +49,7 @@ export interface MessageThreadCollapsibleProps extends React.HTMLAttributes<HTML
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
-   * These values are defined in messageVariants from "@/components/tambo/message".
+   * These values are defined in messageVariants from "@tambo-ai/ui-registry/components/message".
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
@@ -94,7 +97,7 @@ const CollapsibleContainer = React.forwardRef<
             "top-14 left-0 right-0 bottom-0 w-full rounded-none",
             // Tablet and up: Floating panel
             "sm:inset-auto sm:bottom-4 sm:right-4 sm:rounded-lg",
-            "sm:w-[448px] md:w-[512px] lg:w-[640px] xl:w-[768px] 2xl:w-[896px]",
+            "sm:w-md md:w-lg lg:w-160 xl:w-3xl 2xl:w-4xl",
             "sm:h-auto sm:max-w-[90vw]",
           )
         : "bottom-4 right-4 rounded-full w-16 h-16 p-0 flex items-center justify-center",
@@ -264,7 +267,7 @@ export const MessageThreadCollapsible = React.forwardRef<
           config={THREAD_CONFIG}
         />
         <Collapsible.Content>
-          <div className="h-[calc(100vh-8rem)] sm:h-[600px] md:h-[650px] lg:h-[700px] xl:h-[750px] 2xl:h-[800px] max-h-[90vh] flex flex-col">
+          <div className="h-[calc(100vh-8rem)] sm:h-150 md:h-162.5 lg:h-175 xl:h-187.5 2xl:h-200 max-h-[90vh] flex flex-col">
             {/* Message thread content */}
             <ScrollableMessageContainer className="p-2 sm:p-3 md:p-4">
               {/* Conditionally render the starter message */}
@@ -286,7 +289,7 @@ export const MessageThreadCollapsible = React.forwardRef<
 
             {/* Message input */}
             <div className="p-2 sm:p-3 md:p-4">
-              <MessageInput initialQuery={finalInitialQuery}>
+              <MessageInput defaultValue={finalInitialQuery}>
                 <MessageInputTextarea placeholder="Type your message or paste images..." />
                 <MessageInputToolbar>
                   <MessageInputFileButton />

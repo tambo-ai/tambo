@@ -1,7 +1,7 @@
 "use client";
 
 import { InstallationSection } from "@/components/installation-section";
-import { ElicitationUI } from "@/components/tambo/elicitation-ui";
+import { ElicitationUI } from "@tambo-ai/ui-registry/components/elicitation-ui";
 import type {
   TamboElicitationRequest,
   TamboElicitationResponse,
@@ -269,7 +269,7 @@ export default function ElicitationPage() {
             from MCP servers. For detailed information about elicitation in MCP,
             see the{" "}
             <a
-              href="https://docs.tambo.co/concepts/model-context-protocol/features/elicitation"
+              href="https://docs.tambo.co/concepts/model-context-protocol/features#elicitations"
               className="text-primary-link hover:underline"
             >
               elicitation documentation

@@ -1,0 +1,330 @@
+---
+title: Let Users Attach Context
+description: Stage temporary context that users explicitly add to messages
+---
+
+import LearnMore from "@/components/learn-more";
+import { BookOpen } from "lucide-react";
+
+Use context attachments to let users explicitly stage temporary context—like file contents, selected text, or specific elements—that's automatically included in the next message and then cleared.
+
+<LearnMore
+  title="Understanding Context Attachments"
+  description="Learn about the concept and when to use context attachments"
+  href="/concepts/additional-context"
+  icon={BookOpen}
+/>
+
+## When to Use This
+
+Context attachments are perfect when:
+
+- ✅ Users should explicitly choose what context to include
+- ✅ Context is temporary and relevant to a single message
+- ✅ Users need to attach files, selections, or specific elements
+- ✅ You want to show staged context before sending
+- ✅ Context should be cleared after the message is sent
+
+**Don't use context attachments for:**
+
+- ❌ Automatic ambient context (use [Context Helpers](/guides/give-context/make-ai-aware-of-state))
+- ❌ @ mentionable documentation (use [Resources](/guides/give-context/make-context-referenceable))
+
+## Prerequisites
+
+- A Tambo application with `TamboProvider` configured
+- Understanding of React hooks
+
+## Step 1: Import the Hook
+
+Import the `useTamboContextAttachment` hook:
+
+```tsx
+import { useTamboContextAttachment } from "@tambo-ai/react";
+```
+
+## Step 2: Use the Hook in Your Component
+
+The hook provides methods to add, remove, and access context attachments:
+
+```tsx
+function FileViewer({ file }) {
+  const { addContextAttachment, removeContextAttachment, attachments } =
+    useTamboContextAttachment();
+
+  return (
+    // Your component JSX
+  );
+}
+```
+
+### Hook API
+
+The `useTamboContextAttachment` hook returns:
+
+- `attachments`: Array of currently staged attachments
+- `addContextAttachment`: Function to add a new attachment
+- `removeContextAttachment`: Function to remove an attachment by ID
+- `clearContextAttachments`: Function to remove all attachments
+
+## Step 3: Add Context Attachments
+
+Add attachments when users select files, highlight text, or focus on specific content:
+
+```tsx
+function FileViewer({ file }) {
+  const { addContextAttachment } = useTamboContextAttachment();
+
+  const handleSelectFile = () => {
+    addContextAttachment({
+      context: file.content, // The actual content to include
+      displayName: file.name, // Name shown in UI
+      type: "file", // Optional type for grouping
+    });
+  };
+
+  return <button onClick={handleSelectFile}>Focus on {file.name}</button>;
+}
+```
+
+### Attachment Structure
+
+Each attachment object has:
+
+```tsx
+{
+  id: string;             // Auto-generated unique identifier
+  context: string;        // The content to include (required)
+  displayName?: string;   // Optional name for UI display
+  type?: string;          // Optional type identifier
+}
+```
+
+## Step 4: Display Active Attachments
+
+Show users which context has been staged:
+
+```tsx
+function StagedContextDisplay() {
+  const { attachments, removeContextAttachment } = useTamboContextAttachment();
+
+  if (attachments.length === 0) return null;
+
+  return (
+    <div>
+      <h3>Staged Context</h3>
+      {attachments.map((attachment) => (
+        <div key={attachment.id}>
+          <span>{attachment.displayName || "Untitled"}</span>
+          <button onClick={() => removeContextAttachment(attachment.id)}>
+            Remove
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Common Patterns
+
+### Pattern 1: File Browser
+
+Allow users to stage files for AI context:
+
+```tsx
+function FileBrowser({ files }) {
+  const { attachments, addContextAttachment, removeContextAttachment } =
+    useTamboContextAttachment();
+
+  const handleFileClick = (file) => {
+    addContextAttachment({
+      context: file.content,
+      displayName: file.name,
+      type: "file",
+    });
+  };
+
+  return (
+    <div>
+      {/* Active attachments */}
+      {attachments.length > 0 && (
+        <div className="staged-files">
+          <h3>Staged Files:</h3>
+          {attachments.map((attachment) => (
+            <div key={attachment.id}>
+              <span>{attachment.displayName}</span>
+              <button onClick={() => removeContextAttachment(attachment.id)}>
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* File list */}
+      <div className="file-list">
+        {files.map((file) => (
+          <button key={file.id} onClick={() => handleFileClick(file)}>
+            {file.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### Pattern 2: Text Selection
+
+Stage selected text from your application:
+
+```tsx
+function TextSelectionHandler() {
+  const { addContextAttachment } = useTamboContextAttachment();
+
+  const handleTextSelection = () => {
+    const selectedText = window.getSelection()?.toString();
+    if (!selectedText) return;
+
+    addContextAttachment({
+      context: selectedText,
+      displayName: `Selection: ${selectedText.slice(0, 30)}...`,
+      type: "selection",
+    });
+  };
+
+  return (
+    <button onClick={handleTextSelection}>Add Selection to Context</button>
+  );
+}
+```
+
+### Pattern 3: Canvas/Workspace Elements
+
+Let users focus the AI on specific workspace elements:
+
+```tsx
+function WorkspaceElement({ element }) {
+  const { addContextAttachment } = useTamboContextAttachment();
+
+  const handleFocus = () => {
+    addContextAttachment({
+      context: JSON.stringify(element, null, 2),
+      displayName: element.title,
+      type: "workspace-element",
+    });
+  };
+
+  return (
+    <div>
+      <h4>{element.title}</h4>
+      <button onClick={handleFocus}>Focus AI on this</button>
+    </div>
+  );
+}
+```
+
+## Automatic Cleanup
+
+Context attachments are automatically cleared after message submission. You don't need to manually clear them:
+
+```tsx
+// After user sends a message:
+// 1. Attachments are included in the message
+// 2. Attachments array is automatically cleared
+// 3. User can stage new attachments for the next message
+```
+
+To manually clear before sending:
+
+```tsx
+const { clearContextAttachments } = useTamboContextAttachment();
+
+<button onClick={clearContextAttachments}>Clear All Staged Context</button>;
+```
+
+## Complete Example
+
+Full implementation with file browser and staged context display:
+
+```tsx
+import { useTamboContextAttachment } from "@tambo-ai/react";
+
+function ContextStagingDemo({ files }) {
+  const {
+    attachments,
+    addContextAttachment,
+    removeContextAttachment,
+    clearContextAttachments,
+  } = useTamboContextAttachment();
+
+  const handleFileClick = (file) => {
+    addContextAttachment({
+      context: file.content,
+      displayName: file.name,
+      type: "file",
+    });
+  };
+
+  return (
+    <div>
+      <div className="file-list">
+        <h3>Available Files</h3>
+        {files.map((file) => (
+          <button key={file.id} onClick={() => handleFileClick(file)}>
+            📄 {file.name}
+          </button>
+        ))}
+      </div>
+
+      {attachments.length > 0 && (
+        <div className="staged-context">
+          <div className="header">
+            <h3>Staged Context ({attachments.length})</h3>
+            <button onClick={clearContextAttachments}>Clear All</button>
+          </div>
+          {attachments.map((attachment) => (
+            <div key={attachment.id} className="attachment">
+              <span>{attachment.displayName}</span>
+              <button onClick={() => removeContextAttachment(attachment.id)}>
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Next Steps
+
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "1rem",
+    marginTop: "1.5rem",
+  }}
+>
+  <LearnMore
+    title="Make AI Aware of State"
+    description="Automatic ambient context with context helpers"
+    href="/guides/give-context/make-ai-aware-of-state"
+    icon={BookOpen}
+  />
+  <LearnMore
+    title="Make Context Referenceable"
+    description="Let users @ mention documentation and data"
+    href="/guides/give-context/make-context-referenceable"
+    icon={BookOpen}
+  />
+  <LearnMore
+    title="Additional Context Concepts"
+    description="Understand how context layers work together"
+    href="/concepts/additional-context"
+    icon={BookOpen}
+  />
+</div>

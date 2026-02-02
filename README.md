@@ -109,7 +109,7 @@ const InteractableNote = withInteractable(Note, {
 });
 ```
 
-Docs: [generative components](https://docs.tambo.co/concepts/components/defining-tambo-components), [interactable components](https://docs.tambo.co/concepts/components/interactable-components)
+Docs: [generative components](https://docs.tambo.co/concepts/generative-interfaces/generative-components), [interactable components](https://docs.tambo.co/concepts/generative-interfaces/interactable-components)
 
 ### The Provider
 
@@ -127,7 +127,7 @@ Wrap your app with `TamboProvider`.
 
 For apps with signed-in users, pass a per-user `userToken` (OAuth access token) to `TamboProvider` to enable per-user auth and connect Tambo to your app's end-user identity. See [User Authentication](https://docs.tambo.co/concepts/user-authentication) for details.
 
-Docs: [provider options](https://docs.tambo.co/api-reference/tambo-provider)
+Docs: [provider options](https://docs.tambo.co/reference/react-sdk/providers)
 
 ### Hooks
 
@@ -170,7 +170,7 @@ if (!streamStatus.isSuccess) return <Spinner />;
 }
 ```
 
-Docs: [threads and messages](https://docs.tambo.co/concepts/message-threads), [streaming status](https://docs.tambo.co/concepts/streaming/component-streaming-status)
+Docs: [threads and messages](https://docs.tambo.co/concepts/conversation-storage), [streaming status](https://docs.tambo.co/concepts/generative-interfaces/component-state)
 
 <p align="center">
   <a href="https://docs.tambo.co/getting-started/quickstart">Full tutorial</a>
@@ -213,20 +213,18 @@ const tools: TamboTool[] = [
   {
     name: "getWeather",
     description: "Fetches weather for a location",
-    tool: async (location: string) =>
-      fetch(`/api/weather?q=${encodeURIComponent(location)}`).then((r) =>
+    tool: async (params: { location: string }) =>
+      fetch(`/api/weather?q=${encodeURIComponent(params.location)}`).then((r) =>
         r.json(),
       ),
-    toolSchema: z
-      .function()
-      .args(z.string())
-      .returns(
-        z.object({
-          temperature: z.number(),
-          condition: z.string(),
-          location: z.string(),
-        }),
-      ),
+    inputSchema: z.object({
+      location: z.string(),
+    }),
+    outputSchema: z.object({
+      temperature: z.number(),
+      condition: z.string(),
+      location: z.string(),
+    }),
   },
 ];
 
@@ -235,7 +233,7 @@ const tools: TamboTool[] = [
 </TamboProvider>;
 ```
 
-Docs: [local tools](https://docs.tambo.co/concepts/tools/adding-tools)
+Docs: [local tools](https://docs.tambo.co/guides/take-actions/register-tools)
 
 ### Context, Auth, and Suggestions
 
@@ -268,7 +266,7 @@ Docs: [additional context](https://docs.tambo.co/concepts/additional-context), [
 
 ### Supported LLM Providers
 
-OpenAI, Anthropic, Cerebras, Google Gemini, Mistral, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/models). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
+OpenAI, Anthropic, Cerebras, Google Gemini, Mistral, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/reference/llm-providers). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
 
 ## How Tambo Compares
 

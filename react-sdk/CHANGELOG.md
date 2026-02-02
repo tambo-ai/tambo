@@ -1,5 +1,68 @@
 # Changelog
 
+## [0.73.1](https://github.com/tambo-ai/tambo/compare/react-v0.73.0...react-v0.73.1) (2026-01-31)
+
+
+### Bug Fixes
+
+* **ui-registry:** resolve React hooks ESLint violations ([#2081](https://github.com/tambo-ai/tambo/issues/2081)) ([f628c0c](https://github.com/tambo-ai/tambo/commit/f628c0cb294e0ccfc596bda9394a3399263025c6))
+
+## [0.73.0](https://github.com/tambo-ai/tambo/compare/react-v0.72.0...react-v0.73.0) (2026-01-30)
+
+
+### Features
+
+* **react-sdk:** add v1 suggestions hook, shared input context, and stub provider ([#2084](https://github.com/tambo-ai/tambo/issues/2084)) ([2a2ad25](https://github.com/tambo-ai/tambo/commit/2a2ad256b9280ce9f47ab2c12d993eb50af45c38))
+* **react-sdk:** implement v1 API Phase 9-10 with userKey and API cleanup ([#2032](https://github.com/tambo-ai/tambo/issues/2032)) ([9e055ab](https://github.com/tambo-ai/tambo/commit/9e055abddab6390498e5f2c6cb1224efbb556dfc))
+
+## [0.72.0](https://github.com/tambo-ai/tambo/compare/react-v0.71.0...react-v0.72.0) (2026-01-29)
+
+
+### Features
+
+* **react-sdk:** implement v1 API Phases 8-9 with API alignment ([#1974](https://github.com/tambo-ai/tambo/issues/1974)) ([4d456d1](https://github.com/tambo-ai/tambo/commit/4d456d19a1c648c7abca6350dae756443b03e7da))
+
+## [0.71.0](https://github.com/tambo-ai/tambo/compare/react-v0.70.0...react-v0.71.0) (2026-01-28)
+
+
+### Features
+
+* **react-sdk:** implement v1 API Phases 6-7 with code review fixes ([#1954](https://github.com/tambo-ai/tambo/issues/1954)) ([9a7e098](https://github.com/tambo-ai/tambo/commit/9a7e098e0f969ec1512d6705c020dc46f625ac95))
+* **react-sdk:** Phases 2-5 - Event Accumulation, Streaming, Registry & React Query Hooks ([#1891](https://github.com/tambo-ai/tambo/issues/1891)) ([d58d781](https://github.com/tambo-ai/tambo/commit/d58d7816fc79d2799970851e6d4fa2f8e317d1e7))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump @testing-library/react from 16.3.1 to 16.3.2 in the testing group ([#1929](https://github.com/tambo-ai/tambo/issues/1929)) ([7ff6aa6](https://github.com/tambo-ai/tambo/commit/7ff6aa6c42aefc9d009bc8aaacbd511cd19ed3af))
+* **deps-dev:** bump the eslint group with 3 updates ([#1928](https://github.com/tambo-ai/tambo/issues/1928)) ([4a4bf57](https://github.com/tambo-ai/tambo/commit/4a4bf578a9cb1caddde17c1c4e62024510973b2e))
+* **deps:** bump @ag-ui/core from 0.0.42 to 0.0.43 in the ag-ui group ([#1934](https://github.com/tambo-ai/tambo/issues/1934)) ([176e1ae](https://github.com/tambo-ai/tambo/commit/176e1aeceab7375da4f320ed2438231c75896deb))
+* **deps:** bump the small-safe-packages group with 10 updates ([#1932](https://github.com/tambo-ai/tambo/issues/1932)) ([66f8ee8](https://github.com/tambo-ai/tambo/commit/66f8ee83adbcdb8c64d5c85159bc6574d4166f7b))
+
+## [0.70.0](https://github.com/tambo-ai/tambo/compare/react-v0.69.1...react-v0.70.0) (2026-01-26)
+
+
+### Features
+
+* **react-sdk:** Added React SDK dev workflow scripts (dev:sdk, build:sdk) [#1880](https://github.com/tambo-ai/tambo/issues/1880) ([#1886](https://github.com/tambo-ai/tambo/issues/1886)) ([85f49ce](https://github.com/tambo-ai/tambo/commit/85f49ceb41118a8a9e3b757b92d2ef8105adfd87))
+* **react-sdk:** Implement rollback logic for optimistic UI updates ([#1843](https://github.com/tambo-ai/tambo/issues/1843)) ([5916cfc](https://github.com/tambo-ai/tambo/commit/5916cfc426289b204c9df47782561ee9cd52a19c))
+* **react-sdk:** Phase 0 & 1 - v1 types and structure ([#1890](https://github.com/tambo-ai/tambo/issues/1890)) ([77aa301](https://github.com/tambo-ai/tambo/commit/77aa301c3db58efea2cd8777cb385e7c4db1e1a8))
+
+
+### Bug Fixes
+
+* **react-sdk:** add @modelcontextprotocol/sdk to dependencies ([#1907](https://github.com/tambo-ai/tambo/issues/1907)) ([c2271c8](https://github.com/tambo-ai/tambo/commit/c2271c892f48755484e90c60ae6b61fc9109a502))
+
+
+### Miscellaneous Chores
+
+* **react:** bump to new @tambo-ai/typescript-sdk ([#1864](https://github.com/tambo-ai/tambo/issues/1864)) ([7643415](https://github.com/tambo-ai/tambo/commit/76434157aeaa2f4fb6501702403262025614931b))
+* **sdk:** Bump again: get SSE streaming types ([#1870](https://github.com/tambo-ai/tambo/issues/1870)) ([e6fbb44](https://github.com/tambo-ai/tambo/commit/e6fbb4432bc3ba07fe8b660206a1c514ffb98ea8))
+
+
+### Documentation
+
+* **react-sdk:** remove dependency on zod ([#1850](https://github.com/tambo-ai/tambo/issues/1850)) ([18dcc3a](https://github.com/tambo-ai/tambo/commit/18dcc3af02e147c2259f7e9dfd0aee800c03d97a))
+
 ## [0.69.1](https://github.com/tambo-ai/tambo/compare/react-v0.69.0...react-v0.69.1) (2026-01-16)
 
 

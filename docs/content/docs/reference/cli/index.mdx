@@ -1,0 +1,63 @@
+---
+title: Tambo CLI overview
+description: Overview of Tambo CLI commands for scaffolding apps, installing components, updating projects, and managing generative UI for React.
+---
+
+import { Card, Cards } from "fumadocs-ui/components/card";
+
+The Tambo CLI is a tool to help you get Tambo apps setup quickly.
+Here you'll find a description of each command available in the Tambo CLI.
+
+## Install the Tambo CLI
+
+The Tambo CLI is available as an npm package and can be used with `npx`:
+
+```bash
+npx tambo <command>
+```
+
+## Tambo CLI quickstart
+
+For new projects, the fastest way to get started is:
+
+```bash
+# Create a new Tambo app
+npm create tambo-app@latest my-tambo-app
+
+# Or add to existing project
+npx tambo full-send
+```
+
+## Tambo CLI command categories
+
+### Project Setup
+
+- [`create-app`](/reference/cli/commands/create-app) - Create a new Tambo app from template
+- [`init`](/reference/cli/commands/init) - Initialize Tambo in existing project
+- [`full-send`](/reference/cli/commands/full-send) - Complete setup with components
+
+### Component Management
+
+- [`add`](/reference/cli/commands/add) - Add Tambo components to your project
+- [`list`](/reference/cli/commands/list) - List installed components
+- [`update`](/reference/cli/commands/update) - Update components to latest versions
+
+### Project Maintenance
+
+- [`upgrade`](/reference/cli/commands/upgrade) - Upgrade entire project (packages + components)
+- [`migrate`](/reference/cli/commands/migrate) - Migrate from legacy component structure
+
+## Get help with the Tambo CLI
+
+- Check out our [common workflows](/reference/cli/workflows) for typical usage patterns
+- See [global options](/reference/cli/global-options) available for all commands
+- Browse individual command documentation in the Commands section
+
+<Cards>
+  <Card href="/reference/cli/workflows" title="Common Workflows">
+    Learn typical CLI usage patterns and workflows
+  </Card>
+  <Card href="/reference/cli/commands/full-send" title="Quick Setup">
+    Get started with the full-send command
+  </Card>
+</Cards>

@@ -1,6 +1,6 @@
 {
   "name": "create-tambo-app",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "Create a new Tambo application",
   "license": "MIT",
   "repository": {
@@ -38,7 +38,11 @@
   "engines": {
     "node": ">=22"
   },
+  "dependencies": {
+    "cross-spawn": "^7.0.6"
+  },
   "devDependencies": {
+    "@types/cross-spawn": "^6.0.6",
     "@eslint/js": "^9.39.2",
     "eslint": "^9.39.2",
     "rimraf": "^6.1.2",

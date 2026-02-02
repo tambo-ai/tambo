@@ -1,0 +1,66 @@
+---
+title: Create a Tambo Project
+description: Set up a new Tambo project in the dashboard and get your API key to start building AI-powered applications.
+---
+
+Learn how to create a new Tambo project through the dashboard to start building AI-powered applications.
+
+## Step 1: Sign Up or Log In
+
+Go to [tambo.co](https://tambo.co) and create an account or log in to your existing account.
+
+## Step 2: Create a New Project
+
+1. Click "Create Project" in the dashboard
+2. Enter a project name (e.g., "My Chat App")
+
+## Step 3: Get Your API Key
+
+1. Click the "Create API Key" button
+2. Copy your project API key
+
+## Step 4: Add to Your Application
+
+Add the API key to your environment variables:
+
+```bash title=".env.local"
+NEXT_PUBLIC_TAMBO_API_KEY=your_api_key_here
+```
+
+Note that this example uses NextJS client environment variable naming, but NextJS is not required.
+
+Then pass it to TamboProvider in your React application:
+
+```tsx title="app/layout.tsx"
+import { TamboProvider } from "@tambo-ai/react";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <TamboProvider projectKey={process.env.NEXT_PUBLIC_TAMBO_API_KEY}>
+          {children}
+        </TamboProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Next Steps
+
+Now that you have your project set up, you can start sending messages and getting responses from Tambo!
+
+Learn how to build conversation interfaces:
+
+- [Build a Custom Chat Interface](/guides/build-interfaces/build-chat-interface) to create your conversation UI
+
+Or configure how Tambo behaves:
+
+- [Configure Agent Behavior](/guides/setup-project/agent-behavior) to customize how your agent responds
+- [Configure LLM Provider](/guides/setup-project/llm-provider) to select your AI model and settings
+- [Give Tambo Components to Generate](/guides/enable-generative-ui/register-components) to enable AI-generated UI

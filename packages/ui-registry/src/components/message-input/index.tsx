@@ -14,4 +14,8 @@ export {
   MessageInputToolbar,
   messageInputVariants,
 } from "./message-input";
-export type { PromptItem, ResourceItem } from "./text-editor";
+export type {
+  MessageInputTextareaProps,
+  ResourceProvider,
+} from "./message-input";
+export type { PromptItem, ResourceItem, TamboEditor } from "./text-editor";

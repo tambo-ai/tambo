@@ -7,12 +7,9 @@ import {
   TamboTool,
   TamboToolAssociations,
   TamboToolRegistry,
-  TamboToolWithToolSchema,
 } from "../model/component-metadata";
 import {
   getParametersFromToolSchema,
-  getZodFunctionArgs,
-  getZodFunctionReturns,
   isStandardSchema,
   schemaToJsonSchema,
 } from "../schema";
@@ -62,7 +59,7 @@ export const getAvailableComponents = (
 export const getUnassociatedTools = (
   toolRegistry: TamboToolRegistry,
   toolAssociations: TamboToolAssociations,
-): (TamboTool | TamboToolWithToolSchema)[] => {
+): TamboTool[] => {
   return Object.values(toolRegistry).filter((tool) => {
     // Check if the tool's name appears in any of the tool association arrays
     return !Object.values(toolAssociations).flat().includes(tool.name);
@@ -91,30 +88,6 @@ export const convertPropsToJsonSchema = (
 };
 
 /**
- * Adapt a Tambo tool defined with function schema to a standard Tambo tool
- * @param tool - The Tambo tool with function schema
- * @returns The adapted Tambo tool
- */
-export function adaptToolFromFnSchema(
-  tool: TamboTool | TamboToolWithToolSchema,
-): TamboTool {
-  if (!("toolSchema" in tool)) {
-    return tool;
-  }
-
-  return {
-    name: tool.name,
-    description: tool.description,
-    tool: tool.tool,
-    inputSchema: getZodFunctionArgs(tool.toolSchema),
-    outputSchema: getZodFunctionReturns(tool.toolSchema),
-    ...("maxCalls" in tool && tool.maxCalls !== undefined
-      ? { maxCalls: tool.maxCalls }
-      : {}),
-  };
-}
-
-/**
  * Get a component by name from the component registry
  * @param componentName - The name of the component to get
  * @param componentRegistry - The component registry
@@ -137,11 +110,11 @@ export const getComponentFromRegistry = (
 
 /**
  * Map a Tambo tool to a context tool
- * @param tool - The tool to map (supports both new inputSchema and deprecated toolSchema interfaces)
+ * @param tool - The tool to map
  * @returns The context tool
  */
 export const mapTamboToolToContextTool = (
-  tool: TamboTool | TamboToolWithToolSchema,
+  tool: TamboTool,
 ): ComponentContextToolMetadata => {
   const parameters = getParametersFromToolSchema(tool);
 
@@ -176,5 +149,10 @@ export const mapTamboToolToContextTool = (
  * @returns The registered tool definition
  */
 export const defineTool: DefineToolFn = (tool: any) => {
+  if ("toolSchema" in tool) {
+    return tool;
+  }
+  tool.inputSchema ??= { type: "object", properties: {}, required: [] };
+  tool.outputSchema ??= { type: "object", properties: {}, required: [] };
   return tool;
 };

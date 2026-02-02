@@ -76,13 +76,7 @@ export {
   type ComponentRegistry,
   type ParameterSpec,
   type RegisteredComponent,
-  /*
-   * NOTE(lachieh): TamboToolBase is used as a wrapper around current TamboTool
-   * and the deprecated TamboToolWithToolSchema to allow both to be used while
-   * supporting the migration to a single TamboTool type.
-   * TamboToolWithToolSchema should be removed in a future release.
-   */
-  type TamboToolBase as TamboTool,
+  type TamboTool,
   type ToolAnnotations,
 } from "./model/component-metadata";
 export {

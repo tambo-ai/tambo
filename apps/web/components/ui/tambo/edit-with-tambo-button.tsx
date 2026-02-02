@@ -5,12 +5,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { MessageGenerationStage } from "@/components/ui/tambo/message-generation-stage";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMessageThreadPanel } from "@/providers/message-thread-panel-provider";
 import { useTambo, useTamboCurrentComponent } from "@tambo-ai/react";
+import { MessageGenerationStage } from "@tambo-ai/ui-registry/components/message-suggestions";
 import { Bot, ChevronDown, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 

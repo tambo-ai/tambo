@@ -13,12 +13,12 @@ import {
   MessageInputError,
   MessageInputSubmitButton,
   MessageInputToolbar,
-} from "@/components/ui/tambo/message-input";
+} from "@tambo-ai/ui-registry/components/message-input";
 import { MessageInputTextareaWithInteractables } from "@/components/ui/tambo/message-input-with-interactables";
 import {
   ThreadContent,
   ThreadContentMessages,
-} from "@/components/ui/tambo/thread-content";
+} from "@tambo-ai/ui-registry/components/thread-content";
 import { ComponentsThemeProvider } from "@/providers/components-theme-provider";
 import { useTambo, useTamboThread, useTamboThreadInput } from "@tambo-ai/react";
 import { useEffect, useRef, useState } from "react";

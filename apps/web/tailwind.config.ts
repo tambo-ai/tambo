@@ -14,6 +14,8 @@ module.exports = {
     "./content/**/*.mdx",
     "./mdx-components.tsx",
     "./lib/blog/constants.ts",
+    // Include ui-registry package components
+    "../../packages/ui-registry/src/**/*.{ts,tsx}",
   ],
 
   theme: {

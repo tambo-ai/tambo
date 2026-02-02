@@ -15,9 +15,9 @@ export enum MCPTransport {
  * The `handlers` field is intentionally typed as `unknown` here so the core
  * SDK does not depend on the MCP subpackage. In the `@tambo-ai/react/mcp`
  * subpackage this is treated as `Partial<MCPHandlers>` (with
- * `elicitation` / `sampling` callbacks). See the React SDK README for the
- * optional MCP peer dependencies that applications must install when they
- * enable MCP support.
+ * `elicitation` / `sampling` callbacks). The `@modelcontextprotocol/sdk` is
+ * included automatically with `@tambo-ai/react`. See the React SDK README for
+ * any additional optional peer dependencies needed for MCP features.
  */
 export interface McpServerInfo {
   /** Optional name for the MCP server */
