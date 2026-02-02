@@ -111,7 +111,7 @@
     "@valibot/to-json-schema": "^1.5.0",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.2",
-    "eslint-plugin-jsdoc": "^62.3.1",
+    "eslint-plugin-jsdoc": "^62.5.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.1.1",
     "jest": "^30.2.0",
@@ -123,7 +123,7 @@
     "react-dom": "^18.3.1",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.0",
+    "typescript-eslint": "^8.54.0",
     "zod": "^3.25.76 || ^4",
     "zod-to-json-schema": "^3.25.1"
   }
