@@ -1,11 +1,10 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useMemo, useEffect } from "react";
 import { requireUser } from "~/lib/session.server";
 import { createSupabaseServerClient } from "~/lib/supabase.server";
-import type { Database } from "~/lib/database.types";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseClient } from "~/lib/supabase.client.singleton";
 import { createBookmarkTools } from "~/tambo/tools";
 
 // Lazy load the Tambo chat (client-only)
@@ -39,25 +38,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function ChatPage() {
   const { user, accessToken, bookmarkCount } = useLoaderData<typeof loader>();
 
-  // Create Supabase client for Tambo tools (client-side)
   const supabaseClient = useMemo(() => {
     if (typeof window === "undefined") return null;
     const url = window.ENV?.SUPABASE_URL;
     const key = window.ENV?.SUPABASE_ANON_KEY;
     if (!url || !key) return null;
-    return createClient<Database>(url, key, {
-      global: {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      },
-    });
-  }, [accessToken]);
+    return getSupabaseClient(url, key);
+  }, []);
 
-  // Create tools
+  useEffect(() => {
+    if (supabaseClient && accessToken) {
+      supabaseClient.auth.setSession({
+        access_token: accessToken,
+        refresh_token: "",
+      });
+    }
+  }, [supabaseClient, accessToken]);
+
   const tamboTools = useMemo(() => {
     if (!supabaseClient) return [];
-    return createBookmarkTools(supabaseClient, user.id, () => {
-      // Tools handle mutations directly
-    });
+    return createBookmarkTools(supabaseClient, user.id, () => {});
   }, [supabaseClient, user.id]);
 
   const tamboApiKey =
