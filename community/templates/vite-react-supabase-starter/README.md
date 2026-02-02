@@ -13,10 +13,10 @@ A minimal starter template showcasing **Tambo AI's generative UI** with **Supaba
 
 ## Demo
 
-![Tambo Supabase Sticky Notes Starter](./public/starter.png)
-![Tambo Supabase Sticky Notes Notes](./public/idea.png)
+![Tambo Supabase Sticky Notes Create](./public/create-note-tambo.png)
+![Tambo Supabase Sticky Notes Delete](./public//deletion-tambo-note.png)
 
-**Video Demo**: [Watch the Tambo AI interaction](https://github.com/user-attachments/assets/44eca2dd-3352-491c-8285-bb8ca4f26f5f)
+**Video Demo**: [Watch the Tambo AI interaction](https://github.com/user-attachments/assets/11575ce5-7ede-4270-9f4e-1698b86be3e4)
 
 ## Get Started
 
