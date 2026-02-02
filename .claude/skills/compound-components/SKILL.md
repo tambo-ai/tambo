@@ -328,6 +328,137 @@ export interface ComponentContentRenderProps {
 | Element polymorphism | asChild         | Change underlying element       |
 | CSS-only styling     | Data attributes | No JS needed for style variants |
 
+## Hooks Are Internal
+
+Hooks are implementation details, not public API. **Never export hooks from the index.**
+
+```tsx
+// index.tsx - WRONG
+export { useComponentContext }; // ❌ Don't export hooks
+
+// index.tsx - CORRECT
+export const Component = {
+  Root: ComponentRoot,
+  Content: ComponentContent,
+};
+// ✅ Only export components and types
+export type { ComponentRootProps, ComponentContentRenderProps };
+```
+
+Consumers access state via **render props**, not hooks:
+
+```tsx
+// Consumer code - using render props (correct)
+<Component.Content>
+  {({ isOpen, toggle }) => (
+    <button onClick={toggle}>{isOpen ? "Close" : "Open"}</button>
+  )}
+</Component.Content>
+```
+
+When styled wrappers in the **same package** need hook access, import directly from the source file:
+
+```tsx
+// ✅ Internal use - import from source file
+import { useComponentContext } from "../base/component/component-context";
+
+// ❌ Wrong - hooks shouldn't be in the public index
+import { useComponentContext } from "../base/component"; // Not exported
+```
+
+This keeps hooks internal while allowing same-package usage.
+
+## No Custom Data Fetching in Primitives
+
+Base components can use `@tambo-ai/react` SDK hooks - they're designed to work within a Tambo provider. However, **custom data fetching logic** (combining sources, external providers, etc.) belongs in the styled layer.
+
+```tsx
+// ✅ OK - using @tambo-ai/react SDK hooks
+const Root = ({ children }) => {
+  const { value, setValue, submit } = useTamboThreadInput();
+  const { isIdle, cancel } = useTamboThread();
+  // SDK hooks are fine - components require Tambo provider anyway
+  return <Context.Provider value={{ value, setValue, isIdle }}>{children}</Context.Provider>;
+};
+
+// ❌ WRONG - custom data fetching in primitive
+const Textarea = ({ resourceProvider }) => {
+  const { data: mcpResources } = useTamboMcpResourceList(search);
+  const externalResources = useFetchExternal(resourceProvider); // Custom fetching
+  const combined = [...mcpResources, ...externalResources]; // Combining logic
+  return <div>{combined.map(...)}</div>;
+};
+
+// ✅ CORRECT - primitive exposes state via render props, styled layer does custom fetching
+const Textarea = ({ children }) => {
+  const { value, setValue, disabled } = useContext();
+  return (
+    <div data-disabled={disabled}>
+      {typeof children === "function"
+        ? children({ value, setValue, disabled })
+        : children}
+    </div>
+  );
+};
+```
+
+Custom data fetching and combining logic belongs in the **styled wrapper layer**.
+
+## Pre-computed Props Arrays for Collections
+
+When exposing collections via render props, **pre-compute all props in a memoized array** rather than providing a getter function. This is more performant (single memoization vs per-item function calls) and simpler for consumers.
+
+```tsx
+// ❌ AVOID - getter function pattern
+export interface ItemsRenderProps {
+  items: RawItem[];
+  getItemProps: (index: number) => ItemRenderProps;
+}
+
+const Items = ({ children }) => {
+  const { rawItems, selectedId, removeItem } = useContext();
+
+  // Getter creates new object on every call
+  const getItemProps = (index: number) => ({
+    item: rawItems[index],
+    isSelected: selectedId === rawItems[index].id,
+    onRemove: () => removeItem(rawItems[index].id),
+  });
+
+  return children({ items: rawItems, getItemProps });
+};
+
+// ✅ PREFERRED - pre-computed array
+export interface ItemsRenderProps {
+  items: ItemRenderProps[];
+}
+
+const Items = ({ children }) => {
+  const { rawItems, selectedId, removeItem } = useContext();
+
+  // Pre-compute all props once, memoized
+  const items = React.useMemo<ItemRenderProps[]>(
+    () =>
+      rawItems.map((item, index) => ({
+        item,
+        index,
+        isSelected: selectedId === item.id,
+        onSelect: () => setSelectedId(item.id),
+        onRemove: () => removeItem(item.id),
+      })),
+    [rawItems, selectedId, removeItem],
+  );
+
+  return children({ items });
+};
+```
+
+This pattern:
+
+- Memoizes computation once per render cycle
+- Gives consumers a simple array to iterate
+- Pre-binds callbacks so consumers don't need to manage indices
+
 ## Anti-Patterns
 
 - **Hardcoded styles** - primitives should be unstyled
@@ -335,3 +466,7 @@ export interface ComponentContentRenderProps {
 - **Missing error boundaries** - throw when context is missing
 - **Inline functions in render prop types** - define proper interfaces
 - **Default exports** - use named exports in namespace object
+- **Exporting hooks** - hooks are internal; expose state via render props
+- **Custom data fetching in primitives** - SDK hooks are fine, but combining/external fetching belongs in styled layer
+- **Re-implementing base logic** - styled wrappers should compose, not duplicate
+- **Getter functions for collections** - pre-compute props arrays in useMemo instead
