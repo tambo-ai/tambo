@@ -31,14 +31,14 @@ describe("docs.tambo.co link validation", () => {
     { cwd: repoRoot, encoding: "utf-8" }
   );
 
-  const urls = [...new Set(grepOutput.trim().split("\n").filter(Boolean))];
+  const docUrls = [...new Set(grepOutput.trim().split("\n").filter(Boolean))];
 
   it("should have found some URLs to validate", () => {
-    expect(urls.length).toBeGreaterThan(0);
+    expect(docUrls.length).toBeGreaterThan(0);
   });
 
   // Test each unique URL
-  for (const url of urls) {
+  for (const url of docUrls) {
     it(`${url} should be a valid docs route`, () => {
       const urlObj = new URL(url);
       // Strip hash and trailing slash
