@@ -230,6 +230,26 @@ describe("streamReducer", () => {
       expect(result.threadMap.thread_1.streaming.startTime).toBe(1704067200000);
     });
 
+    it("does not switch currentThreadId when placeholder has no messages", () => {
+      const state = createInitialState();
+      const realThreadId = "thread_real_123";
+      const runStartedEvent: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_456",
+        threadId: realThreadId,
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: runStartedEvent,
+        threadId: realThreadId,
+      });
+
+      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(result.currentThreadId).toBe("placeholder");
+    });
+
     it("migrates messages from placeholder thread to real thread", () => {
       // Start with initial state (which has placeholder thread)
       const state = createInitialState();
@@ -324,27 +344,120 @@ describe("streamReducer", () => {
       );
     });
 
-    it("does not migrate when currentThreadId is not placeholder", () => {
-      // Start with a real thread
-      const state = createTestStreamState("thread_1");
-      state.currentThreadId = "thread_1";
-
-      const event: RunStartedEvent = {
-        type: EventType.RUN_STARTED,
-        runId: "run_123",
+    it("migrates messages even if currentThreadId changes away from placeholder", () => {
+      let state = createInitialState();
+      state = streamReducer(state, {
+        type: "INIT_THREAD",
         threadId: "thread_1",
+      });
+      state = streamReducer(state, {
+        type: "SET_CURRENT_THREAD",
+        threadId: "thread_1",
+      });
+
+      const userMsgStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "user_msg_1",
+        role: "user",
+      };
+      const userMsgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "user_msg_1",
+        delta: "Hello",
+      };
+      const userMsgEnd: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "user_msg_1",
+      };
+
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgStart,
+        threadId: "placeholder",
+      });
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgContent,
+        threadId: "placeholder",
+      });
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgEnd,
+        threadId: "placeholder",
+      });
+
+      const realThreadId = "thread_real_123";
+      const runStartedEvent: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_456",
+        threadId: realThreadId,
         timestamp: 1704067200000,
       };
 
       const result = streamReducer(state, {
         type: "EVENT",
-        event,
-        threadId: "thread_1",
+        event: runStartedEvent,
+        threadId: realThreadId,
       });
 
-      // Should just update the existing thread, no migration
-      expect(result.threadMap.thread_1).toBeDefined();
+      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(result.threadMap[realThreadId].thread.messages).toHaveLength(1);
       expect(result.currentThreadId).toBe("thread_1");
+    });
+
+    it("prefers event.threadId over action threadId when RUN_STARTED is dispatched", () => {
+      // Start with initial state (which has placeholder thread)
+      const state = createInitialState();
+
+      // Add a user message to the placeholder thread
+      const userMsgStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "user_msg_1",
+        role: "user",
+      };
+      const userMsgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "user_msg_1",
+        delta: "Hello",
+      };
+      const userMsgEnd: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "user_msg_1",
+      };
+
+      let stateWithUserMsg = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgStart,
+        threadId: "placeholder",
+      });
+      stateWithUserMsg = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: userMsgContent,
+        threadId: "placeholder",
+      });
+      stateWithUserMsg = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: userMsgEnd,
+        threadId: "placeholder",
+      });
+
+      const realThreadId = "thread_real_123";
+      const runStartedEvent: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_456",
+        threadId: realThreadId,
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: runStartedEvent,
+        threadId: "placeholder",
+      });
+
+      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(result.threadMap[realThreadId].thread.messages).toHaveLength(1);
+      expect(result.currentThreadId).toBe(realThreadId);
     });
   });
 

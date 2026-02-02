@@ -57,6 +57,17 @@ function createMockRegistry(
 }
 
 describe("V1ComponentRenderer", () => {
+  function withMockedConsoleError<T>(
+    fn: (consoleErrorSpy: jest.SpyInstance) => T,
+  ): T {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+    try {
+      return fn(consoleErrorSpy);
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
+  }
+
   const baseContent: V1ComponentContent = {
     type: "component",
     id: "comp_123",
@@ -93,35 +104,55 @@ describe("V1ComponentRenderer", () => {
   it("renders fallback when component not found in registry", () => {
     const registry = createMockRegistry({});
 
-    render(
-      <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
-          content={baseContent}
-          threadId="thread_123"
-          messageId="msg_456"
-          fallback={<div data-testid="fallback">Not found</div>}
-        />
-      </TamboRegistryContext.Provider>,
-    );
+    withMockedConsoleError((consoleErrorSpy) => {
+      render(
+        <TamboRegistryContext.Provider value={registry}>
+          <V1ComponentRenderer
+            content={baseContent}
+            threadId="thread_123"
+            messageId="msg_456"
+            fallback={<div data-testid="fallback">Not found</div>}
+          />
+        </TamboRegistryContext.Provider>,
+      );
 
-    expect(screen.getByTestId("fallback")).toBeInTheDocument();
-    expect(screen.queryByTestId("test-component")).not.toBeInTheDocument();
+      expect(screen.getByTestId("fallback")).toBeInTheDocument();
+      expect(screen.queryByTestId("test-component")).not.toBeInTheDocument();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[V1ComponentRenderer] Failed to render component",
+        expect.objectContaining({
+          componentId: baseContent.id,
+          componentName: baseContent.name,
+        }),
+      );
+    });
   });
 
   it("renders nothing (null fallback) when component not found and no fallback provided", () => {
     const registry = createMockRegistry({});
 
-    const { container } = render(
-      <TamboRegistryContext.Provider value={registry}>
-        <V1ComponentRenderer
-          content={baseContent}
-          threadId="thread_123"
-          messageId="msg_456"
-        />
-      </TamboRegistryContext.Provider>,
-    );
+    withMockedConsoleError((consoleErrorSpy) => {
+      const { container } = render(
+        <TamboRegistryContext.Provider value={registry}>
+          <V1ComponentRenderer
+            content={baseContent}
+            threadId="thread_123"
+            messageId="msg_456"
+          />
+        </TamboRegistryContext.Provider>,
+      );
 
-    expect(container.firstChild).toBeNull();
+      expect(container.firstChild).toBeNull();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[V1ComponentRenderer] Failed to render component",
+        expect.objectContaining({
+          componentId: baseContent.id,
+          componentName: baseContent.name,
+        }),
+      );
+    });
   });
 
   it("handles props with undefined values", () => {

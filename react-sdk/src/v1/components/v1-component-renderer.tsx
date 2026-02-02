@@ -116,11 +116,27 @@ export const V1ComponentRenderer: FC<V1ComponentRendererProps> = ({
       }
 
       return React.createElement(registeredComponent.component, validatedProps);
-    } catch {
-      // Component not found in registry
+    } catch (error) {
+      console.error("[V1ComponentRenderer] Failed to render component", {
+        threadId,
+        messageId,
+        componentId: content.id,
+        componentName: content.name,
+        streamingState: content.streamingState,
+        props: content.props,
+        error,
+      });
       return null;
     }
-  }, [content.name, content.props, registry.componentList]);
+  }, [
+    content.id,
+    content.name,
+    content.props,
+    content.streamingState,
+    messageId,
+    threadId,
+    registry.componentList,
+  ]);
 
   if (element === null) {
     return <>{fallback}</>;

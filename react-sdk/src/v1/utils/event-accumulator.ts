@@ -364,21 +364,23 @@ export function streamReducer(
 
   // Handle EVENT action
   const { event, threadId } = action;
+  const effectiveThreadId =
+    event.type === EventType.RUN_STARTED ? event.threadId : threadId;
 
   // Get the current thread state, auto-initializing if needed
   // Auto-initialization handles the case where events arrive before explicit thread init
   // (e.g., when creating a new thread and RUN_STARTED is the first event)
-  let threadState = state.threadMap[threadId];
+  let threadState = state.threadMap[effectiveThreadId];
   let updatedState = state;
 
   if (!threadState) {
     // Auto-initialize the thread to avoid dropping events
-    threadState = createInitialThreadState(threadId);
+    threadState = createInitialThreadState(effectiveThreadId);
     updatedState = {
       ...state,
       threadMap: {
         ...state.threadMap,
-        [threadId]: threadState,
+        [effectiveThreadId]: threadState,
       },
     };
   }
@@ -388,12 +390,10 @@ export function streamReducer(
   // for immediate UI feedback. Now that we have the real threadId, migrate those messages.
   if (
     event.type === EventType.RUN_STARTED &&
-    isPlaceholderThreadId(updatedState.currentThreadId) &&
-    updatedState.currentThreadId !== threadId
+    effectiveThreadId !== PLACEHOLDER_THREAD_ID
   ) {
-    const placeholderState =
-      updatedState.threadMap[updatedState.currentThreadId!];
-    if (placeholderState && placeholderState.thread.messages.length > 0) {
+    const placeholderState = updatedState.threadMap[PLACEHOLDER_THREAD_ID];
+    if (placeholderState?.thread.messages.length) {
       // Prepend placeholder thread messages to the real thread
       threadState = {
         ...threadState,
@@ -406,16 +406,19 @@ export function streamReducer(
         },
       };
 
-      // Reset placeholder thread to empty state and update currentThreadId
+      // Reset placeholder thread to empty state
       const resetPlaceholder = createInitialThreadState(PLACEHOLDER_THREAD_ID);
       updatedState = {
         ...updatedState,
         threadMap: {
           ...updatedState.threadMap,
           [PLACEHOLDER_THREAD_ID]: resetPlaceholder,
-          [threadId]: threadState,
+          [effectiveThreadId]: threadState,
         },
-        currentThreadId: threadId,
+        // Only switch selection if the user is currently on the placeholder thread
+        currentThreadId: isPlaceholderThreadId(updatedState.currentThreadId)
+          ? effectiveThreadId
+          : updatedState.currentThreadId,
       };
     }
   }
@@ -507,7 +510,7 @@ export function streamReducer(
     ...updatedState,
     threadMap: {
       ...updatedState.threadMap,
-      [threadId]: updatedThreadState,
+      [effectiveThreadId]: updatedThreadState,
     },
   };
 }
