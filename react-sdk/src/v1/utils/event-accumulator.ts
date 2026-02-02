@@ -600,22 +600,6 @@ function handleTextMessageStart(
   threadState: ThreadState,
   event: TextMessageStartEvent,
 ): ThreadState {
-  const messages = threadState.thread.messages;
-
-  // Check if message already exists (may have been created by component events
-  // earlier in the same turn). In that case, just update streaming state.
-  const existingIndex = messages.findIndex((m) => m.id === event.messageId);
-  if (existingIndex !== -1) {
-    return {
-      ...threadState,
-      streaming: {
-        ...threadState.streaming,
-        messageId: event.messageId,
-      },
-    };
-  }
-
-  // Create new message
   const newMessage: TamboV1Message = {
     id: event.messageId,
     role: event.role === "user" ? "user" : "assistant",
@@ -627,7 +611,7 @@ function handleTextMessageStart(
     ...threadState,
     thread: {
       ...threadState.thread,
-      messages: [...messages, newMessage],
+      messages: [...threadState.thread.messages, newMessage],
       updatedAt: new Date().toISOString(),
     },
     streaming: {
