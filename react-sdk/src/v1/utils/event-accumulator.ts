@@ -600,6 +600,22 @@ function handleTextMessageStart(
   threadState: ThreadState,
   event: TextMessageStartEvent,
 ): ThreadState {
+  const messages = threadState.thread.messages;
+
+  // Check if message already exists (may have been created by component events
+  // earlier in the same turn). In that case, just update streaming state.
+  const existingIndex = messages.findIndex((m) => m.id === event.messageId);
+  if (existingIndex !== -1) {
+    return {
+      ...threadState,
+      streaming: {
+        ...threadState.streaming,
+        messageId: event.messageId,
+      },
+    };
+  }
+
+  // Create new message
   const newMessage: TamboV1Message = {
     id: event.messageId,
     role: event.role === "user" ? "user" : "assistant",
@@ -611,7 +627,7 @@ function handleTextMessageStart(
     ...threadState,
     thread: {
       ...threadState.thread,
-      messages: [...threadState.thread.messages, newMessage],
+      messages: [...messages, newMessage],
       updatedAt: new Date().toISOString(),
     },
     streaming: {
@@ -974,14 +990,25 @@ function handleComponentStart(
   event: ComponentStartEvent,
 ): ThreadState {
   const messageId = event.value.messageId;
-  const messages = threadState.thread.messages;
+  let messages = threadState.thread.messages;
 
-  // Find the message
-  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  // Find the message, or create it if it doesn't exist.
+  // The backend may emit component events before TEXT_MESSAGE_START when
+  // the LLM outputs a component tool call without preceding text.
+  let messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
-    throw new Error(
-      `Message ${messageId} not found for tambo.component.start event`,
-    );
+    // Create a new assistant message for this component
+    const newMessage: TamboV1Message = {
+      id: messageId,
+      role: "assistant",
+      content: [],
+      createdAt: new Date().toISOString(),
+    };
+    messages = [...messages, newMessage];
+    messageIndex = messages.length - 1;
+
+    // Update thread state with the new message before adding the component
+    threadState = updateThreadMessages(threadState, messages);
   }
 
   const message = messages[messageIndex];
