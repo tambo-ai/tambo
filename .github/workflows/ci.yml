@@ -28,13 +28,17 @@ jobs:
 
       - name: Check for incorrect domain
         run: |
+          # Correct domain is tambo.co - check for common typos
+          # Pattern ([^p]|$) matches .com but NOT .component
           found=0
-          if grep -r 'tambo\.ai' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.mdx' --exclude-dir=node_modules .; then
-            echo "::error::Found 'tambo.ai' - use 'tambo.co' instead"
+          INCLUDES="--include=*.ts --include=*.tsx --include=*.md --include=*.mdx --include=*.yml --include=*.yaml --include=*.json --include=*.html"
+          EXCLUDES="--exclude-dir=node_modules --exclude=ci.yml"
+          if grep -r 'tambo\.ai' $INCLUDES $EXCLUDES .; then
+            echo "::error::Found tambo + .ai - use tambo.co instead"
             found=1
           fi
-          if grep -rE 'tambo\.com([^p]|$)' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.mdx' --exclude-dir=node_modules .; then
-            echo "::error::Found 'tambo.com' - use 'tambo.co' instead"
+          if grep -rE 'tambo\.com([^p]|$)' $INCLUDES $EXCLUDES .; then
+            echo "::error::Found tambo + .com - use tambo.co instead"
             found=1
           fi
           exit $found

@@ -73,6 +73,7 @@ describe("validateTool", () => {
 
     expect(() => validateTool(tool)).toThrow(/tambo\.co/);
     expect(() => validateTool(tool)).not.toThrow(/tambo\.ai/);
+    expect(() => validateTool(tool)).not.toThrow(/tambo\.com/);
   });
 
   it("should throw when tool is not an object", () => {
