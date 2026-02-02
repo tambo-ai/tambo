@@ -5,6 +5,10 @@ on:
     types: [labeled, synchronize]
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   sync-lockfile:
     # Only run on PRs from release-please bot with "autorelease: pending" label
