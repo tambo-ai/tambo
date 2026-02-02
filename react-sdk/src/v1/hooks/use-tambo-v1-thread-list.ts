@@ -9,6 +9,7 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import type { ThreadListResponse } from "@tambo-ai/typescript-sdk/resources/threads/threads";
 import { useTamboClient } from "../../providers/tambo-client-provider";
+import { useTamboV1Config } from "../providers/tambo-v1-provider";
 
 /**
  * Options for fetching thread list
@@ -75,10 +76,17 @@ export function useTamboV1ThreadList(
   >,
 ) {
   const client = useTamboClient();
+  const { userKey: contextUserKey } = useTamboV1Config();
+
+  // Merge userKey from context with provided options (explicit option takes precedence)
+  const effectiveOptions: ThreadListOptions | undefined =
+    (listOptions?.userKey ?? contextUserKey)
+      ? { ...listOptions, userKey: listOptions?.userKey ?? contextUserKey }
+      : listOptions;
 
   return useQuery({
-    queryKey: ["v1-threads", "list", listOptions],
-    queryFn: async () => await client.threads.list(listOptions),
+    queryKey: ["v1-threads", "list", effectiveOptions],
+    queryFn: async () => await client.threads.list(effectiveOptions),
     staleTime: 5000, // Consider stale after 5s
     ...queryOptions,
   });
