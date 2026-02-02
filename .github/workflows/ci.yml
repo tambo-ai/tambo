@@ -30,36 +30,58 @@ jobs:
         run: |
           # Correct domain is tambo.co - catch common typos (.ai, .com)
           # Patterns constructed via variable so this file doesn't match itself
-          # This uses `git grep`, so it only scans tracked files.
+          # This uses `git grep`, so it only scans tracked files (i.e., content that can be merged).
           # Pattern ([^[:alnum:]-]|$) matches .com but NOT .component
-          set -euo pipefail
-          cd "$GITHUB_WORKSPACE"
+          if [ -z "${GITHUB_WORKSPACE:-}" ]; then
+            echo "::error::GITHUB_WORKSPACE is not set; cannot run domain check"
+            exit 1
+          fi
+          cd "$GITHUB_WORKSPACE" || {
+            echo "::error::Failed to cd into GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+            exit 1
+          }
           found=0
           BASE="tambo"
-          PAT_AI="${BASE}\.ai"
+          PAT_AI="${BASE}\.ai([^[:alnum:]-]|$)"
           PAT_COM="${BASE}\.com([^[:alnum:]-]|$)"
 
-          if git grep -nI "$PAT_AI" -- '*.ts' '*.tsx' '*.md' '*.mdx' '*.yml' '*.yaml' '*.json' '*.html'; then
-            echo "::error::Found incorrect domain - use ${BASE}.co instead"
-            found=1
-          else
-            status=$?
-            if [ "$status" -ne 1 ]; then
-              echo "::error::Domain check failed unexpectedly (git grep exit $status)"
-              exit "$status"
-            fi
-          fi
-          if git grep -nIE "$PAT_COM" -- '*.ts' '*.tsx' '*.md' '*.mdx' '*.yml' '*.yaml' '*.json' '*.html'; then
-            echo "::error::Found incorrect domain - use ${BASE}.co instead"
-            found=1
-          else
-            status=$?
-            if [ "$status" -ne 1 ]; then
-              echo "::error::Domain check failed unexpectedly (git grep exit $status)"
-              exit "$status"
-            fi
-          fi
-          exit $found
+          # NOTE: If new file types can contain domains, update this list.
+          PATTERNS=(
+            '*.ts'
+            '*.tsx'
+            '*.md'
+            '*.mdx'
+            '*.yml'
+            '*.yaml'
+            '*.json'
+            '*.html'
+            ':(exclude)node_modules/**'
+          )
+
+          # Examples (match): tambo.com/, tambo.com:443
+          # Examples (no match): tambo.component, tambo.company
+
+          checkDomain() {
+            local pattern=$1
+            local status=0
+            git grep -nIE "$pattern" -- "${PATTERNS[@]}" || status=$?
+
+            case "$status" in
+              0)
+                echo "::error::Found incorrect domain - use ${BASE}.co instead"
+                found=1
+                ;;
+              1) ;;
+              *)
+                echo "::error::Domain check failed unexpectedly (git grep exit $status)" >&2
+                return "$status"
+                ;;
+            esac
+          }
+
+          checkDomain "$PAT_AI" || exit $?
+          checkDomain "$PAT_COM" || exit $?
+          exit "$found"
 
       - name: Run Prettier
         run: npm run prettier-check
