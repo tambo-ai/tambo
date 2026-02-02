@@ -46,7 +46,6 @@ export default function Template({
                   ]}
                   contextKey={userContextKey}
                   listResources={async (search = "X") => {
-                    console.log("listResources", search);
                     return [
                       {
                         uri: `generic-registry-resource/${search}`,
@@ -57,7 +56,6 @@ export default function Template({
                     ];
                   }}
                   getResource={async (uri) => {
-                    console.log("getResource", uri);
                     return {
                       contents: [
                         {
