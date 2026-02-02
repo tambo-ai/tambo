@@ -7,6 +7,9 @@
  * component content block data. Uses React's normal reconciliation to maintain
  * component identity - as long as the key stays stable, the component instance
  * is preserved.
+ *
+ * Wraps the component with V1ComponentContentProvider so that hooks like
+ * useTamboV1ComponentState can access component context.
  */
 
 import { parse } from "partial-json";
@@ -16,12 +19,23 @@ import { isStandardSchema } from "../../schema";
 import { isPromise } from "../../util/is-promise";
 import { getComponentFromRegistry } from "../../util/registry";
 import type { V1ComponentContent } from "../types/message";
+import { V1ComponentContentProvider } from "../utils/component-renderer";
 
 export interface V1ComponentRendererProps {
   /**
    * The component content block from a v1 message
    */
   content: V1ComponentContent;
+
+  /**
+   * The thread ID the component belongs to
+   */
+  threadId: string;
+
+  /**
+   * The message ID the component belongs to
+   */
+  messageId: string;
 
   /**
    * Optional fallback to render if component is not found in registry
@@ -35,6 +49,10 @@ export interface V1ComponentRendererProps {
  * Use this component in your message renderer to display AI-generated components.
  * The component instance is preserved across re-renders as long as React's
  * reconciliation keeps this wrapper mounted (use content.id as key).
+ *
+ * Wraps the rendered component with V1ComponentContentProvider so that hooks
+ * like useTamboV1ComponentState can access component context.
+ * @returns The rendered component wrapped in V1ComponentContentProvider, or fallback if not found
  * @example
  * ```tsx
  * function MessageContent({ content }: { content: Content }) {
@@ -53,6 +71,8 @@ export interface V1ComponentRendererProps {
  */
 export const V1ComponentRenderer: FC<V1ComponentRendererProps> = ({
   content,
+  threadId,
+  messageId,
   fallback = null,
 }) => {
   const registry = useContext(TamboRegistryContext);
@@ -106,5 +126,15 @@ export const V1ComponentRenderer: FC<V1ComponentRendererProps> = ({
     return <>{fallback}</>;
   }
 
-  return element;
+  // Wrap with provider so hooks like useTamboV1ComponentState work
+  return (
+    <V1ComponentContentProvider
+      componentId={content.id}
+      threadId={threadId}
+      messageId={messageId}
+      componentName={content.name}
+    >
+      {element}
+    </V1ComponentContentProvider>
+  );
 };
