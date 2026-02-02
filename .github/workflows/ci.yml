@@ -26,6 +26,9 @@ jobs:
       - name: Setup tools
         uses: ./.github/actions/setup-tools
 
+      - name: Check domain usage
+        run: ./scripts/check-domain.sh
+
       - name: Run Prettier
         run: npm run prettier-check
 
