@@ -8,7 +8,7 @@
     "@radix-ui/react-dropdown-menu"
   ],
   "devDependencies": [],
-  "requires": [],
+  "requires": ["message-suggestions"],
   "files": [
     {
       "name": "mcp-components.tsx",

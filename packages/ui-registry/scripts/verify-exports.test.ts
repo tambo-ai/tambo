@@ -25,7 +25,7 @@ const {
   validateRelativeImports,
   verifyComponentsHaveExports,
   verifyExportsPointToFiles,
-} = await import("./verify-exports.js");
+} = await import("./verify-exports.lib.js");
 
 describe("verify-exports", () => {
   const PACKAGE_ROOT = "/mock-package";
@@ -403,6 +403,73 @@ describe("verify-exports", () => {
       expect(errors).toHaveLength(0);
     });
 
+    it("detects missing requires from package imports", () => {
+      vol.fromJSON({
+        [`${COMPONENTS_DIR}/component-a/config.json`]: JSON.stringify({
+          name: "component-a",
+          requires: [],
+          files: [{ name: "component-a.tsx" }],
+        }),
+        [`${COMPONENTS_DIR}/component-a/component-a.tsx`]: `
+          import { ComponentB } from '@tambo-ai/ui-registry/components/component-b';
+          export const A = () => <ComponentB />;
+        `,
+        [`${COMPONENTS_DIR}/component-b/config.json`]: JSON.stringify({
+          name: "component-b",
+          requires: [],
+          files: [{ name: "component-b.tsx" }],
+        }),
+      });
+
+      const knownComponents = new Set(["component-a", "component-b"]);
+      const errors = validateComponentRequires(
+        "component-a",
+        knownComponents,
+        COMPONENTS_DIR,
+      );
+      expect(errors).toEqual([
+        {
+          component: "component-a",
+          referencedComponent: "component-b",
+          file: "component-a.tsx",
+        },
+      ]);
+    });
+
+    it("detects missing requires from cross-component relative imports", () => {
+      vol.fromJSON({
+        [`${COMPONENTS_DIR}/component-a/config.json`]: JSON.stringify({
+          name: "component-a",
+          requires: [],
+          files: [{ name: "component-a.tsx" }],
+        }),
+        [`${COMPONENTS_DIR}/component-a/component-a.tsx`]: `
+          import { helper } from '../component-b/helper';
+          export const A = () => helper();
+        `,
+        [`${COMPONENTS_DIR}/component-b/config.json`]: JSON.stringify({
+          name: "component-b",
+          requires: [],
+          files: [{ name: "component-b.tsx" }],
+        }),
+        [`${COMPONENTS_DIR}/component-b/helper.ts`]: `export const helper = () => {};`,
+      });
+
+      const knownComponents = new Set(["component-a", "component-b"]);
+      const errors = validateComponentRequires(
+        "component-a",
+        knownComponents,
+        COMPONENTS_DIR,
+      );
+      expect(errors).toEqual([
+        {
+          component: "component-a",
+          referencedComponent: "component-b",
+          file: "component-a.tsx",
+        },
+      ]);
+    });
+
     it("returns empty array when config does not exist", () => {
       vol.fromJSON({});
 
@@ -435,6 +502,33 @@ describe("verify-exports", () => {
       `;
       const result = extractRelativeImports(content);
       expect(result).toEqual(["./foo", "../bar", "./nested/baz"]);
+    });
+
+    it("extracts side-effect imports", () => {
+      const content = `
+        import './side-effect';
+        import { Foo } from './foo';
+      `;
+      const result = extractRelativeImports(content);
+      expect(result).toEqual(["./side-effect", "./foo"]);
+    });
+
+    it("extracts export-from paths", () => {
+      const content = `
+        export * from './foo';
+        export { Bar } from '../bar';
+      `;
+      const result = extractRelativeImports(content);
+      expect(result).toEqual(["./foo", "../bar"]);
+    });
+
+    it("extracts dynamic imports", () => {
+      const content = `
+        const mod = await import('./foo');
+        export const x = mod.x;
+      `;
+      const result = extractRelativeImports(content);
+      expect(result).toEqual(["./foo"]);
     });
 
     it("ignores package imports", () => {
@@ -509,6 +603,56 @@ describe("verify-exports", () => {
           import { helper } from './helper';
         `,
         [`${COMPONENTS_DIR}/component-a/helper.tsx`]: `export const helper = () => {};`,
+      });
+
+      const errors = validateRelativeImports("component-a", COMPONENTS_DIR);
+      expect(errors).toHaveLength(0);
+    });
+
+    it("resolves ESM-style .js imports to TS sources", () => {
+      vol.fromJSON({
+        [`${COMPONENTS_DIR}/component-a/config.json`]: JSON.stringify({
+          name: "component-a",
+          files: [{ name: "component-a.tsx" }],
+        }),
+        [`${COMPONENTS_DIR}/component-a/component-a.tsx`]: `
+          import { helper } from './helper.js';
+        `,
+        [`${COMPONENTS_DIR}/component-a/helper.ts`]: `export const helper = () => {};`,
+      });
+
+      const errors = validateRelativeImports("component-a", COMPONENTS_DIR);
+      expect(errors).toHaveLength(0);
+    });
+
+    it("validates export-from edges", () => {
+      vol.fromJSON({
+        [`${COMPONENTS_DIR}/component-a/config.json`]: JSON.stringify({
+          name: "component-a",
+          files: [{ name: "component-a.tsx" }],
+        }),
+        [`${COMPONENTS_DIR}/component-a/component-a.tsx`]: `
+          export * from './helper';
+        `,
+        [`${COMPONENTS_DIR}/component-a/helper.ts`]: `export const helper = () => {};`,
+      });
+
+      const errors = validateRelativeImports("component-a", COMPONENTS_DIR);
+      expect(errors).toHaveLength(0);
+    });
+
+    it("validates dynamic import edges", () => {
+      vol.fromJSON({
+        [`${COMPONENTS_DIR}/component-a/config.json`]: JSON.stringify({
+          name: "component-a",
+          files: [{ name: "component-a.tsx" }],
+        }),
+        [`${COMPONENTS_DIR}/component-a/component-a.tsx`]: `
+          export async function loadHelper() {
+            return await import('./helper');
+          }
+        `,
+        [`${COMPONENTS_DIR}/component-a/helper.ts`]: `export const helper = () => {};`,
       });
 
       const errors = validateRelativeImports("component-a", COMPONENTS_DIR);
