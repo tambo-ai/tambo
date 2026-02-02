@@ -37,7 +37,7 @@ describe("TamboV1StubProvider", () => {
         </TamboV1StubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper,
       });
 
@@ -53,7 +53,7 @@ describe("TamboV1StubProvider", () => {
         <TamboV1StubProvider>{children}</TamboV1StubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("stub_thread"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper,
       });
 
@@ -68,7 +68,7 @@ describe("TamboV1StubProvider", () => {
         </TamboV1StubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper,
       });
 
@@ -194,7 +194,7 @@ describe("TamboV1StubProvider", () => {
         </TamboV1StubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper,
       });
 
@@ -215,7 +215,7 @@ describe("TamboV1StubProvider", () => {
         </TamboV1StubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("thread_123"), {
+      const { result } = renderHook(() => useTamboV1(), {
         wrapper,
       });
 
@@ -243,7 +243,7 @@ describe("TamboV1StubProvider", () => {
         </TamboV1StubProvider>
       );
 
-      const { result } = renderHook(() => useTamboV1("custom_id"), { wrapper });
+      const { result } = renderHook(() => useTamboV1(), { wrapper });
 
       expect(result.current.messages).toHaveLength(1);
       expect(result.current.messages[0].id).toBe("msg_1");

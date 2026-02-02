@@ -26,7 +26,8 @@ import {
 } from "../../hooks/react-query-hooks";
 import { useTamboV1SendMessage } from "../hooks/use-tambo-v1-send-message";
 import type { InputMessage } from "../types/message";
-import { useStreamState } from "./tambo-v1-stream-context";
+import { isPlaceholderThreadId } from "../utils/event-accumulator";
+import { useStreamDispatch, useStreamState } from "./tambo-v1-stream-context";
 
 // Error messages for various input-related error scenarios.
 // TODO: Reintroduce explicit `NETWORK` and `SERVER` keys once `submit()` maps
@@ -123,14 +124,8 @@ export interface TamboV1ThreadInputContextProps extends Omit<
   /** Clear all staged images */
   clearImages: () => void;
 
-  /** Current thread ID being used for input */
+  /** Current thread ID being used for input (from stream state) */
   threadId: string | undefined;
-
-  /**
-   * Set the thread ID for input submission.
-   * If not set, a new thread will be created on submit.
-   */
-  setThreadId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
 /**
@@ -152,16 +147,15 @@ export const TamboV1ThreadInputContext = createContext<
  */
 export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
   const [inputValue, setInputValue] = useState("");
-  const [threadId, setThreadId] = useState<string | undefined>(undefined);
   const imageState = useMessageImages();
   const streamState = useStreamState();
+  const dispatch = useStreamDispatch();
 
-  // Use the current thread from stream state if no explicit threadId is set
-  const inheritedThreadId = streamState.currentThreadId ?? undefined;
-  const effectiveThreadId = threadId ?? inheritedThreadId;
-  const shouldAdoptThreadId =
-    threadId === undefined && inheritedThreadId === undefined;
-  const sendMessage = useTamboV1SendMessage(effectiveThreadId);
+  // Use the current thread from stream state directly
+  // Placeholder ID indicates a new thread should be created
+  const currentThreadId = streamState.currentThreadId ?? undefined;
+  const isNewThread = isPlaceholderThreadId(currentThreadId);
+  const sendMessage = useTamboV1SendMessage(currentThreadId);
 
   const submitFn = useCallback(
     async (
@@ -189,6 +183,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
           role: "user",
           content,
         },
+        userMessageText: trimmedValue, // Pass text for optimistic display
         debug: options?.debug,
       });
 
@@ -196,15 +191,15 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
       setInputValue("");
       imageState.clearImages();
 
-      // Update threadId if a new thread was created
-      if (result.threadId && shouldAdoptThreadId) {
-        setThreadId(result.threadId);
+      // Update stream context's currentThreadId if a new thread was created
+      if (result.threadId && isNewThread) {
+        dispatch({ type: "SET_CURRENT_THREAD", threadId: result.threadId });
       }
 
       return result;
     },
     // `stagedImageToResourceContent` is a pure module-level helper (not a hook value).
-    [inputValue, imageState, sendMessage, shouldAdoptThreadId],
+    [inputValue, imageState, sendMessage, isNewThread, dispatch],
   );
 
   const {
@@ -225,8 +220,7 @@ export function TamboV1ThreadInputProvider({ children }: PropsWithChildren) {
     addImages: imageState.addImages,
     removeImage: imageState.removeImage,
     clearImages: imageState.clearImages,
-    threadId: effectiveThreadId,
-    setThreadId,
+    threadId: currentThreadId,
   };
 
   return (

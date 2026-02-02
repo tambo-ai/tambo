@@ -7,21 +7,22 @@
  * to thread state, streaming status, registry, and client.
  */
 
-import { useContext, useMemo } from "react";
 import type TamboAI from "@tambo-ai/typescript-sdk";
+import React, { useContext, useMemo, useRef, type ReactElement } from "react";
 import { useTamboClient } from "../../providers/tambo-client-provider";
 import {
   TamboRegistryContext,
   type TamboRegistryContext as TamboRegistryContextType,
 } from "../../providers/tambo-registry-provider";
+import { V1ComponentRenderer } from "../components/v1-component-renderer";
 import {
-  useStreamState,
   useStreamDispatch,
+  useStreamState,
   useThreadManagement,
   type ThreadManagement,
 } from "../providers/tambo-v1-stream-context";
+import type { Content, TamboV1Message } from "../types/message";
 import type { StreamingState } from "../types/thread";
-import type { TamboV1Message } from "../types/message";
 import type { ThreadState } from "../utils/event-accumulator";
 
 /**
@@ -89,9 +90,9 @@ export interface UseTamboV1Return {
   toolRegistry: TamboRegistryContextType["toolRegistry"];
 
   /**
-   * Current thread ID (may be null if no thread is active)
+   * Current thread ID (always available - uses "placeholder" for new threads)
    */
-  currentThreadId: string | null;
+  currentThreadId: string;
 
   /**
    * Initialize a new thread in the stream context
@@ -119,8 +120,11 @@ export interface UseTamboV1Return {
  *
  * Combines thread state, streaming status, registry, and client
  * into a single convenient hook.
+ *
+ * Messages returned include renderedComponent on component content blocks,
+ * allowing direct rendering via {content.renderedComponent}.
  * @param threadId - Optional thread ID to get state for
- * @returns Combined v1 context with thread state and utilities
+ * @returns Combined v1 context with thread state, messages, and utilities
  * @example
  * ```tsx
  * function ChatInterface() {
@@ -140,26 +144,83 @@ export interface UseTamboV1Return {
  * }
  * ```
  */
-export function useTamboV1(threadId?: string): UseTamboV1Return {
+/**
+ * Cache entry for a rendered component wrapper.
+ * Stores the element and the props JSON used to create it.
+ */
+interface ComponentCacheEntry {
+  element: ReactElement;
+  propsJson: string;
+}
+
+/**
+ *
+ * @returns The combined Tambo context
+ */
+export function useTamboV1(): UseTamboV1Return {
   const client = useTamboClient();
   const streamState = useStreamState();
   const dispatch = useStreamDispatch();
   const registry = useContext(TamboRegistryContext);
   const threadManagement = useThreadManagement();
 
-  // Get thread state for the given threadId (or current thread if not specified)
-  const effectiveThreadId = threadId ?? streamState.currentThreadId;
-  const threadState = effectiveThreadId
-    ? streamState.threadMap[effectiveThreadId]
-    : undefined;
+  // Cache for rendered component wrappers - maintains stable element references
+  // across renders when props haven't changed
+  const componentCacheRef = useRef<Map<string, ComponentCacheEntry>>(new Map());
+
+  // Get thread state for the current thread
+  const threadState = streamState.threadMap[streamState.currentThreadId];
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => {
     const thread = threadState;
-    const messages = thread?.thread.messages ?? [];
+    const rawMessages = thread?.thread.messages ?? [];
     const streamingState: StreamingState = thread?.streaming ?? {
       status: "idle" as const,
     };
+
+    // Transform messages to add renderedComponent to component content blocks
+    const messages = rawMessages.map((message): TamboV1Message => {
+      const transformedContent = message.content.map((content): Content => {
+        if (content.type !== "component") {
+          return content;
+        }
+
+        const componentContent = content;
+        const propsJson = JSON.stringify(componentContent.props ?? {});
+        const cache = componentCacheRef.current;
+        const cached = cache.get(componentContent.id);
+
+        // Return cached element if props haven't changed
+        if (cached?.propsJson === propsJson) {
+          return {
+            ...componentContent,
+            renderedComponent: cached.element,
+          };
+        }
+
+        // Create new wrapper element
+        const element = React.createElement(V1ComponentRenderer, {
+          key: componentContent.id,
+          content: componentContent,
+          threadId: streamState.currentThreadId,
+          messageId: message.id,
+        });
+
+        // Update cache
+        cache.set(componentContent.id, { element, propsJson });
+
+        return {
+          ...componentContent,
+          renderedComponent: element,
+        };
+      });
+
+      return {
+        ...message,
+        content: transformedContent,
+      };
+    });
 
     return {
       client,

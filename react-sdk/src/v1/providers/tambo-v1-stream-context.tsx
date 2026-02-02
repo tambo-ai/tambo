@@ -10,17 +10,20 @@
 
 import React, {
   createContext,
-  useReducer,
+  useCallback,
   useContext,
   useMemo,
-  useCallback,
+  useReducer,
 } from "react";
-import {
-  streamReducer,
-  type StreamState,
-  type StreamAction,
-} from "../utils/event-accumulator";
 import type { TamboV1Thread } from "../types/thread";
+import {
+  createInitialState,
+  createInitialThreadState,
+  PLACEHOLDER_THREAD_ID,
+  streamReducer,
+  type StreamAction,
+  type StreamState,
+} from "../utils/event-accumulator";
 
 /**
  * Thread management functions exposed by the stream context.
@@ -40,9 +43,9 @@ export interface ThreadManagement {
   /**
    * Switch the current active thread.
    * Does not fetch thread data - use useTamboV1Thread for that.
-   * @param threadId - The thread ID to switch to, or null to clear
+   * @param threadId - The thread ID to switch to
    */
-  switchThread: (threadId: string | null) => void;
+  switchThread: (threadId: string) => void;
 
   /**
    * Start a new thread (generates a temporary ID).
@@ -139,14 +142,11 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
   }
 
   // Create stable initial state - only computed once on mount
+  // Uses createInitialState which sets up placeholder thread for optimistic UI
   const [state, dispatch] = useReducer(
     streamReducer,
     undefined,
-    // Lazy initializer function
-    () => ({
-      threadMap: {},
-      currentThreadId: null,
-    }),
+    createInitialState,
   );
 
   const activeState = providedState ?? state;
@@ -161,18 +161,21 @@ export function TamboV1StreamProvider(props: TamboV1StreamProviderProps) {
   );
 
   const switchThread = useCallback(
-    (threadId: string | null) => {
+    (threadId: string) => {
       activeDispatch({ type: "SET_CURRENT_THREAD", threadId });
     },
     [activeDispatch],
   );
 
   const startNewThread = useCallback(() => {
-    const tempId = `temp_${crypto.randomUUID()}`;
-    // Use atomic START_NEW_THREAD action to prevent race conditions
-    // when multiple calls happen concurrently (e.g., double-click)
-    activeDispatch({ type: "START_NEW_THREAD", threadId: tempId });
-    return tempId;
+    // Reset placeholder thread to empty state and switch to it
+    // This prepares for a new conversation while preserving existing threads
+    activeDispatch({
+      type: "START_NEW_THREAD",
+      threadId: PLACEHOLDER_THREAD_ID,
+      initialThread: createInitialThreadState(PLACEHOLDER_THREAD_ID).thread,
+    });
+    return PLACEHOLDER_THREAD_ID;
   }, [activeDispatch]);
 
   const threadManagement = useMemo<ThreadManagement>(() => {

@@ -99,6 +99,7 @@ describe("useTamboV1Suggestions", () => {
       thread: undefined,
       isIdle: true,
       isStreaming: false,
+      currentThreadId: "thread_123",
       startNewThread: jest.fn(),
       switchThread: jest.fn(),
       initThread: jest.fn(),
@@ -142,8 +143,21 @@ describe("useTamboV1Suggestions", () => {
   });
 
   describe("Initial State", () => {
-    it("returns empty suggestions when no threadId provided", () => {
-      const { result } = renderHook(() => useTamboV1Suggestions(undefined), {
+    it("returns empty suggestions when thread has placeholder ID", () => {
+      // Mock useTamboV1 to return placeholder thread ID
+      jest.mocked(useTamboV1).mockReturnValue({
+        messages: [],
+        thread: undefined,
+        isIdle: true,
+        isStreaming: false,
+        currentThreadId: "placeholder",
+        startNewThread: jest.fn(),
+        switchThread: jest.fn(),
+        initThread: jest.fn(),
+        streamingState: { status: "idle" },
+      } as any);
+
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -153,7 +167,7 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("returns empty suggestions when no messages", () => {
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -174,13 +188,14 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -202,13 +217,14 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -246,13 +262,14 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -277,13 +294,14 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: false,
         isStreaming: true,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "streaming", runId: "run_1" },
       } as any);
 
-      renderHook(() => useTamboV1Suggestions("thread_123"), {
+      renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -304,16 +322,16 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      renderHook(
-        () => useTamboV1Suggestions("thread_123", { autoGenerate: false }),
-        { wrapper: createWrapper() },
-      );
+      renderHook(() => useTamboV1Suggestions({ autoGenerate: false }), {
+        wrapper: createWrapper(),
+      });
 
       expect(mockListSuggestions).not.toHaveBeenCalled();
       expect(mockCreateSuggestions).not.toHaveBeenCalled();
@@ -332,6 +350,7 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
@@ -339,7 +358,7 @@ describe("useTamboV1Suggestions", () => {
       } as any);
 
       const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123", { maxSuggestions: 5 }),
+        () => useTamboV1Suggestions({ maxSuggestions: 5 }),
         { wrapper: createWrapper() },
       );
 
@@ -368,13 +387,14 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -410,13 +430,14 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -437,7 +458,7 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("throws error when suggestion has no content", async () => {
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -454,7 +475,7 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("throws error when detailedSuggestion is only whitespace", async () => {
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -471,7 +492,7 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("throws error when detailedSuggestion is undefined", async () => {
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -503,16 +524,16 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      const { result, rerender } = renderHook(
-        () => useTamboV1Suggestions("thread_123"),
-        { wrapper: createWrapper() },
-      );
+      const { result, rerender } = renderHook(() => useTamboV1Suggestions(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.suggestions).toHaveLength(2);
@@ -546,6 +567,7 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
@@ -578,13 +600,14 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -595,7 +618,7 @@ describe("useTamboV1Suggestions", () => {
     });
 
     it("exposes loading and error states", () => {
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
@@ -622,6 +645,7 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
@@ -629,7 +653,7 @@ describe("useTamboV1Suggestions", () => {
       } as any);
 
       const { result } = renderHook(
-        () => useTamboV1Suggestions("thread_123", { autoGenerate: false }),
+        () => useTamboV1Suggestions({ autoGenerate: false }),
         { wrapper: createWrapper() },
       );
 
@@ -655,13 +679,14 @@ describe("useTamboV1Suggestions", () => {
         thread: undefined,
         isIdle: true,
         isStreaming: false,
+        currentThreadId: "thread_123",
         startNewThread: jest.fn(),
         switchThread: jest.fn(),
         initThread: jest.fn(),
         streamingState: { status: "idle" },
       } as any);
 
-      const { result } = renderHook(() => useTamboV1Suggestions("thread_123"), {
+      const { result } = renderHook(() => useTamboV1Suggestions(), {
         wrapper: createWrapper(),
       });
 
