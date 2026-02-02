@@ -26,8 +26,12 @@ jobs:
       - name: Setup tools
         uses: ./.github/actions/setup-tools
 
-      - name: Check domain usage
-        run: ./scripts/check-domain.sh
+      - name: Check for incorrect domain (tambo.ai)
+        run: |
+          if grep -r 'tambo\.ai' --include='*.ts' --include='*.tsx' --include='*.md' --include='*.mdx' --exclude-dir=node_modules .; then
+            echo "::error::Found 'tambo.ai' - use 'tambo.co' instead"
+            exit 1
+          fi
 
       - name: Run Prettier
         run: npm run prettier-check
