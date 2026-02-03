@@ -781,9 +781,10 @@ describe("V1Service", () => {
       });
     });
 
-    it("should not include component block for tool role messages", async () => {
-      // Tool messages may have componentDecision copied from the assistant message,
-      // but the component block should only appear on the assistant message
+    it("should hide tool messages with componentDecision.componentName (UI tool responses)", async () => {
+      // Tool messages with componentDecision.componentName are UI tool responses
+      // (show_component_* tools) and should be hidden from the API.
+      // They return 404 to indicate they're not accessible.
       const toolMessageWithComponent = {
         ...mockMessage,
         role: "tool",
@@ -798,16 +799,10 @@ describe("V1Service", () => {
         toolMessageWithComponent as any,
       );
 
-      const result = await service.getMessage("thr_123", "msg_123");
-
-      // Role should be mapped to assistant
-      expect(result.role).toBe("assistant");
-      // Content should be a tool_result block, not text or component
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe("tool_result");
-      expect(
-        result.content.find((c) => c.type === "component"),
-      ).toBeUndefined();
+      // UI tool responses are hidden and return 404
+      await expect(service.getMessage("thr_123", "msg_123")).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it("should include tool_use content block when toolCallRequest exists", async () => {
@@ -1016,6 +1011,134 @@ describe("V1Service", () => {
       );
 
       warnSpy.mockRestore();
+    });
+  });
+
+  describe("UI tool response filtering", () => {
+    it("should throw NotFoundException for getMessage when message is a UI tool response", async () => {
+      const uiToolResponseMessage = {
+        ...mockMessage,
+        id: "msg_ui_tool",
+        role: "tool",
+        content: [{ type: "text", text: "Component was rendered" }],
+        toolCallId: "call_ui_123",
+        componentDecision: {
+          componentName: "AirQualityCard",
+          props: { city: "NYC" },
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        uiToolResponseMessage as any,
+      );
+
+      await expect(
+        service.getMessage("thr_123", "msg_ui_tool"),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("should filter out UI tool responses from listMessages", async () => {
+      const regularMessage = {
+        ...mockMessage,
+        id: "msg_regular",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello" }],
+      };
+      const uiToolResponseMessage = {
+        ...mockMessage,
+        id: "msg_ui_tool",
+        role: "tool",
+        content: [{ type: "text", text: "Component was rendered" }],
+        toolCallId: "call_ui_123",
+        componentDecision: {
+          componentName: "AirQualityCard",
+          props: { city: "NYC" },
+        },
+      };
+      mockOperations.listMessagesPaginated.mockResolvedValue([
+        regularMessage,
+        uiToolResponseMessage,
+      ] as any);
+
+      const result = await service.listMessages("thr_123", {});
+
+      // Should only return the regular message, not the UI tool response
+      expect(result.messages).toHaveLength(1);
+      expect(result.messages[0].id).toBe("msg_regular");
+    });
+
+    it("should filter out UI tool responses from getThread messages", async () => {
+      const regularMessage = {
+        ...mockMessage,
+        id: "msg_regular",
+        role: "assistant",
+        content: [{ type: "text", text: "Hello" }],
+      };
+      const uiToolResponseMessage = {
+        ...mockMessage,
+        id: "msg_ui_tool",
+        role: "tool",
+        content: [{ type: "text", text: "Component was rendered" }],
+        toolCallId: "call_ui_123",
+        componentDecision: {
+          componentName: "AirQualityCard",
+          props: { city: "NYC" },
+        },
+      };
+      const mockThread = {
+        id: "thr_123",
+        projectId: "proj_123",
+        contextKey: "user_123",
+        runStatus: "idle",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        messages: [regularMessage, uiToolResponseMessage],
+      };
+      mockOperations.getThreadForProjectId.mockResolvedValue(mockThread as any);
+
+      const result = await service.getThread("thr_123", "proj_123", "user_123");
+
+      // Should only return the regular message, not the UI tool response
+      expect(result.messages).toHaveLength(1);
+      expect(result.messages[0].id).toBe("msg_regular");
+    });
+
+    it("should NOT filter regular tool responses (non-UI tool)", async () => {
+      const regularToolResponse = {
+        ...mockMessage,
+        id: "msg_tool",
+        role: "tool",
+        content: [{ type: "text", text: "Weather is sunny" }],
+        toolCallId: "call_regular_123",
+        componentDecision: null, // No componentDecision or null componentName
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        regularToolResponse as any,
+      );
+
+      // Should NOT throw - regular tool responses are visible
+      const result = await service.getMessage("thr_123", "msg_tool");
+      expect(result.id).toBe("msg_tool");
+    });
+
+    it("should NOT filter tool responses with componentDecision but no componentName", async () => {
+      const toolResponseNoComponentName = {
+        ...mockMessage,
+        id: "msg_tool_no_name",
+        role: "tool",
+        content: [{ type: "text", text: "Some result" }],
+        toolCallId: "call_123",
+        componentDecision: {
+          componentName: null, // Explicitly null
+          props: {},
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        toolResponseNoComponentName as any,
+      );
+
+      // Should NOT throw - componentName is null, so this is visible
+      const result = await service.getMessage("thr_123", "msg_tool_no_name");
+      expect(result.id).toBe("msg_tool_no_name");
     });
   });
 

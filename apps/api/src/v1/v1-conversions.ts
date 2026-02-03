@@ -272,6 +272,23 @@ export function contentToV1Blocks(
 }
 
 /**
+ * Check if a message is a UI tool response that should be hidden from the V1 API.
+ *
+ * UI tool responses are automatically generated "Component was rendered" messages
+ * for show_component_* tools. They're identified by:
+ * - role: "tool"
+ * - componentDecision.componentName is present (non-null)
+ *
+ * These messages are internal implementation details and shouldn't be exposed
+ * to API consumers.
+ *
+ * @returns true if the message should be filtered out
+ */
+export function isHiddenUiToolResponse(message: DbMessage): boolean {
+  return message.role === "tool" && !!message.componentDecision?.componentName;
+}
+
+/**
  * Convert a database message to V1MessageDto.
  *
  * @throws Error if role is not recognized

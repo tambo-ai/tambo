@@ -73,6 +73,7 @@ import {
 import {
   threadToDto,
   messageToDto,
+  isHiddenUiToolResponse,
   ContentConversionOptions,
   convertV1InputMessageToInternal,
 } from "./v1-conversions";
@@ -187,9 +188,14 @@ export class V1Service {
       throw new NotFoundException(`Thread ${threadId} not found`);
     }
 
+    // Filter out hidden UI tool response messages
+    const visibleMessages = thread.messages.filter(
+      (m) => !isHiddenUiToolResponse(m),
+    );
+
     return {
       ...threadToDto(thread),
-      messages: thread.messages.map((m) =>
+      messages: visibleMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
     };
@@ -237,6 +243,9 @@ export class V1Service {
 
   /**
    * List messages in a thread with cursor-based pagination.
+   *
+   * Filters out hidden UI tool response messages (show_component_* tool results)
+   * which are internal implementation details.
    */
   async listMessages(
     threadId: string,
@@ -259,27 +268,34 @@ export class V1Service {
       order,
     });
 
-    const hasMore = messages.length > effectiveLimit;
+    // Filter out hidden UI tool response messages before pagination
+    const visibleMessages = messages.filter((m) => !isHiddenUiToolResponse(m));
+
+    const hasMore = visibleMessages.length > effectiveLimit;
     const resultMessages = hasMore
-      ? messages.slice(0, effectiveLimit)
-      : messages;
+      ? visibleMessages.slice(0, effectiveLimit)
+      : visibleMessages;
 
     return {
       messages: resultMessages.map((m) =>
         messageToDto(m, this.contentConversionOptions),
       ),
-      nextCursor: hasMore
-        ? encodeV1CompoundCursor({
-            createdAt: resultMessages[resultMessages.length - 1].createdAt,
-            id: resultMessages[resultMessages.length - 1].id,
-          })
-        : undefined,
+      nextCursor:
+        hasMore && resultMessages.length > 0
+          ? encodeV1CompoundCursor({
+              createdAt: resultMessages[resultMessages.length - 1].createdAt,
+              id: resultMessages[resultMessages.length - 1].id,
+            })
+          : undefined,
       hasMore,
     };
   }
 
   /**
    * Get a single message by ID.
+   *
+   * Returns 404 for hidden UI tool response messages (show_component_* tool results)
+   * as they are internal implementation details.
    */
   async getMessage(
     threadId: string,
@@ -292,6 +308,13 @@ export class V1Service {
     );
 
     if (!message) {
+      throw new NotFoundException(
+        `Message ${messageId} not found in thread ${threadId}`,
+      );
+    }
+
+    // Treat hidden UI tool responses as not found
+    if (isHiddenUiToolResponse(message)) {
       throw new NotFoundException(
         `Message ${messageId} not found in thread ${threadId}`,
       );
