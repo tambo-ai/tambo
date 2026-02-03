@@ -9,12 +9,23 @@ import { z } from "zod/v3";
 
 // Tool-compatible agent headers schema using array of key-value objects
 // Records (objects with dynamic keys) are not supported in tool schemas
-const agentHeadersToolSchema = z.array(
-  z.object({
-    name: z.string().describe("Header name (e.g., 'Authorization')"),
-    value: z.string().describe("Header value (e.g., 'Bearer token')"),
-  }),
-);
+const agentHeadersToolSchema = z
+  .array(
+    z.object({
+      name: z.string().describe("Header name (e.g., 'Authorization')"),
+      value: z.string().describe("Header value (e.g., 'Bearer token')"),
+    }),
+  )
+  // REFINE BLOCK TO PREVENT DUPLICATES
+  .refine(
+    (items) => {
+      const keys = items.map((i) => i.name);
+      return new Set(keys).size === keys.length;
+    },
+    {
+      message: "Duplicate header names are not allowed",
+    },
+  );
 
 export type AgentHeadersToolInput = z.infer<typeof agentHeadersToolSchema>;
 

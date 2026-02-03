@@ -1,10 +1,9 @@
 /// <reference types="@testing-library/jest-dom" />
-import { jest, describe, it, expect, beforeEach } from "@jest/globals";
-import React from "react";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import type { TamboThreadMessage } from "@tambo-ai/react";
+import { useTambo } from "@tambo-ai/react";
 import { render } from "@testing-library/react";
 import { Message, MessageContent } from "./message";
-import { useTambo } from "@tambo-ai/react";
-import type { TamboThreadMessage } from "@tambo-ai/react";
 
 // @tambo-ai/react is mocked via moduleNameMapper in jest.config.ts
 

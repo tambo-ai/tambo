@@ -70,7 +70,7 @@ export interface StreamState {
   /**
    * Current active thread ID (for UI context)
    */
-  currentThreadId: string | null;
+  currentThreadId: string;
 }
 
 /**
@@ -96,7 +96,7 @@ export interface InitThreadAction {
  */
 export interface SetCurrentThreadAction {
   type: "SET_CURRENT_THREAD";
-  threadId: string | null;
+  threadId: string;
 }
 
 /**
@@ -146,13 +146,33 @@ export function createInitialThreadState(threadId: string): ThreadState {
 }
 
 /**
- * Create initial stream state with empty threadMap.
+ * Placeholder thread ID used for new threads before they get a real ID from the server.
+ * This allows optimistic UI updates (showing user messages immediately) before the
+ * server responds with the actual thread ID.
+ */
+export const PLACEHOLDER_THREAD_ID = "placeholder";
+
+/**
+ * Check if a thread ID is a placeholder (not a real API thread ID).
+ * @param threadId - Thread ID to check
+ * @returns True if this is a placeholder thread ID
+ */
+export function isPlaceholderThreadId(
+  threadId: string | null | undefined,
+): boolean {
+  return threadId === PLACEHOLDER_THREAD_ID;
+}
+
+/**
+ * Create initial stream state with placeholder thread.
  * @returns Initial stream state
  */
 export function createInitialState(): StreamState {
   return {
-    threadMap: {},
-    currentThreadId: null,
+    threadMap: {
+      [PLACEHOLDER_THREAD_ID]: createInitialThreadState(PLACEHOLDER_THREAD_ID),
+    },
+    currentThreadId: PLACEHOLDER_THREAD_ID,
   };
 }
 
@@ -344,23 +364,63 @@ export function streamReducer(
 
   // Handle EVENT action
   const { event, threadId } = action;
+  const effectiveThreadId =
+    event.type === EventType.RUN_STARTED ? event.threadId : threadId;
 
   // Get the current thread state, auto-initializing if needed
   // Auto-initialization handles the case where events arrive before explicit thread init
   // (e.g., when creating a new thread and RUN_STARTED is the first event)
-  let threadState = state.threadMap[threadId];
+  let threadState = state.threadMap[effectiveThreadId];
   let updatedState = state;
 
   if (!threadState) {
     // Auto-initialize the thread to avoid dropping events
-    threadState = createInitialThreadState(threadId);
+    threadState = createInitialThreadState(effectiveThreadId);
     updatedState = {
       ...state,
       threadMap: {
         ...state.threadMap,
-        [threadId]: threadState,
+        [effectiveThreadId]: threadState,
       },
     };
+  }
+
+  // Handle placeholder thread migration for RUN_STARTED events
+  // When a new thread is created, messages may have been added to the placeholder thread
+  // for immediate UI feedback. Now that we have the real threadId, migrate those messages.
+  if (
+    event.type === EventType.RUN_STARTED &&
+    effectiveThreadId !== PLACEHOLDER_THREAD_ID
+  ) {
+    const placeholderState = updatedState.threadMap[PLACEHOLDER_THREAD_ID];
+    if (placeholderState?.thread.messages.length) {
+      // Prepend placeholder thread messages to the real thread
+      threadState = {
+        ...threadState,
+        thread: {
+          ...threadState.thread,
+          messages: [
+            ...placeholderState.thread.messages,
+            ...threadState.thread.messages,
+          ],
+        },
+      };
+
+      // Reset placeholder thread to empty state
+      const resetPlaceholder = createInitialThreadState(PLACEHOLDER_THREAD_ID);
+      updatedState = {
+        ...updatedState,
+        threadMap: {
+          ...updatedState.threadMap,
+          [PLACEHOLDER_THREAD_ID]: resetPlaceholder,
+          [effectiveThreadId]: threadState,
+        },
+        // Only switch selection if the user is currently on the placeholder thread
+        currentThreadId: isPlaceholderThreadId(updatedState.currentThreadId)
+          ? effectiveThreadId
+          : updatedState.currentThreadId,
+      };
+    }
   }
 
   // Process the event for this specific thread
@@ -450,7 +510,7 @@ export function streamReducer(
     ...updatedState,
     threadMap: {
       ...updatedState.threadMap,
-      [threadId]: updatedThreadState,
+      [effectiveThreadId]: updatedThreadState,
     },
   };
 }
@@ -651,6 +711,7 @@ function handleTextMessageEnd(
 /**
  * Handle TOOL_CALL_START event.
  * Adds a tool use content block to the current message.
+ * If no message exists, creates a synthetic assistant message to hold the tool call.
  * @param threadState - Current thread state
  * @param event - Tool call start event
  * @returns Updated thread state
@@ -667,21 +728,38 @@ function handleToolCallStart(
     ? messages.findIndex((m) => m.id === messageId)
     : messages.length - 1;
 
-  if (messageIndex === -1) {
-    throw new Error(
-      messageId
-        ? `Message ${messageId} not found for TOOL_CALL_START event`
-        : `No messages exist for TOOL_CALL_START event`,
-    );
-  }
-
-  const message = messages[messageIndex];
   const newContent: Content = {
     type: "tool_use",
     id: event.toolCallId,
     name: event.toolCallName,
     input: {},
   };
+
+  // If no message found, create a synthetic assistant message for the tool call
+  if (messageIndex === -1) {
+    const syntheticMessageId = messageId ?? `msg_tool_${event.toolCallId}`;
+    const syntheticMessage: TamboV1Message = {
+      id: syntheticMessageId,
+      role: "assistant",
+      content: [newContent],
+      createdAt: new Date().toISOString(),
+    };
+
+    return {
+      ...threadState,
+      thread: {
+        ...threadState.thread,
+        messages: [...messages, syntheticMessage],
+        updatedAt: new Date().toISOString(),
+      },
+      streaming: {
+        ...threadState.streaming,
+        messageId: syntheticMessageId,
+      },
+    };
+  }
+
+  const message = messages[messageIndex];
 
   const updatedMessage: TamboV1Message = {
     ...message,
@@ -899,14 +977,25 @@ function handleComponentStart(
   event: ComponentStartEvent,
 ): ThreadState {
   const messageId = event.value.messageId;
-  const messages = threadState.thread.messages;
+  let messages = threadState.thread.messages;
 
-  // Find the message
-  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  // Find the message, or create it if it doesn't exist.
+  // The backend may emit component events before TEXT_MESSAGE_START when
+  // the LLM outputs a component tool call without preceding text.
+  let messageIndex = messages.findIndex((m) => m.id === messageId);
   if (messageIndex === -1) {
-    throw new Error(
-      `Message ${messageId} not found for tambo.component.start event`,
-    );
+    // Create a new assistant message for this component
+    const newMessage: TamboV1Message = {
+      id: messageId,
+      role: "assistant",
+      content: [],
+      createdAt: new Date().toISOString(),
+    };
+    messages = [...messages, newMessage];
+    messageIndex = messages.length - 1;
+
+    // Update thread state with the new message before adding the component
+    threadState = updateThreadMessages(threadState, messages);
   }
 
   const message = messages[messageIndex];

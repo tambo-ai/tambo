@@ -10,7 +10,9 @@
     "@tambo-ai/react",
     "@tambo-ai/typescript-sdk",
     "dompurify",
-    "json-stringify-pretty-compact"
+    "json-stringify-pretty-compact",
+    "@radix-ui/react-slot",
+    "@radix-ui/react-collapsible"
   ],
   "devDependencies": [],
   "requires": [],
@@ -26,6 +28,130 @@
     {
       "name": "lib/thread-hooks.ts",
       "content": "src/registry/lib/thread-hooks.ts"
+    },
+    {
+      "name": "base/message/index.tsx",
+      "content": "src/registry/base/message/index.tsx"
+    },
+    {
+      "name": "base/message/content/message-content.tsx",
+      "content": "src/registry/base/message/content/message-content.tsx"
+    },
+    {
+      "name": "base/message/images/message-images.tsx",
+      "content": "src/registry/base/message/images/message-images.tsx"
+    },
+    {
+      "name": "base/message/loading-indicator/message-loading-indicator.tsx",
+      "content": "src/registry/base/message/loading-indicator/message-loading-indicator.tsx"
+    },
+    {
+      "name": "base/message/rendered-component/rendered-component.tsx",
+      "content": "src/registry/base/message/rendered-component/rendered-component.tsx"
+    },
+    {
+      "name": "base/message/rendered-component/rendered-component-content.tsx",
+      "content": "src/registry/base/message/rendered-component/rendered-component-content.tsx"
+    },
+    {
+      "name": "base/message/rendered-component/rendered-component-canvas-button.tsx",
+      "content": "src/registry/base/message/rendered-component/rendered-component-canvas-button.tsx"
+    },
+    {
+      "name": "base/message/root/message-root.tsx",
+      "content": "src/registry/base/message/root/message-root.tsx"
+    },
+    {
+      "name": "base/message/root/message-root-context.tsx",
+      "content": "src/registry/base/message/root/message-root-context.tsx"
+    },
+    {
+      "name": "base/reasoning-info/index.tsx",
+      "content": "src/registry/base/reasoning-info/index.tsx"
+    },
+    {
+      "name": "base/reasoning-info/content/reasoning-info-content.tsx",
+      "content": "src/registry/base/reasoning-info/content/reasoning-info-content.tsx"
+    },
+    {
+      "name": "base/reasoning-info/root/reasoning-info-root.tsx",
+      "content": "src/registry/base/reasoning-info/root/reasoning-info-root.tsx"
+    },
+    {
+      "name": "base/reasoning-info/root/reasoning-info-context.tsx",
+      "content": "src/registry/base/reasoning-info/root/reasoning-info-context.tsx"
+    },
+    {
+      "name": "base/reasoning-info/status-text/reasoning-info-status-text.tsx",
+      "content": "src/registry/base/reasoning-info/status-text/reasoning-info-status-text.tsx"
+    },
+    {
+      "name": "base/reasoning-info/steps/reasoning-info-steps.tsx",
+      "content": "src/registry/base/reasoning-info/steps/reasoning-info-steps.tsx"
+    },
+    {
+      "name": "base/reasoning-info/trigger/reasoning-info-trigger.tsx",
+      "content": "src/registry/base/reasoning-info/trigger/reasoning-info-trigger.tsx"
+    },
+    {
+      "name": "base/toolcall-info/index.tsx",
+      "content": "src/registry/base/toolcall-info/index.tsx"
+    },
+    {
+      "name": "base/toolcall-info/content/toolcall-info-content.tsx",
+      "content": "src/registry/base/toolcall-info/content/toolcall-info-content.tsx"
+    },
+    {
+      "name": "base/toolcall-info/parameters/toolcall-info-parameters.tsx",
+      "content": "src/registry/base/toolcall-info/parameters/toolcall-info-parameters.tsx"
+    },
+    {
+      "name": "base/toolcall-info/result/toolcall-info-result.tsx",
+      "content": "src/registry/base/toolcall-info/result/toolcall-info-result.tsx"
+    },
+    {
+      "name": "base/toolcall-info/root/toolcall-info-root.tsx",
+      "content": "src/registry/base/toolcall-info/root/toolcall-info-root.tsx"
+    },
+    {
+      "name": "base/toolcall-info/root/toolcall-info-context.tsx",
+      "content": "src/registry/base/toolcall-info/root/toolcall-info-context.tsx"
+    },
+    {
+      "name": "base/toolcall-info/root/get-tool-call-request.ts",
+      "content": "src/registry/base/toolcall-info/root/get-tool-call-request.ts"
+    },
+    {
+      "name": "base/toolcall-info/root/get-tool-status-message.ts",
+      "content": "src/registry/base/toolcall-info/root/get-tool-status-message.ts"
+    },
+    {
+      "name": "base/toolcall-info/root/keyify-parameters.ts",
+      "content": "src/registry/base/toolcall-info/root/keyify-parameters.ts"
+    },
+    {
+      "name": "base/toolcall-info/status-icon/toolcall-info-status-icon.tsx",
+      "content": "src/registry/base/toolcall-info/status-icon/toolcall-info-status-icon.tsx"
+    },
+    {
+      "name": "base/toolcall-info/status-text/toolcall-info-status-text.tsx",
+      "content": "src/registry/base/toolcall-info/status-text/toolcall-info-status-text.tsx"
+    },
+    {
+      "name": "base/toolcall-info/tool-name/toolcall-info-tool-name.tsx",
+      "content": "src/registry/base/toolcall-info/tool-name/toolcall-info-tool-name.tsx"
+    },
+    {
+      "name": "base/toolcall-info/trigger/toolcall-info-trigger.tsx",
+      "content": "src/registry/base/toolcall-info/trigger/toolcall-info-trigger.tsx"
+    },
+    {
+      "name": "base/types/component-render-or-children.ts",
+      "content": "src/registry/base/types/component-render-or-children.ts"
+    },
+    {
+      "name": "base/use-render/use-render.ts",
+      "content": "src/registry/base/use-render/use-render.ts"
     }
   ]
 }

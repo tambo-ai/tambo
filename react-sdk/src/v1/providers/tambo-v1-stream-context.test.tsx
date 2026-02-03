@@ -23,15 +23,23 @@ describe("TamboV1StreamProvider", () => {
       consoleSpy.mockRestore();
     });
 
-    it("returns initial state with empty threadMap", () => {
+    it("returns initial state with placeholder thread ready for new messages", () => {
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <TamboV1StreamProvider>{children}</TamboV1StreamProvider>
       );
 
       const { result } = renderHook(() => useStreamState(), { wrapper });
 
-      expect(result.current.threadMap).toEqual({});
-      expect(result.current.currentThreadId).toBeNull();
+      // Initial state should have placeholder thread ready for optimistic UI
+      expect(result.current.currentThreadId).toBe("placeholder");
+      expect(result.current.threadMap.placeholder).toBeDefined();
+      expect(result.current.threadMap.placeholder.thread.id).toBe(
+        "placeholder",
+      );
+      expect(result.current.threadMap.placeholder.thread.messages).toEqual([]);
+      expect(result.current.threadMap.placeholder.streaming.status).toBe(
+        "idle",
+      );
     });
 
     it("initializes thread via dispatch", () => {
@@ -243,9 +251,9 @@ describe("TamboV1StreamProvider", () => {
         tempId = result.current.management.startNewThread();
       });
 
-      expect(tempId!).toMatch(/^temp_/);
-      expect(result.current.state.currentThreadId).toBe(tempId!);
-      expect(result.current.state.threadMap[tempId!]).toBeDefined();
+      expect(tempId!).toBe("placeholder");
+      expect(result.current.state.currentThreadId).toBe("placeholder");
+      expect(result.current.state.threadMap.placeholder).toBeDefined();
     });
   });
 });

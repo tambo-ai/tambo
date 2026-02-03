@@ -354,7 +354,7 @@ describe("useTamboV1ComponentState", () => {
       // Empty stream state (no matching component)
       jest.mocked(useStreamState).mockReturnValue({
         threadMap: {},
-        currentThreadId: null,
+        currentThreadId: "placeholder",
       });
 
       const { result } = renderHook(() =>

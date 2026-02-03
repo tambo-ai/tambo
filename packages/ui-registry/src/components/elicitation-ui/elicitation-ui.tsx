@@ -133,6 +133,8 @@ const StringField: React.FC<FieldProps> = ({
   autoFocus,
   validationError,
 }) => {
+  const inputId = React.useId();
+
   if (schema.type !== "string") {
     return null;
   }
@@ -157,7 +159,6 @@ const StringField: React.FC<FieldProps> = ({
 
   const inputType = getInputType();
   const hasError = !!validationError;
-  const inputId = React.useId();
   const errorId = `${inputId}-error`;
 
   return (
@@ -206,13 +207,14 @@ const NumberField: React.FC<FieldProps> = ({
   autoFocus,
   validationError,
 }) => {
+  const inputId = React.useId();
+
   if (schema.type !== "number" && schema.type !== "integer") {
     return null;
   }
   const numberSchema = schema;
   const numberValue = value as number | undefined;
   const hasError = !!validationError;
-  const inputId = React.useId();
   const errorId = `${inputId}-error`;
 
   return (

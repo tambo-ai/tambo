@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://docs.tambo.co">Documentation</a> •
-  <a href="https://docs.tambo.co/api-reference">API Reference</a> •
+  <a href="https://docs.tambo.co/reference/react-sdk">API Reference</a> •
   <a href="https://discord.gg/dJNvPEHth6">Discord</a>
 </p>
 
@@ -159,7 +159,7 @@ const components: TamboComponent[] = [
 ];
 ```
 
-[→ Learn more about components](https://docs.tambo.co/concepts/components)
+[→ Learn more about components](https://docs.tambo.co/concepts/generative-interfaces)
 
 ### Provider Setup
 
@@ -176,7 +176,7 @@ Wrap your app with `TamboProvider` to enable AI capabilities:
 </TamboProvider>
 ```
 
-[→ See all provider options](https://docs.tambo.co/api-reference/tambo-provider)
+[→ See all provider options](https://docs.tambo.co/reference/react-sdk/providers)
 
 ### Hooks
 
@@ -189,7 +189,7 @@ Wrap your app with `TamboProvider` to enable AI capabilities:
 | `useTamboStreamStatus()`   | Monitor streaming status for progressive loading   |
 | `useTamboSuggestions()`    | Generate contextual suggestions                    |
 
-[→ API Reference](https://docs.tambo.co/api-reference)
+[→ API Reference](https://docs.tambo.co/reference/react-sdk)
 
 ## Key Features
 
@@ -211,7 +211,7 @@ const components: TamboComponent[] = [
 ];
 ```
 
-[→ Learn more about components](https://docs.tambo.co/concepts/components)
+[→ Learn more about components](https://docs.tambo.co/concepts/generative-interfaces)
 
 ### Interactable Components
 
@@ -234,7 +234,7 @@ const InteractableNote = withInteractable(Note, {
 <InteractableNote id="note-1" title="My Note" content="Content here" />;
 ```
 
-[→ Learn more about interactable components](https://docs.tambo.co/concepts/components/interactable-components)
+[→ Learn more about interactable components](https://docs.tambo.co/concepts/generative-interfaces/interactable-components)
 
 ### MCP Integration
 
@@ -298,7 +298,7 @@ const tools = [
 </TamboProvider>;
 ```
 
-[→ Learn more about tools](https://docs.tambo.co/concepts/tools/adding-tools)
+[→ Learn more about tools](https://docs.tambo.co/guides/take-actions/register-tools)
 
 #### Advanced: Transforming Tool Responses
 
@@ -426,7 +426,7 @@ registerResourceSource({
 
 Local resources appear in `useTamboMcpResourceList()` alongside MCP resources, with MCP resources always prefixed by their serverKey.
 
-[→ Learn more about resources](https://docs.tambo.co/concepts/resources)
+[→ Learn more about resources](https://docs.tambo.co/concepts/model-context-protocol/features#resources)
 
 ### Streaming Status
 
@@ -451,7 +451,7 @@ function LoadingComponent({ title, data }) {
 }
 ```
 
-[→ Learn more about streaming](https://docs.tambo.co/concepts/streaming/component-streaming-status)
+[→ Learn more about streaming](https://docs.tambo.co/concepts/generative-interfaces/component-state)
 
 ### Context, Auth, and Suggestions
 
@@ -484,7 +484,7 @@ suggestions.map((s) => (
 
 ### Supported LLM Providers
 
-OpenAI, Anthropic, Google Gemini, Mistral, Groq, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/models). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
+OpenAI, Anthropic, Google Gemini, Mistral, Groq, and any OpenAI-compatible provider. [Full list](https://docs.tambo.co/reference/llm-providers). Missing one? [Let us know](https://github.com/tambo-ai/tambo/issues).
 
 ## When to Use This SDK
 
@@ -519,8 +519,8 @@ TypeScript definitions included for both outputs.
 
 - [Full Documentation](https://docs.tambo.co)
 - [Getting Started Guide](https://docs.tambo.co/getting-started/quickstart)
-- [API Reference](https://docs.tambo.co/api-reference)
-- [Component Guides](https://docs.tambo.co/concepts/components)
+- [API Reference](https://docs.tambo.co/reference/react-sdk)
+- [Component Guides](https://docs.tambo.co/concepts/generative-interfaces)
 - [UI Library](https://ui.tambo.co)
 
 ## License

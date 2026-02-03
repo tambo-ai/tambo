@@ -81,11 +81,39 @@ export {
 // Re-export registry provider from beta SDK (works with v1)
 export { TamboRegistryProvider } from "../providers/tambo-registry-provider";
 
+// Re-export client provider from beta SDK (works with v1)
+export {
+  TamboClientProvider,
+  useIsTamboTokenUpdating,
+} from "../providers/tambo-client-provider";
+
 // Re-export context helpers from beta SDK (works with v1)
 export {
   TamboContextHelpersProvider,
   useTamboContextHelpers,
 } from "../providers/tambo-context-helpers-provider";
+
+// Export v1 thread input provider for advanced composition
+export {
+  TamboV1ThreadInputProvider,
+  type TamboV1ThreadInputContextProps,
+  type SubmitOptions,
+} from "./providers/tambo-v1-thread-input-provider";
+
+// Export v1 stub provider for testing
+export {
+  TamboV1StubProvider,
+  type TamboV1StubProviderProps,
+} from "./providers/tambo-v1-stub-provider";
+
+// =============================================================================
+// Components
+// =============================================================================
+
+export {
+  V1ComponentRenderer,
+  type V1ComponentRendererProps,
+} from "./components/v1-component-renderer";
 
 // =============================================================================
 // Hooks
@@ -101,8 +129,24 @@ export { useTamboV1ThreadList } from "./hooks/use-tambo-v1-thread-list";
 
 export { useTamboV1ComponentState } from "./hooks/use-tambo-v1-component-state";
 
+export {
+  useTamboV1Suggestions,
+  type UseTamboV1SuggestionsOptions,
+  type UseTamboV1SuggestionsReturn,
+  type AcceptSuggestionOptions,
+} from "./hooks/use-tambo-v1-suggestions";
+
 // Re-export client hook from beta SDK (works with v1)
 export { useTamboClient } from "../providers/tambo-client-provider";
+
+// Re-export image handling hook (pure React, API-agnostic)
+export {
+  useMessageImages,
+  type StagedImage,
+} from "../hooks/use-message-images";
+
+// Re-export voice input hook (uses standalone transcription API)
+export { useTamboVoice } from "../hooks/use-tambo-voice";
 
 // =============================================================================
 // Re-exports from Beta SDK (compatible with v1)
@@ -130,6 +174,7 @@ export type {
   ComponentRegistry,
   ParameterSpec,
   RegisteredComponent,
+  TamboComponent,
   TamboTool,
   ToolAnnotations,
 } from "../model/component-metadata";
@@ -147,3 +192,18 @@ export type {
   ReadResourceResult,
   ResourceSource,
 } from "../model/resource-info";
+
+// Error types from Tambo TypeScript SDK
+export type {
+  APIError,
+  RateLimitError,
+  TamboAIError,
+} from "@tambo-ai/typescript-sdk";
+
+// Suggestion types from Tambo TypeScript SDK
+export type {
+  Suggestion,
+  SuggestionGenerateParams,
+  SuggestionGenerateResponse,
+  SuggestionListResponse,
+} from "@tambo-ai/typescript-sdk/resources/beta/threads/suggestions";

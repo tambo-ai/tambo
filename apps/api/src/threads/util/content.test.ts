@@ -2,7 +2,11 @@ import {
   ChatCompletionContentPart,
   ContentPartType,
 } from "@tambo-ai-cloud/core";
-import { AudioFormat, ImageDetail } from "../dto/message.dto";
+import {
+  AudioFormat,
+  ChatCompletionContentPartDto,
+  ImageDetail,
+} from "../dto/message.dto";
 import {
   convertContentDtoToContentPart,
   convertContentPartToDto,
@@ -81,6 +85,90 @@ describe("content utilities", () => {
         "Unknown content part type: unknown",
       );
     });
+
+    it("should allow empty string for text content", () => {
+      const input = [{ type: ContentPartType.Text, text: "" }];
+      const result = convertContentDtoToContentPart(input);
+      expect(result).toEqual([{ type: ContentPartType.Text, text: "" }]);
+    });
+
+    it("should throw error when text is undefined", () => {
+      const input = [
+        { type: ContentPartType.Text, text: undefined as unknown as string },
+      ];
+      expect(() => convertContentDtoToContentPart(input)).toThrow(
+        "Text content is required for text type",
+      );
+    });
+
+    it("should throw error when text is null", () => {
+      const input = [
+        { type: ContentPartType.Text, text: null as unknown as string },
+      ];
+      expect(() => convertContentDtoToContentPart(input)).toThrow(
+        "Text content is required for text type",
+      );
+    });
+
+    it("should throw error when image_url is missing", () => {
+      const input = [
+        {
+          type: ContentPartType.ImageUrl,
+          image_url: undefined as unknown as { url: string },
+        },
+      ];
+      expect(() => convertContentDtoToContentPart(input)).toThrow(
+        "image_url with a non-empty 'url' is required for image_url type",
+      );
+    });
+
+    it("should throw error when image_url.url is empty", () => {
+      const input = [
+        {
+          type: ContentPartType.ImageUrl,
+          image_url: { url: "" },
+        },
+      ];
+      expect(() => convertContentDtoToContentPart(input)).toThrow(
+        "image_url with a non-empty 'url' is required for image_url type",
+      );
+    });
+
+    it("should throw error when input_audio is missing", () => {
+      const input: ChatCompletionContentPartDto[] = [
+        {
+          type: ContentPartType.InputAudio,
+          input_audio: undefined,
+        } as ChatCompletionContentPartDto,
+      ];
+      expect(() => convertContentDtoToContentPart(input)).toThrow(
+        "input_audio with base64 'data' is required for input_audio type",
+      );
+    });
+
+    it("should throw error when input_audio.data is empty", () => {
+      const input = [
+        {
+          type: ContentPartType.InputAudio,
+          input_audio: { data: "", format: AudioFormat.MP3 },
+        },
+      ];
+      expect(() => convertContentDtoToContentPart(input)).toThrow(
+        "input_audio with base64 'data' is required for input_audio type",
+      );
+    });
+
+    it("should throw error when resource is missing", () => {
+      const input = [
+        {
+          type: ContentPartType.Resource,
+          resource: undefined as unknown as { uri: string },
+        },
+      ];
+      expect(() => convertContentDtoToContentPart(input)).toThrow(
+        "resource is required for resource type",
+      );
+    });
   });
 
   describe("convertContentPartToDto", () => {
@@ -101,6 +189,38 @@ describe("content utilities", () => {
       ];
       const result = convertContentPartToDto(input);
       expect(result).toEqual(input);
+    });
+
+    it("should filter out component content parts", () => {
+      const input: ChatCompletionContentPart[] = [
+        { type: ContentPartType.Text, text: "before component" },
+        {
+          type: "component",
+          id: "comp-123",
+          name: "TestComponent",
+          props: { title: "Hello" },
+          state: { expanded: true },
+        } as ChatCompletionContentPart,
+        { type: ContentPartType.Text, text: "after component" },
+      ];
+      const result = convertContentPartToDto(input);
+      expect(result).toEqual([
+        { type: ContentPartType.Text, text: "before component" },
+        { type: ContentPartType.Text, text: "after component" },
+      ]);
+    });
+
+    it("should handle array with only component parts", () => {
+      const input: ChatCompletionContentPart[] = [
+        {
+          type: "component",
+          id: "comp-456",
+          name: "OnlyComponent",
+          props: {},
+        } as ChatCompletionContentPart,
+      ];
+      const result = convertContentPartToDto(input);
+      expect(result).toEqual([]);
     });
   });
 

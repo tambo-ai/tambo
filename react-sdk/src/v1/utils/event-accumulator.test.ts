@@ -83,11 +83,14 @@ describe("createInitialThreadState", () => {
 });
 
 describe("createInitialState", () => {
-  it("creates empty stream state", () => {
+  it("creates initial state with placeholder thread", () => {
     const state = createInitialState();
 
-    expect(state.threadMap).toEqual({});
-    expect(state.currentThreadId).toBeNull();
+    expect(state.currentThreadId).toBe("placeholder");
+    expect(state.threadMap.placeholder).toBeDefined();
+    expect(state.threadMap.placeholder.thread.id).toBe("placeholder");
+    expect(state.threadMap.placeholder.thread.messages).toEqual([]);
+    expect(state.threadMap.placeholder.streaming.status).toBe("idle");
   });
 });
 
@@ -225,6 +228,236 @@ describe("streamReducer", () => {
       });
 
       expect(result.threadMap.thread_1.streaming.startTime).toBe(1704067200000);
+    });
+
+    it("does not switch currentThreadId when placeholder has no messages", () => {
+      const state = createInitialState();
+      const realThreadId = "thread_real_123";
+      const runStartedEvent: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_456",
+        threadId: realThreadId,
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: runStartedEvent,
+        threadId: realThreadId,
+      });
+
+      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(result.currentThreadId).toBe("placeholder");
+    });
+
+    it("migrates messages from placeholder thread to real thread", () => {
+      // Start with initial state (which has placeholder thread)
+      const state = createInitialState();
+
+      // Verify placeholder thread exists
+      expect(state.currentThreadId).toBe("placeholder");
+
+      // Add a user message to the placeholder thread
+      const userMsgStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "user_msg_1",
+        role: "user",
+      };
+      const userMsgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "user_msg_1",
+        delta: "Hello",
+      };
+      const userMsgEnd: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "user_msg_1",
+      };
+
+      let stateWithUserMsg = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgStart,
+        threadId: "placeholder",
+      });
+      stateWithUserMsg = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: userMsgContent,
+        threadId: "placeholder",
+      });
+      stateWithUserMsg = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: userMsgEnd,
+        threadId: "placeholder",
+      });
+
+      // Verify placeholder thread has the message
+      expect(stateWithUserMsg.currentThreadId).toBe("placeholder");
+      expect(
+        stateWithUserMsg.threadMap.placeholder.thread.messages,
+      ).toHaveLength(1);
+      expect(
+        stateWithUserMsg.threadMap.placeholder.thread.messages[0].content[0],
+      ).toEqual({
+        type: "text",
+        text: "Hello",
+      });
+
+      // Now RUN_STARTED arrives with the real thread ID
+      const realThreadId = "thread_real_123";
+      const runStartedEvent: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_456",
+        threadId: realThreadId,
+        timestamp: 1704067200000,
+      };
+
+      const finalState = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: runStartedEvent,
+        threadId: realThreadId,
+      });
+
+      // Placeholder thread should be reset to empty (not removed)
+      expect(finalState.threadMap.placeholder).toBeDefined();
+      expect(finalState.threadMap.placeholder.thread.messages).toHaveLength(0);
+
+      // Real thread should have the migrated user message
+      expect(finalState.threadMap[realThreadId]).toBeDefined();
+      expect(finalState.threadMap[realThreadId].thread.messages).toHaveLength(
+        1,
+      );
+      expect(
+        finalState.threadMap[realThreadId].thread.messages[0].content[0],
+      ).toEqual({
+        type: "text",
+        text: "Hello",
+      });
+
+      // currentThreadId should be updated to real thread
+      expect(finalState.currentThreadId).toBe(realThreadId);
+
+      // Real thread should be in streaming state
+      expect(finalState.threadMap[realThreadId].thread.status).toBe(
+        "streaming",
+      );
+      expect(finalState.threadMap[realThreadId].streaming.runId).toBe(
+        "run_456",
+      );
+    });
+
+    it("migrates messages even if currentThreadId changes away from placeholder", () => {
+      let state = createInitialState();
+      state = streamReducer(state, {
+        type: "INIT_THREAD",
+        threadId: "thread_1",
+      });
+      state = streamReducer(state, {
+        type: "SET_CURRENT_THREAD",
+        threadId: "thread_1",
+      });
+
+      const userMsgStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "user_msg_1",
+        role: "user",
+      };
+      const userMsgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "user_msg_1",
+        delta: "Hello",
+      };
+      const userMsgEnd: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "user_msg_1",
+      };
+
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgStart,
+        threadId: "placeholder",
+      });
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgContent,
+        threadId: "placeholder",
+      });
+      state = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgEnd,
+        threadId: "placeholder",
+      });
+
+      const realThreadId = "thread_real_123";
+      const runStartedEvent: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_456",
+        threadId: realThreadId,
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event: runStartedEvent,
+        threadId: realThreadId,
+      });
+
+      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(result.threadMap[realThreadId].thread.messages).toHaveLength(1);
+      expect(result.currentThreadId).toBe("thread_1");
+    });
+
+    it("prefers event.threadId over action threadId when RUN_STARTED is dispatched", () => {
+      // Start with initial state (which has placeholder thread)
+      const state = createInitialState();
+
+      // Add a user message to the placeholder thread
+      const userMsgStart: TextMessageStartEvent = {
+        type: EventType.TEXT_MESSAGE_START,
+        messageId: "user_msg_1",
+        role: "user",
+      };
+      const userMsgContent: TextMessageContentEvent = {
+        type: EventType.TEXT_MESSAGE_CONTENT,
+        messageId: "user_msg_1",
+        delta: "Hello",
+      };
+      const userMsgEnd: TextMessageEndEvent = {
+        type: EventType.TEXT_MESSAGE_END,
+        messageId: "user_msg_1",
+      };
+
+      let stateWithUserMsg = streamReducer(state, {
+        type: "EVENT",
+        event: userMsgStart,
+        threadId: "placeholder",
+      });
+      stateWithUserMsg = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: userMsgContent,
+        threadId: "placeholder",
+      });
+      stateWithUserMsg = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: userMsgEnd,
+        threadId: "placeholder",
+      });
+
+      const realThreadId = "thread_real_123";
+      const runStartedEvent: RunStartedEvent = {
+        type: EventType.RUN_STARTED,
+        runId: "run_456",
+        threadId: realThreadId,
+        timestamp: 1704067200000,
+      };
+
+      const result = streamReducer(stateWithUserMsg, {
+        type: "EVENT",
+        event: runStartedEvent,
+        threadId: "placeholder",
+      });
+
+      expect(result.threadMap.placeholder.thread.messages).toHaveLength(0);
+      expect(result.threadMap[realThreadId].thread.messages).toHaveLength(1);
+      expect(result.currentThreadId).toBe(realThreadId);
     });
   });
 
@@ -564,7 +797,7 @@ describe("streamReducer", () => {
       });
     });
 
-    it("throws when parentMessageId message not found", () => {
+    it("creates synthetic message when parentMessageId not found", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [
         {
@@ -582,16 +815,27 @@ describe("streamReducer", () => {
         parentMessageId: "unknown_msg",
       };
 
-      expect(() => {
-        streamReducer(state, {
-          type: "EVENT",
-          event,
-          threadId: "thread_1",
-        });
-      }).toThrow("Message unknown_msg not found for TOOL_CALL_START event");
+      // When parentMessageId not found, creates a synthetic message
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // Should create a synthetic message with the tool call
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(2); // Original + synthetic
+      expect(messages[1].id).toBe("unknown_msg");
+      expect(messages[1].role).toBe("assistant");
+      expect(messages[1].content).toHaveLength(1);
+      expect(messages[1].content[0]).toMatchObject({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+      });
     });
 
-    it("throws when no messages exist", () => {
+    it("creates synthetic message when no messages exist", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [];
 
@@ -602,13 +846,23 @@ describe("streamReducer", () => {
         // No parentMessageId, no messages
       };
 
-      expect(() => {
-        streamReducer(state, {
-          type: "EVENT",
-          event,
-          threadId: "thread_1",
-        });
-      }).toThrow("No messages exist for TOOL_CALL_START event");
+      // When no messages exist, creates a synthetic message
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(1);
+      expect(messages[0].id).toBe("msg_tool_tool_1");
+      expect(messages[0].role).toBe("assistant");
+      expect(messages[0].content).toHaveLength(1);
+      expect(messages[0].content[0]).toMatchObject({
+        type: "tool_use",
+        id: "tool_1",
+        name: "get_weather",
+      });
     });
   });
 
@@ -858,7 +1112,12 @@ describe("streamReducer", () => {
       const event: CustomEvent = {
         type: EventType.CUSTOM,
         name: "tambo.run.awaiting_input",
-        value: { pendingToolCallIds: ["tool_1", "tool_2"] },
+        value: {
+          pendingToolCalls: [
+            { toolCallId: "tool_1", toolName: "test1", arguments: "{}" },
+            { toolCallId: "tool_2", toolName: "test2", arguments: "{}" },
+          ],
+        },
       };
 
       const result = streamReducer(state, {
@@ -954,7 +1213,7 @@ describe("streamReducer", () => {
       });
     });
 
-    it("throws when message not found for tambo.component.start", () => {
+    it("creates message on-demand when not found for tambo.component.start", () => {
       const state = createTestStreamState("thread_1");
       state.threadMap.thread_1.thread.messages = [
         {
@@ -975,15 +1234,25 @@ describe("streamReducer", () => {
         },
       };
 
-      expect(() => {
-        streamReducer(state, {
-          type: "EVENT",
-          event,
-          threadId: "thread_1",
-        });
-      }).toThrow(
-        "Message unknown_msg not found for tambo.component.start event",
-      );
+      // Should create the message on-demand instead of throwing
+      const result = streamReducer(state, {
+        type: "EVENT",
+        event,
+        threadId: "thread_1",
+      });
+
+      // Verify the message was created
+      const messages = result.threadMap.thread_1.thread.messages;
+      expect(messages).toHaveLength(2);
+      expect(messages[1].id).toBe("unknown_msg");
+      expect(messages[1].role).toBe("assistant");
+      // And the component was added to it
+      expect(messages[1].content).toHaveLength(1);
+      expect(messages[1].content[0]).toMatchObject({
+        type: "component",
+        id: "comp_1",
+        name: "Test",
+      });
     });
 
     it("throws when component not found for tambo.component.end", () => {
