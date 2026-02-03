@@ -59,9 +59,11 @@ interface V1MessageItemProps {
 const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
   const isAssistant = message.role === "assistant";
 
-  // Separate content into regular content and tool content
-  const regularContent = message.content.filter(
-    (c) => c.type === "text" || c.type === "component",
+  // Separate tool content from other content
+  // Non-tool content (text, component, resource) renders in order
+  // Tool content renders separately below
+  const nonToolContent = message.content.filter(
+    (c) => c.type !== "tool_use" && c.type !== "tool_result",
   );
   const toolContent = message.content.filter(
     (c) => c.type === "tool_use" || c.type === "tool_result",
@@ -69,8 +71,8 @@ const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Regular text/component content */}
-      {regularContent.length > 0 && (
+      {/* Non-tool content (text, component, resource) in order */}
+      {nonToolContent.length > 0 && (
         <div
           className={cn(
             "flex w-full",
@@ -83,7 +85,7 @@ const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
               isAssistant ? "bg-muted" : "bg-primary text-primary-foreground",
             )}
           >
-            {regularContent.map((content, contentIndex) => (
+            {nonToolContent.map((content, contentIndex) => (
               <V1ContentPart key={contentIndex} content={content} />
             ))}
             {isLoading && toolContent.length === 0 && (
@@ -127,6 +129,12 @@ const V1ContentPart: FC<V1ContentPartProps> = ({ content }) => {
       return <ToolUseInfo content={content} />;
     case "tool_result":
       return <ToolResultInfo content={content} />;
+    case "resource":
+      return (
+        <div className="my-2 text-sm text-muted-foreground">
+          Resource: {content.resource?.name ?? "unknown"}
+        </div>
+      );
     default:
       return null;
   }
