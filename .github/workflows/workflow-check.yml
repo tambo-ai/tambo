@@ -27,23 +27,18 @@ jobs:
         shell: bash
         run: | # shell
           # Job Result
-          RESULT='success'
+          # `jq` is pre-installed on GitHub-hosted runners   
+          JOBS=$(jq -c '.[]' <<< "$JSON_NEEDS")
 
-          # `jq` is pre-installed on GitHub-hosted runners
-          jq -c '.[]' <<< "$JSON_NEEDS" | while read -r need; do
-            JOB_NAME=$(jq -r '.job_name' <<< "$need")
-            JOB_RESULT=$(jq -r '.result' <<< "$need")
-
-            # all needs results must be 'success' or 'skipped' for the overall result to be 'success'
+          while read -r job; do
+            JOB_RESULT=$(jq -r '.result' <<< "$job")
+            
+            # Fail immediately if any job is not 'success' or 'skipped'
             if [[ $JOB_RESULT != 'success' && $JOB_RESULT != 'skipped' ]]; then
-              RESULT='failure'
-              break
+              echo "::error title=Condition Failed::${ERROR_MESSAGE}"
+              exit 1
             fi
-          done
+          done <<< "$JOBS"
 
-          if [[ $RESULT == 'failure' ]]; then
-            echo "::error title=Condition Failed::${ERROR_MESSAGE}"
-            exit 1
-          else
-            exit 0
-          fi
+          # All jobs passed
+          exit 0
