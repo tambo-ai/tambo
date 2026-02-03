@@ -1,7 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { useMessageInputContext, type TamboEditor } from "./message-input-context";
+import {
+  useMessageInputContext,
+  type TamboEditor,
+} from "./message-input-context";
 
 /**
  * Render props for the ValueAccess component.
@@ -41,9 +44,9 @@ export interface MessageInputValueAccessProps {
  * </MessageInput.ValueAccess>
  * ```
  */
-export const MessageInputValueAccess: React.FC<MessageInputValueAccessProps> = ({
-  children,
-}) => {
+export const MessageInputValueAccess: React.FC<
+  MessageInputValueAccessProps
+> = ({ children }) => {
   const { value, setValue, editorRef } = useMessageInputContext();
 
   return <>{children({ value, setValue, editorRef })}</>;
