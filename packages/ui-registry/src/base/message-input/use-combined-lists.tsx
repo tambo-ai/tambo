@@ -3,6 +3,8 @@
 import {
   useTamboMcpPromptList,
   useTamboMcpResourceList,
+  type ListPromptEntry,
+  type ListResourceEntry,
 } from "@tambo-ai/react/mcp";
 import * as React from "react";
 import { useDebounce } from "use-debounce";
@@ -87,20 +89,14 @@ export function useCombinedResourceList(
   // Convert MCP resources to ResourceItems
   const mcpItems: ResourceItem[] = React.useMemo(
     () =>
-      mcpResources
-        ? (
-            mcpResources as {
-              resource: { uri: string; name?: string };
-            }[]
-          ).map((entry) => ({
-            // Use the full URI (already includes serverKey prefix from MCP hook)
-            // When inserted as @{id}, parseResourceReferences will strip serverKey before sending to backend
-            id: entry.resource.uri,
-            name: entry.resource.name ?? entry.resource.uri,
-            icon: options?.createMcpIcon?.(),
-            componentData: { type: "mcp-resource", data: entry },
-          }))
-        : [],
+      mcpResources.map((entry: ListResourceEntry) => ({
+        // Use the full URI (already includes serverKey prefix from MCP hook)
+        // When inserted as @{id}, parseResourceReferences will strip serverKey before sending to backend
+        id: entry.resource.uri,
+        name: entry.resource.name ?? entry.resource.uri,
+        icon: options?.createMcpIcon?.(),
+        componentData: { type: "mcp-resource", data: entry },
+      })),
     [mcpResources, options],
   );
 
@@ -172,14 +168,12 @@ export function useCombinedPromptList(
   // Convert MCP prompts to PromptItems (mark with mcp-prompt: prefix for special handling)
   const mcpItems: PromptItem[] = React.useMemo(
     () =>
-      mcpPrompts
-        ? (mcpPrompts as { prompt: { name: string } }[]).map((entry) => ({
-            id: `mcp-prompt:${entry.prompt.name}`,
-            name: entry.prompt.name,
-            icon: options?.createMcpIcon?.(),
-            text: "", // Text will be fetched when selected via useTamboMcpPrompt
-          }))
-        : [],
+      mcpPrompts.map((entry: ListPromptEntry) => ({
+        id: `mcp-prompt:${entry.prompt.name}`,
+        name: entry.prompt.name,
+        icon: options?.createMcpIcon?.(),
+        text: "", // Text will be fetched when selected via useTamboMcpPrompt
+      })),
     [mcpPrompts, options],
   );
 

@@ -46,11 +46,14 @@ export const MessageInputContent = React.forwardRef<
   const { elicitation, resolveElicitation, isDragging } =
     useMessageInputContext();
 
-  const renderProps: MessageInputContentRenderProps = {
-    isDragging,
-    elicitation,
-    resolveElicitation,
-  };
+  const renderProps = React.useMemo<MessageInputContentRenderProps>(
+    () => ({
+      isDragging,
+      elicitation,
+      resolveElicitation,
+    }),
+    [isDragging, elicitation, resolveElicitation],
+  );
 
   const Comp = asChild ? Slot : "div";
 

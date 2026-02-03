@@ -2,7 +2,21 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
-import { useMessageInputContext } from "./message-input-context";
+import {
+  useMessageInputContext,
+  type PromptItem,
+  type PromptProvider,
+  type ResourceItem,
+  type ResourceProvider,
+  type StagedImage,
+  type TamboEditor,
+} from "./message-input-context";
+import {
+  useCombinedPromptList,
+  useCombinedResourceList,
+  type PromptFormatOptions,
+  type ResourceFormatOptions,
+} from "./use-combined-lists";
 
 /**
  * Render props for the Textarea component.
@@ -19,7 +33,21 @@ export interface MessageInputTextareaRenderProps {
   /** Placeholder text */
   placeholder: string;
   /** Reference to the editor */
-  editorRef: React.RefObject<unknown>;
+  editorRef: React.RefObject<TamboEditor | null>;
+  /** Add a single image to the staged list */
+  addImage: (file: File) => Promise<void>;
+  /** Currently staged images */
+  images: StagedImage[];
+  /** Set image error message */
+  setImageError: (error: string | null) => void;
+  /** Combined resource items (MCP + external provider) */
+  resourceItems: ResourceItem[];
+  /** Callback to update resource search query */
+  setResourceSearch: (query: string) => void;
+  /** Combined prompt items (MCP + external provider) */
+  promptItems: PromptItem[];
+  /** Callback to update prompt search query */
+  setPromptSearch: (query: string) => void;
 }
 
 /**
@@ -33,6 +61,14 @@ export interface MessageInputTextareaProps extends Omit<
   asChild?: boolean;
   /** Custom placeholder text */
   placeholder?: string;
+  /** Resource provider for @ mentions (optional - MCP resources included by default) */
+  resourceProvider?: ResourceProvider;
+  /** Prompt provider for / commands (optional - MCP prompts included by default) */
+  promptProvider?: PromptProvider;
+  /** Options for formatting MCP resources into ResourceItems */
+  resourceFormatOptions?: ResourceFormatOptions;
+  /** Options for formatting MCP prompts into PromptItems */
+  promptFormatOptions?: PromptFormatOptions;
   /** Render prop for custom textarea implementation */
   children?:
     | React.ReactNode
@@ -42,13 +78,23 @@ export interface MessageInputTextareaProps extends Omit<
 /**
  * Textarea component for entering message text.
  * Provides render props for custom editor implementations.
+ * Handles MCP resource/prompt integration internally.
  */
 export const MessageInputTextarea = React.forwardRef<
   HTMLDivElement,
   MessageInputTextareaProps
 >(
   (
-    { asChild, placeholder = "What do you want to do?", children, ...props },
+    {
+      asChild,
+      placeholder = "What do you want to do?",
+      resourceProvider,
+      promptProvider,
+      resourceFormatOptions,
+      promptFormatOptions,
+      children,
+      ...props
+    },
     ref,
   ) => {
     const {
@@ -58,7 +104,30 @@ export const MessageInputTextarea = React.forwardRef<
       editorRef,
       isIdle,
       isUpdatingToken,
+      addImage,
+      images,
+      setImageError,
     } = useMessageInputContext();
+
+    // Track search state for resources (controlled by TextEditor)
+    const [resourceSearch, setResourceSearch] = React.useState("");
+
+    // Track search state for prompts (controlled by TextEditor)
+    const [promptSearch, setPromptSearch] = React.useState("");
+
+    // Get combined resource list (MCP + external provider), filtered by search
+    const resourceItems = useCombinedResourceList(
+      resourceProvider,
+      resourceSearch,
+      resourceFormatOptions,
+    );
+
+    // Get combined prompt list (MCP + external provider), filtered by search
+    const promptItems = useCombinedPromptList(
+      promptProvider,
+      promptSearch,
+      promptFormatOptions,
+    );
 
     const disabled = !isIdle || isUpdatingToken;
 
@@ -69,6 +138,13 @@ export const MessageInputTextarea = React.forwardRef<
       disabled,
       placeholder,
       editorRef,
+      addImage,
+      images,
+      setImageError,
+      resourceItems,
+      setResourceSearch,
+      promptItems,
+      setPromptSearch,
     };
 
     const Comp = asChild ? Slot : "div";
