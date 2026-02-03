@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useTamboV1 } from "@tambo-ai/react/v1";
 import type { TamboV1Message } from "@tambo-ai/react/v1/types/message";
-import { FC } from "react";
+import { Check, ChevronDown, Loader2, X } from "lucide-react";
+import { FC, useState } from "react";
 
 interface V1ThreadContentProps {
   className?: string;
@@ -47,38 +48,66 @@ interface V1MessageItemProps {
   isLoading?: boolean;
 }
 
+/**
+ * Renders a single message, separating tool content from text/component content.
+ * Tool calls are rendered separately with neutral styling.
+ */
 const V1MessageItem: FC<V1MessageItemProps> = ({ message, isLoading }) => {
   const isAssistant = message.role === "assistant";
 
+  // Separate content into regular content and tool content
+  const regularContent = message.content.filter(
+    (c) => c.type === "text" || c.type === "component",
+  );
+  const toolContent = message.content.filter(
+    (c) => c.type === "tool_use" || c.type === "tool_result",
+  );
+
   return (
-    <div
-      className={cn(
-        "flex w-full",
-        isAssistant ? "justify-start" : "justify-end",
+    <div className="flex flex-col gap-2">
+      {/* Regular text/component content */}
+      {regularContent.length > 0 && (
+        <div
+          className={cn(
+            "flex w-full",
+            isAssistant ? "justify-start" : "justify-end",
+          )}
+        >
+          <Card
+            className={cn(
+              "p-3 max-w-3xl",
+              isAssistant ? "bg-muted" : "bg-primary text-primary-foreground",
+            )}
+          >
+            {regularContent.map((content, contentIndex) => (
+              <V1ContentPart key={contentIndex} content={content} />
+            ))}
+            {isLoading && toolContent.length === 0 && (
+              <span className="inline-block animate-pulse ml-1">▋</span>
+            )}
+          </Card>
+        </div>
       )}
-    >
-      <Card
-        className={cn(
-          "p-3 max-w-3xl",
-          isAssistant ? "bg-muted" : "bg-primary text-primary-foreground",
-        )}
-      >
-        {message.content.map((content, contentIndex) => (
-          <V1ContentPart key={contentIndex} content={content} />
-        ))}
-        {isLoading && (
-          <span className="inline-block animate-pulse ml-1">▋</span>
-        )}
-      </Card>
+
+      {/* Tool content rendered separately with neutral styling */}
+      {toolContent.map((content, contentIndex) => (
+        <div key={`tool-${contentIndex}`} className="flex w-full justify-start">
+          <V1ContentPart
+            content={content}
+            isLoading={isLoading && contentIndex === toolContent.length - 1}
+          />
+        </div>
+      ))}
     </div>
   );
 };
 
 interface V1ContentPartProps {
   content: TamboV1Message["content"][number];
+  isLoading?: boolean;
 }
 
-const V1ContentPart: FC<V1ContentPartProps> = ({ content }) => {
+const V1ContentPart: FC<V1ContentPartProps> = ({ content, isLoading }) => {
   switch (content.type) {
     case "text":
       return <span className="whitespace-pre-wrap">{content.text}</span>;
@@ -95,18 +124,207 @@ const V1ContentPart: FC<V1ContentPartProps> = ({ content }) => {
         </div>
       );
     case "tool_use":
-      return (
-        <div className="my-1 text-xs text-muted-foreground">
-          <p>🔧 Using tool: {content.name}</p>
-        </div>
-      );
+      return <ToolUseInfo content={content} isLoading={isLoading} />;
     case "tool_result":
-      return (
-        <div className="my-1 text-xs text-muted-foreground">
-          <p>✓ Tool result received</p>
-        </div>
-      );
+      return <ToolResultInfo content={content} />;
     default:
       return null;
   }
 };
+
+// Keys for special Tambo display properties that should be shown as status messages
+const TAMBO_DISPLAY_KEYS = [
+  "_tambo_displayMessage",
+  "_tambo_statusMessage",
+  "_tambo_completionStatusMessage",
+] as const;
+
+type TamboDisplayKey = (typeof TAMBO_DISPLAY_KEYS)[number];
+
+interface TamboDisplayProps {
+  _tambo_displayMessage?: string;
+  _tambo_statusMessage?: string;
+  _tambo_completionStatusMessage?: string;
+}
+
+/**
+ * Extracts Tambo display properties from tool input.
+ */
+function extractTamboDisplayProps(
+  input: Record<string, unknown>,
+): TamboDisplayProps {
+  const props: TamboDisplayProps = {};
+  for (const key of TAMBO_DISPLAY_KEYS) {
+    if (key in input && typeof input[key] === "string") {
+      props[key] = input[key];
+    }
+  }
+  return props;
+}
+
+/**
+ * Filters out Tambo display properties from tool input for parameter display.
+ */
+function filterTamboProps(
+  input: Record<string, unknown>,
+): Record<string, unknown> {
+  const filtered: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (!TAMBO_DISPLAY_KEYS.includes(key as TamboDisplayKey)) {
+      filtered[key] = value;
+    }
+  }
+  return filtered;
+}
+
+interface ToolUseInfoProps {
+  content: Extract<TamboV1Message["content"][number], { type: "tool_use" }>;
+  isLoading?: boolean;
+}
+
+const ToolUseInfo: FC<ToolUseInfoProps> = ({ content, isLoading }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const input = (content.input ?? {}) as Record<string, unknown>;
+  const tamboProps = extractTamboDisplayProps(input);
+  const filteredParams = filterTamboProps(input);
+
+  // Use status message based on loading state
+  const statusMessage = isLoading
+    ? tamboProps._tambo_statusMessage
+    : tamboProps._tambo_completionStatusMessage;
+  const displayMessage =
+    statusMessage ?? `${isLoading ? "Calling" : "Called"} ${content.name}`;
+
+  return (
+    <div className="flex flex-col items-start text-xs opacity-70 max-w-3xl">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="group flex items-center gap-1 cursor-pointer hover:bg-muted rounded-md p-1 select-none"
+      >
+        <ToolStatusIcon isLoading={isLoading} isError={false} />
+        <span>{displayMessage}</span>
+        <ChevronDown
+          className={cn(
+            "h-3 w-3 transition-transform duration-200",
+            !isExpanded && "-rotate-90",
+          )}
+        />
+      </button>
+      <div
+        className={cn(
+          "transition-[max-height,opacity,padding] duration-300 overflow-hidden w-full",
+          isExpanded
+            ? "max-h-[500px] opacity-100 p-2"
+            : "max-h-0 opacity-0 p-0",
+        )}
+      >
+        <div className="pl-6 space-y-2 text-muted-foreground">
+          <div className="whitespace-pre-wrap">tool: {content.name}</div>
+          <div className="whitespace-pre-wrap">
+            parameters:
+            <pre className="bg-muted/50 rounded-md p-2 mt-1 overflow-x-auto max-h-40">
+              <code className="font-mono text-xs whitespace-pre-wrap">
+                {JSON.stringify(filteredParams, null, 2)}
+              </code>
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface ToolResultInfoProps {
+  content: Extract<TamboV1Message["content"][number], { type: "tool_result" }>;
+}
+
+const ToolResultInfo: FC<ToolResultInfoProps> = ({ content }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isError = content.isError;
+
+  return (
+    <div className="flex flex-col items-start text-xs opacity-70 max-w-3xl">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="group flex items-center gap-1 cursor-pointer hover:bg-muted rounded-md p-1 select-none"
+      >
+        <ToolStatusIcon isLoading={false} isError={isError} />
+        <span>Tool result{isError ? " (error)" : ""}</span>
+        <ChevronDown
+          className={cn(
+            "h-3 w-3 transition-transform duration-200",
+            !isExpanded && "-rotate-90",
+          )}
+        />
+      </button>
+      <div
+        className={cn(
+          "transition-[max-height,opacity,padding] duration-300 overflow-hidden w-full",
+          isExpanded
+            ? "max-h-[500px] opacity-100 p-2"
+            : "max-h-0 opacity-0 p-0",
+        )}
+      >
+        <div className="pl-6 space-y-2 text-muted-foreground">
+          <div className="whitespace-pre-wrap">
+            result:
+            <pre
+              className={cn(
+                "rounded-md p-2 mt-1 overflow-x-auto max-h-64",
+                isError ? "bg-destructive/10" : "bg-muted/50",
+              )}
+            >
+              <code className="font-mono text-xs whitespace-pre-wrap">
+                {formatToolResultContent(content.content)}
+              </code>
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface ToolStatusIconProps {
+  isLoading?: boolean;
+  isError?: boolean;
+}
+
+const ToolStatusIcon: FC<ToolStatusIconProps> = ({ isLoading, isError }) => {
+  if (isLoading) {
+    return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
+  }
+  if (isError) {
+    return <X className="h-3 w-3 text-red-500" />;
+  }
+  return <Check className="h-3 w-3 text-green-500" />;
+};
+
+function formatToolResultContent(
+  resultContent: ToolResultInfoProps["content"]["content"],
+): string {
+  if (typeof resultContent === "string") {
+    try {
+      return JSON.stringify(JSON.parse(resultContent), null, 2);
+    } catch {
+      return resultContent;
+    }
+  }
+  if (Array.isArray(resultContent)) {
+    const textParts = resultContent
+      .filter(
+        (item): item is { type: "text"; text: string } => item.type === "text",
+      )
+      .map((item) => item.text);
+    const combined = textParts.join("");
+    try {
+      return JSON.stringify(JSON.parse(combined), null, 2);
+    } catch {
+      return combined;
+    }
+  }
+  return JSON.stringify(resultContent, null, 2);
+}
