@@ -6,6 +6,7 @@ import {
 import { MessageRequest } from "../threads/dto/message.dto";
 import { V1InputContent } from "./dto/message.dto";
 import { schema } from "@tambo-ai-cloud/db";
+import { Logger } from "@nestjs/common";
 import {
   V1ContentBlock,
   V1ComponentContentDto,
@@ -14,6 +15,8 @@ import {
 } from "./dto/content.dto";
 import { V1MessageDto, V1MessageRole } from "./dto/message.dto";
 import { V1ThreadDto } from "./dto/thread.dto";
+
+const logger = new Logger("V1Conversions");
 
 /**
  * Database thread type alias for cleaner function signatures.
@@ -162,7 +165,8 @@ export function contentPartToV1Block(
  * Convert internal message content to V1 content blocks.
  * Handles OpenAI-style content parts + component decision to V1 unified format.
  *
- * @throws Error if componentDecision exists but has no componentName
+ * If componentDecision exists but has no componentName, logs a warning and
+ * skips the component block (data integrity issue from legacy data).
  */
 export function contentToV1Blocks(
   message: DbMessage,
@@ -184,19 +188,21 @@ export function contentToV1Blocks(
   if (message.componentDecision) {
     const component = message.componentDecision;
     if (!component.componentName) {
-      throw new Error(
+      // Log warning for data integrity issue but don't break the response
+      logger.warn(
         `Component decision in message ${message.id} has no componentName. ` +
-          `This indicates a data integrity issue.`,
+          `Skipping component block. This indicates a data integrity issue.`,
       );
+    } else {
+      const componentBlock: V1ComponentContentDto = {
+        type: "component",
+        id: `comp_${message.id}`, // Generate stable ID from message ID
+        name: component.componentName,
+        props: component.props ?? {},
+        state: message.componentState ?? undefined,
+      };
+      blocks.push(componentBlock);
     }
-    const componentBlock: V1ComponentContentDto = {
-      type: "component",
-      id: `comp_${message.id}`, // Generate stable ID from message ID
-      name: component.componentName,
-      props: component.props ?? {},
-      state: message.componentState ?? undefined,
-    };
-    blocks.push(componentBlock);
   }
 
   return blocks;
@@ -205,7 +211,7 @@ export function contentToV1Blocks(
 /**
  * Convert a database message to V1MessageDto.
  *
- * @throws Error if role is not recognized or componentDecision has no componentName
+ * @throws Error if role is not recognized
  */
 export function messageToDto(
   message: DbMessage,

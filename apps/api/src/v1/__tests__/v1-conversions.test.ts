@@ -294,7 +294,7 @@ describe("v1-conversions", () => {
       });
     });
 
-    it("should throw error when componentDecision has no componentName", () => {
+    it("should skip component block when componentDecision has no componentName", () => {
       const message = {
         ...baseMessage,
         componentDecision: {
@@ -305,9 +305,9 @@ describe("v1-conversions", () => {
         },
       } as unknown as DbMessage;
 
-      expect(() => contentToV1Blocks(message)).toThrow(
-        /Component decision in message msg_123 has no componentName/,
-      );
+      // Should not throw, just skip the invalid component block
+      const result = contentToV1Blocks(message);
+      expect(result).toEqual([]);
     });
 
     it("should handle component with null props", () => {
