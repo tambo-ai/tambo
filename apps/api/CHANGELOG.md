@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.135.0](https://github.com/tambo-ai/tambo/compare/api-v0.134.0...api-v0.135.0) (2026-02-03)
+
+
+### Features
+
+* **backend:** V1 streaming API improvements for component rendering ([#2133](https://github.com/tambo-ai/tambo/issues/2133)) ([b84de33](https://github.com/tambo-ai/tambo/commit/b84de33d40d06e41c75b7479b70627d3eba0ed08))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the sentry group with 3 updates ([#2162](https://github.com/tambo-ai/tambo/issues/2162)) ([78c36d2](https://github.com/tambo-ai/tambo/commit/78c36d26ccbb1c9e92b53293345be2fcb2bd4acd))
+* **test:** bump coverage thresholds (2026-02-02) ([#2139](https://github.com/tambo-ai/tambo/issues/2139)) ([0f16ec3](https://github.com/tambo-ai/tambo/commit/0f16ec33bb8cfcbd598dbb847589b0c44a423232))
+
 ## [0.134.0](https://github.com/tambo-ai/tambo/compare/api-v0.133.4...api-v0.134.0) (2026-01-30)
 
 
