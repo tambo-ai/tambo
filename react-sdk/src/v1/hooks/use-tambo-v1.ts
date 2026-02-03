@@ -201,7 +201,7 @@ export function useTamboV1(): UseTamboV1Return {
         // Transform tool_use content to add computed state
         if (content.type === "tool_use") {
           const hasCompleted = completedToolIds.has(content.id);
-          const input = (content.input ?? {}) as Record<string, unknown>;
+          const input = content.input ?? {};
 
           // Extract Tambo display props from input
           const tamboDisplayProps: TamboToolDisplayProps = {
@@ -226,8 +226,17 @@ export function useTamboV1(): UseTamboV1Return {
             : (tamboDisplayProps._tambo_statusMessage ??
               `Calling ${content.name}`);
 
+          // Filter out _tambo_* properties from input - consumers only see actual tool params
+          const cleanInput: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(input)) {
+            if (!key.startsWith("_tambo_")) {
+              cleanInput[key] = value;
+            }
+          }
+
           const v1Content: V1ToolUseContent = {
             ...content,
+            input: cleanInput,
             hasCompleted,
             currentStatusMessage,
             tamboDisplayProps,

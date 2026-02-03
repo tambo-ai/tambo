@@ -9,10 +9,7 @@ import type {
 } from "@tambo-ai/react/v1/types/message";
 import { Check, ChevronDown, Loader2, X } from "lucide-react";
 import { FC, useState } from "react";
-import {
-  filterTamboProps,
-  formatToolResultContent,
-} from "./tool-display-utils";
+import { formatToolResultContent } from "./tool-display-utils";
 
 interface V1ThreadContentProps {
   className?: string;
@@ -141,12 +138,6 @@ interface ToolUseInfoProps {
 
 const ToolUseInfo: FC<ToolUseInfoProps> = ({ content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const input = (content.input ?? {}) as Record<string, unknown>;
-  const filteredParams = filterTamboProps(input);
-
-  // Use SDK-provided computed properties - hasCompleted and currentStatusMessage
-  // are calculated by useTamboV1() based on presence of matching tool_result
   const hasCompleted = content.hasCompleted ?? false;
   const displayMessage =
     content.currentStatusMessage ?? `Calling ${content.name}`;
@@ -181,7 +172,7 @@ const ToolUseInfo: FC<ToolUseInfoProps> = ({ content }) => {
             parameters:
             <pre className="bg-muted/50 rounded-md p-2 mt-1 overflow-x-auto max-h-40">
               <code className="font-mono text-xs whitespace-pre-wrap">
-                {JSON.stringify(filteredParams, null, 2)}
+                {JSON.stringify(content.input, null, 2)}
               </code>
             </pre>
           </div>

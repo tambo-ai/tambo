@@ -819,10 +819,10 @@ function handleToolCallEnd(
     return threadState;
   }
 
-  // Parse the accumulated JSON
-  let parsedInput: unknown;
+  // Parse the accumulated JSON - tool inputs are always objects
+  let parsedInput: Record<string, unknown>;
   try {
-    parsedInput = JSON.parse(accumulatedJson);
+    parsedInput = JSON.parse(accumulatedJson) as Record<string, unknown>;
   } catch (error) {
     throw new Error(
       `Failed to parse tool call arguments for ${toolCallId}: ${error instanceof Error ? error.message : String(error)}. JSON: ${accumulatedJson}`,

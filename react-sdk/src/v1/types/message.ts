@@ -80,7 +80,13 @@ export interface TamboToolDisplayProps {
  * Note: The computed properties are populated by `useTamboV1()` hook.
  * When accessed via lower-level APIs, they may be undefined.
  */
-export interface V1ToolUseContent extends ToolUseContent {
+export interface V1ToolUseContent extends Omit<ToolUseContent, "input"> {
+  /**
+   * Tool input parameters with internal `_tambo_*` properties removed.
+   * Consumers see only the actual tool parameters.
+   */
+  input: Record<string, unknown>;
+
   /**
    * Whether this tool call has completed (has a matching tool_result).
    * Computed by `useTamboV1()` based on presence of matching tool_result.
