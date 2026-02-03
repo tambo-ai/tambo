@@ -1,5 +1,6 @@
 import "@/app/global.css";
 import { WebVitalsReporter } from "@/components/web-vitals";
+import { cn } from "@/lib/utils";
 import {
   PostHogPageview,
   PostHogRootProvider,
@@ -56,7 +57,11 @@ const inter = Inter({
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn(inter.className, "tambo-theme")}
+      suppressHydrationWarning
+    >
       <body className="flex flex-col min-h-screen">
         <TamboRootProvider>
           <Suspense>
