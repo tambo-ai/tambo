@@ -94,12 +94,11 @@ export interface V1ToolUseContent extends Omit<ToolUseContent, "input"> {
   hasCompleted?: boolean;
 
   /**
-   * The current status message to display, resolved based on completion state.
-   * Uses _tambo_completionStatusMessage when completed, _tambo_statusMessage otherwise.
-   * Falls back to "Called {toolName}" or "Calling {toolName}" if not provided.
+   * The status message to display, resolved based on tool execution state.
+   * Automatically updates as tool progresses through execution lifecycle.
    * Computed by `useTamboV1()`.
    */
-  currentStatusMessage?: string;
+  statusMessage?: string;
 
   /**
    * Extracted Tambo display properties from the tool input.

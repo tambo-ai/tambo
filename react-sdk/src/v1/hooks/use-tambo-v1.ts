@@ -219,8 +219,8 @@ export function useTamboV1(): UseTamboV1Return {
                 : undefined,
           };
 
-          // Compute current status message based on completion state
-          const currentStatusMessage = hasCompleted
+          // Compute status message based on completion state
+          const statusMessage = hasCompleted
             ? (tamboDisplayProps._tambo_completionStatusMessage ??
               `Called ${content.name}`)
             : (tamboDisplayProps._tambo_statusMessage ??
@@ -238,7 +238,7 @@ export function useTamboV1(): UseTamboV1Return {
             ...content,
             input: cleanInput,
             hasCompleted,
-            currentStatusMessage,
+            statusMessage,
             tamboDisplayProps,
           };
           return v1Content;

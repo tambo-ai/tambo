@@ -147,8 +147,7 @@ interface ToolUseInfoProps {
 const ToolUseInfo: FC<ToolUseInfoProps> = ({ content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const hasCompleted = content.hasCompleted ?? false;
-  const displayMessage =
-    content.currentStatusMessage ?? `Calling ${content.name}`;
+  const displayMessage = content.statusMessage ?? `Calling ${content.name}`;
 
   return (
     <div className="flex flex-col items-start text-xs opacity-70 max-w-3xl">

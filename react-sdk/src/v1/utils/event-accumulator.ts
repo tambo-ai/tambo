@@ -876,7 +876,7 @@ function handleToolCallEnd(
 
 /**
  * Handle TOOL_CALL_RESULT event.
- * Adds tool result to the message.
+ * Adds tool result to the message containing the corresponding tool_use.
  * @param threadState - Current thread state
  * @param event - Tool call result event
  * @returns Updated thread state
@@ -885,14 +885,23 @@ function handleToolCallResult(
   threadState: ThreadState,
   event: ToolCallResultEvent,
 ): ThreadState {
-  const messageId = event.messageId;
   const messages = threadState.thread.messages;
 
-  // Find the message
-  const messageIndex = messages.findIndex((m) => m.id === messageId);
+  // Find the message containing the tool_use with matching ID
+  // If messageId is provided and non-empty, use it; otherwise search by tool_use ID
+  let messageIndex: number;
+  if (event.messageId && event.messageId.length > 0) {
+    messageIndex = messages.findIndex((m) => m.id === event.messageId);
+  } else {
+    // Find the message containing the tool_use with this toolCallId
+    messageIndex = messages.findIndex((m) =>
+      m.content.some((c) => c.type === "tool_use" && c.id === event.toolCallId),
+    );
+  }
+
   if (messageIndex === -1) {
     throw new Error(
-      `Message ${messageId} not found for TOOL_CALL_RESULT event`,
+      `Message not found for TOOL_CALL_RESULT event (toolCallId: ${event.toolCallId})`,
     );
   }
 
