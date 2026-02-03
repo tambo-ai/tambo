@@ -1673,4 +1673,245 @@ describe("streamReducer", () => {
       expect(snapshot).toMatchSnapshot();
     });
   });
+
+  describe("LOAD_THREAD_MESSAGES action", () => {
+    it("loads messages into empty thread", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "user",
+            content: [{ type: "text", text: "Hello" }],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+          {
+            id: "msg_2",
+            role: "assistant",
+            content: [{ type: "text", text: "Hi there!" }],
+            createdAt: "2024-01-01T00:00:01.000Z",
+          },
+        ],
+      });
+
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(2);
+      expect(result.threadMap.thread_1.thread.messages[0].id).toBe("msg_1");
+      expect(result.threadMap.thread_1.thread.messages[1].id).toBe("msg_2");
+    });
+
+    it("creates thread if it does not exist", () => {
+      const state = createInitialState();
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "new_thread",
+        messages: [
+          {
+            id: "msg_1",
+            role: "user",
+            content: [{ type: "text", text: "Hello" }],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      });
+
+      expect(result.threadMap.new_thread).toBeDefined();
+      expect(result.threadMap.new_thread.thread.id).toBe("new_thread");
+      expect(result.threadMap.new_thread.thread.messages).toHaveLength(1);
+    });
+
+    it("deduplicates by message ID, keeping existing messages", () => {
+      const state = createTestStreamState("thread_1");
+      // Add an existing message
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "user",
+          content: [{ type: "text", text: "Existing content" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "user",
+            content: [{ type: "text", text: "New content" }], // Different content
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+          {
+            id: "msg_2",
+            role: "assistant",
+            content: [{ type: "text", text: "Response" }],
+            createdAt: "2024-01-01T00:00:01.000Z",
+          },
+        ],
+      });
+
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(2);
+      // Existing message is kept (not replaced)
+      expect(result.threadMap.thread_1.thread.messages[0].content[0]).toEqual({
+        type: "text",
+        text: "Existing content",
+      });
+      // New message is added
+      expect(result.threadMap.thread_1.thread.messages[1].id).toBe("msg_2");
+    });
+
+    it("skips merge when streaming and skipIfStreaming is true", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.streaming.status = "streaming";
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_1",
+          role: "user",
+          content: [{ type: "text", text: "Hello" }],
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+      ];
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_2",
+            role: "assistant",
+            content: [{ type: "text", text: "Response" }],
+            createdAt: "2024-01-01T00:00:01.000Z",
+          },
+        ],
+        skipIfStreaming: true,
+      });
+
+      // State should be unchanged
+      expect(result).toBe(state);
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(1);
+    });
+
+    it("does merge when streaming and skipIfStreaming is false", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.streaming.status = "streaming";
+      state.threadMap.thread_1.thread.messages = [];
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "user",
+            content: [{ type: "text", text: "Hello" }],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+        skipIfStreaming: false,
+      });
+
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(1);
+    });
+
+    it("sorts messages by createdAt", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [
+        {
+          id: "msg_2",
+          role: "assistant",
+          content: [{ type: "text", text: "Response" }],
+          createdAt: "2024-01-01T00:00:02.000Z",
+        },
+      ];
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_1",
+            role: "user",
+            content: [{ type: "text", text: "Hello" }],
+            createdAt: "2024-01-01T00:00:01.000Z",
+          },
+          {
+            id: "msg_3",
+            role: "assistant",
+            content: [{ type: "text", text: "Goodbye" }],
+            createdAt: "2024-01-01T00:00:03.000Z",
+          },
+        ],
+      });
+
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(3);
+      // Should be sorted by createdAt
+      expect(result.threadMap.thread_1.thread.messages[0].id).toBe("msg_1");
+      expect(result.threadMap.thread_1.thread.messages[1].id).toBe("msg_2");
+      expect(result.threadMap.thread_1.thread.messages[2].id).toBe("msg_3");
+    });
+
+    it("handles messages without createdAt (places them at the end)", () => {
+      const state = createTestStreamState("thread_1");
+      state.threadMap.thread_1.thread.messages = [];
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_no_date",
+            role: "assistant",
+            content: [{ type: "text", text: "No date" }],
+            // No createdAt
+          },
+          {
+            id: "msg_with_date",
+            role: "user",
+            content: [{ type: "text", text: "Has date" }],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      });
+
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(2);
+      // Message with date comes first, no date goes to end
+      expect(result.threadMap.thread_1.thread.messages[0].id).toBe(
+        "msg_with_date",
+      );
+      expect(result.threadMap.thread_1.thread.messages[1].id).toBe(
+        "msg_no_date",
+      );
+    });
+
+    it("handles system role messages from API", () => {
+      const state = createTestStreamState("thread_1");
+
+      const result = streamReducer(state, {
+        type: "LOAD_THREAD_MESSAGES",
+        threadId: "thread_1",
+        messages: [
+          {
+            id: "msg_system",
+            role: "system",
+            content: [{ type: "text", text: "System prompt" }],
+            createdAt: "2024-01-01T00:00:00.000Z",
+          },
+          {
+            id: "msg_user",
+            role: "user",
+            content: [{ type: "text", text: "Hello" }],
+            createdAt: "2024-01-01T00:00:01.000Z",
+          },
+        ],
+      });
+
+      expect(result.threadMap.thread_1.thread.messages).toHaveLength(2);
+      expect(result.threadMap.thread_1.thread.messages[0].role).toBe("system");
+      expect(result.threadMap.thread_1.thread.messages[1].role).toBe("user");
+    });
+  });
 });

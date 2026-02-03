@@ -110,13 +110,29 @@ export interface StartNewThreadAction {
 }
 
 /**
+ * Load thread messages action - loads messages from API into stream state.
+ * Used when switching to an existing thread to populate its messages.
+ */
+export interface LoadThreadMessagesAction {
+  type: "LOAD_THREAD_MESSAGES";
+  threadId: string;
+  messages: TamboV1Message[];
+  /**
+   * If true, skip loading if the thread is currently streaming.
+   * This prevents overwriting in-flight streaming messages.
+   */
+  skipIfStreaming?: boolean;
+}
+
+/**
  * Action type for the stream reducer.
  */
 export type StreamAction =
   | EventAction
   | InitThreadAction
   | SetCurrentThreadAction
-  | StartNewThreadAction;
+  | StartNewThreadAction
+  | LoadThreadMessagesAction;
 
 /**
  * Initial streaming state.
@@ -355,6 +371,10 @@ export function streamReducer(
         },
         currentThreadId: threadId,
       };
+    }
+
+    case "LOAD_THREAD_MESSAGES": {
+      return handleLoadThreadMessages(state, action);
     }
 
     case "EVENT":
@@ -1159,6 +1179,69 @@ function handleRunAwaitingInput(
     streaming: {
       ...threadState.streaming,
       status: "waiting",
+    },
+  };
+}
+
+/**
+ * Handle LOAD_THREAD_MESSAGES action.
+ * Loads messages from API into stream state for an existing thread.
+ * Deduplicates by message ID, keeping existing messages (they may have in-flight updates).
+ * Sorts merged messages by createdAt to ensure chronological order.
+ * @param state - Current stream state
+ * @param action - Load thread messages action
+ * @returns Updated stream state
+ */
+function handleLoadThreadMessages(
+  state: StreamState,
+  action: LoadThreadMessagesAction,
+): StreamState {
+  const { threadId, messages, skipIfStreaming } = action;
+
+  // Get or create thread state
+  let threadState = state.threadMap[threadId];
+  if (!threadState) {
+    threadState = createInitialThreadState(threadId);
+  }
+
+  // Skip if streaming and skipIfStreaming is true
+  if (skipIfStreaming && threadState.streaming.status === "streaming") {
+    return state;
+  }
+
+  const existingMessages = threadState.thread.messages;
+
+  // Build a set of existing message IDs for fast lookup
+  const existingIds = new Set(existingMessages.map((m) => m.id));
+
+  // Filter out messages that already exist (keep existing, add new)
+  const newMessages = messages.filter((m) => !existingIds.has(m.id));
+
+  // Merge and sort by createdAt
+  const mergedMessages = [...existingMessages, ...newMessages].toSorted(
+    (a, b) => {
+      // Messages without createdAt go to the end
+      if (!a.createdAt && !b.createdAt) return 0;
+      if (!a.createdAt) return 1;
+      if (!b.createdAt) return -1;
+      return a.createdAt.localeCompare(b.createdAt);
+    },
+  );
+
+  const updatedThreadState: ThreadState = {
+    ...threadState,
+    thread: {
+      ...threadState.thread,
+      messages: mergedMessages,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+
+  return {
+    ...state,
+    threadMap: {
+      ...state.threadMap,
+      [threadId]: updatedThreadState,
     },
   };
 }
