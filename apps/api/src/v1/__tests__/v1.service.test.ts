@@ -864,6 +864,101 @@ describe("V1Service", () => {
       expect(result.content[0].type).toBe("text");
     });
 
+    it("should include _tambo_* status params in tool_use input from componentDecision", async () => {
+      const messageWithToolCallAndStatus = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [
+            { parameterName: "location", parameterValue: "San Francisco" },
+          ],
+        },
+        toolCallId: "call_abc123",
+        componentDecision: {
+          componentName: null, // Not a UI tool
+          props: {},
+          message: "Fetching weather data",
+          statusMessage: "Getting weather for San Francisco...",
+          completionStatusMessage: "Got weather for San Francisco",
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolCallAndStatus as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      const toolUseBlock = result.content.find((c) => c.type === "tool_use");
+      expect(toolUseBlock).toBeDefined();
+      expect((toolUseBlock as any).input).toEqual({
+        location: "San Francisco",
+        _tambo_statusMessage: "Getting weather for San Francisco...",
+        _tambo_completionStatusMessage: "Got weather for San Francisco",
+        _tambo_displayMessage: "Fetching weather data",
+      });
+    });
+
+    it("should not include _tambo_* params when componentDecision is missing", async () => {
+      const messageWithToolCallNoDecision = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [{ parameterName: "location", parameterValue: "NYC" }],
+        },
+        toolCallId: "call_xyz789",
+        componentDecision: null,
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithToolCallNoDecision as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      const toolUseBlock = result.content.find((c) => c.type === "tool_use");
+      expect(toolUseBlock).toBeDefined();
+      expect((toolUseBlock as any).input).toEqual({
+        location: "NYC",
+      });
+      expect((toolUseBlock as any).input._tambo_statusMessage).toBeUndefined();
+    });
+
+    it("should skip empty displayMessage in tool_use input", async () => {
+      const messageWithEmptyDisplayMessage = {
+        ...mockMessage,
+        role: "assistant",
+        content: [{ type: "text", text: "Let me fetch the weather" }],
+        toolCallRequest: {
+          toolName: "getWeather",
+          parameters: [{ parameterName: "location", parameterValue: "LA" }],
+        },
+        toolCallId: "call_empty",
+        componentDecision: {
+          componentName: null,
+          props: {},
+          message: "   ", // Whitespace-only message
+          statusMessage: "Getting weather...",
+          componentState: null,
+        },
+      };
+      mockOperations.getMessageByIdInThread.mockResolvedValue(
+        messageWithEmptyDisplayMessage as any,
+      );
+
+      const result = await service.getMessage("thr_123", "msg_123");
+
+      const toolUseBlock = result.content.find((c) => c.type === "tool_use");
+      expect((toolUseBlock as any).input).toEqual({
+        location: "LA",
+        _tambo_statusMessage: "Getting weather...",
+      });
+      // Empty/whitespace displayMessage should NOT be included
+      expect((toolUseBlock as any).input._tambo_displayMessage).toBeUndefined();
+    });
+
     it("should skip unknown content types without error", async () => {
       const warnSpy = jest
         .spyOn(Logger.prototype, "warn")

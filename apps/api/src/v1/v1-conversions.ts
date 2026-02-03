@@ -241,6 +241,24 @@ export function contentToV1Blocks(
       input[param.parameterName] = param.parameterValue;
     }
 
+    // Add _tambo_* display properties from componentDecision if present.
+    // These are stored in componentDecision (via LegacyComponentDecision spread)
+    // but not typed in ComponentDecisionV2, so we access them with type assertions.
+    // The SDK uses these to display status messages during tool execution.
+    if (message.componentDecision) {
+      const decision = message.componentDecision as Record<string, unknown>;
+      if (typeof decision.statusMessage === "string") {
+        input._tambo_statusMessage = decision.statusMessage;
+      }
+      if (typeof decision.completionStatusMessage === "string") {
+        input._tambo_completionStatusMessage = decision.completionStatusMessage;
+      }
+      // The display message is stored as 'message' in componentDecision
+      if (typeof decision.message === "string" && decision.message.trim()) {
+        input._tambo_displayMessage = decision.message;
+      }
+    }
+
     const toolUseBlock: V1ToolUseContentDto = {
       type: "tool_use",
       id: message.toolCallId,
